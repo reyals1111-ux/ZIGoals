@@ -1,4 +1,5 @@
 'use client';
+import {ZigiPartBoundary} from './part-boundary';
 import {Suspense, lazy} from 'react';
 import {ZigiKnock} from './knock';
 
@@ -12,6 +13,6 @@ type Props = {knock: boolean; agents: boolean; away: boolean; visible: boolean; 
 export default function ZigiCompanion({knock, agents, away, visible, sensitive, phone, side, onPropose}: Props) {
   return <>
     {knock && <ZigiKnock away={away} phone={phone} side={side}/>}
-    {agents && <Suspense fallback={null}><BrowserAgents visible={visible} sensitive={sensitive} phone={phone} side={side} onPropose={onPropose}/></Suspense>}
+    {agents && <ZigiPartBoundary quiet><Suspense fallback={null}><BrowserAgents visible={visible} sensitive={sensitive} phone={phone} side={side} onPropose={onPropose}/></Suspense></ZigiPartBoundary>}
   </>;
 }

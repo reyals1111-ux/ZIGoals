@@ -1,10 +1,12 @@
 'use client';
+import {ZigiPartBoundary} from '../zigi/part-boundary';
 import {usePathname} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useRef, useState} from 'react';
 import {launcherApp} from '../../lib/ai/apps';
 import {usePhoneActive} from '../phone/use-phone-layout';
+import {firstScreenControls, restLift} from './launcher-rest';
 import {ZigiFigure} from '../zigi/zigi-figure';
-import {useZigiState, zigiEvents, zigiState} from '../zigi/bus';
+import {useZigiState, zigiSignals, zigiState} from '../zigi/bus';
 import {useAccountCleanup, useLauncherRecord, useZigiLook} from './use-launcher-record';
 import {useSensitiveScreen} from './use-sensitive-screen';
 import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
@@ -46,13 +48,16 @@ export function AiLauncher() {
   // included; the chevron below the button stays this device's own hide.
   const switchedOff = !isShown(usePagesView(), 'zigi'), hidden = launcher.record.launcherHidden || switchedOff;
   const button = useRef<HTMLButtonElement>(null), timer = useRef<number | null>(null), warmed = useRef(false);
+  const box = useRef<HTMLDivElement>(null);
   useEffect(() => { setMounted(true); }, []);
   useAccountCleanup(useCallback(() => setOpen(false), []));
   const toggle = useCallback(() => setOpen(current => !current), []);
   // The chunk is warmed on hover or focus and when the browser is idle after the person has interacted once; it mounts on the first open.
   const warm = useCallback(() => { if (warmed.current) return; warmed.current = true; void loadChat().catch(() => { warmed.current = false; }); }, []);
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
-  useEffect(() => { if (open) { setLoaded(true); zigiEvents.emit('open'); } else if (loaded) zigiEvents.emit('close'); }, [open, loaded]);
+  // The panel's open and close reach ZIGi once each (Phase 2: this effect fired twice on the first open, once for `open` and once for `loaded`, and the second "open" was cutting the greeting short).
+  const wasOpen = useRef(false);
+  useEffect(() => { if (open) setLoaded(true); if (open && !wasOpen.current) zigiSignals.emit('user_opened_panel'); else if (!open && wasOpen.current) zigiSignals.emit('user_closed_panel'); wasOpen.current = open; }, [open]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
   // Session V Part 14: the mini window's "Back to tab".
   const reopen = useCallback(() => setOpen(true), []);
@@ -87,12 +92,54 @@ export function AiLauncher() {
   // Session V Part 9: the page's "Ask ZIGi" affordances show only while this button does (CSS reads the root's mark).
   const shown = mounted && pathname.startsWith('/app') && launcher.loaded && !hidden && !sensitive;
   useEffect(() => { const root = document.documentElement; if (shown) root.dataset[LAUNCHER_SHOWN_ATTRIBUTE] = 'shown'; else delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; return () => { delete root.dataset[LAUNCHER_SHOWN_ATTRIBUTE]; }; }, [shown]);
+  const visible = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && !hidden && !sensitive;
+  // Session X-Local Part 9, the owner's H7 (ADR-017 S81): on a phone, at the top of a page, the launcher rests where it
+  // covers no first-screen control (lifted to the nearest free band, by a CSS variable); scrolled past the top it is back in
+  // its corner. Placed on mount, after the page settles, on resize and on every route; measured against `main`'s controls.
+  useEffect(() => {
+    const el = box.current; if (!phone || !el) return;
+    let frame = 0; const timers: number[] = [];
+    const place = () => {
+      if (window.scrollY > 40) { el.style.setProperty('--zigi-rest-lift', '0px'); return; }
+      // Measured from the corner with the glide off for this frame (a rect read mid-transition would be the moving box), and
+      // the new lift applied before the glide returns, so the launcher simply rests where it should; only the way back glides.
+      const glide = el.style.transition; el.style.transition = 'none';
+      el.style.setProperty('--zigi-rest-lift', '0px');
+      const r = el.getBoundingClientRect();
+      const lift = restLift({left: r.left, top: r.top, right: r.right, bottom: r.bottom}, firstScreenControls(document, window.innerHeight));
+      el.style.setProperty('--zigi-rest-lift', `${lift}px`);
+      void el.offsetWidth; el.style.transition = glide;
+    };
+    // Keyboard and pointer users: the moment anything in the page takes focus, the launcher is back in its corner at once (no
+    // glide), where the phone's scroll padding keeps a focused control clear of it (ADR-016 X40); a lifted launcher could
+    // otherwise sit over a focused control mid-screen (CI's WCAG 2.4.11 check on Today found two). It stays there for the page.
+    let focused = false;
+    const corner = () => { const glide = el.style.transition; el.style.transition = 'none'; el.style.setProperty('--zigi-rest-lift', '0px'); void el.offsetWidth; el.style.transition = glide; };
+    const onFocus = (event: FocusEvent) => { const t = event.target; if (!(t instanceof Element) || el.contains(t) || !document.querySelector('main')?.contains(t)) return; focused = true; corner(); };
+    const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { if (focused) corner(); else place(); }); };
+    document.addEventListener('focusin', onFocus);
+    schedule(); for (const ms of [300, 1200, 3000]) timers.push(window.setTimeout(schedule, ms));
+    window.addEventListener('scroll', schedule, {passive: true}); window.addEventListener('resize', schedule); window.addEventListener('load', schedule);
+    // The page's first screen fills in after mount (parts load on demand, images arrive): every change to `main` places again.
+    const main = document.querySelector('main') ?? document.body, mutations = new MutationObserver(schedule), sizes = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(schedule);
+    mutations.observe(main, {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'hidden', 'open']}); sizes?.observe(main);
+    return () => { cancelAnimationFrame(frame); for (const t of timers) window.clearTimeout(t); mutations.disconnect(); sizes?.disconnect(); document.removeEventListener('focusin', onFocus); window.removeEventListener('scroll', schedule); window.removeEventListener('resize', schedule); window.removeEventListener('load', schedule); el.style.removeProperty('--zigi-rest-lift'); };
+  }, [phone, pathname, visible]);
+  const edgeTab = mounted && pathname.startsWith('/app') && launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive;
+  // Session X-Local Part 1 (ADR-017 S7): once ZIGi is on screen and the browser is idle, the small alive chunk loads: the
+  // state machine on every page and the frames each state shows. Never in the shell, never before ZIGi is visible.
+  useEffect(() => {
+    if (!visible && !edgeTab) return;
+    let cancelled = false;
+    const load = () => { if (!cancelled) void import('../zigi/alive').then(m => { if (!cancelled) m.startZigiAlive(); }).catch(() => undefined); };
+    // Safari has no requestIdleCallback: a short timer stands in.
+    const idle = typeof window.requestIdleCallback === 'function', handle = idle ? window.requestIdleCallback(load, {timeout: 2000}) : window.setTimeout(load, 800);
+    return () => { cancelled = true; if (idle) window.cancelIdleCallback(handle); else window.clearTimeout(handle); };
+  }, [visible, edgeTab]);
   if (!mounted || !pathname.startsWith('/app')) return null;
-  const app = launcherApp(launcher.record);
-  const visible = launcher.loaded && lookLoaded && !hidden && !sensitive;
-  const edgeTab = launcher.loaded && lookLoaded && launcher.record.launcherHidden && !switchedOff && look.edgeTab && !sensitive, agents = agentsOffered();
+  const app = launcherApp(launcher.record), agents = agentsOffered();
   return <>
-    {visible && <div className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
+    {visible && <div ref={box} className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}
       <div className="ai-launcher-stack">
         <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your AI' : 'Open ZIGi, your AI (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
@@ -105,7 +152,7 @@ export function AiLauncher() {
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
     {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
-    {loaded && <Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense>}
-    {lookLoaded && (look.knock || agents) && <Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense>}
+    {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
+    {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
   </>;
 }

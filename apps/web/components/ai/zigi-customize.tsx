@@ -14,10 +14,11 @@ import './zigi-customize.css';
  * controls in the panel's Customize view and in Settings → ZIGi · your AI. Every choice is a display preference kept on
  * this device (`zigoals:zigi:v1`, in Export, never synced) and takes effect at once; nothing is sent anywhere.
  */
+/** Session X-Local Part 3: Calm plays the idle clip only; Full adds a rare glance or thought between (idle.ts). */
 const ANIMATION_NOTES: Record<(typeof ZIGI_ANIMATIONS)[number], string> = {
-  full: 'Livelier: a bigger breath while ZIGi waits.',
-  calm: 'A slow, small breath while ZIGi waits, and a short move when something happens.',
-  off: 'ZIGi holds still.',
+  full: 'Livelier: ZIGi’s idle clip, with a rare glance or thought in between, and a clip for what happens.',
+  calm: 'ZIGi’s idle clip while it waits, and a clip for what happens.',
+  off: 'ZIGi holds still: a still frame for every state.',
 };
 const ANIMATION_LABELS = {full: 'Full', calm: 'Calm', off: 'Off'} as const;
 const SIDE_LABELS = {right: 'Right', left: 'Left'} as const;

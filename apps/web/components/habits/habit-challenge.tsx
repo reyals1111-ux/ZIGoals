@@ -1,8 +1,9 @@
 'use client';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {latestHabitRule, type Habit} from '../../lib/habits';
 import {CHALLENGE_DAYS, challengeNoteId, challengeOf, finishedWords, keepGoing, startChallenge} from '../../lib/habits-v2/challenge';
 import {CELEBRATIONS} from '../../lib/celebrations';
+import {zigiSignals} from '../zigi/bus';
 import {useDeviceRecord} from '../ai/use-device-record';
 import type {HabitCardStore} from './use-habits';
 
@@ -18,7 +19,11 @@ export function ChallengeLine({habit, today}: {habit: Habit; today: string}) {
 }
 export function ChallengeFinished({habit, store}: {habit: Habit; store: HabitCardStore}) {
   const c = challengeOf(habit, store.today), notes = useDeviceRecord(CELEBRATIONS), [busy, setBusy] = useState(false), [error, setError] = useState('');
-  if (!c?.finished || !notes.loaded || notes.unreadable || notes.data.seen[challengeNoteId(habit, c)]) return null;
+  const show = !!c?.finished && notes.loaded && !notes.unreadable && !notes.data.seen[challengeNoteId(habit, c!)];
+  // Session X-Local Part 4: a finished challenge is a validated fact for ZIGi, signalled once per challenge.
+  const signalled = useRef<string | null>(null);
+  useEffect(() => { if (!show || !c) return; const id = challengeNoteId(habit, c); if (signalled.current !== id) { signalled.current = id; zigiSignals.emitValidated('challenge_milestone'); } }, [show, c, habit]);
+  if (!show || !c) return null;
   const seen = () => notes.update(n => ({...n, seen: {...n.seen, [challengeNoteId(habit, c)]: store.today}}));
   return <div className="habit-challenge-done" role="group" aria-label={`${habit.title} challenge ended`}>
     <p>{finishedWords(habit, c)}</p>

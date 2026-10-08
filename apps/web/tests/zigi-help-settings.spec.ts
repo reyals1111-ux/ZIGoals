@@ -59,7 +59,8 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // A device that dismissed Session T's card sees this release's card once.
   await seed(page, {[WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: ['2026-10-session-t']})});
   // Session W Part 24 (deliberate): this release is Session W's; Session V's links fold under "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-w');
+  // Session X-Local bumped the release (ZIGi comes alive); the card shows once more for every device.
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-x');
   await page.goto('/app');
   const card = page.getByRole('region', {name: 'A few new things.'});
   await expect(card).toBeVisible();

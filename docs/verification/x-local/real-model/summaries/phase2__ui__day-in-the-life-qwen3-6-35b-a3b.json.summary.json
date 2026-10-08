@@ -1,0 +1,42 @@
+{
+ "file": "phase2/ui/day-in-the-life-qwen3-6-35b-a3b.json",
+ "kind": "day",
+ "groups": [
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "Mac M1 Max",
+   "project": "desktop",
+   "runs": 36,
+   "passed": 32,
+   "scored": 36,
+   "errors": 0,
+   "replyMedianMs": 17551,
+   "first": "2026-10-08T17:05:59.047Z",
+   "last": "2026-10-08T17:43:19.225Z"
+  },
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 36,
+   "passed": 33,
+   "scored": 36,
+   "errors": 0,
+   "replyMedianMs": 2064,
+   "first": "2026-10-08T16:47:51.103Z",
+   "last": "2026-10-08T17:37:24.577Z"
+  },
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "RTX 5090",
+   "project": "mobile",
+   "runs": 36,
+   "passed": 34,
+   "scored": 36,
+   "errors": 0,
+   "replyMedianMs": 1684,
+   "first": "2026-10-08T16:49:28.928Z",
+   "last": "2026-10-08T17:38:28.317Z"
+  }
+ ]
+}

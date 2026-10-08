@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {formatUnits, TESTNET} from '@zigoals/chain-config';
 import {createEmptyHealth} from '../../health';
 import {fundingHealth} from '../../goal-intelligence';

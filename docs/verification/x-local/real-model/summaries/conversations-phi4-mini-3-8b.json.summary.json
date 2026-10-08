@@ -1,0 +1,18 @@
+{
+ "file": "conversations-phi4-mini-3-8b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "phi4-mini:3.8b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 15,
+   "passed": 5,
+   "scored": 15,
+   "errors": 0,
+   "replyMedianMs": 1558,
+   "first": "2026-10-08T04:37:24.302Z",
+   "last": "2026-10-08T04:38:13.518Z"
+  }
+ ]
+}

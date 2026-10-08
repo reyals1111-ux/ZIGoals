@@ -1,0 +1,18 @@
+{
+ "file": "conversations-qwen3-8-27b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "qwen3.8:27b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 15,
+   "passed": 15,
+   "scored": 15,
+   "errors": 0,
+   "replyMedianMs": 4777,
+   "first": "2026-10-08T04:40:07.189Z",
+   "last": "2026-10-08T04:41:53.539Z"
+  }
+ ]
+}

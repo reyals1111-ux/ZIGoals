@@ -18,6 +18,9 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     // Session W Part 21
     'log-sleep': {kind: 'log-sleep', wake: '07:00', bedtime: '23:00'}, 'log-meditation': {kind: 'log-meditation', minutes: 10}, 'add-milestone': {kind: 'add-milestone', goal: 'g1', title: 'Halfway'},
     'update-account-balance': {kind: 'update-account-balance', account: 'Savings', balance: '100'}, 'start-challenge': {kind: 'start-challenge', habit: 'h1', days: 30},
+    // Session X-Local Part 5a
+    'stack-habit': {kind: 'stack-habit', habit: 'h2', after: 'h1'}, 'edit-habit': {kind: 'edit-habit', habit: 'h1', title: 'Evening pages'}, 'edit-goal': {kind: 'edit-goal', goal: 'g1', name: 'Lisbon in spring'},
+    'log-mood': {kind: 'log-mood', mood: 4, note: 'Calm'}, 'add-link': {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, 'add-widget': {kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);
@@ -49,4 +52,17 @@ test('an edit cannot widen a proposal: wrong numbers, bad enums, lost required v
   // Values for keys outside the kind's fields are ignored, so a "kind" or "habit" text can never slip in.
   const checkIn = action({kind: 'check-in', habit: 'h1'});
   expect(applyEdits(checkIn, {kind: 'delete-everything', habit: 'h9', value: '3'})).toEqual({ok: true, action: {kind: 'check-in', habit: 'h1', value: 3, day: 'today'}});
+});
+test('Session X-Local Part 5a: a project goal edits without a target, a widget edit keeps its record handle, an address stays https', () => {
+  const project = action({kind: 'create-goal', name: 'Kitchen', type: 'PROJECT', milestones: ['Plans', 'Quotes']});
+  expect(fieldText(project, {key: 'target', label: 'Target', type: 'number'})).toBe('');
+  expect(applyEdits(project, {target: '', currency: '', milestones: 'Plans\nQuotes\nDone'})).toEqual({ok: true, action: {...project, milestones: ['Plans', 'Quotes', 'Done']}});
+  expect(applyEdits(project, {milestones: ''})).toMatchObject({ok: false, message: expect.stringMatching(/milestone/i)});
+  const widget = action({kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'});
+  expect(applyEdits(widget, {habit: 'h9', size: 'wide', title: 'Pages'})).toEqual({ok: true, action: {...widget, size: 'wide', title: 'Pages'}});
+  const link = action({kind: 'add-link', label: 'Club', url: 'https://example.org/club'});
+  expect(applyEdits(link, {url: 'http://example.org/club'})).toMatchObject({ok: false, message: expect.stringMatching(/https/)});
+  const mood = action({kind: 'log-mood', mood: 4});
+  expect(applyEdits(mood, {mood: '6'})).toMatchObject({ok: false});
+  expect(applyEdits(mood, {mood: '2', day: '2026-09-19'})).toEqual({ok: true, action: {kind: 'log-mood', mood: 2, day: '2026-09-19'}});
 });

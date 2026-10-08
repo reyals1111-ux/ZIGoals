@@ -1,5 +1,6 @@
 import {CATEGORY_LABELS, REMEMBER_CATEGORIES} from '../memory';
-import {GOAL_CATEGORIES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {GOAL_CATEGORIES, GOAL_TYPES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {LINK_ICONS} from '../../links/schema';
 
 /**
  * "Edit" on a proposal card (ADR-012, Part 5): the person changes the plain fields of a proposal before adding it. The
@@ -28,7 +29,7 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'create-habit': [text('title', 'Title'), select('type', 'Type', ['build', 'quit', 'limit']), num('target', 'Daily target', true), select('timeOfDay', 'Time of day', ['anytime', 'morning', 'afternoon', 'evening']), text('description', 'Description', true, true), text('category', 'Category', true)],
   'start-fast': [int('targetHours', 'Target hours')],
   'stop-fast': [],
-  'create-goal': [text('name', 'Name'), select('type', 'Type', ['VALUE', 'QUANTITY']), num('target', 'Target'), text('currency', 'Currency'), {key: 'targetDate', label: 'Target date', type: 'date', optional: true}, select('category', 'Category', GOAL_CATEGORIES, true), text('notes', 'Notes', true, true), lines('milestones', 'Milestones (one per line)', true)],
+  'create-goal': [text('name', 'Name'), select('type', 'Type', GOAL_TYPES), num('target', 'Target (not for a project)', true), text('currency', 'Currency or asset', true), {key: 'targetDate', label: 'Target date', type: 'date', optional: true}, select('category', 'Category', GOAL_CATEGORIES, true), text('notes', 'Notes', true, true), lines('milestones', 'Milestones (one per line)', true)],
   'add-goal-note': [text('note', 'Note', false, true)],
   'prefill-holding': [select('category', 'Category', HOLDING_CATEGORIES), text('name', 'Name'), text('quantity', 'Quantity'), text('currency', 'Currency'), num('value', 'Total value', true), text('symbol', 'Symbol', true), text('notes', 'Notes', true, true)],
   // Session V Part 7. A recipe's ingredients and a counter or reminder's record are not edited here: ask again, or edit the
@@ -48,6 +49,14 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'add-milestone': [text('title', 'Milestone'), num('value', 'Value in the goal\'s currency', true)],
   'update-account-balance': [text('account', 'Account (its name in Wealth)'), text('balance', 'Balance'), text('currency', 'Currency', true), DAY],
   'start-challenge': [int('days', 'Days (7 to 365)')],
+  // Session X-Local Part 5a. A stack names two habits by handle (ask again to change them); an edit changes only the
+  // plain fields it lists; the measurement and schedule of a habit are edited in Habits.
+  'stack-habit': [],
+  'edit-habit': [text('title', 'New title', true), select('type', 'Type', ['build', 'quit', 'limit'], true), num('target', 'Daily target', true), select('timeOfDay', 'Time of day', ['anytime', 'morning', 'afternoon', 'evening'], true), text('description', 'Description', true, true), text('category', 'Category', true)],
+  'edit-goal': [text('name', 'New name', true), num('target', 'Target', true), {key: 'targetDate', label: 'Target date', type: 'date', optional: true}, select('category', 'Category', GOAL_CATEGORIES, true), text('notes', 'Notes', true, true)],
+  'log-mood': [int('mood', 'Mood (1 = hard, 5 = great)'), text('note', 'Note', true, true), DAY],
+  'add-link': [text('label', 'Name'), text('url', 'Address (https://…)'), select('icon', 'Icon', LINK_ICONS, true)],
+  'add-widget': [select('widget', 'Widget', WIDGET_KINDS), text('metric', 'Metric', true), text('title', 'Title', true), select('size', 'Size', ['compact', 'wide'])],
 };
 export const editableFields = (action: Action): readonly Field[] => FIELDS[action.kind];
 const read = (record: unknown, path: string): unknown => path.split('.').reduce<unknown>((value, part) => value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined, record);

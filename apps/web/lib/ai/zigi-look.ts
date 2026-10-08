@@ -7,8 +7,8 @@ import {ZIGI_KEY} from './store/keys';
  * (Session V Part 13; off by default: only then does the shell load the knock). Anything unreadable
  * reads as the defaults (ADR-014 S5) and a read never writes; Customize writes through the full validated record.
  */
-export type ZigiLook = {animation: 'full' | 'calm' | 'off'; side: 'right' | 'left'; size: 's' | 'm' | 'l'; edgeTab: boolean; knock: boolean};
-export const DEFAULT_LOOK: ZigiLook = {animation: 'calm', side: 'right', size: 'm', edgeTab: true, knock: false};
+export type ZigiLook = {animation: 'full' | 'calm' | 'off'; side: 'right' | 'left'; size: 's' | 'm' | 'l'; edgeTab: boolean; knock: boolean; skin: string | null};
+export const DEFAULT_LOOK: ZigiLook = {animation: 'calm', side: 'right', size: 'm', edgeTab: true, knock: false, skin: null};
 const pick = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T => allowed.includes(value as T) ? value as T : fallback;
 export function readZigiLook(storage: Pick<Storage, 'getItem'>): ZigiLook {
   let raw: string | null;
@@ -18,11 +18,14 @@ export function readZigiLook(storage: Pick<Storage, 'getItem'>): ZigiLook {
     const o: unknown = JSON.parse(raw);
     if (!o || typeof o !== 'object' || (o as {version?: unknown}).version !== 1) return DEFAULT_LOOK;
     const r = o as Record<string, unknown>;
-    return {animation: pick(r.animation, ['full', 'calm', 'off'], 'calm'), side: pick(r.side, ['right', 'left'], 'right'), size: pick(r.size, ['s', 'm', 'l'], 'm'), edgeTab: r.edgeTab !== false, knock: !!r.knock && typeof r.knock === 'object' && (r.knock as {enabled?: unknown}).enabled === true};
+    return {animation: pick(r.animation, ['full', 'calm', 'off'], 'calm'), side: pick(r.side, ['right', 'left'], 'right'), size: pick(r.size, ['s', 'm', 'l'], 'm'), edgeTab: r.edgeTab !== false, knock: !!r.knock && typeof r.knock === 'object' && (r.knock as {enabled?: unknown}).enabled === true,
+      // Session X-Local Part 1: the chosen look's name, for the alive chunk (an unknown name shows the default skin).
+      skin: typeof r.skin === 'string' && /^[a-z0-9-]{1,40}$/.test(r.skin) ? r.skin : null};
   } catch { return DEFAULT_LOOK; }
 }
 /**
- * The original skin's still frame, the one figure the launcher shell carries (the manifest stays out of the shell); the
- * manifest test keeps these equal to the manifest's default skin, and its optical offset to the shell CSS's.
+ * The original skin's idle still frame, the one figure the launcher shell carries until the alive chunk publishes the
+ * frames (the manifest stays out of the shell); the manifest test keeps these equal to the manifest's default skin's base
+ * frame, and its optical offset to the shell CSS's.
  */
-export const SHELL_FRAME = {x1: '/brand/figures/zigi-placeholder.webp', x2: '/brand/figures/zigi-placeholder-2x.webp', width: 96, height: 126} as const;
+export const SHELL_FRAME = {x1: '/brand/figures/zigi/origami-nebula/F001-idle.webp', x2: '/brand/figures/zigi/origami-nebula/F001-idle-2x.webp', width: 96, height: 126} as const;

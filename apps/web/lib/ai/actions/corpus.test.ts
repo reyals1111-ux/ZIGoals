@@ -5,6 +5,7 @@ import {healthSchema, type HealthData} from '../../health';
 import {platformSchema, type Platform} from '../../positions';
 import {homeRecordsIn} from '../../sync-homes-store';
 import {emptyReminders} from '../../reminders/schema';
+import {presetSettings} from '../../dashboard-settings';
 import type {Handle} from '../context/types';
 import {REPLY_CORPUS} from '../fixtures/reply-corpus';
 import {hasOpenFence, NOT_AN_ENTRY, parseReply} from './parse';
@@ -24,7 +25,7 @@ const stores: Stores = {
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: homeRecordsIn(records).fasting,
   // Session V Part 7: the three device records a proposal may also write.
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1}, settings: {...presetSettings('balanced'), onboarded: true},
 };
 const handles: Handle[] = [
   ...stores.habits.habits.map((h, i) => ({handle: `h${i + 1}`, kind: 'habit' as const, id: h.id, label: h.title})),

@@ -43,3 +43,10 @@ test('pages map to areas; Settings attaches nothing; Wealth sub-pages are named'
   expect(wealthView('/app/portfolio')).toBe('portfolio'); expect(wealthView('/app/staking')).toBe('staking'); expect(wealthView('/app/markets')).toBe('markets'); expect(wealthView('/app/wealth/asset/1')).toBe('wealth');
   expect(Object.keys(AREA_LABELS).sort()).toEqual([...PAGE_AREAS].sort());
 });
+test('Phase 2 round 4: the prompt names the day (weekday and date) so relative days and weekday names resolve; the Dutch and French clock idioms are spelled out', () => {
+  const p = buildSystemPrompt({area: 'today', context: null, customInstructions: '', providerName: 'Ollama', today: '2026-10-05'});
+  expect(p).toContain('Today is Monday 2026-10-05 for the person.');
+  expect(p).toContain('"half acht" is 07:30');
+  expect(buildSystemPrompt({area: 'today', context: null, customInstructions: '', providerName: 'Ollama'})).not.toContain('Today is');
+});
+

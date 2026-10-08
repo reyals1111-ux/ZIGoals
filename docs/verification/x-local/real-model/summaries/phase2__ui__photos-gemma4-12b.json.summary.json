@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/photos-gemma4-12b.json",
+ "kind": "photos",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 8,
+   "passed": 6,
+   "scored": 8,
+   "errors": 0,
+   "replyMedianMs": 7399,
+   "first": "2026-10-08T16:51:39.808Z",
+   "last": "2026-10-08T17:45:57.620Z"
+  }
+ ]
+}

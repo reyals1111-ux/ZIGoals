@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {CATEGORY_LABELS, isHealthNote, type MemoryCategory} from '../memory';
 import {MEMORY_CATEGORIES} from '../store/records';
 import {HEALTH_CLOSED, ok, provenance, refuse, text} from './format';

@@ -6,7 +6,8 @@ import type {ProviderId} from './providers';
  * provider's text before it is shown. Status codes and types come from each provider's documentation
  * (docs/product/YOUR_AI_V1.md §1).
  */
-export type AiErrorKind = 'bad-key' | 'no-credit' | 'rate-limit' | 'model-missing' | 'local-unreachable' | 'cors' | 'offline' | 'overloaded' | 'blocked' | 'request' | 'server' | 'aborted' | 'unreadable';
+/** `stalled` (Session X-Local Part 5c): the stream sent nothing for a minute; what arrived is kept. */
+export type AiErrorKind = 'bad-key' | 'no-credit' | 'rate-limit' | 'model-missing' | 'local-unreachable' | 'cors' | 'offline' | 'overloaded' | 'blocked' | 'request' | 'server' | 'aborted' | 'unreadable' | 'stalled';
 export class AiError extends Error {
   readonly kind: AiErrorKind;
   readonly status: number | null;
@@ -90,6 +91,7 @@ export function errorSteps(error: AiError, context: {providerName: string; local
     case 'request': return ['Try a shorter message, or choose another model.'];
     case 'server': return ['Try again in a moment.'];
     case 'unreadable': return ['Try again; if it keeps happening, choose another model or provider.'];
+    case 'stalled': return ['What arrived is kept above; ask ZIGi to continue, or send again.', context.local ? 'A local model that stops mid-reply is often out of memory or swapping: a smaller model or a shorter context budget helps.' : 'If it keeps happening, choose another model.'];
     case 'aborted': return [];
   }
 }

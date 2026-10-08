@@ -167,3 +167,22 @@ test('Session W Part 21: the new areas answer here, in calm words; a habit the q
   for (const q of ['Log 7 hours of sleep for last night', 'I slept badly last night', 'Should I go to bed earlier?', 'How can I improve my chess rating?', 'Start a 30 day reading challenge']) expect(ask(q).kind, q).toBe('none');
   for (const q of ['How did I sleep this week?', 'How consistent is my bedtime?', 'What do I owe?', 'How many chess games did I play this month?', 'How many links do I have?', 'What are my milestones?']) expect(textOf(ask(q)), q).not.toMatch(TONE_FORBIDDEN);
 });
+
+test('Session X-Local Part 6d: five asks the first model runs found unanswered here are answered on the device', () => {
+  const totals = ask('What are my totals per currency?'); expect(totals.kind).toBe('answer'); expect(totals.kind === 'answer' && totals.calls.map(c => c.tool)).toContain('totals_per_currency');
+  const portfolio = ask('What is my portfolio worth?'); expect(portfolio.kind).toBe('answer'); expect(textOf(portfolio)).toContain('own currency'); expect(portfolio.kind === 'answer' && portfolio.calls.map(c => c.tool)).toEqual(['portfolios']);
+  const milestones = ask('Which milestones are done?'); expect(milestones.kind).toBe('answer'); expect(textOf(milestones)).toContain('of'); expect(milestones.kind === 'answer' && milestones.calls.map(c => c.tool)).toEqual(['milestones']);
+  const streak = ask('What is my longest streak ever?'); expect(streak.kind).toBe('answer'); expect(textOf(streak)).toMatch(/^Your longest streak ever is \d+ days?: /); expect(streak.kind === 'answer' && streak.calls.every(c => c.tool === 'habit_stats')).toBe(true);
+  // A habit named still gets its own answer; a question that is not a lookup still goes to the AI.
+  expect(textOf(ask("What's my longest reading streak?"))).toContain('longest Read streak');
+  expect(ask('Which colour should I paint the kitchen?').kind).toBe('none');
+});
+test("X-Cloud's H10 (S71): with records but no goal, the example list does not offer the goals question, and the goals question itself gets an answer", () => {
+  const src = showcaseSources();
+  const env = toolEnv({...src, platform: {...src.platform, goals: []}}, gatesFor(true, 'today', '/app'), 'local');
+  expect(examplesFor(env)).not.toContain('How far am I on my goals?');
+  const reply = localAnswer('How far am I on my goals?', env);
+  expect(reply.kind).toBe('answer'); expect((reply as {text: string}).text).toContain('You have no goals yet');
+  expect(localAnswer('How far am I on my goals?', toolEnv(src, gatesFor(true, 'today', '/app'), 'local')).kind).toBe('none');
+});
+

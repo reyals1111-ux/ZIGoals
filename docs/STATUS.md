@@ -1,3 +1,137 @@
+# Session X-Local — "ZIGi comes alive" (ADR-017) (2026-10-07/08, [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79), not merged or deployed)
+
+**Evidence labels:**
+- **local:** the owner's Mac (M1 Max, 64 GB), this session's checkout only. Toolchain: Node 24.19.0 (`fnm`), pnpm 11.19.0; real Chrome 154 (the `chrome` channel), 2 workers, never two suites at once; unit tests under `TZ=UTC`. Dev server `:3102` for the model stages, this branch's production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`) on `:3104`, `main`'s on `:3103` for the comparisons.
+- **real model (name, size, quantisation, family, host):** Ollama over a throwaway forwarder (`127.0.0.1:11435 → PC`) and the Mac's own Ollama; fictional data only (the Showcase); the models and their numbers are in [ZIGI_REAL_MODEL_TEST.md](verification/x-local/ZIGI_REAL_MODEL_TEST.md).
+- **MOCK:** the cloud wires (OpenAI, Anthropic, Gemini, xAI, OpenRouter) through a throwaway OpenAI-compatible server on `127.0.0.1:1234`; no key existed in this run.
+- **WebKit:** Playwright's WebKit 26.6 (the one owner-approved download), never "Safari on an iPhone"; the iPhone checklist in [ZIGI_ALIVE_X.md](product/ZIGI_ALIVE_X.md) covers the device.
+- **owner-reported:** rows the owner checks by hand (the iPhone checklist, Chrome's speech service, the H7 and H8 decisions).
+
+Nothing was deployed. No session logged into any service; no personal data left the Mac (the PC saw the Showcase only, over its Ollama HTTP API). The studio folder and the owner's config were read, never changed.
+
+**Base:** `main` `72ad872`; X-Cloud ran in parallel on `feature/session-x-cloud` and its PR #78 merged into `main` (`757b3b1`) on 2026-10-08 evening. On the owner's instruction this branch merged second: `origin/main` merged in with a merge commit (`da2e3d4`, three conflicts resolved keeping both lanes, the shared files — What's new, Help, the tests — merged on their own with both sessions' content) and the shared items carried here (H8 option 1, H7, H2, the stale allowlist entry, the H9 fold; below). The handoff files carry H1–H11 (theirs) and L1–L4 plus the answers (mine).
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Setup: fake keys built at run time (X-Cloud's item), the handoff file, the placeholder grep, the PC pulls (`gemma4:12b`, `phi4-mini:3.8b`) | — | `1cea510` | local |
+| 1 | The Studio-2 art in: 55 files verified byte for byte, manifest v2 (eleven clips, fourteen worn states), posters first, the lazy alive chunk, the optical centre re-measured, a mechanical asset test | 2 | `7b790f4` | local |
+| 2 | Studio-4 is a file swap: manifest slots, `scripts/zigi/import-studio.mjs`, the studio4 fixture, 7 tests | 2 (data) | `0a8c8ac` | local |
+| 3 | Idle that feels alive: the rotation under Full, the base idle under Calm, stills under Off and reduced motion; typing and hidden-tab pauses | 2 (motion) | `73b8292` | local |
+| 4 | Emotions that match: the semantic layer and the ported controller, calm celebrations (6 moments, 3 a day), the AI's hint stripped on every path, Meet ZIGi with plain-words meanings | — | `657e2f9` | local |
+| 5a | Create anything: six new kinds, the four goal types, batch plans, corrections (`"revise": true`), accepted means correct | — | `dc0b7b7` `d2f637a` | local |
+| 5b | Auto-accept, opt-in per kind, Health kinds only while shared, cap 20 a day, toast + Undo | **3** (storage: ai options) | `82f46bb` | local |
+| 5c | Robustness on every wire: JSON repair held to the whitelist, one labelled retry, the 60 s stall watchdog, a question-aware budget | — | `3d9d255` | local |
+| 6 | The real-model test: inventory, corpus, harness, panel runs, pages, days, photos, surfaces, WebKit, home-GPU research, findings → fixes (S35–S41), the document | — | `0c7e826` … `94de223` (28 commits) | real model, MOCK, WebKit, local |
+| 7 | Weight: posters first, clips on demand, the manifest out of the shell; measured main vs branch | — | in Parts 1–4; `e164538` | local |
+| Gate A | Freeze check main `72ad872` vs branch (155 captures ×2 builds): 133 identical, 22 differ, every one explained (Help's build hash, the launcher's real art, the nebula sampled at another phase) | — | recorded in the PR | local |
+| 8 | Owner material: What's new, Help, the owner's guide, the iPhone checklist, the gallery branch `review/session-x-local-screens` | — | `d21fe0d` `653516e` `5ea4a17` | local |
+| P2.1 | The model-scored corpus 338 → 626 (172 important), field checks and tool-any in the scorer | — | `f7d9fe6` | local |
+| P2.2 | The fix program, model-agnostic: the question router pre-runs more families in three languages, one bounded repair round with structured output, parser and schema repairs, protocol sentences | — | `3687e2f` | real model |
+| P2.3 | Nine fix rounds (S59–S70 from the corpus after-runs, S74–S75 from the UI stages), the baseline on a frozen worktree, the after-runs, the variance ×3, every run on one scorer, the UI stages on the PC and the Mac and their re-runs, the raw runs on `review/session-x-local-runs` | — | `5c68a28` … `a307e42` (32 commits) | real model |
+| P2.4 | Stress and edge through the real panel (MOCK): 18 tests both projects | — | `fd77ddc` | MOCK, local |
+| P2.5 | Every one of the 25 states occurs in use with a spec (four app fixes), the simulated day (three knock fixes), the timings judged on full-size close-ups and kept, the clips on the gallery branch | — | `6c4697d` `0fb7066` `67d8e3f` | local |
+| P2.6 | The production build: the ZIGi suites in Chrome (20 failed → 0 across the re-runs: the greeting holding a fast reply's flow, the request-count specs, the careful-mode question, the log-mode retry) and in WebKit (328 passed; the rejected router prefetches identified, S64) | — | `18d06fc` … `3111235` | local, WebKit |
+| P2.7 | LM Studio: not installed on this Mac; nothing installed | — | `80f5294` | local |
+| P2.8 | Every new handoff item: H6 (the Settings reserve), H7 (measured, the owner's), H8 (an owner decision), H9 (`ZigiPartBoundary`), H10 (no looping chip, focus after a mouse Send, "1 day"), H11 | — | `5bd3789` `d63caa9` `b0bc389` … | local |
+| Gate B | On the final code (`e145aaa`; the commits after it are tests and documents): the production build; the ZIGi suites and the smoke in Chrome, both projects (first pass 354 passed, 6 failed on one cause, the refocus after a send read as listening, S76 → 360 passed, 0 failed); WebKit (335 passed, 3 failed in the two P2.8 specs, S77 → both specs green in WebKit and Chrome against the production build; the full WebKit re-run came with Part 9's gates below); the freeze check against `main`'s build, 155 captures: 124 identical, 31 differ, every one explained (Help's ZIGi topics in its index ×10, the What's new entry on Today, the launcher capture and the quick-add dialog ×10, Settings' ZIGi section ×3, the nebula background sampled at another phase ×8: portfolio, wealth, markets, goal-detail — content identical; no page error on either build); the weights (below) | — | `e145aaa` `28e4727` | local, WebKit |
+| 9a | The merge of `main` (X-Cloud's PR #78) and the owner's merge items: H8 option 1 (the Alpha gate, `[TIER 3]`, S79), H9 (one load boundary, S80), H7 (the phone launcher rests clear of every first-screen control, S81), H2 (zod namespace in ZIGi's 20 files, measured, S82), the stale secret-allowlist entry | **3** (security tests) | `da2e3d4` `ec5e814` `e01067b` `947652f` `9ee9892` `7fa939d` | local |
+| 9 | The gates after the merge, on the merged production build: the ZIGi suites and the smoke in Chrome (364 passed, 2 failed, both `zigi-auto-accept`: X-Cloud's feed now shows the record itself, so the auto-accept wording moved onto it, S83 → the final run on the rebuilt build **366 passed, 0 failed**), WebKit (341 passed, 3 failed: the same two and one `zigi-memory` timeout → the final run **344 passed, 0 failed**, the memory spec alone twice more, passed), the Alpha gate (`public-alpha.spec.ts:79`, both projects, green; the H8 proof above), each earlier-failed spec alone against the merged build and against `main` `72ad872`'s (table below), the full unit suite (4,310 passed), the weights (H2, above), the freeze check against the new `main`'s own build (`757b3b1` built from a worktree): 155 captures, 109 identical, 46 differ in four classes, every one explained — Help's ZIGi topics in its index (12), the What's new entry on Today, the launcher capture and the quick-add dialog (9), Settings' feedback template naming each build's own commit (12), the nebula background sampled at another phase on Health, Markets, Portfolio and Ecosystem (13; content identical); no page error on either build | — | `e145aaa` `28e4727` `a5bc4c2` (Gate B's three fixes at their cause) · `ec5e814` … `bb2d89a` (the nine post-merge commits) | local, WebKit, CI |
+| 10 | STATUS: this entry on top of X-Cloud's, the hours table, the PR description final, the servers, the forwarder and the scratch worktrees stopped and removed; then CI's two reds on the STATUS head fixed at their cause (S84: the send-focus spec's own mock and the launcher's focus rule; S85: Today's row overlay and its title link) and the entry updated | — | `2d98703` and the commits after it | local, CI |
+
+## Tier 2, in plain words (owner visual OK)
+- **`7b790f4`, `0a8c8ac`, `73b8292` the art, the manifest, the figure box (1.18×), the optical offset, the idle rotation.** Risk: a look the owner may not want. Rollback: revert Part 1 (the placeholders return with it), Parts 2–3 revert cleanly on their own.
+
+## Tier 3, in plain words (risk → rollback)
+- **`ec5e814` `[TIER 3] (security headers/tests)` the Alpha gate, H8 option 1 (the owner's decision, S79).** `tests/public-alpha.spec.ts` accepts a script without a nonce only when it is a chunk Turbopack's runtime appended on demand: not parser-inserted (absent from the server's HTML) and its src on the page's own origin under `/_next/static/chunks/`; it newly requires every `<script` in the server's HTML to carry the header's nonce. Risk: a narrower gate than "every script has a nonce" on the DOM (the runtime's chunks are admitted by `'strict-dynamic'` anyway, and the server's HTML is checked more strictly than before); the injection probe still fails a parser-inserted script (proven below). Rollback: revert the commit; the gate then fails on the alive chunk again (handoff L1 / H8). No header, CSP or Worker changed. **Proof, both directions (local, the merged production build):** `public-alpha.spec.ts:79` passes on both projects with the alive chunk loaded; a one-off check of the same server-HTML rule against a probe response with one injected parser-inserted `<script>` reported 33 script tags, exactly one without the header's nonce (the injected one), and none on the clean response; the live injection probe in the test still keeps `__untrustedScript` undefined.
+- **`82f46bb` `[TIER 3] (storage: ai options)` auto-accept.** `autoAccept: {kinds, dailyCap, days}` in `zigoals:ai-options:v1` (loose, optional; booleans and integers only). Risk: a person who switches a kind on lets ZIGi add that kind without a tap (never weight, fasting or money; Health kinds only while Health is shared at that moment; 20 a day; every addition shows with Undo for ten seconds and is listed under Actions by ZIGi). Older builds ignore the field. Rollback: revert the commit; the field stays inert.
+
+## Storage, sync and rollback
+- New device keys: none beyond the `autoAccept` field above and the knock's day counters' sibling (`zigoals:zigi-knock:v1`, Session V's key, one more field). Nothing synced; nothing of ZIGi's leaves the device.
+
+## Weight (gzip, production builds, Gate A, re-measured at Gate B)
+Every page within `scripts/weight-budgets.json` (X-Cloud lowered the budgets in its lane; this branch's numbers sit under them). Against `main` `72ad872` at Gate A: the shell +877 B, Today +1,535 B, Habits +1,533 B, every other page +877 B; the launcher chunk 18,441 → 18,421 B; the alive chunk lazy and never in the shell (its production gzip size in the test document). Re-measured at Gate B on the final code against the same live build of `main`: the shell +1,244 B, Today +2,046 B, Habits +1,900 B, Health +1,333 B, Activity +1,311 B, Settings +1,274 B, every other page +1,244 B — Parts 5–8 and Phase 2 together added 367–511 B gzip per page. (The weight table's own "main" column is the figure recorded in `scripts/weight-budgets.json` by Session W Part 22, a day older than `main` `72ad872`, so it overstates the difference by ~29 kB; the live build is the comparison.) **After the merge (H2, S82):** ZIGi's 20 files on the zod namespace, measured against the brace form on the same merged head: every page 4.2 kB lighter (Today 511,802 → 507,613 B, Activity 410,732 → 406,540 B, the shell 404,205 → 400,030 B); every page under X-Cloud's lowered budgets (Today 507.6 of 515.0 kB, the shell 400.0 of 406.0 kB).
+
+## Tests (counts are not summed across overlapping runs)
+| Run | Result | Evidence |
+|---|---|---|
+| Unit, full suite, `TZ=UTC` (tree of `3ec6029`) | 460 files passed, 19 skipped; 4,172 tests passed, 50 skipped | local |
+| Unit, full suite, `TZ=UTC`, on `e145aaa` (before the merge) and on the merged head (`1ead5ea`) | 463 files, 4,192 tests passed (52 skipped) → 475 files, 4,310 tests passed (56 skipped); 0 failed in either | local |
+| Browser, the ZIGi suites and the smoke, both projects, production build (`c3a4a89`, then the re-runs on `5bd7f2d`, `8907890`, `2567409`) | first pass 334 passed, 20 failed, 422 skipped (the real-model specs gate themselves); every failure fixed at its cause (S59–S64) and re-run green: 74 passed on the six affected specs, 14/14 robustness and safety in Chrome and WebKit, 6/6 smoke in WebKit | local |
+| Browser, the ZIGi suites in WebKit, both projects, production build | 328 passed, 50 skipped, 4 failed → all four fixed and re-run green (S59 refined, S64) | WebKit |
+| Browser, the ZIGi suites and the smoke, both projects, production build of the final code (`e145aaa`, Gate B) | first pass on `4c94fa6`: 354 passed, 6 failed (one cause, the refocus after a send read as listening, S76); on `e145aaa`: **360 passed, 0 failed**, 422 skipped (the real-model specs gate themselves) | local |
+| Browser, the ZIGi suites in WebKit on the final code (Gate B, `e145aaa` + the two P2.8 spec corrections S77) | 335 passed, 3 failed → the two P2.8 specs corrected (S77) and green in WebKit and Chrome against the production build | WebKit |
+| Browser, the ZIGi suites on the merged head's production build, Chrome and WebKit | Chrome 364 passed, 2 failed; WebKit 341 passed, 3 failed — the auto-accept wording on X-Cloud's feed (S83, fixed) and one WebKit timeout in the memory spec; final run on the fixed build: Chrome **366 / 0**, WebKit **344 / 0**, the Alpha gate 2 / 2, the memory spec alone 2 / 2 | local, WebKit |
+| Browser, full suite, both projects, production build of `e145aaa` (the branch before the merge) | first pass: 1688 passed, 18 failed, 526 skipped — contaminated from its middle by single-test diagnostic runs started beside it (each `playwright test` clears `test-results`; five tests then failed on their vanished traces, S-rule recorded); its genuine findings: one defect in this lane fixed at the cause (S78), four 320 px layout failures on Goals that reproduced on `main` `72ad872`'s own build on this Mac (handoff L4) and pass on the merged build, and two specs outside this lane that fail alone on this Mac against both builds (below) | local |
+| Each earlier-failed spec alone, both projects, against the merged build (`:3104`) and against `main` `72ad872`'s build (`:3103`) | merged build: `phone-pages:10`, `coherence:25`, `owner-polish:31`, `run9-2-product:41`, `counters-compact:42`, `your-ai:274` all pass; old `main`'s build: the four 320 px specs fail (the Goals header at 320 px with macOS fonts, fixed on the new `main`), `counters-compact` and `your-ai` pass. `fasting:66` ("stopped automatically at 24 hours", the status not found after the reload) and `push-reminders:210` (a 10 s predicate timeout; a known CI intermittent) fail alone on this Mac against both builds and pass in CI — local-only, outside this lane, listed under Known intermittents | local |
+| The golden set | 100 %, the 91 byte-identical (`golden-set.test.ts`) | local |
+| The real-model corpus (626 cases, 773 turns, one scorer) | baseline → final: gemma4 77.1 → 89.4 %, qwen3.8 74.5 → 85.1 %, qwen3.6 70.6 → 82.1 % (PC) and 69.7 → 81.6–84.0 % (Mac), phi4-mini 45.9 → 60.5 %; variance (172 ×3): gemma4 86–91 %, qwen3.8 80–86 %, qwen3.6 79–82 %, phi4-mini 56–59 % | real model |
+| The panel, Phase 2 (150 cases per PC model through the real chat, 60 on the Mac; raw as Phase 1 scored / corrected for the router's own reads) | gemma4 77.9 / 84.6 %, qwen3.8 75.2 / 80.5 %, qwen3.6 71.8 / 79.2 % (PC) and 78.3 / 88.3 % (Mac), phi4-mini 56.4 / 63.8 %; like for like on the 77 cases both phases ran every model moved up; the UI targets (≥ 95 % / ≥ 90 %) not met | real model |
+| Conversations (plan → correct → accept → undo, the record checked on its page), after fix rounds 8–9 | gemma4 15/15, qwen3.8 15/15, qwen3.6 15/15, phi4-mini 9/15 (PC), Mac 10/10 — the multi-turn target met on this code (one run each; before the fixes 14, 14, 11 and 5/10) | real model |
+| Pages (17 pages × 10 asks) | gemma4 170/170; qwen3.6 166/170 · 97.6 % corrected on desktop and phone (target ≥ 98 %: 0.4 under) | real model |
+| The day in the life (18 steps, with the photo step), after rounds 8–9 | PC desktop 17/18, PC phone 18/18, Mac 18/18 — 53 of 54 (the one miss a start time the model invented, rightly refused) | real model |
+| Photos (4 plates: one drawn, three public-domain) | qwen3.8 4/4; gemma4, qwen3.6 and the Mac 3/4 (the crowded spread plate; one invented item) | real model |
+| The hours: 26.6 h (1597 minutes) of recorded model, UI and gate stages, each stage once (the table in the test document) | — | local |
+
+## Assertions changed (none weakened)
+Every deliberate change is listed with its reason in [ADR-017](architecture/ADR-017-session-x-local.md) "Assertions changed": the studio's hold test re-aimed at a celebration (S60), four specs' asks turned from plans into lookups because a plan answered without a card gets the one repair round (S59, S63), the WebKit smoke's page-error assertion minus the router prefetches WebKit rejects when a page is left, each identified by shape and moment (S64), the reply corpus's trailing-comma case repaired into its card (Part 5c), the scorer's refusal cue widened and the pages' water asks expecting their card (S70, S73), the day's rest check reading idle or listening since the box keeps the focus (S71), the photo hedge cue, two conversation asks moved off the Showcase's own habits and the weekend's seeded night removed before the lie-in (S75). After the merge, the owner's H8 option 1 (S79, `[TIER 3]`): the Alpha gate's "every script has a nonce" narrowed to admit only runtime-appended chunks of this origin that were not in the server's HTML, with a new, stronger check that every `<script` in the server's HTML carries the header's nonce; the injection probe unchanged. The day's rest check reads `idle` again (S76) and the Settings reserve's jump test measures the section's own growth (S77).
+
+## Revert gate (local)
+Two gates, each in a scratch worktree with every package's `node_modules` linked from the real checkout, every commit `git revert -n` newest first in true history order (the parts interleave: Phase 2's rounds between Part 6's and Part 9's commits), `tsc --noEmit` for both tsconfigs each time the part label changes, and the tree compared with the base at the end.
+
+**Gate 1 — the session's 103 commits before the merge (`72ad872..7f2cf3b`):** every revert clean, the tree identical to `72ad872` at the end; the typecheck passed at every step but one: with Part 5c reverted and Parts 0–5b still in, `ai-chat.tsx` keeps one comparison with the `stalled` error kind (Part 5b's commit carried that line; 5c's `errors.ts` is what makes it a kind), so that one intermediate state fails on one line and the next step (5b reverted) typechecks again. Rolling back 5c therefore goes with 5b, or with that one line.
+
+| Reverted (newest first, in history order) | Commits | Revert | Typecheck |
+|---|---:|---|---|
+| Phase 2 | 57 | clean | pass |
+| Part 6 | 1 | clean | pass |
+| Phase 2 | 1 | clean | pass |
+| Part 6 | 1 | clean | pass |
+| Part 9 | 2 | clean | pass |
+| Part 6 | 2 | clean | pass |
+| Part 8 | 1 | clean | pass |
+| Part 6 | 24 | clean | pass |
+| Part 7 | 1 | clean | pass |
+| Part 6 | 5 | clean | pass |
+| Part 7 | 1 | clean | pass |
+| Part 6 | 3 | clean | pass |
+| Part 5c | 1 | clean | FAIL |
+| Part 5b | 1 | clean | pass |
+| Part 5a | 2 | clean | pass |
+| Part 6 | 3 | clean | pass |
+| Part 4 | 1 | clean | pass |
+| Part 3 | 1 | clean | pass |
+| Part 2 | 1 | clean | pass |
+| Part 1 | 1 | clean | pass |
+| Part 0 | 1 | clean | pass |
+
+**Gate 2 — the nine commits after the merge (`da2e3d4..bb2d89a`: H8 `[TIER 3]`, H9, the allowlist, H7, H2, the ADR rows, the guide, L4, the feed wording):** every revert clean, typecheck green, the tree identical to the merge commit.
+
+| Reverted (newest first, in history order) | Commits | Revert | Typecheck |
+|---|---:|---|---|
+| Part 9 | 9 | clean | pass |
+
+## CI
+- On `2d98703` (the STATUS head): "web checks" (lint, typecheck, unit, build, audit, secret scan) **green** — the audit red of the earlier heads went with X-Cloud's `next` bump that came in with `main`; "web integration" (account, market, the Run11 package, the Alpha gate) **green** — the Alpha gate's red of the earlier heads (handoff L1 / H8) went with option 1; the four canonical checks green; the browser shards: shard 1 green, shards 2 and 3 red on two tests, both fixed at their cause in the commits after it (below) — `zigi-send-focus.spec.ts` on both projects (the spec relied on a mock server that only ran on this Mac; it now answers the local provider's routes itself, S84) and X-Cloud's WCAG keyboard run on the phone project (two goal links on Today hidden behind the funding-agenda row's stretched "Review →" link when focused, 2.4.11: an older rule `main` never reached within the spec's 25 Tabs and this branch's What's new entry brought into reach — one additive rule lifts the title link above the overlay, S85; and the phone launcher now drops to its corner the moment anything takes focus, S84). The final head's checks are read off the PR and must be green before the owner merges.
+- On every head since Part 6: "web checks" fails at `pnpm audit --prod --audit-level high` on an upstream advisory published during the session (`next` 16.3.6 → 16.3.8; X-Cloud's lane); "web integration" fails at the Alpha security gate for the one reason in handoff L1 / X-Cloud's H8 (the lazily loaded alive chunk carries no nonce), an owner decision with three options (S42, S57). Canonical reproducibility: green on every head.
+
+## Known CI intermittents
+- **Local only, on this Mac, outside this lane:** `tests/fasting.spec.ts:66` and `tests/push-reminders.spec.ts:210` fail alone against the merged build and against `main` `72ad872`'s build alike (both projects); both pass in CI on every head. Not touched here.
+- **Local only, the first full-suite pass:** five `browserContext.close: ENOENT` failures caused by diagnostic single-test runs started beside the suite (each run clears `test-results`); the rule "never two suites at once" covers single tests too, recorded.
+- **Known CI intermittent seen again:** `push-reminders:210` (above).
+
+## Decisions made without the owner
+ADR-017 "Session decisions" S1–S83, each the safest option that keeps the brief's promises. The ones the owner should read first: S42/S57 (the Alpha gate and the alive chunk, three options), S56 (the phone launcher's overlap with first-screen actions, the only lane-local gain removes the phone's hide chevron), S61 and S70 (the scorer's two corrections, applied to every run alike), S59 (the repair round's narrowing), S74 and S75 (two device-side rewrites of a reply: a correction of a card only proposed becomes that card again, a decline carries no card), the targets' verdicts in the test document's Phase 2 section (gemma4 meets the corpus line within its spread; qwen3.8 and qwen3.6 do not, the model's own judgement; phi4-mini is chat-only; the conversations and the day met after rounds 8–9, the panel and the pages not), S76–S78 (Gate B's and Part 9's three fixes at their cause), S79–S83 (the merge and the owner's items).
+
+## Owner items
+- Review the PR; merging and deploying stay yours.
+- H8 and H7 were decided during the session (option 1 for the gate, S79; the launcher rests clear of first-screen controls, S81) and are in; nothing left to decide there.
+- Outside this lane, on this Mac only: `fasting.spec.ts:66` and `push-reminders.spec.ts:210` fail alone against both builds (Known intermittents); CI is green on them.
+- The iPhone checklist in [ZIGI_ALIVE_X.md](product/ZIGI_ALIVE_X.md) (≤15 minutes, now twelve rows: the last one is the launcher's resting place on Help and Markets); the gallery and the close-up clips on `review/session-x-local-screens`; the raw runs on `review/session-x-local-runs`.
+- Chrome's speech service refused automated Chrome for the dictation row (owner-reported).
+
+---
+
 # Session X-Cloud — "The giant leap" (ADR-016) (2026-10-07/08, [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78), not merged or deployed)
 
 **Evidence labels:**

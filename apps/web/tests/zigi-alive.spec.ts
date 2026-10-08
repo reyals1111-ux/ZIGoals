@@ -143,31 +143,96 @@ test('Customize in the panel: side, size and animation apply at once and stay af
   expect((await openButton(page).boundingBox())!.width).toBe(48);
 });
 
-test('motion: the breath runs while ZIGi waits (Calm by default), livelier with Full, and holds still with Off, Motion Off or reduced motion', async ({page}) => {
+test('motion: the idle clip plays while ZIGi waits (Calm by default, the CSS breath until it can), Full too, and the poster holds still with Off, Motion Off or reduced motion', async ({page}) => {
   await seed(page);
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
-  expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('zigi-breath');
+  // Session X-Local Part 1 (assertion changed, listed in ADR-017): the Studio-2 idle clip breathes by itself. Until it
+  // has decoded, the CSS breath runs on the poster; once it plays, the CSS move rests so nothing is animated twice.
+  const clipPlays = async (file: string) => {
+    await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
+    expect((await figure(page).evaluate(el => (el as HTMLImageElement).currentSrc)).split('/').pop()).toBe(file);
+    expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  };
+  // The poster is the 1× or the 2× still, by the screen's density (the phone project runs at 3×).
+  const posterHolds = async (file: RegExp) => {
+    await expect(figure(page)).not.toHaveAttribute('data-playing', '');
+    expect((await figure(page).evaluate(el => (el as HTMLImageElement).currentSrc)).split('/').pop()).toMatch(file);
+    expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  };
+  expect(await figure(page).evaluate(el => /^(zigi-breath|none)$/.test(getComputedStyle(el).animationName))).toBe(true);
   expect(await openButton(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  await clipPlays('F001-idle.anim.webp');
   const visit = async (zigi: Record<string, unknown>, motion: string | null = null) => {
     await page.evaluate(([k, z, m]) => { localStorage.setItem(k, z); if (m) localStorage.setItem('zigoals:motion:v1', m); else localStorage.removeItem('zigoals:motion:v1'); }, [ZIGI_KEY, JSON.stringify(zigi), motion] as const);
     await page.goto('/app');
     await expect(launcher(page)).toBeVisible();
   };
   await visit({version: 1, animation: 'full'});
-  expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('zigi-breath-full');
+  await clipPlays('F001-idle.anim.webp');
   await openChat(page);
-  expect(await panel(page).locator('.ai-chat-head .zigi img').evaluate(el => getComputedStyle(el).animationName)).toMatch(/^zigi-(breath-panel-full|wave)$/);
+  // The panel's head: the greeting clip (its own), or the CSS wave on the poster until it plays.
+  const head = panel(page).locator('.ai-chat-head .zigi img');
+  await expect.poll(() => head.evaluate(el => el.getAttribute('data-playing') !== null || /^zigi-(breath-panel-full|wave)$/.test(getComputedStyle(el).animationName)), {timeout: 10_000}).toBe(true);
   await visit({version: 1, animation: 'off'});
-  expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  await posterHolds(/^F001-idle(-2x)?\.webp$/);
   await openChat(page);
-  expect(await panel(page).locator('.ai-chat-head .zigi img').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  await expect(head).not.toHaveAttribute('data-playing', '');
+  expect(await head.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   await visit({version: 1}, 'off');
   await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');
-  expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  await posterHolds(/^F001-idle(-2x)?\.webp$/);
   await page.emulateMedia({reducedMotion: 'reduce'});
   await visit({version: 1, animation: 'full'});
-  expect(await figure(page).evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+  await posterHolds(/^F001-idle(-2x)?\.webp$/);
+});
+
+test('idle that feels alive: under Full a variation plays now and then (never twice the same, an accent rarely), Calm keeps the base idle, typing and a hidden tab stop it', async ({page}) => {
+  // Session X-Local Part 3. A fixed random number (a test-only session key) makes the picks exact: the first variation
+  // is the accent (insight), the next a glance; the gap is the upper bound (60 s). The mocked clock is advanced in
+  // steps and the figure watched at each, since the alive chunk's own start is not in step with this test.
+  await seed(page, {[ZIGI_KEY]: {version: 1, animation: 'full'}});
+  await page.evaluate(() => sessionStorage.setItem('zigoals:zigi:test-random', '0.999'));
+  await page.goto('/app');
+  await expect(launcher(page)).toBeVisible();
+  const zigi = page.locator('.ai-launcher-button .zigi');
+  const variant = () => zigi.evaluate(el => el.hasAttribute('data-variant'));
+  const src = () => figure(page).evaluate(el => (el as HTMLImageElement).currentSrc.split('/').pop());
+  /** Advances the clock a second at a time until the figure shows (or stops showing) a variation; returns the clip then. */
+  const advanceUntil = async (want: boolean, maxMs: number) => { for (let t = 0; t < maxMs; t += 1000) { if ((await variant()) === want) return src(); await page.clock.runFor(1000); } return null; };
+  const never = async (ms: number) => { for (let t = 0; t < ms; t += 1000) { expect(await variant(), `at +${t} ms`).toBe(false); await page.clock.runFor(1000); } };
+  await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
+  expect(await variant()).toBe(false);
+  // The first variation: the accent (insight), within one gap.
+  const first = await advanceUntil(true, 65_000);
+  expect(first).toMatch(/^F003-insight/);
+  // It ends after its clip's length and the base idle is back.
+  expect(await advanceUntil(false, 5000)).toMatch(/^F001-idle/);
+  // The next is a glance, never the accent again so soon.
+  const second = await advanceUntil(true, 65_000);
+  expect(second).toMatch(/^(T001-thinking|F004-listening)/);
+  await advanceUntil(false, 6000);
+  // Typing in a text field stops it at once and keeps it away.
+  await openChat(page);
+  await advanceUntil(true, 65_000);
+  await panel(page).getByLabel('Ask ZIGi about your records').pressSequentially('hi');
+  expect(await variant()).toBe(false);
+  await never(20_000);
+  await closeChat(page);
+  // A hidden tab stops it too, and nothing plays while hidden.
+  expect(await advanceUntil(true, 70_000)).toBeTruthy();
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {get: () => 'hidden', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  expect(await variant()).toBe(false);
+  await never(70_000);
+  await page.evaluate(() => { Object.defineProperty(document, 'visibilityState', {get: () => 'visible', configurable: true}); document.dispatchEvent(new Event('visibilitychange')); });
+  expect(await advanceUntil(true, 65_000)).toBeTruthy();
+  // Calm: the base idle only, however long ZIGi waits.
+  await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, animation: 'calm'})), ZIGI_KEY);
+  await page.goto('/app');
+  await expect(launcher(page)).toBeVisible();
+  await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
+  await never(200_000);
+  expect(await src()).toBe('F001-idle.anim.webp');
 });
 
 test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel density', async ({browser, baseURL, isMobile}) => {
@@ -195,7 +260,9 @@ test('ZIGi sits on its optical centre at every size, at 1× and 2× pixel densit
       return {file: img.currentSrc.split('/').pop(), fx, fy, width: b.width, dx: i.left + fx * i.width - (b.left + b.width / 2), dy: i.top + fy * i.height - (b.top + b.height / 2)};
     });
     const label = `${size} at ${deviceScaleFactor}×`;
-    expect(found.file, label).toBe(deviceScaleFactor === 1 ? 'zigi-placeholder.webp' : 'zigi-placeholder-2x.webp');
+    // Session X-Local Part 1 (assertion changed, listed in ADR-017): the idle art replaced the placeholder; under reduced
+    // motion the poster shows, never the clip.
+    expect(found.file, label).toBe(deviceScaleFactor === 1 ? 'F001-idle.webp' : 'F001-idle-2x.webp');
     expect(found.width, label).toBe(circle);
     expect(Math.abs(found.dx), `${label}: horizontal`).toBeLessThanOrEqual(0.75);
     expect(Math.abs(found.dy), `${label}: vertical`).toBeLessThanOrEqual(0.75);
@@ -255,6 +322,8 @@ test('ZIGi reacts to what happens: an answer on the device pleases it, a choice 
   await expect(state).toHaveAttribute('data-state', 'success');
   await expect(panel(page).locator('.ai-chat-head .zigi')).toHaveAttribute('data-state', 'success');
   await expect(state).toHaveAttribute('data-state', 'idle', {timeout: 5000});
+  // Session X-Local Part 4: reactions keep 8 s between them (the controller's rate limit); the clock is mocked.
+  await page.clock.runFor(8500);
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   await expect(state).toHaveAttribute('data-state', 'confused');

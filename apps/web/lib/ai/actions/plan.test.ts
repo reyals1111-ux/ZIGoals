@@ -6,6 +6,7 @@ import {addWater, dailyData, editWater} from '../../health-daily';
 import {platformSchema, type Platform} from '../../positions';
 import {homeRecordsIn} from '../../sync-homes-store';
 import {emptyReminders} from '../../reminders/schema';
+import {presetSettings} from '../../dashboard-settings';
 import {runningSession} from '../../fasting/engine';
 import type {Handle} from '../context/types';
 import {applyBatch, batchable, undoBatch, UNDO_WINDOW_MS} from './batch';
@@ -15,6 +16,10 @@ import {ACTION_KINDS, actionSchema, type Action} from './schema';
 import {healthGroupIn} from '../../vault/w-homes';
 import {challengeOf} from '../../habits-v2/challenge';
 import {stashBalancePrefill, takeBalancePrefill, accountForPrefill} from './balance-prefill';
+import {moodOn} from '../../wrap-up/engine';
+import {linksOf} from '../../links/engine';
+import {WIDGET_CATALOG} from '../../dashboard-settings';
+import {parseAmountInput} from '../../amount-input';
 
 // ADR-012, Part 5: every proposal becomes a card, writes only on confirmation through the normal mutators, and Undo is
 // the inverse operation, refused calmly when the record moved. Showcase data is fictional and deterministic.
@@ -25,7 +30,7 @@ const stores: Stores = {
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: homeRecordsIn(records).fasting,
   // Session V Part 7: the three device records a proposal may also write.
-  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1},
+  reminders: emptyReminders(), zigiReminders: {version: 1}, weekly: homeRecordsIn(records).weeklyReview, memory: {version: 1}, settings: {...presetSettings('balanced'), onboarded: true},
 };
 const DAY = '2026-09-20', now = new Date('2026-09-20T19:00:00Z');
 const habit = (i: number) => stores.habits.habits[i]!;
@@ -237,7 +242,10 @@ test('cards name records by title, never by identifier, and every kind the parse
     {kind: 'remember', text: 'Prefers morning workouts', category: 'preferences'},
     // Session W Part 21 (a nap, so no night of the Showcase is overlapped)
     {kind: 'log-sleep', wake: '15:30', hours: 0.5, nap: true}, {kind: 'log-meditation', minutes: 10, time: '12:00'}, {kind: 'add-milestone', goal: 'g1', title: 'Halfway'},
-    {kind: 'update-account-balance', account: 'Rainy-day savings', balance: 10450}, {kind: 'start-challenge', habit: 'h1', days: 30}];
+    {kind: 'update-account-balance', account: 'Rainy-day savings', balance: 10450}, {kind: 'start-challenge', habit: 'h1', days: 30},
+    // Session X-Local Part 5a
+    {kind: 'stack-habit', habit: 'h2', after: 'h1'}, {kind: 'edit-habit', habit: 'h1', title: 'Renamed'}, {kind: 'edit-goal', goal: 'g1', name: 'Renamed goal'}, {kind: 'log-mood', mood: 3},
+    {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, {kind: 'add-widget', widget: 'habit', habit: 'h3', metric: 'today'}];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
   const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
@@ -327,4 +335,147 @@ test('update-account-balance: only a hand-off to Wealth\'s own balance form, rea
   expect(accountForPrefill(accounts, 'everyday')).toEqual(accounts[1]);
   expect(accountForPrefill(accounts, 'a')).toBeNull();
   expect(accountForPrefill(accounts, 'old savings')).toBeNull();
+});
+
+// ---- Session X-Local Part 5a: the four goal types, stacks, edits, the mood, a link and a widget ----
+test('a project goal counts milestones and has no amount; a reward goal is an asset quantity; the schema insists on each', () => {
+  const project = plan({kind: 'create-goal', name: 'Kitchen', type: 'PROJECT', milestones: ['Plans drawn', 'Quotes in'], targetDate: '2027-03-01'});
+  expect(project.card.lines[0]).toBe('Project · 2 milestones by 2027-03-01');
+  expect(project.card.lines).toContain('A draft: only milestones you tick off in Goals count toward it; nothing moves');
+  const after = roundTrip(project), goal = after.platform.goals.at(-1)!;
+  expect(goal).toMatchObject({type: 'PROJECT', target: '1', decimals: 0, asset: 'ZIG', denom: 'azig', targetDate: '2027-03-01', milestones: [{title: 'Plans drawn', done: false}, {title: 'Quotes in', done: false}]});
+  expect(() => actionSchema.parse({kind: 'create-goal', name: 'Kitchen', type: 'PROJECT'})).toThrow(/milestone/);
+  expect(() => actionSchema.parse({kind: 'create-goal', name: 'Rewards', type: 'REWARD'})).toThrow(/target/);
+  expect(() => actionSchema.parse({kind: 'create-goal', name: 'Rewards', type: 'QUANTITY', target: 5})).toThrow(/currency/);
+  const reward = plan({kind: 'create-goal', name: 'Staking rewards', type: 'REWARD', target: 50, currency: 'ZIG'});
+  expect(reward.card.lines[0]).toBe('Reward goal · target 50 ZIG');
+  expect(roundTrip(reward).platform.goals.at(-1)).toMatchObject({type: 'REWARD', asset: 'ZIG', denom: 'azig', decimals: 18, target: parseAmountInput('50', 18).toString()});
+});
+test('stack-habit: written through the habit editor, undone exactly; after itself, twice, or a habit not in the reply is refused', () => {
+  const free = stores.habits.habits.map((h, i) => ({h, handle: `h${i + 1}`})).filter(({h}) => !h.stackAfterId);
+  const [lead, next] = [free[0]!, free[1]!];
+  const p = plan({kind: 'stack-habit', habit: next.handle, after: lead.handle});
+  expect(p.card.title).toBe(`Stack "${next.h.title}" after "${lead.h.title}"`);
+  expect(p.card.lines).toContain('Only how they are shown and reminded; neither habit changes');
+  const after = roundTrip(p), stacked = after.habits.habits.find(h => h.id === next.h.id)!;
+  expect(stacked.stackAfterId).toBe(lead.h.id);
+  expect(latestHabitRule(stacked)).toMatchObject({type: latestHabitRule(next.h).type, target: latestHabitRule(next.h).target, measurement: latestHabitRule(next.h).measurement});
+  expect(refusal({kind: 'stack-habit', habit: next.handle, after: lead.handle}, env({stores: after}))).toMatch(/already comes after/);
+  expect(() => actionSchema.parse({kind: 'stack-habit', habit: 'h2', after: 'h2'})).toThrow(/itself/);
+  expect(refusal({kind: 'stack-habit', habit: next.handle, after: 'new1'})).toMatch(/not proposed in this reply/);
+  // A habit this reply creates: the stack waits for its card (the write refuses until the habit exists).
+  const ref = new Map([['new1', {id: '92000000-0000-4000-8000-0000000000aa', title: 'Stretch'}]]);
+  const pending = plan({kind: 'stack-habit', habit: 'new1', after: lead.handle}, env({refs: ref}));
+  expect(pending.card.lines).toContain('For a habit proposed in this reply: add that card first');
+  expect(() => applyPlan(pending, stores)).toThrow(/Add both habits first/);
+});
+test('edit-habit: only the named plain fields change, from today; the card lists each change; undo restores the habit; nothing to change is refused', () => {
+  const i = stores.habits.habits.findIndex(h => h.title === 'Meditate'), h = stores.habits.habits[i]!, handle = `h${i + 1}`;
+  const p = plan({kind: 'edit-habit', habit: handle, title: 'Evening meditation', description: 'Ten calm minutes before bed', target: 15});
+  expect(p.card.title).toBe('Change the habit "Meditate"');
+  expect(p.card.lines).toContain('Title: Meditate → Evening meditation'); expect(p.card.lines).toContain('Description: Ten calm minutes before bed');
+  expect(p.card.lines.find(l => l.startsWith('Target: '))).toMatch(/^Target: \d+ → 15 minutes a day$/);
+  expect(p.card.lines.at(-1)).toBe('From today; earlier days keep the rule they had, as in Habits');
+  const after = roundTrip(p), changed = after.habits.habits[i]!;
+  expect(changed).toMatchObject({id: h.id, title: 'Evening meditation', description: 'Ten calm minutes before bed', entries: h.entries});
+  expect(latestHabitRule(changed)).toMatchObject({target: 15, from: DAY, measurement: latestHabitRule(h).measurement, schedule: latestHabitRule(h).schedule});
+  expect(refusal({kind: 'edit-habit', habit: handle, title: 'Meditate'})).toMatch(/already is as proposed/);
+  expect(refusal({kind: 'edit-habit', habit: 'h99', title: 'x'})).toMatch(/not in this page/);
+  expect(() => actionSchema.parse({kind: 'edit-habit', habit: handle})).toThrow(/Say what to change/);
+  const quit = plan({kind: 'edit-habit', habit: handle, type: 'quit'});
+  expect(latestHabitRule(applyPlan(quit, stores).habits.habits[i]!)).toMatchObject({type: 'quit', target: 0});
+});
+test('edit-goal: name, target, date and notes change; a locked, closed or project goal refuses; undo puts it back exactly', () => {
+  const g = stores.platform.goals.find(x => x.type !== 'PROJECT' && !x.locked && x.status === 'active')!, handle = `g${stores.platform.goals.indexOf(g) + 1}`;
+  // The target stays above what the goal already holds, so the platform's own status reconciliation leaves it active.
+  const p = plan({kind: 'edit-goal', goal: handle, name: 'Lisbon in spring', target: 95000, targetDate: '2027-05-01', notes: 'Flights first'});
+  expect(p.card.title).toBe(`Change the goal "${g.name}"`);
+  expect(p.card.lines).toContain(`Name: ${g.name} → Lisbon in spring`); expect(p.card.lines).toContain(`Target date: ${g.targetDate ?? 'none'} → 2027-05-01`); expect(p.card.lines).toContain('Notes replaced: Flights first');
+  expect(p.card.lines.find(l => l.startsWith('Target: '))).toMatch(new RegExp(`→ 95,000 ${g.asset}$`));
+  const after = roundTrip(p), changed = after.platform.goals.find(x => x.id === g.id)!;
+  expect(changed).toEqual({...g, name: 'Lisbon in spring', target: parseAmountInput('95000', g.decimals).toString(), targetDate: '2027-05-01', notes: 'Flights first'});
+  const dated = plan({kind: 'edit-goal', goal: handle, targetDate: null}, env({stores: after}));
+  expect(dated.card.lines[0]).toBe('Target date removed'); expect(applyPlan(dated, after).platform.goals.find(x => x.id === g.id)!.targetDate).toBeUndefined();
+  expect(refusal({kind: 'edit-goal', goal: handle, name: g.name})).toMatch(/already is as proposed/);
+  const locked = {...stores, platform: platformSchema.parse({...stores.platform, goals: stores.platform.goals.map(x => x.id === g.id ? {...x, locked: true} : x)})};
+  expect(refusal({kind: 'edit-goal', goal: handle, name: 'x'}, env({stores: locked}))).toMatch(/locked/);
+  expect(refusal({kind: 'edit-goal', goal: 'g9', name: 'x'})).toMatch(/simulation goal/);
+  const withProject = applyPlan(plan({kind: 'create-goal', name: 'Kitchen', type: 'PROJECT', milestones: ['Plans']}), stores), project = withProject.platform.goals.at(-1)!;
+  const projectHandles = [...handles, {handle: 'g50', kind: 'goal' as const, id: `private:${project.id}`, label: project.name}];
+  expect(refusal({kind: 'edit-goal', goal: 'g50', target: 5}, env({stores: withProject, handles: projectHandles}))).toMatch(/counts its milestones/);
+  expect(plan({kind: 'edit-goal', goal: 'g50', name: 'Kitchen 2027'}, env({stores: withProject, handles: projectHandles})).card.lines[0]).toBe('Name: Kitchen → Kitchen 2027');
+});
+test('log-mood: the wrap-up answer for a day, replaced by a later one, each undo exact; a day ahead is refused', () => {
+  expect(moodOn(stores.health, DAY)).toBeUndefined();
+  const p = plan({kind: 'log-mood', mood: 4, note: 'Calm evening'});
+  expect(p.card.title).toBe('How the day felt'); expect(p.card.where).toBe('Today · Evening wrap-up');
+  expect(p.card.lines).toEqual(['Good (4 of 5)', 'Note: Calm evening', 'Kept with the evening wrap-up, under your Health records']);
+  const after = roundTrip(p);
+  expect(moodOn(after.health, DAY)).toEqual({mood: 4, note: 'Calm evening', at: now.toISOString()});
+  const second = plan({kind: 'log-mood', mood: 2}, env({stores: after}));
+  expect(second.card.title).toBe('Replace how the day felt'); expect(second.card.lines).toContain('Replaces Good (4 of 5)');
+  const again = applyPlan(second, after);
+  expect(moodOn(again.health, DAY)).toEqual({mood: 2, note: 'Calm evening', at: now.toISOString()});
+  expect(second.undo!.unchanged(again, again)).toBe(true);
+  expect({...again, ...second.undo!.write(again)}.health).toEqual(after.health);
+  expect(refusal({kind: 'log-mood', mood: 3, day: '2026-09-21'})).toMatch(/not come yet/);
+  expect(() => actionSchema.parse({kind: 'log-mood', mood: 6})).toThrow();
+});
+test('add-link: a button on Today with a suggested icon, undone again; http, a bad address or a twin is refused', () => {
+  const p = plan({kind: 'add-link', label: 'Running club', url: 'https://www.strava.com/clubs/zig'});
+  expect(p.card.title).toBe('Add the link "Running club"'); expect(p.card.where).toBe('Today · My links');
+  expect(p.card.lines).toEqual(['https://www.strava.com/clubs/zig', 'Icon: strava', 'A button on Today; ZIGoals never opens or fetches it by itself']);
+  const after = applyPlan(p, stores);
+  expect(linksOf(after.settings).items).toMatchObject([{label: 'Running club', url: 'https://www.strava.com/clubs/zig', icon: 'strava', order: 0, createdAt: now.toISOString()}]);
+  expect(p.undo!.unchanged(after, after)).toBe(true);
+  expect(linksOf({...after, ...p.undo!.write(after)}.settings).items).toEqual([]);
+  expect(() => actionSchema.parse({kind: 'add-link', label: 'Club', url: 'http://example.org'})).toThrow(/https/);
+  expect(refusal({kind: 'add-link', label: 'Club', url: 'https://nohost'})).toMatch(/full address/);
+  expect(refusal({kind: 'add-link', label: 'Again', url: 'https://www.strava.com/clubs/zig'}, env({stores: after}))).toMatch(/already opens that address/);
+  expect(plan({kind: 'add-link', label: 'Mine', url: 'https://example.org/me', icon: 'monogram'}).card.lines[1]).toBe('Icon: the first letter');
+});
+test('add-widget: a habit widget and a health widget land at the end of Today, undone again; a wrong metric, a missing record or a twin is refused', () => {
+  const p = plan({kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'});
+  expect(p.card.title).toBe(`Add a widget: A chosen Habit · ${habit(0).title}`); expect(p.card.where).toBe('Today · Widgets');
+  expect(p.card.lines).toEqual(['Shows streak · compact', 'Added at the end of Today; move or remove it there']);
+  const after = applyPlan(p, stores);
+  expect(after.settings.widgets.at(-1)).toMatchObject({kind: 'habit', metric: 'streak', entity: habit(0).id, title: '', size: 'compact', hidden: false, revision: 1});
+  expect(after.settings.widgets.length).toBe(stores.settings.widgets.length + 1);
+  expect(p.undo!.unchanged(after, after)).toBe(true);
+  expect({...after, ...p.undo!.write(after)}.settings.widgets).toEqual(stores.settings.widgets);
+  expect(refusal({kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'}, env({stores: after}))).toMatch(/already on Today/);
+  expect(refusal({kind: 'add-widget', widget: 'habit', metric: 'streak'})).toMatch(/which habit/);
+  expect(refusal({kind: 'add-widget', widget: 'goal', metric: 'progress'})).toMatch(/which goal/);
+  expect(refusal({kind: 'add-widget', widget: 'health', metric: 'moon'})).toMatch(/not "moon"/);
+  expect(refusal({kind: 'add-widget', widget: 'asset'})).toMatch(/chosen on Today/);
+  const used = new Set(stores.settings.widgets.filter(w => w.kind === 'health').map(w => w.metric)), metric = WIDGET_CATALOG.health.metrics.find(m => !used.has(m))!;
+  const water = plan({kind: 'add-widget', widget: 'health', metric, size: 'wide', title: 'Mine'});
+  expect(water.card.lines[0]).toBe(`Shows ${metric} as "Mine" · wide`);
+  expect(applyPlan(water, stores).settings.widgets.at(-1)).toMatchObject({kind: 'health', metric, size: 'wide', title: 'Mine'});
+  const goal = plan({kind: 'add-widget', widget: 'goal', goal: 'g1', metric: 'progress'});
+  expect(applyPlan(goal, stores).settings.widgets.at(-1)!.entity).toBe(`private:${stores.platform.goals[0]!.id}`);
+});
+
+// ---- Session X-Local Part 6d: shapes the model runs sent ----
+test('a habit or goal named by its exact title resolves like its handle; an unknown or ambiguous title is refused in words', () => {
+  const read = stores.habits.habits.find(h => h.title === 'Read')!;
+  expect(plan({kind: 'check-in', habit: 'Read', value: 1}).card.title).toBe(plan({kind: 'check-in', habit: `h${stores.habits.habits.indexOf(read) + 1}`, value: 1}).card.title);
+  expect(plan({kind: 'skip', habit: 'read'}).card.where).toBe('Habits · Read');
+  expect(refusal({kind: 'check-in', habit: 'Juggling'})).toMatch(/not in this page/);
+  expect(plan({kind: 'add-goal-note', goal: 'Emergency fund', note: 'Reviewed.'}).card.title).toBe('Add a note to "Emergency fund"');
+  expect(refusal({kind: 'add-milestone', goal: 'Mars trip', title: 'x'})).toMatch(/not in this page/);
+  // Two habits with the same title: a question, never a guess.
+  const twin = {...stores, habits: habitDataSchema.parse({...stores.habits, habits: [...stores.habits.habits, {...read, id: '92000000-0000-4000-8000-0000000000ee'}]})};
+  const twinHandles = [...handles, {handle: 'h50', kind: 'habit' as const, id: '92000000-0000-4000-8000-0000000000ee', label: 'Read'}];
+  expect(refusal({kind: 'check-in', habit: 'Read'}, env({stores: twin, handles: twinHandles}))).toMatch(/not in this page/);
+});
+test('a drink\'s serving in millilitres makes a food measured by volume; a nap with no wake time ends now', () => {
+  const shake = plan({kind: 'log-food', name: 'Protein shake', meal: 'Snacks', estimate: {kcal: 200, protein_g: 30, serving_ml: 300}});
+  expect(shake.card.lines).toContain('Serving 300 mL');
+  const after = applyPlan(shake, stores), food = after.health.foods.at(-1)!;
+  expect(food).toMatchObject({name: 'Protein shake', servingGrams: null, servingMl: 300});
+  const nap = plan({kind: 'log-sleep', minutes: 30, nap: true});
+  expect(nap.card.title).toBe('Add a nap'); expect(nap.card.lines[0]).toMatch(/^18:30 to 19:00 · 30 min in bed$/);
+  expect(refusal({kind: 'log-sleep', minutes: 30, nap: true, day: 'yesterday'})).toMatch(/Say when the nap ended/);
+  expect(() => actionSchema.parse({kind: 'log-sleep', hours: 7.5})).toThrow(/wake/);
 });

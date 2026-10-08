@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {z} from 'zod';
+import * as z from 'zod';
 import {readDeviceRecord, updateDeviceRecord} from '../../device-record';
 import {DEVICE_KEYS, EVERYTHING_KEYS} from '../../export/everything';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from '../../onboarding';

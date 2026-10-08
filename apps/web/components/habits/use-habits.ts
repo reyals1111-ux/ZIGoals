@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useJournalZone } from "../use-journal-zone";
 import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
@@ -78,9 +78,15 @@ export function useHabits() {
   }), [update]);
   // What a habit card needs, stable across check-ins on other habits (Session G, Part 2).
   const schemaVersion = data.schemaVersion;
-  const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, ...actions }), [today, update, timeZone, schemaVersion, actions]);
+  // Session X-Local Part 4: the latest whole journal behind a stable getter, so a card can count the day's completeness
+  // for ZIGi after a check-in without the card store changing on every habit's change.
+  const latest = useRef(data); latest.current = data;
+  const journalData = useCallback(() => latest.current, []);
+  const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, journalData, ...actions }), [today, update, timeZone, schemaVersion, journalData, actions]);
   return { ...store, data, today, ...actions, card };
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */
-export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState" | "planSkip" | "unplanSkip"> & { data: Pick<HabitData, "timeZone"> & Partial<Pick<HabitData, "schemaVersion">> };
+export type HabitCardStore = Pick<HabitsStore, "today" | "update" | "setValue" | "addValue" | "smartDone" | "adjustCount" | "setCount" | "markDay" | "setState" | "planSkip" | "unplanSkip"> & { data: Pick<HabitData, "timeZone"> & Partial<Pick<HabitData, "schemaVersion">>;
+  /** The latest whole journal (Session X-Local Part 4), where the page can give it; a card without it judges its own habit only. */
+  journalData?: () => HabitData };

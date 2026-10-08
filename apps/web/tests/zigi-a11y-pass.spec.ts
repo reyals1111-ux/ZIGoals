@@ -114,7 +114,7 @@ test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   // Each option is named by its label alone; its note is the description.
   const calm = customize.getByRole('radio', {name: 'Calm', exact: true});
   await expect(calm).toBeChecked();
-  await expect(calm).toHaveAccessibleDescription(/^A slow, small breath/);
+  await expect(calm).toHaveAccessibleDescription(/^ZIGi’s idle clip while it waits/);
   await expect(customize.getByRole('switch', {name: 'Knock when a reminder is due'})).toHaveAccessibleDescription(/^ZIGi peeks out above its button/);
   await clean(customize, 'Customize');
 });

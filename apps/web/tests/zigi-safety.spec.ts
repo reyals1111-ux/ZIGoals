@@ -45,7 +45,8 @@ test('with an AI: a risky message shows the note made on the device and goes in 
   await page.goto('/app/health');
   await openChat(page);
   const box = page.getByLabel('Message to your AI');
-  await box.fill('Help me plan a calm week, please.');
+  // Phase 2 (P2.2b): a lookup, not a plan — a plan answered without a card gets the one repair round, a second request this count is not about.
+  await box.fill('Tell me about a calm week, please.');
   await send(page);
   await expect.poll(() => bodies.length).toBe(1);
   expect(systemOf(bodies[0]!)).toContain(SAFETY_RULES); expect(systemOf(bodies[0]!)).not.toContain('Careful mode:');
@@ -65,7 +66,7 @@ test('with an AI: a risky message shows the note made on the device and goes in 
   await page.reload();
   await openChat(page);
   await panel(page).getByRole('button', {name: 'Chat history'}).click();
-  await panel(page).getByRole('button', {name: /^Help me plan a calm week/}).click();
+  await panel(page).getByRole('button', {name: /^Tell me about a calm week/}).click();
   await expect(panel(page).getByRole('note', {name: CARE_LABEL})).toContainText(CARE_NOTES['rapid-weight-loss']);
 });
 

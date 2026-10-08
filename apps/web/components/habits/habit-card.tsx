@@ -24,6 +24,10 @@ import { checkInFailureMessage, storageMessageOr } from "../../lib/storage-error
 import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
 import { HabitPatterns } from "./habit-patterns";
 import { habitsZone } from "../../lib/habits-v2/stats";
+import {CELEBRATIONS} from '../../lib/celebrations';
+import {allDoneNoteId, checkInFacts} from '../../lib/habits-v2/zigi-facts';
+import {useDeviceRecord} from '../ai/use-device-record';
+import {zigiSignals} from '../zigi/bus';
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -57,6 +61,7 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
   const shown = pending ?? habit;
   const day = habitDay(shown, store.today, store.today); const rule = habitRuleOn(shown,store.today)??shown.rules[0]!; const unit = measurementUnit(rule);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [manual, setManual] = useState(() => formNumberText(day.count));
+  const celebrations = useDeviceRecord(CELEBRATIONS);
   // Taps while a check-in saves (Session K, QA sweep 2). Paint-first keeps the buttons enabled during that save, and
   // such a tap used to be ignored without a word. Now it shows at once on top of what is shown and is saved right after
   // the save before it, in order. A refused save shows what is saved, says why, and drops the taps still waiting.
@@ -82,8 +87,20 @@ export function HabitCompletion({ habit, store, compact = false }: { habit: Habi
     afterPaint(() => void save(change));
   }
   async function save(change: (data: HabitData) => HabitData) {
-    const queue = checkIns.current;
+    const queue = checkIns.current, before = store.data;
     try { await store.update(change); } catch (error) { queue.waiting = []; settled(); setError(checkInFailureMessage(error)); return; }
+    // Session X-Local Part 4 (D5): what the saved check-in means for ZIGi, counted by the engine on the data before and
+    // after the write: a streak milestone (proud), the day's last scheduled habit (celebrate, once a day), or a plain
+    // completion (a small success). Signalled as validated facts; the controller applies its caps.
+    try {
+      // The card's store carries the full journal where the page built it from useHabits (then "all done" can be
+      // counted); elsewhere (the knock's check-in) only this habit is known and the day's completeness is not judged.
+      const journal: HabitData = store.journalData?.() ?? {schemaVersion: before.schemaVersion ?? 2, kind: 'zigoals-habits', habits: [habit], ...(before.timeZone ? {timeZone: before.timeZone} : {})};
+      const facts = checkInFacts(journal, change(journal), habit.id, store.today);
+      if (facts.streakMilestone) zigiSignals.emitValidated('streak_milestone');
+      else if (facts.allDone && celebrations.loaded && !celebrations.unreadable && !celebrations.data.seen[allDoneNoteId(store.today)]) { try { celebrations.update(n => ({...n, seen: {...n.seen, [allDoneNoteId(store.today)]: store.today}})); } catch { /* remembered next time */ } zigiSignals.emitValidated('all_habits_done'); }
+      else if (facts.completed) zigiSignals.emitValidated('habit_completed');
+    } catch { /* ZIGi's reaction is a convenience; the check-in is saved */ }
     const next = queue.waiting.shift();
     if (next) void save(next); else settled();
   }

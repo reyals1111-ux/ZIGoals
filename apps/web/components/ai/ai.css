@@ -26,6 +26,8 @@
 .ai-card-edit .ai-card-actions,.ai-card-edit .ai-card-error{grid-column:1/-1}
 .ai-proposals-batch,.ai-proposals-undo{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .ai-proposals-batch button,.ai-proposals-undo button{min-height:44px}
+.ai-proposals-toast{padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent,#7c5cff) 40%,transparent);background:color-mix(in srgb,var(--accent,#7c5cff) 12%,transparent)}
+.ai-toast-text{font-size:14px;line-height:1.4}
 .ai-proposals-rejected{font-size:14px;color:var(--muted,#aab2d9)}
 .ai-proposals-rejected summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
 .ai-proposals-rejected p,.ai-proposals-rejected ul{margin:4px 0}

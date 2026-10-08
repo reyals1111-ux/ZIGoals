@@ -1,4 +1,5 @@
 'use client';
+import {ZigiPartBoundary} from './part-boundary';
 import {usePathname, useRouter} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {dismissZigiReminder, goalRefs, zigiDue} from '../../lib/ai/knock/due';
@@ -24,7 +25,8 @@ import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
 import {useReminders} from '../reminders/use-reminders';
-import {zigiState} from './bus';
+import {zigiSignals, zigiState} from './bus';
+import {zigiAliveRunning, zigiController} from './alive';
 import {ZigiAvatar} from './zigi-avatar';
 import './knock.css';
 
@@ -76,18 +78,27 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
   // Today shows every due reminder as its own card, so ZIGi never knocks there.
   const next = useMemo(() => {
     if (!now || current || away || pathname === '/app' || now.getTime() < restUntil.current) return null;
+    // Session X-Local Part 4: the companion controller's nudge rules (one per session, none after a dismissal, none in
+    // quiet hours, none while the person types, none on a sensitive screen) are asked before a knock counts.
+    if (zigiController.nudgeAllowed(now.getTime()) !== 'allowed') return null;
     return knockFor({candidates, prefs, state: knock.data, now, day: localDate(now)});
   }, [now, current, away, pathname, candidates, prefs, knock.data]);
   useEffect(() => {
     if (!next || !now) return;
     setCurrent(next); setMode('ask'); setNote('');
     try { knock.update(state => recordKnock(state, next.id, localDate(now), now)); } catch { /* the counts are a convenience; the knock shows */ }
-    // ZIGi's button shows the knock too, then rests (set here directly: the chat's state machine may not be loaded).
-    zigiState.set('reminder');
+    // ZIGi's button shows the knock too, then rests: the signal goes through the controller (it counts the nudge), and
+    // the state is set directly as well in case the alive chunk has not started yet.
+    // Phase 2 (P2.5, found by the simulated-day spec): before the alive chunk runs, the signal reaches no controller and the
+    // nudge went uncounted, so a second due reminder could knock in the same session; the knock then counts it itself.
+    if (zigiAliveRunning()) zigiSignals.emit('reminder_due'); else zigiController.dispatch({type: 'reminder_due'}, now.getTime());
+    if (zigiState.get() !== 'reminder') zigiState.set('reminder');
     const root = document.documentElement; root.dataset.zigiKnock = '';
     window.setTimeout(() => { delete root.dataset.zigiKnock; if (zigiState.get() === 'reminder') zigiState.set('idle'); }, RIPPLE_MS * 2);
   }, [next]); // eslint-disable-line react-hooks/exhaustive-deps -- one knock per chosen reminder
   const close = useCallback(() => { setCurrent(null); restUntil.current = Date.now() + REST_MS; }, []);
+  /** Closing the knock without acting on it is a dismissal: no more nudges this session (the controller's rule). */
+  const dismiss = useCallback(() => { zigiSignals.emit('user_dismissed'); close(); }, [close]);
   useEffect(() => {
     if (!current) return;
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && (event.target as Element | null)?.closest?.('.zigi-knock')) close(); };
@@ -108,12 +119,13 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
       else if (current.kind === 'stack-next') wReminders.update(r => dismissChained(r, current.id.replace(/^chained:/, ''), current.day));
       else if (current.kind === 'contribution-due') wReminders.update(r => dismissContribution(r, current.id.replace(/^contribution:/, ''), current.day));
       else zigiReminders.update(r => dismissZigiReminder(r, current.id, current.day));
-      close();
+      dismiss();
     } catch { setNote('This could not be saved on this device; the reminder stays for now.'); }
   };
   const snoozeFor = (choice: SnoozeChoice) => {
     const at = new Date(), until = snoozeUntil(choice, at, prefs); if (!until) return;
-    try { knock.update(state => snooze(state, current.id, until, at)); close(); }
+    // A snooze is the person's own request for the knock to return: the controller allows one more nudge (Part 4).
+    try { knock.update(state => snooze(state, current.id, until, at)); zigiController.grant(); close(); }
     catch { setNote('The snooze could not be saved on this device.'); }
   };
   const choices = (['15m', '1h', 'tonight'] as const).filter(c => snoozeUntil(c, now ?? new Date(), prefs) !== null);
@@ -125,7 +137,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
         <h2 id={titleId}>{lines.title}</h2>
         <p>{lines.line}</p>
       </div>
-      <button type="button" className="zigi-knock-close" aria-label="Close ZIGi's reminder" onClick={close}>×</button>
+      <button type="button" className="zigi-knock-close" aria-label="Close ZIGi's reminder" onClick={dismiss}>×</button>
     </div>
     <p className="zigi-knock-live" role="status">{`ZIGi: ${lines.title}. ${lines.line}.`}</p>
     {mode === 'ask' && <div className="zigi-knock-actions">
@@ -137,7 +149,7 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
       {choices.map(choice => <button key={choice} type="button" className="secondary" onClick={() => snoozeFor(choice)}>{SNOOZE_LABELS[choice]}</button>)}
       <button type="button" className="quiet" onClick={() => setMode('ask')}>Back</button>
     </div>}
-    {mode === 'check-in' && <Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><KnockCheckIn habitId={current.id} title={current.title} onNavigate={close}/></Suspense>}
+    {mode === 'check-in' && <ZigiPartBoundary label="The check-in"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><KnockCheckIn habitId={current.id} title={current.title} onNavigate={close}/></Suspense></ZigiPartBoundary>}
     {note && <p role="alert" className="zigi-knock-note">{note}</p>}
   </section>;
 }

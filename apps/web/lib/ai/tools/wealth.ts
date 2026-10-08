@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import Decimal from 'decimal.js';
 import {holdings as portfolioHoldings, portfolioTotals, validHistory, valueHolding} from '../../portfolio/math';
 import {coinKey, type Portfolio} from '../../portfolio/schema';

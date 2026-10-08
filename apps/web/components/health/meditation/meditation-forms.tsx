@@ -7,6 +7,7 @@ import {PATTERNS, type BreathingPattern} from '../../../lib/meditation/breathing
 import {MAX_MINUTES, MIN_MINUTES, PRESET_MINUTES, startRun} from '../../../lib/meditation/timer';
 import {wallClock} from '../../../lib/zone-time';
 import type {MeditationStore} from './use-meditation';
+import {zigiSignals} from '../../zigi/bus';
 
 const MOODS = [[1, 'Low'], [2, 'Uneasy'], [3, 'OK'], [4, 'Calm'], [5, 'Very calm']] as const;
 const message = (error: unknown) => error instanceof Error && error.message && !error.message.startsWith('[') ? error.message : 'Check the values and try again.';
@@ -67,7 +68,7 @@ export function ManualForm({store, session, onDone, onCancel}: {store: Meditatio
     if (!get('date') || !get('time')) { setError('Enter when you began.'); return; }
     if (!/^\d{1,4}$/.test(get('minutes'))) { setError('Enter whole minutes from 1 to 1440.'); return; }
     setBusy(true);
-    try { await store.update(m => saveManual(m, {id: session?.id, date: get('date'), time: get('time'), minutes: Number(get('minutes')), note: get('note'), timeZone: zone}, new Date())); onDone(session ? 'Session updated.' : 'Mindful minutes saved.'); }
+    try { await store.update(m => saveManual(m, {id: session?.id, date: get('date'), time: get('time'), minutes: Number(get('minutes')), note: get('note'), timeZone: zone}, new Date())); if (!session) zigiSignals.emitValidated('health_log_recorded'); onDone(session ? 'Session updated.' : 'Mindful minutes saved.'); }
     catch (err) { setError(message(err)); }
     finally { setBusy(false); }
   }

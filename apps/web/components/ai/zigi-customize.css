@@ -15,6 +15,6 @@
 .zigi-skin-tile:has(input:checked){border-color:color-mix(in srgb,var(--violet,#8b7cff) 70%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--violet,#8b7cff) 40%,transparent) inset}
 .zigi-skin-tile:has(input:focus-visible){outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
 .zigi-skin-soon{cursor:default;color:var(--muted,#aab2d9)}
-.zigi-silhouette{display:block;width:37px;height:48px;background:url(/brand/figures/zigi-placeholder.webp) center/contain no-repeat;filter:brightness(0) invert(.35);opacity:.55}
+.zigi-silhouette{display:block;width:37px;height:48px;background:url(/brand/figures/zigi/origami-nebula/F001-idle.webp) center/contain no-repeat;filter:brightness(0) invert(.35);opacity:.55}
 .zigi-customize-links{margin:0}
 .ai-chat .zigi-customize{padding:4px 2px 12px}

@@ -1,0 +1,30 @@
+{
+ "file": "phase2/ui/photos-qwen3-6-35b-a3b.json",
+ "kind": "photos",
+ "groups": [
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "Mac M1 Max",
+   "project": "desktop",
+   "runs": 8,
+   "passed": 6,
+   "scored": 8,
+   "errors": 0,
+   "replyMedianMs": 11177,
+   "first": "2026-10-08T17:10:22.614Z",
+   "last": "2026-10-08T17:47:30.343Z"
+  },
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 8,
+   "passed": 7,
+   "scored": 8,
+   "errors": 0,
+   "replyMedianMs": 4846,
+   "first": "2026-10-08T16:53:44.132Z",
+   "last": "2026-10-08T17:46:39.625Z"
+  }
+ ]
+}

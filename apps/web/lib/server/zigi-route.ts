@@ -1,5 +1,5 @@
 import 'server-only';
-import {z} from 'zod';
+import * as z from 'zod';
 import {readSessionCookie} from './session-cookie';
 /**
  * `/api/zigi` (Session V Part 17, ADR-014 S2): the app's own door to ZIGoals hosted, so the browser's connect-src never

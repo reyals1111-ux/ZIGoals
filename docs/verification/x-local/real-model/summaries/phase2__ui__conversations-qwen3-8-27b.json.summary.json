@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/conversations-qwen3-8-27b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "qwen3.8:27b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 45,
+   "passed": 42,
+   "scored": 45,
+   "errors": 0,
+   "replyMedianMs": 5046,
+   "first": "2026-10-08T16:30:49.935Z",
+   "last": "2026-10-08T17:31:38.343Z"
+  }
+ ]
+}

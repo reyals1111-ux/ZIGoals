@@ -14,7 +14,7 @@ import {useHabitHealthLinks} from '../habits/use-habit-health-links';
 import type {useAiContext} from './use-ai-context';
 import type {ChatSession} from './use-chat-session';
 import {useDeviceRecord} from './use-device-record';
-import {zigiEvents} from '../zigi/bus';
+import {zigiSignals} from '../zigi/bus';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, SAY_NICER_SYSTEM, shortReply} from '../../lib/ai/on-device-chat';
@@ -54,14 +54,14 @@ export function BriefBlock({context, connected, session}: {context: Context; con
 function SayItNicerOnDevice({brief}: {brief: Brief}) {
   const [text, setText] = useState<string | null>(null), [busy, setBusy] = useState(false), [note, setNote] = useState('');
   const run = async () => {
-    setBusy(true); setNote(''); zigiEvents.emit('model-loading');
+    setBusy(true); setNote(''); zigiSignals.emit('model_loading');
     try {
       // Never Chrome's download from here: only Settings starts it, from its own button.
       if (await onDeviceAvailability() !== 'available') { setNote(ON_DEVICE_NOT_READY); return; }
       const model = await onDeviceSession({system: SAY_NICER_SYSTEM});
       try { const reply = shortReply(await model.prompt(briefForAi(brief))); if (reply) setText(reply); else setNote(ON_DEVICE_FAILED); } finally { model.destroy(); }
     } catch { setNote(ON_DEVICE_FAILED); }
-    finally { setBusy(false); zigiEvents.emit('model-ready'); }
+    finally { setBusy(false); zigiSignals.emit('model_ready'); }
   };
   return <div className="ai-brief-ai">
     {text ? <><p className="ai-brief-nicer">{text}</p><p className="ai-note">Reworded by Chrome&rsquo;s on-device model from the lines above, on this computer.</p></>
@@ -113,7 +113,7 @@ export function ReviewView({context, connected, session, onBack}: {context: Cont
   const data = useMemo(() => connected && outbound ? reviewForAi(outbound) : null, [connected, outbound]);
   // Session V Part 12: ZIGi looks encouraging while the person looks back at their week.
   const shown = review !== null;
-  useEffect(() => { if (shown) zigiEvents.emit('encourage'); }, [shown]);
+  useEffect(() => { if (shown) zigiSignals.emit('week_opened'); }, [shown]);
   return <ViewFrame title="Your week with ZIGi" onBack={onBack}>
     {!review ? <p className="ai-note">The weekly review is not available on this device yet; it starts on Today.</p> : <>
       <p className="ai-note">Your review week, {review.from} to {review.to}, read on this device. Counts, not grades: a skipped day is part of a plan.</p>

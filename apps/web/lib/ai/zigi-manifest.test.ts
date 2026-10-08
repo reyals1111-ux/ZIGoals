@@ -21,11 +21,13 @@ test('every size file of every skin exists, is a WebP under its budget, and keep
       expect(statSync(file).size, `${skinName} ${name} size`).toBeLessThanOrEqual(manifest.budgetBytes[name]);
       expect(Math.abs(size.width / size.height - 96 / 126), `${name} proportion`).toBeLessThan(0.01);
     }
-    // Per-state drawings, once a skin has them: still WebP files under the size budgets, an animated WebP under its own.
+    // Per-state drawings: still WebP files under the size budgets, an animated WebP and its APNG fallback under theirs
+    // (Session X-Local Part 1: the names follow the studio, `<code>-<state>.anim.webp` and `.anim.png`).
     for (const [state, files] of Object.entries(skin.states)) {
       expect(Object.keys(manifest.states), `${skinName}: ${state}`).toContain(state);
       for (const name of SIZE_NAMES) { const f = files?.[name]; if (f) { expect(f.endsWith('.webp')).toBe(true); expect(statSync(join(PUBLIC, f)).size).toBeLessThanOrEqual(manifest.budgetBytes[name]); } }
-      if (files?.animated) { expect(files.animated.endsWith('.webp')).toBe(true); expect(statSync(join(PUBLIC, files.animated)).size).toBeLessThanOrEqual(manifest.budgetBytes.animated); }
+      if (files?.animated) { expect(files.animated.endsWith('.anim.webp')).toBe(true); expect(statSync(join(PUBLIC, files.animated)).size).toBeLessThanOrEqual(manifest.budgetBytes.animated); }
+      if (files?.animatedFallback) { expect(files.animatedFallback.endsWith('.anim.png')).toBe(true); expect(statSync(join(PUBLIC, files.animatedFallback)).size).toBeLessThanOrEqual(manifest.budgetBytes.animated); }
     }
     expect(Math.abs(skin.opticalOffset.x), `${skinName} offset x`).toBeLessThan(0.25); expect(Math.abs(skin.opticalOffset.y), `${skinName} offset y`).toBeLessThan(0.25);
   }
@@ -54,13 +56,15 @@ test('every fallback names a known state and every chain ends at idle, without a
   }
 });
 test('a state without its own drawing shows its fallback\'s, down to the skin\'s base frame; animated files only with motion', () => {
-  const skin = {...skinOf(null), states: {celebrate: {'1x': '/c.webp', '2x': '/c2.webp', large: '/cl.webp', animated: '/ca.webp'}}};
+  const skin = {...skinOf(null), states: {celebrate: {'1x': '/c.webp', '2x': '/c2.webp', large: '/cl.webp', animated: '/ca.webp', animatedFallback: '/ca.png'}}};
   const custom = {...ZIGI_MANIFEST, skins: {...ZIGI_MANIFEST.skins, test: skin}};
   expect(filesFor(skin, 'success', custom)).toEqual({files: skin.states.celebrate, from: 'celebrate'});
   expect(filesFor(skin, 'thinking', custom)).toEqual({files: null, from: null});
-  expect(frameFor('test', 'success', 44, true, custom).src).toBe('/ca.webp');
-  expect(frameFor('test', 'success', 44, false, custom)).toEqual({src: '/c.webp', srcSet: '/c.webp 1x, /c2.webp 2x', width: 44, height: 58});
-  expect(frameFor('test', 'idle', 240, false, custom)).toEqual({src: manifest.skins['origami-nebula'].sizes.large.file, width: 240, height: 316});
+  // Session X-Local Part 1: the poster shows first and the animated file rides beside it; the APNG only where asked for.
+  expect(frameFor('test', 'success', 44, true, custom)).toMatchObject({src: '/c.webp', animated: '/ca.webp'});
+  expect(frameFor('test', 'success', 44, true, custom, true).animated).toBe('/ca.png');
+  expect(frameFor('test', 'success', 44, false, custom)).toMatchObject({src: '/c.webp', srcSet: '/c.webp 1x, /c2.webp 2x', width: 44, height: 58, animated: null});
+  expect(frameFor('test', 'idle', 240, false, custom)).toMatchObject({src: manifest.skins['origami-nebula'].sizes.large.file, width: 240, height: 316, animated: null});
   // An unknown skin (from a later build) shows the default one.
   expect(frameFor('a-later-skin', 'idle', 44, true).src).toBe(manifest.skins['origami-nebula'].sizes['1x'].file);
 });

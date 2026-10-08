@@ -8,26 +8,28 @@ import {Component, useEffect, useState, type ReactNode} from 'react';
  * floating button simply stays away); the rest of the page keeps working. A failed load is remembered by the browser
  * until the page reloads, so the way back is a reload once online.
  */
-export class LoadBoundary extends Component<{children: ReactNode; label?: string; title?: string; quiet?: boolean}, {failed: boolean}> {
+export class LoadBoundary extends Component<{children: ReactNode; label?: string; title?: string; quiet?: boolean; className?: string; noteClassName?: string; rest?: string}, {failed: boolean}> {
   state = {failed: false};
   static getDerivedStateFromError() { return {failed: true}; }
   render() {
     if (!this.state.failed) return this.props.children;
     if (this.props.quiet) return null;
-    const note = <LoadFailed label={this.props.label ?? 'This part of the page'} />;
+    const note = <LoadFailed label={this.props.label ?? 'This part of the page'} className={this.props.className} noteClassName={this.props.noteClassName} rest={this.props.rest} />;
     return this.props.title ? <section className="panel"><h1>{this.props.title}</h1>{note}</section> : note;
   }
 }
 
-function LoadFailed({label}: {label: string}) {
+// Session X-Local Part 9 (the owner's H9 fold, ADR-017 S80): ZIGi's own parts render through this same component with their
+// class names and "the rest of ZIGi"; without the extra props the markup is exactly as before.
+function LoadFailed({label, className, noteClassName, rest}: {label: string; className?: string; noteClassName?: string; rest?: string}) {
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine);
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
     window.addEventListener('online', update); window.addEventListener('offline', update);
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
   }, []);
-  return <div className="load-boundary" role="status">
-    <p>{online ? `${label} could not be opened. Reload the page to try again.` : `${label} needs a connection to open. It opens when you’re back online; the rest of this page keeps working.`}</p>
+  return <div className={className ?? 'load-boundary'} role="status">
+    <p className={noteClassName}>{online ? `${label} could not be opened. Reload the page to try again.` : `${label} needs a connection to open. It opens when you’re back online; the rest of ${rest ?? 'this page'} keeps working.`}</p>
     <button type="button" className="secondary" disabled={!online} onClick={() => window.location.reload()}>Reload</button>
   </div>;
 }

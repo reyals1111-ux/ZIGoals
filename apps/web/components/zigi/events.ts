@@ -47,11 +47,17 @@ export function transition(current: ZigiState, event: ZigiEvent, context: ZigiCo
     case 'offline': return current === 'idle' || current === 'sleepy' ? 'offline' : null;
     case 'online': return current === 'offline' ? 'idle' : null;
     case 'reminder-due': return 'reminder';
+    // Phase 2: not connected yet (ZIGi on, no model chosen) asks for attention at rest; the set-up done, ZIGi rests again.
+    case 'attention': return current === 'idle' || current === 'sleepy' ? 'attention' : null;
+    case 'connected': return current === 'attention' ? restState(context) : null;
     case 'model-loading': return 'loading-model';
     case 'model-ready': return current === 'loading-model' ? restState(context) : null;
+    // Session X-Local Part 4: a small success (an accepted card, a logged entry); a surprise the AI hinted at.
+    case 'success': return 'success';
+    case 'surprise': return 'surprised';
     case 'listening': return 'listening';
     case 'speaking': return 'speaking';
-    case 'idle': return current === 'sleepy' || current === 'listening' || current === 'speaking' ? restState(context) : null;
+    case 'idle': return current === 'sleepy' || current === 'listening' || current === 'speaking' || current === 'attention' ? restState(context) : null;
     case 'sleepy': return context.open && current === 'idle' ? 'sleepy' : null;
   }
 }
@@ -61,7 +67,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 function greetedToday(): boolean { try { return window.sessionStorage.getItem(GREETED_KEY) === today(); } catch { return false; } }
 function markGreeted(): void { try { window.sessionStorage.setItem(GREETED_KEY, today()); } catch { /* the tab's storage refused; ZIGi greets again next time */ } }
 // One machine per page: its timers live here, so a remount (React's development double effects) never loses them.
-let open = false, offline = false, rest: number | null = null, sleepy: number | null = null;
+let open = false, offline = false, rest: number | null = null, sleepy: number | null = null, listenAfter = false;
 const clear = (id: number | null) => { if (id) window.clearTimeout(id); return null; };
 const context = (): ZigiContext => ({open, greetedToday: greetedToday(), offline});
 function armSleepy(): void {
@@ -71,6 +77,12 @@ function armSleepy(): void {
 function handle(event: ZigiEvent): void {
   if (event === 'open') open = true; else if (event === 'close') open = false;
   if (event === 'offline') offline = true; else if (event === 'online') offline = false;
+  // Phase 2 (P2.5, found by the states spec): the composer takes focus the moment the panel opens, so "listening" was
+  // replacing the greeting in the same frame and the greeting never showed. The greeting plays out; listening follows it.
+  if (event === 'listening' && zigiState.get() === 'greeting' && rest !== null) { listenAfter = true; armSleepy(); return; }
+  // A second "open" while the greeting plays (the launcher's effect used to fire twice) must not cut the greeting short.
+  if (event === 'open' && zigiState.get() === 'greeting' && rest !== null) { armSleepy(); return; }
+  if (event === 'idle' || event === 'close' || event === 'speaking' || event === 'reply-pending') listenAfter = false;
   const next = transition(zigiState.get(), event, context());
   if (event === 'open' && next === 'greeting') markGreeted();
   armSleepy();
@@ -79,15 +91,24 @@ function handle(event: ZigiEvent): void {
   rest = clear(rest);
   zigiState.set(next);
   const after = oneShotMs(next);
-  if (after) rest = window.setTimeout(() => { rest = null; zigiState.set(restState(context())); armSleepy(); }, after);
+  if (after) rest = window.setTimeout(() => { rest = null; const listen = listenAfter && open; listenAfter = false; zigiState.set(listen ? 'listening' : restState(context())); armSleepy(); }, after);
+}
+/**
+ * Starts ZIGi's state machine on this page (Session X-Local Part 1: the alive chunk starts it on every app page; the chat
+ * panel's hook below still does, harmlessly, on the first open). One listener per page whoever starts it: the bus
+ * holds listeners in a set, so a second start adds nothing, and the last stop removes it.
+ */
+let runners = 0;
+export function startZigiMachine(): () => void {
+  runners++;
+  const off = zigiEvents.on(handle);
+  const onOffline = () => zigiEvents.emit('offline'), onOnline = () => zigiEvents.emit('online');
+  window.addEventListener('offline', onOffline); window.addEventListener('online', onOnline);
+  if (navigator.onLine === false && !offline) zigiEvents.emit('offline');
+  let stopped = false;
+  return () => { if (stopped) return; stopped = true; runners--; window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); if (!runners) off(); };
 }
 /** Runs ZIGi's state machine while the chat chunk is on the page (mounted once, in the chat panel). */
 export function useZigiMachine(): void {
-  useEffect(() => {
-    const off = zigiEvents.on(handle);
-    const onOffline = () => zigiEvents.emit('offline'), onOnline = () => zigiEvents.emit('online');
-    window.addEventListener('offline', onOffline); window.addEventListener('online', onOnline);
-    if (navigator.onLine === false && !offline) zigiEvents.emit('offline');
-    return () => { off(); window.removeEventListener('offline', onOffline); window.removeEventListener('online', onOnline); };
-  }, []);
+  useEffect(() => startZigiMachine(), []);
 }

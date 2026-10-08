@@ -96,6 +96,9 @@
   :root .today-page .funding-agenda .agenda-date strong { font-size: 20px; }
   :root .today-page .funding-agenda li > .text-link { margin: 0; min-height: 44px; display: inline-flex; align-items: center; font-size: 15px; }
   :root .today-page .funding-agenda li > .text-link::after { content: ""; position: absolute; inset: 0; }
+  /* Session X-Local Part 9 (ADR-017 S85, WCAG 2.4.11): the row's stretched link must not sit over the goal's own title link, or a
+     keyboard user's focus on the title is hidden behind the overlay (the merged branch's tab order reached these rows first). */
+  :root .today-page .funding-agenda li h3 a { position: relative; z-index: 1; }
   :root .today-page :is(.funding-agenda, .needs-attention) h3 { font-size: 16px; margin: 0; line-height: 1.3; }
   :root .today-page :is(.funding-agenda, .needs-attention) li p { font-size: 15px; margin: 2px 0 0; line-height: 1.35; }
   :root .today-page .funding-agenda .agenda-status { display: block; font-size: 15px; line-height: 1.35; }

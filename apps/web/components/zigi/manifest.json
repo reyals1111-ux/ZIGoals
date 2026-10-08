@@ -6,29 +6,249 @@
   "skins": {
     "origami-nebula": {
       "label": "Original",
-      "placeholder": true,
+      "placeholder": false,
       "opticalOffset": {
-        "x": -0.041,
-        "y": 0.001
+        "x": 0.023,
+        "y": -0.09
       },
       "sizes": {
         "1x": {
-          "file": "/brand/figures/zigi-placeholder.webp",
+          "file": "/brand/figures/zigi/origami-nebula/F001-idle.webp",
           "width": 96,
           "height": 126
         },
         "2x": {
-          "file": "/brand/figures/zigi-placeholder-2x.webp",
+          "file": "/brand/figures/zigi/origami-nebula/F001-idle-2x.webp",
           "width": 192,
           "height": 253
         },
         "large": {
-          "file": "/brand/figures/zigi-placeholder-large.webp",
+          "file": "/brand/figures/zigi/origami-nebula/F001-idle-large.webp",
           "width": 480,
           "height": 632
         }
       },
-      "states": {}
+      "states": {
+        "idle": {
+          "1x": "/brand/figures/zigi/origami-nebula/F001-idle.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F001-idle-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F001-idle-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F001-idle.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F001-idle.anim.png"
+        },
+        "greeting": {
+          "1x": "/brand/figures/zigi/origami-nebula/F002-greeting.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F002-greeting-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F002-greeting-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F002-greeting.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F002-greeting.anim.png"
+        },
+        "insight": {
+          "1x": "/brand/figures/zigi/origami-nebula/F003-insight.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F003-insight-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F003-insight-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F003-insight.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F003-insight.anim.png"
+        },
+        "listening": {
+          "1x": "/brand/figures/zigi/origami-nebula/F004-listening.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F004-listening-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F004-listening-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F004-listening.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F004-listening.anim.png"
+        },
+        "speaking": {
+          "1x": "/brand/figures/zigi/origami-nebula/F005-speaking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F005-speaking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F005-speaking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.png"
+        },
+        "presenting": {
+          "1x": "/brand/figures/zigi/origami-nebula/F006-presenting.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F006-presenting-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F006-presenting-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F006-presenting.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F006-presenting.anim.png"
+        },
+        "attention": {
+          "1x": "/brand/figures/zigi/origami-nebula/F007-attention.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F007-attention-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F007-attention-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F007-attention.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F007-attention.anim.png"
+        },
+        "sleepy": {
+          "1x": "/brand/figures/zigi/origami-nebula/F008-sleepy.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F008-sleepy-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F008-sleepy-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F008-sleepy.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F008-sleepy.anim.png"
+        },
+        "celebrate": {
+          "1x": "/brand/figures/zigi/origami-nebula/F009-celebrate.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F009-celebrate-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F009-celebrate-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F009-celebrate.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F009-celebrate.anim.png"
+        },
+        "thinking": {
+          "1x": "/brand/figures/zigi/origami-nebula/T001-thinking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/T001-thinking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/T001-thinking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.png"
+        },
+        "error": {
+          "1x": "/brand/figures/zigi/origami-nebula/E001-error.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/E001-error-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/E001-error-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/E001-error.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/E001-error.anim.png"
+        },
+        "reading-your-data": {
+          "1x": "/brand/figures/zigi/origami-nebula/T001-thinking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/T001-thinking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/T001-thinking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.png",
+          "wears": "thinking"
+        },
+        "writing-proposal": {
+          "1x": "/brand/figures/zigi/origami-nebula/F005-speaking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F005-speaking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F005-speaking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.png",
+          "wears": "speaking"
+        },
+        "success": {
+          "1x": "/brand/figures/zigi/origami-nebula/F003-insight.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F003-insight-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F003-insight-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F003-insight.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F003-insight.anim.png",
+          "wears": "insight"
+        },
+        "proud": {
+          "1x": "/brand/figures/zigi/origami-nebula/F009-celebrate.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F009-celebrate-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F009-celebrate-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F009-celebrate.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F009-celebrate.anim.png",
+          "wears": "celebrate"
+        },
+        "curious": {
+          "1x": "/brand/figures/zigi/origami-nebula/F004-listening.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F004-listening-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F004-listening-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F004-listening.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F004-listening.anim.png",
+          "wears": "listening"
+        },
+        "surprised": {
+          "1x": "/brand/figures/zigi/origami-nebula/F003-insight.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F003-insight-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F003-insight-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F003-insight.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F003-insight.anim.png",
+          "wears": "insight"
+        },
+        "confused": {
+          "1x": "/brand/figures/zigi/origami-nebula/E001-error.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/E001-error-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/E001-error-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/E001-error.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/E001-error.anim.png",
+          "wears": "error"
+        },
+        "empathetic": {
+          "1x": "/brand/figures/zigi/origami-nebula/F004-listening.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F004-listening-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F004-listening-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F004-listening.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F004-listening.anim.png",
+          "wears": "listening"
+        },
+        "encouraging": {
+          "1x": "/brand/figures/zigi/origami-nebula/F005-speaking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F005-speaking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F005-speaking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F005-speaking.anim.png",
+          "wears": "speaking"
+        },
+        "wave-goodbye": {
+          "1x": "/brand/figures/zigi/origami-nebula/F001-idle.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F001-idle-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F001-idle-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F001-idle.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F001-idle.anim.png",
+          "wears": "idle"
+        },
+        "reminder": {
+          "1x": "/brand/figures/zigi/origami-nebula/F007-attention.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F007-attention-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F007-attention-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F007-attention.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F007-attention.anim.png",
+          "wears": "attention"
+        },
+        "offline": {
+          "1x": "/brand/figures/zigi/origami-nebula/F008-sleepy.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F008-sleepy-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F008-sleepy-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F008-sleepy.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F008-sleepy.anim.png",
+          "wears": "sleepy"
+        },
+        "peek": {
+          "1x": "/brand/figures/zigi/origami-nebula/F004-listening.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/F004-listening-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/F004-listening-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/F004-listening.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/F004-listening.anim.png",
+          "wears": "listening"
+        },
+        "loading-model": {
+          "1x": "/brand/figures/zigi/origami-nebula/T001-thinking.webp",
+          "2x": "/brand/figures/zigi/origami-nebula/T001-thinking-2x.webp",
+          "large": "/brand/figures/zigi/origami-nebula/T001-thinking-large.webp",
+          "animated": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.webp",
+          "animatedFallback": "/brand/figures/zigi/origami-nebula/T001-thinking.anim.png",
+          "wears": "thinking"
+        }
+      },
+      "extras": {
+        "reactions": {
+          "R001": null,
+          "R002": null,
+          "R003": null,
+          "R004": null,
+          "R005": null,
+          "R006": null,
+          "R007": null,
+          "R008": null,
+          "R009": null,
+          "R010": null,
+          "R011": null,
+          "R012": null,
+          "R013": null
+        },
+        "idleVariants": {
+          "X010": null,
+          "X011": null
+        },
+        "transitions": {
+          "greetingInPlace": null,
+          "chain": []
+        },
+        "gaze": {
+          "chatInput": null,
+          "viewer": null,
+          "target": null
+        }
+      }
     }
   },
   "comingSoon": 3,
@@ -37,6 +257,21 @@
     "2x": 100000,
     "large": 200000,
     "animated": 400000
+  },
+  "reactionTriggers": {
+    "R001": null,
+    "R002": null,
+    "R003": null,
+    "R004": null,
+    "R005": null,
+    "R006": null,
+    "R007": null,
+    "R008": null,
+    "R009": null,
+    "R010": null,
+    "R011": null,
+    "R012": null,
+    "R013": null
   },
   "states": {
     "idle": {

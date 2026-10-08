@@ -1,0 +1,67 @@
+{
+ "model": "gemma4:12b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "base": "redacted",
+ "startedAt": "2026-10-08T00:43:04.290Z",
+ "finishedAt": "2026-10-08T00:59:21.200Z",
+ "cases": 338,
+ "repeat": 1,
+ "runs": 361,
+ "passed": 233,
+ "rate": 0.6454293628808865,
+ "latency": {
+  "firstTokenMedianMs": 1427,
+  "totalMedianMs": 2440
+ },
+ "tokens": {
+  "input": 3898665,
+  "output": 171798
+ },
+ "byKind": {
+  "lookup": {
+   "passed": 44,
+   "total": 104
+  },
+  "propose": {
+   "passed": 80,
+   "total": 124
+  },
+  "chat": {
+   "passed": 20,
+   "total": 24
+  },
+  "brief": {
+   "passed": 6,
+   "total": 10
+  },
+  "unknown": {
+   "passed": 9,
+   "total": 10
+  },
+  "refuse": {
+   "passed": 25,
+   "total": 25
+  },
+  "advice": {
+   "passed": 8,
+   "total": 9
+  },
+  "multi": {
+   "passed": 14,
+   "total": 23
+  },
+  "followup": {
+   "passed": 10,
+   "total": 15
+  },
+  "privacy": {
+   "passed": 6,
+   "total": 6
+  },
+  "injection": {
+   "passed": 11,
+   "total": 11
+  }
+ }
+}

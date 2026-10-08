@@ -13,8 +13,11 @@ import {PROVIDERS} from '../../lib/ai/providers';
 import {currentChatStore} from '../../lib/ai/scope';
 import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
-import {zigiEvents} from '../zigi/bus';
-import {localEvent} from '../../lib/ai/zigi-reactions';
+import {zigiSignals} from '../zigi/bus';
+import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
+import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../../lib/ai/intent';
+import {localSignal} from '../../lib/ai/zigi-reactions';
+import {extractHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -31,10 +34,14 @@ import {capNote, capState, monthKey, needsSpendConfirmation, readUsage, recordUs
 import {getAppStorage} from '../../lib/showcase-storage';
 import {LOG_MODE_NOTE} from '../../lib/ai/context/specialists';
 import {PHOTO_NOTE} from '../../lib/ai/photo';
-import type {ChatImage} from '../../lib/ai/types';
+import type {ChatImage, ChatRequest} from '../../lib/ai/types';
 import {rememberChatArea} from '../../lib/ai/history';
 import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
+import {localDate} from '../../lib/local-date';
+import {applyDayCue} from '../../lib/ai/actions/day-cue';
+import {reviseEdits} from '../../lib/ai/actions/revise';
+import {stripDeclinedBlocks} from '../../lib/ai/actions/decline';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -130,6 +137,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
     if (!text && !stopped) return;
+    // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
+    const {text: shown, hint} = extractHint(text);
+    text = shown;
     const made = {...assistantTurn({text, provider: hosted ? null : settings.provider, model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {})};
@@ -138,8 +148,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let next: Chat;
     try { next = appendTurn(chatRef.current, turn); } catch { next = {...chatRef.current, turns: [...chatRef.current.turns.slice(1), turn]}; }
     setChat(next); persist(next);
-    // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight.
-    zigiEvents.emit(parseReply(text).proposals.length ? 'reply-with-proposals' : extra.careful ? 'careful' : 'reply-done');
+    // Session V Part 12: cards to present, else a gentle look after a careful-mode answer, else the insight; Session
+    // X-Local Part 4: else the AI's hint, when it has one (validated; the controller may still refuse it).
+    zigiSignals.emit(parseReply(text).proposals.length ? 'assistant_replied_with_proposals' : extra.careful ? 'careful_topic' : hint ? `hint_${hint}` : 'assistant_replied');
   }, [persist, setChat, settings.model, settings.provider, hosted]);
   /** Provider metadata for one model, read once per session by the person's own message (never stored). */
   const capabilityFor = useCallback((key: string | null, model: string, signal: AbortSignal): Promise<Capability> => {
@@ -172,7 +183,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const provider = PROVIDERS[providerId], contextText = [pageText, options.extra?.text].filter(Boolean).join('\n\n') || null;
     const contextHandles = options.extra ? options.extra.handles : options.withContext === false ? [] : context.context?.handles ?? [];
     const providerName = hosted ? `${hosted.provider} via ZIGoals hosted` : settings.provider === 'local' ? (settings.localServer === 'ollama' ? 'Ollama' : 'your local server') : provider.name;
-    const base = {area: context.area, customInstructions: settings.customInstructions, providerName};
+    const base = {area: context.area, customInstructions: settings.customInstructions, providerName, today: localDate()};
     // Session V Part 11: words that touch a sensitive health topic put this one message in careful mode.
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);
@@ -195,14 +206,15 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     if (hosted && !account) { setFailure({kind: 'blocked', title: 'Sign in again to use ZIGoals hosted.', steps: ['ZIGoals hosted works with your account; sign in under Settings → Account & sync.']}); return; }
     if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
-    setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiEvents.emit('reply-pending');
+    setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiSignals.emit('assistant_thinking');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
     const found: Lookup[] = [];
     const flush = () => { frame.current = null; setDraft(pendingText.current); };
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
     const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
     const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
-    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
+    // Session X-Local Part 6d: a thinking model thinks only for "Think deeper"; a quick reply spends its cap on the answer.
+    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal, think: !!options.deep};
     // Session V Part 6: how this message gets the data. Tools only with the page's data shared for this message, never
     // after this model refused them in this session; the setting first, then the provider's own metadata.
     const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(providerId, hosted ? `hosted:${model}` : model);
@@ -213,9 +225,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     if (!env || !toolsFor(env).length) mode = 'attach';
     const onText = (delta: string) => {
       reply += delta; pendingText.current = reply;
-      if (!first) { first = true; setStatus('streaming'); zigiEvents.emit('reply-streaming'); }
+      if (!first) { first = true; setStatus('streaming'); zigiSignals.emit('assistant_speaking'); }
       // Session V Part 12: ZIGi writes while a proposal block streams in (the cards show once it is complete).
-      if (!writing && hasOpenFence(reply)) { writing = true; zigiEvents.emit('writing-proposal'); }
+      if (!writing && hasOpenFence(reply)) { writing = true; zigiSignals.emit('assistant_writing_proposal'); }
       // The chat's own window: the mini window keeps streaming while the tab is in the background (Part 14).
       if (!frame.current) frame.current = nextFrame(flush);
     };
@@ -226,25 +238,52 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
       try { const cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())), line = capNote(cap); if (line && noted.current !== `${monthKey(new Date())}:${cap?.level}`) { noted.current = `${monthKey(new Date())}:${cap?.level}`; setUsageNote(line); } } catch { /* no note */ }
     };
-    const run = async (current: DataMode) => {
+    const run = async (current: DataMode, msgs = messages, extra: Partial<Pick<ChatRequest, 'format'>> = {}) => {
       if (current === 'tools' && env) {
         const shouldStop = () => contextRef.current.gates.paused ? 'ZIGi paused its lookups: this screen holds a private form.' : null;
         for await (const event of runWithTools({...request, system: withNotes(buildSystemPrompt({...base, context: contextText, tools: true})), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
           if (event.type === 'text') onText(event.delta);
           else if (event.type === 'usage') usage = {input: event.input, output: event.output};
           else if (event.type === 'done') reason = event.reason;
-          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiEvents.emit('tool-call'); }
+          else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiSignals.emit('assistant_reading_records'); }
           else if (event.type === 'tool-limit') limit = event.reason;
         }
         return;
       }
-      for await (const event of counted(request)) {
+      for await (const event of counted({...request, ...extra, messages: msgs})) {
         if (event.type === 'text') onText(event.delta);
         else if (event.type === 'usage') usage = {input: event.input, output: event.output};
         else if (event.type === 'done') reason = event.reason;
       }
     };
-    const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
+    /**
+     * Session X-Local Part 5c, one automatic repair round: in log or plan mode, when the reply held proposal blocks and
+     * every one was refused, the same model is asked once more for valid blocks (the first answer goes with it as the
+     * assistant's turn of the request; neither the ask nor the first answer is stored). The second answer replaces the
+     * first under a note; if the retry fails or stops, the first answer stands.
+     */
+    const repair = async () => {
+      if (controller.signal.aborted || !reply) return;
+      // Careful mode (a sensitive health topic): the reply is warm and figure-free by the note's own rule; no second ask for cards.
+      if (risk) return;
+      // Phase 2 (P2.2b): also when a card was asked for (log or plan mode, or a logging or planning intent read on the
+      // device) and no block came back at all; on Ollama the retry asks for structured output (the JSON schema).
+      // Log or plan mode alone does not force a retry ("thanks" in log mode is a normal reply); the message's own intent does.
+      const check = parseReply(reply), intent = detectIntent(text);
+      if (!needsRepair(check, {askedForCard: wantsCard(intent, reply), refusedMayRepair: refusedBlocksMayRepair(intent, reply)})) return;
+      const firstTry = reply, firstUsage = usage;
+      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: repairPrompt(check)}];
+      reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
+      const structured = !hosted && settings.provider === 'local' && settings.localServer === 'ollama' ? {format: structuredFormat()} : {};
+      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
+      if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
+      reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
+    };
+    // Round 6 (ADR-017 S69): a log card that says today while the message names yesterday, the day before, or a weekday takes that day.
+    // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
+    // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
+    const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
+    const done = (stopped: string | undefined) => finish(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {
       try { await run(mode); }
       catch (error) {
@@ -255,6 +294,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         await run('attach');
       }
       setLastMode({mode, fellBack: fellBack.current.has(fbKey)});
+      await repair();
       done(limit ?? stopReason(reason, false));
     } catch (error) {
       if (isAbortLike(error)) { done('Stopped'); }
@@ -263,7 +303,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         if (reply) done(`Interrupted: ${aiError.message}`.slice(0, 200));
         const hostedPage = !/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
         setFailure({kind: aiError.kind, title: aiError.message, steps: hosted ? [] : errorSteps(aiError, {providerName, local: settings.provider === 'local' ? {server: settings.localServer, baseUrl: settings.baseUrl ?? ''} : undefined, hostedPage, keysUrl: provider.keysUrl})});
-        zigiEvents.emit('error');
+        zigiSignals.emit('recoverable_error');
       }
     } finally {
       record();
@@ -300,7 +340,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})});
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
-    zigiEvents.emit(localEvent(reply, question));
+    zigiSignals.emit(localSignal(reply, question));
   }, [persist, rememberArea, setChat]);
   const localEnv = useCallback(() => { const sources = context.toolSources(); return sources ? toolEnv(sources, context.gates, 'local') : null; }, [context]);
   /**
@@ -311,7 +351,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
    */
   const askOnDevice = useCallback(async (text: string, env: ReturnType<typeof toolEnv> | null, replace?: string) => {
     const controller = new AbortController(), signal = controller.signal, prompts = onDevicePrompts(text);
-    abort.current = controller; setFailure(null); setStatus('pending'); zigiEvents.emit('model-loading');
+    abort.current = controller; setFailure(null); setStatus('pending'); zigiSignals.emit('model_loading');
     let failed = ON_DEVICE_FAILED;
     try {
       // A question never starts Chrome's download (it is large): only Settings does, from its own button.
@@ -338,7 +378,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       answerLocally(text, text, examples.kind === 'examples' ? {...examples, text: `${failed} ${examples.text}`} : examples, {replace});
     } finally {
       if (abort.current === controller) abort.current = null;
-      setStatus('idle'); zigiEvents.emit('model-ready');
+      setStatus('idle'); zigiSignals.emit('model_ready');
     }
   }, [answerLocally]);
   const ask = useCallback(async (raw: string, options: SendOptions = {}) => {

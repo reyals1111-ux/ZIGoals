@@ -3,8 +3,14 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session W (release `2026-10-session-w`): this release's features, each opening its Help answer. */
+/** Session X-Local (release `2026-10-session-x`): ZIGi comes alive; each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-your-ai-alive', label: 'ZIGi comes alive: the real art, idle, emotions'},
+  {href: '/app/help#help-your-ai-act', label: 'ZIGi creates anything: stacks, edits, the mood, links, widgets'},
+  {href: '/app/help#help-your-ai-auto', label: 'Auto-accept: cards added for you, with Undo'},
+];
+/** Session W (release `2026-10-session-w`), folded under "Earlier updates" with Session V's. */
+const SESSION_W_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-w-pages', label: 'Hide pages and buttons'},
   {href: '/app/help#help-w-sleep', label: 'Sleep and sleep debt'},
   {href: '/app/help#help-w-meditation', label: 'Meditation and breathing'},
@@ -19,6 +25,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
 ];
 /** The previous release's links (Session V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_W_LINKS,
   {href: '/app/help#help-auto-checkins', label: 'Habits that tick themselves off from Health'},
   {href: '/app/help#help-health-goals', label: 'Health goals'},
   {href: '/app/help#help-skips', label: 'Planned skips and vacation days'},

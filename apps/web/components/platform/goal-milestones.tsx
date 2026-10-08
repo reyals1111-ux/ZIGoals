@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {Platform, PrivateGoal} from '../../lib/positions';
 import {parseAmountInput} from '../../lib/amount-input';
 import {visibleName} from '../../lib/visible-text';
@@ -7,6 +7,7 @@ import {formatGoalAmount} from '../../lib/goal-summary';
 import {milestoneDateOf, milestoneMarks, milestoneNoteId, milestoneState, setMilestoneDate, type Milestone} from '../../lib/goals/milestones';
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CELEBRATIONS} from '../../lib/celebrations';
+import {zigiSignals} from '../zigi/bus';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {GlassBar} from '../progress/glass-progress';
 import {amount} from './common';
@@ -24,6 +25,9 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
   const closed = goal.status === 'closed', project = goal.type === 'PROJECT', money = (units: string) => formatGoalAmount(amount(units, goal.decimals), goal.asset);
   const states = goal.milestones.map(m => ({m, state: milestoneState(m, current), date: dates.loaded ? milestoneDateOf(dates.data, goal.id, m.id) : undefined}));
   const fresh = notes.loaded && !notes.unreadable ? states.filter(s => s.state !== 'open' && !notes.data.seen[milestoneNoteId(goal.id, s.m.id)]) : [];
+  // Session X-Local Part 4: a milestone newly reached or done is a validated fact for ZIGi, signalled once per milestone.
+  const signalled = useRef(new Set<string>()), freshKey = fresh.map(s => milestoneNoteId(goal.id, s.m.id)).sort().join('|');
+  useEffect(() => { for (const id of freshKey ? freshKey.split('|') : []) if (!signalled.current.has(id)) { signalled.current.add(id); zigiSignals.emitValidated('goal_milestone_reached'); } }, [freshKey]);
   const marks = milestoneMarks(goal), share = project ? (goal.milestones.length ? goal.milestones.filter(m => m.done).length / goal.milestones.length : 0) : Number(current * 10_000n / (BigInt(goal.target) || 1n)) / 10_000;
   // One note at a time: several milestones met at once (or before this build first opened) share one, kept once.
   function seen(list: typeof fresh) { try { notes.update(n => ({...n, seen: {...n.seen, ...Object.fromEntries(list.map(s => [milestoneNoteId(goal.id, s.m.id), today]))}})); } catch { setError('Not saved on this device.'); } }

@@ -22,9 +22,12 @@ function ollamaMessage(m: ChatRequest['messages'][number]): Record<string, unkno
   if (m.role === 'user' && m.images?.length) return {role: 'user', content: m.content, images: m.images.map(i => i.data)};
   return {role: m.role, content: m.content};
 }
-export function ollamaBody(request: Pick<ChatRequest, 'model' | 'system' | 'messages' | 'maxOutputTokens' | 'tools'>): Record<string, unknown> {
-  const body: Record<string, unknown> = {model: request.model, stream: true, options: {num_predict: request.maxOutputTokens}, messages: [{role: 'system', content: request.system}, ...request.messages.map(ollamaMessage)]};
+export function ollamaBody(request: Pick<ChatRequest, 'model' | 'system' | 'messages' | 'maxOutputTokens' | 'tools' | 'think' | 'format'>): Record<string, unknown> {
+  // `think` (Session X-Local Part 6d): off unless asked; a model without thinking accepts the field (checked on phi4-mini).
+  const body: Record<string, unknown> = {model: request.model, stream: true, think: request.think === true, options: {num_predict: request.maxOutputTokens}, messages: [{role: 'system', content: request.system}, ...request.messages.map(ollamaMessage)]};
   if (request.tools?.length) body.tools = request.tools.map(t => ({type: 'function', function: {name: t.name, description: t.description, parameters: t.parameters}}));
+  // Phase 2: structured output on the repair round (Ollama enforces the JSON schema; the reply is then the JSON alone).
+  if (request.format) body.format = request.format;
   return body;
 }
 export async function* streamOllama(request: ChatRequest, base: string): AsyncGenerator<ChatEvent> {

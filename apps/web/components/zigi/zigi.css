@@ -1,7 +1,9 @@
-/* ZIGi (ADR-012; Session V Part 12): a still frame per state and a small CSS motion each, until the figure set lands.
+/* ZIGi (ADR-012; Session V Part 12; Session X-Local Part 1): a still frame per state and a small CSS motion each.
    Loops hold (thinking, speaking, listening, reading, writing, sleepy, offline, peek, loading); one-shots play once.
-   The idle breath runs on the launcher (its shell CSS) and the panel's head only. Nothing moves under reduced motion,
-   Motion Off or ZIGi's animation Off; loops that scroll out of view on Meet ZIGi pause. */
+   Since the Studio-2 art landed, a state's own clip carries its motion: while it plays (`img[data-playing]` on a
+   `[data-own]` figure) the CSS move rests, so nothing is animated twice; the fourteen states that wear another clip keep
+   their own CSS move on top. The idle breath runs on the launcher (its shell CSS) and the panel's head only. Nothing
+   moves under reduced motion, Motion Off or ZIGi's animation Off; loops that scroll out of view on Meet ZIGi pause. */
 .zigi{display:inline-flex;align-items:flex-end;justify-content:center;flex:none;position:relative}
 .zigi img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(20,10,60,.45));transform-origin:50% 100%}
 .ai-chat-head .zigi-idle img,.zigi-play.zigi-idle img{animation:zigi-breath-panel 5.6s ease-in-out infinite}
@@ -52,5 +54,6 @@
 @keyframes zigi-knock{0%,40%,100%{transform:translateX(0)}15%{transform:translateX(-2px) rotate(-2deg)}28%{transform:translateX(1px)}}
 @keyframes zigi-dim{0%,100%{opacity:.85}50%{opacity:.6}}
 @keyframes zigi-peek{0%,100%{transform:translateX(0)}50%{transform:translateX(-2px) rotate(-3deg)}}
+.zigi[data-own] img[data-playing]{animation:none!important}
 @media (prefers-reduced-motion:reduce){.zigi img{animation:none!important}}
 :root[data-app-motion=off] .zigi img,:root[data-zigi-motion=off] .zigi img{animation:none!important}

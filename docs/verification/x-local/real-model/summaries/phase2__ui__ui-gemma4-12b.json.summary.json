@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/ui-gemma4-12b.json",
+ "kind": "ui",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 150,
+   "passed": 116,
+   "scored": 149,
+   "errors": 1,
+   "replyMedianMs": 2147,
+   "first": "2026-10-08T15:40:42.784Z",
+   "last": "2026-10-08T15:56:06.104Z"
+  }
+ ]
+}

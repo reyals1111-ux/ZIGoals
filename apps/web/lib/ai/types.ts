@@ -41,6 +41,15 @@ export type ChatRequest = {
   maxOutputTokens: number;
   /** Read-only tools the model may call (Session V Part 6); absent or empty, every wire's body is T's, byte for byte. */
   tools?: readonly ToolSpec[];
+  /**
+   * Session X-Local Part 6d: whether a model that can "think" may do so. Ollama's wire gets `think: false` unless this
+   * is true (a thinking model otherwise spends the output cap on hidden thought and its cards arrive cut off: gemma4
+   * answered in 22 tokens and 0.8 s with it off, in 200 tokens of hidden thought and 12.7 s with it on). "Think deeper"
+   * sets it. Other wires have no field for it today.
+   */
+  think?: boolean;
+  /** Session X-Local Phase 2 (P2.2b): structured output for one reply, as a JSON schema the wire enforces (Ollama's `format`); only the repair round sets it. Other wires ignore it. */
+  format?: Record<string, unknown>;
   /** The person's key or token; null for a local server without authentication. */
   key: string | null;
   /** Local provider only: the server's base URL (http://localhost:11434, http://127.0.0.1:1234, …). */
