@@ -454,6 +454,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
+  const textarea = () => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, refocus = useRef(false);
+  useEffect(() => { if (busy || !refocus.current) return; refocus.current = false; nextFrame(() => { const a = document.activeElement; if (!a || a === document.body) textarea()?.focus({preventScroll: true}); }); }, [busy]);
   // Session V Part 7: one meal photo per message (only with a model that reads photos and Health shared), and log mode.
   const [attached, setAttached] = useState<Photo | null>(null), [photoNote, setPhotoNote] = useState(''), [logMode, setLogMode] = useState(false), file = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(() => attached ? URL.createObjectURL(attached.preview) : null, [attached]);
@@ -482,6 +484,8 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     const extra: ComposerExtra = {...(attached ? {images: [{mime: attached.mime, data: attached.data}]} : {}), ...(log ? {log: true} : {}), ...(direct ? {direct: true} : {}), ...(plan ? {plan: true} : {}), ...(editing ? {replace: editing.id} : {})};
     setText(''); setAttached(null); setPhotoNote(''); onEditing(null);
     if (onSend) onSend(value, extra); else void session.ask(value, {withContext: attach, ...extra});
+    // X-Cloud's H10 (ADR-017 S71): a mouse click on Send focused the button, which gives way to Stop, and the focus fell to the page (Escape no longer closed the panel); the message box keeps it, now and once the reply has ended.
+    refocus.current = true; nextFrame(() => textarea()?.focus({preventScroll: true}));
   };
   const mic = voice.mode !== 'off' && !local;
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';

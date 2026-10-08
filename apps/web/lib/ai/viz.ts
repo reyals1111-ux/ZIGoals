@@ -53,7 +53,7 @@ const fmt = (n: number) => Number(n.toFixed(1)).toLocaleString('en-US');
 export function seriesSummary(series: Series): string {
   const p = series.points, first = p[0]!, last = p.at(-1)!, unit = series.unit ? ` ${series.unit}` : '';
   const high = p.reduce((a, b) => b.value > a.value ? b : a), low = p.reduce((a, b) => b.value < a.value ? b : a);
-  const days = `${p.length} days with a record from ${first.date} to ${last.date}`;
+  const days = `${plural(p.length, 'day')} with a record from ${first.date} to ${last.date}`;
   if (series.shape === 'line') return `${series.title}: ${days}, from ${fmt(first.value)}${unit} to ${fmt(last.value)}${unit}; lowest ${fmt(low.value)}${unit} on ${low.date}, highest ${fmt(high.value)}${unit} on ${high.date}.`;
   const total = p.reduce((a, b) => a + b.value, 0);
   return `${series.title}: ${days}, ${fmt(total)}${unit} in all, the most ${fmt(high.value)}${unit} on ${high.date}.`;
@@ -66,12 +66,12 @@ export type Stat = {value: string; label: string; detail: string | null; source:
 const plainCount = (n: unknown) => typeof n === 'number' && Number.isFinite(n) ? n.toLocaleString('en-US') : null;
 export function statOf(result: ToolResult): Stat | null {
   if (!result.ok) return null;
-  const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? `${n} of ${of} days with a record` : null;
+  const d = result.data as Record<string, unknown>, days = (n: unknown, of: unknown) => typeof n === 'number' && typeof of === 'number' ? `${n} of ${plural(of, 'day')} with a record` : null;
   switch (result.tool) {
     case 'habit_stats': {
       const value = typeof d.valueText === 'string' ? d.valueText : null, range = d.days as Record<string, unknown> | undefined;
       if (!value || /^(unknown|mixed)/.test(value)) return null;
-      return {value, label: result.label, detail: typeof d.checkIns === 'number' && typeof range?.inRange === 'number' ? `${d.checkIns} check-ins over ${range.inRange} days` : null, source: result.provenance};
+      return {value, label: result.label, detail: typeof d.checkIns === 'number' && typeof range?.inRange === 'number' ? `${plural(d.checkIns, 'check-in')} over ${plural(range.inRange, 'day')}` : null, source: result.provenance};
     }
     case 'water': { const ml = plainCount(d.totalMl); return ml ? {value: `${ml} mL`, label: result.label, detail: days(d.daysWithWater, d.daysInRange), source: result.provenance} : null; }
     case 'steps': { const steps = plainCount(d.totalSteps); return steps ? {value: `${steps} steps`, label: result.label, detail: days(d.daysWithActivity, d.daysInRange), source: result.provenance} : null; }
@@ -79,7 +79,7 @@ export function statOf(result: ToolResult): Stat | null {
       const list = Array.isArray(d.counters) ? d.counters as Record<string, unknown>[] : [];
       if (list.length !== 1) return null;
       const total = plainCount(list[0]!.total);
-      return total ? {value: `${total} times`, label: result.label, detail: typeof list[0]!.daysWithEntry === 'number' ? `on ${list[0]!.daysWithEntry} days` : null, source: result.provenance} : null;
+      return total ? {value: `${total} times`, label: result.label, detail: typeof list[0]!.daysWithEntry === 'number' ? `on ${plural(list[0]!.daysWithEntry, 'day')}` : null, source: result.provenance} : null;
     }
     default: return null;
   }

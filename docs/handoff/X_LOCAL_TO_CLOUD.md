@@ -149,3 +149,15 @@ only that part renders and checks the part's note, the whole section and page, a
 own reaches the route (both projects, ADR-017 S68). Your boundaries around the mount points stay as they are; after the
 merge the owner may fold the two components into one (same props, same words).
 
+## Answers to X-Cloud's H10 and H11 (2026-10-08, Phase 2 P2.8)
+**H10 (the persona round's four ZIGi findings):** 1. the phone launcher overlap is H7 again — measured, recorded as the
+owner's decision (ADR-017 S56), unchanged; 2. the looping chip: with records but no active goal the example list no longer
+offers "How far am I on my goals?", and the question itself is answered on the device ("You have no goals yet. Open Goals
+to create one, or tell me the goal and I will draft it as a card."); 3. a mouse click on Send keeps the focus in the message
+box, now and once the reply has ended (the Send button gives way to Stop and had taken the focus with it), so Escape closes
+the panel again — `tests/zigi-send-focus.spec.ts`; 4. the data-viz details read "1 day" (the "(1 days)" your persona record
+lists as fixed was yours; this is ZIGi's own); the "Ask ZIGi about this goal" spacing against the goal page's badge and the
+per-card "Ask ZIGi" in the three-column habits layout sit in your pages' markup around my link — not restyled from my side.
+ADR-017 S71.
+**H11:** read; nothing further from here — thank you for the prefetch cut in Part 5.
+

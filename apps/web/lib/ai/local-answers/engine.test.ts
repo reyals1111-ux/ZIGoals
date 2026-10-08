@@ -177,3 +177,12 @@ test('Session X-Local Part 6d: five asks the first model runs found unanswered h
   expect(textOf(ask("What's my longest reading streak?"))).toContain('longest Read streak');
   expect(ask('Which colour should I paint the kitchen?').kind).toBe('none');
 });
+test("X-Cloud's H10 (S71): with records but no goal, the example list does not offer the goals question, and the goals question itself gets an answer", () => {
+  const src = showcaseSources();
+  const env = toolEnv({...src, platform: {...src.platform, goals: []}}, gatesFor(true, 'today', '/app'), 'local');
+  expect(examplesFor(env)).not.toContain('How far am I on my goals?');
+  const reply = localAnswer('How far am I on my goals?', env);
+  expect(reply.kind).toBe('answer'); expect((reply as {text: string}).text).toContain('You have no goals yet');
+  expect(localAnswer('How far am I on my goals?', toolEnv(src, gatesFor(true, 'today', '/app'), 'local')).kind).toBe('none');
+});
+

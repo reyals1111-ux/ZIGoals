@@ -25,6 +25,8 @@ export function examplesFor(env: ToolEnv | null, max = 6): string[] {
     if (env.health) out.push('Average steps last week?', 'Did I hit my protein target this week?', 'What did I eat yesterday?');
     if (habits.length) out.push(`How many times did I check in ${clean(habits[0]!.title, 40)} last week?`);
   }
-  if (out.length < 3) out.push('How many minutes did I meditate this month?', 'How far am I on my goals?', 'What is my net worth?');
+  // With records but no active goal, the goals question is not offered: asked, it answered with this very list (X-Cloud's H10, ADR-017 S71).
+  const goalsExist = !env || summaries(env).some(g => g.status === 'active');
+  if (out.length < 3) out.push('How many minutes did I meditate this month?', goalsExist ? 'How far am I on my goals?' : 'Which habits are open today?', 'What is my net worth?');
   return [...new Set(out)].slice(0, max);
 }

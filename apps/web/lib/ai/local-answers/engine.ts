@@ -180,6 +180,8 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   if (subject?.kind === 'goal') return goalProgress(env, subject.id, q);
   if (CONTRIBUTION.test(q) && /\b(how much|amount|total|sum|goal|goals)\b/.test(q) && !/\btimes\b/.test(q)) return contributions(env, q, ranges(env.habitDay));
   const goalHits = mentionedGoals(env, q);
+  // X-Cloud's H10 (ADR-017 S71): "how far am I on my goals?" with no goal on the device answered with the example questions, which held the same question.
+  if (!goalHits.length && GOAL_PROGRESS.test(q) && /\bgoals?\b/.test(q) && !healthWord && !summaries(env).some(g => g.status === 'active')) return {kind: 'answer', text: 'You have no goals yet. Open Goals to create one, or tell me the goal and I will draft it as a card.', calls: []};
   if (goalHits.length && (GOAL_PROGRESS.test(q) || /\bgoal\b/.test(q)) && !healthWord) {
     if (goalHits.length > 1) return {kind: 'choices', text: 'More than one goal matches. Which one do you mean?', choices: goalHits.map(g => ({label: clean(g.name, 60), subject: {kind: 'goal', id: g.key}})), calls: []};
     return goalProgress(env, goalHits[0]!.key, q);
