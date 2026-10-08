@@ -1,7 +1,7 @@
 import {UUID,providerConfigured} from '../push-reminders/verify.mjs';
 import {positive} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
-import {anthropicBody,anthropicStream,isAnthropic} from './anthropic.mjs';
+import {anthropicBody,isAnthropic} from './anthropic.mjs';
 /**
  * The relay's pure parts (Session V Part 17, ADR-014), apart from worker.mjs so that its module exports only the
  * handler and the budget object: who may use it, the body the provider gets, and the metered stream.
@@ -68,7 +68,7 @@ export function lastBoundary(text){let end=-1;for(const match of text.matchAll(/
  * event is translated into the app's chunks first, the size limits count what is handed on, and the translator reports
  * the usage and whether the provider ended with an error event.
  * @param {ReadableStream<Uint8Array>} body @param {AbortController} controller @param {(used:number|null,outcome:Outcome)=>void} settle
- * @param {ReturnType<typeof anthropicStream>} [translator]
+ * @param {ReturnType<typeof import('./anthropic.mjs').anthropicStream>} [translator]
  */
 export function metered(body,controller,settle,translator){
  const reader=body.getReader(),decoder=new TextDecoder();
