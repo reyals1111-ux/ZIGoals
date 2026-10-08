@@ -1,5 +1,6 @@
 'use client';
 import {useEffect} from 'react';
+import {hashId} from '../../lib/hash-id';
 
 const PERSON = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const;
 
@@ -14,7 +15,7 @@ export function KeepSettingsJump() {
     let stop = () => {};
     const keep = () => {
       stop();
-      const id = decodeURIComponent(window.location.hash.slice(1)), target = id ? document.getElementById(id) : null;
+      const id = hashId(window.location.hash), target = id ? document.getElementById(id) : null;
       if (!target || typeof ResizeObserver !== 'function') return;
       const top = target.getBoundingClientRect().top;
       const observer = new ResizeObserver(() => { const moved = target.getBoundingClientRect().top - top; if (Math.abs(moved) > 4) window.scrollBy(0, moved); });

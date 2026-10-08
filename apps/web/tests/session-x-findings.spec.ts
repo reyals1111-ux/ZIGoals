@@ -201,3 +201,15 @@ test('J055: a Goal created offline is saved, and the wizard says so instead of l
   await saved.getByRole('link', {name: 'Open saved Goal →'}).click();
   await expect(page.getByRole('heading', {level: 1, name: 'Fictional offline plan'})).toBeVisible();
 });
+
+test('a link with a broken fragment (#%) still opens Settings, Ecosystem and Today, never the error page', async ({page}) => {
+  // Session X P2.7 (security review, finding 4): decoding such a fragment threw inside an effect.
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  for (const path of ['/app/settings#%', '/app/ecosystem#%', '/app#%', '/app/wealth#%25%']) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('alert').filter({hasText: 'This page could not be shown.'})).toHaveCount(0);
+  }
+  expect(errors).toEqual([]);
+});
