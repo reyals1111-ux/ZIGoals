@@ -17,7 +17,7 @@ const clock=(/** @type {number} */ms)=>{const d=new Date(ms);return `${String(d.
 /** @type {Awaited<ReturnType<typeof pushRuntime>>} */let push;
 /** The app route's outbound calls, to the two Workers in Miniflare (the timeout signal and cache mode stay here). @type {typeof fetch} */
 const fetcher=async(input,init={})=>{
- const url=new URL(String(input)),{signal:_signal,cache:_cache,...rest}=/** @type {RequestInit} */(init);
+ const url=new URL(String(input)),rest={.../** @type {RequestInit} */(init)};delete rest.signal;delete rest.cache;
  if(url.origin===SYNC_ORIGIN)return sync.mf.dispatchFetch('https://sync.test'+url.pathname,/** @type {any} */(rest));
  if(url.origin===PUSH_ORIGIN)return push.mf.dispatchFetch('https://push.test'+url.pathname,/** @type {any} */(rest));
  throw Error('The route reached '+url.origin);

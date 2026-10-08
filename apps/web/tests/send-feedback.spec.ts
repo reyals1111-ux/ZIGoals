@@ -74,7 +74,7 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(items.first()).toContainText('Accounts and sync aren’t open yet on alpha.zigoals.app.');
   await expect(section).toContainText('No real money moves.');
   await expect(section).toContainText('never zero');
-  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · your AI', '#your-ai'], ['tell us', '#feedback']]) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
+  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · your AI', '#your-ai'], ['tell us', '#feedback']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
   await section.getByRole('link', {name: 'tell us', exact: true}).click();
   await expect(page).toHaveURL(/#feedback$/);
 });

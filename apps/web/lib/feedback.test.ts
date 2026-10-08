@@ -58,11 +58,11 @@ test('the mail link: the same template as before without details; the person\'s 
   const plain = feedbackHref('1.2.3 · abc1234', null);
   expect(plain.startsWith('mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=')).toBe(true);
   // Byte-for-byte the body Help sent before Session X.
-  expect(decodeURIComponent(plain.split('&body=')[1])).toBe('What happened:\n\nWhat you expected:\n\nDevice and browser:\n\nApp version: 1.2.3 · abc1234\n\n(Please leave out codes, your recovery secret, and personal money or health details.)');
+  expect(decodeURIComponent(plain.split('&body=')[1]!)).toBe('What happened:\n\nWhat you expected:\n\nDevice and browser:\n\nApp version: 1.2.3 · abc1234\n\n(Please leave out codes, your recovery secret, and personal money or health details.)');
   expect(feedbackHref('x', '   ')).toBe(feedbackHref('x', null));
-  const withDetails = decodeURIComponent(feedbackHref('x', '  Browser: Safari 26\nTime zone: edited by me \n').split('&body=')[1]);
+  const withDetails = decodeURIComponent(feedbackHref('x', '  Browser: Safari 26\nTime zone: edited by me \n').split('&body=')[1]!);
   expect(withDetails).toContain('Device and browser:\nBrowser: Safari 26\nTime zone: edited by me\n\nApp version: x');
-  const long = decodeURIComponent(feedbackHref('x', 'a'.repeat(DETAILS_MAX + 50)).split('&body=')[1]);
+  const long = decodeURIComponent(feedbackHref('x', 'a'.repeat(DETAILS_MAX + 50)).split('&body=')[1]!);
   expect(long).toContain('a'.repeat(DETAILS_MAX) + '\n\nApp version');
   expect(long).not.toContain('a'.repeat(DETAILS_MAX + 1));
   // Anything a person types stays inside the body: no extra header can be added to the mail link.
