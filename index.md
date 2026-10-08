@@ -42,6 +42,7 @@ Every per-run JSON of the real-model test (Session X-Local Part 6 and Phase 2), 
 | `real-model/phase2/rtx-5090-qwen3.6-35b-a3b-tools-all-2026-10-08T09-50-14-424Z.json` | harness · qwen3.6:35b-a3b on RTX 5090 · tools · cases 626 ×1 · 612/773 (79.2 %) · first token 215 ms, total 738 ms · started 2026-10-08T09:50Z |
 | `real-model/phase2/rtx-5090-qwen3.8-27b-tools-all-2026-10-08T07-53-23-248Z.json` | harness · qwen3.8:27b on RTX 5090 · tools · cases 626 ×1 · 544/773 (70.4 %) · first token 535 ms, total 2112 ms · started 2026-10-08T07:53Z |
 | `real-model/phase2/rtx-5090-qwen3.8-27b-tools-all-2026-10-08T09-16-03-292Z.json` | harness · qwen3.8:27b on RTX 5090 · tools · cases 626 ×1 · 591/773 (76.5 %) · first token 582 ms, total 2327 ms · started 2026-10-08T09:16Z |
+| `real-model/phase2/variance/mac-m1-max-qwen3.6-35b-a3b-tools-important-2026-10-08T15-05-52-431Z.json` | harness · qwen3.6:35b-a3b on Mac M1 Max · tools · cases 178 ×3 · 683/852 (80.2 %) · first token 1920 ms, total 4323 ms · started 2026-10-08T15:05Z |
 | `real-model/phase2/variance/rtx-5090-gemma4-12b-tools-important-2026-10-08T14-23-29-835Z.json` | harness · gemma4:12b on RTX 5090 · tools · cases 178 ×3 · 750/852 (88.0 %) · first token 480 ms, total 1493 ms · started 2026-10-08T14:23Z |
 | `real-model/phase2/variance/rtx-5090-phi4-mini-3.8b-tools-important-2026-10-08T14-15-16-729Z.json` | harness · phi4-mini:3.8b on RTX 5090 · tools · cases 178 ×3 · 482/852 (56.6 %) · first token 265 ms, total 488 ms · started 2026-10-08T14:15Z |
 | `real-model/phase2/variance/rtx-5090-qwen3.6-35b-a3b-tools-important-2026-10-08T15-16-56-577Z.json` | harness · qwen3.6:35b-a3b on RTX 5090 · tools · cases 178 ×3 · 691/852 (81.1 %) · first token 221 ms, total 562 ms · started 2026-10-08T15:16Z |
@@ -64,7 +65,7 @@ Every per-run JSON of the real-model test (Session X-Local Part 6 and Phase 2), 
 | `real-model/rtx-5090-qwen3.8-27b-tools-all-2026-10-08T00-59-22-461Z.json` | harness · qwen3.8:27b on RTX 5090 · tools · cases 338 ×1 · 260/361 (72.0 %) · first token 1735 ms, total 3162 ms · started 2026-10-08T00:59Z |
 | `real-model/rtx-5090-qwen3.8-27b-tools-all-2026-10-08T05-02-05-455Z.json` | harness · qwen3.8:27b on RTX 5090 · tools · cases 338 ×1 · 265/361 (73.4 %) · first token 371 ms, total 2010 ms · started 2026-10-08T05:02Z |
 | `real-model/rtx-5090-qwen3.8-27b-tools-important-2026-10-08T06-06-53-047Z.json` | harness · qwen3.8:27b on RTX 5090 · tools · cases 100 ×3 · 210/330 (63.6 %) · first token 146 ms, total 1455 ms · started 2026-10-08T06:06Z |
-| `real-model/ui-gemma4-12b.json` | panel · gemma4:12b on Mac M1 Max (desktop): 50/59 passed of 60 runs, median 47829 ms; gemma4:12b on RTX 5090 (desktop): 129/150 passed of 150 runs, median 1551 ms |
-| `real-model/ui-phi4-mini-3-8b.json` | panel · phi4-mini:3.8b on RTX 5090 (desktop): 112/165 passed of 165 runs, median 803 ms |
-| `real-model/ui-qwen3-6-35b-a3b.json` | panel · qwen3.6:35b-a3b on Mac M1 Max (desktop): 45/60 passed of 60 runs, median 5257 ms; qwen3.6:35b-a3b on RTX 5090 (desktop): 115/150 passed of 150 runs, median 849 ms |
-| `real-model/ui-qwen3-8-27b.json` | panel · qwen3.8:27b on RTX 5090 (desktop): 112/150 passed of 150 runs, median 1982 ms |
+| `real-model/ui-gemma4-12b.json` | panel · gemma4:12b on Mac M1 Max (desktop): 50/59 passed of 60 runs, median 47829 ms; gemma4:12b on RTX 5090 (desktop): 245/299 passed of 300 runs, median 2014 ms |
+| `real-model/ui-phi4-mini-3-8b.json` | panel · phi4-mini:3.8b on RTX 5090 (desktop): 187/299 passed of 300 runs, median 848 ms |
+| `real-model/ui-qwen3-6-35b-a3b.json` | panel · qwen3.6:35b-a3b on Mac M1 Max (desktop): 45/60 passed of 60 runs, median 5257 ms; qwen3.6:35b-a3b on RTX 5090 (desktop): 209/285 passed of 286 runs, median 1217 ms |
+| `real-model/ui-qwen3-8-27b.json` | panel · qwen3.8:27b on RTX 5090 (desktop): 224/299 passed of 300 runs, median 2106 ms |
