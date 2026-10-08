@@ -33,6 +33,8 @@ export const TYPING_GUARD_MS = 3000;
 export const zigiController = new ZigiController();
 let lastDecision: Decision | null = null;
 export const lastZigiDecision = () => lastDecision;
+/** Whether the alive chunk runs on this page (the controller then hears every signal); before that a knock counts its own nudge. */
+export const zigiAliveRunning = () => started !== null;
 function connectController(): () => void {
   const handle = (signal: ZigiSignal) => {
     if (!isSemanticEvent(signal.type)) return;
@@ -79,8 +81,11 @@ function startRotation(skinOf_: () => Skin, apngOf: () => boolean, random: () =>
       play = window.setTimeout(() => { play = null; zigiIdleVariant.set(null); schedule(); }, pick.durationMs);
     }, nextGapMs(random()));
   };
+  // Phase 2 (P2.5, found by the simulated-day spec): only keys that write count as typing; Escape, Tab, arrows and
+  // modifiers do not (Escape closing the panel was making ZIGi "listen" with the panel shut).
+  const WRITES = /^(?:Backspace|Delete|Enter)$/;
   const onKey = (event: KeyboardEvent) => {
-    if (!isTextField(event.target)) return;
+    if (!isTextField(event.target) || (event.key.length !== 1 && !WRITES.test(event.key)) || event.metaKey || event.ctrlKey) return;
     const wasTyping = Date.now() < typingUntil;
     typingUntil = Date.now() + TYPING_GUARD_MS;
     if (!wasTyping) zigiSignals.emit('user_typing_started');

@@ -186,6 +186,13 @@ describe('ZIGoals\' own rules', () => {
     const heldEnd = c.dispatch({type: 'assistant_replied'}, T0 + 22_000);
     expect(heldEnd.reason).toBe('rate_limited'); expect(heldEnd.event).toBe('idle');
   });
+  it('Phase 2 (P2.5): a knock consumes its nudge even when its clip is held, so a second due reminder never knocks in the same session', () => {
+    const c = mk();
+    c.sync('reminder');
+    const first = c.dispatch({type: 'reminder_due'}, T0);
+    expect(['current_hold', 'validated_event', 'semantic_event']).toContain(first.reason);
+    expect(c.nudgeAllowed(T0 + 1_000)).toBe('nudge_budget_spent');
+  });
   it('sensitive screens: celebrations, knocks and peeks are refused there; the conversation goes on', () => {
     const c = mk();
     c.setPreferences({sensitive: true});

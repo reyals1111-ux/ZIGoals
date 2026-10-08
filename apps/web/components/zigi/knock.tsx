@@ -25,7 +25,7 @@ import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
 import {useReminders} from '../reminders/use-reminders';
 import {zigiSignals, zigiState} from './bus';
-import {zigiController} from './alive';
+import {zigiAliveRunning, zigiController} from './alive';
 import {ZigiAvatar} from './zigi-avatar';
 import './knock.css';
 
@@ -88,7 +88,9 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     try { knock.update(state => recordKnock(state, next.id, localDate(now), now)); } catch { /* the counts are a convenience; the knock shows */ }
     // ZIGi's button shows the knock too, then rests: the signal goes through the controller (it counts the nudge), and
     // the state is set directly as well in case the alive chunk has not started yet.
-    zigiSignals.emit('reminder_due');
+    // Phase 2 (P2.5, found by the simulated-day spec): before the alive chunk runs, the signal reaches no controller and the
+    // nudge went uncounted, so a second due reminder could knock in the same session; the knock then counts it itself.
+    if (zigiAliveRunning()) zigiSignals.emit('reminder_due'); else zigiController.dispatch({type: 'reminder_due'}, now.getTime());
     if (zigiState.get() !== 'reminder') zigiState.set('reminder');
     const root = document.documentElement; root.dataset.zigiKnock = '';
     window.setTimeout(() => { delete root.dataset.zigiKnock; if (zigiState.get() === 'reminder') zigiState.set('idle'); }, RIPPLE_MS * 2);

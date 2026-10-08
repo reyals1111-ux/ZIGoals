@@ -148,6 +148,9 @@ export class ZigiController {
     let machine = EVENT_TO_MACHINE[event.type];
     if (machine === null) return this.#result(this.#current, 'noted', now, null, false);
     if (NUDGES.has(event.type)) { const nudge = this.nudgeAllowed(now); if (nudge !== 'allowed') return this.#result(this.#current, nudge, now, null, false); }
+    // Phase 2 (P2.5, found by the simulated-day spec): a knock consumes its nudge the moment it is allowed, whether or not
+    // the clip is then held (the knock itself already shows); a held reminder used to leave the budget untouched.
+    if (NUDGES.has(event.type)) this.#nudges += 1;
     let target = EVENT_STATE[machine];
     // Calm celebrations: past the day's cap a celebration is a small success.
     if (CELEBRATIONS.has(event.type)) {
@@ -171,7 +174,6 @@ export class ZigiController {
     if (!CONVERSATION.has(target) && now - this.#lastReactionAt < REACTION_GAP_MS) return held('rate_limited');
     this.#last.set(target, now);
     if (!CONVERSATION.has(target)) this.#lastReactionAt = now;
-    if (NUDGES.has(event.type)) this.#nudges += 1;
     if (CELEBRATIONS.has(event.type) && (target === 'celebrate' || target === 'proud')) this.#celebrations.count += 1;
     const reason: Decision['reason'] = CELEBRATIONS.has(event.type) && target === 'success' ? 'celebration_cap' : validated ? 'validated_event' : 'semantic_event';
     return this.#result(target, reason, now, machine, true);
