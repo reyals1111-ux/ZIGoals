@@ -33,8 +33,8 @@ journey('J250', 'every page at 320, 360 and 390 px: no sideways scroll, the titl
       await noSideways(page);
       const heading = page.locator('main h1:visible').first();
       await expect(heading, `${path} at ${width}: a visible title`).toBeVisible();
-      const title = await heading.boundingBox();
-      expect(title!.y, `${path} at ${width}: the title starts on the first screen`).toBeLessThan(width === 320 ? 568 : 800);
+      // Read again until laid out: a view that loads on demand (Sleep) can replace the title just after it shows.
+      await expect.poll(async () => (await heading.boundingBox())?.y ?? Infinity, `${path} at ${width}: the title starts on the first screen`).toBeLessThan(width === 320 ? 568 : 800);
     }
   }
 });
