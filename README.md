@@ -12,3 +12,21 @@ no keys. Captured with Chrome 154 against the dev server (desktop 1280×800, iPh
 | screens/desktop-meet-zigi.jpg · screens/phone-meet-zigi.jpg | Meet ZIGi: every state with the real art and its plain-words meaning (full page) |
 | screens/desktop-customize.jpg · screens/phone-customize.jpg | Customize: Full / Calm / Off |
 | clips/F009-celebrate.anim.webp, F002-greeting, F003-insight, F006-presenting | Four of the eleven studio clips, as shipped (96×126 animated WebP, never re-encoded) |
+
+## Phase 2 (P2.5): ZIGi's states as clips, desktop and phone
+
+Recorded from the dev server with a MOCK provider (no real model, fictional Showcase records), Chrome 154, the look set as named; `clips/states/desktop/` (1280×800) and `clips/states/phone/` (iPhone 13 emulation, 390×844), H.264 mp4, each a few hundred kB.
+
+| Clip | What it shows |
+|---|---|
+| `idle-full.mp4` | Idle under Full for 74 s: the idle loop with its rare variation |
+| `greeting-listening.mp4` | The panel opened: the greeting plays out, then listening as the composer has focus |
+| `thinking-speaking.mp4` | A slow MOCK reply: thinking before the first byte, speaking while it streams |
+| `cards-presenting-success.mp4` | A reply with a card: writing the proposal, presenting, success on Add |
+| `insight.mp4` | A plain answer: insight |
+| `curious.mp4` | The AI's hint: curious |
+| `empathetic.mp4` | The AI's hint: empathetic |
+| `error.mp4` | A failed request: error |
+| `wave-goodbye.mp4` | The panel closed: wave goodbye |
+| `idle-off.mp4` | Animation Off: the still frame |
+
