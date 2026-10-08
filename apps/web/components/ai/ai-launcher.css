@@ -11,6 +11,10 @@
 /* On a computer the sidebar holds the left edge: a left-side ZIGi sits just past it. */
 @media (min-width:901px){.ai-launcher[data-side=left]:not(.ai-launcher-phone){left:calc(var(--sidebar-width,216px) + 20px)}.ai-edge-tab[data-side=left]:not(.ai-edge-tab-phone){left:var(--sidebar-width,216px)}}
 .ai-launcher-phone{right:calc(var(--safe-right,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 8px)}
+/* Session X-Local Part 9 (H7, ADR-017 S81): at the top of a page the launcher rests lifted clear of the page's first controls (the variable is set by the launcher), and glides back to its corner on scroll. */
+.ai-launcher-phone{transform:translateY(calc(-1 * var(--zigi-rest-lift,0px)));transition:transform .35s ease}
+@media (prefers-reduced-motion:reduce){.ai-launcher-phone{transition:none}}
+:root[data-app-motion=off] .ai-launcher-phone{transition:none}
 .ai-launcher-phone[data-side=left]{right:auto;left:calc(var(--safe-left,0px) + 12px)}
 :root[data-keyboard=open] .ai-launcher,:root[data-keyboard=open] .ai-edge-tab{display:none}
 .ai-launcher-stack{display:flex;flex-direction:column;align-items:center;gap:2px}
