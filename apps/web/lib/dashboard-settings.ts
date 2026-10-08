@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {timeZoneSchema} from './time-zone-schema';
 import {HEALTH_MEALS,diarySchema} from './health';
 import {pagesSchema} from './pages/schema';

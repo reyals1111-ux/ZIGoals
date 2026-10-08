@@ -2,7 +2,7 @@
 import {forgetPushOnThisDevice} from '../lib/push/device';
 import {forgetAiAccount} from '../lib/ai/account';
 import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
-import {z} from 'zod';
+import * as z from 'zod';
 import type {ConflictReview,Choices} from '../lib/vault/conflict-review';
 import type {ForwardReview} from '../lib/vault/forward-recovery';
 import type {DomainReview} from '../lib/vault/domain-lifecycle';

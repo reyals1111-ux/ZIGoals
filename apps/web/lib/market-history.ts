@@ -1,6 +1,6 @@
 import {ProviderValidationError} from './provider-validation';
 import {beginPendingWork,ownPendingWork,waitForPendingWork,workIsPending,type PendingWork} from './pending-work';
-import {z} from 'zod';
+import * as z from 'zod';
 import {marketAssetRefSchema,marketRequestKey,MARKET_RETRY_MS} from './market-assets';
 import {boundedQuoteText,QUOTE_FRESH_MS} from './market-quotes';
 import {decimalLexeme,exactMarketJson,JsonNumber} from './exact-market-json';

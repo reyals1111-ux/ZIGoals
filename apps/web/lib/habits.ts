@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
 

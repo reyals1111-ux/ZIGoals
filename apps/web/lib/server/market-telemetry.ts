@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import type {AtomicMarketStorage} from './durable-market-account';
 export const marketTelemetryPolicy=z.object({enabled:z.literal(true),build:z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/),retentionHours:z.number().int().min(1).max(168)}).strict();
 type Policy=z.infer<typeof marketTelemetryPolicy>;

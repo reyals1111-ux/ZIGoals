@@ -1,5 +1,5 @@
 import {isJsonMediaType} from '../../../lib/json-media-type';
-import {z} from 'zod';
+import * as z from 'zod';
 import {boundedQuoteText,verifiedMarketQuote,quoteIsStale,type MarketQuote} from '../../../lib/market-quotes';
 import {marketRequestsSchema,nativeZigRequest,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from '../../../lib/market-assets';
 import {serverMarketCache,directMarketKeyConfigured} from '../../../lib/server/market-service';

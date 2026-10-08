@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 export function normalizeBarcode(input:string){const value=input.trim();if(!/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(value))throw Error('Enter an 8, 12, 13 or 14 digit product barcode.');const significant=value.replace(/^0+/, '')||'0';return significant.length<=8?significant.padStart(8,'0'):significant.length<=13?significant.padStart(13,'0'):significant;}
 const nutrient=z.number().finite().min(0).max(1_000_000);
 export const foodProductSchema=z.object({barcode:z.string(),name:z.string().min(1).max(120),brand:z.string().max(80),basis:z.literal('unverified-100g-or-100ml'),nutrients:z.object({kcal:nutrient.nullable(),proteinMg:nutrient.max(1_000_000_000).nullable(),carbsMg:nutrient.max(1_000_000_000).nullable(),fatMg:nutrient.max(1_000_000_000).nullable()}).strict(),source:z.literal('Open Food Facts'),apiVersion:z.literal('3.4'),observedAt:z.iso.datetime()}).strict();

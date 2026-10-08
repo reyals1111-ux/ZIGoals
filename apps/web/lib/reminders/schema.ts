@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * In-app reminders (Session I, Part 8): times that make a reminder card appear on Today, kept on this device only.

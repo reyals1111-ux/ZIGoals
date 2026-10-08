@@ -1,5 +1,5 @@
 /** Client-only encryption. Authentication never supplies decryption material. */
-import {z} from 'zod';
+import * as z from 'zod';
 const MAX_BYTES=262_144;
 const uuid=z.uuid();
 export const epochSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER);

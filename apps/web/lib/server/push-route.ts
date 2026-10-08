@@ -1,5 +1,5 @@
 import 'server-only';
-import {z} from 'zod';
+import * as z from 'zod';
 import {readSessionCookie} from './session-cookie';
 /**
  * `/api/push` (ADR-010): GET answers the VAPID public key or 503 while push is not configured; POST forwards one

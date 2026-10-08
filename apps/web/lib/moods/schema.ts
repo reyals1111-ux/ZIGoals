@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * The evening wrap-up's mood (Session W Part 13; synced home Health v4 `moods`, under the Health consent like every

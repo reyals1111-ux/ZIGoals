@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {marketRequestsSchema,marketRequestKey,parseMarketCatalog,uniqueMarketRequests,type MarketQuoteRequest,type MarketCatalogAsset} from '../market-assets';
 import {historyRequestSchema,HISTORY_DAYS,HISTORY_UNAVAILABLE,RWA_HISTORY_UNAVAILABLE,parseCoinHistory,type MarketHistoryRequest,type MarketHistory} from '../market-history';
 import {parseMarketInsights,INSIGHTS_UNAVAILABLE,MAX_INSIGHT_PAIRS,insightIsStale,type MarketInsight} from '../market-insights';

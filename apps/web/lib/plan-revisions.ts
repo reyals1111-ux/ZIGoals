@@ -1,5 +1,5 @@
 /** Immutable intention and lifecycle facts; they never create wealth or contributions. */
-import {z} from 'zod';
+import * as z from 'zod';
 import {contributionSchema,financeVersion,goalProgress,planScenario,platformSchema,rescaleUnits,type ContributionPlan,type ContributionEvent,type PlanRevision,type PrivateGoal,type Platform,type GoalLifecycle} from './positions';
 import type {MarketQuote} from './market-quotes';
 import {epochDay,fromEpochDay,isCalendarDate,zonedDate} from '@zigoals/goal-engine/time';

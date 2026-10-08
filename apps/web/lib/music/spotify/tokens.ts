@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {SPOTIFY_TOKEN, redirectUri} from './oauth';
 import type {LinkTokens} from '../../links/token-store';
 

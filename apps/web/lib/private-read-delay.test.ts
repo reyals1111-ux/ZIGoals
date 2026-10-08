@@ -2,7 +2,7 @@
 import {afterEach,beforeEach,expect,test,vi} from 'vitest';
 import {act,createElement,useEffect} from 'react';
 import {createRoot,type Root} from 'react-dom/client';
-import {z} from 'zod';
+import * as z from 'zod';
 
 // Durable reads are held open so each test decides whether, and when, they settle.
 const vault=vi.hoisted(()=>({reads:[] as {key:string;resolve:(value:{name:string})=>void}[],retryOpen:()=>{},updateDurableStore:()=>{},restoreDurableStore:()=>{}}));

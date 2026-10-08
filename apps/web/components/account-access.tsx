@@ -1,7 +1,7 @@
 'use client';
 import {forgetPushOnThisDevice} from '../lib/push/device';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {z} from 'zod';
+import * as z from 'zod';
 import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount} from '../lib/account-session';
 import {isShowcase} from '../lib/showcase-storage';
 type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void};

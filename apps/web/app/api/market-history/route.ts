@@ -1,5 +1,5 @@
 import {isJsonMediaType} from '../../../lib/json-media-type';
-import {z} from 'zod';
+import * as z from 'zod';
 import {boundedQuoteText} from '../../../lib/market-quotes';
 import {historyRequestSchema} from '../../../lib/market-history';
 import {configuredDurableHistory} from '../../../lib/server/market-data-route';

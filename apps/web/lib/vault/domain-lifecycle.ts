@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {cloudSnapshot,type CloudTransport,type Domain,type Journal,type PrivateData} from './cloud-sync';
 import {type VaultManifest} from './crypto';
 import {encryptBackup} from './backup';

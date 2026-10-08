@@ -7,7 +7,7 @@ import {goalMarketRequests} from '../../lib/wealth';
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import { z } from 'zod';
+import * as z from 'zod';
 import {parseAmountInput} from '../../lib/amount-input';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
 import {visibleName} from '../../lib/visible-text';

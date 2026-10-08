@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {ProviderValidationError} from './provider-validation';
 import {marketRequestSchema,marketRequestKey,uniqueMarketRequests,type MarketQuoteRequest} from './market-assets';
 import {decimalLexeme,exactMarketJson,JsonNumber} from './exact-market-json';

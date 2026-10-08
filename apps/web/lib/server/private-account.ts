@@ -1,5 +1,5 @@
 import 'server-only';
-import {z} from 'zod';
+import * as z from 'zod';
 export type AccountConfig={authOrigin:string;publicKey:string;syncOrigin:string};
 const configSchema=z.object({authOrigin:z.string().regex(/^https:\/\/[a-z0-9-]+\.supabase\.co$/),publicKey:z.string().min(1).max(4096),syncOrigin:z.string().regex(/^https:\/\/[a-z0-9.-]+\.workers\.dev$/)}).strict();
 const actionSchema=z.discriminatedUnion('action',[

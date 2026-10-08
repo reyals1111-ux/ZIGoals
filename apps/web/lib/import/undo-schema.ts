@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * The import undo ledger (Session P, PR 3, W3 and I1): which records an import created, so one tap removes exactly

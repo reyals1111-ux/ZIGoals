@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import { fromBech32 } from "@cosmjs/encoding";
 const hash = z
   .string()

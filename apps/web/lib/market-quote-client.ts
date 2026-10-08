@@ -1,7 +1,7 @@
 import {MARKET_REQUEST_CHUNK,uniqueMarketRequests,type MarketQuoteRequest} from './market-assets';
 import {boundedQuoteText,verifiedMarketQuote,type MarketQuote} from './market-quotes';
 import {parseMarketPairWire} from './market-pair-wire';
-import {z} from 'zod';
+import * as z from 'zod';
 type PairResult=ReturnType<typeof parseMarketPairWire>['results'][number];
 const legacy=z.union([z.object({quotes:z.array(z.unknown()).max(500),error:z.string().max(500).nullable().optional()}).strict(),z.object({quote:z.unknown(),error:z.string().max(500).nullable().optional()}).strict()]);
 /** Browser-to-app transport is bounded independently from the deduplicated portfolio size. */

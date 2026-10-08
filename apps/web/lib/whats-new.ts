@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 
 /**
  * The one-time "What's new" card (Session P): a device-only flag, shown once per device and never during onboarding.

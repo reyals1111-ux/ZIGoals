@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import * as z from 'zod';
 import {encryptBackup,decryptBackup} from './backup';
 import {syncStateSchema,type SyncState} from './cloud-sync';
 
