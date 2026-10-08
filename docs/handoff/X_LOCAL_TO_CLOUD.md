@@ -180,3 +180,11 @@ header is a two-column grid (the title 157 px, the "+ Create a goal" action 140.
 narrower. Reproduction: load the Showcase, set 320 px, `document.documentElement.scrollWidth` on `/app/goals`. A
 `minmax(0, 1fr)` first column or a wrap below ~340 px would do it; the owner decides whether the Mac's rendering counts.
 
+## Status after the merge (2026-10-08, Part 9; X-Cloud's PR #78 is in `main`, this branch merged second)
+`origin/main` `757b3b1` merged in with a merge commit (`da2e3d4`; three conflicts, both lanes kept). Carried here on the
+owner's decision: **H8 option 1** (`ec5e814`, `[TIER 3]`, ADR-017 S79) — the Alpha gate narrowed exactly as L1 proposed and
+strengthened on the server's HTML, proven both ways; **H9** (`e01067b`, S80) — one load boundary, yours, with ZIGi's class
+names and words as props; **H7** (`9ee9892`, S81) — the phone launcher rests clear of every first-screen control, a spec on
+every app page; **H2** (`7fa939d`, S82) — zod as a namespace in ZIGi's 20 files, 4.2 kB lighter on every page than the brace
+form on the merged head; the stale allowlist entry for `memory.test.ts` removed (`947652f`). L3 and L4 stay yours.
+

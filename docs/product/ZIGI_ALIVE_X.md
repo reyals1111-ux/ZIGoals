@@ -73,6 +73,7 @@ and `phone-viewport/`) and is held by a spec; none of the values below changed i
 | Idle variation | one every 25–60 s under Full, an accent at most every 3 min | `components/zigi/idle.ts` | Rare enough to be noticed, never two attention-grabbing clips in a row (74 s clip `idle-full`). |
 | The knock's ripple and rest | the ripple 2.4 s; after a close, 10 min before the next due reminder may knock; the due check every 30 s | `components/zigi/knock.tsx` | One knock per session (the nudge budget), none after a dismissal, none 22:00–08:00, none while typing; a knock counts its nudge the moment it is allowed (ADR S54). The simulated day holds all of it. |
 | Hide ZIGi, Undo | 10 s | `components/ai/ai-launcher.tsx` (`HIDE_UNDO_MS`) | The same ten seconds as every Undo in the app. |
+| The phone's resting place (Part 9, H7) | lifts in 8 px steps, 4 px of air, never above y = 72; back to the corner past 40 px of scroll | `components/ai/launcher-rest.ts`, `ai-launcher.tsx` | At the top of a page the launcher sits where it covers no first-screen control (Help and Markets: mid-right; Health, Wealth, Portfolio, Activity: 80–96 px up; the rest: the corner), measured against `main`'s controls after the page settles; `tests/zigi-phone-rest.spec.ts` checks every app page at two phone sizes. |
 | A stalled reply | 60 s without a byte | `lib/ai/sse.ts` (`STALL_MS`) | Long enough for a cold local model's first token (measured up to 24 s on the Mac), short enough to notice a dead wire. |
 
 ## The idle rotation
@@ -211,6 +212,7 @@ the alpha on the phone (Safari, then the home-screen app) with the Showcase load
 | 9 | Close the panel; leave the phone for two minutes | ZIGi waves goodbye, then idles, then sleeps after the inactivity rule |
 | 10 | Rotate the phone, open the panel again | the composer stays above the keyboard; the cards remain tappable (44-pt) |
 | 11 | Lock and unlock the phone | ZIGi is idle again; no clip is stuck mid-frame |
+| 12 | Open Help, then Markets, each at the top of the page | ZIGi rests to the right at mid-height, clear of the chips and the refresh button; scroll down and it glides to its corner above the tab bar; tap it there and the panel opens (Part 9, the owner's H7) |
 | 12 | Settings → ZIGi · your AI → the knock **on**; wait for a reminder | one knock at most per session, never while typing, never in quiet hours |
 
 Anything that differs from the "pass looks like" column is an owner-reported finding for the next session; the clips
