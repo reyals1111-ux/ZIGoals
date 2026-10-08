@@ -127,7 +127,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     propose('habits-create', 'Create a habit: stretch for 10 minutes on weekday mornings', {kinds: ['create-habit']}, {important: true}),
     propose('habits-build', 'A new habit, journaling every evening at 21:30, remind me', {kinds: ['create-habit', 'create-reminder']}, {important: true}),
     propose('habits-checkin', 'Mark reading as done and skip the run, rest day', {kinds: ['check-in', 'skip']}, {important: true}),
-    propose('habits-partial', 'I read 5 pages today', {kinds: ['check-in']}),
+    propose('habits-partial', 'I read for 5 minutes today', {kinds: ['check-in']}), // Round 5: Read is a minutes habit; pages made the models decline, rightly
     propose('habits-minutes', 'I meditated 20 minutes', {kinds: ['check-in', 'log-meditation'], minCards: 1, maxCards: 2}),
     propose('habits-challenge', 'Start a 30 day reading challenge', {kinds: ['start-challenge']}),
     propose('habits-stack', 'Stack my stretch habit after my morning walk', {kinds: ['stack-habit']}),
@@ -298,7 +298,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     ...tri3('x2-reminder', 'habits', 'habits', ['Remind me to read at 21:00', 'Herinner me om 21:00 aan lezen', 'Rappelle-moi de lire à 21h'], {kinds: ['create-reminder']}),
     ...tri3('x2-water', 'today', 'today', ['Two glasses of water', 'Twee glazen water', "Deux verres d'eau"], {kinds: ['log-water']}, {mode: 'log'}),
     ...tri3('x2-food', 'health', 'health', ['Lunch: a chicken salad and an apple', 'Lunch: een kipsalade en een appel', 'Déjeuner : une salade de poulet et une pomme'], {kinds: ['log-food', 'log-food']}, {mode: 'log', important: true}),
-    ...tri3('x2-mood', 'health', 'health', ['Today was a 2, low', 'Vandaag was een 2, laag', "Aujourd'hui c'était un 2, bas"], {kinds: ['log-mood']}),
+    ...tri3('x2-mood', 'health', 'health', ['Today was a 2 out of 5, a low day', 'Vandaag was een 2 op 5, een lage dag', "Aujourd'hui c'était un 2 sur 5, une journée basse"], {kinds: ['log-mood']}),
     ...tri3('x2-link', 'links', 'today', ['Add a link to my GitHub profile https://github.com/zigoals-demo', 'Voeg een link toe naar mijn GitHub https://github.com/zigoals-demo', 'Ajoute un lien vers mon GitHub https://github.com/zigoals-demo'], {kinds: ['add-link']}),
     ...tri3('x2-widget', 'today', 'today', ['Show my water on Today', 'Toon mijn water op Vandaag', "Affiche mon eau sur Aujourd'hui"], {kinds: ['add-widget']}),
     ...tri3('x2-stack', 'habits', 'habits', ['Stack reading after meditation', 'Stapel lezen na mediteren', 'Enchaîne la lecture après la méditation'], {kinds: ['stack-habit']}),
@@ -324,7 +324,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
   );
   // Follow-ups that depend on the previous answer.
   add(
-    make('followup', {area: 'habits', page: 'habits'})('x2-follow-habits', 'How are my streaks?', {toolsAny: ['list_habits', 'habit_stats'], kinds: []}, {turns: [{ask: 'Which one is the longest?', expect: {kinds: []}}, {ask: 'Remind me of that one at 7', expect: {kinds: ['create-reminder']}}]}),
+    make('followup', {area: 'habits', page: 'habits'})('x2-follow-habits', 'How are my streaks?', {toolsAny: ['list_habits', 'habit_stats'], kinds: []}, {turns: [{ask: 'Which one is the longest?', expect: {kinds: []}}, {ask: 'Remind me of that one at 7', expect: {kinds: ['create-reminder'], minCards: 0, maxCards: 1}}]}),
     make('followup', {area: 'health', page: 'health'})('x2-follow-water', 'How much water did I drink this week?', {tools: ['water'], kinds: []}, {turns: [{ask: 'And last week?', expect: {tools: ['water'], kinds: []}}, {ask: 'Log a glass now', expect: {kinds: ['log-water']}}]}),
     make('followup', {area: 'goals', page: 'goals'})('x2-follow-goals', 'Which goal is furthest behind?', {toolsAny: ['list_goals', 'goal_progress'], kinds: []}, {turns: [{ask: 'Add a note to it: review the plan', expect: {kinds: ['add-goal-note']}}]}),
     make('followup', {area: 'wealth', page: 'wealth'})('x2-follow-wealth', 'Summarise my totals per currency', {tools: ['totals_per_currency'], kinds: []}, {turns: [{ask: 'Which currency is the biggest?', expect: {kinds: [], mustNot: ['converted']}}]}),

@@ -96,7 +96,8 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.propose('p2-edit-three-week', 'Reading only three times a week from now on', {kinds: ['edit-habit']}),
     hb.propose('p2-edit-limit', 'Turn my coffee habit into a limit of 2 a day', {kinds: ['edit-habit', 'create-habit'], minCards: 1, maxCards: 1}),
     hb.propose('p2-edit-weekend', 'The walk is for weekends only now', {kinds: ['edit-habit'], fields: [{schedule: {anyOf: [{weekdays: [6, 0]}, {weekdays: [0, 6]}]}}]}),
-    g.propose('p2-edit-goal-target', 'Raise the emergency fund target to 7500', {kinds: ['edit-goal'], fields: [{target: 7500}]}, {important: true}),
+    // Round 5 (ADR-017 S67): the Showcase's Emergency fund holds 9,000 of 20,000, so a "raise" must go above both; 7,500 made the models decline, rightly.
+    g.propose('p2-edit-goal-target', 'Raise the emergency fund target to 25000', {kinds: ['edit-goal'], fields: [{target: 25000}]}, {important: true}),
     g.propose('p2-edit-goal-date', 'Push the Japan adventure to 2027-09-01', {kinds: ['edit-goal'], fields: [{targetDate: '2027-09-01'}]}, {important: true}),
     g.propose('p2-edit-goal-name', 'Call the first home deposit "Our flat"', {kinds: ['edit-goal'], fields: [{name: 'Our flat'}]}),
     g.propose('p2-edit-goal-notes', 'Replace the notes on the emergency fund with "six months of rent"', {kinds: ['edit-goal', 'add-goal-note'], minCards: 1, maxCards: 1}),
@@ -112,7 +113,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.refuse('p2-archive', 'Archive my meditation habit', REFUSE),
     hb.propose('p2-edit-nl', 'Zet mijn leesdoel op 25 pagina’s per dag', {kinds: ['edit-habit'], fields: [{target: 25}]}, {lang: 'nl', important: true}),
     hb.propose('p2-edit-fr', 'Passe la méditation au soir', {kinds: ['edit-habit'], fields: [{timeOfDay: 'evening'}]}, {lang: 'fr'}),
-    g.propose('p2-edit-goal-nl', 'Verhoog het noodfonds naar 8000', {kinds: ['edit-goal'], fields: [{target: 8000}]}, {lang: 'nl'}),
+    g.propose('p2-edit-goal-nl', 'Verhoog het noodfonds naar 25000', {kinds: ['edit-goal'], fields: [{target: 25000}]}, {lang: 'nl'}),
     g.propose('p2-edit-goal-fr', "Renomme le fonds d'urgence en « Coussin »", {kinds: ['edit-goal'], fields: [{name: 'Coussin'}]}, {lang: 'fr'}),
     hb.refuse('p2-delete-nl', 'Verwijder mijn wandelgewoonte', REFUSE, {lang: 'nl'}),
     g.refuse('p2-delete-fr', "Supprime l'objectif Japon", REFUSE, {lang: 'fr'}),
@@ -329,7 +330,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Zet dat doel op 20 pagina’s per dag', expect: {kinds: ['edit-habit'], fields: [{target: 20}]}},
     {ask: 'Nee, 25', expect: {kinds: ['edit-habit'], fields: [{target: 25}]}},
     {ask: 'Vink de wandeling af', expect: {kinds: ['check-in']}},
-    {ask: 'Herinner me eraan om 12:30 op weekdagen', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
+    {ask: 'Herinner me er elke dag aan om 12:30', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
     {ask: 'Hoe ver ben ik met het Japan-doel?', expect: {kinds: [], tools: ['goal_progress']}},
     {ask: 'Voeg een notitie toe: hotel geboekt', expect: {kinds: ['add-goal-note']}},
     {ask: 'Lunch: een wrap met kip en een appel', expect: {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 2}},
@@ -347,7 +348,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Mets cette habitude à 20 pages par jour', expect: {kinds: ['edit-habit'], fields: [{target: 20}]}},
     {ask: 'Non, 25', expect: {kinds: ['edit-habit'], fields: [{target: 25}]}},
     {ask: 'Coche la marche', expect: {kinds: ['check-in']}},
-    {ask: 'Rappelle-la-moi à 12h30 en semaine', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
+    {ask: 'Rappelle-la-moi tous les jours à 12h30', expect: {kinds: ['create-reminder'], fields: [{time: '12:30'}]}},
     {ask: "Où en est l'objectif Japon ?", expect: {kinds: [], tools: ['goal_progress']}},
     {ask: 'Ajoute une note : hôtel réservé', expect: {kinds: ['add-goal-note']}},
     {ask: 'Déjeuner : un wrap au poulet et une pomme', expect: {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 2}},
@@ -361,7 +362,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'What is the weather tomorrow?', expect: {kinds: [], mustNot: ['°C', '°F']}},
     {ask: 'Ok. Another glass', expect: {kinds: ['log-water'], minCards: 1, maxCards: 1}},
     {ask: 'Who are you, by the way?', expect: {kinds: []}},
-    {ask: 'Tick off reading', expect: {kinds: ['check-in']}},
+    {ask: 'Tick off meditation', expect: {kinds: ['check-in']}}, // Round 5: Read is already done today in the Showcase; Meditate is open
     {ask: 'Write me a poem about my habits', expect: {kinds: []}},
     {ask: 'Now a glass of water for yesterday', expect: {kinds: ['log-water'], fields: [{day: YESTERDAY}]}},
     {ask: 'Which of those three glasses were today?', expect: {kinds: []}},
@@ -481,16 +482,18 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
 {
   const t = on('today', 'today'), hb = on('habits', 'habits'), g = on('goals', 'goals'), h = on('health', 'health');
   add(
-    hb.followup('p2-carry-that-one', 'Which habit has the longest streak?', {kinds: [], tools: ['habit_stats']}, {turns: [{ask: 'Tick that one off for today', expect: {kinds: ['check-in']}}, {ask: 'And remind me of it at 8', expect: {kinds: ['create-reminder'], fields: [{time: '08:00'}]}}]}),
-    g.followup('p2-carry-the-other', 'How far are the Japan goal and the emergency fund?', {kinds: [], tools: ['goal_progress']}, {turns: [{ask: 'Add a note to the first one: hotel booked', expect: {kinds: ['add-goal-note']}}, {ask: 'And raise the other one to 7000', expect: {kinds: ['edit-goal'], fields: [{target: 7000}]}}]}),
+    // Round 5 (ADR-017 S67): two Showcase habits tie at 27 days (Walk, Contribute), so "that one" is ambiguous — asking which is as right as a card for either.
+    hb.followup('p2-carry-that-one', 'Which habit has the longest streak?', {kinds: [], tools: ['habit_stats']}, {turns: [{ask: 'Tick that one off for today', expect: {kinds: ['check-in'], minCards: 0, maxCards: 1}}, {ask: 'And remind me of it at 8', expect: {kinds: ['create-reminder'], minCards: 0, maxCards: 1}}]}),
+    g.followup('p2-carry-the-other', 'How far are the Japan goal and the emergency fund?', {kinds: [], tools: ['goal_progress']}, {turns: [{ask: 'Add a note to the first one: hotel booked', expect: {kinds: ['add-goal-note']}}, {ask: 'And raise the other one to 25000', expect: {kinds: ['edit-goal'], fields: [{target: 25000}]}}]}),
     h.followup('p2-carry-same', 'Log two glasses of water', {kinds: ['log-water'], fields: [{glasses: 2}]}, {turns: [{ask: 'The same for yesterday', expect: {kinds: ['log-water'], fields: [{glasses: 2, day: YESTERDAY}]}}]}),
     t.followup('p2-carry-again', 'Breakfast: oatmeal and a coffee', {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 2}, {mode: 'log', turns: [{ask: 'Same again for lunch, plus an apple', expect: {kinds: ['log-food', 'log-food', 'log-food'], minCards: 1, maxCards: 3}}]}),
-    hb.followup('p2-carry-pronoun-nl', 'Welke gewoonte heeft de langste reeks?', {kinds: [], tools: ['habit_stats']}, {lang: 'nl', turns: [{ask: 'Vink die af voor vandaag', expect: {kinds: ['check-in']}}]}),
-    hb.followup('p2-carry-pronoun-fr', 'Quelle habitude a la plus longue série ?', {kinds: [], tools: ['habit_stats']}, {lang: 'fr', turns: [{ask: "Coche celle-là pour aujourd'hui", expect: {kinds: ['check-in']}}]}),
+    hb.followup('p2-carry-pronoun-nl', 'Welke gewoonte heeft de langste reeks?', {kinds: [], tools: ['habit_stats']}, {lang: 'nl', turns: [{ask: 'Vink die af voor vandaag', expect: {kinds: ['check-in'], minCards: 0, maxCards: 1}}]}),
+    hb.followup('p2-carry-pronoun-fr', 'Quelle habitude a la plus longue série ?', {kinds: [], tools: ['habit_stats']}, {lang: 'fr', turns: [{ask: "Coche celle-là pour aujourd'hui", expect: {kinds: ['check-in'], minCards: 0, maxCards: 1}}]}),
     g.followup('p2-carry-widget', 'Which goal is furthest behind?', {kinds: [], toolsAny: ['list_goals', 'goal_progress']}, {turns: [{ask: 'Put it on Today', expect: {kinds: ['add-widget']}}]}),
     h.followup('p2-carry-correct-late', 'Weight 78.5 kg', {kinds: ['log-weight'], fields: [{value: 78.5}]}, {turns: [{ask: 'How much water today?', expect: {kinds: [], tools: ['water']}}, {ask: 'Back to the weight: it was 78.2, not 78.5', expect: {kinds: ['log-weight'], fields: [{value: 78.2}]}}]}),
     t.followup('p2-carry-count', 'How many goals do I have?', {kinds: [], tools: ['list_goals']}, {turns: [{ask: 'And habits?', expect: {kinds: [], tools: ['list_habits']}}, {ask: 'Which of those two numbers is bigger?', expect: {kinds: []}}]}),
-    hb.followup('p2-carry-schedule', 'Create a habit: swim on Tuesday and Thursday', {kinds: ['create-habit']}, {turns: [{ask: 'Add Saturday too', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 1}}, {ask: 'And a reminder at 18:30 on those days', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 3}}]}),
+    // Round 5 (ADR-017 S67): the habit of the first turn is a proposal, not a record (the harness accepts nothing between turns), so a reminder for it may rightly be a question.
+    hb.followup('p2-carry-schedule', 'Create a habit: swim on Tuesday and Thursday', {kinds: ['create-habit']}, {turns: [{ask: 'Add Saturday too', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 1}}, {ask: 'And a reminder at 18:30 on those days', expect: {kinds: ['create-reminder'], minCards: 0, maxCards: 1}}]}),
     g.followup('p2-carry-milestone', 'Add a milestone to the Japan goal: visa done', {kinds: ['add-milestone']}, {turns: [{ask: 'Another one: rail pass', expect: {kinds: ['add-milestone']}}, {ask: 'Which milestones does it have now?', expect: {kinds: [], tools: ['milestones']}}]}),
     t.followup('p2-carry-mood-note', 'Mood 2 today', {kinds: ['log-mood'], fields: [{mood: 2}]}, {turns: [{ask: 'Add a note to it: rough meeting', expect: {kinds: ['log-mood'], fields: [{mood: 2}]}}]}),
   );
