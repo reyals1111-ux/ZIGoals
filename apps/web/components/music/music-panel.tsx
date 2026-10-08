@@ -64,13 +64,16 @@ function AppleSource() {
 export default function MusicPanel({open, onClose, phone}: {open: boolean; onClose: () => void; phone: boolean}) {
   const prefs = useDeviceRecord(MUSIC), [error, setError] = useState(''), panel = useRef<HTMLElement>(null);
   const save = (change: (m: MusicPrefs) => MusicPrefs) => { try { prefs.update(change); setError(''); return true; } catch (err) { setError(`Not saved on this device. ${deviceSettingFailureMessage(err)}`); return false; } };
+  // Session X (music.spec:75, 1 run in 5): the panel draws only once this device's settings are read, so focus moves
+  // in then; an effect keyed on `open` alone could run while nothing was drawn and never run again.
+  const ready = open && prefs.loaded;
   useEffect(() => {
-    if (!open) return;
+    if (!ready) return;
     const first = requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('.music-sources [aria-pressed="true"]')?.focus({preventScroll: true}));
     const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); onClose(); } };
     window.addEventListener('keydown', onKey);
     return () => { cancelAnimationFrame(first); window.removeEventListener('keydown', onKey); };
-  }, [open, onClose]);
+  }, [ready, onClose]);
   if (!open || !prefs.loaded) return null;
   const source = prefs.data.source;
   return <section ref={panel} className={`music-panel${phone ? ' music-panel-phone' : ''}`} role="dialog" aria-modal="false" aria-labelledby="music-panel-label">
