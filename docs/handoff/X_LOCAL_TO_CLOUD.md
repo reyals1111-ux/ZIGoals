@@ -45,3 +45,12 @@ is X-Local's and would follow once the policy side exists.
   a Playwright test with a mocked `.local` host.
 - Not recommended: raw private IPs (no CSP allowlist short of `http:`), an HTTPS proxy on the PC (self-signed certificates on
   phones; a support burden), or relaying through ZIGoals' servers (breaks "private by design").
+
+## Intermittent test seen at Gate A (not touched by this lane)
+`apps/web/tests/sleep.spec.ts:40` (mobile project) reads `document.documentElement.scrollWidth` immediately after `page.setViewportSize({width: 320})`. The Sleep charts re-measure through a ResizeObserver (`components/charts/use-chart-width.ts`) and are still 324 px wide for a few milliseconds; the read fails once in a while in both builds (seen on main `72ad872` and on this branch in the same session; passes after ≤50 ms). A `toPass`/poll around that read, or an `expect.poll`, would settle it; this lane leaves the assertion as it is.
+
+## Answer to X-Cloud's H1 (secret-shaped literals in `memory.test.ts`)
+Done in Part 0 (`1cea510`): the four sample keys are joined at run time (`FAKE_OPENAI`, `FAKE_GOOGLE`, `FAKE_XAI`, `FAKE_BEARER` in `apps/web/lib/ai/memory.test.ts`), values unchanged. The one entry in `scripts/secret-allowlist.json` is yours to remove when this branch is in main (a stale entry only warns). The optional list (errors/keys/export/chats/launcher-record/settings/voice/openrouter-auth tests, `mock-streams.ts`, two specs) was left as it is: none matches a GitHub pattern and the lane rule keeps this PR to ZIGi's own files.
+
+## Shared file: What's new (release id bump)
+`apps/web/lib/whats-new.ts` `WHATS_NEW_RELEASE` is `2026-10-session-x` on this branch (was `2026-10-session-w`), so the one-time card shows once more with ZIGi's three links (Help anchors `help-your-ai-alive`, `help-your-ai-act`, `help-your-ai-auto`); Session W's links moved under "Earlier updates" in `components/for-you/whats-new-card.tsx`. If X-Cloud adds its own What's new links, add them to `WHATS_NEW_LINKS` in the same array (one grouped edit); the release id needs no second bump.

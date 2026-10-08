@@ -18,6 +18,8 @@ and [ZIGI_REAL_MODEL_TEST.md](../verification/x-local/ZIGI_REAL_MODEL_TEST.md). 
 | Studio-4 ready | Reactions R001–R013, idle variants, the in-place greeting and the gaze set have their slots; one command swaps the files in | `scripts/zigi/import-studio.mjs` |
 | Meet ZIGi | Every state with the real art and what it means in plain words | Settings → ZIGi · your AI → Meet ZIGi |
 | Create anything | Six more card kinds (a stack, a habit change, a goal change, the mood, a link, a widget), the four goal types, batch plans and corrections | the chat, every page |
+| Auto-accept | Opt-in per kind: ZIGi adds the cards you chose without a tap, each with a ten-second Undo; never weight, fasting or money; Health kinds only while Health is shared; a daily cap | Settings → ZIGi · your AI → Auto-accept |
+| Sturdier on every wire | Almost-JSON from a model is repaired (never widened); one automatic retry when every card of a log or plan reply was refused; a 60-second stall watchdog that keeps what arrived and offers to continue | the chat |
 
 ## The state and emotion table
 
@@ -84,13 +86,66 @@ kinds, by page:
 - **Accepted means correct.** Every kind is checked in the browser suite: the stored record field by field (units, dates, times in your zone), then Undo, in UTC, Brussels and Tokyo time (`tests/zigi-accept-correct.spec.ts`).
 
 ## Auto-accept (Part 5b)
-_(filled in with Part 5)_
+
+Off by default, per kind, in Settings → ZIGi · your AI → **Auto-accept**. A kind you switch on is added by ZIGi without a
+tap when it proposes it: each addition shows for ten seconds with **Undo**, carries "Added by ZIGi (auto-accept)" in
+Activity → Actions by ZIGi, and counts toward a daily cap (20 by default, 1 to 100).
+
+| Rule | What it means |
+|---|---|
+| Never automatic | Weight, starting or stopping a fast, the add-asset form and an account's balance: always your tap. They have no switch. |
+| Health kinds | Food (typed or from a photo), new foods and recipes, planned meals, groceries, water, counters, nights and naps, mindful minutes, the mood, steps, measurements: automatic only while Health is shared with ZIGi at that moment. With Health not shared, the switches are greyed with the reason and nothing Health is added by itself. |
+| Everything else | Habits (check-ins, skips, new habits, stacks, changes, challenges), goals (drafts, notes, milestones, changes), reminders, the weekly intention, "remember this", links and widgets: automatic when switched on. |
+| The cap | Past it, cards wait for your tap and the chat says so. The count is per day on this device. |
+| Undo | Exactly what a tapped card gets: the inverse through the same path, refused calmly if a record moved since. |
 
 ## The Studio-4 swap, one command per step
-_(filled in with Part 8; the importer is `scripts/zigi/import-studio.mjs`)_
+
+Studio-4 delivers the same file names as Studio-2 plus the reactions R001–R013, the idle variants, the in-place greeting
+and the gaze set, with a receipt. Nothing is re-encoded; the importer refuses anything that is not in the contract or
+not in the receipt. Run each line from the repository root, one at a time, and read what it prints before the next.
+
+1. Look before touching anything (prints what would change, writes nothing):
+   `node scripts/zigi/import-studio.mjs /Users/Shared/ZIGi-Claude-Continuation/studio4/encoded/app/brand/figures/zigi --receipt /Users/Shared/ZIGi-Claude-Continuation/studio4/checkpoints/current/CHECKPOINT-RECEIPT.md --skin origami-nebula`
+2. Apply it (copies the contract files, fills the manifest slots, prints the diff):
+   `node scripts/zigi/import-studio.mjs /Users/Shared/ZIGi-Claude-Continuation/studio4/encoded/app/brand/figures/zigi --receipt /Users/Shared/ZIGi-Claude-Continuation/studio4/checkpoints/current/CHECKPOINT-RECEIPT.md --skin origami-nebula --apply`
+3. Prove the files and the manifest agree (names, headers, pixel sizes, budgets, every state resolvable):
+   `pnpm --filter @zigoals/web exec vitest run lib/ai/zigi-assets.test.ts lib/ai/zigi-manifest.test.ts lib/brand-assets.test.ts`
+4. Prove the figure still centres and the clips play (real Chrome, against a running server on :3101):
+   `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 pnpm --filter @zigoals/web exec playwright test tests/zigi-alive.spec.ts tests/zigi-emotions.spec.ts --workers=2`
+5. Look at it: Settings → ZIGi · your AI → Meet ZIGi shows every state with the new art; the reactions appear under their
+   triggers only once `reactionTriggers` in the manifest names an event for each code (a one-line edit per reaction,
+   or Studio-4's own `reactions.json`, which the importer reads when present).
+6. Commit the swap as one Tier 2 commit: `git add apps/web/public/brand/figures/zigi/origami-nebula apps/web/components/zigi/manifest.json && git commit -m "Studio-4 art: a file swap (Tier 2)"`.
+
+A file that fails the receipt, a budget or a header stops the importer with the file's name and the reason; nothing is
+copied in that case. The fixture under `scripts/zigi/fixtures/studio4/` is a tiny synthetic Studio-4 delivery the test
+suite swaps in and out, so steps 1–3 are exercised on every CI run without the real files.
 
 ## Which model fits which machine
 _(filled in with Part 6)_
 
 ## The iPhone checklist (≤15 minutes)
-_(filled in with Part 8)_
+
+What a real iPhone can prove that WebKit emulation cannot: the system's animated-WebP decoder, the home-screen app,
+reduced motion from the device's own setting, the keyboard over the composer, haptics-free taps on 44-pt targets. Open
+the alpha on the phone (Safari, then the home-screen app) with the Showcase loaded, and tick:
+
+| Min | Check | Pass looks like |
+|---|---|---|
+| 1 | Open Today | ZIGi's button bottom-right shows the still (the poster), then the idle clip starts breathing (Calm) |
+| 2 | Settings → ZIGi · your AI → ZIGi's look and feel → Animation **Full**; back to Today; wait a minute | a short glance or thought between the idle loops; never two in a row; nothing while you type |
+| 3 | iOS Settings → Accessibility → Motion → Reduce Motion **on**; back to the app | the still only, no clip, no breathing; off again afterwards |
+| 4 | Habits → tap **Complete** on one habit | ZIGi shows a small success, then settles; complete every habit of the day → one calm celebration |
+| 5 | Open the panel (tap ZIGi), type a question | ZIGi listens while you type, thinks while waiting, speaks while the words arrive |
+| 6 | Ask for a breakfast in Log mode | cards appear; **Add all**; a ten-second Undo; Activity → Actions by ZIGi lists them |
+| 7 | Settings → ZIGi · your AI → Auto-accept → switch **Water** on; ask "a glass of water" | "Added by ZIGi" with Undo in a toast; the weight card, if any, still waits for your tap |
+| 8 | Settings → ZIGi · your AI → Meet ZIGi | every state plays with its plain-words meaning; the worn states say which clip they wear |
+| 9 | Close the panel; leave the phone for two minutes | ZIGi waves goodbye, then idles, then sleeps after the inactivity rule |
+| 10 | Rotate the phone, open the panel again | the composer stays above the keyboard; the cards remain tappable (44-pt) |
+| 11 | Lock and unlock the phone | ZIGi is idle again; no clip is stuck mid-frame |
+| 12 | Settings → ZIGi · your AI → the knock **on**; wait for a reminder | one knock at most per session, never while typing, never in quiet hours |
+
+Anything that differs from the "pass looks like" column is an owner-reported finding for the next session; the clips
+themselves, the manifest and the controller rules are identical on every platform, so a difference here is the
+platform's decoder or its motion setting, not the data.

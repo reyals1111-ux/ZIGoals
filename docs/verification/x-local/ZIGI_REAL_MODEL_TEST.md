@@ -42,7 +42,17 @@ _(filled in)_
 _(filled in)_
 
 ## Photos (owner addition 11): sources and licences
-_(filled in)_
+Kept outside the repository (the session's scratch folder), never committed. One generated image plus three real food
+photos that are public domain or CC0, downscaled copies at 1,600 px for the upload. The vision models are scored on
+what they recognised against what is in the photo; nutrients they could not know must stay unknown, never invented.
+
+| File | Source | Licence | Credit |
+|---|---|---|---|
+| generated-breakfast-plate.jpg | drawn by a script for this run (an SVG plate rendered by Chrome): toast, a fried egg, tomatoes, leaves, a coffee; fictional, no real photo, no person | own work for this run | — |
+| real-1.jpg (and real-1-1600.jpg, downscaled) | https://commons.wikimedia.org/wiki/File:Food-plate-morning-breakfast_(23958591649).jpg | CC0 | food-plate-morni |
+| real-2.jpg (and real-2-1600.jpg, downscaled) | https://commons.wikimedia.org/wiki/File:Full_English_breakfast_-_London,_UK.jpg | CC0 | Own work |
+| real-3.jpg (and real-3-1600.jpg, downscaled) | https://commons.wikimedia.org/wiki/File:Good_Food_In_Dishes_-_NCI_Visuals_Online.jpg | Public domain | This image was released by the <a href="https://en.wikipedia.org/wiki/National_Cancer_Institute" class="extiw" title="en |
+
 
 ## Transcripts (sanitised, fictional data only)
 _(appended as the runs complete)_
