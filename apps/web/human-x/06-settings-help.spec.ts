@@ -314,7 +314,7 @@ journey('J251', 'the navigation reaches every page and marks the current one', {
   }
 });
 
-journey('J252', 'back and forward across five pages restore each page', {views: 'all', data: ['S']}, async j => {
+journey('J252', 'back and forward across five pages restore each page', {views: 'all', data: ['S'], live: true}, async j => {
   const {page} = j;
   const paths = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth'];
   for (const path of paths) await open(page, path);
@@ -331,7 +331,7 @@ journey('J254', 'an unknown /app route shows a calm not-found with a way back', 
   await expect(page.getByRole('link').first()).toBeVisible();
 });
 
-journey('J260', 'the skip link on every page moves focus to the content', {views: ['D'], data: ['S']}, async j => {
+journey('J260', 'the skip link on every page moves focus to the content', {views: ['D'], data: ['S'], live: true}, async j => {
   const {page} = j;
   for (const path of ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/portfolio', '/app/markets', '/app/staking', '/app/ecosystem', '/app/activity', '/app/settings', '/app/help']) {
     await open(page, path);
@@ -695,7 +695,7 @@ journey('J208', 'the Guide switch: on and off, each said plainly and kept after 
   await expect(region()).toContainText('Off, as it starts.');
 });
 
-journey('J209', 'reminders while ZIGoals is closed: unavailable in this build says so; nothing is asked', {views: 'all', data: ['E']}, async j => {
+journey('J209', 'reminders while ZIGoals is closed: unavailable in this build says so; nothing is asked', {views: 'all', data: ['E'], live: true}, async j => {
   const {page} = j;
   // This build has no push service (the route answers "not here"); the same on the live Alpha when it has none.
   await page.route('**/api/push', route => route.fulfill({status: 404, json: {error: 'PUSH_UNAVAILABLE'}}));
@@ -716,7 +716,7 @@ journey('J209', 'reminders while ZIGoals is closed: unavailable in this build sa
   expect(await page.evaluate(async () => (await navigator.serviceWorker?.getRegistrations?.() ?? []).length), 'nothing registered').toBe(0);
 });
 
-journey('J210', 'the market data section says what is fetched and from where; its link opens Markets', {views: ['D', 'P'], data: ['E']}, async j => {
+journey('J210', 'the market data section says what is fetched and from where; its link opens Markets', {views: ['D', 'P'], data: ['E'], live: true}, async j => {
   const {page} = j;
   const asked: string[] = [];
   page.on('request', r => asked.push(r.url()));

@@ -8,7 +8,7 @@ import {journey, open, ready, snap} from './kit';
 // and Spotify are never reached: their requests are answered here, or the journey stops before any.
 const pagesCard = (page: import('@playwright/test').Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
 
-journey('J181', 'Activity lists what I just did', {views: 'all', data: ['L']}, async j => {
+journey('J181', 'Activity lists what I just did', {views: 'all', data: ['L'], live: true}, async j => {
   const {page} = j;
   await open(page, '/app/habits');
   await page.getByRole('button', {name: '+ New habit', exact: true}).click();
