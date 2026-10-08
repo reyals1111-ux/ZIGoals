@@ -2,6 +2,7 @@ import {boundedJSON,response,verifySession} from '../push-reminders/verify.mjs';
 import {RelayBudget,reserveFor} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
 import {configured,invited,metered,paused,upstreamBody,upstreamUrl} from './relay.mjs';
+import {anthropicHeaders,anthropicStream,isAnthropic} from './anthropic.mjs';
 export {RelayBudget};
 /**
  * ZIGoals hosted, the relay (Session V Part 17, ADR-014; owner decision D2: off by default, never deployed by the
@@ -18,7 +19,7 @@ export {RelayBudget};
  * size caps: limits.mjs. Privacy: it never stores or logs a message or a
  * reply (there is no console call in this Worker, and observability is off in its configuration); only counts are kept.
  * Cloudflare itself processes the connection (addresses, headers) as it does for every Worker; nothing here keeps them.
- * @typedef {{ZIGI_BUDGET:DurableObjectNamespace,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ZIGI_UPSTREAM_URL?:string,ZIGI_UPSTREAM_KEY?:string,ZIGI_PROVIDER_NAME?:string,ZIGI_MODEL?:string,ZIGI_ALLOWLIST?:string,ZIGI_KILL_SWITCH?:string,ZIGI_DAILY_REQUESTS?:string,ZIGI_DAILY_TOKENS?:string,ZIGI_GLOBAL_DAILY_TOKENS?:string,ISOLATED_FIXTURE?:string}} RelayEnv
+ * @typedef {{ZIGI_BUDGET:DurableObjectNamespace,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ZIGI_UPSTREAM_URL?:string,ZIGI_UPSTREAM_KEY?:string,ZIGI_PROVIDER_NAME?:string,ZIGI_MODEL?:string,ZIGI_ALLOWLIST?:string,ZIGI_KILL_SWITCH?:string,ZIGI_THINKING?:string,ZIGI_DAILY_REQUESTS?:string,ZIGI_DAILY_TOKENS?:string,ZIGI_GLOBAL_DAILY_TOKENS?:string,ISOLATED_FIXTURE?:string}} RelayEnv
  * @typedef {'ok'|'failure'|'neutral'} Outcome
  */
 const ROUTES=/** @type {Record<string,string>} */({'/health':'GET','/v1/entitlement':'GET','/v1/chat':'POST','/v1/fixture':'POST'});
@@ -33,13 +34,14 @@ async function chat(request,env,ctx,account){
  let parsed;try{parsed=await boundedJSON(request,LIMITS.requestBytes);}catch(error){return error instanceof Error&&error.message==='size'?response({error:'REQUEST_TOO_LARGE'},413):response({error:'INVALID_CHAT_REQUEST'},400);}
  const url=/** @type {URL} */(upstreamUrl(env)),body=upstreamBody(parsed,env,url);if(!body)return response({error:'INVALID_CHAT_REQUEST'},400);
  const id=crypto.randomUUID(),budget=budgetOf(env),cap=Number(body.max_completion_tokens??body.max_tokens);
- const admitted=await budget.fetch(internal('/reserve',{account,id,tokens:reserveFor(JSON.stringify(body.messages).length+JSON.stringify(body.tools??[]).length,cap)}));
+ const admitted=await budget.fetch(internal('/reserve',{account,id,tokens:reserveFor(JSON.stringify(body.messages).length+JSON.stringify(body.tools??[]).length+(typeof body.system==='string'?body.system.length:0),cap)}));
  if(!admitted.ok)return admitted;
  await admitted.body?.cancel().catch(()=>{});
  const settle=(/** @type {number|null} */used,/** @type {Outcome} */outcome)=>{ctx.waitUntil(budget.fetch(internal('/settle',{id,used,outcome})).then(r=>r.body?.cancel()).catch(()=>{}));};
  const controller=new AbortController(),waiting=setTimeout(()=>controller.abort(),LIMITS.headerTimeoutMs);
  let upstream;
- try{upstream=await fetch(url.href,{method:'POST',headers:{authorization:`Bearer ${env.ZIGI_UPSTREAM_KEY}`,'content-type':'application/json',accept:'text/event-stream'},body:JSON.stringify(body),redirect:'manual',signal:controller.signal});}
+ const anthropic=isAnthropic(url),headers=anthropic?anthropicHeaders(env):{authorization:`Bearer ${env.ZIGI_UPSTREAM_KEY}`,'content-type':'application/json',accept:'text/event-stream'};
+ try{upstream=await fetch(url.href,{method:'POST',headers,body:JSON.stringify(body),redirect:'manual',signal:controller.signal});}
  catch{clearTimeout(waiting);settle(0,'failure');return response({error:'UPSTREAM_UNAVAILABLE'},502);}
  clearTimeout(waiting);
  if(!upstream.ok||!upstream.body){
@@ -49,7 +51,7 @@ async function chat(request,env,ctx,account){
   settle(0,failed?'failure':'neutral');
   return response({error:busy?'UPSTREAM_BUSY':failed?'UPSTREAM_UNAVAILABLE':'UPSTREAM_REFUSED',status:upstream.status},busy?429:502);
  }
- return new Response(metered(upstream.body,controller,settle),{status:200,headers:{'content-type':'text/event-stream; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
+ return new Response(metered(upstream.body,controller,settle,anthropic?anthropicStream(String(env.ZIGI_MODEL)):undefined),{status:200,headers:{'content-type':'text/event-stream; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
 }
 /** @type {ExportedHandler<RelayEnv>} */
 const relay={async fetch(request,env,ctx){
