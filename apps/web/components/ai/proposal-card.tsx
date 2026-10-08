@@ -10,14 +10,14 @@ import type {Action} from '../../lib/ai/actions/schema';
  * note. Fully keyboard-usable: plain buttons, a plain form, status text in a live region owned by the list.
  */
 /** `replaced` (Session X-Local Part 5a): a later reply corrected this one, so this card is no longer offered. */
-export type ProposalStatus = 'proposed' | 'busy' | 'added' | 'undone' | 'dismissed' | 'opened' | 'replaced';
+export type ProposalStatus = 'proposed' | 'busy' | 'added' | 'undone' | 'dismissed' | 'opened' | 'replaced' | 'auto';
 export type ProposalCardProps = {
   action: Action; plan: Plan | null; refusal: string | null; status: ProposalStatus; error: string | null;
   onAdd: () => void; onDismiss: () => void; onEdit: (action: Action) => void;
   /** Session V Part 7: the reply answered a photo, so the card's estimate badge says so. */
   fromPhoto?: boolean;
 };
-const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply'};
+const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply', auto: 'Added by ZIGi (auto-accept)'};
 export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');

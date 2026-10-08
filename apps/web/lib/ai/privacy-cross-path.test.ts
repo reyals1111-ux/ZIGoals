@@ -27,6 +27,8 @@ import {CHAT_SYSTEM, onDevicePrompts, REWRITE_SYSTEM} from './on-device-chat';
 import {hostedSettings} from './hosted';
 import {openAiBody} from './adapters/openai-compatible';
 import {agentRunner, parseAgentActions, proposalAnswer, proposeTool, readTools, type AgentCall} from './webmcp';
+import {AUTO_ACCEPT_HEALTH, AUTO_ACCEPT_KINDS, AUTO_ACCEPT_NEVER, autoAcceptVerdict, noteAutoAccept} from './actions/auto-accept';
+import {aiOptionsSchema} from './store/records';
 
 /**
  * The cross-path privacy test (Session V Part 2, ADR-014): with sentinel Health records on the device and the Health
@@ -364,4 +366,19 @@ test('Session X-Local Part 4: the semantic layer carries only an event name, nev
   const turn: ChatTurn = {id: 't1', role: 'assistant', text: reply, at: new Date().toISOString(), provider: 'openai', model: 'm', usage: null};
   const history = continuePrompt({turns: [{id: 't0', role: 'user', text: 'Log my night', at: new Date().toISOString()}, turn], context: null});
   expect(history).not.toContain('⟦'); expect(sentinelsIn(history)).toEqual([]);
+});
+
+test('Session X-Local Part 5b: with the Health gate closed no Health kind is ever auto-accepted, however it is switched on, and the auto-accept record holds no value', () => {
+  const everyOn = {version: 1 as const, autoAccept: {kinds: Object.fromEntries(AUTO_ACCEPT_KINDS.map(k => [k, true])), dailyCap: 100}};
+  for (const kind of AUTO_ACCEPT_HEALTH) expect(autoAcceptVerdict(everyOn, kind, DAY, false), kind).toEqual({ok: false, reason: 'health-gate-closed'});
+  // The gate of the moment decides, not a stored flag: the same record with the gate open lets them through.
+  for (const kind of AUTO_ACCEPT_HEALTH) expect(autoAcceptVerdict(everyOn, kind, DAY, true), kind).toEqual({ok: true});
+  // Weight is never automatic even with the gate open; nothing about money either.
+  for (const kind of AUTO_ACCEPT_NEVER) expect(autoAcceptVerdict(everyOn, kind, DAY, true), kind).toEqual({ok: false, reason: 'never'});
+  // The record carries kinds, a cap and counts only: booleans and integers, never a value, a name or a note.
+  const stored = JSON.stringify(noteAutoAccept(everyOn, DAY));
+  for (const sentinel of Object.values(SENTINEL)) expect(stored).not.toContain(sentinel);
+  const parsed = aiOptionsSchema.parse(JSON.parse(stored));
+  for (const value of Object.values(parsed.autoAccept!.kinds!)) expect(typeof value).toBe('boolean');
+  for (const value of Object.values(parsed.autoAccept!.days!)) expect(Number.isInteger(value)).toBe(true);
 });

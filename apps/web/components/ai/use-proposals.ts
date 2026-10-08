@@ -41,8 +41,8 @@ export type ProposalRunner = {
   ready: boolean;
   stores: Stores;
   plan: (action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>) => PlanResult;
-  /** Applies one plan; resolves with the stores as the write left them (the baseline for its undo). */
-  apply: (plan: Plan) => Promise<Stores>;
+  /** Applies one plan; resolves with the stores as the write left them (the baseline for its undo). `auto`: added by ZIGi under auto-accept. */
+  apply: (plan: Plan, auto?: boolean) => Promise<Stores>;
   /** Applies several plans in order on the latest stores; stops at the first failure. */
   applyAll: (plans: readonly Plan[]) => Promise<{after: Stores[]; error: string | null}>;
   /** Undoes plans newest first, each as the inverse through the normal path; refused as a whole when a record moved. */
@@ -68,9 +68,9 @@ export function useProposals(): ProposalRunner {
     return planAction(action, env);
   }, [days, stores, habits.data]);
   /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
-  const note = useCallback((p: Plan, done: boolean) => {
+  const note = useCallback((p: Plan, done: boolean, auto = false) => {
     if (!p.activity) return;
-    try { if (done) recordAction(getAppStorage(), {activityId: p.activity.id.slice(0, 200), kind: p.card.kind, title: p.activity.title.slice(0, 160) || p.card.title.slice(0, 160), at: new Date().toISOString()}); else forgetAction(getAppStorage(), p.activity.id.slice(0, 200)); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_ACTIONS_KEY})); }
+    try { if (done) recordAction(getAppStorage(), {activityId: p.activity.id.slice(0, 200), kind: p.card.kind, title: p.activity.title.slice(0, 160) || p.card.title.slice(0, 160), at: new Date().toISOString(), ...(auto ? {auto: true} : {})}); else forgetAction(getAppStorage(), p.activity.id.slice(0, 200)); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_ACTIONS_KEY})); }
     catch { /* the record itself was written; only the note is missing */ }
   }, []);
   /** One write through a store's own update: the change sees the latest record, and the stores it leaves are returned. */
@@ -93,7 +93,7 @@ export function useProposals(): ProposalRunner {
       case 'form': return Promise.resolve(stores);
     }
   }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, memory.update, settings.update, days, stores]);
-  const apply = useCallback(async (p: Plan) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true); return after; }, [note, run]);
+  const apply = useCallback(async (p: Plan, auto = false) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true, auto); return after; }, [note, run]);
   const applyAll = useCallback(async (plans: readonly Plan[]) => {
     const after: Stores[] = [];
     for (const p of plans) {

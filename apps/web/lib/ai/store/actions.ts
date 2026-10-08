@@ -11,7 +11,9 @@ import {AI_ACTIONS_KEY} from './keys';
  */
 export const MAX_ACTIONS = 500, ACTION_DAYS = 180;
 const stamp = z.iso.datetime();
-export const aiActionSchema = z.looseObject({activityId: z.string().min(1).max(200), kind: z.string().min(1).max(40), title: z.string().min(1).max(160), at: stamp});
+export const aiActionSchema = z.looseObject({activityId: z.string().min(1).max(200), kind: z.string().min(1).max(40), title: z.string().min(1).max(160), at: stamp,
+  /** Session X-Local Part 5b: added by ZIGi under auto-accept, not by a tap. */
+  auto: z.boolean().optional()});
 export type AiAction = z.infer<typeof aiActionSchema>;
 export const aiActionsSchema = z.looseObject({version: z.literal(1), actions: z.array(aiActionSchema).max(MAX_ACTIONS).optional()});
 export type AiActions = z.infer<typeof aiActionsSchema>;

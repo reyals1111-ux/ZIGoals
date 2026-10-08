@@ -22,6 +22,11 @@ import {AiDataUsage} from './ai-data-usage';
 import {Switch} from './ai-switch';
 import {useAiSettings} from './use-ai-settings';
 import {useHealthConsent} from './use-health-consent';
+import {useDeviceRecord} from './use-device-record';
+import {AI_OPTIONS} from '../../lib/ai/store/records';
+import {consent} from '../../lib/ai/context/consent';
+import {AUTO_ACCEPT_CAP, AUTO_ACCEPT_GROUPS, AUTO_ACCEPT_LABELS, AUTO_ACCEPT_REASONS, autoAcceptCap, autoAcceptedOn, autoAcceptOn, setAutoAcceptCap, setAutoAcceptKind} from '../../lib/ai/actions/auto-accept';
+import {localDate} from '../../lib/local-date';
 import './ai.css';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {onDeviceAvailability} from '../../lib/ai/on-device';
@@ -174,10 +179,13 @@ function useOpenRouterCallback(): {seed: SetupSeed; error: string | null} {
 }
 export default function AiSettings() {
   const settings = useAiSettings(), data = settings.data, scope = currentAiScope(), showcase = scope === SHOWCASE_SCOPE, callback = useOpenRouterCallback();
-  const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent();
+  const dashboard = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), healthConsent = useHealthConsent(), options = useDeviceRecord(AI_OPTIONS);
   const [remembered, setRemembered] = useState<boolean | null>(null), [message, setMessage] = useState<{text: string; failed?: boolean} | null>(null), [models, setModels] = useState<ModelInfo[] | null>(null), [modelsBusy, setModelsBusy] = useState(false), [turningOff, setTurningOff] = useState(false), [alsoChats, setAlsoChats] = useState(false), [keyDraft, setKeyDraft] = useState('');
   const provider = data.provider ? PROVIDERS[data.provider] : null, connected = data.enabled && data.mode !== 'subscription' && !!data.provider && !!data.model;
   const layoutHasHealth = dashboard.loaded && !dashboard.error && visibleDomains(dashboard.data).includes('health');
+  // Session X-Local Part 5b: the Health gate as the chat would see it on the Health page right now (fail-closed).
+  const healthOpen = consent({settings: data, area: 'health', pathname: '/app/health', layoutHasHealth, accountActive: healthConsent.accountActive, accountHealthPermitted: healthConsent.accountHealthPermitted}).health;
+  const saveOptions = useCallback((change: Parameters<typeof options.update>[0]) => { try { options.update(change); } catch (error) { setMessage({text: `The setting was not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } }, [options]);
   useEffect(() => { let active = true; if (!data.provider) { setRemembered(null); return; } hasRememberedKey(scope, data.provider).then(v => { if (active) setRemembered(v); }).catch(() => { if (active) setRemembered(false); }); return () => { active = false; }; }, [scope, data.provider, data.enabled, data.rememberKey]);
   const save = useCallback((change: (s: AiSettingsData) => AiSettingsData, text?: string) => { try { settings.update(change); if (text) setMessage({text}); } catch (error) { setMessage({text: `The setting was not saved on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); } }, [settings]);
   const loadModels = async () => {
@@ -265,6 +273,15 @@ export default function AiSettings() {
     <Group id="zigi-reminders-group" title="Reminders">
       {settings.loaded && <RemindersCard/>}
     </Group>
+    {data.enabled && options.loaded && <Group id="zigi-auto-accept" title="Auto-accept">
+      <p className="ai-note">Off by default. A kind you switch on is added by ZIGi without a tap when it proposes it: each addition shows for ten seconds with Undo, is listed under Activity &rarr; Actions by ZIGi, and counts toward a daily cap. Weight, fasting and anything about money are always confirmed by you.</p>
+      {AUTO_ACCEPT_GROUPS.map(group => <div key={group.title} className="ai-auto-accept-group">
+        <h4>{group.title}{group.health ? ' (only while Health is shared with ZIGi)' : ''}</h4>
+        {group.health && !healthOpen && <p className="ai-note" data-testid="auto-accept-health-closed">{AUTO_ACCEPT_REASONS['health-gate-closed']} Turn on &ldquo;Include Health&rdquo; under Privacy &amp; data first.</p>}
+        <div className="ai-switch-list">{group.kinds.map(kind => <Switch key={kind} checked={autoAcceptOn(options.data, kind)} disabled={!!group.health && !healthOpen} onChange={next => saveOptions(o => setAutoAcceptKind(o, kind, next))} label={AUTO_ACCEPT_LABELS[kind]}/>)}</div>
+      </div>)}
+      <label className="field">Daily cap<input type="number" min={AUTO_ACCEPT_CAP.min} max={AUTO_ACCEPT_CAP.max} step={1} value={autoAcceptCap(options.data)} onChange={e => { const v = Number(e.target.value); if (Number.isInteger(v) && v >= AUTO_ACCEPT_CAP.min && v <= AUTO_ACCEPT_CAP.max) saveOptions(o => setAutoAcceptCap(o, v)); }}/><small>{autoAcceptedOn(options.data, localDate())} of {autoAcceptCap(options.data)} added by ZIGi today. Past the cap, cards wait for your tap.</small></label>
+    </Group>}
     {data.enabled && <Group id="zigi-advanced" title="Advanced">
       {data.mode !== 'subscription' && <AiDataUsage settings={data} scope={scope}/>}
       <h4>Spend protection</h4>

@@ -50,6 +50,8 @@ export const aiOptionsSchema = z.looseObject({
   webmcp: z.boolean().optional(),
   hostedConsent: z.looseObject({at: stamp, health: z.boolean()}).nullable().optional(),
   notificationNames: z.boolean().optional(),
+  /** [TIER 3] Session X-Local Part 5b: auto-accept per card kind, a daily cap and the count per day; absent means off. */
+  autoAccept: z.looseObject({kinds: z.record(z.string().min(1).max(40), z.boolean()).refine(atMost(80)).optional(), dailyCap: z.number().int().min(1).max(100).optional(), days: z.record(day, z.number().int().min(0).max(100_000)).refine(atMost(400)).optional()}).optional(),
 });
 export type AiOptions = z.infer<typeof aiOptionsSchema>;
 export const AI_OPTIONS: DeviceRecordSpec<AiOptions> = {key: AI_OPTIONS_KEY, schema: aiOptionsSchema, empty};
