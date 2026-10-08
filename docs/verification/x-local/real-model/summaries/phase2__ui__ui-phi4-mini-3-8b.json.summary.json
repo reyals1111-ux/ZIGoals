@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/ui-phi4-mini-3-8b.json",
+ "kind": "ui",
+ "groups": [
+  {
+   "model": "phi4-mini:3.8b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 150,
+   "passed": 84,
+   "scored": 149,
+   "errors": 1,
+   "replyMedianMs": 987,
+   "first": "2026-10-08T15:28:52.585Z",
+   "last": "2026-10-08T15:40:37.450Z"
+  }
+ ]
+}

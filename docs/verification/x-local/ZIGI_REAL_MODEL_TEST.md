@@ -339,12 +339,16 @@ refusal cue; Phase 1's panel numbers were never scored that way, so the comparis
 | `phi4-mini:3.8b` | RTX 5090 (desktop) | 84 / 149 · 56.4 % | 95/149 63.8% | 52 → 54 of 77 (67.5 % → 70.1 %) | 30 / 72 · 41.7 % | 987 | 1 | cards 32, fields 18, schema 12, tool 11, refusal 11 |
 | `qwen3.6:35b-a3b` | RTX 5090 (desktop) | 107 / 149 · 71.8 % | 118/149 79.2% | 58 → 59 of 77 (75.3 % → 76.6 %) | 48 / 72 · 66.7 % | 1599 | 1 | cards 21, tool 11, fields 11, schema 5, tool-any 4 |
 | `qwen3.8:27b` | RTX 5090 (desktop) | 112 / 149 · 75.2 % | 120/149 80.5% | 55 → 63 of 77 (71.4 % → 81.8 %) | 49 / 72 · 68.1 % | 3600 | 1 | cards 21, fields 12, tool 9, never 3, schema 3 |
+| `qwen3.6:35b-a3b` | Mac M1 Max (desktop), 60 cases, 16:54–17:03 UTC | 47 / 60 · 78.3 % | 53/60 88.3% | 38 → 39 of 51 (74.5 % → 76.5 %) | 8 / 9 · 88.9 % | 4410 | 0 | tool 7, cards 5, never 2, refusal 1, schema 1 |
 
 Against the P2.3 panel targets (gemma4 and qwen3.8 ≥ 95 %, qwen3.6 ≥ 90 %): not met on this set in either scoring. Like
 for like, every model moved up (gemma4 83 → 84 %, qwen3.8 71 → 82 %, qwen3.6 75 → 77 %, phi4-mini 68 → 70 %), and the
 new cases are where the misses sit (gemma4 51 of 72, qwen3.8 49, qwen3.6 48, phi4-mini 30). The misses by check are the
 same classes as the corpus: a card asked for and prose returned, a field off (a day, a time, a unit), a block the schema
 refused; the panel adds the reply-time budget (one case per model timed out at 20 s).
+The Mac's 60 (the important cases first, so 51 are cases Phase 1 ran on it): 78.3 % raw and **88.3 % corrected**, 1.7
+points under its ≥ 90 % line (one case); its seven remaining misses are five cards asked for and answered in prose and
+two stray blocks beside an answer — the model's judgement, the same classes as on the PC.
 
 ### Conversations, pages, the day and the photos, Phase 2 (PC, 16:28–16:54 UTC; raw / corrected as above)
 
@@ -357,7 +361,55 @@ refused; the panel adds the reply-time budget (one case per model timed out at 2
 | Photos (4 fictional and public-domain plates) | 3 / 4 | **4 / 4** | **4 / 4** | no vision | — |
 | Reply medians (ms): conversations / pages / day / photos | 4176 / 1604 / — / 10036 | 4613 / — / — / 6792 | 2448 / 786 (810 phone) / 2117 (1680) / 4761 | 1927 / — / — / — | |
 
-The Mac's stages (60 cases, 10 conversations, the day, the photos) follow below.
+The Mac's first pass (16:54–17:11 UTC, the same code): 60 cases as in the panel table above; conversations **5 / 10**
+(the five misses all one shape, below); the day **14 / 18** (the lie-in refused, the breakfast photo answered as "I
+cannot see a real photo", a pre-fill card beside a money refusal, a card on the morning brief); photos **3 / 4** (the full
+English: "I don't know how much oil was used, so I've kept servings and some nutrients out", which the hedge cue did not
+read). Reply medians 19.5 s (conversations), 17.6 s (the day), 12.4 s (photos).
+
+### Fix rounds 8 and 9, read off the UI stages (ADR S74, S75), and their re-runs
+
+**Round 8 (S74).** The conversations' one miss in common on every model and both hosts was a correction of a card nobody
+had accepted yet: "Make it 15 minutes, not 10" after a proposed habit came back as `edit-habit` for a record that does
+not exist (an invented handle, `h7`, refused by the planner as "Nothing proposed"), and "Change the note to …" after a
+proposed goal note as an `edit-goal` of the goal's notes. The protocol sentence (the corrected card again, `"revise":
+true`) was already in the prompt and did not hold on its own, so the device now rewrites such a reply before the cards
+are read (`lib/ai/actions/revise.ts`, beside the day cue in the app and the harness): an edit whose target names no
+record of the context, right after a reply that proposed a create-habit or create-goal, becomes that proposal again with
+the changed fields and the revise flag; when a record with the proposed title exists by then (the card was accepted after
+all) the edit keeps its kind and takes that record's handle; a notes-only edit of the goal whose note was proposed becomes
+that note again. The planner's own resolver decides what "exists". One prompt sentence beside it: a corrected amount
+replaces the proposed amount, never a counter of the difference (qwen3.6 had answered "It was 6500 steps" with a counter
+of 500). Re-run on the PC (17:16–17:22 UTC, code `3796a5c`): gemma4 **15 / 15**, qwen3.6 14 / 15 (the challenge's days
+read as the habit's target), qwen3.8 13 / 15, phi4-mini 7 / 15. qwen3.8's two were not corrections at all: "I want to
+read 20 pages a day as a habit" became an edit of the Showcase's own Read habit (30 minutes) with the correction applied
+to it, and "a 30 minute walk on Monday, Wednesday and Friday" a question about its Walk habit (8,000 steps) — correct
+answers the oracle could not score.
+
+**Round 9 (S75)**, read off the Mac's day and photo stages and round 8: (1) a money ask the reply declines in words
+carries no card (`lib/ai/actions/decline.ts`; the decline cue is now one exported regex for the app and the scorer, so
+the repair round also stops after "I do not move money"); (2) the weekend's lie-in had been refused on all six runs on
+every host, including a block that was exactly right (`bedtime 00:00, wake 09:30, quality 5`), because the Showcase
+seeds a night for every one of its 30 days but three and the lie-in overlaps the night that ended that morning — the
+app's refusal was the correct product answer and the oracle asked for the impossible; the scenario now removes that
+seeded night first, and a prompt idiom says midnight is 00:00 (the PC's blocks had no bedtime at all); (3) the photo
+oracle's hedge cue reads "don't know" and "kept … out"; (4) the two colliding conversation asks now name habits the
+Showcase has not got (journal pages, a bike ride). No assertion weakened; each change is listed in ADR-017.
+
+**After rounds 8 and 9 (one run per stage, 17:26–17:48 UTC, code `4c94fa6`, dev server):**
+
+| Stage | `gemma4:12b` (PC) | `qwen3.8:27b` (PC) | `qwen3.6:35b-a3b` (PC) | `phi4-mini:3.8b` (PC) | `qwen3.6:35b-a3b` (Mac) | Target (P2.3) |
+|---|---:|---:|---:|---:|---:|---|
+| Conversations (15 per PC model, 10 on the Mac) | **15 / 15** | **15 / 15** | **15 / 15** | 9 / 15 | **10 / 10** | 15 of 15 on three PC models: **met on this code** (one run each; the Phase 2 runs before the fix sat at 14, 14 and 11, which sizes the spread) |
+| The day in the life (18 steps) | — | — | **17 / 18** desktop (the one miss: "Meditated for 20 minutes this evening" at 19:00 given a 19:00 start, which would end in the future — the planner's refusal is right, the start was invented), **18 / 18** phone | — | **18 / 18** | 54 of 54: 53 of 54 across the three runs, the one miss the model's |
+| Photos (4 plates) | 3 / 4 (the spread: 1 of 9 items recognised) | **4 / 4** | 3 / 4 (a cookie invented on the drawn plate) | no vision | 3 / 4 (the spread: nothing recognised, no card) | — |
+| Reply medians (ms): conversations / day / photos | 3344 / — / 7399 | 5001 / — / 8254 | 2641 / 1917 (1713 phone) / 5415 | 2144 / — / — | 19492 / 18688 / 9720 | |
+
+Across every Phase 2 UI run on a stage (the runs before and after the fixes together, as the runs branch's index counts
+them): conversations gemma4 44 / 45, qwen3.8 42 / 45, qwen3.6 40 / 45 (PC) and 15 / 20 (Mac), phi4-mini 23 / 45; the day
+33 / 36 (PC desktop), 34 / 36 (PC phone), 32 / 36 (Mac); photos qwen3.8 8 / 8, gemma4 6 / 8, qwen3.6 7 / 8 (PC) and
+6 / 8 (Mac). The photo misses are vision judgement on the one crowded plate (the spread) and one invented item; the day
+and conversation misses before the fixes were the three defects above, now gone, plus the model's own.
 
 
 ## Photos (owner addition 11): sources and licences

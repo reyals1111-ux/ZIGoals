@@ -186,8 +186,11 @@ with a 2-second first token is a good assistant, not a fast one. `phi4-mini:3.8b
 for logging by card. **The panel after Phase 2** (150 cases per PC model through the real chat, a harder set than Phase
 1's, scored as Phase 1 was and corrected for the router's own reads): gemma4 78 % / 85 %, qwen3.8 75 % / 81 %, qwen3.6
 72 % / 79 %, phi4-mini 56 % / 64 %; like for like on the 77 cases both phases ran, every model moved up (gemma4 83 → 84 %,
-qwen3.8 71 → 82 %, qwen3.6 75 → 77 %). The conversations, the pages, the day and the photos are in the test document's
-Phase 2 section.
+qwen3.8 71 → 82 %, qwen3.6 75 → 77 %); on the Mac, 60 cases: 78 % / 88 %. Two more fix rounds read off these stages
+(ADR S74, S75: a correction of a card only proposed, a decline without a card, a seeded night in the way of the lie-in)
+left the multi-turn conversations clean on the three PC models (15 / 15 each) and the Mac (10 / 10), the day scenario at
+53 of 54 steps across the PC's two forms and the Mac, the photos at 4 / 4 on qwen3.8 and 3 / 4 on the others. The
+conversations, the pages, the day and the photos are in the test document's Phase 2 section.
 
 ## The iPhone checklist (≤15 minutes)
 

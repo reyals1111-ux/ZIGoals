@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/photos-qwen3-8-27b.json",
+ "kind": "photos",
+ "groups": [
+  {
+   "model": "qwen3.8:27b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 8,
+   "passed": 8,
+   "scored": 8,
+   "errors": 0,
+   "replyMedianMs": 6750,
+   "first": "2026-10-08T16:50:55.545Z",
+   "last": "2026-10-08T17:43:54.498Z"
+  }
+ ]
+}

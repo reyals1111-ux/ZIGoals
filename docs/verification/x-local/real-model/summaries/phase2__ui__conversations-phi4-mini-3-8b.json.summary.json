@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/conversations-phi4-mini-3-8b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "phi4-mini:3.8b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 45,
+   "passed": 23,
+   "scored": 45,
+   "errors": 0,
+   "replyMedianMs": 1937,
+   "first": "2026-10-08T16:27:49.938Z",
+   "last": "2026-10-08T17:27:55.825Z"
+  }
+ ]
+}
