@@ -18,13 +18,13 @@
    "model": "gemma4:12b",
    "host": "RTX 5090",
    "project": "desktop",
-   "runs": 150,
-   "passed": 129,
-   "scored": 150,
-   "errors": 0,
-   "replyMedianMs": 1551,
+   "runs": 300,
+   "passed": 245,
+   "scored": 299,
+   "errors": 1,
+   "replyMedianMs": 2014,
    "first": "2026-10-08T03:11:19.812Z",
-   "last": "2026-10-08T03:20:13.125Z"
+   "last": "2026-10-08T15:56:06.104Z"
   }
  ]
 }

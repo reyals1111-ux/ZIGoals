@@ -18,13 +18,13 @@
    "model": "qwen3.6:35b-a3b",
    "host": "RTX 5090",
    "project": "desktop",
-   "runs": 150,
-   "passed": 115,
-   "scored": 150,
-   "errors": 0,
-   "replyMedianMs": 849,
+   "runs": 286,
+   "passed": 209,
+   "scored": 285,
+   "errors": 1,
+   "replyMedianMs": 1217,
    "first": "2026-10-08T03:30:58.420Z",
-   "last": "2026-10-08T03:38:32.344Z"
+   "last": "2026-10-08T16:26:46.796Z"
   }
  ]
 }

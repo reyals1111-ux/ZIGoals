@@ -316,11 +316,12 @@ Dutch and French cues); the proposals and the multi-step turns carry what is lef
 | `qwen3.8:27b` | 79.9 % / 82.0 % / 85.6 % | 5.6 pts | 82.5 % | 20/25 · 6/8 · 6/9 ; 22/25 · 6/8 · 7/9 ; 22/25 · 6/8 · 7/9 | 513 / 3013 | 1605 |
 | `qwen3.6:35b-a3b` | 82.4 % / 78.9 % / 82.0 % | 3.5 pts | 81.1 % | 21/25 · 7/8 · 8/9 ; 22/25 · 7/8 · 8/9 ; 20/25 · 8/8 · 8/9 | 221 / 1405 | 562 |
 | `phi4-mini:3.8b` | 58.5 % / 55.6 % / 55.6 % | 2.8 pts | 56.6 % | 13/25 · 4/8 · 7/9 ; 14/25 · 4/8 · 8/9 ; 14/25 · 3/8 · 7/9 | 265 / 500 | 488 |
+| `qwen3.6:35b-a3b` (Mac M1 Max, 15:06–16:26 UTC) | 79.9 % / 81.0 % / 79.6 % | 1.4 pts | 80.2 % | 22/25 · 8/8 · 8/9 ; 22/25 · 6/8 · 8/9 ; 19/25 · 8/8 · 8/9 | 1920 / 7248 | 4323 |
 
 What the spread says about the targets: gemma4's 89.4 % on the full corpus sits inside a 4-point band whose top run is
 at 90.5 %, so the 90 % line is reached within its own run-to-run spread, and its refusals and privacy are 100 % in every
-run with one injection case missed once; qwen3.8's band (80–86 %) and qwen3.6's (79–82 % on the PC, 81.6–84.0 % on the Mac)
-do not reach their targets in any run, and their refusals, privacy and injection sit at 80–95 %: the model's own
+run with one injection case missed once; qwen3.8's band (80–86 %) and qwen3.6's (79–82 % on the PC; on the Mac 80–81 % on the important set, 81.6–84.0 % on
+the full corpus) do not reach their targets in any run, and their refusals, privacy and injection sit at 80–95 %: the model's own
 judgement, not the app, as the per-case reading above shows. phi4-mini is measured, not targeted: 56–60 %, refusals
 about half, no cards to speak of.
 
