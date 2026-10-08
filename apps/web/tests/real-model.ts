@@ -43,14 +43,18 @@ export async function offlineAppApi(page: Page) {
 }
 /** Opens the panel; a page without the launcher fails in 20 s, never at the test's timeout. */
 export async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click({timeout: 20_000}); await expect(panel(page)).toBeVisible(); }
-/** Sends a message and waits until the reply is final (the Stop button gone, no live turn), within the reply timeout. */
+/** Sends a message and waits until the reply is final: a new assistant turn (or a failure block) has appeared, no turn is
+ * live and the Stop button is gone, within the reply timeout. The clock runs from the click to that final state; a reply
+ * that is over before the Stop button could be seen is measured as it was, never padded by a wait for the button. */
 export async function askAndWait(page: Page, text: string, {log = false}: {log?: boolean} = {}): Promise<{ms: number}> {
-  const started = Date.now();
+  const turns = panel(page).locator('.ai-turn-assistant'), failed = panel(page).locator('.ai-failure');
+  const before = await turns.count();
   await page.getByLabel('Message to your AI').fill(text, {timeout: 20_000});
+  const started = Date.now();
   await page.getByRole('button', {name: log ? 'Log' : 'Send', exact: true}).click({timeout: 20_000});
-  await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toBeVisible({timeout: 15_000}).catch(() => undefined);
-  await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: REPLY_TIMEOUT_MS});
-  await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0, {timeout: 10_000});
+  await expect.poll(async () => (await turns.count()) > before || (await failed.count()) > 0, {timeout: REPLY_TIMEOUT_MS, intervals: [50, 100, 250]}).toBe(true);
+  await expect(panel(page).locator('.ai-turn-live')).toHaveCount(0, {timeout: REPLY_TIMEOUT_MS});
+  await expect(panel(page).getByRole('button', {name: 'Stop', exact: true})).toHaveCount(0, {timeout: 10_000});
   // A failure block instead of a reply (network, CORS, a stall, the model missing) is the run's error, never a hang.
   const failure = panel(page).locator('.ai-failure');
   if (await failure.count() > 0) throw new Error(`The chat shows a failure: ${(await failure.innerText()).replace(/\s+/g, ' ').trim().slice(0, 400)}`);
