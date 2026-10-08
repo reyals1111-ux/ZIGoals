@@ -208,7 +208,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
     const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
     const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
-    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal};
+    // Session X-Local Part 6d: a thinking model thinks only for "Think deeper"; a quick reply spends its cap on the answer.
+    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal, think: !!options.deep};
     // Session V Part 6: how this message gets the data. Tools only with the page's data shared for this message, never
     // after this model refused them in this session; the setting first, then the provider's own metadata.
     const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(providerId, hosted ? `hosted:${model}` : model);
