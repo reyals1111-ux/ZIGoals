@@ -62,6 +62,22 @@ test('a rain-like sound plays here, follows you around ZIGoals with a Stop butto
   expect(outside).toEqual([]);
 });
 
+// Session X P2.5: the clock follows the app's one display rule (lib/visual-format.ts), not a fixed British clock: a
+// 24-hour region reads 22:15, as above en-US reads 10:15 PM.
+for (const locale of ['nl-BE', 'en-GB']) test.describe(locale, () => {
+  test.use({locale});
+  test(`${locale}: the timer's stop time is written in the region's clock`, async ({page}) => {
+    await page.clock.install({time: new Date('2026-10-21T20:00:00.000Z')}); // 22:00 in Brussels
+    await mocks(page);
+    await seed(page);
+    await page.goto('/app/health?view=meditation');
+    const p = player(page);
+    await p.getByLabel('Stop after').selectOption({label: '15 min'});
+    await p.getByRole('button', {name: 'Play', exact: true}).click();
+    await expect(p.getByRole('status')).toHaveText(/^Playing Brown noise · stops at 22:1[45]$/);
+  });
+});
+
 test('the timer says when it stops, and the volume is kept on this device', async ({page}) => {
   await page.clock.install({time: new Date('2026-10-21T20:00:00.000Z')}); // 22:00 in Brussels
   await mocks(page);
@@ -71,7 +87,8 @@ test('the timer says when it stops, and the volume is kept on this device', asyn
   await p.getByLabel('Stop after').selectOption({label: '15 min'});
   await p.getByLabel(/^Volume/).fill('40');
   await p.getByRole('button', {name: 'Play', exact: true}).click();
-  await expect(p.getByRole('status')).toHaveText(/^Playing Brown noise · stops at 22:1[45]$/);
+  // The suite's en-US: the time in the app's display rule (lib/visual-format.ts), as every other clock shows it.
+  await expect(p.getByRole('status')).toHaveText(/^Playing Brown noise · stops at 10:1[45] PM$/);
   expect(JSON.parse((await page.evaluate(key => localStorage.getItem(key), MUSIC_KEY))!)).toMatchObject({volume: 40, ambient: {sound: 'brown', timerMin: 15}});
   // The fade is scheduled on the audio clock: down to silence 15 minutes after the start.
   const ramps = (await audio(page)).filter(e => e.what === 'gain ramp' && e.value === 0);

@@ -2,6 +2,7 @@
 import {useState} from 'react';
 import {useChartWidth} from '../../charts/use-chart-width';
 import {minutesText, type WeekBar} from '../../../lib/meditation/stats';
+import {formatDate} from '../../../lib/visual-format';
 
 /**
  * Minutes a week (Session W Part 5), hand-built SVG like Sleep's charts: one series, so the title names it; the person's
@@ -10,7 +11,7 @@ import {minutesText, type WeekBar} from '../../../lib/meditation/stats';
  * #c45bb0, validated on the dark surface.
  */
 const H = 170, PAD = {top: 12, right: 10, bottom: 26, left: 48}, plotH = H - PAD.top - PAD.bottom;
-const weekLabel = (start: string) => new Date(`${start}T12:00:00Z`).toLocaleDateString('en', {day: 'numeric', month: 'short', timeZone: 'UTC'});
+const weekLabel = (start: string) => formatDate(`${start}T12:00:00Z`, {day: 'numeric', month: 'short', timeZone: 'UTC'});
 /** An axis tick in the same words everywhere: "0", "30 min", "1 h", "1 h 30". */
 const tick = (m: number) => m === 0 ? '0' : m % 60 === 0 ? `${m / 60} h` : m > 60 ? `${Math.floor(m / 60)} h ${m % 60}` : `${m} min`;
 const bar = (x: number, w: number, top: number, base: number) => { const r = Math.min(4, w / 2, (base - top) / 2); return `M${x},${base}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${base}Z`; };

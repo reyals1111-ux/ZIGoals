@@ -10,6 +10,7 @@ import {wealthOverview} from '../wealth';
 import {unifiedGoalSummaries, type GoalSummary} from '../goal-summary';
 import type {LocalGoal} from '../local-ledger';
 import type {GoalMetadata} from '@zigoals/shared-types';
+import {formatNumber} from '../visual-format';
 import type {WeeklyReview} from './schema';
 
 /** The week a review looks back on: the most recent chosen weekday on or before today, and the six days before it. */
@@ -58,11 +59,11 @@ export function weekSummary({weekStart, weekEnd, habits, health, platform, local
   const meals = days.filter(date => health.diary.some(e => e.date === date)).length;
   if (meals) healthLines.push(`${meals} ${meals === 1 ? 'day' : 'days'} with meals logged`);
   const active = days.filter(date => health.activity.some(a => a.date === date)).map(date => dailyHealthSummary(health, date));
-  if (active.length) healthLines.push(`${active.reduce((n, d) => n + d.steps, 0).toLocaleString('en-US')} steps · ${active.reduce((n, d) => n + d.minutes, 0).toLocaleString('en-US')} min movement`);
+  if (active.length) healthLines.push(`${formatNumber(active.reduce((n, d) => n + d.steps, 0))} steps · ${formatNumber(active.reduce((n, d) => n + d.minutes, 0))} min movement`);
   const water = days.filter(date => waterSummary(health, date).entries > 0).length;
   if (water) healthLines.push(`${water} ${water === 1 ? 'day' : 'days'} with water`);
   const weight = latestWeightObservation(health, weekEnd);
-  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${(weight.grams / 1000).toLocaleString('en-US', {maximumFractionDigits: 2})} kg on ${weight.date}`);
+  if (weight && weight.date >= weekStart) healthLines.push(`latest weight ${formatNumber(weight.grams / 1000, {maximumFractionDigits: 2})} kg on ${weight.date}`);
   let wealth: WeekSummary['wealth'] = null;
   if (financial) {
     const overview = wealthOverview(platform, now, quotes);

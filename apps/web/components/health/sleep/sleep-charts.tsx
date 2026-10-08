@@ -4,6 +4,7 @@ import {useChartWidth} from '../../charts/use-chart-width';
 import type {DayPoint} from '../../../lib/sleep/engine';
 import {clockFromNoon, clockFromMidnight} from '../../../lib/sleep/engine';
 import {formatMinutes} from '../../../lib/zone-time';
+import {formatDate} from '../../../lib/visual-format';
 
 /**
  * Sleep charts (Session W Part 4), hand-built SVG: one series each, so the title names it; a key under the title names
@@ -15,8 +16,8 @@ import {formatMinutes} from '../../../lib/zone-time';
 // Drawn at the width it is shown (measured), so labels keep their real 14 px on every screen.
 const H = 180, PAD = {top: 14, right: 10, bottom: 26, left: 44};
 const plotH = H - PAD.top - PAD.bottom;
-const dayLabel = (date: string, count: number, i: number) => count <= 7 ? new Date(`${date}T12:00:00Z`).toLocaleDateString('en', {weekday: 'short', timeZone: 'UTC'}).slice(0, 2) : i % 5 === 0 || i === count - 1 ? date.slice(8) : '';
-const longDate = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString('en', {weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'});
+const dayLabel = (date: string, count: number, i: number) => count <= 7 ? formatDate(`${date}T12:00:00Z`, {weekday: 'short', timeZone: 'UTC'}).slice(0, 2) : i % 5 === 0 || i === count - 1 ? date.slice(8) : '';
+const longDate = (date: string) => formatDate(`${date}T12:00:00Z`, {weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'});
 /** A bar with its data end rounded (4 px) and its base square on the baseline. */
 const bar = (x: number, w: number, top: number, base: number, r = 4) => { const rr = Math.min(r, w / 2, (base - top) / 2); return `M${x},${base}V${top + rr}Q${x},${top} ${x + rr},${top}H${x + w - rr}Q${x + w},${top} ${x + w},${top + rr}V${base}Z`; };
 const capsule = (x: number, w: number, top: number, bottom: number) => { const r = Math.min(4, w / 2, (bottom - top) / 2); return `M${x},${bottom - r}V${top + r}Q${x},${top} ${x + r},${top}H${x + w - r}Q${x + w},${top} ${x + w},${top + r}V${bottom - r}Q${x + w},${bottom} ${x + w - r},${bottom}H${x + r}Q${x},${bottom} ${x},${bottom - r}Z`; };

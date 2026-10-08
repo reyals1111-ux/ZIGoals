@@ -5,7 +5,7 @@ import {NebulaFlow} from '../nebula-flow';
 import {CHESS_CONTROLS, CHESS_SITES, type ChessControl, type ChessGoal, type ChessSite} from '../../lib/skills/chess/schema';
 import {CONTROL_NAME, SITE_NAME, currentRatings, goalProgress, ratingLine, removeChessGoal, results, saveChessGoal, setChessHabit, type Record3} from '../../lib/skills/chess/engine';
 import {sitePausedFor} from '../../lib/skills/chess/api';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDateTime, formatNumber} from '../../lib/visual-format';
 import {useHabits} from '../habits/use-habits';
 import {useChess} from './use-chess';
 import {ChessUsernames} from './chess-usernames';
@@ -19,7 +19,7 @@ import './chess.css';
  * the person's usernames, results by colour and time control, rating goals, the habit chess ticks off, and the sites'
  * own daily puzzle and TV, opened only on a tap. Numbers are the sites' own; nothing is estimated.
  */
-const time = (iso: string) => new Date(iso).toLocaleString(undefined, {dateStyle: 'medium', timeStyle: 'short'});
+const time = (iso: string) => formatDateTime(iso, {dateStyle: 'medium', timeStyle: 'short'});
 const record = (r: Record3) => `${r.win} won · ${r.draw} drawn · ${r.loss} lost`;
 export function ChessView() {
   const state = useChess('page'), {cache, chess, busy, errors, refresh, showcase, settings} = state, habits = useHabits();
