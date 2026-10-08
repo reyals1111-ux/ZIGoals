@@ -9,7 +9,7 @@ import type {GoalMetadata} from '@zigoals/shared-types';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {dismissWhatsNew, whatsNewSeen} from '../../lib/whats-new';
 import {reviewState, reviewWindow, weekSummary} from '../../lib/weekly-review/engine';
-import {wealthMoney} from '../platform/wealth-view';
+import {wealthMoney} from '../platform/wealth-money';
 import {useFasting} from '../health/use-fasting';
 import {useWeeklyReview} from '../weekly-review/use-weekly-review';
 import {useHealthGoals} from '../health-goals/use-health-goals';

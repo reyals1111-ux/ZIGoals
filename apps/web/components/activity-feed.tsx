@@ -15,7 +15,6 @@ import "./activity-product.css";
 import { formatTime } from "../lib/visual-format";
 import { activityKeys } from "./activity-keys";
 import { useZigiActions } from "./activity/use-zigi-actions";
-import { actionPlace } from "../lib/ai/store/actions";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -31,7 +30,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).
   const shownIds = new Set(base.map(event => event.id));
-  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId)).map(a => ({id: `zigi:${a.activityId}`, category: actionPlace(a.kind).category, title: a.title, detail: "Confirmed from a ZIGi card", at: a.at, href: actionPlace(a.kind).href, source: "Confirmed from a ZIGi card"}));
+  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId)).map(a => ({id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: "Confirmed from a ZIGi card", at: a.at, href: a.href, source: "Confirmed from a ZIGi card"}));
   const allEntries = (category === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => category === "ALL" || event.category === category)).sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
   const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
   return <div className="unified-activity">

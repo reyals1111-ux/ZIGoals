@@ -32,9 +32,8 @@ import {useMarketQuotes} from './use-market-quotes';
 import {useValuationHistory} from './use-valuation-history';
 import {useEvidenceNow} from './use-evidence-now';
 import {EvidenceChart} from './evidence-chart';
-import {amount,shownAmount} from './common';
+import {shownAmount} from './common';
 import {wealthMarketRequests,wealthOverview,ASSET_COLORS} from '../../lib/wealth';
-import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {SceneArt} from '../scene-art';
 import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {ManualSourceCards} from './manual-source-cards';
@@ -49,7 +48,8 @@ import {restoreAsset} from '../../lib/asset-management';
 import {PinToToday} from '../pin-to-today';
 import {NebulaFlow} from '../nebula-flow';
 import { formatDateTime } from '../../lib/visual-format';
-export const wealthMoney=(n:bigint,currency:string)=>formatSignedGoalAmount(n<0n,amount((n<0n?-n:n).toString(),2),currency);
+import {wealthMoney} from './wealth-money';
+export {wealthMoney};
 export function WealthView(){
  const store=usePlatform(),[adding,setAdding]=useState(false),[importing,setImporting]=useState(false),[filter,setFilter]=useState('All assets'),[error,setError]=useState('');
  // W3: holdings from a CSV, with the undo ledger of this device.
