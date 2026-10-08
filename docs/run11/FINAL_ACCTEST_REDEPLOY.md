@@ -272,6 +272,7 @@ Re-run step 2 at your release SHA; this is what to expect.
 | market coordinator | nothing | no |
 | private sync, lifecycle, food lookup, auth admission | nothing | no |
 | push reminders (only if activated) | nothing in the Worker; its run sheet rewritten | only if you activate push (below) |
+| ZIGoals hosted relay (only if activated) | an Anthropic upstream option (native Messages API, translated in the relay); a second template | only if you activate it (below) |
 
 ## Push activation (optional; Session X Part 8, 2026-10-08)
 Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays
@@ -290,6 +291,14 @@ one encrypted reminder readable only with the device's keys; a schedule change; 
 "Sign out all other devices" and account deletion (`delete-all`, now also from a device without its own record);
 two accounts kept apart; retention. **Private config:** `workers/push-reminders/wrangler.acctest.owner.jsonc` (ignored,
 0600), made by hand per PUSH_ACTIVATION step 2.
+
+## ZIGoals hosted relay (optional; Session X Part 9, 2026-10-08)
+The hosted relay (ADR-014) can be activated during this redeploy for **your own acceptance account only**. Follow
+[ZIGI_RELAY_ACTIVATION.md](ZIGI_RELAY_ACTIVATION.md): its "Anthropic" section if you power it with your Claude plan's API
+credits (Claude Haiku 5.5, thinking off), otherwise the OpenAI default. Order: after step 5 and after push (if you do
+push), before step 8 (log out), one mutation at a time, the kill switch on until the last step. The build flag `NEXT_PUBLIC_ZIGI_HOSTED` stays
+off for the public Alpha; the acceptance build is the only one you would make with it. **Private config:**
+`workers/zigi-relay/wrangler.acctest.owner.jsonc` (ignored, 0600).
 
 ## Rollback
 - Per Worker: `pnpm --filter @zigoals/web exec wrangler rollback <version you wrote down> --config "$PWD/<private config>"`.
