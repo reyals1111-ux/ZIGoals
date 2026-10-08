@@ -139,7 +139,7 @@
   "project": "desktop",
   "page": "habits",
   "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
-  "reply": "Here is the updated proposal for your new habit. I’ve set it for Tuesdays and Thursdays as requested.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 min walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
+  "reply": "Here is the updated proposal for your new habit. I\u2019ve set it for Tuesdays and Thursdays as requested.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 min walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
   "cards": [
    {
     "kind": "create-habit",
@@ -195,7 +195,7 @@
       "status": "ai-card ai-card-proposed"
      }
     ],
-    "reply": "Here is the updated proposal for your new habit. I’ve set it for Tuesdays and Thursdays as requested.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 min walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+    "reply": "Here is the updated proposal for your new habit. I\u2019ve set it for Tuesdays and Thursdays as requested.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 min walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
    },
    "cardOfKind": 1,
    "accept": {
@@ -689,7 +689,7 @@
    "plan": {
     "ms": 2571,
     "cards": [],
-    "reply": "You logged a 3 for today’s mood, so the day felt average—no highs, no lows.\n\nYour health record shows:\n- Exercise (h1): partial, 15 of 30 minutes\n- Meditate (h2): partial, 5 of 10 minutes\n- Drink water (h3): partial, 4 of 8 glasses\n- Food diary: 1,970 kcal\n- Steps: 8800\n- No water entries yet for today\n\nThe weekly review is due this Sunday. The week has seen 37 habit check-ins, 56 health entries, 7 goal contributions, and busiest day on Sep 15. Your goals g1, g2, g3, and g5 all have a next planned date of Sep 23.\n\nShall I add water or exercise for today? Or shall we prepare your weekly review note?"
+    "reply": "You logged a 3 for today\u2019s mood, so the day felt average\u2014no highs, no lows.\n\nYour health record shows:\n- Exercise (h1): partial, 15 of 30 minutes\n- Meditate (h2): partial, 5 of 10 minutes\n- Drink water (h3): partial, 4 of 8 glasses\n- Food diary: 1,970 kcal\n- Steps: 8800\n- No water entries yet for today\n\nThe weekly review is due this Sunday. The week has seen 37 habit check-ins, 56 health entries, 7 goal contributions, and busiest day on Sep 15. Your goals g1, g2, g3, and g5 all have a next planned date of Sep 23.\n\nShall I add water or exercise for today? Or shall we prepare your weekly review note?"
    },
    "correct": {
     "ms": 565,
@@ -1711,7 +1711,7 @@
   "project": "desktop",
   "page": "today",
   "ask": "Today felt okay, a 3",
-  "reply": "⟪zigi: empathetic⟧",
+  "reply": "\u27eazigi: empathetic\u27e7",
   "cards": [],
   "tools": [],
   "ms": 15477,
@@ -1736,12 +1736,12 @@
    "plan": {
     "ms": 14281,
     "cards": [],
-    "reply": "⟪zigi: empathetic⟧"
+    "reply": "\u27eazigi: empathetic\u27e7"
    },
    "correct": {
     "ms": 1196,
     "cards": [],
-    "reply": "⟪zigi: empathetic⟧"
+    "reply": "\u27eazigi: empathetic\u27e7"
    },
    "cardOfKind": 0
   }

@@ -1,0 +1,3274 @@
+[
+ {
+  "id": "stretch-15",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "I have updated the stretching habit draft to 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 8402,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:54.492Z",
+  "steps": {
+   "plan": {
+    "ms": 7712,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have a draft for your new stretching habit. It is set for 10 minutes every morning.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 690,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the stretching habit draft to 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "read-pages",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to read 20 pages a day as a habit",
+  "reply": "I have updated the proposal to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"count\",\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Read\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3290,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:05.136Z",
+  "steps": {
+   "plan": {
+    "ms": 2697,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you set that up. Since you want to track pages, I'll propose a \"count\" type habit for you.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"count\",\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nWould you like to keep the title as \"Read\" or change it to something else?"
+   },
+   "correct": {
+    "ms": 593,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the proposal to 30 pages in the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"count\",\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "walk-weekdays",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
+  "reply": "I've updated the schedule for your walk habit to Tuesdays and Thursdays.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4176,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:10.609Z",
+  "steps": {
+   "plan": {
+    "ms": 2184,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A habit draft for your walks on those specific days:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 1992,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated the schedule for your walk habit to Tuesdays and Thursdays.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3, \"revise\": true}\n```\n\nI've updated that to three glasses for you.",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4063,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:17.014Z",
+  "steps": {
+   "plan": {
+    "ms": 2164,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```\n\nI've added the two glasses of water for you."
+   },
+   "correct": {
+    "ms": 1899,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3, \"revise\": true}\n```\n\nI've updated that to three glasses for you."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "I've updated your weight to 72.4 kg for this morning.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3166,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:23.335Z",
+  "steps": {
+   "plan": {
+    "ms": 2040,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've noted your weight for this morning.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 1126,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated your weight to 72.4 kg for this morning.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "I will update that to 6500 steps for you.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 7610,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:28.935Z",
+  "steps": {
+   "plan": {
+    "ms": 1954,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can add those steps for you.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000}\n```"
+   },
+   "correct": {
+    "ms": 5656,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I will update that to 6500 steps for you.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "I have updated the target for your \"New laptop\" goal.\n\n```zigoals-action\n{\"kind\":\"edit-goal\",\"goal\":\"g1\",\"target\":1500}\n```\n\n*(Note: I used the handle g1 based on the draft you just created.)*",
+  "cards": [
+   {
+    "kind": "edit-goal",
+    "title": "Change the goal \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3686,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-goal card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:38.749Z",
+  "steps": {
+   "plan": {
+    "ms": 2612,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you draft that goal. Here is a proposal you can review:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 1074,
+    "cards": [
+     {
+      "kind": "edit-goal",
+      "title": "Change the goal \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the target for your \"New laptop\" goal.\n\n```zigoals-action\n{\"kind\":\"edit-goal\",\"goal\":\"g1\",\"target\":1500}\n```\n\n*(Note: I used the handle g1 based on the draft you just created.)*"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "I have updated that note for you.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 6626,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:44.246Z",
+  "steps": {
+   "plan": {
+    "ms": 5640,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"reviewed the budget\"}\n```"
+   },
+   "correct": {
+    "ms": 986,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated that note for you.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "I'll update that to 20 minutes for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"08:45\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4533,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:29:53.112Z",
+  "steps": {
+   "plan": {
+    "ms": 2398,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can record that for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":12,\"time\":\"08:45\"}\n```\n\n*(Note: Since it is currently 08:45 on 2026-09-20, I have used that time for the entry.)*"
+   },
+   "correct": {
+    "ms": 2135,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I'll update that to 20 minutes for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"08:45\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "I've updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 6082,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:00.028Z",
+  "steps": {
+   "plan": {
+    "ms": 5630,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've noted that you felt okay today, giving it a 3.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":3}\n```"
+   },
+   "correct": {
+    "ms": 452,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}]\n```",
+  "cards": [
+   {
+    "kind": "add-link",
+    "title": "Add the link \"Sunday runners\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3420,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:08.532Z",
+  "steps": {
+   "plan": {
+    "ms": 818,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have added that link to your records.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 2602,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"Sunday runners\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your grocery list as well.",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1700,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:14.063Z",
+  "steps": {
+   "plan": {
+    "ms": 1212,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```\n\nI have added those to your grocery list."
+   },
+   "correct": {
+    "ms": 488,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your grocery list as well."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "I have updated the name for that milestone.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-milestone",
+    "title": "Add a milestone to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 12077,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:17.901Z",
+  "steps": {
+   "plan": {
+    "ms": 7199,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"flights booked\"}]\n```"
+   },
+   "correct": {
+    "ms": 4878,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the name for that milestone.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "I will update your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create_reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 7821,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:32.192Z",
+  "steps": {
+   "plan": {
+    "ms": 2108,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can set a reminder for your meditation.\n\n```zigoals-action\n{\"kind\":\"create_reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```"
+   },
+   "correct": {
+    "ms": 5713,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I will update your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create_reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "I have updated the proposal to a 21-day challenge for your Read habit.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3268,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:30:42.177Z",
+  "steps": {
+   "plan": {
+    "ms": 2183,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have prepared a draft for your 14-day challenge on your Read habit.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```\n\nYou can confirm this to start the challenge."
+   },
+   "correct": {
+    "ms": 1085,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the proposal to a 21-day challenge for your Read habit.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "stretch-15",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "I've updated the stretch habit to 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 6914,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:41.252Z",
+  "steps": {
+   "plan": {
+    "ms": 6215,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you set that up. I've drafted a new habit for stretching in the morning.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nWould you like to add a reminder for this as well?"
+   },
+   "correct": {
+    "ms": 699,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated the stretch habit to 15 minutes.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "read-pages",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to read 20 pages a day as a habit",
+  "reply": "I've updated the target to 30 pages and set the time to the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Read\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3024,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:50.421Z",
+  "steps": {
+   "plan": {
+    "ms": 2346,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you set that up as a new habit. Since it's a daily goal, I've drafted a \"build\" type habit for you.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 678,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated the target to 30 pages and set the time to the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":30,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "walk-weekdays",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
+  "reply": "I can adjust that for you. Here is the updated proposal for your walk on Tuesdays and Thursdays:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4544,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:55.618Z",
+  "steps": {
+   "plan": {
+    "ms": 2691,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can certainly help you set that up. Since you've specified the days and the duration, I'll propose a habit with a target of 30 minutes on those specific weekdays.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 1853,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can adjust that for you. Here is the updated proposal for your walk on Tuesdays and Thursdays:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```\n\nNo problem, I've updated that to three glasses.",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4040,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:02.359Z",
+  "steps": {
+   "plan": {
+    "ms": 2140,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```\n\nI've added those two glasses of water for you."
+   },
+   "correct": {
+    "ms": 1900,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```\n\nNo problem, I've updated that to three glasses."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "I have updated your weight to 72.4 kg.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3129,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:08.640Z",
+  "steps": {
+   "plan": {
+    "ms": 2149,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Your weight was 73.5 kg on 2026-09-19.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 980,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your weight to 72.4 kg.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```\n\nI've updated that to 6500 steps for you.",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4012,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:14.004Z",
+  "steps": {
+   "plan": {
+    "ms": 2127,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000}\n```\n\nI've prepared the entry for your 6000 steps today."
+   },
+   "correct": {
+    "ms": 1885,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```\n\nI've updated that to 6500 steps for you."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "I have updated the target for your new laptop goal.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"notes\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"New laptop\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2775,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:20.137Z",
+  "steps": {
+   "plan": {
+    "ms": 2096,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have drafted a new goal for your laptop based on your request.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 679,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the target for your new laptop goal.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"notes\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "I have updated the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3182,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:25.061Z",
+  "steps": {
+   "plan": {
+    "ms": 2079,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"reviewed the budget\"}\n```"
+   },
+   "correct": {
+    "ms": 1103,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "I have updated that to 20 minutes.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"day\":\"today\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5008,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:30.462Z",
+  "steps": {
+   "plan": {
+    "ms": 3592,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-meditation\",\"minutes\":12,\"day\":\"today\"}]\n```"
+   },
+   "correct": {
+    "ms": 1416,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated that to 20 minutes.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"day\":\"today\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "I have updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2750,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:38.120Z",
+  "steps": {
+   "plan": {
+    "ms": 2062,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have recorded your mood for today.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":3}\n```"
+   },
+   "correct": {
+    "ms": 688,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "I have updated the name of your link to \"Sunday runners\".\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-link",
+    "title": "Add the link \"Sunday runners\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1597,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:43.249Z",
+  "steps": {
+   "plan": {
+    "ms": 812,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have added your running club link to your records.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 785,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"Sunday runners\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the name of your link to \"Sunday runners\".\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your list as well.",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5601,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:46.913Z",
+  "steps": {
+   "plan": {
+    "ms": 1263,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```\n\nI have added those items to your grocery list for you."
+   },
+   "correct": {
+    "ms": 4338,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your list as well."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "I have updated the milestone name for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-milestone",
+    "title": "Add a milestone to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3204,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:18:54.675Z",
+  "steps": {
+   "plan": {
+    "ms": 2166,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have added the milestone to your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\"}\n```"
+   },
+   "correct": {
+    "ms": 1038,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the milestone name for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "I have updated your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3285,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:19:00.026Z",
+  "steps": {
+   "plan": {
+    "ms": 2188,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have added a reminder for you to meditate at 07:00.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```"
+   },
+   "correct": {
+    "ms": 1097,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "I have updated the challenge for your Read habit (h1) to 21 days.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21, \"revise\": true}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 6534,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:19:05.485Z",
+  "steps": {
+   "plan": {
+    "ms": 5572,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can start that for you. A challenge for your Read habit (h1) will last 14 days.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 962,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the challenge for your Read habit (h1) to 21 days.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21, \"revise\": true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "stretch-15",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "I've updated the proposal to 15 minutes for you:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 8519,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:01.902Z",
+  "steps": {
+   "plan": {
+    "ms": 7816,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you set that up. Here is a proposal for your new stretching habit:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nI can also set a reminder to help you stay on track. Would you like me to do that?"
+   },
+   "correct": {
+    "ms": 703,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated the proposal to 15 minutes for you:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "journal-pages",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to journal 2 pages a day as a habit",
+  "reply": "I can update that for you. I will change the target to 3 pages and set the time to the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Journal\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3344,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:13.000Z",
+  "steps": {
+   "plan": {
+    "ms": 2355,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "That sounds like a lovely habit to start. I can create that for you as a daily habit.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":2,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 989,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can update that for you. I will change the target to 3 pages and set the time to the evening.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "ride-weekdays",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute bike ride on Monday, Wednesday and Friday",
+  "reply": "I have updated the schedule for your bike ride to Tuesday and Thursday.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Bike ride\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4403,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:18.551Z",
+  "steps": {
+   "plan": {
+    "ms": 2458,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can help you with that. Here is a draft for your new habit:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 1945,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the schedule for your bike ride to Tuesday and Thursday.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "I have updated that to three glasses of water for today.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 7697,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:25.195Z",
+  "steps": {
+   "plan": {
+    "ms": 2054,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have added two glasses of water to your records for today.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 5643,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated that to three glasses of water for today.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "I have updated your weight for this morning to 72.4 kg.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3344,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:35.205Z",
+  "steps": {
+   "plan": {
+    "ms": 2121,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Your weight for this morning is recorded.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 1223,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your weight for this morning to 72.4 kg.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```\n\nI have updated the proposal to 6500 steps for you.",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4049,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:40.805Z",
+  "steps": {
+   "plan": {
+    "ms": 2041,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000}\n```\n\nI have prepared a proposal to add 6000 steps to your record for today."
+   },
+   "correct": {
+    "ms": 2008,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```\n\nI have updated the proposal to 6500 steps for you."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "I have updated the target for your New laptop goal to 1500 euros.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"notes\":\"\"}\n```\n\nI noticed that the goal for a new laptop was not yet officially added to your records, so I've updated the draft to reflect the new target.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"New laptop\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3682,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:46.981Z",
+  "steps": {
+   "plan": {
+    "ms": 2628,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A draft you can adjust before adding:\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 1054,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the target for your New laptop goal to 1500 euros.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"notes\":\"\"}\n```\n\nI noticed that the goal for a new laptop was not yet officially added to your records, so I've updated the draft to reflect the new target.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "I have updated the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 6690,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:28:52.771Z",
+  "steps": {
+   "plan": {
+    "ms": 5846,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"reviewed the budget\"}\n```"
+   },
+   "correct": {
+    "ms": 844,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "I have updated that to 20 minutes for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"12:00\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4807,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:01.707Z",
+  "steps": {
+   "plan": {
+    "ms": 2883,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "You meditated for 12 minutes. I've noted that for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":12,\"time\":\"12:00\"}\n```\n\nI see you've logged 12 minutes of meditation for today. Since today is Sunday, would you like to set a reminder for your next session or a habit goal?"
+   },
+   "correct": {
+    "ms": 1924,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated that to 20 minutes for you.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"12:00\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "I have updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2656,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:08.923Z",
+  "steps": {
+   "plan": {
+    "ms": 1983,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have noted that today felt okay, with a 3.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":3}\n```"
+   },
+   "correct": {
+    "ms": 673,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your mood for today to a 4.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "I will update the name to \"Sunday runners\" for you.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-link",
+    "title": "Add the link \"Sunday runners\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1571,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:13.979Z",
+  "steps": {
+   "plan": {
+    "ms": 783,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can do that for you.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 788,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"Sunday runners\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I will update the name to \"Sunday runners\" for you.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your grocery list.",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1857,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:17.641Z",
+  "steps": {
+   "plan": {
+    "ms": 1261,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```\n\nI have added those to your grocery list."
+   },
+   "correct": {
+    "ms": 596,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nI have added bananas to your grocery list."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "I have updated the title for that milestone.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-milestone",
+    "title": "Add a milestone to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3196,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:21.642Z",
+  "steps": {
+   "plan": {
+    "ms": 2160,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have prepared the milestone for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\"}\n```"
+   },
+   "correct": {
+    "ms": 1036,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated the title for that milestone.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "I have updated your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3190,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:27.026Z",
+  "steps": {
+   "plan": {
+    "ms": 2111,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can set that reminder for you.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```"
+   },
+   "correct": {
+    "ms": 1079,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I have updated your meditation reminder to 07:30.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "gemma4:12b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "I've updated the challenge duration to 21 days for your Read habit.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3140,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:29:32.742Z",
+  "steps": {
+   "plan": {
+    "ms": 2158,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can set that up for you. A challenge on your Read habit for 14 days is a great way to stay consistent.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 982,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've updated the challenge duration to 21 days for your Read habit.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ }
+]

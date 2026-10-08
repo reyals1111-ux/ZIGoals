@@ -1,0 +1,2866 @@
+[
+ {
+  "id": "stretch-15",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Stretch\",\"target\":15,\"timeOfDay\":\"morning\"}\n```",
+  "cards": [
+   {
+    "kind": "edit-habit",
+    "title": "Change the habit \"Exercise\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4134,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-habit card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:27:49.938Z",
+  "steps": {
+   "plan": {
+    "ms": 3533,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Stretching for 10 minutes every morning.\"}\n```"
+   },
+   "correct": {
+    "ms": 601,
+    "cards": [
+     {
+      "kind": "edit-habit",
+      "title": "Change the habit \"Exercise\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Stretch\",\"target\":15,\"timeOfDay\":\"morning\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "read-pages",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to read 20 pages a day as a habit",
+  "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Read 30 pages\",\"target\":30,\"timeOfDay\":\"evening\"}\n```",
+  "cards": [
+   {
+    "kind": "edit-habit",
+    "title": "Change the habit \"Exercise\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1607,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-habit card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:27:56.137Z",
+  "steps": {
+   "plan": {
+    "ms": 1051,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read 20 pages\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 20 pages\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"A habit to read 20 pages each day\",\"category\":\"habits\"}\n```"
+   },
+   "correct": {
+    "ms": 556,
+    "cards": [
+     {
+      "kind": "edit-habit",
+      "title": "Change the habit \"Exercise\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Read 30 pages\",\"target\":30,\"timeOfDay\":\"evening\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "walk-weekdays",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry).\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"Walk on Tuesday and Thursday\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"morning\",\"description\":\"Walk 30 minutes on Tuesday and Thursday.\"}\n]\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Walk on Tuesday and Thursday\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2557,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:27:59.912Z",
+  "steps": {
+   "plan": {
+    "ms": 1790,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk on Monday, Wednesday and Friday\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"Walk on Monday, Wednesday and Friday\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"morning\",\"description\":\"Walk 30 minutes on Monday, Wednesday, and Friday.\"}\n]\n```"
+   },
+   "correct": {
+    "ms": 767,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk on Tuesday and Thursday\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry).\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"Walk on Tuesday and Thursday\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"morning\",\"description\":\"Walk 30 minutes on Tuesday and Thursday.\"}\n]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1927,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:04.671Z",
+  "steps": {
+   "plan": {
+    "ms": 1100,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 827,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\"}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1634,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:08.850Z",
+  "steps": {
+   "plan": {
+    "ms": 859,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 775,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "Your steps for today are now logged as 6500 steps.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"minutes\":1440}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1937,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:12.793Z",
+  "steps": {
+   "plan": {
+    "ms": 1067,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000,\"minutes\":1440}\n```"
+   },
+   "correct": {
+    "ms": 870,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Your steps for today are now logged as 6500 steps.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"minutes\":1440}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"update-account-balance\",\"account\":\"Rainy-day savings\",\"balance\":10450.25,\"day\":\"\"},\n    {\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"1500 euros by June 2027\"}\n]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2461,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-goal card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:16.908Z",
+  "steps": {
+   "plan": {
+    "ms": 1068,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 1393,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"update-account-balance\",\"account\":\"Rainy-day savings\",\"balance\":10450.25,\"day\":\"\"},\n    {\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"1500 euros by June 2027\"}\n]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "Here is the updated note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1567,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:21.147Z",
+  "steps": {
+   "plan": {
+    "ms": 807,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Reviewed the budget.\"}\n```"
+   },
+   "correct": {
+    "ms": 760,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the updated note for your Emergency fund goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"yesterday\",\"value\":1}\n]\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Partial check-in: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2300,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-meditation card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:24.955Z",
+  "steps": {
+   "plan": {
+    "ms": 1575,
+    "cards": [
+     {
+      "kind": "check-in",
+      "title": "Partial check-in: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"yesterday\",\"value\":1}\n]\n```"
+   },
+   "correct": {
+    "ms": 725,
+    "cards": [
+     {
+      "kind": "check-in",
+      "title": "Partial check-in: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"yesterday\",\"value\":1}\n]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "I understand, a 4 indicates a good day. Would you like to log this mood now or is there anything else you'd like to add or manage for today?",
+  "cards": [],
+  "tools": [],
+  "ms": 1623,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-mood card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:29.343Z",
+  "steps": {
+   "plan": {
+    "ms": 1064,
+    "cards": [],
+    "reply": "It seems like you rated your mood for today as 3 on a scale of 1 to 5. If you want to reflect this or share more about your day, just let me know!"
+   },
+   "correct": {
+    "ms": 559,
+    "cards": [],
+    "reply": "I understand, a 4 indicates a good day. Would you like to log this mood now or is there anything else you'd like to add or manage for today?"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "```zigoals-action\n{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}\n```",
+  "cards": [
+   {
+    "kind": "remember",
+    "title": "Remember this?",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1068,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-link card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:33.000Z",
+  "steps": {
+   "plan": {
+    "ms": 572,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 496,
+    "cards": [
+     {
+      "kind": "remember",
+      "title": "Remember this?",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Bananas\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 3 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1315,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:35.972Z",
+  "steps": {
+   "plan": {
+    "ms": 783,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```"
+   },
+   "correct": {
+    "ms": 532,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 3 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Bananas\"]}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "_ZIGi asked your AI to phrase the goal's handle correctly (the person didn't say it, so it guessed)._\n\n```zigoals-action\n[{\"kind\":\"create-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"}]\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2242,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-milestone card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:39.513Z",
+  "steps": {
+   "plan": {
+    "ms": 1546,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     },
+     {
+      "kind": "refused",
+      "title": "Nothing proposed",
+      "status": "ai-card ai-card-refused"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\",\"value\":250},{\"kind\":\"plan-meal\",\"servings\":1,\"meal\":\"Dinner\",\"day\":\"2026-10-08\",\"recipe\":\"r1\"}]\n```"
+   },
+   "correct": {
+    "ms": 696,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI to phrase the goal's handle correctly (the person didn't say it, so it guessed)._\n\n```zigoals-action\n[{\"kind\":\"create-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"}]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\",\"habit\":\"h4\",\"goal\":\"g1\",\"weekday\":0} ]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 3103,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-reminder card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:43.618Z",
+  "steps": {
+   "plan": {
+    "ms": 1714,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:00\",\"habit\":\"h4\",\"goal\":\"g1\",\"weekday\":0} ]\n```"
+   },
+   "correct": {
+    "ms": 1389,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\",\"habit\":\"h4\",\"goal\":\"g1\",\"weekday\":0} ]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1473,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:28:48.609Z",
+  "steps": {
+   "plan": {
+    "ms": 816,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 657,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "stretch-15",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Stretch for 10 minutes every morning.\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4421,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:37.520Z",
+  "steps": {
+   "plan": {
+    "ms": 3944,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Stretch for 10 minutes every morning.\"}\n```"
+   },
+   "correct": {
+    "ms": 477,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Stretch for 10 minutes every morning.\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "read-pages",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to read 20 pages a day as a habit",
+  "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"title\":\"Evening read\",\"measurement\":\"pages\",\"target\":30,\"timeOfDay\":\"evening\"}\n```",
+  "cards": [
+   {
+    "kind": "edit-habit",
+    "title": "Change the habit \"Read\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1706,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-habit card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:44.142Z",
+  "steps": {
+   "plan": {
+    "ms": 996,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Read 20 pages\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Read 20 pages\",\"type\":\"build\",\"measurement\":\"pages\",\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"Read 20 pages a day for habit building\",\"category\":\"reading\"}\n```"
+   },
+   "correct": {
+    "ms": 710,
+    "cards": [
+     {
+      "kind": "edit-habit",
+      "title": "Change the habit \"Read\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"title\":\"Evening read\",\"measurement\":\"pages\",\"target\":30,\"timeOfDay\":\"evening\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "walk-weekdays",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute walk on Monday, Wednesday and Friday",
+  "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"Walk\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"30 minute walk on Tuesday and Thursday\"}\n```",
+  "cards": [
+   {
+    "kind": "edit-habit",
+    "title": "Change the habit \"Walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1850,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-habit card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:47.869Z",
+  "steps": {
+   "plan": {
+    "ms": 1003,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"30 minute walk on Monday, Wednesday and Friday\"}\n```"
+   },
+   "correct": {
+    "ms": 847,
+    "cards": [
+     {
+      "kind": "edit-habit",
+      "title": "Change the habit \"Walk\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"Walk\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"30 minute walk on Tuesday and Thursday\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1628,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:51.678Z",
+  "steps": {
+   "plan": {
+    "ms": 1038,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 590,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"day\":\"today\"}]\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1937,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:55.607Z",
+  "steps": {
+   "plan": {
+    "ms": 1154,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-weight\",\"value\":72.0,\"unit\":\"kg\",\"day\":\"today\"}]\n```"
+   },
+   "correct": {
+    "ms": 783,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"day\":\"today\"}]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "ZIGi records the number 6500 as you just confirmed. No action needed from you.\n\n[ZIGi records 6500 steps for today.]\n\n```zigoals-action\n[{\"kind\": \"log-steps\", \"steps\": 6500, \"day\": \"today\"}]\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2294,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:16:59.780Z",
+  "steps": {
+   "plan": {
+    "ms": 1665,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\": \"log-steps\", \"steps\": 6000, \"day\": \"today\"}]\n```"
+   },
+   "correct": {
+    "ms": 629,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "ZIGi records the number 6500 as you just confirmed. No action needed from you.\n\n[ZIGi records 6500 steps for today.]\n\n```zigoals-action\n[{\"kind\": \"log-steps\", \"steps\": 6500, \"day\": \"today\"}]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"Update target to 1500 euros\",\"target\":1500,\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2452,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-goal card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:04.193Z",
+  "steps": {
+   "plan": {
+    "ms": 1078,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 1374,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"Update target to 1500 euros\",\"target\":1500,\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1530,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:08.419Z",
+  "steps": {
+   "plan": {
+    "ms": 776,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Reviewed the budget.\"}\n```"
+   },
+   "correct": {
+    "ms": 754,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday.\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "_ZIGi asked your AI to get an accurate card (one retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"today\",\"value\":20}\n]\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1976,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-meditation card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:12.160Z",
+  "steps": {
+   "plan": {
+    "ms": 1302,
+    "cards": [
+     {
+      "kind": "check-in",
+      "title": "Partial check-in: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"yesterday\",\"value\":1}\n]\n```"
+   },
+   "correct": {
+    "ms": 674,
+    "cards": [
+     {
+      "kind": "check-in",
+      "title": "Check in: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI to get an accurate card (one retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"check-in\",\"habit\":\"Meditate\",\"day\":\"today\",\"value\":20}\n]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  {\"kind\":\"log-mood\",\"mood\":4,\"day\":\"\"}\n]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2447,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-mood card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:16.201Z",
+  "steps": {
+   "plan": {
+    "ms": 1447,
+    "cards": [],
+    "reply": "Answer from your AI (Ollama), not from ZIGoals.\n\nYour mood for today is rated 3 out of 5.\n\n\u27e6curious\u27e7"
+   },
+   "correct": {
+    "ms": 1000,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  {\"kind\":\"log-mood\",\"mood\":4,\"day\":\"\"}\n]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "```zigoals-action\n{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}\n```",
+  "cards": [
+   {
+    "kind": "remember",
+    "title": "Remember this?",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1256,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-link card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:20.583Z",
+  "steps": {
+   "plan": {
+    "ms": 753,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 503,
+    "cards": [
+     {
+      "kind": "remember",
+      "title": "Remember this?",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1471,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:23.740Z",
+  "steps": {
+   "plan": {
+    "ms": 769,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```"
+   },
+   "correct": {
+    "ms": 702,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry).\n\n```zigoals-action\n[{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"} ]\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1949,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-milestone card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:27.561Z",
+  "steps": {
+   "plan": {
+    "ms": 1321,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\",\"value\":500} ]\n```"
+   },
+   "correct": {
+    "ms": 628,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry).\n\n```zigoals-action\n[{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"} ]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\"}]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2288,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-reminder card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:31.352Z",
+  "steps": {
+   "plan": {
+    "ms": 1340,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:00\"}]\n```"
+   },
+   "correct": {
+    "ms": 948,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\"}]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1477,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:17:35.494Z",
+  "steps": {
+   "plan": {
+    "ms": 811,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 666,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "stretch-15",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"timeOfDay\":\"morning\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "edit-habit",
+    "title": "Change the habit \"Exercise\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4135,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-habit card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:26:55.385Z",
+  "steps": {
+   "plan": {
+    "ms": 3529,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 606,
+    "cards": [
+     {
+      "kind": "edit-habit",
+      "title": "Change the habit \"Exercise\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h2\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"timeOfDay\":\"morning\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "journal-pages",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to journal 2 pages a day as a habit",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-habit\",\"title\":\"Journal 3 pages a day in the evening\",\"type\":\"build\",\"measurement\":\"count\",\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Write 3 pages a day in the evening as a habit.\",\"target\":3,\"category\":\"Journaling\"}]\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Journal 3 pages a day in the evening\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2535,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:01.553Z",
+  "steps": {
+   "plan": {
+    "ms": 1784,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal 2 pages a day\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-habit\",\"title\":\"Journal 2 pages a day\",\"type\":\"build\",\"measurement\":\"count\",\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"Write 2 pages a day as a habit.\",\"target\":2,\"category\":\"Journaling\"}]\n```"
+   },
+   "correct": {
+    "ms": 751,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal 3 pages a day in the evening\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-habit\",\"title\":\"Journal 3 pages a day in the evening\",\"type\":\"build\",\"measurement\":\"count\",\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Write 3 pages a day in the evening as a habit.\",\"target\":3,\"category\":\"Journaling\"}]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "ride-weekdays",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute bike ride on Monday, Wednesday and Friday",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"30 minute bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"Bike ride for 30 minutes on Tuesday and Thursday\"}\n]\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"30 minute bike ride\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2644,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:06.279Z",
+  "steps": {
+   "plan": {
+    "ms": 1884,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"30 minute bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     },
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"30 minute bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"30 minute bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"Bike ride for 30 minutes on Monday, Wednesday, and Friday\"},\n    {\"kind\":\"create-habit\",\"title\":\"30 minute bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"timesPerWeek\":3},\"timeOfDay\":\"anytime\",\"description\":\"Bike ride for 30 minutes on Monday, Wednesday, and Friday\"}\n]\n```"
+   },
+   "correct": {
+    "ms": 760,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"30 minute bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-habit\",\"title\":\"30 minute bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"Bike ride for 30 minutes on Tuesday and Thursday\"}\n]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1730,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:11.185Z",
+  "steps": {
+   "plan": {
+    "ms": 1061,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 669,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  {\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\", \"day\":\"today\"}\n]\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2222,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:15.200Z",
+  "steps": {
+   "plan": {
+    "ms": 1557,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  {\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\", \"day\":\"today\"},\n  {\"kind\":\"plan-meal\",\"servings\":1,\"meal\":\"Dinner\", \"day\":\"today\"},\n  {\"kind\":\"plan-meal\",\"servings\":1,\"meal\":\"Breakfast\", \"day\":\"tomorrow\"}\n]\n```"
+   },
+   "correct": {
+    "ms": 665,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  {\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\", \"day\":\"today\"}\n]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "I made a mistake earlier. I log the 6500 steps you ran today, not the 6000 steps you said.\n\n```zigoals-action\n{ \"kind\": \"log-steps\", \"steps\": 6500, \"day\": \"today\" }\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2285,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:19.733Z",
+  "steps": {
+   "plan": {
+    "ms": 1655,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     },
+     {
+      "kind": "refused",
+      "title": "Nothing proposed",
+      "status": "ai-card ai-card-refused"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n  { \"kind\": \"log-steps\", \"steps\": 6000, \"day\": \"today\" },\n  { \"kind\": \"check-in\", \"habit\": \"h2\", \"day\": \"today\" }\n]\n```"
+   },
+   "correct": {
+    "ms": 630,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I made a mistake earlier. I log the 6500 steps you ran today, not the 6000 steps you said.\n\n```zigoals-action\n{ \"kind\": \"log-steps\", \"steps\": 6500, \"day\": \"today\" }\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"1500 euros by June 2027\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"milestones\":[]} ]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2444,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no create-goal card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:24.241Z",
+  "steps": {
+   "plan": {
+    "ms": 1105,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```"
+   },
+   "correct": {
+    "ms": 1339,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"notes\":\"1500 euros by June 2027\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\",\"milestones\":[]} ]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1511,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:28.467Z",
+  "steps": {
+   "plan": {
+    "ms": 758,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Reviewed the budget.\"}\n```"
+   },
+   "correct": {
+    "ms": 753,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"budget reviewed on Sunday.\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-meditation\",\"minutes\":20,\"day\": \"today\",\"time\": \"now\",\"note\":\"\"}]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2454,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-meditation card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:32.244Z",
+  "steps": {
+   "plan": {
+    "ms": 1303,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"log-meditation\",\"minutes\":12,\"day\": \"today\",\"time\":\"now\",\"note\":\"\"}\n]\n```"
+   },
+   "correct": {
+    "ms": 1151,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-meditation\",\"minutes\":20,\"day\": \"today\",\"time\": \"now\",\"note\":\"\"}]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "I'm sorry for the confusion. Would you like me to log your mood as 4 for today?\n\n[\u27e8insight\u27e9]",
+  "cards": [],
+  "tools": [],
+  "ms": 1824,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no log-mood card after the correction"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:36.689Z",
+  "steps": {
+   "plan": {
+    "ms": 1069,
+    "cards": [],
+    "reply": "Answer from your AI (Ollama), not from ZIGoals.\n\nYour mood for today is 3.\n\n[\u27e8insight\u27e9]"
+   },
+   "correct": {
+    "ms": 755,
+    "cards": [],
+    "reply": "I'm sorry for the confusion. Would you like me to log your mood as 4 for today?\n\n[\u27e8insight\u27e9]"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}]\n```",
+  "cards": [
+   {
+    "kind": "remember",
+    "title": "Remember this?",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1914,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-link card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:40.521Z",
+  "steps": {
+   "plan": {
+    "ms": 553,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 1361,
+    "cards": [
+     {
+      "kind": "remember",
+      "title": "Remember this?",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"remember\",\"text\":\"Sunday runners\",\"category\":\"preferences\"}]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1119,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:44.332Z",
+  "steps": {
+   "plan": {
+    "ms": 798,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```"
+   },
+   "correct": {
+    "ms": 321,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "_ZIGi asked you to provide a valid handle for your goal (g3) and a valid amount (in the goal's own currency, ZIG)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"}\n]\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2144,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "no add-milestone card after the correction"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:47.698Z",
+  "steps": {
+   "plan": {
+    "ms": 1540,
+    "cards": [],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[\n    {\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\",\"value\":2500000000000000}\n]\n```"
+   },
+   "correct": {
+    "ms": 604,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked you to provide a valid handle for your goal (g3) and a valid amount (in the goal's own currency, ZIG)._\n\n```zigoals-action\n[\n    {\"kind\":\"create-goal-note\",\"goal\":\"g3\",\"note\":\"Flights and rail pass booked\"}\n]\n```"
+   },
+   "cardOfKind": 0
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "_ZIGi was asked to change something. ZIGi needs to make sure that the change is clear in the card._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\",\"habit\":\"h4\"}]\n```",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1985,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:51.684Z",
+  "steps": {
+   "plan": {
+    "ms": 1356,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:00\",\"habit\":\"h4\"}]\n```"
+   },
+   "correct": {
+    "ms": 629,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "_ZIGi was asked to change something. ZIGi needs to make sure that the change is clear in the card._\n\n```zigoals-action\n[{\"kind\":\"create-reminder\",\"for\":\"habit\",\"time\":\"07:30\",\"habit\":\"h4\"}]\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "phi4-mini:3.8b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1671,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:27:55.825Z",
+  "steps": {
+   "plan": {
+    "ms": 878,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 793,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  }
+ }
+]

@@ -197,7 +197,7 @@
       "status": "ai-card ai-card-proposed"
      }
     ],
-    "reply": "Nice — that can sit alongside Walk (h3) as its own three-day habit. Here is the draft for you to confirm:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 minute walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"A 30 minute walk on Monday, Wednesday and Friday.\"}\n```\n\nOnce you confirm it, I can also attach a reminder for a set time on those days if you want one."
+    "reply": "Nice \u2014 that can sit alongside Walk (h3) as its own three-day habit. Here is the draft for you to confirm:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"30 minute walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"A 30 minute walk on Monday, Wednesday and Friday.\"}\n```\n\nOnce you confirm it, I can also attach a reminder for a set time on those days if you want one."
    },
    "correct": {
     "ms": 1396,
@@ -371,7 +371,7 @@
   "project": "desktop",
   "page": "health",
   "ask": "Add 6000 steps for today",
-  "reply": "I can't edit or correct today's steps entry directly — I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number — I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```",
+  "reply": "I can't edit or correct today's steps entry directly \u2014 I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number \u2014 I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```",
   "cards": [
    {
     "kind": "log-steps",
@@ -427,7 +427,7 @@
       "status": "ai-card ai-card-proposed"
      }
     ],
-    "reply": "I can't edit or correct today's steps entry directly — I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number — I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```"
+    "reply": "I can't edit or correct today's steps entry directly \u2014 I can only propose a new log, which would add on top of the 8800 already recorded, not replace it. To fix it to 6500, that edit would need to happen in the app's steps log on this device.\n\nIf you'd like, I can propose a new entry, but please know it adds rather than corrects.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```\n\nLet me know if that's what you want, or if you'd rather correct it in the app.\n\nYour records still show 8800 steps for today, at or above your 8000 target.\n\nAs I said, I can't correct an entry to a new number \u2014 I can only add. If you'd like 6500 added on top, here's the card; otherwise, to set today to exactly 6500 you'd need to edit that entry in the app's steps log.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500}\n```"
    },
    "cardOfKind": 1,
    "accept": {
@@ -740,7 +740,7 @@
   "project": "desktop",
   "page": "today",
   "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
-  "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" — confirm the card to add it.",
+  "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" \u2014 confirm the card to add it.",
   "cards": [
    {
     "kind": "add-link",
@@ -796,7 +796,7 @@
       "status": "ai-card ai-card-proposed"
      }
     ],
-    "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" — confirm the card to add it."
+    "reply": "```zigoals-action\n{\"kind\": \"add-link\", \"revise\": true, \"label\": \"Sunday runners\", \"url\": \"https://www.strava.com/clubs/zig\", \"icon\": \"strava\"}\n```\n\nUpdated to \"Sunday runners\" \u2014 confirm the card to add it."
    },
    "cardOfKind": 1,
    "accept": {
@@ -959,7 +959,7 @@
   "project": "desktop",
   "page": "habits",
   "ask": "Remind me to meditate at 7 in the morning",
-  "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced — the 07:30 one takes its spot.",
+  "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced \u2014 the 07:30 one takes its spot.",
   "cards": [
    {
     "kind": "create-reminder",
@@ -1015,7 +1015,7 @@
       "status": "ai-card ai-card-proposed"
      }
     ],
-    "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced — the 07:30 one takes its spot."
+    "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nYour 07:00 card is marked replaced \u2014 the 07:30 one takes its spot."
    },
    "cardOfKind": 1,
    "accept": {

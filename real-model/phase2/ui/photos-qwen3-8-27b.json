@@ -1,0 +1,1098 @@
+[
+ {
+  "id": "photo:generated-breakfast-plate.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "I can see a simple breakfast: two slices of toast, one fried egg, a couple of small tomatoes, and a couple of leaves (looks like spinach). The dark round item on the side looks like a small bowl of jam, but I can't be sure.\n\nI can't judge the sizes well from the picture, so the estimates below are rough per serving, and each one will show as an AI estimate.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two slices of toast\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"carbs_g\":28,\"fat_g\":1,\"serving_g\":70}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"fat_g\":7}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Small tomatoes\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":20,\"carbs_g\":4}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Spinach\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":10,\"protein_g\":1}}\n```\n\nOne thing I couldn't pin down: whether that dark round thing is jam (in which case I'd add a small sugar/kcal entry) or just a bowl, so I left it out.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Jam on toast\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":60,\"carbs_g\":14}}\n```\n\nTell me if you want to drop the jam line or adjust any of these.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 14330,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "4/5: toast, fried egg, cherry tomatoes, green leaves; missed coffee"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 5,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:55.545Z",
+  "photo": "generated-breakfast-plate.jpg",
+  "recognised": [
+   "toast",
+   "fried egg",
+   "cherry tomatoes",
+   "green leaves"
+  ],
+  "missed": [
+   "coffee"
+  ],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Two slices of toast",
+    "estimate": {
+     "kcal": 160,
+     "carbs_g": 28,
+     "fat_g": 1,
+     "serving_g": 70
+    }
+   },
+   {
+    "name": "Fried egg",
+    "estimate": {
+     "kcal": 90,
+     "protein_g": 6,
+     "fat_g": 7
+    }
+   },
+   {
+    "name": "Small tomatoes",
+    "estimate": {
+     "kcal": 20,
+     "carbs_g": 4
+    }
+   },
+   {
+    "name": "Spinach",
+    "estimate": {
+     "kcal": 10,
+     "protein_g": 1
+    }
+   },
+   {
+    "name": "Jam on toast",
+    "estimate": {
+     "kcal": 60,
+     "carbs_g": 14
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-1-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "I can see two small pancakes arranged like eyes, with a puddle of syrup as a smile. I can't tell what the syrup is (or whether there is butter, toppings, or a second plate), so I'll log two items with estimates and leave the syrup's nutrients mostly unknown.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Small pancake\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":120,\"protein_g\":3,\"carbs_g\":17,\"fat_g\":4,\"serving_g\":60}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Syrup on the plate\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":50,\"carbs_g\":12,\"serving_g\":15}}\n```\n\nIf the syrup was maple, golden, or something else, tell me and I can adjust the estimate.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 5609,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "2/2: pancakes, syrup; missed none"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:51:12.183Z",
+  "photo": "real-1-1600.jpg",
+  "recognised": [
+   "pancakes",
+   "syrup"
+  ],
+  "missed": [],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Small pancake",
+    "estimate": {
+     "kcal": 120,
+     "protein_g": 3,
+     "carbs_g": 17,
+     "fat_g": 4,
+     "serving_g": 60
+    }
+   },
+   {
+    "name": "Syrup on the plate",
+    "estimate": {
+     "kcal": 50,
+     "carbs_g": 12,
+     "serving_g": 15
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-2-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "I can see a full English-style breakfast: two fried eggs, two rashers of bacon, one sausage, a hash brown, a grilled tomato half, a small bowl of baked beans and two triangular slices of wholemeal toast. I can't tell the exact portion weights, so I left serving sizes out.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two fried eggs\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":180,\"protein_g\":13,\"carbs_g\":0.5,\"fat_g\":13}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two rashers of bacon\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":300,\"protein_g\":18,\"carbs_g\":3,\"fat_g\":23}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"One sausage\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":180,\"protein_g\":8,\"carbs_g\":3,\"fat_g\":13}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Hash brown\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":130,\"protein_g\":2,\"carbs_g\":12,\"fat_g\":8}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Grilled tomato half\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":25,\"protein_g\":1,\"carbs_g\":4,\"fat_g\":0.5}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Baked beans, half can\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":120,\"protein_g\":5,\"carbs_g\":18,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two slices wholemeal toast\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":180,\"protein_g\":8,\"carbs_g\":33,\"fat_g\":2}}\n```\n\nConfirm each card to add it to today's breakfast.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 6792,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "7/8: fried eggs, bacon, sausage, hash brown, baked beans, grilled tomato, toast; missed black pudding"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 7,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:51:20.062Z",
+  "photo": "real-2-1600.jpg",
+  "recognised": [
+   "fried eggs",
+   "bacon",
+   "sausage",
+   "hash brown",
+   "baked beans",
+   "grilled tomato",
+   "toast"
+  ],
+  "missed": [
+   "black pudding"
+  ],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Two fried eggs",
+    "estimate": {
+     "kcal": 180,
+     "protein_g": 13,
+     "carbs_g": 0.5,
+     "fat_g": 13
+    }
+   },
+   {
+    "name": "Two rashers of bacon",
+    "estimate": {
+     "kcal": 300,
+     "protein_g": 18,
+     "carbs_g": 3,
+     "fat_g": 23
+    }
+   },
+   {
+    "name": "One sausage",
+    "estimate": {
+     "kcal": 180,
+     "protein_g": 8,
+     "carbs_g": 3,
+     "fat_g": 13
+    }
+   },
+   {
+    "name": "Hash brown",
+    "estimate": {
+     "kcal": 130,
+     "protein_g": 2,
+     "carbs_g": 12,
+     "fat_g": 8
+    }
+   },
+   {
+    "name": "Grilled tomato half",
+    "estimate": {
+     "kcal": 25,
+     "protein_g": 1,
+     "carbs_g": 4,
+     "fat_g": 0.5
+    }
+   },
+   {
+    "name": "Baked beans, half can",
+    "estimate": {
+     "kcal": 120,
+     "protein_g": 5,
+     "carbs_g": 18,
+     "fat_g": 2
+    }
+   },
+   {
+    "name": "Two slices wholemeal toast",
+    "estimate": {
+     "kcal": 180,
+     "protein_g": 8,
+     "carbs_g": 33,
+     "fat_g": 2
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-3-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as lunch.",
+  "reply": "I can see several items spread across multiple dishes in this photo. For your lunch, I've identified:\n\n*   **Broccoli:** A side portion in a glass bowl.\n*   **Peas and Beans Salad:** A colorful mix of green peas, red beans, and celery.\n*   **Strawberries:** A few whole berries on the side.\n\nI could not identify the bread slices, carrots, corn, pear, white rice, or the bowl of dried food, so those are not included in the proposal below. Since these are not on your saved food list, the values are my estimates and will be marked as such.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Broccoli\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":55,\"protein_g\":4,\"carbs_g\":11,\"fat_g\":1,\"serving_g\":100}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Peas and beans salad\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":80,\"protein_g\":5,\"carbs_g\":14,\"fat_g\":1,\"serving_g\":100}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Strawberries\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":20,\"protein_g\":1,\"carbs_g\":4,\"serving_g\":30}}\n```",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 6294,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "8/9: bread, broccoli, pear, corn on the cob, bean salad, carrot sticks, strawberries, brown rice; missed cereal flakes"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:51:29.146Z",
+  "photo": "real-3-1600.jpg",
+  "recognised": [
+   "bread",
+   "broccoli",
+   "pear",
+   "corn on the cob",
+   "bean salad",
+   "carrot sticks",
+   "strawberries",
+   "brown rice"
+  ],
+  "missed": [
+   "cereal flakes"
+  ],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Broccoli",
+    "estimate": {
+     "kcal": 55,
+     "protein_g": 4,
+     "carbs_g": 11,
+     "fat_g": 1,
+     "serving_g": 100
+    }
+   },
+   {
+    "name": "Peas and beans salad",
+    "estimate": {
+     "kcal": 80,
+     "protein_g": 5,
+     "carbs_g": 14,
+     "fat_g": 1,
+     "serving_g": 100
+    }
+   },
+   {
+    "name": "Strawberries",
+    "estimate": {
+     "kcal": 20,
+     "protein_g": 1,
+     "carbs_g": 4,
+     "serving_g": 30
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:generated-breakfast-plate.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "I can see a plate with:\n\n- 2 slices of toast\n- 1 fried egg\n- 2 cherry tomatoes\n- 2 green leaves (likely basil or spinach garnish)\n\nI can't be sure about the toast type (whole grain or white) or whether anything else is on the plate (butter, jam, etc.), so I'll estimate broadly.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Toast (2 slices)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"carbs_g\":28,\"fat_g\":1,\"serving_g\":70}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"carbs_g\":0,\"fat_g\":7,\"serving_g\":50}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Cherry tomatoes (2) + basil leaves\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":12,\"carbs_g\":2,\"serving_g\":30}}\n```\n\nThe tomatoes and basil are very low in energy; I left out protein and fat for them since they are negligible. If the toast is whole-grain or had butter, the numbers would shift slightly.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 11174,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "4/5: toast, fried egg, cherry tomatoes, green leaves; missed coffee"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:43:24.370Z",
+  "photo": "generated-breakfast-plate.jpg",
+  "recognised": [
+   "toast",
+   "fried egg",
+   "cherry tomatoes",
+   "green leaves"
+  ],
+  "missed": [
+   "coffee"
+  ],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Toast (2 slices)",
+    "estimate": {
+     "kcal": 160,
+     "carbs_g": 28,
+     "fat_g": 1,
+     "serving_g": 70
+    }
+   },
+   {
+    "name": "Fried egg",
+    "estimate": {
+     "kcal": 90,
+     "protein_g": 6,
+     "carbs_g": 0,
+     "fat_g": 7,
+     "serving_g": 50
+    }
+   },
+   {
+    "name": "Cherry tomatoes (2) + basil leaves",
+    "estimate": {
+     "kcal": 12,
+     "carbs_g": 2,
+     "serving_g": 30
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-1-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "Two small pancakes and a puddle of syrup. I can't tell the syrup's brand or the batter's ingredients, so these are estimates with a few values left out.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two small pancakes\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":140,\"protein_g\":5,\"carbs_g\":24,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Syrup\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":60,\"carbs_g\":14}}\n```\n\nI see two small pancakes and a small amount of syrup on the plate. I couldn't see any butter, toppings, or a measuring reference, so portions are approximate.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two small pancakes\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"protein_g\":6,\"carbs_g\":26,\"fat_g\":4,\"serving_g\":80}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Syrup (small amount)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":45,\"carbs_g\":11,\"serving_g\":15}}\n```\n\nIf you'd like, I can save these as your own foods next time.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [
+   "search_foods",
+   "search_foods"
+  ],
+  "ms": 6709,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "2/2: pancakes, syrup; missed none"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:43:37.928Z",
+  "photo": "real-1-1600.jpg",
+  "recognised": [
+   "pancakes",
+   "syrup"
+  ],
+  "missed": [],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Two small pancakes",
+    "estimate": {
+     "kcal": 140,
+     "protein_g": 5,
+     "carbs_g": 24,
+     "fat_g": 2
+    }
+   },
+   {
+    "name": "Syrup",
+    "estimate": {
+     "kcal": 60,
+     "carbs_g": 14
+    }
+   },
+   {
+    "name": "Two small pancakes",
+    "estimate": {
+     "kcal": 160,
+     "protein_g": 6,
+     "carbs_g": 26,
+     "fat_g": 4,
+     "serving_g": 80
+    }
+   },
+   {
+    "name": "Syrup (small amount)",
+    "estimate": {
+     "kcal": 45,
+     "carbs_g": 11,
+     "serving_g": 15
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-2-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as breakfast.",
+  "reply": "I can see a full English breakfast: two fried eggs, a sausage, bacon, a hash brown, a grilled tomato half, a baked bean cup, and two triangles of wholemeal toast. I can't see any butter, oil or condiment amounts, so I'm leaving those out.\n\nOne combined item, with my estimates (marked as such in the app):\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Full English breakfast (eggs, sausage, bacon, hash brown, tomato, beans, toast)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":980,\"protein_g\":42,\"carbs_g\":48,\"fat_g\":52,\"serving_g\":560}}\n```\n\nIf you'd rather split it into separate items, tell me which and I'll log them individually.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 5323,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "7/8: fried eggs, bacon, sausage, hash brown, baked beans, grilled tomato, toast; missed black pudding"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:43:46.928Z",
+  "photo": "real-2-1600.jpg",
+  "recognised": [
+   "fried eggs",
+   "bacon",
+   "sausage",
+   "hash brown",
+   "baked beans",
+   "grilled tomato",
+   "toast"
+  ],
+  "missed": [
+   "black pudding"
+  ],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Full English breakfast (eggs, sausage, bacon, hash brown, tomato, beans, toast)",
+    "estimate": {
+     "kcal": 980,
+     "protein_g": 42,
+     "carbs_g": 48,
+     "fat_g": 52,
+     "serving_g": 560
+    }
+   }
+  ],
+  "hedged": true
+ },
+ {
+  "id": "photo:real-3-1600.jpg",
+  "model": "qwen3.8:27b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "What is on this plate? Log it as lunch.",
+  "reply": "What I can see: slices of whole-grain bread, steamed broccoli, a pear, a corn cob, a plate of beans and greens, baby carrots, a few strawberries, a small bowl of cooked rice, and a bowl of something crumbly that is hard to tell. I cannot see the crumbly bowl clearly, so I leave it out. I'm unsure of the portions, so no serving sizes are included, and the estimates are just rough estimates, not your own foods.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Whole-grain bread (slices)\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":150,\"protein_g\":5,\"carbs_g\":28,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Steamed broccoli\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":50,\"protein_g\":3,\"carbs_g\":10,\"fat_g\":0.5}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Pear\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":100,\"protein_g\":1,\"carbs_g\":26,\"fat_g\":0.3}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Corn on the cob\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":120,\"protein_g\":3,\"carbs_g\":23,\"fat_g\":1}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Beans and greens\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":130,\"protein_g\":9,\"carbs_g\":18,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Baby carrots\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":50,\"protein_g\":1,\"carbs_g\":12,\"fat_g\":0.2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Strawberries\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":30,\"protein_g\":1,\"carbs_g\":8,\"fat_g\":0.2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Cooked rice\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":180,\"protein_g\":4,\"carbs_g\":40,\"fat_g\":0.5}}\n```\n\nIf you tell me what the crumbly bowl is (and how much of each), I can adjust the cards.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Whole-grain bread (slices)\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":150,\"protein_g\":5,\"carbs_g\":28,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Steamed broccoli\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":50,\"protein_g\":3,\"carbs_g\":10,\"fat_g\":0.5}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Pear\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":100,\"protein_g\":1,\"carbs_g\":26,\"fat_g\":0.3}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Corn on the cob\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":120,\"protein_g\":3,\"carbs_g\":23,\"fat_g\":1}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Beans and greens\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":130,\"protein_g\":9,\"carbs_g\":18,\"fat_g\":2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Baby carrots\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":50,\"protein_g\":1,\"carbs_g\":12,\"fat_g\":0.2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Strawberries\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":30,\"protein_g\":1,\"carbs_g\":8,\"fat_g\":0.2}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Cooked rice\",\"meal\":\"Lunch\",\"estimate\":{\"kcal\":180,\"protein_g\":4,\"carbs_g\":40,\"fat_g\":0.5}}\n```\n\nWhat I could not see: the crumbly bowl behind the rice.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 9800,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "the photo went with the message, not kept",
+     "pass": true
+    },
+    {
+     "name": "recognised at least half of the plate",
+     "pass": true,
+     "detail": "9/9: bread, broccoli, pear, corn on the cob, bean salad, carrot sticks, strawberries, brown rice, cereal flakes; missed none"
+    },
+    {
+     "name": "no card for something that is not there",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "no nutrients on an item not on the plate",
+     "pass": true,
+     "detail": "none"
+    },
+    {
+     "name": "estimates named as estimates, or what it could not see said",
+     "pass": true
+    },
+    {
+     "name": "the card says it is estimated from a photo",
+     "pass": true
+    },
+    {
+     "name": "success after the add",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 8,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:43:54.498Z",
+  "photo": "real-3-1600.jpg",
+  "recognised": [
+   "bread",
+   "broccoli",
+   "pear",
+   "corn on the cob",
+   "bean salad",
+   "carrot sticks",
+   "strawberries",
+   "brown rice",
+   "cereal flakes"
+  ],
+  "missed": [],
+  "invented": [],
+  "foods": [
+   {
+    "name": "Whole-grain bread (slices)",
+    "estimate": {
+     "kcal": 150,
+     "protein_g": 5,
+     "carbs_g": 28,
+     "fat_g": 2
+    }
+   },
+   {
+    "name": "Steamed broccoli",
+    "estimate": {
+     "kcal": 50,
+     "protein_g": 3,
+     "carbs_g": 10,
+     "fat_g": 0.5
+    }
+   },
+   {
+    "name": "Pear",
+    "estimate": {
+     "kcal": 100,
+     "protein_g": 1,
+     "carbs_g": 26,
+     "fat_g": 0.3
+    }
+   },
+   {
+    "name": "Corn on the cob",
+    "estimate": {
+     "kcal": 120,
+     "protein_g": 3,
+     "carbs_g": 23,
+     "fat_g": 1
+    }
+   },
+   {
+    "name": "Beans and greens",
+    "estimate": {
+     "kcal": 130,
+     "protein_g": 9,
+     "carbs_g": 18,
+     "fat_g": 2
+    }
+   },
+   {
+    "name": "Baby carrots",
+    "estimate": {
+     "kcal": 50,
+     "protein_g": 1,
+     "carbs_g": 12,
+     "fat_g": 0.2
+    }
+   },
+   {
+    "name": "Strawberries",
+    "estimate": {
+     "kcal": 30,
+     "protein_g": 1,
+     "carbs_g": 8,
+     "fat_g": 0.2
+    }
+   },
+   {
+    "name": "Cooked rice",
+    "estimate": {
+     "kcal": 180,
+     "protein_g": 4,
+     "carbs_g": 40,
+     "fat_g": 0.5
+    }
+   }
+  ],
+  "hedged": true
+ }
+]

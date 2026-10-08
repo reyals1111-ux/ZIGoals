@@ -308,7 +308,7 @@
   "project": "desktop",
   "page": "health",
   "ask": "Add 6000 steps for today",
-  "reply": "Your steps for today have been updated to 6500. Keep up the good work! ⟦curious⟧",
+  "reply": "Your steps for today have been updated to 6500. Keep up the good work! \u27e6curious\u27e7",
   "cards": [],
   "tools": [],
   "ms": 1619,
@@ -338,7 +338,7 @@
    "correct": {
     "ms": 802,
     "cards": [],
-    "reply": "Your steps for today have been updated to 6500. Keep up the good work! ⟦curious⟧"
+    "reply": "Your steps for today have been updated to 6500. Keep up the good work! \u27e6curious\u27e7"
    },
    "cardOfKind": 0
   }

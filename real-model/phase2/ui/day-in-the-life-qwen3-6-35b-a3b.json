@@ -1,0 +1,5430 @@
+[
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Three habits are still open today: Exercise (15 of 30 minutes logged), Meditate (5 of 10 minutes), and Drink water (4 of 8 glasses). No goal is due today; the next planned dates for your active goals are September 23. Water has not been logged yet today despite the glass count.",
+  "cards": [],
+  "tools": [],
+  "ms": 9719,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:47:51.103Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "curious"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "I see two slices of toast, a fried egg, some red grapes, green leaves (likely basil or spinach), and a brown circular object that looks like a chocolate cookie or perhaps a date; since this is a mock-up image I can't confirm the ingredients or portions precisely. Here are estimates for the plate:\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two slices of toast\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"carbs_g\":30,\"protein_g\":5,\"serving_g\":60}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"fat_g\":7,\"serving_g\":50}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Grapes and basil\",\"meal\":\"Breakfast\",\"estimate\":{\"carbs_g\":12,\"protein_g\":1,\"serving_g\":80}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Chocolate cookie or date\",\"meal\":\"Snacks\",\"estimate\":{\"kcal\":75,\"fat_g\":4,\"carbs_g\":10,\"serving_g\":30}}\n```\n\nI could not see any butter or oil used for the toast and egg. Would you like to log these as separate breakfast and snack items, or combine them into one entry?",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 3446,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": true,
+     "detail": "log-food, log-food, log-food, log-food"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:02.099Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "Here is a proposal for your new habit:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"After-lunch walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2307,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:06.963Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2742,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": false,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:10.563Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 311,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:14.412Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2062,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:16.017Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "I\u2019ll log mood 4 for today.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"Good walk, calm evening\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2067,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:19.402Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 2865,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": false,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:25.268Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":8000,\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 836,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "log-steps, counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:29.289Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1889,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:31.445Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2117,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:34.527Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 313,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:37.819Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-meditation\",\"minutes\":20,\"day\":\"today\"}]\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3266,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": true,
+     "detail": "log-meditation"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:39.284Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "I\u2019m sorry you\u2019re feeling low. It\u2019s okay if you don\u2019t want to eat much right now; listening to that is fine too. Your diary already has four entries for today with 1,970 kcal, but you can skip logging or adjust if you\u2019ve eaten something else. We can keep the rest of the day very simple.\n\nThree small options:\n- Stay as you are and let me know what helps, even just one thing.\n- Log a tiny snack later (a glass of water and a piece of fruit) to keep your streaks safe.\n- Do a gentle check-in for Exercise or Meditate at half your target (e.g., 15 minutes instead of 30), then stop whenever you like.\n\nWhat would you prefer?",
+  "cards": [],
+  "tools": [],
+  "ms": 2859,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:46.491Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I cannot move, sell, or transfer your assets. I do not have access to your wallets, exchanges, or bank accounts, and ZIGoals does not execute financial trades.\n\nYour records show that you hold 0.45 BTC in your Wealth holdings, but the current value is marked as unknown (missing price). You also hold Ethereum, ZIG rewards, USD Coin, stocks, precious metals, property, cash, and custom assets across USD and EUR.\n\nIf you wish to adjust your tracked wealth composition, I can pre-fill a form for you to review and save in the app. Would you like me to draft an edit for one of your existing holdings (e.g., reducing BTC quantity) or a new entry?",
+  "cards": [],
+  "tools": [],
+  "ms": 2541,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:50.633Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1920,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:54.328Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2113,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:48:57.526Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 310,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:01.079Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Here is what stands out for today (2026-09-20):\n\n**Habits still open**\n* **Exercise (h1):** 15 of 30 minutes logged.\n* **Meditate (h2):** 5 of 10 minutes logged.\n* **Drink water (h3):** 4 glasses of the target 8 logged. Note that the health tracker currently shows 0 mL for today, so you might want to log those glasses in the water section as well.\n\n**Health snapshot**\n* You have already walked your daily 8,000 steps and completed your 30-minute reading goal.\n* Your food diary is at 1,970 kcal with 131 g protein.\n* No fast is currently running.\n\n**Goals**\n* The next planned dates for Emergency fund (g1), First home deposit (g2), Japan adventure (g3), and Reward income reserve (g5) are all coming up on Thursday, 2026-09-23.\n\nSince it is Sunday evening, would you like to finish any of the open habits or log some water before the day ends?",
+  "cards": [],
+  "tools": [],
+  "ms": 3147,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:28.928Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "I see a fried egg, two squares of toast, some red berries or grapes, a couple of green leaves (possibly herbs or basil), and what looks like a small bowl of jam or chocolate spread on the side. The image is stylized, so I'll estimate based on standard serving sizes for these items:\n\n- Fried egg (1 large)\n- Toast (2 slices, white or whole wheat)\n- Berries/grapes (approx. 60 g)\n- Jam or chocolate spread (approx. 15 g / 1 tablespoon)\n\nI can't determine the exact type of bread, the specific fruit, or the topping in the small bowl. I also cannot see what you are drinking alongside it.\n\nHere are estimates for logging this meal:\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"fat_g\":7,\"serving_g\":50}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Toast (2 slices)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"carbs_g\":30,\"protein_g\":5,\"serving_g\":60}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Berries or grapes\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":40,\"carbs_g\":10,\"protein_g\":0.5,\"serving_g\":60}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Jam or chocolate spread (1 tbsp)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":50,\"carbs_g\":12,\"fat_g\":0.5,\"serving_g\":15}}\n```\n\nWould you like to confirm these details, or would you prefer to update them with the exact ingredients once you are back at your kitchen?",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 3709,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": true,
+     "detail": "log-food, log-food, log-food, log-food"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:33.345Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"After-lunch walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2218,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:38.429Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":30}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Read",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1680,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": true,
+     "detail": "check-in"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:41.956Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 92,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:44.850Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1857,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:46.468Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1623,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:49.667Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-sleep\",\"day\":\"today\",\"quality\":5,\"nap\":false} ]\n```",
+  "cards": [],
+  "tools": [],
+  "ms": 3181,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": false,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:55.173Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 626,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:49:59.554Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "writing-proposal",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1648,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:01.517Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1665,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:04.420Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 97,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:07.290Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"19:30\"}\n```",
+  "cards": [
+   {
+    "kind": "refused",
+    "title": "Nothing proposed",
+    "status": "ai-card ai-card-refused"
+   }
+  ],
+  "tools": [],
+  "ms": 1785,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": false,
+     "detail": "refused"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:08.744Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "I\u2019m sorry you\u2019re feeling low. It is okay to eat very little or to skip meals for now if that feels right. Your body will manage with small, gentle bites when you can take them.\n\nIf you want, we can keep tonight\u2019s review simple: just one sentence about how the day felt, and no food logging unless it happens naturally. If you do log something, I can help with tiny portions.\n\nWould you like to add a quiet intention for this week\u2019s review (for example, \u201crest often\u201d or \u201ceat small meals\u201d), or would you prefer to wait until tomorrow?",
+  "cards": [],
+  "tools": [],
+  "ms": 2373,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:15.951Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I don\u2019t move money or change allocations. Your Bitcoin holding is 0.45 BTC with no price recorded yet, so I can\u2019t value it or compare it to the rest of your portfolio. I can show you all your holdings per currency so you see what\u2019s where.",
+  "cards": [],
+  "tools": [],
+  "ms": 1828,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:19.619Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1661,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:22.586Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1673,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:25.644Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 76,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T16:50:28.797Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Three habits are still open for you today: Exercise (15 of 30 minutes logged), Meditate (5 of 10 minutes logged), and Drink water (4 of 8 glasses). You have no goal scheduled for today; the next planned contributions are on the 23rd. Health-wise, your step count is at 8,800.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":15}\n{\"kind\":\"check-in\",\"habit\":\"h2\",\"minutes\":5}\n{\"kind\":\"check-in\",\"habit\":\"h3\",\"quantity\":4,\"unit\":\"glasses\"}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Partial check-in: Exercise",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "check-in",
+    "title": "Partial check-in: Meditate",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "check-in",
+    "title": "Partial check-in: Drink water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 9511,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": false
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:05:59.047Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "I cannot see a real photo to estimate nutrients for. Please log your own Breakfast items (e.g., f1, f2) or tell me exactly what you ate (brand and count), and I will propose the correct entries.",
+  "cards": [],
+  "tools": [],
+  "ms": 20713,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": false,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:06:09.859Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "confused"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk after lunch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Walk after lunch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 21054,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:06:31.696Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":30}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Read",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 16406,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": true,
+     "detail": "check-in"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:06:54.050Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 312,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:07:11.716Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 17645,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:07:13.325Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"Good walk, calm evening\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2555,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:07:32.357Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "```zigoals-action\n{\"kind\":\"log-sleep\",\"wake\":\"09:30\",\"bedtime\":\"00:00\",\"quality\":5}\n```",
+  "cards": [
+   {
+    "kind": "refused",
+    "title": "Nothing proposed",
+    "status": "ai-card ai-card-refused"
+   }
+  ],
+  "tools": [],
+  "ms": 18854,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": false,
+     "detail": "refused"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:07:38.780Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":8000,\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4462,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "log-steps, counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:07:58.864Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3378,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:08:04.676Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 18380,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:08:09.275Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 324,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:08:28.824Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "That\u2019s a strong finish for today\u2019s meditation (you had 5 minutes earlier this month). I'll log 20 minutes for this evening.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"note\":\"evening session\"}\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 17840,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": true,
+     "detail": "log-meditation"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:08:30.270Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "I\u2019m sorry you\u2019re feeling low. If this is new, severe, or making it hard to care for yourself, please reach out to someone you trust or your local emergency number or a crisis line right now.\n\nYour own records show today\u2019s energy is 1,970 kcal with 131 g protein; that\u2019s already a solid amount, even if it doesn\u2019t feel like much. You can keep things small and gentle:\n- One warm drink or soup\n- A yogurt, banana, or piece of toast\n- Half the usual portions at your next meal\n\nI won\u2019t grade or push you. Would you like me to:\n- Log one small item for later (tell me what and when)\n- Check off a low-effort habit like Walk or Read so it doesn\u2019t add pressure\n- Just sit with how today feels\n\nWhat feels easiest right now?",
+  "cards": [],
+  "tools": [],
+  "ms": 23991,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:08:52.099Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I do not move money, sell assets, or reallocate holdings. Your records show you hold Bitcoin (0.45 BTC) alongside other assets in Crypto, Stablecoins, Stocks, Precious Metals, Cash, Property, and Custom; values are marked unknown for BTC and ETH, and USD totals are 501,800.00 with EUR 8,000.00 separate. If you want to prepare a change, I can pre-fill the add-asset form for any holding you own.\n\n```zigoals-action\n{\"kind\":\"prefill-holding\",\"category\":\"Crypto\",\"name\":\"Bitcoin\",\"quantity\":0.45,\"currency\":\"USD\",\"value\":null}\n```\n\nWould you like a summary of all your current holdings by asset class, or are you looking to review the contribution history for a specific goal that might inform your next steps?",
+  "cards": [
+   {
+    "kind": "prefill-holding",
+    "title": "Pre-fill the add-asset form",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 22660,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": false
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:09:17.425Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 15925,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:09:41.287Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 17457,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:09:58.559Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 313,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:10:17.500Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Here is what is open on your day, based on today\u2019s summary:\n\n*   **Exercise (h1):** You have logged 15 of 30 minutes.\n*   **Meditate (h2):** You have logged 5 of 10 minutes.\n*   **Drink water (h3):** You have had 4 of 8 glasses, but the journal shows 0 mL for today.\n\nYour food diary is active with 4 entries, and you are moving well with 8,800 steps already recorded. Three of your goals also have a next planned date coming up on Monday (g1, g2, g3, g5).\n\nWould you like to log the remaining minutes for exercise or meditation?",
+  "cards": [],
+  "tools": [],
+  "ms": 2846,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:22.164Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "I can\u2019t eat from photos here, but I can estimate this meal for your diary if it matches what you had. I can see two slices of toast, a fried egg, two small red berries (likely cherries), a couple of green leaves (basil or spinach), and a dark circular object that looks like a coffee pod; the drink inside is unclear.\n\nHere\u2019s my estimate per serving for this plate:\n- kcal: 460\n- protein_g: 18\n- carbs_g: 42\n- fat_g: 24\n- serving_g: 350\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Toast, fried egg, cherries and greens\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":460,\"protein_g\":18,\"carbs_g\":42,\"fat_g\":24,\"serving_g\":350}}\n```\n\nIf the dark circle was a chocolate truffle instead of a pod (about 20 g), add these to the estimate:\n- kcal: +110\n- fat_g: +7\n\nLet me know what\u2019s on the plate exactly, and I\u2019ll adjust.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 3259,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": true,
+     "detail": "log-food"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:26.283Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "Here is a draft for your new habit:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```\n\nWould you like to add it to your daily routine with a reminder?",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"After-lunch walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2316,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:30.881Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":30}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Read",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1817,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": true,
+     "detail": "check-in"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:34.540Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 306,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:37.622Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1916,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:39.565Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "One mood entry of 4 for today. I\u2019ll log that now.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"Good walk, calm evening\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1977,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:42.861Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "```zigoals-action\n{\"kind\":\"log-sleep\",\"wake\":\"09:30\",\"bedtime\":\"00:00\",\"quality\":5}\n```",
+  "cards": [
+   {
+    "kind": "log-sleep",
+    "title": "Add a night",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2067,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": true,
+     "detail": "log-sleep"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:48.751Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":8000,\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 813,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "log-steps, counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:52.161Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1892,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:54.296Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2081,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:36:57.397Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 324,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:00.623Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"time\":\"19:00\"}\n```",
+  "cards": [
+   {
+    "kind": "refused",
+    "title": "Nothing proposed",
+    "status": "ai-card ai-card-refused"
+   }
+  ],
+  "tools": [],
+  "ms": 1917,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": false,
+     "detail": "refused"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:02.057Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "I\u2019m sorry you\u2019re feeling low. When food feels hard, small sips of water or a few bland bites are enough; there\u2019s no need to force a full meal. If this kind of low appetite or mood lasts or weighs on you, consider reaching out to your doctor or a trusted person who can support you in person. I can also keep a gentle check-in for later if you\u2019d like. Would you prefer that?",
+  "cards": [],
+  "tools": [],
+  "ms": 2347,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:09.359Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I do not move assets or execute trades. I can\u2019t buy, sell, swap, stake, or connect wallets.\n\nIf you want to plan, I can help you:\n- Draft a goal with milestones and supporting habits (at most 3)\n- Pre-fill an add\u2011asset form for any holding you own (no values change until you confirm)\n- Summarise your current holdings per currency\n\nYour records show:\n- BTC: 0.45 BTC, value unknown (missing price source), Crypto\n- ZIG reward reserve: 300,000 ZIG, value 18,000 USD\n- USDC: 12,000 USDC, value 12,000 USD\n- AAPL: 30 shares, value 7,500 USD\n- NVDA: 40 shares, value 7,600 USD\n- Gold: 10 troy oz, value 44,000 USD\n- Silver: 100 troy oz, value 5,200 USD\n- VOO: 100 shares, value 60,000 USD\n- USD cash reserve: 25,000 USD\n- EUR travel cash: 8,000 EUR\n- Riverside apartment: 1 HOME, value 320,000 USD\n- Collectible camera: 1 CUSTOM, value 2,500 USD\n\nNone of this is investment advice. Tell me which record you want to pre-fill (e.g., the add\u2011asset form for BTC), and I\u2019ll prepare that card for your confirmation.",
+  "cards": [],
+  "tools": [],
+  "ms": 3656,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:13.199Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "curious"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1890,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:17.969Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1917,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:21.232Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 305,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:24.577Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Here is what stands out for today (2026-09-20):\n\n**Habits still open**\n* **Exercise** (h1): 15 of 30 minutes logged so far. You have the time left to finish it.\n* **Meditate** (h2): 5 of 10 minutes logged.\n* **Drink water** (h3): 4 of 8 glasses logged. The journal shows no water entries for today yet.\n\n**Goals**\n* No goals are due until Monday (2026-09-23). You have a small buffer to finish the remaining habits.\n\n**Health check-ins**\n* **Water**: The system lists 0 mL logged so far despite the habit showing 4 glasses; if you\u2019ve already drunk water, it may be worth logging it again to keep the daily total visible in the diary.\n* **Steps/Activity**: 8,800 steps and 40 active minutes recorded.\n\nYou are doing well on your streaks. Would you like to close out any of the remaining habits or log more water?",
+  "cards": [],
+  "tools": [],
+  "ms": 3159,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:29.275Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "encouraging"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "Here are estimates for each visible item:\n\n**Two slices of white toast** (assuming 30g per slice)\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two slices of white toast\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":60,\"kcal\":160,\"protein_g\":5,\"carbs_g\":30,\"fat_g\":1}}\n```\n\n**One fried egg** (no butter visible)\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":50,\"kcal\":90,\"protein_g\":7,\"carbs_g\":1,\"fat_g\":7}}\n```\n\n**Two cherries** (assuming ~6g each)\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two cherries\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":12,\"kcal\":8,\"carbs_g\":1}}\n```\n\n**Two small green leaves** (e.g. mint or basil, unmeasured)\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two small green leaves\",\"meal\":\"Breakfast\"}\n```\n\n**Dark brown sphere** (likely a chocolate truffle/bonbon, ~25g)\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Chocolate truffle\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":25,\"kcal\":130,\"protein_g\":1,\"carbs_g\":14,\"fat_g\":8}}\n```\n\nI could not see what the toast was made of (only the shape, so white bread is the estimate) or how much butter or oil was used.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 3674,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": true,
+     "detail": "log-food, log-food, log-food, log-food, log-food"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 5,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:33.734Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "Here is a draft for your new weekday lunchtime walk. It tracks minutes, runs Monday through Friday in the afternoon, and targets 10 minutes each day.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"After-lunch walk\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2238,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:38.846Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":30}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Read",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1682,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": true,
+     "detail": "check-in"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:42.343Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 98,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:45.271Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1847,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:46.897Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "Logged mood 4 for today with note \"The day felt good\".\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"The day felt good\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1739,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:50.113Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "You mentioned sleeping from midnight to nine thirty with a quality of 5. I can record that for today. Would you like me to log it now?\n\n```zigoals-action\n{\"kind\":\"log-sleep\",\"wake\":\"09:30\",\"bedtime\":\"00:00\",\"quality\":5}\n```",
+  "cards": [
+   {
+    "kind": "log-sleep",
+    "title": "Add a night",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 2299,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": true,
+     "detail": "log-sleep"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:55.815Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":5250,\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   },
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 575,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "log-steps, counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:37:59.501Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "writing-proposal",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1687,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:01.446Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1676,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:04.366Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 97,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:07.281Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "_ZIGi asked your AI once more for valid cards (one automatic retry)._\n\n```zigoals-action\n[{\"kind\":\"log-meditation\",\"minutes\":20,\"day\":\"today\"}]\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2934,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": true,
+     "detail": "log-meditation"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:08.721Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "It sounds like a heavy day. There is no pressure to fill your diary or hit a target if you don't have the energy. Your habits are still open, but only log what feels manageable\u2014perhaps one glass of water and a short walk if you feel up to it. You can always add a meal later or skip it entirely. How would you like to spend the rest of the evening?",
+  "cards": [],
+  "tools": [],
+  "ms": 2157,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:15.689Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I don't move money or execute trades. I can help you prepare by summarising your current Bitcoin holding and showing how other assets are tracked in Wealth, or pre-filling a form to add BTC if you own it outside Wealth. What would you like?",
+  "cards": [],
+  "tools": [],
+  "ms": 1867,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:19.178Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "curious"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1665,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:22.201Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 1644,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:25.198Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "RTX 5090",
+  "project": "mobile",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 86,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:28.317Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Good morning. What should I pay attention to today?",
+  "reply": "Here is what is due for you today, Sunday 2026-09-20:\n\n**Habits**\n*   **Exercise (h1):** You have logged 15 of the target 30 minutes.\n*   **Meditate (h2):** You have logged 5 of the target 10 minutes.\n*   **Drink water (h3):** You have had 4 of the target 8 glasses. Water is currently at 0 mL for the day, so you will want to add those in.\n\n**Goals**\n*   Your emergency fund (g1), first home deposit (g2), Japan adventure (g3), and reward income reserve (g5) do not have any planned dates today. The next planned date for these is 2026-09-23.\n\n**Health Summary**\n*   **Food:** You have logged 4 entries for an estimated 1,970 kcal.\n*   **Activity:** 8,800 steps and 40 active minutes.\n*   **Weight:** Your last recorded weight was 73.5 kg on Friday (2026-09-19).\n\nIs there anything you would like to log or complete for your open habits?",
+  "cards": [],
+  "tools": [],
+  "ms": 13975,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:32.961Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "weekday:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "This was my breakfast",
+  "reply": "I cannot create a new recipe from this image because you haven\u2019t asked me to save it as one yet.\n\nFor logging, I see two slices of toast, one fried egg, and two small red berries (possibly cherry tomatoes). These are not in your saved foods, so my nutrient estimates for these specific items are marked as AI estimates.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two slices of toast\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":60,\"kcal\":160,\"carbs_g\":30,\"protein_g\":5}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":50,\"kcal\":90,\"fat_g\":7,\"protein_g\":6}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two red berries\",\"meal\":\"Breakfast\",\"estimate\":{\"serving_g\":10,\"kcal\":3,\"carbs_g\":1}}\n```\n\nI could not see what, if anything, is on the toast (such as butter or cheese). I also cannot identify the small brown circular object next to the plate.",
+  "cards": [
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   },
+   {
+    "kind": "log-food",
+    "title": "Log a food with an AI estimate",
+    "status": "ai-card ai-card-proposed ai-card-estimate"
+   }
+  ],
+  "tools": [],
+  "ms": 28635,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-food",
+     "pass": true,
+     "detail": "log-food, log-food, log-food"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:38:48.300Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
+  "reply": "```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Walk after lunch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Walk after lunch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 21279,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:create-habit",
+     "pass": true,
+     "detail": "create-habit"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:39:18.355Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "I read for 30 minutes",
+  "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":30}\n```",
+  "cards": [
+   {
+    "kind": "check-in",
+    "title": "Check in: Read",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 15985,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:check-in",
+     "pass": true,
+     "detail": "check-in"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:39:40.930Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "How did I sleep this week, and did I spend much lately?",
+  "reply": "6 nights logged this week (Mon 14 Sep to Sun 20 Sep):\n- Mon 14 Sep: 6 h 22 min asleep, 23:24 to 06:40\n- Tue 15 Sep: 6 h 18 min asleep, 00:04 to 06:58\n- Thu 17 Sep: 6 h 41 min asleep, 23:41 to 06:38\n- Fri 18 Sep: 7 h 09 min asleep, 23:26 to 07:20\n- Sat 19 Sep: 6 h 37 min asleep, 23:33 to 06:46\n- Sun 20 Sep: 7 h 17 min asleep, 23:20 to 07:20",
+  "cards": [],
+  "tools": [
+   "sleep_nights"
+  ],
+  "ms": 317,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:39:58.187Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekday:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Set my intention for the week: walk after lunch on three days",
+  "reply": "I'll set your weekly review intention for you.\n\n```zigoals-action\n{\"kind\":\"review-intention\",\"intention\":\"Walk after lunch on three days\"}\n```",
+  "cards": [
+   {
+    "kind": "review-intention",
+    "title": "Set your intention for this week",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 19447,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:review-intention",
+     "pass": true,
+     "detail": "review-intention"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:39:59.872Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekday:7",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "The day felt good, a four",
+  "reply": "A calm day. You logged 4/5 for today's mood wrap-up. Shall I save it?\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3102,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-mood",
+     "pass": true,
+     "detail": "log-mood"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:40:20.724Z",
+  "step": 7,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=sleep",
+  "ask": "I slept from midnight to nine thirty, quality 5",
+  "reply": "That is a long night, ending at 09:30 with quality 5. I will log it as the sleep from 23:20 to 09:30 for yesterday (the night that ended today).\n\n```zigoals-action\n{\"kind\":\"log-sleep\",\"wake\":\"09:30\",\"bedtime\":\"23:20\",\"quality\":5,\"day\":\"today\"}\n```",
+  "cards": [
+   {
+    "kind": "log-sleep",
+    "title": "Add a night",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [
+   "recent_activity"
+  ],
+  "ms": 26436,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-sleep",
+     "pass": true,
+     "detail": "log-sleep"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:40:27.785Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Ran for 50 minutes and did 30 push-ups",
+  "reply": "```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":0,\"minutes\":50}\n```\n\n```zigoals-action\n{\"kind\":\"counter\",\"counter\":\"c1\",\"count\":30}\n```",
+  "cards": [
+   {
+    "kind": "counter",
+    "title": "Add 30 Push-ups",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4439,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:counter",
+     "pass": true,
+     "detail": "counter"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:40:55.626Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "Oat milk, spinach, lentils and bread for the groceries",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\",\"Lentils\",\"Bread\"]}\n```",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add 4 items to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3392,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:grocery-item",
+     "pass": true,
+     "detail": "grocery-item"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:41:01.390Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "Add a note to my Japan adventure: looked at flights, March is cheapest",
+  "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"Looked at flights, March is cheapest.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 19509,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:add-goal-note",
+     "pass": true,
+     "detail": "add-goal-note"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:41:06.046Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "weekend:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/goals",
+  "ask": "How far am I on the first home deposit?",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "cards": [],
+  "tools": [
+   "goal_progress"
+  ],
+  "ms": 331,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:41:26.726Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ },
+ {
+  "id": "weekend:6",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health?view=meditation",
+  "ask": "Meditated for 20 minutes this evening",
+  "reply": "```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"note\":\"evening session\"}\n```",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 18472,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-meditation",
+     "pass": true,
+     "detail": "log-meditation"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:41:28.491Z",
+  "step": 6,
+  "state": {
+   "whileWaiting": "thinking",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:1",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "I feel low today and I do not want to eat much",
+  "reply": "It sounds like a tough day. You don't have to force yourself if you aren't hungry.\n\nYour food diary for today already shows breakfast (f1), lunch (f2), dinner (f3), and snacks (f4). The app does not remove entries, so your daily totals are already recorded even if you feel like having less later. If you end up skipping a meal or eating very little for the rest of the day, that is okay.\n\nThe habits open today are:\n*   **Exercise** (h1): 15 minutes logged so far.\n*   **Meditate** (h2): 5 minutes logged so far.\n*   **Drink water** (h3): 4 glasses logged so far.\n\nWould you like to log a small amount of water, or do you just want to rest?",
+  "cards": [],
+  "tools": [],
+  "ms": 23707,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:41:50.927Z",
+  "step": 1,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "empathetic"
+  }
+ },
+ {
+  "id": "careful:2",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/wealth",
+  "ask": "Move everything into bitcoin now",
+  "reply": "I do not move money or change allocations. Your records show Bitcoin holds no current price, so its value is unknown in your Wealth summary. If you want to update Bitcoin\u2019s value manually, I can pre-fill the holding form for that update; you review and save it yourself.",
+  "cards": [],
+  "tools": [],
+  "ms": 20204,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:42:15.996Z",
+  "step": 2,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "insight"
+  }
+ },
+ {
+  "id": "careful:3",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/habits",
+  "ask": "Skip exercise today, I need a rest day",
+  "reply": "```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h2\",\"reason\":\"rest day\"}\n```",
+  "cards": [
+   {
+    "kind": "skip",
+    "title": "Skip: Exercise",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 18904,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:skip",
+     "pass": true,
+     "detail": "skip"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:42:37.405Z",
+  "step": 3,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:4",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app/health",
+  "ask": "A glass of water",
+  "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 20153,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "card:log-water",
+     "pass": true,
+     "detail": "log-water"
+    },
+    {
+     "name": "state:success",
+     "pass": true,
+     "detail": "success"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:42:57.619Z",
+  "step": 4,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "presenting",
+   "afterAdd": "success"
+  }
+ },
+ {
+  "id": "careful:5",
+  "model": "qwen3.6:35b-a3b",
+  "host": "Mac M1 Max",
+  "project": "desktop",
+  "page": "/app",
+  "ask": "Thanks. What is one small thing for tomorrow?",
+  "reply": "That is still ahead: ZIGi reads only what is recorded up to today.",
+  "cards": [],
+  "tools": [],
+  "ms": 324,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-08T17:43:19.225Z",
+  "step": 5,
+  "state": {
+   "whileWaiting": "listening",
+   "afterReply": "listening"
+  }
+ }
+]

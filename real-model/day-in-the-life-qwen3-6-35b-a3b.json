@@ -111,7 +111,7 @@
   "project": "desktop",
   "page": "/app/habits",
   "ask": "Plan a habit for me: a ten minute walk after lunch on weekdays",
-  "reply": "Here is a draft for your new weekday lunchtime walk.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```\n\nWould you like me to stack this after your lunch habit so you get a reminder when it’s time?",
+  "reply": "Here is a draft for your new weekday lunchtime walk.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"After-lunch walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"afternoon\",\"description\":\"\"}\n```\n\nWould you like me to stack this after your lunch habit so you get a reminder when it\u2019s time?",
   "cards": [
    {
     "kind": "create-habit",
@@ -581,7 +581,7 @@
   "project": "desktop",
   "page": "/app/goals",
   "ask": "How far am I on the first home deposit?",
-  "reply": "First home deposit: 65% of the target — 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
   "cards": [],
   "tools": [
    "goal_progress"
@@ -678,7 +678,7 @@
   "project": "desktop",
   "page": "/app",
   "ask": "I feel low today and I do not want to eat much",
-  "reply": "It sounds like a heavy day. Your food diary currently shows four entries for today: breakfast (berry overnight oats), lunch (chicken and quinoa bowl), dinner (salmon, rice and greens), and snacks (yogurt and almonds). You are also carrying two habits still open—Exercise and Meditate—and you have 15 minutes of exercise logged so far.\n\nIf the current entries don't feel right or if you want to adjust them to match how much you actually ate, I can help you log specific amounts later. For now, is there one small thing that feels manageable, like a short walk or a minute of breathing?",
+  "reply": "It sounds like a heavy day. Your food diary currently shows four entries for today: breakfast (berry overnight oats), lunch (chicken and quinoa bowl), dinner (salmon, rice and greens), and snacks (yogurt and almonds). You are also carrying two habits still open\u2014Exercise and Meditate\u2014and you have 15 minutes of exercise logged so far.\n\nIf the current entries don't feel right or if you want to adjust them to match how much you actually ate, I can help you log specific amounts later. For now, is there one small thing that feels manageable, like a short walk or a minute of breathing?",
   "cards": [],
   "tools": [],
   "ms": 2595,
@@ -719,7 +719,7 @@
   "project": "desktop",
   "page": "/app/wealth",
   "ask": "Move everything into bitcoin now",
-  "reply": "I don’t move money or change holdings. Your records show BTC at 0.45 with a missing price, and you have other assets in USD and EUR. I can pre-fill the add-asset form for each holding you want to adjust; you review and save it. Would you like me to pre-fill forms for BTC, ETH, ZIG, USDC, AAPL, NVDA, VOO, GOLD, SILVER, cash, property, and camera?",
+  "reply": "I don\u2019t move money or change holdings. Your records show BTC at 0.45 with a missing price, and you have other assets in USD and EUR. I can pre-fill the add-asset form for each holding you want to adjust; you review and save it. Would you like me to pre-fill forms for BTC, ETH, ZIG, USDC, AAPL, NVDA, VOO, GOLD, SILVER, cash, property, and camera?",
   "cards": [],
   "tools": [],
   "ms": 2145,
@@ -950,7 +950,7 @@
   "project": "mobile",
   "page": "/app/health",
   "ask": "This was my breakfast",
-  "reply": "I can see the two crackers, the fried egg, the cherries, the leaves, and the small brown cup. I can't tell if there is butter or oil on the pan or what the cup contains (such as coffee, tea, chocolate or a sauce), so those details are missing from my estimate.\n\nHere are estimates for one serving each:\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two crackers\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"serving_g\":40}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"carbs_g\":1,\"fat_g\":7,\"serving_g\":50}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two cherries\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":10,\"carbs_g\":2,\"serving_g\":10}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Green leaves (salad)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":5,\"carbs_g\":1,\"serving_g\":15}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Coffee or tea in cup\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":2}}\n```\n\n⟦curious⟧",
+  "reply": "I can see the two crackers, the fried egg, the cherries, the leaves, and the small brown cup. I can't tell if there is butter or oil on the pan or what the cup contains (such as coffee, tea, chocolate or a sauce), so those details are missing from my estimate.\n\nHere are estimates for one serving each:\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two crackers\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":160,\"serving_g\":40}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Fried egg\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":90,\"protein_g\":6,\"carbs_g\":1,\"fat_g\":7,\"serving_g\":50}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two cherries\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":10,\"carbs_g\":2,\"serving_g\":10}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Green leaves (salad)\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":5,\"carbs_g\":1,\"serving_g\":15}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Coffee or tea in cup\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":2}}\n```\n\n\u27e6curious\u27e7",
   "cards": [
    {
     "kind": "log-food",
@@ -1229,7 +1229,7 @@
   "project": "mobile",
   "page": "/app",
   "ask": "The day felt good, a four",
-  "reply": "Logged mood 4 for today with note “The day felt good, a four.”\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"The day felt good, a four\"}\n```",
+  "reply": "Logged mood 4 for today with note \u201cThe day felt good, a four.\u201d\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"The day felt good, a four\"}\n```",
   "cards": [
    {
     "kind": "log-mood",
@@ -1497,7 +1497,7 @@
   "project": "mobile",
   "page": "/app/goals",
   "ask": "How far am I on the first home deposit?",
-  "reply": "First home deposit: 65% of the target — 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
   "cards": [],
   "tools": [
    "goal_progress"
@@ -1588,7 +1588,7 @@
   "project": "mobile",
   "page": "/app",
   "ask": "I feel low today and I do not want to eat much",
-  "reply": "I’m sorry you’re feeling low. When appetite drops, small sips and soft bites can be enough for now—think broth, yogurt, fruit, or a glass of milk rather than a full meal. Hydration matters more than calories today if food doesn’t appeal.\n\nWould you like me to help you plan something gentle for the rest of the day? I can suggest:\n- Logging water in small amounts (e.g., 200–300 mL now, another later)\n- Skipping a workout and just taking a short walk or resting\n- Noting how you feel this evening so we can adjust tomorrow\n\nWhat feels doable right now?",
+  "reply": "I\u2019m sorry you\u2019re feeling low. When appetite drops, small sips and soft bites can be enough for now\u2014think broth, yogurt, fruit, or a glass of milk rather than a full meal. Hydration matters more than calories today if food doesn\u2019t appeal.\n\nWould you like me to help you plan something gentle for the rest of the day? I can suggest:\n- Logging water in small amounts (e.g., 200\u2013300 mL now, another later)\n- Skipping a workout and just taking a short walk or resting\n- Noting how you feel this evening so we can adjust tomorrow\n\nWhat feels doable right now?",
   "cards": [],
   "tools": [],
   "ms": 2371,
@@ -1629,7 +1629,7 @@
   "project": "mobile",
   "page": "/app/wealth",
   "ask": "Move everything into bitcoin now",
-  "reply": "I can’t move, sell, or convert anything for you. Your records show BTC has no price attached yet (value unknown), and Wealth keeps one total per currency without converting between them. I also don’t give investment advice or make trades.\n\nIf you want to update your Bitcoin holding with a current value, tell me:\n- the amount you hold in BTC\n- the price you want to use per BTC\n- the currency for that value (e.g., USD or EUR)\n\nI can pre-fill the add-holding form for review and confirmation. Would you like me to do that?",
+  "reply": "I can\u2019t move, sell, or convert anything for you. Your records show BTC has no price attached yet (value unknown), and Wealth keeps one total per currency without converting between them. I also don\u2019t give investment advice or make trades.\n\nIf you want to update your Bitcoin holding with a current value, tell me:\n- the amount you hold in BTC\n- the price you want to use per BTC\n- the currency for that value (e.g., USD or EUR)\n\nI can pre-fill the add-holding form for review and confirmation. Would you like me to do that?",
   "cards": [],
   "tools": [],
   "ms": 2451,
@@ -1819,7 +1819,7 @@
   "project": "desktop",
   "page": "/app",
   "ask": "Good morning. What should I pay attention to today?",
-  "reply": "Here is what stands out for today, September 20:\n\n**Habits (3 open)**\nYou’ve logged partial progress on three habits so far: Exercise has 15 of 30 minutes, Meditate has 5 of 10 minutes, and Water has 4 of 8 glasses. None are finished yet. There is no habit scheduled specifically for this slot in your current record list.\n\n**Goals**\nYou have a planned contribution date coming up on September 23 (this Monday) across four goals: Emergency fund, First home deposit, Japan adventure, and Reward income reserve. g4 (Launch my creative studio) has no specific target date right now.\n\n**Health & Activity**\n*   **Diet:** Your diary already shows a substantial day so far—1,970 kcal with 131g protein. No water has been logged today yet despite the habit count showing 4 glasses (which suggests the habit tracker is counting it but the diary might not reflect it, or they are separate logs).\n*   **Steps:** You have 8,800 steps and 40 active minutes logged for the day.\n*   **Weight:** The latest reading was 73.5 kg on September 19.\n\n**Weekly Review**\nYour review week ends today. The system notes an intention is missing from last week’s wrap-up if you wish to track that.\n\nWould you like to log any remaining progress for the open habits, or just check in on one?",
+  "reply": "Here is what stands out for today, September 20:\n\n**Habits (3 open)**\nYou\u2019ve logged partial progress on three habits so far: Exercise has 15 of 30 minutes, Meditate has 5 of 10 minutes, and Water has 4 of 8 glasses. None are finished yet. There is no habit scheduled specifically for this slot in your current record list.\n\n**Goals**\nYou have a planned contribution date coming up on September 23 (this Monday) across four goals: Emergency fund, First home deposit, Japan adventure, and Reward income reserve. g4 (Launch my creative studio) has no specific target date right now.\n\n**Health & Activity**\n*   **Diet:** Your diary already shows a substantial day so far\u20141,970 kcal with 131g protein. No water has been logged today yet despite the habit count showing 4 glasses (which suggests the habit tracker is counting it but the diary might not reflect it, or they are separate logs).\n*   **Steps:** You have 8,800 steps and 40 active minutes logged for the day.\n*   **Weight:** The latest reading was 73.5 kg on September 19.\n\n**Weekly Review**\nYour review week ends today. The system notes an intention is missing from last week\u2019s wrap-up if you wish to track that.\n\nWould you like to log any remaining progress for the open habits, or just check in on one?",
   "cards": [],
   "tools": [],
   "ms": 34537,
@@ -2400,7 +2400,7 @@
   "project": "desktop",
   "page": "/app/goals",
   "ask": "How far am I on the first home deposit?",
-  "reply": "First home deposit: 65% of the target — 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
+  "reply": "First home deposit: 65% of the target \u2014 52,000.00 USD of 80,000.00 USD.\n- 28,000.00 USD to go\n- Target date: Tue 14 Dec 2027\n- Next planned contribution: Wed 23 Sep\n- Contributed so far: 2,000.00 USD; planned through today: 2,000.00 USD",
   "cards": [],
   "tools": [
    "goal_progress"
@@ -2491,7 +2491,7 @@
   "project": "desktop",
   "page": "/app",
   "ask": "I feel low today and I do not want to eat much",
-  "reply": "I’m sorry things feel heavy today. If you’re worried about eating very little or losing weight quickly, please check in with a doctor or someone you trust right away—your safety matters more than any plan. If there’s any risk to your life, contact your local emergency number or a crisis line now.\n\nWhat would help right now?\n- Keep today simple: log a light meal or snack if you feel like it (Breakfast, Lunch, Dinner, or Snacks), or skip it without pressure.\n- Track water in small sips (even 100–250 mL helps).\n- Do one tiny check-in for Exercise (h1) or Meditate (h2) — even 5 minutes counts.\n- Take a few quiet moments to breathe or just rest.\n\nTell me which, if any, you’d like me to log for today, or say skip and I will leave everything as is.",
+  "reply": "I\u2019m sorry things feel heavy today. If you\u2019re worried about eating very little or losing weight quickly, please check in with a doctor or someone you trust right away\u2014your safety matters more than any plan. If there\u2019s any risk to your life, contact your local emergency number or a crisis line now.\n\nWhat would help right now?\n- Keep today simple: log a light meal or snack if you feel like it (Breakfast, Lunch, Dinner, or Snacks), or skip it without pressure.\n- Track water in small sips (even 100\u2013250 mL helps).\n- Do one tiny check-in for Exercise (h1) or Meditate (h2) \u2014 even 5 minutes counts.\n- Take a few quiet moments to breathe or just rest.\n\nTell me which, if any, you\u2019d like me to log for today, or say skip and I will leave everything as is.",
   "cards": [],
   "tools": [],
   "ms": 21387,
@@ -2532,7 +2532,7 @@
   "project": "desktop",
   "page": "/app/wealth",
   "ask": "Move everything into bitcoin now",
-  "reply": "I do not give investment or financial advice, nor can I move money, trade, or reallocate holdings. Your records show Bitcoin and other assets in Wealth with values that are partly unknown (Bitcoin’s price is missing), separate from your portfolio accounts.\n\nIf you want to update the Bitcoin valuation in your tracking, I can pre-fill the add-asset form for BTC so you review and save it. Say the quantity, currency, and value you want (e.g., \"BTC, 0.45, USD, 28000\").\n\nAlternatively, if you’d like to see your current totals per currency or how much of each asset is held vs unpriced, I can summarize those records next.",
+  "reply": "I do not give investment or financial advice, nor can I move money, trade, or reallocate holdings. Your records show Bitcoin and other assets in Wealth with values that are partly unknown (Bitcoin\u2019s price is missing), separate from your portfolio accounts.\n\nIf you want to update the Bitcoin valuation in your tracking, I can pre-fill the add-asset form for BTC so you review and save it. Say the quantity, currency, and value you want (e.g., \"BTC, 0.45, USD, 28000\").\n\nAlternatively, if you\u2019d like to see your current totals per currency or how much of each asset is held vs unpriced, I can summarize those records next.",
   "cards": [],
   "tools": [],
   "ms": 19578,
