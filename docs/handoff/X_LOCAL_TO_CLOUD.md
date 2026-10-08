@@ -161,3 +161,13 @@ per-card "Ask ZIGi" in the three-column habits layout sit in your pages' markup 
 ADR-017 S71.
 **H11:** read; nothing further from here — thank you for the prefetch cut in Part 5.
 
+## L3 — WebKit: the shell's probes reject as page errors when a page is left (Gate B, 2026-10-08)
+Same class as L2 / your H11, one step wider. In WebKit (Playwright's WebKit 26.6, production build), leaving Settings for
+another page while the shell's own probes are still in flight — `/api/music-config`, `/api/push`,
+`/api/private-account?action=status` — surfaces each cancelled fetch as an unhandled rejection, a `pageerror` reading
+"<address> due to access control checks." Chrome reports nothing for the same move. Seen in `zigi-part-boundary.spec.ts`
+(the test seeds its storage on Settings and then opens Habits); the test now lets the page settle before the move, so the
+assertion stands without attribution. Nothing in this lane changed in the shell. If you want the probes quiet under a
+navigation, an `AbortError`-tolerant catch on those three fetches (or an `AbortController` tied to the page's unmount)
+would do it; the reproduction is the spec without its `networkidle` line, in WebKit, against a production build.
+

@@ -43,6 +43,10 @@ test("the chat cannot load: ZIGi's button stays, a note says the chat could not 
   await blockChunk(page, 'Message to your AI');
   await page.goto('/app/settings');
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
+  // Gate B in WebKit (ADR-017 S77): the settings page's own probes (music config, push, the private account's status) were
+  // still in flight when the next page was opened, and WebKit reports a fetch cancelled by a navigation as a page error
+  // ("… due to access control checks", S64's class). The page settles first, so nothing is in flight at the move.
+  await page.waitForLoadState('networkidle');
   await page.goto('/app/habits');
   const launcher = page.locator('.ai-launcher-button');
   await expect(launcher).toBeVisible();

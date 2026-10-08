@@ -46,13 +46,19 @@ test('a jump to Help & diagnostics before the body loaded stays put once it has'
   await expect(page.locator('section#your-ai .ai-settings-reserve')).toHaveCount(1);
   // The jump as a link to the section's address makes it (the sections nav on a computer, the phone's own row): the hash.
   await page.evaluate(() => { location.hash = '#settings-help'; });
-  const before = await page.evaluate(() => document.getElementById('settings-help')!.getBoundingClientRect().top);
+  // Gate B in WebKit (ADR-017 S77): what this test owns is the section's own growth, so the target is measured from the
+  // section's top, not the viewport's — under load, WebKit laid out content above the section (other sections, fonts) hundreds
+  // of pixels later than the half-second settle, which moved everything below it and read as the reserve's fault (340 px once
+  // in the chain, 61 px alone). Both figures are logged.
+  const measure = () => page.evaluate(() => ({target: document.getElementById('settings-help')!.getBoundingClientRect().top, section: document.getElementById('your-ai')!.getBoundingClientRect().top}));
+  const before = await measure();
   await page.waitForTimeout(300);
   release();
   await loaded(page);
   await page.waitForTimeout(1000);
-  const after = await page.evaluate(() => document.getElementById('settings-help')!.getBoundingClientRect().top);
+  const after = await measure();
   const reserve = await page.locator('section#your-ai').evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--ai-settings-reserve')));
-  console.log(`settings-reserve: jump target top ${Math.round(before)} → ${Math.round(after)} px`);
-  expect(Math.abs(after - before)).toBeLessThanOrEqual(reserve * RESERVE_MARGIN);
+  const own = (after.target - after.section) - (before.target - before.section);
+  console.log(`settings-reserve: jump target top ${Math.round(before.target)} → ${Math.round(after.target)} px; from the section's top ${Math.round(before.target - before.section)} → ${Math.round(after.target - after.section)} px (the section's own ${Math.round(own)} px)`);
+  expect(Math.abs(own)).toBeLessThanOrEqual(reserve * RESERVE_MARGIN);
 });
