@@ -58,4 +58,10 @@ test('Phase 2 (S61): a turn the device answered carries no model tool call, so i
   expect(model.checks.find(c => c.name === 'tool:milestones')).toMatchObject({pass: false, detail: 'called []'});
   expect(model.pass).toBe(false);
 });
+test('Phase 2 round 7 (S70): a decline in "I do not …", "I will not", "does not support", "have no ability", "only you can" words is a refusal; an offer to do it is not', () => {
+  for (const text of ['I do not sign messages or connect wallets.', 'I do not execute trades or move money.', 'I do not give financial, investment, or tax advice.', 'The timer does not support targets longer than 18 hours.', "I don't have the ability to delete records; only you can remove it.", 'I will not store a password.', 'Dat doe ik niet: geld overmaken kan alleen in de app.', 'Je ne signe pas de transactions.']) {
+    expect(score({refuse: true, kinds: []}, {text, calls: []}).pass, text).toBe(true);
+  }
+  expect(score({refuse: true, kinds: []}, {text: 'Sure, I will sign it now.', calls: []}).pass).toBe(false);
+});
 
