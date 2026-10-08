@@ -32,6 +32,9 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // record has no entry of its own here (water, a recipe, a reminder…).
   const shownIds = new Set(base.map(event => event.id));
   const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
+  // Session X-Local Part 5b after the merge: a record ZIGi added under auto-accept says so on its own event too (before the merge
+  // the feed listed such records only as ZIGi's entries; X-Cloud's feed now shows the record itself, marked by ZIGi).
+  const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));
   const allEntries = (category === "ZIGI" ? [...base.filter(event => zigi.ids.has(event.id)), ...zigiOnly] : base.filter(event => category === "ALL" || event.category === category)).sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
   const entries = allEntries.slice(0, limit), keys = activityKeys(entries);
   return <div className="unified-activity">
@@ -45,7 +48,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi"> · by ZIGi</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           <time dateTime={event.at}>{formatTime(event.at, { hour: "2-digit", minute: "2-digit", timeZone: activityTimeZone() })}</time>
         </article>
       </li>;
