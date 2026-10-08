@@ -12,6 +12,65 @@ import {COMPOSITE_KINDS, KIND_ALIASES, MAX_PROPOSALS, actionSchema, compositeSch
  * and its supporting habits; a habit and its reminder), each validated like any other proposal.
  */
 export type Rejected = {raw: string; reason: string};
+/**
+ * Session X-Local Part 5c: the repairs a block may need before it is JSON (models send almost-JSON): a stray "json"
+ * word or backticks around the object, comments, a trailing comma, single-quoted strings and keys, unquoted keys,
+ * Python's True/False/None, a bare value. Each repair is a plain rewrite outside strings; the result still has to
+ * satisfy the whitelist schema, so a repair can never widen what a card may do. Returns null when nothing parses.
+ */
+export function repairJson(body: string): unknown {
+  const text = body.trim().replace(/^```[a-z-]*\s*/i, '').replace(/```\s*$/, '').replace(/^json\s*/i, '').trim();
+  if (!text) return null;
+  const attempt = (t: string): unknown => { try { return JSON.parse(t); } catch { return undefined; } };
+  const direct = attempt(text); if (direct !== undefined) return direct;
+  // One walk, outside strings: comments go, quotes become double, bare keys and Python literals are rewritten, a
+  // trailing comma before } or ] goes. Inside a string nothing changes (a single-quoted string's inner " is escaped).
+  let out = '', inString: '"' | "'" | null = null;
+  const lastSignificant = () => out.replace(/\s+$/, '').slice(-1);
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!;
+    if (inString) {
+      if (ch === '\\') { out += ch + (text[i + 1] ?? ''); i++; continue; }
+      if (ch === inString) { inString = null; out += '"'; continue; }
+      out += ch === '"' ? '\\"' : ch; continue;
+    }
+    if (ch === '"' || ch === "'") { inString = ch; out += '"'; continue; }
+    if (ch === '/' && text[i + 1] === '/') { const end = text.indexOf('\n', i); i = end < 0 ? text.length : end; continue; }
+    if (ch === '/' && text[i + 1] === '*') { const end = text.indexOf('*/', i + 2); i = end < 0 ? text.length : end + 1; continue; }
+    if (ch === ',') {
+      // A trailing comma: nothing but whitespace and comments up to the closing brace or bracket.
+      let j = i + 1;
+      for (;;) { const rest = text.slice(j); const ws = /^\s+/.exec(rest); if (ws) { j += ws[0].length; continue; } if (rest.startsWith('//')) { const e = text.indexOf('\n', j); j = e < 0 ? text.length : e + 1; continue; } if (rest.startsWith('/*')) { const e = text.indexOf('*/', j + 2); j = e < 0 ? text.length : e + 2; continue; } break; }
+      if (text[j] === '}' || text[j] === ']') continue;
+    }
+    if (/[A-Za-z_]/.test(ch)) {
+      const word = /^[A-Za-z_][A-Za-z0-9_-]*/.exec(text.slice(i))![0], after = text.slice(i + word.length);
+      i += word.length - 1;
+      if (/^\s*:/.test(after) && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
+      out += word === 'True' ? 'true' : word === 'False' ? 'false' : word === 'None' || word === 'undefined' || word === 'NaN' ? 'null' : word; continue;
+    }
+    out += ch;
+  }
+  const fixed = attempt(out); if (fixed !== undefined) return fixed;
+  // Objects listed without the outer brackets, or an object missing its closing brace.
+  const wrapped = attempt(`[${out}]`); if (wrapped !== undefined) return wrapped;
+  const closed = attempt(`${out}}`); if (closed !== undefined) return closed;
+  return null;
+}
+/** Fields the schema counts as numbers; a model that quotes them ("300") still means the number. */
+const NUMERIC_KEYS = new Set(['millilitres', 'glasses', 'value', 'steps', 'minutes', 'hours', 'quantity', 'target', 'targetHours', 'servings', 'count', 'weekday', 'quality', 'mood', 'days', 'serving_g', 'serving_ml', 'grams', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'balance']);
+const NUMBER = /^-?\d+(?:[.,]\d+)?$/;
+function coerceNumbers(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(coerceNumbers);
+  if (!value || typeof value !== 'object') return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
+    if (v === null && NUMERIC_KEYS.has(key)) continue;
+    out[key] = typeof v === 'string' && NUMERIC_KEYS.has(key) && NUMBER.test(v.trim()) ? Number(v.trim().replace(',', '.')) : typeof v === 'object' ? coerceNumbers(v) : v;
+  }
+  return out;
+}
 /** `revise` (Session X-Local Part 5a): a block carried "revise": true, so the previous reply's still-pending cards are replaced by this reply's. */
 export type ParsedReply = {text: string; proposals: Action[]; rejected: Rejected[]; revise?: boolean};
 const FENCE = /(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals[-_ ]?action[^\n]*\n([\s\S]*?)\n[^\S\n]*\1[^\S\n]*(?=\n|$)/gi;
@@ -21,7 +80,9 @@ function normalise(value: unknown, flags: {revise: boolean}): unknown {
   const record = {...(value as Record<string, unknown>)};
   // Session X-Local Part 5a: "revise": true marks a correction of the previous reply; it is never a field of a card.
   if ('revise' in record) { if (record.revise === true) flags.revise = true; delete record.revise; }
-  if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase(); record.kind = KIND_ALIASES[kind] ?? kind; }
+  if (typeof record.kind === 'string') { const kind = record.kind.trim().toLowerCase().replace(/\s+/g, '-'); record.kind = KIND_ALIASES[kind] ?? kind; }
+  // Session X-Local Part 5c: a day written as "Today", "2026/10/08" or "2026-10-8" means the same day.
+  if (typeof record.day === 'string') { const day = record.day.trim().toLowerCase().replace(/\//g, '-').replace(/^(\d{4})-(\d{1,2})-(\d{1,2})$/, (_, y: string, m: string, d: string) => `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`); record.day = day; }
   if (record.kind === 'log-measurement' && record.kind_of === undefined && typeof record.measurement === 'string') { record.kind_of = record.measurement; delete record.measurement; }
   if (record.kind === 'check-in' && typeof record.partial === 'number') { record.value = record.partial; delete record.partial; }
   if (record.day === undefined || record.day === null) delete record.day;
@@ -47,13 +108,14 @@ export function parseReply(reply: string): ParsedReply {
     source = source.slice(0, dangling.index);
   }
   const text = source.replace(FENCE, (block, _fence: string, body: string) => {
-    let parsed: unknown;
-    try { parsed = JSON.parse(body.trim()); } catch { rejected.push({raw: body.trim().slice(0, 200), reason: 'The proposal was not valid JSON.'}); return ''; }
+    // Strict JSON first; almost-JSON is repaired (Session X-Local Part 5c) and then held to the same whitelist.
+    const parsed: unknown = repairJson(body);
+    if (parsed === null) { rejected.push({raw: body.trim().slice(0, 200), reason: 'The proposal was not valid JSON.'}); return ''; }
     const unwrapped = parsed && typeof parsed === 'object' && !Array.isArray(parsed) && !('kind' in (parsed as object)) && Object.keys(parsed as object).length === 1 ? Object.values(parsed as object)[0] : parsed;
     const items = Array.isArray(unwrapped) ? unwrapped : [unwrapped];
     for (const item of items) {
       if (!item || typeof item !== 'object') { rejected.push({raw: JSON.stringify(item ?? null).slice(0, 200), reason: 'The proposal was not an object.'}); continue; }
-      const normalised = normalise(item, flags) as Record<string, unknown>;
+      const normalised = normalise(coerceNumbers(item), flags) as Record<string, unknown>;
       let parts: unknown[] = [normalised];
       if ((COMPOSITE_KINDS as readonly unknown[]).includes(normalised.kind)) {
         const composite = compositeSchema.safeParse(normalised);

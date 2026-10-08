@@ -14,6 +14,7 @@ import {currentChatStore} from '../../lib/ai/scope';
 import {appendTurn, assistantTurn, editTarget, isFull, messagesFor, regenerateTarget, stopReason, userTurn, type Usage} from '../../lib/ai/session';
 import type {AiSettings} from '../../lib/ai/settings';
 import {zigiSignals} from '../zigi/bus';
+import {needsRepair, REPAIR_NOTE, REPAIR_PROMPT, repairReasons} from '../../lib/ai/actions/repair';
 import {localSignal} from '../../lib/ai/zigi-reactions';
 import {extractHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
@@ -231,7 +232,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
       try { const cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())), line = capNote(cap); if (line && noted.current !== `${monthKey(new Date())}:${cap?.level}`) { noted.current = `${monthKey(new Date())}:${cap?.level}`; setUsageNote(line); } } catch { /* no note */ }
     };
-    const run = async (current: DataMode) => {
+    const run = async (current: DataMode, msgs = messages) => {
       if (current === 'tools' && env) {
         const shouldStop = () => contextRef.current.gates.paused ? 'ZIGi paused its lookups: this screen holds a private form.' : null;
         for await (const event of runWithTools({...request, system: withNotes(buildSystemPrompt({...base, context: contextText, tools: true})), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
@@ -243,11 +244,27 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         }
         return;
       }
-      for await (const event of counted(request)) {
+      for await (const event of counted({...request, messages: msgs})) {
         if (event.type === 'text') onText(event.delta);
         else if (event.type === 'usage') usage = {input: event.input, output: event.output};
         else if (event.type === 'done') reason = event.reason;
       }
+    };
+    /**
+     * Session X-Local Part 5c, one automatic repair round: in log or plan mode, when the reply held proposal blocks and
+     * every one was refused, the same model is asked once more for valid blocks (the first answer goes with it as the
+     * assistant's turn of the request; neither the ask nor the first answer is stored). The second answer replaces the
+     * first under a note; if the retry fails or stops, the first answer stands.
+     */
+    const repair = async () => {
+      if (!(options.log || options.plan) || controller.signal.aborted || !reply) return;
+      const check = parseReply(reply); if (!needsRepair(check)) return;
+      const firstTry = reply, firstUsage = usage;
+      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: `${REPAIR_PROMPT} ${repairReasons(check)}`}];
+      reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
+      try { await run('attach', again); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
+      if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
+      reply = `${REPAIR_NOTE}\n\n${reply}`; pendingText.current = reply;
     };
     const done = (stopped: string | undefined) => finish(reply, usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {
@@ -260,6 +277,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
         await run('attach');
       }
       setLastMode({mode, fellBack: fellBack.current.has(fbKey)});
+      await repair();
       done(limit ?? stopReason(reason, false));
     } catch (error) {
       if (isAbortLike(error)) { done('Stopped'); }

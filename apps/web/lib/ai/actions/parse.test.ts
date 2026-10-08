@@ -57,3 +57,22 @@ test('Session X-Local Part 5a: "revise": true is read off a block and flagged, n
   expect(parseReply('```zigoals-action\n{"kind":"log-water","glasses":1,"revise":false}\n```').revise).toBeUndefined();
   expect(parseReply('```zigoals-action\n{"kind":"log-water","glasses":1}\n```').revise).toBeUndefined();
 });
+test('Session X-Local Part 5c: almost-JSON is repaired and then held to the same whitelist; nothing widens', () => {
+  const one = (body: string) => parseReply(`Here.\n\n\`\`\`zigoals-action\n${body}\n\`\`\``);
+  expect(one(`{kind: 'log-water', millilitres: 300,}`).proposals).toEqual([{kind: 'log-water', millilitres: 300, day: 'today'}]);
+  expect(one(`{"kind": "log-water", "millilitres": "300" /* a quoted number */}`).proposals).toEqual([{kind: 'log-water', millilitres: 300, day: 'today'}]);
+  expect(one(`{kind: 'log-water', millilitres: '300', /* a glass and a bit */}`).proposals).toEqual([{kind: 'log-water', millilitres: 300, day: 'today'}]);
+  expect(one(`{"kind":"log-water","glasses":1, // one\n}`).proposals).toEqual([{kind: 'log-water', glasses: 1, day: 'today'}]);
+  expect(one(`{"kind":"Log Water","glasses":"2,5","day":"Today"}`).proposals).toEqual([{kind: 'log-water', glasses: 2.5, day: 'today'}]);
+  expect(one(`{"kind":"log-weight","value":"72.5","unit":"kg","day":"2026/10/8"}`).proposals).toEqual([{kind: 'log-weight', value: 72.5, unit: 'kg', day: '2026-10-08'}]);
+  expect(one(`{"kind":"log-food","name":"Eggs, toast: both","meal":"Breakfast","estimate":{"kcal":"140"}}`).proposals).toEqual([{kind: 'log-food', name: 'Eggs, toast: both', meal: 'Breakfast', quantity: 1, estimate: {kcal: 140}, day: 'today'}]);
+  expect(one(`json\n{"kind":"log-steps","steps":"8000","minutes":None} // steps`).proposals).toEqual([{kind: 'log-steps', steps: 8000, day: 'today'}]);
+  expect(one(`{"kind":"check-in","habit":"h1"},{"kind":"skip","habit":"h2"}`).proposals.map(p => p.kind)).toEqual(['check-in', 'skip']);
+  expect(one(`{"kind":"start-fast","targetHours":16`).proposals).toEqual([{kind: 'start-fast', targetHours: 16}]);
+  // Repaired, then refused by the schema like any other proposal: a repair never widens a card.
+  expect(one(`{kind: 'delete-everything', all: True}`)).toMatchObject({proposals: [], rejected: [{reason: expect.stringMatching(/kind/)}]});
+  expect(one(`{"kind":"log-water","millilitres":"three hundred"}`).proposals).toEqual([]);
+  expect(one(`not json at all {{{`)).toMatchObject({proposals: [], rejected: [{reason: 'The proposal was not valid JSON.'}]});
+  // A number inside a text field stays text: only numeric fields are coerced.
+  expect(one(`{"kind":"remember","text":"42","category":"other"}`).proposals).toEqual([{kind: 'remember', text: '42', category: 'other'}]);
+});

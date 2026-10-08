@@ -42,7 +42,8 @@ export const REPLY_CORPUS: readonly CorpusEntry[] = [
   // ---- malformed ----
   {id: 'cut-stream', style: 'openai', note: 'the stream was cut inside the block', reply: `Logging it now.\n\n\`\`\`zigoals-action\n{"kind":"log-water","gla`, expect: {proposals: 0, rejected: 1, textIncludes: ['Logging it now'], textExcludes: ['"kind"']}},
   {id: 'cut-after-close-missing', style: 'ollama', note: 'complete JSON, missing closing fence', reply: `\`\`\`zigoals-action\n{"kind":"log-water","glasses":1}`, expect: {proposals: 0, rejected: 1, textExcludes: ['"kind"']}},
-  {id: 'invalid-json-trailing-comma', style: 'lmstudio', note: 'trailing comma', reply: `${fence('{"kind":"log-water","glasses":1,}')}`, expect: {proposals: 0, rejected: 1}},
+  // Session X-Local Part 5c: a trailing comma is repaired before the whitelist (it was refused until then; ADR-017 "Assertions changed").
+  {id: 'invalid-json-trailing-comma', style: 'lmstudio', note: 'trailing comma, repaired', reply: `${fence('{"kind":"log-water","glasses":1,}')}`, expect: {proposals: 1, kinds: ['log-water']}},
   {id: 'wrong-types', style: 'gemini', note: 'strings where numbers belong', reply: `${fence('{"kind":"log-weight","value":"seventy-eight","unit":"kg"}')}`, expect: {proposals: 0, rejected: 1}},
   {id: 'unknown-kind', style: 'xai', note: 'an unknown kind', reply: `${fence('{"kind":"delete-everything","target":"all records"}')}`, expect: {proposals: 0, rejected: 1}},
   {id: 'unknown-kind-plus-valid', style: 'openai', note: 'an unknown kind beside a valid one', reply: `${fence('[{"kind":"transfer-money","amount":200},{"kind":"check-in","habit":"h1"}]')}`, expect: {proposals: 1, rejected: 1, kinds: ['check-in']}},
