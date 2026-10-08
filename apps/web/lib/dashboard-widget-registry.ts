@@ -2,7 +2,7 @@ import {WIDGET_CATALOG,type WidgetKind} from './dashboard-settings';
 import type {Position} from './positions';
 import {HEALTH_MEALS} from './health';
 import {habitRuleOn} from './habits';
-import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
+import {DIRECTORY_NAMES} from '@zigoals/ecosystem-registry/directory-names';
 import {stakingWidgetSource,type DashboardSources} from './dashboard-metrics';
 import {plural} from './plural';
 
@@ -40,7 +40,7 @@ export function eligibleWidgetSources(kind:WidgetKind,s:DashboardSources):{id:st
  if(kind==='goal')return s.goals.filter(g=>g.status!=='closed').map(g=>({id:g.key,label:`${g.name} · ${g.source}`}));
  if(kind==='habit')return s.habits.habits.filter(h=>habitRuleOn(h,s.today)?.state!=='archived').map(h=>({id:h.id,label:h.title}));
  if(kind==='asset'||kind==='allocation'||kind==='staking')return s.platform.positions.filter((p:Position)=>!p.archivedAt&&(kind!=='staking'||stakingWidgetSource(p))).map(p=>({id:p.id,label:`${p.providerId} · ${p.asset} · ${p.network}`}));
- if(kind==='ecosystem')return directoryEntries.map(entry=>({id:entry.id,label:entry.name}));
+ if(kind==='ecosystem')return Object.entries(DIRECTORY_NAMES).map(([id,entry])=>({id,label:entry.name}));
  return [];
 }
 
