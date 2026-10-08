@@ -2,6 +2,8 @@ import { dailyHealthSummary, HEALTH_MEALS, healthHistory, type HealthData } from
 import { habitDay, type Habit } from "./habits";
 import { addLocalDays, localDate } from "./local-date";
 import { formatDate } from "./visual-format";
+import { journalTimeZone } from "./journal-zone";
+import { wallClock } from "./zone-time";
 
 /** Saved diary snapshots, never current library values or assumed missing meals. */
 export function nutritionDashboard(data: HealthData, date: string) {
@@ -45,9 +47,13 @@ export function activityPresentation(event: { category: string; title: string; d
   return { label: "Goal", icon: "goals", tone: "goal" };
 }
 
-export function activityDateHeading(at: string, today = localDate()) {
-  const date = localDate(new Date(at));
-  if (date === today) return "Today";
-  if (date === addLocalDays(today, -1)) return "Yesterday";
-  return formatDate(at, { weekday: "short", month: "long", day: "numeric", year: "numeric" });
+/** The day an event belongs to, in the journal's zone when one is chosen (as Habits and Health count days), else the device's. */
+export function activityDateHeading(at: string, today?: string) {
+  const zone = journalTimeZone(), day = (ms: number) => zone ? wallClock(ms, zone).date : localDate(new Date(ms));
+  const date = day(Date.parse(at)), current = today ?? day(Date.now());
+  if (date === current) return "Today";
+  if (date === addLocalDays(current, -1)) return "Yesterday";
+  return formatDate(at, { weekday: "short", month: "long", day: "numeric", year: "numeric", ...(zone ? { timeZone: zone } : {}) });
 }
+/** An event's time, in the same zone as its day heading. */
+export function activityTimeZone(): string | undefined { return journalTimeZone() ?? undefined; }

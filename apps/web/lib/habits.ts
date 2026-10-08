@@ -257,7 +257,8 @@ function computeAggregateOutcomes(habit: Habit, today: string): AggregateOutcome
       fullCoverage = !!historical && historical.state === "active" && baseEndAllows(historical, date) && aggregatePeriod(historical) === group.period && ruleOutcomeKey(historical) === ruleOutcomeKey(rule);
     }
     const failed = explicitFailure || (group.end < today && fullCoverage && !complete);
-    const partial = !complete && !failed && entries.some((entry) => entry.disposition === "logged" || entry.disposition === "skipped");
+    // A logged 0 (a check-in undone) is no progress (Session X P2.1).
+    const partial = !complete && !failed && entries.some((entry) => (entry.disposition === "logged" && entry.count > 0) || entry.disposition === "skipped");
     return { start: group.start, end: group.end, period: group.period, unit: `${group.period}s` as AggregateOutcome["unit"], status: complete ? "complete" as const : failed ? "failed" as const : "open" as const, complete, failed, partial, scheduledDates: group.scheduledDates };
   }).sort((a, b) => a.start.localeCompare(b.start));
 }
@@ -297,13 +298,16 @@ function computeHabitDay(habit: Habit, date: string, today: string) {
   const period = aggregatePeriod(rule);
   if (period) {
     const result = periodResult(habit, rule, date, today);
-    if (entry) return { status: result.complete ? "complete" as const : result.failed ? "failed" as const : "partial" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
+    // Session X P2.1: today with nothing done (a check-in undone leaves a 0) is still open, not a result.
+    const openToday = date === today && !!entry && count === 0 && rule.type === "build" && !result.complete;
+    if (entry && !openToday) return { status: result.complete ? "complete" as const : result.failed ? "failed" as const : "partial" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
     if (date !== today || result.complete) return { status: "not-scheduled" as const, count, target, note: "", mood: undefined, scheduled: false };
-    return { status: result.partial ? "partial" as const : "due" as const, count, target, note: "", mood: undefined, scheduled };
+    return { status: result.partial ? "partial" as const : "due" as const, count, target, note: entry?.note ?? "", mood: entry?.mood, scheduled };
   }
   if (!entry) return { status: date === today ? "due" as const : "failed" as const, count, target, note: "", mood: undefined, scheduled };
   if (individualSuccess(rule, count)) return { status: "complete" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
-  return { status: date === today && rule.type === "build" && count > 0 ? "partial" as const : "failed" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
+  // Today a build habit is still open: partly done, or (a check-in undone leaves a 0) not done yet. Session X P2.1.
+  return { status: date === today && rule.type === "build" ? count > 0 ? "partial" as const : "due" as const : "failed" as const, count, target, note: entry.note, mood: entry.mood, scheduled };
 }
 
 type LogOptions = { note?: string; mood?: Habit["entries"][number]["mood"]; mode?: "set" | "add" };

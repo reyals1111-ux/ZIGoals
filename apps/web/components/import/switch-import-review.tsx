@@ -1,7 +1,7 @@
 'use client';
 import {useMemo, useState} from 'react';
 import {formatDate, formatNumber} from '../../lib/visual-format';
-import {wallClock, formatMinutes} from '../../lib/zone-time';
+import {wallClock, formatMinutes, zoneLabel} from '../../lib/zone-time';
 import {asleep} from '../../lib/sleep/engine';
 import {scheduleLabel, type HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
@@ -41,7 +41,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
     {GROUPS.filter(([g]) => chosen.preview[g].full > 0).map(([g]) => <p key={g} className="notice">{n(chosen.preview[g].full)} older {GROUP_LIMIT_WORDS[g]} stay out: your Health journal keeps at most {n(GROUP_LIMITS[g])}. The newest are imported.</p>)}
     {sample.length > 0 && <div className="switch-sample"><h4>A few nights to check against what you remember</h4><ul className="import-preview-lines">{sample.map(night => {
       const bed = wallClock(Date.parse(night.start), night.timeZone), up = night.end ? wallClock(Date.parse(night.end), night.timeZone) : null, a = asleep(night);
-      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {up?.date ?? bed.date}: in bed {bed.clock} → up {up?.clock ?? '—'}{night.timeZone !== zone ? ` (${night.timeZone})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
+      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {up?.date ?? bed.date}: in bed {bed.clock} → up {up?.clock ?? '—'}{night.timeZone !== zone ? ` (${zoneLabel(night.timeZone)})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
     })}</ul></div>}
     {plan.summarised.length > 0 && <div className="switch-summarised"><h4>Kept as summaries</h4><ul>{plan.summarised.map(s => <li key={s}>{s}</li>)}</ul></div>}
     {plan.warnings.length > 0 && <details className="import-warnings"><summary>{n(plan.warnings.length)} {plan.warnings.length === 1 ? 'note' : 'notes'} about this export</summary><ul>{plan.warnings.map(w => <li key={w}>{w}</li>)}</ul></details>}
@@ -69,6 +69,10 @@ export function HabitsPreview({plan, data, onConfirm, onCancel}: {plan: HabitsPl
   const preview = useMemo(() => { try { return previewHabits(data, plan.habits); } catch (cause) { return cause instanceof Error ? cause.message : 'This export cannot be imported.'; } }, [data, plan]);
   if (typeof preview === 'string') return <div className="switch-preview"><p role="alert">{preview}</p><div className="actions"><button type="button" className="secondary" onClick={onCancel}>Start over</button></div></div>;
   const checkIns = plan.habits.filter(h => preview.created.includes(h.id)).reduce((t, h) => t + h.entries.length, 0) + preview.entries.length;
+  // Session X P2.1: an exported habit named like one already here comes in beside it (habits are matched by Loop's own
+  // id, never by name); the preview says so before anything is saved.
+  const key = (title: string) => title.trim().toLocaleLowerCase(), have = new Set(data.habits.map(h => key(h.title)));
+  const sameName = plan.habits.filter(h => preview.created.includes(h.id) && have.has(key(h.title))).map(h => h.title), one = sameName.length === 1;
   return <div className="switch-preview">
     <h3>Check what comes in</h3>
     <p className="import-summary">{plan.label}: {n(preview.created.length)} new {preview.created.length === 1 ? 'habit' : 'habits'}, {n(checkIns)} {checkIns === 1 ? 'check-in' : 'check-ins'}{preview.duplicates ? ` · ${n(preview.duplicates)} days already here` : ''}</p>
@@ -77,6 +81,7 @@ export function HabitsPreview({plan, data, onConfirm, onCancel}: {plan: HabitsPl
       <thead><tr><th scope="col">Habit</th><th scope="col">Schedule</th><th scope="col">Check-ins</th><th scope="col">Status</th></tr></thead>
       <tbody>{plan.habits.map(h => { const rule = h.rules[0]!; return <tr key={h.id}><th scope="row">{h.title}</th><td>{scheduleLabel(rule.schedule)}{rule.measurement.kind === 'quantity' ? ` · ${rule.type === 'limit' ? 'at most' : 'at least'} ${formatNumber(rule.target)} ${rule.measurement.unit}` : ''}</td><td className="num">{n(h.entries.length)}</td><td>{preview.created.includes(h.id) ? (rule.state === 'archived' ? 'New · archived' : 'New') : 'Already here'}</td></tr>; })}</tbody>
     </table></div>
+    {sameName.length > 0 && <p className="fine">{sameName.join(', ')} {one ? 'has' : 'have'} the same name as {one ? 'a habit' : 'habits'} you already have. {one ? 'It comes' : 'They come'} in as {one ? 'a separate habit' : 'separate habits'} with {one ? 'its' : 'their'} own history; ZIGoals never merges habits by name.</p>}
     {plan.summarised.map(s => <p key={s} className="fine">{s}</p>)}
     {plan.warnings.length > 0 && <details className="import-warnings"><summary>{n(plan.warnings.length)} {plan.warnings.length === 1 ? 'note' : 'notes'} about this export</summary><ul>{plan.warnings.map(w => <li key={w}>{w}</li>)}</ul></details>}
     {error && <p role="alert">{error}</p>}

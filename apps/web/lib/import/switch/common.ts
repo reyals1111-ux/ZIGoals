@@ -16,6 +16,8 @@ export type ReadContext = {zone: string; now: number; onProgress?: (done: number
 export const STOPPED = 'The import was stopped.';
 /** A real calendar day (`2026-02-30` and `0000-00-00` are not) between two days. Session X P2.4: a reader that only
  *  checked a day's shape let an impossible one through to the journal's own check, which refused the whole preview. */
+/** "1 day", "12 days" (Session X P2.1: summaries read "1 days"). */
+export const dayCount = (n: number): string => `${n.toLocaleString('en')} ${n === 1 ? 'day' : 'days'}`;
 export function realDay(text: string, from = '1900-01-01', to = '2199-12-31'): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || text < from || text > to) return false;
   const t = Date.parse(`${text}T00:00:00Z`);

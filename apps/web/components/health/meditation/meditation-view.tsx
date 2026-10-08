@@ -15,6 +15,7 @@ import {useMeditation} from './use-meditation';
 import {AmbientPlayer} from '../../audio/ambient-player';
 import '../sleep/sleep.css';
 import './meditation.css';
+import {sourceName} from '../../../lib/health-sources';
 
 const KIND_WORDS: Record<Session['kind'], string> = {timer: 'Sitting', breathing: 'Breathing', manual: 'Mindful minutes', import: 'Imported'};
 const sessionLine = (s: Session) => {
@@ -72,7 +73,7 @@ export default function MeditationView() {
       <h2 id="meditation-recent-title">Recent sessions</h2>
       {recent.length ? <ul className="sleep-nights">{recent.map(s => <li key={s.id}>
         {editing === s.id ? <ManualForm store={store} session={s} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{KIND_WORDS[s.kind]} · {sessionDay(s)}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {s.source}</span>}</div>
+          <div><strong>{KIND_WORDS[s.kind]} · {sessionDay(s)}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {sourceName(s.source)}</span>}</div>
           <div className="actions">
             {s.kind === 'manual' && <button type="button" className="secondary" onClick={() => setEditing(s.id)} aria-label={`Edit the session of ${sessionDay(s)} at ${wallClock(Date.parse(s.startedAt), s.timeZone).clock}`}>Edit</button>}
             {confirm === s.id ? <><button type="button" className="secondary" onClick={() => void remove(s.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>

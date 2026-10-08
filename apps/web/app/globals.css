@@ -683,6 +683,10 @@ main {
   background: var(--panel);
   padding: 34px;
 }
+/* Session X P2.1: the step takes focus when it changes (a reading position, not a control): no ring of its own. */
+.wizard-content:focus {
+  outline: none;
+}
 .wizard-content h2 {
   font-size: 29px;
 }

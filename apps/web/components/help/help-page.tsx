@@ -170,6 +170,7 @@ export function HelpPage() {
         <li><strong>Devices and apps:</strong> Bluetooth works in Chrome and Edge, not on iPhone; Oura, Withings, Polar and Strava say &ldquo;Needs setup by ZIGoals&rdquo; until ZIGoals registers with them; Apple Health has no web access, so use its export; Fitbit&rsquo;s web access is turned off on 30 October 2026, so use Google Takeout.</li>
         <li><strong>Spotify</strong> needs Premium, and only accounts the owner lists can connect while Spotify keeps ZIGoals in development mode.</li>
         <li><strong>Older copies of ZIGoals</strong> can&rsquo;t read what this one saves for sleep, meditation, your pages or links: they say so, keep it and change nothing.</li>
+        <li><strong>Goals count in US dollars or euros.</strong> Accounts and assets keep any currency, each on its own; nothing is converted, so a holding in another currency doesn&rsquo;t count toward a Goal.</li>
         <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
       </ul>
       <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>

@@ -378,6 +378,14 @@ function useGoalState() {
   }
   async function connect() {
     if (isShowcase()) { setError("Exit Showcase before connecting a wallet."); return; }
+    // Session X P2.1: without the extension nothing switches; the Local demo and its records stay as they were.
+    if (!window.keplr) {
+      setWalletState("UNAVAILABLE");
+      setError(
+        "Install the Keplr browser extension, then reconnect. Local demo works without a wallet.",
+      );
+      return;
+    }
     revision.current++;
     const current = revision.current;
     setMode("testnet");
@@ -390,13 +398,6 @@ function useGoalState() {
     setError("");
     setMessage("");
     setWalletState("CONNECTING");
-    if (!window.keplr) {
-      setWalletState("UNAVAILABLE");
-      setError(
-        "Install the Keplr browser extension, then reconnect. Local demo works without a wallet.",
-      );
-      return;
-    }
     try {
       const address = await connectKeplr(
         window.keplr,

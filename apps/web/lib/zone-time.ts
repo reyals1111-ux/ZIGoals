@@ -11,6 +11,11 @@ function formatter(zone: string): Intl.DateTimeFormat {
 const pad = (n: number) => String(n).padStart(2, '0');
 export type WallClock = {date: string; clock: string; minutes: number; weekday: number};
 /** The date ("YYYY-MM-DD"), clock ("HH:MM"), minutes since midnight and weekday (0 = Sunday) of an instant in a zone. */
+/** A zone as people read it: IANA's fixed "Etc/GMT+4" is four hours behind UTC, so it reads "UTC−04:00" (Session X P2.1). */
+export function zoneLabel(zone: string): string {
+  const fixed = /^Etc\/GMT([+-])(\d{1,2})$/.exec(zone);
+  return fixed ? `UTC${fixed[1] === '+' ? '−' : '+'}${fixed[2]!.padStart(2, '0')}:00` : zone;
+}
 export function wallClock(ms: number, zone: string): WallClock {
   const parts = formatter(zone).formatToParts(new Date(ms)), get = (type: string) => parts.find(p => p.type === type)?.value ?? '';
   const hour = Number(get('hour')) % 24, minute = Number(get('minute'));

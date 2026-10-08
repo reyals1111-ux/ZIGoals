@@ -349,7 +349,7 @@ function WeightView({ data, date, choice, perform, invalid, onDate }: { data: He
 
 function WeightChart({ data, date }: { data: HealthData; date: string }) {
   const { readings } = weightTrend(data, date);
-  return <EvidenceChart label="Recorded body weight" decimals={3} currency="kg" series={[{ label: "Manual readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: String(w.grams), dateOnly: true })) }]} />;
+  return <EvidenceChart label="Recorded body weight" decimals={3} currency="kg" series={[{ label: "Your readings", color: "#8ad7e6", points: readings.map(w => ({ at: w.date, value: String(w.grams), dateOnly: true })) }]} />;
 }
 
 function ActivityView({ data, date, choice, perform, invalid }: { data: HealthData; date: string; choice: number; perform: Perform; invalid: (cause?: unknown) => void }) {

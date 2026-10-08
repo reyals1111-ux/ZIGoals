@@ -74,7 +74,16 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const window = useMemo(() => reviewWindow(review.data.weekday, today), [review.data.weekday, today]);
   const summary = useCallback(() => weekSummary({...window, habits, health, platform, localGoals, metadata, quotes, now, financial, review: review.data}), [window, habits, health, platform, localGoals, metadata, quotes, now, financial, review.data]);
   // The Guide (ADR-011): one nudge a day from what Today already loaded, and the review's summary paragraph, only while it is on.
-  const guideOn = guide.loaded && !guide.unreadable && guide.data.enabled, reviewOpen = review.loaded && !review.unreadable ? reviewState(review.data, window.weekStart) : 'done';
+  // Session X P2.1 (first week): a week that ended before the person began (nothing recorded in it, no habit due in it,
+  // no Goal made by its end) is not offered for review: a new person was asked what went well in the week before they
+  // started. Any later week is offered as before, and a draft always comes back.
+  const weekBegun = useMemo(() => {
+    if (!review.loaded || review.unreadable) return false;
+    const s = summary(), w = s.wentWell;
+    return w.habitCheckIns + w.healthEntries + w.goalContributions > 0 || s.habits.some(h => h.scheduled > 0) || platform.goals.some(g => g.createdAt.slice(0, 10) <= window.weekEnd);
+  }, [review.loaded, review.unreadable, summary, platform.goals, window.weekEnd]);
+  const reviewOpen = review.loaded && !review.unreadable ? ((state: ReturnType<typeof reviewState>) => state === 'due' && !weekBegun ? 'done' as const : state)(reviewState(review.data, window.weekStart)) : 'done';
+  const guideOn = guide.loaded && !guide.unreadable && guide.data.enabled;
   const nudge = useMemo(() => {
     if (!guideOn || !reminders.loaded) return null;
     const clock = new Date(now);
@@ -84,7 +93,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const cards: ForYouCard[] = [];
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <WhatsNewCard onDismiss={dismissNew} />});
-  if (review.loaded && !review.unreadable) { const state = reviewState(review.data, window.weekStart); if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
+  if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});

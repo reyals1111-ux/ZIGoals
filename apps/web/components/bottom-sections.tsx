@@ -14,7 +14,7 @@ import type {GoalSummary} from '../lib/goal-summary';
 import './bottom-sections.css';
 import {NebulaFlow} from './nebula-flow';
 import {GlassSegments} from './progress/glass-progress';
-import { formatNumber } from '../lib/visual-format';
+import { formatNumber, progressPresentation } from '../lib/visual-format';
 import {healthGroupIn} from '../lib/vault/w-homes';
 
 const dayLabel=(date:string)=>{const d=new Date(`${date}T12:00:00Z`);return {weekday:WEEKDAYS[(d.getUTCDay()+6)%7]!,day:d.getUTCDate()};};
@@ -43,7 +43,8 @@ export function TodayWeek({today,habits,health,platform,financial,...layout}:Lay
 }
 
 /** "45% funded"; a lower bound or an unknown value says so (QA-37/38, Session I, Part 10). */
-const fundedPill=(pct:string,bound?:GoalSummary['progressBound'])=>bound==='unavailable'?'Progress unavailable':`${bound==='at-least'?'At least ':''}${formatNumber(Number(pct), {maximumFractionDigits:1})}% funded`;
+// Session X P2.1: the same figure as the goal's ring (one Goal read 42%, 41.7% and 41.66% in three places).
+const fundedPill=(pct:string,bound?:GoalSummary['progressBound'])=>{const shown=progressPresentation(pct);return bound==='unavailable'||!shown?'Progress unavailable':`${bound==='at-least'?'At least ':''}${formatNumber(Number(shown.label))}% funded`;};
 /** Goals: saved target dates on one timeline. */
 export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readonly GoalSummary[];today:string}){
  const t=goalTimeline(goals,today);
@@ -73,7 +74,7 @@ export function HealthTrends({health,today,...layout}:LayoutAttrs&{health:Health
  // the rows appear only when the week has any.
  const vitals=useMemo(()=>{const byDay=new Map<string,{restingHr?:number;activeKcal?:number;updatedAt:string}>();for(const d of healthGroupIn(health,'vitals')?.days??[]){const seen=byDay.get(d.date);if(!seen||d.updatedAt>seen.updatedAt)byDay.set(d.date,d);}return byDay;},[health]);
  const restingRow=week.map(d=>[d.date,vitals.get(d.date)?.restingHr??null,false] as [string,number|null,boolean]),activeRow=week.map(d=>[d.date,vitals.get(d.date)?.activeKcal??null,false] as [string,number|null,boolean]);
- const row=(label:string,tone:string,values:[string,number|null,boolean][])=><div className="bottom-row" data-tone={tone} role="group" aria-label={`${label}, last 7 days`}><h3><i aria-hidden="true"/>{label}</h3><ul>{values.map(([date,value,partial])=>{const l=dayLabel(date);return <li key={date} data-today={date===today||undefined}><small>{l.weekday} {l.day}</small>{value===null?<strong className="bottom-none"><span aria-hidden="true">{partial?'…':'—'}</span><span className="sr-only">{partial?'Incomplete calorie data':'No entry'}</span></strong>:<strong>{formatNumber(value)}</strong>}</li>;})}</ul></div>;
+ const row=(label:string,tone:string,values:[string,number|null,boolean][])=><div className="bottom-row" data-tone={tone} role="group" aria-label={`${label}, last 7 days`}><h3><i aria-hidden="true"/>{label}</h3><ul>{values.map(([date,value,partial])=>{const l=dayLabel(date);return <li key={date} data-today={date===today||undefined}><small>{l.weekday} {l.day}</small>{value===null?<strong className="bottom-none"><span aria-hidden="true">{partial?'…':'—'}</span><span className="sr-only">{partial?'Incomplete calorie data':'No entry'}</span></strong>:<strong>{formatNumber(value,{maximumFractionDigits:0})}</strong>}</li>;})}</ul></div>;
  return <Shell layout={layout} id="bottom-health-trends" eyebrow="SEVEN DAYS OF CARE" title={<>Your week, gently tracked.</>} lede="Calories, water and quick counters you logged. A dash means no entry, not zero.">
   <div className="bottom-rows">
    {row('Calories · kcal','health',week.map(d=>[d.date,d.kcal,d.kcalPartial]))}

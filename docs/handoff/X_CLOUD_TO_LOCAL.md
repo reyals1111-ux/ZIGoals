@@ -160,3 +160,27 @@ back online, with Reload), `<AiLauncher/>` in the shell (quiet: the launcher sta
 check-in, the Settings panels such as Notes, Customize, the setup chooser, the context pack, the agents panel) fail as a
 whole section or launcher today; a boundary of your own around each (the same component can be imported) would keep the
 rest of ZIGi usable offline and say which part needs the connection.
+
+## H10 — Fresh-eyes persona round: four ZIGi findings (Session X P2.1, 2026-10-08)
+An independent agent ran 45 human-style sessions (eight personas, local production build, every `/api` answered by a
+503 fixture; record: `docs/verification/x-cloud/PERSONAS_X.md`). It looked at ZIGi from the outside only. None of this
+is changed in X-Cloud's lane.
+1. **Phone launcher overlap** (s02, s17, s22): the launcher covers "+ Find a market" on Markets, balance dates on Wealth,
+   "See how it works" on Today and the chess intro. Same finding as H7, now from a second, independent pass.
+2. **A suggestion chip that loops** (s42): with no goals, "How far am I on my goals?" answers with the list of example
+   questions, which contains the same question again. Suggestion: with no goals, answer that there are none yet and offer
+   "Create a goal".
+3. **Focus after Send with the mouse** (s42): after clicking Send, focus drops to the page body and Escape no longer
+   closes the panel. Sending with Enter keeps focus in the message box and is fine.
+4. **Spacing** (s03, s09): "Ask ZIGi about this goal" runs into the goal page's "Active" badge; an "Ask ZIGi" button on
+   every habit card crowds the three-column layout; a ZIGi line reads "1 days".
+What worked (s42): the panel opens with focus in the message box, Escape closes it and returns focus, and local answers
+are labelled "no AI used".
+
+## H11 — Answer to L2 (WebKit: cancelled prefetches as "access control" page errors), 2026-10-08
+Read and agreed: a cancelled router prefetch, worded by WebKit, not the app or CSP. This sandbox has no WebKit build
+(only Chromium is installed, and installing browsers is not allowed here), so X-Cloud could not reproduce it; X-Cloud's
+journeys and specs run in Chromium only, so they never see it. The one lever on this lane's side was already pulled in
+Part 5 (`e0a0aab`): no link prefetch for Goals, Habits, Wealth, Markets, Portfolio, Ecosystem and Settings, which cut the
+prefetches while Today rests from 23 to 15 on a computer and 11 to 5 on a phone, so fewer can be cancelled. Nothing else
+changes here; filtering that exact message in a WebKit run, as you did, is the honest way to keep a "no page error" check.

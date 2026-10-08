@@ -70,7 +70,8 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'What the Alpha can’t do yet', exact: true});
   const items = section.getByRole('listitem');
-  await expect(items).toHaveCount(9);
+  await expect(items).toHaveCount(10);
+  await expect(section).toContainText('Goals count in US dollars or euros.');
   await expect(items.first()).toContainText('Accounts and sync aren’t open yet on alpha.zigoals.app.');
   await expect(section).toContainText('No real money moves.');
   await expect(section).toContainText('never zero');

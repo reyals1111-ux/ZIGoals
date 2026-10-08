@@ -3,7 +3,7 @@ import {useUnsavedChanges} from './use-unsaved-changes';
 import {createAllocatedGoal} from '../lib/wealth';
 import {AssetPicker} from './platform/asset-picker';
 import {saveAsset} from '../lib/asset-management';
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {amountInputPreview,parseAmountInput} from '../lib/amount-input';
@@ -32,6 +32,9 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  const store=usePlatform(),legacy=useGoals(),habits=useHabits(),router=useRouter();
  const [goalAssetPosition,setGoalAssetPosition]=useState(positionId??'');
  const source=store.data.positions.find(p=>p.id===goalAssetPosition);
+ // Session X P2.1 (keyboard and screen reader): a new step takes focus, so it is announced and Tab starts from it; the
+ // button that changed the step may no longer exist.
+ const stepContent=useRef<HTMLDivElement>(null),shownStep=useRef(0);
  const [step,setStep]=useState(0),[name,setName]=useState(''),[type,setType]=useState<PrivateGoal['type']>('QUANTITY');
  const [assetInput,setAsset]=useState(''),[networkInput,setNetwork]=useState(''),[target,setTarget]=useState(''),[date,setDate]=useState(''),[notes,setNotes]=useState(''),[milestones,setMilestones]=useState('');
  const [category,setCategory]=useState<GoalMetadata['category']>('Emergency Fund'),[funding,setFunding]=useState<Funding>('wealth');
@@ -47,6 +50,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  function changeType(next:PrivateGoal['type']){setType(next);setGoalAssetPosition('');setPendingType(null);setTarget('');setAsset('');setAllocation('none');setIncluded({});setQuantity('');setSelected('');setWithPlan(false);setPlanAmount('');setPrice('');setWithHabit(false);setMilestones('');setFunding(next==='PROJECT'?'project':'wealth');setError('');}
  function requestType(next:PrivateGoal['type']){if(next===type){setPendingType(null);return;}if(target||milestones||withPlan||Object.keys(included).length||allocation!=='none')setPendingType(next);else changeType(next);}
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);const [savedId,setSavedId]=useState(''),[savedOffline,setSavedOffline]=useState(false);const habitId=useRef('');
+ useEffect(()=>{if(shownStep.current===step)return;shownStep.current=step;stepContent.current?.focus();},[step]);
  const releaseDraft=useUnsavedChanges(!savedId&&!!(name||target||notes||date||milestones||assetInput||withPlan||planAmount||Object.keys(included).length||type!=='QUANTITY'||category!=='Emergency Fund'));
  const asset=assetInput||(type==='VALUE'?'USD':source?.asset??'ZIG');
  const network=(networkInput||(source?.network==='zig-test-2'?'zig-test-2':'zigchain-1')) as PrivateGoal['network'];
@@ -96,7 +100,8 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
   if(!name.trim())throw Error('Give your Goal a name.');
   if(!hasVisibleText(name))throw Error('Give your Goal a name with at least one visible character.');
   if(date&&date<localDate())throw Error('Choose today or a future target date.');
-  if(isProject){if(!milestones.trim())throw Error('Add at least one milestone.');}else if(BigInt(parseAmountInput(target,precision))<=0n)throw Error('Enter a positive target.');
+  // Session X P2.1: an empty target read "Enter a non-negative decimal amount."; it says what is missing.
+  if(isProject){if(!milestones.trim())throw Error('Add at least one milestone.');}else if(!target.trim())throw Error('Enter your target.');else if(BigInt(parseAmountInput(target,precision))<=0n)throw Error('Enter a positive target.');
  }
  function next(){try{
   if(step===0)validatePurpose();
@@ -122,7 +127,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  return <section className="wizard wizard-v2 unified-wizard">
  <ol className="steps" aria-label="Goal creation progress">{['Purpose','Optional sources','Optional Habit','Review'].map((label,i)=><li key={label} aria-current={step===i?'step':undefined}><span>{i+1}</span>{label}</li>)}</ol>
  <div className="wizard-story" aria-hidden="true"><SceneArt scene={category==='Travel'?'mountains':category==='First Home'?'home':'horizon'}/><div><small>YOUR NEXT CHAPTER</small><strong>{name||'It starts with a destination.'}</strong><span>One clear plan. A little progress, often.</span></div></div>
- <div className="wizard-content"><p className="eyebrow">Step {step+1} of 4</p>
+ <div className="wizard-content" ref={stepContent} tabIndex={-1}><p className="eyebrow">Step {step+1} of 4</p>
  {step===0&&<><h2>What are you working toward?</h2><div className="form-grid">
  <fieldset className="goal-ideas span-two"><legend>Start from an idea (optional)</legend><div className="goal-ideas-list">{GOAL_IDEAS.map(idea=><button type="button" key={idea.id} className="quiet goal-idea" aria-label={`Start from the idea: ${idea.label}`} onClick={()=>{if(type!==idea.type)changeType(idea.type);setName(idea.name);setCategory(idea.category);if(idea.milestones)setMilestones(idea.milestones.join('\n'));setError('');}}><strong>{idea.label}</strong><small>{idea.note}</small></button>)}<Link className="quiet goal-idea" href="/app/goals#goals-health"><strong>A weight goal</strong><small>Lives with your Health goals: a weight you choose, from your Health journal.</small></Link></div></fieldset>
  <label className="span-two">Goal name<input value={name} onChange={e=>setName(e.target.value)} maxLength={80} required/></label>

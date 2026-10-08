@@ -3,7 +3,7 @@ import {timeZoneSchema} from '../../time-zone-schema';
 import type {SleepNight} from '../../sleep/schema';
 import type {MeditationSession} from '../../meditation/schema';
 import {emptyItems, type ImportPlan} from './apply';
-import {buildNight, buildSession, buildVital, checkStop, DayTotals, HeartDays, LastOfDay, localDay, parseStamp, planOf, Skipped, stepsLine, weightLine, workoutLine, type ReadContext} from './common';
+import {buildNight, buildSession, buildVital, checkStop, DayTotals, HeartDays, LastOfDay, localDay, parseStamp, planOf, Skipped, stepsLine, weightLine, workoutLine, type ReadContext, dayCount} from './common';
 import {progressCounter, textStream, type ImportFile} from './source';
 
 /**
@@ -94,12 +94,12 @@ export async function readApple(file: ImportFile, ctx: ReadContext): Promise<Imp
     if (vital) items.vitals.push(vital);
   }
   const summarised: string[] = [];
-  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${heartDays.size.toLocaleString('en')} days), not every reading.`);
+  if (heartDays.size) summarised.push(`Heart rate: each day's lowest, average and highest (${dayCount(heartDays.size)}), not every reading.`);
   if (nights.staged) summarised.push('Sleep stages: the minutes of each stage per night, not every change of stage.');
-  if (stepDays.multiSource || activeDays.multiSource) summarised.push(`Steps and energy: one total a day from the source that counted the most (${Math.max(stepDays.multiSource, activeDays.multiSource).toLocaleString('en')} days had more than one, such as a phone and a watch), never the two added together.`);
+  if (stepDays.multiSource || activeDays.multiSource) summarised.push(`Steps and energy: one total a day from the source that counted the most (${dayCount(Math.max(stepDays.multiSource, activeDays.multiSource))} had more than one, such as a phone and a watch), never the two added together.`);
   const warnings = skipped.lines();
   const other = [...notRead].sort((a, b) => b[1] - a[1]);
-  if (other.length) warnings.push(`${other.reduce((t, [, n]) => t + n, 0).toLocaleString('en')} records of ${other.length} other kinds are not kept (for example ${other.slice(0, 3).map(([t]) => t.replace(/^HK(Quantity|Category)TypeIdentifier/, '')).join(', ')}).`);
+  if (other.length) { const total = other.reduce((t, [, n]) => t + n, 0); warnings.push(`${total.toLocaleString('en')} ${total === 1 ? 'record' : 'records'} of ${other.length} other ${other.length === 1 ? 'kind is' : 'kinds are'} not kept (for example ${other.slice(0, 3).map(([t]) => t.replace(/^HK(Quantity|Category)TypeIdentifier/, '')).join(', ')}).`); }
   return planOf('apple-health', APPLE_LABEL, items, summarised, warnings);
 }
 

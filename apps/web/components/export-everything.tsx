@@ -34,7 +34,7 @@ export function ExportEverything() {
   return <section className="panel export-everything" id="export-everything" aria-labelledby="export-everything-title">
     <p className="eyebrow">OPTIONAL</p>
     <h2 id="export-everything-title">Everything you’ve saved, in one file.</h2>
-    <p>You never need this: sync and the encrypted backup keep your records. If you’d like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth).</p>
+    <p>This is optional: the encrypted backup, and account sync where it is on, keep your records. If you’d like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth).</p>
     <label className="export-everything-agree"><input type="checkbox" checked={agreed} onChange={event => setAgreed(event.target.checked)} /><span>I understand this file is readable and holds my personal records, including Health.</span></label>
     <div className="actions"><button className="primary" type="button" disabled={!agreed || busy} onClick={() => void run()}>{busy ? 'Making your export…' : 'Export everything'}</button></div>
     {status && <p role="status">{status}</p>}
