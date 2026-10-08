@@ -18,7 +18,8 @@ export default defineConfig({
     timezoneId: "Europe/Brussels",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    launchOptions: live ? { slowMo: 250 } : undefined,
+    // Live: through the environment's HTTPS proxy when one is set (a sandbox that reaches the internet only that way).
+    launchOptions: live ? { slowMo: 250, ...(process.env.HTTPS_PROXY ? { proxy: { server: process.env.HTTPS_PROXY } } : {}) } : undefined,
   },
   projects: [
     { name: "D", use: { ...devices["Desktop Chrome"], channel: "chrome", viewport: { width: 1440, height: 900 } } },

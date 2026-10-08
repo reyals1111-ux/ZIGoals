@@ -329,10 +329,10 @@ journey('J094', 'Foods & recipes: two foods, a recipe from both, then the recipe
   const recipe = page.getByRole('form', {name: 'Recipe details'});
   await recipe.getByLabel('Recipe name').fill('Fictional overnight oats');
   await recipe.getByLabel('Recipe makes (servings)').fill('2');
-  await recipe.getByLabel('Ingredient 1', {exact: true}).selectOption({label: 'Fictional rolled oats'});
+  await recipe.getByRole('combobox', {name: 'Ingredient 1', exact: true}).selectOption({label: 'Fictional rolled oats'});
   await recipe.getByLabel('Ingredient servings 1').fill('2');
   await recipe.getByRole('button', {name: 'Add ingredient', exact: true}).click();
-  await recipe.getByLabel('Ingredient 2', {exact: true}).selectOption({label: 'Fictional plain yoghurt'});
+  await recipe.getByRole('combobox', {name: 'Ingredient 2', exact: true}).selectOption({label: 'Fictional plain yoghurt'});
   await recipe.getByLabel('Ingredient servings 2').fill('1');
   // (2 × 150 + 1 × 100) kcal shared by 2 servings.
   await expect(recipe.locator('.health-preview strong')).toHaveText('200 kcal per serving');
@@ -773,7 +773,7 @@ journey('J118', 'focus sounds: a 15-minute timer ends the sound on time; "Stop w
   await expect(sounds.getByRole('button', {name: 'Rain-like', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await sounds.getByRole('combobox', {name: /^Stop after/}).selectOption('15');
   await sounds.getByRole('button', {name: 'Play', exact: true}).click();
-  await expect(status).toHaveText('Playing Rain-like · stops at 09:15');
+  await expect(status).toHaveText('Playing Rain-like · stops at 9:15 AM'); // en-US: the clock follows the browser's locale (Session X P2.5).
   // The fade runs on the audio clock (not observable here); at the timer's end the player says Off and offers Play.
   await page.clock.fastForward('15:01');
   await expect(status).toHaveText('Off');

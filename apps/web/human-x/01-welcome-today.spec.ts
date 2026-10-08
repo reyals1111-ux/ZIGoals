@@ -259,6 +259,8 @@ journey('J016', 'the weekly review on its day: steps with my own numbers, an int
   await page.getByRole('article', {name: 'Fictional stretch', exact: true}).getByRole('button', {name: 'Complete Fictional stretch', exact: true}).click();
   await open(page, '/app/settings');
   await reviewDay(page).selectOption({label: 'Tuesday'});
+  // The day is written to settings v2, which takes a moment; a person never leaves within milliseconds, the script waits.
+  await expect(reviewDay(page)).toHaveValue('2');
   await open(page, '/app');
   await forYou(page);
   const card = page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
@@ -381,6 +383,8 @@ journey('J017', 'the weekly review skipped with one tap; Today stays calm', {vie
   await habit(j, 'Fictional skip check');
   await open(page, '/app/settings');
   await reviewDay(page).selectOption({label: 'Tuesday'});
+  // The day is written to settings v2, which takes a moment; a person never leaves within milliseconds, the script waits.
+  await expect(reviewDay(page)).toHaveValue('2');
   await open(page, '/app');
   await forYou(page);
   const card = page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
