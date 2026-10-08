@@ -48,4 +48,14 @@ test('Phase 2: field checks read the parsed card (a day, a unit, a currency, a t
   const none = score({fields: [{day: 'today'}]}, {text: 'No card here.', calls: []});
   expect(none.checks.find(c => c.name.startsWith('fields:'))?.detail).toBe('no card');
 });
+test('Phase 2 (S61): a turn the device answered carries no model tool call, so its tool expectation passes with the reason; a turn a model answered still needs the call', () => {
+  const expect_ = {localFirst: true, tools: ['milestones'], toolsAny: ['sleep_nights', 'sleep_summary']};
+  const device = score(expect_, {text: 'Your milestones: 2 of 4 done.', calls: [], local: {answered: true}});
+  expect(device.checks.find(c => c.name === 'tool:milestones')).toMatchObject({pass: true, detail: 'answered on the device: no model ran'});
+  expect(device.checks.find(c => c.name === 'tool-any:sleep_nights|sleep_summary')).toMatchObject({pass: true});
+  expect(device.pass).toBe(true);
+  const model = score({tools: ['milestones']}, {text: 'Two of four done.', calls: [], local: {answered: false}});
+  expect(model.checks.find(c => c.name === 'tool:milestones')).toMatchObject({pass: false, detail: 'called []'});
+  expect(model.pass).toBe(false);
+});
 

@@ -207,13 +207,17 @@ raw files are on `review/session-x-local-runs` under `real-model/phase2/`, one s
 
 ### The baseline (frozen `f7d9fe6`, 626 cases, 773 turns, tools mode, thought off)
 
-| Model | Host | Passed | Rate | First token (median ms) | Total (median ms) | Most-missed checks | Minutes |
-|---|---|---:|---:|---:|---:|---|---:|
-| `gemma4:12b` | RTX 5090 | 564 / 773 | 73.0 % | 609 | 1528 | tool 81, cards 81, schema 42, fields 30, never 9 | 22 |
-| `qwen3.8:27b` | RTX 5090 | 544 / 773 | 70.4 % | 535 | 2112 | cards 125, tool 59, schema 35, fields 34, never 10 | 33 |
-| `qwen3.6:35b-a3b` | RTX 5090 | 513 / 773 | 66.4 % | 190 | 642 | tool 106, cards 103, schema 45, fields 34, tool-any 16 | 12 |
-| `phi4-mini:3.8b` | RTX 5090 | 322 / 773 | 41.7 % | 215 | 426 | cards 241, schema 143, tool 120, fields 76, refusal 26 | 6 |
-| `qwen3.6:35b-a3b` | Mac M1 Max | _running_ | | | | | |
+Two rates per run: **raw**, as the harness scored it that night, and **corrected** under ADR-017 S61 (a turn the device
+answered carries no model tool call, so its tool expectation is moot: the same 32 turns on every model and run). Every run
+after the baseline is scored with the corrected rule directly.
+
+| Model | Host | Passed (raw) | Raw | Corrected (S61) | First token (median ms) | Total (median ms) | Most-missed checks (raw) | Minutes |
+|---|---|---:|---:|---:|---:|---:|---|---:|
+| `gemma4:12b` | RTX 5090 | 564 / 773 | 73.0 % | 596 / 773 · 77.1 % | 609 | 1528 | tool 81, cards 81, schema 42, fields 30, never 9 | 22 |
+| `qwen3.8:27b` | RTX 5090 | 544 / 773 | 70.4 % | 576 / 773 · 74.5 % | 535 | 2112 | cards 125, tool 59, schema 35, fields 34, never 10 | 33 |
+| `qwen3.6:35b-a3b` | RTX 5090 | 513 / 773 | 66.4 % | 545 / 773 · 70.5 % | 190 | 642 | tool 106, cards 103, schema 45, fields 34, tool-any 16 | 12 |
+| `phi4-mini:3.8b` | RTX 5090 | 322 / 773 | 41.7 % | 354 / 773 · 45.8 % | 215 | 426 | cards 241, schema 143, tool 120, fields 76, refusal 26 | 6 |
+| `qwen3.6:35b-a3b` | Mac M1 Max | 505 / 773 | 65.3 % | 537 / 773 · 69.5 % | 2119 | 5345 | tool 106, cards 106, schema 54, fields 30, tool-any 18 | 99 |
 
 By kind (passed / cases) on the baseline — the lookups are the weakest family on every model (gemma4 63/120, qwen3.8 74/120,
 qwen3.6 41/120, phi4-mini 30/120), then the briefs (12, 20, 9, 9 of 29); refusals, privacy and injection are near the ceiling

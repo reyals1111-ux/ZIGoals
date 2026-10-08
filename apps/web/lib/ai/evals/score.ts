@@ -39,8 +39,12 @@ export function score(expect: Expect, observed: Observed): Score {
     checks.push({name: 'cards', pass: (expect.minCards === undefined || kinds.length >= expect.minCards) && (expect.maxCards === undefined || kinds.length <= expect.maxCards), detail: `got ${kinds.length}`});
   }
   checks.push({name: 'schema', pass: parsed.rejected.length === 0, detail: parsed.rejected.map(r => r.reason).join('; ') || 'every block valid'});
-  if (expect.tools) for (const tool of expect.tools) checks.push({name: `tool:${tool}`, pass: observed.calls.some(c => c.name === tool), detail: `called [${observed.calls.map(c => c.name).join(', ')}]`});
-  if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: observed.calls.some(c => expect.toolsAny!.includes(c.name)), detail: `called [${observed.calls.map(c => c.name).join(', ')}]`});
+  // Phase 2 P2.3 (ADR-017 S61): a question the device answered never reached a model, so no tool call can exist; the
+  // expected reads are the device's own (the same engine, golden-tested). Scoring them as misses cost every model the
+  // same 32 turns per run. They pass here with the reason on record.
+  const device = observed.local?.answered === true;
+  if (expect.tools) for (const tool of expect.tools) checks.push({name: `tool:${tool}`, pass: device || observed.calls.some(c => c.name === tool), detail: device ? 'answered on the device: no model ran' : `called [${observed.calls.map(c => c.name).join(', ')}]`});
+  if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: device || observed.calls.some(c => expect.toolsAny!.includes(c.name)), detail: device ? 'answered on the device: no model ran' : `called [${observed.calls.map(c => c.name).join(', ')}]`});
   if (expect.toolsNot) for (const tool of expect.toolsNot) checks.push({name: `tool-not:${tool}`, pass: !observed.calls.some(c => c.name === tool)});
   if (observed.calls.length) checks.push({name: 'arguments', pass: observed.calls.every(c => c.accepted), detail: observed.calls.filter(c => !c.accepted).map(c => c.name).join(', ') || 'every call accepted'});
   for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: text.toLowerCase().includes(words.toLowerCase())});
