@@ -4,17 +4,14 @@ import {PageHeader} from '../page-header';
 import {InstallGuide} from './install-guide';
 import {KeepData} from './keep-data';
 import {HelpQuestion} from './help-question';
+import {SendFeedback} from './send-feedback';
 import './help.css';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 
-/** Owner decision L1: feedback goes to contact@zigoals.app; security reports keep SECURITY.md's address. */
-const FEEDBACK_ADDRESS = 'contact@zigoals.app', SECURITY_ADDRESS = 'hello@zigoals.app';
-const version = [process.env.NEXT_PUBLIC_APP_VERSION, process.env.NEXT_PUBLIC_APP_COMMIT?.slice(0, 7)].filter(v => v && v !== 'Unknown').join(' · ') || 'unknown';
-const feedbackHref = `mailto:${FEEDBACK_ADDRESS}?subject=${encodeURIComponent('ZIGoals Alpha feedback')}&body=${encodeURIComponent(`What happened:\n\nWhat you expected:\n\nDevice and browser:\n\nApp version: ${version}\n\n(Please leave out codes, your recovery secret, and personal money or health details.)`)}`;
 
 const TOPICS: [id: string, label: string][] = [
   ['getting-started', 'Getting started'], ['data-and-sync', 'Your data and sync'], ['recovery-secret', 'Your recovery secret'],
-  ['install', 'Install on iPhone'], ['backups', 'Optional backups'], ['your-ai', 'ZIGi · your AI'], ['questions', 'Questions'], ['whole-life', 'New: your whole life'], ['whats-new-alpha', 'What\'s new'], ['feedback', 'Send feedback'],
+  ['install', 'Install on iPhone'], ['backups', 'Optional backups'], ['your-ai', 'ZIGi · your AI'], ['questions', 'Questions'], ['whole-life', 'New: your whole life'], ['whats-new-alpha', 'What\'s new'], ['known-limitations', 'Known limitations'], ['feedback', 'Send feedback'],
 ];
 
 function Section({id, eyebrow, title, children}: {id: string; eyebrow: string; title: string; children: ReactNode}) {
@@ -162,10 +159,24 @@ export function HelpPage() {
       <HelpQuestion id="guide" question="What is the Guide, and what does it read?"><p>The Guide is a short note on Today, at most one a day, made from your own records on this device: an open habit in the evening, a streak at a round number, a goal&rsquo;s next date, your weekly review when it is ready. It is off until you turn it on in Settings &rarr; &ldquo;Guide on this device&rdquo;, and every note is labelled &ldquo;Guide &middot; on this device, no AI service&rdquo;: fixed rules, no model, no service, nothing sent anywhere. It never gives money or medical advice and never moves anything. &ldquo;Not today&rdquo; hides a note; the switch in Settings turns the Guide off again.</p></HelpQuestion>
     </Section>
 
+    {/* Session X Part 11: what the Alpha can't do yet, in plain words. Each line is checked against the code or an owner decision. */}
+    <Section id="known-limitations" eyebrow="KNOWN LIMITATIONS" title="What the Alpha can&rsquo;t do yet">
+      <ul className="help-list">
+        <li><strong>Accounts and sync aren&rsquo;t open yet</strong> on alpha.zigoals.app. Until they are, what you enter stays in the browser or installed app you use, and only there. On an iPhone, <a className="text-link" href="#install">install ZIGoals</a> first and tap &ldquo;Keep my data on this device&rdquo;; <Link className="text-link" href="/app/settings#export-everything">Export everything</Link> gives you your own copy any time.</li>
+        <li><strong>Reminders when ZIGoals is closed</strong> need an account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
+        <li><strong>No real money moves.</strong> Wealth, Portfolio and Staking show what you enter and public data; nothing is bought, sold, sent or staked from ZIGoals, and the test network&rsquo;s tokens have no value.</li>
+        <li><strong>Prices</strong> come from CoinGecko and can be missing for a while; a missing price stays &ldquo;unknown&rdquo;, never zero.</li>
+        <li><strong>ZIGi</strong> works with an AI you bring, or answers from your records on this device; the AI that ZIGoals would run for you isn&rsquo;t offered yet (<a className="text-link" href="#your-ai">ZIGi · your AI</a>).</li>
+        <li><strong>Devices and apps:</strong> Bluetooth works in Chrome and Edge, not on iPhone; Oura, Withings, Polar and Strava say &ldquo;Needs setup by ZIGoals&rdquo; until ZIGoals registers with them; Apple Health has no web access, so use its export; Fitbit&rsquo;s web access is turned off on 30 October 2026, so use Google Takeout.</li>
+        <li><strong>Spotify</strong> needs Premium, and only accounts the owner lists can connect while Spotify keeps ZIGoals in development mode.</li>
+        <li><strong>Older copies of ZIGoals</strong> can&rsquo;t read what this one saves for sleep, meditation, your pages or links: they say so, keep it and change nothing.</li>
+        <li><strong>English only</strong> for now; numbers follow your device&rsquo;s language settings.</li>
+      </ul>
+      <p className="fine">It&rsquo;s an Alpha: pages can change, and something may break. If it does, please <a className="text-link" href="#feedback">tell us</a>.</p>
+    </Section>
+
     <Section id="feedback" eyebrow="SEND FEEDBACK" title="Tell us what you think">
-      <p>Something confusing, broken or missing? We&rsquo;d love to hear it.</p>
-      <p><a className="primary help-mail" href={feedbackHref}>Email feedback to {FEEDBACK_ADDRESS}</a></p>
-      <p className="fine">Please leave out codes, your recovery secret, and personal money or health details. Found a security problem? Write privately to <a className="text-link" href={`mailto:${SECURITY_ADDRESS}`}>{SECURITY_ADDRESS}</a>.</p>
+      <SendFeedback/>
     </Section>
   </div>;
 }

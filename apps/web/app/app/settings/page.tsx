@@ -1,5 +1,6 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
+import { SendFeedback } from "../../../components/help/send-feedback";
 import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
 import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
@@ -177,6 +178,12 @@ export default function Settings() {
           balance={s.balance}
         />
         </details>
+        {/* Session X Part 11: the same feedback email as Help, where diagnostics live. */}
+        <section className="panel" id="send-feedback" aria-labelledby="send-feedback-title">
+          <p className="eyebrow">SEND FEEDBACK</p>
+          <h2 id="send-feedback-title">Tell us what you think</h2>
+          <SendFeedback />
+        </section>
         <section className="panel">
           <h2>About this alpha</h2>
           <dl className="metrics">

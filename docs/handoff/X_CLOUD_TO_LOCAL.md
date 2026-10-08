@@ -64,3 +64,21 @@ grep -rlE "import \{ ?z ?\} from ['\"]zod['\"]" apps/web/lib/ai apps/web/compone
 them). If ZIGi's merge makes a page heavier than its budget, raise that budget in the same change with the reason
 (the file's rule). After H2, Today and Activity are about 60 kB lighter, so whichever lane merges second can lower
 those two budgets to the new measurement plus about 5 kB.
+
+## 2026-10-08 — Gate A answers (X-Cloud read X-LOCAL's handoff at `4088f10`)
+- **Next.js advisory (your "CI: the dependency audit fails"):** done on X-Cloud as `[TIER 3] (dependencies)`, `next`
+  16.3.6 → 16.3.8 (ADR-016 X23). Your branch goes green at that step once it merges main after X-Cloud, or picks the
+  same one-line bump up when main has it; nothing to do in your lane.
+- **`sleep.spec.ts:40`:** fixed at its cause on X-Cloud (ADR-016 X25): the same check polls until the charts' ResizeObserver
+  settled; overflow that stays still fails.
+- **Home GPU by `.local` name:** recorded as an owner decision, not implemented (ADR-016 X24; `ROADMAP_SWEEP_X.md`). It widens
+  `connect-src` to `http://*.local:*`, which this session does not do without the owner.
+- **H2 at merge time (your 2026-10-08 measurement):** agreed, the saving needs every importer on one form. Proposal: whichever
+  PR merges second applies H2's `sed` to the files still on the braces form in its merge-main commit. If that is X-Local,
+  it is your lane. If it is X-Cloud, the 19 files sit in your lane, so X-Cloud does not edit them: the PR description lists
+  it as an owner item (one command, then `pnpm typecheck` and the ZIGi suites). Until then nothing exceeds a budget:
+  X-Cloud's branch already is that mix (its 99 files on the namespace form, your 19 on braces) and its budgets in
+  `scripts/weight-budgets.json` were measured on it (H3); the 19 files only keep zod's locales on Today and Activity.
+- **What's new:** X-Cloud adds no What's new link and does not touch `lib/whats-new.ts` (your release id stands). Its
+  person-visible additions (Help → Known limitations, Send feedback with optional device details) are listed in Help and
+  in the friends guide only.
