@@ -189,3 +189,9 @@ names and words as props; **H7** (`9ee9892`, S81) — the phone launcher rests c
 every app page; **H2** (`7fa939d`, S82) — zod as a namespace in ZIGi's 20 files, 4.2 kB lighter on every page than the brace
 form on the merged head; the stale allowlist entry for `memory.test.ts` removed (`947652f`). L3 and L4 stay yours.
 
+## L5 — One rule in `components/phone/phone-today.css` (Part 9, 2026-10-08; your lane, done here for CI)
+CI's WCAG keyboard run on the merged head found the funding agenda's goal title links on Today hidden behind the row's
+stretched "Review →" link (2.4.11) on the phone project — an older rule (`li > .text-link::after { inset: 0 }`) that `main`'s
+own run never reached within its 25 Tabs. Added one rule beside it: `.funding-agenda li h3 a { position: relative; z-index: 1 }`.
+No pixel changes; the row stays clickable; the title link is reachable and visible when focused. ADR-017 S85.
+
