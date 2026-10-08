@@ -16,7 +16,9 @@ export type ZigiEvent =
   | 'tool-call' | 'writing-proposal' | 'local-answer' | 'ambiguity' | 'not-understood' | 'streak-milestone' | 'careful' | 'encourage'
   | 'offline' | 'online' | 'reminder-due' | 'model-loading' | 'model-ready'
   // Session X-Local Part 4: a small success (an accepted card, a logged entry) and a surprise (an AI hint).
-  | 'success' | 'surprise';
+  | 'success' | 'surprise'
+  // Session X-Local Phase 2 (P2.5): ZIGi is on but not set up (no model chosen yet): attention at rest; set-up ends it.
+  | 'attention' | 'connected';
 type Listener = (event: ZigiEvent) => void;
 const listeners = new Set<Listener>(), early: ZigiEvent[] = [];
 export const zigiEvents = {

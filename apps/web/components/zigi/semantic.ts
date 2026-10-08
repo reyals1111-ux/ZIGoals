@@ -46,6 +46,10 @@ export const NUDGES: ReadonlySet<SemanticEventType> = new Set(['reminder_due']);
  * (Session X-Local Part 6c, found live): it answers the person's own act (a check-in, an added card, a local answer),
  * and an added card comes seconds after the reply that presented it, so a gap counted from that reply would swallow it. */
 const CONVERSATION: ReadonlySet<string> = new Set(['idle', 'listening', 'thinking', 'speaking', 'reading-your-data', 'writing-proposal', 'loading-model', 'offline', 'sleepy', 'greeting', 'wave-goodbye', 'peek', 'success']);
+/** The states in which ZIGi is talking or working on a reply; a held reaction at the reply's end rests them. */
+const TALKING: ReadonlySet<string> = new Set(['thinking', 'speaking', 'reading-your-data', 'writing-proposal', 'loading-model']);
+/** The signals that end a reply. */
+const REPLY_END: ReadonlySet<string> = new Set(['assistant_replied', 'assistant_replied_with_proposals', 'local_answer', 'ambiguity', 'not_understood', 'careful_topic', 'hint_insight', 'hint_curious', 'hint_encouraging', 'hint_empathetic', 'hint_surprised', 'hint_confused', 'assistant_error']);
 /** Host facts that no playing clip may hold back: the panel opened or closed, the device went offline, ZIGi rests or
  * dozes, and the person's own act succeeded (a check-in, an added card: the presenting clip yields to it at once). */
 const HOST_DRIVEN: ReadonlySet<string> = new Set(['greeting', 'wave-goodbye', 'offline', 'idle', 'sleepy', 'success']);
@@ -65,6 +69,8 @@ const EVENT_STATE: Readonly<Record<ZigiEvent, string>> = {
   open: 'greeting', close: 'wave-goodbye', 'reply-pending': 'thinking', 'reply-streaming': 'speaking', 'reply-done': 'insight', 'reply-with-proposals': 'presenting', 'action-applied': 'celebrate', error: 'error', listening: 'listening', speaking: 'speaking', idle: 'idle', sleepy: 'sleepy',
   'tool-call': 'reading-your-data', 'writing-proposal': 'writing-proposal', 'local-answer': 'success', ambiguity: 'curious', 'not-understood': 'confused', 'streak-milestone': 'proud', careful: 'empathetic', encourage: 'encouraging',
   offline: 'offline', online: 'idle', 'reminder-due': 'reminder', 'model-loading': 'loading-model', 'model-ready': 'idle', success: 'success', surprise: 'surprised',
+  // Phase 2 (P2.5): not connected yet asks for attention at rest; set up, ZIGi rests.
+  attention: 'attention', connected: 'idle',
 };
 type Rule = {code: string; priority: number; cooldownSeconds: number; interruptibility: 'anytime' | 'after_settle' | 'never'; sensitiveContextAllowed: boolean; markers: {name: string; frame: number; kind: string}[]};
 const RULES = rules.states as Record<string, Rule>;
@@ -152,12 +158,17 @@ export class ZigiController {
     if (this.#prefs.sensitive && !rule.sensitiveContextAllowed) return this.#result(this.#current, 'sensitive_screen', now, null, false);
     // Loops have no natural end: the host's machine decides when they stop, so only one-shots hold.
     const playing = this.#current !== 'idle' && now < this.#until && (ZIGI_MANIFEST.states[this.#current]?.kind ?? 'loop') === 'one-shot';
-    if (this.#current === target && now < this.#until) return this.#result(target, 'current_hold', now, null, false);
+    // Phase 2 (P2.5, found by the states spec): a held reaction must never leave ZIGi talking. When the reply has ended
+    // and the reaction it would have shown is held, the machine gets `idle` instead of nothing.
+    const held = (reason: Decision['reason']) => this.#result(this.#current, reason, now, REPLY_END.has(event.type) && TALKING.has(this.#current) ? 'idle' : null, false);
+    // Host facts (the panel opened or closed, offline, rest, a success) always reach the machine: no hold, no cooldown.
+    const hostFact = HOST_DRIVEN.has(target);
+    if (this.#current === target && now < this.#until && !hostFact) return held('current_hold');
     const currentRule = ruleFor(this.#current);
-    if (playing && !HOST_DRIVEN.has(target) && (currentRule.interruptibility === 'after_settle' || currentRule.priority > rule.priority)) return this.#result(this.#current, 'priority_hold', now, null, false);
+    if (playing && !hostFact && (currentRule.interruptibility === 'after_settle' || currentRule.priority > rule.priority)) return held('priority_hold');
     const last = this.#last.get(target) ?? -Infinity;
-    if (now - last < rule.cooldownSeconds * 1000) return this.#result(this.#current, 'cooldown', now, null, false);
-    if (!CONVERSATION.has(target) && now - this.#lastReactionAt < REACTION_GAP_MS) return this.#result(this.#current, 'rate_limited', now, null, false);
+    if (!hostFact && now - last < rule.cooldownSeconds * 1000) return held('cooldown');
+    if (!CONVERSATION.has(target) && now - this.#lastReactionAt < REACTION_GAP_MS) return held('rate_limited');
     this.#last.set(target, now);
     if (!CONVERSATION.has(target)) this.#lastReactionAt = now;
     if (NUDGES.has(event.type)) this.#nudges += 1;

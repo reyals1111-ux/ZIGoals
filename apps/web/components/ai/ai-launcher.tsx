@@ -52,7 +52,9 @@ export function AiLauncher() {
   // The chunk is warmed on hover or focus and when the browser is idle after the person has interacted once; it mounts on the first open.
   const warm = useCallback(() => { if (warmed.current) return; warmed.current = true; void loadChat().catch(() => { warmed.current = false; }); }, []);
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
-  useEffect(() => { if (open) { setLoaded(true); zigiSignals.emit('user_opened_panel'); } else if (loaded) zigiSignals.emit('user_closed_panel'); }, [open, loaded]);
+  // The panel's open and close reach ZIGi once each (Phase 2: this effect fired twice on the first open, once for `open` and once for `loaded`, and the second "open" was cutting the greeting short).
+  const wasOpen = useRef(false);
+  useEffect(() => { if (open) setLoaded(true); if (open && !wasOpen.current) zigiSignals.emit('user_opened_panel'); else if (!open && wasOpen.current) zigiSignals.emit('user_closed_panel'); wasOpen.current = open; }, [open]);
   const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => button.current?.focus({preventScroll: true})); }, []);
   // Session V Part 14: the mini window's "Back to tab".
   const reopen = useCallback(() => setOpen(true), []);

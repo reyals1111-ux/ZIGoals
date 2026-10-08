@@ -172,6 +172,20 @@ describe('ZIGoals\' own rules', () => {
     // A reaction in that same window still waits for the gap.
     expect(c.dispatch({type: 'hint_curious'}, T0 + 2500).reason).toBe('rate_limited');
   });
+  it('Phase 2 (P2.5): the panel opened again inside the greeting\'s cooldown still reaches the machine (a host fact), and a held reaction at a reply\'s end rests a talking ZIGi', () => {
+    const c = mk();
+    expect(c.dispatch({type: 'user_opened_panel'}, T0).event).toBe('open');
+    c.sync('greeting');
+    expect(c.dispatch({type: 'user_closed_panel'}, T0 + 500).event).toBe('close');
+    c.sync('idle');
+    expect(c.dispatch({type: 'user_opened_panel'}, T0 + 1_000).event).toBe('open');
+    // A reply with cards presented, then a plain reply two seconds later: insight is held by the gap, speaking must still end.
+    c.sync('idle');
+    expect(c.dispatch({type: 'assistant_replied_with_proposals'}, T0 + 20_000).code).toBe('F006');
+    c.sync('speaking');
+    const heldEnd = c.dispatch({type: 'assistant_replied'}, T0 + 22_000);
+    expect(heldEnd.reason).toBe('rate_limited'); expect(heldEnd.event).toBe('idle');
+  });
   it('sensitive screens: celebrations, knocks and peeks are refused there; the conversation goes on', () => {
     const c = mk();
     c.setPreferences({sensitive: true});

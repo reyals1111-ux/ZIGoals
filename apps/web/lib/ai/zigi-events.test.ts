@@ -101,3 +101,14 @@ describe('ZIGi state machine (ADR-012 follow-up part E)', () => {
     expect(transition('thinking', 'model-ready', open)).toBeNull();
   });
 });
+
+it('Session X-Local Phase 2 (P2.5): ZIGi on but not set up asks for attention at rest, never in the middle of a reply; set up, it rests again', () => {
+  const context = {open: false, greetedToday: true, offline: false};
+  expect(transition('idle', 'attention', context)).toBe('attention');
+  expect(transition('sleepy', 'attention', context)).toBe('attention');
+  expect(transition('speaking', 'attention', context)).toBeNull();
+  expect(transition('attention', 'connected', context)).toBe('idle');
+  expect(transition('attention', 'idle', context)).toBe('idle');
+  expect(transition('idle', 'connected', context)).toBeNull();
+});
+

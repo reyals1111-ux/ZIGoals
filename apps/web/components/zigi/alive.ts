@@ -1,6 +1,8 @@
 'use client';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {readZigiLook} from '../../lib/ai/zigi-look';
+import {readAiSettings} from '../../lib/ai/settings';
+import {AI_SETTINGS_EVENT} from '../../lib/ai/launcher-record';
 import {ZIGI_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {isSensitiveScreen} from '../ai/use-sensitive-screen';
 import {zigiEvents, zigiFrames, zigiIdleVariant, zigiSignals, zigiState, type ZigiFrame, type ZigiFrames, type ZigiSignal} from './bus';
@@ -108,9 +110,19 @@ export function startZigiAlive(options: {random?: () => number} = {}): () => voi
   const onStore = (event: Event) => { if (!(event instanceof CustomEvent) || !event.detail || event.detail === ZIGI_KEY) publish(); };
   const onStorage = (event: StorageEvent) => { if (event.key === null || event.key === ZIGI_KEY) publish(); };
   window.addEventListener(ZIGI_STORE_EVENT, onStore); window.addEventListener('storage', onStorage);
+  // Phase 2 (P2.5): ZIGi on but not set up yet (no provider or model chosen) asks for attention at rest; set up, it rests.
+  let askedForSetup = false;
+  const watchSetup = () => {
+    let needs = false;
+    try { const {data} = readAiSettings(getAppStorage()); needs = data.enabled && (!data.provider || !data.model); } catch { needs = false; }
+    if (needs && !askedForSetup) { askedForSetup = true; zigiEvents.emit('attention'); }
+    else if (!needs && askedForSetup) { askedForSetup = false; zigiEvents.emit('connected'); }
+  };
+  watchSetup();
+  window.addEventListener(AI_SETTINGS_EVENT, watchSetup); window.addEventListener('storage', watchSetup);
   publish();
   void supportsAnimatedWebp().then(ok => { apng = !ok; publish(); });
   const stopRotation = startRotation(skin, () => apng, options.random);
-  started = () => { stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); zigiFrames.set(null); started = null; };
+  started = () => { stopRotation(); stopController(); stopMachine(); stopMotion(); window.removeEventListener(ZIGI_STORE_EVENT, onStore); window.removeEventListener('storage', onStorage); window.removeEventListener(AI_SETTINGS_EVENT, watchSetup); window.removeEventListener('storage', watchSetup); zigiFrames.set(null); started = null; };
   return started;
 }
