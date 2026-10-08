@@ -6,6 +6,7 @@ import {streamChat} from '../chat';
 import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
 import {applyDayCue} from '../actions/day-cue';
+import {reviseEdits} from '../actions/revise';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemPrompt} from '../context/specialists';
 import {questionContext} from '../context/question';
@@ -44,7 +45,7 @@ function sourcesFor(c: ModelCase): ToolSources {
 }
 async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: {input: number | null; output: number | null}; error: string | null}> {
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
-  const provider = toolEnv(sources, gates, 'provider', new Handles([])), local = toolEnv(sources, gates, 'local');
+  const toolHandles = new Handles([]), provider = toolEnv(sources, gates, 'provider', toolHandles), local = toolEnv(sources, gates, 'local');
   const context = questionContext(ask, sources, gates, []);
   // Session X-Local Phase 2 (P2.2a): tools mode carries the question-chosen records too, exactly as the app does
   // (`use-chat-session` passes the page context with `tools: true`); the router's own pre-run calls count as calls, since
@@ -84,6 +85,8 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
     }
     // Round 6 (ADR-017 S69), as the app does: the message's own day for a log card that said today.
     reply = applyDayCue(reply, ask, DAY);
+    // Round 8 (ADR-017 S74), as the app does: a correction of a card that was only proposed becomes that card again, corrected.
+    reply = reviseEdits(reply, [...history].reverse().find(m => m.role === 'assistant')?.content ?? null, [...(context?.handles ?? []), ...toolHandles.list]);
   }
   const totalMs = Date.now() - started;
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.

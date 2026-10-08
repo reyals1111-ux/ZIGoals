@@ -40,6 +40,7 @@ import {PLAN_NOTE} from '../../lib/ai/slash';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
 import {localDate} from '../../lib/local-date';
 import {applyDayCue} from '../../lib/ai/actions/day-cue';
+import {reviseEdits} from '../../lib/ai/actions/revise';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
@@ -278,7 +279,9 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };
     // Round 6 (ADR-017 S69): a log card that says today while the message names yesterday, the day before, or a weekday takes that day.
-    const done = (stopped: string | undefined) => finish(applyDayCue(reply, text, localDate()), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
+    // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
+    const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
+    const done = (stopped: string | undefined) => finish(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
     try {
       try { await run(mode); }
       catch (error) {

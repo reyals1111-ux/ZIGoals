@@ -69,21 +69,22 @@ function resolveDay(day: string, base: string, today: string, allowFuture = fals
   return {ok: true, day: resolved};
 }
 const dayLabel = (day: string, today: string) => day === today ? `today (${day})` : day === addLocalDays(today, -1) ? `yesterday (${day})` : day;
-/** A record of the context by its handle (h2) or its exact title, case-insensitively; two titles alike are a question, never a guess. */
-function handleFor(env: Env, kind: Handle['kind'], named: string): Handle | undefined {
+/** A record of the context by its handle (h2) or its exact title, case-insensitively; two titles alike are a question, never a guess (shared with revise.ts, Phase 2 round 8). */
+export function handleAmong(handles: readonly Handle[], kind: Handle['kind'], named: string): Handle | undefined {
   const key = named.trim().toLowerCase();
-  const byHandle = env.handles.find(h => h.kind === kind && h.handle === key);
+  const byHandle = handles.find(h => h.kind === kind && h.handle === key);
   if (byHandle) return byHandle;
-  const byTitle = env.handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
+  const byTitle = handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
   if (byTitle.length === 1) return byTitle[0];
   if (byTitle.length > 1 || key.length < 4) return undefined;
   // Phase 2: "meditation" names Meditate, "reading" names Read, "wandeling" names Wandelen: one record whose title and
   // the name share a stem of four letters or more, counted from the start; two such records are a refusal, never a guess.
   const stemOf = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/)[0] ?? '';
   const k = stemOf(key);
-  const byStem = env.handles.filter(h => { const t = stemOf(h.label); return h.kind === kind && t.length >= 4 && k.length >= 4 && (t.startsWith(k) || k.startsWith(t)); });
+  const byStem = handles.filter(h => { const t = stemOf(h.label); return h.kind === kind && t.length >= 4 && k.length >= 4 && (t.startsWith(k) || k.startsWith(t)); });
   return byStem.length === 1 ? byStem[0] : undefined;
 }
+function handleFor(env: Env, kind: Handle['kind'], named: string): Handle | undefined { return handleAmong(env.handles, kind, named); }
 function habitOf(env: Env, named: string): {ok: true; habit: Habit} | {ok: false; message: string} {
   const found = handleFor(env, 'habit', named);
   const habit = found ? env.stores.habits.habits.find(h => h.id === found.id) : undefined;
