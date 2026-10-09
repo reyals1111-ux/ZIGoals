@@ -1,7 +1,7 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {buildShowcase} from './showcase-data';
 import {powerUserRecords} from './vault/power-user-fixture';
-import {HABITS_KEY, clearVacation, createHabit, emptyHabitData, habitCalendarDay, habitDataSchema, habitDay, habitRuleOn, habitStats, logHabitCount, planSkip, setHabitEntryStatus, setVacation, unplanSkip, type Habit, type HabitData, type HabitInput} from './habits';
+import {HABITS_KEY, clearVacation, createHabit, emptyHabitData, habitCalendarDay, habitDataSchema, habitDay, habitRuleOn, habitStats, logHabitCount, planSkip, setHabitEntryStatus, setVacation, unplanSkip, upcomingVacation, type Habit, type HabitData, type HabitInput} from './habits';
 import {addLocalDays} from './local-date';
 import {dueReminders} from './reminders/due';
 
@@ -150,5 +150,39 @@ describe('vacation', () => {
     expect(habitDataSchema.safeParse(full).success).toBe(true);
     expect(() => setVacation(full, {from: '2026-10-01', to: '2026-10-07'}, now)).toThrow("This habit's history is full.");
     expect(habitRuleOn(full.habits[0]!, '2026-10-01')).toBeDefined();
+  });
+});
+
+// Session Y Part 8 (owner-approved): vacation days marked earlier can be cleared later. The panel lists the stretches still
+// ahead, read from the entries themselves (nothing new is stored), and clears one through clearVacation.
+describe('vacation ahead (cleared later)', () => {
+  test('stretches still ahead: consecutive days, their habits, from today on; clearing one leaves the other', () => {
+    process.env.TZ = 'UTC';
+    const now = at('2026-10-01'), data = habitDataSchema.parse(JSON.parse(buildShowcase('2026-10-01', 'UTC').records[HABITS_KEY]!));
+    // A habit scheduled every day (a weekly count gets no vacation days).
+    const one = setVacation(data, {from: '2026-10-05', to: '2026-10-07'}, now).habits.find(h => h.entries.filter(e => e.note === 'Vacation').length === 3)!.id;
+    expect(upcomingVacation(data, '2026-10-01')).toEqual([]);
+    let marked = setVacation(data, {from: '2026-10-05', to: '2026-10-07', habitIds: [one]}, now);
+    marked = setVacation(marked, {from: '2026-10-20', to: '2026-10-21'}, now);
+    const runs = upcomingVacation(marked, '2026-10-01');
+    expect(runs.map(r => [r.from, r.to])).toEqual([['2026-10-05', '2026-10-07'], ['2026-10-20', '2026-10-21']]);
+    expect(runs[0]!.habitIds).toEqual([one]);
+    expect(new Set(runs[1]!.habitIds)).toEqual(new Set(marked.habits.filter(h => h.entries.some(e => e.date === '2026-10-20' && e.note === 'Vacation')).map(h => h.id)));
+    // From a later today, only what is still ahead.
+    expect(upcomingVacation(marked, '2026-10-06').map(r => [r.from, r.to])).toEqual([['2026-10-06', '2026-10-07'], ['2026-10-20', '2026-10-21']]);
+    // Clearing the first stretch later (a later "now") removes exactly its entries; the second stays.
+    const cleared = clearVacation(marked, runs[0]!, at('2026-10-03'));
+    expect(upcomingVacation(cleared, '2026-10-03')).toEqual([runs[1]]);
+    expect(cleared.habits.map(h => h.entries.filter(e => e.date < '2026-10-20'))).toEqual(data.habits.map(h => h.entries.filter(e => e.date < '2026-10-20')));
+  });
+  test('a weekday habit\'s vacation is one stretch across its weekend; a gap with a scheduled day splits it', () => {
+    process.env.TZ = 'UTC';
+    const now = at('2026-10-01');
+    let data = createHabit(emptyHabitData(), {...INPUT, schedule: {kind: 'weekdays', days: [1, 2, 3, 4, 5]}}, at('2026-09-01'), ID);
+    data = setVacation(data, {from: '2026-10-05', to: '2026-10-16'}, now);
+    expect(data.habits[0]!.entries.filter(e => e.note === 'Vacation').map(e => e.date)).not.toContain('2026-10-10');
+    expect(upcomingVacation(data, '2026-10-01').map(r => [r.from, r.to])).toEqual([['2026-10-05', '2026-10-16']]);
+    const gap = clearVacation(data, {from: '2026-10-08', to: '2026-10-08'}, now);
+    expect(upcomingVacation(gap, '2026-10-01').map(r => [r.from, r.to])).toEqual([['2026-10-05', '2026-10-07'], ['2026-10-09', '2026-10-16']]);
   });
 });

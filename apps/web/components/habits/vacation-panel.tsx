@@ -1,9 +1,12 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { habitTargetPeriod, latestHabitRule, type HabitData } from "../../lib/habits";
+import { habitTargetPeriod, latestHabitRule, upcomingVacation, type HabitData, type VacationRun } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 
+/** "12 Oct" or "12 Oct – 18 Oct", read in the day's own calendar (no zone shift). */
+const dayText = (date: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(Date.parse(`${date}T00:00:00Z`));
+const runText = (run: VacationRun) => run.from === run.to ? dayText(run.from) : `${dayText(run.from)} – ${dayText(run.to)}`;
 const dayCount = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000) + 1;
 /**
  * H1: "Vacation days", from the Habits page header: every scheduled day in a range is marked skipped for the chosen
@@ -23,6 +26,12 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
     try { await onMark({ from, to, habitIds: ids }); setMarked({ from, to, habitIds: ids }); setMessage(`${daily ? `Vacation marked for ${daily} ${daily === 1 ? "habit" : "habits"}, ${days} ${days === 1 ? "day" : "days"}.` : "No days were marked."}${periodic ? ` ${periodic} ${periodic === 1 ? "habit counts" : "habits count"} per week or month and ${periodic === 1 ? "keeps its" : "keep their"} own count; skip days don't apply to ${periodic === 1 ? "it" : "them"}.` : ""}`); }
     catch (e) { setError(storageMessageOr(e, "The vacation days were not saved. Choose days from today up to a year ahead.")); } finally { setBusy(false); }
   }
+  // Session Y Part 8: vacation days marked earlier can be cleared later, stretch by stretch, from today on.
+  const ahead = upcomingVacation(data, today);
+  async function clearRun(run: VacationRun) {
+    setBusy(true); setMessage(""); setError("");
+    try { await onClear(run); if (marked && marked.from <= run.to && run.from <= marked.to) setMarked(null); setMessage(`Vacation days cleared: ${runText(run)}. Your own check-ins and skips were kept.`); } catch (e) { setError(storageMessageOr(e, "The vacation days were not cleared.")); } finally { setBusy(false); }
+  }
   async function clear() {
     if (!marked) return; setBusy(true); setMessage(""); setError("");
     try { await onClear(marked); setMarked(null); setMessage("Vacation days cleared. Your own check-ins and skips were kept."); } catch (e) { setError(storageMessageOr(e, "The vacation days were not cleared.")); } finally { setBusy(false); }
@@ -35,6 +44,7 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
       <p className="fine">Scheduled days in this range are marked as skipped. Streaks don’t break on skipped days, and reminders stay quiet on them. Check-ins you already saved are kept.</p>
       <div className="actions"><button className="primary" type="submit" disabled={!ids.length}>{busy ? "Saving…" : "Mark vacation"}</button><button className="secondary" type="button" onClick={onClose}>{marked ? "Done" : "Cancel"}</button></div>
     </fieldset></form>
+    {ahead.length > 0 && <div className="habit-vacation-ahead"><h3>Vacation days ahead</h3><ul>{ahead.map((run) => <li key={run.from}><span>{runText(run)} · {run.habitIds.length} {run.habitIds.length === 1 ? "habit" : "habits"}</span><button type="button" className="quiet" disabled={busy} aria-label={`Clear vacation days ${runText(run)}`} onClick={() => void clearRun(run)}>Clear</button></li>)}</ul></div>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
     {marked && <div className="habit-vacation-clear"><button type="button" className="quiet" disabled={busy} onClick={() => void clear()}>Clear vacation days</button><small>Removes the vacation entries of {marked.from} to {marked.to} from today on.</small></div>}
   </section>;
