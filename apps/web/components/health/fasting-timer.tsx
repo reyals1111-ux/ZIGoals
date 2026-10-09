@@ -26,8 +26,10 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
   async function start() {
     setError(''); setResult('');
     try {
-      const hours = preset === 'custom' ? readFormNumber(custom, {min: 1, max: MAX_CUSTOM_HOURS, whole: true}) : preset;
-      await fasting.update(current => startFast(current, {id: `fast_${crypto.randomUUID()}`, now: new Date(), targetHours: hours, timeZone: zone, ...(habitId ? {habitId} : {})}));
+      // Session Y Part 2 follow-up: the fast starts when the person taps Start, not when its save gets its turn (a slow
+      // or busy storage ran the updater later, and the fast began then; fasting.spec.ts:66 in CI on c40475e).
+      const hours = preset === 'custom' ? readFormNumber(custom, {min: 1, max: MAX_CUSTOM_HOURS, whole: true}) : preset, at = new Date();
+      await fasting.update(current => startFast(current, {id: `fast_${crypto.randomUUID()}`, now: at, targetHours: hours, timeZone: zone, ...(habitId ? {habitId} : {})}));
     } catch (e) { setError(e instanceof Error && /target|running|full/.test(e.message) ? e.message : preset === 'custom' ? 'Choose a target up to 18 hours.' : saveFailureMessage(e)); }
   }
   async function stop() {
