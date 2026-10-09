@@ -7,6 +7,13 @@
  */
 export type HandleKind = 'habit' | 'goal' | 'food' | 'recipe' | 'counter' | 'meal';
 export type Handle = {handle: string; kind: HandleKind; id: string; label: string};
+/**
+ * Session Y Part 4 (SECURITY_REVIEW_Y F1): a reply's handles live in memory for the session that received it. Shown again
+ * after a reload or from History, its cards resolve against this page's records with every handle key made unmatchable:
+ * a record named by its exact title is still found, one named only as h2 is not (h2 may be another record now).
+ */
+export const STALE_HANDLE = '\u0000stale';
+export const staleHandles = (handles: readonly Handle[]): Handle[] => handles.map(h => ({...h, handle: STALE_HANDLE}));
 export const HANDLE_PREFIX: Record<HandleKind, string> = {habit: 'h', goal: 'g', food: 'f', recipe: 'r', counter: 'c', meal: 'm'};
 export class Handles {
   readonly list: Handle[] = [];

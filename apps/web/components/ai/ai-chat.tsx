@@ -306,7 +306,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <SafeText className="ai-local-answer" text={shown}/>
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)}/>}
       <DataViz results={info?.results}/>
       {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
@@ -376,7 +376,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept}/>}
+      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{label}</span>
