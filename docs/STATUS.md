@@ -1,4 +1,27 @@
-# Session X-Local — "ZIGi comes alive" (ADR-017) (2026-10-07/08, [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79), not merged or deployed)
+# Alpha deploy #34 — 2026-10-08 night, `e30b7c6` live
+Recorded by Session Y-Cloud (2026-10-09).
+- **Source:** `e30b7c6c0fe6d94500d58908c56f87256e6e61ce`, `main` after [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79) (Merge #79, Session X-Local, "ZIGi comes alive", ADR-017).
+- **CI:** Milestone quality #747 ([run 37853695437](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37853695437)) on `e30b7c6`: success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 36 ([run 37858881494](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37858881494)), dispatched 2026-10-08 23:20:29 UTC from `main`, exact source `e30b7c6`, finished 23:29:26 UTC (the owner's "~23:25"): success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route after 4 reads; live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z (22 days left at the deploy). Verified: the deploy job's summary in its CI log (Actions API), the same values the owner reported.
+- **Alpha Worker `zigoals-alpha`:** live version `92f5aa43-6f2e-4222-a2b9-532a1612a88f`; rollback `b1a0f698-9424-4092-ad5d-bde432ce51f9` (#33). Verified: CI log (the deploy job's "New version ID" and "Rollback version ID"); owner-reported values identical. Evidence artifact `alpha-deployment-37858881494-1`.
+- **Owner checks:** the iPhone checklist ([ZIGI_ALIVE_X.md](product/ZIGI_ALIVE_X.md), 13 rows) is **pending** (owner-reported); recorded here when the owner sends it.
+- **Read-only check by Session Y-Cloud:** `curl -sI https://alpha.zigoals.app/app` on 2026-10-09 18:51 UTC returned `x-zigoals-build: e30b7c6c0fe6d94500d58908c56f87256e6e61ce` (live, read-only).
+- **What went live:** Session X-Local ("ZIGi comes alive", ADR-017: the Studio-2 art, the alive chunk, create-anything cards, auto-accept, the robustness work) on top of X-Cloud.
+
+# Alpha deploy #33 — 2026-10-08 evening, `757b3b1` live
+Recorded by Session Y-Cloud (2026-10-09).
+- **Source:** `757b3b1be013c767c1ec9e1c2d18547b04c2cd9a`, `main` after [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78) (Merge #78, Session X-Cloud, "The giant leap", ADR-016).
+- **CI:** Milestone quality #737 ([run 37828274749](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37828274749)) on `757b3b1`: success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 35 ([run 37833026942](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37833026942)), dispatched 2026-10-08 19:34:57 UTC from `main`, exact source `757b3b1`, finished 19:43:17 UTC (the owner's "~19:43"): success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route after 4 reads; live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z. Verified: the deploy job's summary in its CI log (Actions API), the same values the owner reported.
+- **Alpha Worker `zigoals-alpha`:** live version `b1a0f698-9424-4092-ad5d-bde432ce51f9`; rollback `892c7ad0-3a07-4d40-9a52-b523a877970c` (#32). Verified: CI log; owner-reported values identical. Evidence artifact `alpha-deployment-37833026942-1`.
+- **Owner checks, 2026-10-08 (owner-reported):** `curl -sI /app` → `x-zigoals-build: 757b3b1…`; `/manifest.webmanifest` → `200`, `application/manifest+json`, `cf-cache-status: HIT`; iPhone: all good (Send feedback, Help → Known limitations, Connection diagnostics, Wealth → Portfolio).
+- **What went live:** Session X-Cloud ("The giant leap", ADR-016). Superseded the same night by #34.
+
+---
+
+# Session X-Local — "ZIGi comes alive" (ADR-017) (2026-10-07/08, [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79), merged into `main` as `e30b7c6` and deployed as Alpha #34)
 
 **Evidence labels:**
 - **local:** the owner's Mac (M1 Max, 64 GB), this session's checkout only. Toolchain: Node 24.19.0 (`fnm`), pnpm 11.19.0; real Chrome 154 (the `chrome` channel), 2 workers, never two suites at once; unit tests under `TZ=UTC`. Dev server `:3102` for the model stages, this branch's production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`) on `:3104`, `main`'s on `:3103` for the comparisons.
@@ -132,7 +155,7 @@ ADR-017 "Session decisions" S1–S83, each the safest option that keeps the brie
 
 ---
 
-# Session X-Cloud — "The giant leap" (ADR-016) (2026-10-07/08, [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78), not merged or deployed)
+# Session X-Cloud — "The giant leap" (ADR-016) (2026-10-07/08, [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78), merged into `main` as `757b3b1` and deployed as Alpha #33)
 
 **Evidence labels:**
 - **local:** this cloud session's sandbox.
@@ -5378,7 +5401,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-08 for the [Alpha deploy #32](#alpha-deploy-32--2026-10-07-evening-72ad872-live) record near the top of this file (recorded by Session X-Cloud at the owner's request).
+Updated 2026-10-09 for the [Alpha deploy #34](#alpha-deploy-34--2026-10-08-night-e30b7c6-live) record at the top of this file (recorded by Session Y-Cloud).
+- Deployed source `e30b7c6c0fe6d94500d58908c56f87256e6e61ce`, `main` after [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79) (Merge #79, Session X-Local). Verified: Actions API.
+- CI: Milestone quality #747 ([run 37853695437](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37853695437)) on `e30b7c6`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 36 ([run 37858881494](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37858881494)), exact source `e30b7c6`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API and the deploy job's CI log.
+- Alpha Worker `zigoals-alpha`: live version `92f5aa43-6f2e-4222-a2b9-532a1612a88f`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `b1a0f698-9424-4092-ad5d-bde432ce51f9` (#33). Verified: CI log; owner-reported values identical. Owner manual checks: the iPhone checklist pending (owner-reported).
+
+Previous release identity (#33, 2026-10-08 evening, recorded by Session Y-Cloud):
+- Deployed source `757b3b1be013c767c1ec9e1c2d18547b04c2cd9a`, `main` after [PR #78](https://github.com/reyals1111-ux/ZIGoals/pull/78) (Merge #78, Session X-Cloud). Verified: Actions API.
+- CI: Milestone quality #737 ([run 37828274749](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37828274749)) on `757b3b1`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 35 ([run 37833026942](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37833026942)), exact source `757b3b1`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API and the deploy job's CI log.
+- Alpha Worker `zigoals-alpha`: version `b1a0f698-9424-4092-ad5d-bde432ce51f9`; live prices `VERIFIED`; rollback `892c7ad0-3a07-4d40-9a52-b523a877970c` (#32). Verified: CI log; owner-reported values identical. Owner manual checks: `/app` build header, the static manifest and the iPhone rows all good (owner-reported, 2026-10-08).
+
+Previous release identity (#32, 2026-10-07 evening, recorded by Session X-Cloud):
 - Deployed source `72ad872a73ec14dd264260975d15a2fd3db8c699`, `main` after [PR #77](https://github.com/reyals1111-ux/ZIGoals/pull/77) (Merge #77, Session W). Verified: Actions API.
 - CI: Milestone quality #587 ([run 37676079553](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37676079553)) on `72ad872`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 34 ([run 37680836969](https://github.com/reyals1111-ux/ZIGoals/actions/runs/37680836969)), exact source `72ad872`: success; the smoke's six reads passed; `VERIFIED` (owner-reported). Verified: Actions API for the run.
