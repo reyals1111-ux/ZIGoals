@@ -26,7 +26,8 @@ function useDeviceFasting() {
       const storage = getAppStorage(), read = readFasting(storage);
       if (!read.unreadable && !settling.current) {
         const stopped = applyAutoStop(read.data, new Date());
-        if (stopped !== read.data) { settling.current = true; try { const next = updateFasting(storage, () => stopped); setState({data: next, unreadable: false, loaded: true}); window.dispatchEvent(new Event(EVENT)); return; } catch { /* the limit note still shows from the computed state */ } finally { settling.current = false; } }
+        // Session Y Part 2: when the stop cannot be saved, the page still shows it (the computed state), never the old clock.
+        if (stopped !== read.data) { settling.current = true; try { const next = updateFasting(storage, () => stopped); setState({data: next, unreadable: false, loaded: true}); window.dispatchEvent(new Event(EVENT)); } catch { setState({data: stopped, unreadable: false, loaded: true}); } finally { settling.current = false; } return; }
       }
       setState({...read, loaded: true});
     } catch { setState({data: emptyFasting(), unreadable: true, loaded: true}); }
@@ -41,7 +42,7 @@ function useDeviceFasting() {
     return () => { active = false; window.clearInterval(timer); window.removeEventListener('storage', onStorage); window.removeEventListener(EVENT, refresh); window.removeEventListener(ACCOUNT_CHANGE, refresh); window.removeEventListener('focus', tick); document.removeEventListener('visibilitychange', tick); };
   }, [refresh]);
   const update = useCallback(async (change: (current: Fasting) => Fasting) => {
-    const next = updateFasting(getAppStorage(), change);
+    const next = updateFasting(getAppStorage(), current => change(applyAutoStop(current, new Date())));
     setState({data: next, unreadable: false, loaded: true}); setNow(new Date());
     window.dispatchEvent(new Event(EVENT));
     return next;
@@ -58,12 +59,19 @@ function useDeviceFasting() {
 /**
  * Switch on: the fasts live in Health (v2, `fasting`), merged with what this device's key holds, and sync with Health
  * under its consent. The same 24-hour stop and the same minute clock; the device key is never rewritten.
+ *
+ * Session Y Part 2 (ADR-018): the page shows the fasts with the 24-hour stop already applied for this minute (`data`), and
+ * the stop is saved as before. Until then the page showed only what the save left behind, so a stop saved late or not at
+ * all (a refused write, the save racing a reload) kept a running clock and no note until the next minute tick, which is
+ * what `fasting.spec.ts:66` saw on the owner's Mac. A change starts from the stopped state too, so starting a new fast
+ * right after the limit saves the stop with it.
  */
 function useHomeFasting() {
   const health = useSharedHealth();
   const ready = health.loaded && !health.error, settled = useDeviceMerge(ready);
-  const data = useMemo(() => fastingIn(health.data), [health.data]);
+  const stored = useMemo(() => fastingIn(health.data), [health.data]);
   const [now, setNow] = useState(() => new Date());
+  const data = useMemo(() => applyAutoStop(stored, now), [stored, now]);
   const settling = useRef(false);
   useEffect(() => {
     const tick = () => { if (document.visibilityState === 'visible') setNow(new Date()); };
@@ -72,11 +80,11 @@ function useHomeFasting() {
     return () => { window.clearInterval(timer); window.removeEventListener('focus', tick); document.removeEventListener('visibilitychange', tick); };
   }, []);
   useEffect(() => {
-    if (!ready || !settled || settling.current || applyAutoStop(data, now) === data) return;
+    if (!ready || !settled || settling.current || data === stored) return;
     settling.current = true;
-    void updateHome('fasting', current => applyAutoStop(current, new Date())).catch(() => { /* the limit note still shows from the computed state */ }).finally(() => { settling.current = false; });
-  }, [ready, settled, data, now]);
-  const update = useCallback(async (change: (current: Fasting) => Fasting) => { const next = await updateHome('fasting', change); setNow(new Date()); return next; }, []);
+    void updateHome('fasting', current => applyAutoStop(current, new Date())).catch(() => { /* the page already shows the stop (`data`); the next minute tries again */ }).finally(() => { settling.current = false; });
+  }, [ready, settled, data, stored]);
+  const update = useCallback(async (change: (current: Fasting) => Fasting) => { const next = await updateHome('fasting', current => change(applyAutoStop(current, new Date()))); setNow(new Date()); return next; }, []);
   // Health that cannot be read is never replaced from here; Settings shows how to restore it.
   const startOver = useCallback(async (): Promise<Fasting> => { throw Error(health.error || 'Nothing was changed.'); }, [health.error]);
   return {data, unreadable: !!health.error, error: health.error, loaded: health.loaded && (settled || !!health.error), now, running: runningSession(data), update, startOver};

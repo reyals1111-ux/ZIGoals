@@ -83,6 +83,31 @@ test('a fast is stopped automatically at 24 hours, and the page never praises a 
   expect((await stored(page))!.sessions.map(s => s.stoppedBy)).toEqual(['person', 'limit']);
 });
 
+// Session Y Part 2 (ADR-018): `:66` failed alone on the owner's Mac (Brussels) and passed in CI. With the sync writes on,
+// the page showed the 24-hour stop only once its write had landed, so a stop saved late, or not at all, left a running
+// clock and no note. The page now shows the stop from the time itself and saves it as before; this test takes the save
+// away after the reload and moves the clock without firing the page's minute tick.
+test('the automatic stop shows right after a reload, even when saving it fails', async ({page}) => {
+  const timer = await openTimer(page);
+  await timer.getByRole('group', {name: 'Fasting target'}).getByRole('button', {name: '16:8', exact: true}).click();
+  await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
+  await expect(timer.locator('.fasting-clock')).toHaveText('Fasting · 0 h 00 min of 16 h');
+  const before = await page.evaluate(key => localStorage.getItem(key), HOME);
+  await page.addInitScript(key => {
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name: string, value: string) { if (name === key) throw new DOMException('fixture: storage refused', 'QuotaExceededError'); return set.call(this, name, value); };
+  }, HOME);
+  await page.clock.setSystemTime(new Date(Date.parse('2026-09-15T10:00:00.000Z') + 25 * 3_600_000));
+  await page.reload();
+  const after = await openTimer(page);
+  await expect(after.getByRole('status')).toHaveText('This fast was stopped automatically at 24 hours.');
+  await expect(after.locator('.fasting-clock')).toHaveCount(0);
+  await expect(after.getByRole('list')).toContainText('24.0 h · target 16 h · stopped at 24 h');
+  await expect(after.getByRole('button', {name: 'Start fast', exact: true})).toBeEnabled();
+  // Nothing was saved (the fixture refused it): the stored fast is still the running one.
+  expect(await page.evaluate(key => localStorage.getItem(key), HOME)).toBe(before);
+});
+
 test('Showcase: the fictional fast is labelled and viewing writes nothing; reduced motion keeps the bar still', async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
   await page.goto('/app/settings');
