@@ -44,3 +44,23 @@ medium+ finding in API-key handling (owner instruction), are fixed by Y and anno
 ### What Y does at every gate
 `git fetch origin`; read `docs/handoff/Z_TO_Y.md` on any `origin/feature/session-z*`; never edit a path Z claims; update
 this file. If Z's PR merges into `main` first, Y merges `main` in with a merge commit and carries the shared items.
+
+## 2026-10-09 — Part 4: ZIGi's security review (announced; ZIGi was unclaimed)
+No `feature/session-z*` branch existed when the review finished, so Y fixed every medium-and-above finding in ZIGi's
+lane, and the API-key one (owner edit 5). Details and evidence: `docs/verification/y-cloud/SECURITY_REVIEW_Y.md`.
+- **Changed in ZIGi's files** (please build on these, not around them):
+  - `components/ai/use-chat-session.ts`: `claimFresh(turnId)` (a reply may be auto-added once, when it arrives);
+    `handlesFor` gives `staleHandles(...)` for a turn whose handles are no longer in memory; `send` drops a photo and
+    Health-gated records on a resend once Health is no longer shared (`ExtraData.health`).
+  - `components/ai/proposal-list.tsx` (`claimAuto` prop; no auto-accept for a replaced reply; a slot is reserved before
+    each automatic write), `components/ai/use-auto-accept.ts` (`reserve(kind)` replaces `note()`),
+    `components/ai/ai-chat.tsx` (passes `claimAuto`), `components/ai/ai-settings.tsx` (Disconnect forgets every key of
+    the account), `lib/ai/handles.ts` (`STALE_HANDLE`, `staleHandles`), `lib/ai/actions/plan.ts` (`writableGoal`;
+    `edit-goal`, `edit-habit`, `add-goal-note`, `add-milestone` write onto the current record).
+  - Tests: `lib/ai/auto-accept-once.test.ts`, `lib/ai/actions/plan-current.test.ts`, `lib/ai/resend-gate.test.ts`, one
+    new test in `tests/your-ai.spec.ts`.
+- **Left for ZIGi's lane (low/info, not fixed here):** F5 (the hint marker and `repairJson` are quadratic on a degenerate
+  reply), F6 (nested hint markers survive the strip), F7 ("10,000" read as 10), F8 (first-word name match for writes),
+  F9 (Health/Wealth widgets, diet notes and any-host links stay auto-accept eligible with Health closed), F10 (context
+  pack Summary escaping), F11 (Stop during the repair round), F13 (`autoAccept` not strict), F14 (equivalent cards not
+  deduplicated), F15 (the Alpha gate's proof plan), F16 (no headers timeout). Reproductions are in the review document.
