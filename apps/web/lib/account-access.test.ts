@@ -59,3 +59,20 @@ test('a code request reads the same for every address: one message, the code fie
  }
  expect(seen[0]).toBe(CODE_SENT);expect(seen[1]).toBe(seen[0]);expect(getAccountScope()).toBeNull();
 });
+// Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the status answer names a revoked session or a deleted account once; the
+// panel locks, hands the code to the vault (which forgets this browser's remembered unlock record) and spends no refresh.
+test('A7: a revoked session or a deleted account is passed on once, with no refresh; a plain sign-in requirement is not',async()=>{
+ const id='10000000-0000-4000-8000-000000000001';
+ for(const code of ['SESSION_REVOKED','ACCOUNT_DELETED'] as const){
+  activateAccount(id);unlockAccount();const calls:string[]=[],denied:string[]=[];
+  vi.stubGlobal('fetch',async(url:string,init?:RequestInit)=>{calls.push(init?.body?String(init.body):url);return Response.json({signedIn:false,error:code},{status:401});});
+  const view=await mount({onDenied:c=>{denied.push(c);}});
+  expect(denied).toEqual([code]);expect(calls).toEqual(['/api/private-account?action=status']);expect(isAccountLocked()).toBe(true);
+  expect(view.textContent).toContain(code==='ACCOUNT_DELETED'?'This account was deleted.':'This browser was signed out on another device.');
+  await act(async()=>root?.unmount());root=undefined;document.body.replaceChildren();clearAccountSession();
+ }
+ activateAccount(id);unlockAccount();const denied:string[]=[],calls:string[]=[];
+ vi.stubGlobal('fetch',async(url:string,init?:RequestInit)=>{calls.push(init?.body?String(init.body):url);return Response.json({signedIn:false,error:'SIGN_IN_REQUIRED'},{status:401});});
+ await mount({onDenied:c=>{denied.push(c);}});
+ expect(denied).toEqual([]);expect(calls).toEqual(['/api/private-account?action=status','{"action":"refresh"}']);
+});

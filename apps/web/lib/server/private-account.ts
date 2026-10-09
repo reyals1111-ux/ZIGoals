@@ -97,8 +97,12 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
     if(!remote.ok){await remote.body?.cancel().catch(()=>{});return remote.status===401||remote.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);}
     const user=z.object({id:z.uuid()}).parse(await readBounded(remote,32768));
     const allowed=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':user.id}});
-    if(allowed.status===401&&(await readBounded(allowed,4096).catch(()=>null))?.error==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');else await allowed.body?.cancel().catch(()=>{});
-    if(!allowed.ok)return allowed.status===401||allowed.status===403?reply({signedIn:false,error:'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);
+    // Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): a revoked session and a deleted account are named, so a remembered device
+    // can forget its unlock record on exactly these two answers (and keep it on a routine sign-in or a failed check).
+    const denied=allowed.status===401||allowed.status===410?(await readBounded(allowed,4096).catch(()=>null))?.error:(await allowed.body?.cancel().catch(()=>{}),undefined);
+    if(allowed.status===401&&denied==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');
+    if(allowed.status===410&&denied==='ACCOUNT_DELETED')return reply({signedIn:false,error:'ACCOUNT_DELETED'},401,{'Set-Cookie':cookie('',0)});
+    if(!allowed.ok)return allowed.status===401||allowed.status===403?reply({signedIn:false,error:denied==='SESSION_REVOKED'?'SESSION_REVOKED':'SIGN_IN_REQUIRED'},401,refresh?{}:{'Set-Cookie':cookie('',0)}):reply({error:'ACCOUNT_STATUS_UNAVAILABLE'},503);
     return reply({signedIn:true,accountId:user.id.toLowerCase()});
    }
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);

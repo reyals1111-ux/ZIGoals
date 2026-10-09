@@ -202,12 +202,23 @@ async function json(response:Response,limit:number):Promise<unknown>{const text=
  * confirmed. One tab at a time (Web Locks, where available), so tabs restored together never spend one refresh token
  * twice; a tab that loses that race finds the new cookies on its next status read.
  */
-export async function verifiedAccount(signal:AbortSignal):Promise<string|null>{
- const check=async()=>{
+export async function verifiedAccount(signal:AbortSignal):Promise<string|null>{const status=await accountStatus(signal);return typeof status==='string'?status:null;}
+/** Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the two answers that end a remembered device's record. */
+export type AccountDenial={denied:'SESSION_REVOKED'|'ACCOUNT_DELETED'};
+const deniedSchema=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
+async function denialOf(response:Response):Promise<AccountDenial|null>{try{const parsed=deniedSchema.safeParse(await json(response,4096));return parsed.success?{denied:parsed.data.error}:null;}catch{return null;}}
+/**
+ * verifiedAccount, and also why not when the server says this session was revoked or the account deleted: those answers
+ * come back as {denied}, read from the first status reply (a refresh is not spent on them; the next status call would no
+ * longer name them). Anything else that is not a confirmed account, a routine sign-in requirement or a failed request
+ * included, is null, as before.
+ */
+export async function accountStatus(signal:AbortSignal):Promise<string|AccountDenial|null>{
+ const check=async():Promise<string|AccountDenial|null>=>{
   try{
    const status=()=>fetch('/api/private-account?action=status',{cache:'no-store',signal});
    let response=await status();
-   if(response.status===401){await response.body?.cancel();response=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal});if(!response.ok){await response.body?.cancel();response=await status();}}
+   if(response.status===401){const denial=await denialOf(response);if(denial)return denial;response=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal});if(!response.ok){await response.body?.cancel();response=await status();if(response.status===401){const late=await denialOf(response);if(late)return late;return null;}}}
    if(!response.ok){await response.body?.cancel();return null;}
    const parsed=statusSchema.safeParse(await json(response,32768));return parsed.success?parsed.data.accountId.toLowerCase():null;
   }catch(error){if(signal.aborted)throw error;return null;}
