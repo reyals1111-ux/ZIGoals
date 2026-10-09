@@ -7,7 +7,14 @@ export const epochSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER
 // enum entry: every existing record's context, and so its key and additional data, is unchanged.
 export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings','portfolio']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
 export type RecordContext=z.infer<typeof recordContextSchema>;
-const base64=z.string().regex(/^[A-Za-z0-9_-]+$/);
+/**
+ * Session Y Part 5, FIX_PLAN B7 (Q-SYNC-12): every nonce, iv and ciphertext is canonical base64url (no padding, the
+ * unused trailing bits zero), so one value has exactly one spelling. encode() below is the only writer of these strings
+ * and has been unchanged since it was written (d36d204, 2026-09-23); btoa never sets the spare bits, so everything any
+ * build stored passes (ADR-018). Workers store the strings as given and are unchanged.
+ */
+export function isCanonicalBase64(s:string):boolean{if(!/^[A-Za-z0-9_-]+$/.test(s)||s.length%4===1||s.length>350_000)return false;return encode(decode(s))===s;}
+const base64=z.string().regex(/^[A-Za-z0-9_-]+$/).refine(isCanonicalBase64,'Encrypted data is not in its canonical form.');
 const legacyEnvelopeSchema=z.object({version:z.literal(1),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
 // A canonical 32-byte public HKDF salt; unused base64 bits must be zero.
 const recordEnvelopeSchema=z.object({version:z.literal(2),salt:z.string().regex(/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
@@ -89,7 +96,7 @@ export async function deviceCommitment(root:CryptoKey,account:string,manifest:st
 }
 /** Whether a stored root still derives its record's commitment; false for anything unusable, never an error. */
 export async function deviceCommitmentMatches(root:CryptoKey,account:string,manifest:string,commitment:string):Promise<boolean>{
- try{uuid.parse(account);const tag=decode(commitment);return tag.byteLength===32&&await crypto.subtle.verify('HMAC',await commitmentKey(root),tag,commitmentText(account,manifest));}catch{return false;}
+ try{uuid.parse(account);if(!isCanonicalBase64(commitment))return false;const tag=decode(commitment);return tag.byteLength===32&&await crypto.subtle.verify('HMAC',await commitmentKey(root),tag,commitmentText(account,manifest));}catch{return false;}
 }
 /** A version 1 seal's digest. The version 2 record migrated from it keeps it, so a tab that opened with the version 1
  * record still recognises the record it opened with (its binding holds the seal, not the new record's id). */

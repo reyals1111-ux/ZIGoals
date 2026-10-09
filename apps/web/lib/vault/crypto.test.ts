@@ -1,5 +1,5 @@
 import {expect,test,vi} from 'vitest';
-import {createVault,unlockVault,sealRecord,openRecord,envelopeSchema} from './crypto';
+import {createVault,unlockVault,sealRecord,openRecord,envelopeSchema,isCanonicalBase64,manifestSchema} from './crypto';
 const context={vault:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',domain:'health' as const,object:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',revision:1,epoch:1 as const};
 test('random recovery unlocks on an independent device; ciphertext reveals no private marker',async()=>{
  const a=await createVault(context.vault); const b=await unlockVault(a.manifest,a.recovery);
@@ -79,4 +79,32 @@ test('a portfolio record seals and opens under its own label, which no other lab
  // A finance record opens under its own label as before.
  const legacy=await sealRecord(key,at('finance'),{fictional:'unchanged'});expect(await openRecord(key,at('finance'),legacy)).toEqual({fictional:'unchanged'});
  await expect(sealRecord(key,{...at('finance'),domain:'wealth' as 'finance'},{})).rejects.toThrow();
+});
+// Session Y Part 5, FIX_PLAN B7 (Q-SYNC-12, ADR-018): one value, one spelling. A ciphertext whose unused trailing bits are
+// set decodes to the same bytes, so without this rule a server could hand back a second spelling of a stored record.
+const ALPHABET='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+const spare=(s:string)=>s.slice(0,-1)+ALPHABET[ALPHABET.indexOf(s.at(-1)!)^1];
+const bytesOf=(s:string)=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+test('B7: a ciphertext with a spare bit set decodes to the same bytes and is refused; the canonical one still opens',async()=>{
+ const vault=await createVault(context.vault);
+ let value='',sealed=await sealRecord(vault.key,context,{value});
+ // AES-GCM output is plaintext + 16 bytes; lengths that are not a multiple of 3 leave spare bits in the last character.
+ while(sealed.ciphertext.length%4===0){value+='x';sealed=await sealRecord(vault.key,context,{value});}
+ const flipped=spare(sealed.ciphertext);
+ expect(flipped).not.toBe(sealed.ciphertext);
+ expect(bytesOf(flipped)).toEqual(bytesOf(sealed.ciphertext));
+ expect(isCanonicalBase64(sealed.ciphertext)).toBe(true);expect(isCanonicalBase64(flipped)).toBe(false);
+ expect(envelopeSchema.safeParse(sealed).success).toBe(true);
+ expect(envelopeSchema.safeParse({...sealed,ciphertext:flipped}).success).toBe(false);
+ await expect(openRecord(vault.key,context,{...sealed,ciphertext:flipped})).rejects.toThrow();
+ expect(await openRecord(vault.key,context,sealed)).toEqual({value});
+ // The manifest's wrapped root is checked the same way (its 48 bytes have no spare bits, so only a padded or
+ // out-of-alphabet spelling could differ, and both were already refused).
+ expect(manifestSchema.safeParse(vault.manifest).success).toBe(true);
+ expect(manifestSchema.safeParse({...vault.manifest,wrapped:{...vault.manifest.wrapped,ciphertext:vault.manifest.wrapped.ciphertext+'=='}}).success).toBe(false);
+});
+test('B7: isCanonicalBase64 accepts exactly what the one encoder writes',()=>{
+ for(const [text,ok] of [['',false],['AA',true],['AB',false],['AQ',true],['AR',false],['AAA',true],['AAB',false],['AAE',true],['AAAA',true],['A',false],['AAAAA',false],['AA==',false],['A+/A',false],['_-_-',true]] as const)expect(isCanonicalBase64(text),text).toBe(ok);
+ // Every length a writer produces, with random bytes: the encoder's output is always canonical.
+ for(let n=1;n<70;n++){const raw=crypto.getRandomValues(new Uint8Array(n));let s='';for(const b of raw)s+=String.fromCharCode(b);expect(isCanonicalBase64(btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''))).toBe(true);}
 });
