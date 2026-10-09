@@ -211,7 +211,10 @@ const notificationBodies = (page: Page) => page.evaluate(async () => (await (awa
 // database with what is on screen), so a read between showNotification's write and its display can erase the one this
 // test waits for (push-reminders:210 in CI runs 37555158234 and 37635895908). The test therefore counts, inside the
 // push worker, each showNotification that resolved (Chrome resolves it once displayed) and reads only after that.
-type PushScope = {registration: ServiceWorkerRegistration; __zigoalsShown?: number};
+// Session Y Part 3 (ADR-018): it also counts the calls and keeps a failure's reason, so a notification the platform never
+// displays (Chrome's notifications switched off for the browser in macOS's System Settings, the owner's Mac's failure
+// here) reads as such instead of as a bare 10 s timeout.
+type PushScope = {registration: ServiceWorkerRegistration; __zigoalsShown?: number; __zigoalsCalls?: number; __zigoalsError?: string};
 async function pushWorker(page: Page, context: BrowserContext): Promise<Worker> {
   const isPush = (worker: Worker) => new URL(worker.url()).pathname === '/push-sw.js';
   let worker = context.serviceWorkers().find(isPush);
@@ -225,12 +228,15 @@ async function pushWorker(page: Page, context: BrowserContext): Promise<Worker> 
     const scope = self as unknown as PushScope;
     if (scope.__zigoalsShown !== undefined) return;
     const registration = scope.registration, show = registration.showNotification.bind(registration);
-    scope.__zigoalsShown = 0;
-    registration.showNotification = (title, options) => show(title, options).then(() => { scope.__zigoalsShown! += 1; });
+    scope.__zigoalsShown = 0; scope.__zigoalsCalls = 0;
+    registration.showNotification = (title, options) => { scope.__zigoalsCalls! += 1; return show(title, options).then(() => { scope.__zigoalsShown! += 1; }, (error: unknown) => { scope.__zigoalsError = String(error); throw error; }); };
   });
   return worker;
 }
 const shownCount = (worker: Worker) => worker.evaluate(() => (self as unknown as PushScope).__zigoalsShown ?? -1);
+/** The worker's display count with what it was asked to show and why a display failed (null when none did). */
+const displayed = (worker: Worker) => worker.evaluate(() => { const scope = self as unknown as PushScope; return {shown: scope.__zigoalsShown ?? -1, calls: scope.__zigoalsCalls ?? -1, error: scope.__zigoalsError ?? null}; });
+const DISPLAYED = 'one notification displayed by the push worker ("calls" counts showNotification calls; "error" is why a display failed)';
 test('reminder names: off by default; on, a push names the habit due now, composed on this device; off deletes the table', async ({page, context}) => {
   await context.grantPermissions(['notifications']);
   await stubPushManager(page);
@@ -270,7 +276,7 @@ test('reminder names: off by default; on, a push names the habit due now, compos
   const registrationId = await new Promise<string>(resolve => { cdp.on('ServiceWorker.workerRegistrationUpdated', ({registrations}: {registrations: {registrationId: string; scopeURL: string; isDeleted: boolean}[]}) => { const found = registrations.find(r => !r.isDeleted && r.scopeURL.endsWith('/')); if (found) resolve(found.registrationId); }); void cdp.send('ServiceWorker.enable'); });
   let worker = await pushWorker(page, context), shown = await shownCount(worker);
   await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
-  await expect.poll(() => shownCount(worker), {timeout: 10_000}).toBe(shown + 1);
+  await expect.poll(() => displayed(worker), {timeout: 10_000, message: DISPLAYED}).toMatchObject({shown: shown + 1, error: null});
   await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['Reminder: Stretch']);
   // Off again: the table goes; the next push is the generic line.
   await names.click();
@@ -278,7 +284,7 @@ test('reminder names: off by default; on, a push names the habit due now, compos
   await expect.poll(() => labelRows(page), {timeout: 10_000}).toBeNull();
   worker = await pushWorker(page, context); shown = await shownCount(worker);
   await cdp.send('ServiceWorker.deliverPushMessage', {origin: new URL(page.url()).origin, registrationId, data: '{"v":1}'});
-  await expect.poll(() => shownCount(worker), {timeout: 10_000}).toBe(shown + 1);
+  await expect.poll(() => displayed(worker), {timeout: 10_000, message: DISPLAYED}).toMatchObject({shown: shown + 1, error: null});
   await expect.poll(() => notificationBodies(page), {timeout: 10_000}).toEqual(['A reminder from ZIGoals']);
   // The worker only reads: with no table it created none.
   expect(await labelsListed(page)).toBe(false);

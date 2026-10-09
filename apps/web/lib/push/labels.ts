@@ -55,9 +55,13 @@ export function labelText(rows: readonly LabelRow[], now: Date): string {
   const names: string[] = [];
   for (const row of rows) {
     const here = zoneClock(now, row.zone);
-    if (!here || !(row.weekdays & weekdayBit(here.weekday))) continue;
-    const late = minutes(here.clock) - minutes(row.time);
-    if (late >= 0 && late <= LABEL_WINDOW_MINUTES && !names.includes(row.label)) names.push(row.label);
+    if (!here) continue;
+    // Session Y Part 3: a reminder just before midnight whose push arrives just after it belongs to the day before, on
+    // that day's weekday (it fell back to the generic line until then).
+    let late = minutes(here.clock) - minutes(row.time), weekday = here.weekday;
+    if (late < 0) { late += 1440; weekday = (weekday + 6) % 7; }
+    if (!(row.weekdays & weekdayBit(weekday))) continue;
+    if (late <= LABEL_WINDOW_MINUTES && !names.includes(row.label)) names.push(row.label);
   }
   if (!names.length) return GENERIC_TEXT;
   const shown = names.slice(0, 3).join(', '), more = names.length - 3;
