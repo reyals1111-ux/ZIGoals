@@ -4,11 +4,12 @@
 // wrangler, never contacts a network and prints names, never values. Exit code 0 means ready apart from known
 // Stage 6 items, which are listed. Usage: node scripts/run11/stage7-preflight.mjs
 import {existsSync,readFileSync} from 'node:fs';
-import {dirname,resolve} from 'node:path';
+import {dirname,relative,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import JSON5 from 'json5';
 import {ADMIN_CONFIG,CONFIGS,checkAdmin,privateFileProblems,privatePath,validatePrivateCopies} from './activation-check.mjs';
+import {envFilesInScope} from '../../apps/web/scripts/hermetic-alpha.mjs';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 // The reviewed preparation commit every activation source must contain (activation-check.mjs --source).
@@ -60,6 +61,10 @@ export function preflight(root=ROOT,tools={}){
  }else checks.push(fail('activation-check --private','the six Stage 4 configs are not all present'));
  // 6. The recovery admin config: local only, bound to that lifecycle Worker, and nothing else binds the entrypoint.
  try{checkAdmin(root);checks.push(pass('recovery admin config is safe (activation-check --admin)'));}catch(error){checks.push(fail('recovery admin config is safe (activation-check --admin)',/** @type {Error} */(error).message.split('\n').join('; ')));}
+ // 7. Session Y Part 10: no env file within the owner build's reach. The exact rule build:alpha refuses on (the app and
+ // the monorepo root as OpenNext finds it; `.env.example` excepted; links counted), so the two never disagree. Paths only.
+ const envFiles=envFilesInScope(resolve(root,'apps/web')).map(file=>relative(root,file));
+ checks.push(envFiles.length?fail('no .env files within the build\'s reach',`move outside the repository: ${envFiles.join(', ')} (build:alpha refuses while any is here)`):pass('no .env files within the build\'s reach'));
  return {checks,ok:checks.every(c=>c.status!=='FAIL')};
 }
 export function report({checks,ok}){
