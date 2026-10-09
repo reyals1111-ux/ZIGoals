@@ -14,7 +14,8 @@ const byteLength=(v:unknown)=>new TextEncoder().encode(JSON.stringify(v)).length
  * Session Y Part 5, FIX_PLAN B5 (Q-SYNC-06). Only account sync reads the outbox, and only to acknowledge (delete) entries
  * after it uploaded the section's whole current state; nothing ever reads an entry's records. A space that is not an
  * account's (the Local Demo's 'local') is never synced, so its entries were plaintext kept for good: none is written now,
- * and the ones left by earlier builds go with the next write in that space (sweepUnconsumed does it at once).
+ * and the ones left by earlier builds go with the next write in that space, or with the person's first write on a page
+ * in any space (sweepUnconsumed, called from local.ts; never on a read, so viewing writes nothing).
  */
 export const consumedSpace=(space:string)=>space.startsWith('account:');
 /** Receipts only make a retried operation idempotent; one older than this many revisions of its section is never retried. */
@@ -141,10 +142,18 @@ export class VaultDatabase{
   }catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
  }
  async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const selected=await request(tx.objectStore('outbox').getAll(prefixRange(space))) as PendingOperation[];await finish;return selected;}
- /** B5: removes the outbox entries of every space nothing consumes (earlier builds wrote them). Idempotent; account spaces untouched. */
- async sweepUnconsumed():Promise<number>{const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx),store=tx.objectStore('outbox');
-  try{const keys=await request(store.getAllKeys());let removed=0;for(const k of keys){let space:unknown;try{space=JSON.parse(String(k))[0];}catch{continue;}if(typeof space==='string'&&!consumedSpace(space)){store.delete(k);removed++;}}await finish;return removed;}
-  catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}}
+ /**
+  * B5: removes the outbox entries of every space nothing consumes (earlier builds wrote them). Idempotent; account spaces
+  * untouched. It looks first in a read-only transaction and opens a read-write one only when there is something to remove.
+  */
+ async sweepUnconsumed():Promise<number>{
+  const unconsumed=(keys:IDBValidKey[])=>keys.filter(k=>{let space:unknown;try{space=JSON.parse(String(k))[0];}catch{return false;}return typeof space==='string'&&!consumedSpace(space);});
+  const db=await this.open();
+  {const tx=db.transaction('outbox','readonly'),finish=done(tx),keys=unconsumed(await request(tx.objectStore('outbox').getAllKeys()));await finish;if(!keys.length)return 0;}
+  const tx=db.transaction('outbox','readwrite'),finish=done(tx),store=tx.objectStore('outbox');
+  try{const keys=unconsumed(await request(store.getAllKeys()));for(const k of keys)store.delete(k);await finish;return keys.length;}
+  catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
+ }
  async acknowledge(space:string,operation:string){const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx);tx.objectStore('outbox').delete(key(space,operation));await finish;}
  /** QA-02: after a confirmed restore, remove this domain's recovery copies except the one `keep` wrote. One transaction: a failure removes none. */
  async pruneRecovery(space:string,domain:string,keep:string):Promise<number>{

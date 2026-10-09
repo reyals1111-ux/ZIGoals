@@ -30,11 +30,12 @@ export async function enableDurableStore<T>(storage:Storage,key:string,schema:z.
   storage.setItem(key,marker); // Last publication step; old schema writers now fail closed.
  });
 }
-// Session Y Part 5 (B5): once per page, the outbox entries nothing will consume are removed (database.ts sweepUnconsumed).
+// Session Y Part 5 (B5): after the person's first write on a page, the outbox entries nothing will consume (earlier builds'
+// Local Demo entries) are removed (database.ts sweepUnconsumed). Never on a read: viewing a page writes nothing.
 let swept=false;
+function sweepOnce(db:VaultDatabase){if(swept)return;swept=true;void db.sweepUnconsumed().catch(()=>{swept=false;});}
 export async function readDurableStore<T>(storage:Storage,key:string,schema:z.ZodType<T>,db=localDatabase):Promise<T>{
  const space=durableSpace(storage,key);
- if(!swept){swept=true;void db.sweepUnconsumed().catch(()=>{swept=false;});}
  if(!isDurableMarker(storage.getItem(key)))throw Error('Storage selection changed. Reload before continuing.');
  const value=await db.read(space,key);if(!value)throw Error('Private database missing. Restore from your private backup; do not reset.');fence(storage,key);return schema.parse(value.data);
 }
@@ -51,6 +52,7 @@ export async function updateDurableStore<T>(storage:Storage,key:string,schema:z.
   const version=(value:unknown)=>value&&typeof value==='object'?(value as {schemaVersion?:unknown}).schemaVersion:undefined,before=version(previous.data),after=version(validated);
   const original=typeof before==='number'&&typeof after==='number'&&before<after?JSON.stringify(previous.data):undefined;
   try{await db.commit(space,key,previous.revision,validated,undefined,original);}catch(error){throw asStorageError(error,{durable:true});}
+  sweepOnce(db);
   return validated;
  });
 }
