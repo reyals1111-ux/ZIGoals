@@ -23,8 +23,13 @@ export function financeV4(){return {...financeV3(),schemaVersion:4 as const,goal
 
 /** Habits v2: one daily habit with one check-in, exactly what today's build writes. */
 export function habitsV2(){
- const created=createHabit(emptyHabitData(),{title:'Drink water',category:'Health',description:'Two litres a day',notes:'',schedule:{kind:'daily'},target:1},new Date('2026-09-07T12:00:00.000Z'),HABIT_ID);
- return logHabitCount(created,HABIT_ID,'2026-09-07',1,'',new Date(FIXTURE_AT));
+ // Built in a UTC journal so the habit starts on 2026-09-07 on every machine (Session Y Part 2: under UTC+12:45 it began
+ // on the 8th and the check-in was refused), then the zone is dropped: the record is the zone-less one today's build
+ // writes, byte for byte what a UTC machine always built.
+ const created=createHabit({...emptyHabitData(),timeZone:'UTC'},{title:'Drink water',category:'Health',description:'Two litres a day',notes:'',schedule:{kind:'daily'},target:1},new Date('2026-09-07T12:00:00.000Z'),HABIT_ID);
+ const record=logHabitCount(created,HABIT_ID,'2026-09-07',1,'',new Date(FIXTURE_AT));
+ delete record.timeZone;
+ return record;
 }
 /** The synced home of a "done automatically from Health" rule (PR 3's H7), as habits v3 carries it. */
 export const HABIT_HEALTH_LINK={version:1 as const,measure:'water' as const,rule:'at-least' as const,target:2000,updatedAt:FIXTURE_AT};

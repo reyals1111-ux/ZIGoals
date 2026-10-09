@@ -10,6 +10,8 @@ import {reviewWindow} from './weekly-review/engine';
 import {IMPORT_UNDO_KEY,importUndoSchema} from './import/undo-schema';
 import {GUIDE_KEY,guideSchema} from './coach/schema';
 import {addLocalDays} from './local-date';
+import {instantAt} from './zone-time';
+import {deviceTimeZone} from './journal-zone';
 import {createEmptyHealth,healthSchema,HEALTH_STORAGE_KEY,HEALTH_MEALS} from './health';
 import {DEFAULT_COUNTERS} from './health-counters';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings} from './dashboard-settings';
@@ -25,9 +27,15 @@ import {showcaseMeditation} from './meditation/showcase';
 import type {MarketAssetRef} from './market-assets';
 const coin=(id:string):MarketAssetRef=>({provider:'coingecko',kind:'coin',id});
 const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({provider:'coingecko',kind:'rwa',id,assetType});
-export function buildShowcase(day:string){
+/**
+ * The Showcase's fictional records for `day`, told as a person living in `zone` sees them (the device's zone by default,
+ * so the app builds what it always built). Session Y Part 2 (ADR-018): the clock times were device-local midnights while
+ * the fictional fast said "UTC", so a person in New York saw yesterday evening's fast on today; the fast now carries the
+ * zone its times were made in, and tests build the UTC person they describe by passing 'UTC'.
+ */
+export function buildShowcase(day:string,zone:string=deviceTimeZone()){
  const clock=Date.parse(day+'T12:00:00Z');if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(clock)||new Date(clock).toISOString().slice(0,10)!==day)throw Error('Use a real showcase date.');
- const date=(offset:number)=>new Date(clock+offset*86400000).toISOString().slice(0,10),at=(offset:number)=>new Date(date(offset)+'T00:00:00').toISOString(),now=at(0),start=at(-90);
+ const date=(offset:number)=>new Date(clock+offset*86400000).toISOString().slice(0,10),wall=(offset:number,time:string)=>new Date(instantAt(date(offset),time,zone)).toISOString(),at=(offset:number)=>wall(offset,'00:00'),now=at(0),start=at(-90);
  const specs:{asset:string;name:string;class:Position['assetClass'];quantity:string;decimals:number;value?:string;currency?:string;ref?:MarketAssetRef}[]=[
   {asset:'BTC',name:'Bitcoin',class:'Crypto',quantity:'45000000',decimals:8,value:'4500000',ref:coin('bitcoin')},
   {asset:'ETH',name:'Ethereum',class:'Crypto',quantity:'400000000',decimals:8,value:'1600000',ref:coin('ethereum')},
@@ -85,7 +93,7 @@ export function buildShowcase(day:string){
  // G3: one fictional health goal; with the Showcase walks its rolling four weeks read 7,475 of 8,000 steps.
  const healthGoals=healthGoalsSchema.parse({version:1,goals:[{version:1,id:'92000000-0000-4000-8000-0000000000a1',name:'Walk more (Showcase)',measure:'steps',direction:'at-least',target:{value:'8000',decimals:0},unit:'steps',window:{kind:'rolling',weeks:4},status:'active',notes:'SHOWCASE DATA · fictional health goal',createdAt:start,updatedAt:start}]});
  // HE6: one completed 16-hour session, yesterday evening to today noon; nothing running, so Today shows no fasting line.
- const fasting=fastingSchema.parse({version:1,sessions:[{id:'fast_showcase-1',startedAt:new Date(Date.parse(at(-1))+20*3600000).toISOString(),endedAt:new Date(Date.parse(at(0))+12*3600000).toISOString(),targetHours:16,timeZone:'UTC',note:'SHOWCASE DATA · fictional session',stoppedBy:'person'}]});
+ const fasting=fastingSchema.parse({version:1,sessions:[{id:'fast_showcase-1',startedAt:wall(-1,'20:00'),endedAt:wall(0,'12:00'),targetHours:16,timeZone:zone,note:'SHOWCASE DATA · fictional session',stoppedBy:'person'}]});
  // G1: the review of the week before the current one, so the current week's review is due on the Showcase day.
  const reviewDay=reviewWindow(0,day).reviewDay;
  const weeklyReview=weeklyReviewSchema.parse({version:1,weekday:0,reviews:[{weekStart:addLocalDays(reviewDay,-13),completedAt:`${addLocalDays(reviewDay,-7)}T19:30:00.000Z`,notes:{wentWell:'SHOWCASE DATA · fictional reflection: three walks and a calm week',intention:'SHOWCASE DATA · fictional intention: one short walk after lunch'}}]});

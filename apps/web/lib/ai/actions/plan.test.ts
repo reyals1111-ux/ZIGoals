@@ -23,9 +23,11 @@ import {parseAmountInput} from '../../amount-input';
 
 // ADR-012, Part 5: every proposal becomes a card, writes only on confirmation through the normal mutators, and Undo is
 // the inverse operation, refused calmly when the record moved. Showcase data is fictional and deterministic.
-const {records} = buildShowcase('2026-09-20');
+// A person in UTC (the env below says so), whatever zone the machine running the tests is in (Session Y Part 2): the
+// Showcase is built for UTC and the habits record names that zone, so "today" is the env's day in every zone.
+const {records} = buildShowcase('2026-09-20', 'UTC');
 const stores: Stores = {
-  habits: habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData,
+  habits: {...habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)), timeZone: 'UTC'} as HabitData,
   health: healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData,
   platform: platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform,
   fasting: homeRecordsIn(records).fasting,

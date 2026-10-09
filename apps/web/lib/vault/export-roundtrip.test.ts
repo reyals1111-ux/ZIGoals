@@ -47,13 +47,14 @@ const expectIdentical=async(input:PrivateData)=>{
 
 const unicode='Ünïcødé 日本旅行 ✈️ 👩‍👩‍👧 «quoted» \\ "escaped"   end';
 function richData():PrivateData{
- const {records}=buildShowcase('2026-09-20'),at='2026-09-20T12:00:00.000Z';
+ // Built for a UTC journal (Session Y Part 2), so the habits made at `at` start on 2026-09-20 on every machine.
+ const {records}=buildShowcase('2026-09-20','UTC'),at='2026-09-20T12:00:00.000Z';
  // Finance: Showcase history plus an archived asset, a closed Goal and unicode text.
  let platform:Platform=platformSchema.parse(JSON.parse(records[PLATFORM_KEY]!));
  platform=archiveAsset(platform,'showcase-custom',true,Date.parse(at));platform=closeGoal(platform,platform.goals.at(-1)!.id);
  platform=platformSchema.parse({...platform,goals:platform.goals.map((g,i)=>i===0?{...g,name:'Emergency fund '+unicode.slice(0,40),notes:unicode}:g)});
  // Habits: Showcase history, a large collection, unicode, and archived and paused Habits.
- let habits:HabitData=habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!));
+ let habits:HabitData={...habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),timeZone:'UTC'} as HabitData;
  for(let i=0;i<150;i++){habits=createHabit(habits,{title:`Habit ${i} ${i%7===0?unicode.slice(0,20):''}`.trim(),category:'Wellbeing',description:'',notes:i===0?unicode:'',schedule:{kind:'daily'},target:1,measurement:{kind:'count',unit:'times'}},new Date(at));habits=logHabitCount(habits,habits.habits.at(-1)!.id,'2026-09-20',1,'',new Date(at));}
  habits=setHabitState(habits,habits.habits[0]!.id,'archived',new Date(at));habits=setHabitState(habits,habits.habits[1]!.id,'paused',new Date(at));
  // Health: Showcase diary plus a custom unicode food, a recipe, a saved meal, water and preferences.
