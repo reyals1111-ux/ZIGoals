@@ -70,7 +70,8 @@ test("transparency escapes provider text and omits unconfirmed attribution", () 
 test("public ecosystem page omits internal owner outreach coordination", () => {
   const html = renderToStaticMarkup(createElement(EcosystemPage));
   expect(html).not.toMatch(/\b(?:emailed|outreach|owner-requested)\b/i);
-  expect(html).toContain("Canonical execute/query messages");
+  // Session Y Part 9: Valdora's gate in consumer wording (ADR-018, "Assertions changed").
+  expect(html).toContain("Valdora would need to publish exactly how a deposit, a fee, a delayed withdrawal and a receipt work");
   expect(html).toContain(
     "External investment and funding integrations are disabled.",
   );

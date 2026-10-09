@@ -766,8 +766,74 @@ textarea {
   font-size: 14px;
 }
 input[type="file"] {
-  padding: 8px;
+  padding: 0 12px 0 0;
   font-size: 14px;
+}
+/* Session Y Part 9 (persona row 22): file inputs and radios in the app's own style. They stay native inputs (labelled,
+   keyboard-usable, the same events); only their look changes. The file input keeps its 46 px height: the button fills it. */
+input[type="file"]::file-selector-button {
+  height: 44px;
+  margin: 0 12px 0 0;
+  padding: 0 16px;
+  border: 0;
+  border-right: 1px solid #3a4964;
+  border-radius: 8px 0 0 8px;
+  background: linear-gradient(135deg, #142a44, #241f52);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+input[type="file"]:hover:not(:disabled)::file-selector-button {
+  background: linear-gradient(135deg, #1a3655, #2e2866);
+}
+input[type="file"]:disabled::file-selector-button {
+  cursor: not-allowed;
+}
+input[type="file"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid #74d5e9;
+  outline-offset: 2px;
+}
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex: none;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: 2px solid #8fb4d8;
+  border-radius: 50%;
+  background: #080f1f;
+  cursor: pointer;
+}
+input[type="radio"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff, #74d5e9 55%, #9b7bff);
+  visibility: hidden;
+}
+input[type="radio"]:checked {
+  border-color: #74d5e9;
+}
+input[type="radio"]:checked::before {
+  visibility: visible;
+}
+input[type="radio"]:disabled {
+  border-color: #5b6b85;
+  cursor: not-allowed;
+}
+@media (forced-colors: active) {
+  input[type="radio"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+  }
 }
 input[type="checkbox"] {
   width: 18px;

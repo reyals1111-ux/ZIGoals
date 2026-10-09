@@ -165,7 +165,7 @@
       "jurisdiction": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation.",
       "note": "No public eligibility, KYC, or jurisdiction rules were found in the reviewed documentation."
     },
-    "notes": "ZIG Markets curator attribution is explicit for named Valdora vaults, but no shared-vault or broader responsibility is inferred. Integration surface: Non-executable liquid-staking and vault descriptors. Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter. API/contracts: addresses available; canonical message schemas and public API not found in reviewed sources Read 2026-10-02: both stakers report stzig-staker 1.1.0 and run identical code; no message schema is published.",
+    "notes": "ZIGoals shows Valdora's own links only. ZIG Markets is named as the curator of the Valdora vaults it lists; nothing more is assumed about who is responsible for what. Before ZIGoals could ever act in a Valdora vault, Valdora would need to publish exactly how a deposit, a fee, a delayed withdrawal and a receipt work. Checked 2026-10-02: both of its staking services run the same published version; that description is not public yet.",
     "sources": [
       {
         "url": "https://docs.valdora.finance/smart-contracts",
@@ -333,7 +333,7 @@
       "jurisdiction": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review.",
       "note": "OroSwap says the protocol is non-custodial and does not require KYC, with access restricted in OFAC-sanctioned regions; implementation must still apply application policy and jurisdiction review."
     },
-    "notes": "Do not reimplement generic AMM quote math; Halborn documents an acknowledged formula difference. Future execution needs asset/pair allowlists, minimum receive, max spread, quote freshness, failure classification, and receipt verification. Integration surface: Read-only route discovery and router simulation design. No trading UX and no fund-moving execution. API/contracts: public CosmWasm router source, execute/query surface, and deployments available Read 2026-10-02: every mainnet pool type is closed to new pools (existing pools are not paused), and the factory's pair listing returned 31 of 165 mainnet pairs, so pairs are looked up by asset.",
+    "notes": "ZIGoals shows OroSwap's links and could, later, show what a swap would return before anyone decides. It never swaps for you. A security firm (Halborn) noted that OroSwap's price formula differs from the common one on purpose, so ZIGoals would use OroSwap's own figures, never its own guess. Checked 2026-10-02: no new pools can be created right now (existing pools still work), and only some of the trading pairs are listed at once.",
     "sources": [
       {
         "url": "https://github.com/oroswap/oroswap-core/tree/main/contracts/router",
@@ -545,7 +545,7 @@
       "jurisdiction": "No current public eligibility, KYC, or jurisdiction policy was verified in the accessible primary sources.",
       "note": "No current public eligibility, KYC, or jurisdiction policy was verified in the accessible primary sources."
     },
-    "notes": "The repository security self-check covers the query client and is not a smart-contract audit. Neither remediation nor continued deployment of affected code can be inferred from provider silence or live address existence. Execution requires primary incident facts, affected-contract mapping, remediation provenance, current full-protocol audit coverage, and testnet evidence. Integration surface: Read-only protocol, rates, position health, rewards, and vault metadata queries after schema pinning. No fund-moving or leverage path. API/contracts: public read-only query client and configured addresses; public core-contract source unavailable",
+    "notes": "ZIGoals shows PermaPod's links only. Its published security self-check covers the tool that reads its data, not the lending code itself, so it is not an audit. Silence about a past incident, or the fact that the service is still online, does not tell you it was fixed. ZIGoals would only ever read rates and positions, never borrow or move money.",
     "sources": [
       {
         "url": "https://github.com/permapod-zigchain",
@@ -641,7 +641,7 @@
       "jurisdiction": "The provider markets to institutions and individuals, but current eligibility, KYC, and jurisdiction rules were not verified.",
       "note": "The provider markets to institutions and individuals, but current eligibility, KYC, and jurisdiction rules were not verified."
     },
-    "notes": "Required attribution: Nawa states that Amanie Advisors reviewed/certified the strategies; certifier confirmation remains unverified. Liquidity, redemption, capacity, eligibility, and deployment evidence remain open blockers. Integration surface: Attributed certification and product metadata only; possible future GoalPolicy input after certifier verification. No vault execution. API/contracts: no current public ZIGChain contract, schema, API, or source repository verified",
+    "notes": "ZIGoals shows Nawa's links only. Nawa says Amanie Advisors reviewed and certified its strategies; ZIGoals has not been able to confirm that with Amanie. How and when you could take money out, how much the products can hold, and who may invest are not yet confirmed either.",
     "sources": [
       {
         "url": "https://www.nawa.finance/",
@@ -705,10 +705,10 @@
     "audits": [],
     "eligibility": {
       "kyc": "PRODUCT_DEPENDENT",
-      "jurisdiction": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed partners/entities.",
+      "jurisdiction": "Terms target a restricted/sophisticated audience and permit KYC/AML, sanctions screening, local eligibility controls, and geoblocking; regulated services may be supplied by licensed firms it works with.",
       "note": "No retail product terms, eligibility rules or country list were found on zig.finance; its Terms say each product's own terms decide (read 2026-10-02)."
     },
-    "notes": "The provider claims Merritt Administrators Pty Ltd holds South African FSP 46517 Category II. An FSCA notice verifies the entity/number and a 2022 lifting of suspension, but it is not a current full-scope license-register check. Do not infer ORIGINATOR, CUSTODY, SERVICING, or shared-vault responsibility. Integration surface: Product-level curator and distributor attribution where a primary source identifies ZIG Markets. No executable API. API/contracts: legal terms mention APIs and vault interfaces; no public API documentation or contract schema found Read 2026-10-02: ZIG Markets says it works through Merritt Administrators (FSP 46517) and Starbuy (FSP category I and CASP); the FSCA's December 2024 CASP list includes STARBUY PTY LTD as FSP 53740.",
+    "notes": "ZIGoals shows ZIG Markets' links only. ZIG Markets says it works through Merritt Administrators (a South African financial services provider, FSP 46517) and Starbuy (FSP 53740, also on the regulator's December 2024 list of crypto-asset providers). The regulator's notice confirms Merritt's number and a 2022 lifting of a suspension; it is not a full check of current licences. ZIGoals names ZIG Markets only where a product's own documents name it.",
     "sources": [
       {
         "url": "https://zigmarkets.com/",
@@ -718,7 +718,7 @@
       {
         "url": "https://zigmarkets.com/legal/terms-and-conditions",
         "title": "ZIG Markets Terms and Conditions",
-        "supports": "Service scope, audience, access controls, and licensed-partner boundaries. When read on 2026-10-02, this address redirected to zig.finance/markets."
+        "supports": "Who the service is for, its access controls, and the limits set by the licensed firms it works with. When read on 2026-10-02, this address redirected to zig.finance/markets."
       },
       {
         "url": "https://www.fsca.co.za/Notices/FSCA%20FAIS%20Notice%2093%20of%202022.pdf",
@@ -789,7 +789,7 @@
       "jurisdiction": "14 places are excluded, including Canada, the United States, Cuba, Iran, North Korea, Myanmar, Syria, Venezuela and named occupied regions (help center, read 2026-10-02).",
       "note": "KYC through Sumsub is mandatory for every user before depositing or investing (help center, read 2026-10-02)."
     },
-    "notes": "Zignaly is modeled as a distribution provider. The API license agreement proves legal API terms exist, not that a suitable public integration API is available. Integration surface: Human-readable product and strategy-composition metadata only. Exchange API keys are outside the ZIGoals integration boundary. API/contracts: public human-readable product metadata; legal API agreement exists; no suitable documented product API or ZIGChain contract found",
+    "notes": "ZIGoals shows Zignaly's product descriptions and links only. Zignaly offers strategies run on exchanges; ZIGoals never asks for or keeps exchange keys, and no connection to your Zignaly account exists.",
     "sources": [
       {
         "url": "https://zignaly.com/z-indexes",
@@ -882,7 +882,7 @@
       "jurisdiction": "No WME-specific eligibility, KYC, or jurisdiction interface was found.",
       "note": "No WME-specific eligibility, KYC, or jurisdiction interface was found."
     },
-    "notes": "General token-factory and IBC SDK examples do not establish a WME API. Remain non-executable until official schemas and testnet evidence are published and verified. Integration surface: Architecture boundary for a future WMEAdapter only. API/contracts: no public ABI, protobuf/service definition, contract address, message schema, SDK method, or example flow found",
+    "notes": "The ZIGChain Wealth Management Engine is announced, not yet published in a form anyone can check. ZIGoals shows its information only and does nothing with it until the official description and test results are public.",
     "sources": [
       {
         "url": "https://docs.zigchain.com/wealth-management-engine/",
@@ -947,7 +947,7 @@
       "jurisdiction": "ZM1: Professional Clients, limited DIFC distribution, whitelist; not offered for onshore UAE transactions. Explicitly not an Islamic Fund or marketed as Shariah-compliant.",
       "note": "ZM1: Professional Clients, limited DIFC distribution, whitelist; not offered for onshore UAE transactions. Explicitly not an Islamic Fund or marketed as Shariah-compliant."
     },
-    "notes": "Zamanat sponsors; Truleum manages; Apex administers. USD 100 million is a target, not verified assets raised. Integration surface: Product metadata and sponsor provenance; subscription integration requires the fund manager and final terms. API/contracts: No canonical ZM1 contract, ABI or subscription API identified in the inspected release.",
+    "notes": "ZIGoals shows Zamanat's fund information only. Zamanat sponsors the fund, Truleum manages it and Apex administers it. USD 100 million is the fund's target, not money it has raised. Investing would go through the fund manager under the fund's final terms, never through ZIGoals.",
     "sources": [
       {
         "url": "https://www.zamanathq.com/",
@@ -999,7 +999,7 @@
       "jurisdiction": "Investor access is by application; investor KYC and jurisdiction terms remain unconfirmed. Borrower onboarding is distinct from investor eligibility.",
       "note": "Investor access is by application; investor KYC and jurisdiction terms remain unconfirmed. Borrower onboarding is distinct from investor eligibility."
     },
-    "notes": "The inspected page contains overlapping product descriptions and tenors; no marketing terms were promoted to canonical execution parameters. Integration surface: Origination and pool metadata candidate, pending an authenticated product specification. API/contracts: Site describes USDC deposits and DLP receipts; Docs and Audit links are marked Coming Soon. No canonical pool address/schema identified.",
+    "notes": "ZIGoals shows DeFa / InvoiceMate's links only. Its page describes overlapping products and terms, and its documents and audit are marked \"coming soon\", so ZIGoals repeats none of its figures as facts.",
     "sources": [
       {
         "url": "https://imdefa.com/",
@@ -1036,7 +1036,7 @@
       {
         "chainId": "zigchain-1",
         "status": "ANNOUNCED",
-        "note": "ZIGChain partnership explores programmable GCC private credit. A deployed ZIG product and testnet are unconfirmed."
+        "note": "ZIGChain and Beehive announced work on programmable private credit in the Gulf (GCC). A deployed ZIG product and testnet are unconfirmed."
       }
     ],
     "contracts": [],
@@ -1055,11 +1055,11 @@
       "jurisdiction": "Investor application and local restrictions apply. Islamic Window, Murabaha and Shariyah Review Bureau oversight are provider-attributed claims; no new ZIG product certification was verified.",
       "note": "Investor application and local restrictions apply. Islamic Window, Murabaha and Shariyah Review Bureau oversight are provider-attributed claims; no new ZIG product certification was verified."
     },
-    "notes": "Business-investor financing is direct; provider says it does not select businesses for investors. Do not assume a pooled curator role. Integration surface: Originator/servicing evidence and future product eligibility; existing marketplace is not a verified ZIG vault. API/contracts: No public ZIG contract or execution schema identified in inspected provider pages.",
+    "notes": "ZIGoals shows Beehive's links only. On Beehive, investors finance businesses directly; Beehive says it does not choose businesses for you. Its existing marketplace is not a ZIGChain product ZIGoals could check.",
     "sources": [
       {
         "url": "https://www.linkedin.com/posts/beehivefintech_smes-we-hear-you-access-to-funding-should-activity-7452647245906255872-JBo9",
-        "title": "Beehive: partnership with ZIGChain",
+        "title": "Beehive: announcement with ZIGChain",
         "supports": "Exploration of compliant programmable GCC private-credit infrastructure."
       },
       {
@@ -1117,7 +1117,7 @@
       "jurisdiction": "Ondo Stocks prohibits US persons and specified jurisdictions including Canada; EEA/UK issuance requires professional/qualified status. Other product rules differ; KYC and complete current list govern.",
       "note": "Ondo Stocks prohibits US persons and specified jurisdictions including Canada; EEA/UK issuance requires professional/qualified status. Other product rules differ; KYC and complete current list govern."
     },
-    "notes": "A ZIGChain integration announcement does not override Ondo product eligibility or prove native CosmWasm execution. Integration surface: Metadata/price integration only after access and terms review; ecosystem wrapper must be verified separately. API/contracts: Published REST OpenAPI and gRPC schema; whitelisted mint/redemption flow. API access requires onboarding. No ZIG address found in inspected canonical directory.",
+    "notes": "ZIGoals shows Ondo Finance's information only. Ondo's announcement about ZIGChain does not change who may buy its products (it checks eligibility itself) and does not show that its products work on ZIGChain directly. Access goes through Ondo's own onboarding.",
     "sources": [
       {
         "url": "https://www.linkedin.com/posts/zigchain_ondo-finance-did-the-hard-work-of-bringing-activity-7470083640316747776-QfeJ",
@@ -1182,7 +1182,7 @@
       "jurisdiction": "Announcement targets banks, financial institutions and professional investors; ZIGoals eligibility and onboarding are unconfirmed.",
       "note": "Announcement targets banks, financial institutions and professional investors; ZIGoals eligibility and onboarding are unconfirmed."
     },
-    "notes": "Published support is a vendor statement; no custody account, API call or transaction was performed. Integration surface: Institutional custody/issuance infrastructure metadata; client-tenant integration would be a separate project. API/contracts: Taurus-CAPITAL documents Zigchain TokenFactory support. Public support tables do not establish a ZIGoals client API entitlement or arbitrary vault support.",
+    "notes": "ZIGoals shows Taurus's information only. Taurus says it supports ZIGChain for institutions' custody and token issuance; ZIGoals has no account there and made no request. Support for institutions does not mean any service for you.",
     "sources": [
       {
         "url": "https://www.taurushq.com/stories/taurus-integrates-zigchain-to-expand-digital-asset-wealth-generation-opportunities-for-financial-institutions/",
@@ -1236,7 +1236,7 @@
       "jurisdiction": "Institutional service engagement is distinct from fund-investor eligibility; ZM1 terms govern that fund.",
       "note": "Institutional service engagement is distinct from fund-investor eligibility; ZM1 terms govern that fund."
     },
-    "notes": "Alliance participants and Tokeny technology do not establish a compatible ZIG execution ABI. Integration surface: Administrator and servicing provenance for explicitly identified funds. API/contracts: Public fund-service and portal descriptions found; no canonical ZIG vault contract or open product API established.",
+    "notes": "ZIGoals shows Apex Group's information only, as the administrator named by specific funds. Membership of industry alliances does not show that its services work with ZIGChain.",
     "sources": [
       {
         "url": "https://www.zamanathq.com/news/zamanat-fund-launch",
@@ -1297,7 +1297,7 @@
       "jurisdiction": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply.",
       "note": "Circle Mint and APIs support native Noble USDC, not arbitrary IBC vouchers. Product onboarding and compliance still apply."
     },
-    "notes": "Do not present the historical native-USDC support page as assurance of continuing availability after the issuer sunset. Testnet asset mapping was not verified. Integration surface: Funding-route research only; exclude from an enabled new USDC route until sunset/replacement design is resolved. API/contracts: IBC channel query works. Official registry identifies Noble USDC; denomination-trace RPC verification was unavailable (HTTP 501). Read 2026-10-02: Circle's help article KB0010590 still lists Noble as supported and does not mention the wind-down.",
+    "notes": "ZIGoals lists Noble as a past way to bring USDC to ZIGChain, for research only. Circle has announced the end of native USDC on Noble; ZIGoals does not offer it as a route while that is unresolved, even though one Circle help page (checked 2026-10-02) still lists it.",
     "sources": [
       {
         "url": "https://help.circle.com/support/en/a-closer-look-at-usdc-on-noble-and-the-ibc-protocol?id=kb_article_view&sysparm_article=KB0010582",
@@ -1394,7 +1394,7 @@
       "jurisdiction": "No provider account/eligibility flow tested; source venue and route restrictions remain product-specific and unconfirmed.",
       "note": "No provider account/eligibility flow tested; source venue and route restrictions remain product-specific and unconfirmed."
     },
-    "notes": "Testnet config key zigchain-3 maps externalChainId zig-test-2. Never use the config key as the wallet network id. Registry and Axelar config agree on ZIG.axl metadata; direct denom-trace RPC returned HTTP 501. Integration surface: Separate FundingRoute for a verified source-to-destination asset path; no strategy classification. API/contracts: Public typed config maps unit-zig and its Ethereum/Sepolia origins. Bridge execution and native conversion were not tested.",
+    "notes": "ZIGoals lists Axelar as a way assets reach ZIGChain from other networks (ZIG from Ethereum, for example), for research only. On the test network, Axelar's name for ZIGChain differs from your wallet's network name; ZIGoals always uses the wallet's. Moving assets across was not tested.",
     "sources": [
       {
         "url": "https://docs.axelar.dev/resources/static-configs/static-configs/",
@@ -1483,7 +1483,7 @@
       "jurisdiction": "Public information access; third-party terms apply.",
       "note": "No wallet/account required by ZIGoals for these links."
     },
-    "notes": "Official testnet homepage only. Detail routes and public API schemas unconfirmed; browser policy verification unavailable. No portfolio or full-history integration.",
+    "notes": "ZIGoals links to Range's test-network home page only. Its detail pages are not confirmed, and ZIGoals reads no portfolio or history from it.",
     "sources": [
       {
         "url": "https://docs.zigchain.com/users/tools/block-explorers",
@@ -1530,7 +1530,7 @@
       "jurisdiction": "Public information access; third-party terms apply.",
       "note": "No wallet/account required by ZIGoals for these links."
     },
-    "notes": "Public source confirms tx/account/contract route shapes; homepage emits block links. Asset route unconfirmed. Link navigation is not receipt verification.",
+    "notes": "ZIGoals links to ZIGScan's transaction, account and block pages. Opening a link shows ZIGScan's view; it is not a proof that a transaction succeeded.",
     "sources": [
       {
         "url": "https://docs.zigchain.com/users/tools/block-explorers",
@@ -1573,7 +1573,7 @@
       "jurisdiction": "Public information access; third-party terms apply.",
       "note": "No wallet/account required by ZIGoals for these links."
     },
-    "notes": "Canonical overview/validators/governance/staking/bridge information links only. Hub may retain its own network and offers financial actions; no automatic wallet connection or routing. Direct HTTP access returned403; routes verified in official docs.",
+    "notes": "ZIGoals links to ZIGChain Hub's overview, validators, governance, staking and bridge pages. The Hub has its own network setting and offers money actions of its own; ZIGoals never connects your wallet to it or sends you through it.",
     "sources": [
       {
         "url": "https://docs.zigchain.com/users/tools/block-explorers",

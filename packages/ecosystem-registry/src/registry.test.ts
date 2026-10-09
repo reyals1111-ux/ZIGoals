@@ -198,8 +198,9 @@ describe("public evidence attribution", () => {
     const valdora = ecosystemProviders.find(
       (record) => record.id === "valdora",
     )!;
+    // Session Y Part 9: the same gate in consumer wording (ADR-018, "Assertions changed").
     expect(valdora.notes).toContain(
-      "Canonical execute/query messages, units, rounding, fees, delayed redemption/claim states, and receipt semantics are required for an adapter.",
+      "Before ZIGoals could ever act in a Valdora vault, Valdora would need to publish exactly how a deposit, a fee, a delayed withdrawal and a receipt work.",
     );
     expect(canExecuteProvider(valdora)).toBe(false);
   });
@@ -335,4 +336,18 @@ it("the snapshot is parsed in one place and the links module needs no schema lib
   for (const name of ["explorers", "hubLinks", "buildExplorerUrl", "explorerHome", "explorerEvidence", "isSafeReferenceUrl"] as const) expect(root[name]).toBe(linksModule[name]);
   const { ecosystemProviders, directoryEntries } = await import("./providers");
   expect(directoryEntries.map((entry) => entry.id)).toEqual(ecosystemProviders.map((provider) => provider.id));
+});
+
+// Session Y Part 9 (persona notes): what a person reads in the Ecosystem directory is consumer wording. The capability
+// note carries no developer terms, and no rendered field calls anyone a "partner".
+describe("consumer wording", () => {
+  it("notes carry no developer terms; no rendered field says partner", async () => {
+    const { ecosystemProviders } = await import("./providers");
+    const developer = /\b(?:integration surface|api|abi|adapters?|schemas?|rpc|cosmwasm|sdk|protobuf|execute\/query|denom-trace|config key)\b/i;
+    for (const record of ecosystemProviders) {
+      expect(record.notes, record.id).not.toMatch(developer);
+      const rendered = [record.notes, record.eligibility.jurisdiction, record.eligibility.note, ...record.risks, ...record.networks.map((n) => n.note), ...record.sources.flatMap((s) => [s.title, s.supports]), ...record.audits.flatMap((a) => [a.title, a.supports])];
+      for (const text of rendered) expect(text, record.id).not.toMatch(/\bpartner(?:s|ship)?\b/i);
+    }
+  });
 });

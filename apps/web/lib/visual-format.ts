@@ -136,13 +136,19 @@ const DATE_FIELDS=['weekday','year','month','day'] as const,TIME_FIELDS=['dayPer
 const dateFormatters=new Map<string,Intl.DateTimeFormat>();
 function dateFormat(locale:string,options:Intl.DateTimeFormatOptions){const key=`${locale}|${JSON.stringify(options)}`;let format=dateFormatters.get(key);if(!format){format=new Intl.DateTimeFormat(locale,options);dateFormatters.set(key,format);}return format;}
 const has=(options:Intl.DateTimeFormatOptions,fields:readonly (keyof Intl.DateTimeFormatOptions)[])=>!!options.dateStyle||!!options.timeStyle||fields.some(field=>options[field]!==undefined);
+// Session Y Part 9 (QA2-08's leftover): a page writes the same dates many times (Wealth's 200 rows); the strings are kept
+// per locale, options and instant, at most WRITTEN_KEPT of them (the oldest half goes when full). Output is unchanged.
+const WRITTEN_KEPT=2000,writtenCache=new Map<string,string>();
 function written(date:DateInput,options:Intl.DateTimeFormatOptions){
  const value=date instanceof Date?date:new Date(date);
  // Date#toLocale…String writes "Invalid Date" where Intl throws; keep that.
  if(Number.isNaN(value.getTime()))return 'Invalid Date';
+ const key=`${active}|${wordLocale()}|${JSON.stringify(options)}|${value.getTime()}`,kept=writtenCache.get(key);if(kept!==undefined)return kept;
  const parts=dateFormat(active,options).formatToParts(value);
  const hasWords=parts.some(part=>part.type==='weekday'||part.type==='era'||part.type==='dayPeriod'||(part.type==='month'||part.type==='literal')&&/\p{L}/u.test(part.value));
- return hasWords?dateFormat(wordLocale(),options).format(value):parts.map(part=>part.value).join('');
+ const text=hasWords?dateFormat(wordLocale(),options).format(value):parts.map(part=>part.value).join('');
+ if(writtenCache.size>=WRITTEN_KEPT)for(const old of [...writtenCache.keys()].slice(0,WRITTEN_KEPT/2))writtenCache.delete(old);
+ writtenCache.set(key,text);return text;
 }
 /** As Date#toLocaleDateString: the date, digits in the display locale, words in English. */
 export function formatDate(date:DateInput,options:Intl.DateTimeFormatOptions={}){return written(date,has(options,DATE_FIELDS)?options:{...options,year:'numeric',month:'numeric',day:'numeric'});}

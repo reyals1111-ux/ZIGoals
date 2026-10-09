@@ -30,6 +30,7 @@ import { undoNutritionImport } from "../../lib/import/nutrition";
 import type { ImportRecord } from "../../lib/import/undo-schema";
 import {AdditionalNutrition} from "./additional-nutrition";
 import {additionalNutrients} from "../../lib/health";
+import {normalizeDecimalInput} from "../../lib/decimal-input";
 import {BodyMeasurements} from "./body-measurements";
 import { NutritionDashboard } from "./nutrition-dashboard";
 import { HealthQuickPicks, WaterJournal, MealsAndPlanning, HealthJournalSettings } from "./daily-tools";
@@ -170,16 +171,32 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const [error, setError] = useState("");
   const perform: Perform = async (updater, success, after) => {
     if (saving.current) return;
-    saving.current = true; setBusy(true); setError(""); setMessage("");
+    saving.current = true; setBusy(true); setError(""); setMessage(""); unmark();
     try { await update(updater); setMessage(success); after?.(); }
     catch (error) { setError(updateRefusalMessage(error, "Could not save this change. Check your entries and available browser storage, then try again.")); }
     finally { saving.current = false; setBusy(false); }
   };
+  // Session Y Part 9 (persona row 19): the form a refusal is about marks the fields it can tell apart (a number that does
+  // not read, a required one left empty, a name with nothing visible) with aria-invalid and the error's id, and the first
+  // takes the focus. The forms keep their own parsing; this reads only what the person typed.
+  // A number reads when it is plain digits with one optional decimal point or comma, and the comma is not the ambiguous
+  // "1,234" the Health forms refuse (normalizeDecimalInput).
+  const readsAsNumber = (text: string) => { if (!/^\s*\d+(?:[.,]\d+)?\s*$/.test(text)) return false; try { normalizeDecimalInput(text); return true; } catch { return false; } };
+  const errorId = "health-page-error", lastForm = useRef<HTMLFormElement | null>(null), marked = useRef<HTMLElement[]>([]);
+  const unmark = () => { for (const el of marked.current) { el.removeAttribute("aria-invalid"); const rest = (el.getAttribute("aria-describedby") ?? "").split(" ").filter(id => id && id !== errorId).join(" "); if (rest) el.setAttribute("aria-describedby", rest); else el.removeAttribute("aria-describedby"); } marked.current = []; };
+  const mark = (nameOnly: boolean) => {
+    unmark(); const form = lastForm.current; if (!form?.isConnected) return 0;
+    const fields = [...form.querySelectorAll<HTMLInputElement>("input:not([type=hidden]):not([disabled])")].filter(input => nameOnly
+      ? !input.inputMode && input.type === "text" && input.value !== "" && !/[\p{L}\p{N}\p{P}\p{S}]/u.test(input.value)
+      : (input.inputMode === "numeric" || input.inputMode === "decimal") && ((input.required && !input.value.trim()) || (!!input.value.trim() && !readsAsNumber(input.value))));
+    for (const el of fields) { el.setAttribute("aria-invalid", "true"); el.setAttribute("aria-describedby", [el.getAttribute("aria-describedby"), errorId].filter(Boolean).join(" ")); }
+    marked.current = fields; fields[0]?.focus(); return fields.length;
+  };
   // A name with nothing visible gets its own message (QA-32); every other refusal keeps the fields message.
-  const invalid = (cause?: unknown) => setError(cause instanceof Error && cause.message === INVISIBLE_NAME ? cause.message : "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings.");
+  const invalid = (cause?: unknown) => { const name = cause instanceof Error && cause.message === INVISIBLE_NAME, count = mark(name); setError(name ? cause.message : count ? "Check the highlighted fields. Enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings." : "Check the numbers: enter finite numbers within the displayed ranges, with up to three decimal places for grams, kilograms and servings."); };
   const summary = dailyHealthSummary(data, date);
   const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
-  return <LayoutPage page="health"><div className="health-page">
+  return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
     {!phone && <ExerciseCounters data={data} update={update} />}
     <div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="health-eyebrow">YOUR EVERYDAY WELLBEING</NebulaFlow></p><h1><NebulaFlow identity="health-title">A little care, every day.</NebulaFlow></h1><p className="page-lede">Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link><LayoutLockButton/></div></div>
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
@@ -193,7 +210,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
     </div>
-    <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && !(phone && logging) && <p className="health-error" role="alert">{error}</p>}
+    <p className="health-feedback" role="status" aria-live="polite">{busy ? "Saving to this browser…" : message}</p>{error && !(phone && logging) && <p className="health-error" role="alert" id={errorId}>{error}</p>}
     <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
@@ -268,7 +285,7 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
     </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
-  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
+  })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
 }
 
 function DiaryEditor({ entry, perform, invalid, close }: { entry: HealthDiaryEntry; perform: Perform; invalid: (cause?: unknown) => void; close: () => void }) {
