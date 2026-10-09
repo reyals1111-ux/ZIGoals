@@ -30,8 +30,11 @@ export async function enableDurableStore<T>(storage:Storage,key:string,schema:z.
   storage.setItem(key,marker); // Last publication step; old schema writers now fail closed.
  });
 }
+// Session Y Part 5 (B5): once per page, the outbox entries nothing will consume are removed (database.ts sweepUnconsumed).
+let swept=false;
 export async function readDurableStore<T>(storage:Storage,key:string,schema:z.ZodType<T>,db=localDatabase):Promise<T>{
  const space=durableSpace(storage,key);
+ if(!swept){swept=true;void db.sweepUnconsumed().catch(()=>{swept=false;});}
  if(!isDurableMarker(storage.getItem(key)))throw Error('Storage selection changed. Reload before continuing.');
  const value=await db.read(space,key);if(!value)throw Error('Private database missing. Restore from your private backup; do not reset.');fence(storage,key);return schema.parse(value.data);
 }

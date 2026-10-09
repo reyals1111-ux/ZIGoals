@@ -31,9 +31,10 @@ for(const domain of ['finance','habits','health'] as const)for(const boundary of
  },{key,boundary});
  await page.getByRole('button',{name:'Upgrade selected module storage',exact:true}).click();await expect(page.locator('#private-vault').getByRole('alert')).toContainText(/interrupted|transaction failed/);
  const interrupted=await state(page,key);expect(interrupted.raw).toBe(raw);expect(await other.evaluate(key=>localStorage.getItem(key),key)).toBe(raw);
- expect(interrupted.revision).toBe(boundary==='transaction-abort'?0:1);expect(interrupted.outbox).toHaveLength(boundary==='transaction-abort'?0:1);expect(interrupted.recovery.map(r=>r.raw)).toEqual(boundary==='transaction-abort'?[]:[raw]);
+ // Session Y Part 5 (B5): the Local Demo space keeps no outbox (nothing reads it); the receipt shows the commit landed whole.
+ expect(interrupted.revision).toBe(boundary==='transaction-abort'?0:1);expect(interrupted.outbox).toHaveLength(0);expect(interrupted.receipts).toHaveLength(boundary==='transaction-abort'?0:1);expect(interrupted.recovery.map(r=>r.raw)).toEqual(boundary==='transaction-abort'?[]:[raw]);
  // Retry from the tab that was already open before failure; it must reuse a staged commit.
  await other.getByRole('button',{name:'Upgrade selected module storage',exact:true}).click();await expect(other.getByText('Using transactional local storage.',{exact:true})).toBeVisible();
- await page.reload();const recovered=await state(page,key);expect(JSON.parse(recovered.raw!).kind).toBe('zigoals-indexeddb-pointer');expect(recovered.data).toEqual(schemas[domain].parse(fixtures[domain]));expect(recovered.revision).toBe(1);expect(recovered.outbox).toHaveLength(1);expect(recovered.receipts).toHaveLength(1);expect(recovered.recovery.map(r=>r.raw)).toEqual([raw]);
+ await page.reload();const recovered=await state(page,key);expect(JSON.parse(recovered.raw!).kind).toBe('zigoals-indexeddb-pointer');expect(recovered.data).toEqual(schemas[domain].parse(fixtures[domain]));expect(recovered.revision).toBe(1);expect(recovered.outbox).toHaveLength(0);expect(recovered.receipts).toHaveLength(1);expect(recovered.recovery.map(r=>r.raw)).toEqual([raw]);
  await other.reload();expect(await state(other,key)).toEqual(recovered);await other.close();
 });

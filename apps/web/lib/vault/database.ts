@@ -10,6 +10,15 @@ const done=(t:IDBTransaction)=>new Promise<void>((resolve,reject)=>{t.oncomplete
 const key=(...parts:string[])=>JSON.stringify(parts);
 const prefixRange=(...parts:string[])=>{const prefix=JSON.stringify(parts).slice(0,-1)+',';return IDBKeyRange.bound(prefix,prefix+'\uffff');};
 const byteLength=(v:unknown)=>new TextEncoder().encode(JSON.stringify(v)).length;
+/**
+ * Session Y Part 5, FIX_PLAN B5 (Q-SYNC-06). Only account sync reads the outbox, and only to acknowledge (delete) entries
+ * after it uploaded the section's whole current state; nothing ever reads an entry's records. A space that is not an
+ * account's (the Local Demo's 'local') is never synced, so its entries were plaintext kept for good: none is written now,
+ * and the ones left by earlier builds go with the next write in that space (sweepUnconsumed does it at once).
+ */
+export const consumedSpace=(space:string)=>space.startsWith('account:');
+/** Receipts only make a retried operation idempotent; one older than this many revisions of its section is never retried. */
+export const RECEIPT_HORIZON=1000,RECEIPT_PRUNE_EVERY=100;
 function split(data:unknown,revision:number):{header:Header;rows:Map<string,{field:string;id:string;value:unknown}>}{
  if(!data||typeof data!=='object'||Array.isArray(data)||byteLength(data)>32_000_000)throw Error('Private data exceeds the supported 32 MB domain capacity. Export before continuing.');
  const fields:Record<string,unknown>={},arrays:Record<string,string[]>={},rows=new Map<string,{field:string;id:string;value:unknown}>();
@@ -120,15 +129,22 @@ export class VaultDatabase{
      if(JSON.stringify(previous)!==JSON.stringify(row.value)){tx.objectStore('records').put(row.value,rowKey);changes.push({...row,deleted:false});}
     }
     fence();tx.objectStore('headers').put(prepared.header,headKey);
-    tx.objectStore('outbox').put({space,domain,operation,base,revision:base+1,changes,header:prepared.header} satisfies PendingOperation,receiptKey);
+    if(consumedSpace(space))tx.objectStore('outbox').put({space,domain,operation,base,revision:base+1,changes,header:prepared.header} satisfies PendingOperation,receiptKey);
     tx.objectStore('receipts').put({domain,digest,revision:base+1},receiptKey);
+    // Receipts past the horizon go, a hundred revisions at a time, in this same transaction (B5).
+    if((base+1)%RECEIPT_PRUNE_EVERY===0){const store=tx.objectStore('receipts'),range=prefixRange(space),[keys,values]=await Promise.all([request(store.getAllKeys(range)),request(store.getAll(range)) as Promise<{domain:string;revision:number}[]>]);keys.forEach((k,i)=>{const r=values[i];if(r&&r.domain===domain&&r.revision<=base+1-RECEIPT_HORIZON)store.delete(k);});}
     if(original!==undefined)tx.objectStore('recovery').put({space,domain,raw:original},key(space,domain,operation));
     revisions.push(base+1);
    }
+   if(!consumedSpace(space))tx.objectStore('outbox').delete(prefixRange(space));
    fence();await finish;return revisions;
   }catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}
  }
  async pending(space:string):Promise<PendingOperation[]>{const db=await this.open(),tx=db.transaction('outbox','readonly'),finish=done(tx);const selected=await request(tx.objectStore('outbox').getAll(prefixRange(space))) as PendingOperation[];await finish;return selected;}
+ /** B5: removes the outbox entries of every space nothing consumes (earlier builds wrote them). Idempotent; account spaces untouched. */
+ async sweepUnconsumed():Promise<number>{const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx),store=tx.objectStore('outbox');
+  try{const keys=await request(store.getAllKeys());let removed=0;for(const k of keys){let space:unknown;try{space=JSON.parse(String(k))[0];}catch{continue;}if(typeof space==='string'&&!consumedSpace(space)){store.delete(k);removed++;}}await finish;return removed;}
+  catch(error){try{tx.abort();}catch{}await finish.catch(()=>{});throw error;}}
  async acknowledge(space:string,operation:string){const db=await this.open(),tx=db.transaction('outbox','readwrite'),finish=done(tx);tx.objectStore('outbox').delete(key(space,operation));await finish;}
  /** QA-02: after a confirmed restore, remove this domain's recovery copies except the one `keep` wrote. One transaction: a failure removes none. */
  async pruneRecovery(space:string,domain:string,keep:string):Promise<number>{
