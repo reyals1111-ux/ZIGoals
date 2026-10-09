@@ -274,6 +274,35 @@ Re-run step 2 at your release SHA; this is what to expect.
 | push reminders (only if activated) | nothing in the Worker; its run sheet rewritten | only if you activate push (below) |
 | ZIGoals hosted relay (only if activated) | an Anthropic upstream option (native Messages API, translated in the relay); a second template | only if you activate it (below) |
 
+## Session X-Local changes (PR #79, merged as `e30b7c6`, live as Alpha #34)
+Added by Session Y (2026-10-09). Only the app changed; no Worker.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| app | ZIGi's Studio art (static images of this origin) and the "alive" chunk that animates the launcher on every page (it follows reduced motion and Motion Off); emotions from what happens, with calm celebrations; six new chat card kinds and the four goal types; **auto-accept**, opt-in per kind, a new optional field `autoAccept` in the device record `zigoals:ai-options:v1` (switches and a daily count only; older builds ignore it); the knock's choice in `zigoals:zigi:v1` and its daily count in `zigoals:zigi-knock:v1` (device records, never synced); JSON repair, one repair round and the 60 s stall watchdog; the **narrowed Alpha gate** (H8 option 1: every script in the server's HTML carries the header's nonce; a script without one passes only as a runtime-appended chunk of this origin under `/_next/static/chunks/`) | yes (the app) |
+| market coordinator, private sync, lifecycle, food lookup, auth admission, push, relay | nothing | no |
+
+**What to check after the redeploy (plain words, about 10 minutes):**
+1. Every app page opens; ZIGi's launcher shows its art and rests clear of the first screen's buttons (iPhone checklist rows 1–4 in `docs/product/ZIGI_ALIVE_X.md`).
+2. With Motion Off (Settings) the launcher is a still image.
+3. Settings → ZIGi · your AI → Auto-accept: every switch is off until you turn one on; with Health not shared, the Health switches are greyed with the reason.
+4. The Alpha gate passed in CI on the release head (Milestone quality, integration job, "Public Alpha Workers security gate").
+
+## Session Y changes (Session Y-Cloud PR, 2026-10-09)
+Only the app changed; no Worker, no new storage key. Re-run step 2 at your release SHA.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| app | the sync rules B3–B7 and A7 (below); ZIGi fixes from Session Y's security review (auto-accept once per reply within its cap; cards write onto the record as it is; a resend leaves Health data behind once Health is no longer shared; Disconnect removes every key of the account); the push worker names a reminder across midnight; fasting's 24-hour stop shows at once; vacation days cleared later, "−" on measured habits, a metal's weight unit; field errors tied to their fields | yes (the app) |
+| private sync, lifecycle, market coordinator, food lookup, auth admission, push, relay | nothing (the status route that names a revoked session is in the app) | no |
+
+**What to check after the redeploy (plain words):**
+1. **A Health restore asks first** (B4): in Settings → Your account → a Health section restore, the restore completes and the box "Sync my Health records with this account" is focused and unticked, with a sentence saying why; Health syncs only once you tick it.
+2. **A revoked session forgets the remembered device** (A7): on Desktop A choose "Revoke other sessions"; on Phone B (remembered) the next open asks for the recovery secret and says the session was signed out on another device; the records on Phone B are still there after you unlock.
+3. **No vault in the cloud is never a fresh start** (B6): only if the cloud ever answers without your vault while a device synced before (for example after the sync service is restored from an earlier copy), that device shows a message and no "Create" button; "Start a new encrypted vault" needs your confirmation.
+4. **An older vault is refused** (B3): only if the cloud's vault goes back to an older one (a restore of an earlier copy, then perhaps a new vault made on another device). "Delete cloud data" cannot cause it: it ends the account's cloud for good (every later call answers 410). The old device shows a message, and "Re-link this device" (after a confirmation) syncs it with the vault now in the cloud. Not something to try by hand; proven in Miniflare (`scripts/run11/older-vault-recovery.test.mjs`).
+5. Nothing to see for B5 (no plaintext change queue for the Local Demo, bounded receipts and archives) and B7 (one spelling per ciphertext).
+
 ## Push activation (optional; Session X Part 8, 2026-10-08)
 Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays
 off:** it has no accounts (no `PRIVATE_SYNC` binding), so `/api/push` answers 503 `PUSH_UNAVAILABLE` there whatever you do.

@@ -39,6 +39,12 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **Timezone phase 4 (Part 17):** Settings → "Your time zone" is written to settings v2 and a Goal plan's zone to finance v4 (both read by #29 and later). Re-run rows B2, B4 and B5 on two devices in different zones with a time zone saved on one of them: the other device follows it after a sync, a plan keeps its own zone, and on a plan's due day Goals says "due today", not behind.
 - **New outside services, only on your action:** chess.com and Lichess (only the username you type), Spotify (only once ZIGoals has a Spotify app, MUSIC_ACTIVATION.md). The health-link Worker and the market coordinator's new path are **not** part of this stack (FINAL_ACCTEST_REDEPLOY.md, "Session W changes").
 
+### Session X-Local and Session Y changes (what you will notice)
+- **ZIGi comes alive (X-Local):** the launcher animates on every page except Settings (still under Motion Off or reduced motion); auto-accept is off until you switch a kind on. Row 15g checks ZIGi on the Stage 8 stack.
+- **A Health restore asks first (Y, B4):** after restoring the Health section, Health sync stays off until you tick it (row 15e).
+- **A revoked session forgets the remembered device (Y, A7):** row 14b.
+- **The cloud's vault missing or older (Y, B6, B3):** a device shows a message and offers a fresh start or a re-link only behind a confirmation; you should not see this on Stage 8: only a restore of the sync service from an earlier copy causes it ("Delete cloud data" ends the account's cloud for good). Row 15f says why it is not run by hand.
+
 ## Before Stage 8 — owner hardening · about 75 min
 Session U (owner review change 11). Do these once, before Stage 8, in this order. Every click path is from the vendor's
 own documentation, read 2026-10-05 (linked); if a screen differs, follow the vendor's page. Keep every recovery code
@@ -333,6 +339,30 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
   - after step 6: "Turned off. Nothing about this device is kept on the server." and the state line "Off."
 - **Record:** pass or fail per line; the iOS version; how many minutes after the set time it arrived; and, if the app happened to be open at a reminder time, whether iOS showed the banner then (ADR-010 lists this as not verified). Never the push address, the Worker's host name or the account.
 - **If nothing arrives:** the troubleshooting table in [PUSH_ACTIVATION.md](PUSH_ACTIVATION.md) (quiet hours, the 10-minute rule, the 30-day prune, the keys comparison). Don't retry more than once before reading it.
+
+**14b. A revoked session forgets the remembered device (Session Y, A7).**
+- **Do:** with Phone B remembered (row 13), on Desktop A choose "Revoke other sessions". Then open the app on Phone B.
+- **Pass:** Phone B asks for the recovery secret and says it was signed out on another device; after signing in and unlocking with the secret, its records are all there and Export everything works.
+- **Record:** pass.
+
+**15e. A Health restore asks first (Session Y, B4).**
+- **Do:** on Desktop A, delete the Health section from the cloud (Settings → Your account → section review), then restore it.
+- **Pass:** the restore completes; "Sync my Health records with this account" is focused and **not** ticked, with a sentence saying Health sync is off until you tick it; nothing about Health is uploaded until you tick it.
+- **Record:** pass.
+
+**15f. The cloud's vault older or missing (Session Y, B6 and B3): not run by hand.**
+- **Why:** no action in the app makes it happen. "Delete cloud data" ends the account's cloud for good (every later call
+  answers 410, so no new vault can be made on that account); the one cause is a restore of the sync service from an
+  earlier copy (the recovery runbook), after which another device may make a new vault.
+- **Proof instead:** Miniflare, `scripts/run11/older-vault-recovery.test.mjs` (storage copied, vault rotated, copy
+  restored, new vault enrolled, the rotated device refused with nothing changed, then re-linked), and the component
+  test `apps/web/lib/vault-sync-rules-y.test.ts` (the notice, no "Create" button, the confirmation before either action).
+- **Record:** skipped (not runnable by hand).
+
+**15g. ZIGi on the Stage 8 stack (Session X-Local).**
+- **Do:** open ZIGi on Desktop A and Phone B; ask "What are my habits today?" with no AI connected.
+- **Pass:** a local answer from your own records, nothing sent anywhere; the launcher rests clear of the first screen's buttons; under Motion Off it is a still image; Settings → ZIGi · your AI shows every auto-accept switch off.
+- **Record:** pass.
 
 ## Part 5: providers (Desktop A) · about 15 min
 **15. One real market refresh (C4).**
