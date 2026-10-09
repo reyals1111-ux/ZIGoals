@@ -52,8 +52,15 @@ test('B4: a Health restore completes but leaves Health sync off; the consent box
  const ask=[...element.querySelectorAll('p')].find(p=>p.textContent===HEALTH_RESTORE_ASK)!;
  expect(ask).toBeDefined();expect(consent().getAttribute('aria-describedby')?.split(' ')).toContain(ask.id);
  expect(document.activeElement).toBe(consent());
- // The person ticks it: Health sync starts through the existing consent path and the question goes away.
+ // The person ticks it: Health sync starts through the existing consent path, at once, and the question goes away.
  await act(async()=>consent().click());await settle();
+ expect(consent().checked).toBe(true);expect(element.textContent).not.toContain(HEALTH_RESTORE_ASK);expect(h.synchronize.mock.calls.length).toBe(calls+1);
+});
+test('B4: with Health consent already on, a Health restore syncs at once and asks nothing, as before',async()=>{
+ await open();await act(async()=>consent().click());await settle();expect(consent().checked).toBe(true);
+ const calls=h.synchronize.mock.calls.length;
+ await act(async()=>h.domain.prepare('restore','health'));await act(async()=>h.domain.confirm());await settle();
+ expect(h.restore).toHaveBeenCalledTimes(1);expect(h.synchronize.mock.calls.length).toBe(calls+1);
  expect(consent().checked).toBe(true);expect(element.textContent).not.toContain(HEALTH_RESTORE_ASK);
 });
 test('B4: restoring another section still syncs at once, as before',async()=>{
