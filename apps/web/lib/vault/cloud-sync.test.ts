@@ -2,7 +2,7 @@ import {createEmptyHealth,healthSchema} from '../health';
 import {addWater,dailyData,saveHealthPreferences} from '../health-daily';
 import {test,expect} from 'vitest';
 import {createVault,sealRecord,type VaultManifest} from './crypto';
-import {cloudSnapshot,mergePrivateData,synchronize,RevisionConflict,type CloudOperation,type CloudTransport,type Journal,type PrivateData,type SyncState} from './cloud-sync';
+import {cloudSnapshot,mergePrivateData,synchronize,RevisionConflict,OlderVaultError,OlderCloudError,type CloudOperation,type CloudTransport,type Journal,type PrivateData,type SyncState} from './cloud-sync';
 const HEAD='00000000-0000-4000-8000-000000000001';
 type Row=CloudOperation['changes'][number];
 class MemoryJournal implements Journal{
@@ -161,4 +161,42 @@ test('weekly reviews merge week by week and field by field; the same field chang
  expect(JSON.parse(mergePrivateData(base,local,remote).settings!).weeklyReview).toEqual({version:1,weekday:3,reviews:[{weekStart:'2026-09-21',completedAt:'2026-09-27T18:00:00.000Z',notes:{goals:'a',habits:'local'}},{weekStart:'2026-09-28',skipped:true},{weekStart:'2026-10-05',notes:{wealth:'remote'}}]});
  expect(()=>mergePrivateData(base,wrap(0,[{weekStart:'2026-09-21',notes:{goals:'x'}}]),wrap(0,[{weekStart:'2026-09-21',notes:{goals:'y'}}]))).toThrow('Conflicting');
  expect(()=>mergePrivateData(base,wrap(0,[]),wrap(0,[{weekStart:'2026-09-21',notes:{goals:'edited'}}]))).toThrow('Conflicting');
+});
+
+// Session Y Part 5, FIX_PLAN B3 (Q-SYNC-03, ADR-018): a cloud vault at an older key epoch than this device last synced
+// with is refused before anything is read into the journal or sent; equal and newer epochs behave as before.
+test('B3: an older epoch is refused with nothing sent and the journal unchanged; the same and a newer epoch still sync',async()=>{
+ const s=await setup(),data={settings:'{"value":"device"}'};await sync(s,data);
+ s.journal.state={...s.journal.state,epoch:2};const journal=structuredClone(s.journal.state),calls=s.cloud.calls.length;
+ const refused=synchronize(s.cloud,s.journal,s.vault.key,s.vault.manifest,{settings:'{"value":"changed"}'},noop,noop);
+ await expect(refused).rejects.toThrow(OlderVaultError);await expect(refused).rejects.toThrow('Nothing was applied');
+ expect(s.journal.state).toEqual(journal);expect(s.cloud.calls).toHaveLength(calls);
+ // A journal that never recorded an epoch is at epoch 1: an epoch-1 vault syncs as before.
+ const legacy=await setup();await sync(legacy,data);delete legacy.journal.state.epoch;
+ await sync(legacy,{settings:'{"value":"next"}'});expect(legacy.journal.state).toMatchObject({epoch:1,base:{settings:'{"value":"next"}'}});
+ // A newer epoch (a rotation another device published) is still adopted, as before.
+ const next=await setup();await sync(next,data);expect(next.journal.state.epoch).toBe(1);
+ const rotated=await createVault(next.vault.manifest.vault,2),cloud=new Cloud(rotated.manifest);cloud.revision=next.cloud.revision;
+ const other=await synchronize(cloud,new MemoryJournal(),rotated.key,rotated.manifest,data,noop,noop);await other.commit();
+ const result=await synchronize(cloud,next.journal,rotated.key,rotated.manifest,data,noop,noop);await result.commit();
+ expect(result.data).toEqual(data);expect(next.journal.state).toMatchObject({epoch:2,base:data});
+ // The head revision this device confirmed still bounds the catalog after a rotation (the Worker keeps every row's
+ // revision through one): a rotated vault whose catalog is older than that is refused, with nothing written.
+ const stale=await setup();await sync(stale,data);await sync(stale,{settings:'{"value":"two"}'});expect(stale.journal.state.headRevision).toBe(2);
+ const rotation=await createVault(stale.vault.manifest.vault,2),replay=new Cloud(rotation.manifest);replay.revision=stale.cloud.revision;
+ await (await synchronize(replay,new MemoryJournal(),rotation.key,rotation.manifest,data,noop,noop)).commit();
+ const before=structuredClone(stale.journal.state),writes=replay.calls.length;
+ await expect(synchronize(replay,stale.journal,rotation.key,rotation.manifest,{settings:'{"value":"two"}'},noop,noop)).rejects.toThrow(OlderCloudError);
+ expect(stale.journal.state).toEqual(before);expect(replay.calls).toHaveLength(writes);
+});
+test('B3: forward recovery and the conflict review refuse an older epoch before reading the cloud',async()=>{
+ const {prepareForwardRecovery}=await import('./forward-recovery'),{prepareConflictReview}=await import('./conflict-review');
+ const vault=await createVault(),account=crypto.randomUUID();let reads=0;
+ const transport:CloudTransport={read:async()=>{reads++;throw Error('Must refuse before the network');},write:async()=>{throw Error('Never send');}};
+ const pending={protocol:1 as const,vault:vault.manifest.vault,operation:crypto.randomUUID(),base:0,changes:[]};
+ const queued=new MemoryJournal();queued.state={version:1,epoch:2,base:{},revision:3,headRevision:2,headDigest:null,pending};
+ await expect(prepareForwardRecovery(account,{},transport,Object.assign(queued,{accountId:account}) as never,vault.key,vault.manifest,noop,noop)).rejects.toThrow(OlderVaultError);
+ const idle=new MemoryJournal();idle.state={version:1,epoch:2,base:{settings:'{}'},revision:3,headRevision:2,headDigest:null,pending:null};
+ await expect(prepareConflictReview(account,{settings:'{}'},transport,idle as never,vault.key,vault.manifest,noop,['settings'])).rejects.toThrow(OlderVaultError);
+ expect(reads).toBe(0);expect(queued.state.pending).toEqual(pending);expect(idle.state.base).toEqual({settings:'{}'});
 });

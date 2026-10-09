@@ -17,7 +17,8 @@ vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchron
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:async()=>{}}));
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
 vi.mock('./vault/domain-lifecycle',()=>({prepareDomainReview:async(kind:string,domain:string)=>({kind,domain,local:{}}),deleteCloudDomain:async()=>{},acceptDomainRestore:(...args:any[])=>h.restore(...args)}));
-import {HEALTH_RESTORE_ASK,VAULT_MISSING,VaultSyncProvider} from '../components/vault-sync-controls';
+import {OlderCloudError,OlderVaultError} from './vault/cloud-sync';
+import {HEALTH_RESTORE_ASK,VAULT_MISSING,VAULT_OLDER,VaultSyncProvider} from '../components/vault-sync-controls';
 import {VaultSyncControls} from '../components/vault-sync-panel';
 
 /**
@@ -25,6 +26,7 @@ import {VaultSyncControls} from '../components/vault-sync-panel';
  * this device.
  * - B4: a Health restore asks before Health sync starts.
  * - B6: no vault in the cloud is never a fresh start while this device's journal shows one.
+ * - B3: an older vault is refused, with one explicit way out.
  */
 const A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';let root:Root,element:HTMLDivElement;
 const EMPTY={version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null};
@@ -77,4 +79,19 @@ test('B6: a device that never synced (or a journal that cannot be read) is told 
  await act(async()=>root.unmount());clearAccountSession();root=createRoot(element);await act(async()=>root.render(createElement(VaultSyncProvider,null,createElement(VaultSyncControls))));
  h.journal.mockRejectedValue(Error('Sync journal unreadable.'));await signIn();
  expect(element.textContent).toContain(VAULT_MISSING);expect(button('Create encrypted account vault')).toBeUndefined();expect(h.recover).not.toHaveBeenCalled();
+});
+test('B3: an older vault is refused with nothing applied; re-linking is one explicit step that archives the journal, then syncs',async()=>{
+ h.journal.mockResolvedValue(SYNCED);h.synchronize.mockRejectedValueOnce(new OlderVaultError());await open();
+ expect(element.querySelector('[role=alert]')?.textContent).toContain('Nothing was applied');expect(element.textContent).toContain(VAULT_OLDER);
+ const relink=button('Re-link this device')!;expect(relink.disabled).toBe(true);
+ const confirm=[...element.querySelectorAll<HTMLInputElement>('input[type=checkbox]')].find(i=>i.parentElement?.textContent==='I understand that this device will sync with the vault now in the cloud.')!;
+ await act(async()=>confirm.click());const calls=h.synchronize.mock.calls.length;
+ await act(async()=>relink.click());await settle();
+ expect(h.recover).toHaveBeenCalledTimes(1);expect(h.recover.mock.calls[0]![1]).toEqual(SYNCED);expect(h.recover.mock.calls[0]![2]).toEqual(EMPTY);
+ expect(h.synchronize.mock.calls.length).toBe(calls+1);expect(element.textContent).not.toContain(VAULT_OLDER);
+});
+test('B3: at the same epoch, an older or forked cloud catalog offers the same way out',async()=>{
+ h.journal.mockResolvedValue(SYNCED);h.synchronize.mockRejectedValueOnce(new OlderCloudError('Older cloud revision refused.'));await open();
+ expect(element.querySelector('[role=alert]')?.textContent).toBe('Older cloud revision refused.');expect(element.textContent).toContain(VAULT_OLDER);
+ expect(button('Re-link this device')!.disabled).toBe(true);expect(h.recover).not.toHaveBeenCalled();
 });

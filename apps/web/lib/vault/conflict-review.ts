@@ -1,4 +1,4 @@
-import {cloudSnapshot,DOMAINS,SyncJournal,type CloudTransport,type PrivateData,type SyncState,type Domain} from './cloud-sync';
+import {cloudSnapshot,DOMAINS,refuseOlderEpoch,SyncJournal,type CloudTransport,type PrivateData,type SyncState,type Domain} from './cloud-sync';
 import {type VaultManifest} from './crypto';
 import {encryptBackup} from './backup';
 import {validateData} from './account-data';
@@ -56,7 +56,7 @@ export function validateResolution(review:Pick<ConflictReview,'original'|'local'
  }
 }
 export async function prepareConflictReview(account:string,local:PrivateData,transport:CloudTransport,journal:SyncJournal,key:CryptoKey,manifest:VaultManifest,fence:()=>void,domains:Domain[]):Promise<ConflictReview>{
- const original=await journal.read();if(original.pending)throw Error('Preserve and repair pending work before resolving records.');domains=domains.filter(d=>!original.heldDomains?.includes(d));
+ const original=await journal.read();if(original.pending)throw Error('Preserve and repair pending work before resolving records.');domains=domains.filter(d=>!original.heldDomains?.includes(d));refuseOlderEpoch(original,manifest);
  const select=(data:PrivateData)=>Object.fromEntries(domains.filter(d=>data[d]!==undefined).map(d=>[d,data[d]]));local=select(local);
  const remote=await cloudSnapshot(transport,key,manifest,original.revision,domains,original.headRevision,original.headDigest);fence();for(const d of domains)if((original.domainGenerations?.[d]??0)!==(remote.domainGenerations[d]??0))throw Error('Review cloud section deletion before resolving records.');
  const id=crypto.randomUUID(),backup=await encryptBackup({settings:JSON.stringify({format:'zigoals-conflict-review',version:1,id,account,journal:original,local,cloud:remote.data})});fence();return {id,account,original,local,cloud:remote.data,domains,revision:remote.revision,...backup};

@@ -39,9 +39,9 @@ const context=(manifest:VaultManifest,row:Pick<Row,'id'|'domain'|'revision'>)=>(
 async function digest(raw:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw)))].map(v=>v.toString(16).padStart(2,'0')).join('');}
 export async function cloudSnapshot(transport:CloudTransport,key:CryptoKey,manifest:VaultManifest,minimum=0,allowed:readonly Domain[]=DOMAINS,minimumHead=0,knownHeadDigest:string|null=null,knownData:PrivateData={}){
  const rows=new Map<string,Row>();let cursor:string|null=null,revision:number|undefined,total=0,storedBytes:number|undefined;const cursors=new Set<string>();let domainGenerations:DomainGenerations|undefined;
- function accept(raw:unknown,selected?:string[]){const p=pageSchema.parse(raw);if(domainGenerations&&JSON.stringify(domainGenerations)!==JSON.stringify(p.domainGenerations??{}))throw Error('Cloud deletion policy changed during download.');domainGenerations=p.domainGenerations??{};total+=bytes(JSON.stringify(p));if(total>36_000_000)throw Error('Cloud download exceeds supported capacity.');if(!p.manifest||JSON.stringify(p.manifest)!==JSON.stringify(manifest))throw new StaleDeviceError('vault-changed','Account or vault changed. Lock and verify your account.');if(p.revision<minimum)throw Error('Older cloud revision refused.');if(revision!==undefined&&revision!==p.revision)throw Error('Cloud changed during download. Retry; no partial data was applied.');revision=p.revision;storedBytes=p.storedBytes??storedBytes;for(const row of p.records){if(selected&&!selected.includes(row.id))throw Error('Unexpected selected record.');if(row.epoch!==manifest.epoch)throw Error('Cloud record epoch mismatch.');if(rows.has(row.id))throw Error('Duplicate cloud record.');rows.set(row.id,row);}if(selected&&p.cursor)throw Error('Invalid selected page.');return p;}
+ function accept(raw:unknown,selected?:string[]){const p=pageSchema.parse(raw);if(domainGenerations&&JSON.stringify(domainGenerations)!==JSON.stringify(p.domainGenerations??{}))throw Error('Cloud deletion policy changed during download.');domainGenerations=p.domainGenerations??{};total+=bytes(JSON.stringify(p));if(total>36_000_000)throw Error('Cloud download exceeds supported capacity.');if(!p.manifest||JSON.stringify(p.manifest)!==JSON.stringify(manifest))throw new StaleDeviceError('vault-changed','Account or vault changed. Lock and verify your account.');if(p.revision<minimum)throw new OlderCloudError('Older cloud revision refused.');if(revision!==undefined&&revision!==p.revision)throw Error('Cloud changed during download. Retry; no partial data was applied.');revision=p.revision;storedBytes=p.storedBytes??storedBytes;for(const row of p.records){if(selected&&!selected.includes(row.id))throw Error('Unexpected selected record.');if(row.epoch!==manifest.epoch)throw Error('Cloud record epoch mismatch.');if(rows.has(row.id))throw Error('Duplicate cloud record.');rows.set(row.id,row);}if(selected&&p.cursor)throw Error('Invalid selected page.');return p;}
  if(transport.readRows)accept(await transport.readRows([HEAD]),[HEAD]);else do{const p=accept(await transport.read(cursor));cursor=p.cursor;if(cursor){if(!/^record:[0-9a-f-]{36}$/i.test(cursor)||cursors.has(cursor)||cursors.size>=500)throw Error('Invalid cloud page.');cursors.add(cursor);}}while(cursor);
- const head=rows.get(HEAD);if((head?.revision??0)<minimumHead)throw Error('Older encrypted catalog refused.');const headDigest=head?await digest(JSON.stringify(head.envelope)):null;if(head?.revision===minimumHead&&knownHeadDigest!==null&&headDigest!==knownHeadDigest)throw Error('Encrypted catalog fork refused.');
+ const head=rows.get(HEAD);if((head?.revision??0)<minimumHead)throw new OlderCloudError('Older encrypted catalog refused.');const headDigest=head?await digest(JSON.stringify(head.envelope)):null;if(head?.revision===minimumHead&&knownHeadDigest!==null&&headDigest!==knownHeadDigest)throw new OlderCloudError('Encrypted catalog fork refused.');
  const catalog:Catalog=head?catalogSchema.parse(await openRecord(key,context(manifest,head),head.envelope)):{kind:'zigoals-private-catalog',version:1,domains:{}};
  if(head&&(head.domain!=='settings'||head.deleted))throw Error('Invalid encrypted catalog.');
  const data:PrivateData={};for(const domain of allowed){const item=catalog.domains[domain];if(!item||(item.generation??0)<(domainGenerations?.[domain]??0))continue;if(new Set(item.parts).size!==item.parts.length||item.parts.includes(HEAD))throw Error('Duplicate snapshot part.');
@@ -185,10 +185,28 @@ export function mergePrivateData(base:PrivateData,local:PrivateData,remote:Priva
  }return result;
 }
 export class RevisionConflict extends Error{constructor(){super('Cloud changed. Local records were preserved. Retry to reconcile.');}}
+/**
+ * Session Y Part 5, FIX_PLAN B3 (Q-SYNC-03): the cloud's vault is at an older key epoch than this device last synced with.
+ * Nothing is read into the journal or applied. A rotation never goes back, so only a vault deleted and made again (or a
+ * server that went back) gets here; the person re-links this device explicitly (the panel's start-over), never by itself.
+ */
+export class OlderVaultError extends Error{constructor(){super('The vault in the cloud is older than the one this device last synced with. Nothing was applied; your records on this device were not changed.');this.name='OlderVaultError';}}
+/**
+ * B3, the same root cause at an equal epoch: the cloud's revision or catalog is older than, or forked from, what this
+ * device confirmed. The message is unchanged; the class lets the panel offer the same explicit way out as OlderVaultError
+ * (a vault deleted and made again shows up here when neither vault was ever rotated).
+ */
+export class OlderCloudError extends Error{constructor(message:string){super(message);this.name='OlderCloudError';}}
+/** Throws OlderVaultError when `manifest` is at an older epoch than the journal's. */
+export function refuseOlderEpoch(state:Pick<SyncState,'epoch'>,manifest:Pick<VaultManifest,'epoch'>){if(manifest.epoch<(state.epoch??1))throw new OlderVaultError();}
 /** Immutable encrypted chunks stage first; one CAS-protected catalog publishes the complete snapshot. */
 export async function synchronize(transport:CloudTransport,journal:Journal,key:CryptoKey,manifest:VaultManifest,local:PrivateData,validate:(data:PrivateData,prior?:PrivateData)=>void,fence:()=>void,allowed:readonly Domain[]=DOMAINS){
  let state=await journal.read(),requiresHealth=false;allowed=allowed.filter(d=>!state.heldDomains?.includes(d));
- if((state.epoch??1)!==manifest.epoch){if(state.pending)throw Error('Pending work uses a retired epoch. Preserve its recovery copy before reviewing it.');state={...state,epoch:manifest.epoch,headRevision:0,headDigest:null};}
+ refuseOlderEpoch(state,manifest);
+ // A newer epoch (a rotation another device finished): the head row keeps its revision through a rotation (the Worker
+ // refuses a re-sealed row whose revision changed), so the head revision this device confirmed still bounds the catalog;
+ // only its digest is new (Session Y Part 5, B3).
+ if((state.epoch??1)!==manifest.epoch){if(state.pending)throw Error('Pending work uses a retired epoch. Preserve its recovery copy before reviewing it.');state={...state,epoch:manifest.epoch,headDigest:null};}
  // The head write stores its prospective confirmation with `pending` in one journal transaction (ADR-006, A2): the
  // head it expects and the digests of the sections it publishes unchanged. Every other journal write clears it.
  async function send(operation:CloudOperation,confirmed:Partial<SyncState>={},own:PrivateData={}){

@@ -14,7 +14,7 @@ import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceR
 import {readDevices,rememberDeviceRecord,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,replaceDevice,confirmDevice,accountStatus,type AccountDenial,currentSession,type DeviceBinding,type DeviceRecordV1,type DeviceRecordV2} from '../lib/vault/device-unlock';
 import {StaleDeviceError,takeAccessDenial,deniesDevice} from '../lib/vault/stale-device';
 import {storageMessageOr} from '../lib/storage-error-copy';
-import {synchronize,cloudSnapshot,SyncJournal,RevisionConflict,type Domain,type SyncState} from '../lib/vault/cloud-sync';
+import {synchronize,cloudSnapshot,SyncJournal,RevisionConflict,OlderVaultError,OlderCloudError,type Domain,type SyncState} from '../lib/vault/cloud-sync';
 import {accountTransport} from '../lib/vault/account-transport';
 import {localDatabase} from '../lib/vault/local';
 import {captureData,applyData,validateData,modules,isSyncedChangeEvent,LocalRecordsChangedDuringSync} from '../lib/vault/account-data';
@@ -77,7 +77,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   if(running.current){const pending=automaticRun.current;if(automatic||!pending||waiting.current)return;waiting.current=true;const selected=session.current;try{await pending;}finally{waiting.current=false;}if(running.current||session.current!==selected)return;}
   const operation=Symbol('vault operation');running.current=operation;setBusy(true);setError('');
   let ended=()=>{};const run=automatic?new Promise<void>(resolve=>{ended=resolve;}):null;if(run)automaticRun.current=run;
-  try{await work();}catch(e){if(running.current!==operation)return;if(e instanceof StaleDeviceError)dropStale();if(pauseOnError)auto.current=false;setError(e instanceof Error?e.message:'Sync was not confirmed. Local records were preserved.');setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}if(run){if(automaticRun.current===run)automaticRun.current=null;ended();}}
+  try{await work();}catch(e){if(running.current!==operation)return;if(e instanceof StaleDeviceError)dropStale();if(e instanceof OlderVaultError||e instanceof OlderCloudError)setVaultGone('older');if(pauseOnError)auto.current=false;setError(e instanceof Error?e.message:'Sync was not confirmed. Local records were preserved.');setMessage(pauseOnError?'Needs attention. Automatic sync paused.':'Recovery copy was not prepared. The sync queue was unchanged.');}finally{if(running.current===operation){running.current=null;setBusy(false);}if(run){if(automaticRun.current===run)automaticRun.current=null;ended();}}
  }
  // Settings' AccountAccess calls this once it verified the account; a remembered device then opens without the secret.
  // A quiet call (a reopen on this device) keeps a failed manifest read to itself instead of pausing sync.
