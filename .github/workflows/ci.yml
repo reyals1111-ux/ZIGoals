@@ -218,6 +218,51 @@ jobs:
           path: /tmp/zigoals-alpha-results/
           if-no-files-found: ignore
           retention-days: 7
+  web-webkit:
+    # Session Y Part 6 ([TIER 3] (CI), ADR-018 Y4): the same app in Playwright's WebKit (Safari's engine) for the pinned
+    # Playwright 1.63 (WebKit 26.6), the one owner-approved browser download: the smoke, the ZIGi suites
+    # (playwright.webkit.config.ts selects them; real-model, conversation and on-device specs stay out) and the curated
+    # phone set (tests/webkit-phone.spec.ts), two workers. Evidence label "WebKit", never "Safari on an iPhone".
+    # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
+    name: web WebKit (smoke, ZIGi, phone set)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          package-manager-cache: false
+      # FIX_PLAN F2 (Q-SC-03): pnpm from Node's own Corepack, as in the other jobs.
+      - run: corepack enable pnpm && corepack install --global pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright's WebKit (owner-approved download)
+        run: pnpm --filter @zigoals/web exec playwright install --with-deps webkit
+      - run: pnpm build
+      - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
+      - name: WebKit suite
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3100
+        run: |
+          for n in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
+            sleep 1
+          done
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --reporter=line --output=/tmp/zigoals-webkit-results
+      - name: Retain the WebKit traces (failures only)
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-webkit-${{ github.sha }}
+          path: /tmp/zigoals-webkit-results/
+          if-no-files-found: warn
+          retention-days: 7
   web:
     # Keeps the "web" check name. Passes only if every web job passed.
     needs: [web-checks, web-browser, web-integration]
