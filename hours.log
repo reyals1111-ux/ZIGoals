@@ -47,3 +47,8 @@ END part8-dry-run-2 2026-10-10T16:58:44Z rc=0
 END fr-before-gemma4-mac 2026-10-10T17:02:56Z rc=stopped (the Mac at 50 s per turn; deferred to the PC)
 START part8-dry-run-sonnet 2026-10-10T17:03:10Z
 END part8-dry-run-sonnet 2026-10-10T17:09:22Z rc=0
+START qwen36-mac-corpus 2026-10-10T17:21:50Z
+START ci-repro 2026-10-10T18:16:40Z
+END ci-repro 2026-10-10T18:17:13Z rc=0
+START ci-repro2 2026-10-10T18:20:30Z
+END part2-haiku-all-x3 2026-10-10T18:20:35Z rc=0

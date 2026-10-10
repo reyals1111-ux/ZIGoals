@@ -1,0 +1,2131 @@
+{
+ "summary": {
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "mode": "tools",
+  "think": false,
+  "cache": true,
+  "base": "redacted",
+  "startedAt": "2026-10-10T15:09:14.398Z",
+  "finishedAt": "2026-10-10T15:11:36.537Z",
+  "cases": 17,
+  "repeat": 1,
+  "runs": 37,
+  "passed": 28,
+  "rate": 0.7567567567567568,
+  "byKind": {
+   "chat": {
+    "passed": 1,
+    "total": 1
+   },
+   "propose": {
+    "passed": 2,
+    "total": 3
+   },
+   "multi": {
+    "passed": 1,
+    "total": 3
+   },
+   "followup": {
+    "passed": 27,
+    "total": 30
+   }
+  },
+  "latency": {
+   "firstTokenMedianMs": 1411,
+   "totalMedianMs": 3346
+  },
+  "tokens": {
+   "input": 188,
+   "output": 13275,
+   "cacheWrite": 75732,
+   "cacheRead": 595475
+  },
+  "requests": 51,
+  "costUsd": 0.38200349999999994,
+  "pricesAsOf": "2026-10-10",
+  "unreported": 0,
+  "rescoredAt": "2026-10-10T17:31:57.786Z"
+ },
+ "runs": [
+  {
+   "id": "today-how-work",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 701,
+   "totalMs": 3121,
+   "tokens": {
+    "input": 4,
+    "output": 303,
+    "cacheWrite": 232,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.004819,
+   "calls": [],
+   "reply": "I can help you see your day at a glance and, if you ask, log things for you.\n\n**What I can look up (read-only):**\n- Today's open habits, what's done, and goals with a planned date this week\n- Habit streaks, counts and completion rates\n- Food, water, steps, weight, fasting, sleep and meditation, if you share Health\n- Goals, milestones, wealth totals and chess ratings\n\n**What I can propose:**\n- Logging water, steps, weight, food, sleep, meditation or a mood\n- Checking in or skipping a habit\n- Creating habits, goals, reminders, recipes or meal plans\n- Adding widgets or links to Today\n\nEach proposal appears as a card. Nothing is written until you confirm it.\n\n**What I can't do:** move money, sync, export, delete, or change settings.\n\nA small place to start: ask \"What is due today?\" and I'll read it from your records.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "goals-edit",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [edit-goal], got [edit-goal]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 890,
+   "totalMs": 1936,
+   "tokens": {
+    "input": 4,
+    "output": 172,
+    "cacheWrite": 618,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0044933,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Japan adventure"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is the change for your Japan adventure goal (g1). The card renames it and moves the target date from 2027-03-04 to 2027-05-01. Nothing changes until you confirm it.\n\n```zigoals-action\n{\"kind\":\"edit-goal\",\"goal\":\"g1\",\"name\":\"Japan in spring\",\"targetDate\":\"2027-05-01\"}\n```\n\nThe target of 6000 USD and the contribution plan stay as they are. Money in a goal is only changed in the app's own form.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "habits-fr-create",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "fr",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-habit], got [create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1860,
+   "totalMs": 3346,
+   "tokens": {
+    "input": 4,
+    "output": 212,
+    "cacheWrite": 12876,
+    "cacheRead": 0
+   },
+   "requests": 1,
+   "costUsd": 0.034318,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Voici un brouillon d'habitude : lire 20 pages, chaque soir.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Lire 20 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nJe vois aussi que tu as déjà une habitude « Read » (h1), mesurée en minutes. Les deux peuvent coexister, mais si tu préfères, je peux plutôt modifier h1. Dis-moi ce que tu préfères.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "x2-multi-habits",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-habit], got [create-habit, create-habit, create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 710,
+   "totalMs": 3699,
+   "tokens": {
+    "input": 4,
+    "output": 480,
+    "cacheWrite": 237,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0066261,
+   "calls": [],
+   "reply": "Here are three small habits for a calmer week. I haven't checked your existing habits, so tell me if any overlap and I'll adjust.\n\n1. Morning breathing: 5 minutes, daily, in the morning.\n2. Evening walk: 20 minutes, on weekdays, in the evening.\n3. Screen-free wind-down: a simple done/not done, daily, in the evening.\n\nThe wind-down follows the walk on weekdays. I've left the weekend walk out on purpose, since rest days are part of a plan.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Morning breathing\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":5,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Five quiet minutes before the day starts\"}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Evening walk\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":20,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"evening\",\"description\":\"An easy walk to close the day\"}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Screen-free wind-down\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Phone away before bed\"}\n```\n\nIf you'd like, I can add a reminder for each one. Just tell me the times.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "x2-multi-habits",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "habits",
+   "lang": "en",
+   "turn": 1,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-habit], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 3460,
+   "totalMs": 4466,
+   "tokens": {
+    "input": 4,
+    "output": 423,
+    "cacheWrite": 1073,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0081461,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Stretch evening",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "The Evening walk is already set to the evening, so the time of day wouldn't change. The only other part I could change is the days. It's currently on weekdays, with weekends left as rest days.\n\nDid you mean every evening, weekends included? If so, I'll send a corrected card with a daily schedule. If you meant something else, tell me and I'll adjust.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "x2-multi-habits",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "habits",
+   "lang": "en",
+   "turn": 2,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-reminder], got [create-habit, create-reminder, create-habit, create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 4063,
+   "totalMs": 6189,
+   "tokens": {
+    "input": 4,
+    "output": 721,
+    "cacheWrite": 632,
+    "cacheRead": 12493
+   },
+   "requests": 1,
+   "costUsd": 0.010047299999999999,
+   "calls": [],
+   "reply": "The Evening walk is still only a proposal, so it has no handle yet and I can't attach a reminder to it. I've sent it again as a habit with its 20:00 reminder, and the other two habits again as they were. These replace the earlier cards. The walk stays on weekdays.\n\n```zigoals-action\n{\"kind\":\"build-habit\",\"title\":\"Evening walk\",\"measurement\":\"minutes\",\"target\":20,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"evening\",\"reminder\":\"20:00\",\"revise\":true}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Morning breathing\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":5,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"Five quiet minutes before the day starts\"}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Screen-free wind-down\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Phone away before bed\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-voice-two-things",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [log-food, check-in, log-meditation], got [log-food]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 6228,
+   "totalMs": 6232,
+   "tokens": {
+    "input": 6,
+    "output": 617,
+    "cacheWrite": 13157,
+    "cacheRead": 13019
+   },
+   "requests": 2,
+   "costUsd": 0.0403764,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "search_foods",
+     "args": {
+      "query": "banana"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Banana isn't in your saved foods, so the card below uses my estimate for a medium banana. I put it under Snacks, and you can change that before you confirm.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Banana\",\"meal\":\"Snacks\",\"quantity\":1,\"estimate\":{\"kcal\":105,\"protein_g\":1,\"carbs_g\":27,\"fat_g\":0,\"serving_g\":118}}\n```\n\nFor the meditation, your Meditate habit (h1) already shows 5 minutes today, which counts as a partial check-in. How many minutes did you do? Once I know, I'll add a card for it. I didn't want to guess the number.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-that-one",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:habit_stats",
+     "pass": true,
+     "detail": "answered on the device: no model ran"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 745,
+   "totalMs": 2419,
+   "tokens": {
+    "input": 4,
+    "output": 229,
+    "cacheWrite": 3000,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0110236,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Contribute",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Drink water",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Stretch morning",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Stretch evening",
+      "metric": "streak"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Two habits are tied for the longest streak: Walk (h3) and Contribute (h5), each at 27 days. Both are also their best so far.\n\nThe others are close behind:\n- Read (h1): 26 days\n- Exercise (h2): 26 days\n- Meditate (h4): 26 days\n- Drink water (h6): 26 days\n\nStretch morning (h7) and Stretch evening (h8) have no streak yet. Each shows 0 days, with no check-ins this month.\n\nThis rests on your habit stats for 2026-10-01 to 2026-10-05. A skipped day doesn't break a streak, so the days you skipped this month don't count against any of these.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-that-one",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "confused",
+   "refused": true,
+   "firstTokenMs": 1159,
+   "totalMs": 10576,
+   "tokens": {
+    "input": 14,
+    "output": 1000,
+    "cacheWrite": 13684,
+    "cacheRead": 24987
+   },
+   "requests": 3,
+   "costUsd": 0.0467367,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "I can't send a card yet, and I need to correct myself. No habit records were attached to this chat, and I never actually looked them up. The streaks, today's progress and the \"already complete\" status in my earlier replies came from nowhere I can point to, so please don't rely on them.\n\n\"That one\" is also unclear, because I named two habits as tied. Tell me which habit you want ticked off today, and whether it's a full check-in or a partial one with an amount. Then I'll look at your habit records and send a single card for you to confirm.\n\n⟦zigi: confused⟧",
+   "repaired": true,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-that-one",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 2,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-reminder], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1573,
+   "totalMs": 6071,
+   "tokens": {
+    "input": 6,
+    "output": 591,
+    "cacheWrite": 1026,
+    "cacheRead": 25651
+   },
+   "requests": 2,
+   "costUsd": 0.0110521,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "I'll look up your habits first, since my earlier answers weren't based on your records.\n\nYour habit records now show the tie was right: Walk (h3) and Contribute (h5) both have 27 days. This comes from your habits list, which I just read.\n\nBoth are already complete today. Walk is at 8000 of 8000 steps and Contribute is at 1 of 1. So there's nothing to tick off for either one.\n\nI need two answers before I can send a reminder card:\n- **Which habit?** Walk, Contribute, or another one? Exercise (15 of 30 minutes), Meditate (5 of 10 minutes), Drink water (4 of 8 glasses) and both Stretch habits are still open today.\n- **Which 8?** 08:00 in the morning or 20:00 in the evening?\n\nOnce you tell me, I'll send the card for you to confirm.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-the-other",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:goal_progress",
+     "pass": true,
+     "detail": "answered on the device: no model ran"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 3593,
+   "totalMs": 3600,
+   "tokens": {
+    "input": 6,
+    "output": 295,
+    "cacheWrite": 1620,
+    "cacheRead": 25030
+   },
+   "requests": 2,
+   "costUsd": 0.009515,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Emergency fund"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_goals",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Here is where both stand, from your Goals list.\n\n**Japan adventure (g4)**\n- Progress: 41.66%, with 2,500 USD of 6,000 USD held.\n- Remaining: 3,500 USD.\n- Target date: 2027-03-04.\n- Next planned date: 2026-10-07.\n- Funding status: behind.\n\n**Emergency fund (g1)**\n- Progress: 45%, with 9,000 USD of 20,000 USD held.\n- Remaining: 11,000 USD.\n- Target date: 2027-10-05.\n- Next planned date: 2026-10-07.\n- Funding status: ahead. The plan shows you ahead by 250 USD.\n\nBoth include a manual valuation. If you'd like, I can add a note to either goal.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-the-other",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [add-goal-note], got [add-goal-note]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 5794,
+   "totalMs": 5807,
+   "tokens": {
+    "input": 6,
+    "output": 528,
+    "cacheWrite": 1866,
+    "cacheRead": 25276
+   },
+   "requests": 2,
+   "costUsd": 0.0124846,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "My first 0.1 BTC"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_goals",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Here is the note for your Japan adventure goal, the first one in my last answer.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g4\",\"note\":\"Hotel booked.\"}\n```\n\nIf you meant a different goal, tell me which one and I'll redo the card.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-the-other",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 2,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [edit-goal], got [edit-goal]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:target=25000",
+     "pass": true,
+     "detail": "{\"kind\":\"edit-goal\",\"goal\":\"g1\",\"target\":25000}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 952,
+   "totalMs": 2101,
+   "tokens": {
+    "input": 4,
+    "output": 135,
+    "cacheWrite": 646,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0041933000000000005,
+   "calls": [],
+   "reply": "Here is the change for your Emergency fund (g1), the other goal from my last answer. It only changes the target, from 20,000 USD to 25,000 USD.\n\n```zigoals-action\n{\"kind\":\"edit-goal\",\"goal\":\"g1\",\"target\":25000}\n```\n\nYour money in the goal stays as it is. Contributions and plans are changed only in the app's own form.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-same",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-water], got [log-water]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:glasses=2",
+     "pass": true,
+     "detail": "{\"kind\":\"log-water\",\"glasses\":2,\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 715,
+   "totalMs": 1435,
+   "tokens": {
+    "input": 4,
+    "output": 68,
+    "cacheWrite": 918,
+    "cacheRead": 12400
+   },
+   "requests": 1,
+   "costUsd": 0.004223,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Drink water",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "water",
+     "args": {
+      "range": "the last 7 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Two glasses is 500 mL. Here is the card for you to confirm.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-same",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "health",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-water], got [log-water]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:glasses=2,day={\"anyOf\":[\"yesterday\",\"2026-10-04\"]}",
+     "pass": true,
+     "detail": "{\"kind\":\"log-water\",\"glasses\":2,\"day\":\"yesterday\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 791,
+   "totalMs": 1354,
+   "tokens": {
+    "input": 4,
+    "output": 51,
+    "cacheWrite": 310,
+    "cacheRead": 12400
+   },
+   "requests": 1,
+   "costUsd": 0.002533,
+   "calls": [],
+   "reply": "Same amount, set to yesterday.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2,\"day\":\"yesterday\"}\n```",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-again",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-food, log-food], got [log-food, log-food]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 2633,
+   "totalMs": 4304,
+   "tokens": {
+    "input": 4,
+    "output": 546,
+    "cacheWrite": 674,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.008354,
+   "calls": [
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here are two cards for breakfast. Your diary already has Berry overnight oats (f1) for breakfast today. If that is the oatmeal you mean, dismiss the oatmeal card. The numbers below are my own rough estimates for a plain bowl and a black coffee, and the app will show them as AI estimates. Tell me if you add milk, sugar or toppings and I'll adjust them.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Oatmeal\",\"meal\":\"Breakfast\",\"quantity\":1,\"estimate\":{\"kcal\":150,\"protein_g\":5,\"carbs_g\":27,\"fat_g\":3}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Coffee\",\"meal\":\"Breakfast\",\"quantity\":1,\"estimate\":{\"kcal\":2,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0}}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-again",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-food, log-food, log-food], got [log-food, log-food, log-food]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 676,
+   "totalMs": 2695,
+   "tokens": {
+    "input": 4,
+    "output": 379,
+    "cacheWrite": 328,
+    "cacheRead": 12684
+   },
+   "requests": 1,
+   "costUsd": 0.0058864,
+   "calls": [
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here are three cards for lunch: oatmeal, coffee and an apple. Your diary already has Chicken and quinoa bowl (f2) for lunch today. These cards add to it and don't replace it. The numbers are my own rough estimates, and the app will show them as AI estimates. I took a medium apple, about 180 g.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Oatmeal\",\"meal\":\"Lunch\",\"quantity\":1,\"estimate\":{\"kcal\":150,\"protein_g\":5,\"carbs_g\":27,\"fat_g\":3}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Coffee\",\"meal\":\"Lunch\",\"quantity\":1,\"estimate\":{\"kcal\":2,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Apple\",\"meal\":\"Lunch\",\"quantity\":1,\"estimate\":{\"kcal\":95,\"protein_g\":0,\"carbs_g\":25,\"fat_g\":0,\"serving_g\":180}}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-pronoun-nl",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:habit_stats",
+     "pass": true,
+     "detail": "called [list_habits, habit_stats, habit_stats, habit_stats, habit_stats]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 681,
+   "totalMs": 2417,
+   "tokens": {
+    "input": 4,
+    "output": 230,
+    "cacheWrite": 2403,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0095411,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this week",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Dit is gebaseerd op je gewoontenlijst van vandaag.\n\nDe langste reeks heeft **Walk** (h3) en **Contribute** (h5), allebei 27 dagen.\n\nDaarna volgen Read, Exercise, Meditate en Drink water met elk 26 dagen. Stretch morning en Stretch evening staan op 0 dagen, want die hebben vandaag nog geen check-in.\n\nEen kleine opmerking: Exercise, Meditate en Drink water staan vandaag op een gedeeltelijke check-in. Als je ze later nog aanvult, kan ik daar een voorstel voor maken.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-pronoun-nl",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 1,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [check-in], got [check-in, check-in, check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 4976,
+   "totalMs": 5000,
+   "tokens": {
+    "input": 6,
+    "output": 450,
+    "cacheWrite": 1297,
+    "cacheRead": 24998
+   },
+   "requests": 2,
+   "costUsd": 0.0102543,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Ik maak drie voorstellen voor de gewoonten met een gedeeltelijke check-in. Elk gaat naar het doel van die gewoonte: Exercise 30 minuten, Meditate 10 minuten en Drink water 8 glazen. Bevestig ze alleen als dat klopt met wat je echt gedaan hebt.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h2\",\"minutes\":30}\n```\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h4\",\"minutes\":10}\n```\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h6\",\"quantity\":8,\"unit\":\"glasses\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-pronoun-fr",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "fr",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:habit_stats",
+     "pass": true,
+     "detail": "called [list_habits, habit_stats, habit_stats, habit_stats, habit_stats]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 890,
+   "totalMs": 2333,
+   "tokens": {
+    "input": 4,
+    "output": 216,
+    "cacheWrite": 2401,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.009396100000000001,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this week",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "D'après tes habitudes, la plus longue série en cours est **Walk** (h3) : 27 jours. Contribute (h5) est aussi à 27 jours.\n\nLes autres sont à 26 jours : Read, Exercise, Meditate et Drink water. Stretch morning et Stretch evening sont à 0 jour pour l'instant.\n\nJe me base sur les séries en cours. Les meilleures séries sont les mêmes que les séries actuelles pour Read, Exercise, Walk et Meditate. Pour les autres habitudes, je n'ai pas vérifié leur meilleure série.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "p2-carry-pronoun-fr",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "fr",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": true,
+   "firstTokenMs": 1656,
+   "totalMs": 9809,
+   "tokens": {
+    "input": 14,
+    "output": 928,
+    "cacheWrite": 2906,
+    "cacheRead": 35769
+   },
+   "requests": 3,
+   "costUsd": 0.020149900000000002,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Je ne peux pas proposer de carte pour l'instant, et je dois corriger mes réponses précédentes. Aucune donnée n'est jointe à cette page, donc les séries et les valeurs que j'ai données (Walk à 27 jours, Contribute, les verres d'eau, etc.) ne reposaient sur aucun de tes enregistrements. Ne t'y fie pas.\n\n« Celle-là » reste aussi ambigu : je n'ai pas de série vérifiée à laquelle le rattacher. Dis-moi le nom de l'habitude à cocher pour aujourd'hui, et je te prépare la carte à confirmer. Je peux aussi relire tes habitudes pour retrouver celle qui a la plus longue série.\n\n⟦zigi: empathetic⟧",
+   "repaired": true,
+   "error": null
+  },
+  {
+   "id": "p2-carry-widget",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool-any:list_goals|goal_progress",
+     "pass": true,
+     "detail": "called [list_goals]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": true,
+   "firstTokenMs": 746,
+   "totalMs": 3000,
+   "tokens": {
+    "input": 4,
+    "output": 311,
+    "cacheWrite": 1233,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0074208,
+   "calls": [
+    {
+     "name": "list_goals",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Going by the funding status in your records, two goals are marked \"behind\":\n\n- **Holiday fund (g2):** 0 USD of 20,000 USD, which is 0%. The target date is 2027-10-05 and the next planned date is 2026-10-07.\n- **Japan adventure (g4):** 2,500 USD of 6,000 USD, which is 41.66%. The target date is 2027-03-04 and the next planned date is 2026-10-07.\n\nThe Holiday fund has the lowest progress and the largest remaining amount (20,000 USD). It also has a year left, while Japan has about five months. I can't say which is further behind in time, because the records only give a status label and not how far off each plan is.\n\nOne more goal needs a look. Reward income reserve (g7) is at 50% and is marked \"review\", so it needs your attention. That is a different flag from \"behind\".\n\nI can add a note to either goal if you'd like to record something.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-widget",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [add-widget], got [add-widget]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 2943,
+   "totalMs": 3535,
+   "tokens": {
+    "input": 4,
+    "output": 340,
+    "cacheWrite": 555,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0060158,
+   "calls": [],
+   "reply": "Here is a widget for your Holiday fund goal on Today. I picked it because it has the lowest progress in your records. If you meant Japan adventure, tell me and I'll send that one instead.\n\n```zigoals-action\n{\"kind\":\"add-widget\",\"widget\":\"goal\",\"goal\":\"g2\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-correct-late",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-weight], got [log-weight]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:value=78.5",
+     "pass": true,
+     "detail": "{\"kind\":\"log-weight\",\"value\":78.5,\"unit\":\"kg\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 847,
+   "totalMs": 1915,
+   "tokens": {
+    "input": 4,
+    "output": 148,
+    "cacheWrite": 702,
+    "cacheRead": 12400
+   },
+   "requests": 1,
+   "costUsd": 0.004483,
+   "calls": [
+    {
+     "name": "weight",
+     "args": {
+      "range": "the last 30 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is a card to log 78.5 kg. I'm using the unit you said, and the app will convert it for your journal, which shows pounds.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":78.5,\"unit\":\"kg\"}\n```\n\nFor context, your latest reading is 162 lb on 2026-10-04. Your 2026-10-02 reading of 160 lb came from a scale and was timed.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-correct-late",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "health",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:water",
+     "pass": true,
+     "detail": "answered on the device: no model ran"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": false,
+   "firstTokenMs": 2906,
+   "totalMs": 3992,
+   "tokens": {
+    "input": 4,
+    "output": 353,
+    "cacheWrite": 558,
+    "cacheRead": 12400
+   },
+   "requests": 1,
+   "costUsd": 0.006173,
+   "calls": [
+    {
+     "name": "water",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your water record for today (2026-10-05) shows 0 mL, so nothing is logged yet. Your daily target is 2000 mL.\n\nI also need to correct my last reply. I quoted earlier weight readings, and I hadn't looked them up. Please ignore those figures. The 78.5 kg card is still fine to confirm. If you'd like, I can check your real weight history.\n\nIf you've had a drink today, tell me how much and I'll make a card for it.\n\n⟦zigi: empathetic⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-correct-late",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "health",
+   "lang": "en",
+   "turn": 2,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-weight], got [log-weight]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:value=78.2",
+     "pass": true,
+     "detail": "{\"kind\":\"log-weight\",\"value\":78.2,\"unit\":\"kg\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 7429,
+   "totalMs": 7436,
+   "tokens": {
+    "input": 6,
+    "output": 731,
+    "cacheWrite": 525,
+    "cacheRead": 26544
+   },
+   "requests": 2,
+   "costUsd": 0.0112889,
+   "calls": [
+    {
+     "name": "weight",
+     "args": {
+      "range": "the last 30 days"
+     },
+     "accepted": true
+    },
+    {
+     "name": "water",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is the corrected card, 78.2 kg in place of 78.5 kg.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-weight\",\"value\":78.2,\"unit\":\"kg\"}\n```\n\nI also need to fix my last reply. The weight figures in my first answer did come from your attached records, so my retraction was wrong. Your latest reading is 162 lb on 2026-10-04, and the timed scale reading of 160 lb is from 2026-10-02. I've now checked your water record too. It shows 0 mL today, against your 2000 mL target.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-count",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_goals",
+     "pass": true,
+     "detail": "called [list_goals]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 616,
+   "totalMs": 2175,
+   "tokens": {
+    "input": 4,
+    "output": 228,
+    "cacheWrite": 1230,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.006564,
+   "calls": [
+    {
+     "name": "list_goals",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "You have 7 goals in total. Six are active and one is completed.\n\n**Active**\n- Emergency fund (g1): 45%\n- Holiday fund (g2): 0%\n- First home deposit (g3): 65%\n- Japan adventure (g4): 41.66%\n- Launch my creative studio (g6): 50%, a project with 2 of 4 milestones\n- Reward income reserve (g7): 50%, marked as needing review\n\n**Completed**\n- My first 0.1 BTC (g5)\n\nThis comes from your Goals list on this device. Five of the active goals have a planned date on 2026-10-07. I can look at any one of them in more detail if you like.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-count",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_habits",
+     "pass": true,
+     "detail": "called [list_habits]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 3446,
+   "totalMs": 3454,
+   "tokens": {
+    "input": 6,
+    "output": 311,
+    "cacheWrite": 1278,
+    "cacheRead": 24487
+   },
+   "requests": 2,
+   "costUsd": 0.008765700000000001,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "You have 8 active habits, all daily. This comes from your Habits journal.\n\n**Complete today**\n- Read (h1): 30 of 30 minutes, 26-day streak\n- Walk (h3): 8000 of 8000 steps, 27-day streak\n- Contribute (h5): 1 of 1, 27-day streak\n\n**Partly done**\n- Exercise (h2): 15 of 30 minutes, 26-day streak\n- Meditate (h4): 5 of 10 minutes, 26-day streak\n- Drink water (h6): 4 of 8 glasses, 26-day streak\n\n**Still due**\n- Stretch morning (h7): streak 0 days\n- Stretch evening (h8): streak 0 days\n\nThree are done, three are under way, and two haven't started. I can log any of them if you tell me what you did.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-count",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 2,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 4349,
+   "totalMs": 4363,
+   "tokens": {
+    "input": 6,
+    "output": 374,
+    "cacheWrite": 2173,
+    "cacheRead": 25253
+   },
+   "requests": 2,
+   "costUsd": 0.0117098,
+   "calls": [
+    {
+     "name": "list_goals",
+     "args": {
+      "include_closed": true
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "The two numbers are 7 goals and 8 habits, so 8 is the bigger one. That's one more.\n\nIf you count only active ones, it's 6 goals against 8 habits, and the gap is two. I used your Goals list and your Habits journal for this.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-schedule",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-habit], got [create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 669,
+   "totalMs": 2085,
+   "tokens": {
+    "input": 4,
+    "output": 183,
+    "cacheWrite": 485,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0042761000000000006,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Launch my creative studio"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "A habit draft for swimming on Tuesdays and Thursdays. I set it to \"done\" so you can tick it off each session. If you'd rather track minutes or laps, tell me and I'll change it.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Swim\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nRest days in between are part of the plan, so they won't count against you. ⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-schedule",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-habit, edit-habit], got [create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1411,
+   "totalMs": 2014,
+   "tokens": {
+    "input": 4,
+    "output": 201,
+    "cacheWrite": 436,
+    "cacheRead": 12256
+   },
+   "requests": 1,
+   "costUsd": 0.0043336,
+   "calls": [],
+   "reply": "Here is the draft again with Saturday added, so swimming is on Tuesday, Thursday and Saturday.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Swim\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[2,4,6]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nThis card replaces the earlier one. ⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-schedule",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 2,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-reminder], got [create-habit, create-reminder]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 2308,
+   "totalMs": 3271,
+   "tokens": {
+    "input": 4,
+    "output": 373,
+    "cacheWrite": 169,
+    "cacheRead": 12692
+   },
+   "requests": 1,
+   "costUsd": 0.0054297,
+   "calls": [],
+   "reply": "Here is the swim habit again with a reminder at 18:30. The reminder follows the habit's schedule, so it comes on Tuesday, Thursday and Saturday.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"build-habit\",\"title\":\"Swim\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[2,4,6]},\"timeOfDay\":\"evening\",\"reminder\":\"18:30\"}\n```\n\nI set the time of day to evening to match the reminder. This card replaces the earlier habit card. ⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-milestone",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [add-milestone], got [add-milestone]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 901,
+   "totalMs": 1671,
+   "tokens": {
+    "input": 4,
+    "output": 82,
+    "cacheWrite": 710,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0038233000000000004,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Japan adventure"
+     },
+     "accepted": true
+    },
+    {
+     "name": "milestones",
+     "args": {
+      "goal": "Japan adventure"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is a milestone for your Japan adventure goal. I left the value out because you didn't give one. You can set its date in Goals.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g1\",\"title\":\"Visa done\"}\n```",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-milestone",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 1,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [add-milestone], got [add-milestone, add-milestone]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 2,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 4145,
+   "totalMs": 4151,
+   "tokens": {
+    "input": 6,
+    "output": 364,
+    "cacheWrite": 1330,
+    "cacheRead": 24740
+   },
+   "requests": 2,
+   "costUsd": 0.009451,
+   "calls": [
+    {
+     "name": "list_goals",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "I need to correct my earlier reply. Your Japan adventure goal is g4, and I had put the \"Visa done\" milestone on g1, which is your Emergency fund. Here are both milestones on the right goal. The first card replaces the earlier one.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g4\",\"title\":\"Visa done\",\"revise\":true}\n```\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g4\",\"title\":\"Rail pass\"}\n```\n\nI left out values because you didn't give any. You can set dates in Goals.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-milestone",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 2,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:milestones",
+     "pass": true,
+     "detail": "answered on the device: no model ran"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "confused",
+   "refused": false,
+   "firstTokenMs": 1634,
+   "totalMs": 4807,
+   "tokens": {
+    "input": 6,
+    "output": 453,
+    "cacheWrite": 2056,
+    "cacheRead": 25163
+   },
+   "requests": 2,
+   "costUsd": 0.012198299999999999,
+   "calls": [
+    {
+     "name": "milestones",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_goals",
+     "args": {
+      "include_closed": true
+     },
+     "accepted": true
+    },
+    {
+     "name": "milestones",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "I'll check your records, because my earlier replies named goal handles I hadn't confirmed.\n\nJapan adventure (g4) has no milestones saved yet. The only goal with milestones in your records is Launch my creative studio (g6).\n\nThe two cards for \"Visa done\" and \"Rail pass\" are still proposals. Nothing is saved until you confirm them. Once you do, they will show up on Japan adventure.\n\nI also need to correct something. My first reply put \"Visa done\" on g1, and that was wrong. g1 is your Emergency fund. The corrected cards point to g4, which is Japan adventure. If the first card is still pending, please dismiss it, or check that it was marked as replaced.\n\nJapan adventure is a Value Goal. Its target is 6000 USD and you hold 2500 USD. Its target date is 2027-03-04.\n\n⟦zigi: confused⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-mood-note",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-mood], got [log-mood]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:mood=2",
+     "pass": true,
+     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": false,
+   "firstTokenMs": 596,
+   "totalMs": 1898,
+   "tokens": {
+    "input": 4,
+    "output": 142,
+    "cacheWrite": 232,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.003209,
+   "calls": [],
+   "reply": "Thanks for telling me. A 2 on a 1 to 5 scale sounds like a hard day. I'll note it as it is.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":2}\n```\n\nIf you'd like to add a few words about what made it hard, I can attach them to the note. Or we can keep today small: I can show you what's open, and you can decide what's worth doing.\n\n⟦zigi: empathetic⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  },
+  {
+   "id": "p2-carry-mood-note",
+   "repeat": 1,
+   "kind": "followup",
+   "area": "today",
+   "lang": "en",
+   "turn": 1,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-mood], got [log-mood]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:mood=2",
+     "pass": true,
+     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"note\":\"Rough meeting\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": false,
+   "firstTokenMs": 892,
+   "totalMs": 1930,
+   "tokens": {
+    "input": 4,
+    "output": 107,
+    "cacheWrite": 156,
+    "cacheRead": 12242
+   },
+   "requests": 1,
+   "costUsd": 0.0026921999999999996,
+   "calls": [],
+   "reply": "Here is the mood again, now with your note. It replaces the earlier card.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-mood\",\"mood\":2,\"note\":\"Rough meeting\"}\n```\n\nWant me to show what's still open today, or would you rather leave it there?\n\n⟦zigi: empathetic⟧",
+   "repaired": false,
+   "error": null,
+   "rescored": true
+  }
+ ]
+}
