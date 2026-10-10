@@ -1,7 +1,7 @@
 'use client';
 import {ZigiPartBoundary} from '../zigi/part-boundary';
 import Link from 'next/link';
-import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {Suspense, lazy, useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import {hasOpenFence, parseReply} from '../../lib/ai/actions/parse';
 import {bridgePrompt, subscriptionApp} from '../../lib/ai/bridge';
@@ -15,7 +15,6 @@ import {PROVIDERS} from '../../lib/ai/providers';
 import {parseBlocks, plainText} from '../../lib/ai/safe-render';
 import type {ModelInfo} from '../../lib/ai/types';
 import {entitlement} from '../../lib/entitlements';
-import {NebulaFlow} from '../nebula-flow';
 import './ai.css';
 import {useVisualViewportInsets} from '../phone/use-visual-viewport';
 import {useZigiState, zigiSignals} from '../zigi/bus';
@@ -32,7 +31,6 @@ import {useProposals} from './use-proposals';
 import {useAutoAccept, type AutoAccept} from './use-auto-accept';
 import {useReadAloud, useVoice} from './use-voice';
 import {ASK_EVENT, takePendingAsk} from './ask';
-import {speechLanguage} from '../../lib/ai/voice';
 import {examplesFor} from '../../lib/ai/local-answers/examples';
 import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -75,6 +73,19 @@ import {copyText, nextFrame} from '../../lib/ai/chat-window';
 import {useMiniWindow} from './use-mini-window';
 import './pip.css';
 import {ON_DEVICE_LABEL} from '../../lib/ai/on-device';
+import {ChatHeader, type MoreItem} from './chat-header';
+import {SuggestionsChip, SuggestionsSheet} from './suggestions-sheet';
+import {recordAsk, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
+import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import './panel-z.css';
+import {useTalk} from './use-talk';
+import {VoiceWaves} from './voice-waves';
+import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
+import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
+import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
+import {inQuietHours} from '../../lib/ai/knock/rules';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -90,6 +101,8 @@ type Props = {open: boolean; onClose: () => void; onOpen?: () => void; sensitive
 const ZigiCustomize = lazy(() => import('./zigi-customize'));
 /** Session V Part 15: "Which setup fits me?", loaded when the person opens it. */
 const SetupChooser = lazy(() => import('./setup-chooser'));
+/** Session Z-Cloud Part 3: with no AI connected, words that Quick add understands ("drank 2 glasses of water") become its preview card. */
+const QuickAddLine = lazy(() => import('../quick-add-line').then(m => ({default: m.QuickAddLine})));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
 export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props) {
@@ -130,6 +143,19 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     setRemoved(new Set()); setDraft(''); setPinned([]);
     void session.ask(value, {withContext: attach, ...(chosen?.text ? {extra: {text: chosen.text, handles: chosen.handles}} : {}), ...extra});
   }, [attach, connected, context, removed, pinned, sensitive, session]);
+  // Session Z-Cloud Part 2: the Suggestions sheet by the composer, and the person's own frequent questions (device only;
+  // a Health question is not kept while Health is not shared with ZIGi; nothing is kept on a private screen).
+  const [sheet, setSheet] = useState(false), sheetId = useId();
+  const healthShared = !!context.gates.health;
+  const asked = useCallback((text: string) => {
+    if (sensitive) return;
+    try {
+      // Nothing is written when nothing is kept (a Health question while Health is not shared, a command, a very short text).
+      const storage = getAppStorage(), current = readDeviceRecord(storage, ZIGI_SUGGESTIONS).data, next = recordAsk(current, text, Date.now(), {healthShared});
+      if (next !== current) { updateDeviceRecord(storage, ZIGI_SUGGESTIONS, () => next); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_SUGGESTIONS.key})); }
+    }
+    catch { /* a full or refused storage keeps no suggestion; the question still goes */ }
+  }, [healthShared, sensitive]);
   // Session V Part 10: the shortcuts sheet, the last question being edited, and whether the conversation is scrolled up.
   const [shortcuts, setShortcuts] = useState(false), [editing, setEditing] = useState<Editing | null>(null), [away, setAway] = useState(false), router = useRouter();
   // While "Jump to the latest message" scrolls (smoothly unless motion is reduced), the button stays away.
@@ -137,6 +163,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   useEffect(() => setEditing(null), [session.chat.id]);
   const startEdit = useCallback((turn: ChatTurn) => { setEditing({id: turn.id, text: turn.text, seq: Date.now()}); setView('chat'); nextFrame(() => composer.current?.focus()); }, []);
   const ask = useCallback((question: string) => { if (connected) sendQuestion(question); else void session.ask(question); }, [connected, sendQuestion, session]);
+  /** A suggestion from the sheet: sent like typed words, counted like them, and the sheet closes. */
+  const suggest = useCallback((question: string) => { setSheet(false); asked(question); ask(question); }, [ask, asked]);
   /** Slash commands that open a view, a page or a local card (Session V Part 10); /log, /ask and /plan go on as messages. */
   const onCommand = useCallback((name: SlashName, rest: string, typed: string): boolean => {
     switch (name) {
@@ -148,7 +176,11 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       default: if (connected) return false; session.say(typed, NEEDS_AI); return true;
     }
   }, [connected, onClose, router, session]);
-  const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
+  const reader = useReadAloud(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
+  // Session Z-Cloud Part 3: a reply to a spoken question is read aloud (the person's choice, on by default), never in quiet
+  // hours and never while muted; a tap anywhere in the panel, or talking again, stops it.
+  const voiceRec = useDeviceRecord(ZIGI_VOICE), vprefs = voicePrefs(voiceRec.data), zigiRec = useDeviceRecord(ZIGI), spokenAsked = useRef(false);
+  const toggleMute = useCallback(() => { try { voiceRec.update(r => ({...r, muted: !vprefs.muted})); } catch { /* stays as it was */ } if (!vprefs.muted) reader.stop(); }, [reader, voiceRec, vprefs.muted]);
   useVisualViewportInsets(phone && open);
   // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
   useEffect(() => { if (!(phone && open)) return; document.documentElement.dataset.aiSheet = ''; return () => { delete document.documentElement.dataset.aiSheet; }; }, [phone, open]);
@@ -174,9 +206,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     setView('chat'); setNote(`A browser AI agent proposed ${n === 1 ? 'one change' : `${n} changes`}. Nothing is written until you add a card.`);
   }, [agentBatches]);
   useEffect(() => {
-    if (replies > lastReplies.current) { setNote('Your AI replied.'); if (data.voice.readAloud && open) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); } }
+    if (replies > lastReplies.current) {
+      setNote('Your AI replied.');
+      const spoken = spokenAsked.current; spokenAsked.current = false;
+      const knock = zigiPrefs(zigiRec.data).knock, quiet = inQuietHours(new Date().toTimeString().slice(0, 5), knock.quietFrom, knock.quietTo);
+      if (open && !vprefs.muted && (data.voice.readAloud || (spoken && vprefs.readSpoken && !quiet))) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); }
+    }
     lastReplies.current = replies;
-  }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed]);
+  }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed, vprefs.muted, vprefs.readSpoken, zigiRec.data]);
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight; }, [session.chat.turns.length, session.draft]);
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
@@ -193,25 +230,21 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   }, [onClose, phone, mini.win]);
   const shownDraft = useMemo(() => { if (!session.draft) return ''; const draft = stripHint(session.draft); if (hasOpenFence(draft)) { const at = draft.search(/(```+|~~~+)[^\S\n]*(?:json[^\S\n]+)?zigoals/i); return at >= 0 ? draft.slice(0, at) : draft; } return parseReply(draft).text; }, [session.draft]);
   const busy = session.status !== 'idle', area = context.area, lastAssistant = [...session.chat.turns].reverse().find(t => t.role === 'assistant'), lastAsked = lastQuestion(session.chat);
+  // Session Z-Cloud Part 2: only the newest reply with cards keeps them open; an earlier reply's untouched cards fold away.
+  const latestCards = useMemo(() => [...session.chat.turns].reverse().find(t => t.role === 'assistant' && ((session.parsed.get(t.id) ?? parseReply(t.text)).proposals.length > 0))?.id ?? null, [session.chat.turns, session.parsed]);
   const body = <>
-    <header className="ai-chat-head">
-      <ZigiAvatar state={zigi} size={40} decorative live/>
-      <div className="ai-chat-identity">
-        <h2 id={titleId} className="ai-chat-title"><NebulaFlow identity="ai-chat-title">ZIGi · your AI</NebulaFlow></h2>
-        <p className="ai-chat-via"><span className="ai-chat-via-text">{hosted ? `${hosted.provider} · ${hosted.model} via ZIGoals hosted` : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span><span className="ai-chat-premium">{entitlement(hosted ? 'hosted' : 'your-ai').label}</span></p>
-      </div>
-      <button type="button" className="quiet ai-chat-close" onClick={mini.win ? mini.close : onClose} aria-label="Close ZIGi">×</button>
-      <div className="ai-chat-tools" role="toolbar" aria-label="Chat tools">
-        {connected && <ModelSwitcher settings={settings} scope={scope}/>}
-        <button type="button" className="quiet" onClick={() => { session.startNew(); setView('chat'); composer.current?.focus(); }} aria-label="New chat" title="New chat">New</button>
-        <button type="button" className="quiet" aria-pressed={view === 'history'} onClick={() => setView(v => v === 'history' ? 'chat' : 'history')} aria-label="Chat history" title="History">History</button>
-        <button type="button" className="quiet" aria-pressed={view === 'customize'} onClick={() => setView(v => v === 'customize' ? 'chat' : 'customize')} aria-label="Customize ZIGi" title="Customize">Customize</button>
-        <Link className="quiet" href={SETTINGS_HREF} onClick={onClose} aria-label="ZIGi settings" title="Settings">Settings</Link>
-        {mini.win ? <button type="button" className="quiet" onClick={mini.backToTab} aria-label="Back to the tab" title="Back to tab">Back to tab</button>
-          : !phone && <button type="button" className="quiet" onClick={() => setExpanded(e => !e)} aria-pressed={expanded} aria-label={expanded ? 'Shrink the chat' : 'Expand the chat'} title={expanded ? 'Shrink' : 'Expand'}>{expanded ? 'Shrink' : 'Expand'}</button>}
-        {!phone && !mini.win && mini.supported && <button type="button" className="quiet" onClick={() => void popOut()} aria-label="Pop out ZIGi into a mini window" title="Pop out">Pop out</button>}
-      </div>
-    </header>
+    <ChatHeader titleId={titleId} figure={<ZigiAvatar state={zigi} size={40} decorative live/>} phone={phone} miniWindow={!!mini.win} miniSupported={mini.supported} expanded={expanded}
+      status={<span className="ai-chat-via-text">{hosted ? `${hosted.provider} · ${hosted.model} via ZIGoals hosted` : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span>}
+      extra={connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} label={`Change model (${data.model})`}/> : null}
+      premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
+      onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => setExpanded(e => !e)} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
+      more={[
+        {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
+        {key: 'customize', label: 'Customize', name: 'Customize ZIGi', pressed: view === 'customize', onSelect: () => setView(v => v === 'customize' ? 'chat' : 'customize')},
+        {key: 'settings', label: 'Settings', name: 'ZIGi settings', href: SETTINGS_HREF, onSelect: onClose},
+        {key: 'meet', label: 'Meet ZIGi', href: '/app/zigi', onSelect: onClose},
+        {key: 'help', label: 'Help', name: 'Help about ZIGi', href: '/app/help#help-your-ai-what', onSelect: onClose},
+      ] satisfies MoreItem[]}/>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
       : view === 'continue' ? <ContinueView settings={data} session={session} context={context} attach={attach} sensitive={sensitive} phone={phone} onBack={() => setView('chat')}/>
       : view === 'chooser' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Which setup fits me?"><header className="ai-proactive-head"><h3>Which setup fits me?</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><ZigiPartBoundary label="The setup chooser"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><SetupChooser/></Suspense></ZigiPartBoundary></section></div>
@@ -219,13 +252,12 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
       <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>
-        {!data.enabled && <NotConnected onClose={onClose} onChooser={() => setView('chooser')}/>}
-        {localOnly && session.chat.turns.length === 0 && !sensitive && <LocalIntro context={context} session={session} onAsk={question => void session.ask(question)} onView={setView}/>}
+        {localOnly && session.chat.turns.length === 0 && <LocalGreeting sensitive={sensitive}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
-        {connected && session.chat.turns.length === 0 && !busy && <Greeting context={context} session={session} sensitive={sensitive} onChip={sendQuestion} onView={setView}/>}
+        {connected && session.chat.turns.length === 0 && !busy && <Greeting/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && (turn.source === 'local' || turn.source === 'on-device')
-          ? <LocalTurn key={turn.id} turn={turn} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask} autoAccept={autoAccept}/>
-          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length} replaced={turn.role === 'assistant' && revisedAfter(session, i)} autoAccept={autoAccept}
+          ? <LocalTurn key={turn.id} turn={turn} earlier={turn.id !== latestCards} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask} autoAccept={autoAccept}/>
+          : <TurnView key={turn.id} turn={turn} session={session} runner={runner} earlier={turn.role === 'assistant' && turn.id !== latestCards} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length} replaced={turn.role === 'assistant' && revisedAfter(session, i)} autoAccept={autoAccept}
             asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} onAsk={ask} onContinue={() => setView('continue')} onEdit={turn.role === 'user' && !busy && turn === lastAsked ? () => startEdit(turn) : undefined}/>)}
         {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local' && t.source !== 'on-device')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
         {!sensitive && <AgentProposals runner={runner} onNavigate={onClose}/>}
@@ -233,12 +265,12 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {session.status === 'streaming' && session.looking.length > 0 && <p className="ai-note ai-looking" aria-hidden="true">ZIGi looked at {session.looking.join(', ')}</p>}
         {session.status === 'streaming' && <article className="ai-turn ai-turn-assistant ai-turn-live" aria-hidden="true"><ZigiAvatar state="speaking" size={28} decorative/><div className="ai-turn-body"><SafeText text={shownDraft}/></div></article>}
         {session.confirmation && <div className="ai-confirm" role="group" aria-label="This page's data is larger than your budget">
-          <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · your AI → Context budget).</p>
+          <p>This page’s data is about {session.confirmation.fit.estimated.context.toLocaleString('en-US')} tokens; with the conversation that is {session.confirmation.fit.estimated.total.toLocaleString('en-US')}, above your budget of {session.confirmation.budget.toLocaleString('en-US')} (Settings → ZIGi · Your Personal AI Companion → Context budget).</p>
           {/* Round 10 (ADR-017 S78): "without page data" drops the records chosen for the question too (they travel as `extra`), not only the page's own; a photo stays, it is the person's own attachment. */}
           <div className="ai-card-actions"><button type="button" className="primary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, spendConfirmed: true})}>Send anyway</button><button type="button" className="secondary" onClick={() => void session.send(session.confirmation!.text, {...session.confirmation!.options, confirmed: true, withContext: false, extra: undefined, spendConfirmed: true})}>Send without page data</button><button type="button" className="text-link" onClick={session.cancelConfirmation}>Cancel</button></div>
         </div>}
         {session.spendCheck && <div className="ai-confirm" role="group" aria-label="Your monthly cap is reached">
-          <p>{session.spendCheck.note} You asked ZIGi to check with you first (Settings → ZIGi · your AI → Usage).</p>
+          <p>{session.spendCheck.note} You asked ZIGi to check with you first (Settings → ZIGi · Your Personal AI Companion → Usage).</p>
           <div className="ai-card-actions"><button type="button" className="primary" onClick={session.confirmSpend}>Send anyway</button><button type="button" className="text-link" onClick={session.cancelSpend}>Not now</button></div>
         </div>}
         {session.usageNote && <p className="ai-note ai-usage-note" role="status">{session.usageNote}</p>}
@@ -246,38 +278,53 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
       {away && session.chat.turns.length > 0 && <div className="ai-jump-holder"><button type="button" className="ai-jump-latest" onClick={() => { const el = log.current; jumping.current = true; if (el) el.scrollTop = el.scrollHeight; setAway(false); composer.current?.focus({preventScroll: true}); }}>Jump to the latest message</button></div>}
+      {!data.enabled && !hosted && <SetupLine onClose={onClose} onChooser={() => setView('chooser')}/>}
+      {sheet && (connected || (localOnly && !sensitive)) && <SuggestionsSheet id={sheetId} healthShared={healthShared} onAsk={suggest} onClose={() => { setSheet(false); composer.current?.focus({preventScroll: true}); }}
+        ideas={<>{connected ? (sensitive ? <div className="ai-chips" role="group" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => suggest(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={suggest} onView={v => { setSheet(false); setView(v); }}/>) : <LocalExamples context={context} onAsk={suggest}/>}<FirstRunTips/></>}
+        day={sensitive ? <p className="ai-note">Paused on this private screen: nothing is read from the page.</p> : <><BriefBlock context={context} connected={connected} session={session}/><ProactiveEntries onView={v => { setSheet(false); setView(v); }}/></>}/>}
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
-      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} placeholder={!connected ? 'Ask about your records: answered here, no AI' : phone ? `Ask, or say what to log…` : `Ask about ${AREA_LABELS[area]}, or say what to log…`}/>}
+      {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
+        onSpoken={() => { spokenAsked.current = true; }}
+        chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label={vprefs.muted ? 'Unmute ZIGi’s voice' : 'Mute ZIGi’s voice'} title={vprefs.muted ? 'ZIGi reads nothing aloud until you unmute' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg>{vprefs.muted ? 'Muted' : 'Voice on'}</button>}</>}
+        placeholder={!connected ? 'Ask about your records' : 'Ask ZIGi…'} title={!connected ? 'Ask about your records: answered here, no AI' : `Ask about ${AREA_LABELS[area]}, or say what to log`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
     <ShortcutsSheet open={shortcuts} onClose={() => setShortcuts(false)}/>
   </>;
-  return <>
-    <dialog ref={dialog} data-ai-dialog="" className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+  // Session Z-Cloud Part 2: the tab's panel lives at the end of <body>, outside the page's isolated stacking context, so
+  // no part of the page (the ≤900 px top bar at z-index 30) can sit over its header; phones open it as a modal anyway.
+  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={() => { if (reader.speaking) reader.stop(); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
       {!mini.win && body}
-    </dialog>
+    </dialog>;
+  return <>
+    {typeof document === 'undefined' ? tabDialog : createPortal(tabDialog, document.body)}
     {mini.win && createPortal(<>
       <section className="ai-chat ai-chat-pip" aria-labelledby={titleId} onKeyDown={trapTab} inert={sensitive}>{body}</section>
       {sensitive && <div className="ai-pip-paused" role="status"><p>Paused while a private screen is open in the tab. ZIGi shows and reads nothing until you leave it.</p></div>}
     </>, mini.win.document.body)}
   </>;
 }
-function Greeting({context, session, sensitive, onChip, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; sensitive: boolean; onChip: (chip: string) => void; onView: (view: ProactiveView) => void}) {
-  return <div className="ai-greeting"><ZigiAvatar state="greeting" size={72} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. I read this page with your permission and answer with your own AI. Nothing is written unless you add a card.</p>
-    {!sensitive && <BriefBlock context={context} connected session={session}/>}
-    {sensitive ? <div className="ai-chips" role="group" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" onClick={() => onChip(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={onChip} onView={onView}/>}
-    {!sensitive && <ProactiveEntries onView={onView}/>}
-    <FirstRunTips/>
-  </div></div>;
+/** Session Z-Cloud Part 2: a new chat is one short greeting and the box; suggestions wait in their sheet by the composer. */
+function Greeting() {
+  return <div className="ai-greeting ai-greeting-z"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">Hi, I’m ZIGi. Ask about your records or tell me what to log. Nothing is written until you add a card.</p></div></div>;
 }
-function NotConnected({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {
-  return <div className="ai-greeting ai-not-connected"><ZigiAvatar state="attention" size={72} decorative/><div><p className="ai-greeting-text">Connect your own AI to start: an API key, a local model on this computer, or the subscription bridge. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them.</p><div className="ai-card-actions"><Link className="primary" href={SETTINGS_HREF} onClick={onClose}>Set up in Settings</Link><button type="button" className="secondary" onClick={onChooser}>Which setup fits me?</button></div></div></div>;
+/** Before any AI is connected: the same short greeting; ZIGi answers lookups here, on this device, with no AI (Session V Part 3). */
+function LocalGreeting({sensitive}: {sensitive: boolean}) {
+  return <div className="ai-greeting ai-greeting-z ai-local-intro"><ZigiAvatar state="greeting" size={56} decorative/><div className="ai-greeting-body"><p className="ai-greeting-text">{sensitive ? 'Hi, I’m ZIGi. On this private screen I read nothing from the page.' : 'Hi, I’m ZIGi. Ask about your records: I answer here, on this device, with no AI.'}</p></div></div>;
 }
-/** Before any AI is connected: what ZIGi answers here from the records, as examples to tap (Session V Part 3). */
-function LocalIntro({context, session, onAsk, onView}: {context: ReturnType<typeof useAiContext>; session: ChatSession; onAsk: (question: string) => void; onView: (view: ProactiveView) => void}) {
+/** Not connected: one compact line above the box, never over the chat (Session Z-Cloud Part 2). */
+function SetupLine({onClose, onChooser}: {onClose: () => void; onChooser: () => void}) {
+  return <div className="ai-setup-line" role="note" aria-label="ZIGi is not connected to an AI">
+    <span className="ai-setup-line-text">Not connected to an AI yet</span>
+    <Link className="secondary ai-setup-line-go" href={SETTINGS_HREF} onClick={onClose}>Set up</Link>
+    <button type="button" className="text-link ai-setup-line-chooser" onClick={onChooser}>Which setup fits me?</button>
+  </div>;
+}
+/** The questions ZIGi answers here from the records, for the sheet's "Ideas" tab when no AI is connected. */
+function LocalExamples({context, onAsk}: {context: ReturnType<typeof useAiContext>; onAsk: (question: string) => void}) {
   const examples = useMemo(() => { const sources = context.toolSources(); return examplesFor(sources ? toolEnv(sources, context.gates, 'local') : null, 4); }, [context]);
-  return <div className="ai-local-intro"><BriefBlock context={context} connected={false} session={session}/><p className="ai-greeting-text">Meanwhile, ZIGi answers questions about your own records right here, on this device, with no AI: nothing is sent anywhere.</p><div className="ai-chips" role="group" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div><ProactiveEntries onView={onView}/><FirstRunTips/></div>;
+  return <div className="ai-chips" role="group" aria-label="Questions ZIGi answers here">{examples.map(e => <button key={e} type="button" className="ai-chip" onClick={() => onAsk(e)}>{e}</button>)}</div>;
 }
 /** The records behind a local answer, recomputed now from this device's records and shown exactly. */
 function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Record<string, unknown>; label: string}[]; context: ReturnType<typeof useAiContext>}) {
@@ -290,7 +337,7 @@ function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Re
     {results && results.length > 0 && <p className="ai-note">Recomputed now from the records on this device.</p>}
   </details>;
 }
-function LocalTurn({turn, asked, session, context, connected, attach, isLast, runner, onNavigate, onAsk, autoAccept}: {turn: ChatTurn; asked: string; session: ChatSession; context: ReturnType<typeof useAiContext>; connected: boolean; attach: boolean; isLast: boolean; runner: ReturnType<typeof useProposals>; onNavigate: () => void; onAsk: (question: string) => void; autoAccept?: AutoAccept}) {
+function LocalTurn({turn, asked, session, context, connected, attach, isLast, runner, onNavigate, onAsk, autoAccept, earlier = false}: {earlier?: boolean; turn: ChatTurn; asked: string; session: ChatSession; context: ReturnType<typeof useAiContext>; connected: boolean; attach: boolean; isLast: boolean; runner: ReturnType<typeof useProposals>; onNavigate: () => void; onAsk: (question: string) => void; autoAccept?: AutoAccept}) {
   const [copied, setCopied] = useState(false), [preview, setPreview] = useState<string | null>(null);
   // Session V Part 10: a /remember card rides in the turn's own text, read by the same whitelist parser as a reply.
   const parsed = session.parsed.get(turn.id), shown = parsed?.text ?? turn.text;
@@ -306,10 +353,11 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <SafeText className="ai-local-answer" text={shown}/>
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier}/>}
       <DataViz results={info?.results}/>
       {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
+      {!connected && isLast && question && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -362,7 +410,7 @@ function revisedAfter(session: ChatSession, i: number): boolean {
   const next = session.chat.turns.slice(i + 1).find(t => t.role === 'assistant');
   return !!next && (session.parsed.get(next.id)?.revise ?? parseReply(next.text).revise ?? false);
 }
-function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel, fromPhoto = false, replaced = false, autoAccept, asked, onAsk, onContinue, onEdit}: {turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; asked: string; onAsk: (question: string) => void; onContinue: () => void; onEdit?: () => void}) {
+function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavigate, reader, context, deepModel, fromPhoto = false, replaced = false, autoAccept, asked, onAsk, onContinue, onEdit, earlier = false}: {earlier?: boolean; turn: ChatTurn; session: ChatSession; runner: ReturnType<typeof useProposals>; providerName: string; usageUrl: string | null; isLast: boolean; onNavigate: () => void; reader: ReturnType<typeof useReadAloud>; context: ReturnType<typeof useAiContext>; deepModel: string | null; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; asked: string; onAsk: (question: string) => void; onContinue: () => void; onEdit?: () => void}) {
   const [copied, setCopied] = useState(false);
   // "Edit" sits just after the message, not inside it: the message stays only the person's own words.
   if (turn.role === 'user') return <><article className="ai-turn ai-turn-user" aria-label="You"><div className="ai-turn-body"><p>{turn.text}</p><CareNote text={turn.text}/>{turn.attachments?.some(a => a.kind === 'photo') && <p className="ai-note ai-turn-attachment">📷 A meal photo went with this message to your AI; ZIGoals did not keep it.</p>}</div></article>
@@ -376,7 +424,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)}/>}
+      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{label}</span>
@@ -414,18 +462,24 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
   if (!context.attaches) return <div className="ai-context-bar"><span>No page data is read on Settings.</span>{totalLine}</div>;
   if (sensitive) return <div className="ai-context-bar"><span>Paused on this private screen: nothing is read from the page.</span>{totalLine}</div>;
   const questionPreview = question?.text ? <><p className="ai-note">And the records ZIGi chose for this question:</p><pre>{question.text}</pre></> : null;
-  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}<QuestionSources question={question} onRemove={onRemove}/>{questionPreview && <details className="ai-context-preview"><summary>What your AI sees</summary>{questionPreview}</details>}{totalLine}</div>;
+  const mode = modeLine ? <p className="ai-note ai-data-mode">{modeLine}</p> : null;
+  if (!context.consent.page) return <div className="ai-context-bar"><span>Not sharing {label} data. {context.consent.reasons[0] ?? ''}</span>{(mode || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{mode}{questionPreview}</details>}<QuestionSources question={question} onRemove={onRemove}/>{totalLine}</div>;
   return <div className="ai-context-bar">
     {/* Session V Part 16: a stable name for the switch; the area and its size are its description. */}
     <label className="ai-context-switch"><input type="checkbox" checked={attach} onChange={e => onAttach(e.target.checked)} aria-labelledby={`${barId}-name`} aria-describedby={context.preview ? `${barId}-size` : undefined}/><span><span id={`${barId}-name`}>Share this page’s data</span>{context.preview && <> · <span id={`${barId}-size`}>{`${label}${context.consent.health && context.area !== 'health' ? ' + Health' : ''} · about ${context.preview.estimatedTokens.toLocaleString('en-US')} tokens`}</span></>}</span></label>
-    {modeLine && <span className="ai-note ai-data-mode">{modeLine}</span>}
+    {(mode || (attach && context.preview) || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{mode}{attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}{questionPreview}</details>}
     <QuestionSources question={question} onRemove={onRemove}/>
-    {((attach && context.preview) || questionPreview) && <details className="ai-context-preview"><summary>What your AI sees</summary>{attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}{questionPreview}</details>}
     {attach && !context.preview && context.ready && <span className="ai-note">Nothing to share on this page yet.</span>}
     {totalLine}
   </div>;
 }
 import {forwardRef} from 'react';
+/** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
+function MicGlyph({on}: {on: boolean}) {
+  return <svg className="ai-mic-glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+    {on ? <rect x="7" y="7" width="10" height="10" rx="2.5" fill="currentColor"/> : <><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>}
+  </svg>;
+}
 /**
  * What the composer sends besides the words (Session V Part 7): a meal photo for this message, and "talk to log";
  * Part 10: /ask (no on-device answer), /plan (plan cards), and the last question being edited (`replace`).
@@ -433,7 +487,7 @@ import {forwardRef} from 'react';
 export type ComposerExtra = {images?: readonly ChatImage[]; log?: boolean; direct?: boolean; plan?: boolean; replace?: string};
 /** The last question put back in the composer to be edited (Session V Part 10); `seq` tells two edits of one turn apart. */
 type Editing = {id: string; text: string; seq: number};
-const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · your AI). Here, ZIGi answers questions about your records on this device, with no AI.';
+const NEEDS_AI = 'This command needs your own AI connected (Settings → ZIGi · Your Personal AI Companion). Here, ZIGi answers questions about your records on this device, with no AI.';
 /** /remember: the person's words as a "Remember this?" card, in the same action block an AI reply would use (Session V Part 10). */
 function rememberReply(rest: string): string {
   if (!rest) return 'Type what ZIGi should remember after /remember, for example: /remember I train before work.';
@@ -443,8 +497,8 @@ function rememberReply(rest: string): string {
   const json = JSON.stringify(parsed.data).replace(/`/g, '\\u0060');
   return `Here is your note as a card: nothing is kept until you add it.\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
 }
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; local: boolean; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
-  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, local, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
+  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false), listId = useId();
   // Session V Part 10: an edit puts the last question back in the box; the "/" list helps with the commands.
   const editSeq = editing?.seq;
@@ -455,6 +509,12 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
+  // Session Z-Cloud Part 3: talk to ZIGi through the browser's own speech recognition, connected or not; provider
+  // transcription (a recording sent to the person's provider) stays exactly as it was when chosen.
+  const providerVoice = settings.voice.transcription === 'provider' && !local;
+  const spokenRef = useRef<(words: string) => void>(() => undefined);
+  const talk = useTalk({language: settings.voice.language, onDevicePreferred: true, enabled: !providerVoice, onWords: words => spokenRef.current(words)});
+  const listening = talk.listening;
   const textarea = useCallback(() => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, [ref]), refocus = useRef(false), silent = useRef(false);
   // Phase 2 round 10 (ADR-017 S76): the refocus after a send is the app's act, not the person's. The box's focus handler
   // reads a focus as listening, which displaced thinking before the first byte, the reply's end state and the AI's hint
@@ -472,12 +532,21 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     setPhotoNote('Preparing the photo…');
     try { setAttached(await preparePhoto(blob)); setPhotoNote(''); } catch (error) { setAttached(null); setPhotoNote(error instanceof Error ? error.message : 'This photo could not be read here.'); }
   }, [photosAllowed]);
+  // Session Z-Cloud Part 2: the box grows with the words up to five lines, then scrolls; Send keeps its size.
+  useEffect(() => {
+    const el = textarea(); if (!el) return;
+    el.style.height = 'auto';
+    const line = parseFloat(getComputedStyle(el).lineHeight) || 22, pad = el.offsetHeight - el.clientHeight + parseFloat(getComputedStyle(el).paddingTop) + parseFloat(getComputedStyle(el).paddingBottom);
+    const max = Math.ceil(line * 5 + pad);
+    el.style.height = `${Math.min(Math.max(el.scrollHeight + (el.offsetHeight - el.clientHeight), 44), max)}px`;
+    el.style.overflowY = el.scrollHeight + (el.offsetHeight - el.clientHeight) > max ? 'auto' : 'hidden';
+  }, [text, textarea]);
   // The question's records follow the words after a short pause in typing (Session V Part 4).
   useEffect(() => { if (!onDraft) return; const t = window.setTimeout(() => onDraft(text), 300); return () => window.clearTimeout(t); }, [text, onDraft]);
-  const submit = (event?: FormEvent) => {
+  const submit = (event?: FormEvent, spoken?: string) => {
     event?.preventDefault();
     if (busy) return;
-    let value = text.trim(), log = logMode, direct = false, plan = false;
+    let value = (spoken ?? text).trim(), log = logMode, direct = false, plan = false;
     // Slash commands (Session V Part 10): some open a view or make a local card; /log, /ask and /plan shape the message.
     const command = parseSlash(value);
     if (command && onCommand(command.command.name, command.rest, value)) { setText(''); onEditing(null); return; }
@@ -487,12 +556,20 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     if (!value && !attached) return;
     if (!value) value = 'Log this meal from the photo.';
     const extra: ComposerExtra = {...(attached ? {images: [{mime: attached.mime, data: attached.data}]} : {}), ...(log ? {log: true} : {}), ...(direct ? {direct: true} : {}), ...(plan ? {plan: true} : {}), ...(editing ? {replace: editing.id} : {})};
-    setText(''); setAttached(null); setPhotoNote(''); onEditing(null);
+    if (spoken === undefined) { setText(''); setAttached(null); setPhotoNote(''); onEditing(null); }
+    else onSpoken?.();
+    if (!extra.images) onAsked?.(value);
     if (onSend) onSend(value, extra); else void session.ask(value, {withContext: attach, ...extra});
     // X-Cloud's H10 (ADR-017 S71): a mouse click on Send focused the button, which gives way to Stop, and the focus fell to the page (Escape no longer closed the panel); the message box keeps it, now and once the reply has ended.
     refocus.current = true; nextFrame(focusSilently);
   };
-  const mic = voice.mode !== 'off' && !local;
+  // What was heard: sent when the person stops talking (their choice, on by default), unless the box already holds words,
+  // a photo or an edit, which the spoken words then join for the person to send.
+  spokenRef.current = words => {
+    if (talk.prefs.sendOnStop && !text.trim() && !attached && !editing && !busy) submit(undefined, words);
+    else setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`);
+  };
+  const mic = providerVoice && voice.mode === 'provider';
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
   const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
   // Phones: hold to talk and release to stop, or tap once to start and once to stop (a press shorter than 300 ms is a tap).
@@ -502,12 +579,22 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   return <form className="ai-composer-wrap" onSubmit={submit}
     onDragOver={photosAllowed && !phone ? e => { if ([...e.dataTransfer.items].some(i => i.kind === 'file' && i.type.startsWith('image/'))) e.preventDefault(); } : undefined}
     onDrop={photosAllowed && !phone ? e => { const image = [...e.dataTransfer.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}>
-    {voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
-    {(voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
-    {voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
-    {!local && <div className="ai-composer-modes">
-      <button type="button" className={`ai-chip ai-log-mode${logMode ? ' ai-log-mode-on' : ''}`} aria-pressed={logMode} onClick={() => setLogMode(on => !on)} title="Say or type what you ate, drank or did; ZIGi answers with cards to confirm">Log mode</button>
-      {logMode && <span className="ai-note">Log mode: say or type what you ate, drank or did. Your words stay editable; ZIGi answers with cards, nothing is written until you add them.</span>}
+    {mic && voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
+    {mic && (voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
+    {mic && voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
+    {talk.disclosing && <div className="ai-voice-disclose" role="group" aria-label="Before you talk to ZIGi">
+      <p>{talk.disclosure} ZIGoals never stores the audio, and the microphone is released the moment you stop.</p>
+      <div className="ai-card-actions"><button type="button" className="primary" onClick={talk.acceptDisclosure}>Talk now</button><button type="button" className="text-link" onClick={talk.dismissDisclosure}>Not now</button></div>
+    </div>}
+    {listening && <p className="ai-voice-live" aria-hidden="true">{talk.snapshot?.final || talk.snapshot?.interim ? <>{talk.snapshot.final}{talk.snapshot.final && talk.snapshot.interim ? ' ' : ''}<span className="ai-voice-interim">{talk.snapshot.interim}</span></> : <span className="ai-voice-interim">Listening… speak now{talk.lang.startsWith('nl') ? ' (Nederlands)' : ''}</span>}</p>}
+    <p className="ai-sr-only" role="status" aria-live="polite">{listening ? 'Listening…' : ''}</p>
+    {!listening && talk.snapshot?.error && <p className="ai-card-error" role="alert">{talk.snapshot.error}</p>}
+    {talk.highlight && !listening && <p className="ai-note ai-voice-hint" role="status">Tap the mic to talk. <button type="button" className="text-link" onClick={talk.dismissHighlight}>OK</button></p>}
+    {talk.unavailable && <p className="ai-note ai-voice-hint" role="status">{talk.reason} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type. <button type="button" className="text-link" onClick={talk.dismissUnavailable}>OK</button></p>}
+    {(chips || !local) && <div className="ai-composer-modes">
+      {chips}
+      {!local && <button type="button" className={`ai-chip ai-log-mode${logMode ? ' ai-log-mode-on' : ''}`} aria-pressed={logMode} onClick={() => setLogMode(on => !on)} title="Say or type what you ate, drank or did; ZIGi answers with cards to confirm">Log mode</button>}
+      {logMode && <span className="ai-note ai-log-mode-note">Log mode: say or type what you ate, drank or did. Your words stay editable; ZIGi answers with cards, nothing is written until you add them.</span>}
     </div>}
     {attached && previewUrl && <div className="ai-photo-chip" role="group" aria-label="Meal photo attached">
       {/* A local blob preview of the downscaled photo: next/image has nothing to optimise here. */}
@@ -520,7 +607,7 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     {editing && <p className="ai-editing">Editing your last message: sending it replaces the question and its answer. <button type="button" className="text-link" onClick={() => { setText(''); onEditing(null); }}>Cancel editing</button></p>}
     {slash.open && <SlashMenu id={listId} suggestions={slash.suggestions} active={slash.active} onPick={command => { slash.pick(command); (ref as {current: HTMLTextAreaElement | null} | null)?.current?.focus(); }}/>}
     <div className="ai-composer">
-      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
+      <textarea ref={ref} value={text} onChange={e => setText(e.target.value)} title={title} onFocus={() => { if (!silent.current) zigiSignals.emit('user_typing_started'); }} onBlur={() => zigiSignals.emit('user_typing_stopped')} rows={1} maxLength={20_000} placeholder={logMode ? 'What did you eat, drink or do?' : placeholder} aria-label={local ? 'Ask ZIGi about your records' : 'Message to your AI'} autoComplete="off"
         aria-autocomplete="list" aria-controls={slash.open ? listId : undefined} aria-activedescendant={slash.open ? `${listId}-${slash.active}` : undefined}
         onKeyDown={e => {
           if (slash.onKeyDown(e)) return;
@@ -534,6 +621,9 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
         <input ref={file} type="file" accept="image/*" capture={phone ? 'environment' : undefined} hidden tabIndex={-1} aria-hidden="true" onChange={e => { void takePhoto(e.target.files?.[0]); e.target.value = ''; }}/>
         <button type="button" className="secondary ai-photo" aria-label="Add a meal photo" title="Add a meal photo (sent only to your AI, not kept)" onClick={() => file.current?.click()}><span aria-hidden="true">📷</span></button>
       </>}
+      {!providerVoice && talk.prefs.micShown && <button type="button" className={`secondary ai-mic ai-talk${listening ? ' ai-mic-on' : ''}${talk.highlight ? ' ai-mic-highlight' : ''}`} aria-label={listening ? 'Stop listening' : 'Talk to ZIGi'} aria-pressed={listening} title={listening ? 'Stop listening (Escape cancels)' : 'Talk to ZIGi: tap, or hold and release'}
+        onPointerDown={talk.onPointerDown} onPointerUp={talk.onPointerUp} onPointerCancel={talk.onPointerCancel} onContextMenu={e => e.preventDefault()} onClick={e => { if (e.detail === 0) talk.onKeyActivate(); }}>
+        <VoiceWaves engine={talk.engine}/><MicGlyph on={listening}/></button>}
       {mic && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
         onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}
@@ -564,7 +654,7 @@ function BridgeView({settings, context, attach, sensitive, phone}: {settings: Ai
     <details className="ai-context-preview"><summary>What will be copied</summary><pre>{prompt}</pre></details>
   </div>;
 }
-function ModelSwitcher({settings, scope}: {settings: AiSettingsStore; scope: string}) {
+function ModelSwitcher({settings, scope, label}: {settings: AiSettingsStore; scope: string; label: string}) {
   const [models, setModels] = useState<ModelInfo[] | null>(null), [loading, setLoading] = useState(false), [error, setError] = useState(''), [query, setQuery] = useState(''), details = useRef<HTMLDetailsElement>(null);
   const provider = settings.data.provider!;
   const load = async () => {
@@ -575,7 +665,7 @@ function ModelSwitcher({settings, scope}: {settings: AiSettingsStore; scope: str
   };
   const shown = (models ?? []).filter(m => !query || m.id.toLowerCase().includes(query.toLowerCase()) || m.label.toLowerCase().includes(query.toLowerCase()));
   return <details ref={details} className="ai-model-switcher" onToggle={event => { if (event.currentTarget.open) void load(); }}>
-    <summary aria-label={`Model: ${settings.data.model}. Change model`}>Model</summary>
+    <summary className="ai-more-item" aria-label={`Model: ${settings.data.model}. Change model`}><span>{label}</span><svg className="ai-model-caret" viewBox="0 0 12 8" width="12" height="8" aria-hidden="true" focusable="false"><path d="M1.5 1.5L6 6l4.5-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></summary>
     <div className="ai-model-list">
       {(models?.length ?? 0) > 8 && <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search models" aria-label="Search models"/>}
       {loading && <p className="ai-note" role="status">Loading your provider’s models…</p>}

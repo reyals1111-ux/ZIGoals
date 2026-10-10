@@ -41,7 +41,11 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * was never auto-added before. A list mounted again (History and back, another view, an older chat, a reload) gets
  * false, so its cards wait for the person, as cards always did before auto-accept.
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean}) {
+/**
+ * `earlier` (Session Z-Cloud Part 2, render only): a newer reply has cards of its own, so this reply's untouched cards fold
+ * into one line the person can open; cards already acted on stay as their one-line receipts.
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean}) {
   const [refs] = useState(() => replyRefs(proposals));
   const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles, refs), status: 'proposed', error: null, after: null})));
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
@@ -122,13 +126,20 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   const pendingBatch = useMemo(() => items.filter(item => item.status === 'proposed' && planOf(item) && planOf(item)!.target !== 'form'), [items]);
   const secondsLeft = undoGroup ? Math.max(0, Math.ceil((undoGroup.until - now) / 1000)) : 0;
   if (!items.length && !rejected.length) return null;
+  const folded = earlier && items.some(item => item.status === 'proposed'), capLine = capNote ? <p className="ai-card-note" role="status">{capNote}</p> : null;
   return <div className="ai-proposals" data-testid="ai-proposals">
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
-    {items.map(item => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto}
-      onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>)}
-    {pendingBatch.length > 1 && <div className="ai-proposals-batch"><button type="button" className="primary" disabled={!runner.ready} onClick={() => void addAll()}>Add all {pendingBatch.length}</button><span className="ai-card-note">One Undo covers everything added together.</span></div>}
-    {capNote && <p className="ai-card-note" role="status">{capNote}</p>}
+    {(() => {
+      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))}
+        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>;
+      const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
+      if (!waiting.length) return items.map(card);
+      // Folded, the cap note leads: it says why the earlier cards wait, and stays in view above the fold.
+      return <>{items.filter(item => item.status !== 'proposed').map(card)}{capLine}<details className="ai-proposals-earlier"><summary>{waiting.length === 1 ? 'One earlier card, not added' : `${waiting.length} earlier cards, not added`}</summary>{waiting.map(card)}</details></>;
+    })()}
+    {!earlier && pendingBatch.length > 1 && <div className="ai-proposals-batch"><button type="button" className="primary" disabled={!runner.ready} onClick={() => void addAll()}>Add all {pendingBatch.length}</button><span className="ai-card-note">One Undo covers everything added together.</span></div>}
+    {!folded && capLine}
     {live && <div className={`ai-proposals-undo${autoTitles ? ' ai-proposals-toast' : ''}`} data-testid={autoTitles ? 'ai-auto-toast' : undefined}>{autoTitles && <span className="ai-toast-text">Added by ZIGi: {autoTitles.join(' · ')}</span>}<button type="button" className="secondary" onClick={() => void undo()}>{undoGroup!.ids.length === 1 ? 'Undo' : `Undo these ${undoGroup!.ids.length}`} · {secondsLeft} s</button></div>}
     {rejected.length > 0 && <details className="ai-proposals-rejected"><summary>{rejected.length === 1 ? NOT_AN_ENTRY : `${NOT_AN_ENTRY} (${rejected.length} suggestions)`}</summary><p>ZIGoals only accepts the proposals listed in its protocol; anything else stays text.</p><ul>{rejected.map((r, i) => <li key={i}>{r.reason}</li>)}</ul></details>}
     <p className="ai-proposals-live" role="status" aria-live="polite">{note}</p>

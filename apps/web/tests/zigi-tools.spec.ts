@@ -89,7 +89,7 @@ test('the AI asks for records: ZIGi runs the tools here and sends the results ba
   // After a reload the chat keeps what was looked at (never the results), and makes them again under today's gate.
   await page.reload();
   await openChat(page);
-  await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   await panel(page).getByRole('button', {name: /Tell me about my week/}).click();
   const kept = panel(page).locator('.ai-turn-assistant').last().getByRole('group', {name: 'ZIGi looked at'});
   await expect(kept).toContainText('Meditate · this month');

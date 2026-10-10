@@ -13,6 +13,8 @@ import {ASK_EVENT, LAUNCHER_SHOWN_ATTRIBUTE} from './ask';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown} from '../../lib/pages/visibility';
 import './ai-launcher.css';
+import {LAUNCHER_HOLD_MS, TALK_EVENT, TALK_PENDING, TALK_STOP_EVENT, type TalkOrigin, type TalkRequest} from './talk-events';
+import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
  * The ZIGi launcher (ADR-012, Part 6): a floating ZIGi button that opens the chat, an "Open <app>" pill without logos
@@ -36,6 +38,14 @@ const HIDE_UNDO_MS = 10_000;
 const ZigiCompanion = lazy(() => import('../zigi/companion'));
 /** Session V Part 16: a browser that offers tools to AI agents (WebMCP); only there can the person's switch for them matter. */
 const agentsOffered = () => [document, navigator].some(host => typeof (host as {modelContext?: {registerTool?: unknown}}).modelContext?.registerTool === 'function');
+/**
+ * Session Z-Cloud Part 3: the voice choices the launcher needs ("Tap ZIGi to talk", whether this browser's disclosure was
+ * seen), read tolerantly from `zigoals:zigi-voice:v1` without its schema; anything unreadable means the defaults.
+ */
+function talkChoices(): {tapToTalk: boolean; used: boolean} {
+  try { const v = JSON.parse(getAppStorage().getItem('zigoals:zigi-voice:v1') ?? 'null') as {tapToTalk?: unknown; disclosed?: Record<string, unknown>} | null; return {tapToTalk: v?.tapToTalk === true, used: !!v?.disclosed && Object.keys(v.disclosed).length > 0}; }
+  catch { return {tapToTalk: false, used: false}; }
+}
 /** ZIGi greets once when the person comes back from a reminder notification (the worker's message or its address). */
 function greetOnce(): void {
   zigiState.set('greeting');
@@ -48,10 +58,19 @@ export function AiLauncher() {
   // included; the chevron below the button stays this device's own hide.
   const switchedOff = !isShown(usePagesView(), 'zigi'), hidden = launcher.record.launcherHidden || switchedOff;
   const button = useRef<HTMLButtonElement>(null), timer = useRef<number | null>(null), warmed = useRef(false);
-  const box = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null), waves = useRef<HTMLSpanElement>(null);
+  // Session Z-Cloud Part 3: a press held for LAUNCHER_HOLD_MS is push-to-talk (released: listening stops); a tap opens the
+  // panel, or talks when the person chose "Tap ZIGi to talk". The composer starts listening inside the event's own task.
+  const hold = useRef<{timer: number; held: boolean} | null>(null), heldClick = useRef(false);
   useEffect(() => { setMounted(true); }, []);
   useAccountCleanup(useCallback(() => setOpen(false), []));
   const toggle = useCallback(() => setOpen(current => !current), []);
+  const requestTalk = useCallback((origin: TalkOrigin) => {
+    const detail: TalkRequest = {origin};
+    window.dispatchEvent(new CustomEvent(TALK_EVENT, {detail}));
+    if (!detail.handled) (window as unknown as Record<string, unknown>)[TALK_PENDING] = true;
+    setOpen(true);
+  }, []);
   // The chunk is warmed on hover or focus and when the browser is idle after the person has interacted once; it mounts on the first open.
   const warm = useCallback(() => { if (warmed.current) return; warmed.current = true; void loadChat().catch(() => { warmed.current = false; }); }, []);
   // The bundle loads and ZIGi greets when the panel opens; both after the render, never inside a state updater.
@@ -63,13 +82,15 @@ export function AiLauncher() {
   const reopen = useCallback(() => setOpen(true), []);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      // Session Z-Cloud Part 3: ⌘/Ctrl+Shift+Space talks to ZIGi (or stops listening) from any page.
+      if (event.code === 'Space' && event.shiftKey && (event.metaKey || event.ctrlKey) && !event.altKey && !event.defaultPrevented) { if (hidden || sensitive) return; event.preventDefault(); requestTalk('shortcut'); return; }
       if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return;
       if (hidden || sensitive) return;
       event.preventDefault(); toggle();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sensitive, hidden, toggle]);
+  }, [sensitive, hidden, toggle, requestTalk]);
   useEffect(() => { if ((sensitive || switchedOff) && open) setOpen(false); }, [sensitive, switchedOff, open]);
   // A page's "Ask ZIGi about this" opens the panel (the composer takes the text); hidden or sensitive, nothing happens.
   useEffect(() => { const onAsk = () => { if (!hidden && !sensitive) setOpen(true); }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, [hidden, sensitive]);
@@ -134,27 +155,43 @@ export function AiLauncher() {
   useEffect(() => {
     if (!visible && !edgeTab) return;
     let cancelled = false;
-    const load = () => { if (!cancelled) void import('../zigi/alive').then(m => { if (!cancelled) m.startZigiAlive(); }).catch(() => undefined); };
+    let unsubscribe = () => {};
+    const load = () => {
+      if (cancelled) return;
+      void import('../zigi/alive').then(m => { if (!cancelled) m.startZigiAlive(); }).catch(() => undefined);
+      // Session Z-Cloud Part 3: the voice engine (small) for the launcher's waves; once the person has talked to ZIGi in this
+      // browser, the chat too, so a hold or the shortcut can start listening inside the press.
+      void import('./voice-engine').then(m => { if (cancelled) return; unsubscribe = m.voiceEngine().subscribe(s => { const el = waves.current; if (!el) return; const on = s.state === 'listening'; if (el.dataset.on !== String(on)) el.dataset.on = String(on); el.style.setProperty('--zigi-level', on ? s.level.toFixed(3) : '0'); }); }).catch(() => undefined);
+      if (talkChoices().used) warm();
+    };
     // Safari has no requestIdleCallback: a short timer stands in.
     const idle = typeof window.requestIdleCallback === 'function', handle = idle ? window.requestIdleCallback(load, {timeout: 2000}) : window.setTimeout(load, 800);
-    return () => { cancelled = true; if (idle) window.cancelIdleCallback(handle); else window.clearTimeout(handle); };
-  }, [visible, edgeTab]);
+    return () => { cancelled = true; unsubscribe(); if (idle) window.cancelIdleCallback(handle); else window.clearTimeout(handle); };
+  }, [visible, edgeTab, warm]);
   if (!mounted || !pathname.startsWith('/app')) return null;
   const app = launcherApp(launcher.record), agents = agentsOffered();
   return <>
     {visible && <div ref={box} className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}
       <div className="ai-launcher-stack">
-        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your AI' : 'Open ZIGi, your AI (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
+        <span className="ai-launcher-ring">
+        <span ref={waves} className="zigi-waves" data-on="false" aria-hidden="true"><i/><i/><i/><b className="zigi-level-bar"/></span>
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘K or Ctrl+K; hold to talk)'} aria-haspopup="dialog" aria-expanded={open}
+          onClick={() => { if (heldClick.current) { heldClick.current = false; return; } if (!open && talkChoices().tapToTalk) requestTalk('launcher'); else toggle(); }}
+          onPointerDown={event => { heldClick.current = false; if (event.button !== 0) return; warm(); try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* an old browser keeps the plain events */ } const h = {timer: 0, held: false}; h.timer = window.setTimeout(() => { h.held = true; heldClick.current = true; requestTalk('launcher'); }, LAUNCHER_HOLD_MS); hold.current = h; }}
+          onPointerUp={() => { const h = hold.current; hold.current = null; if (!h) return; window.clearTimeout(h.timer); if (h.held) window.dispatchEvent(new Event(TALK_STOP_EVENT)); }}
+          onPointerCancel={() => { const h = hold.current; hold.current = null; if (!h) return; window.clearTimeout(h.timer); if (h.held) window.dispatchEvent(new Event(TALK_STOP_EVENT)); }}
+          onContextMenu={event => event.preventDefault()} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
           <ZigiFigure state={zigi}/>
         </button>
+        </span>
         <button type="button" className="ai-launcher-hide" aria-label="Hide ZIGi" data-tip="Hide ZIGi" onClick={hide}>
           <svg viewBox="0 0 22 12" width="22" height="12" aria-hidden="true" focusable="false"><defs><linearGradient id="zigi-chevron-nebula" x1="0" x2="1" y1="0" y2="0"><stop offset="0"/><stop offset=".5"/><stop offset="1"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke="url(#zigi-chevron-nebula)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
       </div>
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
-    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
+    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · Your Personal AI Companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · Your Personal AI Companion.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
     {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
     {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
   </>;

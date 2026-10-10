@@ -16,9 +16,11 @@ export type ProposalCardProps = {
   onAdd: () => void; onDismiss: () => void; onEdit: (action: Action) => void;
   /** Session V Part 7: the reply answered a photo, so the card's estimate badge says so. */
   fromPhoto?: boolean;
+  /** Session Z-Cloud Part 2: false while the card's Undo window is open, so nothing moves under the person's pointer. */
+  receipt?: boolean;
 };
 const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply', auto: 'Added by ZIGi (auto-accept)'};
-export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false}: ProposalCardProps) {
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
@@ -35,6 +37,14 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     if (!result.ok) { setEditError(result.message); return; }
     setEditError(''); setEditing(false); onEdit(result.action);
   }
+  // Session Z-Cloud Part 2: once acted on, a card is one line: what happened and to what, with its error if any. An added
+  // card keeps its size while its Undo window is open (the Undo below it stays where it was), then folds.
+  if (status !== 'proposed' && status !== 'busy' && receipt) return <article className={`ai-card ai-card-${status} ai-card-receipt`} aria-labelledby={titleId} data-kind={card.kind}>
+    <span className="ai-card-receipt-mark" aria-hidden="true">{status === 'added' || status === 'auto' || status === 'opened' ? '✓' : '–'}</span>
+    <span className="ai-card-status">{status === 'added' && card.kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : STATUS_TEXT[status]}</span>
+    <h4 id={titleId} className="ai-card-receipt-title">{card.title}</h4>
+    {error && <p role="alert" className="ai-card-error">{error}</p>}
+  </article>;
   return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>
     <header className="ai-card-head"><span className="ai-card-where">{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
     <h4 id={titleId}>{card.title}</h4>
@@ -50,7 +60,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
         <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
-      </> : <span className="ai-card-status">{status === 'added' && card.kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : STATUS_TEXT[status]}</span>}
+      </> : <span className="ai-card-status">{STATUS_TEXT[status]}</span>}
     </div>}
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;

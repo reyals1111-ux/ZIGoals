@@ -60,8 +60,8 @@ test('off until connected: the launcher opens a setup pointer, and no provider i
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
   await openChat(page);
-  await expect(panel(page)).toContainText('Connect your own AI to start');
-  await expect(panel(page).getByRole('link', {name: 'Set up in Settings'})).toHaveAttribute('href', '/app/settings#your-ai');
+  await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
+  await expect(panel(page).getByRole('link', {name: 'Set up', exact: true})).toHaveAttribute('href', '/app/settings#your-ai');
   await page.goto('/app/habits');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   expect(external.filter(url => PROVIDER_ORIGINS.some(host => url.includes(host)))).toEqual([]);

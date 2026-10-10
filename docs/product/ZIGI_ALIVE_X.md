@@ -193,7 +193,7 @@ left the multi-turn conversations clean on the three PC models (15 / 15 each) an
 53 of 54 steps across the PC's two forms and the Mac, the photos at 4 / 4 on qwen3.8 and 3 / 4 on the others. The
 conversations, the pages, the day and the photos are in the test document's Phase 2 section.
 
-## The iPhone checklist (≤15 minutes)
+## The iPhone checklist (about 25 minutes)
 
 What a real iPhone can prove that WebKit emulation cannot: the system's animated-WebP decoder, the home-screen app,
 reduced motion from the device's own setting, the keyboard over the composer, haptics-free taps on 44-pt targets. Open
@@ -212,8 +212,13 @@ the alpha on the phone (Safari, then the home-screen app) with the Showcase load
 | 9 | Close the panel; leave the phone for two minutes; then lock and unlock it | ZIGi waves goodbye, then idles, then sleeps after the inactivity rule; after unlocking ZIGi is idle again and no clip is stuck mid-frame |
 | 10 | Open Help, then Markets, each at the top of the page | ZIGi rests to the right at mid-height, clear of the chips and the refresh button; scroll down and it glides to its corner above the tab bar; tap it there and the panel opens (Part 9, the owner's H7) |
 | 11 | Settings → ZIGi · your AI → the knock **on**; wait for a reminder | one knock at most per session, never while typing, never in quiet hours |
-| 12 | **Dictation by hand:** Settings → ZIGi · your AI → Voice → Speaking to ZIGi → **Browser speech recognition**; open the panel, hold the microphone, say "a glass of water", release | the words appear in the message box (nothing is sent until you press Send); Safari's own permission prompt the first time; if Safari refuses, the panel says why in plain words (automated browsers cannot prove this row: X-Local Part 6e) |
+| 12 | **Talk to ZIGi without an AI (Session Z-Cloud):** no setting needed. Open the panel, tap the microphone by the message box | the first time, one sentence says Apple may process the audio; **Talk now**; Safari's own permission prompt; say "How did I sleep this week?"; the words show while you speak and go to ZIGi when you stop (answered on the device). If Safari refuses, the panel says why in plain words |
 | 13 | **Wealth → Portfolio in the Showcase:** Settings → Load Showcase Demo; Wealth, then the Portfolio link; back and forth twice | Portfolio opens every time with its holdings; no blank page and no "Application error" (the one-off React #418 seen once on #32; Session Y checks its cause) |
+| 14 | **iPhone Safari, English:** Settings → ZIGi · Your Personal AI Companion → Voice → Language **English (UK)**; in the panel, **hold** the microphone, say "Tell me something nice about my week", release | waves flow out from the microphone while you speak (a still glow and a bar with Reduce Motion on); the words are sent when you release; the reply is read aloud with an English voice (not in your quiet hours; the panel's **Voice on / Muted** chip silences it) |
+| 15 | **iPhone Safari, Dutch:** Language **Nederlands (België)**; tap the microphone once, say "Hoeveel water heb ik vandaag gedronken?", stop talking | Dutch words appear; listening ends by itself when you stop; the reply is read with a Dutch voice if the iPhone has one |
+| 16 | **The home-screen app:** rows 12 and 14 in the installed ZIGoals | either the same as in Safari, or one line: "This browser doesn't offer speech recognition here. Use your keyboard's dictation (the mic on the iPhone keyboard), or type." Note which: installed web apps on iOS may lack speech recognition |
+| 17 | **iPhone, ZIGi's button:** after opening the panel once, close it and **hold** ZIGi's button | either listening starts at once with the panel open, or the panel opens with the microphone lit and "Tap the mic to talk" (iOS may only start listening inside a tap). Note which. A hold never moves ZIGi, opens no menu and selects no text |
+| 18 | **Mac Chrome:** hold ZIGi's button, say a sentence, release; then **⌘ Shift Space**; then Settings → Voice → **Tap ZIGi to talk** on and tap ZIGi | each starts listening with the waves around ZIGi and the microphone; the first time Chrome asks for the microphone and the panel says Google may process the audio (or "on this device" where Chrome offers on-device recognition) |
 
 Rows 5, 9 and 12–13 changed on 2026-10-09 (Session Y-Cloud, ADR-018): the old list numbered two rows "12"; the
 keyboard-and-rotation check joined the panel row (5) and the lock check joined the idle row (9), so the two checks the
@@ -223,3 +228,6 @@ with every earlier check kept.
 Anything that differs from the "pass looks like" column is an owner-reported finding for the next session; the clips
 themselves, the manifest and the controller rules are identical on every platform, so a difference here is the
 platform's decoder or its motion setting, not the data.
+
+Rows 12 and 14–18 changed or were added on 2026-10-10 (Session Z-Cloud Part 3, ADR-019): talking to ZIGi needs no setting
+any more, works without an AI, and in English or Dutch only. Rows 16 and 17 record what iOS allows (owner-reported).

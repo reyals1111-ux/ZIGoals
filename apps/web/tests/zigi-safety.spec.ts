@@ -65,7 +65,7 @@ test('with an AI: a risky message shows the note made on the device and goes in 
   expect(chats).not.toContain(CARE_NOTES['rapid-weight-loss']); expect(chats).not.toContain('Careful mode');
   await page.reload();
   await openChat(page);
-  await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   await panel(page).getByRole('button', {name: /^Tell me about a calm week/}).click();
   await expect(panel(page).getByRole('note', {name: CARE_LABEL})).toContainText(CARE_NOTES['rapid-weight-loss']);
 });

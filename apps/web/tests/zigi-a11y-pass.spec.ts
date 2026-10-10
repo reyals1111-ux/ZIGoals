@@ -92,8 +92,14 @@ test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   await seed(page);
   await page.goto('/app/habits');
   await page.getByRole('button', {name: /Open ZIGi/}).click();
-  await expect(panel(page).getByRole('region', {name: 'Your morning brief'})).toBeVisible();
+  await expect(panel(page).locator('.ai-greeting-text')).toBeVisible();
   await clean(panel(page), 'ZIGi panel');
+  // Session Z-Cloud Part 2: the brief moved into the Suggestions sheet; the panel is checked with the sheet open too.
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await panel(page).getByRole('region', {name: 'Suggestions for you'}).getByRole('tab', {name: 'Your day'}).click();
+  await expect(panel(page).getByRole('region', {name: 'Your morning brief'})).toBeVisible();
+  await clean(panel(page), 'ZIGi panel with the Suggestions sheet');
+  await panel(page).getByRole('button', {name: 'Close suggestions'}).click();
   // The page-data switch keeps one name; the area and its size are its description.
   const share = panel(page).getByRole('checkbox', {name: 'Share this page’s data', exact: true});
   await expect(share).toBeChecked();
@@ -109,7 +115,7 @@ test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   await expect(water.getByRole('button', {name: 'Dismiss', exact: true})).toHaveAccessibleDescription('Add water');
   await water.getByRole('button', {name: 'Edit', exact: true}).click();
   await clean(water.getByRole('form', {name: 'Edit: Add water'}), 'Edit a card');
-  await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
   const customize = panel(page).getByRole('region', {name: 'Customize ZIGi'});
   // Each option is named by its label alone; its note is the description.
   const calm = customize.getByRole('radio', {name: 'Calm', exact: true});

@@ -276,7 +276,7 @@ export function OnboardingFlow() {
       {step === "zigi" && <>
         <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>I’m here when you want me.</strong> Tap my button, or press ⌘K or Ctrl+K, to ask about your own records.</p></div>
         <ul className="onboarding-points">
-          <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · your AI. Until you do, nothing is sent anywhere.</li>
+          <li><strong>Your own AI, later.</strong> Connect the AI you already use in Settings → ZIGi · Your Personal AI Companion. Until you do, nothing is sent anywhere.</li>
           <li><strong>You stay in charge.</strong> I only suggest; anything I propose waits for your confirmation.</li>
           <li><strong>Out of the way when you like.</strong> Hide my button with the chevron below it, or in Settings → Your pages & buttons.</li>
         </ul>

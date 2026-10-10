@@ -17,6 +17,7 @@ import {AI_SETTINGS_KEY} from '../ai/launcher-record';
 import {TODAY_FOLDS_KEY} from '../today-folds';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from '../ai/store/keys';
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
+import {ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -42,7 +43,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   aiOptions: AI_OPTIONS_KEY, aiUsage: AI_USAGE_KEY, aiMemory: AI_MEMORY_KEY, aiActions: AI_ACTIONS_KEY, zigi: ZIGI_KEY, zigiReminders: ZIGI_REMINDERS_KEY, zigiKnock: ZIGI_KNOCK_KEY,
   // Session W: accounts and debts, milestone dates, import batches, reminders, the chess cache, celebrations shown, a
   // running meditation, the music player's choices and the visible-pages mirror (lib/w-device-keys.ts).
-  accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY} as const;
+  accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY,
+  // Session Z-Cloud: ZIGi's suggestions from the person's own questions and the voice choices (lib/z-device-keys.ts).
+  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

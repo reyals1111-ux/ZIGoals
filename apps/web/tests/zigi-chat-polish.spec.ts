@@ -186,6 +186,8 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
+  // Session Z-Cloud Part 2: the first-run tips wait in the Suggestions sheet's Ideas tab.
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
   const tips = panel(page).getByRole('complementary', {name: 'Tips'});
   await expect(tips).toContainText('Type / for commands');
   expect(await stored(page, ZIGI_KEY)).toBeNull();
@@ -197,7 +199,8 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   await expect(box(page)).toHaveValue('?');
   await expect(page.getByRole('dialog', {name: 'Keyboard shortcuts'})).toHaveCount(0);
   await box(page).fill('');
-  const history = panel(page).getByRole('button', {name: 'Chat history'});
+  // A control outside the message box (Session Z-Cloud Part 2: History moved into "⋯"; New chat stays in the header).
+  const history = panel(page).getByRole('button', {name: 'New chat'});
   await history.focus();
   await page.keyboard.press('Shift+Slash');
   const sheet = page.getByRole('dialog', {name: 'Keyboard shortcuts'});
@@ -209,6 +212,8 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   await expect(history).toBeFocused();
   await page.reload();
   await openChat(page);
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await expect(panel(page).getByRole('region', {name: 'Suggestions for you'})).toBeVisible();
   await expect(panel(page).getByRole('complementary', {name: 'Tips'})).toHaveCount(0);
 });
 
@@ -225,7 +230,7 @@ test('History: Pin puts a chat under "Pinned"; the page filter uses where each c
   await openChat(page);
   await say(page, 'Habits question');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: noted.');
-  await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   const history = panel(page).locator('.ai-history');
   await expect(history.getByRole('button', {name: /^Habits question/})).toBeVisible();
   const row = (title: string) => history.getByRole('listitem').filter({hasText: title});

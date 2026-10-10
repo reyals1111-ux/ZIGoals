@@ -11,7 +11,7 @@ const SECTIONS: [id: string, title: string][] = [
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'New: your whole life', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 test('Help has one title and eleven topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');

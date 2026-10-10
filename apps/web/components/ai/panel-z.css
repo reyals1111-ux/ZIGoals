@@ -1,0 +1,157 @@
+/* Session Z-Cloud Part 2 (ADR-019): ZIGi's panel, premium and clean. Loaded with the chat chunk only (never the shell).
+   One header row at every width; glyph buttons in the nebula style; an opaque panel; a compact data line; a composer on
+   one centre line; suggestions in their own sheet; acted-on cards as one-line receipts. Targets ≥44 px, labels ≥14 px. */
+
+/* ---- The panel: opaque deep navy, so the page never shows through the words; 500 px wide on a computer ---- */
+.ai-chat:not(.ai-chat-phone):not(.ai-chat-expanded):not(.ai-chat-pip){width:min(500px,calc(100vw - 40px))}
+/* The background is opaque, so the panel's backdrop blur (ai.css) no longer shows, but it stays: it keeps the panel on its
+   own compositing layer, and without one WebKit's compositor crashed (a null pointer in its ThreadedCompositor) when the
+   figure and cards changed during a reply (ADR-019 C32). */
+.ai-chat{background:linear-gradient(170deg,#0f1530,#070b1e 62%,#060918)}
+.ai-chat-phone{background:linear-gradient(175deg,#0f1530,#060918 70%)}
+
+/* ---- Header: figure · title and status · glyph buttons, one row ---- */
+.ai-chat .ai-chat-head{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:8px;padding:8px 6px 8px 12px;grid-template:none;min-height:60px;margin:0;width:auto;max-width:none;align-self:stretch;position:relative;background:none}
+.ai-chat .ai-chat-head>.zigi{flex:none}
+.ai-chat .ai-chat-identity{flex:1 1 auto;min-width:0;container:zigi-identity/inline-size}
+.ai-chat .ai-chat-title{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;white-space:normal;overflow:visible;text-overflow:clip;font-size:17px;line-height:1.25;font-weight:700}
+.ai-chat .ai-title-name{font-size:18px;font-weight:750}
+.ai-chat .ai-title-dot{white-space:pre;color:var(--text-strong,#f4f8ff)}
+.ai-chat .ai-title-role{font-size:15px;font-weight:650}
+@container zigi-identity (max-width:300px){
+  .ai-chat .ai-title-dot{display:inline-block;width:0;overflow:hidden;opacity:0}
+  .ai-chat .ai-title-role{flex-basis:100%;font-size:14px}
+}
+.ai-chat .ai-chat-via{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-width:0;margin:2px 0 0;font-size:14px;line-height:1.3;color:var(--muted,#a1afc8)}
+.ai-chat .ai-chat-via-text{min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;line-height:1.3}
+.ai-chat .ai-chat-premium{flex:none;font-size:14px;letter-spacing:.02em;text-transform:none;padding:0 8px;line-height:22px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);color:var(--text,#eef1ff)}
+@container zigi-identity (max-width:240px){.ai-chat .ai-chat-premium{display:none}}
+.ai-chat .ai-more-list .ai-model-switcher{position:static}
+.ai-chat .ai-more-list .ai-model-switcher>summary{justify-content:space-between;gap:10px;list-style:none}
+.ai-chat .ai-more-list .ai-model-switcher>summary::-webkit-details-marker{display:none}
+.ai-chat .ai-more-list .ai-model-switcher[open]>summary .ai-model-caret{transform:rotate(180deg)}
+.ai-chat .ai-more-list .ai-model-list{position:static;width:auto;max-height:240px;margin:2px 0 6px;box-shadow:none}
+.ai-chat .ai-chat-tools{display:flex;flex:none;flex-wrap:nowrap;align-items:center;gap:0;margin:0}
+.ai-chat-pip .ai-chat-tools{flex-wrap:nowrap}
+.ai-glyph-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.ai-glyph-defs stop:nth-child(1){stop-color:var(--brand-cyan,#63e7ff)}
+.ai-glyph-defs stop:nth-child(2){stop-color:var(--brand-violet,#826cff)}
+.ai-glyph-defs stop:nth-child(3){stop-color:var(--brand-magenta,#c664ff)}
+.ai-icon-button{position:relative;flex:none;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin:0;border:0;border-radius:12px;background:transparent;display:inline-grid;place-items:center;cursor:pointer;color:var(--text,#eef1ff);transition:background-color .18s ease}
+.ai-icon-button .ai-glyph{display:block;opacity:.88;transition:opacity .18s ease,transform .18s ease}
+/* Liquid-glass hover after ~70 ms of intent; no pointer tracking. */
+.ai-icon-button:hover{background:color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent);transition-delay:70ms}
+.ai-icon-button:hover .ai-glyph,.ai-icon-button:focus-visible .ai-glyph{opacity:1}
+.ai-icon-button:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px;background:color-mix(in srgb,var(--violet,#8b7cff) 14%,transparent)}
+.ai-icon-button[aria-pressed=true],.ai-icon-button[aria-expanded=true]{background:color-mix(in srgb,var(--violet,#8b7cff) 24%,transparent)}
+.ai-icon-button[data-tip]::after,.ai-suggest-close[data-tip]::after,.ai-yours-pin[data-tip]::after,.ai-yours-remove[data-tip]::after{content:attr(data-tip);position:absolute;top:calc(100% + 4px);right:0;z-index:8;padding:5px 10px;border-radius:9px;background:#0d1330;border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:14px;font-weight:500;line-height:1.25;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease}
+.ai-icon-button:hover::after,.ai-suggest-close:hover::after,.ai-yours-pin:hover::after,.ai-yours-remove:hover::after{opacity:1;transition-delay:.45s}
+.ai-icon-button:focus-visible::after,.ai-suggest-close:focus-visible::after,.ai-yours-pin:focus-visible::after,.ai-yours-remove:focus-visible::after{opacity:1}
+.ai-icon-button[aria-expanded=true]::after{opacity:0!important}
+/* "⋯": the entries as a small sheet under the button, opaque, each row 44 px. */
+.ai-more{position:relative;flex:none}
+.ai-more-list{position:absolute;right:0;top:calc(100% + 6px);z-index:9;min-width:208px;display:grid;gap:2px;padding:6px;border-radius:16px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));background:#0d1330;box-shadow:0 22px 50px -18px rgba(0,0,0,.9)}
+.ai-more-list[hidden]{display:none}
+.ai-more-item{display:flex;align-items:center;min-height:44px;padding:0 14px;border:0;border-radius:11px;background:transparent;color:var(--text,#eef1ff);font:inherit;font-size:15px;text-align:left;text-decoration:none;cursor:pointer}
+.ai-more-item:hover{background:color-mix(in srgb,var(--violet,#8b7cff) 18%,transparent);transition:background-color .15s ease 70ms}
+.ai-more-item:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
+.ai-more-item[aria-pressed=true]{background:color-mix(in srgb,var(--cyan,#6fd3ff) 12%,transparent)}
+@media (prefers-reduced-motion:reduce){.ai-icon-button,.ai-icon-button .ai-glyph,.ai-icon-button::after,.ai-more-item{transition:none!important}}
+:root[data-app-motion=off] :is(.ai-icon-button,.ai-icon-button .ai-glyph,.ai-icon-button::after,.ai-more-item){transition:none!important}
+
+/* ---- A new chat: one short greeting ---- */
+.ai-chat .ai-greeting-z{align-items:flex-start;padding:10px 4px 4px}
+.ai-chat .ai-greeting.ai-local-intro{padding:10px 4px 4px}
+.ai-chat .ai-greeting-z .ai-greeting-text{margin:6px 0 0;font-size:16px;line-height:1.5;color:var(--text,#eef1ff)}
+.ai-chat .ai-chip{min-height:44px}
+.ai-chat .ai-chip-hide{min-height:44px;min-width:44px}
+.ai-chat .ai-proactive-entries button{min-height:44px}
+
+/* ---- Not connected: one compact line above the box ---- */
+.ai-setup-line{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;padding:6px 14px;border-top:1px solid var(--line,#2a325a);font-size:14px;color:var(--muted,#a1afc8)}
+.ai-setup-line-text{flex:1 1 140px;min-width:0;color:var(--text,#eef1ff)}
+.ai-chat .ai-setup-line-go{min-height:44px;display:inline-flex;align-items:center;padding:0 18px;font-size:15px}
+.ai-chat .ai-setup-line-chooser{min-height:44px;font-size:14px}
+
+/* ---- The data line: the switch and "What your AI sees" on one compact row ---- */
+.ai-chat .ai-context-bar{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;padding:4px 14px;max-height:38%}
+.ai-chat .ai-context-bar>*{min-width:0}
+.ai-chat .ai-context-switch{min-height:44px;flex:1 1 220px}
+.ai-chat .ai-context-switch input{width:20px;height:20px}
+.ai-chat .ai-context-bar>.ai-context-preview{flex:0 1 auto}
+.ai-chat .ai-context-bar>.ai-context-preview[open]{flex-basis:100%}
+.ai-chat .ai-context-preview summary,.ai-chat .ai-sends summary{min-height:44px}
+.ai-chat .ai-context-bar .ai-question-sources,.ai-chat .ai-context-bar .ai-context-total{flex-basis:100%}
+.ai-chat .ai-source-chip{min-height:44px;padding-left:12px}
+.ai-chat .ai-source-chip button{min-width:44px;min-height:44px}
+.ai-chat .ai-context-preview .ai-data-mode{margin:4px 0 6px}
+
+/* ---- Suggestions: a chip by the box opens the sheet ---- */
+.ai-suggest-chip{display:inline-flex;align-items:center;gap:6px}
+.ai-suggest-spark{color:var(--brand-cyan,#63e7ff);flex:none}
+.ai-suggest-chip-on{border-color:color-mix(in srgb,var(--cyan,#6fd3ff) 70%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 16%,transparent)}
+.ai-suggest-sheet{flex:0 1 auto;max-height:min(56%,440px);overflow:auto;overscroll-behavior:contain;display:grid;gap:10px;align-content:start;padding:0 14px 12px;border-top:1px solid color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));background:#0b1129}
+.ai-suggest-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0 4px;background:#0b1129}
+.ai-suggest-tabs{display:flex;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.ai-suggest-tab{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--muted,#a1afc8);font:inherit;font-size:15px;cursor:pointer}
+.ai-suggest-tab:hover{color:var(--text,#eef1ff)}
+.ai-suggest-tab[aria-selected=true]{color:var(--text,#eef1ff);border-color:color-mix(in srgb,var(--cyan,#6fd3ff) 55%,transparent);background:color-mix(in srgb,var(--cyan,#6fd3ff) 12%,transparent)}
+.ai-suggest-tab:focus-visible,.ai-suggest-close:focus-visible,.ai-yours-pin:focus-visible,.ai-yours-remove:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
+.ai-suggest-close,.ai-yours-pin,.ai-yours-remove{position:relative;flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:12px;background:transparent;color:var(--muted,#a1afc8);font-size:22px;line-height:1;cursor:pointer}
+.ai-suggest-close:hover,.ai-yours-pin:hover,.ai-yours-remove:hover{color:var(--text,#eef1ff);background:color-mix(in srgb,var(--violet,#8b7cff) 16%,transparent)}
+.ai-yours-pin[aria-pressed=true]{color:var(--brand-cyan,#63e7ff)}
+.ai-suggest-panel{display:grid;gap:10px}
+.ai-suggest-panel[hidden]{display:none}
+.ai-suggest-empty{line-height:1.5}
+.ai-yours{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ai-yours-item{display:flex;align-items:center;gap:2px}
+.ai-chat .ai-yours-ask{flex:1;min-width:0;display:flex;align-items:center;gap:8px;text-align:left}
+.ai-yours-tag{flex:none;font-size:14px;font-weight:650;padding:0 7px;border-radius:999px;color:#06101f;background:linear-gradient(100deg,#6fe6f6,#8fa6ff 55%,#c790f6)}
+
+/* ---- The composer: chips, then the box, the mic and Send on one centre line ---- */
+.ai-chat .ai-composer-wrap{grid-template-columns:minmax(0,1fr);gap:8px;padding:8px 12px calc(10px + var(--keyboard-inset,0px))}
+.ai-chat-phone .ai-composer-wrap{padding-bottom:calc(10px + max(var(--safe-bottom,0px),var(--keyboard-inset,0px)))}
+.ai-chat .ai-composer-modes{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0}
+.ai-chat .ai-log-mode{min-height:44px}
+.ai-chat .ai-log-mode-note{flex-basis:100%}
+.ai-chat .ai-composer{display:flex;align-items:flex-end;gap:8px;padding:0;border:0;background:none}
+.ai-chat .ai-composer textarea{flex:1 1 0;min-width:0;width:0;margin:0;height:44px;min-height:44px;max-height:none;resize:none;overflow-y:hidden;font-size:16px;line-height:22px;padding:10px 16px;border-radius:22px;box-sizing:border-box}
+.ai-chat .ai-composer textarea::placeholder{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#8e9ab8;opacity:1}
+.ai-chat .ai-composer>button,.ai-chat .ai-composer>input+button{flex:none;height:44px;min-height:44px;margin:0;border-radius:22px}
+.ai-chat .ai-composer>button[type=submit],.ai-chat .ai-composer>button.secondary:not(.ai-mic):not(.ai-photo){min-width:76px;padding:0 18px}
+.ai-chat .ai-mic,.ai-chat .ai-photo{width:44px;min-width:44px;padding:0;display:grid;place-items:center}
+
+/* ---- Cards: acted-on cards are one-line receipts; an earlier reply's untouched cards fold away ---- */
+.ai-chat .ai-card-receipt{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-height:44px;padding:6px 12px;border-radius:12px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--panel,#0f1530) 60%,transparent)}
+.ai-card-receipt-mark{flex:none;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;font-size:14px;font-weight:700;color:#06101f;background:linear-gradient(120deg,#6fe6f6,#8fa6ff)}
+.ai-card-undone .ai-card-receipt-mark,.ai-card-dismissed .ai-card-receipt-mark,.ai-card-replaced .ai-card-receipt-mark{background:var(--line,#2a325a);color:var(--text,#eef1ff)}
+.ai-chat .ai-card-receipt .ai-card-status{flex:none;font-size:14px;color:var(--muted,#a1afc8)}
+.ai-chat .ai-card-receipt-title{margin:0;flex:1 1 120px;min-width:0;font-size:15px;font-weight:600;overflow-wrap:anywhere}
+.ai-chat .ai-card-receipt .ai-card-error{flex-basis:100%;margin:0}
+.ai-proposals-earlier{border:1px solid var(--line,#2a325a);border-radius:12px;padding:0 12px}
+.ai-proposals-earlier>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--cyan,#6fd3ff);font-size:14px}
+.ai-proposals-earlier[open]{display:grid;gap:8px;padding-bottom:10px}
+
+/* ---- "Jump to the latest message": a slim row of its own, never over a card ---- */
+.ai-chat .ai-jump-holder{height:auto;display:flex;justify-content:flex-end;padding:4px 14px 0}
+.ai-chat .ai-jump-latest{position:static;min-height:44px}
+
+/* ---- Every action under a reply keeps a 44 px target; a source line is never under 14 px ---- */
+.ai-chat .ai-turn-actions .text-link,.ai-chat .ai-turn-extras button,.ai-chat .ai-turn-edit button,.ai-chat .ai-history .text-link,.ai-chat .ai-history-actions button,.ai-chat .ai-feedback-button,.ai-chat .ai-tips .text-link,.ai-chat .ai-editing button{min-height:44px;min-width:44px}
+.ai-chat .ai-stat-source{font-size:14px}
+.ai-suggest-panel .ai-tips{margin-top:4px}
+.ai-chat .ai-history-open strong{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+
+/* ---- Talk to ZIGi (Part 3): the microphone, what is heard, the disclosure, hints, mute ---- */
+.ai-chat .ai-talk{position:relative;overflow:visible;color:var(--brand-cyan,#63e7ff)}
+.ai-chat .ai-talk .ai-mic-glyph{position:relative;z-index:1}
+.ai-chat .ai-talk.ai-mic-on{animation:none;color:#f08bd6;border-color:color-mix(in srgb,#f08bd6 70%,var(--line,#2a325a));box-shadow:none}
+.ai-chat .ai-mic-highlight{border-color:var(--brand-cyan,#63e7ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-cyan,#63e7ff) 35%,transparent)}
+.ai-voice-live{margin:0;padding:8px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent);font-size:16px;line-height:1.45;color:var(--text,#eef1ff)}
+.ai-voice-live .ai-voice-interim{color:var(--muted,#a1afc8)}
+.ai-voice-disclose{display:grid;gap:8px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);font-size:15px;line-height:1.45}
+.ai-voice-disclose p{margin:0}
+.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px}
+.ai-voice-hint{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
+.ai-chat .ai-mute{display:inline-flex;align-items:center;gap:6px}
+.ai-chat .ai-mute[aria-pressed=true]{color:var(--muted,#a1afc8)}
