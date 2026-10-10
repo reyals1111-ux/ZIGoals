@@ -66,3 +66,23 @@ been made here whatever Z claimed (owner edit 5). All of it is announced in `doc
 ## Left to the owner or Session Z
 F5–F11 and F13–F16 are recorded in `docs/handoff/Y_TO_Z.md` for ZIGi's lane; none is reachable without the person's own
 AI replying with a degenerate or misleading block, and every card they concern is shown and undoable.
+
+## Second read: Session Y's own `[TIER 3]` commits (Gate C, 2026-10-10)
+A second reviewer, who had not seen this session's work, read the 15 `[TIER 3]` commits on the branch against `e30b7c6`
+(git and file reads only, no logins, nothing run against a service). No critical or high finding.
+
+| Sev | Where | Path | Done |
+|---|---|---|---|
+| medium | B6 / B3 start-over (`components/vault-sync-controls.tsx`) | A section deleted from the cloud is held ("kept locally, review before restoring"). If the server then answers without the vault or with an older one, "Start a new encrypted vault" or "Re-link this device" wrote a fresh journal without the held sections, so the next sync uploaded them with no review | Fixed (Y36): the fresh journal carries the held sections; held sections alone no longer count as an earlier vault. Test: `lib/vault-sync-rules-y.test.ts` ("a start-over keeps the sections deleted from the cloud held") (local) |
+| low | F1's stale-handle marker (`lib/ai/actions/plan.ts`) | A reply can spell the marker, so on a turn shown again it matched the first record on the page as a handle. Never auto-added; the card showed the record's title | Fixed (Y37): the marker never matches a handle. Test: `lib/ai/stale-handle.test.ts` (local) |
+| low | B4's notice | Health consent is per tab; another tab whose consent was on keeps syncing Health after a restore, while the notice said Health sync stays off | Reworded (Y38): "in this tab". A shared ask across tabs is an owner item |
+| info | A7 wording | "Delete cloud data" makes the Worker answer 410, so the status route says "This account was deleted" although the sign-in identity remains; the account's local records stay locked in the app, as they did before A7 (then a 503) | Recorded; owner item (wording, and whether a locked account's local copy may be exported) |
+| info | `startOver` | It takes no `zigoals:account-sync:<id>` storage lock; another tab's running sync could write its older journal over the fresh one. `recover()` refuses a journal changed since it was read; the only effect is the older-vault notice coming back, no data lost | Recorded, not changed: wrapping it in the lock needs care because the start-over then runs a sync that takes the same lock |
+| info | WebKit job and `release-candidate.yml` | The release candidate calls `ci.yml`, so an unpromoted WebKit job could block it | Fixed (Y39): pull requests only, `continue-on-error` until promoted |
+
+Checked and sound (reviewer): CI permissions `contents: read`, `pull_request` only, no secrets, no new Action, the
+pinned SHAs, `persist-credentials: false`; F2's cap slot fails closed; F3 writes only the named fields; F4's Health flag is
+stored before the extra records; B7's strict read is safe because `encode()` is the only writer; B4's restore only
+downloads; A7's denial reaches the client only from the same-origin route; B3's epoch check runs before any read, and
+the Worker keeps the head revision across a rotation; B5 never touches what builds #32–#34 read; the push worker change
+is label arithmetic only; the preflight prints paths, never contents; no CSP, header, origin or key change anywhere.

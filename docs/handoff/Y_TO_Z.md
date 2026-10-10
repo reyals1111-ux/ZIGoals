@@ -64,3 +64,13 @@ lane, and the API-key one (owner edit 5). Details and evidence: `docs/verificati
   F9 (Health/Wealth widgets, diet notes and any-host links stay auto-accept eligible with Health closed), F10 (context
   pack Summary escaping), F11 (Stop during the repair round), F13 (`autoAccept` not strict), F14 (equivalent cards not
   deduplicated), F15 (the Alpha gate's proof plan), F16 (no headers timeout). Reproductions are in the review document.
+
+## 2026-10-10 — Gate C (announced; still no `feature/session-z*` branch)
+- **Changed in ZIGi's files:** `lib/ai/actions/plan.ts` `handleAmong` refuses `STALE_HANDLE` as a handle, so a reply that
+  spells the marker names nothing on a reloaded turn (second security read, low; test `lib/ai/stale-handle.test.ts`).
+  `lib/ai/resend-gate.test.ts` now requires exactly one send each for Regenerate and Think deeper.
+- **Shared items Y changed:** What's new is release `2026-10-session-y` with four links; X-Local's links are first under
+  "Earlier updates" (`components/for-you/whats-new-card.tsx`). Help has four `#help-y-*` answers under "Good to know
+  about the Alpha". If Z lands second and adds its own release, fold Y's links under "Earlier updates" the same way.
+- **CI:** the `web-webkit` job runs on pull requests only and cannot fail the workflow until it is promoted (two green
+  runs in a row; ADR-018 Y4, Y39).
