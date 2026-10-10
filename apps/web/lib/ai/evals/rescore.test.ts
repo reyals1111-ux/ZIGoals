@@ -47,5 +47,5 @@ describe.skipIf(!FILES.length)('rescore (owner machines only)', () => {
       console.info(`rescore ${file.split('/').pop()}: ${was}/${d.runs.length} → ${now}/${d.runs.length}${missing ? ` (${missing} turn(s) no longer in the corpus)` : ''}${flips.length ? `; flips: ${flips.slice(0, 40).join(' ')}${flips.length > 40 ? ' …' : ''}` : ''}`);
     }
     expect(FILES.length).toBeGreaterThan(0);
-  });
+  }, 3_600_000); // Session Z-Local Part 6: a re-score of a 2,500-turn run takes minutes; vitest's 5 s default marked a finished loop as failed.
 });
