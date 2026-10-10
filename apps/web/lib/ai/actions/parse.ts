@@ -22,7 +22,11 @@ export type Rejected = {raw: string; reason: string};
  * Python's True/False/None, a bare value. Each repair is a plain rewrite outside strings; the result still has to
  * satisfy the whitelist schema, so a repair can never widen what a card may do. Returns null when nothing parses.
  */
+/** The most a proposal block is ever read for repair; a longer one is no card (SECURITY_REVIEW_Y F5: the repair is linear and bounded). */
+export const REPAIR_MAX_CHARS = 32_000;
+const WS = /\s*/y, WORD_AT = /[A-Za-z_][A-Za-z0-9_-]*/y, COLON_AT = /\s*:/y;
 export function repairJson(body: string): unknown {
+  if (body.length > REPAIR_MAX_CHARS) return null;
   const text = body.trim().replace(/^```[a-z-]*\s*/i, '').replace(/```\s*$/, '').replace(/^json\s*/i, '').trim();
   if (!text) return null;
   const attempt = (t: string): unknown => { try { return JSON.parse(t); } catch { return undefined; } };
@@ -30,7 +34,8 @@ export function repairJson(body: string): unknown {
   // One walk, outside strings: comments go, quotes become double, bare keys and Python literals are rewritten, a
   // trailing comma before } or ] goes. Inside a string nothing changes (a single-quoted string's inner " is escaped).
   let out = '', inString: '"' | "'" | null = null;
-  const lastSignificant = () => out.replace(/\s+$/, '').slice(-1);
+  // The last non-blank character written so far, read backwards (F5: never a copy of the whole output per call).
+  const lastSignificant = () => { for (let k = out.length - 1; k >= 0; k--) { const c = out[k]!; if (c !== ' ' && c !== '\n' && c !== '\t' && c !== '\r') return c; } return ''; };
   for (let i = 0; i < text.length; i++) {
     const ch = text[i]!;
     if (inString) {
@@ -44,13 +49,13 @@ export function repairJson(body: string): unknown {
     if (ch === ',') {
       // A trailing comma: nothing but whitespace and comments up to the closing brace or bracket.
       let j = i + 1;
-      for (;;) { const rest = text.slice(j); const ws = /^\s+/.exec(rest); if (ws) { j += ws[0].length; continue; } if (rest.startsWith('//')) { const e = text.indexOf('\n', j); j = e < 0 ? text.length : e + 1; continue; } if (rest.startsWith('/*')) { const e = text.indexOf('*/', j + 2); j = e < 0 ? text.length : e + 2; continue; } break; }
+      for (;;) { WS.lastIndex = j; const ws = WS.exec(text); if (ws && ws[0].length) { j += ws[0].length; continue; } if (text.startsWith('//', j)) { const e = text.indexOf('\n', j); j = e < 0 ? text.length : e; continue; } if (text.startsWith('/*', j)) { const e = text.indexOf('*/', j + 2); j = e < 0 ? text.length : e + 2; continue; } break; }
       if (text[j] === '}' || text[j] === ']') continue;
     }
     if (/[A-Za-z_]/.test(ch)) {
-      const word = /^[A-Za-z_][A-Za-z0-9_-]*/.exec(text.slice(i))![0], after = text.slice(i + word.length);
+      WORD_AT.lastIndex = i; const word = WORD_AT.exec(text)![0]; COLON_AT.lastIndex = i + word.length; const keyed = COLON_AT.test(text);
       i += word.length - 1;
-      if (/^\s*:/.test(after) && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
+      if (keyed && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
       // Phase 2 (seen on phi4-mini): a bare `unknown`, `none` or `nil` where a value should be is simply unknown.
       out += word === 'True' ? 'true' : word === 'False' ? 'false' : word === 'None' || word === 'undefined' || word === 'NaN' || /^(?:unknown|none|nil|null)$/i.test(word) ? 'null' : word; continue;
     }

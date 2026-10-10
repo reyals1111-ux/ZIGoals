@@ -1,5 +1,5 @@
 import {AiError, mapHttpError, mapNetworkError} from '../errors';
-import {sseEvents, parseJson} from '../sse';
+import {sseEvents, parseJson, fetchWithStall} from '../sse';
 import type {ChatEvent, ChatRequest} from '../types';
 
 /**
@@ -73,7 +73,7 @@ const refusesEffort = (status: number, text: string) => status === 400 && /outpu
 export async function* streamAnthropic(request: ChatRequest, origin: string): AsyncGenerator<ChatEvent> {
   const fetcher = request.fetcher ?? ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init));
   const post = async (effort: boolean) => {
-    try { return await fetcher(`${origin}/v1/messages`, {method: 'POST', headers: anthropicHeaders(request.key), body: JSON.stringify(anthropicBody(request, {effort})), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); }
+    try { return await fetchWithStall(fetcher, `${origin}/v1/messages`, {method: 'POST', headers: anthropicHeaders(request.key), body: JSON.stringify(anthropicBody(request, {effort})), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'}); }
     catch (error) { throw mapNetworkError(request.provider, error, {local: false, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   };
   let response = await post(true);

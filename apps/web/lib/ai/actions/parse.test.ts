@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {ACTION_PROTOCOL} from '../context/specialists';
-import {hasOpenFence, parseReply} from './parse';
+import {hasOpenFence, parseReply, repairJson, REPAIR_MAX_CHARS} from './parse';
 import {ACTION_KINDS, MAX_PROPOSALS, actionSchema} from './schema';
 
 // ADR-012, Part 5: only whitelisted, validated proposals become cards; the person's text can never be an instruction.
@@ -115,3 +115,13 @@ test("Phase 2 round 4: the person's own words for today and yesterday in \"day\"
   expect(r.proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday', 'today']);
 });
 
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F5): the repair is bounded and linear
+test('F5: a 64 KB degenerate body is refused at once, and a 30 KB one with thousands of commas and bare words is repaired in linear time', () => {
+  expect(repairJson('{'.repeat(65_000))).toBeNull();
+  const body = `{${'a: 1, '.repeat(4_000)}"kind": "log-water", "glasses": 2}`;
+  expect(body.length).toBeLessThan(REPAIR_MAX_CHARS);
+  const t0 = performance.now(); const out = repairJson(body) as Record<string, unknown>; const ms = performance.now() - t0;
+  expect(out.kind).toBe('log-water'); expect(out.glasses).toBe(2); expect(ms).toBeLessThan(300);
+  const t1 = performance.now(); repairJson(`[${' , '.repeat(8_000)}]`); expect(performance.now() - t1).toBeLessThan(300);
+});

@@ -10,6 +10,23 @@ import {AiError} from './errors';
  */
 export const STALL_MS = 60_000;
 export class Stalled extends AiError { constructor(ms: number) { super('stalled', `Your AI sent nothing for ${Math.round(ms / 1000)} seconds, so ZIGi stopped waiting.`); } }
+/**
+ * SECURITY_REVIEW_Y F16: the request itself races against the same window, so a provider that never answers with headers
+ * ends as one that stops mid-body (`stalled`), instead of waiting until Stop. The caller's own signal still aborts it.
+ */
+export async function fetchWithStall(fetcher: typeof fetch, input: string, init: RequestInit, stallMs = STALL_MS): Promise<Response> {
+  const outer = init.signal ?? null, control = new AbortController();
+  let stalled = false;
+  const onAbort = () => control.abort();
+  if (outer) { if (outer.aborted) control.abort(); else outer.addEventListener('abort', onAbort, {once: true}); }
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  // The race, not only the abort: a fetch that ignores its signal is abandoned all the same.
+  const stall = new Promise<never>((_, reject) => { if (stallMs > 0) timer = setTimeout(() => { stalled = true; control.abort(); reject(new Stalled(stallMs)); }, stallMs); });
+  const request = fetcher(input, {...init, signal: control.signal}); request.catch(() => undefined);
+  try { return await Promise.race([request, stall]); }
+  catch (error) { if (stalled && !outer?.aborted) throw error instanceof Stalled ? error : new Stalled(stallMs); throw error; }
+  finally { if (timer) clearTimeout(timer); outer?.removeEventListener('abort', onAbort); }
+}
 async function* chunks(body: ReadableStream<Uint8Array>, signal?: AbortSignal, stallMs = STALL_MS): AsyncGenerator<string> {
   const reader = body.getReader(), decoder = new TextDecoder();
   const onAbort = () => { void reader.cancel().catch(() => undefined); };

@@ -372,3 +372,44 @@ test('prefill-contribution and prefill-account: money is a pre-filled form, neve
   expect(plan(s, {kind: 'prefill-account', name: 'Car loan', accountKind: 'loan', balance: '12000'}).card.title).toContain('a debt');
   expect(() => act({kind: 'prefill-account', name: 'x', accountKind: 'wallet'})).toThrow(); expect(() => act({kind: 'prefill-contribution', goal: 'g1'})).toThrow();
 });
+
+// ---- Session Z-Local Part 7: Y's findings F8, F9 and F14 ----
+import {handleAmong} from './plan';
+import {autoAcceptVerdict} from './auto-accept';
+import {dedupePlans} from './batch';
+import {WIDGET_CATALOG} from '../../dashboard-settings';
+test('F8: a one-word name still resolves by its stem, a name of several words never by its first word alone', () => {
+  const handles: Handle[] = [{handle: 'h1', kind: 'habit', id: 'a', label: 'Walk'}, {handle: 'h2', kind: 'habit', id: 'b', label: 'Meditate'}, {handle: 'h3', kind: 'habit', id: 'c', label: 'Walk the dog'}];
+  expect(handleAmong(handles, 'habit', 'meditate')?.id).toBe('b');
+  expect(handleAmong([{handle: 'h9', kind: 'habit', id: 'r', label: 'Read'}] as Handle[], 'habit', 'reading')?.id).toBe('r'); // one word: the stem rule
+  expect(handleAmong(handles.slice(0, 2), 'habit', 'walking')?.id).toBe('a');
+  expect(handleAmong(handles, 'habit', 'Walk the dog')?.id).toBe('c');
+  expect(handleAmong(handles, 'habit', 'walk the cat')).toBeUndefined();
+  expect(handleAmong(handles, 'habit', 'walk')?.id).toBe('a');
+  expect(handleAmong(handles.slice(0, 2), 'habit', 'Walk the dog')).toBeUndefined();
+});
+test('F9: a brand icon only for a matching host; a Health widget and a diet note are Health content for auto-accept', () => {
+  const s = base();
+  expect(plan(s, {kind: 'add-link', label: 'Club', url: 'https://evil.example.org/x', icon: 'instagram'}).card.lines.join(' ')).toContain('Icon: the first letter');
+  expect(plan(s, {kind: 'add-link', label: 'Insta', url: 'https://www.instagram.com/zigoals', icon: 'instagram'}).card.lines.join(' ')).toContain('Icon: instagram');
+  const healthKinds = Object.entries(WIDGET_CATALOG).filter(([k, c]) => c.domain === 'health' && !s.settings.widgets.some(w => w.kind === k)).map(([k]) => k);
+  const widget = healthKinds.map(k => planAction(act({kind: 'add-widget', widget: k}), envFor(s))).find(r => r.ok)!; // the first Health widget that needs no chosen record
+  expect(widget.ok && widget.plan.healthContent).toBe(true);
+  const otherKinds = Object.entries(WIDGET_CATALOG).filter(([k, c]) => c.domain !== 'health' && !s.settings.widgets.some(w => w.kind === k)).map(([k]) => k);
+  const other = otherKinds.map(k => planAction(act({kind: 'add-widget', widget: k}), envFor(s))).find(r => r.ok)!;
+  expect(other.ok && other.plan.healthContent).toBeUndefined();
+  expect(plan(s, {kind: 'remember', text: 'No dairy for me', category: 'diet'}).healthContent).toBe(true);
+  expect(plan(s, {kind: 'remember', text: 'Prefers mornings', category: 'preferences'}).healthContent).toBeUndefined();
+  const on = {version: 1, autoAccept: {kinds: {'add-widget': true, remember: true}}} as unknown as Parameters<typeof autoAcceptVerdict>[0];
+  expect(autoAcceptVerdict(on, 'add-widget', DAY, false, 0, true)).toEqual({ok: false, reason: 'health-gate-closed'});
+  expect(autoAcceptVerdict(on, 'add-widget', DAY, true, 0, true)).toEqual({ok: true});
+  expect(autoAcceptVerdict(on, 'add-widget', DAY, false, 0, false)).toEqual({ok: true});
+});
+test('F14: two cards that write the same change are one; different changes stay; the first of a pair is kept', () => {
+  const s = base();
+  const ml = plan(s, {kind: 'log-water', millilitres: 250}), glass = plan(s, {kind: 'log-water', glasses: 1}), two = plan(s, {kind: 'log-water', glasses: 2}), steps = plan(s, {kind: 'log-steps', steps: 100});
+  const kept = dedupePlans([ml, glass, two, steps, steps], s);
+  expect(kept.map(p => p.card.kind)).toEqual(['log-water', 'log-water', 'log-steps']);
+  expect(kept[0]).toBe(ml); expect(kept[1]).toBe(two);
+  expect(batchable([ml, glass], s)).toHaveLength(1); expect(batchable([ml, glass])).toHaveLength(2);
+});

@@ -79,7 +79,9 @@ const WEEKDAY_LABELS = WEEKDAY_NAMES.map(n => n[0]!.toUpperCase() + n.slice(1));
 export type Navigate = {href: string; label: string};
 export type Confirm = {href: string; what: string; id: string; label: string};
 export type DeviceWrite = {key: string; patch: Record<string, unknown>};
-export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; contribution?: ContributionPrefill; account?: AccountPrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite};
+export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; contribution?: ContributionPrefill; account?: AccountPrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite;
+  /** SECURITY_REVIEW_Y F9: the card shows or keeps Health content though its kind is not a Health kind (a Health widget on Today, a diet note): auto-accept treats it as Health-gated. */
+  healthContent?: boolean};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -105,6 +107,9 @@ export function handleAmong(handles: readonly Handle[], kind: Handle['kind'], na
   // Phase 2: "meditation" names Meditate, "reading" names Read, "wandeling" names Wandelen: one record whose title and
   // the name share a stem of four letters or more, counted from the start; two such records are a refusal, never a guess.
   const stemOf = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/)[0] ?? '';
+  // SECURITY_REVIEW_Y F8: a name of several words ("Walk the dog") never resolves by its first word alone; the stem rule
+  // is for one spoken or typed word ("meditation", "wandeling"), and a title of several words must match whole.
+  if (key.split(/\s+/).length > 1) return undefined;
   const k = stemOf(key);
   const byStem = handles.filter(h => { const t = stemOf(h.label); return h.kind === kind && t.length >= 4 && k.length >= 4 && (t.startsWith(k) || k.startsWith(t)); });
   return byStem.length === 1 ? byStem[0] : undefined;
@@ -504,7 +509,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${CATEGORY_LABELS[action.category]}`, `On this device only; it goes to your AI with your messages ${sent}`], where: 'ZIGi · What ZIGi knows about me', day: null, estimate: false},
         write: s => ({memory: addNote(s.memory, {text: action.text, category: action.category, source: 'zigi'}, env.now, id)}),
         undo: {label: 'Forget this note', write: s => ({memory: deleteNote(s.memory, id)}), unchanged: (after, current) => same(after.memory.notes?.find(n => n.id === id), current.memory.notes?.find(n => n.id === id))},
-        activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}}};
+        activity: {id: `note:${id}`, title: `Remembered: ${action.text.slice(0, 120)}`}, ...(action.category === 'diet' ? {healthContent: true} : {})}};
     }
     // ---- Session W Part 21 (W7) ----
     case 'log-sleep': {
@@ -1049,7 +1054,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: () => ({}), undo: null, account}};
     }
     case 'add-link': {
-      const icon = action.icon ?? suggestedIcon(action.url), input = {label: action.label, url: action.url, icon};
+      // SECURITY_REVIEW_Y F9: a brand icon only when the address is that brand's; any other host gets its own suggestion (the first letter for an unknown one).
+      const suggested = suggestedIcon(action.url), icon = action.icon === undefined || action.icon === 'monogram' || action.icon === suggested ? (action.icon ?? suggested) : suggested, input = {label: action.label, url: action.url, icon};
       const issue = linkInputIssue(input); if (issue) return refuse(issue);
       const links = linksOf(stores.settings), twin = links.items.find(l => l.url === action.url.trim());
       if (twin) return refuse(`"${twin.label}" already opens that address.`);
@@ -1075,7 +1081,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: `Add a widget: ${catalogue.label}${named ? ` · ${named}` : ''}`, lines: [`Shows ${metric}${action.title ? ` as "${action.title}"` : ''} · ${action.size}`, 'Added at the end of Today; move or remove it there'], where: 'Today · Widgets', day: null, estimate: false},
         write: s => ({settings: saveWidget(s.settings, widget)}),
         undo: {label: 'Remove this widget', write: s => ({settings: removeWidget(s.settings, id)}), unchanged: (afterApply, now) => same(mine(afterApply), mine(now))},
-        activity: {id: `widget:${id}`, title: `Widget added: ${catalogue.label}${named ? ` · ${named}` : ''}`}}};
+        activity: {id: `widget:${id}`, title: `Widget added: ${catalogue.label}${named ? ` · ${named}` : ''}`}, ...(catalogue.domain === 'health' ? {healthContent: true} : {})}};
     }
   }
 }

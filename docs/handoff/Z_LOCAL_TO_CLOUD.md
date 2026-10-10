@@ -160,3 +160,9 @@ lines, unit tests in `lib/ai/actions/plan-z.test.ts`, corpus cases in `corpus-pa
   carries a language too, the same rule applies there (read `fr…` as default).
 - The protocol gained one sentence about spoken asks (fillers, number words, self-corrections); the request body is
   otherwise unchanged.
+
+## 2026-10-10 — Part 7: Y's findings, three of them need one line in your files
+- **F9 (`use-auto-accept.ts:30`):** pass the plan's flag as the sixth argument: `autoAcceptVerdict(read.data, kind, day, healthOpen, extra, plan.healthContent === true)`. The planner sets `plan.healthContent` for a Health-domain widget and a diet note; with it, those cards are refused for auto-accept while Health is closed, like a Health kind. Without it nothing breaks; the gate just does not see them.
+- **F14 (the runner, where a reply's plans are listed):** call `dedupePlans(plans, stores)` from `lib/ai/actions/batch.ts` once after planning (or `batchable(plans, stores)` with the stores, which now dedupes too), so "250 mL" and "1 glass" of water on the same day show as one card. The first of a pair is kept.
+- **F11 (`use-chat-session.ts`, the repair round):** when Stop arrives during the repair request, finish with the FIRST answer, hint marker stripped (`stripHint` from `lib/ai/emotion-hint.ts`), never with the half-repaired one and never with the marker text shown. Today the first answer is dropped and, on the other path, sent back with its marker.
+- Nothing else in Part 7 touches your files: the hint strip, the JSON repair bound, the editor's thousands separators, the name resolver, the brand-icon rule, the Summary escaping, the strict options and the headers watchdog are all in `lib/ai`.

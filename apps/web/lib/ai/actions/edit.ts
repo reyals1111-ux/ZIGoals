@@ -120,7 +120,9 @@ export function applyEdits(action: Action, values: Readonly<Record<string, strin
     if (raw === '') { write(draft, field.key, undefined); continue; }
     if (field.type === 'lines') { const items = raw.split('\n').map(line => line.trim()).filter(Boolean); write(draft, field.key, items.length ? items : undefined); continue; }
     if (field.type === 'number' || field.type === 'integer') {
-      const parsed = Number(raw.replace(',', '.'));
+      // SECURITY_REVIEW_Y F7: "10,000" is ten thousand and "10.000,5" ten thousand and a half; only a lone comma is a decimal comma.
+      const digits = /^-?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(raw) ? raw.replace(/,/g, '') : /^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(raw) ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(',', '.');
+      const parsed = Number(digits);
       if (!Number.isFinite(parsed)) return {ok: false, message: `${field.label} needs a number.`};
       if (field.type === 'integer' && !Number.isInteger(parsed)) return {ok: false, message: `${field.label} needs a whole number.`};
       write(draft, field.key, parsed); continue;

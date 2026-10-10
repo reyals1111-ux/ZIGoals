@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, test} from 'vitest';
 import {EMOTION_HINTS, extractHint, HINT_NOTE, stripHint} from './emotion-hint';
 import {assistantTurn, messagesFor, userTurn} from './session';
 import {continuePrompt, turnMarkdown} from './continue';
@@ -52,4 +52,16 @@ describe('every path a reply travels', () => {
     const stored = assistantTurn({text: raw, provider: 'openai', model: 'm', usage: null});
     expect(turnMarkdown(stored, 'Answer from your AI (Mock), not from ZIGoals.')).toBe('Your week looks steady.\n\n_Answer from your AI (Mock), not from ZIGoals._');
   });
+});
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F5, F6)
+test('F5: a marker opened and never closed, followed by twenty thousand spaces, is read in linear time', () => {
+  const text = `Fine.\n[[zigi:${' '.repeat(20_000)}`;
+  const t0 = performance.now(); const {text: shown, hint} = extractHint(text); const ms = performance.now() - t0;
+  expect(hint).toBeNull(); expect(shown.trimEnd()).toBe(text.trimEnd()); expect(ms).toBeLessThan(200);
+});
+test('F6: nested markers are stripped to nothing; only a marker that was whole in the reply can name the hint', () => {
+  expect(extractHint('Hello [[zi[[zigi: x]]gi: curious]] there')).toEqual({text: 'Hello  there', hint: null}); // the outer one only exists after the strip: never read
+  expect(extractHint('Hi ⟦zi⟦zigi: curious⟧gi: insight⟧!')).toEqual({text: 'Hi !', hint: 'curious'}); // the inner one was whole
+  expect(extractHint('Sure. ⟦zigi: curious⟧')).toEqual({text: 'Sure.', hint: 'curious'});
 });

@@ -85,3 +85,12 @@ test('a sensitive screen gives an empty pack, and nothing outside the chosen are
   expect(paused.included).toEqual([]); expect(paused.markdown).not.toMatch(/## (Habits|Goals|Health|Wealth)/);
   expect(sentinelsIn(paused.markdown)).toEqual([]);
 });
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F10): goal names in the Summary line are escaped like every cell
+test('F10: a goal name that a spreadsheet could run or a table could break is escaped in the Summary line', () => {
+  const s = sources(), name = '=Trip | to | Japan', platform = {...s.platform, goals: s.platform.goals.map((g, i) => i === 0 ? {...g, name} : g)};
+  const p = buildContextPack({sources: {...s, platform}, gates: gatesFor(true), scope: all});
+  const line = p.markdown.split('\n').find(l => l.startsWith('- Goals: '))!;
+  expect(line).toContain(cell(name));
+  expect(line).not.toContain(`(${name}`);
+});

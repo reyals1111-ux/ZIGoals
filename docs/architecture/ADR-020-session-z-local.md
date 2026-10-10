@@ -92,6 +92,21 @@ each answered in the `TIER 3 (security)` commit that follows this record:
 6. (low) The prefix needle grew from 12 to 24 characters and is also searched in its base64 (three alignments) and
    UTF-16LE forms; every file is scanned whatever its size or name (the 200 MB ceiling is itself a hit).
 
+## Part 7: Session Y's open findings (SECURITY_REVIEW_Y F5–F16), each with a test
+| Finding | Fix | Test |
+|---|---|---|
+| F5 quadratic hint marker and `repairJson` | Markers are found by their opening bracket (`indexOf`) and read with a sticky, fully bounded pattern; the trailing-blank trim goes line by line; `repairJson` refuses bodies over 32,000 characters and walks with sticky scans (no `slice` per comma or word, no copy of the output per character). | `emotion-hint.test.ts` (20,000 spaces under 200 ms), `parse.test.ts` (a 64 KB body refused at once; 4,000 bare keys and 8,000 commas under 300 ms) |
+| F6 nested markers | Stripped to a fixed point (at most four passes); only a marker that was whole in the reply can name the hint. | `emotion-hint.test.ts` |
+| F7 "10,000" read as 10 | The card editor reads a comma followed by three digits as a thousands separator ("10,000", "10.000,5"); a lone comma stays a decimal comma ("1,5"). The spoken normaliser does the same for messages (L15). | `edit.test.ts` |
+| F8 first-word match for writes | A name of several words never resolves by its first word; the stem rule is for one word ("reading" → Read, "walking" → Walk); a title of several words matches whole. | `plan-z.test.ts` |
+| F9 Health content behind other kinds; any-host brand icons | The plan carries `healthContent` for a Health-domain widget and a diet note; `autoAcceptVerdict` takes it and gates it like a Health kind (the runner passes `plan.healthContent`, handoff). A brand icon only when the address is that brand's host; any other host gets the host's own suggestion. Wealth widgets are not Health content and stay as they were (the Wealth page's own share switch governs them). | `plan-z.test.ts`, `auto-accept.test.ts` |
+| F10 Summary line escaping | Goal names in the context pack's Summary line go through `cell()` like every table cell. | `context-pack/build.test.ts` |
+| F11 Stop during the repair round | The round runs in `use-chat-session.ts` (Z-Cloud's); the fix is specified in the handoff: on Stop during the repair, keep the first answer with its hint marker stripped (`stripHint`). | handoff |
+| F13 `autoAccept` not strict | The stored options object is `z.object` (unknown keys dropped on read, never refused). | `store/records.test.ts` |
+| F14 equivalent cards | `dedupePlans(plans, stores)`: two plans of one kind whose writes are the same change (fresh ids and stamps set aside) are one card, the first kept; `batchable(plans, stores)` applies it. The runner is asked to dedupe at listing time (handoff). | `plan-z.test.ts` |
+| F16 no headers timeout | `fetchWithStall` races the request itself against the same 60 s window (and abandons a fetch that ignores its signal); every adapter uses it; the caller's own Stop still wins. | `sse.test.ts` |
+F12 and F15 were Y's own (fixed, and an owner item).
+
 ## Rejected options
 None yet.
 

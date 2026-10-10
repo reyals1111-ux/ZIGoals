@@ -75,3 +75,11 @@ test('Session X-Local Part 5a: a project goal edits without a target, a widget e
   expect(applyEdits(mood, {mood: '6'})).toMatchObject({ok: false});
   expect(applyEdits(mood, {mood: '2', day: '2026-09-19'})).toEqual({ok: true, action: {kind: 'log-mood', mood: 2, day: '2026-09-19'}});
 });
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F7): thousands separators in the editor
+test('F7: "10,000" steps is ten thousand, "1,5" glasses is one and a half, "10.000,5" is ten thousand and a half', () => {
+  const steps = applyEdits(actionSchema.parse({kind: 'log-steps', steps: 1}), {steps: '10,000'}); expect(steps.ok && steps.action).toMatchObject({kind: 'log-steps', steps: 10000});
+  const glasses = applyEdits(actionSchema.parse({kind: 'log-water', glasses: 1}), {glasses: '1,5'}); expect(glasses.ok && glasses.action).toMatchObject({kind: 'log-water', glasses: 1.5});
+  const nl = applyEdits(actionSchema.parse({kind: 'log-steps', steps: 1}), {steps: '10.000'}); expect(nl.ok && nl.action).toMatchObject({kind: 'log-steps', steps: 10000});
+  const weight = applyEdits(actionSchema.parse({kind: 'log-weight', value: 70, unit: 'kg'}), {value: '72,5'}); expect(weight.ok && weight.action).toMatchObject({value: 72.5});
+});

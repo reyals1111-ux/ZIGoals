@@ -32,10 +32,11 @@ export const autoAcceptCap = (options: AiOptions): number => options.autoAccept?
 export const autoAcceptedOn = (options: AiOptions, day: string): number => options.autoAccept?.days?.[day] ?? 0;
 export const autoAcceptOn = (options: AiOptions, kind: string): boolean => options.autoAccept?.kinds?.[kind] === true;
 /** Whether a card of this kind may be added by ZIGi now; `extra` counts cards already chosen from the same reply. */
-export function autoAcceptVerdict(options: AiOptions, kind: string, day: string, healthOpen: boolean, extra = 0): AutoAcceptVerdict {
+/** `healthContent` (SECURITY_REVIEW_Y F9): the plan's own flag for a card of a non-Health kind that shows or keeps Health content; gated like a Health kind. */
+export function autoAcceptVerdict(options: AiOptions, kind: string, day: string, healthOpen: boolean, extra = 0, healthContent = false): AutoAcceptVerdict {
   if (!(AUTO_ACCEPT_KINDS as readonly string[]).includes(kind)) return {ok: false, reason: 'never'};
   if (!autoAcceptOn(options, kind)) return {ok: false, reason: 'off'};
-  if (isHealthKind(kind) && !healthOpen) return {ok: false, reason: 'health-gate-closed'};
+  if ((isHealthKind(kind) || healthContent) && !healthOpen) return {ok: false, reason: 'health-gate-closed'};
   if (autoAcceptedOn(options, day) + extra >= autoAcceptCap(options)) return {ok: false, reason: 'cap'};
   return {ok: true};
 }
