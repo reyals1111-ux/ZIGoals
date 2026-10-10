@@ -224,9 +224,10 @@ jobs:
     # (playwright.webkit.config.ts selects them; real-model, conversation and on-device specs stay out) and the curated
     # phone set (tests/webkit-phone.spec.ts), two workers. Evidence label "WebKit", never "Safari on an iPhone".
     # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
+    # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
     name: web WebKit (smoke, ZIGi, phone set)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -255,8 +256,8 @@ jobs:
             sleep 1
           done
           env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --reporter=line --output=/tmp/zigoals-webkit-results
-      - name: Retain the WebKit traces (failures only)
-        if: failure()
+      - name: Retain the WebKit traces (failures and timeouts only)
+        if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: web-webkit-${{ github.sha }}
