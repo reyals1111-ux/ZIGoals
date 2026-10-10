@@ -18,6 +18,7 @@ import {addNote, CATEGORY_LABELS, deleteNote, isHealthNote, newNoteId, noteProbl
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
+import {STALE_HANDLE} from '../handles';
 import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
 import {WIDGET_CATALOG, removeWidget, saveWidget, type DashboardSettings, type DashboardWidget} from '../../dashboard-settings';
 import {addLink, linkInputIssue, linksOf, removeLink, suggestedIcon} from '../../links/engine';
@@ -72,7 +73,8 @@ const dayLabel = (day: string, today: string) => day === today ? `today (${day})
 /** A record of the context by its handle (h2) or its exact title, case-insensitively; two titles alike are a question, never a guess (shared with revise.ts, Phase 2 round 8). */
 export function handleAmong(handles: readonly Handle[], kind: Handle['kind'], named: string): Handle | undefined {
   const key = named.trim().toLowerCase();
-  const byHandle = handles.find(h => h.kind === kind && h.handle === key);
+  // A stale handle never matches, even when a reply spells the marker itself (SECURITY_REVIEW_Y, second read).
+  const byHandle = key === STALE_HANDLE ? undefined : handles.find(h => h.kind === kind && h.handle === key);
   if (byHandle) return byHandle;
   const byTitle = handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
   if (byTitle.length === 1) return byTitle[0];
