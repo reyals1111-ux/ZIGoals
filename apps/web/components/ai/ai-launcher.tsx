@@ -110,12 +110,15 @@ export function AiLauncher() {
       el.style.setProperty('--zigi-rest-lift', `${lift}px`);
       void el.offsetWidth; el.style.transition = glide;
     };
-    // Keyboard and pointer users: the moment anything in the page takes focus, the launcher is back in its corner at once (no
+    // Keyboard users: the moment anything in the page takes visible focus, the launcher is back in its corner at once (no
     // glide), where the phone's scroll padding keeps a focused control clear of it (ADR-016 X40); a lifted launcher could
     // otherwise sit over a focused control mid-screen (CI's WCAG 2.4.11 check on Today found two). It stays there for the page.
+    // Session Y (ADR-018 Y44): a tap or click focuses without `:focus-visible` and leaves the launcher where it rests; moved
+    // between the press and the release, it landed on the control being pressed and the tap was lost.
     let focused = false;
     const corner = () => { const glide = el.style.transition; el.style.transition = 'none'; el.style.setProperty('--zigi-rest-lift', '0px'); void el.offsetWidth; el.style.transition = glide; };
-    const onFocus = (event: FocusEvent) => { const t = event.target; if (!(t instanceof Element) || el.contains(t) || !document.querySelector('main')?.contains(t)) return; focused = true; corner(); };
+    const keyboardFocus = (t: Element) => { try { return t.matches(':focus-visible'); } catch { return true; } };
+    const onFocus = (event: FocusEvent) => { const t = event.target; if (!(t instanceof Element) || el.contains(t) || !document.querySelector('main')?.contains(t) || !keyboardFocus(t)) return; focused = true; corner(); };
     const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => { if (focused) corner(); else place(); }); };
     document.addEventListener('focusin', onFocus);
     schedule(); for (const ms of [300, 1200, 3000]) timers.push(window.setTimeout(schedule, ms));
