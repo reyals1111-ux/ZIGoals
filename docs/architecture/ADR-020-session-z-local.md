@@ -142,6 +142,18 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
   after its first case. When the PC is back, the "before" runs from a worktree at `fe2d64d2` (the last commit with
   French) and the "after" from the branch head, on the same machine, and the EN/NL rows go here.
 
+
+**The proof, run (2026-10-10, gemma4 12B on the RTX 5090, the full corpus, `scripts/zigi/lang-split.mjs`):**
+
+| Run | EN | NL | FR |
+|---|---:|---:|---:|
+| Before (a worktree at `fe2d64d2`, the last commit with French; its corpus had the 50 French cases) | 526/598 · 88.0 % | 108/127 · 85.0 % | 95/106 · 89.6 % |
+| After (the branch head of the moment, French gone) | 532/598 · 89.0 % | 113/127 · 89.0 % | — |
+
+EN and NL did not regress (EN +1.0 pt, NL +4.0 pt). The "after" run also carries the Part 6 fix rounds up to L41, so the gain is
+theirs as much as the removal's; the claim of L7 is only that nothing was lost, and the rows say so. The raw files are
+`real-model/fr-before/` and `real-model/fr-after/` on the runs branch.
+
 ## Independent security read after Part 5 (owner edit 1, 2026-10-10)
 One read-only agent reviewed the key handling (the sweep, the ledger and summariser, the browser helpers and the
 Anthropic config, the harness, the adapter, the stage scripts and logs, both branch histories). **No key was found in

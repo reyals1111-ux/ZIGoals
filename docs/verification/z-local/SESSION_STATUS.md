@@ -23,7 +23,7 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-z-local`
 5. Then Part 2's document (recommendation per job, cost per 100 messages from the rendered rows), Part 9, the STATUS entry, Gates A/B/C (CI green on a quiet head: every push cancels the running Milestone quality run), the second security read, and stop caffeinate (`caffeinate.pid`), the forwarder (`forwarder.pid`) and the :3103 server (`serve-3103.pid`).
 
 ## Results so far (the tables in `ZIGI_CLAUDE_TEST_Z.md` are the record)
-- Met: Sonnet, Haiku and Opus conversations 15/15 each; the day on Sonnet 36/36 (desktop and phone); the golden sets.
+- Met: Sonnet, Haiku and Opus conversations 15/15 each; the day on Sonnet 36/36 (desktop and phone); gemma4 on the PC 645/725 (89.0 %); the WebKit conversations 5/5; the golden sets. Reported: the WebKit panel on Sonnet 57/60; Opus panel 57/60 (target 97 %).
 - Not met yet (re-runs queued after the fix rounds): Sonnet corpus 89.7 %, Haiku corpus 87.5 %, Opus corpus 91.7 %, the Sonnet and Haiku UI panels (80.7 %, 83.3 %, both before the panel round), qwen3.6 on the Mac 79.7 % (before the fix rounds).
 
 ## Done (commits on the feature branch)

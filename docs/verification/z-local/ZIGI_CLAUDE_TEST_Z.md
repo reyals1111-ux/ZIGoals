@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 18 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 21 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -62,6 +62,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 18 summary file(s) on 202
 | Part 2 · corpus ×3 | `claude-haiku-5-5` | tools | 684 · 2,493 | **2182/2493 · 87.5 %** | 1932/2175 | lookup 352/360 · propose 756/867 · chat 124/138 · brief 82/87 · unknown 38/45 · refuse 140/162 · advice 26/39 · multi 432/549 · followup 127/135 · privacy 36/39 · injection 57/60 · local-first 12/12 | 5 + 995 + 18,280 → 400 | $0.0005 | $1.18 | 1,640 / 2,321 |
 | Part 6 · local, qwen36-mac | `qwen3.6:35b-a3b` | tools | 595 · 725 | **578/725 · 79.7 %** | — | lookup 92/93 · propose 188/246 · chat 35/42 · brief 25/27 · unknown 12/14 · refuse 44/52 · advice 8/11 · multi 108/162 · followup 34/43 · privacy 11/12 · injection 17/19 · local-first 4/4 | 11,559 + 0 + 0 → 88 | — | — | 2,690 / 5,932 |
 | Part 2 · corpus ×1 | `claude-opus-5-5` | tools | 595 · 725 | **665/725 · 91.7 %** | 677/725 | lookup 92/93 · propose 226/246 · chat 38/42 · brief 27/27 · unknown 13/14 · refuse 45/52 · advice 11/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,564 + 16,482 → 291 | $0.0170 | $11.37 | 2,033 / 3,750 |
+| Part 6 · local, fr-after | `gemma4:12b` | tools | 595 · 725 | **645/725 · 89.0 %** | — | lookup 93/93 · propose 215/249 · chat 35/42 · brief 24/27 · unknown 12/14 · refuse 49/49 · advice 10/11 · multi 137/162 · followup 38/43 · privacy 11/12 · injection 17/19 · local-first 4/4 | 12,488 + 0 + 0 → 241 | — | — | 1,252 / 1,830 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -74,6 +75,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 18 summary file(s) on 202
 | `claude-haiku-5-5` | Part 2 · corpus ×3 | $0.05 |
 | `qwen3.6:35b-a3b` | Part 6 · local, qwen36-mac | $0.00 |
 | `claude-opus-5-5` | Part 2 · corpus ×1 | $1.70 |
+| `gemma4:12b` | Part 6 · local, fr-after | $0.00 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
@@ -88,6 +90,8 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 18 summary file(s) on 202
 | ui-panel-haiku | `claude-haiku-5-5` | Chrome · desktop | **125/150 · 83.3 %** | 2,287 | 0 | $0.07 |
 | ui-panel-opus | `claude-opus-5-5` | Chrome · desktop | **57/60 · 95.0 %** | 4,063 | 0 | $0.97 |
 | ui-panel-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **121/150 · 80.7 %** | 2,766 | 0 | $1.03 |
+| ui-webkit-conv-sonnet | `claude-sonnet-5-5` | WebKit · desktop | **5/5 · 100.0 %** | 4,645 | 0 | $0.12 |
+| ui-webkit-panel-sonnet | `claude-sonnet-5-5` | WebKit · desktop | **57/60 · 95.0 %** | 2,547 | 0 | $0.46 |
 <!-- tables:end -->
 
 ## Stages still to run in this round
@@ -100,7 +104,7 @@ folder on this Mac). Each stage lands here as a rendered row when its summary is
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 18 summary file(s): 4 met · 8 not met · 13 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 21 summary file(s): 4 met · 9 not met · 11 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -111,7 +115,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 18 summary file(s): 4
 | Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** | `ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json` |
 | Sonnet · pages 17 × 10 ≥ 99 % | 330/340 · 97.1 % | not met, 1.9 pt short | `ui-pages-sonnet/pages-claude-sonnet-5-5.json` |
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
-| Sonnet · WebKit subset (60 panel + 5 conversations), reported | — | not run yet | — |
+| Sonnet · WebKit subset (60 panel + 5 conversations), reported | 62/65 · 95.4 % | reported | `ui-webkit-conv-sonnet/conversations-claude-sonnet-5-5.json, ui-webkit-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
 | Haiku · corpus ≥ 92 % | 2182/2493 · 87.5 % | not met, 4.5 pt short; misses: cards 238, fields 62, never 26, refusal 18, schema 18 | `corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json` |
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
@@ -123,13 +127,13 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 18 summary file(s): 4
 | qwen3.8 (RTX 5090) ≥ 90 % | — | not run yet | — |
 | qwen3.6 (RTX 5090) ≥ 85 % | — | not run yet | — |
 | qwen3.6 (Mac M1 Max) ≥ 85 % | 578/725 · 79.7 % | not met, 5.3 pt short; misses: cards 114, fields 43, schema 31, refusal 8, tool 6 | `qwen36-mac/mac-m1-max-qwen3.6-35b-a3b-tools-all-2026-10-10T17-21-51-599Z.json` |
-| gemma4 (RTX 5090) ≥ 89 % | — | not run yet | — |
+| gemma4 (RTX 5090) ≥ 89 % | 645/725 · 89.0 % | not met, 0.0 pt short; misses: cards 63, fields 19, schema 15, contains 4, never 3 | `fr-after/rtx-5090-gemma4-12b-tools-all-2026-10-10T19-09-57-323Z.json` |
 | gemma4 · the spoken set, reported | — | not run yet | — |
 | phi4-mini (RTX 5090), reported (X-Local: 61 %) | — | not run yet | — |
 | gemma4 · important ×3 variance (spread) | — | not run yet | — |
 | qwen3.8 · important ×3 variance (spread) | — | not run yet | — |
 | Golden set (272, byte-identical) 100 % | 272/272 · 100.0 % | **met** | `vitest (CI: web checks)` |
-| Golden spoken set 100 % | 397/397 · 100.0 % | **met** | `vitest (CI: web checks)` |
+| Golden spoken set 100 % | 413/413 · 100.0 % | **met** | `vitest (CI: web checks)` |
 <!-- targets:end -->
 
 ## Recommendation per job
