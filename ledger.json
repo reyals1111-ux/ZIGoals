@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 36.9887654975,
+ "total": 39.19859470749999,
  "byModel": {
-  "claude-haiku-5-5": 1.190977247500002,
-  "claude-sonnet-5-5": 27.59086064999999,
+  "claude-haiku-5-5": 2.3738795574999987,
+  "claude-sonnet-5-5": 28.61778754999999,
   "claude-opus-5-5": 8.206927599999998
  },
  "rows": [
@@ -90,12 +90,12 @@
    "stage": "real-model/corpus",
    "model": "claude-haiku-5-5",
    "batch": false,
-   "requests": 2938,
-   "input": 11006,
-   "cacheWrite": 2318478,
-   "cacheRead": 42610246,
-   "output": 931779,
-   "usd": 1.182902310000002,
+   "requests": 5876,
+   "input": 22012,
+   "cacheWrite": 4636956,
+   "cacheRead": 85220492,
+   "output": 1863558,
+   "usd": 2.3658046199999987,
    "unreported": 0,
    "files": 0
   },
@@ -122,6 +122,19 @@
    "cacheRead": 465980,
    "output": 11970,
    "usd": 0.46266700000000005,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/ui-panel-sonnet",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "requests": 130,
+   "input": 504,
+   "cacheWrite": 214932,
+   "cacheRead": 1868589,
+   "output": 30173,
+   "usd": 1.0269268999999999,
    "unreported": 0,
    "files": 0
   },
@@ -199,6 +212,11 @@
    "turns": 2331
   },
   {
+   "file": "real-model/corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json.rescored.json",
+   "model": "claude-haiku-5-5",
+   "turns": 2331
+  },
+  {
    "file": "real-model/corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json",
    "model": "claude-sonnet-5-5",
    "turns": 723
@@ -217,6 +235,11 @@
    "file": "real-model/probe/anthropic-api-claude-sonnet-5-5-tools-important-20-2026-10-10T15-03-39-425Z.json.rescored.json",
    "model": "claude-sonnet-5-5",
    "turns": 18
+  },
+  {
+   "file": "real-model/ui-panel-sonnet/ui-claude-sonnet-5-5.json",
+   "model": "panel",
+   "turns": 122
   },
   {
    "file": "real-model/variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json",
@@ -244,5 +267,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-10T18:20:39.416Z"
+ "rebuiltAt": "2026-10-10T18:53:39.109Z"
 }
