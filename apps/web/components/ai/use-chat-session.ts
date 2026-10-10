@@ -5,7 +5,7 @@ import {streamChat} from '../../lib/ai/chat';
 import {nextFrame} from '../../lib/ai/chat-window';
 import {newChat, type Chat, type ChatStore, type ChatSummary} from '../../lib/ai/chats';
 import {fitToBudget, type Fit} from '../../lib/ai/context/budget';
-import {buildSystemPrompt} from '../../lib/ai/context/specialists';
+import {buildSystemParts, buildSystemPrompt} from '../../lib/ai/context/specialists';
 import type {Handle} from '../../lib/ai/context/types';
 import {AiError, errorSteps, isAbortLike, mapNetworkError} from '../../lib/ai/errors';
 import {readKey} from '../../lib/ai/keys';
@@ -203,7 +203,10 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const risk = detectRisk(text);
     const notes = [options.images?.length ? PHOTO_NOTE : null, options.log ? LOG_MODE_NOTE : null, options.plan ? PLAN_NOTE : null, risk ? carefulNote(risk) : null].filter((n): n is string => !!n);
     const withNotes = (prompt: string) => [prompt, ...notes].join('\n\n');
-    const systemOnly = buildSystemPrompt({...base, context: null}), system = withNotes(buildSystemPrompt({...base, context: contextText}));
+    // Session Z-Local Part 3 (ADR-020 L3): the prompt is the same string as before, joined from the page's and the question's
+    // records exactly as `contextText` was; it also travels as blocks, so the Anthropic wire can cache the stable prefix.
+    const partsFor = (tools: boolean) => { const p = buildSystemParts({...base, pageContext: pageText, context: options.extra?.text ?? null, tools}); const notes_ = notes.length ? `\n\n${notes.join('\n\n')}` : ''; return {prompt: withNotes(p.prompt), blocks: p.blocks.map((b, i) => i === p.blocks.length - 1 ? {...b, text: b.text + notes_} : b)}; };
+    const systemOnly = buildSystemPrompt({...base, context: null}), attachParts = partsFor(false), toolParts = partsFor(true), system = attachParts.prompt;
     // A photo is kept in memory for this session (a regenerate sends it again); the chat records only that one was attached.
     const asking = options.images?.length ? {...userTurn(text), attachments: [{kind: 'photo' as const}]} : userTurn(text);
     const started = options.reuse ? chatRef.current : appendTurn(before, asking);
@@ -223,13 +226,15 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const controller = new AbortController(); abort.current = controller;
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiSignals.emit('assistant_thinking');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
+    // Session Z-Local Part 3: the prompt-cache counts go to the usage meter only; the stored turn keeps its two fields.
+    let cache: {cacheWrite: number | null; cacheRead: number | null} = {cacheWrite: null, cacheRead: null};
     const found: Lookup[] = [];
     const flush = () => { frame.current = null; setDraft(pendingText.current); };
     // The photo travels with the question it belongs to, the last user message, and nowhere else.
     const lastUser = fit.messages.map(m => m.role).lastIndexOf('user');
     const messages = options.images?.length && lastUser >= 0 ? fit.messages.map((m, i) => i === lastUser && m.role === 'user' ? {...m, images: options.images} : m) : fit.messages;
     // Session X-Local Part 6d: a thinking model thinks only for "Think deeper"; a quick reply spends its cap on the answer.
-    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal, think: !!options.deep};
+    const request = {provider: providerId, localServer: settings.localServer ?? undefined, model, system, systemBlocks: attachParts.blocks, messages, maxOutputTokens: settings.maxOutputTokens, key, baseUrl: settings.baseUrl ?? undefined, appOrigin: window.location.origin, signal: controller.signal, think: !!options.deep};
     // Session V Part 6: how this message gets the data. Tools only with the page's data shared for this message, never
     // after this model refused them in this session; the setting first, then the provider's own metadata.
     const toolMode = options_.toolMode ?? 'auto', fbKey = fallbackKey(providerId, hosted ? `hosted:${model}` : model);
@@ -250,15 +255,15 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const counted = async function* (r: Parameters<typeof streamChat>[0]) { let seen = false; for await (const event of hosted && account ? streamHosted(r, account) : streamChat(r)) { if (!seen) { seen = true; requests++; } yield event; } };
     const record = () => {
       if (!requests) return;
-      try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, usage ?? {input: null, output: null}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
+      try { recordUsage(getAppStorage(), hosted ? 'hosted' : providerId, {...(usage ?? {input: null, output: null}), ...cache}, requests); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: AI_USAGE_KEY})); } catch { /* the meter is a convenience; the reply stands */ }
       try { const cap = capState(readUsage(getAppStorage()).data, monthKey(new Date())), line = capNote(cap); if (line && noted.current !== `${monthKey(new Date())}:${cap?.level}`) { noted.current = `${monthKey(new Date())}:${cap?.level}`; setUsageNote(line); } } catch { /* no note */ }
     };
     const run = async (current: DataMode, msgs = messages, extra: Partial<Pick<ChatRequest, 'format'>> = {}) => {
       if (current === 'tools' && env) {
         const shouldStop = () => contextRef.current.gates.paused ? 'ZIGi paused its lookups: this screen holds a private form.' : null;
-        for await (const event of runWithTools({...request, system: withNotes(buildSystemPrompt({...base, context: contextText, tools: true})), env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
+        for await (const event of runWithTools({...request, system: toolParts.prompt, systemBlocks: toolParts.blocks, env, stream: counted, answerChars: options.deep ? DEEP_ANSWER_CHARS : ANSWER_CHARS, shouldStop})) {
           if (event.type === 'text') onText(event.delta);
-          else if (event.type === 'usage') usage = {input: event.input, output: event.output};
+          else if (event.type === 'usage') { usage = {input: event.input, output: event.output}; cache = {cacheWrite: event.cacheWrite ?? null, cacheRead: event.cacheRead ?? null}; }
           else if (event.type === 'done') reason = event.reason;
           else if (event.type === 'tool-result') { found.push({label: lookupLabel(event.result), args: event.args, result: event.result, text: event.text}); setLooking(found.map(l => l.label)); zigiSignals.emit('assistant_reading_records'); }
           else if (event.type === 'tool-limit') limit = event.reason;
@@ -267,7 +272,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       }
       for await (const event of counted({...request, ...extra, messages: msgs})) {
         if (event.type === 'text') onText(event.delta);
-        else if (event.type === 'usage') usage = {input: event.input, output: event.output};
+        else if (event.type === 'usage') { usage = {input: event.input, output: event.output}; cache = {cacheWrite: event.cacheWrite ?? null, cacheRead: event.cacheRead ?? null}; }
         else if (event.type === 'done') reason = event.reason;
       }
     };

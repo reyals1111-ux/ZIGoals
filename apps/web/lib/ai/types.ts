@@ -21,10 +21,16 @@ export type ChatMessage =
   | {role: 'assistant'; content: string; toolCalls: ToolCallPart[]; raw?: unknown}
   /** A tool's result for one call, as text (the tool's compact JSON). */
   | {role: 'tool'; content: string; toolCallId: string; name: string};
-/** What a streaming reply yields, in order: text deltas, usage when the provider reports it, then exactly one done. */
+/**
+ * What a streaming reply yields, in order: text deltas, usage when the provider reports it, then exactly one done.
+ * Session Z-Local Part 3: `cacheWrite` and `cacheRead` are the prompt-cache counts a wire reports beside `input`
+ * (Anthropic's `cache_creation_input_tokens` / `cache_read_input_tokens`; OpenAI's `prompt_tokens_details.cached_tokens`
+ * as reads); absent or null where a wire has none. `input` stays what the provider calls input: on Anthropic the
+ * uncached remainder, so the whole prompt is input + cacheWrite + cacheRead.
+ */
 export type ChatEvent =
   | {type: 'text'; delta: string}
-  | {type: 'usage'; input: number | null; output: number | null}
+  | {type: 'usage'; input: number | null; output: number | null; cacheWrite?: number | null; cacheRead?: number | null}
   /** A complete tool call (Session V Part 6), emitted once its arguments are whole. */
   | {type: 'tool-call'; call: ToolCallPart}
   /** The model's whole turn, for wires that need it echoed back unchanged (Gemini). */
@@ -36,6 +42,14 @@ export type ChatRequest = {
   localServer?: 'ollama' | 'openai-compatible';
   model: string;
   system: string;
+  /**
+   * Session Z-Local Part 3 (ADR-020 L3): the system prompt in blocks whose texts concatenate to exactly `system`; a block
+   * with `cache: true` ends a stable prefix (the frame, protocol and examples; the page's records) that Anthropic's
+   * prompt cache may keep. Other wires ignore it; a list that does not concatenate to `system` is ignored too.
+   */
+  systemBlocks?: readonly {text: string; cache?: boolean}[];
+  /** `false` sends no cache marker at all (the before/after measurement only); absent, the wire caches as it can. */
+  cache?: boolean;
   messages: ChatMessage[];
   /** Per-reply output cap (ADR-012 spend protection); every wire has a field for it. */
   maxOutputTokens: number;

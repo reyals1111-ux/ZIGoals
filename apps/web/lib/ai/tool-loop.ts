@@ -44,26 +44,27 @@ export async function* runWithTools(request: LoopRequest): AsyncGenerator<LoopEv
   const {env, stream, maxRounds = MAX_TOOL_ROUNDS, answerChars = ANSWER_CHARS, shouldStop, ...chat} = request;
   const tools = toolsFor(env);
   let messages: ChatMessage[] = [...chat.messages], used = 0, shown = '';
-  const asked = new Set<string>(), total = {input: null as number | null, output: null as number | null};
-  const add = (key: 'input' | 'output', value: number | null) => { if (value !== null) total[key] = (total[key] ?? 0) + value; };
+  const asked = new Set<string>(), total = {input: null as number | null, output: null as number | null, cacheWrite: null as number | null, cacheRead: null as number | null};
+  const add = (key: keyof typeof total, value: number | null | undefined) => { if (value !== null && value !== undefined) total[key] = (total[key] ?? 0) + value; };
+  const sums = (): Extract<ChatEvent, {type: 'usage'}> => ({type: 'usage', input: total.input, output: total.output, ...(total.cacheWrite !== null ? {cacheWrite: total.cacheWrite} : {}), ...(total.cacheRead !== null ? {cacheRead: total.cacheRead} : {})});
   const stopped = () => { if (chat.signal?.aborted) throw new AiError('aborted', 'Stopped.', {provider: chat.provider}); };
   for (let round = 1; ; round++) {
     stopped();
-    const calls: ToolCallPart[] = [], usage = {input: null as number | null, output: null as number | null};
+    const calls: ToolCallPart[] = [], usage = {input: null as number | null, output: null as number | null, cacheWrite: null as number | null, cacheRead: null as number | null};
     let text = '', raw: unknown, done: Extract<ChatEvent, {type: 'done'}> | null = null;
     for await (const event of stream({...chat, messages, ...(tools.length ? {tools} : {})})) {
       if (event.type === 'tool-call') calls.push(event.call);
       else if (event.type === 'model-turn') raw = event.raw;
       else if (event.type === 'done') done = event;
-      else if (event.type === 'usage') { if (event.input !== null) usage.input = event.input; if (event.output !== null) usage.output = event.output; }
+      else if (event.type === 'usage') { if (event.input !== null) usage.input = event.input; if (event.output !== null) usage.output = event.output; if (event.cacheWrite != null) usage.cacheWrite = event.cacheWrite; if (event.cacheRead != null) usage.cacheRead = event.cacheRead; }
       else {
         // A model may say a few words before it looks something up; the next round's words start on a new paragraph.
         if (!text && shown && !/\s$/.test(shown)) { shown += '\n\n'; yield {type: 'text', delta: '\n\n'}; }
         text += event.delta; shown += event.delta; yield event;
       }
     }
-    add('input', usage.input); add('output', usage.output);
-    if (total.input !== null || total.output !== null) yield {type: 'usage', ...total};
+    add('input', usage.input); add('output', usage.output); add('cacheWrite', usage.cacheWrite); add('cacheRead', usage.cacheRead);
+    if (total.input !== null || total.output !== null || total.cacheWrite !== null || total.cacheRead !== null) yield sums();
     if (!calls.length) { yield done ?? {type: 'done', reason: null}; return; }
     stopped();
     const stop = shouldStop?.();

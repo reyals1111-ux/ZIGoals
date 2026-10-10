@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {execFileSync} from 'node:child_process';
 import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
 /**
@@ -59,6 +60,8 @@ const dirs = [
   '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs',
   ...extra,
 ];
+// Owner edit 3: Playwright's temporary browser profiles (removed with each context, but swept in case one was left behind).
+for (const base of [tmpdir(), '/tmp', '/private/tmp']) { try { for (const name of readdirSync(base)) if (/^playwright/i.test(name)) dirs.push(join(base, name)); } catch { /* no such folder */ } }
 for (const d of dirs) walk(d);
 if (hits.length) { console.error(`KEY SWEEP: ${hits.length} hit(s) (values never printed):\n${hits.join('\n')}`); process.exit(1); }
 console.log(`Key sweep clean: ${needles.length} pattern(s) over the diff, ${dirs.length} folders.`);

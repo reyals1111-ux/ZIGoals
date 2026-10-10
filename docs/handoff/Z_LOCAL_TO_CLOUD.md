@@ -43,3 +43,32 @@ STATUS) are carried by whichever PR merges second, with a merge commit.
 - **Part 5 will need two runner effects** (decision L8): `plan.navigate` (a route the card's Add opens) and
   `plan.confirm` (a route plus a marker that opens the app's own delete confirmation). The exact `Plan` fields come
   with Part 5's entry; until then the cards render through the generic card and Add shows the route to take.
+
+## 2026-10-10 — Part 3: the Anthropic adapter's body rules, for the relay (owner edit 5)
+`workers/zigi-relay/anthropic.mjs` must send the same shape and count the same way as `apps/web/lib/ai/adapters/anthropic.ts`
+(Z-Local's, ADR-020 L2–L4). Read from platform.claude.com on 2026-10-10; the adapter's unit tests pin each rule.
+- **Never `thinking: {type: "disabled"}` on Claude Opus 5.5 or Claude Sonnet 5.5: both answer 400.** The relay sends it
+  today unless `ZIGI_THINKING=model-default` (`thinkingOff`, `anthropic.mjs:23,82`), so a relay on either model fails
+  every request. Send no `thinking` field at all (adaptive thinking is the default on the 5.5 models) and control depth
+  with `output_config: {effort: "low"}` for the quick reply and `{effort: "high"}` for "Think deeper" (the app's
+  existing choice; never per model). A model that rejects `output_config` (a 400 naming it) gets the same request once
+  more without it. Thinking tokens are billed as output tokens.
+- **Prompt caching:** the system prompt goes as text blocks; the stable prefix (frame, day line, specialist, protocol,
+  examples, label) carries `cache_control: {type: "ephemeral"}`, the page's records a second marker when they stand
+  apart from the question's, and a top-level `cache_control: {type: "ephemeral"}` lets the API place its automatic
+  breakpoint on the conversation's last block (at most 4 markers). The app will send the relay the blocks it builds
+  (`lib/ai/context/specialists.ts` `buildSystemParts()`, texts that concatenate to the one system string); until the
+  relay reads them, caching the whole system string as one block is correct and safe (a shorter-than-minimum prefix just
+  makes no entry).
+- **Usage:** `message_start.usage` carries `input_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`;
+  `message_delta.usage` the cumulative `output_tokens`. The prompt is input + cache writes + cache reads; never add the
+  cache counts into input. The relay already keeps the four (`anthropic.mjs:98`); the app's meter now keeps them too
+  (`zigoals:ai-usage:v1` per route and month: `cacheWrite`, `cacheRead`, optional, loose).
+- **One price table:** `apps/web/lib/ai/pricing.ts` (`PRICES`, `PRICES_AS_OF`, `estimateCost(model, usage, {batch})`):
+  Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus 5.5
+  and Sonnet 5.5, 0.1× on Haiku 5.5; Haiku's second rate card over 100,000 prompt tokens; the Batch API 0.5×. The
+  relay's budget should cost from it (copy the table into the Worker from this file; never a second hand-typed table).
+- **The meter's display (L5):** show cache writes and reads beside input and output per route; the money line stays the
+  person's own prices (ADR-014), with one new control "Fill in the published prices (as of 2026-10-10)" that writes
+  `publishedPrices(model)` into their price fields for Anthropic's three models. The estimate counts cached tokens at the
+  person's input price (a ceiling; L9).
