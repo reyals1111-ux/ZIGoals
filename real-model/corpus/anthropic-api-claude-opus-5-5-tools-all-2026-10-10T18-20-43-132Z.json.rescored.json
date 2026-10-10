@@ -13,8 +13,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 666,
-  "rate": 0.9186206896551724,
+  "passed": 677,
+  "rate": 0.9337931034482758,
   "byKind": {
    "lookup": {
     "passed": 92,
@@ -79,7 +79,7 @@
   "costUsd": 11.3736378,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T19:13:28.367Z"
+  "rescoredAt": "2026-10-10T19:25:44.309Z"
  },
  "runs": [
   {
@@ -1220,12 +1220,12 @@
    "area": "today",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit, create-habit, create-habit], got [edit-habit, create-habit, edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, create-habit, create-habit, edit-habit, edit-habit, edit-habit], got [edit-habit, create-habit, edit-habit]"
     },
     {
      "name": "schema",
@@ -2041,12 +2041,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [], got [prefill-contribution]"
+     "pass": true,
+     "detail": "wanted [prefill-contribution], got [prefill-contribution]"
     },
     {
      "name": "schema",
@@ -2059,9 +2059,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": false,
-     "detail": "refused in words"
+     "name": "fields:kind=prefill-contribution,amount=200",
+     "pass": true,
+     "detail": "{\"kind\":\"prefill-contribution\",\"goal\":\"g1\",\"amount\":200,\"asset\":\"EUR\",\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -4729,12 +4729,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [plan-meal], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -4745,6 +4745,10 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
+    },
+    {
+     "name": "contains:recipe",
+     "pass": true
     }
    ],
    "cards": 0,
@@ -6019,7 +6023,7 @@
    "area": "wealth",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "schema",
@@ -6038,7 +6042,7 @@
     },
     {
      "name": "never:converted",
-     "pass": false
+     "pass": true
     }
    ],
    "cards": 0,
@@ -12942,12 +12946,12 @@
    "area": "today",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit], got [create-habit, create-habit, edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, create-habit, create-habit, edit-habit, edit-habit], got [create-habit, create-habit, edit-habit]"
     },
     {
      "name": "schema",
@@ -26412,12 +26416,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit], got [edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, edit-habit], got [edit-habit]"
     },
     {
      "name": "schema",
@@ -31881,12 +31885,12 @@
    "area": "today",
    "lang": "nl",
    "turn": 14,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [], got [prefill-contribution]"
+     "pass": true,
+     "detail": "wanted [prefill-contribution], got [prefill-contribution]"
     },
     {
      "name": "schema",
@@ -31899,9 +31903,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": false,
-     "detail": "no refusal wording"
+     "name": "fields:kind=prefill-contribution,amount=50",
+     "pass": true,
+     "detail": "{\"kind\":\"prefill-contribution\",\"goal\":\"Emergency fund\",\"amount\":50,\"asset\":\"EUR\",\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -34108,7 +34112,7 @@
    "area": "portfolio",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -34122,7 +34126,7 @@
     },
     {
      "name": "never:will double",
-     "pass": false
+     "pass": true
     }
    ],
    "cards": 0,
@@ -36125,7 +36129,7 @@
    "area": "today",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -36138,8 +36142,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "contains:jouw",
-     "pass": false
+     "name": "contains:AI",
+     "pass": true
     }
    ],
    "cards": 0,
@@ -36227,7 +36231,7 @@
    "area": "today",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -36250,7 +36254,7 @@
     },
     {
      "name": "never:0 minuten",
-     "pass": false
+     "pass": true
     }
    ],
    "cards": 0,
@@ -39869,17 +39873,17 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [set-target], got [set-target]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "value: Invalid input: expected number, received undefined"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -39888,12 +39892,12 @@
     },
     {
      "name": "fields:kind=set-target,target=kcal,value=null",
-     "pass": false,
-     "detail": "no card"
+     "pass": true,
+     "detail": "{\"kind\":\"set-target\",\"target\":\"kcal\",\"value\":null}"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": false,
    "firstTokenMs": 1853,

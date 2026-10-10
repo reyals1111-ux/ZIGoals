@@ -12,8 +12,8 @@
   "cases": 626,
   "repeat": 1,
   "runs": 773,
-  "passed": 594,
-  "rate": 0.7684346701164295,
+  "passed": 596,
+  "rate": 0.7710219922380336,
   "byKind": {
    "lookup": {
     "passed": 117,
@@ -74,7 +74,7 @@
   "costUsd": 5.9370882,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T18:30:12.399Z"
+  "rescoredAt": "2026-10-10T19:26:18.215Z"
  },
  "runs": [
   {
@@ -1280,12 +1280,12 @@
    "area": "today",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit, create-habit, create-habit], got [edit-habit, create-habit, create-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, create-habit, create-habit, edit-habit, edit-habit, edit-habit], got [edit-habit, create-habit, create-habit]"
     },
     {
      "name": "schema",
@@ -2172,12 +2172,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [prefill-contribution], got []"
     },
     {
      "name": "schema",
@@ -2190,9 +2190,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": true,
-     "detail": "refused in words"
+     "name": "fields:kind=prefill-contribution,amount=200",
+     "pass": false,
+     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -4998,12 +4998,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [plan-meal], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -5014,6 +5014,10 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
+    },
+    {
+     "name": "contains:recipe",
+     "pass": true
     }
    ],
    "cards": 0,
@@ -15545,7 +15549,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit, create-habit]"
+     "detail": "wanted [create-habit, create-habit, create-habit, edit-habit, edit-habit], got [create-habit, create-habit]"
     },
     {
      "name": "schema",
@@ -17558,7 +17562,7 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -17577,7 +17581,7 @@
     },
     {
      "name": "never:0 minutes",
-     "pass": false
+     "pass": true
     },
     {
      "name": "never:0 days",
@@ -18977,7 +18981,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-reminder, log-sleep], got [create-reminder, log-sleep]"
+     "detail": "wanted [create-habit, create-reminder, log-sleep], got [create-reminder, log-sleep]"
     },
     {
      "name": "schema",
@@ -18988,6 +18992,11 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=log-sleep",
+     "pass": true,
+     "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"07:00\"} {\"kind\":\"log-sleep\",\"wake\":\"07:00\",\"hours\":8,\"day\":\"today\"}"
     }
    ],
    "cards": 2,
@@ -21272,7 +21281,7 @@
     {
      "name": "tool:water",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [water]"
     },
     {
      "name": "arguments",
@@ -21330,7 +21339,7 @@
     {
      "name": "tool:habit_stats",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [habit_stats]"
     },
     {
      "name": "arguments",
@@ -21389,7 +21398,7 @@
     {
      "name": "tool:goal_progress",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [goal_progress]"
     },
     {
      "name": "arguments",
@@ -21447,7 +21456,7 @@
     {
      "name": "tool:steps",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [steps, steps]"
     },
     {
      "name": "arguments",
@@ -21517,7 +21526,7 @@
     {
      "name": "tool-any:sleep_nights|sleep_summary",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [sleep_nights, sleep_nights]"
     },
     {
      "name": "arguments",
@@ -21587,7 +21596,7 @@
     {
      "name": "tool:accounts",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [accounts]"
     },
     {
      "name": "arguments",
@@ -21827,7 +21836,7 @@
     {
      "name": "tool-any:diary_entries|nutrient_totals",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [nutrient_totals]"
     },
     {
      "name": "arguments",
@@ -21886,7 +21895,7 @@
     {
      "name": "tool:weight",
      "pass": true,
-     "detail": "answered on the device: no model ran"
+     "detail": "called [weight]"
     },
     {
      "name": "arguments",
@@ -24868,12 +24877,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [create-reminder], got [create-reminder]"
+     "pass": false,
+     "detail": "wanted [create-habit], got [create-reminder]"
     },
     {
      "name": "schema",
@@ -24886,8 +24895,8 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=07:00",
-     "pass": true,
+     "name": "fields:kind=create-habit,reminder=07:00",
+     "pass": false,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h7\",\"time\":\"07:00\"}"
     }
    ],
@@ -30194,12 +30203,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit], got [edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, edit-habit], got [edit-habit]"
     },
     {
      "name": "schema",
@@ -35869,12 +35878,12 @@
    "area": "today",
    "lang": "nl",
    "turn": 14,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [prefill-contribution], got []"
     },
     {
      "name": "schema",
@@ -35887,9 +35896,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": true,
-     "detail": "refused in words"
+     "name": "fields:kind=prefill-contribution,amount=50",
+     "pass": false,
+     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -41972,7 +41981,7 @@
      "detail": "every block valid"
     },
     {
-     "name": "contains:jouw",
+     "name": "contains:AI",
      "pass": true
     }
    ],
@@ -42157,7 +42166,7 @@
    "area": "today",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -42180,7 +42189,7 @@
     },
     {
      "name": "never:0 minuten",
-     "pass": false
+     "pass": true
     }
    ],
    "cards": 0,
