@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "conversations-claude-opus-5-5.json",
+ "stage": "ui-conv-opus",
+ "groups": {
+  "claude-opus-5-5 on Anthropic API (desktop)": {
+   "runs": 15,
+   "passed": 15,
+   "rate": 1,
+   "medianMs": 5866,
+   "p90Ms": 7342,
+   "errors": 0,
+   "costUsd": 0.5557182000000002
+  }
+ }
+}

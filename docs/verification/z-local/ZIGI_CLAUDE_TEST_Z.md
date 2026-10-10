@@ -89,7 +89,7 @@ conversations), and the second half of the caching measurement. Each lands here 
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 13 summary file(s): 3 met · 5 not met · 17 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 16 summary file(s): 4 met · 6 not met · 15 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -97,7 +97,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 13 summary file(s): 3
 | Sonnet · the spoken set ≥ 95 % | — | not run yet | — |
 | Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** | `ui-conv-sonnet/conversations-claude-sonnet-5-5.json` |
-| Sonnet · the day, desktop + phone: 36/36 | — | not run yet | — |
+| Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** | `ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json` |
 | Sonnet · pages 17 × 10 ≥ 99 % | — | not run yet | — |
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
 | Sonnet · WebKit subset (60 panel + 5 conversations), reported | — | not run yet | — |
@@ -111,7 +111,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 13 summary file(s): 3
 | Opus · UI panel 60 ≥ 97 % | — | not run yet | — |
 | qwen3.8 (RTX 5090) ≥ 90 % | — | not run yet | — |
 | qwen3.6 (RTX 5090) ≥ 85 % | — | not run yet | — |
-| qwen3.6 (Mac M1 Max) ≥ 85 % | — | not run yet | — |
+| qwen3.6 (Mac M1 Max) ≥ 85 % | 578/725 · 79.7 % | not met, 5.3 pt short; misses: cards 114, fields 43, schema 31, refusal 8, tool 6 | `qwen36-mac/mac-m1-max-qwen3.6-35b-a3b-tools-all-2026-10-10T17-21-51-599Z.json` |
 | gemma4 (RTX 5090) ≥ 89 % | — | not run yet | — |
 | gemma4 · the spoken set, reported | — | not run yet | — |
 | phi4-mini (RTX 5090), reported (X-Local: 61 %) | — | not run yet | — |
