@@ -84,6 +84,7 @@ Run the procedures in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md).
 |---|---|---|---|---|
 | E1 | Account-wide quotas re-checked | Cloudflare, Supabase, Resend and CoinGecko usage are within the free tiers, with headroom (ACTIVATION.md "Capacity and cost") | | |
 | E2 | Spend controls | No paid upgrade or automatic reload is enabled | | |
+| E3 | Code email limits (Session Z-Cloud, ADR-019 C43) | The email provider's own rate limit is no higher than the relay's 60 code emails a UTC day; the owner has decided whether to count only invited addresses | | |
 
 ## F. Remembered devices and downloads (Session M, ADR-008)
 | # | Check | Expected | Result | Receipt |
@@ -92,7 +93,20 @@ Run the procedures in [OWNER_RECOVERY_ADMIN.md](OWNER_RECOVERY_ADMIN.md).
 | F2 | Opening without the secret | A remembered device opens the vault without the recovery secret after a reload, in a new tab, after 15 idle minutes, and after closing and reopening the Home Screen app | | |
 | F3 | Lock now and Forget | "Lock account vault" locks and forgets: the next open asks for the secret. "Forget this device" keeps the tab open, and the next open asks | | |
 | F4 | Invalidation | Each of these makes the device ask for the secret again: sign-out; another account on the same browser; a new sign-in; key rotation on the other device (the old secret is refused, the new one works); revoking this device's session from the other device; deleting a cloud section or the account | | |
-| F5 | Deletion without a download | Cloud deletion works with the typed confirmation alone. "Download a copy first (optional)" still downloads a copy that restores with its own secret | | |
+| F5 | Deletion without a download | Cloud deletion works with the typed confirmation and the recovery secret (Session Z-Cloud, G1), with no download. "Download a copy first (optional)" still downloads a copy that restores with its own secret | | |
+
+## G. Session Z-Cloud (2026-10-10, ADR-019)
+Run after the acceptance redeploy of this release (FINAL_ACCTEST_REDEPLOY.md "Session Z-Cloud changes"), with `STEP_UP_REQUIRED` "on".
+
+| # | Check | Expected | Result | Receipt |
+|---|---|---|---|---|
+| G1 | The secret asked again (A6) | On Desktop A and on Phone B (a remembered device too): Delete a section, Sign out all other devices, Activate new vault key and Delete cloud records each ask "Your recovery secret, to confirm it’s you"; a wrong secret is refused on the device and nothing changes; the right one works | | |
+| G2 | Remembered for 30 days (A6) | A device remembered more than 30 days ago asks for the secret once and says why; NOT RUN is fine before day 30 | | |
+| G3 | Health asked in every tab (Y38) | Two tabs of a remembered account, Health sync on in tab 2: deleting and restoring the Health section in tab 1 turns Health sync off in tab 2 with "Health was restored in another tab…" | | |
+| G4 | Delete a habit for good, two devices | Desktop A archives a fictional habit, then Delete for good with its name; after sync Phone B no longer shows it anywhere; Undo within 10 s on A brings it back on both | | |
+| G5 | Talk to ZIGi on the iPhone (EN and NL) | In the Home Screen app and in Safari: the mic shows with or without an AI; tap and hold both work; a Dutch sentence is understood with the language set to nl-NL; the answer is read aloud, Mute silences it; where Safari has no speech recognition, the keyboard-dictation line shows | | |
+| G6 | ZIGoals AI · powered by Claude (only if activated by ZIGI_RELAY_ACTIVATION.md "Friends on Claude Sonnet 5.5") | An invited account sees the name and its own allowance in messages and dollars; a reply says "Answer from ZIGoals AI · powered by Claude"; an account not on the allowlist, or the kill switch "on", shows nothing | | |
+| G7 | Codes paused wording (A5) | Not something to try (60 code emails). PASS by reading `scripts/run11/auth-abuse.test.mjs` in CI; record NOT RUN otherwise | | |
 
 ## Receipt template (sanitized)
 One receipt per FAIL, and per PASS that needs evidence:
