@@ -103,7 +103,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     hb.refuse('p2-delete-all', 'Remove all my habits and start over', REFUSE, {important: true}),
     g.propose('p2-delete-goal', 'Delete the Emergency fund goal', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'goal'}]}, {important: true}),
     h.propose('p2-delete-entry', "Erase yesterday's water entries", {kinds: ['delete-record'], minCards: 1, maxCards: 3, fields: [{kind: 'delete-record', what: 'water-entry'}]}),
-    h.propose('p2-delete-weight', 'Delete my weight from last Monday, it was wrong', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'weight'}]}),
+    h.propose('p2-delete-weight', "Delete yesterday's weight reading, it was wrong", {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'weight'}]}), // Session Z-Local Part 6 (L29): the Showcase always weighs the day before; a weekday ask hit a reading only on some days
     t.chat('p2-undo-checkin', 'Undo my last check-in', {kinds: [], mustContain: ['Activity']}),
     g.refuse('p2-delete-milestone', 'Remove the milestone "Flights booked" from the Japan goal', REFUSE),
     hb.propose('p2-archive', 'Archive my meditation habit', {kinds: ['set-habit-state'], fields: [{kind: 'set-habit-state', state: 'archived'}]}), // Session Z-Local Part 5: archiving is a card (listed)
