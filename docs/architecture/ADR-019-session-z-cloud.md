@@ -71,9 +71,18 @@ that keeps the project's promises), and the owner's own decisions. A parallel la
 | C18 | 3 | **Without an AI, words Quick add understands become its preview card** under the on-device answer ("Will save: …", Save, nothing written before), through Quick add's own parser and save path (`QuickAddLine` with `initialText`). | The brief: "through the on-device answers and Quick add's parser"; no second parser. |
 | C19 | 3 | **Voice settings are one card, "Voice: talk to ZIGi"** (`#zigi-voice`), in the "ZIGi's look and feel" group and shown with or without an AI connected (they sat under "Advanced", which shows only when connected). Its body loads when the card opens, like Look and Setup. The Settings reserve (`--ai-settings-reserve`) is the measured body: 1120 px on a computer, 1500 px on a phone (was 928/1290 before the card and Part 2's lines; measured 1121/1501). | Voice works without an AI now; an always-open group of switches grew the section's body by ~200 px, past the reserve that keeps Settings' jumps in place (`zigi-settings-reserve.spec.ts`). |
 | C20 | 2 | **Folded, the auto-accept cap note leads** the earlier cards' fold instead of following it (`proposal-list.tsx`, render only). CI run 38064442869 (`zigi-stress.spec.ts:202`, reproduced locally) found the cap note's reason sitting under a closed fold, behind the folded card's "Health · Water · today". | The note says why cards wait; it must be read before the fold that hides them. Unfolded lists keep their order. |
+| C32 | 2 | **WebKit: the panel keeps its compositing layer, and an added card keeps its size while its Undo window is open.** CI's advisory WebKit job failed 15 and 12 tests on Parts 2 and 3 (Y-Cloud's last three runs were green). Reproduced locally with Playwright's WebKit build 2359 (the CI build; installed with its system libraries in this sandbox only): `zigi-accept-correct` desktop failed 8–11 of 69 on the branch and 0 of 69 on `main`. `dmesg` showed every crash at one instruction in `libWPEWebKit`'s ThreadedCompositor (a virtual call on a null object; 57 of 57). Bisected: the dialog portal, the container query, the header, the folding and speech synthesis were not it; Part 2's `backdrop-filter:none` (the opaque panel) was: with the backdrop filter back (the background stays opaque, so nothing shows) the crashes went from 6–8 per run to 1. The other failures were an Undo that moved under the click: the card folded into its receipt at Add, so the Undo bar below it jumped. Now the card folds when the Undo window ends (10 s). Result: 68 of 69, the one left a compositor crash of the kind `main` also shows now and then (ADR-018 Y42); CI's full WebKit job is the measure. | The layer is an engine bug's trigger, not a design choice; keeping `main`'s layer costs nothing visible. A target that never moves while it can be used is better for people too. |
 
 ## Handoff applied (from Z_LOCAL_TO_CLOUD.md)
-None yet (no `feature/session-z-local` branch on 2026-10-10 14:10 UTC).
+Read at each gate on `origin/feature/session-z-local`. **Gate A:** its head `9dc9a86` (Part 5, 3/3), read 2026-10-10 16:10 UTC.
+| Ask (Z-Local's entry) | State here | Where |
+|---|---|---|
+| Voice languages EN/NL only, French out; an old `'fr'` reads as the device default (opened, owner edit 6) | **Applied** (Part 3): the four options and the device default in Settings; `speechLanguage` resolves `fr-*` to the device language. When Z-Local's option list is exported from `lib/ai/settings.ts` on `main`, the PR that merges second points `VOICE_LANGUAGES` at it. | `lib/zigi-voice-lang.ts`, `lib/ai/voice.ts`, C16 |
+| `proposal-list.tsx`: the second merger keeps both lanes' changes (opened, Part 1) | **Nothing to merge yet:** Z-Local's freeze is not reproducible on the Mac and no fix has landed in the file; its looping probe spec runs in CI's WebKit job. | C9, C20 |
+| The relay sends and counts exactly as the adapter (Part 3 entry): no `thinking` field on the 5.5 models, `output_config.effort` low/high with one retry without it, `cache_control` on the stable prefix plus the top-level automatic one, the four usage fields, one price table copied from `lib/ai/pricing.ts` | **Part 6** (the relay is built to these rules; the price table is copied with its source commit named). | Part 6 |
+| The usage meter shows cache writes and reads and "Fill in the published prices" (L5) | **Waits for Z-Local on `main`:** the fields (`cacheWrite`, `cacheRead`) and `publishedPrices()` exist only on its branch. The PR that merges second renders them in `components/ai/ai-data-usage.tsx`. | owner item if Z-Local merges first and this PR is still open: then this lane does it |
+| Runner effects `plan.navigate`, `plan.confirm`, `plan.device` (Part 5 entries) | **Gate B:** `use-proposals.ts` reads the three optional fields structurally (they compile against `main`'s `Plan` and Z-Local's), with a unit test of the effect; `plan.confirm` opens the record's page and its own delete confirmation for the targets whose pages have one. | Gate B |
+| Pre-fill for a goal's contribution and a new account (`form-prefill.ts`) | **Waits for Z-Local on `main`:** the stash module exists only on its branch; the PR that merges second wires `take…Prefill()` in `contribution-flow.tsx` and `accounts-section.tsx`. Until then the cards say which route they open. | owner item at merge |
 
 ## Assertions changed (deliberate, listed)
 - **Part 2, the new name (as strict):** `tests/help-page.spec.ts` (the topic list) and `tests/send-feedback.spec.ts` (the Known
@@ -96,6 +105,13 @@ None yet (no `feature/session-z-local` branch on 2026-10-10 14:10 UTC).
   ("Not connected to an AI yet", link "Set up" to `/app/settings#your-ai`) where they expected "Connect your own AI to
   start" and "Set up in Settings"; `zigi-local-answers` expects the new local greeting and finds the example questions in the
   sheet's group "Questions ZIGi answers here" (was `.ai-local-intro .ai-chip`).
+- **Part 2 fix, the receipt after the Undo window (C32, stricter):** `zigi-face-z`'s receipt test now expects the added card to
+  keep its size with "Added" and no button left while Undo shows, the Undo bar not to move for 600 ms, and then the
+  one-line receipt within 15 s (it expected the receipt at once).
+- **Part 3, the voice spec in WebKit (C32, same checks per engine):** `zigi-voice-z` expects Apple's service in the disclosure
+  and the "safari" record wherever the engine is Safari's (the phone project and WebKit on a computer; it keyed this on the
+  phone project only), no second microphone capture outside Chromium on a computer (C15; it expected one on every
+  computer), and scrolls with a script where it used the mouse wheel (mobile WebKit has none).
 
 ## Rejected options
 None yet.

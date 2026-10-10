@@ -72,7 +72,9 @@ async function tap(target: ReturnType<Page['locator']>) { await target.evaluate(
 async function hold(page: Page, target: ReturnType<Page['locator']>, ms: number) { await target.evaluate(pointer, 'pointerdown'); await page.waitForTimeout(ms); await target.evaluate(pointer, 'pointerup'); }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
-test('without any AI the microphone is there; the first press says who hears the audio; "Talk now" starts inside the click; the words go to the on-device answers', async ({page, isMobile}) => {
+test('without any AI the microphone is there; the first press says who hears the audio; "Talk now" starts inside the click; the words go to the on-device answers', async ({page, isMobile, browserName}) => {
+  // Safari's engine (WebKit, and every iPhone browser) names Apple's service; Chrome on a computer names Google's.
+  const apple = isMobile || browserName === 'webkit';
   await fakes(page);
   await seed(page);
   await openChat(page, '/app/habits');
@@ -80,7 +82,7 @@ test('without any AI the microphone is there; the first press says who hears the
   await expect(mic(page)).toHaveAttribute('aria-pressed', 'false');
   await tap(mic(page));
   const disclose = panel(page).getByRole('group', {name: 'Before you talk to ZIGi'});
-  await expect(disclose).toContainText(isMobile ? 'Apple' : 'Google');
+  await expect(disclose).toContainText(apple ? 'Apple' : 'Google');
   await expect(disclose).toContainText('ZIGoals never stores the audio');
   expect((await log(page)).starts).toEqual([]);
   await disclose.getByRole('button', {name: 'Talk now'}).click();
@@ -88,14 +90,14 @@ test('without any AI the microphone is there; the first press says who hears the
   await expect(mic(page)).toHaveAttribute('aria-pressed', 'true');
   await expect(panel(page).getByRole('status').filter({hasText: 'Listening…'})).toHaveCount(1);
   const stored = await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), ZIGI_VOICE_KEY);
-  expect(Object.keys(stored.disclosed)).toEqual([isMobile ? 'safari' : 'chrome']);
+  expect(Object.keys(stored.disclosed)).toEqual([apple ? 'safari' : 'chrome']);
   await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('How many minutes did I meditate this month?'));
   await expect(panel(page).locator('.ai-turn-user').last()).toHaveText('How many minutes did I meditate this month?');
   await expect(panel(page).locator('.ai-turn-local').last()).toBeVisible();
   await expect(mic(page)).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('the composer\'s microphone: a tap starts inside the press and a second tap stops; a hold stops on release; Escape cancels and releases the microphone', async ({page, isMobile}) => {
+test('the composer\'s microphone: a tap starts inside the press and a second tap stops; a hold stops on release; Escape cancels and releases the microphone', async ({page, isMobile, browserName}) => {
   await fakes(page);
   await seed(page, {voice: {...SEEN, sendOnStop: false}});
   await openChat(page);
@@ -118,9 +120,10 @@ test('the composer\'s microphone: a tap starts inside the press and a second tap
   await expect(mic(page)).toHaveAttribute('aria-pressed', 'false');
   expect((await log(page)).aborts).toBe(1);
   await expect(panel(page)).toBeVisible();
-  // Chromium on a computer measures the level on a real stream, and every track ends; iOS opens no second capture.
+  // Chromium on a computer measures the level on a real stream, and every track ends; Safari's engine (iOS, WebKit on a
+  // computer) opens no second capture (ADR-019 C15).
   const l = await log(page);
-  if (isMobile) expect(l.streams).toBe(0);
+  if (isMobile || browserName !== 'chromium') expect(l.streams).toBe(0);
   else { expect(l.streams).toBeGreaterThanOrEqual(1); expect(l.ended).toBe(l.streams); }
 });
 
@@ -221,7 +224,8 @@ test('long presses: no text selection, callout or menu on the launcher and the m
   await page.goto('/app');
   const box = page.getByTestId('ai-launcher');
   for (const scrolled of [false, true]) {
-    if (scrolled) { await page.mouse.wheel(0, 900); await page.waitForTimeout(700); }
+    // A script scroll: mobile WebKit has no mouse wheel.
+    if (scrolled) { await page.evaluate(() => scrollBy(0, 900)); await page.waitForTimeout(700); }
     const before = (await box.boundingBox())!;
     const b = (await launcherButton(page).boundingBox())!;
     await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down(); await page.waitForTimeout(600);

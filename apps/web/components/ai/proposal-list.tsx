@@ -131,7 +131,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
     {(() => {
-      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto}
+      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))}
         onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);

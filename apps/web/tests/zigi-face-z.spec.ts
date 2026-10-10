@@ -204,7 +204,19 @@ test('acted-on cards are one-line receipts; a newer reply with cards folds the e
   const cards = panel(page).locator('.ai-card');
   await expect(cards).toHaveCount(3);
   await cards.nth(0).getByRole('button', {name: 'Add', exact: true}).click();
-  await expect(cards.nth(0)).toHaveClass(/ai-card-receipt/);
+  // While its Undo window is open the added card keeps its size, so the Undo below it stays where it was (ADR-019 C32);
+  // nothing is left to choose on it but Undo.
+  await expect(cards.nth(0)).toHaveClass(/ai-card-added/);
+  await expect(cards.nth(0)).not.toHaveClass(/ai-card-receipt/);
+  await expect(cards.nth(0).locator('.ai-card-actions .ai-card-status')).toHaveText('Added');
+  await expect(cards.nth(0).getByRole('button')).toHaveCount(0);
+  const undo = panel(page).getByRole('button', {name: /^Undo · \d+ s$/});
+  await expect(undo).toBeVisible();
+  const at = (await undo.boundingBox())!;
+  await page.waitForTimeout(600);
+  expect((await undo.boundingBox())!.y).toBe(at.y);
+  // When the window ends it folds into its one-line receipt.
+  await expect(cards.nth(0)).toHaveClass(/ai-card-receipt/, {timeout: 15_000});
   await expect(cards.nth(0)).toHaveText(/^✓\s*Added\s*Add water$/);
   expect((await cards.nth(0).boundingBox())!.height).toBeLessThanOrEqual(64);
   await cards.nth(1).getByRole('button', {name: 'Dismiss', exact: true}).click();
