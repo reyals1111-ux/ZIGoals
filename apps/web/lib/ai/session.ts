@@ -55,7 +55,7 @@ export function messagesFor(turns: readonly ChatTurn[]): ChatMessage[] {
 export function stopReason(reason: string | null, aborted: boolean): string | undefined {
   if (aborted) return 'Stopped';
   if (!reason) return undefined;
-  if (/^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason)) return 'Cut off at your output cap (Settings → ZIGi · your AI → Output cap)';
+  if (/^(length|max_tokens|max_output_tokens|MAX_TOKENS)$/i.test(reason)) return 'Cut off at your output cap (Settings → ZIGi · Your Personal AI Companion → Output cap)';
   if (/^(content_filter|SAFETY|RECITATION|PROHIBITED_CONTENT|SPII|BLOCKLIST|refusal)$/i.test(reason)) return 'Stopped by the provider\'s content filter';
   if (/^(stop|end_turn|STOP|stop_sequence|tool_calls|FINISH_REASON_UNSPECIFIED)$/i.test(reason)) return undefined;
   return `Stopped by the provider (${reason.slice(0, 40)})`;

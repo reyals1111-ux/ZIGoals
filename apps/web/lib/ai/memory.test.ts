@@ -165,7 +165,7 @@ test('"Remember this?": a confirmed card keeps the note as ZIGi\'s, Undo forgets
   expect(p.undo!.unchanged(after, edited)).toBe(false);
   // A diet note says Health must be shared too.
   expect(plan({kind: 'remember', text: 'Vegetarian', category: 'diet'}).card.lines[2]).toBe('On this device only; it goes to your AI with your messages while "Use my notes" is on and Health is shared with ZIGi');
-  expect(refusal({kind: 'remember', text: 'Has type 2 diabetes', category: 'health'})).toBe('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · your AI → What ZIGi knows about me.');
+  expect(refusal({kind: 'remember', text: 'Has type 2 diabetes', category: 'health'})).toBe('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · Your Personal AI Companion → What ZIGi knows about me.');
   expect(refusal({kind: 'remember', text: `My OpenAI key is ${FAKE_OPENAI}`})).toBe(SECRET_REFUSAL);
   expect(refusal({kind: 'remember', text: 'prefers MORNING workouts'}, env({stores: after}))).toBe('This is already in What ZIGi knows about me.');
   let full: AiMemory = {version: 1};

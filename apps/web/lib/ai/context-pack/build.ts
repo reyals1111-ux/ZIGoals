@@ -102,7 +102,7 @@ export function buildContextPack({sources, gates, scope, madeAt = sources.now}: 
       '### Fasts (a list; ZIGoals keeps no fasting totals or streaks)', table(['Day', 'Hours', 'Target hours', 'Stopped'], ((fasting?.fasts ?? []) as Record<string, unknown>[]).map(f => [f.day, f.hours, f.targetHours, f.stopped])),
       '### Exercise counters', table(['Counter', 'Total', 'Days with an entry'], ((counters?.counters ?? []) as Record<string, unknown>[]).map(c => [c.counter, c.total, c.daysWithEntry])));
     json.health = withoutHandles({nutrients, water, steps, weight, fasting, counters});
-  } else if (scope.health) omitted.push('Health (its gate is closed: Settings → ZIGi · your AI → Include Health, with Health on Today)');
+  } else if (scope.health) omitted.push('Health (its gate is closed: Settings → ZIGi · Your Personal AI Companion → Include Health, with Health on Today)');
   if (scope.wealth && env.areas.wealth) {
     included.push('Wealth');
     const totals = dataOf(run('totals_per_currency')), holdings = dataOf(run('holdings')), portfolios = sources.portfolio ? dataOf(run('portfolios')) : null;

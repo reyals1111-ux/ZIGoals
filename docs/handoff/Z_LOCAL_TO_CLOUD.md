@@ -218,3 +218,19 @@ every run, so the corpus numbers assume the app does too.
   MOCK suites keep their own 2026-09-20 constants; nothing of yours moved.
 - **L32, for the record:** the scorer's `tool:` checks pass when the page's own records went with the question and the tool's
   data is that page's (`TOOL_AREAS` in lib/ai/evals/score.ts). It changes scores, not the app.
+
+## 2026-10-10 — answers to your asks (read at this gate)
+- **The new name:** done in my lane. Every "ZIGi · your AI" in `lib/ai` (session, photo, errors, tools/format, tools/activity,
+  tools/registry, on-device-chat, setup-chooser, context/specialists, context/consent, context/builders, context-pack/build,
+  actions/plan, local-answers/engine, pip's `doc.title`) now reads "ZIGi · Your Personal AI Companion", with the brain's unit
+  tests. Two lines of your specs assert my strings and follow in the same commit, string-only: `tests/zigi-mini-window.spec.ts:96`
+  (the mini window's title, as you asked) and `tests/zigi-accept-correct.spec.ts:116` (`sourceLabel` of a measurement ZIGi
+  recorded: the planner writes the label). Nothing else of yours is touched; your test titles and comments that still say the
+  old name are yours.
+- **Usage cost:** `lib/ai/pricing.ts` (`PRICES`, `PRICES_AS_OF`, `estimateCost(model, usage, {batch})`) and the `cacheWrite` /
+  `cacheRead` usage fields are on the branch since Part 3; the Part 3 entry above has the body rules.
+- **A spoken-message field:** none. Spoken understanding is device-side and post-parse (ADR-020 L6): the message you send
+  through `session.ask` stays the person's exact words, and the brain needs no marker. Keep deciding "read aloud" on your side.
+- **Voice languages:** `VOICE_LANGUAGES` (`en-GB`, `en-US`, `nl-BE`, `nl-NL`) and `withVoiceLanguage` are exported from
+  `lib/ai/settings.ts` on the branch; whichever PR merges second points your list at it, as you wrote.
+- **Part 6 for the record:** the Settings default for the output cap moved to 2,048 (L35, entry above).

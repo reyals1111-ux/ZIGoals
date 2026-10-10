@@ -271,7 +271,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'log-measurement': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
       const id = healthId(), observedAt = day.day === env.healthDay ? at : `${day.day}T12:00:00.000Z`;
-      const draft = {id, kind: action.kind_of, quantityMilli: Math.round(action.value * 1000), unit: action.unit, observedAt, timezone: env.timeZone, sourceLabel: 'ZIGi · your AI'};
+      const draft = {id, kind: action.kind_of, quantityMilli: Math.round(action.value * 1000), unit: action.unit, observedAt, timezone: env.timeZone, sourceLabel: 'ZIGi · Your Personal AI Companion'};
       return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Add a body measurement', lines: [`${action.kind_of}: ${num(action.value, 2)} ${action.unit}`], where: 'Health · Body measurements', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: s => ({health: saveMeasurement(s.health, draft, at)}),
         undo: {label: 'Remove this measurement', write: s => { const rest = (s.health.measurements ?? []).filter(m => m.id !== id); return {health: healthSchema.parse({...s.health, measurements: rest.length ? rest : undefined})}; }, unchanged: (after, current) => same((after.health.measurements ?? []).find(m => m.id === id), (current.health.measurements ?? []).find(m => m.id === id))}, activity: {id, title: `Measurement: ${action.kind_of} ${num(action.value, 2)} ${action.unit}`}}};
@@ -507,7 +507,7 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'remember': {
       // ZIGi never keeps a note about a health condition by itself; the person can write one in the panel if they want it.
-      if (action.category === 'health') return refuse('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · your AI → What ZIGi knows about me.');
+      if (action.category === 'health') return refuse('ZIGi does not keep notes about health conditions by itself. If you want one kept, write it yourself in Settings → ZIGi · Your Personal AI Companion → What ZIGi knows about me.');
       const problem = noteProblem(action.text, stores.memory); if (problem) return refuse(problem);
       const id = (env.newNoteId ?? newNoteId)(), sent = isHealthNote(action.category) ? 'while "Use my notes" is on and Health is shared with ZIGi' : 'while "Use my notes" is on';
       return {ok: true, plan: {target: 'memory', card: {kind: action.kind, title: 'Remember this?', lines: [action.text, `Kept as: ${CATEGORY_LABELS[action.category]}`, `On this device only; it goes to your AI with your messages ${sent}`], where: 'ZIGi · What ZIGi knows about me', day: null, estimate: false},
@@ -706,7 +706,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.view) {
         const v = action.view;
         if (['sleep', 'meditation', 'devices', 'imports'].includes(v)) { if (action.page !== 'health') return refuse(`The ${v} view is on Health.`); href = `/app/health?view=${v}`; label = `Health → ${v[0]!.toUpperCase()}${v.slice(1)}`; }
-        else if (v === 'zigi' || v === 'pages') { if (action.page !== 'settings') return refuse(`That section is on Settings.`); href = v === 'zigi' ? '/app/settings#your-ai' : '/app/settings#pages'; label = v === 'zigi' ? 'Settings → ZIGi · your AI' : 'Settings → Your pages & buttons'; }
+        else if (v === 'zigi' || v === 'pages') { if (action.page !== 'settings') return refuse(`That section is on Settings.`); href = v === 'zigi' ? '/app/settings#your-ai' : '/app/settings#pages'; label = v === 'zigi' ? 'Settings → ZIGi · Your Personal AI Companion' : 'Settings → Your pages & buttons'; }
         else if (v === 'new-goal') { if (action.page !== 'goals') return refuse('A new goal is made on Goals.'); href = '/app/goals/new'; label = 'Goals → New goal'; }
       }
       if (action.habit) { const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message); href = `/app/habits#habit-${found.habit.id}`; label = `Habits → ${found.habit.title}`; }
@@ -1032,7 +1032,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.edgeTab !== undefined && prefs?.edgeTab !== action.edgeTab) { patch.edgeTab = action.edgeTab; lines.push(action.edgeTab ? 'A "Show ZIGi" tab at the edge when ZIGi is hidden' : 'No edge tab'); }
       if (action.knock !== undefined && prefs?.knock.enabled !== action.knock) { patch.knock = {enabled: action.knock}; lines.push(action.knock ? 'ZIGi may knock' : 'ZIGi does not knock'); }
       if (lines.length === 0) return refuse('ZIGi already looks like that.');
-      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'ZIGi\'s look and feel', lines: [...lines, 'On this device; Settings → ZIGi · your AI changes it back'], where: 'Settings · ZIGi · your AI', day: null, estimate: false},
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'ZIGi\'s look and feel', lines: [...lines, 'On this device; Settings → ZIGi · Your Personal AI Companion changes it back'], where: 'Settings · ZIGi · Your Personal AI Companion', day: null, estimate: false},
         write: () => ({}), undo: null, device: {key: ZIGI_KEY, patch}, activity: {id: `zigi-look:${at}`, title: 'ZIGi\'s look changed'}}};
     }
     case 'prefill-contribution': {

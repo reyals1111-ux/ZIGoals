@@ -106,7 +106,7 @@ export const EXAMPLES: Record<PageArea, readonly {ask: string; reply: string}[]>
     {ask: 'Should I buy more?', reply: 'I do not give investment advice. Your records show the holdings and the values you entered; I can summarise them per currency.'},
   ],
   help: [
-    {ask: 'Turn yourself off', reply: 'Settings → ZIGi · your AI → Turn off ZIGi. I cannot change settings myself.'},
+    {ask: 'Turn yourself off', reply: 'Settings → ZIGi · Your Personal AI Companion → Turn off ZIGi. I cannot change settings myself.'},
     {ask: 'Log a glass of water', reply: 'This page has no records attached, but a card still works:\n\n```zigoals-action\n{"kind":"log-water","glasses":1}\n```'},
   ],
 };

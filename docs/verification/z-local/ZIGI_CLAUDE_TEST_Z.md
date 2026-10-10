@@ -137,7 +137,7 @@ Filled when the round is complete (friends through the relay, budget, deep).
 
 ## Owner checklist rows (Part 9): Claude on the phone and on the Mac
 What a real phone and a real Mac prove that the harness and Chrome cannot: the keyboard, dictation by the system, the
-installed app, Safari's own WebKit. Connect ZIGi to your own Anthropic key first (Settings → ZIGi · your AI → Anthropic,
+installed app, Safari's own WebKit. Connect ZIGi to your own Anthropic key first (Settings → ZIGi · Your Personal AI Companion → Anthropic,
 Claude Sonnet 5.5; "Remember on this device" is your choice), load the Showcase, and tick:
 
 | # | Where | Check | Pass looks like |
@@ -145,10 +145,10 @@ Claude Sonnet 5.5; "Remember on this device" is your choice), load the Showcase,
 | 1 | iPhone, Safari and the home-screen app | Open Today, tap ZIGi, ask "two glasses of water" | one card in under four seconds; **Add**; the water figure on Today moves; Undo in the toast works |
 | 2 | iPhone | Hold the microphone (browser speech recognition on) and say "um, log two and a half litres of water, no wait, three" | the words appear as you said them; the card says 3 litres (3,000 mL); nothing is sent before you release |
 | 3 | iPhone | Say in Dutch: "ik heb vanmorgen vijfentwintig minuten gemediteerd" | a meditation card with 25 minutes for today; the reply in Dutch |
-| 4 | iPhone | Ask "how many steps did I walk this week?" | an answer from your records with the week's figure; no card; the usage meter (Settings → ZIGi · your AI) shows the turn's cache read |
+| 4 | iPhone | Ask "how many steps did I walk this week?" | an answer from your records with the week's figure; no card; the usage meter (Settings → ZIGi · Your Personal AI Companion) shows the turn's cache read |
 | 5 | iPhone | Ask "delete my Walk habit" | one card that opens the habit's own delete confirmation on Habits; nothing deleted until you confirm there; **Cancel** leaves it |
 | 6 | iPhone | Ask "put 200 euros towards the Japan adventure goal" | the goal's Fund form opens filled in with 200; nothing recorded until you save; close it and nothing changed |
 | 7 | iPhone | Switch Health sharing off (Settings → Pages shared with ZIGi), ask "log my weight, 72 kilos" | a refusal in words that names the Health gate; no card; switch it back on and ask again: a weight card that always waits for your tap |
 | 8 | Mac, Safari | Ask ZIGi twice after an Undo (ask for water, Add, Undo, then ask two more things) | ZIGi keeps answering both; no frozen page, no stuck "thinking" (the WebKit case of Part 1) |
 | 9 | Mac, Safari | Open the panel, press Stop while a long answer streams, then ask again | the first answer stays as far as it got, no marker text shown; the next answer arrives normally |
-| 10 | Mac or iPhone | Settings → ZIGi · your AI → the usage meter after ten asks | input, output, cache writes and cache reads all counted; the estimate from your own prices, never a built-in price |
+| 10 | Mac or iPhone | Settings → ZIGi · Your Personal AI Companion → the usage meter after ten asks | input, output, cache writes and cache reads all counted; the estimate from your own prices, never a built-in price |

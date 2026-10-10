@@ -52,7 +52,7 @@ test('Health only with its gate open AND its own box: the box alone or the gate 
     expect(p.included, name).not.toContain('Health'); expect(p.markdown, name).not.toContain('## Health');
     expect(sentinelsIn(p.markdown), name).toEqual([]); expect(sentinelsIn(JSON.stringify(p.json)), name).toEqual([]);
   }
-  expect(pack({}, false).omitted).toContain('Health (its gate is closed: Settings → ZIGi · your AI → Include Health, with Health on Today)');
+  expect(pack({}, false).omitted).toContain('Health (its gate is closed: Settings → ZIGi · Your Personal AI Companion → Include Health, with Health on Today)');
   // A check-in a Health link filled in stays held back when Health is out of the pack.
   expect(pack({health: false}).markdown).not.toContain(String(SENTINEL.habitValue));
   expect(pack({health: false}).markdown).toContain('from Health, not shared');

@@ -107,8 +107,14 @@ const dirs = [
 // A profile a running browser names in its own `--user-data-dir` is a live context of a stage still running, not one left behind:
 // it is walked for the patterns like every other folder, and the push goes on; the moment no process owns it, it is a hit again.
 const recent = Date.now() - 6 * 3600 * 1000;
-let inUse = new Set();
-try { inUse = new Set([...execFileSync('ps', ['-axo', 'command'], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024}).matchAll(/--user-data-dir=(\S+)/g)].map(m => m[1])); } catch { /* no ps: every recent profile counts as left behind */ }
+let inUse = new Set(), webkitSince = Infinity;
+try {
+  const ps = execFileSync('ps', ['-axo', 'etime=,command='], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+  inUse = new Set([...ps.matchAll(/--user-data-dir=(\S+)/g)].map(m => m[1]));
+  // WebKit takes no --user-data-dir: its profile is in use while Playwright's WebKit binary runs and the folder is newer than that process.
+  const secs = e => { const p = e.trim().split(/[-:]/).map(Number); return p.length === 4 ? p[0] * 86400 + p[1] * 3600 + p[2] * 60 + p[3] : p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + (p[1] ?? 0); };
+  for (const line of ps.split('\n')) { const m = /^\s*(\S+)\s+(.*)$/.exec(line); if (m && /ms-playwright\/webkit-[^/]+\/Playwright\.app\/Contents\/MacOS\/Playwright\b/.test(m[2])) webkitSince = Math.min(webkitSince, Date.now() - secs(m[1]) * 1000); }
+} catch { /* no ps: every recent profile counts as left behind */ }
 let live = 0;
 for (const base of [tmpdir(), '/tmp', '/private/tmp']) {
   try {
@@ -116,7 +122,9 @@ for (const base of [tmpdir(), '/tmp', '/private/tmp']) {
       const path = join(base, name); dirs.push(path);
       try {
         if (/profile/i.test(name) && statSync(path).mtimeMs > recent) {
+          const st = statSync(path);
           if ([...inUse].some(d => d === path || d.startsWith(path + '/'))) live++;
+          else if (/webkit/i.test(name) && st.mtimeMs >= webkitSince - 5000) live++;
           else hits.push(`${path}: a browser profile left behind in the last six hours (remove it after the stage)`);
         }
       } catch { /* gone */ }

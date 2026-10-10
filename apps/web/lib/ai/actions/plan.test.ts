@@ -87,7 +87,7 @@ test('water, steps, weight and a measurement: card, write through the Health mut
   expect(measurement.card.lines).toEqual(['waist: 81.5 cm']); expect(measurement.card.day).toBe('2026-09-18');
   const afterMeasurement = roundTrip(measurement);
   const saved = (afterMeasurement.health.measurements ?? []).find(m => m.kind === 'waist' && m.quantityMilli === 81_500);
-  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · your AI'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
+  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · Your Personal AI Companion'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
 });
 test('food from the library keeps the person\'s nutrients; an AI estimate is labelled, unknown stays unknown, and a missing serving weight is recorded transparently', () => {
   const library = plan({kind: 'log-food', name: 'oats', meal: 'Breakfast', food: 'f1', quantity: 1.5});

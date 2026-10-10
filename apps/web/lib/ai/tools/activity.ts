@@ -52,7 +52,7 @@ export const recentActivity: ToolDefinition<{area?: (typeof CATEGORIES)[number];
   run(args, env, label) {
     const range = parseRange(args.range?.trim() || 'the last 7 days', env.habitDay);
     if (!range.ok) return refuse('recent_activity', label, 'range', range.message);
-    if (args.area === 'health' && !env.health) return refuse('recent_activity', label, 'gate', 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · your AI (Include Health), with Health on Today.');
+    if (args.area === 'health' && !env.health) return refuse('recent_activity', label, 'gate', 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · Your Personal AI Companion (Include Health), with Health on Today.');
     // Events carry instants; the range is compared on their UTC day (the Activity page groups by the device's day).
     const rows = events(env).filter(e => (!args.area || args.area === 'all' || e.area === args.area) && e.at.slice(0, 10) >= range.from && e.at.slice(0, 10) <= range.to)
       .map(e => ({at: e.at.slice(0, 16).replace('T', ' '), area: e.area, title: e.title, detail: e.detail}));

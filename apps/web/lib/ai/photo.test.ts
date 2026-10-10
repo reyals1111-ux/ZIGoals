@@ -13,11 +13,11 @@ const plain = {model: 'mock', system: 'MOCK', maxOutputTokens: 256, messages: [{
 const withPhoto = {...plain, messages: [...plain.messages.slice(0, 2), {role: 'user', content: 'Log this meal', images: [IMAGE]}] as ChatMessage[]};
 
 test('a photo is offered only for a model that reads photos and with Health shared', () => {
-  expect(photoAllowance({capability: null, declared: undefined, healthOpen: true})).toEqual({allowed: false, reason: 'Turn on "This model reads photos" in Settings → ZIGi · your AI if your model does.'});
+  expect(photoAllowance({capability: null, declared: undefined, healthOpen: true})).toEqual({allowed: false, reason: 'Turn on "This model reads photos" in Settings → ZIGi · Your Personal AI Companion if your model does.'});
   expect(photoAllowance({capability: {tools: true, vision: true}, declared: undefined, healthOpen: true})).toEqual({allowed: true});
   expect(photoAllowance({capability: {tools: true, vision: false}, declared: undefined, healthOpen: true})).toEqual({allowed: false, reason: 'Your model does not read photos.'});
   expect(photoAllowance({capability: {tools: true, vision: false}, declared: true, healthOpen: true})).toEqual({allowed: true});
-  expect(photoAllowance({capability: {tools: true, vision: true}, declared: undefined, healthOpen: false})).toEqual({allowed: false, reason: 'Meal photos need Health shared with ZIGi (Settings → ZIGi · your AI → Include Health).'});
+  expect(photoAllowance({capability: {tools: true, vision: true}, declared: undefined, healthOpen: false})).toEqual({allowed: false, reason: 'Meal photos need Health shared with ZIGi (Settings → ZIGi · Your Personal AI Companion → Include Health).'});
 });
 test('downscaling keeps the shape and never enlarges', () => {
   expect(PHOTO_MAX_EDGE).toBe(1024);

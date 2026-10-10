@@ -194,7 +194,7 @@ test('navigation asks become an open-page card on the device; a lookup, a log or
   expect(navigationIntent('Take me to my portfolio')).toEqual({page: 'portfolio', label: 'Portfolio'});
   expect(navigationIntent('ga naar mijn doelen')).toEqual({page: 'goals', label: 'Goals'});
   expect(navigationIntent('open de instellingen')).toEqual({page: 'settings', label: 'Settings'});
-  expect(navigationIntent('open ZIGi settings')).toEqual({page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your AI'});
+  expect(navigationIntent('open ZIGi settings')).toEqual({page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'});
   expect(navigationIntent('Show my debts')).toBeNull();
   expect(navigationIntent('open my water log for yesterday')).toBeNull();
   expect(navigationIntent('Open a 16 hour fast')).toBeNull();
