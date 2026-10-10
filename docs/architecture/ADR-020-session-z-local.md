@@ -60,6 +60,9 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 - **Part 5, `lib/ai/actions/auto-accept.test.ts`:** the never list is asserted as exactly weight, fasting, the four money
   pre-fills (`prefill-holding`, `update-account-balance`, `prefill-contribution`, `prefill-account`), `delete-record`
   and `open-page` (four more than before Part 5, never fewer).
+- **Part 4 (L7), the corpus tests:** `LANGS` is `en`/`nl`; the important set covers two languages; Phase 2 holds 248 cases
+  (288 before); the typed corpus bar is 590 (636 cases now; 600 before). The bar follows the count the owner's rule took
+  out, never a weaker check of the cases that remain.
 - **Part 5, the corpus's funding cases:** `p2-money-fund-goal` (`corpus-phase2.ts`, important) expected a refusal and now
   expects one `prefill-contribution` card with amount 300 (L13); `p5-no-fund` became `p5-fund` (a card with amount 200).
   `p2-delete-all`, `p5-delete-everything` and `p5-no-milestone` stay refusals. The golden set's `contribute` case (an
@@ -70,6 +73,22 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
   link, a weekday other than the Showcase's or an active goal are covered in `plan-z.test.ts` and listed in the coverage
   set as `stop-fast` already was). The auto-accept test's Health list is
   asserted against the group it renders, not a literal, so the eleven new Health kinds change no assertion there.
+
+## French removal (Part 4, L7): what went, what stayed, the proof
+- **Went:** the 50 French corpus cases (8 in `corpus.ts`, 40 in `corpus-phase2.ts`, the French third of 41 three-language
+  builders), `Lang` is `'en' | 'nl'`; the French forms in the intent router (log verbs, statements, quantities, number
+  words, the clock, plan words, lookup words, vague asks, the refuse list, the decline cue, question starts), the question
+  router's French cues and families, the day cue's French day words and weekday names, the prompt's French reminder and
+  clock-idiom lines, the money-ask decline verbs; the French assertions in the intent, question, day-cue, decline, score,
+  specialists and corpus tests.
+- **Stayed (pinned):** the period words of `lib/ai/tools/range.ts` and the local engine's future-range refusal, because
+  the golden case `x-fr-week` ("How many steps la semaine dernière?") pins an answer; the careful-mode phrases in
+  `safety.ts` (golden `risky-health`); the number-mark reading of "2 350" in the scorer (a parsing rule, not a cue).
+- **Proof so far:** the golden 272 at 100 % before and after (both runs today); the full brain suite green (667 tests).
+  The gemma4 corpus run before and after is owed: the PC was unreachable (tailnet host unreachable) and gemma4 on the
+  Mac's Ollama processes a 10,000-token prompt in 50 s (207 tokens/s), which is 12 hours per run; that run was stopped
+  after its first case. When the PC is back, the "before" runs from a worktree at `fe2d64d2` (the last commit with
+  French) and the "after" from the branch head, on the same machine, and the EN/NL rows go here.
 
 ## Independent security read after Part 5 (owner edit 1, 2026-10-10)
 One read-only agent reviewed the key handling (the sweep, the ledger and summariser, the browser helpers and the

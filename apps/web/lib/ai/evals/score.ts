@@ -15,7 +15,7 @@ export type Observed = {text: string; calls: readonly Call[]; facts?: readonly {
 export type Check = {name: string; pass: boolean; detail?: string};
 export type Score = {pass: boolean; checks: Check[]; cards: number; rejected: number; hint: string | null; refused: boolean; numbers: number};
 // Phase 2 round 7 (ADR-017 S70): the cue also reads "I do not …", "I will not", "does not support", "have no ability", "only you
-// can" and the Dutch and French "doe ik niet" / "je ne … pas" forms; qwen3.6 declines in exactly those words and was scored as
+// can" and the Dutch "doe ik niet" form (the French forms went with French, ADR-020 L7); qwen3.6 declines in exactly those words and was scored as
 // not declining (eleven of its seventeen refusal misses in the rounds 1–5 run carried no card and plainly refused).
 export const REFUSAL = REFUSAL_REPLY;
 const NUMBERS = /\d+(?:[.,]\d+)?/g;

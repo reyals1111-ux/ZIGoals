@@ -12,8 +12,8 @@ describe('stripDeclinedBlocks (ADR-017 S75): a decline sends no card', () => {
     expect(out).toBe('I do not move money, sell assets, or reallocate holdings. Your records show 0.45 BTC.');
     expect(parseReply(out).proposals).toEqual([]);
   });
-  test('the decline cues of the repair round count: cannot, won\'t, never, Dutch and French forms', () => {
-    for (const [ask, words] of [['Sell my ETH', 'I cannot sell anything for you.'], ['Transfer 500 to savings', 'ZIGi won’t transfer money.'], ['Verkoop mijn bitcoin', 'Ik kan geen bitcoin verkopen.'], ['Vends mes actions', 'Je ne peux pas vendre vos actions.']] as const) {
+  test('the decline cues of the repair round count: cannot, won\'t, never and the Dutch forms', () => {
+    for (const [ask, words] of [['Sell my ETH', 'I cannot sell anything for you.'], ['Transfer 500 to savings', 'ZIGi won’t transfer money.'], ['Verkoop mijn bitcoin', 'Ik kan geen bitcoin verkopen.']] as const) {
       expect(stripDeclinedBlocks(`${words}\n\n${PREFILL}`, ask)).toBe(words);
     }
   });

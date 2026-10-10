@@ -26,24 +26,24 @@ export type QuestionContext = {sources: QuestionSource[]; withheld: string[]; te
 export const QUESTION_HEADING = '## For this question (records chosen by ZIGi, on this device)';
 const MIN_UNITS = /^(minutes?|mins?|min|hours?|h|hrs?)$/i;
 const sourceId = (call: ToolCallRecord) => `${call.tool}:${JSON.stringify(call.args)}`;
-/** Dutch and French cue words as their English equivalents, so the English subject detection reads them; the periods are already multilingual. */
+/** Dutch cue words as their English equivalents, so the English subject detection reads them; the periods are already multilingual (the period words keep the forms the golden set pins). */
 const CUES: [RegExp, string][] = [
   // Phase 2 round 4 (ADR-017 S66): the cues the fix-round misses named, each to the English words the engine already reads.
   // A cue that starts with an accented letter has no ASCII word boundary before it: those anchor on the start or a space.
-  [/\bmindful minuten\b|\bminutes de pleine conscience\b/g, 'mindful minutes'], [/\bwat ben ik schuldig\b|\bque dois-je\b|\bmijn schulden\b|\bmes dettes\b/g, 'what do i owe'],
-  [/(^|\s)(?:waar moet ik (?:vandaag )?op letten|à quoi dois-je faire attention(?: aujourd'hui)?)\b/g, '$1what should i pay attention to today'], [/(^|\s)(?:échéances?|vervaldat(?:um|a)|deadlines?)\b/g, '$1deadlines'],
-  [/\bbezit(?:tingen)?\b|\bavoirs?\b|\bgrootste positie\b|\bplus grosse position\b/g, 'holding'], [/\blangste\b|\bplus longue\b|\bplus long\b/g, 'longest'], [/\bkortste\b|\bplus courte\b/g, 'shortest'],
-  [/\bstappen\b|\bpas\b/g, 'steps'], [/\bgewicht\b|\bwoog\b|\bweeg\b|\bpoids\b|\bpesais\b|\bpèse\b/g, 'weight'], [/\bgeslapen\b|\bslaap\w*|\bslapen\b|\bvannacht\b|\bsommeil\b|\bdormi\b|\bdors\b|\bnuit\b|\bsieste\b|\bdutje\b/g, 'sleep'],
-  [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b|\bmédit\w*|\bpleine conscience\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*|\bprotéines?\b/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b|\bmangé\b|\bmanger\b|\brepas\b|\bdéjeuner\b|\bdîner\b/g, 'food'],
-  [/\bwater\b|\beau\b|\bgedronken\b|\bbu\b/g, 'water'], [/\bnettovermogen\b|\bnetto vermogen\b|\bvaleur nette\b|\bpatrimoine\b/g, 'net worth'], [/\bper valuta\b|\bpar devise\b|\btotalen\b|\btotaux\b/g, 'per currency'], [/\bschuldig\b|\bschulden\b|\bdettes?\b|\bque dois-je\b/g, 'my debts'],
-  [/\bportefeuille\b/g, 'portfolio'], [/\bschaak\w*|\béchecs\b/g, 'chess'], [/\bliens?\b/g, 'links'], [/\bmijlpa(?:a)?l(?:en)?\b|\bjalons?\b/g, 'milestones'], [/\buitdaging(?:en)?\b|\bdéfis?\b/g, 'challenges'], [/\breeks(?:en)?\b|\bséries?\b/g, 'streak'], [/\bminuten\b|\bminutes\b/g, 'minutes'], [/\buur\b|\buren\b|\bheures?\b/g, 'hours'],
-  [/\bgelezen\b|\blezen\b|\blu\b|\blire\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*|\bmarche\b|\bmarché\b/g, 'walk'], [/\bgesport\b|\bsporten\b|\bexercice\b/g, 'exercise'], [/\bdoel(?:en)?\b|\bobjectifs?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b|\bhabitudes?\b/g, 'habit'],
-  [/\bnoodfonds\b|\bfonds d'urgence\b/g, 'emergency fund'], [/\bhoeveel\b|\bcombien\b/g, 'how much'], [/\bwelke\b|\bquel(?:le)?s?\b/g, 'which'], [/\bhoe ver\b|\boù en\b/g, 'how far'], [/\bwat is\b|\bwat was\b|\bqu'est-ce que\b/g, 'what is'], [/\bwanneer\b|\bquand\b/g, 'when'], [/\bapparaten\b|\bappareils?\b|\bgeïmporteerd\b|\bimporté\b/g, 'devices'], [/\bhartslag\b|\bfréquence cardiaque\b/g, 'heart rate'],
+  [/\bmindful minuten\b/g, 'mindful minutes'], [/\bwat ben ik schuldig\b|\bmijn schulden\b/g, 'what do i owe'],
+  [/(^|\s)(?:waar moet ik (?:vandaag )?op letten)\b/g, '$1what should i pay attention to today'], [/(^|\s)(?:vervaldat(?:um|a)|deadlines?)\b/g, '$1deadlines'],
+  [/\bbezit(?:tingen)?\b|\bgrootste positie\b/g, 'holding'], [/\blangste\b/g, 'longest'], [/\bkortste\b/g, 'shortest'],
+  [/\bstappen\b/g, 'steps'], [/\bgewicht\b|\bwoog\b|\bweeg\b/g, 'weight'], [/\bgeslapen\b|\bslaap\w*|\bslapen\b|\bvannacht\b|\bdutje\b/g, 'sleep'],
+  [/\bgemediteerd\b|\bmediteer\w*|\bmeditatie\b/g, 'meditation'], [/\bcalorieën\b|\bcalorieen\b/g, 'calories'], [/\beiwit\w*/g, 'protein'], [/\bgegeten\b|\beten\b|\bmaaltijd\w*|\bontbijt\b/g, 'food'],
+  [/\bwater\b|\bgedronken\b/g, 'water'], [/\bnettovermogen\b|\bnetto vermogen\b/g, 'net worth'], [/\bper valuta\b|\btotalen\b/g, 'per currency'], [/\bschuldig\b|\bschulden\b/g, 'my debts'],
+  [/\bportefeuille\b/g, 'portfolio'], [/\bschaak\w*/g, 'chess'], [/\bmijlpa(?:a)?l(?:en)?\b/g, 'milestones'], [/\buitdaging(?:en)?\b/g, 'challenges'], [/\breeks(?:en)?\b/g, 'streak'], [/\bminuten\b|\bminutes\b/g, 'minutes'], [/\buur\b|\buren\b/g, 'hours'],
+  [/\bgelezen\b|\blezen\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*/g, 'walk'], [/\bgesport\b|\bsporten\b/g, 'exercise'], [/\bdoel(?:en)?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b/g, 'habit'],
+  [/\bnoodfonds\b/g, 'emergency fund'], [/\bhoeveel\b/g, 'how much'], [/\bwelke\b/g, 'which'], [/\bhoe ver\b/g, 'how far'], [/\bwat is\b|\bwat was\b/g, 'what is'], [/\bwanneer\b/g, 'when'], [/\bapparaten\b|\bgeïmporteerd\b/g, 'devices'], [/\bhartslag\b/g, 'heart rate'],
 ];
 export function translateCues(question: string): string { let q = normalizeSpoken(question).toLowerCase(); for (const [re, word] of CUES) q = q.replace(re, word); return q; }
 /** A habit measure asked for without a habit's name (minutes read, a streak, pages): every timed habit's figures are pre-run. */
-const HABIT_MEASURE = /\b(minutes?|minuten|streaks?|reeks|série|pages?|pagina|consistent|consistency|rate|check-?ins?|how often|hoe vaak|combien de fois)\b/;
-const GOAL_WORDS = /\b(how far|progress|left|remaining|how close|which|list|dates?|coming up|hoe ver|ontbreekt|welke|où en|manque|quels|échéances)\b/;
+const HABIT_MEASURE = /\b(minutes?|minuten|streaks?|reeks|pages?|pagina|consistent|consistency|rate|check-?ins?|how often|hoe vaak)\b/;
+const GOAL_WORDS = /\b(how far|progress|left|remaining|how close|which|list|dates?|coming up|hoe ver|ontbreekt|welke)\b/;
 /** The tool calls a question asks for: the lookup's own, or the figures of each record it names. */
 export function questionCalls(question: string, sources: ToolSources, gates: Gates): ToolCallRecord[] {
   const env = toolEnv(sources, gates, 'provider');
@@ -86,15 +86,15 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   // staking, imports; sleep and meditation bring their nights and sessions beside the summary; a habit measure asked
   // without a named habit brings every timed habit's figures for the period. The question-aware chips stay removable.
   const q = question.toLowerCase(), qt = `${q} ${translateCues(q)}`;
-  const OPEN_TODAY = /\b(still open|left today|open today|what(?:'s| is) open|still to do|remaining today|left to do|to do today|due today|habits (?:are )?left|nog open|nog te doen|staat er .*open|reste-t-il|encore à faire|à faire aujourd'hui|open for me)\b/;
-  const LIST_GOALS = /\b(which goals?|what goals?|my goals|goals do i have|list (?:my )?goals|goal dates|goals? (?:are|is) (?:coming|due|closest|furthest|behind)|closest to done|furthest behind|welke doelen|mijn doelen|doeldatums|quels objectifs|mes objectifs|échéances)\b/;
-  const LIST_HABITS = /\b(which habits?|what habits?|my habits|habits do i have|list (?:my )?habits|my streaks|how are my streaks|welke gewoontes?|mijn gewoontes?|mijn reeksen|mes habitudes|quelles habitudes|mes séries)\b/;
-  const BRIEF = /\b(brief|briefing|focus on today|pay attention|what should i|how is my (?:week|day|month)|my (?:week|month|day) (?:going|so far)|story of my|summar|wrap-?up|weekly review|weekend|weekdays|résumé|samenvat|overzicht|waar moet ik op letten|à quoi dois-je|ma semaine|mijn week|hoe gaat mijn)\b/;
+  const OPEN_TODAY = /\b(still open|left today|open today|what(?:'s| is) open|still to do|remaining today|left to do|to do today|due today|habits (?:are )?left|nog open|nog te doen|staat er .*open|open for me)\b/;
+  const LIST_GOALS = /\b(which goals?|what goals?|my goals|goals do i have|list (?:my )?goals|goal dates|goals? (?:are|is) (?:coming|due|closest|furthest|behind)|closest to done|furthest behind|welke doelen|mijn doelen|doeldatums)\b/;
+  const LIST_HABITS = /\b(which habits?|what habits?|my habits|habits do i have|list (?:my )?habits|my streaks|how are my streaks|welke gewoontes?|mijn gewoontes?|mijn reeksen)\b/;
+  const BRIEF = /\b(brief|briefing|focus on today|pay attention|what should i|how is my (?:week|day|month)|my (?:week|month|day) (?:going|so far)|story of my|summar|wrap-?up|weekly review|weekend|weekdays|samenvat|overzicht|waar moet ik op letten|mijn week|hoe gaat mijn)\b/;
   const DID = /\b(what did i (?:do|log)|what have i logged|busiest day|what happened|wat heb ik (?:gedaan|gelogd)|qu'ai-je fait|qu'est-ce que j'ai fait)\b/;
   const ABOUT_ME = /\b(know about me|about me|over mij|sur moi)\b/;
   const PORTFOLIO = /\b(portfolios?|portefeuilles?)\b/, STAKING = /\b(stak(?:ing|ed)|validators?|staken|rewards?)\b/;
   if (OPEN_TODAY.test(qt)) { add('habits_due', {}); add('list_habits', {}); }
-  if (LIST_GOALS.test(qt) || (!s.goals.length && /\b(goals?|doel(?:en)?|objectifs?)\b/.test(qt) && GOAL_WORDS.test(qt))) add('list_goals', {});
+  if (LIST_GOALS.test(qt) || (!s.goals.length && /\b(goals?|doel(?:en)?)\b/.test(qt) && GOAL_WORDS.test(qt))) add('list_goals', {});
   if (LIST_HABITS.test(qt)) add('list_habits', {});
   if (BRIEF.test(qt)) { add('today_summary', {}); add('list_habits', {}); add('habits_due', {}); }
   if (DID.test(qt)) add('recent_activity', {range: phrase('today')});
@@ -104,8 +104,8 @@ export function questionCalls(question: string, sources: ToolSources, gates: Gat
   // Phase 2 round 4 (ADR-017 S66): the families the fix-round misses named, on the translated question.
   const tq = qt;
   const DEADLINES = /\b(deadlines?|coming up|due dates?|which dates?)\b/, HOLDINGS = /\b(?:biggest|largest|smallest|main) (?:holding|position|asset)s?\b|\bholdings?\b/;
-  const SLEEP_WORDS = /\b(sleep|slept|sleeping|nights?|sommeil|dormi|dors|nuits?|slaap|geslapen|slapen)\b/, MED_WORDS = /\b(meditat\w*|mindful|médit\w*)\b/, SESSION_WORDS = /\b(longest|shortest|last session|sessions?)\b/;
-  const DEVICES = /\b(imports?|imported|devices?|manual entries|bluetooth|linked service|apparaten|appareils?)\b/, TIME_OF_DAY = /\b(when in the day|time of day|morning or evening|op welk moment|wanneer op de dag|à quel moment)\b/, WEEKEND = /\b(weekends?|week-?ends?|weekdays?|weekdag(?:en)?|semaine ou week-end)\b/;
+  const SLEEP_WORDS = /\b(sleep|slept|sleeping|nights?|slaap|geslapen|slapen)\b/, MED_WORDS = /\b(meditat\w*|mindful)\b/, SESSION_WORDS = /\b(longest|shortest|last session|sessions?)\b/;
+  const DEVICES = /\b(imports?|imported|devices?|manual entries|bluetooth|linked service|apparaten)\b/, TIME_OF_DAY = /\b(when in the day|time of day|morning or evening|op welk moment|wanneer op de dag)\b/, WEEKEND = /\b(weekends?|week-?ends?|weekdays?|weekdag(?:en)?)\b/;
   if (DEADLINES.test(tq)) add('list_goals', {});
   if (HOLDINGS.test(tq) && !s.asset) add('holdings', {});
   if (!h.sleep && SLEEP_WORDS.test(tq)) { add('sleep_summary', {}); add('sleep_nights', {range: phrase('the last 14 days')}); }
