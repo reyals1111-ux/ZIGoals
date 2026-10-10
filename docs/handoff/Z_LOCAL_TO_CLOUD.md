@@ -166,3 +166,35 @@ lines, unit tests in `lib/ai/actions/plan-z.test.ts`, corpus cases in `corpus-pa
 - **F14 (the runner, where a reply's plans are listed):** call `dedupePlans(plans, stores)` from `lib/ai/actions/batch.ts` once after planning (or `batchable(plans, stores)` with the stores, which now dedupes too), so "250 mL" and "1 glass" of water on the same day show as one card. The first of a pair is kept.
 - **F11 (`use-chat-session.ts`, the repair round):** when Stop arrives during the repair request, finish with the FIRST answer, hint marker stripped (`stripHint` from `lib/ai/emotion-hint.ts`), never with the half-repaired one and never with the marker text shown. Today the first answer is dropped and, on the other path, sent back with its marker.
 - Nothing else in Part 7 touches your files: the hint strip, the JSON repair bound, the editor's thousands separators, the name resolver, the brand-icon rule, the Summary escaping, the strict options and the headers watchdog are all in `lib/ai`.
+
+## 2026-10-10 — Part 9 drafts: owner checklist rows for ZIGI_ALIVE_X.md, and the What's new / Help text
+The brain-side owner material lives in `docs/verification/z-local/ZIGI_CLAUDE_TEST_Z.md` ("Owner checklist rows"). The
+two shared files below are yours (the second merger carries whichever lands first); here is the text, ready to paste.
+
+**Rows proposed for `docs/product/ZIGI_ALIVE_X.md`, "The iPhone checklist"** (append after row 13):
+
+| # | Check | Pass looks like |
+|---|---|---|
+| 14 | Hold the microphone and say "um, log two and a half litres of water, no wait, three" | the words appear as said; the card says 3 litres (3,000 mL); nothing is sent before you release |
+| 15 | Say in Dutch "ik heb vanmorgen vijfentwintig minuten gemediteerd" | a meditation card with 25 minutes for today, the reply in Dutch |
+| 16 | Ask "delete my Walk habit" | one card that opens the habit's own delete confirmation on Habits; nothing is deleted until you confirm there |
+| 17 | Ask "put 200 euros towards the Japan adventure goal" | the goal's Fund form opens filled in with 200; nothing recorded until you save; close it and nothing changed |
+| 18 | In Safari on the Mac: ask ZIGi twice after an Undo | ZIGi keeps answering both; no frozen page (Part 1's WebKit case) |
+
+**What's new (the brain's changes this session), for the What's new sheet:**
+- ZIGi understands you spoken, in English and Dutch: fillers, numbers in words ("two and a half litres", "tienduizend
+  stappen"), spoken times ("quarter to eight", "half acht") and "no wait, three" corrections. What you said stays on
+  screen exactly as you said it.
+- ZIGi can do every ordinary task in the app now: pause or archive a habit, mark vacation days, undo a planned skip,
+  turn a reminder off, close or reopen a goal, edit a diary entry, log a planned meal, grocery notes, favourites,
+  counters, targets, the running night, the meditation bell, Today's preset, your links, the weekly review, the evening
+  wrap-up, which pages show, the start page, ZIGi's own look. Money stays a form you save yourself; a deletion opens the
+  app's own confirmation.
+- On Claude, ZIGi's prompt is cached: the same asks cost about four fifths less in input tokens, and the usage meter
+  counts cache reads and writes.
+- French is no longer offered; a French voice setting from before reads as your device's language.
+
+**Help text (Settings → ZIGi · your AI → Help, "Speaking to ZIGi"):**
+"You can talk to ZIGi the way you talk: say numbers in words, say times the way you say them, correct yourself mid-sentence
+("three glasses, no wait, four"). ZIGi reads the last thing you meant. English and Dutch. What you said is shown as you
+said it; ZIGi never rewrites your words."
