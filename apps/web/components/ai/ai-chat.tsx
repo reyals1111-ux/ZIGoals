@@ -68,7 +68,7 @@ import {CareNote} from './care-note';
 import {KnockOffer} from './knock-offer';
 import {AgentProposals} from './agent-proposals';
 import {useHosted} from './use-hosted';
-import {HOSTED_LABEL, hostedSettings} from '../../lib/ai/hosted';
+import {CLAUDE_HOSTED_NAME, HOSTED_LABEL, hostedSettings} from '../../lib/ai/hosted';
 import {useAgentBatches} from './agent-inbox';
 import {localDate} from '../../lib/local-date';
 import {carefulNote, detectRisk} from '../../lib/ai/safety';
@@ -238,7 +238,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const latestCards = useMemo(() => [...session.chat.turns].reverse().find(t => t.role === 'assistant' && ((session.parsed.get(t.id) ?? parseReply(t.text)).proposals.length > 0))?.id ?? null, [session.chat.turns, session.parsed]);
   const body = <>
     <ChatHeader titleId={titleId} figure={<ZigiAvatar state={zigi} size={40} decorative live/>} phone={phone} miniWindow={!!mini.win} miniSupported={mini.supported} expanded={expanded}
-      status={<span className="ai-chat-via-text">{hosted ? `${hosted.provider} · ${hosted.model} via ZIGoals hosted` : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span>}
+      status={<span className="ai-chat-via-text">{hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : `${hosted.provider} · ${hosted.model} via ZIGoals hosted`) : connected ? `via ${providerName} · ${data.model}` : bridge ? `with your ${subscriptionApp(data.subscriptionApp)?.name ?? 'subscription'} subscription` : 'not connected yet'}</span>}
       extra={connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} label={`Change model (${data.model})`}/> : null}
       premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
       onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => setExpanded(e => !e)} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}

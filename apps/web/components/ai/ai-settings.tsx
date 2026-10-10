@@ -37,6 +37,7 @@ import {onDeviceAvailability} from '../../lib/ai/on-device';
 import {modelContext} from '../../lib/ai/webmcp';
 import {entitlement as entitlementOf} from '../../lib/entitlements';
 import {useHosted} from './use-hosted';
+import {hostedName} from '../../lib/ai/hosted';
 const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
 
 /**
@@ -136,7 +137,7 @@ function HostedCard() {
   const {open, setOpen, card} = useAnchoredCard(HOSTED_ANCHOR), {entitlement} = useHosted();
   if (!entitlement?.entitled) return null;
   return <details ref={card} id={HOSTED_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary className="ai-pack-summary">ZIGoals hosted <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
+    <summary className="ai-pack-summary">{hostedName(entitlement.provider)} <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
     <p className="ai-note">An AI that ZIGoals runs and pays for, for invited accounts: no key or app of your own needed. Read what passes through before you choose it.</p>
     {open && <ZigiPartBoundary label="The hosted assistant"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><HostedPanel entitlement={entitlement}/></Suspense></ZigiPartBoundary>}
   </details>;

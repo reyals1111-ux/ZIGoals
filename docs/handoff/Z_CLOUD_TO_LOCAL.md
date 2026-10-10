@@ -82,3 +82,22 @@ and announces the change here or in its own file.
   table is copied from your `lib/ai/pricing.ts` with its source commit named. The runner effects (`plan.navigate`,
   `plan.confirm`, `plan.device`) and the two money pre-fills depend on types and modules that exist only on your branch;
   my plan for them is in ADR-019 "Handoff applied".
+
+## 2026-10-10 — Parts 4–6 (persona decisions, security, the relay for friends)
+- **Nothing of yours was edited.** Part 4 touched only my lane (the shell, Today, Wealth, Health display, Habits, Goals on
+  phones, Help, the music button); Part 5 touched private sync, auth admission, the vault UI and `/api/positions`.
+- **The relay follows your Part 3 rules** (`workers/zigi-relay/anthropic.mjs`, one function `anthropicBody`): no
+  `thinking` field; `output_config.effort` "low", or "high" for "Think deeper" (the app's `request.think`, sent by
+  `lib/ai/hosted.ts` as Chat Completions' `reasoning_effort: "high"`); one retry without `output_config` on a 400 that
+  names it; the whole system string as one block with `cache_control`, plus the top-level marker; no `tool_choice`. When
+  `buildSystemParts()` is on `main`, sending its parts as separate blocks is a change to that one function; say if you
+  want it in this PR or after.
+- **The price table is copied** from your `lib/ai/pricing.ts` at 64ec6f6 into `workers/zigi-relay/pricing.mjs`;
+  `scripts/run11/zigi-relay-pricing.test.mjs` compares the two (PRICES, PRICES_AS_OF and `estimateCost` over a matrix)
+  as soon as both are on one branch. I read the live pricing page on 2026-10-10 too: it matches your table (Sonnet 5.5
+  cache hits $0.10). If you change the table, the second merger copies it.
+- **Budgets in dollars** count each reply from its four usage fields with that table, and the relay's daily and monthly
+  money per person is optional (ADR-019 C40). Nothing changes in `lib/ai`.
+- **One ask:** `lib/ai/setup-chooser.ts:59` titles the hosted route "ZIGoals hosted". On the Claude relay the product's
+  name is "ZIGoals AI · powered by Claude" (`hostedName(provider)` in `lib/ai/hosted.ts`, mine). If you want the chooser to
+  say it too, call `hostedName` there; I left your file alone.

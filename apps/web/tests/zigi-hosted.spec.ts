@@ -139,6 +139,37 @@ test('an invited account: the disclosure first, then ZIGi answers through /api/z
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('via ZIGoals hosted');
 });
 
+// Session Z-Cloud Part 6 (ADR-019 C40): the friends' relay on Claude. Its name, the person's own allowance as the relay
+// counts it (messages and dollars, today and this month), and the reply's label; the body is the same Chat Completions
+// request (the relay builds Claude's), with no effort field for a quick reply.
+const CLAUDE = {entitled: true, provider: 'Anthropic', model: 'claude-sonnet-5-5', remaining: {requests: 40, tokens: 1500000, usd: 1, month: {usd: 7.4, requests: 600}}};
+test('on Claude: "ZIGoals AI · powered by Claude", the person\'s own allowance in messages and dollars, and the reply says so', async ({page}) => {
+  test.skip(!HOSTED, 'needs a build made with NEXT_PUBLIC_ZIGI_HOSTED=on (ZIGI_HOSTED_BUILD=on)');
+  const chats = await relay(page, CLAUDE);
+  await fixtureAccount(page);
+  await page.goto('/app/settings');
+  await signInAndUnlock(page);
+  const card = page.locator('details#zigi-hosted');
+  await expect(card.locator('summary')).toContainText('ZIGoals AI · powered by Claude');
+  await card.locator('summary').click();
+  await expect(card).toContainText('pass through ZIGoals\' server to Anthropic (claude-sonnet-5-5)');
+  await expect(card.locator('.hosted-allowance')).toHaveText('Left today: 40 messages, $1.00. Left this month: $7.40, 600 messages.');
+  await expect(card.getByRole('checkbox', {name: /Also let Health go to ZIGoals AI · powered by Claude/})).not.toBeChecked();
+  await card.getByRole('button', {name: 'I agree, use ZIGoals AI · powered by Claude', exact: true}).click();
+  await expect(card).toContainText('In use, without Health.');
+  await go(page, 'Habits', '/app/habits');
+  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('ZIGoals AI · powered by Claude · claude-sonnet-5-5');
+  await panel(page).getByLabel('Message to your AI').fill('How did my habits go this month?');
+  await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
+  const reply = panel(page).locator('.ai-turn-assistant').last();
+  await expect(reply).toContainText('MOCK: about ten minutes a day this month.');
+  await expect(reply).toContainText('Answer from ZIGoals AI · powered by Claude');
+  expect(chats).toHaveLength(1);
+  expect(chats[0]!.body).toMatchObject({stream: true});
+  expect(chats[0]!.body).not.toHaveProperty('reasoning_effort');
+});
+
 test('an account that is not invited, or a paused relay, sees no hosted choice', async ({page}) => {
   test.skip(!HOSTED, 'needs a build made with NEXT_PUBLIC_ZIGI_HOSTED=on (ZIGI_HOSTED_BUILD=on)');
   for (const answer of [{entitled: false, reason: 'not-invited'}, {entitled: false, reason: 'paused'}]) {

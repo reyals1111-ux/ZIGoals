@@ -75,7 +75,7 @@ The same Worker, the same app route and the same steps 1–6; only the private c
 - The app keeps sending the relay the same chat as for OpenAI. The relay rebuilds it as a Messages API request: the system texts as one `system`, tool calls as `tool_use`, tool results as `tool_result` in the next user turn, photos as base64 `image` blocks (data addresses only). It sends `x-api-key` and `anthropic-version: 2023-06-01`; the key goes nowhere else.
 - The reply stream is translated back into the chunks the app already reads (text, tool calls, the finish reason). An `error` event becomes the relay's own words ("The provider is busy right now…" or "The provider's reply broke off."); the provider's text is not passed on.
 - **Output cap:** the same as OpenAI, at most 4,096 tokens per reply (`LIMITS.maxOutputTokens`).
-- **Thinking off:** the relay sends `thinking: {"type": "disabled"}`. Claude Haiku 5.5 accepts that at its default effort (medium); thinking tokens would be billed as output and count toward the cap (source: platform.claude.com, extended thinking and effort, read 2026-10-08). `ZIGI_THINKING: "model-default"` leaves the parameter out; use it only for a model that refuses `disabled`, and only after reading what that model costs.
+- **Thinking (changed in Session Z-Cloud, below):** the relay no longer sends a `thinking` parameter. Before: the relay sent `thinking: {"type": "disabled"}`. Claude Haiku 5.5 accepts that at its default effort (medium); thinking tokens would be billed as output and count toward the cap (source: platform.claude.com, extended thinking and effort, read 2026-10-08). `ZIGI_THINKING: "model-default"` leaves the parameter out; use it only for a model that refuses `disabled`, and only after reading what that model costs.
 - **Usage counted exactly:** input, cache-write and cache-read tokens from `message_start` (updated by `message_delta`), plus the output tokens of the last `message_delta` (Anthropic: those counts are cumulative). A reply that breaks off before any `message_delta` keeps its whole reservation, as on OpenAI. The reservation now also counts the system text.
 
 **The model:** `claude-haiku-5-5` (Claude Haiku 5.5), Anthropic's lowest-priced current model: USD 0.10 per million input tokens and USD 0.50 per million output tokens for prompts up to 100,000 tokens; longer prompts cost more per token (source: platform.claude.com, models overview and pricing, read 2026-10-08). Read both pages again on the day you activate; if the model is retired or the price changed, stop and choose again.
@@ -100,6 +100,48 @@ The same Worker, the same app route and the same steps 1–6; only the private c
 **Rollback (Anthropic):** the kill switch `on` (fastest); or disable the key in the Console (the relay then answers `UPSTREAM_UNAVAILABLE` for every message, and its breaker opens after five in a minute); or the general rollback above.
 
 **Before anyone but you is on the allowlist:** with only your own account, only your own data passes. Adding anyone else means ZIGoals receives their messages, and their Health records when they tick the box and the Health gate is open (GDPR Art. 9 special-category data), and forwards them to Anthropic under a contract ZIGoals holds and pays for. ZIGoals then acts at least as a processor for them, and possibly as a controller, since it chooses the provider. LEGAL_CHECKLIST §10 (questions 31–33) and §8a question 13 need answers first: the agreement with Anthropic and its data-processing terms, transfers, the disclosure naming Anthropic, and whether credits from a personal Max or Team plan may be used for other people's requests at all.
+
+## Friends on Claude Sonnet 5.5: "ZIGoals AI · powered by Claude" (Session Z-Cloud, ready, not activated)
+Session Z-Cloud Part 6 (ADR-019 C40) made the Anthropic template the friends' setup. Nothing is activated by the session:
+the kill switch is `on`, the public Alpha's build has `NEXT_PUBLIC_ZIGI_HOSTED` off, and only you can deploy.
+
+**What changed in the relay** (`workers/zigi-relay/anthropic.mjs`, `budget.mjs`, `pricing.mjs`):
+- **The models:** `claude-sonnet-5-5` (the template) or `claude-haiku-5-5`; any other `ZIGI_MODEL` on Anthropic's address
+  fails closed (the relay answers 503; the config check names it).
+- **The body is the app's own Anthropic adapter's** (Session Z-Local's rules): no `thinking` parameter (Claude Sonnet 5.5
+  answers 400 to `disabled`; its adaptive thinking is the default), `output_config.effort` "low" for the quick reply and
+  "high" for "Think deeper" (a model that rejects `output_config` gets the same request once more without it), the
+  system prompt cached (`cache_control`), no forced tool choice. `ZIGI_THINKING` in an older private copy is accepted and
+  ignored.
+- **Money and months, per person:** besides the daily messages and tokens, optional budgets the relay enforces when set:
+  `ZIGI_MONTHLY_REQUESTS` (messages a month), `ZIGI_DAILY_USD` and `ZIGI_MONTHLY_USD` (dollars a day and a month), and
+  `ZIGI_GLOBAL_DAILY_USD` (dollars a day for the whole relay). Each reply reserves the most it could cost (its prompt at
+  the cache-write price plus 4,096 output tokens) and is then settled from Anthropic's own usage counts (input, cache
+  writes, cache reads, output) priced with the app's table (`pricing.mjs`, a copy of `apps/web/lib/ai/pricing.ts`; Sonnet
+  5.5: $2 / $10 per million input / output, cache writes $2.50, cache reads $0.10, as read on 2026-10-10). Read the
+  pricing page again on the day you activate; if a price changed, the table changes first, in a reviewed PR.
+- **The template** (`wrangler.anthropic.local.jsonc`): 40 messages a day and 600 a month, $1 a day and $10 a month per
+  friend, $20 a day for the whole relay; token budgets 1,500,000 / 15,000,000 a day as a second guard (a cached prompt is
+  about 12,500 tokens, so tokens must not bind first). Choose your own numbers; the Console workspace's spend limit below
+  is still the line that counts money for sure.
+
+**In the app** (a hosted build only): Settings → ZIGi shows "ZIGoals AI · powered by Claude" with the first-use notice
+(what passes through, the allowance, Health only with its own box), the allowance line ("Left today: 38 messages, $0.95.
+Left this month: $7.40, 512 messages.") and plain messages when a budget is reached. Replies say "Answer from ZIGoals AI ·
+powered by Claude".
+
+**Your steps for friends** (after the Anthropic steps above have run for your own account):
+1. LEGAL_CHECKLIST §10 questions 31–33 and §8a question 13 answered (above: "Before anyone but you is on the allowlist").
+2. The private copy from the updated template: keep `ZIGI_MODEL: "claude-sonnet-5-5"`, set the four budgets to your
+   numbers, run `node scripts/run11/zigi-relay-config.mjs workers/zigi-relay/wrangler.acctest.owner.jsonc` (it refuses a
+   friend's daily money above the month's or the relay's).
+3. The Console workspace's monthly spend limit at least as low as friends × `ZIGI_MONTHLY_USD`.
+4. Add each friend's account id to `ZIGI_ALLOWLIST` (a secret, typed at the prompt), one change at a time.
+5. Check, signed in as yourself: the Settings card is titled "ZIGoals AI · powered by Claude" and its allowance line
+   shows dollars; one message lowers today's and this month's numbers by its cost.
+
+**Rollback:** as above (the kill switch first). The budget object's new columns and month table are additive: an older
+relay ignores them.
 
 ## Limits that hold whatever the config says (workers/zigi-relay/limits.mjs)
 1 MiB per request, 2 MiB per streamed reply (cut at an event boundary with an error event), 4,096 output tokens per reply, 200 messages, 64 tools, 20 s for the provider to start answering, 120 s per reply. The breaker opens after 5 provider failures in a minute, probes once after 30 s, and doubles the wait up to 10 minutes while probes fail.

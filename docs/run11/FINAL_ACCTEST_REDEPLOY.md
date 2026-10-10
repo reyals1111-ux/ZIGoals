@@ -304,15 +304,17 @@ Only the app changed; no Worker, no new storage key. Re-run step 2 at your relea
 5. Nothing to see for B5 (no plaintext change queue for the Local Demo, bounded receipts and archives) and B7 (one spelling per ciphertext).
 
 ## Session Z-Cloud changes (Session Z-Cloud PR, 2026-10-10)
-Two Workers changed, with no new class, no migration and no new secret; one new **var** on private sync. Re-run step 2
+Two Workers of this stack changed, with no new class, no migration and no new secret; one new **var** on private sync.
+The optional hosted relay changed too (its own row). Re-run step 2
 at your release SHA.
 
 | Worker | What changed | Must redeploy |
 |---|---|---|
-| app | Session Z-Cloud Parts 2–5 (ZIGi's chat, voice, the persona decisions, the five step-up actions, C4's testnet-only reads, A7's export) | yes (the app) |
+| app | Session Z-Cloud Parts 2–6 (ZIGi's chat, voice, the persona decisions, the five step-up actions, C4's testnet-only reads, A7's export, "ZIGoals AI · powered by Claude" in the hosted panel) | yes (the app) |
 | auth admission | A5: at most 60 code emails per UTC day across every address (one record in one object of the existing `AdmissionAuthority` class, `auth-admission-v2:global:send`); code requests group IPv6 by /48 (verification keeps /64). The per-group code counters start afresh once | yes |
 | private sync | A6: the step-up check for Delete cloud data, Delete account, Delete a section, Sign out all other devices (and revoking one session) and Rotate; a new path `/v1/step-up` (registration only) and the var **`STEP_UP_REQUIRED`** | yes |
-| lifecycle, market coordinator, food lookup, push, relay | nothing | no |
+| ZIGoals hosted relay (only if activated) | Part 6: Claude Sonnet 5.5 for friends, with budgets in messages and dollars, daily and monthly (ADR-019 C40); four new optional vars in the Anthropic template | only when you activate it, by [ZIGI_RELAY_ACTIVATION.md](ZIGI_RELAY_ACTIVATION.md) "Friends on Claude Sonnet 5.5"; never by this redeploy |
+| lifecycle, market coordinator, food lookup, push | nothing | no |
 
 **The new var (owner switch, ADR-019 C35):** `STEP_UP_REQUIRED` = `"on"` in the committed template
 (`workers/private-sync/wrangler.local.jsonc`). A private copy made by `make-private-configs.mjs` carries it; an existing
