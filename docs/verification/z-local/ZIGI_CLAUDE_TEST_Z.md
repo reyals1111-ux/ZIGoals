@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 8 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 9 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -79,13 +79,13 @@ conversations), and the second half of the caching measurement. Each lands here 
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 8 summary file(s): 2 met · 2 not met · 21 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 9 summary file(s): 2 met · 3 not met · 20 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
 | Sonnet · corpus (typed) ≥ 97 % | 693/773 · 89.7 % | not met, 7.3 pt short; misses: cards 51, never 10, fields 9, contains 6, no-numbers 5 | `corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json` |
 | Sonnet · the spoken set ≥ 95 % | — | not run yet | — |
-| Sonnet · UI panel 150 ≥ 95 % | — | not run yet | — |
+| Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | — | not run yet | — |
 | Sonnet · the day, desktop + phone: 36/36 | — | not run yet | — |
 | Sonnet · pages 17 × 10 ≥ 99 % | — | not run yet | — |
