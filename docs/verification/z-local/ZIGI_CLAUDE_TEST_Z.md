@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 21 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 22 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -85,6 +85,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 21 summary file(s) on 202
 | ui-conv-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **15/15 · 100.0 %** | 4,046 | 0 | $0.27 |
 | ui-day-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **18/18 · 100.0 %** | 2,263 | 0 | $0.18 |
 | ui-day-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **18/18 · 100.0 %** | 2,019 | 0 | $0.27 |
+| ui-pages-haiku | `claude-haiku-5-5` | Chrome · desktop | **168/170 · 98.8 %** | 1,999 | 0 | $0.08 |
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **162/170 · 95.3 %** | 2,755 | 0 | $1.20 |
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **168/170 · 98.8 %** | 2,781 | 0 | $1.13 |
 | ui-panel-haiku | `claude-haiku-5-5` | Chrome · desktop | **125/150 · 83.3 %** | 2,287 | 0 | $0.07 |
@@ -104,7 +105,7 @@ folder on this Mac). Each stage lands here as a rendered row when its summary is
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 21 summary file(s): 4 met · 9 not met · 11 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 22 summary file(s): 5 met · 9 not met · 10 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -120,7 +121,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 21 summary file(s): 4
 | Haiku · corpus ≥ 92 % | 2182/2493 · 87.5 % | not met, 4.5 pt short; misses: cards 238, fields 62, never 26, refusal 18, schema 18 | `corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json` |
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
 | Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
-| Haiku · pages 17 × 10 (desktop) ≥ 92 % | — | not run yet | — |
+| Haiku · pages 17 × 10 (desktop) ≥ 92 % | 168/170 · 98.8 % | **met** | `ui-pages-haiku/pages-claude-haiku-5-5.json` |
 | Opus · corpus ≥ 97 % | 665/725 · 91.7 % | not met, 5.3 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json` |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | — | not run yet | — |
 | Opus · UI panel 60 ≥ 97 % | 57/60 · 95.0 % | not met, 2.0 pt short | `ui-panel-opus/ui-claude-opus-5-5.json` |
