@@ -48,6 +48,7 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 | L8 | 5 | The two effects only the runner can perform (navigate to a page; open the app's own delete confirmation) are specified for Z-Cloud's `use-proposals.ts`; the brain side is complete here; until the effect lands, Add shows the route to take; if Z-Cloud declines, the table records a deliberate "no". | The runner is Z-Cloud's file; a card that explains is honest. |
 | L13 | 5 | **Funding a goal and adding an account are forms, not refusals.** "Fund the Japan goal with 200 euros" gives one `prefill-contribution` card that opens the goal's own Fund form filled in; "add a savings account" one `prefill-account` card for Wealth's add-account form. Both are in `AUTO_ACCEPT_NEVER` and `PREFILL_KINDS`, write nothing, have no Undo, and stash through `lib/ai/actions/form-prefill.ts` (the shape of the balance hand-off). | The owner's rule is "money = pre-filled form only": a form the person saves is allowed, a write is not, and a refusal of a form the app offers would be a lost task. |
 | L14 | 5 | **ZIGi's look is a device write the runner performs**, `plan.device = {key: 'zigoals:zigi:v1', patch}` with top-level keys only (`knock` a partial to merge), `undo: null`; the planner takes an optional `env.zigi` (current prefs and the build's skins) and then refuses no-ops and unknown looks. The weekly review's day travels as its English name (`WEEKDAY_NAMES`; Dutch names, short forms and 0–6 read as that name) and is stored as the number. | The brain cannot read device storage or the manifest (`components/zigi/`, Z-Cloud's); a name survives the card editor's select, a number does not. |
+| L15 | 4 | **The spoken normaliser is a rewrite into the typed forms the device readers already read**, applied inside the entry points (`detectIntent`, `translateCues`, `localAnswer`, `navigationIntent`, `dayCue`) and never to the words shown or sent: wake words and fillers out; English and Dutch number words, compounds and decimals as digits ("twaalfhonderd" 1200, "twee komma vijf" 2.5, "5,000 steps" 5000, "1,5 liter" 1.5); halves and quarters; clock idioms as H:MM with the Dutch "half acht" = 7:30 and an evening word moving a small hour into the afternoon; a self-correction keeps the last value; ranges stay. A lone "one"/"een" converts only before a unit. The quantity cue fills a log card's missing figure, or replaces a figure that appears nowhere in the message, only when the message names exactly one quantity with a unit the card's kind takes; it rides inside `applyDayCue`, so the app's one call and the harness's one call read both cues. | The person's words stay theirs (L6); every rule is a plain spoken-to-typed equivalence, model-agnostic; the golden 272 stayed at 100 % with the normaliser wired. |
 
 ## Assertions changed (deliberate, listed)
 - **Part 5, the corpus's deletion cases (`lib/ai/evals/corpus-phase2.ts`):** `p2-delete-habit`, `p2-delete-goal`, `p2-delete-entry`
@@ -68,6 +69,27 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
   link, a weekday other than the Showcase's or an active goal are covered in `plan-z.test.ts` and listed in the coverage
   set as `stop-fast` already was). The auto-accept test's Health list is
   asserted against the group it renders, not a literal, so the eleven new Health kinds change no assertion there.
+
+## Independent security read after Part 5 (owner edit 1, 2026-10-10)
+One read-only agent reviewed the key handling (the sweep, the ledger and summariser, the browser helpers and the
+Anthropic config, the harness, the adapter, the stage scripts and logs, both branch histories). **No key was found in
+any artifact, log, history or profile; the recording-off, env-only and redacted-base rules were met.** Six findings,
+each answered in the `TIER 3 (security)` commit that follows this record:
+1. (high) The stage scripts pushed the runs branch without the sweep. A local `pre-push` hook (untracked, in the
+   repository's `.git/hooks`, shared by its worktrees) now runs the sweep before every push and refuses on a hit;
+   `part3-measure.sh` gates its push explicitly; `part2-corpus.sh` is gated the same way when its current run ends
+   (a running bash script is never edited in place).
+2. (medium) The sweep scanned only the net diff. It now scans `git log -p origin/main..HEAD` and the orphan runs
+   branch's whole history (that branch only: the worktree shares main's objects, whose test fixtures hold allowlisted
+   fake keys).
+3. (medium) Zip members are DEFLATE-compressed, so a key inside a trace would have been invisible. Members are inflated
+   now; an unreadable zip is itself a hit. Traces stay off for every real-Claude stage.
+4. (medium, latent) The init script that seals the key ran in every frame of every origin. It now returns unless
+   `location.origin` is the app's, and the context aborts every request to any host but the app's and the provider's.
+5. (medium) A browser profile left behind by a killed run would hold the sealed key as ciphertext. A profile directory
+   younger than six hours under the temporary folders is now a hit by itself; the UI stage wrapper removes them.
+6. (low) The prefix needle grew from 12 to 24 characters and is also searched in its base64 (three alignments) and
+   UTF-16LE forms; every file is scanned whatever its size or name (the 200 MB ceiling is itself a hit).
 
 ## Rejected options
 None yet.

@@ -144,3 +144,19 @@ lines, unit tests in `lib/ai/actions/plan-z.test.ts`, corpus cases in `corpus-pa
   write the `pages` group; `set-wrap-up` the `wrapUp` group; `edit-link` the `links` group; `skip-review` and
   `set-review-weekday` the `weekly` store (the weekday travels as its English name in the action, `WEEKDAY_NAMES`,
   and is written as the store's number).
+
+## 2026-10-10 — Part 4: spoken English and Dutch (ADR-020 L6), and the voice languages (owner edit 6)
+- **Nothing to wire on your side.** The normaliser (`lib/ai/spoken/normalize.ts`) runs inside the entry points you already
+  call: `detectIntent`, `translateCues`/`questionCalls`, `localAnswer`, `navigationIntent`, `dayCue`/`applyDayCue`. The
+  message the person sees and the model receives stays their exact words; only the device-side readers see "log 2.5
+  litres" for "log two and a half litres, um, no wait, three". `applyDayCue` now also applies the spoken quantity to a
+  log card that missed or misheard it (`lib/ai/actions/quantity-cue.ts`), so your one call in `use-chat-session.ts:306`
+  covers both cues; the harness calls the same function.
+- **Voice languages (yours to render, mine to define).** `VOICE_LANGUAGES` in `lib/ai/settings.ts` is the list for the
+  voice-language select: `en-GB`, `en-US`, `nl-BE`, `nl-NL`, with labels. French is gone; a stored `fr…` choice reads as
+  the device default through `readAiSettings` (never refused, never a lost record; frozen-reader test in
+  `settings.test.ts`). `speechLanguage` in `lib/ai/voice.ts` has no French branch, so it needs no change; please build
+  the select from `VOICE_LANGUAGES` and show "Device default" for `null`. If your new device key `zigoals:zigi-voice:v1`
+  carries a language too, the same rule applies there (read `fr…` as default).
+- The protocol gained one sentence about spoken asks (fillers, number words, self-corrections); the request body is
+  otherwise unchanged.

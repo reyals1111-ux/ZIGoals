@@ -1,4 +1,6 @@
 import {FENCE, repairJson} from './parse';
+import {applyQuantityCue} from './quantity-cue';
+import {normalizeSpoken} from '../spoken/normalize';
 
 /**
  * Session X-Local Phase 2 round 6 (ADR-017 S69): the day a log is for, read from the person's own message on the device.
@@ -18,7 +20,8 @@ const dayAt = (today: string, offset: number) => { const d = new Date(`${today}T
 const lastWeekday = (today: string, weekday: number) => { const d = new Date(`${today}T12:00:00Z`); let back = (d.getUTCDay() - weekday + 7) % 7; if (back === 0) back = 7; return dayAt(today, -back); };
 
 /** The day the message names for a log, or null when it names none, more than one, or a day still to come. */
-export function dayCue(message: string, today: string): string | null {
+export function dayCue(spoken: string, today: string): string | null {
+  const message = normalizeSpoken(spoken);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today) || FUTURE.test(message)) return null;
   const found: string[] = [];
   if (TWO_DAYS.test(message)) found.push(dayAt(today, -2));
@@ -27,8 +30,13 @@ export function dayCue(message: string, today: string): string | null {
   return found.length === 1 ? found[0]! : null;
 }
 
-/** The reply with every log card that said today (or named no day) given the message's own day; untouched when there is no cue. */
-export function applyDayCue(reply: string, message: string, today: string): string {
+/**
+ * The reply with every log card that said today (or named no day) given the message's own day; untouched when there is no
+ * cue. Session Z-Local Part 4: the message's spoken quantity is applied first (`applyQuantityCue`), so the app's one call
+ * and the harness's one call read both cues.
+ */
+export function applyDayCue(original: string, message: string, today: string): string {
+  const reply = applyQuantityCue(original, message);
   const day = dayCue(message, today);
   if (!day) return reply;
   return reply.replace(FENCE, (block: string, fence: string, body: string) => {

@@ -7,6 +7,7 @@ import {toolEnv, type ToolSources} from '../tools/env';
 import {text as clean} from '../tools/format';
 import {runTool, toolText} from '../tools/registry';
 import {ANSWER_CHARS} from '../tools/types';
+import {normalizeSpoken} from '../spoken/normalize';
 
 /**
  * Question-aware context (Session V Part 4, the owner's finding): the records sent with a question are chosen from the
@@ -39,7 +40,7 @@ const CUES: [RegExp, string][] = [
   [/\bgelezen\b|\blezen\b|\blu\b|\blire\b|\bpagina'?s?\b|\bpages\b/g, 'read'], [/\bgewandeld\b|\bwandel\w*|\bmarche\b|\bmarché\b/g, 'walk'], [/\bgesport\b|\bsporten\b|\bexercice\b/g, 'exercise'], [/\bdoel(?:en)?\b|\bobjectifs?\b/g, 'goal'], [/\bgewoonte(?:s|n)?\b|\bhabitudes?\b/g, 'habit'],
   [/\bnoodfonds\b|\bfonds d'urgence\b/g, 'emergency fund'], [/\bhoeveel\b|\bcombien\b/g, 'how much'], [/\bwelke\b|\bquel(?:le)?s?\b/g, 'which'], [/\bhoe ver\b|\boù en\b/g, 'how far'], [/\bwat is\b|\bwat was\b|\bqu'est-ce que\b/g, 'what is'], [/\bwanneer\b|\bquand\b/g, 'when'], [/\bapparaten\b|\bappareils?\b|\bgeïmporteerd\b|\bimporté\b/g, 'devices'], [/\bhartslag\b|\bfréquence cardiaque\b/g, 'heart rate'],
 ];
-export function translateCues(question: string): string { let q = question.toLowerCase(); for (const [re, word] of CUES) q = q.replace(re, word); return q; }
+export function translateCues(question: string): string { let q = normalizeSpoken(question).toLowerCase(); for (const [re, word] of CUES) q = q.replace(re, word); return q; }
 /** A habit measure asked for without a habit's name (minutes read, a streak, pages): every timed habit's figures are pre-run. */
 const HABIT_MEASURE = /\b(minutes?|minuten|streaks?|reeks|série|pages?|pagina|consistent|consistency|rate|check-?ins?|how often|hoe vaak|combien de fois)\b/;
 const GOAL_WORDS = /\b(how far|progress|left|remaining|how close|which|list|dates?|coming up|hoe ver|ontbreekt|welke|où en|manque|quels|échéances)\b/;

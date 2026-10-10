@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {AI_SETTINGS_KEY, aiSettingsSchema, connectionLabel, defaultAiSettings, readAiSettings, turnOffAi, updateAiSettings} from './settings';
+import {AI_SETTINGS_KEY, VOICE_LANGUAGES, aiSettingsSchema, connectionLabel, defaultAiSettings, readAiSettings, turnOffAi, updateAiSettings} from './settings';
 
 // ADR-012, Part 2: the device key holds choices, never a secret; unreadable bytes read as off and stay untouched.
 function storage(initial: Record<string, string> = {}) {
@@ -42,4 +42,18 @@ test('turnOffAi returns to the start but keeps the launcher and remember choices
   expect(off).toMatchObject({enabled: false, mode: null, provider: null, model: null, includeHealth: false, customInstructions: '', launcherHidden: true, rememberKey: true});
   expect(connectionLabel(off, () => 'x')).toBeNull();
   expect(connectionLabel({...off, enabled: true, provider: 'anthropic', model: 'mock-claude-a'}, id => id === 'anthropic' ? 'Anthropic' : id)).toBe('via Anthropic · mock-claude-a');
+});
+
+// Session Z-Local Part 4 (owner edit 6): the voice languages are English and Dutch; a stored French choice reads as the device default.
+test('frozen reader: a record with voice.language "fr-FR" reads as the device default, is not unreadable, keeps every other field, and writes back as null', () => {
+  const store = new Map<string, string>(), storage = {getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); }, removeItem: (k: string) => { store.delete(k); }};
+  const frozen = {...defaultAiSettings(true), customInstructions: 'Keep it short', voice: {transcription: 'browser', transcriptionModel: null, language: 'fr-FR', readAloud: true}};
+  store.set(AI_SETTINGS_KEY, JSON.stringify(frozen));
+  const read = readAiSettings(storage, true);
+  expect(read.unreadable).toBe(false); expect(read.data.voice).toEqual({transcription: 'browser', transcriptionModel: null, language: null, readAloud: true}); expect(read.data.customInstructions).toBe('Keep it short');
+  for (const kept of ['nl-NL', 'en-GB', 'nl-BE', 'en-US', 'de-DE']) { store.set(AI_SETTINGS_KEY, JSON.stringify({...frozen, voice: {...frozen.voice, language: kept}})); expect(readAiSettings(storage, true).data.voice.language).toBe(kept); }
+  store.set(AI_SETTINGS_KEY, JSON.stringify({...frozen, voice: {...frozen.voice, language: 'fr'}}));
+  const written = updateAiSettings(storage, current => ({...current, voice: {...current.voice, readAloud: false}}), true);
+  expect(written.voice.language).toBeNull(); expect(JSON.parse(store.get(AI_SETTINGS_KEY)!).voice.language).toBeNull();
+  expect(VOICE_LANGUAGES.map(l => l.id)).toEqual(['en-GB', 'en-US', 'nl-BE', 'nl-NL']);
 });

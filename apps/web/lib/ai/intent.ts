@@ -1,3 +1,4 @@
+import {normalizeSpoken} from './spoken/normalize';
 /**
  * Session X-Local Phase 2 (P2.2b): what a message asks for, read on the device before and after the model replies, in
  * English, Dutch and French. A logging or planning intent that came back without a proposal block gets one bounded
@@ -33,7 +34,7 @@ export const REFUSAL_REPLY = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not
 /** A message that asks (a question word first, a question mark last) asks; it logs or plans nothing, whatever quantities it names ("How can I lose 10 kg in 2 weeks?"). */
 const QUESTION_START = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |zigi,? |hé |hoi |salut |dis-moi,? )*(?:how|what|which|when|where|why|who|can|could|should|would|will|is|are|do|does|did|have|has|am|hoe|wat|welke?|wanneer|waar|waarom|kan|kun|kunnen|moet|zou|is|zijn|heb|hebben|comment|quoi|que|quel(?:le)?s?|quand|où|pourquoi|est-ce|puis-je|peux-tu|dois-je|y a-t-il)\b/i;
 export function detectIntent(text: string): Intent {
-  const t = text.trim();
+  const t = normalizeSpoken(text).trim(); // Session Z-Local Part 4: the spoken form (fillers out, numbers and times as digits, the last of a self-correction)
   const vague = VAGUE.test(t), refuse = REFUSE.test(t), asks = QUESTION.test(t) && QUESTION_START.test(t);
   const lookup = !vague && LOOKUP.test(t) && (QUESTION.test(t) || !LOG_VERB.test(t)) && !STATEMENT.test(t);
   const log = !vague && !lookup && (LOG_VERB.test(t) || STATEMENT.test(t) || ((QUANTITY.test(t) || NUMBER_WORD.test(t)) && !PLAN.test(t)) || (CLOCK.test(t) && /\b(slept|sleep|bed|nap|geslapen|dormi|couché)\b/i.test(t)));

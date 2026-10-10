@@ -11,6 +11,7 @@ import {normalise, stem, tokens} from '../tools/subjects';
 import type {ToolOk, ToolResult} from '../tools/types';
 import {amount, dayText, groupUnits, grouped, instantText, n, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
+import {normalizeSpoken} from '../spoken/normalize';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -140,7 +141,7 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
 }
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
-  const reply = answer(question, env, subject);
+  const reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form
   return 'text' in reply ? {...reply, text: groupUnits(reply.text)} : reply;
 }
 /**
@@ -161,7 +162,7 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
 };
 const NAV_ASK = /^(?:please |ok |okay |hey |hi |zigi,? |nova,? |kun je |kan je |can you |could you )*(?:open|go to|take me to|switch to|jump to|navigate to|bring up|ga naar|open|toon|laat me|breng me naar)\s+(?:my |the |mijn |de |het |me |een )?([a-z' ]{3,24}?)(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht|zien))?[.!?]?$/;
 export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
-  const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  const q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   const m = NAV_ASK.exec(q); if (!m) return null;
   const word = m[1]!.trim().replace(/^(?:my|the|mijn|de|het)\s+/, '');
   return NAV_PAGES[word] ?? null;
