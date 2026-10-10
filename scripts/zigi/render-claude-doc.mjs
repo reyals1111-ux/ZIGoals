@@ -24,11 +24,17 @@ for (const s of summaries.filter(s => s.kind === 'harness')) {
   const pt = s.perTurn ?? {};
   rows.push(`| ${stageOf(s)} | \`${s.model}\` | ${s.mode}${s.cache === false ? ', no cache' : ''}${s.batch ? ', batch' : ''}${s.pageContext ? ', page records' : ''} | ${n(s.cases)} · ${n(s.runs)} | **${s.passed}/${s.runs} · ${pct(s.rate)}** | ${rescored(s)} | ${kinds} | ${n(Math.round(pt.input ?? 0))} + ${n(Math.round(pt.cacheWrite ?? 0))} + ${n(Math.round(pt.cacheRead ?? 0))} → ${n(Math.round(pt.output ?? 0))} | ${pt.usd === undefined ? '—' : `$${pt.usd.toFixed(4)}`} | ${usd(s.costUsd)} | ${n(s.latency?.firstTokenMedianMs)} / ${n(s.latency?.totalMedianMs)} |`);
 }
+// Session Z-Local Part 2: the UI stages (the real panel in Chrome or WebKit), one row per stage and project, from the panel summaries.
+const uiRows = ['| Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |', '|---|---|---|---:|---:|---:|---:|'];
+for (const s of summaries.filter(s => s.kind === 'panel')) for (const [key, g] of Object.entries(s.groups ?? {})) {
+  const project = /\((\w+)\)$/.exec(key)?.[1] ?? '—', engine = /webkit/i.test(s.stage ?? '') ? 'WebKit' : 'Chrome';
+  uiRows.push(`| ${s.stage ?? s.file} | \`${key.replace(/ on .*$/, '')}\` | ${engine} · ${project} | **${g.passed}/${g.runs} · ${pct(g.rate)}** | ${n(g.medianMs)} | ${g.errors ?? 0} | ${g.costUsd === null || g.costUsd === undefined ? '—' : usd(g.costUsd)} |`);
+}
 const per100 = ['| Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |', '|---|---|---:|'];
 for (const s of summaries.filter(s => s.kind === 'harness' && s.cache !== false && !s.batch && s.perTurn?.usd !== undefined)) per100.push(`| \`${s.model}\` | ${stageOf(s)} | $${(100 * s.perTurn.usd).toFixed(2)} |`);
 const doc = readFileSync(DOC, 'utf8'), start = '<!-- tables:start -->', end = '<!-- tables:end -->';
 const i = doc.indexOf(start), j = doc.indexOf(end);
 if (i < 0 || j < 0) throw new Error('markers missing in the document');
-const block = `${start}\n_Rendered by \`scripts/zigi/render-claude-doc.mjs\` from ${summaries.length} summary file(s) on ${new Date().toISOString().slice(0, 10)}; the figures are the API's own usage fields at the dated price table._\n\n${rows.join('\n')}\n\n### Cost per 100 messages\n${per100.join('\n')}\n`;
+const block = `${start}\n_Rendered by \`scripts/zigi/render-claude-doc.mjs\` from ${summaries.length} summary file(s) on ${new Date().toISOString().slice(0, 10)}; the figures are the API's own usage fields at the dated price table._\n\n${rows.join('\n')}\n\n### Cost per 100 messages\n${per100.join('\n')}\n\n### The UI stages (the real panel)\n${uiRows.length > 2 ? uiRows.join('\n') : '_No UI stage summarised yet._'}\n`;
 writeFileSync(DOC, doc.slice(0, i) + block + doc.slice(j));
 console.log(`rendered ${rows.length - 2} run row(s) into ${DOC.replace(REPO + '/', '')}`);
