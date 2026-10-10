@@ -151,10 +151,10 @@ test('at phone width the top bar names Help and steps back to Settings', async (
 });
 
 // Session W Part 24: every new feature has a linkable answer under "New: your whole life"; a hash opens it.
-test('New: your whole life: nineteen linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
+test('New: your whole life: twenty linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'Sleep, mind, music, chess, links and more', exact: true});
-  const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'w-newer-section', 'w-web-limits'];
+  const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'z-step-up', 'w-newer-section', 'w-web-limits'];
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(section.locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(section.locator('details[open]')).toHaveCount(0);

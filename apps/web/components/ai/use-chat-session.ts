@@ -17,7 +17,7 @@ import {zigiSignals} from '../zigi/bus';
 import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../../lib/ai/intent';
 import {localSignal} from '../../lib/ai/zigi-reactions';
-import {extractHint} from '../../lib/ai/emotion-hint';
+import {extractHint, stripHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -287,10 +287,12 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       const check = parseReply(reply), intent = detectIntent(text);
       if (!needsRepair(check, {askedForCard: wantsCard(intent, reply), refusedMayRepair: refusedBlocksMayRepair(intent, reply)})) return;
       const firstTry = reply, firstUsage = usage;
-      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: repairPrompt(check)}];
+      // Session Z-Cloud Gate B (Z-Local's F11): the first answer goes back without its emotion marker, and a Stop during the
+      // retry keeps that first answer (the marker stripped where every reply is), never the half-repaired one.
+      const again = [...messages, {role: 'assistant' as const, content: stripHint(firstTry)}, {role: 'user' as const, content: repairPrompt(check)}];
       reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
       const structured = !hosted && settings.provider === 'local' && settings.localServer === 'ollama' ? {format: structuredFormat()} : {};
-      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
+      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) { reply = firstTry; usage = firstUsage; pendingText.current = firstTry; throw error; } reply = ''; }
       if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
       reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };

@@ -158,6 +158,29 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await expect(page.locator('main')).not.toContainText('Deleted habit');
 });
 
+// Session Z-Cloud Gate B (Z-Local's `plan.confirm`): a ZIGi card that asks to delete a habit opens Habits with
+// #confirm-delete=habit:<id>; the habit's own confirmation opens there, and nothing is deleted until the person confirms.
+test('6b. a ZIGi "delete my habit" card opens that habit\'s own confirmation; an active habit says to archive it first', async ({page}) => {
+  const WALK = '7d2e1f0a-6b5c-4c3d-9e8f-0a1b2c3d4e5f', day = (n: number) => new Date(Date.now() - n * 86_400_000);
+  let data = createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, day(12), HABIT);
+  data = createHabit(data, {title: 'Walk', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, day(12), WALK);
+  data = scheduleHabitState(data, HABIT, 'archived', localDate(day(5)), day(6));
+  await seed(page, {[HABITS_KEY]: data});
+  await page.goto(`/app/habits#confirm-delete=habit%3A${HABIT}`);
+  const card = page.getByRole('article', {name: 'Stretch', exact: true});
+  await expect(card.getByRole('form', {name: 'Delete Stretch for good'})).toBeVisible();
+  await expect(card).toBeInViewport();
+  await expect.poll(() => page.evaluate(() => window.location.hash)).toBe('');
+  const titles = async () => ((await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HABITS_KEY)) as {habits: {title: string}[]}).habits.map(h => h.title);
+  expect(await titles()).toEqual(['Stretch', 'Walk']);
+  // An active habit has no deletion of its own yet: its card is shown and says how.
+  await page.goto(`/app/habits#confirm-delete=habit%3A${WALK}`);
+  const walk = page.getByRole('article', {name: 'Walk', exact: true});
+  await expect(walk.getByText('To delete this habit for good, archive it first; then “Delete for good…” appears here.')).toBeVisible();
+  await expect(walk.getByRole('button', {name: 'Delete for good…'})).toHaveCount(0);
+  expect(await titles()).toEqual(['Stretch', 'Walk']);
+});
+
 test('7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres', async ({page}) => {
   const day = localDate();
   let health = saveHealthPreferences(createEmptyHealth(), {...dailyData(createEmptyHealth()).preferences, weightUnit: 'lb', waterUnit: 'fl-oz-us'});

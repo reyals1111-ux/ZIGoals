@@ -20,7 +20,7 @@ import './ai.css';
  * ten seconds; the undo is the inverse operation through the normal save path and is refused calmly if a record changed.
  * Proposals ZIGi made outside the whitelist are reported in plain words, never shown as cards.
  */
-export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null};
+export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null; opened?: string};
 type UndoGroup = {ids: string[]; until: number};
 const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result.plan : null;
 /** Session V Part 12 / X-Local Part 4 (D5): a check-in that took a streak onto a milestone makes ZIGi proud; any other accepted card is a small success. */
@@ -61,7 +61,11 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   const announce = useCallback((text: string) => { setNote(text); onChange?.(text); }, [onChange]);
   const add = useCallback(async (item: ProposalItem) => {
     const plan = planOf(item); if (!plan) return;
-    if (plan.target === 'form') { const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
+    if (plan.target === 'form') {
+      // Session Z-Cloud Gate B: Z-Local's runner effects (a page, a delete confirmation, ZIGi's look) before the money pre-fills.
+      const opened = runner.effect?.(plan) ?? null;
+      if (opened !== null) { patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); if (opened.navigated) onNavigate?.(); return; }
+      const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
     try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
@@ -131,7 +135,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
     {(() => {
-      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))}
+      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))}
         onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);

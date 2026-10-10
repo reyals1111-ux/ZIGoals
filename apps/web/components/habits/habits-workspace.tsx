@@ -2,6 +2,7 @@
 import { HabitRhythmSection } from "../bottom-sections";
 import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { readConfirmDelete } from "../../lib/confirm-delete";
 import Link from "next/link";
 import { askZigi } from "../ai/ask";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -87,7 +88,8 @@ export function HabitsWorkspace() {
   useEffect(() => {
     if (!store.loaded) return;
     const follow = () => {
-      const id = hashId(window.location.hash);
+      // Session Z-Cloud Gate B: a ZIGi card's #confirm-delete=habit:<id> shows that habit too (its card opens the confirmation).
+      const asked = readConfirmDelete(window.location.hash), id = asked?.what === "habit" ? `habit-${asked.id}` : hashId(window.location.hash);
       if (!id?.startsWith("habit-") || id === followed.current) return;
       const habit = store.data.habits.find((h) => `habit-${h.id}` === id);
       if (!habit) return;

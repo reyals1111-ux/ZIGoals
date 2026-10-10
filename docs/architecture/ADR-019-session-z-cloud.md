@@ -96,15 +96,19 @@ that keeps the project's promises), and the owner's own decisions. A parallel la
 | C43 | 5 (Gate B) | **The independent security read of the A5 commit found nothing exploitable** (no race past 60, the ceiling reserved last, never evicted, UTC midnight and Retry-After right, verification never touched, the fixture var honoured only in fixtures, no invite leak). **Fixed:** a code request now looks at the day's ceiling before it reserves its own address and network limits, so retrying on a paused day no longer uses up tomorrow's (the paused answer stays the same for every address); `activation-check` also refuses `LOCAL_DAILY_SENDS` and `LOCAL_SHARD_CAPACITY` in private configs. **Owner item (design limit):** the 60 a day can be used up cheaply with made-up addresses from a few networks (an address that is not invited sends no email, so it costs the sender nothing), which pauses new sign-ins for everyone until UTC midnight; sessions and refresh are unaffected. Counting only invited addresses needs an invite list in the Worker (a keyed hash list, a new secret) and is the owner's call; so is setting the email provider's own rate limit to match, and whether /48 (the owner's A5 choice) should apply only to the distinct-email count, since mobile carriers share a /48. | Gate B |
 
 ## Handoff applied (from Z_LOCAL_TO_CLOUD.md)
-Read at each gate on `origin/feature/session-z-local`. **Gate A:** its head `9dc9a86` (Part 5, 3/3), read 2026-10-10 16:10 UTC.
+Read at each gate on `origin/feature/session-z-local`. **Gate A:** its head `9dc9a86` (Part 5, 3/3), read 2026-10-10 16:10 UTC. **Gate B:** its head `64ec6f6`, read 2026-10-10 23:20 UTC.
 | Ask (Z-Local's entry) | State here | Where |
 |---|---|---|
 | Voice languages EN/NL only, French out; an old `'fr'` reads as the device default (opened, owner edit 6) | **Applied** (Part 3): the four options and the device default in Settings; `speechLanguage` resolves `fr-*` to the device language. When Z-Local's option list is exported from `lib/ai/settings.ts` on `main`, the PR that merges second points `VOICE_LANGUAGES` at it. | `lib/zigi-voice-lang.ts`, `lib/ai/voice.ts`, C16 |
 | `proposal-list.tsx`: the second merger keeps both lanes' changes (opened, Part 1) | **Nothing to merge yet:** Z-Local's freeze is not reproducible on the Mac and no fix has landed in the file; its looping probe spec runs in CI's WebKit job. | C9, C20 |
 | The relay sends and counts exactly as the adapter (Part 3 entry): no `thinking` field on the 5.5 models, `output_config.effort` low/high with one retry without it, `cache_control` on the stable prefix plus the top-level automatic one, the four usage fields, one price table copied from `lib/ai/pricing.ts` | **Part 6** (the relay is built to these rules; the price table is copied with its source commit named). | Part 6 |
 | The usage meter shows cache writes and reads and "Fill in the published prices" (L5) | **Waits for Z-Local on `main`:** the fields (`cacheWrite`, `cacheRead`) and `publishedPrices()` exist only on its branch. The PR that merges second renders them in `components/ai/ai-data-usage.tsx`. | owner item if Z-Local merges first and this PR is still open: then this lane does it |
-| Runner effects `plan.navigate`, `plan.confirm`, `plan.device` (Part 5 entries) | **Gate B:** `use-proposals.ts` reads the three optional fields structurally (they compile against `main`'s `Plan` and Z-Local's), with a unit test of the effect; `plan.confirm` opens the record's page and its own delete confirmation for the targets whose pages have one. | Gate B |
+| Runner effects `plan.navigate`, `plan.confirm`, `plan.device` (Part 5 entries) | **Applied (Gate B):** `components/ai/runner-effects.ts` reads the three fields structurally (they compile against `main`'s `Plan` and Z-Local's); the runner opens the page, opens the record's page with `#confirm-delete=<what>:<id>` (`lib/confirm-delete.ts`, read once), or patches ZIGi's look (top-level look keys, `knock` merged); the card says "Opened: …", "Opened the confirmation on …" or "ZIGi's look changed". Habits opens the habit's own "Delete for good" (archived) or says to archive it first; other pages open and the person deletes there. Unit tests (`lib/runner-effects.test.ts`) and `persona-z` 6b. | Gate B |
 | Pre-fill for a goal's contribution and a new account (`form-prefill.ts`) | **Waits for Z-Local on `main`:** the stash module exists only on its branch; the PR that merges second wires `take…Prefill()` in `contribution-flow.tsx` and `accounts-section.tsx`. Until then the cards say which route they open. | owner item at merge |
+| F11: Stop during the repair round keeps the first answer, hint stripped; the retry carries it without the marker | **Applied (Gate B)** in `use-chat-session.ts` (`stripHint` is on `main`); spec in `zigi-robustness`. | Gate B |
+| F9 and L21: `autoAcceptVerdict(…, plan.healthContent === true, plan.duplicate === true)`; F14: `dedupePlans(plans, stores)` after planning; L20: `healthShared` for `buildSystemParts` | **Waits for Z-Local on `main`:** the arguments and `dedupePlans` exist only on its branch, and passing them against `main`'s signatures does not compile. The PR that merges second adds the three lines (`use-auto-accept.ts:30`, the runner's plan list, `use-chat-session.ts` where `partsFor(tools)` builds the parts). | owner item at merge |
+| L35: the output cap's default 2,048 | **Nothing to change:** no Settings label here shows the default as a literal. | — |
+| Part 9 drafts: What's new and Help text for the brain's changes, iPhone checklist rows 14–18 | **The second merger carries them:** they describe Z-Local's features (spoken corrections, Dutch, the new task kinds), which are not on this branch. Row 16 ("delete my Walk habit") uses this gate's `plan.confirm` effect. | owner item at merge |
 
 ## Assertions changed (deliberate, listed)
 - **Part 2, the new name (as strict):** `tests/help-page.spec.ts` (the topic list) and `tests/send-feedback.spec.ts` (the Known
@@ -138,6 +142,9 @@ Read at each gate on `origin/feature/session-z-local`. **Gate A:** its head `9dc
   order, then Quick add after Help), `pages-visibility` (desktop and phone lists, the hydration list) and
   `lib/pages/visibility.test.ts` expect "Help" after "Settings"; `lib/nav-prefetch.test.ts` lists `/app/help` as not
   prefetched.
+  `help-settings-link` (Gate B) still requires exactly one Help link in the Settings page itself (`main`); every other
+  Help link must be a navigation entry named "Help", at most two (the sidebar, and More on a phone). It expected one link
+  on the whole page, which the new navigation entry made two (three on a phone, where both navigations are in the page).
 - **Part 4.2–4.3, the honesty label (as strict, new words):** `honesty-banners`, `private-read-delay`, `dashboard-visual` and
   `phone-shell` expect "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" without a wallet where they expected "ZIGCHAIN
   TESTNET · PUBLIC ALPHA"; on a phone with scripts they expect the one status line "Demo · no real money" (≥44 px, one line,
@@ -169,6 +176,9 @@ Read at each gate on `origin/feature/session-z-local`. **Gate A:** its head `9dc
   rule): the typed confirmation alone no longer enables "Confirm cloud deletion"; it now expects the button to stay off
   until a well-formed secret is typed too, the secret passed to the deletion and the field emptied after it; "no download
   is needed" is unchanged.
+- **Part 5, Help (as strict, one more entry):** `help-page`'s "New: your whole life" lists the new "Why does ZIGoals ask
+  for my recovery secret again?" (`z-step-up`) after "How do I sign out all my other devices?": twenty questions, each
+  opened by its hash (was nineteen).
 - **Gate B, A5 retries (stricter):** `scripts/run11/auth-abuse.test.mjs` also expects seven retries on a paused day to
   answer `DAILY_LIMIT` each and the same address to send right after midnight (failed on the old Worker with `TRY_LATER`).
 - **Part 5 (A7), the deleted-account words (as strict):** `lib/account-access.test.ts` expects "Your cloud copy was

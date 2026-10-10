@@ -18,11 +18,13 @@ export type ProposalCardProps = {
   fromPhoto?: boolean;
   /** Session Z-Cloud Part 2: false while the card's Undo window is open, so nothing moves under the person's pointer. */
   receipt?: boolean;
+  /** Session Z-Cloud Gate B: what a runner effect did ("Opened: Sleep"), in place of the money form's words. */
+  opened?: string;
 };
 const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply', auto: 'Added by ZIGi (auto-accept)'};
 /** A kept note says where it went, on the full card (while its Undo window is open) and on its receipt alike. */
-const statusText = (status: Exclude<ProposalStatus, 'proposed'>, kind: string) => status === 'added' && kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : STATUS_TEXT[status];
-export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true}: ProposalCardProps) {
+const statusText = (status: Exclude<ProposalStatus, 'proposed'>, kind: string, opened?: string) => status === 'added' && kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : status === 'opened' && opened ? opened : STATUS_TEXT[status];
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
@@ -43,7 +45,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
   // card keeps its size while its Undo window is open (the Undo below it stays where it was), then folds.
   if (status !== 'proposed' && status !== 'busy' && receipt) return <article className={`ai-card ai-card-${status} ai-card-receipt`} aria-labelledby={titleId} data-kind={card.kind}>
     <span className="ai-card-receipt-mark" aria-hidden="true">{status === 'added' || status === 'auto' || status === 'opened' ? '✓' : '–'}</span>
-    <span className="ai-card-status">{statusText(status, card.kind)}</span>
+    <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>
     <h4 id={titleId} className="ai-card-receipt-title">{card.title}</h4>
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
@@ -62,7 +64,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
         <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
-      </> : <span className="ai-card-status">{statusText(status, card.kind)}</span>}
+      </> : <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>}
     </div>}
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
