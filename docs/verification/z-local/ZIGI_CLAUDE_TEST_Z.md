@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 12 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 13 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -60,6 +60,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 12 summary file(s) on 202
 | Part 2 · corpus ×1 | `claude-sonnet-5-5` | tools | 626 · 773 | **693/773 · 89.7 %** | 594/667 | lookup 117/120 · propose 210/232 · chat 40/46 · brief 27/29 · unknown 12/15 · refuse 53/57 · advice 9/13 · multi 153/183 · followup 41/45 · privacy 12/13 · injection 19/20 | 5 + 1,543 + 14,674 → 288 | $0.0082 | $5.94 | 812 / 2,650 |
 | Part 2 · important ×2 | `claude-sonnet-5-5` | tools | 198 · 608 | **526/608 · 86.5 %** | 501/568 | lookup 50/52 · propose 147/162 · brief 17/18 · unknown 2/2 · refuse 40/46 · multi 215/264 · advice 2/8 · privacy 16/16 · chat 16/18 · injection 17/18 · local-first 4/4 | 5 + 1,951 + 17,965 → 338 | $0.0101 | $5.70 | 930 / 3,045 |
 | Part 2 · corpus ×3 | `claude-haiku-5-5` | tools | 684 · 2,493 | **2182/2493 · 87.5 %** | 1928/2175 | lookup 352/360 · propose 756/867 · chat 124/138 · brief 82/87 · unknown 38/45 · refuse 140/162 · advice 26/39 · multi 432/549 · followup 127/135 · privacy 36/39 · injection 57/60 · local-first 12/12 | 5 + 995 + 18,280 → 400 | $0.0005 | $1.18 | 1,640 / 2,321 |
+| Part 2 · corpus ×1 | `claude-opus-5-5` | tools | 595 · 725 | **665/725 · 91.7 %** | — | lookup 92/93 · propose 226/246 · chat 38/42 · brief 27/27 · unknown 13/14 · refuse 45/52 · advice 11/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,564 + 16,482 → 291 | $0.0170 | $11.37 | 2,033 / 3,750 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -70,6 +71,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 12 summary file(s) on 202
 | `claude-sonnet-5-5` | Part 2 · corpus ×1 | $0.82 |
 | `claude-sonnet-5-5` | Part 2 · important ×2 | $1.01 |
 | `claude-haiku-5-5` | Part 2 · corpus ×3 | $0.05 |
+| `claude-opus-5-5` | Part 2 · corpus ×1 | $1.70 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
@@ -87,7 +89,7 @@ conversations), and the second half of the caching measurement. Each lands here 
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 12 summary file(s): 3 met · 4 not met · 18 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 13 summary file(s): 3 met · 5 not met · 17 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -104,7 +106,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 12 summary file(s): 3
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
 | Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
 | Haiku · pages 17 × 10 (desktop) ≥ 92 % | — | not run yet | — |
-| Opus · corpus ≥ 97 % | — | not run yet | — |
+| Opus · corpus ≥ 97 % | 665/725 · 91.7 % | not met, 5.3 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json` |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | — | not run yet | — |
 | Opus · UI panel 60 ≥ 97 % | — | not run yet | — |
 | qwen3.8 (RTX 5090) ≥ 90 % | — | not run yet | — |
