@@ -84,3 +84,7 @@ END part2-part3-chain 2026-10-10T19:12:24Z rc=0
 END ui-ui-conv-opus 2026-10-10T19:12:29Z rc=0
 START ui-ui-day-sonnet 2026-10-10T19:12:33Z
 END ui-ui-day-sonnet 2026-10-10T19:13:41Z rc=0
+START ui-ui-pages-sonnet 2026-10-10T19:13:45Z
+END qwen36-mac-corpus 2026-10-10T19:19:25Z rc=0
+START qwen36-mac-2 2026-10-10T19:19:55Z
+END qwen36-mac-2 2026-10-10T19:19:57Z rc=1
