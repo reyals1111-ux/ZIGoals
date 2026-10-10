@@ -1,11 +1,11 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 52.449450327499996,
+ "total": 64.27074612749998,
  "byModel": {
   "claude-haiku-5-5": 2.459016177499999,
-  "claude-sonnet-5-5": 28.88376914999999,
-  "claude-opus-5-5": 21.106665
+  "claude-sonnet-5-5": 29.33142714999999,
+  "claude-opus-5-5": 32.48030279999999
  },
  "rows": [
   {
@@ -103,12 +103,12 @@
    "stage": "real-model/corpus",
    "model": "claude-opus-5-5",
    "batch": false,
-   "requests": 778,
-   "input": 2916,
-   "cacheWrite": 1049421,
-   "cacheRead": 11059244,
-   "output": 195151,
-   "usd": 11.3736378,
+   "requests": 1556,
+   "input": 5832,
+   "cacheWrite": 2098842,
+   "cacheRead": 22118488,
+   "output": 390302,
+   "usd": 22.747275599999988,
    "unreported": 0,
    "files": 0
   },
@@ -174,6 +174,19 @@
    "cacheRead": 396341,
    "output": 3286,
    "usd": 0.2659816,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/ui-day-sonnet",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "requests": 30,
+   "input": 120,
+   "cacheWrite": 140645,
+   "cacheRead": 339955,
+   "output": 6181,
+   "usd": 0.4476579999999999,
    "unreported": 0,
    "files": 0
   },
@@ -300,6 +313,11 @@
    "turns": 671
   },
   {
+   "file": "real-model/corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json.rescored.json",
+   "model": "claude-opus-5-5",
+   "turns": 671
+  },
+  {
    "file": "real-model/corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json",
    "model": "claude-sonnet-5-5",
    "turns": 723
@@ -333,6 +351,11 @@
    "file": "real-model/ui-conv-sonnet/conversations-claude-sonnet-5-5.json",
    "model": "panel",
    "turns": 15
+  },
+  {
+   "file": "real-model/ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json",
+   "model": "panel",
+   "turns": 30
   },
   {
    "file": "real-model/ui-panel-haiku/ui-claude-haiku-5-5.json",
@@ -375,5 +398,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-10T19:12:30.890Z"
+ "rebuiltAt": "2026-10-10T19:13:42.453Z"
 }
