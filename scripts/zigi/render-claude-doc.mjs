@@ -22,7 +22,7 @@ const rows = ['| Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-s
 for (const s of summaries.filter(s => s.kind === 'harness')) {
   const kinds = Object.entries(s.byKind ?? {}).map(([k, v]) => `${k} ${typeof v === 'string' ? v : `${v.passed}/${v.total}`}`).join(' · ');
   const pt = s.perTurn ?? {};
-  rows.push(`| ${stageOf(s)} | \`${s.model}\` | ${s.mode}${s.cache === false ? ', no cache' : ''}${s.batch ? ', batch' : ''}${s.pageContext ? ', page records' : ''} | ${n(s.cases)} · ${n(s.runs)} | **${s.passed}/${s.runs} · ${pct(s.rate)}** | ${rescored(s)} | ${kinds} | ${n(Math.round(pt.input ?? 0))} + ${n(Math.round(pt.cacheWrite ?? 0))} + ${n(Math.round(pt.cacheRead ?? 0))} → ${n(Math.round(pt.output ?? 0))} | ${pt.usd === undefined ? '—' : `$${pt.usd.toFixed(4)}`} | ${usd(s.costUsd)} | ${n(s.latency?.firstTokenMedianMs)} / ${n(s.latency?.totalMedianMs)} |`);
+  rows.push(`| ${stageOf(s)} | \`${s.model}\` | ${s.mode}${s.cache === false ? ', no cache' : ''}${s.batch ? ', batch' : ''}${s.pageContext ? ', page records' : ''} | ${n(s.cases)} · ${n(s.runs)} | **${s.passed}/${s.runs} · ${pct(s.rate)}** | ${rescored(s)} | ${kinds} | ${n(Math.round(pt.input ?? 0))} + ${n(Math.round(pt.cacheWrite ?? 0))} + ${n(Math.round(pt.cacheRead ?? 0))} → ${n(Math.round(pt.output ?? 0))} | ${pt.usd === undefined || pt.usd === null ? '—' : `$${pt.usd.toFixed(4)}`} | ${usd(s.costUsd)} | ${n(s.latency?.firstTokenMedianMs)} / ${n(s.latency?.totalMedianMs)} |`);
 }
 // Session Z-Local Part 2: the UI stages (the real panel in Chrome or WebKit), one row per stage and project, from the panel summaries.
 const uiRows = ['| Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |', '|---|---|---|---:|---:|---:|---:|'];
