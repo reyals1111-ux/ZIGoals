@@ -25,19 +25,19 @@ export const asksMemory = (answers: Partial<Answers>) => answers.where === 'comp
 const LOCAL: Omit<Recommendation, 'why'> = {route: 'local', title: 'A local model on this computer (Ollama or LM Studio)',
   pros: ['Free to run', 'Nothing leaves your computer', 'Works without the internet once set up'],
   cons: ['Needs a capable computer (16 GB of memory or more)', 'Smaller models answer less well than the best cloud ones', 'A one-time setup of a few minutes'],
-  steps: ['Install Ollama (ollama.com) or LM Studio (lmstudio.ai) on this computer.', 'Download a model there (a small chat model to start).', 'Settings → ZIGi · your AI → "I run a model on this computer", then pick the model. The setup says exactly what to allow for this site.']};
+  steps: ['Install Ollama (ollama.com) or LM Studio (lmstudio.ai) on this computer.', 'Download a model there (a small chat model to start).', 'Settings → ZIGi · Your Personal AI Companion → "I run a model on this computer", then pick the model. The setup says exactly what to allow for this site.']};
 const ON_DEVICE: Omit<Recommendation, 'why'> = {route: 'on-device', title: 'Chrome’s on-device model',
   pros: ['Free', 'Nothing leaves your computer', 'No account and no key'],
   cons: ['Chrome on a computer only', 'A large one-time download (about 22 GB of free space)', 'A small model: short answers and rewording, not long plans'],
-  steps: ['Settings → ZIGi · your AI → "Chrome’s on-device model" → Download.', 'Keep this tab open while Chrome downloads it; it says when it is ready.']};
+  steps: ['Settings → ZIGi · Your Personal AI Companion → "Chrome’s on-device model" → Download.', 'Keep this tab open while Chrome downloads it; it says when it is ready.']};
 const API: Omit<Recommendation, 'why'> = {route: 'api', title: 'An API key from a provider',
   pros: ['The best answers, with tools and proposal cards', 'Works on phones and computers', 'You pay only for what you use'],
   cons: ['Costs money per message, at your provider\u2019s own prices', 'The key stays on this device; you add it on each device you use'],
-  steps: ['Create a key at your provider (OpenAI, Anthropic, Google, xAI or OpenRouter).', 'Set a monthly spending limit in that provider’s billing settings first.', 'Settings → ZIGi · your AI → "I have an API key", paste it. ZIGi’s own soft cap is under Usage.']};
+  steps: ['Create a key at your provider (OpenAI, Anthropic, Google, xAI or OpenRouter).', 'Set a monthly spending limit in that provider’s billing settings first.', 'Settings → ZIGi · Your Personal AI Companion → "I have an API key", paste it. ZIGi’s own soft cap is under Usage.']};
 const BRIDGE: Omit<Recommendation, 'why'> = {route: 'subscription', title: 'The subscription bridge',
   pros: ['Uses the subscription you already pay for', 'No key, no extra cost'],
   cons: ['Copy and paste: ZIGi writes the prompt, you paste it into the app', 'Answers cannot become cards here'],
-  steps: ['Settings → ZIGi · your AI → "I only have a subscription", pick your app.', 'Ask in ZIGi, copy the prompt, paste it into the app.']};
+  steps: ['Settings → ZIGi · Your Personal AI Companion → "I only have a subscription", pick your app.', 'Ask in ZIGi, copy the prompt, paste it into the app.']};
 /** The recommendation for these answers, given what Chrome says about its own model here and whether hosted is offered. */
 export function recommend(answers: Answers, {onDevice, hosted = false}: {onDevice: OnDeviceAvailability; hosted?: boolean}): Recommendation {
   const chromeModel = onDevice === 'available' || onDevice === 'downloadable' || onDevice === 'downloading';
@@ -56,7 +56,7 @@ export function recommend(answers: Answers, {onDevice, hosted = false}: {onDevic
     if (answers.where === 'computer' && answers.memory === 'plenty') return {...LOCAL, why: 'No extra cost: a model on your own computer.'};
     return {...BRIDGE, why: 'Without a subscription or a capable computer, ZIGi still answers questions about your records on this device; the bridge works once you have any chat app.', also: 'api'};
   }
-  if (hosted) return {route: 'hosted', title: 'ZIGoals hosted', why: 'The best answers without a key of your own, within your plan’s limits.', pros: ['No key to manage', 'Works on phones and computers'], cons: ['Your messages pass through ZIGoals to its provider (nothing is stored)', 'Daily limits apply'], steps: ['Settings → ZIGi · your AI → "ZIGoals hosted", read what passes through, then turn it on.'], also: 'api'};
+  if (hosted) return {route: 'hosted', title: 'ZIGoals hosted', why: 'The best answers without a key of your own, within your plan’s limits.', pros: ['No key to manage', 'Works on phones and computers'], cons: ['Your messages pass through ZIGoals to its provider (nothing is stored)', 'Daily limits apply'], steps: ['Settings → ZIGi · Your Personal AI Companion → "ZIGoals hosted", read what passes through, then turn it on.'], also: 'api'};
   if (answers.have === 'subscription') return {...API, why: 'For the best answers inside ZIGoals (tools and cards) a key is needed; your subscription stays useful through the bridge.', also: 'subscription'};
   return {...API, why: answers.have === 'api' ? 'You already have an API account: it gives the best answers here.' : 'The best answers here, with tools and cards; you pay your provider for what you use.'};
 }

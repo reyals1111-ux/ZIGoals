@@ -87,7 +87,7 @@ test('water, steps, weight and a measurement: card, write through the Health mut
   expect(measurement.card.lines).toEqual(['waist: 81.5 cm']); expect(measurement.card.day).toBe('2026-09-18');
   const afterMeasurement = roundTrip(measurement);
   const saved = (afterMeasurement.health.measurements ?? []).find(m => m.kind === 'waist' && m.quantityMilli === 81_500);
-  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · your AI'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
+  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · Your Personal AI Companion'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
 });
 test('food from the library keeps the person\'s nutrients; an AI estimate is labelled, unknown stays unknown, and a missing serving weight is recorded transparently', () => {
   const library = plan({kind: 'log-food', name: 'oats', meal: 'Breakfast', food: 'f1', quantity: 1.5});
@@ -247,7 +247,11 @@ test('cards name records by title, never by identifier, and every kind the parse
     {kind: 'update-account-balance', account: 'Rainy-day savings', balance: 10450}, {kind: 'start-challenge', habit: 'h1', days: 30},
     // Session X-Local Part 5a
     {kind: 'stack-habit', habit: 'h2', after: 'h1'}, {kind: 'edit-habit', habit: 'h1', title: 'Renamed'}, {kind: 'edit-goal', goal: 'g1', name: 'Renamed goal'}, {kind: 'log-mood', mood: 3},
-    {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, {kind: 'add-widget', widget: 'habit', habit: 'h3', metric: 'today'}];
+    {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, {kind: 'add-widget', widget: 'habit', habit: 'h3', metric: 'today'},
+    // Session Z-Local Part 5
+    {kind: 'open-page', page: 'health', view: 'sleep'}, {kind: 'delete-record', what: 'habit', habit: 'h1'}, {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, {kind: 'vacation', from: '2026-09-22', to: '2026-09-23'}, {kind: 'close-goal', goal: 'g1'},
+    {kind: 'grocery-notes', notes: 'Oat milk'}, {kind: 'create-counter', name: 'Burpees'}, {kind: 'set-target', target: 'kcal', value: 2100}, {kind: 'set-health-preference', weightUnit: 'lb'}, {kind: 'start-night', bedtime: '23:00'}, {kind: 'set-bells', volume: 40},
+    {kind: 'set-today-preset', preset: 'wealth'}, {kind: 'skip-review'}, {kind: 'set-wrap-up', time: '21:30'}, {kind: 'set-page-visibility', page: 'markets', shown: false}, {kind: 'set-start-page', page: 'habits'}, {kind: 'set-zigi-look', animation: 'full'}, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings'}];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
   const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
@@ -259,6 +263,7 @@ test('cards name records by title, never by identifier, and every kind the parse
     expect(p.card.title.length, p.card.kind).toBeGreaterThan(3); expect(p.card.where.length, p.card.kind).toBeGreaterThan(3);
   }
   kinds.add('stop-fast'); // needs a running fast; covered above
+  for (const k of ['unskip', 'remove-reminder', 'reopen-goal', 'edit-diary-entry', 'log-meal-plan', 'set-favorite', 'edit-counter', 'end-night', 'edit-link', 'set-review-weekday', 'prefill-contribution']) kinds.add(k); // need a planned skip, a reminder, a closed goal, a diary name, a plan, a food, a counter, a running night, a link, a weekday other than the Showcase's, an active goal; covered in plan-z.test.ts
   expect([...kinds].sort()).toEqual([...ACTION_KINDS].sort());
 });
 test('end to end: a reply with an injected instruction yields one whitelisted card and nothing else is touched', () => {

@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {AiError} from './errors';
-import {lines, ndjson, sseEvents, Stalled} from './sse';
+import {fetchWithStall, lines, ndjson, sseEvents, Stalled} from './sse';
 
 // ADR-012, Part 1: the readers cope with any chunking, both line endings, comments and an abort.
 /** A body that delivers `text` in chunks of `size` bytes (so lines and multi-byte characters split anywhere). */
@@ -46,4 +46,16 @@ test('stall: a body that goes quiet ends with a stalled error after the watchdog
   // A body that keeps sending within the window never stalls, and the watchdog never fires after the end.
   await expect(collect(lines(body('a\nb\nc\n', 2), undefined, 40))).resolves.toEqual(['a', 'b', 'c']);
   await new Promise(resolve => setTimeout(resolve, 60));
+});
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F16): the headers race against the stall window
+test('F16: a request that never answers with headers ends as stalled within the window; the caller\'s own Stop still wins; a normal answer passes', async () => {
+  const never: typeof fetch = () => new Promise<Response>(() => undefined);
+  await expect(fetchWithStall(never, 'https://x.invalid', {method: 'POST'}, 20)).rejects.toMatchObject({kind: 'stalled'});
+  const control = new AbortController();
+  const aborting: typeof fetch = (_, init) => new Promise<Response>((_, reject) => init?.signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), {name: 'AbortError'}))));
+  const p = fetchWithStall(aborting, 'https://x.invalid', {method: 'POST', signal: control.signal}, 1_000); control.abort();
+  await expect(p).rejects.toMatchObject({name: 'AbortError'});
+  const ok: typeof fetch = async () => new Response('hi', {status: 200});
+  expect((await fetchWithStall(ok, 'https://x.invalid', {method: 'GET'}, 1_000)).status).toBe(200);
 });

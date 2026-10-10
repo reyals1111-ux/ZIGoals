@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "conversations-claude-sonnet-5-5.json",
+ "stage": "ui-webkit-conv-sonnet",
+ "groups": {
+  "claude-sonnet-5-5 on Anthropic API (desktop)": {
+   "runs": 5,
+   "passed": 5,
+   "rate": 1,
+   "medianMs": 4645,
+   "p90Ms": 5311,
+   "errors": 0,
+   "costUsd": 0.11978980000000002
+  }
+ }
+}

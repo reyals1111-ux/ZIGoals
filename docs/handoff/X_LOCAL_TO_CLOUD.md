@@ -27,7 +27,7 @@ is X-Local's and would follow once the policy side exists.
   network, and is thus exempt from mixed content"). Firefox and Safari have no equivalent (no signal; mixed content stays blocked).
 
 **What it means for ZIGoals (the Alpha at `https://alpha.zigoals.app`, Trusted Types and CSP enforced):**
-1. From the Alpha, a fetch to `http://192.168.1.20:11434` is blocked by mixed content in every browser, except Chrome 142+
+1. From the Alpha, a fetch to `http://<the PC's LAN address>:11434` is blocked by mixed content in every browser, except Chrome 142+
    when the request carries `targetAddressSpace: 'local'` and the person allows the one-time Local Network Access prompt.
 2. CSP `connect-src` cannot name an IP range; it can name a scheme (`http:`, far too wide) or a host pattern whose wildcard
    is the leftmost DNS label. `http://*.local:*` is expressible and matches mDNS names such as `reyals-pc.local`.

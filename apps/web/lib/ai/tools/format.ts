@@ -30,4 +30,4 @@ export function ok(tool: string, label: string, provenanceLine: string, data: Re
 export function refuse(tool: string, label: string, reason: ToolRefusal['reason'], refusal: string, choices?: ToolRefusal['choices']): ToolRefusal {
   return {ok: false, tool, label, reason, refusal, ...(choices ? {choices} : {})};
 }
-export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · your AI (Include Health), with Health on Today.';
+export const HEALTH_CLOSED = 'Health isn’t shared with ZIGi — turn it on in Settings → ZIGi · Your Personal AI Companion (Include Health), with Health on Today.';

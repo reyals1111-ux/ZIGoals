@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {PAGE_AREAS} from '../settings';
-import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, SPECIALISTS, buildSystemPrompt, escapeData} from './specialists';
+import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, TOOLS_NOTE, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
 import {AREA_LABELS, attachesContext, pageArea, wealthView} from './pages';
 
 // ADR-012, Part 4: six specialists, our own copy under ADR-011's tone rules, the guardrails every prompt carries.
@@ -50,3 +50,82 @@ test('Phase 2 round 4: the prompt names the day (weekday and date) so relative d
   expect(buildSystemPrompt({area: 'today', context: null, customInstructions: '', providerName: 'Ollama'})).not.toContain('Today is');
 });
 
+
+// Session Z-Local Part 3 (ADR-020 L3): the prompt in blocks, byte-identical to the joined prompt, with cache boundaries.
+test('buildSystemParts: the blocks concatenate to the prompt exactly, for every combination of records, instructions, tools and the day', () => {
+  const combos = [
+    {area: 'today' as const, context: null, customInstructions: '', providerName: 'Mock'},
+    {area: 'health' as const, context: 'h1: Walk', customInstructions: '', providerName: 'Mock', tools: true, today: '2026-10-05'},
+    {area: 'habits' as const, context: 'the question’s records', pageContext: 'the page’s records', customInstructions: 'Be brief', providerName: 'Mock', tools: true},
+    {area: 'goals' as const, context: null, pageContext: 'page only', customInstructions: '', providerName: 'Ollama', today: '2026-10-05'},
+    {area: 'wealth' as const, context: 'question only', pageContext: null, customInstructions: `Be brief ${DATA_CLOSE}`, providerName: 'Mock'},
+  ];
+  for (const args of combos) {
+    const parts = buildSystemParts(args);
+    expect(parts.blocks.map(b => b.text).join('')).toBe(parts.prompt);
+    expect(parts.prompt).toBe(buildSystemPrompt(args));
+    // The joined prompt is what the app sent before: the page's records first, the question's after, one blank line between.
+    const joined = [args.pageContext, args.context].filter(Boolean).join('\n\n') || null;
+    expect(parts.prompt).toBe(buildSystemPrompt({...args, pageContext: undefined, context: joined}));
+    expect(parts.blocks.filter(b => b.cache).length).toBeGreaterThanOrEqual(1);
+    expect(parts.blocks.filter(b => b.cache).length).toBeLessThanOrEqual(2);
+    for (const b of parts.blocks) expect(b.text.length).toBeGreaterThan(0);
+  }
+});
+test('buildSystemParts: the first block is the stable prefix (frame, day, specialist, protocol, examples, label) and ends before the person\'s own words; the page\'s records end the second', () => {
+  const a = buildSystemParts({area: 'habits', context: 'Q records', pageContext: 'PAGE records', customInstructions: 'My rule', providerName: 'Mock', tools: true, today: '2026-10-05'});
+  const b = buildSystemParts({area: 'habits', context: 'other Q', pageContext: 'PAGE records', customInstructions: 'My rule', providerName: 'Mock', tools: true, today: '2026-10-05'});
+  // The same page and person: the first two blocks are identical bytes; only the tail differs.
+  expect(a.blocks[0]).toEqual(b.blocks[0]); expect(a.blocks[1]).toEqual(b.blocks[1]); expect(a.blocks[2]!.text).not.toBe(b.blocks[2]!.text);
+  expect(a.blocks[0]!.cache).toBe(true); expect(a.blocks[1]!.cache).toBe(true); expect(a.blocks[2]!.cache).toBeUndefined();
+  expect(a.blocks[0]!.text).toContain(ACTION_PROTOCOL); expect(a.blocks[0]!.text).not.toContain('My rule'); expect(a.blocks[0]!.text).not.toContain('PAGE records');
+  expect(a.blocks[1]!.text).toContain('My rule'); expect(a.blocks[1]!.text).toContain(`${DATA_OPEN}\nPAGE records`); expect(a.blocks[1]!.text).not.toContain('Q records');
+  expect(a.blocks[2]!.text).toContain('Q records'); expect(a.blocks[2]!.text).toContain(DATA_CLOSE); expect(a.blocks[2]!.text).toContain('read-only tools');
+  // Another page keeps the same first block only when the area is the same; the day changes the first block.
+  const c = buildSystemParts({area: 'habits', context: null, pageContext: null, customInstructions: '', providerName: 'Mock', today: '2026-10-06'});
+  expect(c.blocks[0]!.text).not.toBe(a.blocks[0]!.text);
+  // Without page records the question's records are in the tail, after one cache boundary.
+  const d = buildSystemParts({area: 'today', context: 'Q only', customInstructions: '', providerName: 'Mock'});
+  expect(d.blocks).toHaveLength(2); expect(d.blocks[1]!.text).toContain('Q only');
+});
+
+// Session Z-Local Part 6, prompt round 1 (ADR-020 L20)
+test('L20: the protocol tells every model about duplicates, the question mark, Undo in Activity and reminder weekdays; careful mode repeats no figure; Health-not-shared adds its one line only when told', () => {
+  expect(ACTION_PROTOCOL).toContain('still propose the card and say in one line what the records show');
+  expect(ACTION_PROTOCOL).toContain('ends with a question mark');
+  expect(ACTION_PROTOCOL).toContain('Activity → Actions by ZIGi');
+  expect(ACTION_PROTOCOL).toContain('Habit and water reminders ring every day');
+  expect(SAFETY_RULES).toContain('not even the figures the person named');
+  const base = {area: 'health' as const, context: null, customInstructions: '', providerName: 'Mock'};
+  expect(buildSystemPrompt(base)).not.toContain(HEALTH_CLOSED_NOTE);
+  expect(buildSystemPrompt({...base, healthShared: true})).toBe(buildSystemPrompt(base));
+  expect(buildSystemPrompt({...base, healthShared: false})).toContain(HEALTH_CLOSED_NOTE);
+  const parts = buildSystemParts({...base, healthShared: false, pageContext: 'records', tools: true});
+  expect(parts.blocks.map(b => b.text).join('')).toBe(parts.prompt);
+  expect(parts.blocks[0]!.text).toContain(HEALTH_CLOSED_NOTE); // in the stable prefix, per page and gate
+});
+test('L22: a pre-fill is proposed from the person\'s words even when the record is not there; "what do you know about me" names the about_me tool', () => {
+  expect(ACTION_PROTOCOL).toContain('even when the account, goal or currency is not in the records');
+  expect(TOOLS_NOTE).toContain('about_me');
+});
+test('L27: Health says how imports happen and that an unknown food is still an estimated card; the protocol says a record that is not there has no figures', () => {
+  expect(SPECIALISTS.health.prompt).toContain('Settings → Imports'); expect(SPECIALISTS.health.prompt).toContain('do not ask for the ingredients first');
+  expect(ACTION_PROTOCOL).toContain('never "0 minutes"');
+});
+
+test("L33: Health takes the usual of two matching library foods; the careful reply lists no figures from the records", () => {
+  expect(SPECIALISTS.health.prompt).toContain('their usual'); expect(SAFETY_RULES).toContain("no list of their records' figures");
+});
+
+test('L34/L36: a reminder for a new habit is a create-habit card with its time; a habit named by what it is; a balance update keeps its account whatever currency was named', () => {
+  expect(ACTION_PROTOCOL).toContain('one create-habit card with its reminder time'); expect(ACTION_PROTOCOL).toContain('is the habit that does that');
+  expect(SPECIALISTS.wealth.prompt).toContain('even when the currency named is not the account\'s own');
+});
+
+test('L41: an open-page card comes only when the person asks to go somewhere, never beside an answer to a question', () => {
+  expect(ACTION_PROTOCOL).toContain('a question gets its answer and no open-page card');
+});
+
+test('L42: "what do you know about me" calls about_me before answering, even with the page records attached', () => {
+  expect(TOOLS_NOTE).toContain('call it before answering, even when the page');
+});

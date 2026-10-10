@@ -13,6 +13,8 @@ import {AI_CHATS_DATABASE} from '../lib/ai/chats';
 import type {CorpusArea} from '../lib/ai/evals/corpus';
 import {score, type Observed, type Score} from '../lib/ai/evals/score';
 import type {Expect} from '../lib/ai/evals/corpus';
+import {estimateCost} from '../lib/ai/pricing';
+import {AI_USAGE_KEY} from '../lib/ai/store/keys';
 
 /**
  * Shared helpers of the real-model browser specs (Session X-Local Part 6c): the real panel against a real local model
@@ -21,12 +23,17 @@ import type {Expect} from '../lib/ai/evals/corpus';
  * the test document is built from evidence, never from memory.
  */
 export const REAL = process.env.ZIGI_REAL_MODEL === '1';
-export const MODEL = process.env.ZIGI_MODEL ?? '', HOST = process.env.ZIGI_HOST ?? 'unknown host', BASE = process.env.ZIGI_MODEL_BASE ?? 'http://127.0.0.1:11435';
+/** Session Z-Local Part 2: `anthropic` runs the same specs against a real Claude model on the owner's test key. */
+export const PROVIDER: 'local' | 'anthropic' = process.env.ZIGI_PROVIDER === 'anthropic' ? 'anthropic' : 'local';
+export const MODEL = process.env.ZIGI_MODEL ?? '', HOST = process.env.ZIGI_HOST ?? (PROVIDER === 'anthropic' ? 'Anthropic API' : 'unknown host'), BASE = process.env.ZIGI_MODEL_BASE ?? 'http://127.0.0.1:11435';
 /** Where the raw run files go: the owner keeps them on the orphan branch `review/session-x-local-runs` (its worktree's `real-model/`), never on the feature branch; without ZIGI_OUT they land in the system's temporary folder. */
 export const OUT = process.env.ZIGI_OUT ?? join(tmpdir(), 'zigoals-real-model');
 /** How long one reply may take on a local model (first token on a cold model can be a minute). */
 export const REPLY_TIMEOUT_MS = Number(process.env.ZIGI_REPLY_TIMEOUT_MS ?? '240000');
-export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
+// Session Z-Local Part 6 (ADR-020 L31): the real-model UI stages freeze the clock on the harness's own Showcase day (`DAY` in
+// lib/ai/tools/fixtures), so the corpus's relative days (yesterday, last Friday) mean the same thing in the panel as in the harness.
+// The MOCK suites keep their own 2026-09-20.
+export const DAY = '2026-10-05', EVENING = '2026-10-05T19:00:00.000Z';
 /** Where each corpus area's asks are typed. Settings has no launcher by the app's own rule (ZIGi stays out of the page
  * that configures it), so the settings-area asks go through the panel on Help, the nearest page about the app itself. */
 export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/help', help: '/app/help', activity: '/app/activity'};
@@ -48,10 +55,47 @@ export async function removeShowcaseNightEndingOn(page: Page, day: string) {
     localStorage.setItem(key, JSON.stringify(data));
   }, [HEALTH_STORAGE_KEY, gone] as const);
 }
+/**
+ * Session Z-Local Part 2 (owner edit 3): the key reaches the app through its own key store, sealed exactly as
+ * `lib/ai/keys.ts` seals it (a non-extractable AES-GCM-256 wrap key in IndexedDB `zigoals-ai-keys-v1`, the record bound
+ * to the scope and the provider), from an init script that receives the key as an ARGUMENT read from this process's
+ * environment: never a DOM input, never text in a script file, never a trace (the Anthropic config records nothing).
+ * Each test's context is ephemeral and discarded with its storage.
+ */
+async function sealKeyInApp(page: Page, key: string, scope = 'local') {
+  // Security read after Part 5 (finding 4): an init script runs in every frame of every origin the context loads, so the
+  // key is sealed only on the app's own origin, and the context never reaches any other host but the provider's API.
+  const origin = new URL(process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3103').origin, apiHost = 'api.anthropic.com';
+  await page.context().route(url => url.origin !== origin && url.hostname !== apiHost, route => route.abort('blockedbyclient'));
+  await page.context().addInitScript(async ({key, scope, origin}: {key: string; scope: string; origin: string}) => {
+    if (location.origin !== origin) return;
+    const slot = `${scope}:anthropic`;
+    const open = () => new Promise<IDBDatabase>((res, rej) => { const r = indexedDB.open('zigoals-ai-keys-v1', 1); r.onupgradeneeded = () => { const db = r.result; for (const n of ['wrap', 'keys']) if (!db.objectStoreNames.contains(n)) db.createObjectStore(n); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    const db = await open();
+    const get = (store: string, k: string) => new Promise<unknown>((res, rej) => { const q = db.transaction(store, 'readonly').objectStore(store).get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+    const put = (store: string, k: string, v: unknown) => new Promise<void>((res, rej) => { const t = db.transaction(store, 'readwrite'); t.objectStore(store).put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); });
+    try {
+      if (await get('keys', slot)) return;
+      let wrap = await get('wrap', 'device') as CryptoKey | undefined;
+      if (!(wrap instanceof CryptoKey)) { wrap = await crypto.subtle.generateKey({name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']); await put('wrap', 'device', wrap); }
+      const iv = crypto.getRandomValues(new Uint8Array(12)), aad = new TextEncoder().encode(JSON.stringify(['zigoals-ai-key', 1, scope, 'anthropic']));
+      const ciphertext = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv, additionalData: aad, tagLength: 128}, wrap, new TextEncoder().encode(key)));
+      const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      await put('keys', slot, {version: 1, scope, provider: 'anthropic', iv: b64(iv), ciphertext: b64(ciphertext), createdAt: new Date().toISOString()});
+    } finally { db.close(); }
+  }, {key, scope, origin});
+}
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
+  if (PROVIDER === 'anthropic') {
+    const key = process.env.ANTHROPIC_TEST_KEY ?? '';
+    if (!key) throw new Error('ANTHROPIC_TEST_KEY is not in this process\'s environment.');
+    await sealKeyInApp(page, key);
+  }
   await page.goto('/app/settings');
   const base = defaultAiSettings();
-  const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: MODEL, localServer: 'ollama', baseUrl: BASE, includeHealth: health, pageShare: {...base.pageShare, health}};
+  const ai = PROVIDER === 'anthropic'
+    ? {...base, enabled: true, mode: 'api', provider: 'anthropic', model: MODEL, localServer: null, baseUrl: null, rememberKey: true, includeHealth: health, pageShare: {...base.pageShare, health}}
+    : {...base, enabled: true, mode: 'local', provider: 'local', model: MODEL, localServer: 'ollama', baseUrl: BASE, includeHealth: health, pageShare: {...base.pageShare, health}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'auto'})});
   void log;
 }
@@ -101,12 +145,36 @@ export async function cardsOf(page: Page): Promise<UiCard[]> {
   for (let i = 0; i < n; i++) { const c = list.nth(i); out.push({kind: (await c.getAttribute('data-kind')) ?? 'refused', title: (await c.locator('h4').textContent()) ?? '', status: (await c.getAttribute('class')) ?? ''}); }
   return out;
 }
-export type UiRun = {id: string; model: string; host: string; project: string; page: string; ask: string; reply: string; cards: UiCard[]; tools: string[]; ms: number; score: Score | null; error: string | null; at: string};
+/** Session Z-Local Part 2: the case's own usage as the app's meter kept it (the storage was cleared at the seed), priced at the dated table. */
+export type UiUsage = {model: string; input: number; output: number; cacheWrite: number; cacheRead: number; requests: number; costUsd: number | null};
+export type UiRun = {id: string; model: string; host: string; project: string; page: string; ask: string; reply: string; cards: UiCard[]; tools: string[]; ms: number; score: Score | null; error: string | null; at: string; usage?: UiUsage};
+/**
+ * The provider's usage since this helper last read it on this page (the app's own meter, `zigoals:ai-usage:v1`): one
+ * run's share even when several asks share a page; a seed clears the record, which reads as a fresh start. Null when
+ * nothing new was counted. The ledger sums these deltas, so nothing is counted twice.
+ */
+const lastUsage = new WeakMap<Page, {input: number; output: number; cacheWrite: number; cacheRead: number; requests: number}>();
+export async function usageOf(page: Page): Promise<UiUsage | null> {
+  if (PROVIDER !== 'anthropic') return null;
+  const raw = await page.evaluate(k => localStorage.getItem(k), AI_USAGE_KEY);
+  if (!raw) { lastUsage.delete(page); return null; }
+  try {
+    const months = (JSON.parse(raw) as {months?: Record<string, Record<string, {input?: number; output?: number; cacheWrite?: number; cacheRead?: number; requests?: number}>>}).months ?? {};
+    const sum = {input: 0, output: 0, cacheWrite: 0, cacheRead: 0, requests: 0};
+    for (const routes of Object.values(months)) { const a = routes.anthropic; if (!a) continue; sum.input += a.input ?? 0; sum.output += a.output ?? 0; sum.cacheWrite += a.cacheWrite ?? 0; sum.cacheRead += a.cacheRead ?? 0; sum.requests += a.requests ?? 0; }
+    const before = lastUsage.get(page), reset = !before || sum.requests < before.requests;
+    lastUsage.set(page, sum);
+    const delta = reset ? sum : {input: sum.input - before.input, output: sum.output - before.output, cacheWrite: sum.cacheWrite - before.cacheWrite, cacheRead: sum.cacheRead - before.cacheRead, requests: sum.requests - before.requests};
+    if (!delta.requests) return null;
+    return {model: MODEL, ...delta, costUsd: estimateCost(MODEL, delta)};
+  } catch { return null; }
+}
 /** Scores a reply from the UI: cards, schema, tools, wording and refusals; facts and hints are the Node harness's. */
-export function scoreUi(expect_: Expect, reply: string, tools: string[], source?: string): Score {
+export function scoreUi(expect_: Expect, reply: string, tools: string[], source?: string, page?: string): Score {
   const {hint, facts, localFirst, ...rest} = expect_; void hint; void facts; void localFirst;
   // Phase 2 (ADR-017 S61): a reply the device made (`source: 'local'`) carries no model tool call; the scorer knows.
-  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true})), local: {answered: source === 'local'}};
+  // Session Z-Local Part 6 (ADR-020 L32): the page's own records went with the question, so a tool whose data is that page's needs no call.
+  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true})), local: {answered: source === 'local'}, pageArea: page};
   return score(rest, observed);
 }
 /** Appends one run to the model's UI results file (one JSON array per model and spec), and attaches it to the test. */

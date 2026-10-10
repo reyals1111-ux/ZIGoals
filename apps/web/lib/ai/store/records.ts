@@ -51,7 +51,8 @@ export const aiOptionsSchema = z.looseObject({
   hostedConsent: z.looseObject({at: stamp, health: z.boolean()}).nullable().optional(),
   notificationNames: z.boolean().optional(),
   /** [TIER 3] Session X-Local Part 5b: auto-accept per card kind, a daily cap and the count per day; absent means off. */
-  autoAccept: z.looseObject({kinds: z.record(z.string().min(1).max(40), z.boolean()).refine(atMost(80)).optional(), dailyCap: z.number().int().min(1).max(100).optional(), days: z.record(day, z.number().int().min(0).max(100_000)).refine(atMost(400)).optional()}).optional(),
+  // SECURITY_REVIEW_Y F13: unknown keys are dropped on read (strict shape), never refused.
+  autoAccept: z.object({kinds: z.record(z.string().min(1).max(40), z.boolean()).refine(atMost(80)).optional(), dailyCap: z.number().int().min(1).max(100).optional(), days: z.record(day, z.number().int().min(0).max(100_000)).refine(atMost(400)).optional()}).optional(),
 });
 export type AiOptions = z.infer<typeof aiOptionsSchema>;
 export const AI_OPTIONS: DeviceRecordSpec<AiOptions> = {key: AI_OPTIONS_KEY, schema: aiOptionsSchema, empty};
@@ -61,7 +62,7 @@ export const MAX_USAGE_MONTHS = 13;
 export const aiUsageSchema = z.looseObject({
   version: z.literal(1),
   /** "2026-10" → route (a provider id, "hosted" or "on-device") → tokens the provider reported, the requests made, and how many came back without counts (Part 6). */
-  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000), unreported: z.number().int().min(0).max(1_000_000_000).optional()})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
+  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000), unreported: z.number().int().min(0).max(1_000_000_000).optional(), cacheWrite: tokens.optional(), cacheRead: tokens.optional()})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
   /** The person's own prices per million tokens; never fetched, never a ZIGoals price. */
   prices: z.partialRecord(provider, z.looseObject({input: decimal.optional(), output: decimal.optional(), currency})).optional(),
   softCap: z.looseObject({amount: decimal, currency}).nullable().optional(),

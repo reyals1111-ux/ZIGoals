@@ -1,6 +1,12 @@
 import {CATEGORY_LABELS, REMEMBER_CATEGORIES} from '../memory';
-import {GOAL_CATEGORIES, GOAL_TYPES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {GOAL_CATEGORIES, GOAL_TYPES, HABIT_STATES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {EXERCISE_ICONS} from '../../health-counters';
+import {BELL_SOUNDS} from '../../meditation/schema';
 import {LINK_ICONS} from '../../links/schema';
+import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
+import {ACCOUNT_KINDS} from '../../accounts/schema';
+import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
+import {PRESET_IDS, WEEKDAY_NAMES} from './schema';
 
 /**
  * "Edit" on a proposal card (ADR-012, Part 5): the person changes the plain fields of a proposal before adding it. The
@@ -19,9 +25,40 @@ const DAY: Field = {key: 'day', label: 'Day', type: 'day', optional: true};
 const lines = (key: string, label: string, optional = false): Field => ({key, label, type: 'lines', optional, multiline: true});
 const ESTIMATE = [num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true)];
 const FIELDS: Record<ActionKind, readonly Field[]> = {
+  // ---- Session Z-Local Part 5 ----
+  'open-page': [],
+  'delete-record': [DAY],
+  'set-habit-state': [select('state', 'State', HABIT_STATES, false)],
+  vacation: [{key: 'from', label: 'From', type: 'date'}, {key: 'to', label: 'To', type: 'date'}],
+  unskip: [DAY],
+  'remove-reminder': [],
+  'close-goal': [],
+  'reopen-goal': [],
+  'edit-diary-entry': [select('meal', 'Meal', MEALS, true), num('quantity', 'Servings', true), {key: 'move_to', label: 'Move to day', type: 'date', optional: true}, DAY],
+  'log-meal-plan': [select('meal', 'Meal', MEALS, true), DAY],
+  'grocery-notes': [text('notes', 'Notes', false, true)],
+  'set-favorite': [],
+  'create-counter': [text('name', 'Name'), select('icon', 'Icon', EXERCISE_ICONS, true)],
+  'edit-counter': [text('name', 'New name', true), select('icon', 'Icon', EXERCISE_ICONS, true)],
+  'set-target': [num('value', 'Value (empty clears the target)', true), select('unit', 'Unit', ['kcal', 'g', 'steps', 'ml', 'l', 'kg', 'lb', 'hours', 'minutes'], true)],
+  'set-health-preference': [select('waterUnit', 'Water unit', ['ml', 'fl-oz-us'], true), select('weightUnit', 'Weight unit', ['kg', 'lb'], true)],
+  'start-night': [{key: 'bedtime', label: 'Bedtime (HH:MM, empty = now)', type: 'text', optional: true}],
+  'end-night': [{key: 'wake', label: 'Woke up at (HH:MM, empty = now)', type: 'text', optional: true}],
+  'set-bells': [int('intervalMin', 'Bell every (minutes)', true), select('sound', 'Sound', BELL_SOUNDS, true), int('volume', 'Volume (0 to 100)', true)],
+  // Session Z-Local Part 5, batch 3 (the yes/no fields are the card's; the editor changes names, times and choices)
+  'set-today-preset': [select('preset', 'Preset', PRESET_IDS)],
+  'edit-link': [text('link', 'Which link (its name)'), text('label', 'New name', true), text('url', 'New address (https://…)', true), select('icon', 'Icon', LINK_ICONS, true)],
+  'skip-review': [],
+  'set-review-weekday': [select('weekday', 'Weekday', WEEKDAY_NAMES)],
+  'set-wrap-up': [text('time', 'Time (HH:MM)', true)],
+  'set-page-visibility': [select('page', 'Page or button', [...PAGE_IDS, ...BUTTON_IDS])],
+  'set-start-page': [select('page', 'Start page', PAGE_IDS, true)],
+  'set-zigi-look': [text('skin', 'Look (its name)', true), select('animation', 'Animation', ZIGI_ANIMATIONS, true), select('side', 'Side', ZIGI_SIDES, true), select('size', 'Size', ZIGI_SIZES, true), select('greeting', 'Greeting', ZIGI_GREETINGS, true)],
+  'prefill-contribution': [text('amount', 'Amount'), text('asset', 'Asset or currency', true), DAY, text('note', 'Note', true)],
+  'prefill-account': [text('name', 'Account name'), select('accountKind', 'Kind', ACCOUNT_KINDS), text('currency', 'Currency', true), text('institution', 'Institution', true), text('balance', 'Opening balance', true), text('ratePercent', 'Interest rate (%)', true), DAY],
   'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
-  'log-steps': [int('steps', 'Steps'), int('minutes', 'Minutes', true), DAY],
+  'log-steps': [int('steps', 'Steps', true), int('minutes', 'Minutes', true), DAY],
   'log-food': [text('name', 'Name'), select('meal', 'Meal', MEALS), num('quantity', 'Servings'), num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true), num('estimate.serving_g', 'Serving weight (g)', true), DAY],
   'log-measurement': [select('kind_of', 'Measurement', MEASUREMENT_KINDS), num('value', 'Value'), select('unit', 'Unit', ['cm', 'in']), DAY],
   'check-in': [num('value', 'Value', true), num('minutes', 'Minutes', true), num('quantity', 'Quantity', true), text('unit', 'Unit of the quantity', true), text('note', 'Note', true), DAY],
@@ -83,7 +120,9 @@ export function applyEdits(action: Action, values: Readonly<Record<string, strin
     if (raw === '') { write(draft, field.key, undefined); continue; }
     if (field.type === 'lines') { const items = raw.split('\n').map(line => line.trim()).filter(Boolean); write(draft, field.key, items.length ? items : undefined); continue; }
     if (field.type === 'number' || field.type === 'integer') {
-      const parsed = Number(raw.replace(',', '.'));
+      // SECURITY_REVIEW_Y F7: "10,000" is ten thousand and "10.000,5" ten thousand and a half; only a lone comma is a decimal comma.
+      const digits = /^-?\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(raw) ? raw.replace(/,/g, '') : /^-?\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(raw) ? raw.replace(/\./g, '').replace(',', '.') : raw.replace(',', '.');
+      const parsed = Number(digits);
       if (!Number.isFinite(parsed)) return {ok: false, message: `${field.label} needs a number.`};
       if (field.type === 'integer' && !Number.isInteger(parsed)) return {ok: false, message: `${field.label} needs a whole number.`};
       write(draft, field.key, parsed); continue;

@@ -29,7 +29,7 @@ export function toolBlocked(tool: AnyTool, env: ToolEnv): ToolRefusal | null {
   const label = tool.title;
   if (tool.area === 'health') return env.health && env.areas.health ? null : refuse(tool.name, label, 'gate', HEALTH_CLOSED);
   if (tool.area === 'memory') return env.notes?.length ? null : refuse(tool.name, label, 'area', 'No notes about the person are shared with ZIGi here ("Use my notes" in What ZIGi knows about me).');
-  return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · your AI.`);
+  return env.areas[tool.area] ? null : refuse(tool.name, label, 'area', `${tool.area[0]!.toUpperCase()}${tool.area.slice(1)} isn't shared with ZIGi here — its switch is off in Settings → ZIGi · Your Personal AI Companion.`);
 }
 /** The tools this environment may run, for a provider's tool list or a browser agent (Health tools only with the gate). */
 export const availableTools = (env: ToolEnv): AnyTool[] => TOOLS.filter(tool => toolBlocked(tool, env) === null);

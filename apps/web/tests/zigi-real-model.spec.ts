@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {CORPUS, IMPORTANT, type ModelCase} from '../lib/ai/evals/corpus';
-import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, REAL, record, scoreUi, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, REAL, record, scoreUi, seedReal, shownReply, slug, type UiRun, usageOf} from './real-model';
 
 /**
  * Session X-Local Part 6c, UI-driven cases through the real panel against a real local model (owner addition 2:
@@ -35,11 +35,12 @@ for (const c of chosen) {
       run.ms = ms;
       const stored = await lastReply(page);
       run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);
-      run.score = scoreUi(c.expect, stored.text, stored.tools, stored.source ?? undefined);
+      run.score = scoreUi(c.expect, stored.text, stored.tools, stored.source ?? undefined, c.page);
       // The interface never shows a raw block or a marker, whatever the model sent.
       const shown = await shownReply(page);
       expect(shown).not.toContain('zigoals-action'); expect(shown).not.toContain('⟦zigi:'); expect(shown).not.toContain('[[zigi:');
     } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 500) : String(error); }
+    run.usage = (await usageOf(page)) ?? undefined;
     record(info, file, run);
     if (run.error) throw new Error(run.error);
     // The score is recorded, never asserted: a model's miss is a finding for the test document, not a red build.

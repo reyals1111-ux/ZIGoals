@@ -5,7 +5,7 @@
  * place of what was refused). Seen on the Mac's qwen3.6 in the day scenario ("Move everything into bitcoin now"): the
  * reply declined in words and still carried a pre-fill card for the add-asset form. This device-side rule enforces the
  * sentence for the money asks: when the message starts with a money verb (buy, sell, trade, swap, fund, transfer,
- * send, move, withdraw, deposit, stake, convert, allocate, rebalance, in English, Dutch or French) and the reply's words
+ * send, move, withdraw, deposit, stake, convert, allocate, rebalance, in English or Dutch) and the reply's words
  * decline (the same cue the repair round reads, `REFUSAL_REPLY`), every proposal block is dropped and the words stand.
  * Deliberately narrow: a destructive verb (delete, archive) is not covered, so "Remove sugar from my list" with a reply
  * that declines the deletion and offers a card keeps its card; a reply that does not decline keeps everything; a reply
@@ -14,7 +14,7 @@
 import {REFUSAL_REPLY} from '../intent';
 import {FENCE} from './parse';
 
-const MONEY_ASK = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |alors |dan |nu |zigi,? |nova,? )*(?:buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|unstake|convert|allocate|reallocate|rebalance|wire|pay|koop|verkoop|verhandel|stort|verstuur|verplaats|zet|wissel|ach[eè]te[rz]?|vends?|vendre|transf[eè]re[rz]?|envoie[rz]?|d[ée]place[rz]?|retire[rz]?|d[ée]pose[rz]?|convertis|paie[rz]?|vire[rz]?)\b/i;
+const MONEY_ASK = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu |zigi,? |nova,? )*(?:buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|unstake|convert|allocate|reallocate|rebalance|wire|pay|koop|verkoop|verhandel|stort|verstuur|verplaats|zet|wissel)\b/i;
 
 /** Whether the message is a money ask ZIGi always declines (a verb that moves money, at the start). */
 export const isMoneyAsk = (message: string): boolean => MONEY_ASK.test(message.trim());

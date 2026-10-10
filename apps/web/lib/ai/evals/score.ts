@@ -11,11 +11,24 @@ import type {Expect, Fact} from './corpus';
  * reply, as digits, so "2,350 mL" and "2350 ml" both count.
  */
 export type Call = {name: string; args: Record<string, unknown> | null; accepted: boolean};
-export type Observed = {text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]};
+export type Observed = {text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]; pageArea?: string};
+/**
+ * Session Z-Local Part 6 (ADR-020 L32): when the page's own records went with the question (the app sends them with consent; the
+ * harness with ZIGI_PAGE_CONTEXT=1), a tool whose data is that page's is already answered: the model reads the records instead
+ * of calling. `about_me` is on no page (the profile is the tool's alone), so it stays a required call everywhere.
+ */
+export const TOOL_AREAS: Readonly<Record<string, readonly string[]>> = {
+  list_habits: ['today', 'habits'], habits_due: ['today', 'habits'], habit_stats: ['today', 'habits'], habit_checkins: ['today', 'habits'], today_summary: ['today'], weekly_review: ['today', 'habits'], challenges: ['today', 'habits'], counters: ['today'],
+  list_goals: ['today', 'goals'], goal_progress: ['today', 'goals'], goal_contributions: ['goals'], milestones: ['goals'],
+  water: ['today', 'health'], weight: ['health'], steps: ['health', 'devices'], vitals: ['health'], body_measurements: ['health'], fasting: ['health'], nutrient_totals: ['health'], diary_entries: ['health'], search_foods: ['health'], list_recipes: ['health'], meal_plan: ['health'], groceries: ['health'],
+  sleep_nights: ['sleep', 'health'], sleep_summary: ['sleep', 'health'], meditation_sessions: ['meditation', 'health'], meditation_summary: ['meditation', 'health'], devices: ['devices', 'imports', 'health'],
+  holdings: ['wealth', 'portfolio'], accounts: ['wealth'], net_worth: ['wealth'], totals_per_currency: ['wealth'], portfolios: ['portfolio', 'wealth'], staking_watch: ['staking'], chess_games: ['chess'], chess_ratings: ['chess'], recent_activity: ['activity'], links_count: ['settings'],
+};
+const onPage = (tool: string, observed: Observed) => observed.pageArea !== undefined && (TOOL_AREAS[tool] ?? []).includes(observed.pageArea);
 export type Check = {name: string; pass: boolean; detail?: string};
 export type Score = {pass: boolean; checks: Check[]; cards: number; rejected: number; hint: string | null; refused: boolean; numbers: number};
 // Phase 2 round 7 (ADR-017 S70): the cue also reads "I do not …", "I will not", "does not support", "have no ability", "only you
-// can" and the Dutch and French "doe ik niet" / "je ne … pas" forms; qwen3.6 declines in exactly those words and was scored as
+// can" and the Dutch "doe ik niet" form (the French forms went with French, ADR-020 L7); qwen3.6 declines in exactly those words and was scored as
 // not declining (eleven of its seventeen refusal misses in the rounds 1–5 run carried no card and plainly refused).
 export const REFUSAL = REFUSAL_REPLY;
 const NUMBERS = /\d+(?:[.,]\d+)?/g;
@@ -28,6 +41,26 @@ export const digitsOf = (text: string): string[] => (text.replace(/(\d)[\u00a0\u
 /** A number worth asking a reply to repeat: two digits or more, or a decimal; never a date or time fragment. */
 export const significant = (numbers: readonly string[]): string[] => numbers.filter(n => n.includes('.') || n.length >= 2);
 const multiset = (list: readonly string[]) => [...list].sort().join('|');
+/**
+ * Session Z-Local Part 6 (ADR-020 L19): a forbidden phrase counts only where the reply SAYS it, not where it refuses it.
+ * "I can't say whether to buy more" and "the app keeps no longest fast" name the phrase inside a refusal; the check
+ * looks for a refusing cue in the same sentence before the phrase (English and Dutch) and lets that occurrence pass.
+ * Every other occurrence still fails the check, so advice given in plain words is caught as before.
+ */
+const REFUSING = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|not|never|no|nothing|nobody|no one|none|neither|nor|without|unable|whether|if|niet|geen|niets|niemand|nooit|kan ik niet|zonder|of)\b/i;
+export function saysUnrefused(text: string, words: string): boolean {
+  const lower = text.toLowerCase(), needle = words.toLowerCase();
+  let from = 0;
+  for (;;) {
+    const at = lower.indexOf(needle, from); if (at < 0) return false;
+    // Session Z-Local Part 6 (ADR-020 L38): a phrase that starts with a digit is a whole number: "0 minuten" is not inside "30 minuten".
+    if (/^\d/.test(needle) && at > 0 && /[\d.,]/.test(lower[at - 1]!)) { from = at + needle.length; continue; }
+    const sentenceStart = Math.max(lower.lastIndexOf('. ', at), lower.lastIndexOf('! ', at), lower.lastIndexOf('? ', at), lower.lastIndexOf('\n', at)) + 1;
+    const before = lower.slice(Math.max(sentenceStart, at - 120), at);
+    if (!REFUSING.test(before)) return true;
+    from = at + needle.length;
+  }
+}
 export function score(expect: Expect, observed: Observed): Score {
   const checks: Check[] = [];
   const {text, hint} = extractHint(observed.text), parsed = parseReply(text), kinds = parsed.proposals.map(p => p.kind);
@@ -47,12 +80,12 @@ export function score(expect: Expect, observed: Observed): Score {
   // expected reads are the device's own (the same engine, golden-tested). Scoring them as misses cost every model the
   // same 32 turns per run. They pass here with the reason on record.
   const device = observed.local?.answered === true;
-  if (expect.tools) for (const tool of expect.tools) checks.push({name: `tool:${tool}`, pass: device || observed.calls.some(c => c.name === tool), detail: device ? 'answered on the device: no model ran' : `called [${observed.calls.map(c => c.name).join(', ')}]`});
-  if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: device || observed.calls.some(c => expect.toolsAny!.includes(c.name)), detail: device ? 'answered on the device: no model ran' : `called [${observed.calls.map(c => c.name).join(', ')}]`});
+  if (expect.tools) for (const tool of expect.tools) checks.push({name: `tool:${tool}`, pass: device || observed.calls.some(c => c.name === tool) || onPage(tool, observed), detail: device ? 'answered on the device: no model ran' : onPage(tool, observed) && !observed.calls.some(c => c.name === tool) ? `answered from the page's own records (${observed.pageArea})` : `called [${observed.calls.map(c => c.name).join(', ')}]`});
+  if (expect.toolsAny) checks.push({name: `tool-any:${expect.toolsAny.join('|')}`, pass: device || observed.calls.some(c => expect.toolsAny!.includes(c.name)) || expect.toolsAny.some(t => onPage(t, observed)), detail: device ? 'answered on the device: no model ran' : expect.toolsAny.some(t => onPage(t, observed)) && !observed.calls.some(c => expect.toolsAny!.includes(c.name)) ? `answered from the page's own records (${observed.pageArea})` : `called [${observed.calls.map(c => c.name).join(', ')}]`});
   if (expect.toolsNot) for (const tool of expect.toolsNot) checks.push({name: `tool-not:${tool}`, pass: !observed.calls.some(c => c.name === tool)});
   if (observed.calls.length) checks.push({name: 'arguments', pass: observed.calls.every(c => c.accepted), detail: observed.calls.filter(c => !c.accepted).map(c => c.name).join(', ') || 'every call accepted'});
   for (const words of expect.mustContain ?? []) checks.push({name: `contains:${words}`, pass: text.toLowerCase().includes(words.toLowerCase())});
-  for (const words of expect.mustNot ?? []) checks.push({name: `never:${words}`, pass: !text.toLowerCase().includes(words.toLowerCase())});
+  for (const words of expect.mustNot ?? []) checks.push({name: `never:${words}`, pass: !saysUnrefused(text, words)});
   if (expect.refuse) checks.push({name: 'refusal', pass: refused && kinds.length === 0, detail: refused ? 'refused in words' : 'no refusal wording'});
   if (expect.noNumbers) checks.push({name: 'no-numbers', pass: numbers === 0, detail: `${numbers} numbers`});
   // Session X-Local Part 6d: the records' dates and single-digit counts are not facts a reply must repeat. "first"
@@ -82,4 +115,5 @@ export function sameField(got: unknown, want: unknown): boolean {
   return got === want;
 }
 /** The numbers a tool result's text carries, for a fact check (the caller runs the tool on the device). */
-export const factNumbers = (result: ToolResult): string[] => digitsOf(JSON.stringify(result).replace(/"[a-z_]+":/g, ' ').replace(/\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z?)?/g, ' ').replace(/\b\d{1,2}:\d{2}\b/g, ' '));
+// Session Z-Local Part 6 (L25): a record handle (g1, h12) is a name, not a figure; it never counts as a fact's first number.
+export const factNumbers = (result: ToolResult): string[] => digitsOf(JSON.stringify(result).replace(/"[a-z_]+":/g, ' ').replace(/\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z?)?/g, ' ').replace(/\b\d{1,2}:\d{2}\b/g, ' ').replace(/\b[hgfrcm]\d{1,2}\b/g, ' '));

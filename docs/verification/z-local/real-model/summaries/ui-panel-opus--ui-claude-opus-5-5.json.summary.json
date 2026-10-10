@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "ui-claude-opus-5-5.json",
+ "stage": "ui-panel-opus",
+ "groups": {
+  "claude-opus-5-5 on Anthropic API (desktop)": {
+   "runs": 60,
+   "passed": 57,
+   "rate": 0.95,
+   "medianMs": 4063,
+   "p90Ms": 6327,
+   "errors": 0,
+   "costUsd": 0.9703813999999996
+  }
+ }
+}

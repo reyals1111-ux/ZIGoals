@@ -14,8 +14,15 @@ import {resetOnTurnOff} from './store/records';
 export const AI_CHATS_SESSION_KEY = 'zigoals:ai-chats:v1';
 export const PAGE_AREAS = ['today', 'goals', 'habits', 'health', 'wealth', 'help'] as const;
 export type PageArea = typeof PAGE_AREAS[number];
-export const CONTEXT_BUDGET = {min: 1000, max: 200_000, default: 6000} as const;
-export const OUTPUT_CAP = {min: 64, max: 32_000, default: 1024} as const;
+/**
+ * Session Z-Local Part 5/6 (ADR-020 L26): the system prompt grew to about 5,400 tokens with every kind the app has, so the
+ * default budget is 10,000 (Today's records and a conversation fit without the "larger than your budget" stop); the old
+ * default of 6,000 was itself a stored value, so a record holding exactly it follows the new default on read.
+ */
+export const CONTEXT_BUDGET = {min: 1000, max: 200_000, default: 10_000, previousDefault: 6000} as const;
+// Session Z-Local Part 6 (ADR-020 L35): 1,024 cut a six-card reply off mid-block (the Haiku UI panel's Sunday wrap-up); a stored 1,024
+// reads as the new default, any other stored value stays the person's own (the same lift as the context budget, L26).
+export const OUTPUT_CAP = {min: 64, max: 32_000, default: 2048, previousDefault: 1024} as const;
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const aiSettingsSchema = z.strictObject({
   version: z.literal(1),
@@ -39,6 +46,19 @@ export const aiSettingsSchema = z.strictObject({
   connectedOn: day.optional(),
 });
 export type AiSettings = z.infer<typeof aiSettingsSchema>;
+/**
+ * Session Z-Local Part 4 (owner edit 6, ADR-020 L7): the languages ZIGi listens in. English and Dutch only; a stored
+ * French choice from before reads as the device default (`null`): never refused, never a lost record.
+ */
+export const VOICE_LANGUAGES = [{id: 'en-GB', label: 'English (UK)'}, {id: 'en-US', label: 'English (US)'}, {id: 'nl-BE', label: 'Nederlands (België)'}, {id: 'nl-NL', label: 'Nederlands (Nederland)'}] as const;
+export type VoiceLanguage = (typeof VOICE_LANGUAGES)[number]['id'];
+const RETIRED_VOICE_LANGUAGE = /^fr(?:[-_]|$)/i;
+/** A stored voice language this build no longer offers (French) reads as the device default; everything else is kept as chosen. */
+export const withVoiceLanguage = (settings: AiSettings): AiSettings => settings.voice.language !== null && RETIRED_VOICE_LANGUAGE.test(settings.voice.language.trim()) ? {...settings, voice: {...settings.voice, language: null}} : settings;
+/** A stored budget equal to the old default follows the new default (ADR-020 L26); any other value is the person's own and stays. */
+export const withContextBudget = (settings: AiSettings): AiSettings => settings.contextBudgetTokens === CONTEXT_BUDGET.previousDefault ? {...settings, contextBudgetTokens: CONTEXT_BUDGET.default} : settings;
+/** Session Z-Local Part 6 (ADR-020 L35): a stored output cap of 1,024 (the old default) reads as the new default; any other stored value stays. */
+export const withOutputCap = (settings: AiSettings): AiSettings => settings.maxOutputTokens === OUTPUT_CAP.previousDefault ? {...settings, maxOutputTokens: OUTPUT_CAP.default} : settings;
 /** The starting values. The key-remember default follows ADR-008: on in the installed app, off in a browser tab. */
 export const defaultAiSettings = (installed = false): AiSettings => ({
   version: 1, enabled: false, mode: null, provider: null, model: null, localServer: null, baseUrl: null, subscriptionApp: null, rememberKey: installed,
@@ -53,7 +73,7 @@ export function readAiSettings(storage: Read, installed = false): {data: AiSetti
   let raw: string | null;
   try { raw = storage.getItem(AI_SETTINGS_KEY); } catch { return {data: defaultAiSettings(installed), unreadable: true}; }
   if (raw === null) return {data: defaultAiSettings(installed), unreadable: false};
-  try { const parsed = aiSettingsSchema.safeParse(JSON.parse(raw)); return parsed.success ? {data: parsed.data, unreadable: false} : {data: defaultAiSettings(installed), unreadable: true}; } catch { return {data: defaultAiSettings(installed), unreadable: true}; }
+  try { const parsed = aiSettingsSchema.safeParse(JSON.parse(raw)); return parsed.success ? {data: withOutputCap(withContextBudget(withVoiceLanguage(parsed.data))), unreadable: false} : {data: defaultAiSettings(installed), unreadable: true}; } catch { return {data: defaultAiSettings(installed), unreadable: true}; }
 }
 /** Applies a change and writes the result; a local address is normalised first. Throws, with nothing written, when the result is invalid or storage refuses. */
 export function updateAiSettings(storage: ReadWrite, change: (current: AiSettings) => AiSettings, installed = false): AiSettings {

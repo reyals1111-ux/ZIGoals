@@ -52,7 +52,7 @@ test('Health only with its gate open AND its own box: the box alone or the gate 
     expect(p.included, name).not.toContain('Health'); expect(p.markdown, name).not.toContain('## Health');
     expect(sentinelsIn(p.markdown), name).toEqual([]); expect(sentinelsIn(JSON.stringify(p.json)), name).toEqual([]);
   }
-  expect(pack({}, false).omitted).toContain('Health (its gate is closed: Settings → ZIGi · your AI → Include Health, with Health on Today)');
+  expect(pack({}, false).omitted).toContain('Health (its gate is closed: Settings → ZIGi · Your Personal AI Companion → Include Health, with Health on Today)');
   // A check-in a Health link filled in stays held back when Health is out of the pack.
   expect(pack({health: false}).markdown).not.toContain(String(SENTINEL.habitValue));
   expect(pack({health: false}).markdown).toContain('from Health, not shared');
@@ -84,4 +84,13 @@ test('a sensitive screen gives an empty pack, and nothing outside the chosen are
   const paused = buildContextPack({sources: sources(), gates: gatesFor(true, 'today', '/app', {sensitive: true}), scope: all});
   expect(paused.included).toEqual([]); expect(paused.markdown).not.toMatch(/## (Habits|Goals|Health|Wealth)/);
   expect(sentinelsIn(paused.markdown)).toEqual([]);
+});
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F10): goal names in the Summary line are escaped like every cell
+test('F10: a goal name that a spreadsheet could run or a table could break is escaped in the Summary line', () => {
+  const s = sources(), name = '=Trip | to | Japan', platform = {...s.platform, goals: s.platform.goals.map((g, i) => i === 0 ? {...g, name} : g)};
+  const p = buildContextPack({sources: {...s, platform}, gates: gatesFor(true), scope: all});
+  const line = p.markdown.split('\n').find(l => l.startsWith('- Goals: '))!;
+  expect(line).toContain(cell(name));
+  expect(line).not.toContain(`(${name}`);
 });

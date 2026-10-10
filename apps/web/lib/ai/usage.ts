@@ -12,9 +12,15 @@ import {AI_USAGE, MAX_USAGE_MONTHS, type AiUsage} from './store/records';
  * added together or converted.
  */
 export type Route = ProviderId | 'hosted' | 'on-device';
-export type Tokens = {input: number | null; output: number | null};
-/** One route's month: tokens as reported, requests made, and how many of those requests came back without counts. */
-export type RouteMonth = {input: number; output: number; requests: number; unreported?: number};
+/** Session Z-Local Part 3: the prompt-cache counts a wire reports beside `input` (absent where a wire has none). */
+export type Tokens = {input: number | null; output: number | null; cacheWrite?: number | null; cacheRead?: number | null};
+/**
+ * One route's month: tokens as reported, requests made, and how many of those requests came back without counts.
+ * `cacheWrite` / `cacheRead` (Session Z-Local Part 3) are kept beside `input`, never added into it: on Anthropic the
+ * prompt is input + cacheWrite + cacheRead; on OpenAI the cached part is already inside `input`. Older builds read the
+ * record as before (the fields are optional and loose).
+ */
+export type RouteMonth = {input: number; output: number; requests: number; unreported?: number; cacheWrite?: number; cacheRead?: number};
 /** The person's local calendar month, "2026-10". */
 export const monthKey = (now: Date) => `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 const whole = (n: number | null) => n !== null && Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
@@ -24,7 +30,8 @@ export function recordUsage(storage: Pick<Storage, 'getItem' | 'setItem'>, route
   return updateDeviceRecord(storage, AI_USAGE, current => {
     const months = {...(current.months ?? {})}, routes = {...(months[month] ?? {})}, was: RouteMonth = routes[route] ?? {input: 0, output: 0, requests: 0};
     const count = Math.max(1, Math.round(requests)), missing = tokens.input === null && tokens.output === null ? count : 0;
-    routes[route] = {...was, input: was.input + whole(tokens.input), output: was.output + whole(tokens.output), requests: was.requests + count, ...(missing || was.unreported ? {unreported: (was.unreported ?? 0) + missing} : {})};
+    const cacheWrite = (was.cacheWrite ?? 0) + whole(tokens.cacheWrite ?? null), cacheRead = (was.cacheRead ?? 0) + whole(tokens.cacheRead ?? null);
+    routes[route] = {...was, input: was.input + whole(tokens.input), output: was.output + whole(tokens.output), requests: was.requests + count, ...(missing || was.unreported ? {unreported: (was.unreported ?? 0) + missing} : {}), ...(cacheWrite ? {cacheWrite} : {}), ...(cacheRead ? {cacheRead} : {})};
     months[month] = routes;
     const kept = Object.keys(months).sort().slice(-MAX_USAGE_MONTHS);
     return {...current, months: Object.fromEntries(kept.map(m => [m, months[m]!]))};
@@ -39,7 +46,9 @@ export function estimate(usage: AiUsage, month: string): Estimate {
     const price = usage.prices?.[route as ProviderId];
     const input = price?.input !== undefined ? Number(price.input) : null, output = price?.output !== undefined ? Number(price.output) : null;
     if (!price || (input === null && output === null)) { if (used.input || used.output) unpriced.push(route); continue; }
-    const amount = (used.input / 1e6) * (input ?? 0) + (used.output / 1e6) * (output ?? 0);
+    // Session Z-Local Part 3 (ADR-020 L9): cached prompt tokens are counted at the person's input price, a ceiling (a
+    // cache read costs the provider less); the exact figure from the published table is the ledger's, never the app's.
+    const amount = ((used.input + (used.cacheWrite ?? 0) + (used.cacheRead ?? 0)) / 1e6) * (input ?? 0) + (used.output / 1e6) * (output ?? 0);
     if ((input === null && used.input) || (output === null && used.output)) unpriced.push(route);
     totals.set(price.currency, (totals.get(price.currency) ?? 0) + amount);
   }

@@ -1,5 +1,5 @@
 import {AiError, mapHttpError, mapNetworkError} from '../errors';
-import {sseEvents, parseJson} from '../sse';
+import {sseEvents, parseJson, fetchWithStall} from '../sse';
 import type {ChatEvent, ChatRequest} from '../types';
 
 /**
@@ -11,7 +11,9 @@ import type {ChatEvent, ChatRequest} from '../types';
  */
 export type OpenAiFlavor = 'openai' | 'xai' | 'openrouter' | 'local';
 type ToolDelta = {index?: number; id?: string | null; type?: string | null; function?: {name?: string | null; arguments?: string | null} | null};
-type Chunk = {choices?: {delta?: {content?: string | null; tool_calls?: ToolDelta[] | null}; finish_reason?: string | null}[]; usage?: {prompt_tokens?: number; completion_tokens?: number} | null; error?: {code?: number | string; message?: string; type?: string}};
+// Session Z-Local Part 3: OpenAI reports the prompt tokens served from its cache as `prompt_tokens_details.cached_tokens`
+// (a part of `prompt_tokens`, never on top of it); it is read as `cacheRead` where present, as the documentation shows it.
+type Chunk = {choices?: {delta?: {content?: string | null; tool_calls?: ToolDelta[] | null}; finish_reason?: string | null}[]; usage?: {prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: {cached_tokens?: number} | null} | null; error?: {code?: number | string; message?: string; type?: string}};
 const count = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? value : null;
 export function openAiHeaders(flavor: OpenAiFlavor, key: string | null, appOrigin?: string): Record<string, string> {
   const headers: Record<string, string> = {'content-type': 'application/json', accept: 'text/event-stream'};
@@ -42,7 +44,7 @@ export async function* streamOpenAiCompatible(request: ChatRequest, flavor: Open
   const fetcher = request.fetcher ?? ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init));
   let response: Response;
   try {
-    response = await fetcher(`${base}/v1/chat/completions`, {method: 'POST', headers: openAiHeaders(flavor, request.key, request.appOrigin), body: JSON.stringify(openAiBody(flavor, request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
+    response = await fetchWithStall(fetcher, `${base}/v1/chat/completions`, {method: 'POST', headers: openAiHeaders(flavor, request.key, request.appOrigin), body: JSON.stringify(openAiBody(flavor, request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
   } catch (error) { throw mapNetworkError(request.provider, error, {local: flavor === 'local', online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   if (!response.ok) throw mapHttpError(request.provider, response.status, await response.text().catch(() => ''), response.headers);
   if (!response.body) throw new AiError('unreadable', 'The provider sent an empty answer.', {provider: request.provider});
@@ -66,7 +68,7 @@ export async function* streamOpenAiCompatible(request: ChatRequest, flavor: Open
       calls.set(index, current);
     }
     if (choice?.finish_reason) reason = choice.finish_reason;
-    if (chunk.usage) yield {type: 'usage', input: count(chunk.usage.prompt_tokens), output: count(chunk.usage.completion_tokens)};
+    if (chunk.usage) { const cacheRead = count(chunk.usage.prompt_tokens_details?.cached_tokens); yield {type: 'usage', input: count(chunk.usage.prompt_tokens), output: count(chunk.usage.completion_tokens), ...(cacheRead !== null ? {cacheRead} : {})}; }
   }
   yield* flush();
   yield {type: 'done', reason};

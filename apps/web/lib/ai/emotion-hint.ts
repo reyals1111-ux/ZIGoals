@@ -7,13 +7,35 @@
  */
 export const EMOTION_HINTS = ['insight', 'curious', 'encouraging', 'empathetic', 'surprised', 'confused'] as const;
 export type EmotionHint = (typeof EMOTION_HINTS)[number];
-const MARKER = /(?:⟦|\[\[)\s*zigi\s*:\s*([^⟧\]\n]{0,40}?)\s*(?:⟧|\]\])/gi;
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F5): every gap in the marker is bounded, so a reply of "[[zigi:" followed by
+// thousands of spaces and no closing bracket is a linear scan, never a backtracking one.
+const MARKER = /(?:⟦|\[\[)[ \t]{0,8}zigi[ \t]{0,8}:[ \t]{0,8}([^⟧\]\n]{0,40}?)[ \t]{0,8}(?:⟧|\]\])/iy;
+/**
+ * The markers of a text, found by their opening bracket (`indexOf`, never a scan of every position) and read with the
+ * sticky, bounded pattern at that spot only: linear in the text, however many brackets or spaces it holds.
+ */
+function stripMarkers(text: string, onName: (name: string) => void): string {
+  let out = '', cursor = 0, from = 0;
+  for (;;) {
+    const a = text.indexOf('[[', from), b = text.indexOf('⟦', from), at = a < 0 ? b : b < 0 ? a : Math.min(a, b);
+    if (at < 0) break;
+    MARKER.lastIndex = at;
+    const m = MARKER.exec(text);
+    if (m) { onName(m[1]!); out += text.slice(cursor, at); cursor = at + m[0].length; from = cursor; }
+    else from = at + 1;
+  }
+  return out + text.slice(cursor);
+}
 export const isEmotionHint = (value: unknown): value is EmotionHint => typeof value === 'string' && (EMOTION_HINTS as readonly string[]).includes(value);
 /** The text without any marker, and the first valid hint, or null. */
 export function extractHint(text: string): {text: string; hint: EmotionHint | null} {
   let hint: EmotionHint | null = null;
-  const stripped = text.replace(MARKER, (_, name: string) => { const value = name.trim().toLowerCase(); if (hint === null && isEmotionHint(value)) hint = value; return ''; });
-  return {text: stripped.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim(), hint};
+  // F6: nested markers ("[[zi[[zigi: x]]gi: curious]]") are stripped to a fixed point, so no marker survives; only the outermost
+  // pass may name the hint (an inner one is never read as one).
+  let stripped = stripMarkers(text, name => { const value = name.trim().toLowerCase(); if (hint === null && isEmotionHint(value)) hint = value; });
+  for (let pass = 0; pass < 4; pass++) { const again = stripMarkers(stripped, () => undefined); if (again === stripped) break; stripped = again; }
+  // Trailing blanks go line by line (F5: `/[ \t]+\n/` over a long run of spaces with no newline after it was the quadratic scan).
+  return {text: stripped.split('\n').map(line => line.replace(/[ \t]+$/, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim(), hint};
 }
 /** The text without any marker (every outbound and stored path calls this). */
 export const stripHint = (text: string): string => extractHint(text).text;

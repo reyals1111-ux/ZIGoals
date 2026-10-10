@@ -22,15 +22,16 @@ export function streamChat(request: ChatRequest): AsyncGenerator<ChatEvent> {
   }
 }
 async function* failing(error: AiError): AsyncGenerator<ChatEvent> { throw error; }
-export type Reply = {text: string; usage: {input: number | null; output: number | null} | null; reason: string | null};
+/** Session Z-Local Part 3: `cacheWrite` and `cacheRead` appear only when the wire reported them. */
+export type Reply = {text: string; usage: {input: number | null; output: number | null; cacheWrite?: number; cacheRead?: number} | null; reason: string | null};
 /** Drains a stream into one reply (tests, the connection test's greeting, regenerate). */
 export async function collectReply(stream: AsyncIterable<ChatEvent>): Promise<Reply> {
   let text = '', reason: string | null = null;
-  const usage = {input: null as number | null, output: null as number | null, seen: false};
+  const usage = {input: null as number | null, output: null as number | null, cacheWrite: null as number | null, cacheRead: null as number | null, seen: false};
   for await (const event of stream) {
     if (event.type === 'text') text += event.delta;
-    else if (event.type === 'usage') { usage.seen = true; if (event.input !== null) usage.input = event.input; if (event.output !== null) usage.output = event.output; }
+    else if (event.type === 'usage') { usage.seen = true; if (event.input !== null) usage.input = event.input; if (event.output !== null) usage.output = event.output; if (event.cacheWrite != null) usage.cacheWrite = event.cacheWrite; if (event.cacheRead != null) usage.cacheRead = event.cacheRead; }
     else if (event.type === 'done') reason = event.reason;
   }
-  return {text, usage: usage.seen ? {input: usage.input, output: usage.output} : null, reason};
+  return {text, usage: usage.seen ? {input: usage.input, output: usage.output, ...(usage.cacheWrite !== null ? {cacheWrite: usage.cacheWrite} : {}), ...(usage.cacheRead !== null ? {cacheRead: usage.cacheRead} : {})} : null, reason};
 }

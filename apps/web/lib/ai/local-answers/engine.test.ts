@@ -5,7 +5,7 @@ import {toolEnv, type ToolSources} from '../tools/env';
 import {DAY, gatesFor, SENTINEL, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {HEALTH_CLOSED} from '../tools/format';
 import {runTool} from '../tools/registry';
-import {examplesReply, localAnswer, type LocalReply} from './engine';
+import {examplesReply, localAnswer, navigationIntent, type LocalReply} from './engine';
 import {examplesFor} from './examples';
 import {TONE_FORBIDDEN} from './words';
 
@@ -186,3 +186,28 @@ test("X-Cloud's H10 (S71): with records but no goal, the example list does not o
   expect(localAnswer('How far am I on my goals?', toolEnv(src, gatesFor(true, 'today', '/app'), 'local')).kind).toBe('none');
 });
 
+
+// Session Z-Local Part 5: "open my sleep page" is answered on the device with an open-page card; lookups and logs are not navigation.
+test('navigation asks become an open-page card on the device; a lookup, a log or a record keeps its own path', () => {
+  expect(navigationIntent('Open my sleep page')).toEqual({page: 'health', view: 'sleep', label: 'Health → Sleep'});
+  expect(navigationIntent('go to habits')).toEqual({page: 'habits', label: 'Habits'});
+  expect(navigationIntent('Take me to my portfolio')).toEqual({page: 'portfolio', label: 'Portfolio'});
+  expect(navigationIntent('ga naar mijn doelen')).toEqual({page: 'goals', label: 'Goals'});
+  expect(navigationIntent('open de instellingen')).toEqual({page: 'settings', label: 'Settings'});
+  expect(navigationIntent('open ZIGi settings')).toEqual({page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'});
+  expect(navigationIntent('Show my debts')).toBeNull();
+  expect(navigationIntent('open my water log for yesterday')).toBeNull();
+  expect(navigationIntent('Open a 16 hour fast')).toBeNull();
+  const env = toolEnv(withPortfolios(withHandHealth(showcaseSources())), gatesFor(true), 'local');
+  const reply = localAnswer('open my sleep page', env);
+  expect(reply.kind).toBe('answer');
+  if (reply.kind === 'answer') { expect(reply.text).toContain('Opening Health → Sleep'); expect(reply.text).toContain('"kind":"open-page"'); expect(reply.calls).toEqual([]); }
+  expect(localAnswer('Delete my reading habit', env).kind).toBe('none');
+});
+
+// Session Z-Local Part 6 (ADR-020 L30): a question that also asks for an action is the model's turn, never the device's.
+test('L30: a question that also asks for an action returns none, so the model proposes the card; the plain question is still answered here', () => {
+  const env = open();
+  for (const q of ['How much water have I had today, and log one more glass', "What's my walk streak? And mark today's walk as done", 'How far is the Japan goal, and add a note that I booked the hotel', 'How did I sleep this week? Last night was 23:40 to 7:20, log it', 'What was my weight last month, and log 78.0 kg for this morning', 'Hoeveel water heb ik vandaag gedronken, en log nog een glas', 'Wat is mijn wandelreeks? En vink mijn wandeling van vandaag af']) expect(localAnswer(q, env).kind, q).toBe('none');
+  expect(localAnswer("What's my walk streak?", env).kind).not.toBe('none');
+});

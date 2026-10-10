@@ -1,0 +1,259 @@
+# ADR-020: Session Z-Local, "ZIGi's brain, flawless": session decisions
+
+Status: **In progress** on `feature/session-z-local`, from `main` `12a3ef9c` (Merge #80 and after; Alpha #35), on the
+owner's Mac (M1 Max) with the RTX 5090 PC for local models. This record holds the owner's decisions at plan approval
+and every decision the session took without asking (the brief: the safest option that keeps every promise). The parallel
+lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk through `docs/handoff/Z_LOCAL_TO_CLOUD.md` and
+`Z_CLOUD_TO_LOCAL.md`. Evidence: `docs/verification/z-local/`; raw runs on `review/session-z-local-runs`.
+
+## Owner decisions (2026-10-10, plan approval)
+- **The brief:** nine parts (the WebKit freeze; the real-Claude round on the owner's test key, ≤ $130; prompt caching
+  and the exact cost; spoken English and Dutch; ZIGi can do everything; fix rounds to the targets; Y's eleven open
+  findings; the monthly evaluation tool; owner material), three gates, one PR, raw runs on an orphan branch, the
+  decisions here as L1…Ln. French is out of scope everywhere.
+- **Plan edits (approved with the plan):**
+  1. Independent agents where independence matters, one at a time: Gate C's audit; an independent security read of
+     every `[TIER 3]` commit and the key handling after Part 5 and at Gate C; optionally a fresh-eyes "talk to ZIGi"
+     pass after Part 6 (40 everyday EN/NL tasks through the real UI on Sonnet). No exploratory agents.
+  2. The session runs past the weekly reset; nothing is trimmed; a pause resumes exactly where it stopped.
+  3. Browser stages with the key: ephemeral contexts only, storage deleted after the stage, the key passed to
+     `addInitScript` as an argument from the process environment, the key-sweep covering Playwright's output and
+     temp profile paths.
+  4. The ledger counts thinking tokens (billed as output), cache writes and reads and the repair round; a 20-case
+     Sonnet probe first; above 1.5× the forecast the stage sizes are re-planned (every stage kept, fewer repeats).
+  5. The relay sends and counts exactly as the adapter; the rules go to Z-Cloud in the handoff.
+  6. Voice settings are this lane's (`lib/ai/settings.ts`): French removed; an old `'fr'` reads as the device default
+     with a frozen-reader test; options `en-GB`, `en-US`, `nl-BE`, `nl-NL`; Z-Cloud told.
+  7. The WebKit freeze fix first, its own commit, the exact lines announced; the second merger keeps both lanes'
+     changes to `proposal-list.tsx`.
+  8. Real Safari: "Allow Remote Automation" is not set on this Mac (read, never changed), so the freeze scenario gets
+     an owner checklist row instead of a `safaridriver` run.
+  9. The spoken corpus is generated after Part 5's inventory, so every new kind and navigation intent has spoken EN
+     and NL cases.
+
+## Session decisions
+| # | Part | Decision | Why it is the safest option |
+|---|---|---|---|
+| L1 | order | Part 3's adapter work (caching, effort mapping, usage accounting) lands before Part 2's paid stages; Part 3's own before/after measurement is a separate fixed 50-case slice. | Uncached Sonnet runs alone would cost ~$70 of the $130; the measurement still compares like with like. |
+| L2 | 3 | On Claude the app's existing quick/deep choice maps to `output_config.effort`: quick reply `low`, "Think deeper" `high`; thinking is never disabled (Opus 5.5 answers 400 to `disabled`). Provider-wide, never per model. | The app's two modes already exist; no model is tuned, and the cheapest setting is the quick reply's. |
+| L3 | 3 | Cache breakpoints: one explicit marker on the stable system prefix (frame, date line, specialist, protocol, examples, label), a second on the page's records when separable from the question's, and the top-level automatic breakpoint for the conversation tail. `buildSystemPrompt` stays byte-identical; `buildSystemParts()` returns the split and a test proves the join equals the old string. | Every other wire's body is unchanged; the Anthropic body gains only cache markers. |
+| L4 | 3 | The dated price table (`lib/ai/pricing.ts`) carries the published values with their date, read from platform.claude.com on 2026-10-10: the owner's rates match the page exactly (cache hits 0.05× the input price on Opus 5.5 and Sonnet 5.5 per the page's footnote, 0.1× on Haiku 5.5; writes 1.25×; the Batch API half price; Haiku's second rate card over 100,000 prompt tokens). The API reference skill's "0.1× on Sonnet" note was stale and is not used. | The ledger prices every call at the page's own figures; a hard stop needs the true rate. |
+| L5 | 3 | ADR-014's promise stands: money in the app only from the person's own prices. `estimateCost` feeds the harness, the ledger and the relay; the handoff asks Z-Cloud to show cache reads/writes and to offer "fill in published prices (as of <date>)" into the person's own fields. | No silent built-in price for the person. |
+| L6 | 4 | Spoken understanding is device-side and post-parse: the message sent to the model and shown in the chat stays the person's exact words; the normaliser feeds intent, router, local answers, day cue and a new quantity/time cue that fills or corrects a card's numeric field; one model-agnostic prompt sentence about fillers and spoken numbers. | "What your AI sees" stays exactly what the person said. |
+| L7 | 4 | French removal is bounded by the byte-identical golden set: a French cue a golden case pins stays; corpus `fr` cases, router/intent/day-cue/prompt French forms, the scorer's French refusal cue and the `fr` test assertions go; EN/NL proven unchanged by the golden 272 at 100 % and a gemma4 corpus run before and after. | The golden set is the owner's immutable bar (ADR-017 D6). |
+| L9 | 3 | The usage meter's estimate from the person's own prices counts cached prompt tokens (writes and reads) at the person's input price: a ceiling, since a cache hit costs the provider less. The exact figure from the published table is the ledger's and the relay's, never shown in the app by itself (L5). | The meter promises an estimate from the person's prices only; a ceiling never under-states. |
+| L10 | 1 | **The WebKit freeze is attacked where it happens.** It never reproduced on the Mac's WebKit on the production build: `zigi-auto-accept.spec.ts:42` 30 of 30 and `:73` 30 of 30 in isolation, 48 of 48 of both under eight concurrent pages, two full ZIGi suites in WebKit clean. CI's one trace (run 38016733216) shows the page answering a DOM snapshot 60 ms after the second reply had been received, then nothing for 37 s, with one request left unfinished: the "thinking" poster the figure asked for the moment the second message began. So a looping regression spec with probes (`tests/webkit-zigi-freeze.spec.ts`: the two scenarios six rounds each; ZIGi's state changes, every image decode and poster load, the model request's start and end, and a heartbeat on the browser's own timers taken before the fake clock installs, all in the console so a retained trace and the test's attachment keep them even when the page no longer answers) runs in CI's WebKit job on Linux, the only place the freeze has occurred, and in Chrome. A fix follows the evidence; a guessed change was rejected. | A fix without a reproduced cause would be a guess; the spec is a regression test either way (every round must end with the reply's card). |
+| L11 | 3 | **The before/after caching measurement runs on every multi-turn case the corpus has: 33 cases, 180 turns** (six chats of 11 to 23 turns among them), in corpus order, cache markers off then on, on Sonnet and Opus. The brief's "fixed 50-case multi-turn slice" cannot be met as written because the corpus holds 33 multi-turn cases; padding with single-turn cases would measure no prefix reuse. Measured in two halves: 17 cases (37 turns) first, the 16 others (143 turns, the long chats) after the corpus stages, the ledger permitting (Opus's uncached half is the costly one). A text scan of the corpus had listed 17 cases; the bundled corpus gives 33, and the bundle is the oracle from here on. | The measurement is about reuse across turns; the real conversations are the honest slice, and a count read from the code itself, never from a scan. |
+| L12 | 2 | **The probe calibrated the forecast; no re-plan.** Twenty important cases (22 turns) on Claude Sonnet 5.5, cached, quick-reply effort: $0.2313, $0.0105 per turn with tool rounds and the repair round counted, against a forecast of $0.012 (0.88×; owner edit 4's re-plan trigger is 1.5×). Every request after the first on a page read about 12,000 tokens of stable prefix from the cache and wrote only the question's records; the uncached remainder was 4 to 12 tokens. Stage forecasts: Part 3's measurement $8 Sonnet and $15 Opus; the corpus $10 Sonnet, $7 Sonnet important ×2, $2 Haiku ×3, $18 Opus. | The owner's rule: measure before the big stages; the figures are the API's own usage fields at the published prices. |
+| L8 | 5 | The two effects only the runner can perform (navigate to a page; open the app's own delete confirmation) are specified for Z-Cloud's `use-proposals.ts`; the brain side is complete here; until the effect lands, Add shows the route to take; if Z-Cloud declines, the table records a deliberate "no". | The runner is Z-Cloud's file; a card that explains is honest. |
+| L13 | 5 | **Funding a goal and adding an account are forms, not refusals.** "Fund the Japan goal with 200 euros" gives one `prefill-contribution` card that opens the goal's own Fund form filled in; "add a savings account" one `prefill-account` card for Wealth's add-account form. Both are in `AUTO_ACCEPT_NEVER` and `PREFILL_KINDS`, write nothing, have no Undo, and stash through `lib/ai/actions/form-prefill.ts` (the shape of the balance hand-off). | The owner's rule is "money = pre-filled form only": a form the person saves is allowed, a write is not, and a refusal of a form the app offers would be a lost task. |
+| L14 | 5 | **ZIGi's look is a device write the runner performs**, `plan.device = {key: 'zigoals:zigi:v1', patch}` with top-level keys only (`knock` a partial to merge), `undo: null`; the planner takes an optional `env.zigi` (current prefs and the build's skins) and then refuses no-ops and unknown looks. The weekly review's day travels as its English name (`WEEKDAY_NAMES`; Dutch names, short forms and 0–6 read as that name) and is stored as the number. | The brain cannot read device storage or the manifest (`components/zigi/`, Z-Cloud's); a name survives the card editor's select, a number does not. |
+| L15 | 4 | **The spoken normaliser is a rewrite into the typed forms the device readers already read**, applied inside the entry points (`detectIntent`, `translateCues`, `localAnswer`, `navigationIntent`, `dayCue`) and never to the words shown or sent: wake words and fillers out; English and Dutch number words, compounds and decimals as digits ("twaalfhonderd" 1200, "twee komma vijf" 2.5, "5,000 steps" 5000, "1,5 liter" 1.5); halves and quarters; clock idioms as H:MM with the Dutch "half acht" = 7:30 and an evening word moving a small hour into the afternoon; a self-correction keeps the last value; ranges stay. A lone "one"/"een" converts only before a unit. The quantity cue fills a log card's missing figure, or replaces a figure that appears nowhere in the message, only when the message names exactly one quantity with a unit the card's kind takes; it rides inside `applyDayCue`, so the app's one call and the harness's one call read both cues. | The person's words stay theirs (L6); every rule is a plain spoken-to-typed equivalence, model-agnostic; the golden 272 stayed at 100 % with the normaliser wired. |
+| L16 | 4 | **Whole-Dutch questions stay the model's on the device.** The golden set pins `x-nl-whole` ("Hoeveel stappen heb ik gisteren gezet?") and `x-nl-sleep` as `none`, so Dutch question words and Dutch sleep cues were tried in the device engine and reverted; the spoken golden set tests Dutch device answers only where an English figure word carries them (as today), and Dutch lookups are scored on the models through the spoken corpus. The navigation intent did gain "show me …", "laat … zien" and a trailing "please/alsjeblieft". | The golden 272 are byte-identical and the bar (ADR-017 D6); a device gain that breaks a pinned case is not a gain. |
+| L17 | 8 | **The monthly evaluation is the harness's own batch mode** (`ZIGI_BATCH=1`): the corpus's important cases, first turns, attach mode (records in the prompt, no tools, no repair round), one Message Batch request per case at half price, the adapter's own body minus `stream`, scored by the same scorer; the dollar cap lives inside the harness (`ZIGI_MAX_USD`, the forecast refused before anything is submitted) and the driver sums the real spend per model from the run files. The dry run on 40 cases: Haiku 33/40, Sonnet 35/40, $0.16 (cache reads inside the batch were honoured). | One pipeline, one scorer, one price table; a second harness would drift from the first. |
+| L19 | 6 | **A forbidden phrase inside a refusal is not the phrase said.** The scorer's `never` check let a correct refusal fail because it named the phrase it refused ("I can't say whether to buy more", "the app keeps no longest fast"); the occurrence now passes when a refusing cue stands before it in the same sentence (English and Dutch), and every other occurrence still fails. Re-scored on the stored Sonnet corpus run: seven turns flip to pass, all of them replies that refused in words; the golden sets stay at 100 %. The re-scorer (`lib/ai/evals/rescore.test.ts`, `ZIGI_RESCORE=<run.json>`) judges every scorer or oracle change on the runs already made before any paid re-run. | A scorer must measure what the model said, and a refusal that names what it refuses is the right reply; the rule is narrow and listed. |
+| L20 | 6 | **Prompt round 1, model-agnostic, from the Sonnet corpus misses:** the protocol says that a record already there is still a card (said in one line; the person decides), that a clarifying question ends with a question mark, that Undo and ZIGi's additions live in Activity → Actions by ZIGi (ZIGi undoes nothing itself), and that habit and water reminders take no weekday while goal, wealth and pack reminders do (a "remind me to save" is a goal or wealth reminder); careful mode repeats no figure, not even the person's; and `buildSystemParts` takes `healthShared: false` to add one line that Health is not shared (no Health card, where to switch it on), in the stable prefix per page and gate. The harness passes the gate; the app's runner is asked to (handoff). Every miss these address was read in the stored replies first (`scripts/zigi/misses.mjs`). | Wording that tells every model the app's own rules, never one model's preference; the golden sets and the unit suite unchanged. |
+| L21 | 6 | **An entry already there is still a card, never an automatic one.** The planner flags `duplicate` when the day already holds the same water amount or the same library food for the same meal, the card says so in one line ("Already logged once today: this adds to it"), and `autoAcceptVerdict` refuses a duplicate (`already-recorded`); the runner passes `plan.duplicate` (handoff). The protocol tells every model that a check-in sets the day's value and never counts twice, while water, food, steps and counters add. | The person decides a second identical entry; auto-accept must not; and the models stop refusing check-ins out of a double-count fear the app does not have. |
+| L22 | 6 | **Prompt round 2 from the Sonnet important ×2 misses:** a pre-fill (holding, balance, contribution, account) is proposed from the person's words even when the account, goal or currency is not in the records (the form shows their own accounts; nothing is saved until they save); "what do you know about me" names the `about_me` tool in the tools note. | Both are the app's own rules; a clarifying question in place of a form the person completes is a lost task. |
+| L23 | 6 | **The harness can send the page's own records with stable handles, as the app does** (`ZIGI_PAGE_CONTEXT=1`): the long-chat misses on Sonnet were handle confusion ("h1 is Exercise, Walk is h7") because the harness numbered each turn's question records from h1 while the app seeds every turn's handles with the page's. The mode is off by default so this round's corpus stages (Sonnet, Haiku ×3, Opus) stay comparable with each other and with X-Local; it is on for the fix-round runs and the final runs, and each file's summary and name say which. | A harness that measures a configuration the app never uses punishes the models for the harness (ADR-017 P2.2a's own rule); the switch keeps the comparisons honest. |
+| L24 | 6 | **A walk by minutes alone is a card.** `log-steps` takes `minutes` without a step count (steps or minutes, one above zero): "walked to work, about 20 minutes" is a Walk entry with 0 steps and 20 minutes, titled "Add a walk". Before, the schema refused the block and the spoken-style ask lost its card on every model. | The app's activity record holds minutes without steps; the schema followed the record. |
+| L25 | 6 | **A record handle is never a fact's number.** `factNumbers` drops `g1`/`h12` tokens, so "Ask about 41.66 % on the Japan goal" no longer expects the reply to repeat "1" (the goal's handle). Re-scored: `x2-ask-number` flips to pass on Sonnet. | A fact check that reads a name as a figure measures the extractor, not the model. |
+| L26 | 5/6 | **The default context budget is 10,000 tokens** (was 6,000), and a stored 6,000 reads as the new default while any other stored value stays the person's own. The system prompt grew to about 5,400 tokens with every kind the app has (the protocol doubled in Part 5), so on Today the page's records plus one turn crossed 6,000 and the app stopped every first message with "This page's data is larger than your budget" (CI's browser suites showed it; the Chrome re-run against the dev server confirmed it and passes with the change). The same CI run also caught the quantity cue adding a second numeric field (`value`) beside a check-in's `minutes`, which the strict schema refused: the cue keeps one field per measure now. | A prompt that makes the app nag on every page is a regression the unit suite cannot see; the budget follows the prompt, and a stored default follows the default. On Claude the prefix is cached (L3), so the larger budget costs the person about a tenth of what the number suggests. |
+| L27 | 6 | **A record that is not there has no figures, and Health answers the import question.** The protocol says a habit, goal or record that is not in the person's records is "not there", never "0 minutes" or "0 times" (Haiku and Sonnet answered a missing habit with zero figures, which the scorer reads as a fabricated fact); the Health specialist says that a food outside the library is still a `log-food` card with ZIGi's estimate (not a question about ingredients first) and that watch, Apple Health, Google Fit and CSV data come in through Settings → Imports as a file the person exports: ZIGi cannot import, link a device or read a file. | Three recurring miss families on every model; all three are the app's own rules, stated once in the prompt. |
+| L28 | 6 | **A check-in block that repeats its minutes as the value parses.** `coerceNumbers` drops `value` when a `check-in` carries `minutes` and `value` equal to it and no `quantity` (Haiku and Sonnet wrote `"minutes": 28, "value": 28`); two different amounts stay refused, as the golden case `x-reply-two-amounts` pins. | The block said one amount twice; refusing it lost the card on a correct reply. |
+| L29 | 5/6 | **Three Part 5 oracles follow the owner's deletion and archive rule:** `habits-delete` and `p2-delete-nl` expect a `delete-record` card (what = habit), `p2-archive` expects `set-habit-state` (archived); `p2-delete-weight` asks for yesterday's reading instead of "last Monday" (the Showcase weighs every fourth day counted from today, so the Monday had a reading only on some calendar days; yesterday always has one). They still expected a refusal from before Part 5; the Haiku ×3 and Sonnet runs were scored against the old expectation and are re-scored in the run table. The golden set is untouched. | Listed under assertions changed, with the Part 5 deletion cases. |
+| L30 | 6 | **A question that also asks for an action is the model's turn.** The device's answers engine returns none for "how much water today, and log one more glass", "what's my walk streak? and mark today's walk as done", "…, log it" (a conjunction or comma followed by an action verb, EN and NL), so the model proposes the card. Before, the device answered the question in 300 ms and the card never came: five of the Sonnet UI panel's 29 misses, invisible to the Node harness (which scores the model's reply even when the device would have answered). | The UI panel is the truth for device-first behaviour; the harness keeps its model view. |
+| L31 | 6 | **The real-model UI stages speak from the harness's day.** `tests/real-model.ts` freezes the clock on `DAY` from `lib/ai/tools/fixtures` (2026-10-05) instead of 2026-09-20, so the corpus's relative days (yesterday, the day before, last Friday) mean the same in the panel as in the harness. Two panel misses were right answers on the wrong clock ("day before yesterday" → 2026-09-18 against an expected 2026-10-03). The MOCK suites keep their own day. | One clock per corpus. |
+| L32 | 6 | **A tool whose data is the page's own records needs no call when those records went with the question.** The scorer's `tool:`/`tool-any:` checks pass when `observed.pageArea` (the UI always; the harness with `ZIGI_PAGE_CONTEXT=1`) is one of the tool's areas (`TOOL_AREAS` in `score.ts`); `about_me` is on no page and stays a required call. Eleven panel misses were correct, complete answers read from the page's records (habits left, the Japan goal, totals per currency); the one real miss in that family, `about-me` ("I have no separate saved profile"), still fails. Listed under assertions changed. | The app sends the records; a call would be a second read of the same data. |
+| L33 | 6 | **Two prompt lines from the panel:** Health takes the usual of two matching library foods ("my usual oatmeal": two oat foods in the library, the diary shows which) instead of asking; the careful reply lists no figures from the records either (the 1,200 kcal refusal went on to list the person's own nutrient records, 14 numbers). | Model-agnostic wording; both are the app's rules. |
+| L34 | 6 | **A reminder for something that is not a habit yet is one create-habit card with its reminder time**, and a self-correction may carry words between the marker and the number ("thirty minutes, actually it was more like forty" → 40; "eigenlijk eerder dertig"). From the Haiku UI panel: "Remind me to stretch at 7am" (no Stretch in the Showcase) got a question back, and the spoken run kept 30 minutes because the normaliser's marker wanted the digit right after "actually". The two reminder oracles follow the rule (listed). | A reminder attaches to a habit in this app; the card that can work is the habit with its time. |
+| L35 | 6 | **The default output cap is 2,048 tokens** (was 1,024), and a stored 1,024 reads as the new default while any other stored value stays the person's own (the L26 lift again). A six-card Sunday wrap-up on Haiku was cut off mid-block at 1,024. | Long multi-card replies need the room; the cap is still the person's setting. |
+| L36 | 6 | **Two more prompt lines from the Haiku panel:** a habit named by what it is ("my reading", "the run") is the habit that does that when only one fits, and the model says which it matched; "my savings account is now at 1,250" is update-account-balance for that account even when the currency named is not the account's own (Haiku opened a new-account form because the Showcase savings are in dollars). | Both are how the app already resolves these; the prompt says so once. |
+| L37 | 6 | **A null that means "clear" survives the parser.** `coerceNumbers` dropped every null numeric field (Python's None reads as absent); for `set-target`'s `value` and `set-bells`' `intervalMin`, where the schema makes null a meaning, the null now stays. Opus wrote `"value": null` to clear a calorie target and the block was refused as "received undefined". | The schema already said null clears; the parser contradicted it. |
+| L38 | 6 | **Two scorer precisions:** a `never` phrase that starts with a digit is a whole number ("0 minuten" is not inside "30 minuten"), and a sentence that starts with nothing, nobody, no one, none, niets or niemand is a refusal ("Nothing is converted between them", "Nobody can know which coin will double" scored as the forbidden claim). Both from the Opus run; pinned in `score.test.ts`. | A false miss is a wrong fix round. |
+| L39 | 6 | **Seven protocol sentences from the Opus run** (each a miss family on more than one model): a habit proposed earlier in this conversation counts as there; a record proposed earlier counts as there for the next cards (refer to it by its title, never "add it first"); a write naming a habit the records lack is a create-habit card ("turn my coffee habit into a limit"); a one-off task is a remember card with its time (the phone's reminders do the alarm); a nap with a length and no times is a log-sleep card with its minutes; log-steps is for walking, other activity minutes are a check-in on that habit; when you say you can pre-fill a form, the card is in the same reply (Opus twice described the Fund pre-fill and sent no card). | Model-agnostic: each states a rule of the app or of this harness's conversation flow. |
+| L40 | 6 | **Oracle corrections from the Opus run (listed below):** money asks are pre-filled forms (`goals-contribute`, the Dutch chat's "Stort 50 euro"), a Dutch "your AI" is "je AI" or "jouw AI" (`p2-nl-who` wants "AI"), the DST night is the March change (from the Showcase day the autumn one is still ahead), a plan that names habits the Showcase has (Walk, Read) may edit them (`today-plan-week`, `x2-multi-week`), the archived "Stretch morning" may be edited (`p2-voice-habit`), and "plan my oatmeal" has no recipe or saved meal to plan, so the honest reply says so (`health-plan-meal`; Sonnet and Haiku had planned the sentinel recipe, a fabricated match scored as a pass). | The oracle must describe the app's rules and the fixtures as they are. |
+| L41 | 6 | **An open-page card comes only when the person asks to go somewhere.** The protocol's open-page line gains its stop rule: a question gets its answer and no open-page card. Eight of the ten misses in the Sonnet pages stage (330/340) were an open-page card beside a correct answer ("how do I back up my data" → the answer plus "open Settings"); a negative constraint alone does not hold, so the rule says what to do instead. | The navigation intent is the device's for plain "open X" asks; the model's open-page is for the rest of those, never for questions. |
+| L42 | 6 | **"What do you know about me" calls `about_me` before answering, even with the page's records attached.** The one tool miss every model shared (Sonnet, Haiku and Opus panels, the Opus corpus): the reply read the page's records and said "I have no separate saved profile", while the person's notes for ZIGi live in no page and only the tool returns them. The tools note now says call it first, then add what the page shows. | The L32 page-records rule covers tools whose data is the page's; this tool is the exception by design. |
+| L18 | 2 | **The photo stage is owed to the owner's plates folder.** The X-Local plates (`real-1-1600.jpg` … and the script-drawn breakfast plate) are not on this Mac (searched the home folder); the UI chain skips the photo stage unless `ZIGI_PHOTOS_DIR` names the folder. Owner item: copy the folder and run the three `ui-photos-*` stages. | The plates were X-Local's and outside the repository by design. |
+
+## Assertions changed (deliberate, listed)
+- **Part 5, the corpus's deletion cases (`lib/ai/evals/corpus-phase2.ts`):** `p2-delete-habit`, `p2-delete-goal`, `p2-delete-entry`
+  and `p2-delete-weight` expected a refusal; they now expect one `delete-record` card (the owner's rule: a deletion is a
+  card that opens the app's own confirmation). `p2-delete-all` and `p2-delete-milestone` stay refusals (never "everything";
+  milestones are Goals' own, ADR-017 S22). The golden set is untouched: `delete` still reads as "none" on the device and
+  a `delete-habit` block is still an unknown kind (byte-identical, D6).
+- **Part 6 (L29), the corpus's archive and delete cases:** `habits-delete` (`corpus.ts`), `p2-delete-nl` and `p2-archive`
+  (`corpus-phase2.ts`) expected a refusal; they now expect the Part 5 card (`delete-record` what = habit; `set-habit-state`
+  archived), the same rule as the four deletion cases above; `p2-delete-weight` names yesterday (always a Showcase reading)
+  instead of a weekday. Re-scored runs show the flips in the run table.
+- **Part 6 (L28), `lib/ai/actions/parse.test.ts`:** a new test asserts that a `check-in` block with equal `minutes` and `value`
+  parses to minutes only; the existing two-amounts test and the golden case `x-reply-two-amounts` are unchanged.
+- **Part 6 (L32), the scorer's tool checks:** `tool:` and `tool-any:` also pass when the page whose records went with the question
+  is the tool's own area (`TOOL_AREAS`); without page records nothing changes, and `about_me` is never covered. `score.test.ts`
+  pins both sides. The corpus stages before this round ran without page records, so their figures are unaffected.
+- **Part 6 (L33), `corpus-phase2.ts` `p2-long-week-nl`:** the evening habit is drawing (tekenen), not reading: the Showcase already
+  has a reading habit and the model rightly edited it instead of creating a second one, which the oracle (two new habits) refused.
+- **Part 6 (L40), eight oracles:** `goals-contribute` and the Dutch chat turn "Stort 50 euro in het noodfonds" expect a
+  `prefill-contribution` card (were refusals); `p2-nl-who` requires "AI" (was "jouw"); `p2-dst-night` names the March change;
+  `today-plan-week` and `x2-multi-week` accept `edit-habit` beside `create-habit` within the same card bounds; `p2-voice-habit`
+  accepts `edit-habit` (one card, target 10); `health-plan-meal` is a chat case whose reply must name a recipe (was a `plan-meal`
+  card no fixture could satisfy).
+- **Part 6 (L35), `lib/ai/settings.test.ts`:** the defaults test asserts a 2,048-token output cap (was 1,024), the same way it
+  followed the context budget in L26; the new frozen-reader test pins the lift of a stored 1,024.
+- **Part 6 (L34), the reminder oracles:** `p2-time-7am` (`corpus-phase2.ts`) expects `create-habit` with `reminder: '07:00'` instead
+  of a bare `create-reminder` (no Stretch habit exists to attach it to); `x3-voice-plan` (`corpus.ts`) accepts the habit with its
+  reminder or both cards, and requires the `log-sleep` card by a fields check (2–3 cards).
+- **Part 5, `lib/ai/actions/auto-accept.test.ts`:** the never list is asserted as exactly weight, fasting, the four money
+  pre-fills (`prefill-holding`, `update-account-balance`, `prefill-contribution`, `prefill-account`), `delete-record`
+  and `open-page` (four more than before Part 5, never fewer).
+- **Part 6, `lib/ai/evals/corpus-phase2.ts`:** the plan conversation's turn "Remember that I have a knee injury" asks "Remember that I prefer cycling to running" (a knee injury is a health note the planner refuses by the app's own rule; the next turn still swaps the steps habit for cycling).
+- **Part 6, `lib/ai/evals/corpus-phase2.ts`:** the plan conversation's turn "Delete the fast" expected a refusal and now expects one `delete-record` card (what = fast): the Part 5 rule, missed when the single-turn deletion cases were changed.
+- **L26, `lib/ai/settings.test.ts`:** the defaults test pins a 10,000-token context budget (was 6,000) and a frozen-reader test pins the lift of a stored 6,000.
+- **Part 6 (L24), `lib/ai/actions/schema.ts`:** `log-steps` no longer requires `steps` (a product change: minutes alone make a Walk entry); the editor's Steps field is optional; `plan-z.test.ts` pins that neither steps nor minutes is still refused.
+- **Part 6 (L25), `lib/ai/evals/score.ts`:** `factNumbers` skips record handles; its unit test pins the Japan goal's first numbers.
+- **Part 6 (L19), `lib/ai/evals/score.ts`:** the `never` check passes an occurrence of the phrase that a refusing cue precedes in the same sentence (`saysUnrefused`); its unit test pins both directions.
+- **Part 4 (L7), the corpus tests:** `LANGS` is `en`/`nl`; the important set covers two languages; Phase 2 holds 248 cases
+  (288 before); the typed corpus bar is 590 (636 cases now; 600 before). The bar follows the count the owner's rule took
+  out, never a weaker check of the cases that remain.
+- **Part 5, the corpus's funding cases:** `p2-money-fund-goal` (`corpus-phase2.ts`, important) expected a refusal and now
+  expects one `prefill-contribution` card with amount 300 (L13); `p5-no-fund` became `p5-fund` (a card with amount 200).
+  `p2-delete-all`, `p5-delete-everything` and `p5-no-milestone` stay refusals. The golden set's `contribute` case (an
+  unknown kind reading as "none" on the device) is untouched: no alias maps `contribute` to the new kind.
+- **Part 5, `lib/ai/actions/plan.test.ts` and `edit.test.ts`:** the "every kind" coverage samples gain the eight new kinds
+  of the first batch, the eleven Health kinds of the second and the ten of the third (those needing a planned skip, a
+  reminder, a closed goal, a diary entry by name, a planned meal, a favourite, an existing counter, a running night, a
+  link, a weekday other than the Showcase's or an active goal are covered in `plan-z.test.ts` and listed in the coverage
+  set as `stop-fast` already was). The auto-accept test's Health list is
+  asserted against the group it renders, not a literal, so the eleven new Health kinds change no assertion there.
+
+## French removal (Part 4, L7): what went, what stayed, the proof
+- **Went:** the 50 French corpus cases (8 in `corpus.ts`, 40 in `corpus-phase2.ts`, the French third of 41 three-language
+  builders), `Lang` is `'en' | 'nl'`; the French forms in the intent router (log verbs, statements, quantities, number
+  words, the clock, plan words, lookup words, vague asks, the refuse list, the decline cue, question starts), the question
+  router's French cues and families, the day cue's French day words and weekday names, the prompt's French reminder and
+  clock-idiom lines, the money-ask decline verbs; the French assertions in the intent, question, day-cue, decline, score,
+  specialists and corpus tests.
+- **Stayed (pinned):** the period words of `lib/ai/tools/range.ts` and the local engine's future-range refusal, because
+  the golden case `x-fr-week` ("How many steps la semaine dernière?") pins an answer; the careful-mode phrases in
+  `safety.ts` (golden `risky-health`); the number-mark reading of "2 350" in the scorer (a parsing rule, not a cue).
+- **Proof so far:** the golden 272 at 100 % before and after (both runs today); the full brain suite green (667 tests).
+  The gemma4 corpus run before and after is owed: the PC was unreachable (tailnet host unreachable) and gemma4 on the
+  Mac's Ollama processes a 10,000-token prompt in 50 s (207 tokens/s), which is 12 hours per run; that run was stopped
+  after its first case. When the PC is back, the "before" runs from a worktree at `fe2d64d2` (the last commit with
+  French) and the "after" from the branch head, on the same machine, and the EN/NL rows go here.
+
+
+**The proof, run (2026-10-10, gemma4 12B on the RTX 5090, the full corpus, `scripts/zigi/lang-split.mjs`):**
+
+| Run | EN | NL | FR |
+|---|---:|---:|---:|
+| Before (a worktree at `fe2d64d2`, the last commit with French; its corpus had the 50 French cases) | 526/598 · 88.0 % | 108/127 · 85.0 % | 95/106 · 89.6 % |
+| After (the branch head of the moment, French gone) | 532/598 · 89.0 % | 113/127 · 89.0 % | — |
+
+EN and NL did not regress (EN +1.0 pt, NL +4.0 pt). The "after" run also carries the Part 6 fix rounds up to L41, so the gain is
+theirs as much as the removal's; the claim of L7 is only that nothing was lost, and the rows say so. The raw files are
+`real-model/fr-before/` and `real-model/fr-after/` on the runs branch.
+
+**Known gap (owner edit 9, recorded 2026-10-10):** the held-out spoken corpus (557 cases from 188 seeds) has no case for
+`create-food`, `log-meal-plan` and `plan-goal`; every other kind and, after the sixteen cases added in Part 6, every navigation
+page has spoken EN and NL cases (the golden-spoken set at 413). A top-up batch for those three kinds is a few cents of Opus and
+a `rebuild`; it was not run mid-session because the Part 6 chains read `corpus-spoken.ts` at their start and the held-out split
+must stay the same across the runs it compares.
+
+## Independent security read after Part 5 (owner edit 1, 2026-10-10)
+One read-only agent reviewed the key handling (the sweep, the ledger and summariser, the browser helpers and the
+Anthropic config, the harness, the adapter, the stage scripts and logs, both branch histories). **No key was found in
+any artifact, log, history or profile; the recording-off, env-only and redacted-base rules were met.** Six findings,
+each answered in the `TIER 3 (security)` commit that follows this record:
+1. (high) The stage scripts pushed the runs branch without the sweep. A local `pre-push` hook (untracked, in the
+   repository's `.git/hooks`, shared by its worktrees) now runs the sweep before every push and refuses on a hit;
+   `part3-measure.sh` gates its push explicitly; `part2-corpus.sh` is gated the same way when its current run ends
+   (a running bash script is never edited in place).
+2. (medium) The sweep scanned only the net diff. It now scans `git log -p origin/main..HEAD` and the orphan runs
+   branch's whole history (that branch only: the worktree shares main's objects, whose test fixtures hold allowlisted
+   fake keys).
+3. (medium) Zip members are DEFLATE-compressed, so a key inside a trace would have been invisible. Members are inflated
+   now; an unreadable zip is itself a hit. Traces stay off for every real-Claude stage.
+4. (medium, latent) The init script that seals the key ran in every frame of every origin. It now returns unless
+   `location.origin` is the app's, and the context aborts every request to any host but the app's and the provider's.
+5. (medium) A browser profile left behind by a killed run would hold the sealed key as ciphertext. A profile directory
+   younger than six hours under the temporary folders is now a hit by itself; the UI stage wrapper removes them.
+6. (low) The prefix needle grew from 12 to 24 characters and is also searched in its base64 (three alignments) and
+   UTF-16LE forms; every file is scanned whatever its size or name (the 200 MB ceiling is itself a hit).
+
+- **Finding 5, refined during the UI stages (2026-10-10):** the sweep refused every push while a UI stage was running, because the
+  stage's own live browser profile is a recent `playwright*profile*` folder. A profile that a running browser names in its
+  `--user-data-dir` (read from `ps`) is a live context, not one left behind: it is still walked for the key patterns like every
+  other folder, and the push goes on. The moment no process owns it, a recent profile is a hit again, as the finding asked.
+
+## Independent security read at Gate C (owner edit 1, 2026-10-10, read-only agent, no secret value read or printed)
+Scope: every key-handling change since the first read (`16f3eec9`): the key sweep's live-profile exemptions, the pre-push
+hook across both worktrees, the real-model UI helper and its Playwright config, the harness (Anthropic, batch and page
+modes), the sixteen chain scripts on the runs branch, an artifact spot-check (file names only) and the `[TIER 3]` commits
+(none since the first read). **Key found: no. PC address in a committed file: no.** Findings and what was done:
+- **Medium, the sweep's profile rule:** the six-hour window left older leftovers unmentioned, and the exemptions were not
+  tied to the profile they excused (an orphaned browser kept its own profile live; the WebKit rule exempted every WebKit
+  profile newer than the oldest WebKit main). Done: no age window (any profile no running browser owns is a hit); only a
+  browser executable's `--user-data-dir` counts; at most as many WebKit profiles as running Playwright WebKit mains, the
+  newest ones, count as live; the exempted paths are printed. Fourteen pre-session Chromium leftovers (Sep 18 – Oct 8, no
+  IndexedDB store, all before the first key stage) were removed so the stricter rule starts clean.
+- **Low, the sweep:** a missing runs worktree is now a hit, not a silent skip.
+- **Low-medium, the hook:** it scanned HEAD's history whatever was pushed; it now reads the pushed refs from stdin and
+  passes each local sha (`--ref`), and the sweep scans `origin/main..<sha>` for every one.
+- **Low, the UI stage script:** `DEBUG`/`PWDEBUG` are unset before Playwright runs (protocol logging would print the init
+  script, which carries the key as an argument).
+- **Low, the forwarder:** a network error's 502 body carries only the error code, never a message that could name the host.
+- **Low, pre-existing on `main`:** session X's handoff showed the PC's LAN address; replaced with a placeholder here (it stays
+  in `main`'s history). The test fixtures' fake addresses on `main` are allowlisted test values, unchanged.
+- **Not fixable locally (owner item):** `git push --no-verify` or a `core.hooksPath` override skips every hook; GitHub's
+  secret-scanning push protection is the non-bypassable layer.
+
+## Part 7: Session Y's open findings (SECURITY_REVIEW_Y F5–F16), each with a test
+| Finding | Fix | Test |
+|---|---|---|
+| F5 quadratic hint marker and `repairJson` | Markers are found by their opening bracket (`indexOf`) and read with a sticky, fully bounded pattern; the trailing-blank trim goes line by line; `repairJson` refuses bodies over 32,000 characters and walks with sticky scans (no `slice` per comma or word, no copy of the output per character). | `emotion-hint.test.ts` (20,000 spaces under 200 ms), `parse.test.ts` (a 64 KB body refused at once; 4,000 bare keys and 8,000 commas under 300 ms) |
+| F6 nested markers | Stripped to a fixed point (at most four passes); only a marker that was whole in the reply can name the hint. | `emotion-hint.test.ts` |
+| F7 "10,000" read as 10 | The card editor reads a comma followed by three digits as a thousands separator ("10,000", "10.000,5"); a lone comma stays a decimal comma ("1,5"). The spoken normaliser does the same for messages (L15). | `edit.test.ts` |
+| F8 first-word match for writes | A name of several words never resolves by its first word; the stem rule is for one word ("reading" → Read, "walking" → Walk); a title of several words matches whole. | `plan-z.test.ts` |
+| F9 Health content behind other kinds; any-host brand icons | The plan carries `healthContent` for a Health-domain widget and a diet note; `autoAcceptVerdict` takes it and gates it like a Health kind (the runner passes `plan.healthContent`, handoff). A brand icon only when the address is that brand's host; any other host gets the host's own suggestion. Wealth widgets are not Health content and stay as they were (the Wealth page's own share switch governs them). | `plan-z.test.ts`, `auto-accept.test.ts` |
+| F10 Summary line escaping | Goal names in the context pack's Summary line go through `cell()` like every table cell. | `context-pack/build.test.ts` |
+| F11 Stop during the repair round | The round runs in `use-chat-session.ts` (Z-Cloud's); the fix is specified in the handoff: on Stop during the repair, keep the first answer with its hint marker stripped (`stripHint`). | handoff |
+| F13 `autoAccept` not strict | The stored options object is `z.object` (unknown keys dropped on read, never refused). | `store/records.test.ts` |
+| F14 equivalent cards | `dedupePlans(plans, stores)`: two plans of one kind whose writes are the same change (fresh ids and stamps set aside) are one card, the first kept; `batchable(plans, stores)` applies it. The runner is asked to dedupe at listing time (handoff). | `plan-z.test.ts` |
+| F16 no headers timeout | `fetchWithStall` races the request itself against the same 60 s window (and abandons a fetch that ignores its signal); every adapter uses it; the caller's own Stop still wins. | `sse.test.ts` |
+F12 and F15 were Y's own (fixed, and an owner item).
+
+## Rejected options
+- **Tuning the prompt or the oracles to one model.** Every fix round (L19–L42) states a rule of the app or of the harness's
+  conversation flow and is scored on every model; a miss that only one model makes stays a miss in its row.
+- **Scoring the harness as the app answers (device first).** The Node harness keeps scoring the model's reply even when
+  the device would have answered (L30): the UI panel is the truth for device-first behaviour, and mixing the two in one
+  figure would hide which side missed.
+- **Applying a conversation's earlier cards to the records between harness turns.** It would make the harness closer to
+  the app (the person taps Add), but the oracles for follow-up turns were written without it; the protocol now says a
+  record proposed earlier counts as there (L39), which is what the app's flow makes true.
+- **A spoken-message marker from the face to the brain.** Spoken understanding is device-side and post-parse (L6); the
+  message stays the person's exact words, so no field was added (Z-Cloud's ask answered in the handoff).
+- **Raising the harness's repeat budget or re-running a stage until it passes.** A run is reported as it came; a
+  re-run after a fix round is a new row beside the old one, never a replacement.
+
+## Consequences
+- **The brain is proven on real Claude models with the exact cost of every call** (the ledger on the runs branch, the
+  rendered run table, cost per 100 messages per model) and on four local models; every figure in the document is rendered
+  from a summary file, never typed, and the targets table says met or not met per target with its evidence file.
+- **Prompt caching is on for every Anthropic call** (L2, L3): about −80 % input cost at the same scores; the relay and the
+  meter follow the same body rules (handoff).
+- **Spoken English and Dutch are understood on the device before the model sees the message** (L6): fillers, number words,
+  clock idioms, self-corrections, with 413 deterministic cases in CI and 557 model-scored ones; French is out (L7) with the
+  gemma4 before/after proof.
+- **Every action a person can take has a path** (Part 5): an existing kind, a new kind, a navigation intent, or a deliberate
+  "no" with its reason; money is a pre-filled form and a deletion opens the app's own confirmation (L8); the never-automatic
+  list covers them all.
+- **Forty-two session decisions and every changed assertion are listed here**; the oracle corrections (L29, L34, L40) make
+  the corpus describe the app's rules and the fixtures as they are, which lowered some earlier scores on re-scoring and is
+  the honest baseline for the monthly evaluation (Part 8).
+- **Prompt size grew to about 5,300–5,600 tokens** (every kind, the Part 6 sentences); the default context budget and output
+  cap follow (L26, L35), with the frozen-reader tests that keep a person's own stored values.
+- **What stays open** is in the targets table and `SESSION_STATUS.md`: the targets not met after the final runs, the photo
+  plates (owner item), the three spoken kinds without a case, and the Mac's slow page-records run.

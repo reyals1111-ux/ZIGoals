@@ -1,0 +1,96 @@
+{
+ "kind": "harness",
+ "file": "mac-m1-max-qwen3.6-35b-a3b-tools-all-2026-10-10T17-21-51-599Z.json",
+ "stage": "qwen36-mac",
+ "provider": "local",
+ "model": "qwen3.6:35b-a3b",
+ "host": "Mac M1 Max",
+ "mode": "tools",
+ "think": false,
+ "cache": null,
+ "set": "typed",
+ "batch": false,
+ "cases": 595,
+ "repeat": 1,
+ "runs": 725,
+ "passed": 578,
+ "rate": 0.7972413793103448,
+ "byKind": {
+  "lookup": {
+   "passed": 92,
+   "total": 93
+  },
+  "propose": {
+   "passed": 188,
+   "total": 246
+  },
+  "chat": {
+   "passed": 35,
+   "total": 42
+  },
+  "brief": {
+   "passed": 25,
+   "total": 27
+  },
+  "unknown": {
+   "passed": 12,
+   "total": 14
+  },
+  "refuse": {
+   "passed": 44,
+   "total": 52
+  },
+  "advice": {
+   "passed": 8,
+   "total": 11
+  },
+  "multi": {
+   "passed": 108,
+   "total": 162
+  },
+  "followup": {
+   "passed": 34,
+   "total": 43
+  },
+  "privacy": {
+   "passed": 11,
+   "total": 12
+  },
+  "injection": {
+   "passed": 17,
+   "total": 19
+  },
+  "local-first": {
+   "passed": 4,
+   "total": 4
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 2690,
+  "firstTokenP90Ms": 17638,
+  "totalMedianMs": 5932,
+  "totalP90Ms": 22317
+ },
+ "tokens": {
+  "input": 7756038,
+  "output": 59039,
+  "cacheWrite": 0,
+  "cacheRead": 0
+ },
+ "requests": 675,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": {
+  "input": 11558.923994038749,
+  "cacheWrite": 0,
+  "cacheRead": 0,
+  "output": 87.9865871833085,
+  "usd": null
+ },
+ "costPer100Messages": null,
+ "repaired": 0,
+ "errors": 0,
+ "misses": "cards 114, fields 43, schema 31, refusal 8, tool 6",
+ "startedAt": "2026-10-10T17:21:51.599Z",
+ "finishedAt": "2026-10-10T19:19:25.462Z"
+}

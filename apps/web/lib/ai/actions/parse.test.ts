@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {ACTION_PROTOCOL} from '../context/specialists';
-import {hasOpenFence, parseReply} from './parse';
+import {hasOpenFence, parseReply, repairJson, REPAIR_MAX_CHARS} from './parse';
 import {ACTION_KINDS, MAX_PROPOSALS, actionSchema} from './schema';
 
 // ADR-012, Part 5: only whitelisted, validated proposals become cards; the person's text can never be an instruction.
@@ -115,3 +115,31 @@ test("Phase 2 round 4: the person's own words for today and yesterday in \"day\"
   expect(r.proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday', 'today']);
 });
 
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F5): the repair is bounded and linear
+test('F5: a 64 KB degenerate body is refused at once, and a 30 KB one with thousands of commas and bare words is repaired in linear time', () => {
+  expect(repairJson('{'.repeat(65_000))).toBeNull();
+  const body = `{${'a: 1, '.repeat(4_000)}"kind": "log-water", "glasses": 2}`;
+  expect(body.length).toBeLessThan(REPAIR_MAX_CHARS);
+  const t0 = performance.now(); const out = repairJson(body) as Record<string, unknown>; const ms = performance.now() - t0;
+  expect(out.kind).toBe('log-water'); expect(out.glasses).toBe(2); expect(ms).toBeLessThan(300);
+  const t1 = performance.now(); repairJson(`[${' , '.repeat(8_000)}]`); expect(performance.now() - t1).toBeLessThan(300);
+});
+
+// Session Z-Local Part 6 (L28): a check-in with both minutes and a value means the minutes
+test('L28: a check-in block that repeats its minutes as the value keeps the minutes and parses; two different amounts stay refused (the golden rule)', () => {
+  const r = parseReply('Done.\n\n```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":28,"value":28}\n```');
+  expect(r.proposals).toEqual([{kind: 'check-in', habit: 'h2', minutes: 28, day: 'today'}]); expect(r.rejected).toHaveLength(0);
+  const q = parseReply('```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":10,"quantity":2,"unit":"km"}\n```');
+  expect(q.proposals).toEqual([]); expect(q.rejected).toHaveLength(1);
+  const v = parseReply('```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":10,"value":3}\n```');
+  expect(v.proposals).toEqual([]); expect(v.rejected).toHaveLength(1);
+});
+
+// Session Z-Local Part 6 (ADR-020 L37): a null that means "clear" survives the parser.
+test('L37: set-target with value null clears the target (the null stays); a null glasses count is still simply absent', () => {
+  const cleared = parseReply('Cleared.\n\n```zigoals-action\n{"kind":"set-target","target":"kcal","value":null}\n```');
+  expect(cleared.proposals).toHaveLength(1); expect((cleared.proposals[0] as {value: unknown}).value).toBeNull();
+  const water = parseReply('One glass.\n\n```zigoals-action\n{"kind":"log-water","glasses":null,"millilitres":250}\n```');
+  expect(water.proposals).toHaveLength(1); expect((water.proposals[0] as {glasses?: unknown}).glasses).toBeUndefined();
+});
