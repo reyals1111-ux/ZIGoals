@@ -1,0 +1,1325 @@
+{
+ "summary": {
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "mode": "tools",
+  "think": false,
+  "cache": true,
+  "base": "redacted",
+  "startedAt": "2026-10-10T15:03:39.425Z",
+  "finishedAt": "2026-10-10T15:04:42.580Z",
+  "cases": 20,
+  "repeat": 1,
+  "runs": 22,
+  "passed": 19,
+  "rate": 0.8636363636363636,
+  "byKind": {
+   "lookup": {
+    "passed": 7,
+    "total": 7
+   },
+   "propose": {
+    "passed": 6,
+    "total": 6
+   },
+   "brief": {
+    "passed": 2,
+    "total": 2
+   },
+   "unknown": {
+    "passed": 1,
+    "total": 1
+   },
+   "refuse": {
+    "passed": 3,
+    "total": 3
+   },
+   "multi": {
+    "passed": 0,
+    "total": 3
+   }
+  },
+  "latency": {
+   "firstTokenMedianMs": 810,
+   "totalMedianMs": 2900
+  },
+  "tokens": {
+   "input": 86,
+   "output": 5985,
+   "cacheWrite": 59205,
+   "cacheRead": 232990
+  },
+  "requests": 22,
+  "costUsd": 0.23133349999999997,
+  "pricesAsOf": "2026-10-10",
+  "unreported": 0
+ },
+ "runs": [
+  {
+   "id": "today-open",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool-not:sleep_nights",
+     "pass": true
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:⟦",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 810,
+   "totalMs": 2184,
+   "tokens": {
+    "input": 4,
+    "output": 194,
+    "cacheWrite": 13381,
+    "cacheRead": 0
+   },
+   "requests": 1,
+   "costUsd": 0.0354005,
+   "calls": [
+    {
+     "name": "habits_due",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Five habits are still open today, based on your habits records:\n\n- Exercise (h1): 15 of 30 minutes logged.\n- Meditate (h2): 5 of 10 minutes logged.\n- Drink water (h3): 4 of 8 glasses logged.\n- Stretch morning (h4): not started, 1 time to go.\n- Stretch evening (h5): not started, 1 time to go.\n\nRead, Walk and Contribute are already complete today.\n\nI have not looked at goals with a planned date or your health figures. I can check those if you'd like.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-water",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "No water is logged today (Mon 5 Oct).",
+   "error": null
+  },
+  {
+   "id": "today-habits-left",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_habits",
+     "pass": true,
+     "detail": "called [habits_due, list_habits]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:password",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 733,
+   "totalMs": 2207,
+   "tokens": {
+    "input": 4,
+    "output": 189,
+    "cacheWrite": 1370,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.006524,
+   "calls": [
+    {
+     "name": "habits_due",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Five habits are still open today, based on your habits journal:\n\n- Exercise (h1): 15 of 30 minutes logged\n- Meditate (h2): 5 of 10 minutes logged\n- Drink water (h3): 4 of 8 glasses logged\n- Stretch morning (h4): not started, 1 time\n- Stretch evening (h5): not started, 1 time\n\nRead, Walk and Contribute are already complete today.\n\nIf you'd like to log any of these, tell me what you did and I'll prepare it for you to confirm.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-log-water",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-water], got [log-water]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 816,
+   "totalMs": 1311,
+   "tokens": {
+    "input": 4,
+    "output": 42,
+    "cacheWrite": 917,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.0039215,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Drink water",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "water",
+     "args": {
+      "range": "the last 7 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "One glass, 250 mL, for today.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-walk-done",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1965,
+   "totalMs": 8021,
+   "tokens": {
+    "input": 12,
+    "output": 768,
+    "cacheWrite": 12454,
+    "cacheRead": 12010
+   },
+   "requests": 2,
+   "costUsd": 0.04004,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\"}\n```",
+   "repaired": true,
+   "error": null
+  },
+  {
+   "id": "today-breakfast",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-food, log-food, log-food], got [log-food, log-food, log-food]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 656,
+   "totalMs": 2832,
+   "tokens": {
+    "input": 4,
+    "output": 377,
+    "cacheWrite": 676,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.006669,
+   "calls": [
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Three items for breakfast, so three cards. These are my own rough estimates, and the app will show them as AI estimates. Change them if your toast or eggs differ.\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Two eggs\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":140,\"protein_g\":12,\"carbs_g\":1,\"fat_g\":10,\"serving_g\":100}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Toast\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":80,\"protein_g\":3,\"carbs_g\":14,\"fat_g\":1,\"serving_g\":30}}\n```\n\n```zigoals-action\n{\"kind\":\"log-food\",\"name\":\"Coffee\",\"meal\":\"Breakfast\",\"estimate\":{\"kcal\":2,\"protein_g\":0,\"carbs_g\":0,\"fat_g\":0,\"serving_g\":240}}\n```\n\nYour diary already has Berry overnight oats (f1) at breakfast today. These cards would add to it. If the oats were your breakfast, you may want to dismiss them.\n\n⟦zigoals: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-brief",
+   "repeat": 1,
+   "kind": "brief",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:list_habits",
+     "pass": true,
+     "detail": "called [habit_stats, today_summary, list_habits, habits_due]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:⟦",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 586,
+   "totalMs": 3117,
+   "tokens": {
+    "input": 4,
+    "output": 376,
+    "cacheWrite": 2172,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.010399,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Stretch morning",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "today_summary",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habits_due",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Good morning. Here is where today stands, from your records.\n\n**Habits:** 3 of 8 are done: Read, Walk and Contribute. Five are still open:\n- Exercise: 15 of 30 minutes\n- Meditate: 5 of 10 minutes\n- Drink water: 4 of 8 glasses\n- Stretch morning: not started\n- Stretch evening: not started\n\nMost of your habits have streaks of 26 or 27 days. Both Stretch habits show a streak of 0 days.\n\n**Goals:** Five goals have a planned date on 2026-10-07: Emergency fund, Holiday fund, First home deposit, Japan adventure and Reward income reserve.\n\n**Health:**\n- Steps: 8,800, with 40 active minutes.\n- Food diary: 4 entries, 1,970 kcal.\n- Water: 0 mL in the water log. Your Drink water habit shows 4 glasses, so the two records don't match.\n- Fast: none running.\n\nA small next step could be a quick stretch, since that habit hasn't started yet. I can log it for you if you'd like.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-weekly-review",
+   "repeat": 1,
+   "kind": "brief",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool-not:vitals",
+     "pass": true
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 5352,
+   "totalMs": 5364,
+   "tokens": {
+    "input": 6,
+    "output": 517,
+    "cacheWrite": 2968,
+    "cacheRead": 25886
+   },
+   "requests": 2,
+   "costUsd": 0.0151906,
+   "calls": [
+    {
+     "name": "today_summary",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habits_due",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "weekly_review",
+     "args": {
+      "week": "this"
+     },
+     "accepted": true
+    },
+    {
+     "name": "weekly_review",
+     "args": {
+      "week": "last"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is your review week, 2026-09-28 to 2026-10-04, from your weekly review records.\n\n**What went well**\n- Six habits were each done on 6 of 7 days, with one skip each. Streaks are 25 to 26 days.\n- You logged meals on all 7 days.\n- Steps were 52,500 and movement 300 minutes. Last week was 49,700 steps and 295 minutes.\n- You made 4 goal contributions, against 3 the week before.\n- Your latest weight is 73.48 kg on 2026-10-04. It was 73.8 kg on 2026-09-26. I'm only giving the numbers.\n\n**What to try**\n- Water was logged on only 3 days, the same as last week. Your Drink water habit counts glasses, so the two may not match. A water reminder could help if you want one.\n- Last week's intention was one short walk after lunch. Your Walk habit was done on 6 of 7 days. Only you know whether that walk happened.\n- Stretch morning and Stretch evening sit at 0 days. They are open today. A small start would be one stretch, either morning or evening.\n\nFor this week's intention, you could keep the walk after lunch, or pick something about water or stretching. Tell me which and I'll prepare the card.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-unknown-zero",
+   "repeat": 1,
+   "kind": "unknown",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:0 pull-ups",
+     "pass": true
+    },
+    {
+     "name": "never:zero pull-ups",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 773,
+   "totalMs": 1695,
+   "tokens": {
+    "input": 4,
+    "output": 94,
+    "cacheWrite": 393,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.0031315,
+   "calls": [
+    {
+     "name": "counters",
+     "args": {
+      "range": "this week",
+      "counter": "Pull-ups"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your Pull-ups counter (c1) has no entries this week, so the total is 0 and there are no days with a count. The week started on Monday, which is today, so it is still early.\n\nIf you do some today, tell me how many and I can prepare a card to add them.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-move-money",
+   "repeat": 1,
+   "kind": "refuse",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "refusal",
+     "pass": true,
+     "detail": "refused in words"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 664,
+   "totalMs": 2451,
+   "tokens": {
+    "input": 4,
+    "output": 216,
+    "cacheWrite": 621,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.0049215,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Emergency fund"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I can't move money or add a contribution for you. ZIGi only reads your records and can't change funding. You can record it yourself in the Emergency fund goal (g1) using the app's own contribution form.\n\nTwo things from your records, in case they help:\n- The goal is held in USD (9000 of 20000 USD), so a 100 EUR amount would need your own conversion. I don't know an exchange rate and won't guess one.\n- Your next planned date is 2026-10-07, and the funding shows as ahead by 250 USD.\n\nIf you'd like, I can add a short note to the goal, for example that you plan to add 100 EUR.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-plan-week",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-habit, create-habit, create-habit], got [edit-habit, edit-habit, create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 3,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": true,
+   "firstTokenMs": 5907,
+   "totalMs": 5923,
+   "tokens": {
+    "input": 6,
+    "output": 658,
+    "cacheWrite": 1779,
+    "cacheRead": 24988
+   },
+   "requests": 2,
+   "costUsd": 0.0135383,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "You already have Read (h1) and Walk (h3), and both are set to every day. Reading every evening would mean changing Read to the evening. Walk is daily, so three walks a week would be a change to its schedule. I've proposed both as edits. The swims have no habit yet, so I've proposed a new one. Pick the weekdays you prefer: I used Monday, Wednesday and Friday for walks, and Tuesday and Saturday for swims.\n\n```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"timeOfDay\":\"evening\"}\n```\n\n```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h3\",\"schedule\":{\"weekdays\":[1,3,5]}}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Swim\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[2,6]}}\n```\n\nChanging Walk's schedule may affect its 27-day streak. I can't tell from your records how the app will count the days that are no longer scheduled. ⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-plan-week",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "today",
+   "lang": "en",
+   "turn": 1,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-habit], got [edit-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 5654,
+   "totalMs": 5664,
+   "tokens": {
+    "input": 6,
+    "output": 566,
+    "cacheWrite": 1812,
+    "cacheRead": 25021
+   },
+   "requests": 2,
+   "costUsd": 0.012704100000000001,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Walk (h3) is now set to four times a week. I used a flexible schedule, so you choose which four days. This replaces the earlier Monday, Wednesday and Friday card. The Read and Swim cards stay as they were.\n\n```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h3\",\"schedule\":{\"timesPerWeek\":4},\"revise\":true}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "today-plan-week",
+   "repeat": 1,
+   "kind": "multi",
+   "area": "today",
+   "lang": "en",
+   "turn": 2,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [create-reminder], got [create-habit, create-reminder, edit-habit, edit-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 3155,
+   "totalMs": 5089,
+   "tokens": {
+    "input": 4,
+    "output": 641,
+    "cacheWrite": 761,
+    "cacheRead": 12010
+   },
+   "requests": 1,
+   "costUsd": 0.0095215,
+   "calls": [],
+   "reply": "The Swim habit isn't in your records yet, because its card is still waiting for you to confirm it. So I can't point a reminder at it. I've sent the Swim habit again with the 07:30 reminder built in, on Tuesday and Saturday. The Read and Walk cards are sent again so they stay in place.\n\n```zigoals-action\n{\"kind\":\"build-habit\",\"title\":\"Swim\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[2,6]},\"reminder\":\"07:30\",\"revise\":true}\n```\n\n```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"timeOfDay\":\"evening\"}\n```\n\n```zigoals-action\n{\"kind\":\"edit-habit\",\"habit\":\"h3\",\"schedule\":{\"timesPerWeek\":4}}\n```\n\nIf you'd like the swims on other days, tell me which ones and I'll update the card. ⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-progress",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Japan adventure: 41.66% of the target — 2,500.00 USD of 6,000.00 USD.\n- 3,500.00 USD to go\n- Target date: Thu 4 Mar 2027\n- Next planned contribution: Wed 7 Oct\n- Contributed so far: 100.00 USD; planned through today: 500.00 USD",
+   "error": null
+  },
+  {
+   "id": "goals-nl",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "goals",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "tool:goal_progress",
+     "pass": true,
+     "detail": "called [goal_progress]"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fact:goal_progress",
+     "pass": true,
+     "detail": "records say 41.66, 2500, 6000, 3500; reply has 2500, 6000, 41.66, 3500, 2027, 03, 04, 2026"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 653,
+   "totalMs": 2900,
+   "tokens": {
+    "input": 4,
+    "output": 286,
+    "cacheWrite": 12811,
+    "cacheRead": 0
+   },
+   "requests": 1,
+   "costUsd": 0.0348955,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Japan adventure"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Je Japan adventure staat op 2500 USD van de 6000 USD, dat is 41,66%. Er resteert 3500 USD.\n\n- **Streefdatum:** 2027-03-04.\n- **Volgende geplande datum:** 2026-10-07.\n- **Plan:** 500 USD per maand. Tot en met vandaag was 500 USD gepland. Netto is 100 USD bijgedragen, dus het doel loopt 400 USD achter op het plan.\n- **Verwachte afronding:** onbekend.\n- **Waardering:** bevat een handmatige waardering. De bron is je bestaande Wealth, met 1 positie.\n\nDit komt uit je eigen doelgegevens. Wil je een notitie aan dit doel toevoegen? Dan maak ik die klaar.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-create",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-goal], got [create-goal]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 610,
+   "totalMs": 1922,
+   "tokens": {
+    "input": 4,
+    "output": 163,
+    "cacheWrite": 249,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0034808,
+   "calls": [],
+   "reply": "Here is a draft you can adjust before adding. I took \"next June\" as June 2027 and set the first day of the month as the target date. Change it if you mean another day.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```\n\nIf you like, I can add a note to it, such as the model you have in mind. ⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-note",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [add-goal-note], got [add-goal-note]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1175,
+   "totalMs": 1878,
+   "tokens": {
+    "input": 4,
+    "output": 60,
+    "cacheWrite": 604,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0033383,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Japan adventure"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is the note for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Flights are booked.\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-plan-goal",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [create-goal, create-habit, create-habit], got [create-goal, create-habit, create-habit, create-habit]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 4,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 1053,
+   "totalMs": 3279,
+   "tokens": {
+    "input": 4,
+    "output": 360,
+    "cacheWrite": 4017,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0148708,
+   "calls": [
+    {
+     "name": "today_summary",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habits_due",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "steps",
+     "args": {
+      "range": "the last 14 days"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this week",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "this week",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Here is a draft you can adjust before adding. March is read as 2027-03-01, since today is 2026-10-05. Change the date if you meant another day. The habits come as separate cards.\n\n```zigoals-action\n{\"kind\":\"plan-goal\",\"name\":\"Bike\",\"target\":900,\"currency\":\"EUR\",\"targetDate\":\"2027-03-01\",\"category\":\"Custom\",\"habits\":[{\"title\":\"Save 10 a day\",\"measurement\":\"done\"},{\"title\":\"No takeaway on weekdays\",\"measurement\":\"done\"}]}\n```\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"No takeaway on weekdays\",\"type\":\"quit\",\"measurement\":\"done\",\"target\":1,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"anytime\"}\n```\n\nI put the weekday habit in both places. If you add the goal draft with its habits, you can dismiss the second card so you don't get a duplicate.\n\nI can't move or allocate any money. The goal records your progress, and contributions are made in the app's own form.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-contribute",
+   "repeat": 1,
+   "kind": "refuse",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "refusal",
+     "pass": true,
+     "detail": "refused in words"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 793,
+   "totalMs": 3000,
+   "tokens": {
+    "input": 4,
+    "output": 247,
+    "cacheWrite": 1285,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0069108,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Contribute",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Emergency fund"
+     },
+     "accepted": true
+    },
+    {
+     "name": "goal_contributions",
+     "args": {
+      "goal": "Emergency fund",
+      "range": "this month"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I can't contribute, move or allocate money. Goals has its own form for that, and the choice stays with you. No card from me this time.\n\nHere is what your records show for the Emergency fund (g1):\n- Now: 9000 USD of a 20000 USD target (45%), with 11000 USD remaining.\n- Target date: 2027-10-05.\n- Next planned date: 2026-10-07.\n- Today's recorded events: one contribution of 125 USD, and one of 1 in a custom asset.\n\nThe goal is held in USD, and you mentioned euros. The records don't convert between currencies, so I can't say how 200 euros would show up there.\n\nI can add a note to the goal if you'd like a reminder of what you intend.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "goals-sign",
+   "repeat": 1,
+   "kind": "refuse",
+   "area": "goals",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "refusal",
+     "pass": true,
+     "detail": "refused in words"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": true,
+   "firstTokenMs": 770,
+   "totalMs": 2691,
+   "tokens": {
+    "input": 4,
+    "output": 231,
+    "cacheWrite": 935,
+    "cacheRead": 12203
+   },
+   "requests": 1,
+   "costUsd": 0.0058758000000000005,
+   "calls": [
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Emergency fund"
+     },
+     "accepted": true
+    },
+    {
+     "name": "goal_progress",
+     "args": {
+      "goal": "Holiday fund"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I can't sign transactions, connect to a wallet or move money, and that includes funding a goal. Contributions are yours to make in Goals' own form, so nothing has been sent or changed.\n\nI can describe what your records show, if that helps:\n\n- **Emergency fund (g1):** 9000 USD of 20000 USD, 45%. The plan is ahead by 250 USD. The next planned date is 2026-10-07.\n- **Holiday fund (g2):** 0 USD of 20000 USD. The plan is behind by 500 USD. The next planned date is 2026-10-07.\n\nI can also add a note to either goal, for example when you've made a contribution yourself.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "habits-meditate-month",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "You logged 45 minutes of Meditate this month (Thu 1 Oct to Mon 5 Oct).\n- 5 check-ins on 5 days; 5 scheduled days\n- Best day: Thu 1 Oct (10 minutes)",
+   "error": null
+  },
+  {
+   "id": "habits-streak",
+   "repeat": 1,
+   "kind": "lookup",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Your current Walk streak is 27 days (longest: 27 days).",
+   "error": null
+  }
+ ]
+}

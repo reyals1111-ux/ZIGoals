@@ -1,0 +1,31 @@
+{
+ "pricesAsOf": "2026-10-10",
+ "cap": 130,
+ "total": 0.23133349999999997,
+ "byModel": {
+  "claude-sonnet-5-5": 0.23133349999999997
+ },
+ "rows": [
+  {
+   "stage": "real-model/probe",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "requests": 22,
+   "input": 86,
+   "cacheWrite": 59205,
+   "cacheRead": 232990,
+   "output": 5985,
+   "usd": 0.23133349999999997,
+   "unreported": 0,
+   "files": 0
+  }
+ ],
+ "files": [
+  {
+   "file": "real-model/probe/anthropic-api-claude-sonnet-5-5-tools-important-20-2026-10-10T15-03-39-425Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 18
+  }
+ ],
+ "rebuiltAt": "2026-10-10T15:04:42.672Z"
+}
