@@ -1,0 +1,23 @@
+{
+ "targets": [
+  "input 292×39",
+  "button \"Leave out Drink water · this month\" 32×32",
+  "button \"Leave out Water · the last 7 days\" 32×32",
+  "button \"Leave out Sleep summary\" 32×32",
+  "button \"Leave out Your habits\" 32×32",
+  "summary \"What your AI sees\" 292×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [
+  "span.ai-chat-via-text \"via your local server · mock-chat\" 216>184"
+ ],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 3,
+ "composerSpread": 15,
+ "headerHeight": 166,
+ "docOverflow": 0
+}

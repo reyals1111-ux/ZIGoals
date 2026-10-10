@@ -1,0 +1,17 @@
+{
+ "targets": [
+  "button.text-link \"Clear all\" 59×31"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [
+  "strong \"How did my week go?\" 159>133"
+ ],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": null,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

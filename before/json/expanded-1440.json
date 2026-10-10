@@ -1,0 +1,32 @@
+{
+ "targets": [
+  "summary \"Model: mock-chat. Change model\" 57×36",
+  "button.quiet \"New chat\" 47×36",
+  "button.quiet \"Chat history\" 66×36",
+  "button.quiet \"Customize ZIGi\" 89×36",
+  "a.quiet \"ZIGi settings\" 72×36",
+  "button.quiet \"Shrink the chat\" 60×36",
+  "button.quiet \"Pop out ZIGi into a mini window\" 68×36",
+  "button.text-link \"Edit your last message\" 28×31",
+  "button.text-link \"Copy\" 36×32",
+  "button.text-link \"Read aloud\" 75×32",
+  "button.text-link \"Regenerate\" 78×32",
+  "button.text-link \"Useful\" 47×31",
+  "button.text-link \"Not useful\" 75×31",
+  "button.text-link \"Copy as Markdown\" 139×31",
+  "button.text-link \"Continue in my AI\" 127×31",
+  "input 850×32",
+  "summary \"What your AI sees\" 850×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 112,
+ "docOverflow": 0
+}

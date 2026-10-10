@@ -1,0 +1,22 @@
+{
+ "targets": [
+  "button.text-link \"Copy\" 36×32",
+  "button.text-link \"Read aloud\" 75×32",
+  "button.text-link \"Regenerate\" 78×32",
+  "input 362×43",
+  "summary \"What your AI sees\" 362×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [],
+ "overlaps": [
+  "button.text-link \"Continue in my AI\" ∩ button.ai-jump-latest \"Jump to the latest message\" 18×43"
+ ],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

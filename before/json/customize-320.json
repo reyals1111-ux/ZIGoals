@@ -1,0 +1,15 @@
+{
+ "targets": [],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [
+  "span.ai-chat-via-text \"via your local server · mock-chat\" 216>184"
+ ],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 3,
+ "composerSpread": null,
+ "headerHeight": 166,
+ "docOverflow": 0
+}

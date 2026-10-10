@@ -1,0 +1,25 @@
+{
+ "targets": [
+  "input 362×32",
+  "summary \"What your AI sees\" 362×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [
+  "button.secondary \"Edit\" under button.ai-jump-latest \"Jump to the latest message\"",
+  "button.text-link \"Dismiss\" under button.ai-jump-latest \"Jump to the latest message\""
+ ],
+ "overlaps": [
+  "article.ai-card \"Health · Water · today (2026-09-20) Add water 25\" ∩ button.ai-jump-latest \"Jump to the latest message\" 212×44",
+  "li \"250 mL\" ∩ button.ai-jump-latest \"Jump to the latest message\" 197×7",
+  "button.secondary \"Edit\" ∩ button.ai-jump-latest \"Jump to the latest message\" 45×19",
+  "button.text-link \"Dismiss\" ∩ button.ai-jump-latest \"Jump to the latest message\" 57×18"
+ ],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

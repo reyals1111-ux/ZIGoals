@@ -1,0 +1,22 @@
+{
+ "targets": [
+  "input 292×43",
+  "summary \"What your AI sees\" 292×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [],
+ "overlaps": [
+  "article.ai-card \"Health · Water · today (2026-09-20) Add water 25\" ∩ button.ai-jump-latest \"Jump to the latest message\" 212×44",
+  "h4 \"Add water\" ∩ button.ai-jump-latest \"Jump to the latest message\" 197×20"
+ ],
+ "clipped": [
+  "span.ai-chat-via-text \"via your local server · mock-chat\" 216>184"
+ ],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 3,
+ "composerSpread": 15,
+ "headerHeight": 166,
+ "docOverflow": 0
+}

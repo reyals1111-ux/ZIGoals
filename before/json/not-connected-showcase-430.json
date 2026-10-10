@@ -1,0 +1,15 @@
+{
+ "targets": [
+  "button.ai-chip \"How many minutes of Read this month?\" 288×40"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

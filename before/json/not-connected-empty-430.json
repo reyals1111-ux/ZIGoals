@@ -1,0 +1,17 @@
+{
+ "targets": [
+  "button.ai-chip \"How many minutes did I meditate this month?\" 326×40",
+  "button.ai-chip \"Which habits are open today?\" 222×40",
+  "button.ai-chip \"What is my net worth?\" 173×40"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

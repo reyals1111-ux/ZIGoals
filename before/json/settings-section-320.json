@@ -1,0 +1,17 @@
+{
+ "targets": [],
+ "covered": [
+  "button.secondary \"Changes to a habit\" under p.phone-title \"Settings\"",
+  "button.secondary \"Planned meals\" under nav.phone-tabbar \"Main navigation\"",
+  "button.secondary \"Grocery items\" under div.phone-tabs \"Today Goals Habits Health More\""
+ ],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 0,
+ "composerSpread": null,
+ "headerHeight": 0,
+ "docOverflow": 0
+}

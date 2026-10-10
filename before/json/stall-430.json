@@ -1,0 +1,20 @@
+{
+ "targets": [
+  "button.text-link \"Copy\" 36×32",
+  "button.text-link \"Read aloud\" 75×32",
+  "button.text-link \"Regenerate\" 78×32",
+  "input 402×43",
+  "summary \"What your AI sees\" 402×32",
+  "button.ai-chip \"Log mode\" 92×40"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 120,
+ "docOverflow": 0
+}

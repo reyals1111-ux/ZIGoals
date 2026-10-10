@@ -1,0 +1,16 @@
+{
+ "targets": [],
+ "covered": [
+  "button.secondary \"Goal notes\" under div.phone-topbar-row \"Settings + Quick add\"",
+  "button.secondary \"Nights and naps\" under a.phone-tab \"Today\""
+ ],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 0,
+ "composerSpread": null,
+ "headerHeight": 0,
+ "docOverflow": 0
+}

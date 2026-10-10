@@ -1,0 +1,16 @@
+{
+ "targets": [],
+ "covered": [
+  "button.secondary \"Challenges\" under div.phone-topbar-row \"Settings + Quick add\"",
+  "button.secondary \"Water\" under a.phone-tab \"Today\""
+ ],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 0,
+ "composerSpread": null,
+ "headerHeight": 0,
+ "docOverflow": 0
+}

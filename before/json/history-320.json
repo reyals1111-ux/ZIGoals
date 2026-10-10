@@ -1,0 +1,18 @@
+{
+ "targets": [
+  "button.text-link \"Clear all\" 59×31"
+ ],
+ "covered": [],
+ "overlaps": [],
+ "clipped": [
+  "span.ai-chat-via-text \"via your local server · mock-chat\" 216>184",
+  "strong \"How did my week go?\" 159>93"
+ ],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 3,
+ "composerSpread": null,
+ "headerHeight": 166,
+ "docOverflow": 0
+}

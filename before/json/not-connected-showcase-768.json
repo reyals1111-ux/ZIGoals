@@ -1,0 +1,28 @@
+{
+ "targets": [
+  "button.quiet \"New chat\" 47×36",
+  "button.quiet \"Chat history\" 66×36",
+  "button.quiet \"Customize ZIGi\" 89×36",
+  "a.quiet \"ZIGi settings\" 72×36",
+  "button.quiet \"Expand the chat\" 67×36",
+  "button.quiet \"Pop out ZIGi into a mini window\" 68×36"
+ ],
+ "covered": [
+  "button.quiet \"Close ZIGi\" under div.sidebar-actions \"+ Quick add\"",
+  "button.quiet \"New chat\" under aside.app-sidebar \"Application sidebar\"",
+  "button.quiet \"Chat history\" under aside.app-sidebar \"Application sidebar\"",
+  "button.quiet \"Customize ZIGi\" under aside.app-sidebar \"Application sidebar\"",
+  "a.quiet \"ZIGi settings\" under aside.app-sidebar \"Application sidebar\"",
+  "button.quiet \"Expand the chat\" under aside.app-sidebar \"Application sidebar\"",
+  "button.quiet \"Pop out ZIGi into a mini window\" under aside.app-sidebar \"Application sidebar\""
+ ],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 2,
+ "composerSpread": 15,
+ "headerHeight": 131,
+ "docOverflow": 0
+}

@@ -1,0 +1,15 @@
+{
+ "targets": [],
+ "covered": [
+  "input under nav.phone-tabbar \"Main navigation\""
+ ],
+ "overlaps": [],
+ "clipped": [],
+ "outside": [],
+ "contrast": [],
+ "smallText": [],
+ "headerRows": 0,
+ "composerSpread": null,
+ "headerHeight": 0,
+ "docOverflow": 0
+}
