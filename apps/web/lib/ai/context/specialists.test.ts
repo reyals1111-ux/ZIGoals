@@ -121,3 +121,7 @@ test('L34/L36: a reminder for a new habit is a create-habit card with its time; 
   expect(ACTION_PROTOCOL).toContain('one create-habit card with its reminder time'); expect(ACTION_PROTOCOL).toContain('is the habit that does that');
   expect(SPECIALISTS.wealth.prompt).toContain('even when the currency named is not the account\'s own');
 });
+
+test('L41: an open-page card comes only when the person asks to go somewhere, never beside an answer to a question', () => {
+  expect(ACTION_PROTOCOL).toContain('a question gets its answer and no open-page card');
+});
