@@ -33,7 +33,9 @@ test('the phone set opens in WebKit at 390 px: a heading, no page error, no side
     await expect(page.locator('main h1').first(), path).toBeVisible();
     await settled(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${path}: nothing scrolls sideways`).toBeLessThanOrEqual(0);
-    for (const tab of await mainNav(page).locator('a:visible, button:visible').all()) {
+    const tabs = await mainNav(page).locator('a:visible, button:visible').all();
+    expect(tabs.length, `${path}: the tab bar shows its five tabs`).toBeGreaterThanOrEqual(5);
+    for (const tab of tabs) {
       const box = await tab.boundingBox();
       expect(box, `${path}: a tab is laid out`).not.toBeNull();
       expect(Math.round(Math.min(box!.width, box!.height)), `${path}: "${(await tab.textContent())?.trim()}" is at least 44 px`).toBeGreaterThanOrEqual(44);

@@ -79,7 +79,7 @@ test('accounts: a currency or a balance that does not read marks its own field a
   await currency.fill('EUR');
   await balance.fill('lots');
   await add.click();
-  await invalidWithMessage(balance, page, /\S/);
+  await invalidWithMessage(balance, page, /^Enter a non-negative decimal amount\.$/);
   await expect(currency).not.toHaveAttribute('aria-invalid', 'true');
   expect((await audit(form)).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await balance.fill('5200');
@@ -96,12 +96,15 @@ test('goal wizard: a missing name, then a target that does not read, each mark t
   await name.fill('Fictional trip');
   await target.fill('lots');
   await page.getByRole('button', {name: 'Continue →'}).click();
-  await invalidWithMessage(target, page, /\S/);
+  await invalidWithMessage(target, page, /^Enter a non-negative decimal amount\.$/);
   await expect(name).not.toHaveAttribute('aria-invalid', 'true');
   expect((await audit(page.locator('main'))).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await target.fill('1200');
   await page.getByRole('button', {name: 'Continue →'}).click();
   await expect(page.locator('main [aria-invalid="true"]')).toHaveCount(0);
+  // The wizard moved on: the Purpose step's fields are gone, so no message was left about the whole form either.
+  await expect(name).toBeHidden();
+  await expect(target).toBeHidden();
 });
 
 test('asset editor: a quantity that does not read marks the quantity, which takes the focus', async ({page}) => {
@@ -113,7 +116,7 @@ test('asset editor: a quantity that does not read marks the quantity, which take
   const sheet = page.getByRole('dialog', {name: /^Edit Fictional coins/}), quantity = sheet.getByLabel('Asset quantity', {exact: true});
   await quantity.fill('lots');
   await sheet.getByRole('button', {name: 'Save changes', exact: true}).click();
-  await invalidWithMessage(quantity, page, /\S/);
+  await invalidWithMessage(quantity, page, /^Enter a non-negative decimal amount\.$/);
   expect((await audit(sheet)).filter(f => f.rule === 'aria-invalid-message')).toEqual([]);
   await quantity.fill('120');
   await sheet.getByRole('button', {name: 'Save changes', exact: true}).click();

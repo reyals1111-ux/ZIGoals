@@ -52,8 +52,9 @@ test('F4: once Health is no longer shared, Regenerate and Think deeper leave the
   await ask();
   await act(async () => { root.render(h(Harness, {open: false})); }); await settle();
   await act(async () => { await session!.regenerate(); }); await settle();
+  expect(calls, 'Regenerate sends the question again').toHaveLength(2);
   await act(async () => { await session!.thinkDeeper(); }); await settle();
-  expect(calls.length).toBeGreaterThanOrEqual(2);
+  expect(calls, 'Think deeper sends it once more').toHaveLength(3);
   for (const call of calls.slice(1)) { const body = String(call.init.body); expect(body).not.toContain('PHOTOBYTES_AAAA'); expect(body).not.toContain('HEALTH-RECORD'); expect(body).not.toContain('PAGE: Health diary'); }
 });
 test('API key (owner edit 5): only to https://api.anthropic.com in x-api-key; never in a URL, a body, or the stored chat', async () => {

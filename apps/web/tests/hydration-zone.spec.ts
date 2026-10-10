@@ -1,4 +1,5 @@
 import {expect, test, type Browser, type Page, type TestInfo} from '@playwright/test';
+import {navLink} from './phone-nav';
 
 /**
  * Session Y Part 2 (owner edit 1, ADR-018): no page may render one thing on the server and another in the browser when
@@ -28,10 +29,13 @@ async function visit(browser: Browser, info: TestInfo, timezoneId: string, showc
     await expect(page.locator('main h1').first()).toBeVisible();
     await page.waitForLoadState('networkidle', {timeout: 8_000}).catch(() => undefined);
   }
-  // The step where #32's live run once saw #418: Wealth, then Portfolio through the page's own link.
+  // The step where #32's live run once saw #418: Wealth, then Portfolio as a person goes there, through the main
+  // navigation (the sidebar on a computer, More on a phone), so the move is the app's own client navigation.
   await page.goto('/app/wealth');
-  const portfolio = page.locator('main a[href="/app/portfolio"]').first();
-  if (await portfolio.count()) { await portfolio.click(); await page.waitForURL('**/app/portfolio'); await expect(page.locator('main h1').first()).toBeVisible(); }
+  await expect(page.locator('main h1').first()).toBeVisible();
+  const portfolio = await navLink(page, 'Portfolio');
+  await expect(portfolio, 'the main navigation offers Portfolio').toBeVisible();
+  await portfolio.click(); await page.waitForURL('**/app/portfolio'); await expect(page.locator('main h1').first()).toBeVisible();
   await context.close();
   return {errors, day};
 }
