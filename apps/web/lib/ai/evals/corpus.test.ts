@@ -4,6 +4,7 @@ import {TOOLS} from '../tools/registry';
 import {CORPUS, CORPUS_AREAS, IMPORTANT} from './corpus';
 import {PHASE2} from './corpus-phase2';
 import {PART5} from './corpus-part5';
+import {SPOKEN} from './corpus-spoken';
 
 /**
  * Session X-Local Phase 2 (P2.1): the model-scored corpus is ≥ 600 cases beside the golden set, every id unique, every
@@ -48,4 +49,23 @@ test('Session Z-Local Part 5: navigation, deletions, habit states, vacations, re
   for (const prefix of ['p5-nav-', 'p5-delete-', 'p5-pause', 'p5-vacation', 'p5-unskip', 'p5-remove-', 'p5-close-goal', 'p5-reopen-goal', 'p5-no-']) expect(PART5.some(c => c.id.startsWith(prefix)), prefix).toBe(true);
   expect(PART5.filter(c => c.lang === 'nl').length).toBeGreaterThanOrEqual(6);
   expect(PART5.filter(c => c.kind === 'local-first').every(c => c.expect.localFirst === true)).toBe(true);
+});
+
+// Session Z-Local Part 4: the held-out spoken corpus (generated; its expectations are the seeds', never a model's).
+test('the spoken corpus holds at least 500 held-out cases in English and Dutch with unique ids, known areas, pages and kinds, and real card kinds and tools', () => {
+  expect(SPOKEN.length).toBeGreaterThanOrEqual(500);
+  expect(new Set(SPOKEN.map(c => c.id)).size).toBe(SPOKEN.length);
+  for (const lang of ['en', 'nl'] as const) expect(SPOKEN.filter(c => c.lang === lang).length, lang).toBeGreaterThanOrEqual(200);
+  for (const kind of ['propose', 'lookup', 'local-first', 'refuse'] as const) expect(SPOKEN.some(c => c.kind === kind), kind).toBe(true);
+  for (const c of SPOKEN) {
+    expect(CORPUS_AREAS, c.id).toContain(c.area);
+    expect(['en', 'nl'], c.id).toContain(c.lang);
+    expect(c.ask.trim().length, c.id).toBeGreaterThan(0);
+    expect(c.id.startsWith('sp-'), c.id).toBe(true);
+    for (const k of c.expect.kinds ?? []) expect(KINDS, `${c.id}: kind ${k}`).toContain(k);
+    for (const t of [...(c.expect.tools ?? []), ...(c.expect.toolsAny ?? []), ...(c.expect.toolsNot ?? [])]) expect(TOOL_NAMES, `${c.id}: tool ${t}`).toContain(t);
+    for (const f of c.expect.facts ?? []) expect(TOOL_NAMES, `${c.id}: fact tool ${f.tool}`).toContain(f.tool);
+    if (c.expect.refuse) expect(c.expect.kinds, `${c.id}: a refusal expects no card`).toEqual([]);
+  }
+  expect(CORPUS.some(c => c.id.startsWith('sp-'))).toBe(false); // the spoken set is run on its own (ZIGI_SET=spoken), never folded into the typed corpus
 });

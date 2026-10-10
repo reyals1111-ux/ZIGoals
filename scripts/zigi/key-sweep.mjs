@@ -17,6 +17,9 @@ import {join} from 'node:path';
  *   node scripts/zigi/key-sweep.mjs [--paths <dir>...]   (ANTHROPIC_TEST_KEY may be in the environment; never an argument)
  */
 const repo = new URL('../../', import.meta.url).pathname.replace(/\/$/, '');
+// Run from a git hook, the environment names the hook's own repository (GIT_DIR of a worktree): every git call here is
+// about the checkout and the runs worktree by path, so those variables are dropped.
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/.test(k)));
 const extra = [];
 for (let i = 2; i < process.argv.length; i++) if (process.argv[i] === '--paths') extra.push(...process.argv.slice(i + 1));
 const key = process.env.ANTHROPIC_TEST_KEY ?? '';
@@ -77,19 +80,19 @@ function walk(dir, depth = 0) {
 }
 // 1. The diff of the working tree and the branch against main (tracked and staged content).
 try {
-  const diff = execFileSync('git', ['diff', 'origin/main...HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 512 * 1024 * 1024});
+  const diff = execFileSync('git', ['diff', 'origin/main...HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 512 * 1024 * 1024, env: gitEnv});
   scanText('git diff origin/main...HEAD', diff);
-  const work = execFileSync('git', ['diff', 'HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 512 * 1024 * 1024});
+  const work = execFileSync('git', ['diff', 'HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 512 * 1024 * 1024, env: gitEnv});
   scanText('git diff HEAD (working tree)', work);
-  const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {cwd: repo, encoding: 'utf8'}).split('\n').filter(Boolean);
+  const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {cwd: repo, encoding: 'utf8', env: gitEnv}).split('\n').filter(Boolean);
   for (const f of untracked) scanFile(join(repo, f));
   // Finding 2: the branch's whole history (a key committed then removed would still be pushed), and the runs branch's.
-  const history = execFileSync('git', ['log', '-p', '--no-color', 'origin/main..HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024});
+  const history = execFileSync('git', ['log', '-p', '--no-color', 'origin/main..HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
   scanText('git log -p origin/main..HEAD', history);
   const runs = '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs';
   if (existsSync(runs)) {
     // The orphan branch only: the worktree shares the repository's objects, and main's history holds allowlisted fake keys in test fixtures.
-    const runsHistory = execFileSync('git', ['log', '-p', '--no-color', 'review/session-z-local-runs'], {cwd: runs, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024});
+    const runsHistory = execFileSync('git', ['log', '-p', '--no-color', 'review/session-z-local-runs'], {cwd: runs, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
     scanText('runs worktree: git log -p review/session-z-local-runs', runsHistory);
   }
 } catch (error) { hits.push(`git diff failed: ${error instanceof Error ? error.message : String(error)}`); }

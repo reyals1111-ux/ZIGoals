@@ -17,6 +17,7 @@ import {estimateCost} from '../../apps/web/lib/ai/pricing.ts';
  *   node scripts/zigi/spoken-corpus-gen.mjs wait <batch_id>                                poll until ended (60 s), then fetch
  *   node scripts/zigi/spoken-corpus-gen.mjs fetch <batch_id>                               results → jsonl, the usage file, corpus-spoken.ts
  *   node scripts/zigi/spoken-corpus-gen.mjs seeds                                          print the seed count per language and kind
+ *   node scripts/zigi/spoken-corpus-gen.mjs rebuild <batch_id>                            re-derive every expectation from the seeds in this file (no model call)
  * The key is read from ANTHROPIC_TEST_KEY in this process's environment only; never an argument, never printed.
  */
 const args = process.argv.slice(2), cmd = args[0] ?? 'seeds';
@@ -131,12 +132,12 @@ seed('lk-steps-week', 'steps this week', {en: 'How many steps did I walk this we
 seed('lk-water-yesterday', 'water yesterday', {en: 'How much water did I drink yesterday?', nl: 'Hoeveel water heb ik gisteren gedronken?'}, {kinds: [], facts: [{tool: 'water', pick: 'first'}]}, L('health', 'health'));
 seed('lk-weight', 'the latest weight', {en: 'What is my latest weight?', nl: 'Wat is mijn laatste gewicht?'}, {kinds: [], facts: [{tool: 'weight', pick: 'first'}]}, {...L('health', 'health'), important: true});
 seed('lk-sleep', 'last night', {en: 'How did I sleep last night?', nl: 'Hoe heb ik vannacht geslapen?'}, {kinds: [], toolsAny: ['sleep_nights']}, L('sleep', 'health'));
-seed('lk-meditation', 'mindful minutes', {en: 'How many mindful minutes this week?', nl: 'Hoeveel mindful minuten deze week?'}, {kinds: [], toolsAny: ['meditation']}, L('meditation', 'health'));
+seed('lk-meditation', 'mindful minutes', {en: 'How many mindful minutes this week?', nl: 'Hoeveel mindful minuten deze week?'}, {kinds: [], toolsAny: ['meditation_summary', 'meditation_sessions']}, L('meditation', 'health'));
 seed('lk-goal', 'goal progress', {en: 'How far along is my Japan adventure goal?', nl: 'Hoe ver ben ik met mijn doel Japan adventure?'}, {kinds: [], toolsAny: ['goal_progress']}, {...L('goals', 'goals'), important: true});
 seed('lk-streak', 'a streak', {en: 'What is my streak on Read?', nl: 'Wat is mijn reeks voor Lezen?'}, {kinds: [], toolsAny: ['habit_stats']}, L('habits', 'habits'));
-seed('lk-net-worth', 'net worth', {en: 'What is my net worth?', nl: 'Wat is mijn nettovermogen?'}, {kinds: [], toolsAny: ['net_worth', 'wealth_totals']}, L('wealth', 'wealth'));
+seed('lk-net-worth', 'net worth', {en: 'What is my net worth?', nl: 'Wat is mijn nettovermogen?'}, {kinds: [], toolsAny: ['net_worth', 'totals_per_currency']}, L('wealth', 'wealth'));
 seed('lk-debts', 'the debts', {en: 'What do I owe?', nl: 'Wat ben ik schuldig?'}, {kinds: [], toolsAny: ['accounts', 'net_worth']}, L('wealth', 'wealth'));
-seed('lk-calories', 'calories today', {en: 'How many calories have I had today?', nl: 'Hoeveel calorieën heb ik vandaag gehad?'}, {kinds: [], toolsAny: ['nutrition', 'diary']}, L('health', 'health'));
+seed('lk-calories', 'calories today', {en: 'How many calories have I had today?', nl: 'Hoeveel calorieën heb ik vandaag gehad?'}, {kinds: [], toolsAny: ['nutrient_totals', 'diary_entries']}, L('health', 'health'));
 // Navigation (device-side)
 const N = (area, page) => ({area, page, kind: 'local-first'});
 seed('nav-sleep', 'the sleep page', {en: 'Open my sleep page', nl: 'Open mijn slaappagina'}, {localFirst: true, mustContain: ['Sleep']}, {...N('today', 'today'), important: true});
@@ -219,4 +220,16 @@ if (cmd === 'seeds') {
   const ts = `/**\n * Session Z-Local Part 4: the held-out 30 % of the spoken corpus (English and Dutch asks a person would SAY, rendered by\n * Claude Opus 5.5 through the Batch API from device-made seeds; \`scripts/zigi/spoken-corpus-gen.mjs\`, batch ${id}).\n * GENERATED: do not edit by hand; re-run the generator. Each case's expectation is its seed's, never the model's.\n * Model-scored by the harness with \`ZIGI_SET=spoken\`; the deterministic spoken rules live in \`golden-spoken.ts\`.\n * ${holdout.length} cases (${holdout.filter(a => a.lang === 'en').length} English, ${holdout.filter(a => a.lang === 'nl').length} Dutch) of ${asks.length} generated; the other ${train.length} are the training set on the runs branch.\n */\nimport type {ModelCase} from './corpus';\n\nexport const SPOKEN: readonly ModelCase[] = ${JSON.stringify(holdout.map(({seed: _s, concept: _c, phenomenon: _p, ...c}) => c), null, 0).replace(/\},\{/g, '},\n  {').replace(/^\[/, '[\n  ').replace(/\]$/, ',\n]')};\n`;
   writeFileSync(join(REPO, 'apps/web/lib/ai/evals/corpus-spoken.ts'), ts);
   console.log(`${succeeded}/${lines.length} seeds rendered → ${asks.length} asks: ${train.length} train, ${holdout.length} hold-out; tokens ${JSON.stringify(usage)}; $${cost.toFixed(4)} at batch prices${bad.length ? `; ${bad.length} problems: ${bad.slice(0, 5).join('; ')}` : ''}`);
+} else if (cmd === 'rebuild') {
+  // The asks stay as the batch rendered them; only the expectations (and area, page, kind, importance) come from the seeds as this file now defines them.
+  const id = args[1]; if (!id) { console.error('batch id missing'); process.exit(2); }
+  const read = name => readFileSync(join(OUT, name), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));
+  const refresh = a => { const s = seeds.find(x => x.id === a.seed); if (!s) throw new Error(`seed ${a.seed} is gone`); return {...a, area: s.area, page: s.page, kind: s.kind, expect: s.expect, ...(s.important ? {important: true} : {important: undefined}), ...(s.health ? {health: s.health} : {})}; };
+  const clean = a => JSON.parse(JSON.stringify(a));
+  const train = read('train.jsonl').map(refresh).map(clean), holdout = read('holdout.jsonl').map(refresh).map(clean);
+  writeFileSync(join(OUT, 'train.jsonl'), train.map(a => JSON.stringify(a)).join('\n') + '\n');
+  writeFileSync(join(OUT, 'holdout.jsonl'), holdout.map(a => JSON.stringify(a)).join('\n') + '\n');
+  const ts = `/**\n * Session Z-Local Part 4: the held-out 30 % of the spoken corpus (English and Dutch asks a person would SAY, rendered by\n * Claude Opus 5.5 through the Batch API from device-made seeds; \`scripts/zigi/spoken-corpus-gen.mjs\`, batch ${id}).\n * GENERATED: do not edit by hand; re-run the generator. Each case's expectation is its seed's, never the model's.\n * Model-scored by the harness with \`ZIGI_SET=spoken\`; the deterministic spoken rules live in \`golden-spoken.ts\`.\n * ${holdout.length} cases (${holdout.filter(a => a.lang === 'en').length} English, ${holdout.filter(a => a.lang === 'nl').length} Dutch) of ${train.length + holdout.length} generated; the other ${train.length} are the training set on the runs branch.\n */\nimport type {ModelCase} from './corpus';\n\nexport const SPOKEN: readonly ModelCase[] = ${JSON.stringify(holdout.map(({seed: _s, concept: _c, phenomenon: _p, ...c}) => c), null, 0).replace(/\},\{/g, '},\n  {').replace(/^\[/, '[\n  ').replace(/\]$/, ',\n]')};\n`;
+  writeFileSync(join(REPO, 'apps/web/lib/ai/evals/corpus-spoken.ts'), ts);
+  console.log(`rebuilt from the seeds: ${train.length} train, ${holdout.length} hold-out`);
 } else { console.error('unknown command'); process.exit(2); }
