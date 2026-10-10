@@ -39,3 +39,11 @@ START spoken-gen-wait 2026-10-10T16:24:44Z
 END spoken-gen-wait 2026-10-10T16:26:47Z rc=0
 END part2-sonnet-important-x2 2026-10-10T16:30:12Z rc=0
 START part2-haiku-all-x3 2026-10-10T16:30:15Z
+START part8-dry-run 2026-10-10T16:47:31Z
+END part8-dry-run 2026-10-10T16:49:44Z rc=0
+START part8-dry-run-2 2026-10-10T16:52:03Z
+START fr-before-gemma4-mac 2026-10-10T16:52:49Z
+END part8-dry-run-2 2026-10-10T16:58:44Z rc=0
+END fr-before-gemma4-mac 2026-10-10T17:02:56Z rc=stopped (the Mac at 50 s per turn; deferred to the PC)
+START part8-dry-run-sonnet 2026-10-10T17:03:10Z
+END part8-dry-run-sonnet 2026-10-10T17:09:22Z rc=0
