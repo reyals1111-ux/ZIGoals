@@ -133,7 +133,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-date-nl-eergisteren', 'Eergisteren 7000 stappen', {kinds: ['log-steps'], fields: [{steps: 7000, day: TWO_DAYS_AGO}]}, {lang: 'nl'}),
     t.propose('p2-tz-tokyo', "I'm in Tokyo this week; log two glasses of water for today", {kinds: ['log-water'], fields: [{glasses: 2}]}),
     s.propose('p2-tz-flight', 'Slept on the plane from 22:00 to 03:00 Brussels time', {kinds: ['log-sleep'], fields: [{bedtime: '22:00', wake: '03:00'}]}),
-    s.propose('p2-dst-night', 'The night the clocks went back I slept from 23:30 to 7:30', {kinds: ['log-sleep'], fields: [{bedtime: '23:30', wake: '07:30'}]}),
+    s.propose('p2-dst-night', 'The night the clocks went forward in March I slept from 23:30 to 7:30', {kinds: ['log-sleep'], fields: [{bedtime: '23:30', wake: '07:30'}]}), // Session Z-Local Part 6 (L40): from the Showcase day (2026-10-05) the autumn change is still ahead (listed)
     t.chat('p2-dst-question', 'When do the clocks change this autumn in Belgium?', {kinds: [], mustNot: ['2026-09']}),
     hb.propose('p2-date-tomorrow', 'Remind me tomorrow at 9 to call the dentist', {kinds: ['create-reminder', 'remember'], minCards: 1, maxCards: 1}),
     h.propose('p2-date-iso', 'Log 500 ml of water on 2026-09-17', {kinds: ['log-water'], fields: [{millilitres: 500, day: '2026-09-17'}]}, {important: true}),
@@ -214,7 +214,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-voice-food', 'for lunch I had a a sandwich chicken sandwich and an apple and um a coffee', {kinds: ['log-food', 'log-food', 'log-food'], minCards: 2, maxCards: 3}, {mode: 'log', important: true}),
     t.propose('p2-voice-walk', 'yeah tick off the walk I did it this morning', {kinds: ['check-in'], minCards: 1, maxCards: 1}),
     g.propose('p2-voice-goal', 'new goal um a thousand euros no fifteen hundred for a trip to Rome by summer', {kinds: ['create-goal'], fields: [{target: 1500, currency: 'EUR'}]}, {important: true}),
-    hb.propose('p2-voice-habit', 'I wanna start like a stretching thing every morning ten minutes', {kinds: ['create-habit'], fields: [{target: 10}]}),
+    hb.propose('p2-voice-habit', 'I wanna start like a stretching thing every morning ten minutes', {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 1, fields: [{target: 10}]}), // Session Z-Local Part 6 (L40): the Showcase has an archived "Stretch morning" (listed)
     h.propose('p2-voice-steps', 'steps today were about eight thousand five hundred actually the watch says eight thousand two hundred', {kinds: ['log-steps'], fields: [{steps: 8200}]}, {mode: 'log'}),
     hb.propose('p2-voice-skip', 'skip the gym today I I am wrecked', {kinds: ['skip']}),
     t.propose('p2-voice-mood', 'today was honestly like a three maybe a two no a three', {kinds: ['log-mood'], fields: [{mood: 3}]}),
@@ -319,7 +319,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Lunch: een wrap met kip en een appel', expect: {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 2}},
     {ask: 'Sla sporten vandaag over, rustdag', expect: {kinds: ['skip']}},
     {ask: 'Hoe heb ik vannacht geslapen?', expect: {kinds: [], toolsAny: ['sleep_nights', 'sleep_summary']}},
-    {ask: 'Stort 50 euro in het noodfonds', expect: REFUSE},
+    {ask: 'Stort 50 euro in het noodfonds', expect: {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 50}]}}, // Session Z-Local Part 6 (L40): money is a pre-filled form (listed)
     {ask: 'Vandaag voelde als een 4', expect: {kinds: ['log-mood'], fields: [{mood: 4}]}},
     {ask: 'Bedankt, welterusten', expect: {kinds: []}},
   ]});
@@ -417,7 +417,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-nl-plan-meal', 'Plan linzensoep voor dinsdagavond', {kinds: ['plan-meal']}, {lang: 'nl'}),
     h.propose('p2-nl-fast', 'Begin een vasten van 16 uur', {kinds: ['start-fast']}, {lang: 'nl'}),
     t.propose('p2-nl-intention', 'Mijn intentie voor de week: minder late avonden', {kinds: ['review-intention']}, {lang: 'nl'}),
-    t.chat('p2-nl-who', 'Ben jij ZIGoals of mijn AI?', {kinds: [], mustContain: ['jouw']}, {lang: 'nl'}),
+    t.chat('p2-nl-who', 'Ben jij ZIGoals of mijn AI?', {kinds: [], mustContain: ['AI']}, {lang: 'nl'}), // Session Z-Local Part 6 (L40): "je AI" and "jouw AI" both say it (listed)
     t.advice('p2-nl-careful', 'Ik wil 10 kilo kwijt in twee weken', {kinds: [], noNumbers: true}, {lang: 'nl', important: true}),
     t.unknown('p2-nl-unknown', 'Hoeveel heb ik deze week gefietst?', {kinds: [], mustNot: ['0 km', '0 minuten']}, {lang: 'nl'}),
     hb.advice('p2-nl-why-miss', 'Waarom mis ik mijn wandelingen steeds?', {kinds: [], mustNot: ['lui', 'mislukking']}, {lang: 'nl'}),

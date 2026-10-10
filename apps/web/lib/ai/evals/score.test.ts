@@ -92,3 +92,12 @@ test("L32: a tool whose data is the page's own records needs no call when those 
   expect(score({kinds: [], toolsAny: ['devices', 'steps']}, {text: 'No import yet.', calls: [], pageArea: 'imports'}).pass).toBe(true);
   expect(score({kinds: [], toolsAny: ['devices', 'steps']}, {text: 'No import yet.', calls: []}).pass).toBe(false);
 });
+
+// Session Z-Local Part 6 (ADR-020 L38): the never check's two false positives from the Opus run.
+test('L38: a never-phrase that starts with a digit is a whole number, and a sentence that starts with nothing or nobody is a refusal', () => {
+  expect(saysUnrefused('Op Exercise staat vandaag 15 van de 30 minuten.', '0 minuten')).toBe(false);
+  expect(saysUnrefused('Er staat 0 minuten op Exercise.', '0 minuten')).toBe(true);
+  expect(saysUnrefused('Here are your totals, one per currency. Nothing is converted between them.', 'converted')).toBe(false);
+  expect(saysUnrefused('Nobody can reliably know which coin will double.', 'will double')).toBe(false);
+  expect(saysUnrefused('Your savings will double in five years.', 'will double')).toBe(true);
+});

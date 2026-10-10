@@ -135,3 +135,11 @@ test('L28: a check-in block that repeats its minutes as the value keeps the minu
   const v = parseReply('```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":10,"value":3}\n```');
   expect(v.proposals).toEqual([]); expect(v.rejected).toHaveLength(1);
 });
+
+// Session Z-Local Part 6 (ADR-020 L37): a null that means "clear" survives the parser.
+test('L37: set-target with value null clears the target (the null stays); a null glasses count is still simply absent', () => {
+  const cleared = parseReply('Cleared.\n\n```zigoals-action\n{"kind":"set-target","target":"kcal","value":null}\n```');
+  expect(cleared.proposals).toHaveLength(1); expect((cleared.proposals[0] as {value: unknown}).value).toBeNull();
+  const water = parseReply('One glass.\n\n```zigoals-action\n{"kind":"log-water","glasses":null,"millilitres":250}\n```');
+  expect(water.proposals).toHaveLength(1); expect((water.proposals[0] as {glasses?: unknown}).glasses).toBeUndefined();
+});

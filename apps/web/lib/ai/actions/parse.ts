@@ -84,7 +84,9 @@ function coerceNumbers(value: unknown): unknown {
   if (o.kind === 'check-in' && typeof o.minutes === 'number' && o.value === o.minutes && o.quantity === undefined) delete o.value;
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
     // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
-    if (v === null && NUMERIC_KEYS.has(key)) continue;
+    // Session Z-Local Part 6 (ADR-020 L37): where the schema makes null a meaning (set-target's value clears the target; set-bells' intervalMin
+    // stops the bell), the null stays; Opus wrote `"value": null` to clear a calorie target and the block was refused as "received undefined".
+    if (v === null && NUMERIC_KEYS.has(key) && !((o.kind === 'set-target' && key === 'value') || (o.kind === 'set-bells' && key === 'intervalMin'))) continue;
     out[key] = typeof v === 'string' && NUMERIC_KEYS.has(key) && NUMBER.test(v.trim()) ? Number(v.trim().replace(',', '.')) : typeof v === 'object' ? coerceNumbers(v) : v;
   }
   return out;

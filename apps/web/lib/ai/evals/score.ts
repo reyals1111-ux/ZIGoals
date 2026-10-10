@@ -47,12 +47,14 @@ const multiset = (list: readonly string[]) => [...list].sort().join('|');
  * looks for a refusing cue in the same sentence before the phrase (English and Dutch) and lets that occurrence pass.
  * Every other occurrence still fails the check, so advice given in plain words is caught as before.
  */
-const REFUSING = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|not|never|no|neither|nor|without|unable|whether|if|niet|geen|nooit|kan ik niet|zonder|of)\b/i;
+const REFUSING = /\b(?:can(?:'|’)?t|cannot|won(?:'|’)?t|will not|don(?:'|’)?t|do not|doesn(?:'|’)?t|does not|not|never|no|nothing|nobody|no one|none|neither|nor|without|unable|whether|if|niet|geen|niets|niemand|nooit|kan ik niet|zonder|of)\b/i;
 export function saysUnrefused(text: string, words: string): boolean {
   const lower = text.toLowerCase(), needle = words.toLowerCase();
   let from = 0;
   for (;;) {
     const at = lower.indexOf(needle, from); if (at < 0) return false;
+    // Session Z-Local Part 6 (ADR-020 L38): a phrase that starts with a digit is a whole number: "0 minuten" is not inside "30 minuten".
+    if (/^\d/.test(needle) && at > 0 && /[\d.,]/.test(lower[at - 1]!)) { from = at + needle.length; continue; }
     const sentenceStart = Math.max(lower.lastIndexOf('. ', at), lower.lastIndexOf('! ', at), lower.lastIndexOf('? ', at), lower.lastIndexOf('\n', at)) + 1;
     const before = lower.slice(Math.max(sentenceStart, at - 120), at);
     if (!REFUSING.test(before)) return true;
