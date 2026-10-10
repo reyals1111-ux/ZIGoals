@@ -1,11 +1,11 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 40.52009432749999,
+ "total": 52.4199127275,
  "byModel": {
   "claude-haiku-5-5": 2.459016177499999,
   "claude-sonnet-5-5": 28.88376914999999,
-  "claude-opus-5-5": 9.177309
+  "claude-opus-5-5": 21.0771274
  },
  "rows": [
   {
@@ -101,6 +101,19 @@
   },
   {
    "stage": "real-model/corpus",
+   "model": "claude-opus-5-5",
+   "batch": false,
+   "requests": 778,
+   "input": 2916,
+   "cacheWrite": 1049421,
+   "cacheRead": 11059244,
+   "output": 195151,
+   "usd": 11.3736378,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/corpus",
    "model": "claude-sonnet-5-5",
    "batch": false,
    "requests": 1760,
@@ -135,6 +148,19 @@
    "cacheRead": 412017,
    "output": 4375,
    "usd": 0.015960995,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/ui-conv-opus",
+   "model": "claude-opus-5-5",
+   "batch": false,
+   "requests": 26,
+   "input": 104,
+   "cacheWrite": 75350,
+   "cacheRead": 336873,
+   "output": 4082,
+   "usd": 0.5261806000000001,
    "unreported": 0,
    "files": 0
   },
@@ -269,6 +295,11 @@
    "turns": 2331
   },
   {
+   "file": "real-model/corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json",
+   "model": "claude-opus-5-5",
+   "turns": 671
+  },
+  {
    "file": "real-model/corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json",
    "model": "claude-sonnet-5-5",
    "turns": 723
@@ -292,6 +323,11 @@
    "file": "real-model/ui-conv-haiku/conversations-claude-haiku-5-5.json",
    "model": "panel",
    "turns": 15
+  },
+  {
+   "file": "real-model/ui-conv-opus/conversations-claude-opus-5-5.json",
+   "model": "panel",
+   "turns": 13
   },
   {
    "file": "real-model/ui-conv-sonnet/conversations-claude-sonnet-5-5.json",
@@ -339,5 +375,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-10T19:10:33.489Z"
+ "rebuiltAt": "2026-10-10T19:12:21.200Z"
 }
