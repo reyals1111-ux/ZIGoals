@@ -123,7 +123,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-date-this-morning', 'This morning at 6 I weighed 77.9 kg', {kinds: ['log-weight'], fields: [{value: 77.9, day: {anyOf: ['today', '2026-09-20']}}]}),
     s.propose('p2-date-last-night', 'Last night: in bed at 23:00, up at 06:30', {kinds: ['log-sleep'], fields: [{bedtime: '23:00', wake: '06:30'}]}, {important: true}),
     s.propose('p2-date-nap-today', 'I napped from 14:00 to 14:40 this afternoon', {kinds: ['log-sleep']}),
-    hb.propose('p2-time-7am', 'Remind me to stretch at 7am', {kinds: ['create-reminder'], fields: [{time: '07:00'}]}, {important: true}),
+    hb.propose('p2-time-7am', 'Remind me to stretch at 7am', {kinds: ['create-habit'], fields: [{kind: 'create-habit', reminder: '07:00'}]}, {important: true}), // Session Z-Local Part 6 (L34): no Stretch habit in the Showcase, so the reminder comes with its habit (listed)
     hb.propose('p2-time-quarter-past', 'A reminder for reading at quarter past eight in the evening', {kinds: ['create-reminder'], fields: [{time: '20:15'}]}),
     hb.propose('p2-time-noon', 'Remind me to drink water at noon', {kinds: ['create-reminder'], fields: [{time: '12:00'}]}),
     hb.propose('p2-time-half-nine', 'Meditation reminder at half past nine at night', {kinds: ['create-reminder'], fields: [{time: '21:30'}]}, {important: true}),

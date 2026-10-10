@@ -78,3 +78,10 @@ test('a bare decimal fragment after a correction marker replaces the decimals: "
   expect(normalizeSpoken('okay so weight this morning seventy eight point three no point four kilos')).toBe('okay so weight this morning 78.4 kilos');
   expect(normalizeSpoken('tweeënzeventig komma drie nee komma vijf kilo')).toBe('72.5 kilo');
 });
+
+// Session Z-Local Part 6 (ADR-020 L34): the Haiku UI panel kept 30 minutes for "thirty minutes um actually it was more like forty".
+test('a correction with words between the marker and the number: "actually it was more like forty" and "eigenlijk eerder veertig" replace the number', () => {
+  expect(normalizeSpoken('so I ran for like thirty minutes um actually it was more like forty')).toBe('so I ran for like 40 minutes');
+  expect(normalizeSpoken('twintig minuten gelopen, eigenlijk eerder dertig')).toBe('30 minuten gelopen');
+  expect(normalizeSpoken('two glasses, actually about three')).toBe('3 glasses');
+});

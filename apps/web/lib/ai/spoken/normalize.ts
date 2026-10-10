@@ -165,8 +165,8 @@ function clocks(text: string): string {
   return t;
 }
 
-/** "two glasses, no wait, three" → "three glasses"; "3 kilometer, nee, 4" → "4 kilometer"; "make that 5" keeps the unit. */
-const MARKER = /\s*[,.]?\s*(?:no[,.]?\s*wait[,.]?|wait[,.]?\s*no[,.]?|no[,.]|sorry[,.]?|i mean[,.]?|make (?:that|it)|actually[,.]?|nee[,.]?\s*wacht[,.]?|wacht[,.]?\s*nee[,.]?|nee[,.]|ik bedoel[,.]?|maak er|eigenlijk[,.]?|correctie[,.]?|correction[,.]?)\s*(?=\d)/i;
+/** "two glasses, no wait, three" → "three glasses"; "3 kilometer, nee, 4" → "4 kilometer"; "make that 5" keeps the unit; "thirty minutes, actually it was more like forty" → "40 minutes" (Session Z-Local Part 6, L34). */
+const MARKER = /\s*[,.]?\s*(?:no[,.]?\s*wait[,.]?|wait[,.]?\s*no[,.]?|no[,.]|sorry[,.]?|i mean[,.]?|make (?:that|it)|actually[,.]?|nee[,.]?\s*wacht[,.]?|wacht[,.]?\s*nee[,.]?|nee[,.]|ik bedoel[,.]?|maak er|eigenlijk[,.]?|correctie[,.]?|correction[,.]?)(?:\s*(?:it was|it's|it is|that was|that's|het was|het is))?(?:\s*(?:more like|closer to|rather|about|around|eerder|ongeveer|zo'n|meer))?\s*(?=\d)/i;
 const UNIT_AFTER = new RegExp(`^\\s+(${UNITS})(?![A-Za-z])`, 'i');
 /** The last number before the marker takes the first number after it; the unit stays where it was, and "maak er 4 van" loses its "van". */
 /** "78.3, no, point four" and "78,3 nee komma vier": a bare decimal fragment after the marker replaces the decimals of the number before it. */

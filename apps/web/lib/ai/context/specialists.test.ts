@@ -116,3 +116,8 @@ test('L27: Health says how imports happen and that an unknown food is still an e
 test("L33: Health takes the usual of two matching library foods; the careful reply lists no figures from the records", () => {
   expect(SPECIALISTS.health.prompt).toContain('their usual'); expect(SAFETY_RULES).toContain("no list of their records' figures");
 });
+
+test('L34/L36: a reminder for a new habit is a create-habit card with its time; a habit named by what it is; a balance update keeps its account whatever currency was named', () => {
+  expect(ACTION_PROTOCOL).toContain('one create-habit card with its reminder time'); expect(ACTION_PROTOCOL).toContain('is the habit that does that');
+  expect(SPECIALISTS.wealth.prompt).toContain('even when the currency named is not the account\'s own');
+});
