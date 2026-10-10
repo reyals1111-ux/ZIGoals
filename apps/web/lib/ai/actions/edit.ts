@@ -58,7 +58,7 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'prefill-account': [text('name', 'Account name'), select('accountKind', 'Kind', ACCOUNT_KINDS), text('currency', 'Currency', true), text('institution', 'Institution', true), text('balance', 'Opening balance', true), text('ratePercent', 'Interest rate (%)', true), DAY],
   'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
-  'log-steps': [int('steps', 'Steps'), int('minutes', 'Minutes', true), DAY],
+  'log-steps': [int('steps', 'Steps', true), int('minutes', 'Minutes', true), DAY],
   'log-food': [text('name', 'Name'), select('meal', 'Meal', MEALS), num('quantity', 'Servings'), num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true), num('estimate.serving_g', 'Serving weight (g)', true), DAY],
   'log-measurement': [select('kind_of', 'Measurement', MEASUREMENT_KINDS), num('value', 'Value'), select('unit', 'Unit', ['cm', 'in']), DAY],
   'check-in': [num('value', 'Value', true), num('minutes', 'Minutes', true), num('quantity', 'Quantity', true), text('unit', 'Unit of the quantity', true), text('note', 'Note', true), DAY],

@@ -100,7 +100,9 @@ const weekdaySchema = z.preprocess(weekdayName, z.enum(WEEKDAY_NAMES));
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
-  z.strictObject({kind: z.literal('log-steps'), steps: z.number().int().min(1).max(1_000_000), minutes: z.number().int().min(0).max(1440).optional(), day: daySchema}),
+  // Session Z-Local Part 6 (L24): a walk by minutes alone ("walked to work, about 20 minutes") is an activity with no step count; steps or minutes, one of them above zero.
+  z.strictObject({kind: z.literal('log-steps'), steps: z.number().int().min(0).max(1_000_000).optional(), minutes: z.number().int().min(0).max(1440).optional(), day: daySchema})
+    .refine(a => (a.steps ?? 0) > 0 || (a.minutes ?? 0) > 0, 'Say the steps or the minutes of the walk.'),
   z.strictObject({kind: z.literal('log-food'), name: text(100), meal: z.enum(MEALS), quantity: positive.max(100).default(1), food: handleSchema.optional(),
     estimate: z.strictObject({kcal: z.number().finite().min(0).max(100_000).optional(), protein_g: grams.optional(), carbs_g: grams.optional(), fat_g: grams.optional(), serving_g: positive.max(100_000).optional(), serving_ml: positive.max(100_000).optional()})
       .refine(e => e.serving_g === undefined || e.serving_ml === undefined, 'Give the serving in grams or in millilitres, not both.').optional(), day: daySchema}),

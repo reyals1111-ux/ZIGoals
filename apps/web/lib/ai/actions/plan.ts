@@ -241,10 +241,10 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'log-steps': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
-      const id = healthId(), minutes = action.minutes ?? 0;
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Add steps', lines: [`${action.steps.toLocaleString('en-US')} steps${minutes ? ` · ${minutes} min` : ''}, as a Walk entry`], where: 'Health · Activity', day: dayLabel(day.day, env.healthDay), estimate: false},
-        write: s => ({health: saveActivity(s.health, {id, date: day.day, name: 'Walk', steps: action.steps, minutes}, at)}),
-        undo: {label: 'Remove this activity', write: s => ({health: removeHealthItem(s.health, 'activity', id)}), unchanged: (after, current) => same(after.health.activity.find(a => a.id === id), current.health.activity.find(a => a.id === id))}, activity: {id, title: `Steps: ${action.steps.toLocaleString('en-US')}`}}};
+      const id = healthId(), minutes = action.minutes ?? 0, steps = action.steps ?? 0;
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: steps ? 'Add steps' : 'Add a walk', lines: [steps ? `${steps.toLocaleString('en-US')} steps${minutes ? ` · ${minutes} min` : ''}, as a Walk entry` : `${minutes} min of walking, as a Walk entry (no step count)`], where: 'Health · Activity', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => ({health: saveActivity(s.health, {id, date: day.day, name: 'Walk', steps, minutes}, at)}),
+        undo: {label: 'Remove this activity', write: s => ({health: removeHealthItem(s.health, 'activity', id)}), unchanged: (after, current) => same(after.health.activity.find(a => a.id === id), current.health.activity.find(a => a.id === id))}, activity: {id, title: `Steps: ${steps.toLocaleString('en-US')}`}}};
     }
     case 'log-food': {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);

@@ -77,3 +77,7 @@ test('L19: "never" fails where the reply says the phrase and passes where it ref
   expect(score({mustNot: ['will go up']}, {text: 'I can\'t predict whether ETH will go up next month.', calls: []}).pass).toBe(true);
   expect(score({mustNot: ['will go up']}, {text: 'ETH will go up next month, buy now.', calls: []}).pass).toBe(false);
 });
+test('L25: a record handle is never a fact\'s number', () => {
+  const result = {ok: true, tool: 'goal_progress', label: 'Goal', provenance: 'x', data: {handle: 'g1', name: 'Japan adventure', progress: '41.66%', now: '2500 USD'}} as unknown as Parameters<typeof factNumbers>[0];
+  expect(factNumbers(result).slice(0, 2)).toEqual(['41.66', '2500']);
+});

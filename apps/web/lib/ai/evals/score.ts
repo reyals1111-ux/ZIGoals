@@ -100,4 +100,5 @@ export function sameField(got: unknown, want: unknown): boolean {
   return got === want;
 }
 /** The numbers a tool result's text carries, for a fact check (the caller runs the tool on the device). */
-export const factNumbers = (result: ToolResult): string[] => digitsOf(JSON.stringify(result).replace(/"[a-z_]+":/g, ' ').replace(/\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z?)?/g, ' ').replace(/\b\d{1,2}:\d{2}\b/g, ' '));
+// Session Z-Local Part 6 (L25): a record handle (g1, h12) is a name, not a figure; it never counts as a fact's first number.
+export const factNumbers = (result: ToolResult): string[] => digitsOf(JSON.stringify(result).replace(/"[a-z_]+":/g, ' ').replace(/\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z?)?/g, ' ').replace(/\b\d{1,2}:\d{2}\b/g, ' ').replace(/\b[hgfrcm]\d{1,2}\b/g, ' '));

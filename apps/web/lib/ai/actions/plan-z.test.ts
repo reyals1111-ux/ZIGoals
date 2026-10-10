@@ -432,3 +432,12 @@ test('L21: the same water amount or the same library food for the same meal on t
   expect(autoAcceptVerdict(on, 'log-water', DAY, true, 0, false, true)).toEqual({ok: false, reason: 'already-recorded'});
   expect(autoAcceptVerdict(on, 'log-water', DAY, true, 0, false, false)).toEqual({ok: true});
 });
+
+// ---- Session Z-Local Part 6 (L24): a walk by minutes alone ----
+test('L24: log-steps takes minutes without a step count (a Walk entry with 0 steps); neither steps nor minutes is refused by the schema', () => {
+  const s = base(), p = plan(s, {kind: 'log-steps', minutes: 20});
+  expect(p.card.title).toBe('Add a walk'); expect(p.card.lines[0]).toContain('20 min');
+  const after = applyPlan(p, s); const walk = after.health.activity.find(a => a.minutes === 20 && a.steps === 0); expect(walk).toBeDefined();
+  expect(plan(s, {kind: 'log-steps', steps: 8000}).card.title).toBe('Add steps');
+  expect(() => act({kind: 'log-steps'})).toThrow(); expect(() => act({kind: 'log-steps', steps: 0, minutes: 0})).toThrow();
+});
