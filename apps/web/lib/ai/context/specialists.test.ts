@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {PAGE_AREAS} from '../settings';
-import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, SPECIALISTS, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
+import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
 import {AREA_LABELS, attachesContext, pageArea, wealthView} from './pages';
 
 // ADR-012, Part 4: six specialists, our own copy under ADR-011's tone rules, the guardrails every prompt carries.
@@ -87,4 +87,20 @@ test('buildSystemParts: the first block is the stable prefix (frame, day, specia
   // Without page records the question's records are in the tail, after one cache boundary.
   const d = buildSystemParts({area: 'today', context: 'Q only', customInstructions: '', providerName: 'Mock'});
   expect(d.blocks).toHaveLength(2); expect(d.blocks[1]!.text).toContain('Q only');
+});
+
+// Session Z-Local Part 6, prompt round 1 (ADR-020 L20)
+test('L20: the protocol tells every model about duplicates, the question mark, Undo in Activity and reminder weekdays; careful mode repeats no figure; Health-not-shared adds its one line only when told', () => {
+  expect(ACTION_PROTOCOL).toContain('still propose the card and say in one line what the records show');
+  expect(ACTION_PROTOCOL).toContain('ends with a question mark');
+  expect(ACTION_PROTOCOL).toContain('Activity → Actions by ZIGi');
+  expect(ACTION_PROTOCOL).toContain('Habit and water reminders ring every day');
+  expect(SAFETY_RULES).toContain('not even the figures the person named');
+  const base = {area: 'health' as const, context: null, customInstructions: '', providerName: 'Mock'};
+  expect(buildSystemPrompt(base)).not.toContain(HEALTH_CLOSED_NOTE);
+  expect(buildSystemPrompt({...base, healthShared: true})).toBe(buildSystemPrompt(base));
+  expect(buildSystemPrompt({...base, healthShared: false})).toContain(HEALTH_CLOSED_NOTE);
+  const parts = buildSystemParts({...base, healthShared: false, pageContext: 'records', tools: true});
+  expect(parts.blocks.map(b => b.text).join('')).toBe(parts.prompt);
+  expect(parts.blocks[0]!.text).toContain(HEALTH_CLOSED_NOTE); // in the stable prefix, per page and gate
 });

@@ -198,3 +198,10 @@ two shared files below are yours (the second merger carries whichever lands firs
 "You can talk to ZIGi the way you talk: say numbers in words, say times the way you say them, correct yourself mid-sentence
 ("three glasses, no wait, four"). ZIGi reads the last thing you meant. English and Dutch. What you said is shown as you
 said it; ZIGi never rewrites your words."
+
+## 2026-10-10 — Part 6: one argument for the prompt builder (ADR-020 L20)
+`buildSystemParts` (and `buildSystemPrompt`) take an optional `healthShared: boolean`. Please pass the Health gate from
+`use-chat-session.ts` where `partsFor(tools)` builds the parts: `healthShared: contextRef.current.gates.health` (or the
+equivalent boolean you hold). With `false` the prompt gains one line in the stable prefix: Health is not shared, propose
+no Health card, say where it is switched on. Absent, the prompt is byte-identical to today's. The harness passes it for
+every run, so the corpus numbers assume the app does too.

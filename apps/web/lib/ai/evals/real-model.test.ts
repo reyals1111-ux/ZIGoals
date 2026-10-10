@@ -86,7 +86,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   const contextText = context?.text ?? null;
   const prerun: Call[] = MODE === 'tools' ? (context?.sources ?? []).filter(src => src.call.tool !== 'about_me').map(src => ({name: src.call.tool, args: (src.call.args ?? null) as Record<string, unknown> | null, accepted: true})) : [];
   // Session Z-Local Part 3: the prompt in blocks (the stable prefix cached on the Anthropic wire), the same string as before.
-  const parts = buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY});
+  const parts = buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY, healthShared: health});
   const system = parts.prompt;
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
   const calls: Call[] = [...prerun], started = Date.now(); let first: number | null = null, reply = '', tokens = emptyTokens(), requests = 0, error: string | null = null;
@@ -149,7 +149,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
     }
     const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
     const context = questionContext(ask, sources, gates, []);
-    const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY});
+    const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health});
     // The adapter's body minus `stream` (the Batches API refuses it); everything else (cache markers, effort) is the app's own request.
     const {stream: _stream, ...params} = anthropicBody({model: MODEL, system: parts.prompt, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages: [{role: 'user', content: ask}], maxOutputTokens: 1024, think: THINK}, {effort: true}); void _stream;
     prepared.push({c, ask, sources, context, system: parts.prompt, params});
