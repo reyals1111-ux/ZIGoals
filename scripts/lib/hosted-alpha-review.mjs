@@ -40,3 +40,16 @@ export function hostedStatus({ review, consoleErrors, failedRequests, layouts })
   if (review.length) return "NEEDS_OWNER_REVIEW";
   return consoleErrors.length || failedRequests.length || layouts.some(layout => !layout.pass) ? "COMPLETED_WITH_FINDINGS" : "PASS";
 }
+
+/**
+ * The Connection diagnostics REST row naming one of the reviewed zigchaind versions (Session X Part 1). Session Z-Cloud
+ * Part 1: the row is read from the panel's textContent, where the version runs straight into the next row's words
+ * ("… · v5.1.2Goal Manager"), so `\b` found no boundary between "2" and "G" and the owner's run on #34 (2026-10-10)
+ * failed although the page showed the row. The end is now "no further digit or dot": "v5.1.2" never matches "v5.1.20"
+ * or "v5.1.2.1", and any following word is fine.
+ * @param {readonly string[]} versions
+ */
+export function reviewedRestPattern(versions) {
+  const escaped = versions.map(version => version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return new RegExp(`Verified zig-test-2 · azig · 18 decimals · (?:${escaped.join("|")})(?![\\d.])`);
+}

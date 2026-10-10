@@ -33,11 +33,26 @@ that keeps the project's promises), and the owner's own decisions. A parallel la
      otherwise the tombstone is a `[TIER 3] (data formats)` change with #32–#35 readers and a two-device test.
   9. Personal suggestions never include anything from Health when Health is not shared with ZIGi, are shown only on the
      device that recorded them, and "What ZIGi knows" lists them with a one-tap "Forget all".
+- **Owner follow-up (2026-10-10, during Part 1):**
+  1. Independent agents are allowed, one at a time and never in parallel, only for: Part 9's persona round (an agent that
+     has not seen this branch's code; 6 personas, about 20 sessions, raw findings returned and fixed here with tests); an
+     independent security read of each `[TIER 3]` commit after Part 5 (A5, A6, Y38, delete-habit sync) and again at Gate C;
+     Gate C's audit of every changed test file for weakened assertions. No exploratory or search agents.
+  2. Z-Local sends the exact Anthropic request rules in its handoff (`cache_control` placement, `output_config.effort`, never
+     thinking disabled on Opus 5.5, the usage fields, `lib/ai/pricing.ts` as the one price table). The relay follows them
+     exactly and counts friends' budgets with the same accounting; until that entry lands, the relay's request body sits
+     behind one function that is easy to align.
+  3. Voice languages follow Z-Local's `lib/ai/settings.ts` (French removed there; an old `fr` value reads as the device
+     default): `zigoals:zigi-voice:v1` and the voice UI offer the same four, en-GB, en-US, nl-BE, nl-NL.
+  4. `proposal-list.tsx`: Z-Local pushes the WebKit freeze fix early in its own commit and announces the lines; this lane's
+     receipt-collapse there is render-only; whichever PR merges second keeps both changes.
 
 ## Session decisions
 | # | Part | Decision | Why it is the safest option |
 |---|---|---|---|
 | C1 | — | The owner-named branch `feature/session-z-cloud` is used; the harness's designated branch is not. Node 24.19.0 (the repository's `.node-version`) was fetched from nodejs.org, checked against the release's `SHASUMS256.txt` and linked ahead of the sandbox's Node 22; nothing was installed into the repository (as Y2). | The owner named the branch in the brief; Z-Local and the owner look for it there. Release compatibility is only established under the pinned Node. |
+
+| C2 | 1 | **The verifier's REST row ends in "no further digit or dot"** (`(?![\d.])`), built by `reviewedRestPattern()` in `scripts/lib/hosted-alpha-review.mjs` so a unit test feeds it the panel's exact textContent ("…v5.1.2Goal Manager…"). Every other script and spec was searched for the same version-then-`\b` shape: only `verify-hosted-alpha.mjs` built it. Proved read-only on #35 (the old pattern fails on the live text, the new one passes). | The narrowest change that matches exactly the reviewed versions and nothing longer ("v5.1.20", "v5.1.2.1" stay refused), whatever text follows. |
 
 ## Handoff applied (from Z_LOCAL_TO_CLOUD.md)
 None yet (no `feature/session-z-local` branch on 2026-10-10 14:10 UTC).
