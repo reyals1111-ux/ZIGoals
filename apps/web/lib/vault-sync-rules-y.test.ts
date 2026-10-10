@@ -48,7 +48,7 @@ test('B4: a Health restore completes but leaves Health sync off; the consent box
  await act(async()=>h.domain.prepare('restore','health'));await act(async()=>h.domain.confirm());await settle();
  expect(h.restore).toHaveBeenCalledTimes(1);
  expect(consent().checked).toBe(false);expect(h.synchronize.mock.calls.length).toBe(calls);
- expect(element.textContent).toContain('Health section approved for a new cloud copy. Nothing was uploaded: Health sync is off until you turn it on.');
+ expect(element.textContent).toContain('Health section approved for a new cloud copy. Nothing was uploaded: Health sync is off in this tab until you turn it on.');
  const ask=[...element.querySelectorAll('p')].find(p=>p.textContent===HEALTH_RESTORE_ASK)!;
  expect(ask).toBeDefined();expect(consent().getAttribute('aria-describedby')?.split(' ')).toContain(ask.id);
  expect(document.activeElement).toBe(consent());

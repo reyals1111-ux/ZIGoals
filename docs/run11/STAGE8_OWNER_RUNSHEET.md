@@ -347,7 +347,7 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 
 **15e. A Health restore asks first (Session Y, B4).**
 - **Do:** on Desktop A, delete the Health section from the cloud (Settings → Your account → section review), then restore it.
-- **Pass:** the restore completes; "Sync my Health records with this account" is focused and **not** ticked, with a sentence saying Health sync is off until you tick it; nothing about Health is uploaded until you tick it.
+- **Pass:** the restore completes; "Sync my Health records with this account" is focused and **not** ticked, with a sentence saying Health sync is off in this tab until you tick it; nothing about Health is uploaded until you tick it.
 - **Record:** pass.
 
 **15f. The cloud's vault older or missing (Session Y, B6 and B3): not run by hand.**
