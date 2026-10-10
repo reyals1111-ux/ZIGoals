@@ -112,3 +112,7 @@ test('L27: Health says how imports happen and that an unknown food is still an e
   expect(SPECIALISTS.health.prompt).toContain('Settings → Imports'); expect(SPECIALISTS.health.prompt).toContain('do not ask for the ingredients first');
   expect(ACTION_PROTOCOL).toContain('never "0 minutes"');
 });
+
+test("L33: Health takes the usual of two matching library foods; the careful reply lists no figures from the records", () => {
+  expect(SPECIALISTS.health.prompt).toContain('their usual'); expect(SAFETY_RULES).toContain("no list of their records' figures");
+});

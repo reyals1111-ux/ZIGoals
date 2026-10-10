@@ -5,12 +5,13 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-z-local`
 (orphan branch `review/session-z-local-runs`), scratchpad `/private/tmp/claude-502/-Users-AIUSER-Documents-ZIGoals-Claude/897eacab-d419-4a8a-bc51-21efae38e430/scratchpad`
 (chain scripts, `stage-logs/<stage>.log` and `.status`; copies of the chain scripts are on the runs branch under `scripts/`).
 
-## Resume here (2026-10-10 19:25Z, head `797b10a7`)
+## Resume here (2026-10-10 19:05Z, head: see `git log`)
 1. Read this file, `hours.log` on the runs worktree (START/END per stage) and each chain's `.status` file in the scratchpad (`running …` or `done rc=…`).
 2. Background chains that were running or queued when the session paused (each writes its own END line in `hours.log`; the chain scripts are copied to the runs branch under `scripts/`):
    - `part2-part3-chain` — the Opus corpus stage (`part2-opus-all`, forecast $18, started 18:20Z; 345/773 turns at 19:10Z). Log `stage-logs/part2-part3-chain.log`.
    - `part2-ui-chain` — the production build on :3103 (done), then the UI stages in Chrome on Sonnet/Haiku/Opus (panel, conversations, day, pages; photos skipped: no plates folder), the WebKit subset on Sonnet, the second half of the caching measurement (`part3-measure.sh` with `multiturn-ids-2.txt`), Haiku once more with the page records (`part6-haiku-after`), then the summaries and the rendered table (not committed by the chain). Log `stage-logs/part2-ui-chain.log`; each UI stage commits its run file to the runs branch.
    - `part6-chain` — waits for `END part2-ui-chain` and `END part2-part3-chain`, then `part6-sonnet-page` (Sonnet corpus with the page records, forecast $10), `part6-spoken-sonnet` ($6), `part6-spoken-haiku` ($0.6), `part6-opus-important` ($6.5), each ledger-guarded; then summaries + render + a feature-branch commit and push. Log `stage-logs/part6-chain.log`.
+   - `part6b-chain` — waits for `END part6-chain`, then the UI panel once more on Sonnet (`ui-panel-sonnet-2`, $3) and Haiku (`ui-panel-haiku-2`, $0.3) after the panel round (ADR-020 L30–L33), then summaries, both tables, a feature-branch commit and push. Log `stage-logs/part6b-chain.log`.
    - `pc-chain` — on the RTX 5090 through the forwarder: `fr-before-gemma4` (worktree at `fe2d64d2`), `fr-after-gemma4`, `qwen38-pc`, `qwen36-pc`, `phi4-pc`, `spoken-gemma4`. Log `stage-logs/pc-chain.log`.
    - `pc-chain2` — waits for `END pc-chain` (today after 19:00Z or later), then `variance-gemma4` and `variance-qwen38` (important set ×3). Log `stage-logs/pc-chain2.log`.
    - `qwen36-mac-corpus` — qwen3.6 on the Mac's Ollama (slow). Log `stage-logs/qwen36-mac-corpus.log`.

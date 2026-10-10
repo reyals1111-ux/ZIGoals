@@ -35,7 +35,7 @@ for (const c of chosen) {
       run.ms = ms;
       const stored = await lastReply(page);
       run.reply = stored.text; run.tools = stored.tools; run.cards = await cardsOf(page);
-      run.score = scoreUi(c.expect, stored.text, stored.tools, stored.source ?? undefined);
+      run.score = scoreUi(c.expect, stored.text, stored.tools, stored.source ?? undefined, c.page);
       // The interface never shows a raw block or a marker, whatever the model sent.
       const shown = await shownReply(page);
       expect(shown).not.toContain('zigoals-action'); expect(shown).not.toContain('⟦zigi:'); expect(shown).not.toContain('[[zigi:');

@@ -81,3 +81,14 @@ test('L25: a record handle is never a fact\'s number', () => {
   const result = {ok: true, tool: 'goal_progress', label: 'Goal', provenance: 'x', data: {handle: 'g1', name: 'Japan adventure', progress: '41.66%', now: '2500 USD'}} as unknown as Parameters<typeof factNumbers>[0];
   expect(factNumbers(result).slice(0, 2)).toEqual(['41.66', '2500']);
 });
+
+// Session Z-Local Part 6 (ADR-020 L32): the page's own records went with the question.
+test("L32: a tool whose data is the page's own records needs no call when those records went along; about_me always does", () => {
+  const ask = {kinds: [], tools: ['list_habits']};
+  expect(score(ask, {text: 'Three habits are open.', calls: [], pageArea: 'today'}).pass).toBe(true);
+  expect(score(ask, {text: 'Three habits are open.', calls: []}).pass).toBe(false);
+  expect(score(ask, {text: 'Three habits are open.', calls: [], pageArea: 'wealth'}).pass).toBe(false);
+  expect(score({kinds: [], tools: ['about_me']}, {text: 'Nothing saved.', calls: [], pageArea: 'today'}).pass).toBe(false);
+  expect(score({kinds: [], toolsAny: ['devices', 'steps']}, {text: 'No import yet.', calls: [], pageArea: 'imports'}).pass).toBe(true);
+  expect(score({kinds: [], toolsAny: ['devices', 'steps']}, {text: 'No import yet.', calls: []}).pass).toBe(false);
+});

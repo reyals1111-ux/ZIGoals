@@ -30,7 +30,10 @@ export const MODEL = process.env.ZIGI_MODEL ?? '', HOST = process.env.ZIGI_HOST 
 export const OUT = process.env.ZIGI_OUT ?? join(tmpdir(), 'zigoals-real-model');
 /** How long one reply may take on a local model (first token on a cold model can be a minute). */
 export const REPLY_TIMEOUT_MS = Number(process.env.ZIGI_REPLY_TIMEOUT_MS ?? '240000');
-export const DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
+// Session Z-Local Part 6 (ADR-020 L31): the real-model UI stages freeze the clock on the harness's own Showcase day (`DAY` in
+// lib/ai/tools/fixtures), so the corpus's relative days (yesterday, last Friday) mean the same thing in the panel as in the harness.
+// The MOCK suites keep their own 2026-09-20.
+export const DAY = '2026-10-05', EVENING = '2026-10-05T19:00:00.000Z';
 /** Where each corpus area's asks are typed. Settings has no launcher by the app's own rule (ZIGi stays out of the page
  * that configures it), so the settings-area asks go through the panel on Help, the nearest page about the app itself. */
 export const PAGE_PATHS: Record<CorpusArea, string> = {today: '/app', goals: '/app/goals', habits: '/app/habits', health: '/app/health', sleep: '/app/health?view=sleep', meditation: '/app/health?view=meditation', devices: '/app/health?view=devices', imports: '/app/health?view=imports', wealth: '/app/wealth', portfolio: '/app/portfolio', markets: '/app/markets', staking: '/app/staking', ecosystem: '/app/ecosystem', chess: '/app/chess', music: '/app', links: '/app', settings: '/app/help', help: '/app/help', activity: '/app/activity'};
@@ -167,10 +170,11 @@ export async function usageOf(page: Page): Promise<UiUsage | null> {
   } catch { return null; }
 }
 /** Scores a reply from the UI: cards, schema, tools, wording and refusals; facts and hints are the Node harness's. */
-export function scoreUi(expect_: Expect, reply: string, tools: string[], source?: string): Score {
+export function scoreUi(expect_: Expect, reply: string, tools: string[], source?: string, page?: string): Score {
   const {hint, facts, localFirst, ...rest} = expect_; void hint; void facts; void localFirst;
   // Phase 2 (ADR-017 S61): a reply the device made (`source: 'local'`) carries no model tool call; the scorer knows.
-  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true})), local: {answered: source === 'local'}};
+  // Session Z-Local Part 6 (ADR-020 L32): the page's own records went with the question, so a tool whose data is that page's needs no call.
+  const observed: Observed = {text: reply, calls: tools.map(name => ({name, args: null, accepted: true})), local: {answered: source === 'local'}, pageArea: page};
   return score(rest, observed);
 }
 /** Appends one run to the model's UI results file (one JSON array per model and spec), and attaches it to the test. */

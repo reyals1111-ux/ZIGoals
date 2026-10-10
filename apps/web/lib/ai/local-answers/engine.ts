@@ -35,6 +35,12 @@ const NONE: LocalReply = {kind: 'none'};
 
 // Not lookups: requests to change something, statements to log, and questions that want judgement or advice.
 const ACTION = /^(?:please |can you |could you |ok |okay )?(?:log|add|track|record|mark|skip|create|make|set|remind|start|stop|delete|remove|plan|schedule|change|update|edit|rename|move|buy|sell|send|transfer|stake|unstake|swap|undo|turn|show me how|write|draft)\b/;
+/**
+ * Session Z-Local Part 6 (ADR-020 L30): a question that also asks for an action ("how much water today, and log one more glass",
+ * "wat is mijn reeks? en vink mijn wandeling af", "…, log it") is the model's turn, never the device's: the device would answer the
+ * question and the card would never come (seen in the Sonnet UI panel: five such asks answered in 300 ms with no card).
+ */
+const MIXED = /(?:,|;|\band\b|\bthen\b|\balso\b|\bplus\b|\ben\b|\bdan\b|\book\b)\s+(?:please\s+|also\s+|ook\s+|even\s+)?(?:log|add|track|record|mark|tick|skip|create|make|set|remind|start|stop|delete|remove|note|put|save|zet|voeg|noteer|vink|sla|registreer|verwijder|maak|plan)\b/;
 const STATEMENT = /^(?:i|i've|i have|we) (?:ate|drank|had|did|walked|ran|meditated|read|weighed|slept|went|took|spent|bought|sold|logged|finished|completed|just)\b/;
 const ADVICE = /\b(why|should|suggest|recommend|advice|advise|tips?|help me|how can i|how do i|how to|improve|explain|what if|motivat|healthy|unhealthy|good for me|bad for me|is that (?:good|bad|ok|okay|enough)|enough|too much|too little|plan|diet|lose weight|gain weight|need attention|needs attention|focus on|worried|worry|feel|feeling)\b/;
 const W = {
@@ -172,7 +178,7 @@ function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   if (!q || q.length > 300) return NONE;
   const nav = navigationIntent(q); if (nav) return navigationReply(nav);
-  if (ACTION.test(q) || STATEMENT.test(q)) return NONE;
+  if (ACTION.test(q) || STATEMENT.test(q) || MIXED.test(q)) return NONE;
   if (ADVICE.test(q)) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").

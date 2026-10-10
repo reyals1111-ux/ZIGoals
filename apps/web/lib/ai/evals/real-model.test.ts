@@ -152,7 +152,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
   const facts = (c.expect.facts ?? []).map(fact => { const result = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(result).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(result)}; });
   const localReply = localAnswer(ask, local), sentinelsSeen = c.sentinels ? sentinelsIn(system + JSON.stringify(messages) + reply + JSON.stringify(calls)) : undefined;
-  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
+  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, pageArea: PAGE ? c.page : undefined}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
 }
 const BATCH_ORIGIN = 'https://api.anthropic.com';
 async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: string; wallMs: number}> {
