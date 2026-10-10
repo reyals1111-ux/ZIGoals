@@ -53,3 +53,10 @@ test('applyDayCue applies the quantity cue too, so the app\'s one call and the h
   const out = cards(applyDayCue(block('{"kind":"log-water"}'), 'yesterday I drank two glasses of water', '2026-09-20'));
   expect(out).toEqual([{kind: 'log-water', glasses: 2, day: 'yesterday'}]);
 });
+test('a check-in that already carries minutes keeps that one field (the strict schema refuses a second); a mis-heard figure is corrected in the card\'s own name', () => {
+  const kept = block('{"kind":"check-in","habit":"h1","minutes":20}');
+  expect(applyQuantityCue(kept, 'Meditated 20 minutes')).toBe(kept);
+  expect(parseReply(applyQuantityCue(block('[{"kind":"check-in","habit":"h1","minutes":20},{"kind":"check-in","habit":"h2","minutes":30}]'), 'Meditated 20 minutes and read 30')).proposals).toHaveLength(2);
+  expect(cards(applyQuantityCue(block('{"kind":"check-in","habit":"h1","minutes":2}'), 'I meditated for twenty minutes'))).toEqual([{kind: 'check-in', habit: 'h1', minutes: 20, day: 'today'}]);
+  expect(cards(applyQuantityCue(block('{"kind":"check-in","habit":"h1"}'), 'I meditated for twenty minutes'))).toEqual([{kind: 'check-in', habit: 'h1', minutes: 20, day: 'today'}]);
+});

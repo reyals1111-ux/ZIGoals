@@ -10,18 +10,19 @@ import {normalizeSpoken} from '../spoken/normalize';
  * figure. A message with two quantities, a range ("3 to 5 glasses") or no unit leaves the card as the model wrote it.
  * The person still sees the figure on the card before adding it. Shared by the app and the harness (`applyDayCue`).
  */
-type Slot = {kind: string; field: string; scale?: number; unit?: 'kg' | 'lb'};
+/** `fields`: the card's own field names for this measure, the first one filled when none is there (a check-in's duration is `minutes`, its count `value`). */
+type Slot = {kind: string; fields: string[]; scale?: number; unit?: 'kg' | 'lb'};
 const CLASSES: [RegExp, Slot[]][] = [
-  [/^(?:glass(?:es)?|glas|glazen)$/i, [{kind: 'log-water', field: 'glasses'}]],
-  [/^(?:ml|millilit(?:re|er)s?)$/i, [{kind: 'log-water', field: 'millilitres'}]],
-  [/^(?:l|lit(?:re|er)s?)$/i, [{kind: 'log-water', field: 'millilitres', scale: 1000}]],
-  [/^(?:steps?|stappen)$/i, [{kind: 'log-steps', field: 'steps'}]],
-  [/^(?:minutes?|mins?|minuten|minuut)$/i, [{kind: 'log-meditation', field: 'minutes'}, {kind: 'check-in', field: 'value'}]],
-  [/^(?:hours?|hrs?|uur|uren)$/i, [{kind: 'log-meditation', field: 'minutes', scale: 60}]],
-  [/^(?:kg|kilos?|kilograms?)$/i, [{kind: 'log-weight', field: 'value', unit: 'kg'}]],
-  [/^(?:lbs?|pounds?|pond)$/i, [{kind: 'log-weight', field: 'value', unit: 'lb'}]],
-  [/^(?:reps?|push-?ups|times|keer)$/i, [{kind: 'counter', field: 'count'}]],
-  [/^(?:servings?|porties?|portie)$/i, [{kind: 'log-food', field: 'quantity'}]],
+  [/^(?:glass(?:es)?|glas|glazen)$/i, [{kind: 'log-water', fields: ['glasses', 'millilitres']}]],
+  [/^(?:ml|millilit(?:re|er)s?)$/i, [{kind: 'log-water', fields: ['millilitres', 'glasses']}]],
+  [/^(?:l|lit(?:re|er)s?)$/i, [{kind: 'log-water', fields: ['millilitres', 'glasses'], scale: 1000}]],
+  [/^(?:steps?|stappen)$/i, [{kind: 'log-steps', fields: ['steps']}]],
+  [/^(?:minutes?|mins?|minuten|minuut)$/i, [{kind: 'log-meditation', fields: ['minutes']}, {kind: 'check-in', fields: ['minutes', 'value']}]],
+  [/^(?:hours?|hrs?|uur|uren)$/i, [{kind: 'log-meditation', fields: ['minutes'], scale: 60}]],
+  [/^(?:kg|kilos?|kilograms?)$/i, [{kind: 'log-weight', fields: ['value'], unit: 'kg'}]],
+  [/^(?:lbs?|pounds?|pond)$/i, [{kind: 'log-weight', fields: ['value'], unit: 'lb'}]],
+  [/^(?:reps?|push-?ups|times|keer)$/i, [{kind: 'counter', fields: ['count']}]],
+  [/^(?:servings?|porties?|portie)$/i, [{kind: 'log-food', fields: ['quantity']}]],
 ];
 const QUANTITY = /(?<![\d:.,])(\d+(?:\.\d+)?)\s*([A-Za-zÀ-ÿ-]+)/g;
 const RANGE = /\b\d+(?:\.\d+)?\s*(?:to|tot|-|–)\s*\d+/i;
@@ -52,17 +53,21 @@ export function applyQuantityCue(reply: string, message: string): string {
     const fix = (item: unknown) => {
       if (!item || typeof item !== 'object') return;
       const card = item as Record<string, unknown>, slot = cue.slots.find(s => s.kind === card.kind); if (!slot) return;
-      const value = slot.field === 'millilitres' || slot.field === 'steps' || slot.field === 'minutes' || slot.field === 'count' ? Math.round(cue.value * (slot.scale ?? 1)) : round(cue.value * (slot.scale ?? 1), 3);
-      const current = card[slot.field];
-      if (typeof current === 'number' && (current === value || spoken.has(String(current)))) return;
-      if (card.kind === 'log-water') {
+      const field = slot.fields[0]!, value = field === 'millilitres' || field === 'steps' || field === 'minutes' || field === 'count' ? Math.round(cue.value * (slot.scale ?? 1)) : round(cue.value * (slot.scale ?? 1), 3);
+      // The field of this measure the card already carries (a check-in's minutes, water's millilitres): never a second one beside it.
+      const present = slot.fields.find(f => typeof card[f] === 'number'), current = present ? card[present] as number : undefined;
+      if (present && (spoken.has(String(current)) || present === field && current === value)) return;
+      if (card.kind === 'log-water' && present && present !== field) {
         // The other water field: a correct conversion of the spoken glasses (250 mL each) stays; anything else gives way.
-        const other = slot.field === 'glasses' ? 'millilitres' : 'glasses', otherValue = card[other];
-        if (typeof otherValue === 'number' && (slot.field === 'glasses' ? otherValue === value * GLASS_ML : otherValue * GLASS_ML === value)) return;
-        if (otherValue !== undefined) { delete card[other]; changed = true; }
+        if (field === 'glasses' ? current === value * GLASS_ML : (current ?? 0) * GLASS_ML === value) return;
+        delete card[present]; changed = true;
+      } else if (present && present !== field) {
+        // The same measure under the card's own name (a check-in's "minutes"): corrected there, in that name.
+        if (current !== value) { card[present] = value; changed = true; }
+        return;
       }
-      if (slot.field === 'value' && slot.unit && card.kind === 'log-weight' && card.unit !== slot.unit) { card.unit = slot.unit; changed = true; }
-      if (current !== value) { card[slot.field] = value; changed = true; }
+      if (field === 'value' && slot.unit && card.kind === 'log-weight' && card.unit !== slot.unit) { card.unit = slot.unit; changed = true; }
+      if (current !== value) { card[field] = value; changed = true; }
     };
     if (Array.isArray(parsed)) parsed.forEach(fix); else fix(parsed);
     return changed ? `${fence}zigoals-action\n${JSON.stringify(parsed)}\n${fence}` : block;
