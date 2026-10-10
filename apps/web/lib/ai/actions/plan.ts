@@ -9,23 +9,28 @@ import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseDa
 import {addLocalDays} from '../../local-date';
 import {closeGoal, deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
 import {reopenGoal} from '../../plan-revisions';
-import {PAGE_LABEL, isShown, viewOf} from '../../pages/visibility';
-import {settingsGroupIn} from '../../vault/w-homes';
+import {BUTTON_LABEL, PAGE_LABEL, isShown, viewOf, visiblePages, withChoice, withStart} from '../../pages/visibility';
+import {PAGE_IDS, emptyPages, type PageId} from '../../pages/schema';
+import {DEBT_KINDS} from '../../accounts/schema';
+import {ZIGI_KEY} from '../store/keys';
+import type {ZigiPrefs} from '../store/records';
+import type {AccountPrefillInput, ContributionPrefillInput} from './form-prefill';
+import {settingsGroupIn, withSettingsGroup} from '../../vault/w-homes';
 import {weeklyReviewSchema} from '../../weekly-review/schema';
 import {setHabitReminder, setWaterReminder} from '../../reminders/store';
 import type {Reminders} from '../../reminders/schema';
 import {reviewWindow} from '../../weekly-review/engine';
 import type {WeeklyReview} from '../../weekly-review/schema';
-import {reviewFor, saveReviewNotes} from '../../weekly-review/store';
+import {reviewFor, saveReviewNotes, setReviewWeekday, skipReview} from '../../weekly-review/store';
 import {addNote, CATEGORY_LABELS, deleteNote, isHealthNote, newNoteId, noteProblem} from '../memory';
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
-import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
-import {WIDGET_CATALOG, removeWidget, saveWidget, type DashboardSettings, type DashboardWidget} from '../../dashboard-settings';
-import {addLink, linkInputIssue, linksOf, removeLink, suggestedIcon} from '../../links/engine';
-import {MOOD_WORDS, moodOn} from '../../wrap-up/engine';
+import {GLASS_ML, PLAN_AHEAD_DAYS, WEEKDAY_NAMES, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
+import {PRESETS, WIDGET_CATALOG, applyDashboardPreset, dashboardSettingsSchema, removeWidget, saveWidget, type DashboardSettings, type DashboardWidget} from '../../dashboard-settings';
+import {addLink, editLink, linkHost, linkInputIssue, linksOf, removeLink, suggestedIcon} from '../../links/engine';
+import {MOOD_WORDS, moodOn, setWrapUp, wrapUpEnabled, wrapUpTime} from '../../wrap-up/engine';
 import {emptyMoods, moodsSchema, type MoodDay} from '../../moods/schema';
 import {HEALTH_V4_GROUPS} from '../../health';
 import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
@@ -52,12 +57,18 @@ import {formatMinutes, instantAt, wallClock} from '../../zone-time';
 export type Stores = {health: HealthData; habits: HabitData; fasting: Fasting; platform: Platform; reminders: Reminders; zigiReminders: ZigiReminders; weekly: WeeklyReview; memory: AiMemory; settings: DashboardSettings};
 export type Target = keyof Stores | 'form';
 /** `refs`: habits that cards of the same reply create ("new1" → the id it will have and its title), for their reminders. */
-export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; newNoteId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>};
+export type Env = {stores: Stores; handles: readonly Handle[]; now: Date; habitDay: string; healthDay: string; timeZone: string; weightUnit?: 'kg' | 'lb'; newHealthId?: () => string; newHabitId?: () => string; newNoteId?: () => string; refs?: ReadonlyMap<string, {id: string; title: string}>; zigi?: ZigiLookEnv};
+/** ZIGi's current look and the looks this build has, when the runner knows them (a change to the same value is then refused). */
+export type ZigiLookEnv = {prefs: ZigiPrefs; skins: readonly string[]};
 export type Card = {kind: ActionKind; title: string; lines: string[]; where: string; day: string | null; estimate: boolean; safety?: string};
 export type Undo = {label: string; write: (current: Stores) => Partial<Stores>; unchanged: (afterApply: Stores, current: Stores) => boolean};
 export type HoldingPrefill = {category: (typeof HOLDING_CATEGORIES)[number]; name: string; quantity: string; currency: string; value?: string; symbol?: string; notes?: string};
 /** Session W Part 21: an account's new balance, handed to Wealth's own balance form (the person saves it there). */
 export type BalancePrefill = {account: string; balance: string; currency?: string; date: string};
+/** Session Z-Local Part 5: two more money hand-offs, stashed and taken by `form-prefill.ts`. */
+export type ContributionPrefill = ContributionPrefillInput;
+export type AccountPrefill = AccountPrefillInput;
+const WEEKDAY_LABELS = WEEKDAY_NAMES.map(n => n[0]!.toUpperCase() + n.slice(1));
 /** `activity` (Session V Part 7): the record a confirmed card makes, for Activity's "Actions by ZIGi" (its id there). */
 /**
  * Session Z-Local Part 5 (ADR-020 L8): three effects only the runner can perform, each a plain description the card's
@@ -68,7 +79,7 @@ export type BalancePrefill = {account: string; balance: string; currency?: strin
 export type Navigate = {href: string; label: string};
 export type Confirm = {href: string; what: string; id: string; label: string};
 export type DeviceWrite = {key: string; patch: Record<string, unknown>};
-export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite};
+export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; contribution?: ContributionPrefill; account?: AccountPrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -925,6 +936,117 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: s => ({health: withHealthGroup(s.health, 'meditation', setBells(healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), next, env.now), false)}),
         undo: {label: 'Put the previous bell back', write: s => { const g = healthGroupIn(s.health, 'meditation') ?? emptyMeditation(); return {health: withHealthGroup(s.health, 'meditation', previous ? setBells(g, {intervalMin: previous.intervalMin, sound: previous.sound, volume: previous.volume}, env.now) : {...g, bells: undefined}, false)}; }, unchanged: (after, current) => same(healthGroupIn(after.health, 'meditation')?.bells, healthGroupIn(current.health, 'meditation')?.bells)},
         activity: {id: `bells:${at}`, title: 'Meditation bell changed'}}};
+    }
+    // ---- Session Z-Local Part 5, batch 3: Today, the weekly review, the wrap-up, pages, ZIGi's look, two money forms ----
+    case 'set-today-preset': {
+      const chosen = PRESETS.find(p => p.id === action.preset)!, shape = (s: DashboardSettings) => JSON.stringify(s.widgets.map(w => [w.kind, w.metric, w.hidden]));
+      let next: DashboardSettings;
+      try { next = applyDashboardPreset(stores.settings, action.preset); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'This preset cannot be applied.'); }
+      if (stores.settings.preset === action.preset && shape(next) === shape(stores.settings)) return refuse(`Today is already on the ${chosen.label} preset.`);
+      const previous = {preset: stores.settings.preset, widgets: stores.settings.widgets, placement: stores.settings.placement};
+      const shown = next.widgets.filter(w => !w.hidden).map(w => WIDGET_CATALOG[w.kind].label);
+      return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: `Today: the ${chosen.label} preset`, lines: [chosen.description, `Shows ${shown.join(', ')}`, 'Widgets outside the preset are hidden, never deleted'], where: 'Today', day: null, estimate: false},
+        write: s => ({settings: applyDashboardPreset(s.settings, action.preset)}),
+        undo: {label: 'Put the previous Today back', write: s => ({settings: dashboardSettingsSchema.parse({...s.settings, ...previous})}), unchanged: (afterApply, now) => shape(afterApply.settings) === shape(now.settings)},
+        activity: {id: `preset:${action.preset}:${at}`, title: `Today preset: ${chosen.label}`}}};
+    }
+    case 'edit-link': {
+      const items = linksOf(stores.settings).items, wanted = action.link.trim().toLowerCase();
+      let found = items.filter(l => l.label.trim().toLowerCase() === wanted);
+      if (found.length === 0) found = items.filter(l => l.label.toLowerCase().includes(wanted) || linkHost(l.url).toLowerCase().includes(wanted));
+      if (found.length === 0) return refuse(`No link "${action.link}" in My links.`);
+      if (found.length > 1) return refuse(`"${action.link}" matches ${found.length} links (${found.map(l => l.label).join(', ')}). Name one.`);
+      const link = found[0]!, url = action.url?.trim() ?? link.url, input = {label: action.label ?? link.label, url, icon: action.icon ?? (action.url !== undefined ? suggestedIcon(url) : link.icon)};
+      const issue = linkInputIssue(input); if (issue) return refuse(issue);
+      if (input.label === link.label && input.url === link.url && input.icon === link.icon) return refuse(`Nothing changes for "${link.label}".`);
+      const twin = items.find(l => l.id !== link.id && l.url === input.url); if (twin) return refuse(`"${twin.label}" already opens that address.`);
+      try { editLink(stores.settings, link.id, input, at); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'This link cannot be changed.'); }
+      const lines = [...(input.label !== link.label ? [`Name: ${link.label} → ${input.label}`] : []), ...(input.url !== link.url ? [`Address: ${input.url}`] : []), ...(input.icon !== link.icon ? [`Icon: ${input.icon === 'monogram' ? 'the first letter' : input.icon}`] : [])];
+      const was = {label: link.label, url: link.url, icon: link.icon}, mine = (s: Stores) => linksOf(s.settings).items.find(l => l.id === link.id);
+      return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: `Change the link "${link.label}"`, lines, where: 'Today · My links', day: null, estimate: false},
+        write: s => ({settings: editLink(s.settings, link.id, input, at)}),
+        undo: {label: 'Put the link back as it was', write: s => ({settings: editLink(s.settings, link.id, was, at)}), unchanged: (afterApply, now) => same(mine(afterApply), mine(now))},
+        activity: {id: `link:${link.id}:${at}`, title: `Link changed: ${input.label}`}}};
+    }
+    case 'skip-review': {
+      const {weekStart, weekEnd} = reviewWindow(stores.weekly.weekday, env.habitDay), existing = reviewFor(stores.weekly, weekStart);
+      if (existing?.skipped) return refuse('This week\'s review is already skipped.');
+      if (existing?.completedAt) return refuse('This week\'s review is already done.');
+      return {ok: true, plan: {target: 'weekly', card: {kind: action.kind, title: 'Skip this week\'s review', lines: [`The week ${weekStart} to ${weekEnd}`, 'Marked as skipped; the next review comes on its usual day', ...(existing?.notes ? ['The notes you wrote for this week are set aside with it'] : [])], where: 'Today · Weekly review', day: null, estimate: false},
+        write: s => ({weekly: skipReview(s.weekly, weekStart)}),
+        undo: {label: existing ? 'Put this week\'s review back' : 'Unskip this week', write: s => ({weekly: weeklyReviewSchema.parse({...s.weekly, reviews: [...s.weekly.reviews.filter(r => r.weekStart !== weekStart), ...(existing ? [existing] : [])].sort((a, b) => a.weekStart.localeCompare(b.weekStart))})}),
+          unchanged: (afterApply, now) => same(reviewFor(afterApply.weekly, weekStart), reviewFor(now.weekly, weekStart))},
+        activity: {id: `review:${weekStart}:skip`, title: 'Weekly review skipped'}}};
+    }
+    case 'set-review-weekday': {
+      const was = stores.weekly.weekday, weekday = WEEKDAY_NAMES.indexOf(action.weekday), label = (d: number) => WEEKDAY_LABELS[d]!;
+      if (was === weekday) return refuse(`Your weekly review is already on ${label(was)}.`);
+      return {ok: true, plan: {target: 'weekly', card: {kind: action.kind, title: `Weekly review on ${label(weekday)}`, lines: [`Was ${label(was)}`, 'The week a review looks back on follows the new day'], where: 'Today · Weekly review', day: null, estimate: false},
+        write: s => ({weekly: setReviewWeekday(s.weekly, weekday)}),
+        undo: {label: `Back to ${label(was)}`, write: s => ({weekly: setReviewWeekday(s.weekly, was)}), unchanged: (afterApply, now) => afterApply.weekly.weekday === now.weekly.weekday},
+        activity: {id: `review:weekday:${at}`, title: `Weekly review moved to ${label(weekday)}`}}};
+    }
+    case 'set-wrap-up': {
+      const enabledNow = wrapUpEnabled(stores.settings), timeNow = wrapUpTime(stores.settings), enabled = action.enabled ?? enabledNow, time = action.time ?? timeNow;
+      if (enabled === enabledNow && time === timeNow) return refuse(enabled ? `The evening wrap-up is already on, at ${time}.` : 'The evening wrap-up is already off.');
+      return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: enabled ? `Evening wrap-up at ${time}` : 'Evening wrap-up off', lines: [enabled ? `A short wrap-up each evening from ${time}` : 'No evening wrap-up', `Was ${enabledNow ? `on at ${timeNow}` : 'off'}`], where: 'Today · Evening wrap-up', day: null, estimate: false},
+        write: s => ({settings: setWrapUp(s.settings, enabled, time, at)}),
+        undo: {label: 'Put the wrap-up back as it was', write: s => ({settings: setWrapUp(s.settings, enabledNow, timeNow, at)}), unchanged: (afterApply, now) => wrapUpEnabled(afterApply.settings) === wrapUpEnabled(now.settings) && wrapUpTime(afterApply.settings) === wrapUpTime(now.settings)},
+        activity: {id: `wrap-up:${at}`, title: enabled ? `Evening wrap-up on at ${time}` : 'Evening wrap-up off'}}};
+    }
+    case 'set-page-visibility': {
+      const pagesOf = (s: Stores) => settingsGroupIn(s.settings, 'pages') ?? emptyPages(), view = viewOf(pagesOf(stores)), id = action.page;
+      const label = (PAGE_LABEL as Readonly<Record<string, string>>)[id] ?? (BUTTON_LABEL as Readonly<Record<string, string>>)[id] ?? id;
+      if (isShown(view, id) === action.shown) return refuse(`${label} is already ${action.shown ? 'shown' : 'hidden'}.`);
+      if (!action.shown && (PAGE_IDS as readonly string[]).includes(id) && visiblePages(view).length <= 1) return refuse('One page at least stays shown.');
+      return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: `${action.shown ? 'Show' : 'Hide'} ${label}`, lines: [action.shown ? `${label} is back in the menus` : `${label} leaves the menus; nothing is deleted, and it can be shown again any time`], where: 'Settings · Your pages & buttons', day: null, estimate: false},
+        write: s => ({settings: withSettingsGroup(s.settings, 'pages', withChoice(pagesOf(s), id, action.shown, at), false)}),
+        undo: {label: action.shown ? `Hide ${label} again` : `Show ${label} again`, write: s => ({settings: withSettingsGroup(s.settings, 'pages', withChoice(pagesOf(s), id, !action.shown, at), false)}), unchanged: (afterApply, now) => isShown(viewOf(pagesOf(afterApply)), id) === isShown(viewOf(pagesOf(now)), id)},
+        activity: {id: `pages:${id}:${at}`, title: `${label} ${action.shown ? 'shown' : 'hidden'}`}}};
+    }
+    case 'set-start-page': {
+      const pagesOf = (s: Stores) => settingsGroupIn(s.settings, 'pages') ?? emptyPages(), view = viewOf(pagesOf(stores)), was = view.start ?? null;
+      const label = (id: PageId | null) => id ? PAGE_LABEL[id] : 'the first shown page';
+      if (action.page !== null && !isShown(view, action.page)) return refuse(`${PAGE_LABEL[action.page]} is hidden; show it first.`);
+      if (was === action.page) return refuse(action.page ? `${PAGE_LABEL[action.page]} is already the start page.` : 'The app already opens on the first shown page.');
+      return {ok: true, plan: {target: 'settings', card: {kind: action.kind, title: `Start on ${label(action.page)}`, lines: [`Was ${label(was)}`], where: 'Settings · Your pages & buttons', day: null, estimate: false},
+        write: s => ({settings: withSettingsGroup(s.settings, 'pages', withStart(pagesOf(s), action.page, at), false)}),
+        undo: {label: `Start on ${label(was)} again`, write: s => ({settings: withSettingsGroup(s.settings, 'pages', withStart(pagesOf(s), was, at), false)}), unchanged: (afterApply, now) => (viewOf(pagesOf(afterApply)).start ?? null) === (viewOf(pagesOf(now)).start ?? null)},
+        activity: {id: `pages:start:${at}`, title: `Start page: ${label(action.page)}`}}};
+    }
+    case 'set-zigi-look': {
+      const prefs = env.zigi?.prefs, patch: Record<string, unknown> = {}, lines: string[] = [];
+      if (action.skin !== undefined) {
+        if (env.zigi && !env.zigi.skins.includes(action.skin)) return refuse(`No look called "${action.skin}". The looks: ${env.zigi.skins.join(', ')}.`);
+        if (prefs?.skin !== action.skin) { patch.skin = action.skin; lines.push(`Look: ${action.skin}`); }
+      }
+      const pick = (key: 'animation' | 'side' | 'size' | 'greeting', label: string, words: Readonly<Record<string, string>>) => { const v = action[key]; if (v !== undefined && prefs?.[key] !== v) { patch[key] = v; lines.push(`${label}: ${words[v] ?? v}`); } };
+      pick('animation', 'Animation', {full: 'Full', calm: 'Calm', off: 'Off'}); pick('side', 'Side', {left: 'left', right: 'right'}); pick('size', 'Size', {s: 'small', m: 'medium', l: 'large'}); pick('greeting', 'Greeting', {quiet: 'quiet', friendly: 'friendly'});
+      if (action.edgeTab !== undefined && prefs?.edgeTab !== action.edgeTab) { patch.edgeTab = action.edgeTab; lines.push(action.edgeTab ? 'A "Show ZIGi" tab at the edge when ZIGi is hidden' : 'No edge tab'); }
+      if (action.knock !== undefined && prefs?.knock.enabled !== action.knock) { patch.knock = {enabled: action.knock}; lines.push(action.knock ? 'ZIGi may knock' : 'ZIGi does not knock'); }
+      if (lines.length === 0) return refuse('ZIGi already looks like that.');
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'ZIGi\'s look and feel', lines: [...lines, 'On this device; Settings → ZIGi · your AI changes it back'], where: 'Settings · ZIGi · your AI', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: ZIGI_KEY, patch}, activity: {id: `zigi-look:${at}`, title: 'ZIGi\'s look changed'}}};
+    }
+    case 'prefill-contribution': {
+      const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+      const goalId = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      if (!goal) return refuse('A simulation goal is funded on its own page.');
+      if (goal.status !== 'active') return refuse(`"${goal.name}" is ${goal.status}; reopen it first.`);
+      const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
+      const amount = typeof action.amount === 'number' ? num(action.amount, 8) : action.amount, asset = action.asset ?? goal.asset;
+      const contribution: ContributionPrefill = {goalId: goal.id, goal: goal.name, amount, asset, date: day.day, ...(action.note ? {note: action.note} : {})};
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill a contribution to "${goal.name}"`, lines: [`${amount} ${asset} on ${day.day}`, ...(action.note ? [action.note] : []), 'Opens the goal\'s Fund form filled in; nothing is recorded and no money moves until you save it there'], where: 'Goals', day: day.day, estimate: false},
+        write: () => ({}), undo: null, contribution}};
+    }
+    case 'prefill-account': {
+      const day = resolveDay(action.day, env.habitDay, env.habitDay); if (!day.ok) return refuse(day.message);
+      const balance = action.balance === undefined ? undefined : typeof action.balance === 'number' ? num(action.balance, 2) : action.balance;
+      const rate = action.ratePercent === undefined ? undefined : typeof action.ratePercent === 'number' ? num(action.ratePercent, 4) : action.ratePercent;
+      const account: AccountPrefill = {name: action.name, accountKind: action.accountKind, date: day.day, ...(action.currency ? {currency: action.currency} : {}), ...(action.institution ? {institution: action.institution} : {}), ...(balance !== undefined ? {balance} : {}), ...(rate !== undefined ? {ratePercent: rate} : {})};
+      const debt = (DEBT_KINDS as readonly string[]).includes(action.accountKind);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Pre-fill ${debt ? 'a debt' : 'an account'}: ${action.name}`, lines: [`${action.accountKind}${action.institution ? ` · ${action.institution}` : ''}${action.currency ? ` · ${action.currency}` : ''}`, ...(balance !== undefined ? [`${debt ? 'Owed' : 'Balance'} ${balance} on ${day.day}`] : []), ...(rate !== undefined ? [`Your rate: ${rate} %`] : []), 'Opens Wealth\'s add-account form filled in; nothing is saved until you do'], where: 'Wealth · Accounts', day: day.day, estimate: false},
+        write: () => ({}), undo: null, account}};
     }
     case 'add-link': {
       const icon = action.icon ?? suggestedIcon(action.url), input = {label: action.label, url: action.url, icon};

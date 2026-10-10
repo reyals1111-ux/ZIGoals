@@ -14,7 +14,7 @@ const REFUSE: Expect = {refuse: true, kinds: []};
 export const PART5: ModelCase[] = [];
 function add(...cases: ModelCase[]) { PART5.push(...cases); }
 {
-  const t = on('today', 'today'), hb = on('habits', 'habits'), g = on('goals', 'goals'), h = on('health', 'health');
+  const t = on('today', 'today'), hb = on('habits', 'habits'), g = on('goals', 'goals'), h = on('health', 'health'), w = on('wealth', 'wealth'), st = on('settings', 'help');
   add(
     // Navigation, on the device (no model), English and Dutch.
     t.local('p5-nav-sleep', 'Open my sleep page', {localFirst: true, mustContain: ['Health → Sleep']}, {important: true}),
@@ -45,7 +45,7 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     g.propose('p5-reopen-goal', 'Reopen the Japan adventure goal', {kinds: ['reopen-goal']}),
     // Still a "no": milestone ticks, money.
     g.refuse('p5-no-milestone', 'Mark the milestone "Flights booked" as reached on the Japan goal', REFUSE),
-    g.refuse('p5-no-fund', 'Fund the Japan goal with 200 euros', REFUSE),
+    g.propose('p5-fund', 'Fund the Japan goal with 200 euros', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 200}]}, {important: true}),
     // Health's own edits, plans, counters, targets, preferences, the running night, the bell.
     h.propose('p5-diary-edit', 'Change today\'s oatmeal to two servings', {kinds: ['edit-diary-entry'], fields: [{kind: 'edit-diary-entry', quantity: 2}]}),
     h.propose('p5-diary-edit-nl', 'Zet de havermout van vandaag op twee porties', {kinds: ['edit-diary-entry'], fields: [{kind: 'edit-diary-entry', quantity: 2}]}, {lang: 'nl'}),
@@ -64,5 +64,23 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     h.propose('p5-night-start-nl', 'Ik ga nu slapen', {kinds: ['start-night']}, {lang: 'nl'}),
     h.propose('p5-night-end', 'I am up, it is 7:10', {kinds: ['end-night'], fields: [{kind: 'end-night', wake: '07:10'}]}, {important: true}),
     h.propose('p5-bells', 'Ring the meditation bell every 5 minutes with the chime sound', {kinds: ['set-bells'], fields: [{kind: 'set-bells', intervalMin: 5, sound: 'chime'}]}),
+    // Today's presets and links, the weekly review, the wrap-up; pages and ZIGi's look (Settings asks are made from Help); two money forms.
+    t.propose('p5-preset', 'Switch Today to the Wealth preset', {kinds: ['set-today-preset'], fields: [{kind: 'set-today-preset', preset: 'wealth'}]}),
+    t.propose('p5-preset-nl', 'Zet Today op de preset Habits + Health', {kinds: ['set-today-preset'], fields: [{kind: 'set-today-preset', preset: 'habits-health'}]}, {lang: 'nl'}),
+    t.propose('p5-link-rename', 'Rename my Running club link to Run crew', {kinds: ['edit-link'], fields: [{kind: 'edit-link', label: 'Run crew'}]}),
+    t.propose('p5-skip-review', 'Skip this week\'s review, I was away', {kinds: ['skip-review']}, {important: true}),
+    t.propose('p5-review-day', 'Move my weekly review to Sunday', {kinds: ['set-review-weekday'], fields: [{kind: 'set-review-weekday', weekday: 'sunday'}]}),
+    t.propose('p5-review-day-nl', 'Zet mijn wekelijkse terugblik op vrijdag', {kinds: ['set-review-weekday'], fields: [{kind: 'set-review-weekday', weekday: 'friday'}]}, {lang: 'nl'}),
+    t.propose('p5-wrap-up-time', 'Do the evening wrap-up at 9 pm instead', {kinds: ['set-wrap-up'], fields: [{kind: 'set-wrap-up', time: '21:00'}]}, {important: true}),
+    t.propose('p5-wrap-up-off-nl', 'Zet de avondafsluiting uit', {kinds: ['set-wrap-up'], fields: [{kind: 'set-wrap-up', enabled: false}]}, {lang: 'nl'}),
+    st.propose('p5-hide-page', 'Hide the Chess page, I never use it', {kinds: ['set-page-visibility'], fields: [{kind: 'set-page-visibility', page: 'chess', shown: false}]}, {important: true}),
+    st.propose('p5-show-page-nl', 'Laat de pagina Markets weer zien', {kinds: ['set-page-visibility'], fields: [{kind: 'set-page-visibility', page: 'markets', shown: true}]}, {lang: 'nl'}),
+    st.propose('p5-start-page', 'Open the app on Habits from now on', {kinds: ['set-start-page'], fields: [{kind: 'set-start-page', page: 'habits'}]}, {important: true}),
+    st.propose('p5-zigi-left', 'Put ZIGi on the left side and make it bigger', {kinds: ['set-zigi-look'], fields: [{kind: 'set-zigi-look', side: 'left', size: 'l'}]}),
+    st.propose('p5-zigi-calm-nl', 'Zet de animatie van ZIGi op rustig', {kinds: ['set-zigi-look'], fields: [{kind: 'set-zigi-look', animation: 'calm'}]}, {lang: 'nl'}),
+    st.propose('p5-zigi-knock', 'Stop ZIGi from knocking', {kinds: ['set-zigi-look'], fields: [{kind: 'set-zigi-look', knock: false}]}),
+    g.propose('p5-fund-nl', 'Stort 150 euro op mijn doel Emergency fund', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 150}]}, {lang: 'nl'}),
+    w.propose('p5-account', 'Add a savings account called Rainy day at Showcase Bank with 1500 euros', {kinds: ['prefill-account'], fields: [{kind: 'prefill-account', accountKind: 'savings', balance: 1500}]}, {important: true}),
+    w.propose('p5-debt-nl', 'Voeg mijn autolening van 12000 euro toe als schuld', {kinds: ['prefill-account'], fields: [{kind: 'prefill-account', accountKind: 'loan'}]}, {lang: 'nl'}),
   );
 }

@@ -250,3 +250,125 @@ test('set-bells: interval, sound and volume merge with what is set; the same is 
   const back = {...after, ...p.undo!.write(after)} as Stores; expect(sans((healthGroupIn(back.health, 'meditation') ?? emptyMeditation()).bells)).toEqual(sans((healthGroupIn(s.health, 'meditation') ?? emptyMeditation()).bells));
   expect(() => act({kind: 'set-bells'})).toThrow();
 });
+
+// ---- Session Z-Local Part 5, batch 3: Today, the weekly review, the wrap-up, pages, ZIGi's look, two money forms ----
+import {PRESETS, applyDashboardPreset} from '../../dashboard-settings';
+import {PRESET_IDS, WEEKDAY_NAMES} from './schema';
+import {addLink, linkHost, linksOf} from '../../links/engine';
+import {wrapUpEnabled, wrapUpTime} from '../../wrap-up/engine';
+import {isShown, viewOf} from '../../pages/visibility';
+import {PAGE_IDS} from '../../pages/schema';
+import {settingsGroupIn} from '../../vault/w-homes';
+import {reviewWindow} from '../../weekly-review/engine';
+import {reviewFor} from '../../weekly-review/store';
+import {ZIGI_KEY} from '../store/keys';
+import {ZIGI_DEFAULTS} from '../store/records';
+import {contributionPrefillRoute, readAccountPrefill, readContributionPrefill, stashAccountPrefill, stashContributionPrefill, takeAccountPrefill, takeContributionPrefill} from './form-prefill';
+
+const shapeOf = (s: Stores) => s.settings.widgets.map(w => [w.kind, w.metric, w.hidden]);
+test('set-today-preset: the preset ids are the catalogue\'s; a preset hides and shows widgets as the page does; the same preset is refused; Undo puts the previous Today back', () => {
+  expect([...PRESET_IDS]).toEqual(PRESETS.map(p => p.id));
+  const s = base(), other = PRESETS.find(p => p.id !== s.settings.preset)!;
+  const p = plan(s, {kind: 'set-today-preset', preset: other.id}); expect(p.card.title).toContain(other.label);
+  const after = applyPlan(p, s); expect(after.settings.preset).toBe(other.id);
+  expect(shapeOf(after)).toEqual(applyDashboardPreset(s.settings, other.id).widgets.map(w => [w.kind, w.metric, w.hidden]));
+  expect(refused(after, {kind: 'set-today-preset', preset: other.id})).toContain('already');
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(shapeOf(back)).toEqual(shapeOf(s)); expect(back.settings.preset).toBe(s.settings.preset);
+  expect(() => act({kind: 'set-today-preset', preset: 'everything'})).toThrow();
+});
+test('edit-link: a link by name or host gets a new name, address or icon; nothing-to-change, an unknown link and a twin address are refused; Undo puts it back', () => {
+  const at = now.toISOString(), linked = addLink(addLink(base().settings, {label: 'Running club', url: 'https://run.example.org/club', icon: 'monogram'}, crypto.randomUUID(), at), {label: 'Book club chat', url: 'https://chat.example.org/book', icon: 'monogram'}, crypto.randomUUID(), at);
+  const s = {...base(), settings: linked} as Stores, items = linksOf(s.settings).items, link = items[0]!; expect(items).toHaveLength(2);
+  const mine = (st: Stores) => linksOf(st.settings).items.find(l => l.id === link.id)!;
+  const p = plan(s, {kind: 'edit-link', link: link.label.toUpperCase(), label: `${link.label} 2`});
+  expect(p.card.lines).toEqual([`Name: ${link.label} → ${link.label} 2`]);
+  const after = applyPlan(p, s); expect(mine(after).label).toBe(`${link.label} 2`); expect(mine(after).url).toBe(link.url);
+  expect(refused(s, {kind: 'edit-link', link: link.label, label: link.label})).toContain('Nothing changes');
+  expect(refused(s, {kind: 'edit-link', link: 'no such link', label: 'x'})).toContain('No link');
+  const second = items[1]; if (second) expect(refused(s, {kind: 'edit-link', link: link.label, url: second.url})).toContain('already opens');
+  const hosts = items.map(l => linkHost(l.url)), unique = items.find((l, i) => hosts.indexOf(hosts[i]!) === hosts.lastIndexOf(hosts[i]!));
+  if (unique) expect(plan(s, {kind: 'edit-link', link: linkHost(unique.url), icon: unique.icon === 'github' ? 'monogram' : 'github'}).card.title).toContain(unique.label);
+  const moved = applyPlan(plan(s, {kind: 'edit-link', link: link.label, url: 'https://github.com/zigoals'}), s); expect(mine(moved).url).toBe('https://github.com/zigoals'); expect(mine(moved).icon).toBe('github');
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(mine(back).label).toBe(link.label);
+  expect(() => act({kind: 'edit-link', link: link.label})).toThrow(); expect(() => act({kind: 'edit-link', link: link.label, url: 'http://plain.example'})).toThrow();
+});
+test('skip-review: this week\'s review is marked skipped once; a skipped or done week is refused; Undo puts the week back', () => {
+  const s0 = base(), {weekStart} = reviewWindow(s0.weekly.weekday, DAY), s = {...s0, weekly: {...s0.weekly, reviews: s0.weekly.reviews.filter(r => r.weekStart !== weekStart)}} as Stores;
+  const p = plan(s, {kind: 'skip-review'}); expect(p.card.lines[0]).toContain(weekStart);
+  const after = applyPlan(p, s); expect(reviewFor(after.weekly, weekStart)?.skipped).toBe(true);
+  expect(refused(after, {kind: 'skip-review'})).toContain('already skipped');
+  const done = {...s, weekly: {...s.weekly, reviews: [...s.weekly.reviews, {weekStart, completedAt: now.toISOString()}]}} as Stores;
+  expect(refused(done, {kind: 'skip-review'})).toContain('already done');
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(reviewFor(back.weekly, weekStart)).toBeUndefined();
+  expect(p.undo!.unchanged(after, after)).toBe(true); expect(p.undo!.unchanged(after, back)).toBe(false);
+});
+test('set-review-weekday: a weekday by English or Dutch name or by number; the same day is refused; Undo restores', () => {
+  const s = base(), was = s.weekly.weekday, next = (was + 1) % 7;
+  expect(act({kind: 'set-review-weekday', weekday: 'Zondag'})).toEqual({kind: 'set-review-weekday', weekday: 'sunday'});
+  expect(act({kind: 'set-review-weekday', weekday: 'Fri'})).toEqual({kind: 'set-review-weekday', weekday: 'friday'});
+  expect(act({kind: 'set-review-weekday', weekday: 3})).toEqual({kind: 'set-review-weekday', weekday: 'wednesday'}); expect(act({kind: 'set-review-weekday', weekday: '3'})).toEqual({kind: 'set-review-weekday', weekday: 'wednesday'});
+  expect(() => act({kind: 'set-review-weekday', weekday: 'someday'})).toThrow(); expect(() => act({kind: 'set-review-weekday', weekday: 7})).toThrow();
+  const p = plan(s, {kind: 'set-review-weekday', weekday: next}); const after = applyPlan(p, s); expect(after.weekly.weekday).toBe(next);
+  expect(refused(after, {kind: 'set-review-weekday', weekday: WEEKDAY_NAMES[next]})).toContain('already');
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(back.weekly.weekday).toBe(was);
+});
+test('set-wrap-up: on with a time, off, a new time; the same state is refused; Undo restores', () => {
+  const s = base(), wasOn = wrapUpEnabled(s.settings), wasAt = wrapUpTime(s.settings);
+  const p = plan(s, {kind: 'set-wrap-up', enabled: !wasOn, time: '21:30'}); const after = applyPlan(p, s);
+  expect(wrapUpEnabled(after.settings)).toBe(!wasOn); expect(wrapUpTime(after.settings)).toBe('21:30');
+  expect(refused(after, {kind: 'set-wrap-up', enabled: !wasOn, time: '21:30'})).toContain('already');
+  const later = applyPlan(plan(after, {kind: 'set-wrap-up', time: '22:00'}), after); expect(wrapUpTime(later.settings)).toBe('22:00'); expect(wrapUpEnabled(later.settings)).toBe(!wasOn);
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(wrapUpEnabled(back.settings)).toBe(wasOn); expect(wrapUpTime(back.settings)).toBe(wasAt);
+  expect(() => act({kind: 'set-wrap-up'})).toThrow(); expect(() => act({kind: 'set-wrap-up', time: '25:00'})).toThrow();
+});
+test('set-page-visibility and set-start-page: hide and show a page or button, choose the start page; the same state, a hidden start page and the last page are refused; Undo reverses', () => {
+  const s = base(), pages = (st: Stores) => viewOf(settingsGroupIn(st.settings, 'pages'));
+  expect(isShown(pages(s), 'markets')).toBe(true);
+  const hide = plan(s, {kind: 'set-page-visibility', page: 'markets', shown: false}); const hidden = applyPlan(hide, s); expect(isShown(pages(hidden), 'markets')).toBe(false);
+  expect(hide.card.lines[0]).toContain('nothing is deleted');
+  expect(refused(hidden, {kind: 'set-page-visibility', page: 'markets', shown: false})).toContain('already hidden');
+  expect(refused(hidden, {kind: 'set-start-page', page: 'markets'})).toContain('hidden');
+  const back = {...hidden, ...hide.undo!.write(hidden)} as Stores; expect(isShown(pages(back), 'markets')).toBe(true);
+  const music = isShown(pages(s), 'music'), button = applyPlan(plan(s, {kind: 'set-page-visibility', page: 'music', shown: !music}), s); expect(isShown(pages(button), 'music')).toBe(!music);
+  const start = plan(s, {kind: 'set-start-page', page: 'habits'}); const started = applyPlan(start, s); expect(pages(started).start).toBe('habits');
+  expect(refused(started, {kind: 'set-start-page', page: 'habits'})).toContain('already');
+  const none = applyPlan(plan(started, {kind: 'set-start-page', page: null}), started); expect(pages(none).start ?? null).toBeNull();
+  const reset = {...started, ...start.undo!.write(started)} as Stores; expect(pages(reset).start ?? null).toBe(pages(s).start ?? null);
+  let only = s;
+  for (const id of PAGE_IDS.filter(p => p !== 'today')) { const r = planAction(act({kind: 'set-page-visibility', page: id, shown: false}), envFor(only)); if (r.ok) only = applyPlan(r.plan, only); }
+  expect(refused(only, {kind: 'set-page-visibility', page: 'today', shown: false})).toContain('stays shown');
+  expect(() => act({kind: 'set-page-visibility', page: 'diary', shown: false})).toThrow();
+});
+test('set-zigi-look: a device write of only the fields that change; with the current look known, unchanged fields and unknown looks are refused; nothing is written to the stores', () => {
+  const s = base(), p = plan(s, {kind: 'set-zigi-look', animation: 'full', side: 'left', knock: true});
+  expect(p.target).toBe('form'); expect(p.device).toEqual({key: ZIGI_KEY, patch: {animation: 'full', side: 'left', knock: {enabled: true}}}); expect(p.write(s)).toEqual({}); expect(p.undo).toBeNull();
+  expect(p.card.lines.slice(0, 3)).toEqual(['Animation: Full', 'Side: left', 'ZIGi may knock']);
+  const env: Env = {...envFor(s), zigi: {prefs: ZIGI_DEFAULTS, skins: ['origami-nebula', 'studio-2']}};
+  const known = planAction(act({kind: 'set-zigi-look', animation: 'calm', size: 'l'}), env); expect(known.ok && known.plan.device?.patch).toEqual({size: 'l'});
+  const unchanged = planAction(act({kind: 'set-zigi-look', animation: 'calm', greeting: 'friendly'}), env); expect(!unchanged.ok && unchanged.message).toContain('already');
+  const unknown = planAction(act({kind: 'set-zigi-look', skin: 'Neon-Fox'}), env); expect(!unknown.ok && unknown.message).toContain('No look called');
+  const skin = planAction(act({kind: 'set-zigi-look', skin: 'Studio-2'}), env); expect(skin.ok && skin.plan.device?.patch).toEqual({skin: 'studio-2'});
+  expect(() => act({kind: 'set-zigi-look'})).toThrow();
+});
+test('prefill-contribution and prefill-account: money is a pre-filled form, never a write; the stashes round-trip and drop stale or malformed records; a closed goal is refused; both are never auto-accepted', () => {
+  const s = base(), goal = s.platform.goals.find(g => g.status === 'active')!, handleOf = (id: string) => envFor(s).handles.find(h => h.kind === 'goal' && h.id === `private:${id}`)!.handle;
+  const p = plan(s, {kind: 'prefill-contribution', goal: handleOf(goal.id), amount: 200, asset: 'EUR', note: 'October'});
+  expect(p.target).toBe('form'); expect(p.write(s)).toEqual({}); expect(p.undo).toBeNull();
+  expect(p.contribution).toEqual({goalId: goal.id, goal: goal.name, amount: '200', asset: 'EUR', date: DAY, note: 'October'});
+  expect(p.card.lines.at(-1)).toContain('no money moves');
+  expect(plan(s, {kind: 'prefill-contribution', goal: handleOf(goal.id), amount: '12.5'}).contribution?.asset).toBe(goal.asset);
+  const store = new Map<string, string>(), storage = {getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); }, removeItem: (k: string) => { store.delete(k); }} as unknown as Storage;
+  expect(stashContributionPrefill(p.contribution!, 1000, storage)).toBe(true); expect(takeContributionPrefill(2000, storage)).toEqual(p.contribution); expect(takeContributionPrefill(2000, storage)).toBeNull();
+  expect(stashContributionPrefill(p.contribution!, 1000, storage)).toBe(true); expect(takeContributionPrefill(1000 + 11 * 60_000, storage)).toBeNull();
+  expect(contributionPrefillRoute(goal.id)).toBe(`/app/goals/${goal.id}#funding-wealth`);
+  const a = plan(s, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings', currency: 'eur', institution: 'Showcase Bank', balance: 1500, ratePercent: 2.5});
+  expect(a.account).toEqual({name: 'Rainy day', accountKind: 'savings', currency: 'EUR', institution: 'Showcase Bank', balance: '1500', ratePercent: '2.5', date: DAY}); expect(a.write(s)).toEqual({}); expect(a.target).toBe('form');
+  expect(stashAccountPrefill(a.account!, 1000, storage)).toBe(true); expect(takeAccountPrefill(2000, storage)).toEqual(a.account);
+  expect(readAccountPrefill({version: 1, at: 1, name: 'x', accountKind: 'wallet', date: DAY})).toBeNull();
+  expect(readContributionPrefill({version: 1, at: 1, goalId: 'g', goal: 'x', amount: '1', asset: 'EUR', date: DAY})).toBeNull();
+  expect(readContributionPrefill({version: 1, at: 1, goalId: '7', goal: 'x', amount: '1', asset: 'EUR', date: DAY, extra: 1})).toBeNull();
+  const closed = s.platform.goals.find(g => g.status !== 'active'); if (closed) expect(refused(s, {kind: 'prefill-contribution', goal: handleOf(closed.id), amount: 1})).toContain('reopen');
+  for (const kind of ['prefill-contribution', 'prefill-account']) expect(AUTO_ACCEPT_NEVER).toContain(kind);
+  expect(plan(s, {kind: 'prefill-account', name: 'Car loan', accountKind: 'loan', balance: '12000'}).card.title).toContain('a debt');
+  expect(() => act({kind: 'prefill-account', name: 'x', accountKind: 'wallet'})).toThrow(); expect(() => act({kind: 'prefill-contribution', goal: 'g1'})).toThrow();
+});

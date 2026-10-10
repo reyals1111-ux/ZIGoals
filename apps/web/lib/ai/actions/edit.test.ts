@@ -27,6 +27,9 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     'edit-diary-entry': {kind: 'edit-diary-entry', name: 'Oatmeal', quantity: 2}, 'log-meal-plan': {kind: 'log-meal-plan', meal: 'Dinner'}, 'grocery-notes': {kind: 'grocery-notes', notes: 'Oat milk'}, 'set-favorite': {kind: 'set-favorite', food: 'f1'},
     'create-counter': {kind: 'create-counter', name: 'Burpees', icon: 'jump'}, 'edit-counter': {kind: 'edit-counter', counter: 'Burpees', name: 'Sets'}, 'set-target': {kind: 'set-target', target: 'kcal', value: 2100, unit: 'kcal'}, 'set-health-preference': {kind: 'set-health-preference', weightUnit: 'lb'},
     'start-night': {kind: 'start-night', bedtime: '23:00'}, 'end-night': {kind: 'end-night', wake: '07:00'}, 'set-bells': {kind: 'set-bells', intervalMin: 5, sound: 'chime', volume: 50},
+    'set-today-preset': {kind: 'set-today-preset', preset: 'wealth'}, 'edit-link': {kind: 'edit-link', link: 'Running club', label: 'Run crew', url: 'https://example.org/run', icon: 'monogram'}, 'skip-review': {kind: 'skip-review'}, 'set-review-weekday': {kind: 'set-review-weekday', weekday: 'friday'},
+    'set-wrap-up': {kind: 'set-wrap-up', enabled: true, time: '21:00'}, 'set-page-visibility': {kind: 'set-page-visibility', page: 'chess', shown: true}, 'set-start-page': {kind: 'set-start-page', page: 'habits'}, 'set-zigi-look': {kind: 'set-zigi-look', skin: 'origami-nebula', animation: 'calm', side: 'left', size: 'l', greeting: 'quiet'},
+    'prefill-contribution': {kind: 'prefill-contribution', goal: 'g1', amount: '200', asset: 'EUR', note: 'October'}, 'prefill-account': {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings', currency: 'EUR', institution: 'Showcase Bank', balance: '1500', ratePercent: '2.5'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

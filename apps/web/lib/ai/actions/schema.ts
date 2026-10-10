@@ -5,6 +5,10 @@ import {LINK_ICONS} from '../../links/schema';
 import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
 import {EXERCISE_ICONS} from '../../health-counters';
 import {BELL_SOUNDS} from '../../meditation/schema';
+import {type DashboardPreset} from '../../dashboard-settings';
+import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
+import {ACCOUNT_KINDS} from '../../accounts/schema';
+import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -80,6 +84,19 @@ export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 /** What a person can set a target for in Health (the targets record, the water target, the sleep goal, the weekly mindful minutes). */
 export const HEALTH_TARGETS = ['kcal', 'protein', 'carbs', 'fat', 'weight', 'steps', 'water', 'sleep', 'meditation'] as const;
+/** Today's presets, as `PRESETS` in dashboard-settings names them (a test keeps the two equal). */
+export const PRESET_IDS = ['balanced', 'wealth', 'habits-health', 'health'] as const satisfies readonly DashboardPreset[];
+/** The weekly review's day, kept as its English name (the store's number is `WEEKDAY_NAMES.indexOf`); a Dutch name, a short form or the number 0 to 6 reads as that name. */
+export const WEEKDAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+const WEEKDAY_INDEX: Readonly<Record<string, number>> = {sunday: 0, sun: 0, zondag: 0, zo: 0, monday: 1, mon: 1, maandag: 1, ma: 1, tuesday: 2, tue: 2, dinsdag: 2, di: 2, wednesday: 3, wed: 3, woensdag: 3, wo: 3,
+  thursday: 4, thu: 4, donderdag: 4, do: 4, friday: 5, fri: 5, vrijdag: 5, vr: 5, saturday: 6, sat: 6, zaterdag: 6, za: 6};
+const weekdayName = (v: unknown): unknown => {
+  if (typeof v === 'number') return WEEKDAY_NAMES[v] ?? v;
+  if (typeof v !== 'string') return v;
+  const key = v.trim().toLowerCase(), index = WEEKDAY_INDEX[key] ?? (/^[0-6]$/.test(key) ? Number(key) : undefined);
+  return index === undefined ? v : WEEKDAY_NAMES[index];
+};
+const weekdaySchema = z.preprocess(weekdayName, z.enum(WEEKDAY_NAMES));
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
@@ -166,6 +183,20 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('end-night'), wake: clock.optional()}),
   z.strictObject({kind: z.literal('set-bells'), intervalMin: z.number().int().min(1).max(60).nullable().optional(), sound: z.enum(BELL_SOUNDS).optional(), volume: z.number().int().min(0).max(100).optional()})
     .refine(a => a.intervalMin !== undefined || a.sound !== undefined || a.volume !== undefined, 'Say what to change about the bell: the interval, the sound or the volume.'),
+  // ---- Session Z-Local Part 5, batch 3: Today, the weekly review, the wrap-up, pages, ZIGi's look, two money forms ----
+  z.strictObject({kind: z.literal('set-today-preset'), preset: z.enum(PRESET_IDS)}),
+  z.strictObject({kind: z.literal('edit-link'), link: text(80), label: text(40).optional(), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be used.').optional(), icon: z.enum(LINK_ICONS).optional()})
+    .refine(a => a.label !== undefined || a.url !== undefined || a.icon !== undefined, 'Say what to change about the link: its name, its address or its icon.'),
+  z.strictObject({kind: z.literal('skip-review')}),
+  z.strictObject({kind: z.literal('set-review-weekday'), weekday: weekdaySchema}),
+  z.strictObject({kind: z.literal('set-wrap-up'), enabled: z.boolean().optional(), time: clock.optional()}).refine(a => a.enabled !== undefined || a.time !== undefined, 'Say whether the evening wrap-up is on or off, or its time.'),
+  z.strictObject({kind: z.literal('set-page-visibility'), page: z.enum([...PAGE_IDS, ...BUTTON_IDS]), shown: z.boolean()}),
+  z.strictObject({kind: z.literal('set-start-page'), page: z.enum(PAGE_IDS).nullable()}),
+  z.strictObject({kind: z.literal('set-zigi-look'), skin: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{1,40}$/).optional(), animation: z.enum(ZIGI_ANIMATIONS).optional(), side: z.enum(ZIGI_SIDES).optional(), size: z.enum(ZIGI_SIZES).optional(), greeting: z.enum(ZIGI_GREETINGS).optional(), edgeTab: z.boolean().optional(), knock: z.boolean().optional()})
+    .refine(a => Object.keys(a).length > 1, 'Say what to change about ZIGi: the look, the animation, the side, the size, the greeting, the edge tab or the knock.'),
+  z.strictObject({kind: z.literal('prefill-contribution'), goal: goalName, amount: z.union([positive.max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]), asset: z.string().trim().min(1).max(30).optional(), day: daySchema, note: text(200).optional()}),
+  z.strictObject({kind: z.literal('prefill-account'), name: text(80), accountKind: z.enum(ACCOUNT_KINDS), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), institution: text(80).optional(),
+    balance: z.union([z.number().finite().min(0).max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]).optional(), ratePercent: z.union([z.number().finite().min(0).max(100), z.string().trim().regex(/^\d{1,3}(\.\d{1,4})?$/)]).optional(), day: daySchema}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -174,7 +205,8 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge',
   'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget',
   'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal',
-  'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
+  'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells',
+  'set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look', 'prefill-contribution', 'prefill-account'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -198,7 +230,7 @@ export function expandComposite(composite: Composite, next: () => string): Recor
   return [{kind: 'create-habit', ...habit, ref}, {kind: 'create-reminder', for: 'habit', habit: ref, time: reminder}];
 }
 /** Kinds that write a record on confirmation; the pre-fills only open a form the person submits (a holding, an account's balance). */
-export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-account-balance'];
+export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-account-balance', 'prefill-contribution', 'prefill-account'];
 export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PREFILL_KINDS.includes(k));
 /** Aliases the AI may use; mapped before validation (a partial check-in is a check-in with a value). */
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
@@ -209,6 +241,10 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   'vacation-days': 'vacation', 'set-vacation': 'vacation', 'mark-vacation': 'vacation', 'unplan-skip': 'unskip', 'un-skip': 'unskip', 'undo-skip': 'unskip', 'remove_reminder': 'remove-reminder', 'delete-reminder': 'remove-reminder', 'close_goal': 'close-goal', 'reopen_goal': 'reopen-goal',
   'edit_diary_entry': 'edit-diary-entry', 'edit-food-entry': 'edit-diary-entry', 'log_meal_plan': 'log-meal-plan', 'eat-planned-meal': 'log-meal-plan', 'grocery_notes': 'grocery-notes', 'set_favorite': 'set-favorite', favourite: 'set-favorite', favorite: 'set-favorite', 'create_counter': 'create-counter', 'new-counter': 'create-counter', 'edit_counter': 'edit-counter', 'rename-counter': 'edit-counter',
   'set_target': 'set-target', target: 'set-target', 'set-goal-target': 'set-target', 'set_health_preference': 'set-health-preference', 'health-preference': 'set-health-preference', 'start_night': 'start-night', 'going-to-bed': 'start-night', 'end_night': 'end-night', 'woke-up': 'end-night', 'set_bells': 'set-bells', bell: 'set-bells',
+  // Session Z-Local Part 5, batch 3
+  'today-preset': 'set-today-preset', 'set_today_preset': 'set-today-preset', preset: 'set-today-preset', 'edit_link': 'edit-link', 'update-link': 'edit-link', 'rename-link': 'edit-link', 'skip_review': 'skip-review', 'skip-weekly-review': 'skip-review',
+  'set_review_weekday': 'set-review-weekday', 'review-weekday': 'set-review-weekday', 'review-day': 'set-review-weekday', 'set_wrap_up': 'set-wrap-up', 'wrap-up': 'set-wrap-up', 'evening-wrap-up': 'set-wrap-up', 'set_page_visibility': 'set-page-visibility', 'page-visibility': 'set-page-visibility',
+  'set_start_page': 'set-start-page', 'start-page': 'set-start-page', 'set_zigi_look': 'set-zigi-look', 'zigi-look': 'set-zigi-look', 'customize-zigi': 'set-zigi-look', 'prefill_contribution': 'prefill-contribution', 'prefill_account': 'prefill-account', 'add-account': 'prefill-account', 'create-account': 'prefill-account',
   // Session X-Local Phase 2: names seen on the wire (phi4-mini, qwen3.6) for kinds that exist.
   'create-goal-note': 'add-goal-note', 'note-goal': 'add-goal-note', 'log-nap': 'log-sleep', nap: 'log-sleep', 'mood-log': 'log-mood', 'set-reminder': 'create-reminder', 'add-reminder': 'create-reminder', 'add-grocery': 'grocery-item', 'log-measure': 'log-measurement',
   // Session W Part 21

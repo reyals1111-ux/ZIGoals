@@ -106,9 +106,41 @@ will too. The `Plan` type (`lib/ai/actions/plan.ts`) now carries three optional 
   session, fast, link, widget, note). The card deletes nothing; the person confirms on the page. How the page is told
   is yours (a hash such as `#confirm-delete=<what>:<id>` read once, or an event); the brain only names the record.
   Status text: "Opened the confirmation on <label>".
-- `plan.device: {key: string; patch: Record<string, unknown>}` (coming with `set-zigi-look`) — one of ZIGi's own device
-  records (`zigoals:zigi:v1`) updated through `useDeviceRecord(...).update(o => ({...o, ...patch}))`; Undo puts the
-  previous values back from the plan's `undo`.
+- `plan.device: {key: string; patch: Record<string, unknown>}` (landed with `set-zigi-look`, below) — one of ZIGi's own
+  device records (`zigoals:zigi:v1`) updated through `useDeviceRecord(...).update(o => ({...o, ...patch}))`. The patch
+  holds only top-level record keys (`skin`, `animation`, `side`, `size`, `greeting`, `edgeTab`); `knock`, when present,
+  is a partial of the knock object to merge (`{enabled: boolean}`), never a replacement. The plan's `undo` is null (the
+  brain does not know the previous values); the card says Settings → ZIGi · your AI changes it back. Status text:
+  "ZIGi's look changed".
 Today `openForm` returns false for such a plan and the list shows "The values could not be handed over; type them into
 the form.", which is wrong for these three; please branch on `plan.navigate` / `plan.confirm` / `plan.device` before the
 pre-fill branches. Until then, each card's lines name the route ("Opens /app/health?view=sleep"), so nothing misleads.
+
+## 2026-10-10 — Part 5, batches 2 and 3: Health, Today, the week, Settings, ZIGi's look, two money forms
+Twenty-one more kinds are in `lib/ai` (schema, aliases, planner through the pages' own mutators, edit fields, protocol
+lines, unit tests in `lib/ai/actions/plan-z.test.ts`, corpus cases in `corpus-part5.ts`); the table in
+`docs/product/ZIGI_ACTIONS_Z.md` is current. Nineteen write through the stores the runner already updates (`health`,
+`settings`, `weekly`), nothing new for the runner there. Two more need it:
+- **`set-zigi-look`** (`plan.device`, above). Optional, and worth doing: pass the current look to the planner as
+  `env.zigi = {prefs: zigiPrefs(record), skins: Object.keys(manifest.skins)}` (`Env.zigi`, type `ZigiLookEnv` in
+  `lib/ai/actions/plan.ts`). With it the planner drops fields that already hold the asked value, refuses a card that
+  changes nothing ("ZIGi already looks like that.") and refuses a look name the build does not have. Without it every
+  asked field is written as given, and an unknown look name reaches the record (the shell shows the default skin for
+  it, as `readZigiLook` already does).
+- **`prefill-contribution`** and **`prefill-account`** (money: a form, never a write; both in `AUTO_ACCEPT_NEVER` and
+  in `PREFILL_KINDS`, so `WRITING_KINDS` leaves them out). The plan carries `plan.contribution` (`{goalId, goal,
+  amount, asset, date, note?}`) or `plan.account` (`{name, accountKind, currency?, institution?, balance?,
+  ratePercent?, date}`). The stash module is `lib/ai/actions/form-prefill.ts`, the shape of `balance-prefill.ts`:
+  the runner calls `stashContributionPrefill(plan.contribution)` and opens `contributionPrefillRoute(goalId)`
+  (`/app/goals/<id>#funding-wealth`), or `stashAccountPrefill(plan.account)` and opens `ACCOUNT_PREFILL_ROUTE`
+  (`/app/wealth#accounts-title`), then dispatches `CONTRIBUTION_PREFILL_EVENT` / `ACCOUNT_PREFILL_EVENT` so a page
+  already on screen reads it. The goal's funding form (`components/platform/contribution-flow.tsx`) and the accounts
+  section (`components/wealth/accounts-section.tsx`) are yours: each calls `take…Prefill()` once on mount and on the
+  event, fills its own fields (amount in the goal's asset; name, kind, currency, institution, opening balance on the
+  date, the person's rate) and forgets the stash; ten-minute expiry, malformed records dropped, nothing saved until the
+  person saves. Status text as the balance hand-off: "Opened the form with the values filled in".
+- Nothing else changed in the request body or the runner contract. `set-today-preset` writes `settings` through
+  `applyDashboardPreset` (widgets outside the preset hidden, never deleted); `set-page-visibility` and `set-start-page`
+  write the `pages` group; `set-wrap-up` the `wrapUp` group; `edit-link` the `links` group; `skip-review` and
+  `set-review-weekday` the `weekly` store (the weekday travels as its English name in the action, `WEEKDAY_NAMES`,
+  and is written as the store's number).

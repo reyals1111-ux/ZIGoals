@@ -3,6 +3,10 @@ import {GOAL_CATEGORIES, GOAL_TYPES, HABIT_STATES, HOLDING_CATEGORIES, MEALS, ME
 import {EXERCISE_ICONS} from '../../health-counters';
 import {BELL_SOUNDS} from '../../meditation/schema';
 import {LINK_ICONS} from '../../links/schema';
+import {BUTTON_IDS, PAGE_IDS} from '../../pages/schema';
+import {ACCOUNT_KINDS} from '../../accounts/schema';
+import {ZIGI_ANIMATIONS, ZIGI_GREETINGS, ZIGI_SIDES, ZIGI_SIZES} from '../store/records';
+import {PRESET_IDS, WEEKDAY_NAMES} from './schema';
 
 /**
  * "Edit" on a proposal card (ADR-012, Part 5): the person changes the plain fields of a proposal before adding it. The
@@ -41,6 +45,17 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'start-night': [{key: 'bedtime', label: 'Bedtime (HH:MM, empty = now)', type: 'text', optional: true}],
   'end-night': [{key: 'wake', label: 'Woke up at (HH:MM, empty = now)', type: 'text', optional: true}],
   'set-bells': [int('intervalMin', 'Bell every (minutes)', true), select('sound', 'Sound', BELL_SOUNDS, true), int('volume', 'Volume (0 to 100)', true)],
+  // Session Z-Local Part 5, batch 3 (the yes/no fields are the card's; the editor changes names, times and choices)
+  'set-today-preset': [select('preset', 'Preset', PRESET_IDS)],
+  'edit-link': [text('link', 'Which link (its name)'), text('label', 'New name', true), text('url', 'New address (https://…)', true), select('icon', 'Icon', LINK_ICONS, true)],
+  'skip-review': [],
+  'set-review-weekday': [select('weekday', 'Weekday', WEEKDAY_NAMES)],
+  'set-wrap-up': [text('time', 'Time (HH:MM)', true)],
+  'set-page-visibility': [select('page', 'Page or button', [...PAGE_IDS, ...BUTTON_IDS])],
+  'set-start-page': [select('page', 'Start page', PAGE_IDS, true)],
+  'set-zigi-look': [text('skin', 'Look (its name)', true), select('animation', 'Animation', ZIGI_ANIMATIONS, true), select('side', 'Side', ZIGI_SIDES, true), select('size', 'Size', ZIGI_SIZES, true), select('greeting', 'Greeting', ZIGI_GREETINGS, true)],
+  'prefill-contribution': [text('amount', 'Amount'), text('asset', 'Asset or currency', true), DAY, text('note', 'Note', true)],
+  'prefill-account': [text('name', 'Account name'), select('accountKind', 'Kind', ACCOUNT_KINDS), text('currency', 'Currency', true), text('institution', 'Institution', true), text('balance', 'Opening balance', true), text('ratePercent', 'Interest rate (%)', true), DAY],
   'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
   'log-steps': [int('steps', 'Steps'), int('minutes', 'Minutes', true), DAY],

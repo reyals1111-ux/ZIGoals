@@ -46,6 +46,8 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 | L11 | 3 | **The before/after caching measurement runs on every multi-turn case the corpus has: 33 cases, 180 turns** (six chats of 11 to 23 turns among them), in corpus order, cache markers off then on, on Sonnet and Opus. The brief's "fixed 50-case multi-turn slice" cannot be met as written because the corpus holds 33 multi-turn cases; padding with single-turn cases would measure no prefix reuse. Measured in two halves: 17 cases (37 turns) first, the 16 others (143 turns, the long chats) after the corpus stages, the ledger permitting (Opus's uncached half is the costly one). A text scan of the corpus had listed 17 cases; the bundled corpus gives 33, and the bundle is the oracle from here on. | The measurement is about reuse across turns; the real conversations are the honest slice, and a count read from the code itself, never from a scan. |
 | L12 | 2 | **The probe calibrated the forecast; no re-plan.** Twenty important cases (22 turns) on Claude Sonnet 5.5, cached, quick-reply effort: $0.2313, $0.0105 per turn with tool rounds and the repair round counted, against a forecast of $0.012 (0.88×; owner edit 4's re-plan trigger is 1.5×). Every request after the first on a page read about 12,000 tokens of stable prefix from the cache and wrote only the question's records; the uncached remainder was 4 to 12 tokens. Stage forecasts: Part 3's measurement $8 Sonnet and $15 Opus; the corpus $10 Sonnet, $7 Sonnet important ×2, $2 Haiku ×3, $18 Opus. | The owner's rule: measure before the big stages; the figures are the API's own usage fields at the published prices. |
 | L8 | 5 | The two effects only the runner can perform (navigate to a page; open the app's own delete confirmation) are specified for Z-Cloud's `use-proposals.ts`; the brain side is complete here; until the effect lands, Add shows the route to take; if Z-Cloud declines, the table records a deliberate "no". | The runner is Z-Cloud's file; a card that explains is honest. |
+| L13 | 5 | **Funding a goal and adding an account are forms, not refusals.** "Fund the Japan goal with 200 euros" gives one `prefill-contribution` card that opens the goal's own Fund form filled in; "add a savings account" one `prefill-account` card for Wealth's add-account form. Both are in `AUTO_ACCEPT_NEVER` and `PREFILL_KINDS`, write nothing, have no Undo, and stash through `lib/ai/actions/form-prefill.ts` (the shape of the balance hand-off). | The owner's rule is "money = pre-filled form only": a form the person saves is allowed, a write is not, and a refusal of a form the app offers would be a lost task. |
+| L14 | 5 | **ZIGi's look is a device write the runner performs**, `plan.device = {key: 'zigoals:zigi:v1', patch}` with top-level keys only (`knock` a partial to merge), `undo: null`; the planner takes an optional `env.zigi` (current prefs and the build's skins) and then refuses no-ops and unknown looks. The weekly review's day travels as its English name (`WEEKDAY_NAMES`; Dutch names, short forms and 0–6 read as that name) and is stored as the number. | The brain cannot read device storage or the manifest (`components/zigi/`, Z-Cloud's); a name survives the card editor's select, a number does not. |
 
 ## Assertions changed (deliberate, listed)
 - **Part 5, the corpus's deletion cases (`lib/ai/evals/corpus-phase2.ts`):** `p2-delete-habit`, `p2-delete-goal`, `p2-delete-entry`
@@ -53,12 +55,18 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
   card that opens the app's own confirmation). `p2-delete-all` and `p2-delete-milestone` stay refusals (never "everything";
   milestones are Goals' own, ADR-017 S22). The golden set is untouched: `delete` still reads as "none" on the device and
   a `delete-habit` block is still an unknown kind (byte-identical, D6).
-- **Part 5, `lib/ai/actions/auto-accept.test.ts`:** the never list is asserted as exactly weight, fasting, the two money
-  pre-fills, `delete-record` and `open-page` (two more, never fewer).
+- **Part 5, `lib/ai/actions/auto-accept.test.ts`:** the never list is asserted as exactly weight, fasting, the four money
+  pre-fills (`prefill-holding`, `update-account-balance`, `prefill-contribution`, `prefill-account`), `delete-record`
+  and `open-page` (four more than before Part 5, never fewer).
+- **Part 5, the corpus's funding cases:** `p2-money-fund-goal` (`corpus-phase2.ts`, important) expected a refusal and now
+  expects one `prefill-contribution` card with amount 300 (L13); `p5-no-fund` became `p5-fund` (a card with amount 200).
+  `p2-delete-all`, `p5-delete-everything` and `p5-no-milestone` stay refusals. The golden set's `contribute` case (an
+  unknown kind reading as "none" on the device) is untouched: no alias maps `contribute` to the new kind.
 - **Part 5, `lib/ai/actions/plan.test.ts` and `edit.test.ts`:** the "every kind" coverage samples gain the eight new kinds
-  of the first batch and the eleven Health kinds of the second (those needing a planned skip, a reminder, a closed goal,
-  a diary entry by name, a planned meal, a favourite, an existing counter or a running night are covered in
-  `plan-z.test.ts` and listed in the coverage set as `stop-fast` already was). The auto-accept test's Health list is
+  of the first batch, the eleven Health kinds of the second and the ten of the third (those needing a planned skip, a
+  reminder, a closed goal, a diary entry by name, a planned meal, a favourite, an existing counter, a running night, a
+  link, a weekday other than the Showcase's or an active goal are covered in `plan-z.test.ts` and listed in the coverage
+  set as `stop-fast` already was). The auto-accept test's Health list is
   asserted against the group it renders, not a literal, so the eleven new Health kinds change no assertion there.
 
 ## Rejected options
