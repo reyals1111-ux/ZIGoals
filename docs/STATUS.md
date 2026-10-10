@@ -1,3 +1,140 @@
+# Session Y-Cloud — "Loose ends to zero" (ADR-018) (2026-10-09/10, [PR #80](https://github.com/reyals1111-ux/ZIGoals/pull/80), not merged)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox. Node 24.19.0 (from nodejs.org, SHASUMS256-checked; Y2), pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`; Playwright's Chromium stands in for Chrome (CLAUDE.md), so the brand-film specs fail here by design and pass in CI. Browser runs on a production build (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`), 2 workers, never two suites, builds or single tests at once.
+- **live:** read-only requests and fictional in-browser journeys on alpha.zigoals.app (deploy #34, `e30b7c6`), one worker, slowed; no market data, no account.
+- **Miniflare:** the private-sync Worker in `workerd` with real Chrome profiles (CI's integration list, run here one file at a time).
+- **WebKit:** Playwright's WebKit 26.6 in CI (the one owner-approved download), never "Safari on an iPhone".
+- **MOCK:** the persona mocks (patched in the browser at capture time, every image labelled) and every AI provider.
+- **source:** official pages read 2026-10-09, cited with dates (LEGAL_CHECKLIST §10a, `docs/dependencies/`).
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API).
+- **owner-reported:** values the owner gave (the #33 checks; the #34 iPhone checklist is still pending).
+
+Nothing was deployed, dispatched, merged or approved. No session logged into any service, handled a real secret, signed with a wallet, or changed a key, contract or chain config. No new dependency (runtime, dev or Actions); the only new download is Playwright's WebKit in the new CI job (owner-approved).
+
+**Base:** `main` `e30b7c6` (Merge #79; Alpha #34). `main` did not move during the session (checked at every gate and before this entry). No `feature/session-z*` branch appeared; the handoff is `docs/handoff/Y_TO_Z.md`.
+**Time:** branch created 2026-10-09 19:18 UTC; this entry 2026-10-10 04:43 UTC: about 9 h 25 min of wall-clock time in one session (Parts 1–6 and Gate A–B in the evening, Parts 7–10 and the CI fixes overnight, Part 11 and Gate C after 01:00 UTC).
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 1 | Records: Alpha #33 and #34, Release identity (#34 live, #33 previous), X-Cloud and X-Local marked merged and deployed, the iPhone checklist in 13 rows, ADR-018, the Z handoff | 1 | `9f5780f` | Actions API; live (read-only) |
+| 2 | Fasting: the 24-hour stop shows at once after a reload; the time sweep (5 zones, midnight, both DST ends); the #418 verdict (Y9: not a date split); `[TIER 3] (CI)` a time-zone unit step; a fast starts at the tap | 2 | `cff0400` `f15cc73` `3b3e9a2` `d27d522` `53b68ff` | local; CI |
+| 3 | `push-reminders:234`: a real worker bug (a reminder just before midnight lost its name after it), `[TIER 3] (service worker)`; the Mac failure named by the test; the two monitor rows | 3 | `7bb09ec` | local (loops, straddles) |
+| 4 | Independent security review of ZIGi's lane (F1 high, F2–F4 medium fixed, F12 under owner edit 5); the API-key matrix; THREAT_MODEL; Gate C's follow-up (a stale handle names nothing) | 3 | `692ba57` `36cd5ec` `c40475e` `cf2b879` | local |
+| 5 | Sync rules, each `[TIER 3]`: B7, B4, A7, B6, B3, B5; the follow-ups CI found (B4's tick syncs, B5 never on a read); Gate C's (a start-over keeps held sections; "in this tab") | 3 | `76e462f` `ea05906` `242672a` `ff14a16` `00deb6b` `a8b84a2` `4b15ff1` `646572c` `7045b15` `dd0695b` | local; Miniflare; CI |
+| 6 | `[TIER 3] (CI)` a WebKit job (smoke, ZIGi suites, a phone set), 45 min, traces on a timeout; advisory on pull requests; promoted after two green runs and withdrawn after the next showed a WebKit-only freeze in ZIGi (Y41, Y42) | 3 | `96f5f8f` `bff4656` `6b942cd` `94a4b6d` `5c8d727` `e2442be` `a94a9b9` | CI (green on `e2442be` and `742bbac`, 34 min each) |
+| 7 | Persona decision pack: 12 items with options and a recommendation, the other owner decisions; MOCK screens | — | `e0bc2eb` | MOCK, `review/session-y-screens` `6797283` |
+| 8 | Vacation days cleared later; "−" beside "+" on every measured habit; a metal's weight unit (the safest subset) | 2 | `ca63076` | local |
+| 9 | Field errors on seven forms (aria-invalid, described-by, focus); file inputs and radios in the app's style; the Ecosystem in plain words; QA2-08's leftovers; a radio stays a circle | 2 | `60033db` `55283c3` | local |
+| 10 | FINAL_ACCTEST and STAGE8 rows for X-Local and Session Y; `[TIER 3] (deploy tooling)` the Stage 7 preflight names `.env*` files by path | 3 | `47d4755` `0ed86f1` | local |
+| 11 | Live human test on #34 (Pass 3): 216 cells, 188 passed, 1 harness timing fixed and re-checked live, 27 not applicable; #32's 16 failures all pass | — | `5f71318` | live; `review/session-y-runs` `6fd0a97` |
+| 12 | Research: API credits from a Max or Team plan (§10a, the relay question OPEN), dependency audit | — | `520fff6` | source |
+| Gates | B: the data-safety drill D1–D17 (`135062b`); CI fixes: food-volume's clock (`bd03089`), session-x-findings:91's route (`5391183`); C: the audit's tightenings (`9ae2a75`), What's new and Help (`584cf79`), records (`df436a1`, `742bbac`) | — | as listed | local; CI |
+| — | This entry, PR ready | — | this commit | — |
+
+## Tier 2, in plain words (owner visual OK)
+- **`ca63076` Part 8.** The vacation panel lists the vacation days ahead with a Clear each; habit cards gain "−" beside "+" (never below 0); a metal asset's weight unit can change while nothing recorded counts in it. Risk: a look or a control the owner may not want. Rollback: revert (no stored format changed).
+- **`60033db`, `55283c3` Part 9.** A refused field is marked and takes the focus; file inputs and radios are drawn in the nebula style (still native inputs, ≥44 px targets, focus rings, a forced-colors fallback); Ecosystem notes in consumer words. Risk: desktop/tablet captures change where radios and file inputs show (the freeze check below). Rollback: revert both.
+- **`584cf79` What's new and Help.** The card shows once more (release `2026-10-session-y`, four links); four Help answers. Rollback: revert.
+- **`53b68ff`, `cff0400` fasting.** A fast starts at the tap; the 24-hour stop shows after a reload at once. Rollback: revert.
+
+## Tier 3, in plain words (risk → rollback)
+- **`d27d522`, `96f5f8f`, `bff4656`, `6b942cd`, `94a4b6d`, `5c8d727` CI.** A time-zone unit step (Chatham, New York) in the integration job (54 s); browser shards 60 min; a WebKit job (35 min), advisory on pull requests (`continue-on-error`): promoted into "web" after two green runs (`94a4b6d`) and withdrawn after the next (`5c8d727`, Y42). Risk: none to the app. Rollback: revert any of them (reverting `5c8d727` alone makes WebKit required again).
+- **`692ba57`, `36cd5ec`, `cf2b879` ZIGi's lane (security).** A reply's cards are auto-added once, within the daily cap; cards write onto the record as it is; a resend meets the Health gate of that moment; Disconnect forgets every key the account remembered; a stale handle names nothing. Risk: a card a person expected to be added again on a reload waits for their tap. Rollback: revert.
+- **`ea05906`, `4b15ff1`, `dd0695b` B4.** After a Health restore, Health sync stays off in that tab until the person ticks the box, and that tick syncs. Risk: one more tick. Rollback: revert the three together (the automatic switch-on returns).
+- **`242672a` A7.** A revoked session or a deleted account drops the remembered device at the next check, never the records. Risk: a person whose session was revoked elsewhere types the recovery secret again. Rollback: revert.
+- **`ff14a16`, `00deb6b`, `7045b15` B6, B3.** A cloud without the vault, or with an older one, is never a silent fresh start: a plain message, one confirmed step, and the held sections stay held. Risk: a person after a server restore sees a notice and confirms once. Rollback: revert the three together; the journal format is unchanged.
+- **`a8b84a2`, `646572c` B5 (data formats).** No plaintext outbox for the Local Demo; old entries swept after the person's first write (never on a read); receipts bounded to 1,000 revisions per section, archives to 20 per account (never one with unsent work). Risk: none visible. Rollback: revert both (pruned entries were copies nothing read).
+- **`76e462f` B7 (data formats).** Canonical base64url required for every nonce, iv and ciphertext. Risk: a record spelled otherwise would be refused (none exists: one writer since #29). Rollback: revert.
+- **`7bb09ec` the push worker.** A reminder's lateness is counted across midnight. Risk: none beyond the label. Rollback: revert.
+- **`47d4755` the Stage 7 preflight.** One more line naming `.env*` files by path. Rollback: revert.
+
+## Storage, sync and formats
+No new storage key or schema; schema-snapshot digests unchanged; the frozen #29–#31 readers pass; #34's own readers (an `e30b7c6` worktree) parse every new byte this build writes (2 of 2: a metal whose unit changed, a habit after "−" and a cleared vacation, B3's journal after a rotation, B5's archive entry). New values only: What's new's release id; the journal's existing `heldDomains` carried across a start-over. Data-safety drill D1–D17: no loss (`docs/verification/y-cloud/DATA_SAFETY_Y.md`).
+
+## Egress, CSP, Workers
+No new origin, no CSP, header or Permissions-Policy change, no Worker changed. The push service worker (`public/push-sw.js`) changes its label arithmetic only.
+
+## Weight (gzip -6 of the scripts each page loads, production builds, Gate C)
+Measured at Gate C with `scripts/check-weight-budget.mjs` on two production builds side by side: `e30b7c6`'s own (a worktree, :3102) and this branch's (`742bbac`, :3101; the later commits change tests, CI and documents only).
+
+| Page | `e30b7c6` (#34) | This PR | Change | Budget |
+|---|---|---|---|---|
+| Today `/app` | 507.7 kB | 510.6 kB | +2.9 kB | 515 kB |
+| Goals | 427.4 kB | 429.5 kB | +2.1 kB | 434 kB |
+| Habits | 453.1 kB | 456.0 kB | +2.9 kB | 458 kB |
+| Health | 475.8 kB | 478.4 kB | +2.6 kB | 482 kB |
+| Wealth | 459.1 kB | 462.2 kB | +3.1 kB | 465 kB |
+| Markets | 425.8 kB | 428.5 kB | +2.7 kB | 432 kB |
+| Portfolio | 447.1 kB | 449.8 kB | +2.7 kB | 454 kB |
+| Staking | 434.3 kB | 437.7 kB | +3.4 kB | 442 kB |
+| Activity | 406.7 kB | 408.7 kB | +2.1 kB | 415 kB |
+| Settings | 477.7 kB | 480.3 kB | +2.7 kB | 482 kB |
+| Help | 404.0 kB | 406.1 kB | +2.1 kB | 409 kB |
+| Chess | 410.8 kB | 412.8 kB | +2.1 kB | 417 kB |
+| Shell (every page) | 400.1 kB | 402.2 kB | +2.1 kB | 406 kB |
+
+Every page within its budget (CI's "Page weight budgets" step green on every head); no budget raised. The closest: Settings 1.7 kB and Habits 2.0 kB under theirs. The +2.1 kB on every page is the shell (Part 2's hydration guard, Part 9's field-error helper and drawn controls, Part 4's checks).
+
+## Tests (counts are not summed across overlapping runs)
+| Run | Result | Evidence |
+|---|---|---|
+| Unit, full suite, `TZ=UTC`, tree of `742bbac` (Gate C) | 486 files passed, 19 skipped; **4,367 tests passed**, 42 skipped, 0 failed (273 s) | local |
+| Unit, full suite under `TZ=UTC` and `TZ=Europe/Brussels`, tree of `e2442be` (Gates A–B) | 4,365 passed, 0 failed, each | local |
+| Browser, full suite, both projects, production build of `742bbac` (Gate C) | **1,864 passed**, 545 skipped, 5 failed (1.8 h): the brand film ×4 (`logo-quickadd-goals-header:53`, `:79`, both projects; this sandbox's Chromium cannot play it, by design) and `run10-source-pinning:31` (phone, Y43) | local |
+| Gate C follow-ups, each alone | unit 188/188 (the changed files and neighbours); the focused browser set 74 passed, 2 skipped (the WebKit-only phone set in Chrome); `hydration-zone` 6/6; `session-x-findings:91` 40/40; `zigi-alive:190` 5/5; `meditation:277` probe 30/30, and 3/3 with the view's CSS held back; `run10-source-pinning:31` phone 48/51 on this build, 20/20 on `e30b7c6`'s (Y43) | local |
+| Miniflare: CI's integration list, one file at a time | 17/17 (Gate B); `account-browser` 2/2 again after the B4 wording (two real profiles) | Miniflare |
+| Data-safety drill D1–D17 | no loss (`docs/verification/y-cloud/DATA_SAFETY_Y.md`); #34's own readers on this build's bytes 2/2 | local, Miniflare |
+| Packaged Alpha | `build:alpha`, `check:alpha`, artifact, prices 6/6, headers 6/6, the security gate 16/16 (local, Gate B); the same steps green in CI's integration job on every head since `df436a1` | local, CI |
+| `push-reminders:234` and the monitors (Part 3) | 60/60 before, 60/60 after; a real midnight: new worker 2/2 pass, old worker 2/2 fail; `run11-recovery-failures:22` 40/40, `run10-widgets` 40/40 | local |
+| WebKit (Playwright's WebKit 26.6) | `df436a1`: stopped at 30 min (now 45) and `zigi-auto-accept:73` failed; `e2442be`, `742bbac` and `a94a9b9`: green, 34 min each; `4245c91`: 344 passed, 1 failed (`zigi-auto-accept:42`, Y42) | CI |
+| The human test, Pass 3 on Alpha #34 | 216 cells: 188 passed, 27 not applicable, 1 harness timing fixed and re-checked live (2/2); #32's 16 failures all pass | live |
+| New tests | unit: `vault-sync-rules-y`, `stale-handle`, `asset-unit`, `outbox-independence`, `outbox-sweep-write`, `resend-gate`, `auto-accept-once`, `plan-current`, B3/B5/B7 cases; browser: `hydration-zone`, `small-features-y`, `a11y-field-errors`, `radio-shape`, `webkit-phone`, the Help answers; Miniflare: `older-vault-recovery`; live: `human-x/10-zigi-alive` | — |
+
+## Assertions changed (none weakened)
+Every deliberate change is in [ADR-018](architecture/ADR-018-session-y.md) "Assertions changed" with its reason. An independent audit of every test file changed since `e30b7c6` (47 files) found none weakened, two counts to correct (corrected) and five checks that could pass too loosely; all five tightened (`9ae2a75`).
+
+## Freeze (local, desktop and tablet against `e30b7c6`'s own build)
+155 captures of every main page, empty and Showcase, at desktop and tablet sizes (`scripts/desktop-freeze-check.mjs`), from `e30b7c6`'s own production build (a worktree, :3102) and this branch's (`742bbac`, :3101), same machine and browser: **116 identical, 39 different, every one explained**, no page error in either.
+- **Help, 12 captures (+196 px):** the four Session Y answers under "Good to know about the Alpha" (Y40).
+- **Settings, 12 captures (+4 px):** the feedback mail's "App version" line carries the build stamp (`0.1.0 · 742bbac`) where the worktree build has none (an environment difference, not code); the two file inputs of "Bring your history with you" are 2 px taller each in the app's style (Y32).
+- **Today and the captures taken on it, 9 (Today at six sizes, the launcher, Quick add ×2):** What's new's four Session Y links, X-Local's under "Earlier updates" (Y40).
+- **Portfolio, empty, 6 (−26 px):** the "What it holds" radios. `e30b7c6` drew them as 48 px ellipses (the form grid's `min-height` stretched the native radios); this PR draws 20 px circles (Y32, `55283c3`).
+Phones get Session Y's own changes (Parts 8, 9, What's new, Help), each with a test on the phone project.
+
+## Revert gate (local, scratch worktree at `a94a9b9`)
+All 45 commits `e30b7c6..a94a9b9` (every code, test, CI and record commit up to the last code change) revert newest first without a conflict, `pnpm typecheck` passes after each of the 45 reverts (about 45 s each), and the tree after the last revert is identical to `e30b7c6`. The commits after it are documents only (`00dcf86`, this entry). Groups that revert together: B4 (`ea05906`, `4b15ff1`, `dd0695b`), B6/B3 (`ff14a16`, `00deb6b`, `7045b15`), B5 (`a8b84a2`, `646572c`), the WebKit job (`96f5f8f`, `bff4656`, `6b942cd`, `94a4b6d`, `5c8d727`).
+
+## CI
+- **Green on the final code head:** run 38023110370 on `a94a9b9`, every job (checks, three browser shards, integration with the packaged Alpha and the security gate, contract, WebKit 34 min). Also green: run 38014291306 on `742bbac` (every job) and run 37988501137 on `3b3e9a2`. Canonical reproducibility green on every head checked. The commits after `a94a9b9` are documents; this entry's own run covers them.
+- **Red runs, each root-caused** (runs cancelled by a newer push are not failures and are not listed):
+  - 37985391760 on `cff0400`: `fasting:66` (phone) → the Part 2 follow-ups (`f15cc73`, `3b3e9a2`, green), then `53b68ff`.
+  - 38001047405 on `c40475e`: `account-browser` (B4 held the sync) → `4b15ff1`; `private-read-delay` ×6 (B5's sweep ran on a read) → `646572c`; `fasting:66` (desktop: the start time came from the save) → `53b68ff`.
+  - 38006375513 on `df436a1`: `run11-food-volume` crossed midnight → `bd03089`; the WebKit job stopped at 30 min → `bff4656`; WebKit `zigi-auto-accept:73` → Y42.
+  - 38010192191 on `e2442be`: `session-x-findings:91` (its route handler read a response a navigation had disposed) → `5391183`.
+  - 38016733216 on `4245c91`: `zigi-alive:190` (read the figure mid-swap) → `86ec743`; `meditation:277` (phone) → Y43; WebKit `zigi-auto-accept:42` → the promotion withdrawn (`5c8d727`, Y42).
+- **WebKit job:** advisory (pull requests only, `continue-on-error`). It was promoted after two green runs (`94a4b6d`, Y41) and withdrawn after the next (Y42).
+
+## Known CI intermittents (this session)
+- **`tests/session-x-findings.spec.ts:91`** (X-Cloud's test) failed once in CI on `e2442be` (run 38010192191, desktop): its chunk patcher read a response the next navigation had disposed. Fixed at its cause (`5391183`); 40 of 40 locally. Not an app defect.
+- **`tests/run11-food-volume.spec.ts`** crossed midnight in CI on `df436a1` and lost its planned meal; it now runs on a fixed clock (`bd03089`).
+- **`push-reminders:234`** and the two monitor rows: see Part 3 (60/60 before, 60/60 after; 40/40 and 40/40); none failed in CI on this PR.
+
+## Decisions made without the owner
+ADR-018 "Session decisions" Y1–Y43, each the safest option that keeps the brief's promises. Read first: Y26 (the unit change is narrow in practice), Y23 (B5's horizons), Y22 (how a same-account vault goes back), Y38 (consent per tab), Y42 (the WebKit freeze), Y43 (two intermittents left unchanged, with their causes).
+
+## Owner items
+- Review the PR; merging and deploying stay yours (the Manual Alpha workflow from `main`).
+- **Decide:** the persona pack (`docs/product/PERSONA_DECISIONS_Y.md`, 12 items plus A5, A6, C4/check 9 and the home GPU); the unit change for valued metals (Y26: a unit on each valuation record, or convert recorded quantities); a shared "ask first" for Health across tabs (Y38); A7's wording after "Delete cloud data" and whether a locked account's local copy may be exported (SECURITY_REVIEW_Y, second read); §10a's open question to Anthropic support and counsel (until answered: owner-only credits).
+- **WebKit, high priority (Safari is WebKit):** `zigi-auto-accept` failed twice in four WebKit runs; on `4245c91` the page stopped answering after a second message to ZIGi (Y42; the trace is in run 38016733216's `web-webkit-*` artifact until 2026-10-17). ZIGi's lane (Session Z) has it in `docs/handoff/Y_TO_Z.md`. Promote the job (revert `5c8d727`) once that is fixed and it is green twice again.
+- **ZIGi's launcher on phones (Y43):** gliding back to its corner after a scroll, it can take a tap meant for a control under it (seen in `run10-source-pinning:31`); for ZIGi's lane, with two options in Y_TO_Z.md.
+- **Your Mac:** the next `push-reminders` run names its cause (`{shown, error}`); if it says macOS refused notifications, allow Chrome's notifications in System Settings.
+- **#34:** the iPhone checklist (13 rows, ZIGI_ALIVE_X.md) is still pending.
+- **Test:** the gallery `review/session-y-screens` (MOCK) and the raw live cells `review/session-y-runs`.
+
+---
+
 # Alpha deploy #34 — 2026-10-08 night, `e30b7c6` live
 Recorded by Session Y-Cloud (2026-10-09).
 - **Source:** `e30b7c6c0fe6d94500d58908c56f87256e6e61ce`, `main` after [PR #79](https://github.com/reyals1111-ux/ZIGoals/pull/79) (Merge #79, Session X-Local, "ZIGi comes alive", ADR-017).
