@@ -11,7 +11,7 @@ import {SYNC_WRITES} from '../../lib/vault/sync-writes';
 
 const TOPICS: [id: string, label: string][] = [
   ['getting-started', 'Getting started'], ['data-and-sync', 'Your data and sync'], ['recovery-secret', 'Your recovery secret'],
-  ['install', 'Install on iPhone'], ['backups', 'Optional backups'], ['your-ai', 'ZIGi · your AI'], ['questions', 'Questions'], ['whole-life', 'New: your whole life'], ['whats-new-alpha', 'What\'s new'], ['known-limitations', 'Known limitations'], ['feedback', 'Send feedback'],
+  ['install', 'Install on iPhone'], ['backups', 'Optional backups'], ['your-ai', 'ZIGi · Your Personal AI Companion'], ['questions', 'Questions'], ['whole-life', 'New: your whole life'], ['whats-new-alpha', 'What\'s new'], ['known-limitations', 'Known limitations'], ['feedback', 'Send feedback'],
 ];
 
 function Section({id, eyebrow, title, children}: {id: string; eyebrow: string; title: string; children: ReactNode}) {
@@ -81,7 +81,7 @@ export function HelpPage() {
       </ul>
     </Section>
 
-    <Section id="your-ai" eyebrow="ZIGI · YOUR AI" title="Your own AI, page by page">
+    <Section id="your-ai" eyebrow="ZIGi · Your Personal AI Companion" title="Your own AI, page by page">
       <p><strong>ZIGi</strong> is a chat inside ZIGoals that answers with an AI <em>you</em> connect: an API key you pay for, a model running on your own computer, or, if you only have a ChatGPT, Claude, Grok or Gemini subscription, a prompt you copy into that app. It is <strong>Premium, free during the Alpha</strong>. Set it up in <Link className="text-link" href="/app/settings#your-ai">Settings &rarr; ZIGi &middot; your AI</Link>; then the ZIGi button sits at the bottom right (above the tabs on a phone), and &#8984;K / Ctrl+K opens it too.</p>
       <p>ZIGi is not the Guide. The Guide is ZIGoals&rsquo; own calm note from your records, made on this device with no AI service at all. ZIGi is your AI talking about your records, and it also answers simple questions about them on this device, with no AI at all.</p>
       <HelpQuestion id="your-ai-what" question="What does ZIGi send, and to whom?"><p>Only to the provider you connected, straight from your browser: your message, the records your question needs and the page&rsquo;s data as plain text if sharing is on for those areas, your own instructions, and the last few messages within your context budget. Nothing passes through ZIGoals&rsquo; servers and nothing is logged there (ZIGoals hosted, when it is offered to you, is the one exception, and you agree to it first). Sharing starts on for Today, Goals, Habits, Wealth and Help and <strong>off for Health</strong>; Health needs its own switch too. Open the chat and expand &ldquo;What your AI sees&rdquo; for the exact text. Identifiers, wallet addresses, chain details, account and sync data are never included.</p></HelpQuestion>
@@ -173,7 +173,7 @@ export function HelpPage() {
         <li><strong>Reminders when ZIGoals is closed</strong> need an account, so they wait for accounts too. Until then, due reminders show as cards on Today while ZIGoals is open.</li>
         <li><strong>No real money moves.</strong> Wealth, Portfolio and Staking show what you enter and public data; nothing is bought, sold, sent or staked from ZIGoals, and the test network&rsquo;s tokens have no value.</li>
         <li><strong>Prices</strong> come from CoinGecko and can be missing for a while; a missing price stays &ldquo;unknown&rdquo;, never zero.</li>
-        <li><strong>ZIGi</strong> works with an AI you bring, or answers from your records on this device; the AI that ZIGoals would run for you isn&rsquo;t offered yet (<a className="text-link" href="#your-ai">ZIGi · your AI</a>).</li>
+        <li><strong>ZIGi</strong> works with an AI you bring, or answers from your records on this device; the AI that ZIGoals would run for you isn&rsquo;t offered yet (<a className="text-link" href="#your-ai">ZIGi · Your Personal AI Companion</a>).</li>
         <li><strong>Devices and apps:</strong> Bluetooth works in Chrome and Edge, not on iPhone; Oura, Withings, Polar and Strava say &ldquo;Needs setup by ZIGoals&rdquo; until ZIGoals registers with them; Apple Health has no web access, so use its export; Fitbit&rsquo;s web access is turned off on 30 October 2026, so use Google Takeout.</li>
         <li><strong>Spotify</strong> needs Premium, and only accounts the owner lists can connect while Spotify keeps ZIGoals in development mode.</li>
         <li><strong>Older copies of ZIGoals</strong> can&rsquo;t read what this one saves for sleep, meditation, your pages or links: they say so, keep it and change nothing.</li>

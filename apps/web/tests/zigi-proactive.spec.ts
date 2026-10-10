@@ -36,6 +36,13 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const systemOf = (body: Body) => String(body.messages[0]!.content);
+/** Session Z-Cloud Part 2: the brief, Your week and Patterns wait in the Suggestions sheet's "Your day" tab, the chips in "Ideas". */
+async function sheetTab(page: Page, name: 'Ideas' | 'Your day' | 'Yours') {
+  const sheet = panel(page).getByRole('region', {name: 'Suggestions for you'});
+  if (!await sheet.isVisible()) await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await sheet.getByRole('tab', {name}).click();
+  return sheet;
+}
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('the greeting: a brief and chips from the records, made on the device; hiding a chip is the only write; "Say it nicer" sends the brief only on click', async ({page}) => {
@@ -43,10 +50,12 @@ test('the greeting: a brief and chips from the records, made on the device; hidi
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
+  await sheetTab(page, 'Your day');
   const brief = panel(page).getByRole('region', {name: 'Your morning brief'});
   await expect(brief).toContainText('Your day, from your records');
   await expect(brief).toContainText('Made on this device from your records · no AI used');
   for (const line of await brief.locator('li').allTextContents()) expect(line).toMatch(/^(Still open today: |From yesterday: |One to start with: |Coming up: )/);
+  await sheetTab(page, 'Ideas');
   const chips = panel(page).getByRole('group', {name: 'Suggestions'});
   await expect(chips.getByRole('button').first()).toBeVisible();
   expect(bodies).toEqual([]);
@@ -59,6 +68,7 @@ test('the greeting: a brief and chips from the records, made on the device; hidi
   expect((await stored(page, ZIGI_KEY))!.dismissed).toEqual({day: DAY, ids: [expect.any(String)]});
   expect(await chips.getByRole('button').count()).toBeGreaterThanOrEqual(3);
   // "Say it nicer": the exact data is shown first, then sent with the request on click.
+  await sheetTab(page, 'Your day');
   await brief.getByText('What “Say it nicer” sends').click();
   const shown = await brief.locator('pre').textContent();
   await brief.getByRole('button', {name: 'Say it nicer'}).click();
@@ -73,6 +83,7 @@ test('your week and patterns, on the device; the reflection goes to the AI only 
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
+  await sheetTab(page, 'Your day');
   await panel(page).getByRole('button', {name: 'Your week', exact: true}).click();
   const week = panel(page).getByRole('region', {name: 'Your week with ZIGi'});
   await expect(week).toContainText(/Your review week, \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2}, read on this device/);
@@ -87,11 +98,14 @@ test('your week and patterns, on the device; the reflection goes to the AI only 
   expect(bodies[0]!.messages.at(-1)).toEqual({role: 'user', content: REFLECT_ASK});
   expect(systemOf(bodies[0]!)).toContain('"tool":"weekly_review"');
   await panel(page).getByRole('button', {name: 'New chat'}).click();
+  await sheetTab(page, 'Your day');
   await panel(page).getByRole('button', {name: 'Patterns', exact: true}).click();
   const patterns = panel(page).getByRole('region', {name: 'Patterns in your records'});
   await expect(patterns).toContainText('A pattern in your own records, not proof of a cause.');
   await expect(patterns).toContainText('Only pairings with at least 14 paired days in the last 60, and at least 5 days on each side.');
   await patterns.getByRole('button', {name: 'Back to the chat'}).click();
+  await expect(panel(page).locator('.ai-greeting-text')).toBeVisible();
+  await sheetTab(page, 'Your day');
   await expect(panel(page).getByRole('region', {name: 'Your morning brief'})).toBeVisible();
 });
 
@@ -140,6 +154,7 @@ test('with no AI connected the panel still shows the brief, your week and patter
   await seed(page, null);
   await page.goto('/app');
   await openChat(page);
+  await sheetTab(page, 'Your day');
   await expect(panel(page).getByRole('region', {name: 'Your morning brief'})).toBeVisible();
   await expect(panel(page).getByRole('region', {name: 'Your morning brief'}).getByRole('button', {name: 'Say it nicer'})).toHaveCount(0);
   await panel(page).getByRole('button', {name: 'Your week', exact: true}).click();

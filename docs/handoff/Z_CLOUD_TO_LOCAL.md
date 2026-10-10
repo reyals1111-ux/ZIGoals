@@ -45,3 +45,20 @@ and announces the change here or in its own file.
 - **Spoken English and Dutch:** voice sends the recognised words as one message (`session.ask`), with no marker. If the
   brain wants to know a message was spoken (for shorter replies to read aloud), propose the field here; until then the
   face only decides whether to read the reply aloud.
+
+## 2026-10-10 — Part 2 (committed)
+- **Changed near the brain (rendering only):** `components/ai/proposal-card.tsx` returns a one-line receipt for every status
+  but `proposed` and `busy` (same `.ai-card`, `.ai-card-<status>`, `.ai-card-status` text and title); `components/ai/proposal-list.tsx`
+  takes `earlier` and, when set, wraps the still-`proposed` cards in a `<details class="ai-proposals-earlier">` and hides
+  "Add all". Nothing in `add`, `addAll`, `autoAdd`, the auto-accept effect, `undo` or `claimAuto` changed. If your WebKit fix
+  lands in the same file, merge both; I will do the same if mine lands second.
+- **`components/ai/use-chat-session.ts`:** two failure steps now say "Settings → ZIGi · Your Personal AI Companion" (string
+  only, lines with `not-connected` and `missing-key`).
+- **Ask: the new name in `lib/ai`.** The panel, Settings, Help, Meet ZIGi and the launcher say "ZIGi · Your Personal AI
+  Companion". Strings in your lane still say "Settings → ZIGi · your AI → …" (`lib/ai/session.ts`, `photo.ts`, `errors.ts`,
+  `tools/format.ts`, `tools/activity.ts`, `tools/registry.ts`, `on-device-chat.ts`, `setup-chooser.ts`,
+  `context/specialists.ts`, `context/consent.ts`, `context-pack/build.ts`, `actions/plan.ts`) and the mini window's title
+  (`pip.ts`, `doc.title`). Please rename them to "ZIGi · Your Personal AI Companion" in your PR (tests:
+  `tests/zigi-mini-window.spec.ts:96` expects `pip.ts`'s title; update it with yours).
+- **New device key** `zigoals:zigi-suggestions:v1` (`lib/zigi-suggestions.ts`, outside `lib/ai`): the person's frequent
+  questions, never sent unless the person sends one. Nothing in `lib/ai` needs to read it.

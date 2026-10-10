@@ -1,5 +1,6 @@
 'use client';
 import {Suspense, lazy, useEffect, useRef, useState} from 'react';
+import {ZigiTitle} from './zigi-title';
 import {entitlement} from '../../lib/entitlements';
 import './ai-launcher.css';
 
@@ -31,8 +32,9 @@ export function AiSettingsSection() {
     return () => { observer?.disconnect(); idle.cancel(); window.removeEventListener('hashchange', onHash); };
   }, [load]);
   return <section ref={section} className="panel ai-settings" id="your-ai" aria-labelledby="your-ai-title">
-    <p className="eyebrow">ZIGI · YOUR AI <span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
-    <h2 id="your-ai-title">Your own AI, page by page.</h2>
+    {/* Session Z-Cloud Part 2: the section carries ZIGi's full name in the nebula flow; the old heading is its eyebrow. */}
+    <p className="eyebrow">Your own AI, page by page <span className="ai-chat-premium">{entitlement('your-ai').label}</span></p>
+    <ZigiTitle id="your-ai-title" className="ai-settings-title"/>
     <p>Connect the AI you already pay for, or one running on your computer. Prompts, replies and keys travel from this browser straight to your provider; ZIGoals never sees them, logs nothing and runs nothing on its servers for this. ZIGi reads a page only with your permission, never writes anything by itself, and proposes changes as cards you add, edit or dismiss.</p>
     {/* Phase 2 (P2.8, X-Cloud's H6): the body's height is reserved until it mounts, so a Settings jump below this section
         lands where it will stay (the body grew the section by ~900 px above the target; the reserve is measured and kept

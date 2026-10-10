@@ -199,7 +199,7 @@ test('"Yes, knock" on a later day turns knocking on; ZIGi knocks once the panel 
   await expect(knock(page)).toBeVisible();
   await knock(page).getByRole('button', {name: "Close ZIGi's reminder"}).click();
   await page.getByRole('button', {name: /Open ZIGi/}).click();
-  await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
   const knockSwitch = panel(page).getByRole('switch', {name: 'Knock when a reminder is due'});
   await expect(knockSwitch).toHaveAttribute('aria-checked', 'true');
   await knockSwitch.click();

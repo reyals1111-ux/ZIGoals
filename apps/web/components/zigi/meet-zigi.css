@@ -1,6 +1,8 @@
 /* Meet ZIGi (Session V Part 12). */
 .meet-zigi{display:grid;gap:16px}
 .meet-zigi .help-back{margin:0}
+/* Session Z-Cloud Part 2: the way back keeps a 44 px target. */
+.meet-zigi .help-back .text-link{display:inline-flex;align-items:center;min-height:44px}
 .meet-zigi-motion,.meet-zigi-skin{display:grid;gap:12px}
 .meet-zigi-motion h2,.meet-zigi-skin h2{margin:0;font-size:20px}
 .meet-zigi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}

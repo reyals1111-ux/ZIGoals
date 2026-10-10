@@ -45,7 +45,7 @@ export const EARLIER_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-quick-add', label: 'Type a line into Quick add'},
   {href: '/app/help#help-push-reminders', label: 'Reminders when ZIGoals is closed'},
   {href: '/app/help#help-guide', label: 'The Guide, on this device'},
-  {href: '/app/help#help-your-ai-what', label: 'ZIGi · your AI (Premium, free during Alpha)'},
+  {href: '/app/help#help-your-ai-what', label: 'ZIGi · Your Personal AI Companion (Premium, free during Alpha)'},
   {href: '/app/help#help-your-ai-data', label: 'Ask ZIGi about your records, and more from ZIGi'},
 ];
 /**

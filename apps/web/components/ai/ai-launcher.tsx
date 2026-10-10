@@ -145,7 +145,7 @@ export function AiLauncher() {
     {visible && <div ref={box} className={`ai-launcher${phone ? ' ai-launcher-phone' : ''}`} data-testid="ai-launcher" data-glass-off="" data-side={look.side} data-size={look.size}>
       {app && <a className="ai-launcher-pill" href={app.url} target="_blank" rel="noopener noreferrer">Open {app.name} ↗</a>}
       <div className="ai-launcher-stack">
-        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your AI' : 'Open ZIGi, your AI (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
+        <button ref={button} type="button" className="ai-launcher-button" aria-label={open ? 'Close ZIGi, your personal AI companion' : 'Open ZIGi, your personal AI companion (⌘K or Ctrl+K)'} aria-haspopup="dialog" aria-expanded={open} onClick={toggle} onPointerEnter={warm} onFocus={warm} data-state={zigi}>
           <ZigiFigure state={zigi}/>
         </button>
         <button type="button" className="ai-launcher-hide" aria-label="Hide ZIGi" data-tip="Hide ZIGi" onClick={hide}>
@@ -154,7 +154,7 @@ export function AiLauncher() {
       </div>
     </div>}
     {edgeTab && <button type="button" className={`ai-edge-tab${phone ? ' ai-edge-tab-phone' : ''}`} data-side={look.side} aria-label="Show ZIGi" onClick={showAgain}><ZigiFigure state="peek"/></button>}
-    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · your AI.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · your AI.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
+    {undoUntil !== null && <div className="ai-launcher-toast" role="status"><span>{look.edgeTab ? 'ZIGi is hidden. Show it again from the tab at the edge of the screen, or Settings → ZIGi · Your Personal AI Companion.' : 'ZIGi is hidden. Show it again from Settings → ZIGi · Your Personal AI Companion.'}</span><button type="button" className="secondary" onClick={undoHide}>Undo</button></div>}
     {loaded && <ZigiPartBoundary label="ZIGi's chat" className="ai-launcher-toast"><Suspense fallback={null}><AiChat open={open && visible} onClose={close} onOpen={reopen} sensitive={sensitive} phone={phone}/></Suspense></ZigiPartBoundary>}
     {lookLoaded && (look.knock || agents) && <ZigiPartBoundary quiet><Suspense fallback={null}><ZigiCompanion knock={look.knock} agents={agents} away={!visible || open} visible={visible} sensitive={sensitive} phone={phone} side={look.side} onPropose={reopen}/></Suspense></ZigiPartBoundary>}
   </>;

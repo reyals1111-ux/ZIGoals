@@ -96,7 +96,7 @@ test('the panel before setup offers the same questions', async ({page}) => {
   await view.getByRole('radio', {name: 'No extra cost'}).check();
   await expect(view.getByRole('article', {name: 'Recommendation'}).getByRole('heading')).toHaveText('The subscription bridge');
   await view.getByRole('button', {name: 'Back to the chat'}).click();
-  await expect(panel(page)).toContainText('Connect your own AI to start');
+  await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
 });
 
 test('Chrome\'s model: asking downloads nothing; the download only from the button, with progress; then the switch', async ({page, isMobile}) => {
@@ -166,6 +166,9 @@ test('"Say it nicer · on this computer" on the brief, from the click only', asy
   await seed(page, {[AI_OPTIONS_KEY]: {version: 1, onDevice: true}});
   await page.goto('/app/habits');
   await page.getByRole('button', {name: /Open ZIGi/}).click();
+  // Session Z-Cloud Part 2: the brief waits in the Suggestions sheet's "Your day" tab.
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await panel(page).getByRole('region', {name: 'Suggestions for you'}).getByRole('tab', {name: 'Your day'}).click();
   const brief = panel(page).getByRole('region', {name: 'Your morning brief'});
   await expect(brief).toBeVisible();
   expect((await logged(page)).filter(l => l.kind === 'create')).toEqual([]);

@@ -74,3 +74,5 @@
 .zigi-explain-corner{display:none}
 html[data-zigi-launcher="shown"] .zigi-explain-corner{display:inline-flex;position:absolute;top:10px;right:10px;z-index:2}
 html[data-zigi-launcher="shown"] .habit-consistency-month{position:relative}
+/* Session Z-Cloud Part 2: ZIGi's full name keeps the spaces around its dot (zigi-title.tsx). */
+.ai-title-dot{white-space:pre}

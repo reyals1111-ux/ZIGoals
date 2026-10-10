@@ -31,9 +31,12 @@ test('before setup: a lookup is answered on the device with its records, nothing
   await seed(page, null);
   await page.goto('/app/health');
   await openChat(page);
-  await expect(panel(page)).toContainText('Connect your own AI to start');
-  await expect(panel(page)).toContainText('Meanwhile, ZIGi answers questions about your own records right here');
-  await expect(panel(page).locator('.ai-local-intro .ai-chip').first()).toBeVisible();
+  await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
+  await expect(panel(page).locator('.ai-greeting-text')).toHaveText('Hi, I’m ZIGi. Ask about your records: I answer here, on this device, with no AI.');
+  // Session Z-Cloud Part 2: the example questions wait in the Suggestions sheet.
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await expect(panel(page).getByRole('group', {name: 'Questions ZIGi answers here'}).getByRole('button').first()).toBeVisible();
+  await panel(page).getByRole('button', {name: 'Close suggestions'}).click();
   // The owner's own question, asked on the Health page.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();

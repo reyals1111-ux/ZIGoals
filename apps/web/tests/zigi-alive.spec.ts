@@ -102,7 +102,7 @@ test('Customize in the panel: side, size and animation apply at once and stay af
   await seed(page);
   await page.goto('/app');
   await openChat(page);
-  await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
+  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
   const view = panel(page).getByRole('region', {name: 'Customize ZIGi'});
   await expect(view.getByRole('radio', {name: /^Calm/})).toBeChecked();
   await expect(view.getByRole('radio', {name: 'Right', exact: true})).toBeChecked();
