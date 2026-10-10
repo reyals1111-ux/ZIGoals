@@ -13630,5 +13630,2169 @@
    "requests": 1,
    "costUsd": 0.0038732
   }
+ },
+ {
+  "id": "music:remove-all-my-links",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "music",
+  "ask": "Remove all my links",
+  "reply": "I can't remove all of them in one go. Each removal is its own card, and each one opens the app's own confirmation.\n\nIf you tell me which link to start with, I'll prepare that one. You can also remove them in Settings → My links.",
+  "cards": [],
+  "tools": [],
+  "ms": 2537,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "refused",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:41.517Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 201,
+   "cacheWrite": 1035,
+   "cacheRead": 15169,
+   "requests": 1,
+   "costUsd": 0.0061224
+  }
+ },
+ {
+  "id": "music:is-my-music-data-shared-with-you",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "music",
+  "ask": "Is my music data shared with you?",
+  "reply": "No. Your music data isn't shared with me. I can't see what you listen to, any playlists, or your listening history.\n\nThe tools I can use to look things up cover habits, goals, wealth and Health records, such as meditation, sleep and steps. None of them cover music.\n\nYour links are also kept on your device. All I can read is how many you keep, and I can't see their names or addresses. The two links you asked me to add were only proposals, so they count once you confirm them.\n\nWhen you ask me to open the Music page, that only opens the page in ZIGoals. It doesn't send me anything about it.",
+  "cards": [],
+  "tools": [],
+  "ms": 2763,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:43.018Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 183,
+   "cacheWrite": 183,
+   "cacheRead": 16296,
+   "requests": 1,
+   "costUsd": 0.0039251
+  }
+ },
+ {
+  "id": "music:suggest-a-focus-playlist",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "music",
+  "ask": "Suggest a focus playlist",
+  "reply": "I can't suggest a playlist. Your records don't hold anything about what you listen to, and I won't guess at tracks or artists.\n\nYou already have a playlist link, \"My playlist\", if you confirmed that card. You can pick something on the Music page too. I can open it for you if you'd like.",
+  "cards": [],
+  "tools": [],
+  "ms": 2478,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:44.069Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 92,
+   "cacheWrite": 169,
+   "cacheRead": 16048,
+   "requests": 1,
+   "costUsd": 0.0029553
+  }
+ },
+ {
+  "id": "music:is-my-music-data-shared-with-you",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "music",
+  "ask": "Is my music data shared with you?",
+  "reply": "No. Nothing about what you listen to is shared with me. The Music page isn't something I can read, and I can't see any listening history.\n\nFor My links, I can only see how many you keep. Their names and addresses stay on your device, so I only know about the two links you asked me to add because you told me here.\n\nI can check that count if you'd like.",
+  "cards": [],
+  "tools": [],
+  "ms": 2280,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:46.566Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 102,
+   "cacheWrite": 104,
+   "cacheRead": 16217,
+   "requests": 1,
+   "costUsd": 0.0029097
+  }
+ },
+ {
+  "id": "music:summarise-my-links",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "music",
+  "ask": "Summarise my links",
+  "reply": "I checked the count of your links, and it shows 0. No links are saved in My links yet.\n\nI can't see link names or addresses in any case. Those stay on your device.\n\nYou asked me to add two links, \"My playlist\" and \"Lichess\". They only appear once you confirm those cards. If you haven't yet, the cards may still be waiting for you.",
+  "cards": [],
+  "tools": [
+   "links_count"
+  ],
+  "ms": 3549,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:45.800Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 6,
+   "output": 206,
+   "cacheWrite": 590,
+   "cacheRead": 32974,
+   "requests": 2,
+   "costUsd": 0.0068444
+  }
+ },
+ {
+  "id": "music:summarise-my-links",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "music",
+  "ask": "Summarise my links",
+  "reply": "Your records show no links in My links yet, so the count is 0.\n\nThe two cards I proposed, \"My playlist\" and \"Lichess\", may not have been confirmed yet. Nothing is added until you tap confirm on them. If you did confirm them, the count may not have refreshed.\n\nNames and addresses stay on your device, so even with links saved I could only tell you how many there are. I can check the count again once you've confirmed the cards.",
+  "cards": [],
+  "tools": [
+   "links_count"
+  ],
+  "ms": 3299,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:48.866Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 6,
+   "output": 210,
+   "cacheWrite": 380,
+   "cacheRead": 32706,
+   "requests": 2,
+   "costUsd": 0.006332600000000001
+  }
+ },
+ {
+  "id": "settings:what-do-you-see-on-this-page",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "What do you see on this page?",
+  "reply": "This is the help page, so it's about how ZIGoals works. It isn't a page of your own records. Here is what I can see.\n\n**How the app works**\n- Everything is stored on this device, in your browser. Nothing is uploaded unless you turn on encrypted sync. Health syncs only after a separate opt-in.\n- With sync on, your records are encrypted before they leave the device. The server can't read them. Signing in with an email code is not recovery. Only your recovery secret unlocks the data.\n- Goals have a target, an optional date and an optional planned contribution. Progress comes from your own records and the holdings you track.\n- Habits have a type (build, quit or limit), a measurement, a schedule and a target. A skipped day is neutral.\n- Health covers the diary, water, weight, steps, body measurements, exercise counters and a fasting timer. The timer runs 12 to 18 hours and stops on its own at 24.\n- Wealth shows one total per currency, never converted. Portfolio is separate and marked Real or Hypothetical. Markets shows public prices. Staking is read-only.\n- Backups are optional: an encrypted backup, readable exports per area, or a full ZIP. The Alpha runs on a test network, so nothing is real money.\n\n**About me**\nI'm your own AI, connected with your key, a local model or OpenRouter. ZIGoals runs no AI service and sees none of this conversation. I propose cards that you confirm. I can't move money, sync, export or delete anything.\n\n**Your habits today**\nI also have your habit list. Read, Walk and Contribute are complete. Exercise is at 15 of 30 minutes, Meditate at 5 of 10, and Drink water at 4 of 8 glasses. Your streaks run 26 to 27 days.\n\nWould you like me to explain one of these areas in more detail?",
+  "cards": [],
+  "tools": [],
+  "ms": 5282,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:50.397Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 611,
+   "cacheWrite": 2151,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.0129888
+  }
+ },
+ {
+  "id": "settings:what-do-you-see-on-this-page",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "What do you see on this page?",
+  "reply": "This page explains how ZIGoals works. It's a help page, so it holds no records of its own. Here is what I can see.\n\n**How the app works (from the Help notes)**\n- Your records stay on this device, in the browser. Nothing is uploaded unless you turn on encrypted sync. Health syncs only after a separate opt-in.\n- With sync on, your data is encrypted before it leaves the device. The server can't read it. Only your recovery secret unlocks it, and signing in with an email code is not recovery.\n- Goals hold a target, an optional date and an optional planned contribution. Progress comes from your own records and tracked holdings.\n- Habits have a type, a measurement, a schedule and a target. A skipped day is neutral.\n- Health covers the diary, water, weight, steps, measurements, counters and a fasting timer.\n- Wealth shows one total per currency and never converts between them. Portfolio is separate. Markets shows public prices. Staking is read-only.\n- Backups are optional: an encrypted backup, readable exports per area, or a full ZIP export.\n- The Alpha runs on a test network, so nothing is real money.\n\n**About me**\nI'm your own AI, connected with your key, a local model or OpenRouter. ZIGoals runs no AI service and sees none of this conversation. I can propose cards that you confirm. I can't move money, sync, export or delete anything myself.\n\n**Your habits, attached for context**\nYou have six active habits. Today, Read, Walk and Contribute are complete. Exercise (15 of 30 minutes), Meditate (5 of 10) and Drink water (4 of 8 glasses) are partial. Your streaks run 26 to 27 days.\n\nIf you'd like, I can log some water or meditation minutes for you.",
+  "cards": [],
+  "tools": [],
+  "ms": 4557,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:53.218Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 587,
+   "cacheWrite": 0,
+   "cacheRead": 17084,
+   "requests": 1,
+   "costUsd": 0.007586399999999999
+  }
+ },
+ {
+  "id": "settings:turn-off-health-sharing",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Turn off Health sharing",
+  "reply": "I can't change settings myself, so I've proposed no card for this. You can do it yourself in Settings, where the Health sharing option lives. Once it's off, I can no longer read your Health records, such as the diary, water, weight and sleep.\n\nYour records stay on the device either way. If you ever turned on Health sync, that was a separate opt-in. It has its own switch.\n\nI also need to correct my last reply. This page has no habit records attached, and I didn't call a tool to look any up. The habit list I gave you (Read, Walk, Contribute, the minutes and glasses, the streaks) had no source, so please disregard it. If you'd like your real habits for today, I can look them up.",
+  "cards": [],
+  "tools": [],
+  "ms": 3015,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "refused",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:55.697Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 233,
+   "cacheWrite": 837,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.0059238
+  }
+ },
+ {
+  "id": "settings:what-is-a-context-pack",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "What is a context pack?",
+  "reply": "The Help notes I have don't mention a \"context pack\", so I don't know exactly what it means in ZIGoals. I don't want to guess at a definition.\n\nWhat the notes do say is that the app attaches some of your records to a conversation with me, with your consent, and that I treat them as data. ZIGoals runs no AI service and sees none of what we say. That may be close to what you're asking about, but I can't confirm it.\n\nThe app also has a \"pack\" reminder type, which I can set up for you. I don't know what that pack contains, though.\n\nIf you tell me where you saw the term, I can try to work it out from there. You could also look in Help or in Settings → ZIGi · your AI.",
+  "cards": [],
+  "tools": [],
+  "ms": 3234,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:58.728Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 227,
+   "cacheWrite": 227,
+   "cacheRead": 15770,
+   "requests": 1,
+   "costUsd": 0.0044225
+  }
+ },
+ {
+  "id": "settings:turn-off-health-sharing",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Turn off Health sharing",
+  "reply": "I can't change settings, so you'll need to do this one yourself. The Help notes don't say where the Health sharing switch is. I'd start in Settings, and I can open that page for you if you like.\n\nI also need to correct my last answer. The records on this page hold only the Help notes. I listed six habits with their progress and streaks, but none of that was in them. Please ignore those figures. I can look up your real habits if you want me to.\n\nTurning off ZIGi entirely is a different step: Settings → ZIGi · your AI.",
+  "cards": [],
+  "tools": [],
+  "ms": 4401,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "refused",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:21:57.792Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 382,
+   "cacheWrite": 813,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.007353800000000001
+  }
+ },
+ {
+  "id": "settings:is-my-key-stored-anywhere",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Is my key stored anywhere?",
+  "reply": "The Help notes say you connect me with your own key, a local model or OpenRouter's sign-in. They also say that Settings → ZIGi · your AI turns me off and forgets the key. So the key is kept somewhere on your side while I'm on.\n\nThe notes don't say where or how it is stored. I don't know whether it sits in the browser's storage or elsewhere, and I won't guess. They also say ZIGoals runs no AI service and sees none of our conversation.\n\nFor the exact details, check Settings → ZIGi · your AI. If you'd like to be sure the key is gone, turning ZIGi off there forgets it. I can't do that for you.",
+  "cards": [],
+  "tools": [],
+  "ms": 2513,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:01.978Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 209,
+   "cacheWrite": 227,
+   "cacheRead": 15997,
+   "requests": 1,
+   "costUsd": 0.0042652
+  }
+ },
+ {
+  "id": "settings:what-is-a-context-pack",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "What is a context pack?",
+  "reply": "The Help notes on this page don't mention a context pack, so I can't say what it is from your records. I'd rather not guess at how the app defines it.\n\nThe notes do say that ZIGoals runs no AI service and sees none of our conversation. What I get is the records the app attaches for a page, with your consent, plus the read-only lookups I can make. That may be close to what you're asking about, but I can't confirm the name.\n\nThe Help page or Settings → ZIGi · your AI may explain it. I can open either one for you.",
+  "cards": [],
+  "tools": [],
+  "ms": 2781,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:02.208Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 176,
+   "cacheWrite": 175,
+   "cacheRead": 15746,
+   "requests": 1,
+   "costUsd": 0.0037801
+  }
+ },
+ {
+  "id": "settings:remember-that-i-prefer-kilograms",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Remember that I prefer kilograms",
+  "reply": "The Remember card is below. Confirm it if you'd like it kept in What ZIGi knows about me.\n\n```zigoals-action\n{\"kind\":\"remember\",\"text\":\"I prefer kilograms\",\"category\":\"preferences\"}\n```\n\nIf you'd also like the app to show weight in kilograms, I can propose that setting as a separate card.",
+  "cards": [
+   {
+    "kind": "remember",
+    "title": "Remember this?",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2093,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:04.511Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 107,
+   "cacheWrite": 223,
+   "cacheRead": 16224,
+   "requests": 1,
+   "costUsd": 0.0032579
+  }
+ },
+ {
+  "id": "settings:is-my-key-stored-anywhere",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Is my key stored anywhere?",
+  "reply": "The Help notes say two things that bear on this. ZIGi connects with your key, a local model or OpenRouter's sign-in. And Settings → ZIGi · your AI turns ZIGi off and forgets the key.\n\nSo the app does keep the key for as long as ZIGi is on. The notes don't say where it is kept or how it is protected. I won't guess at that. I also can't see the key myself.\n\nThe notes also don't say whether the key goes into encrypted sync or a backup. If that matters to you, Settings → ZIGi · your AI is the best place to check. I can open it for you.",
+  "cards": [],
+  "tools": [],
+  "ms": 2259,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:05.006Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 202,
+   "cacheWrite": 176,
+   "cacheRead": 15921,
+   "requests": 1,
+   "costUsd": 0.0040601000000000005
+  }
+ },
+ {
+  "id": "settings:export-everything-for-me",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Export everything for me",
+  "reply": "I can't export for you, so I've proposed no card for this. You can do it yourself in Settings. The Help notes describe \"Export everything\" as a readable ZIP of your records. They also list readable exports per area and an optional encrypted backup with its own secret.\n\nI don't know the exact menu path, so look under Settings for the backup and export options.",
+  "cards": [],
+  "tools": [],
+  "ms": 2017,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "refused",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:06.628Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 108,
+   "cacheWrite": 115,
+   "cacheRead": 16447,
+   "requests": 1,
+   "costUsd": 0.0030202
+  }
+ },
+ {
+  "id": "settings:remember-that-i-prefer-kilograms",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Remember that I prefer kilograms",
+  "reply": "I've put that in a card for you to confirm. Once you do, it's kept under What ZIGi knows about me.\n\n```zigoals-action\n{\"kind\":\"remember\",\"text\":\"I prefer kilograms\",\"category\":\"preferences\"}\n```\n\nThis only saves a note about your preference. It doesn't change the weight unit in Health. If you'd like, I can propose that change too.",
+  "cards": [
+   {
+    "kind": "remember",
+    "title": "Remember this?",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2742,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:07.281Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 208,
+   "cacheWrite": 203,
+   "cacheRead": 16097,
+   "requests": 1,
+   "costUsd": 0.0042052
+  }
+ },
+ {
+  "id": "settings:export-everything-for-me",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Export everything for me",
+  "reply": "I can't export anything myself, so you'll need to do this one yourself. The Help notes describe an Export everything option, which gives a readable ZIP. They don't say exactly where it sits, so I'd start in Settings. I can open that page for you if you like.\n\nBackups are separate. An encrypted backup has its own secret, and exports per area are readable files.",
+  "cards": [],
+  "tools": [],
+  "ms": 2273,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "refused",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:10.046Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 113,
+   "cacheWrite": 126,
+   "cacheRead": 16300,
+   "requests": 1,
+   "costUsd": 0.003083
+  }
+ },
+ {
+  "id": "settings:what-can-you-not-do",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "What can you not do?",
+  "reply": "Here is what I can't do, going by the Help notes and how I work.\n\n**Money and wealth**\n- Move money, contribute to a goal, allocate, stake, or connect a wallet. I can only pre-fill a form that you review and save.\n\n**Data and settings**\n- Sync, export or back up your records.\n- Delete anything myself. I can propose a card that opens the app's own confirmation.\n- Turn off Health sharing, or turn myself off. Both are in Settings.\n- Undo or change what I've added. Those entries are listed in Activity → Actions by ZIGi, where you can undo them.\n\n**Records**\n- Write anything without your tap. Everything I propose is a card that you confirm or dismiss.\n- Read records that aren't shared with me. If Health sharing is off, I can't see your Health records.\n- Invent numbers. If your records don't hold an answer, I say I don't know.\n\n**Advice**\n- Give medical, dietary, financial or investment advice. I describe your records, dates and counts, and what the app can do.\n\n**Fasting**\n- Set the fasting timer outside 12 to 18 hours.\n\nI also can't see anything outside what ZIGoals attaches to this chat, or what I look up with my read-only tools.\n\nIf you'd like, I can take one small step now, such as proposing the kilogram setting for your weight.",
+  "cards": [],
+  "tools": [],
+  "ms": 4020,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:08.662Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 445,
+   "cacheWrite": 116,
+   "cacheRead": 16562,
+   "requests": 1,
+   "costUsd": 0.0064042
+  }
+ },
+ {
+  "id": "settings:which-model-are-you",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Which model are you?",
+  "reply": "I don't know which model I am. The Help notes say I run on your own AI provider, connected with your key, a local model or OpenRouter's sign-in. The label under my answers reads \"Answer from your AI (Anthropic), not from ZIGoals\", so the provider appears to be Anthropic. That tells me the provider, not the model name or version.\n\nFor the exact model, look in Settings → ZIGi · your AI, or in your provider's own account page.",
+  "cards": [],
+  "tools": [],
+  "ms": 2604,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:12.699Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 143,
+   "cacheWrite": 440,
+   "cacheRead": 16678,
+   "requests": 1,
+   "costUsd": 0.0042058
+  }
+ },
+ {
+  "id": "settings:what-can-you-not-do",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "What can you not do?",
+  "reply": "Here is what I can't do, from the Help notes and how I'm set up:\n\n- **Move money.** I can't contribute, allocate, stake or connect a wallet. At most I can pre-fill a form that you review and save.\n- **Sync, export or back up.** Those are yours to start.\n- **Change settings.** That includes turning Health sharing or ZIGi off.\n- **Delete or undo anything myself.** I can propose a delete card that opens the app's own confirmation. Anything I added is listed in Activity → Actions by ZIGi, where you can undo it.\n- **Write anything without your tap.** Every record I propose is a card that you confirm or dismiss.\n- **Give medical, dietary, financial or investment advice.** I can describe your own records, dates and counts.\n- **Invent numbers.** If a value is unknown, I'll say so. I won't estimate prices, rates or nutrients.\n- **See beyond what's attached.** I read only the records the app attaches and the read-only lookups, and ZIGoals sees none of this conversation.\n\nI also slipped earlier in this chat, when I listed habits that weren't in the page records. I'm sorry about that. I can look up your real ones if you ask.",
+  "cards": [],
+  "tools": [],
+  "ms": 3786,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:12.339Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 406,
+   "cacheWrite": 121,
+   "cacheRead": 16426,
+   "requests": 1,
+   "costUsd": 0.0060131
+  }
+ },
+ {
+  "id": "settings:how-do-i-change-the-daily-cap-for-auto-a",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "How do I change the daily cap for auto-accept?",
+  "reply": "I don't know of a daily cap for auto-accept. The Help notes I have say I propose cards that you confirm or dismiss, and nothing is written until you tap. They don't mention auto-accept or a cap on it, so I won't guess at a setting.\n\nIf you saw it in the app, Settings → ZIGi · your AI is the likeliest place to look. I can't change settings myself.\n\nWhere did you come across it? I can try to work out more from there.",
+  "cards": [],
+  "tools": [],
+  "ms": 2277,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:15.322Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 143,
+   "cacheWrite": 161,
+   "cacheRead": 17118,
+   "requests": 1,
+   "costUsd": 0.0035523
+  }
+ },
+ {
+  "id": "settings:which-model-are-you",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Which model are you?",
+  "reply": "I don't know which model I am. The Help notes say only that ZIGi runs on your own AI, connected with your key, a local model or OpenRouter's sign-in. They don't name a model.\n\nEach answer is labelled in the app as \"Answer from your AI (Anthropic), not from ZIGoals.\" That label names the provider, not the model version.\n\nSettings → ZIGi · your AI should show how you connected it. I can open that page for you if you like.",
+  "cards": [],
+  "tools": [],
+  "ms": 2022,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:16.146Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 143,
+   "cacheWrite": 401,
+   "cacheRead": 16547,
+   "requests": 1,
+   "costUsd": 0.0040952
+  }
+ },
+ {
+  "id": "settings:log-a-glass-of-water",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "settings",
+  "ask": "Log a glass of water",
+  "reply": "Here is the card for one glass of water.\n\nYour records show 750 mL on 2026-10-04 and no water entry yet today in the Health journal. Your Drink water habit is at 4 glasses today. A water entry and a habit check-in are separate records, so I've only proposed the water entry.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2011,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:17.614Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 121,
+   "cacheWrite": 3047,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.010328799999999999
+  }
+ },
+ {
+  "id": "settings:how-do-i-change-the-daily-cap-for-auto-a",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "How do I change the daily cap for auto-accept?",
+  "reply": "I don't know of a daily cap for auto-accept. The Help notes on this page don't mention one. They say only that every record I propose is a card that you confirm or dismiss, and nothing is written until you do.\n\nIf the app has such a setting, Settings → ZIGi · your AI is the most likely place to look. I can't change settings myself, but I can open that page for you if you like.",
+  "cards": [],
+  "tools": [],
+  "ms": 2021,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:18.188Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 119,
+   "cacheWrite": 161,
+   "cacheRead": 16948,
+   "requests": 1,
+   "costUsd": 0.0032953
+  }
+ },
+ {
+  "id": "settings:log-a-glass-of-water",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "settings",
+  "ask": "Log a glass of water",
+  "reply": "Here is a card for one glass of water. It adds 250 mL to today once you confirm.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":1}\n```\n\nYour records for this month show Drink water at 4 glasses today, and the Health journal shows no water logged for today. They're two separate records, so a glass here adds to the Health water log only.",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2010,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:20.227Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 115,
+   "cacheWrite": 2853,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.009783799999999999
+  }
+ },
+ {
+  "id": "help:how-do-i-install-this-on-my-iphone",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "How do I install this on my iPhone?",
+  "reply": "The Help notes I have don't cover installing on an iPhone, so I can't give you exact steps. I don't want to guess.\n\nHere is what the notes do say. ZIGoals keeps its records on the device, in the browser. That suggests you use it as a web app in Safari. It's only a hint, not a confirmed install route.\n\nIf you want to be sure, open the Help page in the app. Its install steps will be there if the app has them. Your records stay in that browser. If you want them on more than one device, encrypted sync is optional, and you turn it on in the app.\n\nWould you like me to open the Help page for you?\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"help\"}\n```",
+  "cards": [
+   {
+    "kind": "open-page",
+    "title": "Open Help",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2999,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": false,
+     "detail": "open-page"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:20.671Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 231,
+   "cacheWrite": 232,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.0043913
+  }
+ },
+ {
+  "id": "help:how-do-i-install-this-on-my-iphone",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "How do I install this on my iPhone?",
+  "reply": "The Help notes I have don't cover installing on an iPhone, so I can't give you exact steps. I don't want to guess.\n\nHere is what the notes do say. ZIGoals keeps its records on the device, in the browser. That suggests you use it as a web app in Safari. The notes don't state it outright, though.\n\nIf you open it in Safari, the share button has an \"Add to Home Screen\" option. That is Safari's own feature, not something the notes describe. I can't say how ZIGoals behaves once you add it.\n\nTwo things matter if you move between devices:\n- Records live in the browser on that device. A different browser or phone starts empty unless you turn on encrypted sync or restore a backup.\n- Encrypted sync is optional. Only your recovery secret unlocks the data, so keep it safe. Signing in with an email code doesn't recover it.\n\nYou can check Settings or the Help page in the app for the current install steps. Would you like me to open Help for you?",
+  "cards": [],
+  "tools": [],
+  "ms": 3793,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:23.344Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 318,
+   "cacheWrite": 0,
+   "cacheRead": 15165,
+   "requests": 1,
+   "costUsd": 0.0047045
+  }
+ },
+ {
+  "id": "help:what-does-zigi-know-about-me",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "What does ZIGi know about me?",
+  "reply": "On this page I only have the Help notes about how ZIGoals works. No personal records are attached, and I have no tool here to read your saved notes. So I can't tell you what is stored about you.\n\n- **Saved notes:** When you tell me something lasting about yourself, I can offer a \"Remember this?\" card. Nothing is kept unless you confirm it. The kept notes are listed in the app under What ZIGi knows about me.\n- **Your records:** I can look up your habits, goals, wealth and Health (only if you share it) when you ask a question that needs them. I say which records I used.\n- **Conversation:** ZIGoals sees none of this conversation. It runs on your own AI provider.\n\nIf you'd like, ask me about a specific area, such as your habits or goals, and I'll read it from your records.",
+  "cards": [],
+  "tools": [],
+  "ms": 4504,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:23.690Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 428,
+   "cacheWrite": 231,
+   "cacheRead": 15165,
+   "requests": 1,
+   "costUsd": 0.006382
+  }
+ },
+ {
+  "id": "help:is-this-medical-advice",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "Is this medical advice?",
+  "reply": "No. ZIGi gives no medical, dietary, financial or investment advice.\n\nWhat I do is describe your own records: your dates, counts and totals. I can also propose entries as cards, which you confirm or dismiss. Nothing is written until you tap.\n\nFor health questions, a doctor or a registered dietitian is the right person. For money decisions, a qualified financial adviser is.\n\nAlso, I'm your own AI, connected with your key. My answers come from your AI provider, not from ZIGoals.",
+  "cards": [],
+  "tools": [],
+  "ms": 1995,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:28.211Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 159,
+   "cacheWrite": 266,
+   "cacheRead": 15396,
+   "requests": 1,
+   "costUsd": 0.0038026
+  }
+ },
+ {
+  "id": "help:what-does-zigi-know-about-me",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "What does ZIGi know about me?",
+  "reply": "On this page I only have the Help notes about how the app works. Nothing personal is attached, so I know nothing about you from this page.\n\n\"What ZIGi knows about me\" is a list of things you chose to keep, such as a goal or a preference. I can't read that list from here, so I can't tell you what's on it. I don't want to guess.\n\nI can look up your habits, goals, wealth and, if you share it, Health. I only do that when a question needs it, and I say which records I used. I only keep something about you when you ask me to or state it plainly, and you confirm it on a card first.\n\nWould you like me to open Settings so you can review that list?",
+  "cards": [],
+  "tools": [],
+  "ms": 4055,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:27.155Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 397,
+   "cacheWrite": 318,
+   "cacheRead": 15165,
+   "requests": 1,
+   "costUsd": 0.0062895
+  }
+ },
+ {
+  "id": "help:how-do-i-back-up-my-data",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "How do I back up my data?",
+  "reply": "The Help notes describe three optional ways to keep a copy of your data:\n\n- **Encrypted backup:** It has its own secret. You choose it, and you need it to restore.\n- **Readable exports per area:** One export for each part of the app, such as goals or habits.\n- **Export everything:** A readable ZIP with all your records.\n\nYour records live on this device, in the browser. If you clear the browser's data, they can go with it unless you have a backup. Encrypted sync is a separate option, and it is not recovery. Only the recovery secret unlocks synced data.\n\nI can't run a backup or an export myself. You start them in the app. The notes don't say which menu holds them, so the Help page or Settings is the place to look.\n\nWould you like me to open Settings?\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\"}\n```",
+  "cards": [
+   {
+    "kind": "open-page",
+    "title": "Open Settings",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3485,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": false,
+     "detail": "open-page"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:30.224Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 269,
+   "cacheWrite": 169,
+   "cacheRead": 15662,
+   "requests": 1,
+   "costUsd": 0.0046867
+  }
+ },
+ {
+  "id": "help:is-this-medical-advice",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "Is this medical advice?",
+  "reply": "No. ZIGi gives no medical, dietary, financial or investment advice. I describe your own records, their dates and counts, and what the app can do.\n\nIf you ask about your health numbers, I can read them back to you, such as weight, sleep or water. I can't tell you what they mean for your body or what you should do about them. For that, a doctor or a registered dietitian is the right person.\n\nThe same goes for money. I can show what you hold and what you've saved toward a goal. I won't tell you what to buy, sell or save.\n\nAlso, I'm your own AI, connected with your key. I'm not a ZIGoals service. Each answer is labelled with your provider's name.",
+  "cards": [],
+  "tools": [],
+  "ms": 2603,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:31.228Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 209,
+   "cacheWrite": 208,
+   "cacheRead": 15483,
+   "requests": 1,
+   "costUsd": 0.0041663
+  }
+ },
+ {
+  "id": "help:what-happens-if-i-lose-my-recovery-secre",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "What happens if I lose my recovery secret?",
+  "reply": "The Help notes say that signing in with an email code is not recovery. Only the recovery secret unlocks your synced data. The server keeps the data encrypted and can't read it.\n\nFrom that, I'd expect that without the secret the synced copy can't be opened, and ZIGoals can't open it for you. The notes don't spell out every case, so I can't say what the app offers beyond that.\n\nTwo things may help:\n\n- **Your device copy:** Your records also live on this device, in the browser. As long as that stays intact, they are still there.\n- **A readable export:** \"Export everything\" gives you a readable ZIP that doesn't need the secret. Making one now is a safe small step.\n\nThe encrypted backup has its own secret too, so keep that one somewhere safe as well.\n\nI can't start an export myself. You do it in the app. Would you like me to open Settings?",
+  "cards": [],
+  "tools": [],
+  "ms": 2755,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:33.727Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 269,
+   "cacheWrite": 285,
+   "cacheRead": 15831,
+   "requests": 1,
+   "costUsd": 0.0049936
+  }
+ },
+ {
+  "id": "help:how-do-i-back-up-my-data",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "How do I back up my data?",
+  "reply": "The Help notes describe three optional ways to back up your data:\n\n- **Encrypted backup.** It has its own secret, separate from your sign-in.\n- **Readable exports per area.** You export one area at a time, such as habits or health.\n- **Export everything.** This gives you a readable ZIP of all your records.\n\nYour records live on this device, in the browser. Without a backup or encrypted sync, they exist only here.\n\nI can't start a backup or export for you. I can't sync or change settings either. You would do it yourself in the app. The notes don't say which screen holds these options, so I can't point you to an exact spot. Settings or Help is the likely place to look.\n\nKeep any backup secret somewhere safe. The notes say only the secret unlocks the data.\n\nWould you like me to open Settings or Help?",
+  "cards": [],
+  "tools": [],
+  "ms": 3271,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:33.854Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 255,
+   "cacheWrite": 219,
+   "cacheRead": 15691,
+   "requests": 1,
+   "costUsd": 0.0046746
+  }
+ },
+ {
+  "id": "help:can-zigi-move-money",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "Can ZIGi move money?",
+  "reply": "No. ZIGi can never move money, contribute, allocate, stake, connect a wallet, sync, export or delete. Those actions stay with you, in the app.\n\nWhat I can do is propose a pre-fill. For example, I can fill in a goal's Fund form with an amount, and you review it and save it yourself. Nothing is recorded until you do.\n\nWealth is a record of what you hold, not a bank link. The Alpha also runs on a test network, so nothing in it is real money. Staking is read-only, a watch view.",
+  "cards": [],
+  "tools": [],
+  "ms": 2496,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:36.498Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 168,
+   "cacheWrite": 281,
+   "cacheRead": 16116,
+   "requests": 1,
+   "costUsd": 0.004002100000000001
+  }
+ },
+ {
+  "id": "help:what-happens-if-i-lose-my-recovery-secre",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "What happens if I lose my recovery secret?",
+  "reply": "The Help notes say only the recovery secret unlocks your encrypted data. Signing in with an email code is not recovery. The server stores the data encrypted and can't read it.\n\nSo if you lose the secret, the notes give no way to unlock the synced data. The notes don't say what happens beyond that, and I don't want to guess. ZIGoals can't read your records for you.\n\nYour records also live on the device, in the browser. If that device still has them, they are still there. A readable export, such as Export everything, doesn't depend on the secret. That's a reasonable thing to have on hand, though the notes don't spell out all the details.\n\nA small next step: store the secret somewhere safe, away from the device. Would you like me to open Help so you can read the exact wording?",
+  "cards": [],
+  "tools": [],
+  "ms": 2781,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:37.142Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 237,
+   "cacheWrite": 271,
+   "cacheRead": 15910,
+   "requests": 1,
+   "costUsd": 0.0046465
+  }
+ },
+ {
+  "id": "help:how-do-i-report-a-bug",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "How do I report a bug?",
+  "reply": "The Help notes I have don't say how to report a bug, so I can't give you a route. I don't want to invent one.\n\nHere is where it may be listed:\n\n- **Help page:** If the app has a contact or feedback route, it is likely there.\n- **Settings:** Some apps keep it there. I can't confirm that for this one.\n\nOne thing to know: ZIGoals sees none of this conversation. If you report something, describe it in your own words. Say what you did, what you expected and what happened.\n\nWould you like me to open the Help page?\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"help\"}\n```",
+  "cards": [
+   {
+    "kind": "open-page",
+    "title": "Open Help",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2776,
+  "score": {
+   "pass": false,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": false,
+     "detail": "open-page"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:39.015Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 193,
+   "cacheWrite": 178,
+   "cacheRead": 16397,
+   "requests": 1,
+   "costUsd": 0.0040227
+  }
+ },
+ {
+  "id": "help:can-zigi-move-money",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "Can ZIGi move money?",
+  "reply": "No. I can never move money, contribute to a goal, allocate, stake, connect a wallet, sync, export or delete. That is how the Help notes describe me.\n\nWhat I can do is propose a card for some things, and you confirm or dismiss it. For money, the most I can do is pre-fill a form, such as a goal's Fund form or an account balance. Nothing is saved until you complete it and save it yourself.\n\nWealth in ZIGoals is tracking only. Staking is read-only. The Alpha also runs on a test network, so nothing in it is real money.\n\nIf you'd like, I can read back what a goal holds, or pre-fill a form for you to review.",
+  "cards": [],
+  "tools": [],
+  "ms": 2737,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:39.942Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 223,
+   "cacheWrite": 249,
+   "cacheRead": 16181,
+   "requests": 1,
+   "costUsd": 0.0044786
+  }
+ },
+ {
+  "id": "help:log-2-glasses-of-water",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "Log 2 glasses of water",
+  "reply": "Here is a card for 2 glasses of water, which is 500 mL. It is only logged once you confirm it.\n\nYour records show 4 glasses on the Drink water habit today. Your Health journal shows no water on 2026-10-05 so far. These are two separate records. This card adds to the Health water log and does not change the habit check-in.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2276,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:41.811Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 135,
+   "cacheWrite": 2396,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.0088413
+  }
+ },
+ {
+  "id": "help:how-do-i-report-a-bug",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "How do I report a bug?",
+  "reply": "The Help notes I have don't say how to report a bug, so I don't know the official way. I won't invent an address or a link.\n\nA few things may help:\n- Help or Settings in the app is the likely place to find a contact or feedback option. That is a guess, not something the notes state.\n- ZIGoals doesn't see our conversation. ZIGi runs on your own AI, so nothing I say reaches the team. Describing the bug to me won't report it.\n- When you do report it, note what you did, what you expected and what happened. Leave out secrets such as your recovery secret.\n\nI can open Help for you to look. Would you like that?",
+  "cards": [],
+  "tools": [],
+  "ms": 2864,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:42.696Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 197,
+   "cacheWrite": 220,
+   "cacheRead": 16430,
+   "requests": 1,
+   "costUsd": 0.004171
+  }
+ },
+ {
+  "id": "help:log-2-glasses-of-water",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "Log 2 glasses of water",
+  "reply": "Here is a card for 2 glasses. Tap to confirm, or dismiss it.\n\nYour records show 750 mL of water on 2026-10-04 and none yet today. Your Drink water habit (h1) shows 4 glasses today. This card adds to the Health water log. It doesn't change the habit's check-in.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2342,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:45.578Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 146,
+   "cacheWrite": 2475,
+   "cacheRead": 14933,
+   "requests": 1,
+   "costUsd": 0.009148799999999999
+  }
+ },
+ {
+  "id": "help:what-is-the-difference-between-showcase-",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "What is the difference between Showcase and my records?",
+  "reply": "The Help notes I have don't mention Showcase, so I don't know what it is. I won't guess. The Help page in the app is the place to check. If you tell me where you saw it, I can help you read it.\n\nI also need to correct my last answer. I said your records show 4 glasses on the Drink water habit and no water in Health today. I hadn't looked at any records, so I shouldn't have said that. The water card is still valid, and it only adds 2 glasses (500 mL) once you confirm it. I can look up your real water and habit records if you'd like.\n\nYour own records are the ones kept on this device, in the browser. They are the ones I read when you ask a question about them.",
+  "cards": [],
+  "tools": [],
+  "ms": 4036,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:44.107Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 400,
+   "cacheWrite": 356,
+   "cacheRead": 16575,
+   "requests": 1,
+   "costUsd": 0.0065555
+  }
+ },
+ {
+  "id": "help:summarise-help-in-three-lines",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "help",
+  "ask": "Summarise Help in three lines",
+  "reply": "- **Private by default:** Your records stay on this device, in the browser. Encrypted sync is optional, and only your recovery secret unlocks synced data. Health syncs only after a separate opt-in.\n- **How it fits together:** Goals, habits and Health (diary, water, weight, steps, fasting) are kept as your own records. Wealth shows one total per currency and never converts them. The Alpha runs on a test network, so nothing is real money.\n- **ZIGi:** I'm your own AI, connected with your key. I propose cards you confirm, and I can never move money, sync, export or delete. Backups are optional: an encrypted one, exports per area, or a readable ZIP.",
+  "cards": [],
+  "tools": [],
+  "ms": 2742,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:48.158Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 223,
+   "cacheWrite": 222,
+   "cacheRead": 16931,
+   "requests": 1,
+   "costUsd": 0.004486100000000001
+  }
+ },
+ {
+  "id": "help:what-is-the-difference-between-showcase-",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "What is the difference between Showcase and my records?",
+  "reply": "The Help notes I have don't mention \"Showcase\", so I don't know what it is. I can guess it's sample or demo content, but that would be a guess. What I can say is that your records are the ones kept on this device, in the browser. They are what I read, and only when a question needs them.\n\nI also need to correct my last answer. I said your records showed 750 mL of water yesterday and 4 glasses on a habit today. I hadn't looked anything up, and this page has no records attached. Please ignore those figures. The card for 2 glasses is still fine to confirm or dismiss. If you want the real numbers, I can look up your water log.\n\nWould you like me to open Help so you can see what it says about Showcase?",
+  "cards": [],
+  "tools": [],
+  "ms": 4337,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:47.943Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 454,
+   "cacheWrite": 356,
+   "cacheRead": 16650,
+   "requests": 1,
+   "costUsd": 0.007103
+  }
+ },
+ {
+  "id": "help:summarise-help-in-three-lines",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "mobile",
+  "page": "help",
+  "ask": "Summarise Help in three lines",
+  "reply": "Here is the Help page in three lines:\n\n1. Everything stays on your device, in the browser. Encrypted sync is optional, and only your recovery secret unlocks synced data. Health syncs only after a separate opt-in.\n2. Goals, habits and Health (diary, water, weight, steps, fasting) feed your progress. Wealth shows one total per currency and never converts. Portfolio is separate, and Staking is read-only.\n3. ZIGi is your own AI, not a ZIGoals service. I propose cards you confirm, and I can't move money, sync, export or delete. Backups are optional, and the Alpha runs on a test network, so nothing is real money.\n\nWould you like detail on any of these?",
+  "cards": [],
+  "tools": [],
+  "ms": 2860,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "replied",
+     "pass": true
+    },
+    {
+     "name": "nothing raw shown",
+     "pass": true
+    },
+    {
+     "name": "no card",
+     "pass": true,
+     "detail": ""
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:22:52.295Z",
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 4,
+   "output": 243,
+   "cacheWrite": 233,
+   "cacheRead": 17006,
+   "requests": 1,
+   "costUsd": 0.004721100000000001
+  }
  }
 ]

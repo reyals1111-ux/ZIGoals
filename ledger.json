@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 64.27074612749998,
+ "total": 66.59468562749998,
  "byModel": {
   "claude-haiku-5-5": 2.459016177499999,
-  "claude-sonnet-5-5": 29.33142714999999,
+  "claude-sonnet-5-5": 31.655366649999987,
   "claude-opus-5-5": 32.48030279999999
  },
  "rows": [
@@ -191,6 +191,19 @@
    "files": 0
   },
   {
+   "stage": "real-model/ui-pages-sonnet",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "requests": 362,
+   "input": 1306,
+   "cacheWrite": 353960,
+   "cacheRead": 5566075,
+   "output": 87982,
+   "usd": 2.3239394999999994,
+   "unreported": 0,
+   "files": 0
+  },
+  {
    "stage": "real-model/ui-panel-haiku",
    "model": "claude-haiku-5-5",
    "batch": false,
@@ -358,6 +371,11 @@
    "turns": 30
   },
   {
+   "file": "real-model/ui-pages-sonnet/pages-claude-sonnet-5-5.json",
+   "model": "panel",
+   "turns": 296
+  },
+  {
    "file": "real-model/ui-panel-haiku/ui-claude-haiku-5-5.json",
    "model": "panel",
    "turns": 122
@@ -398,5 +416,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-10T19:13:45.651Z"
+ "rebuiltAt": "2026-10-10T19:22:57.209Z"
 }
