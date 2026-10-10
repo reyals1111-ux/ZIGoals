@@ -12,8 +12,8 @@
   "cases": 626,
   "repeat": 1,
   "runs": 773,
-  "passed": 597,
-  "rate": 0.7723156532988357,
+  "passed": 594,
+  "rate": 0.7684346701164295,
   "byKind": {
    "lookup": {
     "passed": 117,
@@ -74,7 +74,7 @@
   "costUsd": 5.9370882,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T17:32:33.813Z"
+  "rescoredAt": "2026-10-10T18:30:12.399Z"
  },
  "runs": [
   {
@@ -3891,12 +3891,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [delete-record], got []"
     },
     {
      "name": "schema",
@@ -3909,9 +3909,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": true,
-     "detail": "refused in words"
+     "name": "fields:kind=delete-record,what=habit",
+     "pass": false,
+     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -24046,12 +24046,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [set-habit-state], got []"
     },
     {
      "name": "schema",
@@ -24064,9 +24064,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": true,
-     "detail": "refused in words"
+     "name": "fields:kind=set-habit-state,state=archived",
+     "pass": false,
+     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -24340,12 +24340,12 @@
    "area": "habits",
    "lang": "nl",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [delete-record], got []"
     },
     {
      "name": "schema",
@@ -24358,9 +24358,9 @@
      "detail": "every call accepted"
     },
     {
-     "name": "refusal",
-     "pass": true,
-     "detail": "refused in words"
+     "name": "fields:kind=delete-record,what=habit",
+     "pass": false,
+     "detail": "no card"
     }
    ],
    "cards": 0,
