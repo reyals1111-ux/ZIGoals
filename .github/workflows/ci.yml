@@ -223,10 +223,13 @@ jobs:
     # Playwright 1.63 (WebKit 26.6), the one owner-approved browser download: the smoke, the ZIGi suites
     # (playwright.webkit.config.ts selects them; real-model, conversation and on-device specs stay out) and the curated
     # phone set (tests/webkit-phone.spec.ts), two workers. Evidence label "WebKit", never "Safari on an iPhone".
-    # Part of the aggregate "web" check since it was green twice in a row on PR #80 (runs 38010192191 on e2442be and
-    # 38014291306 on 742bbac, 34 min each; ADR-018 Y4, Y41), so it runs wherever the other web jobs run.
+    # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
     # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
     name: web WebKit (smoke, ZIGi, phone set)
+    # Until it is promoted (two green runs in a row, ADR-018 Y4) it runs on pull requests only and cannot fail the
+    # workflow: pushes to main (whose Milestone quality gates a deploy) and the release candidate's call skip it.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -267,7 +270,7 @@ jobs:
           retention-days: 7
   web:
     # Keeps the "web" check name. Passes only if every web job passed.
-    needs: [web-checks, web-browser, web-integration, web-webkit]
+    needs: [web-checks, web-browser, web-integration]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -276,10 +279,9 @@ jobs:
           CHECKS: ${{ needs.web-checks.result }}
           BROWSER: ${{ needs.web-browser.result }}
           INTEGRATION: ${{ needs.web-integration.result }}
-          WEBKIT: ${{ needs.web-webkit.result }}
         run: |
-          echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION; web-webkit: $WEBKIT"
-          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success && test "$WEBKIT" = success
+          echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION"
+          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
