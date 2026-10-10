@@ -226,6 +226,10 @@ jobs:
     # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
     # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
     name: web WebKit (smoke, ZIGi, phone set)
+    # Until it is promoted (two green runs in a row, ADR-018 Y4) it runs on pull requests only and cannot fail the
+    # workflow: pushes to main (whose Milestone quality gates a deploy) and the release candidate's call skip it.
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
