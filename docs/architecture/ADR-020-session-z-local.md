@@ -155,6 +155,12 @@ EN and NL did not regress (EN +1.0 pt, NL +4.0 pt). The "after" run also carries
 theirs as much as the removal's; the claim of L7 is only that nothing was lost, and the rows say so. The raw files are
 `real-model/fr-before/` and `real-model/fr-after/` on the runs branch.
 
+**Known gap (owner edit 9, recorded 2026-10-10):** the held-out spoken corpus (557 cases from 188 seeds) has no case for
+`create-food`, `log-meal-plan` and `plan-goal`; every other kind and, after the sixteen cases added in Part 6, every navigation
+page has spoken EN and NL cases (the golden-spoken set at 413). A top-up batch for those three kinds is a few cents of Opus and
+a `rebuild`; it was not run mid-session because the Part 6 chains read `corpus-spoken.ts` at their start and the held-out split
+must stay the same across the runs it compares.
+
 ## Independent security read after Part 5 (owner edit 1, 2026-10-10)
 One read-only agent reviewed the key handling (the sweep, the ledger and summariser, the browser helpers and the
 Anthropic config, the harness, the adapter, the stage scripts and logs, both branch histories). **No key was found in
