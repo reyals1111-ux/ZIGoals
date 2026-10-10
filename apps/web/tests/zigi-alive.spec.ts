@@ -198,8 +198,12 @@ test('idle that feels alive: under Full a variation plays now and then (never tw
   const zigi = page.locator('.ai-launcher-button .zigi');
   const variant = () => zigi.evaluate(el => el.hasAttribute('data-variant'));
   const src = () => figure(page).evaluate(el => (el as HTMLImageElement).currentSrc.split('/').pop());
-  /** Advances the clock a second at a time until the figure shows (or stops showing) a variation; returns the clip then. */
-  const advanceUntil = async (want: boolean, maxMs: number) => { for (let t = 0; t < maxMs; t += 1000) { if ((await variant()) === want) return src(); await page.clock.runFor(1000); } return null; };
+  /**
+   * Advances the clock a second at a time until the figure shows (or stops showing) a variation; returns the file then.
+   * The variation swaps the poster (with its srcset) for the clip in one render, and the browser reports the new file
+   * only once it has selected it (CI run 38016733216 read "" in between), so the file is read once it is reported.
+   */
+  const advanceUntil = async (want: boolean, maxMs: number) => { for (let t = 0; t < maxMs; t += 1000) { if ((await variant()) === want) { await expect.poll(src).not.toBe(''); return src(); } await page.clock.runFor(1000); } return null; };
   const never = async (ms: number) => { for (let t = 0; t < ms; t += 1000) { expect(await variant(), `at +${t} ms`).toBe(false); await page.clock.runFor(1000); } };
   await expect.poll(() => figure(page).evaluate(el => el.getAttribute('data-playing') !== null), {timeout: 10_000}).toBe(true);
   expect(await variant()).toBe(false);
