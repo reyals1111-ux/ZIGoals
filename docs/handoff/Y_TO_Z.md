@@ -72,5 +72,13 @@ lane, and the API-key one (owner edit 5). Details and evidence: `docs/verificati
 - **Shared items Y changed:** What's new is release `2026-10-session-y` with four links; X-Local's links are first under
   "Earlier updates" (`components/for-you/whats-new-card.tsx`). Help has four `#help-y-*` answers under "Good to know
   about the Alpha". If Z lands second and adds its own release, fold Y's links under "Earlier updates" the same way.
-- **CI:** the `web-webkit` job was green twice in a row on PR #80 and is now part of the required `web` check (ADR-018
-  Y4, Y39, Y41): a ZIGi change that breaks in WebKit now blocks `web`.
+- **CI:** the `web-webkit` job was green twice in a row on PR #80, promoted, and withdrawn after the next run (ADR-018
+  Y41, Y42): it is advisory again (pull requests only, `continue-on-error`).
+- **High priority for ZIGi's lane (WebKit, so Safari):** `tests/zigi-auto-accept.spec.ts` failed twice in four WebKit
+  runs. Run 38016733216 on `4245c91` (`:42`, desktop): after the Undo and a second message ("Another 300 ml"), the
+  page stopped answering for the rest of the test (a 5 s check ran into the 45 s limit; the last screencast frame shows
+  the message still in the composer, the request already answered). Run on `df436a1` (`:73`, phone): Send stayed
+  disabled. Chrome passes both on every run. Traces: the `web-webkit-*` artifact of run 38016733216 (kept until
+  2026-10-17). Not reproducible in Session Y's sandbox (no WebKit). Candidates to look at first: the send path after an
+  auto-accepted card was undone in the same chat (`proposal-list.tsx` `claimAuto`/`reserve`, `use-chat-session.ts`
+  `claimFresh`), and anything that loops on layout in the chat log ("Jump to the latest message").
