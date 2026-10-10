@@ -15,7 +15,7 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (26 files
 | real-model/corpus | claude-sonnet-5-5 | 1,760 | 6,628 | 2,231,286 | 21,218,254 | 416,088 | 11.8742 |
 | real-model/probe | claude-sonnet-5-5 | 44 | 172 | 118,410 | 465,980 | 11,970 | 0.4627 |
 | real-model/ui-conv-haiku | claude-haiku-5-5 | 31 | 122 | 77,129 | 412,017 | 4,375 | 0.0160 |
-| real-model/ui-conv-opus | claude-opus-5-5 | 26 | 104 | 75,350 | 336,873 | 4,082 | 0.5262 |
+| real-model/ui-conv-opus | claude-opus-5-5 | 30 | 120 | 77,294 | 396,341 | 4,475 | 0.5557 |
 | real-model/ui-conv-sonnet | claude-sonnet-5-5 | 30 | 120 | 77,299 | 396,341 | 3,286 | 0.2660 |
 | real-model/ui-panel-haiku | claude-haiku-5-5 | 130 | 502 | 211,425 | 1,853,180 | 48,331 | 0.0692 |
 | real-model/ui-panel-opus | claude-opus-5-5 | 43 | 172 | 121,164 | 559,467 | 12,599 | 0.9704 |
@@ -23,6 +23,6 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (26 files
 | real-model/variance | claude-sonnet-5-5 | 1,416 | 5,348 | 2,209,062 | 20,336,576 | 382,358 | 11.3906 |
 | spoken/gen | claude-opus-5-5 (batch) | 188 | 133,035 | 0 | 0 | 103,574 | 1.3018 |
 
-**Per model:** claude-haiku-5-5 $2.46 · claude-sonnet-5-5 $28.88 · claude-opus-5-5 $21.08
+**Per model:** claude-haiku-5-5 $2.46 · claude-sonnet-5-5 $28.88 · claude-opus-5-5 $21.11
 
-**Total: $52.42 of $130.**
+**Total: $52.45 of $130.**

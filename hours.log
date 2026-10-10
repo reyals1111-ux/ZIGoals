@@ -80,3 +80,5 @@ START fr-after-gemma4 2026-10-10T19:09:55Z
 END ui-ui-conv-haiku 2026-10-10T19:10:32Z rc=0
 START ui-ui-conv-opus 2026-10-10T19:10:36Z
 END part2-opus-all 2026-10-10T19:12:21Z rc=0
+END part2-part3-chain 2026-10-10T19:12:24Z rc=0
+END ui-ui-conv-opus 2026-10-10T19:12:29Z rc=0

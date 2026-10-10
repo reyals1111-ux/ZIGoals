@@ -1064,5 +1064,169 @@
    "requests": 2,
    "costUsd": 0.017619
   }
+ },
+ {
+  "id": "reminder-time",
+  "model": "claude-opus-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "Changed to 07:30. This new card replaces the earlier one.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5333,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:12:16.317Z",
+  "steps": {
+   "plan": {
+    "ms": 2529,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A daily reminder for Meditate (h4) at 07:00. It rings every day at that time.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```"
+   },
+   "correct": {
+    "ms": 2804,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Changed to 07:30. This new card replaces the earlier one.\n\n```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-opus-5-5",
+   "input": 8,
+   "output": 162,
+   "cacheWrite": 917,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0138038
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "claude-opus-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "I've changed the draft to 21 days for Read (h1). This card replaces the 14-day one.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5866,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:12:22.877Z",
+  "steps": {
+   "plan": {
+    "ms": 3304,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've drafted a 14-day challenge for Read (h1). It would run from today until 14 days from now. You don't have a challenge running at the moment, and Read is already done for today with 30 minutes logged.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```"
+   },
+   "correct": {
+    "ms": 2562,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've changed the draft to 21 days for Read (h1). This card replaces the 14-day one.\n\n```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-opus-5-5",
+   "input": 8,
+   "output": 231,
+   "cacheWrite": 1027,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0157338
+  }
  }
 ]
