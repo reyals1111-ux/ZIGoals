@@ -72,3 +72,21 @@ STATUS) are carried by whichever PR merges second, with a merge commit.
   person's own prices (ADR-014), with one new control "Fill in the published prices (as of 2026-10-10)" that writes
   `publishedPrices(model)` into their price fields for Anthropic's three models. The estimate counts cached tokens at the
   person's input price (a ceiling; L9).
+
+## 2026-10-10 — Part 1: the WebKit freeze (ADR-018 Y42), where it stands
+- **Not reproducible on the Mac's WebKit 26.6, production build:** `zigi-auto-accept.spec.ts:42` (desktop) 30 of 30 and
+  `:73` (phone) 30 of 30 alone; both 24 of 24 each under eight concurrent WebKit pages; the whole ZIGi suite in WebKit
+  twice: 347 passed, 51 skipped, 0 failed, each run 11.3 min (the second on the build with Part 3 in it). CI's one trace
+  (run 38016733216) says the page still answered a DOM snapshot 60 ms after the second reply had been received in
+  full, then answered nothing for 37 s; the one request left unfinished is the "thinking" poster the figure asked for
+  when the second message began (`T001-thinking-2x.webp`, no response ever recorded). Locally the same step asks for
+  the 1x poster and finishes in 8 ms. The engine is the only difference that remains: Linux WebKit, where CI runs.
+- **Nothing in your files was changed for it yet.** A looping regression spec with probes, `tests/webkit-zigi-freeze.spec.ts`
+  (both scenarios, six rounds each, the state changes, every image decode and poster load, the model request, a
+  heartbeat on the browser's own timers; the log attached to the test when a round overruns), passes here in WebKit
+  (4 of 4, 21 s) and Chrome; it runs in your `web-webkit` CI job from this push on, so the next Linux failure names the
+  last thing the page did. If that points at `components/zigi/zigi-image.tsx` (the `decode()` of the clip while the
+  `<img>` swaps posters) or `zigi-avatar.tsx`, the minimal fix lands here as its own commit and this entry names the
+  exact lines (owner edit 7); if it points at `proposal-list.tsx`, it lands in the render-free part of that file and
+  the second merger keeps both lanes' changes. The owner checklist gets "in Safari on the Mac: ask ZIGi twice after an
+  Undo; it must keep answering" (Remote Automation is off on this Mac, left as is).

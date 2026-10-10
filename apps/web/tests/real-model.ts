@@ -140,18 +140,25 @@ export async function cardsOf(page: Page): Promise<UiCard[]> {
 /** Session Z-Local Part 2: the case's own usage as the app's meter kept it (the storage was cleared at the seed), priced at the dated table. */
 export type UiUsage = {model: string; input: number; output: number; cacheWrite: number; cacheRead: number; requests: number; costUsd: number | null};
 export type UiRun = {id: string; model: string; host: string; project: string; page: string; ask: string; reply: string; cards: UiCard[]; tools: string[]; ms: number; score: Score | null; error: string | null; at: string; usage?: UiUsage};
-/** The meter's totals for the provider since the seed (one case), read from the app's own usage record; null when nothing was counted. */
+/**
+ * The provider's usage since this helper last read it on this page (the app's own meter, `zigoals:ai-usage:v1`): one
+ * run's share even when several asks share a page; a seed clears the record, which reads as a fresh start. Null when
+ * nothing new was counted. The ledger sums these deltas, so nothing is counted twice.
+ */
+const lastUsage = new WeakMap<Page, {input: number; output: number; cacheWrite: number; cacheRead: number; requests: number}>();
 export async function usageOf(page: Page): Promise<UiUsage | null> {
   if (PROVIDER !== 'anthropic') return null;
   const raw = await page.evaluate(k => localStorage.getItem(k), AI_USAGE_KEY);
-  if (!raw) return null;
+  if (!raw) { lastUsage.delete(page); return null; }
   try {
     const months = (JSON.parse(raw) as {months?: Record<string, Record<string, {input?: number; output?: number; cacheWrite?: number; cacheRead?: number; requests?: number}>>}).months ?? {};
-    const sum = {model: MODEL, input: 0, output: 0, cacheWrite: 0, cacheRead: 0, requests: 0, costUsd: null as number | null};
+    const sum = {input: 0, output: 0, cacheWrite: 0, cacheRead: 0, requests: 0};
     for (const routes of Object.values(months)) { const a = routes.anthropic; if (!a) continue; sum.input += a.input ?? 0; sum.output += a.output ?? 0; sum.cacheWrite += a.cacheWrite ?? 0; sum.cacheRead += a.cacheRead ?? 0; sum.requests += a.requests ?? 0; }
-    if (!sum.requests) return null;
-    sum.costUsd = estimateCost(MODEL, sum);
-    return sum;
+    const before = lastUsage.get(page), reset = !before || sum.requests < before.requests;
+    lastUsage.set(page, sum);
+    const delta = reset ? sum : {input: sum.input - before.input, output: sum.output - before.output, cacheWrite: sum.cacheWrite - before.cacheWrite, cacheRead: sum.cacheRead - before.cacheRead, requests: sum.requests - before.requests};
+    if (!delta.requests) return null;
+    return {model: MODEL, ...delta, costUsd: estimateCost(MODEL, delta)};
   } catch { return null; }
 }
 /** Scores a reply from the UI: cards, schema, tools, wording and refusals; facts and hints are the Node harness's. */

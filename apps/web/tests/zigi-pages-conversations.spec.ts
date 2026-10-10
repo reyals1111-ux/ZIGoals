@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {REFUSAL} from '../lib/ai/evals/score';
-import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, shownReply, slug, type UiRun, usageOf} from './real-model';
 import type {CorpusArea} from '../lib/ai/evals/corpus';
 
 /**
@@ -60,6 +60,7 @@ for (const area of AREAS) {
         run.score = {pass: checks.every(c => c.pass), checks, cards: run.cards.length, rejected: 0, hint: null, refused: false, numbers: 0};
         if (!run.score.pass) problems.push(`${a.ask}: ${checks.filter(c => !c.pass).map(c => c.name).join(', ')}`);
       } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 300) : String(error); problems.push(`${a.ask}: ${run.error}`); }
+      run.usage = (await usageOf(page)) ?? undefined;
       record(info, file, run);
     }
     // Recorded, not asserted: a model's miss is a finding for the test document; a page that cannot be opened is a defect.
