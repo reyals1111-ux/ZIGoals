@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 16 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 17 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -83,6 +83,8 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 16 summary file(s) on 202
 | ui-conv-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **15/15 · 100.0 %** | 4,046 | 0 | $0.27 |
 | ui-day-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **18/18 · 100.0 %** | 2,263 | 0 | $0.18 |
 | ui-day-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **18/18 · 100.0 %** | 2,019 | 0 | $0.27 |
+| ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **162/170 · 95.3 %** | 2,755 | 0 | $1.20 |
+| ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **168/170 · 98.8 %** | 2,781 | 0 | $1.13 |
 | ui-panel-haiku | `claude-haiku-5-5` | Chrome · desktop | **125/150 · 83.3 %** | 2,287 | 0 | $0.07 |
 | ui-panel-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **121/150 · 80.7 %** | 2,766 | 0 | $1.03 |
 <!-- tables:end -->
@@ -94,7 +96,7 @@ conversations), and the second half of the caching measurement. Each lands here 
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 16 summary file(s): 4 met · 6 not met · 15 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 17 summary file(s): 4 met · 7 not met · 14 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -103,7 +105,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 16 summary file(s): 4
 | Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** | `ui-conv-sonnet/conversations-claude-sonnet-5-5.json` |
 | Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** | `ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json` |
-| Sonnet · pages 17 × 10 ≥ 99 % | — | not run yet | — |
+| Sonnet · pages 17 × 10 ≥ 99 % | 330/340 · 97.1 % | not met, 1.9 pt short | `ui-pages-sonnet/pages-claude-sonnet-5-5.json` |
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
 | Sonnet · WebKit subset (60 panel + 5 conversations), reported | — | not run yet | — |
 | Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
