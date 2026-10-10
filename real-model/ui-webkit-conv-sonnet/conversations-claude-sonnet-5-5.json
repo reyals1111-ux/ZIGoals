@@ -1,0 +1,412 @@
+[
+ {
+  "id": "stretch-15",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "Updated to 15 minutes. This replaces the earlier draft.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4645,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:34:04.140Z",
+  "steps": {
+   "plan": {
+    "ms": 2584,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a draft: Stretch, 10 minutes, every day, in the morning. It's a build habit measured in minutes, and it matches the shape of your other daily habits like Meditate (h4).\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nIf you'd like, I can also propose a reminder, or stack it after another habit so it has a natural cue. Which would suit you?"
+   },
+   "correct": {
+    "ms": 2061,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Updated to 15 minutes. This replaces the earlier draft.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 8,
+   "output": 295,
+   "cacheWrite": 17267,
+   "cacheRead": 17074,
+   "requests": 2,
+   "costUsd": 0.0478409
+  }
+ },
+ {
+  "id": "journal-pages",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to journal 2 pages a day as a habit",
+  "reply": "Updated draft: 3 pages a day, in the evening.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nIf you'd like a reminder for the evening, tell me the time and I'll add it.",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Journal\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4272,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:34:10.627Z",
+  "steps": {
+   "plan": {
+    "ms": 2505,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A habit draft for journaling, measured in pages with a target of 2 a day:\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":2,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nI set it to daily and anytime. If you'd rather have it in the evening, or on fewer days, tell me and I'll adjust the card."
+   },
+   "correct": {
+    "ms": 1767,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Updated draft: 3 pages a day, in the evening.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nIf you'd like a reminder for the evening, tell me the time and I'll add it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 8,
+   "output": 296,
+   "cacheWrite": 753,
+   "cacheRead": 30322,
+   "requests": 2,
+   "costUsd": 0.0078907
+  }
+ },
+ {
+  "id": "ride-weekdays",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute bike ride on Monday, Wednesday and Friday",
+  "reply": "Corrected: the bike ride is now on Tuesday and Thursday, replacing the earlier draft.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nThe other days will be rest days.",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Bike ride\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5077,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:34:16.473Z",
+  "steps": {
+   "plan": {
+    "ms": 3032,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "A habit draft for your bike rides: 30 minutes, on Monday, Wednesday and Friday. I left the time of day open as anytime, since you didn't say one.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nTuesday, Thursday and the weekend will count as rest days, so they won't break a streak. If you'd like a reminder at a set time, tell me when."
+   },
+   "correct": {
+    "ms": 2045,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Corrected: the bike ride is now on Tuesday and Thursday, replacing the earlier draft.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```\n\nThe other days will be rest days."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 8,
+   "output": 344,
+   "cacheWrite": 2663,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0130869
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "Three glasses is 750 mL. This replaces the earlier card.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-water\",\"glasses\":3}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3404,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:34:23.202Z",
+  "steps": {
+   "plan": {
+    "ms": 1871,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Two glasses is 500 mL. Your records show 750 mL today in 2 entries, so this would add to that.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```"
+   },
+   "correct": {
+    "ms": 1533,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Three glasses is 750 mL. This replaces the earlier card.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-water\",\"glasses\":3}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 8,
+   "output": 122,
+   "cacheWrite": 16435,
+   "cacheRead": 15354,
+   "requests": 2,
+   "costUsd": 0.0438589
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "Updated to 72.4 kg, replacing the earlier card.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\"}\n```",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 5311,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:34:28.221Z",
+  "steps": {
+   "plan": {
+    "ms": 2818,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a card to log 72 kg for this morning.\n\nThe last reading in your last 30 days is 74.1 kg on 2026-09-18. Your context also mentions a latest weight of 73.5 kg dated 2026-10-04, which is later than today, so I can't match it to anything. I won't lean on it. Check that date if it looks wrong to you.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 2493,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Updated to 72.4 kg, replacing the earlier card.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-sonnet-5-5",
+   "input": 8,
+   "output": 230,
+   "cacheWrite": 670,
+   "cacheRead": 31214,
+   "requests": 2,
+   "costUsd": 0.0071124
+  }
+ }
+]
