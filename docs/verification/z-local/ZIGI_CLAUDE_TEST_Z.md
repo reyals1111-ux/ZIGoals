@@ -48,7 +48,7 @@ cache and wrote only the question's own records; the uncached remainder was 4 to
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 9 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 10 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -79,7 +79,7 @@ conversations), and the second half of the caching measurement. Each lands here 
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 9 summary file(s): 2 met · 3 not met · 20 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 10 summary file(s): 2 met · 4 not met · 19 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -94,7 +94,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 9 summary file(s): 2 
 | Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
 | Haiku · corpus ≥ 92 % | 2182/2493 · 87.5 % | not met, 4.5 pt short; misses: cards 238, fields 62, never 26, refusal 18, schema 18 | `corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json` |
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
-| Haiku · UI panel 150 ≥ 92 % | — | not run yet | — |
+| Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
 | Haiku · pages 17 × 10 (desktop) ≥ 92 % | — | not run yet | — |
 | Opus · corpus ≥ 97 % | — | not run yet | — |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | — | not run yet | — |
