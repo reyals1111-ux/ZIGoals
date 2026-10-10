@@ -31,7 +31,6 @@ if (!(maxUsd > 0)) { console.error('--max-usd must be a positive number'); proce
 // prices a full run is about $0.15 on Haiku, $2.20 on Sonnet and $0.45 per ten cases on Opus.
 const plan = reportOnly ? [] : [...models.map(m => ({name: m, model: IDS[m], cases: limit > 0 ? limit : null})), ...(opus > 0 ? [{name: 'opus', model: IDS.opus, cases: opus}] : [])].filter(p => p.model);
 console.log(`${month}: the important single-turn cases${limit > 0 ? ` (first ${limit})` : ''} × ${plan.length} model run(s); cap $${maxUsd} at batch prices (as of ${PRICES_AS_OF})`);
-const cases = limit > 0 ? limit : 'all', total = maxUsd;
 mkdirSync(OUT, {recursive: true});
 const files = []; let spentSoFar = 0;
 const costOf = file => JSON.parse(readFileSync(file, 'utf8')).runs.reduce((a, r) => a + (r.costUsd ?? 0), 0);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 import {estimateCost} from '../../apps/web/lib/ai/pricing.ts';

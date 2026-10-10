@@ -125,3 +125,13 @@ test('F5: a 64 KB degenerate body is refused at once, and a 30 KB one with thous
   expect(out.kind).toBe('log-water'); expect(out.glasses).toBe(2); expect(ms).toBeLessThan(300);
   const t1 = performance.now(); repairJson(`[${' , '.repeat(8_000)}]`); expect(performance.now() - t1).toBeLessThan(300);
 });
+
+// Session Z-Local Part 6 (L28): a check-in with both minutes and a value means the minutes
+test('L28: a check-in block that repeats its minutes as the value keeps the minutes and parses; two different amounts stay refused (the golden rule)', () => {
+  const r = parseReply('Done.\n\n```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":28,"value":28}\n```');
+  expect(r.proposals).toEqual([{kind: 'check-in', habit: 'h2', minutes: 28, day: 'today'}]); expect(r.rejected).toHaveLength(0);
+  const q = parseReply('```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":10,"quantity":2,"unit":"km"}\n```');
+  expect(q.proposals).toEqual([]); expect(q.rejected).toHaveLength(1);
+  const v = parseReply('```zigoals-action\n{"kind":"check-in","habit":"h2","minutes":10,"value":3}\n```');
+  expect(v.proposals).toEqual([]); expect(v.rejected).toHaveLength(1);
+});

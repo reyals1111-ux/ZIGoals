@@ -108,3 +108,7 @@ test('L22: a pre-fill is proposed from the person\'s words even when the record 
   expect(ACTION_PROTOCOL).toContain('even when the account, goal or currency is not in the records');
   expect(TOOLS_NOTE).toContain('about_me');
 });
+test('L27: Health says how imports happen and that an unknown food is still an estimated card; the protocol says a record that is not there has no figures', () => {
+  expect(SPECIALISTS.health.prompt).toContain('Settings → Imports'); expect(SPECIALISTS.health.prompt).toContain('do not ask for the ingredients first');
+  expect(ACTION_PROTOCOL).toContain('never "0 minutes"');
+});

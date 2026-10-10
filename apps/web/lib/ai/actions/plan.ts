@@ -800,10 +800,9 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (plans.length !== 1) return refuse(plans.length ? `${plans.length} planned meals on ${day.day}: say which meal.` : `No planned meal left to log on ${day.day}.`);
       const plan = plans[0]!;
       let before: HealthData | undefined;
-      const mine = (s: Stores) => dailyData(s.health).plans.find(p => p.id === plan.id);
       return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Log the planned ${plan.meal.toLowerCase()}: ${plan.name}`, lines: [`${plan.items.length} item${plan.items.length === 1 ? '' : 's'} into the diary for ${day.day}`], where: 'Health · Planning', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: s => { before = s.health; return {health: logMealPlan(s.health, plan.id, at)}; },
-        undo: {label: 'Take it out of the diary again', write: s => before ? {health: before} : {}, unchanged: (after, current) => same(after.health, current.health)},
+        undo: {label: 'Take it out of the diary again', write: () => before ? {health: before} : {}, unchanged: (after, current) => same(after.health, current.health)},
         activity: {id: `meal-plan:${plan.id}:logged`, title: `Planned ${plan.meal.toLowerCase()} logged: ${plan.name}`}}};
     }
     case 'grocery-notes': {
@@ -903,7 +902,6 @@ export function planAction(action: Action, env: Env): PlanResult {
         }
       }
     }
-    // eslint-disable-next-line no-fallthrough
     case 'set-health-preference': {
       const prefs = dailyData(stores.health).preferences, next = {...prefs, ...(action.waterUnit ? {waterUnit: action.waterUnit} : {}), ...(action.weightUnit ? {weightUnit: action.weightUnit} : {})};
       if (next.waterUnit === prefs.waterUnit && next.weightUnit === prefs.weightUnit) return refuse('Those units are already set so.');

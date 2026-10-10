@@ -34,7 +34,6 @@ const utf16 = text => Buffer.from(text, 'utf16le').toString('latin1');
 const needles = [...plain, ...plain.flatMap(b64), ...plain.map(utf16)];
 const kindOf = n => plain.includes(n) ? (n === SHAPE ? 'key shape' : 'key prefix') : 'encoded key';
 const SKIP_DIRS = new Set(['node_modules', '.git', '.next', '.open-next', 'dist']);
-const TEXT = /\.(?:md|json|jsonl|txt|log|ts|tsx|js|mjs|cjs|html|yml|yaml|zip|webm|png|jpg|jpeg|trace|network|har|csv)$/i;
 const hits = [];
 function scanText(label, text) {
   const lines = text.split('\n');

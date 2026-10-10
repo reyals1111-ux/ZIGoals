@@ -78,6 +78,10 @@ function coerceNumbers(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(coerceNumbers);
   if (!value || typeof value !== 'object') return value;
   const out: Record<string, unknown> = {};
+  // Session Z-Local Part 6 (L28): a check-in that repeats its minutes as the value ("minutes":28,"value":28, seen on Haiku and Sonnet) said one
+  // amount twice: the duplicate goes before validation. Two different amounts stay refused (the golden case x-reply-two-amounts).
+  const o = value as Record<string, unknown>;
+  if (o.kind === 'check-in' && typeof o.minutes === 'number' && o.value === o.minutes && o.quantity === undefined) delete o.value;
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
     // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
     if (v === null && NUMERIC_KEYS.has(key)) continue;

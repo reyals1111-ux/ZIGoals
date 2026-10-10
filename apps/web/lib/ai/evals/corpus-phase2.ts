@@ -106,10 +106,10 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     h.propose('p2-delete-weight', 'Delete my weight from last Monday, it was wrong', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'weight'}]}),
     t.chat('p2-undo-checkin', 'Undo my last check-in', {kinds: [], mustContain: ['Activity']}),
     g.refuse('p2-delete-milestone', 'Remove the milestone "Flights booked" from the Japan goal', REFUSE),
-    hb.refuse('p2-archive', 'Archive my meditation habit', REFUSE),
+    hb.propose('p2-archive', 'Archive my meditation habit', {kinds: ['set-habit-state'], fields: [{kind: 'set-habit-state', state: 'archived'}]}), // Session Z-Local Part 5: archiving is a card (listed)
     hb.propose('p2-edit-nl', 'Zet mijn leesdoel op 25 pagina’s per dag', {kinds: ['edit-habit'], fields: [{target: 25}]}, {lang: 'nl', important: true}),
     g.propose('p2-edit-goal-nl', 'Verhoog het noodfonds naar 25000', {kinds: ['edit-goal'], fields: [{target: 25000}]}, {lang: 'nl'}),
-    hb.refuse('p2-delete-nl', 'Verwijder mijn wandelgewoonte', REFUSE, {lang: 'nl'}),
+    hb.propose('p2-delete-nl', 'Verwijder mijn wandelgewoonte', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'habit'}]}, {lang: 'nl'}), // Session Z-Local Part 5 (listed)
   );
 }
 // ---- D. Relative dates, times, time zones and the clock change ----

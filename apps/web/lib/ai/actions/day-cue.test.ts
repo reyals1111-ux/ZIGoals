@@ -22,4 +22,6 @@ test('a log card that said today, or named no day, takes the message\'s day; oth
   expect(out.map(p => [p.kind, p.day])).toEqual([['log-water', '2026-10-03'], ['log-steps', '2026-10-03'], ['create-reminder', undefined], ['log-weight', '2026-10-01']]);
   expect(applyDayCue(reply, 'Two glasses of water and 7000 steps', TODAY)).toBe(reply);
   const arr = '```zigoals-action\n[{"kind":"log-water","glasses":3,"day":"today"},{"kind":"check-in","habit":"h1"}]\n```';
+  // An array block gets the cue on every item (the French form of this assertion left with L7; the Dutch one stays).
+  expect(parseReply(applyDayCue(arr, 'Gisteren drie glazen water gedronken en h1 afgevinkt', TODAY)).proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday']);
 });

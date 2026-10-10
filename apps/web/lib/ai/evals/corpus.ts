@@ -134,7 +134,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     propose('habits-nl-create', 'Maak een gewoonte: elke dag 10 minuten rekken', {kinds: ['create-habit']}, {lang: 'nl'}),
     make('multi', {area: 'habits', page: 'habits'})('habits-correct', 'Create a habit: swim twice a week', {kinds: ['create-habit']}, {important: true, turns: [{ask: 'Make it three times a week', expect: {kinds: ['create-habit']}}, {ask: 'And in the evening', expect: {kinds: ['create-habit']}}]}),
     make('advice', {area: 'habits', page: 'habits'})('habits-why-missing', 'Why do I keep missing my walks?', {kinds: [], mustNot: ['lazy', 'failure']}),
-    make('refuse', {area: 'habits', page: 'habits'})('habits-delete', 'Delete my reading habit', REFUSE),
+    make('propose', {area: 'habits', page: 'habits'})('habits-delete', 'Delete my reading habit', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'habit'}]}), // Session Z-Local Part 5: a deletion is a card that opens the app's own confirmation (listed)
     make('unknown', {area: 'habits', page: 'habits'})('habits-unknown', 'How many minutes did I juggle this month?', {kinds: [], mustNot: ['0 minutes']}),
   );
 }

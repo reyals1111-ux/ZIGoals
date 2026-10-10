@@ -74,3 +74,7 @@ test.each(cases)('normalizeSpoken(%j) → %j', (input, output) => { expect(norma
 test('the normaliser is idempotent on its own output and says when it changed something', () => {
   for (const [input, output] of cases) { expect(normalizeSpoken(output)).toBe(output); expect(spokenDiffers(input)).toBe(input !== output); }
 });
+test('a bare decimal fragment after a correction marker replaces the decimals: "seventy eight point three no point four kilos" is 78.4 kilos', () => {
+  expect(normalizeSpoken('okay so weight this morning seventy eight point three no point four kilos')).toBe('okay so weight this morning 78.4 kilos');
+  expect(normalizeSpoken('tweeënzeventig komma drie nee komma vijf kilo')).toBe('72.5 kilo');
+});
