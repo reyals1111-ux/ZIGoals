@@ -56,7 +56,7 @@ const HEALTH = {
   water: /\b(water|hydrat\w*)\b/,
   steps: /\bsteps?\b/,
   active: /\b(active|movement|activity) minutes\b/,
-  weight: /\b(weigh|weight|weighed|kilos?|pounds|lbs?)\b/,
+  weight: /\b(weigh|weight|weighed|kilos?|pounds|lbs?|gewicht|weeg|woog|gewogen|kg)\b/, // Session Z-Local Part 4: the Dutch forms too
   measurement: /\b(waist|hips?|chest|thighs?|arm measurement|measurements?)\b/,
   fasting: /\b(fast|fasts|fasting|fasted)\b/,
   diary: /\b(eat|ate|eaten|eating|food|foods|meal|meals|breakfast|lunch|dinner|snacks?|diary)\b/,
@@ -160,7 +160,7 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
   activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your AI'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your AI'},
   pages: {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, "pagina's": {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, help: {page: 'help', label: 'Help'}, music: {page: 'music', label: 'Music'}, muziek: {page: 'music', label: 'Music'},
 };
-const NAV_ASK = /^(?:please |ok |okay |hey |hi |zigi,? |nova,? |kun je |kan je |can you |could you )*(?:open|go to|take me to|switch to|jump to|navigate to|bring up|ga naar|open|toon|laat me|breng me naar)\s+(?:my |the |mijn |de |het |me |een )?([a-z' ]{3,24}?)(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht|zien))?[.!?]?$/;
+const NAV_ASK = /^(?:please |ok |okay |hey |hi |zigi,? |nova,? |kun je |kan je |can you |could you |wil je |would you )*(?:open|go to|take me to|switch to|jump to|navigate to|bring up|show me|show|ga naar|open|toon|laat me|laat mij|laat|breng me naar|breng mij naar)\s+(?:my |the |mijn |de |het |me |een )?([a-z' ]{3,24}?)(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht|zien))?(?:\s*(?:please|alsjeblieft|alstublieft|aub|graag|even))?[.!?]?$/;
 export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
   const q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   const m = NAV_ASK.exec(q); if (!m) return null;

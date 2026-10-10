@@ -20,6 +20,7 @@ import {toolEnv, type ToolSources} from '../tools/env';
 import {DAY, gatesFor, sentinelsIn, settingsWith, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {runTool} from '../tools/registry';
 import type {ChatEvent, ChatMessage, ChatRequest} from '../types';
+import {SPOKEN} from './corpus-spoken';
 import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
 import {goldenSources} from './run';
 import {factNumbers, score, type Call, type Observed, type Score} from './score';
@@ -48,8 +49,10 @@ const MODE = env.ZIGI_DATA_MODE === 'attach' ? 'attach' : 'tools', OUT = env.ZIG
 const TIMEOUT_MS = Number(env.ZIGI_CASE_TIMEOUT_MS ?? '180000'), THINK = env.ZIGI_THINK === '1', NO_CACHE = env.ZIGI_NO_CACHE === '1';
 /** The key for the real-Claude mode, read once from this process's environment; never printed, never stored. */
 const KEY = PROVIDER === 'anthropic' ? env.ANTHROPIC_TEST_KEY ?? null : null;
+/** Session Z-Local Part 4: `ZIGI_SET=spoken` runs the held-out spoken corpus instead of the typed one (same scorer, same harness). */
+const SET: readonly ModelCase[] = env.ZIGI_SET === 'spoken' ? SPOKEN : CORPUS;
 const selected = (): ModelCase[] => {
-  const all = FILTER === 'all' ? [...CORPUS] : FILTER === 'important' ? [...IMPORTANT] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => CORPUS.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : CORPUS.filter(c => new RegExp(FILTER).test(c.id));
+  const all = FILTER === 'all' ? [...SET] : FILTER === 'important' ? [...(env.ZIGI_SET === 'spoken' ? SPOKEN.filter(c => c.important) : IMPORTANT)] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => SET.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : SET.filter(c => new RegExp(FILTER).test(c.id));
   return LIMIT > 0 ? all.slice(0, LIMIT) : all;
 };
 export type Tokens = {input: number | null; output: number | null; cacheWrite: number | null; cacheRead: number | null};

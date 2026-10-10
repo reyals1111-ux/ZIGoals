@@ -11,7 +11,8 @@
 const WAKE = /^\s*(?:(?:hey|hi|hello|ok|okay|hé|hoi|hallo|he|ey)[,!]?\s+)?zigi[,!.:]?\s+/i;
 const FILLER = /(?:,\s*|^|(?<=\s))(?:u+m+|u+h+|uhm+|erm+|hmm+|m+h+m+|euh+|ehm+|eh)(?=[\s,.!?]|$)[,.]?\s*/gi;
 const re = (source: string, flags: string) => new RegExp(source, flags);
-const FILLER_PHRASE = /(?:^|(?<=\s))(?:you know|i mean|zeg maar|nou ja|weet je|dus eh)[,]?\s+/gi;
+// "I mean" before a figure is a self-correction, not a filler (handled by `corrections`); the other phrases are fillers wherever they stand.
+const FILLER_PHRASE = /(?:^|(?<=\s))(?:(?:you know|zeg maar|nou ja|weet je|dus eh)[,]?\s+|i mean[,]?\s+(?!\d))/gi;
 
 const EN_SMALL: Readonly<Record<string, number>> = {zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19};
 const EN_TENS: Readonly<Record<string, number>> = {twenty: 20, thirty: 30, forty: 40, fourty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90};
@@ -186,9 +187,10 @@ function corrections(text: string): string {
 /** The normalised form (see the file comment): fillers out, numbers as digits, clock idioms as H:MM, the last of a self-correction. */
 export function normalizeSpoken(text: string): string {
   let t = text.replace(/\s+/g, ' ').trim();
-  t = t.replace(WAKE, '').replace(FILLER_PHRASE, '').replace(FILLER, m => m.startsWith(',') ? ' ' : '');
+  t = t.replace(WAKE, '').replace(FILLER, m => m.startsWith(',') ? ' ' : '');
   t = quarters(t);
   t = numberWords(t);
+  t = t.replace(FILLER_PHRASE, '');
   t = fractions(t);
   // "5,000 steps" is five thousand (three digits after the comma); "1,5 liter" is one and a half.
   t = t.replace(/\b(\d{1,3}),(\d{3})\b(?!,\d)/g, '$1$2').replace(/\b(\d+),(\d{1,2})\b/g, '$1.$2');
