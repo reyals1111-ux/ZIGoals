@@ -413,3 +413,22 @@ test('F14: two cards that write the same change are one; different changes stay;
   expect(kept[0]).toBe(ml); expect(kept[1]).toBe(two);
   expect(batchable([ml, glass], s)).toHaveLength(1); expect(batchable([ml, glass])).toHaveLength(2);
 });
+
+// ---- Session Z-Local Part 6 (L21): an entry already there is still a card, never an automatic one ----
+test('L21: the same water amount or the same library food for the same meal on the same day flags the plan as a duplicate; the card says so; auto-accept refuses it', () => {
+  const s = base();
+  const first = plan(s, {kind: 'log-water', glasses: 2}); expect(first.duplicate).toBeUndefined();
+  const after = applyPlan(first, s);
+  const again = plan(after, {kind: 'log-water', glasses: 2}); expect(again.duplicate).toBe(true); expect(again.card.lines.join(' ')).toContain('Already logged once');
+  expect(plan(after, {kind: 'log-water', glasses: 3}).duplicate).toBeUndefined();
+  const food = s.health.foods[0]!, handle = envFor(s).handles.find(h => h.kind === 'food' && h.id === food.id)?.handle;
+  if (handle) {
+    const meal = plan(s, {kind: 'log-food', name: food.name, meal: 'Dinner', food: handle, quantity: 1}); expect(meal.duplicate).toBeUndefined();
+    const fed = applyPlan(meal, s);
+    expect(plan(fed, {kind: 'log-food', name: food.name, meal: 'Dinner', food: handle, quantity: 1}).duplicate).toBe(true);
+    expect(plan(fed, {kind: 'log-food', name: food.name, meal: 'Lunch', food: handle, quantity: 1}).duplicate).toBeUndefined();
+  }
+  const on = {version: 1, autoAccept: {kinds: {'log-water': true}}} as unknown as Parameters<typeof autoAcceptVerdict>[0];
+  expect(autoAcceptVerdict(on, 'log-water', DAY, true, 0, false, true)).toEqual({ok: false, reason: 'already-recorded'});
+  expect(autoAcceptVerdict(on, 'log-water', DAY, true, 0, false, false)).toEqual({ok: true});
+});

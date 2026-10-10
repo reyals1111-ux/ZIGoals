@@ -81,7 +81,9 @@ export type Confirm = {href: string; what: string; id: string; label: string};
 export type DeviceWrite = {key: string; patch: Record<string, unknown>};
 export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; contribution?: ContributionPrefill; account?: AccountPrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite;
   /** SECURITY_REVIEW_Y F9: the card shows or keeps Health content though its kind is not a Health kind (a Health widget on Today, a diet note): auto-accept treats it as Health-gated. */
-  healthContent?: boolean};
+  healthContent?: boolean;
+  /** Session Z-Local Part 6 (L21): the day already holds this very entry (the same water amount, the same library food for the same meal); the card still shows, auto-accept never takes it. */
+  duplicate?: boolean};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -223,7 +225,8 @@ export function planAction(action: Action, env: Env): PlanResult {
       const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
       const ml = Math.round((action.millilitres ?? (action.glasses ?? 0) * GLASS_ML) * 1000) / 1000, id = healthId();
       if (ml <= 0) return refuse('Water needs an amount above zero.');
-      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Add water', lines: [`${num(ml, 0)} mL${action.glasses !== undefined ? ` (${num(action.glasses, 2)} glass${action.glasses === 1 ? '' : 'es'} of ${GLASS_ML} mL)` : ''}`], where: 'Health · Water', day: dayLabel(day.day, env.healthDay), estimate: false},
+      const sameWater = dailyData(stores.health).water.filter(w => w.date === day.day && w.amountMilli === Math.round(ml * 1000)).length;
+      return {ok: true, plan: {target: 'health', ...(sameWater ? {duplicate: true} : {}), card: {kind: action.kind, title: 'Add water', lines: [`${num(ml, 0)} mL${action.glasses !== undefined ? ` (${num(action.glasses, 2)} glass${action.glasses === 1 ? '' : 'es'} of ${GLASS_ML} mL)` : ''}`, ...(sameWater ? [`Already logged ${sameWater === 1 ? 'once' : `${sameWater} times`} ${dayLabel(day.day, env.healthDay)}: this adds to it`] : [])], where: 'Health · Water', day: dayLabel(day.day, env.healthDay), estimate: false},
         write: s => ({health: addWater(s.health, {id, date: day.day, amountMilli: Math.round(ml * 1000), unit: 'ml'}, at)}),
         undo: {label: 'Remove this water entry', write: s => ({health: removeWater(s.health, id)}), unchanged: (after, current) => same(dailyData(after.health).water.find(w => w.id === id), dailyData(current.health).water.find(w => w.id === id))}, activity: {id, title: `Water: ${num(ml, 0)} mL`}}};
     }
@@ -251,7 +254,8 @@ export function planAction(action: Action, env: Env): PlanResult {
         const sourceKind = found?.kind === 'recipe' ? 'recipe' as const : 'food' as const;
         const source = found ? (sourceKind === 'food' ? stores.health.foods.find(f => f.id === found.id) : stores.health.recipes.find(r => r.id === found.id)) : undefined;
         if (!found || !source) return refuse('ZIGi named a food that is not in this page\'s context, so nothing was proposed. Ask again from Health.');
-        return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Log ${sourceKind === 'recipe' ? 'a recipe' : 'a food'} from your library`, lines: [`${action.meal}: ${source.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, 'Nutrients come from your own entry, not from the AI'], where: 'Health · Diary', day: dayLabel(day.day, env.healthDay), estimate: false},
+        const sameFood = stores.health.diary.filter(e => e.date === day.day && e.meal === action.meal && e.sourceId === found.id && e.quantityMilli === quantityMilli).length;
+        return {ok: true, plan: {target: 'health', ...(sameFood ? {duplicate: true} : {}), card: {kind: action.kind, title: `Log ${sourceKind === 'recipe' ? 'a recipe' : 'a food'} from your library`, lines: [...(sameFood ? [`Already in the diary ${sameFood === 1 ? 'once' : `${sameFood} times`} for that meal: this adds another entry`] : []), `${action.meal}: ${source.name} × ${num(action.quantity, 2)} serving${action.quantity === 1 ? '' : 's'}`, 'Nutrients come from your own entry, not from the AI'], where: 'Health · Diary', day: dayLabel(day.day, env.healthDay), estimate: false},
           write: s => ({health: logHealthItem(s.health, {id: entryId, sourceId: found.id, sourceKind, date: day.day, meal: action.meal, quantityMilli}, at)}),
           undo: {label: 'Remove this diary entry', write: s => ({health: removeHealthItem(s.health, 'diary', entryId)}), unchanged: (after, current) => same(after.health.diary.find(e => e.id === entryId), current.health.diary.find(e => e.id === entryId))}, activity: {id: entryId, title: `${action.meal}: ${source.name}`}}};
       }

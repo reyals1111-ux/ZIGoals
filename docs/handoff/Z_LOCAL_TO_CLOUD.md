@@ -205,3 +205,4 @@ said it; ZIGi never rewrites your words."
 equivalent boolean you hold). With `false` the prompt gains one line in the stable prefix: Health is not shared, propose
 no Health card, say where it is switched on. Absent, the prompt is byte-identical to today's. The harness passes it for
 every run, so the corpus numbers assume the app does too.
+- **L21 (`use-auto-accept.ts:30`), with L20's argument:** `autoAcceptVerdict(read.data, kind, day, healthOpen, extra, plan.healthContent === true, plan.duplicate === true)`. A duplicate (the same water amount or the same library food for the same meal already on the day) is refused with the new reason `already-recorded` (text in `AUTO_ACCEPT_REASONS`); the card shows as always.

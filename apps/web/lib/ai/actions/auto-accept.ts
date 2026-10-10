@@ -19,12 +19,13 @@ export const AUTO_ACCEPT_KINDS: readonly ActionKind[] = WRITING_KINDS.filter(k =
 export const AUTO_ACCEPT_CAP = {default: 20, min: 1, max: 100} as const;
 /** Days of counts kept in the record. */
 export const AUTO_ACCEPT_DAYS_KEPT = 31;
-export type AutoAcceptReason = 'never' | 'off' | 'health-gate-closed' | 'cap';
+export type AutoAcceptReason = 'never' | 'off' | 'health-gate-closed' | 'cap' | 'already-recorded';
 export type AutoAcceptVerdict = {ok: true} | {ok: false; reason: AutoAcceptReason};
 export const AUTO_ACCEPT_REASONS: Record<AutoAcceptReason, string> = {
   never: 'Never automatic: weight, fasting and anything about money are always confirmed by you.',
   off: 'Off for this kind of card.',
   'health-gate-closed': 'Health is not shared with ZIGi on this device, so ZIGi adds no Health entries by itself.',
+  'already-recorded': 'This entry is already in today\'s records, so ZIGi leaves adding it again to you.',
   cap: 'Today’s auto-accept cap is reached; the rest waits for your tap.',
 };
 export const isHealthKind = (kind: string): boolean => (AUTO_ACCEPT_HEALTH as readonly string[]).includes(kind);
@@ -33,10 +34,11 @@ export const autoAcceptedOn = (options: AiOptions, day: string): number => optio
 export const autoAcceptOn = (options: AiOptions, kind: string): boolean => options.autoAccept?.kinds?.[kind] === true;
 /** Whether a card of this kind may be added by ZIGi now; `extra` counts cards already chosen from the same reply. */
 /** `healthContent` (SECURITY_REVIEW_Y F9): the plan's own flag for a card of a non-Health kind that shows or keeps Health content; gated like a Health kind. */
-export function autoAcceptVerdict(options: AiOptions, kind: string, day: string, healthOpen: boolean, extra = 0, healthContent = false): AutoAcceptVerdict {
+export function autoAcceptVerdict(options: AiOptions, kind: string, day: string, healthOpen: boolean, extra = 0, healthContent = false, duplicate = false): AutoAcceptVerdict {
   if (!(AUTO_ACCEPT_KINDS as readonly string[]).includes(kind)) return {ok: false, reason: 'never'};
   if (!autoAcceptOn(options, kind)) return {ok: false, reason: 'off'};
   if ((isHealthKind(kind) || healthContent) && !healthOpen) return {ok: false, reason: 'health-gate-closed'};
+  if (duplicate) return {ok: false, reason: 'already-recorded'}; // Session Z-Local Part 6 (L21): the person decides a second identical entry
   if (autoAcceptedOn(options, day) + extra >= autoAcceptCap(options)) return {ok: false, reason: 'cap'};
   return {ok: true};
 }
