@@ -30,7 +30,7 @@ Nothing was deployed, dispatched, merged or approved. No session logged into any
 | 10 | FINAL_ACCTEST and STAGE8 rows for X-Local and Session Y; `[TIER 3] (deploy tooling)` the Stage 7 preflight names `.env*` files by path | 3 | `47d4755` `0ed86f1` | local |
 | 11 | Live human test on #34 (Pass 3): 216 cells, 188 passed, 1 harness timing fixed and re-checked live, 27 not applicable; #32's 16 failures all pass | — | `5f71318` | live; `review/session-y-runs` `6fd0a97` |
 | 12 | Research: API credits from a Max or Team plan (§10a, the relay question OPEN), dependency audit | — | `520fff6` | source |
-| Gates | B: the data-safety drill D1–D17 (`135062b`); CI fixes: food-volume's clock (`bd03089`), session-x-findings:91's route (`5391183`); C: the audit's tightenings (`9ae2a75`), What's new and Help (`584cf79`), records (`df436a1`, `742bbac`) | — | as listed | local; CI |
+| Gates | B: the data-safety drill D1–D17 (`135062b`); CI fixes: food-volume's clock (`bd03089`), session-x-findings:91's route (`5391183`); C: the audit's tightenings (`9ae2a75`), What's new and Help (`584cf79`), ZIGi's launcher keeps still on a tap (`0d6ce53`, Y44), records (`df436a1`, `742bbac`) | — | as listed | local; CI |
 | — | This entry, PR ready | — | this commit | — |
 
 ## Tier 2, in plain words (owner visual OK)
@@ -38,6 +38,7 @@ Nothing was deployed, dispatched, merged or approved. No session logged into any
 - **`60033db`, `55283c3` Part 9.** A refused field is marked and takes the focus; file inputs and radios are drawn in the nebula style (still native inputs, ≥44 px targets, focus rings, a forced-colors fallback); Ecosystem notes in consumer words. Risk: desktop/tablet captures change where radios and file inputs show (the freeze check below). Rollback: revert both.
 - **`584cf79` What's new and Help.** The card shows once more (release `2026-10-session-y`, four links); four Help answers. Rollback: revert.
 - **`53b68ff`, `cff0400` fasting.** A fast starts at the tap; the 24-hour stop shows after a reload at once. Rollback: revert.
+- **`0d6ce53` ZIGi's launcher on phones (Y44).** It goes to its corner only on keyboard focus; a tap leaves it where it rests, so the tap reaches the control instead of the launcher arriving over it. Rollback: revert (taps on a control under the corner can be lost again).
 
 ## Tier 3, in plain words (risk → rollback)
 - **`d27d522`, `96f5f8f`, `bff4656`, `6b942cd`, `94a4b6d`, `5c8d727` CI.** A time-zone unit step (Chatham, New York) in the integration job (54 s); browser shards 60 min; a WebKit job (35 min), advisory on pull requests (`continue-on-error`): promoted into "web" after two green runs (`94a4b6d`) and withdrawn after the next (`5c8d727`, Y42). Risk: none to the app. Rollback: revert any of them (reverting `5c8d727` alone makes WebKit required again).
@@ -82,8 +83,8 @@ Every page within its budget (CI's "Page weight budgets" step green on every hea
 |---|---|---|
 | Unit, full suite, `TZ=UTC`, tree of `742bbac` (Gate C) | 486 files passed, 19 skipped; **4,367 tests passed**, 42 skipped, 0 failed (273 s) | local |
 | Unit, full suite under `TZ=UTC` and `TZ=Europe/Brussels`, tree of `e2442be` (Gates A–B) | 4,365 passed, 0 failed, each | local |
-| Browser, full suite, both projects, production build of `742bbac` (Gate C) | **1,864 passed**, 545 skipped, 5 failed (1.8 h): the brand film ×4 (`logo-quickadd-goals-header:53`, `:79`, both projects; this sandbox's Chromium cannot play it, by design) and `run10-source-pinning:31` (phone, Y43) | local |
-| Gate C follow-ups, each alone | unit 188/188 (the changed files and neighbours); the focused browser set 74 passed, 2 skipped (the WebKit-only phone set in Chrome); `hydration-zone` 6/6; `session-x-findings:91` 40/40; `zigi-alive:190` 5/5; `meditation:277` probe 30/30, and 3/3 with the view's CSS held back; `run10-source-pinning:31` phone 48/51 on this build, 20/20 on `e30b7c6`'s (Y43) | local |
+| Browser, full suite, both projects, production build of `742bbac` (Gate C) | **1,864 passed**, 545 skipped, 5 failed (1.8 h): the brand film ×4 (`logo-quickadd-goals-header:53`, `:79`, both projects; this sandbox's Chromium cannot play it, by design) and `run10-source-pinning:31` (phone: the launcher moved onto the control being tapped, fixed in `0d6ce53`, Y44) | local |
+| Gate C follow-ups, each alone | unit 188/188 (the changed files and neighbours); the focused browser set 74 passed, 2 skipped (the WebKit-only phone set in Chrome); `hydration-zone` 6/6; `session-x-findings:91` 40/40; `zigi-alive:190` 5/5; `meditation:277` probe 30/30, and 3/3 with the view's CSS held back; `run10-source-pinning:31` phone 48/51 on this build before Y44, 20/20 on `e30b7c6`'s, **30/30 after Y44**; Y44's new test fails on the code before it (both projects) and passes after (`zigi-phone-rest` 8/8); `a11y-wcag-x` 16/16 and the launcher's ZIGi specs 71 passed, 5 skipped after Y44 | local |
 | Miniflare: CI's integration list, one file at a time | 17/17 (Gate B); `account-browser` 2/2 again after the B4 wording (two real profiles) | Miniflare |
 | Data-safety drill D1–D17 | no loss (`docs/verification/y-cloud/DATA_SAFETY_Y.md`); #34's own readers on this build's bytes 2/2 | local, Miniflare |
 | Packaged Alpha | `build:alpha`, `check:alpha`, artifact, prices 6/6, headers 6/6, the security gate 16/16 (local, Gate B); the same steps green in CI's integration job on every head since `df436a1` | local, CI |
@@ -104,31 +105,34 @@ Every deliberate change is in [ADR-018](architecture/ADR-018-session-y.md) "Asse
 Phones get Session Y's own changes (Parts 8, 9, What's new, Help), each with a test on the phone project.
 
 ## Revert gate (local, scratch worktree at `a94a9b9`)
-All 45 commits `e30b7c6..a94a9b9` (every code, test, CI and record commit up to the last code change) revert newest first without a conflict, `pnpm typecheck` passes after each of the 45 reverts (about 45 s each), and the tree after the last revert is identical to `e30b7c6`. The commits after it are documents only (`00dcf86`, this entry). Groups that revert together: B4 (`ea05906`, `4b15ff1`, `dd0695b`), B6/B3 (`ff14a16`, `00deb6b`, `7045b15`), B5 (`a8b84a2`, `646572c`), the WebKit job (`96f5f8f`, `bff4656`, `6b942cd`, `94a4b6d`, `5c8d727`).
+All 45 commits `e30b7c6..a94a9b9` (every code, test, CI and record commit up to the last code change) revert newest first without a conflict, `pnpm typecheck` passes after each of the 45 reverts (about 45 s each), and the tree after the last revert is identical to `e30b7c6`. After it: `00dcf86` and this entry (documents), and `0d6ce53` (Y44: one component and its test), which reverts cleanly on its own back to `a94a9b9`'s app tree (checked). Groups that revert together: B4 (`ea05906`, `4b15ff1`, `dd0695b`), B6/B3 (`ff14a16`, `00deb6b`, `7045b15`), B5 (`a8b84a2`, `646572c`), the WebKit job (`96f5f8f`, `bff4656`, `6b942cd`, `94a4b6d`, `5c8d727`).
 
 ## CI
-- **Green on the final code head:** run 38023110370 on `a94a9b9`, every job (checks, three browser shards, integration with the packaged Alpha and the security gate, contract, WebKit 34 min). Also green: run 38014291306 on `742bbac` (every job) and run 37988501137 on `3b3e9a2`. Canonical reproducibility green on every head checked. The commits after `a94a9b9` are documents; this entry's own run covers them.
+- **Green:** run 38023110370 on `a94a9b9`, every job (checks, three browser shards, integration with the packaged Alpha and the security gate, contract, WebKit 34 min); run 38014291306 on `742bbac` (every job); run 37988501137 on `3b3e9a2`. Canonical reproducibility green on every head checked. The final code commit is `0d6ce53` (Y44); this entry's own run covers it.
 - **Red runs, each root-caused** (runs cancelled by a newer push are not failures and are not listed):
   - 37985391760 on `cff0400`: `fasting:66` (phone) → the Part 2 follow-ups (`f15cc73`, `3b3e9a2`, green), then `53b68ff`.
   - 38001047405 on `c40475e`: `account-browser` (B4 held the sync) → `4b15ff1`; `private-read-delay` ×6 (B5's sweep ran on a read) → `646572c`; `fasting:66` (desktop: the start time came from the save) → `53b68ff`.
   - 38006375513 on `df436a1`: `run11-food-volume` crossed midnight → `bd03089`; the WebKit job stopped at 30 min → `bff4656`; WebKit `zigi-auto-accept:73` → Y42.
   - 38010192191 on `e2442be`: `session-x-findings:91` (its route handler read a response a navigation had disposed) → `5391183`.
   - 38016733216 on `4245c91`: `zigi-alive:190` (read the figure mid-swap) → `86ec743`; `meditation:277` (phone) → Y43; WebKit `zigi-auto-accept:42` → the promotion withdrawn (`5c8d727`, Y42).
+  - 38025917026 on `9d4f750` (this entry's first version): `run10-source-pinning:31` (phone: the launcher moved onto the control being tapped) → `0d6ce53` (Y44).
 - **WebKit job:** advisory (pull requests only, `continue-on-error`). It was promoted after two green runs (`94a4b6d`, Y41) and withdrawn after the next (Y42).
 
 ## Known CI intermittents (this session)
 - **`tests/session-x-findings.spec.ts:91`** (X-Cloud's test) failed once in CI on `e2442be` (run 38010192191, desktop): its chunk patcher read a response the next navigation had disposed. Fixed at its cause (`5391183`); 40 of 40 locally. Not an app defect.
 - **`tests/run11-food-volume.spec.ts`** crossed midnight in CI on `df436a1` and lost its planned meal; it now runs on a fixed clock (`bd03089`).
+- **`tests/run10-source-pinning.spec.ts:31`** (phone) failed in CI on `9d4f750` and 3 times in 51 local runs: an app bug, fixed (`0d6ce53`, Y44: a tap's focus no longer moves ZIGi's launcher onto the control being tapped); 30 of 30 since.
+- **`tests/meditation.spec.ts:277`** (phone) failed once in CI on `4245c91` (the page 357 px wide at 320 while the logo intro played, which only real Chrome plays); 30 of 30 here, also with the view's CSS held back. Cause not established; the test is unchanged (Y43). One re-run is the rule if it recurs.
 - **`push-reminders:234`** and the two monitor rows: see Part 3 (60/60 before, 60/60 after; 40/40 and 40/40); none failed in CI on this PR.
 
 ## Decisions made without the owner
-ADR-018 "Session decisions" Y1–Y43, each the safest option that keeps the brief's promises. Read first: Y26 (the unit change is narrow in practice), Y23 (B5's horizons), Y22 (how a same-account vault goes back), Y38 (consent per tab), Y42 (the WebKit freeze), Y43 (two intermittents left unchanged, with their causes).
+ADR-018 "Session decisions" Y1–Y44, each the safest option that keeps the brief's promises. Read first: Y26 (the unit change is narrow in practice), Y23 (B5's horizons), Y22 (how a same-account vault goes back), Y38 (consent per tab), Y42 (the WebKit freeze), Y43 and Y44 (the intermittents: one open, one an app bug fixed).
 
 ## Owner items
 - Review the PR; merging and deploying stay yours (the Manual Alpha workflow from `main`).
 - **Decide:** the persona pack (`docs/product/PERSONA_DECISIONS_Y.md`, 12 items plus A5, A6, C4/check 9 and the home GPU); the unit change for valued metals (Y26: a unit on each valuation record, or convert recorded quantities); a shared "ask first" for Health across tabs (Y38); A7's wording after "Delete cloud data" and whether a locked account's local copy may be exported (SECURITY_REVIEW_Y, second read); §10a's open question to Anthropic support and counsel (until answered: owner-only credits).
 - **WebKit, high priority (Safari is WebKit):** `zigi-auto-accept` failed twice in four WebKit runs; on `4245c91` the page stopped answering after a second message to ZIGi (Y42; the trace is in run 38016733216's `web-webkit-*` artifact until 2026-10-17). ZIGi's lane (Session Z) has it in `docs/handoff/Y_TO_Z.md`. Promote the job (revert `5c8d727`) once that is fixed and it is green twice again.
-- **ZIGi's launcher on phones (Y43):** gliding back to its corner after a scroll, it can take a tap meant for a control under it (seen in `run10-source-pinning:31`); for ZIGi's lane, with two options in Y_TO_Z.md.
+- **ZIGi's launcher on phones (Y44, fixed):** a tap no longer moves it onto the control being tapped; it goes to its corner on keyboard focus only. Announced to ZIGi's lane in Y_TO_Z.md.
 - **Your Mac:** the next `push-reminders` run names its cause (`{shown, error}`); if it says macOS refused notifications, allow Chrome's notifications in System Settings.
 - **#34:** the iPhone checklist (13 rows, ZIGI_ALIVE_X.md) is still pending.
 - **Test:** the gallery `review/session-y-screens` (MOCK) and the raw live cells `review/session-y-runs`.
