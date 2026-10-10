@@ -303,6 +303,43 @@ Only the app changed; no Worker, no new storage key. Re-run step 2 at your relea
 4. **An older vault is refused** (B3): only if the cloud's vault goes back to an older one (a restore of an earlier copy, then perhaps a new vault made on another device). "Delete cloud data" cannot cause it: it ends the account's cloud for good (every later call answers 410). The old device shows a message, and "Re-link this device" (after a confirmation) syncs it with the vault now in the cloud. Not something to try by hand; proven in Miniflare (`scripts/run11/older-vault-recovery.test.mjs`).
 5. Nothing to see for B5 (no plaintext change queue for the Local Demo, bounded receipts and archives) and B7 (one spelling per ciphertext).
 
+## Session Z-Cloud changes (Session Z-Cloud PR, 2026-10-10)
+Two Workers changed, with no new class, no migration and no new secret; one new **var** on private sync. Re-run step 2
+at your release SHA.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| app | Session Z-Cloud Parts 2–5 (ZIGi's chat, voice, the persona decisions, the five step-up actions, C4's testnet-only reads, A7's export) | yes (the app) |
+| auth admission | A5: at most 60 code emails per UTC day across every address (one record in one object of the existing `AdmissionAuthority` class, `auth-admission-v2:global:send`); code requests group IPv6 by /48 (verification keeps /64). The per-group code counters start afresh once | yes |
+| private sync | A6: the step-up check for Delete cloud data, Delete account, Delete a section, Sign out all other devices (and revoking one session) and Rotate; a new path `/v1/step-up` (registration only) and the var **`STEP_UP_REQUIRED`** | yes |
+| lifecycle, market coordinator, food lookup, push, relay | nothing | no |
+
+**The new var (owner switch, ADR-019 C35):** `STEP_UP_REQUIRED` = `"on"` in the committed template
+(`workers/private-sync/wrangler.local.jsonc`). A private copy made by `make-private-configs.mjs` carries it; an existing
+copy needs it added (`make-private-configs.mjs` update, or by hand), or `activation-check` says "a template var is
+missing". With it "on", a vault whose verifier the new app registered needs the recovery secret's proof for those
+actions; any other value turns the check off. Unlock, sync and sessions never ask.
+
+**Order:** private sync and auth admission (each with step 4's checks), then the app (step 5). The proof travels in a
+header, so the new app works against the old Worker (the proof is ignored) and the old app against the new Worker
+(no verifier is ever registered by it).
+
+**Rollback (Tier 3 risk → rollback):** to roll the app back to #35 while vaults already have a verifier, set
+`STEP_UP_REQUIRED` to `"off"` on private sync first (a var in your private config, not a secret; deploy that
+config), then roll back the app; #35 never sends a proof and is then never refused. The verifier rows stay
+and count again when the var is back to "on". Auth admission rolls back on its own (the day's record is forgotten).
+
+**What to check after the redeploy (plain words):**
+1. **The secret is asked again** (A6): on the acceptance app, Settings → Devices and sessions → "Sign out all other
+   devices…" shows "Your recovery secret, to confirm it’s you"; a wrong secret says it does not open this vault and
+   nothing changes; the right one signs the others out. The same field appears for Delete cloud records, a section's
+   deletion and "Activate new vault key".
+2. **30 days** (A6): nothing to see today; a device remembered 30 days ago asks for the secret once, saying why.
+3. **Codes paused** (A5): not something to try (60 code emails); proven in Miniflare
+   (`scripts/run11/auth-abuse.test.mjs`). If friends ever see "Sign-in codes are paused for today; try again tomorrow.",
+   the day's ceiling was reached.
+4. **Mainnet** (C4): on the public Alpha the wallet reader says mainnet addresses are not read there; testnet reads work.
+
 ## Push activation (optional; Session X Part 8, 2026-10-08)
 Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays
 off:** it has no accounts (no `PRIVATE_SYNC` binding), so `/api/push` answers 503 `PUSH_UNAVAILABLE` there whatever you do.

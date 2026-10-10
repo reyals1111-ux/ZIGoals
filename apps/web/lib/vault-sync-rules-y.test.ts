@@ -19,6 +19,7 @@ vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:asy
 vi.mock('./vault/domain-lifecycle',()=>({prepareDomainReview:async(kind:string,domain:string)=>({kind,domain,local:{}}),deleteCloudDomain:async()=>{},acceptDomainRestore:(...args:any[])=>h.restore(...args)}));
 import {OlderCloudError,OlderVaultError} from './vault/cloud-sync';
 import {HEALTH_RESTORE_ASK,VAULT_MISSING,VAULT_OLDER,VaultSyncProvider} from '../components/vault-sync-controls';
+import {HEALTH_ASKED_ELSEWHERE,announceHealthAsk} from './vault/health-ask';
 import {VaultSyncControls} from '../components/vault-sync-panel';
 
 /**
@@ -62,6 +63,18 @@ test('B4: with Health consent already on, a Health restore syncs at once and ask
  await act(async()=>h.domain.prepare('restore','health'));await act(async()=>h.domain.confirm());await settle();
  expect(h.restore).toHaveBeenCalledTimes(1);expect(h.synchronize.mock.calls.length).toBe(calls+1);
  expect(consent().checked).toBe(true);expect(element.textContent).not.toContain(HEALTH_RESTORE_ASK);
+});
+// Session Z-Cloud Part 5 (Y38, ADR-019 C36): a Health restore in another tab of the account asks here too.
+test('Y38: another tab\'s Health restore turns Health sync off here and asks; another account\'s is ignored',async()=>{
+ await open();await act(async()=>consent().click());await settle();expect(consent().checked).toBe(true);
+ const calls=h.synchronize.mock.calls.length;
+ await act(async()=>announceHealthAsk('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));await settle();
+ expect(consent().checked).toBe(true);expect(element.textContent).not.toContain(HEALTH_RESTORE_ASK);
+ await act(async()=>announceHealthAsk(A));await settle();
+ expect(consent().checked).toBe(false);expect(element.textContent).toContain(HEALTH_RESTORE_ASK);expect(element.textContent).toContain(HEALTH_ASKED_ELSEWHERE);
+ expect(h.synchronize.mock.calls.length).toBe(calls);
+ // The person ticks it here: Health sync starts again in this tab.
+ await act(async()=>consent().click());await settle();expect(consent().checked).toBe(true);expect(h.synchronize.mock.calls.length).toBe(calls+1);
 });
 test('B4: restoring another section still syncs at once, as before',async()=>{
  await open();const calls=h.synchronize.mock.calls.length;

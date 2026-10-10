@@ -78,7 +78,8 @@ test.runIf(BROWSER)('rotation on another device, sign-out and another account in
   // Device A rotates the vault key: a new random root at the next epoch and a new recovery secret.
   await pa.getByText('Rotate vault encryption',{exact:true}).click();await pa.getByRole('button',{name:'Prepare key rotation',exact:true}).click();
   const next=await pa.getByLabel('New rotation recovery secret',{exact:true}).inputValue();expect(next).not.toBe(recovery);
-  await pa.getByLabel('I saved the new rotation recovery secret separately.').check();await pa.getByRole('button',{name:'Activate new vault key',exact:true}).click();
+  // Session Z-Cloud Part 5 (A6): a remembered device too confirms a rotation with the current secret.
+  await pa.getByLabel('I saved the new rotation recovery secret separately.').check();await pa.getByRole('region',{name:'Encrypted account sync',exact:true}).getByLabel('Your recovery secret, to confirm it’s you',{exact:true}).fill(recovery);await pa.getByRole('button',{name:'Activate new vault key',exact:true}).click();
   await pa.getByText(/Vault key rotated and activated/).waitFor();
   // A forgot itself before rotating; B's record names the old manifest and is deleted at its next open.
   expect(await deviceRecords(pa)).toBe(0);

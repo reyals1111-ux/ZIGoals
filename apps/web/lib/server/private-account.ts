@@ -2,18 +2,27 @@ import 'server-only';
 import * as z from 'zod';
 export type AccountConfig={authOrigin:string;publicKey:string;syncOrigin:string};
 const configSchema=z.object({authOrigin:z.string().regex(/^https:\/\/[a-z0-9-]+\.supabase\.co$/),publicKey:z.string().min(1).max(4096),syncOrigin:z.string().regex(/^https:\/\/[a-z0-9.-]+\.workers\.dev$/)}).strict();
+/**
+ * Session Z-Cloud Part 5 (A6, ADR-019 C35): the recovery secret's proof for the five actions that end data or access, and,
+ * when a rotation begins, the new secret's verifier. They go to private sync as headers (workers/private-sync/step-up.mjs),
+ * so a sync Worker from before ignores them and every body stays as it was.
+ */
+const hex64=z.string().regex(/^[a-f0-9]{64}$/);
+const stepUpSchema=z.object({proof:hex64,next:hex64.optional()}).strict().optional();
+const stepUpHeaders=(stepUp:z.infer<typeof stepUpSchema>):Record<string,string>=>stepUp?{'x-zigoals-step-up':stepUp.proof,...(stepUp.next?{'x-zigoals-step-up-next':stepUp.next}:{})}:{};
 const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('send'),email:z.email().max(254)}).strict(),
  z.object({action:z.literal('verify'),email:z.email().max(254),code:z.string().regex(/^\d{6,10}$/),label:z.string().trim().min(1).max(80).optional()}).strict(),
  z.object({action:z.literal('signout')}).strict(),
  z.object({action:z.literal('refresh')}).strict(),
  z.object({action:z.literal('sync'),operation:z.unknown()}).strict(),
- z.object({action:z.literal('domain'),operation:z.object({action:z.literal('delete-domain'),domain:z.enum(['finance','health','habits','settings']),confirm:z.string().max(32),operation:z.uuid(),revision:z.number().int().nonnegative(),generation:z.number().int().nonnegative()}).strict()}).strict(),
- z.object({action:z.literal('rotation'),operation:z.unknown()}).strict(),
+ z.object({action:z.literal('domain'),operation:z.object({action:z.literal('delete-domain'),domain:z.enum(['finance','health','habits','settings']),confirm:z.string().max(32),operation:z.uuid(),revision:z.number().int().nonnegative(),generation:z.number().int().nonnegative()}).strict(),stepUp:stepUpSchema}).strict(),
+ z.object({action:z.literal('rotation'),operation:z.unknown(),stepUp:stepUpSchema}).strict(),
+ z.object({action:z.literal('step-up'),operation:z.object({action:z.literal('register'),epoch:z.number().int().positive().max(Number.MAX_SAFE_INTEGER),verifier:hex64}).strict()}).strict(),
  // Session U Part 9 (ADR-013): the opt-in Portfolio copy; private sync checks the operation itself (portfolio.mjs).
  z.object({action:z.literal('portfolio'),operation:z.unknown()}).strict(),
- z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()])}).strict(),
- z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()])}).strict(),
+ z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()]),stepUp:stepUpSchema}).strict(),
+ z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()]),stepUp:stepUpSchema}).strict(),
 ]);
 /**
  * Session U Part 5 (FIX_PLAN A2, FINDINGS Q-AUTH-06): the one answer to every code request that passes admission. Session
@@ -126,14 +135,15 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    if(!registry.ok){if(registry.status===401&&(await readBounded(registry,4096).catch(()=>null))?.error==='SESSION_REVOKED')await endProviderSession(cfg,refreshed.access_token,'local');else await registry.body?.cancel().catch(()=>{});throw Error('Session refresh denied.');}z.object({registered:z.literal(true),id:z.uuid()}).parse(await readBounded(registry,32768));
    return withCookies(reply({signedIn:true,accountId:refreshed.user.id.toLowerCase()}),refreshed.access_token,refreshed.refresh_token,30*86400);
   }
-  if(action.action==='session'){if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account'));const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});const data=await readBounded(remote,32768);
+  if(action.action==='session'){if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account'));const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{method:'POST',headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence,'content-type':'application/json',...stepUpHeaders(action.stepUp)},body:JSON.stringify(action.operation)});const data=await readBounded(remote,32768);
    if(remote.ok&&action.operation.action==='revoke-others'){data.providerSignedOut=await endProviderSession(cfg,token,'others');return reply(data,remote.status);}
    if(remote.ok&&data.currentRevoked===true||remote.status===401&&data?.error==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');
    return reply(data,remote.status,data.currentRevoked?{'Set-Cookie':cookie('',0)}:{});}
-  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'||action.action==='portfolio'){
+  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'||action.action==='portfolio'||action.action==='step-up'){
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
-   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':action.action==='portfolio'?'portfolio':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json'},body:JSON.stringify(action.operation)});
+   const stepUp='stepUp' in action?stepUpHeaders(action.stepUp):{};
+   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':action.action==='portfolio'?'portfolio':action.action==='step-up'?'step-up':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json',...stepUp},body:JSON.stringify(action.operation)});
    return relayed(cfg,remote,action.action==='rotation'?1_000_000:32768);
   }
   // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an

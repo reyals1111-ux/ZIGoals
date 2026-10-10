@@ -13,6 +13,7 @@ import {HABITS_KEY} from './habits';
 import {readEverything} from './export/everything';
 import {habitsV2} from './vault/format-fixtures';
 import {DENIED_DELETED,DENIED_REVOKED} from '../components/vault-sync-controls';
+import {REMEMBER_EXPIRED} from '../components/vault-sync-panel';
 const h=vi.hoisted(()=>({access:{} as any,manifest:null as any,session:'',signedIn:null as string|null,denied:null as string|null,offline:false,held:[] as string[],requests:[] as string[],synchronize:vi.fn()}));
 vi.mock('../components/account-access',()=>({AccountAccess:(p:any)=>{h.access=p;return null;}}));
 vi.mock('../components/account-devices',()=>({AccountDevices:()=>null}));
@@ -151,6 +152,16 @@ describe('what makes it ask for the secret again',()=>{
   await remembered();
   h.manifest=(await createVault(vault.manifest.vault,2)).manifest;
   await reload();await verified();expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);
+ });
+ // Session Z-Cloud Part 5 (A6, ADR-008 addendum): 30 days from the day it was remembered, then the secret once.
+ test('30 days after it was remembered, the record is deleted and the secret is asked for once, saying why',async()=>{
+  await remembered();
+  const now=Date.now(),clock=vi.spyOn(Date,'now');
+  try{
+   clock.mockReturnValue(now+29*86400000);await reload();await verified();expect(opened()).toBe(true);expect(await readDevices()).toHaveLength(1);
+   clock.mockReturnValue(now+30*86400000+60000);await reload();await verified();
+   expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);expect(element.textContent).toContain(REMEMBER_EXPIRED);
+  }finally{clock.mockRestore();}
  });
  test('a new sign-in (another server session) needs the secret once',async()=>{
   await remembered();

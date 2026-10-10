@@ -3,21 +3,25 @@
 // vault-sync-controls.tsx, so the panel and its sub-panels (sign-in, conflicts, recovery, sections, rotation, deletion,
 // local records, devices) load with Settings instead of with every page. The provider, its state and every vault action
 // stay in vault-sync-controls.tsx; this file only renders what the provider exposes.
-import {useEffect,useId,useRef,useState} from 'react';
-import {ConflictReviewControls} from './conflict-review-controls';
-import {ForwardRecoveryControls} from './forward-recovery-controls';
-import {DomainCloudControls} from './domain-cloud-controls';
+import {Suspense,lazy,useEffect,useId,useRef,useState} from 'react';
 import {AccountDeletion} from './account-deletion';
-import {VaultRotationControls} from './vault-rotation-controls';
-import {LocalAccountAttach} from './local-account-attach';
-import {AccountDevices} from './account-devices';
 import {AccountAccess} from './account-access';
 import {SyncOffer} from './account-sync-offer/sync-offer';
-import {PortfolioSyncChoice} from './portfolio-sync-choice';
+// Session Z-Cloud Part 5 (ADR-019 C39): what only a signed-in account (devices, Portfolio sync) or an open vault (conflicts,
+// recovery, sections, rotation, local records) can use loads when the person signs in or opens it, not with Settings.
+const ConflictReviewControls=lazy(()=>import('./conflict-review-controls').then(m=>({default:m.ConflictReviewControls})));
+const ForwardRecoveryControls=lazy(()=>import('./forward-recovery-controls').then(m=>({default:m.ForwardRecoveryControls})));
+const DomainCloudControls=lazy(()=>import('./domain-cloud-controls').then(m=>({default:m.DomainCloudControls})));
+const VaultRotationControls=lazy(()=>import('./vault-rotation-controls').then(m=>({default:m.VaultRotationControls})));
+const LocalAccountAttach=lazy(()=>import('./local-account-attach').then(m=>({default:m.LocalAccountAttach})));
+const AccountDevices=lazy(()=>import('./account-devices').then(m=>({default:m.AccountDevices})));
+const PortfolioSyncChoice=lazy(()=>import('./portfolio-sync-choice').then(m=>({default:m.PortfolioSyncChoice})));
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from '../lib/account-session';
 import {currentInstallContext} from '../lib/install/platform';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
-import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER,useVaultControls} from './vault-sync-controls';
+import {HEALTH_HELD_REFUSAL,HEALTH_RESTORE_ASK,HEALTH_UNVERIFIED_REFUSAL,REMEMBER_EXPIRED_NOTE,REMEMBER_LABEL,REMEMBER_NOTE,VAULT_MISSING,VAULT_OLDER,useVaultControls} from './vault-sync-controls';
+/** Session Z-Cloud Part 5 (A6, ADR-008 addendum): what a remembered device says after its 30 days (the provider sets the note). */
+export const REMEMBER_EXPIRED='This device remembered your account for 30 days, so it asks for the recovery secret once now. Your records on this device were not changed; tick Remember again to keep opening here without it.';
 export function VaultSyncControls(){
  // "Remember on this device" is ticked by default only in the installed app (Home Screen or installed desktop app), unticked in a browser tab (M1 b).
  const [remember,setRemember]=useState<boolean|null>(null),[installed,setInstalled]=useState(false);
@@ -41,7 +45,7 @@ export function VaultSyncControls(){
  <label className="checkbox" htmlFor={id+'health'}><input ref={consentRef} id={id+'health'} type="checkbox" checked={c.health} disabled={!c.account} aria-describedby={[!c.account&&(finishing?id+'finishing':id+'signin'),healthRefused&&id+'error',c.healthAsk&&id+'health-ask'].filter(Boolean).join(' ')||undefined} onChange={e=>c.setHealth(e.target.checked)}/>Sync my Health records with this account. Turning this off stops Health transfers on this tab; it does not delete existing encrypted cloud copies.</label>
  {!c.account&&(finishing?<p className="fine" id={id+'finishing'}>Finishing sign-in…</p>:<span className="sr-only" id={id+'signin'}>Available after you sign in.</span>)}
  {c.healthAsk&&<p className="notice" id={id+'health-ask'}>{HEALTH_RESTORE_ASK}</p>}
- {SYNC_WRITES&&c.account&&<PortfolioSyncChoice key={c.account} opened={c.opened} busy={c.busy} status={c.portfolio} onSync={c.syncPortfolioNow} onDelete={c.deletePortfolioCloud}/>}
+ {SYNC_WRITES&&c.account&&<Suspense fallback={null}><PortfolioSyncChoice key={c.account} opened={c.opened} busy={c.busy} status={c.portfolio} onSync={c.syncPortfolioNow} onDelete={c.deletePortfolioCloud}/></Suspense>}
  {/* Session Y Part 5 (B6, B3): the cloud's vault is gone or older; only the person's explicit choice starts over. */}
  {c.account&&c.vaultGone&&<div className="notice" role="group" aria-labelledby={id+'gone'}><p id={id+'gone'}>{c.vaultGone==='missing'?VAULT_MISSING:VAULT_OLDER}</p><label className="checkbox" htmlFor={id+'gone-confirm'}><input id={id+'gone-confirm'} type="checkbox" checked={startConfirmed} onChange={e=>setStartConfirmed(e.target.checked)}/>{c.vaultGone==='missing'?'I understand that this starts a new encrypted vault for my account.':'I understand that this device will sync with the vault now in the cloud.'}</label><button className="secondary" disabled={!startConfirmed||c.busy} onClick={()=>{setStartConfirmed(false);void c.startOver();}}>{c.vaultGone==='missing'?'Start a new encrypted vault':'Re-link this device'}</button><p className="fine">This device’s earlier sync record is kept in its recovery archive; your records on this device are not changed.</p></div>}
  {c.account&&c.manifest===null&&!c.generated&&<button className="primary" disabled={c.busy} onClick={()=>{setSaved(false);void c.prepare();}}>Create encrypted account vault</button>}
@@ -49,11 +53,11 @@ export function VaultSyncControls(){
  {c.manifest&&!c.opened&&<form onSubmit={e=>{e.preventDefault();const value=secret;setSecret('');void c.unlock(value,remembering);}}><label>Vault recovery secret<input type="password" autoComplete="off" value={secret} onChange={e=>setSecret(e.target.value)}/></label>{rememberChoice('remember')}<button className="primary" disabled={c.busy||!secret}>Unlock account vault</button></form>}
  {c.opened&&<div className="actions"><button className="primary" disabled={c.busy} onClick={()=>void c.sync()}>Sync now</button><button className="secondary" onClick={()=>{setSecret('');c.lockNow();}}>Lock account vault</button></div>}
  {c.remembered&&<div className="notice"><p>{c.opened?'This device is remembered: ZIGoals opens your account records here without the recovery secret. Locking locks every tab of this browser and forgets this device.':'This device is remembered: ZIGoals can open your account records here without the recovery secret.'}</p><button className="secondary" disabled={c.busy} onClick={()=>void c.forgetDevice()}>Forget this device</button></div>}
- {c.deviceNote&&<p className="fine" aria-live="polite">{c.deviceNote}</p>}
- {c.opened&&<ConflictReviewControls busy={c.busy} review={c.conflictReview} prepare={c.prepareConflict} confirm={c.confirmConflict} cancel={c.cancelConflict}/>}
- {c.opened&&<ForwardRecoveryControls busy={c.busy} review={c.forwardReview} prepare={c.prepareForward} confirm={c.confirmForward} cancel={c.cancelForward}/>}
- {c.opened&&<DomainCloudControls busy={c.busy} review={c.domainReview} prepare={c.prepareDomain} confirm={c.confirmDomain} cancel={c.cancelDomain}/>}
- {c.opened&&<VaultRotationControls busy={c.busy} prepared={c.rotationKeys} staged={c.stagedRotation} prepare={c.prepareRotation} resume={c.resumeRotation} finish={c.finishRotation} abort={c.abortRotation} cancel={c.cancelRotation}/>}
+ {c.deviceNote&&<p className="fine" aria-live="polite">{c.deviceNote===REMEMBER_EXPIRED_NOTE?REMEMBER_EXPIRED:c.deviceNote}</p>}
+ {c.opened&&<Suspense fallback={null}><ConflictReviewControls busy={c.busy} review={c.conflictReview} prepare={c.prepareConflict} confirm={c.confirmConflict} cancel={c.cancelConflict}/></Suspense>}
+ {c.opened&&<Suspense fallback={null}><ForwardRecoveryControls busy={c.busy} review={c.forwardReview} prepare={c.prepareForward} confirm={c.confirmForward} cancel={c.cancelForward}/></Suspense>}
+ {c.opened&&<Suspense fallback={null}><DomainCloudControls busy={c.busy} review={c.domainReview} prepare={c.prepareDomain} confirm={c.confirmDomain} cancel={c.cancelDomain}/></Suspense>}
+ {c.opened&&<Suspense fallback={null}><VaultRotationControls busy={c.busy} prepared={c.rotationKeys} staged={c.stagedRotation} prepare={c.prepareRotation} resume={c.resumeRotation} finish={c.finishRotation} abort={c.abortRotation} cancel={c.cancelRotation}/></Suspense>}
  {c.opened&&<details><summary>Pending-work recovery</summary><p>If an older or incompatible queued operation blocks sync, prepare a separate encrypted copy before forward recovery. This does not clear, send, or repair the queue. The copy contains the account sync journal, including any selected Health data previously queued.</p><button className="secondary" disabled={c.busy} onClick={()=>{setPendingSaved(false);void c.preparePendingRecovery();}}>Prepare encrypted pending-work copy</button>{c.pendingRecovery&&<div className="notice"><label>Separate recovery secret<input readOnly value={c.pendingRecovery.recovery} autoComplete="off" spellCheck={false}/></label><p>Save this secret separately. It is required to inspect this recovery copy and cannot be replaced by an email code.</p><label className="checkbox"><input type="checkbox" checked={pendingSaved} onChange={e=>setPendingSaved(e.target.checked)}/>I saved this recovery secret separately.</label><button className="primary" disabled={!pendingSaved} onClick={downloadPending}>Download encrypted pending-work copy</button><button className="secondary" onClick={()=>{c.clearPendingRecovery();setPendingSaved(false);}}>Cancel</button></div>}</details>}
- <p role="status">{c.message}{c.last&&` Last acknowledgement: ${c.last}.`}</p>{c.error&&<p role="alert" id={id+'error'}>{c.error}</p>}<p className="fine">Conflicting financial changes pause sync for review. Encrypted backups remain a separate recovery copy. Cloud deletion retains separate local copies and user-held exports. Session access can be revoked below.</p></section><AccountDeletion account={c.account} opened={c.opened} busy={c.busy} erase={c.eraseAccount}/>{c.opened&&<LocalAccountAttach busy={c.busy} health={c.health} preview={c.attachPreview} prepare={c.prepareAttach} confirm={c.confirmAttach} cancel={c.cancelAttach}/>}{c.account&&<AccountDevices account={c.account} onCurrentRevoked={()=>void c.forgetDevice()}/>}</div>;
+ <p role="status">{c.message}{c.last&&` Last acknowledgement: ${c.last}.`}</p>{c.error&&<p role="alert" id={id+'error'}>{c.error}</p>}<p className="fine">Conflicting financial changes pause sync for review. Encrypted backups remain a separate recovery copy. Cloud deletion retains separate local copies and user-held exports. Session access can be revoked below.</p></section><AccountDeletion account={c.account} opened={c.opened} busy={c.busy} erase={c.eraseAccount}/>{c.opened&&<Suspense fallback={null}><LocalAccountAttach busy={c.busy} health={c.health} preview={c.attachPreview} prepare={c.prepareAttach} confirm={c.confirmAttach} cancel={c.cancelAttach}/></Suspense>}{c.account&&<Suspense fallback={null}><AccountDevices account={c.account} onCurrentRevoked={()=>void c.forgetDevice()} vault={!!c.manifest} stepUp={c.stepUp}/></Suspense>}</div>;
 }
