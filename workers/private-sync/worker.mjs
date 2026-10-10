@@ -80,7 +80,8 @@ const privateSyncWorker={async fetch(request,env){
    // The new secret's verifier waits beside the old one and counts once the rotation publishes its epoch.
    headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
    const begun=await stub.fetch(new Request(request,{headers})),next=request.headers.get(STEP_UP_NEXT_HEADER);
-   if(begun.ok&&isStepUpValue(next)&&Number.isSafeInteger(body.manifest?.epoch)){const staged=await internal({action:'next',epoch:body.manifest.epoch,verifier:next});await staged.body?.cancel();}
+   // Every begun rotation sets it, to the new verifier or to none, so an aborted rotation's verifier never carries over.
+   if(begun.ok&&Number.isSafeInteger(body.manifest?.epoch)){const staged=await internal({action:'next',epoch:body.manifest.epoch,verifier:isStepUpValue(next)?next:null});await staged.body?.cancel();}
    return begun;
   }
  }

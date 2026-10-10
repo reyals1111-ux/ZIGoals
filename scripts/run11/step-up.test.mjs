@@ -103,6 +103,43 @@ test('a rotation begins only with the current secret\'s proof, and the new secre
  }finally{await r.mf.dispose();}
 },60000);
 
+// The Gate B security read (ADR-019 C35 addendum): after a first rotation the live verifier sat only in the record's
+// `next`, and staging a second rotation overwrote it, leaving the live epoch with none: the five actions then passed
+// without a proof, and a session alone could register its own verifier and abort the rotation to keep it.
+test('a second rotation keeps the live epoch covered while staged and after an abort; an aborted rotation\'s verifier never carries over',async()=>{
+ const r=await runtime('on');
+ try{
+  const {vault,proof,verifier}=await vaultWithSecret(r);
+  expect(await status(await r.call('/v1/step-up',{action:'register',epoch:1,verifier}))).toBe(200);
+  const rotate=async(epoch,from,{withNext=true}={})=>{
+   const next=await createVault(vault.manifest.vault,epoch),nextProof=await stepUpProof(next.recovery,ACCOUNT,vault.manifest.vault,epoch);
+   const begin={action:'begin',operation:crypto.randomUUID(),base:(await (await r.call('/v1/vault')).json()).revision,manifest:next.manifest};
+   expect(await status(await r.call('/v1/rotation',begin,{headers:{'x-zigoals-step-up':from,...(withNext?{'x-zigoals-step-up-next':await stepUpVerifier(nextProof)}:{})}}))).toBe(200);
+   return {operation:begin.operation,nextProof};
+  };
+  // Rotation 1, committed: epoch 2, covered by the new secret.
+  const first=await rotate(2,proof);
+  expect(await status(await r.call('/v1/rotation',{action:'commit',operation:first.operation}))).toBe(200);
+  // Rotation 2, staged: the live epoch (2) still needs its proof, and its verifier cannot be replaced.
+  const second=await rotate(3,first.nextProof);
+  expect(await status(await r.call('/v1/sessions',revokeOthers))).toBe(403);
+  expect(await status(await r.call('/v1/account',{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}))).toBe(403);
+  const taken=await r.call('/v1/step-up',{action:'register',epoch:2,verifier:'0'.repeat(64)});expect(taken.status).toBe(409);expect(await taken.json()).toEqual({error:'STEP_UP_DIFFERENT'});
+  // Aborted: still covered by the live secret.
+  expect(await status(await r.call('/v1/rotation',{action:'abort',operation:second.operation}))).toBe(200);
+  expect(await status(await r.call('/v1/sessions',revokeOthers))).toBe(403);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{headers:{'x-zigoals-step-up':first.nextProof}}))).toBe(200);
+  // A rotation begun without a next verifier (an app before this one) does not inherit the aborted rotation's: the new
+  // epoch has none until the person's next secret entry registers it (the recorded trust-on-first-use limit).
+  const third=await rotate(3,first.nextProof,{withNext:false});
+  expect(await status(await r.call('/v1/rotation',{action:'commit',operation:third.operation}))).toBe(200);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{headers:{'x-zigoals-step-up':second.nextProof}}))).toBe(200);
+  expect(await status(await r.call('/v1/step-up',{action:'register',epoch:3,verifier:await stepUpVerifier(third.nextProof)}))).toBe(200);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{headers:{'x-zigoals-step-up':second.nextProof}}))).toBe(403);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{headers:{'x-zigoals-step-up':third.nextProof}}))).toBe(200);
+ }finally{await r.mf.dispose();}
+},60000);
+
 test('switch off, or empty: a registered verifier changes nothing (the rollback to #35)',async()=>{
  for(const setting of ['off','']){
   const r=await runtime(setting);

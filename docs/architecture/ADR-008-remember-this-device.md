@@ -182,7 +182,26 @@ Owner decision A6 option (a), ADR-019 C35. `[TIER 3] (auth/sync)`.
 - **Trust on first use, recorded:** the Worker cannot tell a genuine verifier from one made up by whoever registers
   first. A stolen session on a vault that has no verifier yet could register its own; once the person's own device has
   registered (any secret entry on this build), it cannot be replaced. The threat this closes: a remembered device or a
-  stolen session alone can no longer delete, sign others out or rotate.
+  stolen session alone can no longer delete cloud data, the account or a section, rotate, or sign other devices out
+  through ZIGoals.
+- **Gate B security read (fixed):** after a first rotation the live verifier sat only in the record's `next`, and
+  staging a second rotation overwrote it, so the live epoch had none: the five actions passed without a proof, and a
+  session alone could register its own verifier and abort the rotation to keep it. Now the record is settled before
+  anything is written (the live epoch's verifier stays `current`; `next` only for an epoch to come), every begun
+  rotation resets `next` (an aborted rotation's verifier never carries over), and the app registers the new secret again
+  right after a rotation commits. Miniflare: two rotations, staged, aborted and committed (`scripts/run11/step-up.test.mjs`).
+- **Limits recorded (accepted):**
+  - The proof is fixed for an epoch, not a one-time answer to a server challenge: one captured proof (a header seen by
+    a proxy, an extension) works for the five actions until the next rotation. Nothing logs or stores it. A
+    challenge-response (a public key derived from the secret signing a server nonce and the action) would close it.
+  - Whoever holds the session's access token can still ask the email provider itself to end the other devices'
+    provider sessions (its "sign out others" needs only that token and the public key); the other devices then sign
+    out at their next refresh. ZIGoals' own "Sign out all other devices" (which also revokes them in private sync)
+    asks for the secret; the provider's endpoint cannot be gated from here.
+  - Aborting a staged rotation and reading its status do not ask (they end nothing the person keeps; #35's rotation
+    steps are never refused). A session alone can discard a staged rotation, which the person then begins again.
+  - A vault whose live epoch has no verifier (made by #32–#35, or rotated by an app before this one) is covered from the
+    person's next secret entry, not before (trust on first use, above).
 - **Rollback:** an app rollback to #35 keeps working for unlock and sync; for the five actions on a vault with a
   verifier, the owner sets `STEP_UP_REQUIRED` to "off" (docs/deployment/FINAL_ACCTEST_REDEPLOY.md).
 

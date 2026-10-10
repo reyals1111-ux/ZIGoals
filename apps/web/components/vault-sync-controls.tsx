@@ -235,7 +235,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  async function resumeRotation(secret:string){await guarded(async()=>{const {selected,fence}=rotationSession();if(!stagedRotation)throw Error('Read staged rotation first.');await forgetHere(selected,'');fence();const key=await unlockVault(stagedRotation,secret);fence();setRotationKeys({key,manifest:stagedRotation,recovery:secret});});}
  async function finishRotation(secret:string){await guarded(async()=>{const [{rotateVault},{rotationTransport}]=await Promise.all([import('../lib/vault/rotation'),import('../lib/vault/rotation-transport')]);const {selected,fence}=rotationSession(),next=rotationKeys;if(!next)throw Error('Prepare and save the new secret first.');
   // The current secret proves it is the person; the new one's verifier waits beside it until the rotation publishes.
-  const {nextVerifier,stepUpFor}=await stepUpModule(),proof={...await stepUpFor(secret,selected.account,selected.manifest),next:await nextVerifier(next.recovery,selected.account,next.manifest)};fence();auto.current=false;
+  const {nextVerifier,registerStepUp,stepUpFor}=await stepUpModule(),proof={...await stepUpFor(secret,selected.account,selected.manifest),next:await nextVerifier(next.recovery,selected.account,next.manifest)};fence();auto.current=false;
   await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{
    fence();const journal=new SyncJournal(selected.account),state=await journal.read(),local=await captureData(getAppStorage(),['finance','habits','settings',...(selected.health?['health' as const]:[])]);fence();
    if(Object.entries(local).some(([domain,raw])=>raw!==state.base[domain as Domain]))throw Error('Sync local changes before rotating. Your saved rotation secret remains available.');
@@ -243,6 +243,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    await forgetHere(selected,'');fence();
    await rotateVault(accountTransport(selected.account,fence),rotationTransport(selected.account,fence,proof),journal,selected.key,selected.manifest,next.key,next.manifest,fence);fence();
    session.current={...selected,key:next.key,manifest:next.manifest,device:null};setManifest(next.manifest);setRotationKeys(null);setStagedRotation(null);setMessage('Vault key rotated and activated. Other devices need the new recovery secret.');auto.current=true;
+   // The new secret's verifier was staged when the rotation began; registering it again now covers a staging that did not land.
+   void registerStepUp(selected.account,next.recovery,next.manifest);
   });
  });}
  async function abortRotation(){await guarded(async()=>{const {rotationTransport}=await import('../lib/vault/rotation-transport');const {selected,fence}=rotationSession();const transport=rotationTransport(selected.account,fence),status=z.object({rotation:z.object({operation:z.uuid()}).nullable()}).parse(await transport.request());if(status.rotation)await transport.request({action:'abort',operation:status.rotation.operation});fence();setStagedRotation(null);setRotationKeys(null);auto.current=true;setMessage('Staged rotation discarded. Active vault data was kept.');});}

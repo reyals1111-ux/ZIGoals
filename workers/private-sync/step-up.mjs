@@ -37,6 +37,17 @@ export function activeVerifier(record,manifest){
  return null;
 }
 /**
+ * The record as the live manifest reads it, before anything is written: the live epoch's verifier (a rotation's staged
+ * one once its epoch is published) is `current`, and `next` is kept only for an epoch still to come. Staging the next
+ * rotation's verifier therefore never drops the live one (a second rotation used to leave the live epoch uncovered).
+ * @param {{current?:{epoch:number,verifier:string}|null,next?:{epoch:number,verifier:string}|null}} record
+ * @param {{epoch:number}|undefined} manifest
+ */
+export function settledRecord(record,manifest){
+ const live=activeVerifier(record,manifest);
+ return {version:1,current:live&&manifest?{epoch:manifest.epoch,verifier:live}:record.current??null,next:record.next&&manifest&&record.next.epoch>manifest.epoch?record.next:null};
+}
+/**
  * The vault's side, POST /v1/step-up. From the app (through the Worker): `register` only. From the Worker itself (the
  * internal header, which the Worker strips from every incoming request): `check` a proof, and `next` (the verifier for
  * the epoch a rotation that just began will publish).
@@ -49,7 +60,7 @@ export async function stepUpRequest(request,state,readJSON){
  const keys=input&&typeof input==='object'&&!Array.isArray(input)?Object.keys(input).sort().join(','):'';
  const valid=input?.action==='register'&&keys==='action,epoch,verifier'&&Number.isSafeInteger(input.epoch)&&input.epoch>0&&isStepUpValue(input.verifier)
   ||internal&&input?.action==='check'&&keys==='action,proof'&&(input.proof===null||isStepUpValue(input.proof))
-  ||internal&&input?.action==='next'&&keys==='action,epoch,verifier'&&Number.isSafeInteger(input.epoch)&&input.epoch>1&&isStepUpValue(input.verifier);
+  ||internal&&input?.action==='next'&&keys==='action,epoch,verifier'&&Number.isSafeInteger(input.epoch)&&input.epoch>1&&(input.verifier===null||isStepUpValue(input.verifier));
  if(!valid)return reply({error:'INVALID_STEP_UP'},400);
  const proved=input.action==='check'&&input.proof?await verifierOf(input.proof):null;
  return state.storage.transaction(async store=>{
@@ -57,9 +68,11 @@ export async function stepUpRequest(request,state,readJSON){
   if(!await sessionAllowed(store,hash))return reply({error:'SESSION_REVOKED'},401);
   const record=await store.get('step-up')??{version:1,current:null,next:null},manifest=await store.get('manifest'),active=activeVerifier(record,manifest);
   if(input.action==='check')return !active||proved===active?reply({checked:true}):reply({error:'STEP_UP_REQUIRED'},403);
-  if(input.action==='next'){if(!manifest||input.epoch!==manifest.epoch+1)return reply({error:'STEP_UP_EPOCH'},409);await store.put('step-up',{...record,next:{epoch:input.epoch,verifier:input.verifier}});return reply({staged:true});}
+  // Every rotation that begins sets `next` (its verifier, or none when the app sent none), so a verifier staged by an
+  // aborted rotation never becomes another rotation's.
+  if(input.action==='next'){if(!manifest||input.epoch!==manifest.epoch+1)return reply({error:'STEP_UP_EPOCH'},409);await store.put('step-up',{...settledRecord(record,manifest),next:input.verifier?{epoch:input.epoch,verifier:input.verifier}:null});return reply({staged:true});}
   if(!manifest||input.epoch!==manifest.epoch)return reply({error:'STEP_UP_EPOCH'},409);
   if(active)return active===input.verifier?reply({registered:true}):reply({error:'STEP_UP_DIFFERENT'},409);
-  await store.put('step-up',{...record,current:{epoch:input.epoch,verifier:input.verifier}});return reply({registered:true});
+  await store.put('step-up',{...settledRecord(record,manifest),current:{epoch:input.epoch,verifier:input.verifier}});return reply({registered:true});
  });
 }

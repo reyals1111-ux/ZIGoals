@@ -32,7 +32,7 @@ export async function stepUpVerifier(proof:string):Promise<string>{
  return hex(await crypto.subtle.digest('SHA-256',Uint8Array.from({length:32},(_,i)=>parseInt(proof.slice(i*2,i*2+2),16))));
 }
 export const STEP_UP_WRONG='That recovery secret does not open this vault. Nothing was changed.';
-export const STEP_UP_REFUSED='The recovery secret was not confirmed for this vault. Nothing was changed; enter it again.';
+export const STEP_UP_REFUSED='The recovery secret was not confirmed for this vault, so nothing was deleted, rotated or signed out. Enter it again.';
 /** The proof for this account's live manifest, after the secret opened it here; STEP_UP_WRONG otherwise. */
 export async function stepUpFor(secret:string,account:string,manifest:VaultManifest):Promise<StepUp>{
  const value=secret.trim();

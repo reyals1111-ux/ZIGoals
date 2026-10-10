@@ -44,6 +44,8 @@ export function validatePrivateCopies(copies,templates){
  }
  const a=copies.app.vars??{},p=copies.private.vars??{},l=copies.lifecycle.vars??{},m=copies.market.vars??{};
  for(const [kind,name,value]of [['app','ZIGOALS_AUTH_ORIGIN',a.ZIGOALS_AUTH_ORIGIN],['app','ZIGOALS_SYNC_ORIGIN',a.ZIGOALS_SYNC_ORIGIN],['private','AUTH_ORIGIN',p.AUTH_ORIGIN],['private','APP_ORIGIN',p.APP_ORIGIN],['lifecycle','AUTH_ORIGIN',l.AUTH_ORIGIN]])if(!exactHttps(value))errors.push(kind+': '+name+' must be an exact https origin.');
+ // Session Z-Cloud Part 5 (A6, ADR-019 C35): the step-up switch is exactly "on" or "off"; a typo must not turn it off unseen.
+ if('STEP_UP_REQUIRED' in p&&p.STEP_UP_REQUIRED!=='on'&&p.STEP_UP_REQUIRED!=='off')errors.push('private: STEP_UP_REQUIRED must be "on" or "off".');
  if(a.ZIGOALS_AUTH_ORIGIN!==p.AUTH_ORIGIN)errors.push('app: ZIGOALS_AUTH_ORIGIN must match private sync AUTH_ORIGIN.');
  if(typeof a.ZIGOALS_SYNC_ORIGIN!=='string'||!a.ZIGOALS_SYNC_ORIGIN.startsWith('https://'+copies.private.name+'.'))errors.push('app: ZIGOALS_SYNC_ORIGIN must name the private sync Worker.');
  if(m.MARKET_QUOTE_DISPATCH!=='durable-v1'||typeof m.MARKET_ACCOUNT_ID!=='string'||!m.MARKET_ACCOUNT_ID)errors.push('market: MARKET_QUOTE_DISPATCH and MARKET_ACCOUNT_ID are required.');
