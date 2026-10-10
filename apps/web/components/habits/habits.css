@@ -133,3 +133,12 @@
 .habit-weeks-table th, .habit-weeks-table td { text-align: left; padding: 4px 8px; border-top: 1px solid #a6c1fa1f; }
 /* Session W Part 10: on a phone "Habit ideas" sits above the list, so the hero keeps its two buttons and its title width. */
 .habit-phone-ideas { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+/* Session Z-Cloud Part 4.6: "Delete for good" in an archived habit, its typed confirmation and the page's Undo. */
+.habit-delete{margin-top:8px}
+.habit-delete-open{min-height:44px}
+.habit-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid color-mix(in srgb,#ff8a8a 45%,var(--line,#2a325a));border-radius:14px}
+.habit-delete-confirm p{margin:0}
+.habit-delete-confirm .actions{display:flex;flex-wrap:wrap;gap:8px}
+.habit-delete-confirm .actions button{min-height:44px}
+.habit-deleted{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.habit-deleted button{min-height:44px}

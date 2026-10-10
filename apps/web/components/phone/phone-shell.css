@@ -5,6 +5,8 @@
 
 /* Server-rendered phone chrome stays invisible elsewhere until hydration removes it. */
 .phone-topbar, .phone-tabbar { display: none; }
+/* Session Z-Cloud Part 4.2: the phone's one status line (components/shell.tsx) is phones-only. */
+.phone-status-line { display: none; }
 
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root {
@@ -105,9 +107,6 @@
   :root .app-topbar .network-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; width: auto; max-width: none; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; text-align: left; min-height: 44px; }
   :root .app-topbar .network-banner strong { flex: 1 1 0; min-width: 0; font-size: 13px; line-height: 1.3; letter-spacing: .03em; white-space: normal; overflow-wrap: normal; }
   :root .app-topbar .network-banner > span { flex: 1 0 100%; order: 3; padding-bottom: 6px; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
-  :root .phone-status-toggle { order: 2; flex: none; display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid #9fc8ff33; border-radius: 14px; background: #0c1e36; color: #bfe9ff; transition: transform 200ms ease; }
-  :root .phone-status-toggle svg { transition: transform 240ms cubic-bezier(.22, 1, .36, 1); }
-  :root .phone-status-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
   :root .app-topbar .wallet { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 6px; width: auto; margin: 0; order: 0; }
   :root .app-topbar .wallet button { min-height: 44px; min-width: 0; margin: 0; padding: 6px 10px; border-radius: 14px; font-size: 15px; justify-content: center; }
   :root .app-topbar .wallet .quiet { display: inline-flex; align-items: center; border: 1px solid #9fc8ff2e; background: #0a1a30; color: var(--text); }
@@ -133,24 +132,28 @@
   :root .status-row > .mode-strip .wallet-balance { display: block; margin: 2px 0 0; font-size: 15px; letter-spacing: 0; color: var(--text-strong, #f4f8ff); }
   :root .status-row > .layout-lock-slot { margin-bottom: 0; }
 
-  /* Closed "Status details": long sentences shorten to one or two lines; the labels stay whole. */
-  :root[data-phone-status="closed"] .app-topbar .network-banner > span { display: none; }
-  :root[data-phone-status="closed"] .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  :root[data-phone-status="closed"] .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* The mode text is one bare text node, so the strip itself is clamped; the balance is lifted out below it (its
-     containing block is the status row, outside the clip). */
-  :root[data-phone-status="closed"] .status-row > .mode-strip { position: static; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; margin-bottom: 22px; padding-bottom: 0; }
-  :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { position: absolute; left: 6px; bottom: 6px; margin: 0; white-space: nowrap; }
-  /* Session X P2.3 (phone CLS 0.15–0.19): with scripts on, closed is the state from the first paint wherever the
-     server-rendered testnet banner (which holds the toggle) is there, so nothing collapses after the page shows; the
-     toggle opens it. Without scripts nothing is clamped, as before (the toggle could not open it). */
+  /* Session Z-Cloud Part 4.2 (persona item 2): with scripts, the strip is one 44 px line ("Demo · no real money") that
+     opens the Status sheet with every notice in full; the layout lock keeps its row. Without scripts the line could not
+     open anything, so the whole strip shows as before and nothing is clamped. */
   @media (scripting: enabled) {
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .app-topbar .network-banner > span { display: none; }
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip { position: static; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; margin-bottom: 22px; padding-bottom: 0; }
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip .wallet-balance { position: absolute; left: 6px; bottom: 6px; margin: 0; white-space: nowrap; }
+    :root .app-topbar .phone-status-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; margin: 0; padding: 0 12px; border: 1px solid #9fc8ff2e; border-radius: 14px; background: #0a1a30; color: var(--text-strong, #f4f8ff); font-size: 15px; font-weight: 650; line-height: 1.3; text-align: left; }
+    :root .app-topbar .phone-status-line svg { flex: none; transform: rotate(-90deg); color: #bfe9ff; }
+    :root .app-topbar:has(.phone-status-line) > :is(.network-banner, .wallet) { display: none; }
+    :root:has(.app-topbar .phone-status-line) .status-row > .mode-strip { display: none; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .status-row::before { display: none; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .status-row { padding: 0; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
+  :root .phone-status-sheet { display: grid; gap: 14px; }
+  :root .phone-status-sheet p { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
+  :root .phone-status-sheet strong { font-size: 13px; letter-spacing: .03em; color: var(--text-strong, #f4f8ff); }
+  :root .phone-status-sheet .phone-status-mode strong { font-size: 15px; letter-spacing: 0; }
+  :root .phone-status-sheet .wallet { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 6px; }
+  :root .phone-status-sheet .wallet button { min-height: 44px; min-width: 0; margin: 0; padding: 6px 10px; border-radius: 14px; font-size: 15px; justify-content: center; }
+  :root .phone-status-sheet .wallet .quiet { display: inline-flex; align-items: center; border: 1px solid #9fc8ff2e; background: #0a1a30; color: var(--text); }
+  :root .phone-status-sheet .wallet .quiet[aria-pressed="true"] { border-color: #6fdcff77; background: #0b2a42; color: #fff; }
+  :root .phone-status-sheet .wallet-identity { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* Session D's "taking longer than usual" panel sits under the strip with phone gutters. */
   :root .app-content > .private-read-delay { margin: 8px var(--phone-gutter) 0; padding: 18px 16px; border-radius: 18px; }
@@ -158,8 +161,8 @@
   :root .app-content > .private-read-delay .actions > * { min-height: 44px; }
 
   /* Press feedback on touch (no hover effects): a gentle liquid-glass give on controls. */
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
 }
 
 @keyframes phone-tab-arrive { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }
@@ -173,25 +176,19 @@
   :root .app-topbar .network-banner { min-height: 44px; }
   :root .app-topbar .wallet { grid-template-columns: auto auto; }
   :root .workspace > .showcase-banner { min-height: 44px; }
-  :root[data-phone-status="closed"] .status-row > .mode-strip { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: 0; padding-right: 190px; }
-  :root[data-phone-status="closed"] .status-row > .mode-strip .wallet-balance { left: auto; right: 58px; bottom: 50%; translate: 0 50%; }
-  @media (scripting: enabled) {
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: 0; padding-right: 190px; }
-    :root:not([data-phone-status="open"]):has(.app-topbar .network-banner) .status-row > .mode-strip .wallet-balance { left: auto; right: 58px; bottom: 50%; translate: 0 50%; }
-  }
   :root .workspace > .status-row { align-items: center; }
 }
 
 /* Static equivalents: no glide, fade or slide under reduced motion or the in-app Motion Off. */
 @media (max-width: 767.98px) and (prefers-reduced-motion: reduce), (pointer: coarse) and (max-height: 500px) and (prefers-reduced-motion: reduce) {
   :root .phone-topbar::before { transition: none; }
-  :root :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+  :root :is(.phone-tab-pill, .phone-title, .phone-tabbar, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close, .phone-quick-add):active { transform: none; }
 }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   :root[data-app-motion="off"] .phone-topbar::before { transition: none; }
-  :root[data-app-motion="off"] :is(.phone-tab-pill, .phone-title, .phone-tabbar, .phone-status-toggle, .phone-status-toggle svg, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
-  :root[data-app-motion="off"] :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-status-toggle, .phone-sheet-close, .phone-quick-add):active { transform: none; }
+  :root[data-app-motion="off"] :is(.phone-tab-pill, .phone-title, .phone-tabbar, dialog.phone-sheet, .phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: none; }
+  :root[data-app-motion="off"] :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close, .phone-quick-add):active { transform: none; }
 }
 @media (forced-colors: active) and (max-width: 767.98px), (forced-colors: active) and (pointer: coarse) and (max-height: 500px) {
   :root .phone-topbar::before, :root .phone-tabbar, :root dialog.phone-sheet { background: Canvas; border-color: CanvasText; }

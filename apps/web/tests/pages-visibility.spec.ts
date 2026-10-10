@@ -24,11 +24,12 @@ const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localS
 const navLabels = (page: Page) => mainNav(page).getByRole('link').allTextContents();
 /** The sidebar on a larger screen; on a phone the tabs, then (opened) the More sheet's links after them. */
 async function expectNav(page: Page, visible: string[]) {
-  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual(visible); return; }
+  // Help is always shown, last (Session Z-Cloud Part 4.11).
+  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...visible, 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
   await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 4));
   await openMore(page);
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 4), ...pagesOnly.slice(4), 'Settings']);
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 4), ...pagesOnly.slice(4), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -250,7 +251,7 @@ test('while the settings are still opening, the device mirror already shapes the
   // Hydrated (the ZIGi button mounts on the client, inside the still hidden workspace), the settings still unopened.
   await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
-  const expected = ALL.filter(label => label !== 'Goals');
+  const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
   if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 4)); else await expect.poll(() => navLabels(page)).toEqual(expected);
   await page.evaluate(() => (window as unknown as {__vault: {release(): void}}).__vault.release());
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();

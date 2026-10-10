@@ -36,7 +36,8 @@ test('Connect Keplr without the extension: the Local demo and its balance stay; 
   await page.getByRole('button', {name: 'Connect Keplr', exact: true}).click();
   await expect(page.getByRole('alert').filter({hasText: 'Install the Keplr'})).toBeVisible();
   await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
-  await expect(page.getByRole('button', {name: 'Local demo', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Session Z-Cloud Part 4.3: without a connected wallet the button says "Demo records".
+  await expect(page.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('the Habits + Health layout names both areas under Today\'s title', async ({page}) => {

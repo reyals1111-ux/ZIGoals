@@ -27,6 +27,9 @@ import {useAiSettings, type AiSettingsStore} from './use-ai-settings';
 import {currentAiScope} from '../../lib/ai/scope';
 import type {AiSettings} from '../../lib/ai/settings';
 import {useChatSession, type ChatSession} from './use-chat-session';
+import {isShown} from '../../lib/pages/visibility';
+import {usePagesView} from '../pages/use-pages-view';
+import {openMusicPlayer} from '../music/music-events';
 import {useProposals} from './use-proposals';
 import {useAutoAccept, type AutoAccept} from './use-auto-accept';
 import {useReadAloud, useVoice} from './use-voice';
@@ -124,6 +127,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
   // Session V Part 14: the mini window; "Back to tab" opens the panel here again.
   const mini = useMiniWindow(() => onOpen?.());
+  const musicShown = isShown(usePagesView(), 'music');
   const [expanded, setExpanded] = useState(false), [view, setView] = useState<'chat' | 'history' | 'continue' | 'customize' | 'chooser' | ProactiveView>('chat'), [attach, setAttach] = useState(true), [note, setNote] = useState(''), titleId = useId();
   const tool = session.toolState(data.model), lastMode = session.lastMode;
   // Session V Part 7: a meal photo needs a model that reads photos (its metadata, or the person's word) and Health shared.
@@ -244,6 +248,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {key: 'settings', label: 'Settings', name: 'ZIGi settings', href: SETTINGS_HREF, onSelect: onClose},
         {key: 'meet', label: 'Meet ZIGi', href: '/app/zigi', onSelect: onClose},
         {key: 'help', label: 'Help', name: 'Help about ZIGi', href: '/app/help#help-your-ai-what', onSelect: onClose},
+        // Session Z-Cloud Part 4.12: the music player opens from here too (on a phone ZIGi is the one floating button).
+        ...(musicShown ? [{key: 'music', label: 'Music', name: 'Open the music player', onSelect: () => { onClose(); requestAnimationFrame(openMusicPlayer); }}] : []),
       ] satisfies MoreItem[]}/>
     {view === 'history' ? <HistoryView session={session} onOpen={() => setView('chat')}/>
       : view === 'continue' ? <ContinueView settings={data} session={session} context={context} attach={attach} sensitive={sensitive} phone={phone} onBack={() => setView('chat')}/>

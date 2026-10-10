@@ -1,5 +1,6 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {audit} from './a11y-audit';
+import {isPhone, openMore} from './phone-nav';
 
 // Session X Part 12: WCAG 2.2 AA across every page, both projects, empty and with the Showcase. Checks that a browser can
 // decide by itself (names, labels, structure, titles, keyboard, focus, reflow, text spacing, target size, contrast,
@@ -242,7 +243,8 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
   for (const [path, rootSelector, heading] of CONTRAST_PAGES) {
     await open(page, path, heading);
     // The Showcase shows the music button; its panel is what is measured on Today.
-    if (rootSelector === '.music-panel') { await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
+    // Session Z-Cloud Part 4.12: on a phone the player opens from the More sheet's row (ZIGi is the one floating button).
+    if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
     // The settled colours: a switch that takes its saved state after loading fades its colours for a moment.
     await page.waitForFunction(() => !document.getAnimations().some(a => a instanceof CSSTransition && a.playState === 'running'));
     const result = await page.evaluate(([zigi, rootSelector]) => {

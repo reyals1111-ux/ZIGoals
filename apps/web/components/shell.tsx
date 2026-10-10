@@ -5,7 +5,7 @@ import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environ
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
-import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { Fragment, Suspense, lazy, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { setJournalTimeZone } from "../lib/journal-zone";
 import { setSyncedPages } from "../lib/pages/view-store";
 import { homeHref, isShown, pageIdForPath } from "../lib/pages/visibility";
@@ -39,6 +39,8 @@ import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
+/** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
+const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
 function RouteFocusFallback() {
   const pathname = usePathname(), first = useRef(true);
@@ -87,6 +89,47 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (s.pending) dialog.current?.showModal();
   }, [s.pending]);
+  // Session Z-Cloud Part 4.3 (persona item 3): plain words until a person chooses crypto (Keplr connected); the testnet's
+  // own words return with the wallet. Part 4.2 (item 2): on a phone one 44 px status line opens the full notices.
+  const plain = s.mode === "local" && s.walletState !== "CONNECTED";
+  const [statusOpen, setStatusOpen] = useState(false);
+  const networkLabel = plain ? "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
+  const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures.";
+  const modeText = s.mode === "local"
+    ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
+    : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
+  const balanceText = `${formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
+  const walletButtons = <>
+          <button
+            className="quiet"
+            onClick={s.useLocal}
+            disabled={s.busy}
+            aria-pressed={s.mode === "local"}
+          >
+            {plain ? "Demo records" : "Local demo"}
+          </button>
+          <button
+            className="secondary wallet-connect"
+            title={s.walletState === "CONNECTED" ? "Refresh your Keplr connection" : undefined}
+            onClick={() => void s.connect()}
+            disabled={
+              showcase || s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
+            }
+          >
+            <AppIcon name="wallet" size={24} luminous />
+            <span className="wallet-identity">{s.walletState === "CONNECTING"
+              ? "Connecting…"
+              : s.walletState === "ADDING_TESTNET"
+                ? "Adding testnet…"
+                : s.walletState === "CONNECTED"
+                  ? `${s.owner.slice(0, 8)}…${s.owner.slice(-4)}`
+                  : s.walletReconnectHint
+                    ? "Reconnect Keplr"
+                    : "Connect Keplr"}
+            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG · Testnet</small>}</span>
+            <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
+          </button>
+  </>;
   return (
     <>
       <RouteFocusFallback />
@@ -114,42 +157,17 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
       <div className="app-content">
       {banners&&<header className="app-topbar">
+        {/* Phones only (phone-shell.css): the honesty label as one line; the full notices open in the Status sheet. */}
+        <button type="button" className="phone-status-line" aria-haspopup="dialog" aria-expanded={statusOpen} aria-label={`Status: ${plain ? "Demo · no real money" : "Testnet · no real value"}`} onClick={() => setStatusOpen(true)}>
+          <span>{plain ? "Demo · no real money" : "Testnet · no real value"}</span><AppIcon name="chevron" size={16} />
+        </button>
         <div className="network-banner">
-          <strong>ZIGCHAIN TESTNET · PUBLIC ALPHA</strong>
-          <span>{FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures."}</span>
+          <strong>{networkLabel}</strong>
+          <span>{networkSentence}</span>
         </div>
-        <div className="wallet">
-          <button
-            className="quiet"
-            onClick={s.useLocal}
-            disabled={s.busy}
-            aria-pressed={s.mode === "local"}
-          >
-            Local demo
-          </button>
-          <button
-            className="secondary wallet-connect"
-            title={s.walletState === "CONNECTED" ? "Refresh your Keplr connection" : undefined}
-            onClick={() => void s.connect()}
-            disabled={
-              showcase || s.busy || ["CONNECTING", "ADDING_TESTNET"].includes(s.walletState)
-            }
-          >
-            <AppIcon name="wallet" size={24} luminous />
-            <span className="wallet-identity">{s.walletState === "CONNECTING"
-              ? "Connecting…"
-              : s.walletState === "ADDING_TESTNET"
-                ? "Adding testnet…"
-                : s.walletState === "CONNECTED"
-                  ? `${s.owner.slice(0, 8)}…${s.owner.slice(-4)}`
-                  : s.walletReconnectHint
-                    ? "Reconnect Keplr"
-                    : "Connect Keplr"}
-            {s.walletState === "CONNECTED" && <small aria-hidden="true">{formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG · Testnet</small>}</span>
-            <AppIcon name={s.walletState === "CONNECTED" ? "chevron" : "arrow"} size={14}/>
-          </button>
-        </div>
+        <div className="wallet">{walletButtons}</div>
       </header>}
+      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => setStatusOpen(false)} label={networkLabel} sentence={networkSentence} mode={modeText} balance={balanceText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
@@ -165,12 +183,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="status-row">
         {banners&&<div className="mode-strip">
           <span className="mode-dot" />
-          {s.mode === "local"
-            ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
-            : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`}
+          {modeText}
           <span className="wallet-balance">
-            {formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG{" "}
-            {s.mode === "local" ? "demo balance" : "wallet balance"}
+            {balanceText}
           </span>
         </div>}
         <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>
@@ -254,7 +269,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <span>
             Independent project · Unaudited alpha · Idle strategy only
           </span>
-          <span><a href="https://github.com/reyals1111-ux/ZIGoals/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer">Report a bug</a> · <a href="mailto:hello@zigoals.app">Private security contact</a> · Never share secrets, private backups or wallet details.</span>
+          <span><Link href="/app/help#feedback" prefetch={false}>Send feedback</Link> · <a href="mailto:hello@zigoals.app">Private security contact</a> · Never share secrets, private backups or wallet details.</span>
         </footer>
       </div>
       </div>

@@ -71,3 +71,11 @@ export async function openTodayWidgets(page:Page){
  const closed=modules.locator('.phone-fold-toggle[aria-expanded="false"]');
  while(await closed.count())await closed.first().click();
 }
+/** Session Z-Cloud Part 4.2: the wallet buttons. On a phone they are in the Status sheet behind the one status line. */
+export async function walletArea(page:Page):Promise<Locator>{
+ const line=page.locator('.phone-status-line');
+ if(!await line.isVisible())return page.locator('.app-topbar');
+ const sheet=page.getByRole('dialog',{name:'Status'});
+ if(!await sheet.isVisible()){await line.click();await expect(sheet).toBeVisible();}
+ return sheet;
+}

@@ -30,6 +30,8 @@ export const NAV_GROUPS = [
     ["/app/chess", "Chess", "chess"],
     ["/app/activity", "Activity", "activity"],
     ["/app/settings", "Settings", "settings"],
+    // Session Z-Cloud Part 4.11 (persona item 11): Help is always one tap away, last in the sidebar and in More.
+    ["/app/help", "Help", "help"],
   ],
 ] as const;
 export const NAV_ITEMS = NAV_GROUPS.flat();

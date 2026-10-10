@@ -58,9 +58,12 @@ async function storedHeader(page:Page,key:string){
   const value=await new Promise(resolve=>{const r=db.transaction('headers','readonly').objectStore('headers').get(JSON.stringify(['local',key]));r.onsuccess=()=>resolve(r.result);});db.close();return JSON.stringify(value);},{key,vault:VAULT});
 }
 async function expectBanners(page:Page){
- await expect(page.locator('.app-topbar .network-banner')).toContainText('ZIGCHAIN TESTNET · PUBLIC ALPHA');
- await expect(page.locator('.mode-strip')).toBeVisible();
+ // Session Z-Cloud Part 4.3: without a wallet the label says practice money; Part 4.2: a phone shows one status line.
+ await expect(page.locator('.app-topbar .network-banner strong')).toHaveText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+ const line=page.locator('.phone-status-line');
+ if(await line.isVisible())await expect(line).toHaveText('Demo · no real money');
+ else await expect(page.locator('.mode-strip')).toBeVisible();
 }
 
 test('Today settings that never finish opening: an honest notice, no page, no writes, and the late read renders normally',async({page})=>{

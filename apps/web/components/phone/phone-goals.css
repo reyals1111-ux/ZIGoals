@@ -25,6 +25,21 @@
   :root .unified-goal-card:not(.compact-goal) .card-bottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-bottom: 8px; }
   :root .unified-goal-card:not(.compact-goal) .card-footer { padding-top: 8px; }
   :root .unified-goal-card:not(.compact-goal) .card-footer .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+  /* Session Z-Cloud Part 4.9 (persona item 9, J053): about 240 px per card: the name, the ring with what is funded and
+     what remains, the next step and the source; the value, the asset mix, the facts and the art band open on the goal's
+     own page. Desktop and tablet keep the accepted card. */
+  :root .unified-goal-card:not(.compact-goal) :is(.goal-card-art, .goal-value, .goal-mix-legend, .valuation-state, .card-bottom) { display: none; }
+  :root .unified-goal-card:not(.compact-goal) { padding: 10px 14px 10px; }
+  :root .unified-goal-card:not(.compact-goal) .card-top { margin-bottom: 2px; }
+  :root .unified-goal-card:not(.compact-goal) h2 { margin-bottom: 2px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress { grid-template-columns: 64px minmax(0, 1fr); margin: 2px 0 4px; }
+  /* The ring's 94 px rule in app/product-beta.css is !important, so the phone size must be too. */
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-ring { flex: 0 0 64px !important; width: 64px !important; height: 64px !important; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-ring svg { width: 64px; height: 64px; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-caption { line-height: 1.35; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-caption :is(p, span, small) { margin-block: 0; }
+  :root .unified-goal-card:not(.compact-goal) .goal-next-contribution { margin: 0 0 2px; }
+  :root .unified-goal-card:not(.compact-goal) .card-footer { padding-top: 0; }
   :root .goals-page .goal-grid { gap: 12px; }
 
   /* Goal detail: facts in a 3-up row, metrics two across, modules as tidy 56 px rows. */
