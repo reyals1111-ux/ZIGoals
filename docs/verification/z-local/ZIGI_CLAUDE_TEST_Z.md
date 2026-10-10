@@ -31,7 +31,7 @@ branch) is the spend against the $130 cap; prices as in `lib/ai/pricing.ts` (as 
 
 ## The before/after caching measurement (Part 3, ADR-020 L11)
 Every multi-turn case of the corpus, first half (17 cases, 37 turns), in corpus order, cache markers off then on, on
-Sonnet and Opus; the second half (16 cases, 143 turns) follows the corpus stages, the ledger permitting.
+Sonnet and Opus; the second half (19 cases, 130 turns) follows the corpus stages, the ledger permitting.
 `scripts/zigi/cache-compare.mjs` renders these rows from the two run files of each pair.
 
 | Model | Turns | Cache markers | Pass | Requests | Input + cache write + cache read tokens | Input cost | Total cost | Input cost lower by |
@@ -46,9 +46,20 @@ scores moved by one to three turns of 37 in either direction, inside the run-to-
 After the first request on a page, every later request read about 12,000 to 17,000 tokens of stable prefix from the
 cache and wrote only the question's own records; the uncached remainder was 4 to 12 tokens per request.
 
+**The second half (19 cases, 130 turns), run after the corpus stages (the ledger permitted it):**
+
+| Model | Turns | Cache markers | Pass | Requests | Input + cache write + cache read tokens | Input cost | Total cost | Input cost lower by |
+|---|---:|---|---:|---:|---|---:|---:|---:|
+| `claude-sonnet-5-5` | 130 | off | 117/130 | 158 | 2,733,013 + 0 + 0 | $5.4660 | $5.8943 | — |
+| `claude-sonnet-5-5` | 130 | on | 118/130 | 161 | 594 + 356,286 + 2,450,769 | $1.1370 | $1.5905 | **79.2 %** |
+<!-- cache-2-opus -->
+
+On the longer conversations the saving holds: 79 % lower input cost on Sonnet at the same score (one turn of 130 apart).
+The Opus rows land here when its pair has run.
+
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 22 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 24 summary file(s) on 2026-10-10; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -63,6 +74,8 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 22 summary file(s) on 202
 | Part 6 · local, qwen36-mac | `qwen3.6:35b-a3b` | tools | 595 · 725 | **578/725 · 79.7 %** | — | lookup 92/93 · propose 188/246 · chat 35/42 · brief 25/27 · unknown 12/14 · refuse 44/52 · advice 8/11 · multi 108/162 · followup 34/43 · privacy 11/12 · injection 17/19 · local-first 4/4 | 11,559 + 0 + 0 → 88 | — | — | 2,690 / 5,932 |
 | Part 2 · corpus ×1 | `claude-opus-5-5` | tools | 595 · 725 | **665/725 · 91.7 %** | 677/725 | lookup 92/93 · propose 226/246 · chat 38/42 · brief 27/27 · unknown 13/14 · refuse 45/52 · advice 11/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,564 + 16,482 → 291 | $0.0170 | $11.37 | 2,033 / 3,750 |
 | Part 6 · local, fr-after | `gemma4:12b` | tools | 595 · 725 | **645/725 · 89.0 %** | — | lookup 93/93 · propose 215/249 · chat 35/42 · brief 24/27 · unknown 12/14 · refuse 49/49 · advice 10/11 · multi 137/162 · followup 38/43 · privacy 11/12 · injection 17/19 · local-first 4/4 | 12,488 + 0 + 0 → 241 | — | — | 1,252 / 1,830 |
+| Part 3 · cache markers off (second half) | `claude-sonnet-5-5` | tools, no cache | 19 · 130 | **117/130 · 90.0 %** | — | multi 102/115 · followup 15/15 | 21,023 + 0 + 0 → 329 | $0.0453 | $5.89 | 1,743 / 3,079 |
+| Part 3 · cache markers on (second half) | `claude-sonnet-5-5` | tools | 19 · 130 | **118/130 · 90.8 %** | — | multi 104/115 · followup 14/15 | 5 + 2,741 + 18,852 → 349 | $0.0122 | $1.59 | 1,654 / 3,120 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -76,6 +89,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 22 summary file(s) on 202
 | `qwen3.6:35b-a3b` | Part 6 · local, qwen36-mac | $0.00 |
 | `claude-opus-5-5` | Part 2 · corpus ×1 | $1.70 |
 | `gemma4:12b` | Part 6 · local, fr-after | $0.00 |
+| `claude-sonnet-5-5` | Part 3 · cache markers on (second half) | $1.22 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
