@@ -128,7 +128,7 @@ function deleteTarget(env: Env, action: Extract<Action, {kind: 'delete-record'}>
     case 'goal': { const g = goalOf(env, action.goal!); if (!g.ok) return no(g.message); const id = g.found.id.startsWith('private:') ? g.found.id.slice('private:'.length) : null; if (!id) return no('A simulation goal is removed on its own page.'); return {ok: true, href: `/app/goals/${id}`, id, label: g.found.label, where: 'Goals'}; }
     case 'food': case 'recipe': {
       const kind = action.what, byHandle = handleFor(env, kind, action.name!), list = kind === 'food' ? stores.health.foods : stores.health.recipes;
-      const hit = byHandle ? list.find(x => x.id === byHandle.id) : one(list.filter(x => x.name.trim().toLowerCase() === named), kind);
+      const hit = byHandle ? list.find(x => x.id === byHandle.id) : one(list.filter(x => x.name.trim().toLowerCase() === named));
       if (!hit) return no(`No ${kind} named "${action.name}" is on this device (or more than one matches).`);
       return {ok: true, href: '/app/health', id: hit.id, label: hit.name, where: `Health · ${kind === 'food' ? 'Foods' : 'Recipes'}`};
     }
