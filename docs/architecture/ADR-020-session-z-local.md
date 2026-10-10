@@ -187,6 +187,28 @@ each answered in the `TIER 3 (security)` commit that follows this record:
   `--user-data-dir` (read from `ps`) is a live context, not one left behind: it is still walked for the key patterns like every
   other folder, and the push goes on. The moment no process owns it, a recent profile is a hit again, as the finding asked.
 
+## Independent security read at Gate C (owner edit 1, 2026-10-10, read-only agent, no secret value read or printed)
+Scope: every key-handling change since the first read (`16f3eec9`): the key sweep's live-profile exemptions, the pre-push
+hook across both worktrees, the real-model UI helper and its Playwright config, the harness (Anthropic, batch and page
+modes), the sixteen chain scripts on the runs branch, an artifact spot-check (file names only) and the `[TIER 3]` commits
+(none since the first read). **Key found: no. PC address in a committed file: no.** Findings and what was done:
+- **Medium, the sweep's profile rule:** the six-hour window left older leftovers unmentioned, and the exemptions were not
+  tied to the profile they excused (an orphaned browser kept its own profile live; the WebKit rule exempted every WebKit
+  profile newer than the oldest WebKit main). Done: no age window (any profile no running browser owns is a hit); only a
+  browser executable's `--user-data-dir` counts; at most as many WebKit profiles as running Playwright WebKit mains, the
+  newest ones, count as live; the exempted paths are printed. Fourteen pre-session Chromium leftovers (Sep 18 – Oct 8, no
+  IndexedDB store, all before the first key stage) were removed so the stricter rule starts clean.
+- **Low, the sweep:** a missing runs worktree is now a hit, not a silent skip.
+- **Low-medium, the hook:** it scanned HEAD's history whatever was pushed; it now reads the pushed refs from stdin and
+  passes each local sha (`--ref`), and the sweep scans `origin/main..<sha>` for every one.
+- **Low, the UI stage script:** `DEBUG`/`PWDEBUG` are unset before Playwright runs (protocol logging would print the init
+  script, which carries the key as an argument).
+- **Low, the forwarder:** a network error's 502 body carries only the error code, never a message that could name the host.
+- **Low, pre-existing on `main`:** session X's handoff showed the PC's LAN address; replaced with a placeholder here (it stays
+  in `main`'s history). The test fixtures' fake addresses on `main` are allowlisted test values, unchanged.
+- **Not fixable locally (owner item):** `git push --no-verify` or a `core.hooksPath` override skips every hook; GitHub's
+  secret-scanning push protection is the non-bypassable layer.
+
 ## Part 7: Session Y's open findings (SECURITY_REVIEW_Y F5–F16), each with a test
 | Finding | Fix | Test |
 |---|---|---|

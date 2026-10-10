@@ -31,4 +31,5 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-z-local`
 - Ledger: $36.99 of $130 before the Opus stage (its forecast is $18).
 
 ## Open
+- Owner item from the Gate C security read: turn on GitHub secret-scanning push protection for the repository (the local pre-push sweep can be skipped with `--no-verify`).
 - UI, conversations, day, pages, photos and WebKit-subset stages (the UI chain); Part 2's document; Part 6's final runs and verdicts; Part 9; the STATUS entry; the gates.

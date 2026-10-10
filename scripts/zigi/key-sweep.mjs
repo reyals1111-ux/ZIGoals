@@ -20,8 +20,11 @@ const repo = new URL('../../', import.meta.url).pathname.replace(/\/$/, '');
 // Run from a git hook, the environment names the hook's own repository (GIT_DIR of a worktree): every git call here is
 // about the checkout and the runs worktree by path, so those variables are dropped.
 const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/.test(k)));
-const extra = [];
-for (let i = 2; i < process.argv.length; i++) if (process.argv[i] === '--paths') extra.push(...process.argv.slice(i + 1));
+const extra = [], refs = [];
+for (let i = 2; i < process.argv.length; i++) {
+  if (process.argv[i] === '--paths') { extra.push(...process.argv.slice(i + 1).filter(a => !/^--/.test(a))); }
+  if (process.argv[i] === '--ref' && /^[0-9a-f]{7,40}$/.test(process.argv[i + 1] ?? '')) refs.push(process.argv[++i]);
+}
 const key = process.env.ANTHROPIC_TEST_KEY ?? '';
 // The key shape is assembled at run time so this file never carries the literal the sweep looks for.
 const SHAPE = ['sk', 'ant', ''].join('-');
@@ -88,8 +91,11 @@ try {
   // Finding 2: the branch's whole history (a key committed then removed would still be pushed), and the runs branch's.
   const history = execFileSync('git', ['log', '-p', '--no-color', 'origin/main..HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
   scanText('git log -p origin/main..HEAD', history);
+  // Gate C read: a push names its refs on stdin; the hook passes each local sha, so a ref other than HEAD is scanned too.
+  for (const ref of refs) { const h = execFileSync('git', ['log', '-p', '--no-color', `origin/main..${ref}`], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv}); scanText(`git log -p origin/main..${ref}`, h); }
   const runs = '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs';
-  if (existsSync(runs)) {
+  if (!existsSync(runs)) hits.push(`${runs}: the runs worktree is missing, so its history could not be swept`);
+  else {
     // The orphan branch only: the worktree shares the repository's objects, and main's history holds allowlisted fake keys in test fixtures.
     const runsHistory = execFileSync('git', ['log', '-p', '--no-color', 'review/session-z-local-runs'], {cwd: runs, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
     scanText('runs worktree: git log -p review/session-z-local-runs', runsHistory);
@@ -103,35 +109,39 @@ const dirs = [
   ...extra,
 ];
 // Owner edit 3: Playwright's temporary browser profiles (removed with each context, but swept in case one was left behind).
-// Finding 5: a profile left behind by a killed run holds the sealed key as ciphertext the scan cannot see, so a recent one is a hit by itself.
-// A profile a running browser names in its own `--user-data-dir` is a live context of a stage still running, not one left behind:
+// Finding 5: a profile left behind by a killed run holds the sealed key as ciphertext the scan cannot see, so one is a hit by itself,
+// whatever its age (the Gate C read: a six-hour window let old leftovers go unmentioned).
+// A profile a running BROWSER names in its own `--user-data-dir` is a live context of a stage still running, not one left behind:
 // it is walked for the patterns like every other folder, and the push goes on; the moment no process owns it, it is a hit again.
-const recent = Date.now() - 6 * 3600 * 1000;
-let inUse = new Set(), webkitSince = Infinity;
+// WebKit takes no `--user-data-dir`: at most as many WebKit profiles as there are running Playwright WebKit mains, the newest
+// ones and only those newer than the oldest such process, count as live; every other one is a hit.
+let inUse = new Set(), webkitSince = Infinity, webkitMains = 0;
 try {
   const ps = execFileSync('ps', ['-axo', 'etime=,command='], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
-  inUse = new Set([...ps.matchAll(/--user-data-dir=(\S+)/g)].map(m => m[1]));
-  // WebKit takes no --user-data-dir: its profile is in use while Playwright's WebKit binary runs and the folder is newer than that process.
   const secs = e => { const p = e.trim().split(/[-:]/).map(Number); return p.length === 4 ? p[0] * 86400 + p[1] * 3600 + p[2] * 60 + p[3] : p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + (p[1] ?? 0); };
-  for (const line of ps.split('\n')) { const m = /^\s*(\S+)\s+(.*)$/.exec(line); if (m && /ms-playwright\/webkit-[^/]+\/Playwright\.app\/Contents\/MacOS\/Playwright\b/.test(m[2])) webkitSince = Math.min(webkitSince, Date.now() - secs(m[1]) * 1000); }
-} catch { /* no ps: every recent profile counts as left behind */ }
-let live = 0;
+  for (const line of ps.split('\n')) {
+    const m = /^\s*(\S+)\s+(.*)$/.exec(line); if (!m) continue;
+    const cmd = m[2], browser = /ms-playwright\/|Google Chrome|Chromium|chrome-headless-shell/.test(cmd);
+    if (browser) for (const d of cmd.matchAll(/--user-data-dir=(\S+)/g)) inUse.add(d[1]);
+    if (/ms-playwright\/webkit-[^/]+\/Playwright\.app\/Contents\/MacOS\/Playwright\b/.test(cmd)) { webkitMains++; webkitSince = Math.min(webkitSince, Date.now() - secs(m[1]) * 1000); }
+  }
+} catch { /* no ps: every profile counts as left behind */ }
+const profiles = [];
 for (const base of [tmpdir(), '/tmp', '/private/tmp']) {
   try {
     for (const name of readdirSync(base)) if (/^playwright/i.test(name)) {
       const path = join(base, name); dirs.push(path);
-      try {
-        if (/profile/i.test(name) && statSync(path).mtimeMs > recent) {
-          const st = statSync(path);
-          if ([...inUse].some(d => d === path || d.startsWith(path + '/'))) live++;
-          else if (/webkit/i.test(name) && st.mtimeMs >= webkitSince - 5000) live++;
-          else hits.push(`${path}: a browser profile left behind in the last six hours (remove it after the stage)`);
-        }
-      } catch { /* gone */ }
+      if (/profile/i.test(name)) { try { profiles.push({path, name, mtime: statSync(path).mtimeMs}); } catch { /* gone */ } }
     }
   } catch { /* no such folder */ }
 }
-if (live) console.log(`${live} browser profile(s) in use by a running stage (walked, not counted as left behind).`);
+const live = [];
+const webkitCandidates = profiles.filter(p => /webkit/i.test(p.name) && p.mtime >= webkitSince - 5000).sort((a, b) => b.mtime - a.mtime).slice(0, webkitMains);
+for (const p of profiles) {
+  if ([...inUse].some(d => d === p.path || d.startsWith(p.path + '/')) || webkitCandidates.includes(p)) live.push(p.path);
+  else hits.push(`${p.path}: a browser profile no running browser owns (left behind: remove it)`);
+}
+if (live.length) console.log(`${live.length} browser profile(s) in use by a running stage (walked, not counted as left behind):\n${live.map(p => `  ${p}`).join('\n')}`);
 for (const d of dirs) walk(d);
 if (hits.length) { console.error(`KEY SWEEP: ${hits.length} hit(s) (values never printed):\n${hits.join('\n')}`); process.exit(1); }
-console.log(`Key sweep clean: ${needles.length} pattern(s) over the diff, both histories and ${dirs.length} folders.`);
+console.log(`Key sweep clean: ${needles.length} pattern(s) over the diff, both histories${refs.length ? ` and ${refs.length} pushed ref(s)` : ''} and ${dirs.length} folders.`);
