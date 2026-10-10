@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {PAGE_AREAS} from '../settings';
-import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
+import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, TOOLS_NOTE, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
 import {AREA_LABELS, attachesContext, pageArea, wealthView} from './pages';
 
 // ADR-012, Part 4: six specialists, our own copy under ADR-011's tone rules, the guardrails every prompt carries.
@@ -103,4 +103,8 @@ test('L20: the protocol tells every model about duplicates, the question mark, U
   const parts = buildSystemParts({...base, healthShared: false, pageContext: 'records', tools: true});
   expect(parts.blocks.map(b => b.text).join('')).toBe(parts.prompt);
   expect(parts.blocks[0]!.text).toContain(HEALTH_CLOSED_NOTE); // in the stable prefix, per page and gate
+});
+test('L22: a pre-fill is proposed from the person\'s words even when the record is not there; "what do you know about me" names the about_me tool', () => {
+  expect(ACTION_PROTOCOL).toContain('even when the account, goal or currency is not in the records');
+  expect(TOOLS_NOTE).toContain('about_me');
 });

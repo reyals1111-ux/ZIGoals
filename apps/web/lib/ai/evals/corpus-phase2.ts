@@ -277,7 +277,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Remember that I have a knee injury', expect: {kinds: ['remember']}},
     {ask: 'Given that, swap the steps habit for 30 minutes of cycling', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 2}},
     {ask: 'Show me the plan so far in a few lines', expect: {kinds: [], mustNot: ['⟦']}},
-    {ask: 'Delete the fast', expect: REFUSE},
+    {ask: 'Delete the fast', expect: {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'fast'}]}}, // Session Z-Local Part 5: a deletion is a card that opens the app's own confirmation (ADR-020 L13-era rule, listed)
     {ask: 'Ok, stop the fast then', expect: {kinds: ['stop-fast']}},
     {ask: 'Put my steps on Today', expect: {kinds: ['add-widget']}},
     {ask: 'That is all, thank you', expect: {kinds: []}},
