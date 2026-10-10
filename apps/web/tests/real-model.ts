@@ -60,7 +60,12 @@ export async function removeShowcaseNightEndingOn(page: Page, day: string) {
  * Each test's context is ephemeral and discarded with its storage.
  */
 async function sealKeyInApp(page: Page, key: string, scope = 'local') {
-  await page.context().addInitScript(async ({key, scope}: {key: string; scope: string}) => {
+  // Security read after Part 5 (finding 4): an init script runs in every frame of every origin the context loads, so the
+  // key is sealed only on the app's own origin, and the context never reaches any other host but the provider's API.
+  const origin = new URL(process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3103').origin, apiHost = 'api.anthropic.com';
+  await page.context().route(url => url.origin !== origin && url.hostname !== apiHost, route => route.abort('blockedbyclient'));
+  await page.context().addInitScript(async ({key, scope, origin}: {key: string; scope: string; origin: string}) => {
+    if (location.origin !== origin) return;
     const slot = `${scope}:anthropic`;
     const open = () => new Promise<IDBDatabase>((res, rej) => { const r = indexedDB.open('zigoals-ai-keys-v1', 1); r.onupgradeneeded = () => { const db = r.result; for (const n of ['wrap', 'keys']) if (!db.objectStoreNames.contains(n)) db.createObjectStore(n); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
     const db = await open();
@@ -75,7 +80,7 @@ async function sealKeyInApp(page: Page, key: string, scope = 'local') {
       const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       await put('keys', slot, {version: 1, scope, provider: 'anthropic', iv: b64(iv), ciphertext: b64(ciphertext), createdAt: new Date().toISOString()});
     } finally { db.close(); }
-  }, {key, scope});
+  }, {key, scope, origin});
 }
 export async function seedReal(page: Page, {health = true, log = false}: {health?: boolean; log?: boolean} = {}) {
   if (PROVIDER === 'anthropic') {
