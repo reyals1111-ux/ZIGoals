@@ -1,0 +1,494 @@
+[
+ {
+  "id": "stretch-15",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Plan a new habit for me: stretching for 10 minutes every morning",
+  "reply": "Here is the corrected draft, at 15 minutes. It replaces the earlier card, which is still pending.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"revise\":true,\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nConfirm this card to add it. Nothing is saved until you do.",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Stretch\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4335,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:17.471Z",
+  "steps": {
+   "plan": {
+    "ms": 2553,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can set that up as a habit: stretching, 10 minutes, every day, in the morning. Confirm the card below to add it. Nothing is saved until you do.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":10,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nYour current habits don't include a stretching habit, so this one would be new. If you'd like a reminder at a set time too, tell me the time."
+   },
+   "correct": {
+    "ms": 1782,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Stretch\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected draft, at 15 minutes. It replaces the earlier card, which is still pending.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"revise\":true,\"title\":\"Stretch\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":15,\"schedule\":\"daily\",\"timeOfDay\":\"morning\",\"description\":\"\"}\n```\n\nConfirm this card to add it. Nothing is saved until you do."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 447,
+   "cacheWrite": 17258,
+   "cacheRead": 17074,
+   "requests": 2,
+   "costUsd": 0.00255229
+  }
+ },
+ {
+  "id": "journal-pages",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "I want to journal 2 pages a day as a habit",
+  "reply": "Here is the corrected version. It replaces the earlier card if that one is still pending.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Journal 3 pages a day\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Journal\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4577,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:23.096Z",
+  "steps": {
+   "plan": {
+    "ms": 2534,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can set that up as a daily habit: journal, 2 pages, any time of day. Confirm the card below and it gets added.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":2,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"Journal 2 pages a day\"}\n```\n\n⟪zigi: encouraging⟫"
+   },
+   "correct": {
+    "ms": 2043,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Journal\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected version. It replaces the earlier card if that one is still pending.\n\n```zigoals-action\n{\"revise\":true,\"kind\":\"create-habit\",\"title\":\"Journal\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Journal 3 pages a day\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 464,
+   "cacheWrite": 748,
+   "cacheRead": 30322,
+   "requests": 2,
+   "costUsd": 0.00062952
+  }
+ },
+ {
+  "id": "ride-weekdays",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "New habit: a 30 minute bike ride on Monday, Wednesday and Friday",
+  "reply": "I've changed the draft to Tuesday and Thursday, with the same 30-minute target. Confirm the card to add it.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```",
+  "cards": [
+   {
+    "kind": "create-habit",
+    "title": "Create the habit \"Bike ride\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3808,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:28.957Z",
+  "steps": {
+   "plan": {
+    "ms": 2279,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've drafted a \"Bike ride\" habit for Monday, Wednesday and Friday, with a 30-minute target. Confirm the card to add it.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[1,3,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "correct": {
+    "ms": 1529,
+    "cards": [
+     {
+      "kind": "create-habit",
+      "title": "Create the habit \"Bike ride\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I've changed the draft to Tuesday and Thursday, with the same 30-minute target. Confirm the card to add it.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Bike ride\",\"type\":\"build\",\"measurement\":\"minutes\",\"target\":30,\"schedule\":{\"weekdays\":[2,4]},\"timeOfDay\":\"anytime\",\"description\":\"\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 357,
+   "cacheWrite": 2607,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0008025150000000001
+  }
+ },
+ {
+  "id": "water-glasses",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Log two glasses of water",
+  "reply": "Three glasses it is. That adds 750 mL to today's 750 mL, for 1,500 mL in total. The earlier two-glass card is replaced.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-water",
+    "title": "Add water",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4306,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:34.002Z",
+  "steps": {
+   "plan": {
+    "ms": 1755,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":2}\n```\n\nThis adds two glasses (500 mL) to today's water. Today's records already show 750 mL in two entries, so the total would be 1,250 mL once you confirm."
+   },
+   "correct": {
+    "ms": 2551,
+    "cards": [
+     {
+      "kind": "log-water",
+      "title": "Add water",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Three glasses it is. That adds 750 mL to today's 750 mL, for 1,500 mL in total. The earlier two-glass card is replaced.\n\n```zigoals-action\n{\"kind\":\"log-water\",\"glasses\":3,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 10,
+   "output": 250,
+   "cacheWrite": 16602,
+   "cacheRead": 31030,
+   "requests": 3,
+   "costUsd": 0.00251155
+  }
+ },
+ {
+  "id": "weight-kg",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I weigh 72 kg this morning",
+  "reply": "```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```\n\nThis replaces the 72 kg card. Nothing is saved until you confirm it.",
+  "cards": [
+   {
+    "kind": "log-weight",
+    "title": "Add a weight reading",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3724,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:39.678Z",
+  "steps": {
+   "plan": {
+    "ms": 2271,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is a weight card for 72 kg today. Nothing is saved until you confirm it.\n\n```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72,\"unit\":\"kg\"}\n```"
+   },
+   "correct": {
+    "ms": 1453,
+    "cards": [
+     {
+      "kind": "log-weight",
+      "title": "Add a weight reading",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-weight\",\"value\":72.4,\"unit\":\"kg\",\"revise\":true}\n```\n\nThis replaces the 72 kg card. Nothing is saved until you confirm it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 374,
+   "cacheWrite": 585,
+   "cacheRead": 31214,
+   "requests": 2,
+   "costUsd": 0.0005730650000000001
+  }
+ },
+ {
+  "id": "steps-count",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Add 6000 steps for today",
+  "reply": "Corrected to 6,500 steps. Steps are added to the day, so the day would total 15,300 once you confirm.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-steps",
+    "title": "Add steps",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3689,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:44.739Z",
+  "steps": {
+   "plan": {
+    "ms": 2191,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Your records show 8,800 steps today. Adding 6,000 would bring the day to 14,800 once you confirm.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6000}\n```"
+   },
+   "correct": {
+    "ms": 1498,
+    "cards": [
+     {
+      "kind": "log-steps",
+      "title": "Add steps",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Corrected to 6,500 steps. Steps are added to the day, so the day would total 15,300 once you confirm.\n\n```zigoals-action\n{\"kind\":\"log-steps\",\"steps\":6500,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 331,
+   "cacheWrite": 1245,
+   "cacheRead": 30708,
+   "requests": 2,
+   "costUsd": 0.000629005
+  }
+ }
+]
