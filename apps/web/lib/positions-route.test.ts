@@ -22,5 +22,6 @@ it('relays public-only GETs to fixed endpoints at one proven height without forw
 });
 it('returns no partial snapshot or upstream error detail when evidence fails',async()=>{
  vi.stubGlobal('fetch',async()=>{throw Error('sensitive upstream detail');});
- const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${address}`));expect(response.status).toBe(502);expect(await response.text()).not.toContain('sensitive');
+ // Session Z-Cloud Part 5 (C4): another address than the test above, whose answer the relay keeps for 60 seconds.
+ const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${toBech32('zig',new Uint8Array(20).fill(4))}`));expect(response.status).toBe(502);expect(await response.text()).not.toContain('sensitive');
 });

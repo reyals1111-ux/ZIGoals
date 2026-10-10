@@ -1,7 +1,7 @@
 "use client";
 import { HabitRhythmSection } from "../bottom-sections";
 import { useJournalZone } from "../use-journal-zone";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { askZigi } from "../ai/ask";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -24,7 +24,6 @@ import { NebulaFlow } from "../nebula-flow";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
-import { VacationPanel } from "./vacation-panel";
 import { useReminders } from "../reminders/use-reminders";
 import { reminderTime } from "../../lib/reminders/schema";
 import { setHabitReminder } from "../../lib/reminders/store";
@@ -35,8 +34,10 @@ import { HealthLinkContext } from "./health-link-context";
 import { setHabitHealthLink } from "../../lib/habit-health-links/store";
 import { exerciseData } from "../../lib/health-counters";
 import { dailyData } from "../../lib/health-daily";
-import { HabitIdeas } from "./habit-ideas";
 import { HabitStacks } from "./habit-stacks";
+// Session Z-Cloud Part 4 (weights, ADR-019 C39): the vacation and ideas panels load when they are opened.
+const VacationPanel = lazy(() => import("./vacation-panel").then((m) => ({ default: m.VacationPanel })));
+const HabitIdeas = lazy(() => import("./habit-ideas").then((m) => ({ default: m.HabitIdeas })));
 
 /** Stack suggestions per habit, reusing the previous array while its content is the same (stable card props). */
 function useStackSuggestions(data: HabitData, today: string) {
@@ -167,8 +168,8 @@ export function HabitsWorkspace() {
             // On a phone the editor is a bottom sheet (Session I, Part 9); elsewhere it stays in the page.
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
-          {vacation && (() => { const panel = <VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} />; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
-          {ideas && (() => { const panel = <HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} />; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {vacation && (() => { const panel = <Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {ideas && (() => { const panel = <Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
           <HabitStacks data={store.data} today={store.today} onView={viewStack} />
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>

@@ -13,7 +13,7 @@ import {entityLayoutId} from '../../lib/page-layout';
 import './wealth.css';
 import './wealth-product.css';
 import './intelligence.css';
-import {useState} from 'react';
+import {Suspense,lazy,useState} from 'react';
 import {WealthChanges} from './wealth-changes';
 import {FinancialEvidence} from './financial-evidence';
 import {ActionIntent} from '../action-intent';
@@ -39,8 +39,9 @@ import {AssetIcon,FreshnessBadge,Sheet} from './financial-ui';
 import {ManualSourceCards} from './manual-source-cards';
 import {useImportUndo} from '../import/use-import-undo';
 import {ImportBanner} from '../import/csv-import-steps';
-import {HoldingsImportPanel} from '../import/holdings-import';
 import {undoImport} from '../../lib/import/holdings';
+// Session Z-Cloud Part 5 (weights, ADR-019 C39): the holdings import loads when the person opens it.
+const HoldingsImportPanel=lazy(()=>import('../import/holdings-import').then(m=>({default:m.HoldingsImportPanel})));
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import {Watchlist} from './watchlist';
 import {PhoneFold} from '../phone/phone-fold';
@@ -82,6 +83,6 @@ export function WealthView(){
  {id:'wealth:accounts',label:'Accounts, debts & net worth',node:<PhoneFold label="Accounts, debts & net worth"><AccountsSection/></PhoneFold>},
  {id:'wealth:allocation',label:'Allocation and coverage',node:<PhoneFold label="Allocation and coverage"><WealthAllocationSection overview={overview}/></PhoneFold>},
  ],PHONE_ORDER)}/>
-{error&&<p role="alert">{error}</p>}{adding&&<Sheet title={importing?'Import holdings':'Add to your wealth'} onClose={()=>{setAdding(false);setImporting(false);}}>{importing?<HoldingsImportPanel platform={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={()=>setImporting(false)}/>:<><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/><section className="manual-source-selector import-entry" aria-label="Import from a file"><p>Have a spreadsheet of what you own? Read on this device only.</p><button type="button" className="secondary" onClick={()=>setImporting(true)}>Import from a CSV file</button></section></>}</Sheet>}
+{error&&<p role="alert">{error}</p>}{adding&&<Sheet title={importing?'Import holdings':'Add to your wealth'} onClose={()=>{setAdding(false);setImporting(false);}}>{importing?<Suspense fallback={null}><HoldingsImportPanel platform={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={()=>setImporting(false)}/></Suspense>:<><ManualSourceCards update={store.update} onSaved={()=>setAdding(false)}/><section className="manual-source-selector import-entry" aria-label="Import from a file"><p>Have a spreadsheet of what you own? Read on this device only.</p><button type="button" className="secondary" onClick={()=>setImporting(true)}>Import from a CSV file</button></section></>}</Sheet>}
  </div></LayoutPage>;
 }

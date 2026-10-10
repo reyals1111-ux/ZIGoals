@@ -15,10 +15,18 @@ export const READ_NETWORKS = Object.freeze({
 export type ReadMode=keyof typeof READ_NETWORKS;
 export const publicZigAddress=z.string().max(100).refine(v=>{try{const b=fromBech32(v,90);return b.prefix==='zig'&&b.data.length===20;}catch{return false;}});
 
+/**
+ * Session Z-Cloud Part 5 (C4): the relay said no without reading (mainnet on a public build, or too many reads just now).
+ * Its sentence is shown as is, and the saved snapshot is not marked as failed.
+ */
+export class PositionReadRefused extends Error {}
+/** C4 (option a): the public builds read testnet only; the relay refuses mainnet with this sentence, and the form says it first. */
+export const MAINNET_REFUSED='Mainnet addresses are not read on the public Alpha. Add your mainnet ZIG as a manual asset instead; snapshots you saved before stay.';
 /** Browser sends only a validated public address and a fixed network selector. */
 export async function readPublicPositions(mode:ReadMode,account:string):Promise<Position[]> {
  publicZigAddress.parse(account);if(!Object.hasOwn(READ_NETWORKS,mode))throw Error('Unsupported network.');
  const response=await fetch(`/api/positions?network=${mode}&address=${encodeURIComponent(account)}`,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(60000)});
+ if(response.status===403||response.status===429){const said=await response.json().catch(()=>null) as {error?:unknown}|null;throw new PositionReadRefused(typeof said?.error==='string'&&said.error.length<=300?said.error:'Public positions were not read just now. Your saved snapshots are unchanged.');}
  if(!response.ok)throw Error('Could not obtain a coherent public snapshot.');
  const text=await response.text();if(text.length>2000000)throw Error('Public snapshot exceeds safety limit.');
  return z.object({positions:z.array(positionSchema).max(1000)}).strict().parse(JSON.parse(text)).positions;
