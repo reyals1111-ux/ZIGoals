@@ -206,3 +206,15 @@ equivalent boolean you hold). With `false` the prompt gains one line in the stab
 no Health card, say where it is switched on. Absent, the prompt is byte-identical to today's. The harness passes it for
 every run, so the corpus numbers assume the app does too.
 - **L21 (`use-auto-accept.ts:30`), with L20's argument:** `autoAcceptVerdict(read.data, kind, day, healthOpen, extra, plan.healthContent === true, plan.duplicate === true)`. A duplicate (the same water amount or the same library food for the same meal already on the day) is refused with the new reason `already-recorded` (text in `AUTO_ACCEPT_REASONS`); the card shows as always.
+
+## 2026-10-10 — Part 6: three brain changes you will notice from your side (ADR-020 L30, L31, L35)
+- **L30, device-first:** `localAnswer` (lib/ai/local-answers/engine.ts) now returns none for a question that also asks for an
+  action ("how much water today, and log one more glass", "…, log it", "en vink mijn wandeling af"), so the model runs and the
+  card comes. Nothing to change in `use-chat-session.ts`; you will see the model answer those asks instead of the device.
+- **L35, the output cap:** `OUTPUT_CAP.default` is 2,048 (was 1,024); a stored 1,024 reads as 2,048, any other stored value
+  stays (`withOutputCap` in lib/ai/settings.ts, applied by `readAiSettings`). If a Settings label or placeholder shows the
+  default as a literal, it is yours to update; the schema's min/max are unchanged.
+- **L31, the real-model UI clock:** `tests/real-model.ts` freezes the clock on 2026-10-05 (the harness's Showcase day). The
+  MOCK suites keep their own 2026-09-20 constants; nothing of yours moved.
+- **L32, for the record:** the scorer's `tool:` checks pass when the page's own records went with the question and the tool's
+  data is that page's (`TOOL_AREAS` in lib/ai/evals/score.ts). It changes scores, not the app.
