@@ -8,7 +8,8 @@ import {aiOptionsSchema, type AiOptions} from '../store/records';
 const DAY = '2026-10-08', off: AiOptions = {version: 1};
 const on = (...kinds: string[]): AiOptions => ({version: 1, autoAccept: {kinds: Object.fromEntries(kinds.map(k => [k, true]))}});
 test('the never list is exactly weight, fasting and the two money pre-fills; every other writing kind is eligible', () => {
-  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['log-weight', 'prefill-holding', 'start-fast', 'stop-fast', 'update-account-balance']);
+  // Session Z-Local Part 5 (owner rule): deletions and page openings join weight, fasting and the money pre-fills.
+  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['delete-record', 'log-weight', 'open-page', 'prefill-holding', 'start-fast', 'stop-fast', 'update-account-balance']);
   for (const kind of PREFILL_KINDS) expect(AUTO_ACCEPT_NEVER).toContain(kind);
   expect([...AUTO_ACCEPT_KINDS].sort()).toEqual(WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k)).sort());
   for (const kind of AUTO_ACCEPT_NEVER) expect(autoAcceptVerdict(on(kind), kind, DAY, true)).toEqual({ok: false, reason: 'never'});

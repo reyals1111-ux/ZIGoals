@@ -1,13 +1,16 @@
 import {parseAmountInput} from '../../amount-input';
 import {saveMeasurement} from '../../body-measurements';
-import {applyAutoStop, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
+import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
-import {createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, smartDoneValue, type Habit, type HabitData, type HabitInput} from '../../habits';
+import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
 import {foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveMealFromRecipe, saveMealPlan} from '../../health-daily';
 import {changeCount, countOn, exerciseData} from '../../health-counters';
 import {addLocalDays} from '../../local-date';
-import {deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
+import {closeGoal, deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
+import {reopenGoal} from '../../plan-revisions';
+import {PAGE_LABEL, isShown, viewOf} from '../../pages/visibility';
+import {settingsGroupIn} from '../../vault/w-homes';
 import {weeklyReviewSchema} from '../../weekly-review/schema';
 import {setHabitReminder, setWaterReminder} from '../../reminders/store';
 import type {Reminders} from '../../reminders/schema';
@@ -56,7 +59,16 @@ export type HoldingPrefill = {category: (typeof HOLDING_CATEGORIES)[number]; nam
 /** Session W Part 21: an account's new balance, handed to Wealth's own balance form (the person saves it there). */
 export type BalancePrefill = {account: string; balance: string; currency?: string; date: string};
 /** `activity` (Session V Part 7): the record a confirmed card makes, for Activity's "Actions by ZIGi" (its id there). */
-export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; activity?: {id: string; title: string}};
+/**
+ * Session Z-Local Part 5 (ADR-020 L8): three effects only the runner can perform, each a plain description the card's
+ * Add hands over. `navigate` opens a page; `confirm` opens the app's own delete confirmation for one record (the card
+ * never deletes anything itself); `device` writes one of ZIGi's own device records. A plan with one of these has the
+ * `form` target (never batched, never automatic). Until the runner performs them, the card's lines name the route.
+ */
+export type Navigate = {href: string; label: string};
+export type Confirm = {href: string; what: string; id: string; label: string};
+export type DeviceWrite = {key: string; patch: Record<string, unknown>};
+export type Plan = {card: Card; target: Target; write: (current: Stores) => Partial<Stores>; undo: Undo | null; prefill?: HoldingPrefill; balance?: BalancePrefill; activity?: {id: string; title: string}; navigate?: Navigate; confirm?: Confirm; device?: DeviceWrite};
 export type PlanResult = {ok: true; plan: Plan} | {ok: false; message: string};
 export const HE6_NOTE = 'Fasting isn\'t for everyone: if you\'re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first, and stop if you feel unwell. ZIGoals gives no medical advice.';
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -102,6 +114,36 @@ function writableGoal(goal: PrivateGoal | undefined): asserts goal is PrivateGoa
 function goalOf(env: Env, named: string): {ok: true; found: Handle} | {ok: false; message: string} {
   const found = handleFor(env, 'goal', named);
   return found ? {ok: true, found} : {ok: false, message: 'ZIGi named a goal that is not in this page\'s context, so nothing was proposed. Ask again from Goals.'};
+}
+/**
+ * Session Z-Local Part 5: the one record a delete card names, resolved on the device; the card opens the app's own
+ * confirmation on that record's page (the runner's `confirm` effect) and deletes nothing itself.
+ */
+function deleteTarget(env: Env, action: Extract<Action, {kind: 'delete-record'}>): {ok: true; href: string; id: string; label: string; where: string} | {ok: false; message: string} {
+  const {stores} = env, no = (message: string) => ({ok: false as const, message}), one = <T,>(hits: T[]) => hits.length === 1 ? hits[0]! : null;
+  const named = (action.name ?? '').trim().toLowerCase();
+  const dayOf = () => { const day = resolveDay(action.day, env.healthDay, env.healthDay); return day.ok ? day.day : null; };
+  switch (action.what) {
+    case 'habit': { const found = habitOf(env, action.habit!); if (!found.ok) return no(found.message); return {ok: true, href: `/app/habits#habit-${found.habit.id}`, id: found.habit.id, label: found.habit.title, where: 'Habits'}; }
+    case 'goal': { const g = goalOf(env, action.goal!); if (!g.ok) return no(g.message); const id = g.found.id.startsWith('private:') ? g.found.id.slice('private:'.length) : null; if (!id) return no('A simulation goal is removed on its own page.'); return {ok: true, href: `/app/goals/${id}`, id, label: g.found.label, where: 'Goals'}; }
+    case 'food': case 'recipe': {
+      const kind = action.what, byHandle = handleFor(env, kind, action.name!), list = kind === 'food' ? stores.health.foods : stores.health.recipes;
+      const hit = byHandle ? list.find(x => x.id === byHandle.id) : one(list.filter(x => x.name.trim().toLowerCase() === named), kind);
+      if (!hit) return no(`No ${kind} named "${action.name}" is on this device (or more than one matches).`);
+      return {ok: true, href: '/app/health', id: hit.id, label: hit.name, where: `Health · ${kind === 'food' ? 'Foods' : 'Recipes'}`};
+    }
+    case 'counter': { const hit = one(exerciseData(stores.health).counters.filter(c => c.name.trim().toLowerCase() === named)); if (!hit) return no(`No counter named "${action.name}" is on this device.`); return {ok: true, href: '/app/health', id: hit.id, label: hit.name, where: 'Health · Counters'}; }
+    case 'link': { const hit = one(linksOf(stores.settings).items.filter(l => l.label.trim().toLowerCase() === named)); if (!hit) return no(`No link named "${action.name}" is on Today.`); return {ok: true, href: '/app', id: hit.id, label: hit.label, where: 'Today · My links'}; }
+    case 'widget': { const hit = one(stores.settings.widgets.filter(w => (w.title ?? '').trim().toLowerCase() === named || w.kind === named)); if (!hit) return no(`No widget named "${action.name}" is on Today.`); return {ok: true, href: '/app', id: hit.id, label: hit.title ?? hit.kind, where: 'Today · Widgets'}; }
+    case 'note': { const hit = one((stores.memory.notes ?? []).filter(n => n.text.trim().toLowerCase().startsWith(named))); if (!hit) return no('No note starts with those words.'); return {ok: true, href: '/app/settings#your-ai', id: hit.id, label: hit.text.slice(0, 60), where: 'Settings · What ZIGi knows about me'}; }
+    case 'water-entry': { const day = dayOf(); if (!day) return no('That day could not be read.'); const hits = dailyData(stores.health).water.filter(w => w.date === day); const hit = one(hits); if (!hit) return no(hits.length ? `${hits.length} water entries on ${day}: remove them from the water journal, one by one.` : `No water entry on ${day}.`); return {ok: true, href: '/app/health', id: hit.id, label: `Water on ${day}: ${Math.round(hit.amountMilli / 1000)} mL`, where: 'Health · Water'}; }
+    case 'weight': { const day = dayOf(); if (!day) return no('That day could not be read.'); const hit = one(stores.health.weights.filter(w => w.date === day)); if (!hit) return no(`No weight on ${day}.`); return {ok: true, href: '/app/health', id: hit.id, label: `Weight on ${day}`, where: 'Health · Weight'}; }
+    case 'diary-entry': { const day = dayOf(); if (!day) return no('That day could not be read.'); const hits = stores.health.diary.filter(e => e.date === day && e.snapshot.name.trim().toLowerCase() === named); const hit = one(hits); if (!hit) return no(hits.length ? `${hits.length} entries named "${action.name}" on ${day}: remove them from the diary.` : `No "${action.name}" in the diary on ${day}.`); return {ok: true, href: '/app/health', id: hit.id, label: `${hit.snapshot.name} (${hit.meal}, ${day})`, where: 'Health · Diary'}; }
+    case 'meal-plan': { const day = dayOf(); if (!day) return no('That day could not be read.'); const hits = dailyData(stores.health).plans.filter(p => p.date === day && (!named || (p.name ?? '').trim().toLowerCase() === named)); const hit = one(hits); if (!hit) return no(hits.length ? `${hits.length} planned meals on ${day}: name the one to remove.` : `No planned meal on ${day}.`); return {ok: true, href: '/app/health', id: hit.id, label: `Planned ${hit.meal} on ${day}`, where: 'Health · Planning'}; }
+    case 'night': { const day = dayOf(); if (!day) return no('That day could not be read.'); const nights = (healthGroupIn(stores.health, 'sleep') ?? emptySleep()).nights.filter(n => n.end && new Date(n.end).toISOString().slice(0, 10) === day); const hit = one(nights); if (!hit) return no(`No night ended on ${day}.`); return {ok: true, href: '/app/health?view=sleep', id: hit.id, label: `Night ending ${day}`, where: 'Health · Sleep'}; }
+    case 'session': { const day = dayOf(); if (!day) return no('That day could not be read.'); const sessions = (healthGroupIn(stores.health, 'meditation') ?? emptyMeditation()).sessions.filter(x => wallClock(new Date(x.startedAt).getTime(), x.timeZone).date === day); const hit = one(sessions); if (!hit) return no(sessions.length ? `${sessions.length} sessions on ${day}: remove the one you mean on the Meditation page.` : `No meditation session on ${day}.`); return {ok: true, href: '/app/health?view=meditation', id: hit.id, label: `Meditation on ${day}, ${Math.round(hit.seconds / 60)} min`, where: 'Health · Meditation'}; }
+    case 'fast': { const last = fastingHistory(stores.fasting, 1)[0]; if (!last) return no('There is no fast to remove.'); return {ok: true, href: '/app/health', id: last.session.id, label: `Fast of ${last.day} (${last.hours} h)`, where: 'Health · Fasting'}; }
+  }
 }
 /** One habit's entries for a day put back the way they were (or removed when there was none): the inverse of a check-in or a skip. */
 function restoreEntry(data: HabitData, habitId: string, date: string, previous: Habit['entries'][number] | undefined, now: Date): HabitData {
@@ -633,6 +675,90 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: s => ({health: place(s.health, {mood: action.mood, at, ...(action.note !== undefined ? {note: action.note} : previous?.note !== undefined ? {note: previous.note} : {})})}),
         undo: {label: previous ? 'Put the previous answer back' : 'Remove this answer', write: s => ({health: place(s.health, previous)}), unchanged: (afterApply, now) => same(moodOn(afterApply.health, day.day), moodOn(now.health, day.day))},
         activity: {id: `mood:${day.day}`, title: `How the day felt: ${word}`}}};
+    }
+    // ---- Session Z-Local Part 5 (docs/product/ZIGI_ACTIONS_Z.md) ----
+    case 'open-page': {
+      // A page the person hid in "Your pages & buttons" is not opened behind their back.
+      const view = viewOf(settingsGroupIn(stores.settings, 'pages'));
+      const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' ? null : action.page;
+      if (pageId && !isShown(view, pageId)) return refuse(`${PAGE_LABEL[pageId]} is hidden in Settings → Your pages & buttons; show it there first.`);
+      let href = action.page === 'today' ? '/app' : action.page === 'music' ? '/app/music/spotify' : `/app/${action.page}`, label = action.page === 'settings' ? 'Settings' : action.page === 'help' ? 'Help' : action.page === 'music' ? 'Music' : PAGE_LABEL[pageId!];
+      if (action.view) {
+        const v = action.view;
+        if (['sleep', 'meditation', 'devices', 'imports'].includes(v)) { if (action.page !== 'health') return refuse(`The ${v} view is on Health.`); href = `/app/health?view=${v}`; label = `Health → ${v[0]!.toUpperCase()}${v.slice(1)}`; }
+        else if (v === 'zigi' || v === 'pages') { if (action.page !== 'settings') return refuse(`That section is on Settings.`); href = v === 'zigi' ? '/app/settings#your-ai' : '/app/settings#pages'; label = v === 'zigi' ? 'Settings → ZIGi · your AI' : 'Settings → Your pages & buttons'; }
+        else if (v === 'new-goal') { if (action.page !== 'goals') return refuse('A new goal is made on Goals.'); href = '/app/goals/new'; label = 'Goals → New goal'; }
+      }
+      if (action.habit) { const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message); href = `/app/habits#habit-${found.habit.id}`; label = `Habits → ${found.habit.title}`; }
+      if (action.goal) { const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message); const id = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null; if (!id) return refuse('That goal has no page of its own.'); href = `/app/goals/${id}`; label = `Goals → ${named.found.label}`; }
+      if (action.asset) { const key = action.asset.trim().toLowerCase(), hits = stores.platform.positions.filter(p => p.asset.toLowerCase() === key || p.denom.toLowerCase() === key); if (hits.length !== 1) return refuse(hits.length ? 'More than one holding matches; name it exactly.' : 'No holding by that name is on this device.'); href = `/app/wealth/asset/${encodeURIComponent(hits[0]!.denom)}`; label = `Wealth → ${hits[0]!.asset}`; }
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href}`, 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href, label}}};
+    }
+    case 'delete-record': {
+      const target = deleteTarget(env, action); if (!target.ok) return refuse(target.message);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Delete: ${target.label}`, lines: [`Opens the app's own confirmation on ${target.where}; nothing is deleted by this card`, 'Never automatic'], where: target.where, day: null, estimate: false}, write: () => ({}), undo: null, confirm: {href: target.href, what: action.what, id: target.id, label: target.label}}};
+    }
+    case 'set-habit-state': {
+      const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
+      const habit = found.habit, current = latestHabitRule(habit).state;
+      if (current === action.state) return refuse(`${habit.title} is already ${action.state}.`);
+      const words: Record<typeof action.state, string> = {active: current === 'paused' ? 'Resume' : 'Reactivate', paused: 'Pause', archived: 'Archive'};
+      let before: Habit | undefined;
+      const mine = (s: Stores) => s.habits.habits.find(h => h.id === habit.id);
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `${words[action.state]} ${habit.title}`, lines: [`${current} → ${action.state}, from today`, action.state === 'archived' ? 'An archived habit keeps its history and leaves the daily list' : action.state === 'paused' ? 'A paused habit is not due and keeps its streak frozen' : 'Due again from today'], where: 'Habits', day: null, estimate: false},
+        write: s => { before = mine(s); return {habits: setHabitState(s.habits, habit.id, action.state, env.now)}; },
+        undo: {label: `Put ${habit.title} back to ${current}`, write: s => before ? {habits: habitDataSchema.parse({...s.habits, habits: s.habits.habits.map(h => h.id === habit.id ? before! : h)})} : {}, unchanged: (after, current_) => same(mine(after), mine(current_))},
+        activity: {id: `state:${habit.id}:${action.state}:${at}`, title: `${habit.title}: ${action.state}`}}};
+    }
+    case 'vacation': {
+      let ids: string[] | undefined;
+      if (action.habits?.length) { ids = []; for (const named of action.habits) { const found = habitOf(env, named); if (!found.ok) return refuse(found.message); ids.push(found.habit.id); } }
+      if (action.to < env.habitDay && !action.clear) return refuse('Those days are already past; vacation days are marked ahead.');
+      const range = {from: action.from, to: action.to, ...(ids ? {habitIds: ids} : {})};
+      const titles = ids ? ids.map(id => stores.habits.habits.find(h => h.id === id)?.title ?? 'a habit') : ['every habit'];
+      let before: HabitData | undefined;
+      const apply = (data: HabitData) => action.clear ? clearVacation(data, range, env.now) : setVacation(data, range, env.now);
+      const inverse = (data: HabitData) => action.clear ? setVacation(data, range, env.now) : clearVacation(data, range, env.now);
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: action.clear ? 'Clear vacation days' : 'Mark vacation days', lines: [`${action.from} to ${action.to}${action.from === action.to ? '' : ''} for ${titles.join(', ')}`, action.clear ? 'The habits are due again on those days' : 'Not due on those days; streaks are not broken'], where: 'Habits · Vacation', day: null, estimate: false},
+        write: s => { before = s.habits; return {habits: apply(s.habits)}; },
+        undo: {label: action.clear ? 'Mark them again' : 'Clear them again', write: s => ({habits: inverse(s.habits)}), unchanged: (after, current) => same(after.habits.habits.map(h => h.entries), current.habits.habits.map(h => h.entries)) || before === undefined},
+        activity: {id: `vacation:${action.from}:${action.to}:${action.clear ? 'clear' : 'set'}`, title: `${action.clear ? 'Vacation cleared' : 'Vacation'}: ${action.from} to ${action.to}`}}};
+    }
+    case 'unskip': {
+      const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
+      const habit = found.habit, day = resolveDay(action.day, env.habitDay, env.habitDay, true); if (!day.ok) return refuse(day.message);
+      const entry = entryOn(stores.habits, habit.id, day.day);
+      if (!entry || entry.disposition !== 'skipped') return refuse(`${habit.title} has no planned skip on ${day.day}.`);
+      let previous: Habit['entries'][number] | undefined;
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Undo the skip: ${habit.title}`, lines: [`${day.day}: due again`], where: 'Habits', day: dayLabel(day.day, env.habitDay), estimate: false},
+        write: s => { previous = entryOn(s.habits, habit.id, day.day); return {habits: unplanSkip(s.habits, habit.id, day.day, env.now)}; },
+        undo: {label: 'Plan the skip again', write: s => ({habits: restoreEntry(s.habits, habit.id, day.day, previous, env.now)}), unchanged: (after, current) => same(entryOn(after.habits, habit.id, day.day), entryOn(current.habits, habit.id, day.day))},
+        activity: {id: `unskip:${habit.id}:${day.day}`, title: `Skip undone: ${habit.title}`}}};
+    }
+    case 'remove-reminder': {
+      if (action.for === 'water') {
+        const previous = stores.reminders.water?.time; if (!previous) return refuse('There is no water reminder to remove.');
+        return {ok: true, plan: {target: 'reminders', card: {kind: action.kind, title: 'Remove the water reminder', lines: [`Was every day at ${previous}`], where: 'Today · Reminders', day: null, estimate: false},
+          write: s => ({reminders: setWaterReminder(s.reminders, null)}), undo: {label: 'Set it again', write: s => ({reminders: setWaterReminder(s.reminders, previous)}), unchanged: (after, current) => same(after.reminders.water, current.reminders.water)}, activity: {id: `reminder:water:off:${at}`, title: 'Water reminder removed'}}};
+      }
+      const found = habitOf(env, action.habit!); if (!found.ok) return refuse(found.message);
+      const habit = found.habit, previous = stores.reminders.habits[habit.id]?.time; if (!previous) return refuse(`${habit.title} has no reminder to remove.`);
+      return {ok: true, plan: {target: 'reminders', card: {kind: action.kind, title: `Remove the reminder: ${habit.title}`, lines: [`Was every day at ${previous}`], where: 'Today · Reminders', day: null, estimate: false},
+        write: s => ({reminders: setHabitReminder(s.reminders, habit.id, null)}), undo: {label: 'Set it again', write: s => ({reminders: setHabitReminder(s.reminders, habit.id, previous)}), unchanged: (after, current) => same(after.reminders.habits[habit.id], current.reminders.habits[habit.id])}, activity: {id: `reminder:${habit.id}:off:${at}`, title: `Reminder removed: ${habit.title}`}}};
+    }
+    case 'close-goal': case 'reopen-goal': {
+      const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message);
+      const goalId = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
+      if (!goal) return refuse('A simulation goal is closed or reopened on its own page.');
+      if (goal.locked) return refuse('This goal is locked. Unlock it in Goals first.');
+      const closing = action.kind === 'close-goal';
+      if (closing && goal.status !== 'active') return refuse(`${goal.name} is not an active goal.`);
+      if (!closing && goal.status !== 'closed') return refuse(`${goal.name} is not closed.`);
+      const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id)?.status;
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `${closing ? 'Close' : 'Reopen'} ${goal.name}`, lines: [closing ? 'Status: active → closed; its money and history stay as they are' : 'Status: closed → active'], where: 'Goals', day: null, estimate: false},
+        write: s => { try { return {platform: closing ? closeGoal(s.platform, goal.id) : reopenGoal(s.platform, goal.id, env.now.getTime())}; } catch (error) { throw Error(error instanceof Error && error.message ? error.message : 'This goal could not be changed.'); } },
+        undo: {label: closing ? 'Reopen it' : 'Close it again', write: s => ({platform: closing ? reopenGoal(s.platform, goal.id, env.now.getTime()) : closeGoal(s.platform, goal.id)}), unchanged: (after, current) => mine(after) === mine(current)},
+        activity: {id: `goal:${goal.id}:${closing ? 'closed' : 'reopened'}:${at}`, title: `${goal.name}: ${closing ? 'closed' : 'reopened'}`}}};
     }
     case 'add-link': {
       const icon = action.icon ?? suggestedIcon(action.url), input = {label: action.label, url: action.url, icon};

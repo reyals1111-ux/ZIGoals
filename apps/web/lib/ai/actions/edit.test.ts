@@ -21,6 +21,9 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     // Session X-Local Part 5a
     'stack-habit': {kind: 'stack-habit', habit: 'h2', after: 'h1'}, 'edit-habit': {kind: 'edit-habit', habit: 'h1', title: 'Evening pages'}, 'edit-goal': {kind: 'edit-goal', goal: 'g1', name: 'Lisbon in spring'},
     'log-mood': {kind: 'log-mood', mood: 4, note: 'Calm'}, 'add-link': {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, 'add-widget': {kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'},
+    // Session Z-Local Part 5
+    'open-page': {kind: 'open-page', page: 'health', view: 'sleep'}, 'delete-record': {kind: 'delete-record', what: 'habit', habit: 'h1'}, 'set-habit-state': {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, vacation: {kind: 'vacation', from: '2026-09-22', to: '2026-09-24'},
+    unskip: {kind: 'unskip', habit: 'h1'}, 'remove-reminder': {kind: 'remove-reminder', for: 'water'}, 'close-goal': {kind: 'close-goal', goal: 'g1'}, 'reopen-goal': {kind: 'reopen-goal', goal: 'g1'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

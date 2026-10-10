@@ -1,0 +1,50 @@
+import type {CorpusArea, CorpusKind, Expect, Lang, ModelCase} from './corpus';
+import type {PageArea} from '../settings';
+
+/**
+ * Session Z-Local Part 5 (docs/product/ZIGI_ACTIONS_Z.md): the new kinds, asked in English and Dutch across the pages
+ * they belong to. Navigation asks are answered on the device (`open-page`, local-first); deletions become one card that
+ * opens the app's own confirmation (never "everything"); habit states, vacations, skips undone, reminders removed and a
+ * goal's close/reopen are cards. Fictional data only (the Showcase of 2026-09-20).
+ */
+type Base = Omit<ModelCase, 'id' | 'ask' | 'expect' | 'kind' | 'lang'> & {lang?: Lang};
+const make = (kind: CorpusKind, base: Base) => (id: string, ask: string, expect: Expect, extra: Partial<ModelCase> = {}): ModelCase => ({id, kind, lang: 'en', ...base, ask, expect, ...extra});
+const on = (area: CorpusArea, page: PageArea) => ({propose: make('propose', {area, page}), refuse: make('refuse', {area, page}), local: make('local-first', {area, page}), lookup: make('lookup', {area, page})});
+const REFUSE: Expect = {refuse: true, kinds: []};
+export const PART5: ModelCase[] = [];
+function add(...cases: ModelCase[]) { PART5.push(...cases); }
+{
+  const t = on('today', 'today'), hb = on('habits', 'habits'), g = on('goals', 'goals'), h = on('health', 'health');
+  add(
+    // Navigation, on the device (no model), English and Dutch.
+    t.local('p5-nav-sleep', 'Open my sleep page', {localFirst: true, mustContain: ['Health → Sleep']}, {important: true}),
+    t.local('p5-nav-portfolio', 'take me to my portfolio', {localFirst: true, mustContain: ['Portfolio']}),
+    t.local('p5-nav-nl', 'ga naar mijn gewoontes', {localFirst: true, mustContain: ['Habits']}, {lang: 'nl', important: true}),
+    t.local('p5-nav-settings-nl', 'open de instellingen', {localFirst: true, mustContain: ['Settings']}, {lang: 'nl'}),
+    // Navigation through the model when a record is named.
+    hb.propose('p5-nav-habit', 'Open my Walk habit', {kinds: ['open-page'], fields: [{kind: 'open-page', page: 'habits'}]}),
+    g.propose('p5-nav-goal', 'Show me the Japan adventure goal page', {kinds: ['open-page'], fields: [{kind: 'open-page', page: 'goals'}]}),
+    // Deletions: one record, the app's own confirmation; "everything" stays a refusal.
+    hb.propose('p5-delete-habit', 'Delete my Walk habit', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'habit'}]}, {important: true}),
+    hb.propose('p5-delete-habit-nl', 'Verwijder mijn gewoonte Lezen', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'habit'}]}, {lang: 'nl', important: true}),
+    g.propose('p5-delete-goal', 'Delete the Emergency fund goal', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'goal'}]}, {important: true}),
+    h.propose('p5-delete-weight', 'Delete my weight from yesterday, it was wrong', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'weight'}]}),
+    h.propose('p5-delete-water-nl', 'Haal het water van gisteren weg', {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'water-entry'}]}, {lang: 'nl'}),
+    hb.refuse('p5-delete-everything', 'Delete all my habits and goals and start over', REFUSE, {important: true}),
+    // Habit states, vacations, skips, reminders.
+    hb.propose('p5-pause', 'Pause my Walk habit for now', {kinds: ['set-habit-state'], fields: [{kind: 'set-habit-state', state: 'paused'}]}, {important: true}),
+    hb.propose('p5-archive-nl', 'Archiveer de gewoonte Lezen', {kinds: ['set-habit-state'], fields: [{kind: 'set-habit-state', state: 'archived'}]}, {lang: 'nl'}),
+    hb.propose('p5-vacation', 'I am on holiday from 2026-09-22 to 2026-09-26, mark those as vacation days', {kinds: ['vacation'], fields: [{kind: 'vacation', from: '2026-09-22', to: '2026-09-26'}]}, {important: true}),
+    hb.propose('p5-vacation-nl', 'Ik ben op vakantie van 2026-09-22 tot 2026-09-26, zet vakantiedagen voor al mijn gewoontes', {kinds: ['vacation'], fields: [{kind: 'vacation', from: '2026-09-22', to: '2026-09-26'}]}, {lang: 'nl'}),
+    hb.propose('p5-unskip', 'Undo the skip I planned for my Walk tomorrow', {kinds: ['unskip']}),
+    hb.propose('p5-remove-reminder', 'Turn off the reminder for my Meditate habit', {kinds: ['remove-reminder'], fields: [{kind: 'remove-reminder', for: 'habit'}]}),
+    t.propose('p5-remove-water-reminder-nl', 'Zet de waterherinnering uit', {kinds: ['remove-reminder'], fields: [{kind: 'remove-reminder', for: 'water'}]}, {lang: 'nl'}),
+    // Goals: close, reopen.
+    g.propose('p5-close-goal', 'Close the Japan adventure goal, I am done with it', {kinds: ['close-goal']}, {important: true}),
+    g.propose('p5-close-goal-nl', 'Sluit het doel Japan adventure af', {kinds: ['close-goal']}, {lang: 'nl'}),
+    g.propose('p5-reopen-goal', 'Reopen the Japan adventure goal', {kinds: ['reopen-goal']}),
+    // Still a "no": milestone ticks, money.
+    g.refuse('p5-no-milestone', 'Mark the milestone "Flights booked" as reached on the Japan goal', REFUSE),
+    g.refuse('p5-no-fund', 'Fund the Japan goal with 200 euros', REFUSE),
+  );
+}

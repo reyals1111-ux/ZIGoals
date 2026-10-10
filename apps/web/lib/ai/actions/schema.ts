@@ -67,6 +67,15 @@ const goalRules = (a: {type: (typeof GOAL_TYPES)[number]; target?: number; curre
 };
 /** Today's widget kinds (lib/dashboard-settings.ts): the catalogue is the whitelist. */
 export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as const;
+/**
+ * Session Z-Local Part 5 (docs/product/ZIGI_ACTIONS_Z.md): the pages ZIGi may open, their views, the records a card may
+ * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
+ * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
+ */
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music'] as const;
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal'] as const;
+export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
+export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
@@ -125,13 +134,28 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-mood'), mood: z.number().int().min(1).max(5), note: z.string().trim().max(280).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('add-link'), label: text(40), url: z.string().trim().min(1).max(500).regex(/^https:\/\//i, 'Only a full https:// address can be added.'), icon: z.enum(LINK_ICONS).optional()}),
   z.strictObject({kind: z.literal('add-widget'), widget: z.enum(WIDGET_KINDS), metric: z.string().trim().min(1).max(40).optional(), habit: habitName.optional(), goal: goalName.optional(), size: z.enum(['compact', 'wide']).default('compact'), title: z.string().trim().max(80).optional()}),
+  // ---- Session Z-Local Part 5: navigation, deletions (the app's own confirmation), habit states, vacations, goals' lifecycle ----
+  z.strictObject({kind: z.literal('open-page'), page: z.enum(OPEN_PAGES), view: z.enum(PAGE_VIEWS).optional(), habit: habitName.optional(), goal: goalName.optional(), asset: text(100).optional()}),
+  z.strictObject({kind: z.literal('delete-record'), what: z.enum(DELETE_TARGETS), habit: habitName.optional(), goal: goalName.optional(), name: text(100).optional(), day: daySchema})
+    .superRefine((a, ctx) => {
+      if (a.what === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'});
+      if (a.what === 'goal' && !a.goal) ctx.addIssue({code: 'custom', path: ['goal'], message: 'Name the goal (g1, or its exact title).'});
+      if (['food', 'recipe', 'counter', 'link', 'widget', 'note', 'diary-entry'].includes(a.what) && !a.name) ctx.addIssue({code: 'custom', path: ['name'], message: 'Name the record to delete (its exact title, or the handle).'});
+    }),
+  z.strictObject({kind: z.literal('set-habit-state'), habit: habitName, state: z.enum(HABIT_STATES)}),
+  z.strictObject({kind: z.literal('vacation'), from: isoDay, to: isoDay, clear: z.boolean().default(false), habits: z.array(habitName).max(20).optional()}).refine(a => a.from <= a.to, 'The vacation ends before it starts.'),
+  z.strictObject({kind: z.literal('unskip'), habit: habitName, day: daySchema}),
+  z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
+  z.strictObject({kind: z.literal('close-goal'), goal: goalName}),
+  z.strictObject({kind: z.literal('reopen-goal'), goal: goalName}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
 export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food', 'log-measurement', 'check-in', 'skip', 'create-habit', 'start-fast', 'stop-fast', 'create-goal', 'add-goal-note', 'prefill-holding',
   'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'counter', 'create-reminder', 'review-intention', 'remember',
   'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge',
-  'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget'] as const satisfies readonly ActionKind[];
+  'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget',
+  'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -161,6 +185,9 @@ export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PR
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
   'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
+  // Session Z-Local Part 5: the new kinds' plain names; no alias for a delete-* name (an unknown kind stays refused, golden `unknown-kind`).
+  navigate: 'open-page', 'go-to': 'open-page', 'open_page': 'open-page', 'show-page': 'open-page', 'delete_record': 'delete-record', 'set_habit_state': 'set-habit-state', 'habit-state': 'set-habit-state',
+  'vacation-days': 'vacation', 'set-vacation': 'vacation', 'mark-vacation': 'vacation', 'unplan-skip': 'unskip', 'un-skip': 'unskip', 'undo-skip': 'unskip', 'remove_reminder': 'remove-reminder', 'delete-reminder': 'remove-reminder', 'close_goal': 'close-goal', 'reopen_goal': 'reopen-goal',
   // Session X-Local Phase 2: names seen on the wire (phi4-mini, qwen3.6) for kinds that exist.
   'create-goal-note': 'add-goal-note', 'note-goal': 'add-goal-note', 'log-nap': 'log-sleep', nap: 'log-sleep', 'mood-log': 'log-mood', 'set-reminder': 'create-reminder', 'add-reminder': 'create-reminder', 'add-grocery': 'grocery-item', 'log-measure': 'log-measurement',
   // Session W Part 21

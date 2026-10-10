@@ -143,9 +143,34 @@ export function localAnswer(question: string, env: ToolEnv, subject?: Subject): 
   const reply = answer(question, env, subject);
   return 'text' in reply ? {...reply, text: groupUnits(reply.text)} : reply;
 }
+/**
+ * Session Z-Local Part 5: "open my sleep page", "go to habits", "ga naar mijn doelen" is a navigation intent the device
+ * answers itself with an `open-page` card (no AI, no records read): the ask names only a page or a view. "Show my
+ * debts" and "list my goals" stay lookups (no page word), and anything with a record or a figure is not navigation.
+ */
+const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = {
+  today: {page: 'today', label: 'Today'}, vandaag: {page: 'today', label: 'Today'}, home: {page: 'today', label: 'Today'}, dashboard: {page: 'today', label: 'Today'},
+  goals: {page: 'goals', label: 'Goals'}, goal: {page: 'goals', label: 'Goals'}, doelen: {page: 'goals', label: 'Goals'}, 'new goal': {page: 'goals', view: 'new-goal', label: 'Goals → New goal'}, 'nieuw doel': {page: 'goals', view: 'new-goal', label: 'Goals → New goal'},
+  habits: {page: 'habits', label: 'Habits'}, habit: {page: 'habits', label: 'Habits'}, gewoontes: {page: 'habits', label: 'Habits'}, gewoonten: {page: 'habits', label: 'Habits'},
+  health: {page: 'health', label: 'Health'}, gezondheid: {page: 'health', label: 'Health'}, sleep: {page: 'health', view: 'sleep', label: 'Health → Sleep'}, slaap: {page: 'health', view: 'sleep', label: 'Health → Sleep'},
+  meditation: {page: 'health', view: 'meditation', label: 'Health → Meditation'}, meditatie: {page: 'health', view: 'meditation', label: 'Health → Meditation'}, devices: {page: 'health', view: 'devices', label: 'Health → Devices'}, apparaten: {page: 'health', view: 'devices', label: 'Health → Devices'}, imports: {page: 'health', view: 'imports', label: 'Health → Imports'},
+  wealth: {page: 'wealth', label: 'Wealth'}, vermogen: {page: 'wealth', label: 'Wealth'}, portfolio: {page: 'portfolio', label: 'Portfolio'}, portefeuille: {page: 'portfolio', label: 'Portfolio'}, markets: {page: 'markets', label: 'Markets'}, market: {page: 'markets', label: 'Markets'}, markten: {page: 'markets', label: 'Markets'},
+  staking: {page: 'staking', label: 'Staking'}, ecosystem: {page: 'ecosystem', label: 'Ecosystem'}, ecosysteem: {page: 'ecosystem', label: 'Ecosystem'}, chess: {page: 'chess', label: 'Chess'}, schaken: {page: 'chess', label: 'Chess'}, schaak: {page: 'chess', label: 'Chess'},
+  activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your AI'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · your AI'},
+  pages: {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, "pagina's": {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, help: {page: 'help', label: 'Help'}, music: {page: 'music', label: 'Music'}, muziek: {page: 'music', label: 'Music'},
+};
+const NAV_ASK = /^(?:please |ok |okay |hey |hi |zigi,? |nova,? |kun je |kan je |can you |could you )*(?:open|go to|take me to|switch to|jump to|navigate to|bring up|ga naar|open|toon|laat me|breng me naar)\s+(?:my |the |mijn |de |het |me |een )?([a-z' ]{3,24}?)(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht|zien))?[.!?]?$/;
+export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
+  const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  const m = NAV_ASK.exec(q); if (!m) return null;
+  const word = m[1]!.trim().replace(/^(?:my|the|mijn|de|het)\s+/, '');
+  return NAV_PAGES[word] ?? null;
+}
+const navigationReply = (nav: {page: string; view?: string; label: string}): LocalReply => ({kind: 'answer', text: `Opening ${nav.label}.\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: nav.page, ...(nav.view ? {view: nav.view} : {})})}\n\`\`\``, calls: []});
 function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
   const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   if (!q || q.length > 300) return NONE;
+  const nav = navigationIntent(q); if (nav) return navigationReply(nav);
   if (ACTION.test(q) || STATEMENT.test(q)) return NONE;
   if (ADVICE.test(q)) return NONE;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};

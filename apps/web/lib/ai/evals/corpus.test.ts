@@ -3,6 +3,7 @@ import {ACTION_KINDS} from '../actions/schema';
 import {TOOLS} from '../tools/registry';
 import {CORPUS, CORPUS_AREAS, IMPORTANT} from './corpus';
 import {PHASE2} from './corpus-phase2';
+import {PART5} from './corpus-part5';
 
 /**
  * Session X-Local Phase 2 (P2.1): the model-scored corpus is ≥ 600 cases beside the golden set, every id unique, every
@@ -41,4 +42,10 @@ test('Phase 2 covers the owner\'s categories: long multi-step, mixed intents, ed
   expect(PHASE2.filter(c => c.lang === 'nl').length).toBeGreaterThanOrEqual(30);
   expect(PHASE2.filter(c => c.lang === 'fr').length).toBeGreaterThanOrEqual(30);
   expect(PHASE2.filter(c => c.important).length).toBeGreaterThanOrEqual(80);
+});
+test('Session Z-Local Part 5: navigation, deletions, habit states, vacations, reminders and a goal\'s lifecycle, in English and Dutch', () => {
+  expect(PART5.length).toBeGreaterThanOrEqual(20);
+  for (const prefix of ['p5-nav-', 'p5-delete-', 'p5-pause', 'p5-vacation', 'p5-unskip', 'p5-remove-', 'p5-close-goal', 'p5-reopen-goal', 'p5-no-']) expect(PART5.some(c => c.id.startsWith(prefix)), prefix).toBe(true);
+  expect(PART5.filter(c => c.lang === 'nl').length).toBeGreaterThanOrEqual(6);
+  expect(PART5.filter(c => c.kind === 'local-first').every(c => c.expect.localFirst === true)).toBe(true);
 });

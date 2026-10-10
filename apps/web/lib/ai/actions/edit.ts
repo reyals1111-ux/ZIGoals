@@ -1,5 +1,5 @@
 import {CATEGORY_LABELS, REMEMBER_CATEGORIES} from '../memory';
-import {GOAL_CATEGORIES, GOAL_TYPES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {GOAL_CATEGORIES, GOAL_TYPES, HABIT_STATES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
 import {LINK_ICONS} from '../../links/schema';
 
 /**
@@ -19,6 +19,15 @@ const DAY: Field = {key: 'day', label: 'Day', type: 'day', optional: true};
 const lines = (key: string, label: string, optional = false): Field => ({key, label, type: 'lines', optional, multiline: true});
 const ESTIMATE = [num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true)];
 const FIELDS: Record<ActionKind, readonly Field[]> = {
+  // ---- Session Z-Local Part 5 ----
+  'open-page': [],
+  'delete-record': [DAY],
+  'set-habit-state': [select('state', 'State', HABIT_STATES, false)],
+  vacation: [{key: 'from', label: 'From', type: 'date'}, {key: 'to', label: 'To', type: 'date'}],
+  unskip: [DAY],
+  'remove-reminder': [],
+  'close-goal': [],
+  'reopen-goal': [],
   'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
   'log-steps': [int('steps', 'Steps'), int('minutes', 'Minutes', true), DAY],

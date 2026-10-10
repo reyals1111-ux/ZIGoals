@@ -90,3 +90,25 @@ STATUS) are carried by whichever PR merges second, with a merge commit.
   exact lines (owner edit 7); if it points at `proposal-list.tsx`, it lands in the render-free part of that file and
   the second merger keeps both lanes' changes. The owner checklist gets "in Safari on the Mac: ask ZIGi twice after an
   Undo; it must keep answering" (Remote Automation is off on this Mac, left as is).
+
+## 2026-10-10 — Part 5: three runner effects for `use-proposals.ts` (decision L8), the brain side is in
+`docs/product/ZIGI_ACTIONS_Z.md` maps every action in the app to a ZIGi path. Eight kinds landed in `lib/ai` (schema,
+parser aliases, planner, edit fields, protocol lines, unit tests, corpus cases): `open-page`, `delete-record`,
+`set-habit-state`, `vacation`, `unskip`, `remove-reminder`, `close-goal`, `reopen-goal`. Six write through the stores the
+runner already updates. Two hand the runner an effect it does not perform yet; a third (`set-zigi-look`, later in Part 5)
+will too. The `Plan` type (`lib/ai/actions/plan.ts`) now carries three optional fields, all with `target: 'form'` (so
+`batchable` leaves them out and auto-accept never takes them; `AUTO_ACCEPT_NEVER` lists `delete-record` and `open-page`):
+- `plan.navigate: {href: string; label: string}` — the card's Add opens `href` (`router.push`; a same-page hash set
+  directly, as `openForm` does for the balance form). Status text to show: "Opened: <label>".
+- `plan.confirm: {href: string; what: string; id: string; label: string}` — the card's Add opens the record's page and
+  that page's own delete confirmation for the record with id `id` (`what` is one of `DELETE_TARGETS` in
+  `lib/ai/actions/schema.ts`: habit, goal, water-entry, weight, diary-entry, food, recipe, meal-plan, counter, night,
+  session, fast, link, widget, note). The card deletes nothing; the person confirms on the page. How the page is told
+  is yours (a hash such as `#confirm-delete=<what>:<id>` read once, or an event); the brain only names the record.
+  Status text: "Opened the confirmation on <label>".
+- `plan.device: {key: string; patch: Record<string, unknown>}` (coming with `set-zigi-look`) — one of ZIGi's own device
+  records (`zigoals:zigi:v1`) updated through `useDeviceRecord(...).update(o => ({...o, ...patch}))`; Undo puts the
+  previous values back from the plan's `undo`.
+Today `openForm` returns false for such a plan and the list shows "The values could not be handed over; type them into
+the form.", which is wrong for these three; please branch on `plan.navigate` / `plan.confirm` / `plan.device` before the
+pre-fill branches. Until then, each card's lines name the route ("Opens /app/health?view=sleep"), so nothing misleads.

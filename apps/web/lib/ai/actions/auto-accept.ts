@@ -10,7 +10,8 @@ import {WRITING_KINDS, type ActionKind} from './schema';
  * (checked fail-closed when the cards arrive, never from a stored flag). A daily cap (default 20) on top. The record is
  * `zigoals:ai-options:v1` → `autoAccept`: `{kinds: {<kind>: true}, dailyCap, days: {<day>: n}}`; older builds ignore it.
  */
-export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'prefill-holding', 'update-account-balance'] as const satisfies readonly ActionKind[];
+// Session Z-Local Part 5: a deletion (the card opens the app's own confirmation) and a page opening are never automatic either.
+export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'prefill-holding', 'update-account-balance', 'delete-record', 'open-page'] as const satisfies readonly ActionKind[];
 export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement'] as const satisfies readonly ActionKind[];
 export const AUTO_ACCEPT_KINDS: readonly ActionKind[] = WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k));
 export const AUTO_ACCEPT_CAP = {default: 20, min: 1, max: 100} as const;
@@ -59,8 +60,11 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
   {title: 'Goals', kinds: ['create-goal', 'add-goal-note', 'add-milestone', 'edit-goal']},
   {title: 'Health', health: true, kinds: AUTO_ACCEPT_HEALTH},
   {title: 'Today and ZIGi', kinds: ['create-reminder', 'review-intention', 'remember', 'add-link', 'add-widget']},
+  // Session Z-Local Part 5: the new eligible kinds (deletions and page openings are never automatic and have no switch).
+  {title: 'Habits and goals (more)', kinds: ['set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal']},
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
+  'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
   'check-in': 'Habit check-ins', skip: 'Habit skips', 'create-habit': 'New habits', 'stack-habit': 'Habit stacks', 'edit-habit': 'Changes to a habit', 'start-challenge': 'Challenges',
   'create-goal': 'New goal drafts', 'add-goal-note': 'Goal notes', 'add-milestone': 'Milestones', 'edit-goal': 'Changes to a goal',
   'log-food': 'Food entries (typed or from a photo)', 'create-food': 'New foods', 'create-recipe': 'New recipes', 'plan-meal': 'Planned meals', 'grocery-item': 'Grocery items', 'log-water': 'Water', counter: 'Exercise counters',
