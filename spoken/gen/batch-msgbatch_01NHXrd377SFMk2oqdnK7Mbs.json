@@ -1,0 +1,3378 @@
+{
+ "id": "msgbatch_01NHXrd377SFMk2oqdnK7Mbs",
+ "createdAt": "2026-10-10T16:23:12.426092+00:00",
+ "model": "claude-opus-5-5",
+ "perSeed": 10,
+ "phenomena": [
+  "filler",
+  "number-words",
+  "clock-idiom",
+  "self-correction",
+  "run-on",
+  "politeness",
+  "preamble",
+  "inversion",
+  "code-switch",
+  "terse"
+ ],
+ "seeds": [
+  {
+   "id": "water-glasses-en",
+   "concept": "two glasses of water",
+   "lang": "en",
+   "typed": "Log two glasses of water",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ],
+    "fields": [
+     {
+      "kind": "log-water",
+      "glasses": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "water-glasses-nl",
+   "concept": "two glasses of water",
+   "lang": "nl",
+   "typed": "Noteer twee glazen water",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ],
+    "fields": [
+     {
+      "kind": "log-water",
+      "glasses": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "water-litres-en",
+   "concept": "two and a half litres",
+   "lang": "en",
+   "typed": "I drank two and a half litres today",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "water-litres-nl",
+   "concept": "two and a half litres",
+   "lang": "nl",
+   "typed": "Ik heb vandaag anderhalve liter water gedronken",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "water-yesterday-en",
+   "concept": "water yesterday",
+   "lang": "en",
+   "typed": "Yesterday I drank three glasses of water",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ],
+    "fields": [
+     {
+      "kind": "log-water",
+      "glasses": 3,
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "water-yesterday-nl",
+   "concept": "water yesterday",
+   "lang": "nl",
+   "typed": "Gisteren heb ik drie glazen water gedronken",
+   "expect": {
+    "kinds": [
+     "log-water"
+    ],
+    "fields": [
+     {
+      "kind": "log-water",
+      "glasses": 3,
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "weight-kg-en",
+   "concept": "weight in kilos",
+   "lang": "en",
+   "typed": "I weigh seventy-two point five kilos",
+   "expect": {
+    "kinds": [
+     "log-weight"
+    ],
+    "fields": [
+     {
+      "kind": "log-weight",
+      "value": 72.5,
+      "unit": "kg"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "weight-kg-nl",
+   "concept": "weight in kilos",
+   "lang": "nl",
+   "typed": "Ik weeg tweeënzeventig komma vijf kilo",
+   "expect": {
+    "kinds": [
+     "log-weight"
+    ],
+    "fields": [
+     {
+      "kind": "log-weight",
+      "value": 72.5,
+      "unit": "kg"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "weight-lb-en",
+   "concept": "weight in pounds",
+   "lang": "en",
+   "typed": "I weighed one hundred and sixty pounds this morning",
+   "expect": {
+    "kinds": [
+     "log-weight"
+    ],
+    "fields": [
+     {
+      "kind": "log-weight",
+      "value": 160
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "weight-lb-nl",
+   "concept": "weight in pounds",
+   "lang": "nl",
+   "typed": "Vanmorgen woog ik honderdzestig pond",
+   "expect": {
+    "kinds": [
+     "log-weight"
+    ],
+    "fields": [
+     {
+      "kind": "log-weight",
+      "value": 160
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "steps-en",
+   "concept": "ten thousand steps",
+   "lang": "en",
+   "typed": "I walked ten thousand steps today",
+   "expect": {
+    "kinds": [
+     "log-steps"
+    ],
+    "fields": [
+     {
+      "kind": "log-steps",
+      "steps": 10000
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "steps-nl",
+   "concept": "ten thousand steps",
+   "lang": "nl",
+   "typed": "Ik heb vandaag tienduizend stappen gezet",
+   "expect": {
+    "kinds": [
+     "log-steps"
+    ],
+    "fields": [
+     {
+      "kind": "log-steps",
+      "steps": 10000
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "steps-k-en",
+   "concept": "twelve k steps",
+   "lang": "en",
+   "typed": "Twelve k steps yesterday",
+   "expect": {
+    "kinds": [
+     "log-steps"
+    ],
+    "fields": [
+     {
+      "kind": "log-steps",
+      "steps": 12000,
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "steps-k-nl",
+   "concept": "twelve k steps",
+   "lang": "nl",
+   "typed": "Twaalfduizend stappen gisteren",
+   "expect": {
+    "kinds": [
+     "log-steps"
+    ],
+    "fields": [
+     {
+      "kind": "log-steps",
+      "steps": 12000,
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "food-lunch-en",
+   "concept": "a bowl for lunch",
+   "lang": "en",
+   "typed": "I had the chicken and quinoa bowl for lunch",
+   "expect": {
+    "kinds": [
+     "log-food"
+    ],
+    "fields": [
+     {
+      "kind": "log-food",
+      "meal": "Lunch"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "food-lunch-nl",
+   "concept": "a bowl for lunch",
+   "lang": "nl",
+   "typed": "Ik heb de chicken and quinoa bowl als lunch gegeten",
+   "expect": {
+    "kinds": [
+     "log-food"
+    ],
+    "fields": [
+     {
+      "kind": "log-food",
+      "meal": "Lunch"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "food-breakfast-two-en",
+   "concept": "two servings of oats",
+   "lang": "en",
+   "typed": "Two servings of berry overnight oats for breakfast",
+   "expect": {
+    "kinds": [
+     "log-food"
+    ],
+    "fields": [
+     {
+      "kind": "log-food",
+      "meal": "Breakfast",
+      "quantity": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "food-breakfast-two-nl",
+   "concept": "two servings of oats",
+   "lang": "nl",
+   "typed": "Twee porties berry overnight oats als ontbijt",
+   "expect": {
+    "kinds": [
+     "log-food"
+    ],
+    "fields": [
+     {
+      "kind": "log-food",
+      "meal": "Breakfast",
+      "quantity": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "measurement-en",
+   "concept": "waist measurement",
+   "lang": "en",
+   "typed": "My waist is eighty-one centimetres",
+   "expect": {
+    "kinds": [
+     "log-measurement"
+    ],
+    "fields": [
+     {
+      "kind": "log-measurement",
+      "value": 81
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "measurement-nl",
+   "concept": "waist measurement",
+   "lang": "nl",
+   "typed": "Mijn taille is eenentachtig centimeter",
+   "expect": {
+    "kinds": [
+     "log-measurement"
+    ],
+    "fields": [
+     {
+      "kind": "log-measurement",
+      "value": 81
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "sleep-en",
+   "concept": "last night in bed",
+   "lang": "en",
+   "typed": "I went to bed at half past eleven and got up at seven",
+   "expect": {
+    "kinds": [
+     "log-sleep"
+    ],
+    "fields": [
+     {
+      "kind": "log-sleep",
+      "bedtime": "23:30",
+      "wake": "07:00"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "sleep-nl",
+   "concept": "last night in bed",
+   "lang": "nl",
+   "typed": "Ik ging om half twaalf naar bed en stond om zeven uur op",
+   "expect": {
+    "kinds": [
+     "log-sleep"
+    ],
+    "fields": [
+     {
+      "kind": "log-sleep",
+      "bedtime": "23:30",
+      "wake": "07:00"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "nap-en",
+   "concept": "a twenty-minute nap",
+   "lang": "en",
+   "typed": "I took a twenty minute nap after lunch",
+   "expect": {
+    "kinds": [
+     "log-sleep",
+     "log-nap"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "nap-nl",
+   "concept": "a twenty-minute nap",
+   "lang": "nl",
+   "typed": "Ik heb na de lunch twintig minuten gedut",
+   "expect": {
+    "kinds": [
+     "log-sleep",
+     "log-nap"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "meditation-en",
+   "concept": "fifteen minutes of meditation",
+   "lang": "en",
+   "typed": "I meditated for fifteen minutes this morning",
+   "expect": {
+    "kinds": [
+     "log-meditation"
+    ],
+    "fields": [
+     {
+      "kind": "log-meditation",
+      "minutes": 15
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "meditation-nl",
+   "concept": "fifteen minutes of meditation",
+   "lang": "nl",
+   "typed": "Ik heb vanmorgen vijftien minuten gemediteerd",
+   "expect": {
+    "kinds": [
+     "log-meditation"
+    ],
+    "fields": [
+     {
+      "kind": "log-meditation",
+      "minutes": 15
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "mood-en",
+   "concept": "a good day",
+   "lang": "en",
+   "typed": "Log my mood as good today",
+   "expect": {
+    "kinds": [
+     "log-mood"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "mood-nl",
+   "concept": "a good day",
+   "lang": "nl",
+   "typed": "Zet mijn stemming vandaag op goed",
+   "expect": {
+    "kinds": [
+     "log-mood"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "counter-en",
+   "concept": "twenty push-ups",
+   "lang": "en",
+   "typed": "Twenty push-ups done",
+   "expect": {
+    "kinds": [
+     "counter"
+    ],
+    "fields": [
+     {
+      "kind": "counter",
+      "count": 20
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "counter-nl",
+   "concept": "twenty push-ups",
+   "lang": "nl",
+   "typed": "Twintig push-ups gedaan",
+   "expect": {
+    "kinds": [
+     "counter"
+    ],
+    "fields": [
+     {
+      "kind": "counter",
+      "count": 20
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "fast-start-en",
+   "concept": "start a fast",
+   "lang": "en",
+   "typed": "Start a sixteen hour fast now",
+   "expect": {
+    "kinds": [
+     "start-fast"
+    ],
+    "fields": [
+     {
+      "kind": "start-fast",
+      "hours": 16
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "fast-start-nl",
+   "concept": "start a fast",
+   "lang": "nl",
+   "typed": "Start nu een vasten van zestien uur",
+   "expect": {
+    "kinds": [
+     "start-fast"
+    ],
+    "fields": [
+     {
+      "kind": "start-fast",
+      "hours": 16
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "fast-stop-en",
+   "concept": "end the fast",
+   "lang": "en",
+   "typed": "Stop my fast, I am eating now",
+   "expect": {
+    "kinds": [
+     "stop-fast"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "fast-stop-nl",
+   "concept": "end the fast",
+   "lang": "nl",
+   "typed": "Stop mijn vasten, ik ga nu eten",
+   "expect": {
+    "kinds": [
+     "stop-fast"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-protein-en",
+   "concept": "protein target",
+   "lang": "en",
+   "typed": "Set my protein target to a hundred and thirty grams a day",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "protein",
+      "value": 130
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "target-protein-nl",
+   "concept": "protein target",
+   "lang": "nl",
+   "typed": "Zet mijn eiwitdoel op honderddertig gram per dag",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "protein",
+      "value": 130
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "target-steps-en",
+   "concept": "steps target",
+   "lang": "en",
+   "typed": "My steps goal is nine thousand from now on",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "steps",
+      "value": 9000
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-steps-nl",
+   "concept": "steps target",
+   "lang": "nl",
+   "typed": "Mijn stappendoel is vanaf nu negenduizend",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "steps",
+      "value": 9000
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-water-en",
+   "concept": "water target",
+   "lang": "en",
+   "typed": "I want to drink two and a half litres a day, set that as my water target",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "water"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-water-nl",
+   "concept": "water target",
+   "lang": "nl",
+   "typed": "Ik wil tweeënhalve liter per dag drinken, zet dat als mijn waterdoel",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "water"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-sleep-en",
+   "concept": "sleep goal",
+   "lang": "en",
+   "typed": "My sleep goal is seven and a half hours",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "sleep",
+      "value": 7.5
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "target-sleep-nl",
+   "concept": "sleep goal",
+   "lang": "nl",
+   "typed": "Mijn slaapdoel is zeven en een half uur",
+   "expect": {
+    "kinds": [
+     "set-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-target",
+      "target": "sleep",
+      "value": 7.5
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "units-lb-en",
+   "concept": "weight in pounds",
+   "lang": "en",
+   "typed": "Show my weight in pounds from now on",
+   "expect": {
+    "kinds": [
+     "set-health-preference"
+    ],
+    "fields": [
+     {
+      "kind": "set-health-preference",
+      "weightUnit": "lb"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "units-lb-nl",
+   "concept": "weight in pounds",
+   "lang": "nl",
+   "typed": "Toon mijn gewicht voortaan in pond",
+   "expect": {
+    "kinds": [
+     "set-health-preference"
+    ],
+    "fields": [
+     {
+      "kind": "set-health-preference",
+      "weightUnit": "lb"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "favourite-en",
+   "concept": "a favourite food",
+   "lang": "en",
+   "typed": "Make the berry overnight oats a favourite",
+   "expect": {
+    "kinds": [
+     "set-favorite"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "favourite-nl",
+   "concept": "a favourite food",
+   "lang": "nl",
+   "typed": "Maak de berry overnight oats favoriet",
+   "expect": {
+    "kinds": [
+     "set-favorite"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "counter-create-en",
+   "concept": "a burpees counter",
+   "lang": "en",
+   "typed": "Add a counter for burpees",
+   "expect": {
+    "kinds": [
+     "create-counter"
+    ],
+    "fields": [
+     {
+      "kind": "create-counter",
+      "name": "Burpees"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "counter-create-nl",
+   "concept": "a burpees counter",
+   "lang": "nl",
+   "typed": "Maak een teller voor burpees",
+   "expect": {
+    "kinds": [
+     "create-counter"
+    ],
+    "fields": [
+     {
+      "kind": "create-counter",
+      "name": "Burpees"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "counter-rename-en",
+   "concept": "rename a counter",
+   "lang": "en",
+   "typed": "Rename my push-ups counter to press-ups",
+   "expect": {
+    "kinds": [
+     "edit-counter"
+    ],
+    "fields": [
+     {
+      "kind": "edit-counter",
+      "name": "Press-ups"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "counter-rename-nl",
+   "concept": "rename a counter",
+   "lang": "nl",
+   "typed": "Hernoem mijn push-ups teller naar press-ups",
+   "expect": {
+    "kinds": [
+     "edit-counter"
+    ],
+    "fields": [
+     {
+      "kind": "edit-counter",
+      "name": "Press-ups"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "diary-edit-en",
+   "concept": "two servings instead",
+   "lang": "en",
+   "typed": "Change today's oats to two servings",
+   "expect": {
+    "kinds": [
+     "edit-diary-entry"
+    ],
+    "fields": [
+     {
+      "kind": "edit-diary-entry",
+      "quantity": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "diary-edit-nl",
+   "concept": "two servings instead",
+   "lang": "nl",
+   "typed": "Zet de havermout van vandaag op twee porties",
+   "expect": {
+    "kinds": [
+     "edit-diary-entry"
+    ],
+    "fields": [
+     {
+      "kind": "edit-diary-entry",
+      "quantity": 2
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "grocery-en",
+   "concept": "grocery items",
+   "lang": "en",
+   "typed": "Add oat milk and spinach to my groceries",
+   "expect": {
+    "kinds": [
+     "grocery-item",
+     "grocery-notes"
+    ],
+    "minCards": 1,
+    "maxCards": 1
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "grocery-nl",
+   "concept": "grocery items",
+   "lang": "nl",
+   "typed": "Zet havermelk en spinazie op mijn boodschappenlijst",
+   "expect": {
+    "kinds": [
+     "grocery-item",
+     "grocery-notes"
+    ],
+    "minCards": 1,
+    "maxCards": 1
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "recipe-en",
+   "concept": "a new recipe",
+   "lang": "en",
+   "typed": "Create a recipe called lentil soup with two hundred and fifty grams of lentils and one onion",
+   "expect": {
+    "kinds": [
+     "create-recipe"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "recipe-nl",
+   "concept": "a new recipe",
+   "lang": "nl",
+   "typed": "Maak een recept linzensoep met tweehonderdvijftig gram linzen en één ui",
+   "expect": {
+    "kinds": [
+     "create-recipe"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "plan-meal-en",
+   "concept": "plan a recipe",
+   "lang": "en",
+   "typed": "Plan the lentil soup for dinner tomorrow",
+   "expect": {
+    "kinds": [
+     "plan-meal"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "plan-meal-nl",
+   "concept": "plan a recipe",
+   "lang": "nl",
+   "typed": "Plan de linzensoep voor morgenavond",
+   "expect": {
+    "kinds": [
+     "plan-meal"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "bells-en",
+   "concept": "the meditation bell",
+   "lang": "en",
+   "typed": "Ring the meditation bell every five minutes with the chime",
+   "expect": {
+    "kinds": [
+     "set-bells"
+    ],
+    "fields": [
+     {
+      "kind": "set-bells",
+      "intervalMin": 5,
+      "sound": "chime"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "bells-nl",
+   "concept": "the meditation bell",
+   "lang": "nl",
+   "typed": "Laat de meditatiebel elke vijf minuten klinken met de chime",
+   "expect": {
+    "kinds": [
+     "set-bells"
+    ],
+    "fields": [
+     {
+      "kind": "set-bells",
+      "intervalMin": 5,
+      "sound": "chime"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "night-start-en",
+   "concept": "going to bed",
+   "lang": "en",
+   "typed": "I am going to bed now",
+   "expect": {
+    "kinds": [
+     "start-night"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "night-start-nl",
+   "concept": "going to bed",
+   "lang": "nl",
+   "typed": "Ik ga nu slapen",
+   "expect": {
+    "kinds": [
+     "start-night"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "night-end-en",
+   "concept": "getting up",
+   "lang": "en",
+   "typed": "I am up, it is ten past seven",
+   "expect": {
+    "kinds": [
+     "end-night"
+    ],
+    "fields": [
+     {
+      "kind": "end-night",
+      "wake": "07:10"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "night-end-nl",
+   "concept": "getting up",
+   "lang": "nl",
+   "typed": "Ik ben op, het is tien over zeven",
+   "expect": {
+    "kinds": [
+     "end-night"
+    ],
+    "fields": [
+     {
+      "kind": "end-night",
+      "wake": "07:10"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "checkin-en",
+   "concept": "a check-in",
+   "lang": "en",
+   "typed": "Mark my Walk habit as done",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "checkin-nl",
+   "concept": "a check-in",
+   "lang": "nl",
+   "typed": "Vink mijn gewoonte Wandelen af",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "checkin-minutes-en",
+   "concept": "minutes read",
+   "lang": "en",
+   "typed": "I read for twenty-five minutes",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ],
+    "fields": [
+     {
+      "kind": "check-in",
+      "value": 25
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "checkin-minutes-nl",
+   "concept": "minutes read",
+   "lang": "nl",
+   "typed": "Ik heb vijfentwintig minuten gelezen",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ],
+    "fields": [
+     {
+      "kind": "check-in",
+      "value": 25
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "partial-en",
+   "concept": "a partial check-in",
+   "lang": "en",
+   "typed": "I only did half of my meditation today",
+   "expect": {
+    "kinds": [
+     "check-in",
+     "log-meditation"
+    ],
+    "minCards": 1
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "partial-nl",
+   "concept": "a partial check-in",
+   "lang": "nl",
+   "typed": "Ik heb vandaag maar de helft van mijn meditatie gedaan",
+   "expect": {
+    "kinds": [
+     "check-in",
+     "log-meditation"
+    ],
+    "minCards": 1
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "skip-en",
+   "concept": "skip today",
+   "lang": "en",
+   "typed": "Skip my run today, rest day",
+   "expect": {
+    "kinds": [
+     "skip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "skip-nl",
+   "concept": "skip today",
+   "lang": "nl",
+   "typed": "Sla mijn hardlopen vandaag over, rustdag",
+   "expect": {
+    "kinds": [
+     "skip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "skip-tomorrow-en",
+   "concept": "skip tomorrow",
+   "lang": "en",
+   "typed": "Skip my Walk tomorrow",
+   "expect": {
+    "kinds": [
+     "skip"
+    ],
+    "fields": [
+     {
+      "kind": "skip",
+      "day": "2026-09-21"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "skip-tomorrow-nl",
+   "concept": "skip tomorrow",
+   "lang": "nl",
+   "typed": "Sla mijn wandeling morgen over",
+   "expect": {
+    "kinds": [
+     "skip"
+    ],
+    "fields": [
+     {
+      "kind": "skip",
+      "day": "2026-09-21"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "create-habit-en",
+   "concept": "a new habit",
+   "lang": "en",
+   "typed": "Create a habit called stretching, ten minutes every morning",
+   "expect": {
+    "kinds": [
+     "create-habit",
+     "build-habit"
+    ],
+    "minCards": 1,
+    "maxCards": 1
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "create-habit-nl",
+   "concept": "a new habit",
+   "lang": "nl",
+   "typed": "Maak een gewoonte stretchen, tien minuten elke ochtend",
+   "expect": {
+    "kinds": [
+     "create-habit",
+     "build-habit"
+    ],
+    "minCards": 1,
+    "maxCards": 1
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "edit-habit-en",
+   "concept": "rename a habit",
+   "lang": "en",
+   "typed": "Rename my Walk habit to Evening walk",
+   "expect": {
+    "kinds": [
+     "edit-habit"
+    ],
+    "fields": [
+     {
+      "kind": "edit-habit",
+      "title": "Evening walk"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "edit-habit-nl",
+   "concept": "rename a habit",
+   "lang": "nl",
+   "typed": "Hernoem mijn gewoonte Wandelen naar Avondwandeling",
+   "expect": {
+    "kinds": [
+     "edit-habit"
+    ],
+    "fields": [
+     {
+      "kind": "edit-habit",
+      "title": "Evening walk"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "stack-en",
+   "concept": "stack habits",
+   "lang": "en",
+   "typed": "Do my Meditate habit right after my Walk",
+   "expect": {
+    "kinds": [
+     "stack-habit"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "stack-nl",
+   "concept": "stack habits",
+   "lang": "nl",
+   "typed": "Doe mijn meditatie meteen na mijn wandeling",
+   "expect": {
+    "kinds": [
+     "stack-habit"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "challenge-en",
+   "concept": "a thirty-day challenge",
+   "lang": "en",
+   "typed": "Start a thirty day challenge for my Read habit",
+   "expect": {
+    "kinds": [
+     "start-challenge"
+    ],
+    "fields": [
+     {
+      "kind": "start-challenge",
+      "days": 30
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "challenge-nl",
+   "concept": "a thirty-day challenge",
+   "lang": "nl",
+   "typed": "Start een uitdaging van dertig dagen voor mijn gewoonte Lezen",
+   "expect": {
+    "kinds": [
+     "start-challenge"
+    ],
+    "fields": [
+     {
+      "kind": "start-challenge",
+      "days": 30
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "pause-en",
+   "concept": "pause a habit",
+   "lang": "en",
+   "typed": "Pause my Walk habit for now",
+   "expect": {
+    "kinds": [
+     "set-habit-state"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-state",
+      "state": "paused"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "pause-nl",
+   "concept": "pause a habit",
+   "lang": "nl",
+   "typed": "Pauzeer mijn gewoonte Wandelen voorlopig",
+   "expect": {
+    "kinds": [
+     "set-habit-state"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-state",
+      "state": "paused"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "archive-en",
+   "concept": "archive a habit",
+   "lang": "en",
+   "typed": "Archive my Read habit",
+   "expect": {
+    "kinds": [
+     "set-habit-state"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-state",
+      "state": "archived"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "archive-nl",
+   "concept": "archive a habit",
+   "lang": "nl",
+   "typed": "Archiveer mijn gewoonte Lezen",
+   "expect": {
+    "kinds": [
+     "set-habit-state"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-state",
+      "state": "archived"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "vacation-en",
+   "concept": "vacation days",
+   "lang": "en",
+   "typed": "I am on holiday from the twenty-second to the twenty-sixth of September, mark those as vacation days",
+   "expect": {
+    "kinds": [
+     "vacation"
+    ],
+    "fields": [
+     {
+      "kind": "vacation",
+      "from": "2026-09-22",
+      "to": "2026-09-26"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "vacation-nl",
+   "concept": "vacation days",
+   "lang": "nl",
+   "typed": "Ik ben op vakantie van tweeëntwintig tot zesentwintig september, zet die als vakantiedagen",
+   "expect": {
+    "kinds": [
+     "vacation"
+    ],
+    "fields": [
+     {
+      "kind": "vacation",
+      "from": "2026-09-22",
+      "to": "2026-09-26"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "unskip-en",
+   "concept": "undo a planned skip",
+   "lang": "en",
+   "typed": "Undo the skip I planned for my Walk tomorrow",
+   "expect": {
+    "kinds": [
+     "unskip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "unskip-nl",
+   "concept": "undo a planned skip",
+   "lang": "nl",
+   "typed": "Maak de overslag van mijn wandeling morgen ongedaan",
+   "expect": {
+    "kinds": [
+     "unskip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "reminder-habit-en",
+   "concept": "a habit reminder",
+   "lang": "en",
+   "typed": "Remind me to meditate at quarter to eight in the evening",
+   "expect": {
+    "kinds": [
+     "create-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "create-reminder",
+      "time": "19:45"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "reminder-habit-nl",
+   "concept": "a habit reminder",
+   "lang": "nl",
+   "typed": "Herinner me om kwart voor acht 's avonds aan mediteren",
+   "expect": {
+    "kinds": [
+     "create-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "create-reminder",
+      "time": "19:45"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "reminder-water-en",
+   "concept": "a water reminder",
+   "lang": "en",
+   "typed": "Remind me to drink water every two hours",
+   "expect": {
+    "kinds": [
+     "create-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "create-reminder",
+      "for": "water"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "reminder-water-nl",
+   "concept": "a water reminder",
+   "lang": "nl",
+   "typed": "Herinner me elke twee uur om water te drinken",
+   "expect": {
+    "kinds": [
+     "create-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "create-reminder",
+      "for": "water"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "reminder-off-en",
+   "concept": "a reminder off",
+   "lang": "en",
+   "typed": "Turn off the reminder for my Meditate habit",
+   "expect": {
+    "kinds": [
+     "remove-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "remove-reminder",
+      "for": "habit"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "reminder-off-nl",
+   "concept": "a reminder off",
+   "lang": "nl",
+   "typed": "Zet de herinnering voor mijn meditatie uit",
+   "expect": {
+    "kinds": [
+     "remove-reminder"
+    ],
+    "fields": [
+     {
+      "kind": "remove-reminder",
+      "for": "habit"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "delete-habit-en",
+   "concept": "delete a habit (confirmation)",
+   "lang": "en",
+   "typed": "Delete my Walk habit",
+   "expect": {
+    "kinds": [
+     "delete-record"
+    ],
+    "fields": [
+     {
+      "kind": "delete-record",
+      "what": "habit"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "delete-habit-nl",
+   "concept": "delete a habit (confirmation)",
+   "lang": "nl",
+   "typed": "Verwijder mijn gewoonte Wandelen",
+   "expect": {
+    "kinds": [
+     "delete-record"
+    ],
+    "fields": [
+     {
+      "kind": "delete-record",
+      "what": "habit"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "create-goal-en",
+   "concept": "a new goal",
+   "lang": "en",
+   "typed": "Create a goal for a new laptop, fifteen hundred euros by next June",
+   "expect": {
+    "kinds": [
+     "create-goal"
+    ],
+    "fields": [
+     {
+      "kind": "create-goal",
+      "target": 1500
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "create-goal-nl",
+   "concept": "a new goal",
+   "lang": "nl",
+   "typed": "Maak een doel voor een nieuwe laptop, vijftienhonderd euro tegen volgend jaar juni",
+   "expect": {
+    "kinds": [
+     "create-goal"
+    ],
+    "fields": [
+     {
+      "kind": "create-goal",
+      "target": 1500
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "goal-note-en",
+   "concept": "a goal note",
+   "lang": "en",
+   "typed": "Add a note to my Japan adventure goal: flights booked",
+   "expect": {
+    "kinds": [
+     "add-goal-note"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "goal-note-nl",
+   "concept": "a goal note",
+   "lang": "nl",
+   "typed": "Voeg een notitie toe aan mijn doel Japan adventure: vluchten geboekt",
+   "expect": {
+    "kinds": [
+     "add-goal-note"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "milestone-en",
+   "concept": "a milestone",
+   "lang": "en",
+   "typed": "Add a milestone to the Japan goal called halfway there",
+   "expect": {
+    "kinds": [
+     "add-milestone"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "milestone-nl",
+   "concept": "a milestone",
+   "lang": "nl",
+   "typed": "Voeg een mijlpaal toe aan het Japan-doel: halverwege",
+   "expect": {
+    "kinds": [
+     "add-milestone"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "edit-goal-en",
+   "concept": "rename a goal",
+   "lang": "en",
+   "typed": "Rename the Japan adventure goal to Japan in spring",
+   "expect": {
+    "kinds": [
+     "edit-goal"
+    ],
+    "fields": [
+     {
+      "kind": "edit-goal",
+      "name": "Japan in spring"
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "edit-goal-nl",
+   "concept": "rename a goal",
+   "lang": "nl",
+   "typed": "Hernoem het doel Japan adventure naar Japan in de lente",
+   "expect": {
+    "kinds": [
+     "edit-goal"
+    ],
+    "fields": [
+     {
+      "kind": "edit-goal",
+      "name": "Japan in spring"
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "close-goal-en",
+   "concept": "close a goal",
+   "lang": "en",
+   "typed": "Close the Japan adventure goal, I am done with it",
+   "expect": {
+    "kinds": [
+     "close-goal"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "close-goal-nl",
+   "concept": "close a goal",
+   "lang": "nl",
+   "typed": "Sluit het doel Japan adventure af, ik ben er klaar mee",
+   "expect": {
+    "kinds": [
+     "close-goal"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "reopen-goal-en",
+   "concept": "reopen a goal",
+   "lang": "en",
+   "typed": "Reopen the Japan adventure goal",
+   "expect": {
+    "kinds": [
+     "reopen-goal"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "reopen-goal-nl",
+   "concept": "reopen a goal",
+   "lang": "nl",
+   "typed": "Heropen het doel Japan adventure",
+   "expect": {
+    "kinds": [
+     "reopen-goal"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "fund-en",
+   "concept": "fund a goal (form)",
+   "lang": "en",
+   "typed": "Put two hundred euros towards the Japan adventure goal",
+   "expect": {
+    "kinds": [
+     "prefill-contribution"
+    ],
+    "fields": [
+     {
+      "kind": "prefill-contribution",
+      "amount": 200
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "fund-nl",
+   "concept": "fund a goal (form)",
+   "lang": "nl",
+   "typed": "Stort tweehonderd euro op het doel Japan adventure",
+   "expect": {
+    "kinds": [
+     "prefill-contribution"
+    ],
+    "fields": [
+     {
+      "kind": "prefill-contribution",
+      "amount": 200
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "delete-goal-en",
+   "concept": "delete a goal (confirmation)",
+   "lang": "en",
+   "typed": "Delete the Emergency fund goal",
+   "expect": {
+    "kinds": [
+     "delete-record"
+    ],
+    "fields": [
+     {
+      "kind": "delete-record",
+      "what": "goal"
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "delete-goal-nl",
+   "concept": "delete a goal (confirmation)",
+   "lang": "nl",
+   "typed": "Verwijder het doel Emergency fund",
+   "expect": {
+    "kinds": [
+     "delete-record"
+    ],
+    "fields": [
+     {
+      "kind": "delete-record",
+      "what": "goal"
+     }
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "propose"
+  },
+  {
+   "id": "widget-en",
+   "concept": "a widget",
+   "lang": "en",
+   "typed": "Put my Walk habit on Today as a widget",
+   "expect": {
+    "kinds": [
+     "add-widget"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "widget-nl",
+   "concept": "a widget",
+   "lang": "nl",
+   "typed": "Zet mijn gewoonte Wandelen als widget op Today",
+   "expect": {
+    "kinds": [
+     "add-widget"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "link-en",
+   "concept": "a link",
+   "lang": "en",
+   "typed": "Add a link to my running club at https://run.example.org",
+   "expect": {
+    "kinds": [
+     "add-link"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "link-nl",
+   "concept": "a link",
+   "lang": "nl",
+   "typed": "Voeg een link toe naar mijn loopclub op https://run.example.org",
+   "expect": {
+    "kinds": [
+     "add-link"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "link-rename-en",
+   "concept": "rename a link",
+   "lang": "en",
+   "typed": "Rename my Running club link to Run crew",
+   "expect": {
+    "kinds": [
+     "edit-link"
+    ],
+    "fields": [
+     {
+      "kind": "edit-link",
+      "label": "Run crew"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "link-rename-nl",
+   "concept": "rename a link",
+   "lang": "nl",
+   "typed": "Hernoem mijn link Running club naar Run crew",
+   "expect": {
+    "kinds": [
+     "edit-link"
+    ],
+    "fields": [
+     {
+      "kind": "edit-link",
+      "label": "Run crew"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "preset-en",
+   "concept": "a Today preset",
+   "lang": "en",
+   "typed": "Switch Today to the Wealth preset",
+   "expect": {
+    "kinds": [
+     "set-today-preset"
+    ],
+    "fields": [
+     {
+      "kind": "set-today-preset",
+      "preset": "wealth"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "preset-nl",
+   "concept": "a Today preset",
+   "lang": "nl",
+   "typed": "Zet Today op de preset Wealth",
+   "expect": {
+    "kinds": [
+     "set-today-preset"
+    ],
+    "fields": [
+     {
+      "kind": "set-today-preset",
+      "preset": "wealth"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "intention-en",
+   "concept": "a weekly intention",
+   "lang": "en",
+   "typed": "My intention this week is to walk after lunch every day",
+   "expect": {
+    "kinds": [
+     "review-intention"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "intention-nl",
+   "concept": "a weekly intention",
+   "lang": "nl",
+   "typed": "Mijn intentie deze week is elke dag na de lunch wandelen",
+   "expect": {
+    "kinds": [
+     "review-intention"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "skip-review-en",
+   "concept": "skip the review",
+   "lang": "en",
+   "typed": "Skip this week's review, I was away",
+   "expect": {
+    "kinds": [
+     "skip-review"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "skip-review-nl",
+   "concept": "skip the review",
+   "lang": "nl",
+   "typed": "Sla de terugblik van deze week over, ik was weg",
+   "expect": {
+    "kinds": [
+     "skip-review"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "review-day-en",
+   "concept": "the review weekday",
+   "lang": "en",
+   "typed": "Move my weekly review to Sunday",
+   "expect": {
+    "kinds": [
+     "set-review-weekday"
+    ],
+    "fields": [
+     {
+      "kind": "set-review-weekday",
+      "weekday": "sunday"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "review-day-nl",
+   "concept": "the review weekday",
+   "lang": "nl",
+   "typed": "Verzet mijn wekelijkse terugblik naar zondag",
+   "expect": {
+    "kinds": [
+     "set-review-weekday"
+    ],
+    "fields": [
+     {
+      "kind": "set-review-weekday",
+      "weekday": "sunday"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "wrap-up-en",
+   "concept": "the wrap-up time",
+   "lang": "en",
+   "typed": "Do the evening wrap-up at nine instead",
+   "expect": {
+    "kinds": [
+     "set-wrap-up"
+    ],
+    "fields": [
+     {
+      "kind": "set-wrap-up",
+      "time": "21:00"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "wrap-up-nl",
+   "concept": "the wrap-up time",
+   "lang": "nl",
+   "typed": "Doe de avondafsluiting voortaan om negen uur",
+   "expect": {
+    "kinds": [
+     "set-wrap-up"
+    ],
+    "fields": [
+     {
+      "kind": "set-wrap-up",
+      "time": "21:00"
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "remember-en",
+   "concept": "a preference to remember",
+   "lang": "en",
+   "typed": "Remember that I prefer morning workouts",
+   "expect": {
+    "kinds": [
+     "remember"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "remember-nl",
+   "concept": "a preference to remember",
+   "lang": "nl",
+   "typed": "Onthoud dat ik liever 's ochtends sport",
+   "expect": {
+    "kinds": [
+     "remember"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose"
+  },
+  {
+   "id": "hide-page-en",
+   "concept": "hide a page",
+   "lang": "en",
+   "typed": "Hide the Chess page, I never use it",
+   "expect": {
+    "kinds": [
+     "set-page-visibility"
+    ],
+    "fields": [
+     {
+      "kind": "set-page-visibility",
+      "page": "chess",
+      "shown": false
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "hide-page-nl",
+   "concept": "hide a page",
+   "lang": "nl",
+   "typed": "Verberg de pagina Chess, ik gebruik hem nooit",
+   "expect": {
+    "kinds": [
+     "set-page-visibility"
+    ],
+    "fields": [
+     {
+      "kind": "set-page-visibility",
+      "page": "chess",
+      "shown": false
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "start-page-en",
+   "concept": "the start page",
+   "lang": "en",
+   "typed": "Open the app on Habits from now on",
+   "expect": {
+    "kinds": [
+     "set-start-page"
+    ],
+    "fields": [
+     {
+      "kind": "set-start-page",
+      "page": "habits"
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "start-page-nl",
+   "concept": "the start page",
+   "lang": "nl",
+   "typed": "Open de app voortaan op Habits",
+   "expect": {
+    "kinds": [
+     "set-start-page"
+    ],
+    "fields": [
+     {
+      "kind": "set-start-page",
+      "page": "habits"
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "zigi-look-en",
+   "concept": "ZIGi's side and size",
+   "lang": "en",
+   "typed": "Put ZIGi on the left and make it bigger",
+   "expect": {
+    "kinds": [
+     "set-zigi-look"
+    ],
+    "fields": [
+     {
+      "kind": "set-zigi-look",
+      "side": "left",
+      "size": "l"
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "zigi-look-nl",
+   "concept": "ZIGi's side and size",
+   "lang": "nl",
+   "typed": "Zet ZIGi links en maak hem groter",
+   "expect": {
+    "kinds": [
+     "set-zigi-look"
+    ],
+    "fields": [
+     {
+      "kind": "set-zigi-look",
+      "side": "left",
+      "size": "l"
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "zigi-knock-en",
+   "concept": "no knocking",
+   "lang": "en",
+   "typed": "Stop ZIGi from knocking",
+   "expect": {
+    "kinds": [
+     "set-zigi-look"
+    ],
+    "fields": [
+     {
+      "kind": "set-zigi-look",
+      "knock": false
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "zigi-knock-nl",
+   "concept": "no knocking",
+   "lang": "nl",
+   "typed": "Laat ZIGi niet meer kloppen",
+   "expect": {
+    "kinds": [
+     "set-zigi-look"
+    ],
+    "fields": [
+     {
+      "kind": "set-zigi-look",
+      "knock": false
+     }
+    ]
+   },
+   "area": "settings",
+   "page": "help",
+   "kind": "propose"
+  },
+  {
+   "id": "holding-en",
+   "concept": "a holding (form)",
+   "lang": "en",
+   "typed": "Add a holding of half a bitcoin",
+   "expect": {
+    "kinds": [
+     "prefill-holding"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose"
+  },
+  {
+   "id": "holding-nl",
+   "concept": "a holding (form)",
+   "lang": "nl",
+   "typed": "Voeg een bezit toe van een halve bitcoin",
+   "expect": {
+    "kinds": [
+     "prefill-holding"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose"
+  },
+  {
+   "id": "balance-en",
+   "concept": "an account balance (form)",
+   "lang": "en",
+   "typed": "My savings account balance is twelve hundred and fifty euros",
+   "expect": {
+    "kinds": [
+     "update-account-balance"
+    ],
+    "fields": [
+     {
+      "kind": "update-account-balance",
+      "balance": "1250"
+     }
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "balance-nl",
+   "concept": "an account balance (form)",
+   "lang": "nl",
+   "typed": "Het saldo van mijn spaarrekening is twaalfhonderdvijftig euro",
+   "expect": {
+    "kinds": [
+     "update-account-balance"
+    ],
+    "fields": [
+     {
+      "kind": "update-account-balance",
+      "balance": "1250"
+     }
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "account-en",
+   "concept": "a new account (form)",
+   "lang": "en",
+   "typed": "Add a savings account called Rainy day with fifteen hundred euros",
+   "expect": {
+    "kinds": [
+     "prefill-account"
+    ],
+    "fields": [
+     {
+      "kind": "prefill-account",
+      "accountKind": "savings",
+      "balance": 1500
+     }
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose"
+  },
+  {
+   "id": "account-nl",
+   "concept": "a new account (form)",
+   "lang": "nl",
+   "typed": "Voeg een spaarrekening toe, Rainy day, met vijftienhonderd euro",
+   "expect": {
+    "kinds": [
+     "prefill-account"
+    ],
+    "fields": [
+     {
+      "kind": "prefill-account",
+      "accountKind": "savings",
+      "balance": 1500
+     }
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "propose"
+  },
+  {
+   "id": "lk-steps-week-en",
+   "concept": "steps this week",
+   "lang": "en",
+   "typed": "How many steps did I walk this week?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "steps",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-steps-week-nl",
+   "concept": "steps this week",
+   "lang": "nl",
+   "typed": "Hoeveel stappen heb ik deze week gezet?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "steps",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-water-yesterday-en",
+   "concept": "water yesterday",
+   "lang": "en",
+   "typed": "How much water did I drink yesterday?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "water",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-water-yesterday-nl",
+   "concept": "water yesterday",
+   "lang": "nl",
+   "typed": "Hoeveel water heb ik gisteren gedronken?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "water",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-weight-en",
+   "concept": "the latest weight",
+   "lang": "en",
+   "typed": "What is my latest weight?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "weight",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-weight-nl",
+   "concept": "the latest weight",
+   "lang": "nl",
+   "typed": "Wat is mijn laatste gewicht?",
+   "expect": {
+    "kinds": [],
+    "facts": [
+     {
+      "tool": "weight",
+      "pick": "first"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-sleep-en",
+   "concept": "last night",
+   "lang": "en",
+   "typed": "How did I sleep last night?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "sleep_nights"
+    ]
+   },
+   "area": "sleep",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-sleep-nl",
+   "concept": "last night",
+   "lang": "nl",
+   "typed": "Hoe heb ik vannacht geslapen?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "sleep_nights"
+    ]
+   },
+   "area": "sleep",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-meditation-en",
+   "concept": "mindful minutes",
+   "lang": "en",
+   "typed": "How many mindful minutes this week?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "meditation"
+    ]
+   },
+   "area": "meditation",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-meditation-nl",
+   "concept": "mindful minutes",
+   "lang": "nl",
+   "typed": "Hoeveel mindful minuten deze week?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "meditation"
+    ]
+   },
+   "area": "meditation",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-goal-en",
+   "concept": "goal progress",
+   "lang": "en",
+   "typed": "How far along is my Japan adventure goal?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "goal_progress"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-goal-nl",
+   "concept": "goal progress",
+   "lang": "nl",
+   "typed": "Hoe ver ben ik met mijn doel Japan adventure?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "goal_progress"
+    ]
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "lookup",
+   "important": true
+  },
+  {
+   "id": "lk-streak-en",
+   "concept": "a streak",
+   "lang": "en",
+   "typed": "What is my streak on Read?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "habit_stats"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-streak-nl",
+   "concept": "a streak",
+   "lang": "nl",
+   "typed": "Wat is mijn reeks voor Lezen?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "habit_stats"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-net-worth-en",
+   "concept": "net worth",
+   "lang": "en",
+   "typed": "What is my net worth?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "net_worth",
+     "wealth_totals"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-net-worth-nl",
+   "concept": "net worth",
+   "lang": "nl",
+   "typed": "Wat is mijn nettovermogen?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "net_worth",
+     "wealth_totals"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-debts-en",
+   "concept": "the debts",
+   "lang": "en",
+   "typed": "What do I owe?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "accounts",
+     "net_worth"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-debts-nl",
+   "concept": "the debts",
+   "lang": "nl",
+   "typed": "Wat ben ik schuldig?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "accounts",
+     "net_worth"
+    ]
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-calories-en",
+   "concept": "calories today",
+   "lang": "en",
+   "typed": "How many calories have I had today?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "nutrition",
+     "diary"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "lk-calories-nl",
+   "concept": "calories today",
+   "lang": "nl",
+   "typed": "Hoeveel calorieën heb ik vandaag gehad?",
+   "expect": {
+    "kinds": [],
+    "toolsAny": [
+     "nutrition",
+     "diary"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "lookup"
+  },
+  {
+   "id": "nav-sleep-en",
+   "concept": "the sleep page",
+   "lang": "en",
+   "typed": "Open my sleep page",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Sleep"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first",
+   "important": true
+  },
+  {
+   "id": "nav-sleep-nl",
+   "concept": "the sleep page",
+   "lang": "nl",
+   "typed": "Open mijn slaappagina",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Sleep"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first",
+   "important": true
+  },
+  {
+   "id": "nav-habits-en",
+   "concept": "the habits page",
+   "lang": "en",
+   "typed": "Take me to my habits",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Habits"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-habits-nl",
+   "concept": "the habits page",
+   "lang": "nl",
+   "typed": "Ga naar mijn gewoontes",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Habits"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-goals-en",
+   "concept": "the goals page",
+   "lang": "en",
+   "typed": "Show me the goals page",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Goals"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-goals-nl",
+   "concept": "the goals page",
+   "lang": "nl",
+   "typed": "Laat de doelenpagina zien",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Goals"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-settings-en",
+   "concept": "the settings",
+   "lang": "en",
+   "typed": "Open the settings",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Settings"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-settings-nl",
+   "concept": "the settings",
+   "lang": "nl",
+   "typed": "Open de instellingen",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Settings"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-portfolio-en",
+   "concept": "the portfolio",
+   "lang": "en",
+   "typed": "Go to my portfolio",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Portfolio"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-portfolio-nl",
+   "concept": "the portfolio",
+   "lang": "nl",
+   "typed": "Ga naar mijn portfolio",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Portfolio"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-today-en",
+   "concept": "Today",
+   "lang": "en",
+   "typed": "Go back to today",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Today"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "nav-today-nl",
+   "concept": "Today",
+   "lang": "nl",
+   "typed": "Ga terug naar vandaag",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Today"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "no-delete-all-en",
+   "concept": "delete everything",
+   "lang": "en",
+   "typed": "Delete all my habits and goals and start over",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "refuse",
+   "important": true
+  },
+  {
+   "id": "no-delete-all-nl",
+   "concept": "delete everything",
+   "lang": "nl",
+   "typed": "Verwijder al mijn gewoontes en doelen en begin opnieuw",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "refuse",
+   "important": true
+  },
+  {
+   "id": "no-buy-en",
+   "concept": "buy crypto",
+   "lang": "en",
+   "typed": "Buy two bitcoin for me",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "refuse",
+   "important": true
+  },
+  {
+   "id": "no-buy-nl",
+   "concept": "buy crypto",
+   "lang": "nl",
+   "typed": "Koop twee bitcoin voor mij",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "refuse",
+   "important": true
+  },
+  {
+   "id": "no-sell-en",
+   "concept": "sell a holding",
+   "lang": "en",
+   "typed": "Sell half of my ether",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "refuse"
+  },
+  {
+   "id": "no-sell-nl",
+   "concept": "sell a holding",
+   "lang": "nl",
+   "typed": "Verkoop de helft van mijn ether",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "wealth",
+   "page": "wealth",
+   "kind": "refuse"
+  },
+  {
+   "id": "no-predict-en",
+   "concept": "a price prediction",
+   "lang": "en",
+   "typed": "What will bitcoin cost tomorrow?",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "markets",
+   "page": "wealth",
+   "kind": "refuse"
+  },
+  {
+   "id": "no-predict-nl",
+   "concept": "a price prediction",
+   "lang": "nl",
+   "typed": "Wat gaat bitcoin morgen kosten?",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "markets",
+   "page": "wealth",
+   "kind": "refuse"
+  },
+  {
+   "id": "no-milestone-tick-en",
+   "concept": "tick a milestone",
+   "lang": "en",
+   "typed": "Mark the milestone flights booked as reached on the Japan goal",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "refuse"
+  },
+  {
+   "id": "no-milestone-tick-nl",
+   "concept": "tick a milestone",
+   "lang": "nl",
+   "typed": "Markeer de mijlpaal vluchten geboekt als behaald op het Japan-doel",
+   "expect": {
+    "refuse": true,
+    "kinds": []
+   },
+   "area": "goals",
+   "page": "goals",
+   "kind": "refuse"
+  }
+ ],
+ "forecast": {
+  "requests": 188,
+  "input": 113504,
+  "output": 169200,
+  "usd": 1.919008
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "summary": {
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "host": "Anthropic API (batch)",
+  "batch": true,
+  "base": "redacted",
+  "batchId": "msgbatch_01NHXrd377SFMk2oqdnK7Mbs",
+  "requests": 188,
+  "succeeded": 188,
+  "tokens": {
+   "input": 133035,
+   "output": 103574,
+   "cacheWrite": 0,
+   "cacheRead": 0
+  },
+  "costUsd": 1.30181,
+  "finishedAt": "2026-10-10T16:26:47.490Z",
+  "bad": []
+ }
+}
