@@ -72,5 +72,5 @@ lane, and the API-key one (owner edit 5). Details and evidence: `docs/verificati
 - **Shared items Y changed:** What's new is release `2026-10-session-y` with four links; X-Local's links are first under
   "Earlier updates" (`components/for-you/whats-new-card.tsx`). Help has four `#help-y-*` answers under "Good to know
   about the Alpha". If Z lands second and adds its own release, fold Y's links under "Earlier updates" the same way.
-- **CI:** the `web-webkit` job runs on pull requests only and cannot fail the workflow until it is promoted (two green
-  runs in a row; ADR-018 Y4, Y39).
+- **CI:** the `web-webkit` job was green twice in a row on PR #80 and is now part of the required `web` check (ADR-018
+  Y4, Y39, Y41): a ZIGi change that breaks in WebKit now blocks `web`.
