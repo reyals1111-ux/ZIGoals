@@ -10,6 +10,11 @@ import {reviseEdits} from '../actions/revise';
 import {stripDeclinedBlocks} from '../actions/decline';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../intent';
 import {buildSystemParts} from '../context/specialists';
+import {buildPageContext, type BuilderInput} from '../context/builders';
+import {consent} from '../context/consent';
+type PageContext = ReturnType<typeof buildPageContext>;
+import {emptyWeeklyReview} from '../../weekly-review/schema';
+import type {PageArea} from '../settings';
 import {questionContext} from '../context/question';
 import {Handles} from '../handles';
 import {localAnswer} from '../local-answers/engine';
@@ -54,6 +59,20 @@ const TIMEOUT_MS = Number(env.ZIGI_CASE_TIMEOUT_MS ?? '180000'), THINK = env.ZIG
  * half price. Multi-turn cases contribute their first turn only; local-first cases are scored on the device as always.
  */
 const BATCH = env.ZIGI_BATCH === '1' && PROVIDER === 'anthropic';
+/**
+ * Session Z-Local Part 6 (ADR-020 L23): ZIGI_PAGE_CONTEXT=1 sends the page's own records with stable handles on every turn,
+ * as the app does (`use-chat-session` passes the page context and seeds the tool handles with the page's), so a long chat
+ * keeps h1 = the same habit from turn to turn. Off by default so a round's corpus stages stay comparable; on for the
+ * fix rounds and the final runs, and recorded in each file's summary and name.
+ */
+const PAGE = env.ZIGI_PAGE_CONTEXT === '1';
+const pathFor = (page: PageArea) => `/app/${page === 'today' ? '' : page}`;
+function pageFor(c: ModelCase, sources: ToolSources, health: boolean): PageContext {
+  const input: BuilderInput = {area: c.page, pathname: pathFor(c.page), consent: consent({settings: settingsWith(health), area: c.page, pathname: pathFor(c.page), layoutHasHealth: true, accountActive: false, accountHealthPermitted: null}), now: sources.now, habitDay: sources.habitDay, healthDay: sources.healthDay,
+    habits: sources.habits, health: sources.health, fasting: sources.fasting, platform: sources.platform, localGoals: sources.localGoals, metadata: sources.metadata, quotes: sources.quotes,
+    portfolio: sources.portfolio ? {data: sources.portfolio.data, priceOf: coin => sources.portfolio!.priceOf(coin, 'USD')?.price} : null, week: c.page === 'today' ? {weekStart: '2026-09-29', weekEnd: sources.habitDay, review: sources.weekly ?? emptyWeeklyReview()} : null};
+  return buildPageContext(input, new Handles([]));
+}
 /** The key for the real-Claude mode, read once from this process's environment; never printed, never stored. */
 const KEY = PROVIDER === 'anthropic' ? env.ANTHROPIC_TEST_KEY ?? null : null;
 /** Session Z-Local Part 4: `ZIGI_SET=spoken` runs the held-out spoken corpus instead of the typed one (same scorer, same harness). */
@@ -75,10 +94,10 @@ function sourcesFor(c: ModelCase): ToolSources {
   if (c.sentinels) s = withSentinels(s);
   return goldenSources(s);
 }
-async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: Tokens; requests: number; error: string | null}> {
+async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources, page: PageContext | null): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: Tokens; requests: number; error: string | null}> {
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
-  const toolHandles = new Handles([]), provider = toolEnv(sources, gates, 'provider', toolHandles), local = toolEnv(sources, gates, 'local');
-  const context = questionContext(ask, sources, gates, []);
+  const toolHandles = new Handles(page?.handles ?? []), provider = toolEnv(sources, gates, 'provider', toolHandles), local = toolEnv(sources, gates, 'local');
+  const context = questionContext(ask, sources, gates, page?.handles ?? []);
   // Session X-Local Phase 2 (P2.2a): tools mode carries the question-chosen records too, exactly as the app does
   // (`use-chat-session` passes the page context with `tools: true`); the router's own pre-run calls count as calls, since
   // the device made them for this question. Before this the harness measured a configuration the app never uses (tools
@@ -86,7 +105,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   const contextText = context?.text ?? null;
   const prerun: Call[] = MODE === 'tools' ? (context?.sources ?? []).filter(src => src.call.tool !== 'about_me').map(src => ({name: src.call.tool, args: (src.call.args ?? null) as Record<string, unknown> | null, accepted: true})) : [];
   // Session Z-Local Part 3: the prompt in blocks (the stable prefix cached on the Anthropic wire), the same string as before.
-  const parts = buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY, healthShared: health});
+  const parts = buildSystemParts({area: c.page, context: contextText, customInstructions: '', providerName: PROVIDER === 'anthropic' ? 'Anthropic' : 'Ollama', tools: MODE === 'tools', today: DAY, healthShared: health, pageContext: page?.text || null});
   const system = parts.prompt;
   const messages: ChatMessage[] = [...history, {role: 'user', content: ask}];
   const calls: Call[] = [...prerun], started = Date.now(); let first: number | null = null, reply = '', tokens = emptyTokens(), requests = 0, error: string | null = null;
@@ -125,7 +144,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
     // Round 6 (ADR-017 S69), as the app does: the message's own day for a log card that said today.
     reply = applyDayCue(reply, ask, DAY);
     // Round 8 (ADR-017 S74), as the app does: a correction of a card that was only proposed becomes that card again, corrected.
-    reply = reviseEdits(reply, [...history].reverse().find(m => m.role === 'assistant')?.content ?? null, [...(context?.handles ?? []), ...toolHandles.list]);
+    reply = reviseEdits(reply, [...history].reverse().find(m => m.role === 'assistant')?.content ?? null, [...(page?.handles ?? []), ...(context?.handles ?? []), ...toolHandles.list]);
     // Round 9 (ADR-017 S75), as the app does: a money ask the reply declines in words carries no card.
     reply = stripDeclinedBlocks(reply, ask);
   }
@@ -137,7 +156,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
 }
 const BATCH_ORIGIN = 'https://api.anthropic.com';
 async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: string; wallMs: number}> {
-  type Prepared = {c: ModelCase; ask: string; sources: ToolSources; context: ReturnType<typeof questionContext>; system: string; params: Record<string, unknown>};
+  type Prepared = {c: ModelCase; ask: string; sources: ToolSources; context: ReturnType<typeof questionContext>; page: PageContext | null; system: string; params: Record<string, unknown>};
   const prepared: Prepared[] = [], runs: CaseRun[] = [];
   for (const c of cases) {
     const sources = sourcesFor(c), ask = c.ask;
@@ -148,11 +167,11 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
       continue;
     }
     const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
-    const context = questionContext(ask, sources, gates, []);
-    const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health});
+    const page = PAGE ? pageFor(c, sources, health) : null, context = questionContext(ask, sources, gates, page?.handles ?? []);
+    const parts = buildSystemParts({area: c.page, context: context?.text ?? null, customInstructions: '', providerName: 'Anthropic', tools: false, today: DAY, healthShared: health, pageContext: page?.text || null});
     // The adapter's body minus `stream` (the Batches API refuses it); everything else (cache markers, effort) is the app's own request.
     const {stream: _stream, ...params} = anthropicBody({model: MODEL, system: parts.prompt, ...(NO_CACHE ? {cache: false} : {systemBlocks: parts.blocks}), messages: [{role: 'user', content: ask}], maxOutputTokens: 1024, think: THINK}, {effort: true}); void _stream;
-    prepared.push({c, ask, sources, context, system: parts.prompt, params});
+    prepared.push({c, ask, sources, context, page, system: parts.prompt, params});
   }
   // The cap (ZIGI_MAX_USD, Part 8): the forecast at batch prices, ~12,000 prompt and ~300 output tokens per case with a 25 % margin, is refused before anything is submitted.
   const cap = Number(env.ZIGI_MAX_USD ?? '0'), forecast = 1.25 * prepared.length * (estimateCost(MODEL, {input: 12_000, output: 300, cacheWrite: 0, cacheRead: 0}, {batch: true}) ?? 0);
@@ -185,7 +204,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
       reply = result.message.content.filter(b => b.type === 'text').map(b => b.text ?? '').join('');
       const u = result.message.usage ?? {};
       tokens = {input: u.input_tokens ?? null, output: u.output_tokens ?? null, cacheWrite: u.cache_creation_input_tokens ?? null, cacheRead: u.cache_read_input_tokens ?? null};
-      reply = stripDeclinedBlocks(reviseEdits(applyDayCue(reply, p.ask, DAY), null, p.context?.handles ?? []), p.ask);
+      reply = stripDeclinedBlocks(reviseEdits(applyDayCue(reply, p.ask, DAY), null, [...(p.page?.handles ?? []), ...(p.context?.handles ?? [])]), p.ask);
     }
     const facts = (p.c.expect.facts ?? []).map(fact => { const r = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(r).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(r)}; });
     const localReply = localAnswer(p.ask, local), sentinelsSeen = p.c.sentinels ? sentinelsIn(p.system + p.ask + reply) : undefined;
@@ -210,7 +229,7 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
     let batchId: string | null = null;
     if (BATCH) { const b = await runBatch(cases); runs.push(...b.runs); batchId = b.batchId; }
     else for (const c of cases) for (let repeat = 1; repeat <= REPEAT; repeat++) {
-      const sources = sourcesFor(c), history: ChatMessage[] = [];
+      const sources = sourcesFor(c), history: ChatMessage[] = [], page = PAGE ? pageFor(c, sources, c.health !== 'closed') : null;
       const turns = [{ask: c.ask, expect: c.expect}, ...(c.turns ?? [])];
       for (let t = 0; t < turns.length; t++) {
         const turn = turns[t]!;
@@ -221,7 +240,7 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
           runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass, checks: s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: 0, totalMs: 0, tokens: {input: 0, output: 0, cacheWrite: 0, cacheRead: 0}, requests: 0, costUsd: 0, calls: [], reply: reply.kind === 'none' ? '' : reply.text, error: null});
           continue;
         }
-        const r = await runTurn(c, turn.ask, history, sources);
+        const r = await runTurn(c, turn.ask, history, sources, page);
         // Attach mode has no tools to call: the expected-tool checks do not apply there (the records are in the prompt).
         const {tools: _tools, toolsNot: _toolsNot, ...withoutTools} = turn.expect; void _tools; void _toolsNot;
         const s = score(MODE === 'attach' ? withoutTools : turn.expect, r.observed);
@@ -235,12 +254,12 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
     for (const r of runs) { byKind[r.kind] ??= {passed: 0, total: 0}; byKind[r.kind]!.total++; if (r.pass) byKind[r.kind]!.passed++; }
     const timed = runs.filter(r => r.totalMs > 0), median = (xs: number[]) => xs.length ? [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]! : null;
     const sumOf = (pick: (r: CaseRun) => number | null) => timed.reduce((s, r) => s + (pick(r) ?? 0), 0);
-    const summary = {provider: PROVIDER, model: MODEL, host: HOST, mode: MODE, think: THINK, cache: PROVIDER === 'anthropic' ? !NO_CACHE : null, base: 'redacted', ...(BATCH ? {batch: true, batchId} : {}), startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
+    const summary = {provider: PROVIDER, model: MODEL, host: HOST, mode: MODE, think: THINK, cache: PROVIDER === 'anthropic' ? !NO_CACHE : null, base: 'redacted', pageContext: PAGE, ...(BATCH ? {batch: true, batchId} : {}), startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
       latency: {firstTokenMedianMs: median(timed.map(r => r.firstTokenMs ?? 0)), totalMedianMs: median(timed.map(r => r.totalMs))},
       tokens: {input: sumOf(r => r.tokens.input), output: sumOf(r => r.tokens.output), cacheWrite: sumOf(r => r.tokens.cacheWrite), cacheRead: sumOf(r => r.tokens.cacheRead)}, requests: sumOf(r => r.requests),
       costUsd: PROVIDER === 'anthropic' ? sumOf(r => r.costUsd) : null, pricesAsOf: PROVIDER === 'anthropic' ? PRICES_AS_OF : null, unreported: timed.filter(r => r.tokens.input === null && r.tokens.output === null && !r.error).length};
     mkdirSync(OUT, {recursive: true});
-    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}${THINK ? '-think' : ''}${NO_CACHE ? '-nocache' : ''}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}${LIMIT ? `-${LIMIT}` : ''}-${stamp}.json`);
+    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}${THINK ? '-think' : ''}${NO_CACHE ? '-nocache' : ''}${PAGE ? '-page' : ''}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}${LIMIT ? `-${LIMIT}` : ''}-${stamp}.json`);
     writeFileSync(file, JSON.stringify({summary, runs}, null, 1));
     console.info(`ZIGi real model: ${passed}/${runs.length} (${(summary.rate * 100).toFixed(1)}%) on ${MODEL} @ ${HOST}; first token median ${summary.latency.firstTokenMedianMs} ms, total median ${summary.latency.totalMedianMs} ms${summary.costUsd !== null ? `; cost $${summary.costUsd.toFixed(4)}` : ''}; written to ${file}`);
     expect(runs.length).toBeGreaterThan(0);
