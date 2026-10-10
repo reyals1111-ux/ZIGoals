@@ -1,6 +1,7 @@
 import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
+import {isDeletedHabit, withoutDeletedHabits} from '../habit-delete';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, type DashboardSettings} from '../dashboard-settings';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
@@ -127,7 +128,11 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   if (localSimulation) { json.localSimulation = JSON.parse(localSimulation.section); if (localSimulation.warning) warnings.push(localSimulation.warning); }
   const typed = <T,>(name: string, value: unknown, parse: (value: unknown) => {success: true; data: T} | {success: false}): T | null => { if (value === undefined) return null; const result = parse(value); if (result.success) return result.data; warnings.push(`Your ${name} records did not read as expected, so their CSV files hold the header only; everything.json still holds them as stored.`); return null; };
   const platform = typed<Platform>('finance', json.modules.finance, v => platformSchema.safeParse(v));
-  const habits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
+  const parsedHabits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
+  // Session Z-Cloud Part 4.6: a habit deleted for good is a nameless shell kept for sync; the export leaves it out.
+  const shells = new Set((parsedHabits?.habits ?? []).filter(isDeletedHabit).map(h => h.id));
+  if (shells.size) { const raw = json.modules.habits as {habits: {id: string}[]}; json.modules.habits = {...raw, habits: raw.habits.filter(h => !shells.has(h.id))}; }
+  const habits = parsedHabits && withoutDeletedHabits(parsedHabits);
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
   // Session U Part 9: with the sync writes on, the markers live in Health v3 (`habitLinks`); the device key's are read too

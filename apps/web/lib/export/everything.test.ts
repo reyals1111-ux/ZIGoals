@@ -8,6 +8,8 @@ import {SYNC_WRITES} from '../vault/sync-writes';
 import {LOCAL_SIMULATION_DAMAGED} from '../vault/local-simulation-backup';
 import {CSV_FILES, EVERYTHING_KEYS, buildEverythingZip, collectEverything, csvCell, readEverything} from './everything';
 import {readStoredZip} from './zip-reader';
+import {deleteHabitForGood} from '../habit-delete-write';
+import {scheduleHabitState} from '../habit-actions';
 
 const NOW = new Date('2026-10-03T12:00:00.000Z'), APP = {now: NOW, version: '0.0.0-test', commit: 'abc1234', localSimulation: null};
 const lines = (text: string) => text.split('\r\n');
@@ -86,5 +88,17 @@ describe('T4 export everything', () => {
     for (const key of EVERYTHING_KEYS) expect(texts[key]).toBe(records[key] ?? null);
     expect(localSimulation).toBeNull();
     expect(JSON.stringify(Object.fromEntries(EVERYTHING_KEYS.map(k => [k, storage.getItem(k)])))).toBe(before);
+  });
+  test('a habit deleted for good (its shell kept for sync) is left out of everything.json and the CSVs (Session Z-Cloud Part 4.6)', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), target = habits.habits[0]!;
+    const archived = scheduleHabitState(habits, target.id, 'archived', '2026-09-21', new Date('2026-09-20T12:00:00.000Z'));
+    const {data} = deleteHabitForGood(archived, target.id, new Date('2026-09-22T12:00:00.000Z'));
+    const collected = collectEverything({[HABITS_KEY]: JSON.stringify(data)}, APP);
+    const exported = (collected.json.modules.habits as {habits: {id: string}[]}).habits.map(h => h.id);
+    expect(exported).not.toContain(target.id);
+    expect(exported).toHaveLength(habits.habits.length - 1);
+    expect(collected.csv['habits.csv']).not.toContain(target.id);
+    expect(collected.csv['check-ins.csv']).not.toContain(target.id);
   });
 });
