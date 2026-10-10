@@ -1,5 +1,6 @@
 import {AiError, mapHttpError, mapNetworkError} from './errors';
 import {PROVIDERS, type ProviderId} from './providers';
+import {resolveVoiceLanguage} from '../zigi-voice-lang';
 
 /**
  * Voice (ADR-012, Part 7), two honest routes and nothing else:
@@ -45,10 +46,13 @@ export function browserSpeechDisclosure(browser: Browser, onDevice: boolean): st
     default: return 'Speech recognition by your browser: the audio may be sent to the browser maker\'s speech service. Nothing goes through ZIGoals.';
   }
 }
-/** The recognition language: the person's choice, else the app or device language, else English. */
+/**
+ * The recognition and reading language (Session Z-Cloud Part 3): English or Dutch only. The person's choice when it is
+ * en-GB, en-US, nl-BE or nl-NL; otherwise (nothing chosen, an old French or other value) this device's language mapped
+ * onto the four (lib/zigi-voice-lang.ts).
+ */
 export function speechLanguage(setting: string | null | undefined, navigatorLanguage: string | null | undefined): string {
-  const pick = (value: string | null | undefined) => value && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/i.test(value.trim()) ? value.trim() : null;
-  return pick(setting) ?? pick(navigatorLanguage) ?? 'en-US';
+  return resolveVoiceLanguage(setting, navigatorLanguage);
 }
 /** ISO 639-1 for the transcription endpoint (it takes the language, not the region). */
 export const iso639 = (language: string): string => language.split('-')[0]!.toLowerCase();

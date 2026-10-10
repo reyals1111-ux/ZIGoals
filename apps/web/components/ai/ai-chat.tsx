@@ -31,7 +31,6 @@ import {useProposals} from './use-proposals';
 import {useAutoAccept, type AutoAccept} from './use-auto-accept';
 import {useReadAloud, useVoice} from './use-voice';
 import {ASK_EVENT, takePendingAsk} from './ask';
-import {speechLanguage} from '../../lib/ai/voice';
 import {examplesFor} from '../../lib/ai/local-answers/examples';
 import {LOCAL_LABEL} from '../../lib/ai/local-answers/words';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -81,6 +80,12 @@ import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import './panel-z.css';
+import {useTalk} from './use-talk';
+import {VoiceWaves} from './voice-waves';
+import {resolveVoiceLanguage} from '../../lib/zigi-voice-lang';
+import {voicePrefs, ZIGI_VOICE} from '../../lib/zigi-voice';
+import {ZIGI, zigiPrefs} from '../../lib/ai/store/records';
+import {inQuietHours} from '../../lib/ai/knock/rules';
 
 /**
  * The chat panel (ADR-012, Part 6): a non-modal panel bottom-right on desktop and tablet (Expand for a large centred
@@ -96,6 +101,8 @@ type Props = {open: boolean; onClose: () => void; onOpen?: () => void; sensitive
 const ZigiCustomize = lazy(() => import('./zigi-customize'));
 /** Session V Part 15: "Which setup fits me?", loaded when the person opens it. */
 const SetupChooser = lazy(() => import('./setup-chooser'));
+/** Session Z-Cloud Part 3: with no AI connected, words that Quick add understands ("drank 2 glasses of water") become its preview card. */
+const QuickAddLine = lazy(() => import('../quick-add-line').then(m => ({default: m.QuickAddLine})));
 const SETTINGS_HREF = '/app/settings#your-ai';
 const FOCUSABLE = 'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
 export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props) {
@@ -169,7 +176,11 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       default: if (connected) return false; session.say(typed, NEEDS_AI); return true;
     }
   }, [connected, onClose, router, session]);
-  const reader = useReadAloud(speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
+  const reader = useReadAloud(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language));
+  // Session Z-Cloud Part 3: a reply to a spoken question is read aloud (the person's choice, on by default), never in quiet
+  // hours and never while muted; a tap anywhere in the panel, or talking again, stops it.
+  const voiceRec = useDeviceRecord(ZIGI_VOICE), vprefs = voicePrefs(voiceRec.data), zigiRec = useDeviceRecord(ZIGI), spokenAsked = useRef(false);
+  const toggleMute = useCallback(() => { try { voiceRec.update(r => ({...r, muted: !vprefs.muted})); } catch { /* stays as it was */ } if (!vprefs.muted) reader.stop(); }, [reader, voiceRec, vprefs.muted]);
   useVisualViewportInsets(phone && open);
   // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
   useEffect(() => { if (!(phone && open)) return; document.documentElement.dataset.aiSheet = ''; return () => { delete document.documentElement.dataset.aiSheet; }; }, [phone, open]);
@@ -195,9 +206,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     setView('chat'); setNote(`A browser AI agent proposed ${n === 1 ? 'one change' : `${n} changes`}. Nothing is written until you add a card.`);
   }, [agentBatches]);
   useEffect(() => {
-    if (replies > lastReplies.current) { setNote('Your AI replied.'); if (data.voice.readAloud && open) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); } }
+    if (replies > lastReplies.current) {
+      setNote('Your AI replied.');
+      const spoken = spokenAsked.current; spokenAsked.current = false;
+      const knock = zigiPrefs(zigiRec.data).knock, quiet = inQuietHours(new Date().toTimeString().slice(0, 5), knock.quietFrom, knock.quietTo);
+      if (open && !vprefs.muted && (data.voice.readAloud || (spoken && vprefs.readSpoken && !quiet))) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); }
+    }
     lastReplies.current = replies;
-  }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed]);
+  }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed, vprefs.muted, vprefs.readSpoken, zigiRec.data]);
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
   useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight; }, [session.chat.turns.length, session.draft]);
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
@@ -269,7 +285,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
       {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
-        chips={<SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>}
+        onSpoken={() => { spokenAsked.current = true; }}
+        chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label={vprefs.muted ? 'Unmute ZIGi’s voice' : 'Mute ZIGi’s voice'} title={vprefs.muted ? 'ZIGi reads nothing aloud until you unmute' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg>{vprefs.muted ? 'Muted' : 'Voice on'}</button>}</>}
         placeholder={!connected ? 'Ask about your records' : 'Ask ZIGi…'} title={!connected ? 'Ask about your records: answered here, no AI' : `Ask about ${AREA_LABELS[area]}, or say what to log`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
@@ -277,7 +294,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   </>;
   // Session Z-Cloud Part 2: the tab's panel lives at the end of <body>, outside the page's isolated stacking context, so
   // no part of the page (the ≤900 px top bar at z-index 30) can sit over its header; phones open it as a modal anyway.
-  const tabDialog = <dialog ref={dialog} data-ai-dialog="" className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={() => { if (reader.speaking) reader.stop(); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
       {!mini.win && body}
     </dialog>;
   return <>
@@ -340,6 +357,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       <DataViz results={info?.results}/>
       {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
+      {!connected && isLast && question && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -456,6 +474,12 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
   </div>;
 }
 import {forwardRef} from 'react';
+/** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
+function MicGlyph({on}: {on: boolean}) {
+  return <svg className="ai-mic-glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+    {on ? <rect x="7" y="7" width="10" height="10" rx="2.5" fill="currentColor"/> : <><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>}
+  </svg>;
+}
 /**
  * What the composer sends besides the words (Session V Part 7): a meal photo for this message, and "talk to log";
  * Part 10: /ask (no on-device answer), /plan (plan cards), and the last question being edited (`replace`).
@@ -473,8 +497,8 @@ function rememberReply(rest: string): string {
   const json = JSON.stringify(parsed.data).replace(/`/g, '\\u0060');
   return `Here is your note as a card: nothing is kept until you add it.\n\n\`\`\`zigoals-action\n${json}\n\`\`\``;
 }
-const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
-  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
+const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: boolean; phone: boolean; settings: AiSettings; scope: string; placeholder: string; title?: string; local: boolean; chips?: ReactNode; onAsked?: (text: string) => void; onSpoken?: () => void; onDraft?: (text: string) => void; onSend?: (text: string, extra: ComposerExtra) => void; onAbout?: (about: AskAbout | undefined) => void; photo?: PhotoAllowance; providerName?: string;
+  onCommand: (name: SlashName, rest: string, typed: string) => boolean; editing: Editing | null; onEditing: (editing: Editing | null) => void}>(function Composer({session, attach, phone, settings, scope, placeholder, title, local, chips, onAsked, onSpoken, onDraft, onSend, onAbout, photo, providerName = 'your AI', onCommand, editing, onEditing}, ref) {
   const [text, setText] = useState(''), [disclosed, setDisclosed] = useState(false), listId = useId();
   // Session V Part 10: an edit puts the last question back in the box; the "/" list helps with the commands.
   const editSeq = editing?.seq;
@@ -485,6 +509,12 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   useEffect(() => { const pending = takePendingAsk(); if (pending) { setText(pending.text); aboutRef.current?.(pending.about); } const onAsk = (event: Event) => { const detail = (event as CustomEvent<{text: string; about?: AskAbout}>).detail; if (detail?.text) { takePendingAsk(); setText(detail.text); aboutRef.current?.(detail.about); } }; window.addEventListener(ASK_EVENT, onAsk); return () => window.removeEventListener(ASK_EVENT, onAsk); }, []);
   const voice = useVoice({settings, scope, onText: useCallback((words: string) => setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`), [])});
   const busy = session.status !== 'idle', talking = voice.state !== 'idle';
+  // Session Z-Cloud Part 3: talk to ZIGi through the browser's own speech recognition, connected or not; provider
+  // transcription (a recording sent to the person's provider) stays exactly as it was when chosen.
+  const providerVoice = settings.voice.transcription === 'provider' && !local;
+  const spokenRef = useRef<(words: string) => void>(() => undefined);
+  const talk = useTalk({language: settings.voice.language, onDevicePreferred: true, enabled: !providerVoice, onWords: words => spokenRef.current(words)});
+  const listening = talk.listening;
   const textarea = useCallback(() => (ref as {current: HTMLTextAreaElement | null} | null)?.current ?? null, [ref]), refocus = useRef(false), silent = useRef(false);
   // Phase 2 round 10 (ADR-017 S76): the refocus after a send is the app's act, not the person's. The box's focus handler
   // reads a focus as listening, which displaced thinking before the first byte, the reply's end state and the AI's hint
@@ -513,10 +543,10 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   }, [text, textarea]);
   // The question's records follow the words after a short pause in typing (Session V Part 4).
   useEffect(() => { if (!onDraft) return; const t = window.setTimeout(() => onDraft(text), 300); return () => window.clearTimeout(t); }, [text, onDraft]);
-  const submit = (event?: FormEvent) => {
+  const submit = (event?: FormEvent, spoken?: string) => {
     event?.preventDefault();
     if (busy) return;
-    let value = text.trim(), log = logMode, direct = false, plan = false;
+    let value = (spoken ?? text).trim(), log = logMode, direct = false, plan = false;
     // Slash commands (Session V Part 10): some open a view or make a local card; /log, /ask and /plan shape the message.
     const command = parseSlash(value);
     if (command && onCommand(command.command.name, command.rest, value)) { setText(''); onEditing(null); return; }
@@ -526,13 +556,20 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
     if (!value && !attached) return;
     if (!value) value = 'Log this meal from the photo.';
     const extra: ComposerExtra = {...(attached ? {images: [{mime: attached.mime, data: attached.data}]} : {}), ...(log ? {log: true} : {}), ...(direct ? {direct: true} : {}), ...(plan ? {plan: true} : {}), ...(editing ? {replace: editing.id} : {})};
-    setText(''); setAttached(null); setPhotoNote(''); onEditing(null);
+    if (spoken === undefined) { setText(''); setAttached(null); setPhotoNote(''); onEditing(null); }
+    else onSpoken?.();
     if (!extra.images) onAsked?.(value);
     if (onSend) onSend(value, extra); else void session.ask(value, {withContext: attach, ...extra});
     // X-Cloud's H10 (ADR-017 S71): a mouse click on Send focused the button, which gives way to Stop, and the focus fell to the page (Escape no longer closed the panel); the message box keeps it, now and once the reply has ended.
     refocus.current = true; nextFrame(focusSilently);
   };
-  const mic = voice.mode !== 'off' && !local;
+  // What was heard: sent when the person stops talking (their choice, on by default), unless the box already holds words,
+  // a photo or an edit, which the spoken words then join for the person to send.
+  spokenRef.current = words => {
+    if (talk.prefs.sendOnStop && !text.trim() && !attached && !editing && !busy) submit(undefined, words);
+    else setText(current => `${current.trim()}${current.trim() ? ' ' : ''}${words}`);
+  };
+  const mic = providerVoice && voice.mode === 'provider';
   const micLabel = voice.state === 'listening' ? 'Stop listening' : voice.state === 'recording' ? `Stop recording${voice.secondsLeft !== null ? ` (${voice.secondsLeft} s left)` : ''}` : voice.state === 'transcribing' ? 'Transcribing…' : voice.mode === 'browser' ? 'Speak (browser speech recognition)' : 'Speak (recorded, transcribed by your provider)';
   const toggleMic = () => { setDisclosed(true); if (talking) voice.stop(); else void voice.start(); };
   // Phones: hold to talk and release to stop, or tap once to start and once to stop (a press shorter than 300 ms is a tap).
@@ -542,9 +579,18 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
   return <form className="ai-composer-wrap" onSubmit={submit}
     onDragOver={photosAllowed && !phone ? e => { if ([...e.dataTransfer.items].some(i => i.kind === 'file' && i.type.startsWith('image/'))) e.preventDefault(); } : undefined}
     onDrop={photosAllowed && !phone ? e => { const image = [...e.dataTransfer.files].find(f => f.type.startsWith('image/')); if (image) { e.preventDefault(); void takePhoto(image); } } : undefined}>
-    {voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
-    {(voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
-    {voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
+    {mic && voice.disclosure && (disclosed || talking) && <p className="ai-note ai-voice-disclosure" role="status">{voice.disclosure}</p>}
+    {mic && (voice.interim || voice.state === 'transcribing') && <p className="ai-note ai-voice-interim" aria-live="polite">{voice.state === 'transcribing' ? 'Transcribing…' : voice.interim}</p>}
+    {mic && voice.error && <p className="ai-card-error" role="alert">{voice.error}</p>}
+    {talk.disclosing && <div className="ai-voice-disclose" role="group" aria-label="Before you talk to ZIGi">
+      <p>{talk.disclosure} ZIGoals never stores the audio, and the microphone is released the moment you stop.</p>
+      <div className="ai-card-actions"><button type="button" className="primary" onClick={talk.acceptDisclosure}>Talk now</button><button type="button" className="text-link" onClick={talk.dismissDisclosure}>Not now</button></div>
+    </div>}
+    {listening && <p className="ai-voice-live" aria-hidden="true">{talk.snapshot?.final || talk.snapshot?.interim ? <>{talk.snapshot.final}{talk.snapshot.final && talk.snapshot.interim ? ' ' : ''}<span className="ai-voice-interim">{talk.snapshot.interim}</span></> : <span className="ai-voice-interim">Listening… speak now{talk.lang.startsWith('nl') ? ' (Nederlands)' : ''}</span>}</p>}
+    <p className="ai-sr-only" role="status" aria-live="polite">{listening ? 'Listening…' : ''}</p>
+    {!listening && talk.snapshot?.error && <p className="ai-card-error" role="alert">{talk.snapshot.error}</p>}
+    {talk.highlight && !listening && <p className="ai-note ai-voice-hint" role="status">Tap the mic to talk. <button type="button" className="text-link" onClick={talk.dismissHighlight}>OK</button></p>}
+    {talk.unavailable && <p className="ai-note ai-voice-hint" role="status">{talk.reason} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type. <button type="button" className="text-link" onClick={talk.dismissUnavailable}>OK</button></p>}
     {(chips || !local) && <div className="ai-composer-modes">
       {chips}
       {!local && <button type="button" className={`ai-chip ai-log-mode${logMode ? ' ai-log-mode-on' : ''}`} aria-pressed={logMode} onClick={() => setLogMode(on => !on)} title="Say or type what you ate, drank or did; ZIGi answers with cards to confirm">Log mode</button>}
@@ -575,6 +621,9 @@ const Composer = forwardRef<HTMLTextAreaElement, {session: ChatSession; attach: 
         <input ref={file} type="file" accept="image/*" capture={phone ? 'environment' : undefined} hidden tabIndex={-1} aria-hidden="true" onChange={e => { void takePhoto(e.target.files?.[0]); e.target.value = ''; }}/>
         <button type="button" className="secondary ai-photo" aria-label="Add a meal photo" title="Add a meal photo (sent only to your AI, not kept)" onClick={() => file.current?.click()}><span aria-hidden="true">📷</span></button>
       </>}
+      {!providerVoice && talk.prefs.micShown && <button type="button" className={`secondary ai-mic ai-talk${listening ? ' ai-mic-on' : ''}${talk.highlight ? ' ai-mic-highlight' : ''}`} aria-label={listening ? 'Stop listening' : 'Talk to ZIGi'} aria-pressed={listening} title={listening ? 'Stop listening (Escape cancels)' : 'Talk to ZIGi: tap, or hold and release'}
+        onPointerDown={talk.onPointerDown} onPointerUp={talk.onPointerUp} onPointerCancel={talk.onPointerCancel} onContextMenu={e => e.preventDefault()} onClick={e => { if (e.detail === 0) talk.onKeyActivate(); }}>
+        <VoiceWaves engine={talk.engine}/><MicGlyph on={listening}/></button>}
       {mic && <button type="button" className={`secondary ai-mic${talking ? ' ai-mic-on' : ''}`} aria-label={micLabel} title={micLabel} aria-pressed={talking} disabled={!voice.available || voice.state === 'transcribing'} onClick={!phone ? toggleMic : undefined}
         onPointerDown={phone ? onMicDown : undefined} onPointerUp={phone ? onMicUp : undefined} onPointerCancel={phone ? () => { pressStart.current = null; voice.cancel(); } : undefined} onKeyDown={phone ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMic(); } } : undefined}>
         <span aria-hidden="true">{talking ? '■' : '🎙'}</span></button>}

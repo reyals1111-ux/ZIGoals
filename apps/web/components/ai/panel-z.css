@@ -139,3 +139,16 @@
 .ai-suggest-panel .ai-tips{margin-top:4px}
 .ai-chat .ai-history-open strong{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 
+/* ---- Talk to ZIGi (Part 3): the microphone, what is heard, the disclosure, hints, mute ---- */
+.ai-chat .ai-talk{position:relative;overflow:visible;color:var(--brand-cyan,#63e7ff)}
+.ai-chat .ai-talk .ai-mic-glyph{position:relative;z-index:1}
+.ai-chat .ai-talk.ai-mic-on{animation:none;color:#f08bd6;border-color:color-mix(in srgb,#f08bd6 70%,var(--line,#2a325a));box-shadow:none}
+.ai-chat .ai-mic-highlight{border-color:var(--brand-cyan,#63e7ff);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-cyan,#63e7ff) 35%,transparent)}
+.ai-voice-live{margin:0;padding:8px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--violet,#8b7cff) 10%,transparent);font-size:16px;line-height:1.45;color:var(--text,#eef1ff)}
+.ai-voice-live .ai-voice-interim{color:var(--muted,#a1afc8)}
+.ai-voice-disclose{display:grid;gap:8px;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);font-size:15px;line-height:1.45}
+.ai-voice-disclose p{margin:0}
+.ai-chat .ai-voice-disclose button,.ai-chat .ai-voice-hint button{min-height:44px}
+.ai-voice-hint{display:flex;flex-wrap:wrap;align-items:center;gap:0 8px}
+.ai-chat .ai-mute{display:inline-flex;align-items:center;gap:6px}
+.ai-chat .ai-mute[aria-pressed=true]{color:var(--muted,#a1afc8)}

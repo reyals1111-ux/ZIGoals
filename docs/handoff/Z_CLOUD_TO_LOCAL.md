@@ -62,3 +62,23 @@ and announces the change here or in its own file.
   `tests/zigi-mini-window.spec.ts:96` expects `pip.ts`'s title; update it with yours).
 - **New device key** `zigoals:zigi-suggestions:v1` (`lib/zigi-suggestions.ts`, outside `lib/ai`): the person's frequent
   questions, never sent unless the person sends one. Nothing in `lib/ai` needs to read it.
+
+## 2026-10-10 — Part 3 (voice, committed with this entry)
+- **Composer (`components/ai/ai-chat.tsx`, mine):** the microphone shows wherever the browser offers speech recognition,
+  connected to an AI or not. The recognised words go through `session.ask` exactly as typed text (no marker, no new
+  field); without an AI they reach the on-device answers and, when Quick add's parser understands them, a Quick add card.
+  The engine (`components/ai/voice-engine.ts`, `use-talk.ts`, `talk-events.ts`, `voice-waves.tsx`) is face-only and
+  imports nothing from `lib/ai` but `lib/ai/voice.ts` (mine) for `detectBrowser` and `browserSpeechDisclosure`.
+- **Voice language (your owner edit 6):** my UI offers exactly `en-GB`, `en-US`, `nl-BE`, `nl-NL` or the device default,
+  from `lib/zigi-voice-lang.ts` (outside `lib/ai`), and `lib/ai/voice.ts` `speechLanguage` now resolves through it: a
+  stored `'fr-FR'` (or anything outside EN/NL) reads as the device default, never refused. When your option list is
+  exported from `lib/ai/settings.ts` and on `main`, whichever PR merges second points `VOICE_LANGUAGES` at it (one list).
+  `settings.voice.transcription` is unchanged and still decides provider transcription; the new choices (show the mic,
+  send when I stop, read spoken replies, tap ZIGi to talk, mute, the per-browser disclosure) live in `zigoals:zigi-voice:v1`.
+- **Read aloud:** a reply to a spoken question is read with `speechSynthesis` in the chosen language (never in quiet
+  hours, never while muted); nothing in the reply or the request changes. If the brain later marks spoken questions for
+  shorter replies, propose the field here.
+- **Your entries read at this gate:** the relay rules (Part 3 entry) are Part 6's spec here, followed exactly; the price
+  table is copied from your `lib/ai/pricing.ts` with its source commit named. The runner effects (`plan.navigate`,
+  `plan.confirm`, `plan.device`) and the two money pre-fills depend on types and modules that exist only on your branch;
+  my plan for them is in ADR-019 "Handoff applied".

@@ -62,9 +62,10 @@
 .ai-chat-premium{font-size:14px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);color:var(--text,#eef1ff)}
 .ai-settings .ai-chat-premium{margin-left:8px;vertical-align:middle}
 .ai-settings-loading{color:var(--muted,#aab2d9);font-size:15px;margin:12px 0 0}
-/* Phase 2 (P2.8, H6): the body's height, reserved until it mounts (measured on a new device: 927 px at 1280 wide, 1289 px at 390 wide). */
-.ai-settings{--ai-settings-reserve:928px}
-@media (max-width:767.98px){.ai-settings{--ai-settings-reserve:1290px}}
+/* Phase 2 (P2.8, H6): the body's height, reserved until it mounts (measured on a new device; Session Z-Cloud C19: 1121 px at 1280 wide, 1501 px at 390 wide, with the Voice card). */
+/* Session Z-Cloud Part 3: re-measured with the Voice card (a new device: 1,121 px on a computer, 1,501 px on a phone). */
+.ai-settings{--ai-settings-reserve:1120px}
+@media (max-width:767.98px){.ai-settings{--ai-settings-reserve:1500px}}
 .ai-settings-reserve{min-height:var(--ai-settings-reserve)}
 /* "Ask ZIGi about this" on a goal or habit: a quiet text link, 44 px tall, no data leaves before Send. */
 .ai-ask-link{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;font-size:14px;color:var(--cyan,#6fd3ff);background:transparent;border:0;cursor:pointer;border-radius:10px}
@@ -76,3 +77,30 @@ html[data-zigi-launcher="shown"] .zigi-explain-corner{display:inline-flex;positi
 html[data-zigi-launcher="shown"] .habit-consistency-month{position:relative}
 /* Session Z-Cloud Part 2: ZIGi's full name keeps the spaces around its dot (zigi-title.tsx). */
 .ai-title-dot{white-space:pre}
+/* Session Z-Cloud Part 3: ZIGi's listening waves (voice-waves.tsx and the launcher). Three nebula rings flow outward,
+   sized and lit by the microphone's level (--zigi-level, 0–1); transforms and opacity only. Reduced motion and Motion
+   Off: one still ring with a glow and a level bar, nothing pulsing. Touch holds on the launcher and the microphone never
+   select text, open a callout or scroll. */
+.zigi-waves{--zigi-level:0;position:absolute;inset:-5px;z-index:0;pointer-events:none;display:none;border-radius:50%;transform:scale(calc(1 + var(--zigi-level) * .28));transition:transform 90ms linear}
+.zigi-waves[data-on=true]{display:block}
+.zigi-waves i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 210deg,#63e7ff,#5b8cff,#a06bff,#f08bd6,#63e7ff);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));opacity:0;animation:zigi-wave 1.8s cubic-bezier(.2,.65,.3,1) infinite;will-change:transform,opacity}
+.zigi-waves i:nth-child(2){animation-delay:.6s}
+.zigi-waves i:nth-child(3){animation-delay:1.2s}
+@keyframes zigi-wave{0%{transform:scale(.92);opacity:calc(.35 + var(--zigi-level) * .65)}100%{transform:scale(1.85);opacity:0}}
+.zigi-level-bar{display:none;position:absolute;left:18%;right:18%;bottom:-9px;height:4px;border-radius:2px;background:linear-gradient(90deg,#63e7ff,#a06bff,#f08bd6);transform-origin:left center;transform:scaleX(var(--zigi-level))}
+@media (prefers-reduced-motion:reduce){
+  .zigi-waves{transform:none;transition:none}
+  .zigi-waves i{animation:none;opacity:.95;transform:none}
+  .zigi-waves i:nth-child(n+2){display:none}
+  .zigi-waves[data-on=true]{box-shadow:0 0 0 3px #63e7ff55,0 0 18px #a06bff66}
+  .zigi-level-bar{display:block}
+}
+:root[data-app-motion=off] .zigi-waves{transform:none;transition:none}
+:root[data-app-motion=off] .zigi-waves i{animation:none;opacity:.95;transform:none}
+:root[data-app-motion=off] .zigi-waves i:nth-child(n+2){display:none}
+:root[data-app-motion=off] .zigi-waves[data-on=true]{box-shadow:0 0 0 3px #63e7ff55,0 0 18px #a06bff66}
+:root[data-app-motion=off] .zigi-level-bar{display:block}
+.ai-launcher-button,.ai-mic{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}
+.ai-launcher-stack{position:relative}
+.ai-launcher-ring{position:relative;display:grid;place-items:center}
+.ai-launcher-ring>.zigi-waves{inset:-4px}
