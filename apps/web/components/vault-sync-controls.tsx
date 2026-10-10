@@ -40,7 +40,8 @@ export const HEALTH_RESTORE_ASK='Your Health section on this device is approved 
 /** Session Y Part 5 (B6, B3): what the person reads when the cloud's vault is gone or older than this device's record. */
 export const VAULT_MISSING='Your account had encrypted sync on this device, but the cloud has no vault for it now. Nothing was changed on this device. This can happen when the sync service was restored from an earlier copy, so try again later. If the vault stays missing, you can start a new one below.',VAULT_OLDER='The vault in the cloud is older than the one this device last synced with, so nothing was applied. Your records on this device were not changed. This can happen when the sync service was restored from an earlier copy, or a new vault was made on another device after that, so try again later. If it stays like this, you can re-link this device below.';
 /** True when this device's sync journal shows an earlier vault for the account. */
-const hadVault=(state:SyncState)=>state.revision>0||state.headRevision>0||!!state.headDigest||state.epoch!==undefined||Object.keys(state.base).length>0||!!state.pending||!!state.heldDomains?.length;
+// Held sections alone are not an earlier vault: a start-over carries them into the fresh journal (below).
+const hadVault=(state:SyncState)=>state.revision>0||state.headRevision>0||!!state.headDigest||state.epoch!==undefined||Object.keys(state.base).length>0||!!state.pending;
 const freshJournal=():SyncState=>({version:1,base:{},revision:0,headRevision:0,headDigest:null,pending:null});
 /** Session Y Part 5 (A7): what a remembered device says when the server ended it. */
 export const DENIED_REVOKED='This device is no longer remembered because its session was signed out on another device. Your records on this device were not changed; unlocking again needs the recovery secret.',DENIED_DELETED='This device is no longer remembered because the account was deleted. Your records on this device were not changed.';
@@ -282,7 +283,10 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   * and a fresh one starts; the records on this device are not touched. Then: a new vault (none in the cloud) or a sync
   * with the vault that is there now (an older epoch, opened with its own recovery secret).
   */
- async function startOver(){const id=account,gone=vaultGone;await guarded(async()=>{if(!id||!gone)throw Error('Nothing to start over.');const journal=new SyncJournal(id),state=await journal.read();if(hadVault(state))await journal.recover(crypto.randomUUID(),state,freshJournal(),()=>selectionFence(id,getAccountGeneration()));setVaultGone(null);if(gone==='missing'){setManifest(null);setMessage('This device’s earlier sync record was set aside. Create a separate encrypted account vault. Local Demo records are not imported.');}else setMessage('This device’s earlier sync record was set aside. Syncing with the vault in the cloud…');});if(gone==='older'&&session.current)await sync();}
+ async function startOver(){const id=account,gone=vaultGone;await guarded(async()=>{if(!id||!gone)throw Error('Nothing to start over.');const journal=new SyncJournal(id),state=await journal.read();
+   // Sections the person deleted from the cloud stay held in the fresh journal: they still need their own restore review
+   // before anything of them is uploaded (a start-over is not that review).
+   if(hadVault(state))await journal.recover(crypto.randomUUID(),state,{...freshJournal(),...(state.heldDomains?.length?{heldDomains:[...state.heldDomains]}:{})},()=>selectionFence(id,getAccountGeneration()));setVaultGone(null);if(gone==='missing'){setManifest(null);setMessage('This device’s earlier sync record was set aside. Create a separate encrypted account vault. Local Demo records are not imported.');}else setMessage('This device’s earlier sync record was set aside. Syncing with the vault in the cloud…');});if(gone==='older'&&session.current)await sync();}
  /**
   * Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the server said this browser's session was revoked or the account deleted.
   * Only the remembered unlock record goes (every record on this browser, as Lock does); the account's records on this

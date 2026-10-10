@@ -87,6 +87,13 @@ test('B6: a device that never synced (or a journal that cannot be read) is told 
  h.journal.mockRejectedValue(Error('Sync journal unreadable.'));await signIn();
  expect(element.textContent).toContain(VAULT_MISSING);expect(button('Create encrypted account vault')).toBeUndefined();expect(h.recover).not.toHaveBeenCalled();
 });
+test('B3/B6: a start-over keeps the sections deleted from the cloud held, so they still need their own restore review',async()=>{
+ const held={...SYNCED,heldDomains:['finance' as const]};
+ h.journal.mockResolvedValue(held);h.synchronize.mockRejectedValueOnce(new OlderVaultError());await open();
+ const confirm=[...element.querySelectorAll<HTMLInputElement>('input[type=checkbox]')].find(i=>i.parentElement?.textContent==='I understand that this device will sync with the vault now in the cloud.')!;
+ await act(async()=>confirm.click());await act(async()=>button('Re-link this device')!.click());await settle();
+ expect(h.recover).toHaveBeenCalledTimes(1);expect(h.recover.mock.calls[0]![1]).toEqual(held);expect(h.recover.mock.calls[0]![2]).toEqual({...EMPTY,heldDomains:['finance']});
+});
 test('B3: an older vault is refused with nothing applied; re-linking is one explicit step that archives the journal, then syncs',async()=>{
  h.journal.mockResolvedValue(SYNCED);h.synchronize.mockRejectedValueOnce(new OlderVaultError());await open();
  expect(element.querySelector('[role=alert]')?.textContent).toContain('Nothing was applied');expect(element.textContent).toContain(VAULT_OLDER);
