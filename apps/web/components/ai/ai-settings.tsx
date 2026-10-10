@@ -1,4 +1,5 @@
 'use client';
+import {forgetZigiFace} from '../../lib/z-device-forget';
 import {ZigiPartBoundary} from '../zigi/part-boundary';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode} from 'react';
@@ -200,6 +201,7 @@ export default function AiSettings() {
     // including one left by an earlier provider whose setup record was reset.
     try { await forgetAiKeys(scope); } catch { /* the store may be gone already */ }
     dropMemoryKeys();
+    forgetZigiFace();
     save(s => ({...s, enabled: false, mode: null, provider: null, model: null, localServer: null, baseUrl: null, subscriptionApp: null, connectedOn: undefined}), 'Disconnected. The key was removed from this device; your switches and instructions are kept.');
     setModels(null);
   };
@@ -211,6 +213,7 @@ export default function AiSettings() {
       try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; }
       try { forgetChatAreas(getAppStorage()); } catch { /* History's page index goes with the chats when it can */ }
     }
+    forgetZigiFace();
     try { settings.turnOff(); setMessage({text: `ZIGi is off. Keys were removed from this device.${chatsNote}`}); } catch (error) { setMessage({text: `ZIGi could not be turned off on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); }
     setTurningOff(false); setAlsoChats(false); setModels(null);
   };
