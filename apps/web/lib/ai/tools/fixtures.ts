@@ -59,7 +59,8 @@ export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter,
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
-  const {records} = buildShowcase(day);
+  // A person in UTC (the zones below), whatever zone the machine running the tests is in (Session Y Part 2).
+  const {records} = buildShowcase(day, 'UTC');
   const habits = habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData;
   const health = healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData;
   const platform = platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform;

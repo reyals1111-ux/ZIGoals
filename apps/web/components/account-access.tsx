@@ -4,14 +4,16 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import * as z from 'zod';
 import {ACCOUNT_CHANGE,activateAccount,clearAccountSession,getAccountGeneration,getAccountScope,isAccountLocked,lockAccount} from '../lib/account-session';
 import {isShowcase} from '../lib/showcase-storage';
-type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void};
+type Props={onAuthenticated?:(accountId:string)=>void|Promise<void>;onSignout?:()=>void|Promise<void>;onVerifying?:(active:boolean)=>void;onDenied?:(code:'SESSION_REVOKED'|'ACCOUNT_DELETED')=>void|Promise<void>};
 const identity=z.object({signedIn:z.literal(true),accountId:z.uuid()});
+const denial=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
+const deniedCode=(text:string)=>{if(text.length>4096)return null;try{const parsed=denial.safeParse(JSON.parse(text));return parsed.success?parsed.data.error:null;}catch{return null;}};
 /** Session U Part 5 (FIX_PLAN A2): the relay gives every admitted code request one answer, so this reads the same for every address. */
 export const CODE_SENT='If this address has an invite, a code is on its way. Check your inbox and spam folder. You can request another in 60 seconds.';
-export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
+export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:Props){
  const [deviceLabel,setDeviceLabel]=useState('This browser'),[email,setEmail]=useState(''),[code,setCode]=useState(''),[sentTo,setSentTo]=useState(''),[cooldown,setCooldown]=useState(0),[busy,setBusy]=useState(true),[status,setStatus]=useState<'checking'|'signed-out'|'signed-in'|'unavailable'>('checking'),[message,setMessage]=useState('Checking account availability…'),[locked,setLocked]=useState(true),[showcase,setShowcase]=useState(false);
- const pending=useRef<AbortController|null>(null),callbacks=useRef({onAuthenticated,onSignout,onVerifying});
- useEffect(()=>{callbacks.current={onAuthenticated,onSignout,onVerifying};},[onAuthenticated,onSignout,onVerifying]);
+ const pending=useRef<AbortController|null>(null),callbacks=useRef({onAuthenticated,onSignout,onVerifying,onDenied});
+ useEffect(()=>{callbacks.current={onAuthenticated,onSignout,onVerifying,onDenied};},[onAuthenticated,onSignout,onVerifying,onDenied]);
  useEffect(()=>{if(cooldown<=0)return;const timer=setTimeout(()=>setCooldown(value=>Math.max(0,value-1)),1000);return()=>clearTimeout(timer);},[cooldown]);
  const refreshSelection=useCallback(()=>{try{setLocked(isAccountLocked());setShowcase(isShowcase());}catch{setLocked(true);}},[]);
  async function response(res:Response){const text=await res.text();if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);if(res.status===503){setStatus('unavailable');throw Error('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');}if(!res.ok){
@@ -24,7 +26,14 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying}:Props){
   pending.current?.abort();const controller=new AbortController();pending.current=controller;setBusy(true);
   try{
    if(isShowcase()){setShowcase(true);setStatus('signed-out');setMessage('Exit Showcase before signing in. Fictional data stays separate.');return;}
-   const generation=getAccountGeneration();let res=await fetch('/api/private-account?action=status',{cache:'no-store',signal:controller.signal});if(res.status===401){await res.body?.cancel();res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal:controller.signal});}const text=await res.text();
+   const generation=getAccountGeneration();let res=await fetch('/api/private-account?action=status',{cache:'no-store',signal:controller.signal});
+   if(res.status===401){
+    // Session Y Part 5, FIX_PLAN A7: a revoked session or a deleted account is named once, in this first answer; the vault
+    // then forgets this browser's remembered unlock record (the records themselves stay). No refresh is spent on it.
+    const first=await res.text().catch(()=>''),denied=deniedCode(first);
+    if(denied){if(controller.signal.aborted||generation!==getAccountGeneration())return;if(getAccountScope())lockAccount();await callbacks.current.onDenied?.(denied);setStatus('signed-out');setMessage(denied==='ACCOUNT_DELETED'?'This account was deleted. Sign in with an email code to use another account; your separate local records remain available.':'This browser was signed out on another device. Sign in with an email code to continue.');return;}
+    res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal:controller.signal});}
+   const text=await res.text();
    if(controller.signal.aborted||generation!==getAccountGeneration())return;
    if(res.status===503){if(getAccountScope())lockAccount();setStatus('unavailable');setMessage('Email access and encrypted sync are not configured on this installation. Your separate local records remain available.');return;}
    if(text.length>32768)throw Error('Account response was not confirmed.');const data=JSON.parse(text);

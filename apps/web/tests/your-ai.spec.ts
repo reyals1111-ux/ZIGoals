@@ -148,6 +148,36 @@ test('"Remember on this device" seals the key in the encrypted store without pla
   expect(JSON.parse((await stored(page, AI_SETTINGS_KEY))!)).toMatchObject({enabled: false, provider: null});
 });
 
+// Session Y Part 4 (docs/verification/y-cloud/SECURITY_REVIEW_Y.md, F12): Disconnect says "The key was removed from this
+// device", so every key this account remembered goes, one an earlier provider left behind a reset setup record included.
+test('Disconnect removes every key this account remembered on the device, an earlier provider\'s too', async ({page}) => {
+  await page.route(`${OPENAI}/**`, route => route.fulfill({status: 200, contentType: 'application/json', body: MODELS}));
+  await page.route('https://api.anthropic.com/**', route => route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({data: [{id: 'claude-mock', type: 'model', display_name: 'Claude mock'}], has_more: false})}));
+  await seed(page, null);
+  await page.goto('/app/settings#your-ai');
+  const section = page.locator('#your-ai');
+  const keys = () => page.evaluate(async name => { const db = await new Promise<IDBDatabase>((resolve, reject) => { const r = indexedDB.open(name); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); try { if (!db.objectStoreNames.contains('keys')) return 0; return await new Promise<number>((resolve, reject) => { const r = db.transaction('keys', 'readonly').objectStore('keys').count(); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); }); } finally { db.close(); } }, AI_KEYS_DATABASE);
+  const connect = async (provider: string, key: string, model: RegExp) => {
+    await section.getByRole('button', {name: /I have an API key/}).click();
+    await section.getByLabel('Provider').selectOption(provider);
+    await section.getByLabel('API key').fill(key);
+    await section.getByRole('checkbox', {name: /Remember on this device/}).check();
+    await section.getByRole('button', {name: 'Test connection'}).click();
+    await section.getByRole('option', {name: model}).click();
+    await section.getByRole('button', {name: 'Connect', exact: true}).click();
+    await expect(section.locator('.ai-connection')).toContainText('Key sealed on this device');
+  };
+  await connect('openai', FAKE_KEY, /^mock-chat$/);
+  // The setup record is reset (unreadable, restored from an older copy): the sealed OpenAI key stays behind it.
+  await page.evaluate(k => localStorage.removeItem(k), AI_SETTINGS_KEY);
+  await page.reload();
+  await connect('anthropic', 'sk-ant-api03-FAKE-Y4-DISCONNECT', /Claude mock/);
+  expect(await keys()).toBe(2);
+  await section.getByRole('button', {name: 'Disconnect', exact: true}).click();
+  await expect(section).toContainText('Disconnected. The key was removed from this device');
+  expect(await keys()).toBe(0);
+});
+
 test('Habits: two proposals in one reply become cards, "Add all" writes through the habit store, one Undo restores both', async ({page}) => {
   await mockLocal(page, () => stream('Read is done and Exercise is skipped for today.', [{kind: 'check-in', habit: 'h1'}, {kind: 'skip', habit: 'h2', reason: 'rest day'}]));
   await seed(page, connectedLocal());

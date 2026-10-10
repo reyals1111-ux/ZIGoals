@@ -18,6 +18,7 @@ import {addNote, CATEGORY_LABELS, deleteNote, isHealthNote, newNoteId, noteProbl
 import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
+import {STALE_HANDLE} from '../handles';
 import {GLASS_ML, PLAN_AHEAD_DAYS, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
 import {WIDGET_CATALOG, removeWidget, saveWidget, type DashboardSettings, type DashboardWidget} from '../../dashboard-settings';
 import {addLink, linkInputIssue, linksOf, removeLink, suggestedIcon} from '../../links/engine';
@@ -72,7 +73,8 @@ const dayLabel = (day: string, today: string) => day === today ? `today (${day})
 /** A record of the context by its handle (h2) or its exact title, case-insensitively; two titles alike are a question, never a guess (shared with revise.ts, Phase 2 round 8). */
 export function handleAmong(handles: readonly Handle[], kind: Handle['kind'], named: string): Handle | undefined {
   const key = named.trim().toLowerCase();
-  const byHandle = handles.find(h => h.kind === kind && h.handle === key);
+  // A stale handle never matches, even when a reply spells the marker itself (SECURITY_REVIEW_Y, second read).
+  const byHandle = key === STALE_HANDLE ? undefined : handles.find(h => h.kind === kind && h.handle === key);
   if (byHandle) return byHandle;
   const byTitle = handles.filter(h => h.kind === kind && h.label.trim().toLowerCase() === key);
   if (byTitle.length === 1) return byTitle[0];
@@ -90,6 +92,12 @@ function habitOf(env: Env, named: string): {ok: true; habit: Habit} | {ok: false
   const habit = found ? env.stores.habits.habits.find(h => h.id === found.id) : undefined;
   if (!found || !habit) return {ok: false, message: 'ZIGi named a habit that is not in this page\'s context, so nothing was proposed. Ask again from Habits, or name the habit.'};
   return {ok: true, habit};
+}
+/** A goal ZIGi's card may still write when it is added: present, open and not locked (Session Y Part 4, SECURITY_REVIEW_Y F3). */
+function writableGoal(goal: PrivateGoal | undefined): asserts goal is PrivateGoal {
+  if (!goal) throw Error('This goal is no longer here.');
+  if (goal.locked) throw Error('This goal is locked now. Unlock it in Goals first.');
+  if (goal.status === 'closed') throw Error('This goal is closed now. Reopen it in Goals first.');
 }
 function goalOf(env: Env, named: string): {ok: true; found: Handle} | {ok: false; message: string} {
   const found = handleFor(env, 'goal', named);
@@ -275,10 +283,13 @@ export function planAction(action: Action, env: Env): PlanResult {
       const found = named.found, goalId = found.id.startsWith('private:') ? found.id.slice('private:'.length) : null, goal = goalId ? stores.platform.goals.find(g => g.id === goalId) : undefined;
       if (!goal) return refuse('Notes on a simulation goal are edited from its own page.');
       if (goal.locked) return refuse('This goal is locked. Unlock it in Goals before adding a note.');
-      const previous = goal.notes, next = `${previous ? `${previous}\n` : ''}${action.note}`.slice(0, 2000);
-      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a note to "${goal.name}"`, lines: [action.note, ...(previous ? ['Appended below your existing notes'] : [])], where: 'Goals', day: null, estimate: false},
-        write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, notes: next} : g)})}),
-        undo: {label: 'Remove the note', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, notes: previous} : g)})}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === goal.id)?.notes, current.platform.goals.find(g => g.id === goal.id)?.notes)}, activity: {id: `goal-note:${goal.id}:${at}`, title: `Note added to ${goal.name}`}}};
+      if (goal.status === 'closed') return refuse('This goal is closed. Reopen it in Goals before adding a note.');
+      // Session Y Part 4 (SECURITY_REVIEW_Y F3): the note is appended to the notes as they are when it is added, and the
+      // goal is checked again then; Undo puts back exactly those notes.
+      let previous: string | undefined;
+      return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a note to "${goal.name}"`, lines: [action.note, ...(goal.notes ? ['Appended below your existing notes'] : [])], where: 'Goals', day: null, estimate: false},
+        write: s => { const current = s.platform.goals.find(g => g.id === goal.id); writableGoal(current); previous = current.notes; const next = `${previous ? `${previous}\n` : ''}${action.note}`.slice(0, 2000); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, notes: next} : g)})}; },
+        undo: {label: 'Remove the note', write: s => previous === undefined ? {} : ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, notes: previous!} : g)})}), unchanged: (after, current) => same(after.platform.goals.find(g => g.id === goal.id)?.notes, current.platform.goals.find(g => g.id === goal.id)?.notes)}, activity: {id: `goal-note:${goal.id}:${at}`, title: `Note added to ${goal.name}`}}};
     }
     case 'prefill-holding': {
       const quantity = typeof action.quantity === 'number' ? num(action.quantity, 8) : action.quantity;
@@ -507,7 +518,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       const id = (env.newHabitId ?? (() => crypto.randomUUID()))(), milestone = {id, title: action.title, done: false, ...(target ? {target} : {})};
       const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id)?.milestones.find(m => m.id === id);
       return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Add a milestone to "${goal.name}"`, lines: [action.title, ...(action.value !== undefined ? [`At ${action.value.toLocaleString('en-US')} ${goal.asset}`] : []), 'Give it a date in Goals if you like; nothing moves money'], where: 'Goals · Milestones', day: null, estimate: false},
-        write: s => { if (!s.platform.goals.some(g => g.id === goal.id)) throw Error('This goal is no longer here.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: [...g.milestones, milestone]} : g)})}; },
+        write: s => { const current = s.platform.goals.find(g => g.id === goal.id); writableGoal(current); if (current.milestones.length >= 100) throw Error('This goal already has 100 milestones.'); if (target && BigInt(target) > BigInt(current.target)) throw Error('This milestone is now above the goal\'s target. Ask ZIGi again.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: [...g.milestones, milestone]} : g)})}; },
         undo: {label: 'Remove this milestone', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, milestones: g.milestones.filter(m => m.id !== id)} : g)})}), unchanged: (after, current) => same(mine(after), mine(current))},
         activity: {id: `milestone:${goal.id}:${id}`, title: `Milestone added to ${goal.name}: ${action.title}`}}};
     }
@@ -551,10 +562,12 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     case 'edit-habit': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
-      const {habit} = found, rule = latestHabitRule(habit), base = habitInputOf(habit), changes: string[] = [];
+      const {habit} = found, rule = latestHabitRule(habit), changes: string[] = [];
       const type = action.type ?? rule.type;
-      const input: HabitInput = {...base, type, ...(action.title !== undefined ? {title: action.title} : {}), ...(action.description !== undefined ? {description: action.description} : {}), ...(action.category !== undefined ? {category: action.category} : {}), ...(action.timeOfDay !== undefined ? {timeOfDay: action.timeOfDay} : {}),
-        ...(action.measurement !== undefined ? {measurement: measurementFor(action.measurement, type)} : {}), ...(action.schedule !== undefined ? {schedule: scheduleFor(action.schedule, env.habitDay)} : {}), ...(action.target !== undefined ? {target: action.target} : type === 'quit' && rule.type !== 'quit' ? {target: 0} : {})};
+      // Only the named fields change, on the habit as it is when the card is added (Session Y Part 4, SECURITY_REVIEW_Y F3).
+      const inputFor = (h: Habit): HabitInput => { const now = latestHabitRule(h), kind = action.type ?? now.type; return {...habitInputOf(h), type: kind, ...(action.title !== undefined ? {title: action.title} : {}), ...(action.description !== undefined ? {description: action.description} : {}), ...(action.category !== undefined ? {category: action.category} : {}), ...(action.timeOfDay !== undefined ? {timeOfDay: action.timeOfDay} : {}),
+        ...(action.measurement !== undefined ? {measurement: measurementFor(action.measurement, kind)} : {}), ...(action.schedule !== undefined ? {schedule: scheduleFor(action.schedule, env.habitDay)} : {}), ...(action.target !== undefined ? {target: action.target} : kind === 'quit' && now.type !== 'quit' ? {target: 0} : {})}; };
+      const input = inputFor(habit);
       if (action.title !== undefined && action.title !== habit.title) changes.push(`Title: ${habit.title} → ${action.title}`);
       if (action.type !== undefined && action.type !== rule.type) changes.push(`Type: ${rule.type} → ${action.type}`);
       if (action.measurement !== undefined) { const unit = unitOf(measurementFor(action.measurement, type)); changes.push(`Measured in ${unit || 'done or not'}`); }
@@ -569,7 +582,7 @@ export function planAction(action: Action, env: Env): PlanResult {
       let before: Habit | undefined;
       const mine = (s: Stores) => s.habits.habits.find(h => h.id === habit.id);
       return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Change the habit "${habit.title}"`, lines: [...changes, 'From today; earlier days keep the rule they had, as in Habits'], where: `Habits · ${habit.title}`, day: null, estimate: false},
-        write: s => { before = mine(s); if (!before) throw Error('This habit is no longer here.'); return {habits: editHabit(s.habits, habit.id, input, env.now)}; },
+        write: s => { before = mine(s); if (!before) throw Error('This habit is no longer here.'); return {habits: editHabit(s.habits, habit.id, inputFor(before), env.now)}; },
         undo: {label: 'Put the habit back as it was', write: s => before ? {habits: habitDataSchema.parse({...s.habits, habits: s.habits.habits.map(h => h.id === habit.id ? before! : h)})} : {}, unchanged: (afterApply, now) => same(mine(afterApply), mine(now))},
         activity: {id: `habit-edit:${habit.id}:${at}`, title: `Habit changed: ${action.title ?? habit.title}`}}};
     }
@@ -590,14 +603,20 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (!changes.length) return refuse(`"${goal.name}" already is as proposed; nothing to change.`);
       const next = privateGoalSchema.safeParse({...goal, ...(action.name !== undefined ? {name: action.name} : {}), target, ...(action.targetDate !== undefined ? {targetDate: action.targetDate ?? undefined} : {}), ...(action.category !== undefined ? {category: action.category} : {}), ...(action.notes !== undefined ? {notes: action.notes} : {})});
       if (!next.success) return refuse(`This change cannot be made as proposed: ${next.error.issues[0]?.message ?? 'check its fields'}.`);
-      const previous = goal, mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id);
+      const mine = (s: Stores) => s.platform.goals.find(g => g.id === goal.id);
       // The platform keeps its own ledgers on a goal (`planRevisions`, `lifecycle`) and appends to them on the way in and
       // on the way back, as it does for the Goals page's form; the card's record is the plain fields, compared without them.
       const plain = (g: PrivateGoal | undefined) => { if (!g) return undefined; const {planRevisions, lifecycle, ...rest} = g; void planRevisions; void lifecycle; return rest; };
-      const restored = (g: PrivateGoal) => { const back = {...g, name: previous.name, target: previous.target, notes: previous.notes, targetDate: previous.targetDate, category: previous.category}; if (previous.targetDate === undefined) delete back.targetDate; if (previous.category === undefined) delete back.category; return privateGoalSchema.parse(back); };
+      // Session Y Part 4 (SECURITY_REVIEW_Y F3): only the named fields are written, onto the goal as it is when the card is
+      // added (checked again: here, open, not locked); Undo puts back only those fields, as they were just before.
+      type Named = Partial<Pick<PrivateGoal, 'name' | 'target' | 'targetDate' | 'category' | 'notes'>>;
+      const values: Named = {...(action.name !== undefined ? {name: action.name} : {}), ...(action.target !== undefined ? {target} : {}), ...(action.targetDate !== undefined ? {targetDate: action.targetDate ?? undefined} : {}), ...(action.category !== undefined ? {category: action.category} : {}), ...(action.notes !== undefined ? {notes: action.notes} : {})};
+      const fields = Object.keys(values) as (keyof Named)[];
+      const withFields = (g: PrivateGoal, values: Named) => { const out: Record<string, unknown> = {...g}; for (const k of fields) { if (values[k] === undefined) delete out[k]; else out[k] = values[k]; } return privateGoalSchema.parse(out); };
+      let before: Named | undefined;
       return {ok: true, plan: {target: 'platform', card: {kind: action.kind, title: `Change the goal "${goal.name}"`, lines: [...changes, 'Only these details; its plan, funding and milestones stay as they are'], where: 'Goals', day: null, estimate: false},
-        write: s => { const current = mine(s); if (!current) throw Error('This goal is no longer here.'); if (current.locked) throw Error('This goal is locked now. Unlock it in Goals first.'); return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, ...plain(next.data)} : g)})}; },
-        undo: {label: 'Put the goal back as it was', write: s => ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? restored(g) : g)})}), unchanged: (afterApply, now) => same(plain(mine(afterApply)), plain(mine(now)))},
+        write: s => { const current = mine(s); writableGoal(current); before = Object.fromEntries(fields.map(k => [k, current[k]])) as Named; return {platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? withFields(g, values) : g)})}; },
+        undo: {label: 'Put the goal back as it was', write: s => before ? ({platform: platformSchema.parse({...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? withFields(g, before!) : g)})}) : {}, unchanged: (afterApply, now) => same(plain(mine(afterApply)), plain(mine(now)))},
         activity: {id: `goal-edit:${goal.id}:${at}`, title: `Goal changed: ${action.name ?? goal.name}`}}};
     }
     case 'log-mood': {

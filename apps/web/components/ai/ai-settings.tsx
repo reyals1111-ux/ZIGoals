@@ -196,7 +196,9 @@ export default function AiSettings() {
     finally { setModelsBusy(false); }
   };
   const disconnect = async () => {
-    try { if (data.provider) await forgetKey(scope, data.provider); } catch { /* the store may be gone already */ }
+    // Session Y Part 4 (SECURITY_REVIEW_Y F12): every key this account remembered on this device goes, as the message says,
+    // including one left by an earlier provider whose setup record was reset.
+    try { await forgetAiKeys(scope); } catch { /* the store may be gone already */ }
     dropMemoryKeys();
     save(s => ({...s, enabled: false, mode: null, provider: null, model: null, localServer: null, baseUrl: null, subscriptionApp: null, connectedOn: undefined}), 'Disconnected. The key was removed from this device; your switches and instructions are kept.');
     setModels(null);

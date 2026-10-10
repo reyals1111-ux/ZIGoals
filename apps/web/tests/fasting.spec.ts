@@ -83,6 +83,54 @@ test('a fast is stopped automatically at 24 hours, and the page never praises a 
   expect((await stored(page))!.sessions.map(s => s.stoppedBy)).toEqual(['person', 'limit']);
 });
 
+// Session Y Part 2 (ADR-018): `:66` failed alone on the owner's Mac (Brussels) and passed in CI. With the sync writes on,
+// the page showed the 24-hour stop only once its write had landed, so a stop saved late, or not at all, left a running
+// clock and no note. The page now shows the stop from the time itself and saves it as before; this test takes the save
+// away after the reload and moves the clock without firing the page's minute tick.
+test('the automatic stop shows right after a reload, even when saving it fails', async ({page}) => {
+  const timer = await openTimer(page);
+  await timer.getByRole('group', {name: 'Fasting target'}).getByRole('button', {name: '16:8', exact: true}).click();
+  await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
+  await expect(timer.locator('.fasting-clock')).toHaveText('Fasting · 0 h 00 min of 16 h');
+  const before = await page.evaluate(key => localStorage.getItem(key), HOME);
+  await page.addInitScript(key => {
+    const set = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (name: string, value: string) { if (name === key) throw new DOMException('fixture: storage refused', 'QuotaExceededError'); return set.call(this, name, value); };
+  }, HOME);
+  await page.clock.setSystemTime(new Date(Date.parse('2026-09-15T10:00:00.000Z') + 25 * 3_600_000));
+  await page.reload();
+  const after = await openTimer(page);
+  await expect(after.getByRole('status')).toHaveText('This fast was stopped automatically at 24 hours.');
+  await expect(after.locator('.fasting-clock')).toHaveCount(0);
+  await expect(after.getByRole('list')).toContainText('24.0 h · target 16 h · stopped at 24 h');
+  await expect(after.getByRole('button', {name: 'Start fast', exact: true})).toBeEnabled();
+  // Nothing was saved (the fixture refused it): the stored fast is still the running one.
+  expect(await page.evaluate(key => localStorage.getItem(key), HOME)).toBe(before);
+});
+
+// Session Y Part 2 follow-up (ADR-018): a fast starts when Start is tapped. Its save waits for the storage lock; while it
+// waits, two hours pass on the clock; the fast still counts from the tap (it began when the save ran before).
+test('a fast starts at the tap, even when its save waits its turn', async ({page}) => {
+  const timer = await openTimer(page);
+  await timer.getByRole('group', {name: 'Fasting target'}).getByRole('button', {name: '16:8', exact: true}).click();
+  await page.evaluate(() => {
+    const w = window as unknown as {__held: (() => void)[]; __request: LockManager['request']};
+    w.__held = []; w.__request = LockManager.prototype.request;
+    LockManager.prototype.request = function (this: LockManager, ...args: unknown[]) { return new Promise<unknown>(resolve => { w.__held.push(() => resolve((w.__request as (...a: unknown[]) => Promise<unknown>).apply(this, args))); }); } as unknown as LockManager['request'];
+  });
+  const tapped = await page.evaluate(() => Date.now());
+  await timer.getByRole('button', {name: 'Start fast', exact: true}).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as {__held: unknown[]}).__held.length)).toBeGreaterThan(0);
+  await page.clock.fastForward(2 * 3_600_000);
+  await page.evaluate(() => { const w = window as unknown as {__held: (() => void)[]; __request: LockManager['request']}; LockManager.prototype.request = w.__request; for (const release of w.__held.splice(0)) release(); });
+  await expect(timer.locator('.fasting-clock')).toHaveText('Fasting · 2 h 00 min of 16 h');
+  const started = (await stored(page))!.sessions.at(-1)! as {startedAt?: string};
+  expect(started.startedAt).toBeDefined();
+  // From the tap (the clock runs on by itself for the few seconds the test takes), never from the save two hours later.
+  expect(Date.parse(started.startedAt!) - tapped).toBeGreaterThanOrEqual(0);
+  expect(Date.parse(started.startedAt!) - tapped).toBeLessThan(60_000);
+});
+
 test('Showcase: the fictional fast is labelled and viewing writes nothing; reduced motion keeps the bar still', async ({page}) => {
   await page.emulateMedia({reducedMotion: 'reduce'});
   await page.goto('/app/settings');

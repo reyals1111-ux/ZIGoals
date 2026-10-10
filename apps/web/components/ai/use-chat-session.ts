@@ -47,6 +47,7 @@ import {streamHosted} from '../../lib/ai/hosted';
 import type {HostedState} from './use-hosted';
 import {getAccountScope} from '../../lib/account-session';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, readAs, shortReply} from '../../lib/ai/on-device-chat';
+import {staleHandles} from '../../lib/ai/handles';
 
 /**
  * One conversation with the person's own AI (ADR-012, Part 6). The request goes from this browser straight to the
@@ -56,7 +57,9 @@ import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, onDevicePrompts, parseRewrite, re
  */
 export type ChatFailure = {kind: AiError['kind'] | 'missing-key' | 'not-connected' | 'full' | 'save'; title: string; steps: string[]};
 /** Records sent with a question on top of the page's data ("Ask my AI for more"): the exact text and the reply's handles. */
-export type ExtraData = {text: string; handles: readonly Handle[]};
+export type ExtraData = {text: string; handles: readonly Handle[];
+  /** Whether the Health gate was open when these records were chosen (set by `send`); a resend drops them once it closed (Session Y Part 4, F4). */
+  health?: boolean};
 export type Confirmation = {text: string; fit: Fit; budget: number; reuse: boolean; extra?: ExtraData; deep?: boolean; images?: readonly ChatImage[]; log?: boolean;
   /** Session V Part 10: every option of the message, so "Send anyway" sends it exactly as asked. */
   options: SendOptions};
@@ -89,6 +92,8 @@ export type LocalInfo = {reply: LocalReply; question: string;
 export type ChatSession = {
   chat: Chat; status: 'idle' | 'pending' | 'streaming'; draft: string; failure: ChatFailure | null; confirmation: Confirmation | null; saveNote: string | null;
   parsed: ReadonlyMap<string, ParsedReply>; handlesFor: (turnId: string) => readonly Handle[];
+  /** Session Y Part 4 (SECURITY_REVIEW_Y F1): true once for a reply that arrived in this session; its cards may be auto-added then, never again. */
+  claimFresh: (turnId: string) => boolean;
   send: (text: string, options?: SendOptions) => Promise<void>; stop: () => void; regenerate: () => Promise<void>; dismissFailure: () => void; cancelConfirmation: () => void;
   /** Session V Part 3: a question first meets the local answers; only what is not a lookup goes to the person's AI. */
   ask: (text: string, options?: SendOptions) => Promise<void>; choose: (question: string, choice: LocalChoice) => void;
@@ -122,7 +127,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const setChat = useCallback((next: Chat) => { chatRef.current = next; setChatState(next); }, []);
   const [status, setStatus] = useState<ChatSession['status']>('idle'), [draft, setDraft] = useState(''), [failure, setFailure] = useState<ChatFailure | null>(null), [confirmation, setConfirmation] = useState<Confirmation | null>(null), [saveNote, setSaveNote] = useState<string | null>(null);
   const abort = useRef<AbortController | null>(null), handles = useRef(new Map<string, readonly Handle[]>()), frame = useRef<(() => void) | null>(null), pendingText = useRef('');
-  const locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>()), photos = useRef(new Map<string, readonly ChatImage[]>());
+  const fresh = useRef(new Set<string>()), locals = useRef(new Map<string, LocalInfo>()), extras = useRef(new Map<string, ExtraData>()), photos = useRef(new Map<string, readonly ChatImage[]>());
   // Session V Part 6, all in memory for this session: provider metadata per model, models that refused tools, the exact
   // tool results of each reply, and the latest context (a private screen opening mid-answer stops the lookups).
   const capabilities = useRef(new Map<string, Promise<Capability>>()), known = useRef(new Map<string, Capability>()), fellBack = useRef(new Set<string>()), lookups = useRef(new Map<string, Lookup[]>());
@@ -130,11 +135,15 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   useEffect(() => { contextRef.current = context; }, [context]);
   const [looking, setLooking] = useState<readonly string[]>([]), [lastMode, setLastMode] = useState<ChatSession['lastMode']>(null), [spendCheck, setSpendCheck] = useState<SpendCheck | null>(null), [usageNote, setUsageNote] = useState<string | null>(null);
   // A new scope (account change) starts a fresh, empty conversation; nothing from the previous one is kept in memory.
-  useEffect(() => { abort.current?.abort(); handles.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
+  useEffect(() => { abort.current?.abort(); handles.current.clear(); fresh.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setDraft(''); setStatus('idle'); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps -- only the scope resets the chat
   useEffect(() => () => { abort.current?.abort(); frame.current?.(); }, []);
   const persist = useCallback((next: Chat) => { if (!next.turns.length) return; store.save(next).then(() => setSaveNote(null)).catch(() => setSaveNote(SAVE_NOTE)); }, [store]);
   const parsed = useMemo(() => { const map = new Map<string, ParsedReply>(); for (const turn of chat.turns) if (turn.role === 'assistant') map.set(turn.id, parseReply(turn.text)); return map; }, [chat.turns]);
-  const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? context.context?.handles ?? [], [context.context]);
+  // A reply's handles (h1, h2…) name the records of the page it was asked on, kept in memory for this session. A turn from
+  // before a reload or from History has none: its cards may still name a record by its title on this page, never by a
+  // handle, which could now mean another record (SECURITY_REVIEW_Y F1).
+  const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? staleHandles(context.context?.handles ?? []), [context.context]);
+  const claimFresh = useCallback((turnId: string) => fresh.current.delete(turnId), []);
   const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
     if (!text && !stopped) return;
     // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
@@ -144,7 +153,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
     const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {})};
     if (extra.lookups?.length) lookups.current.set(turn.id, extra.lookups);
-    handles.current.set(turn.id, contextHandles);
+    handles.current.set(turn.id, contextHandles); fresh.current.add(turn.id);
     let next: Chat;
     try { next = appendTurn(chatRef.current, turn); } catch { next = {...chatRef.current, turns: [...chatRef.current.turns.slice(1), turn]}; }
     setChat(next); persist(next);
@@ -165,6 +174,12 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const rememberArea = useCallback((chatId: string) => { if (!context.attaches) return; try { rememberChatArea(getAppStorage(), chatId, context.area); } catch { /* History's filter is a convenience */ } }, [context.area, context.attaches]);
   const send = useCallback(async (raw: string, options: SendOptions = {}) => {
     const text = raw.trim(); if (!text || abort.current) return;
+    // Session Y Part 4 (SECURITY_REVIEW_Y F4): a resend (Regenerate, Think deeper, "Send anyway", the monthly cap's confirm)
+    // replays what the first send carried. It meets the gates of this moment: with Health no longer shared, a meal photo
+    // and records chosen while Health was shared stay on the device.
+    const healthNow = context.gates.health;
+    if (options.extra && options.extra.health === undefined) options = {...options, extra: {...options.extra, health: healthNow}};
+    if (!healthNow && (options.images?.length || options.extra?.health)) { const {images, extra, ...rest} = options; void images; options = {...rest, ...(extra && !extra.health ? {extra} : {})}; }
     if (!hosted && (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription')) { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
     // ZIGoals hosted stands in for the person's provider: the relay chooses the model; the wire is OpenAI's.
     const providerId = hosted ? 'openai' as const : settings.provider!, account = hosted ? getAccountScope() : null;
@@ -337,7 +352,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let next: Chat;
     try { next = appendTurn(appendTurn(before, user), answer); }
     catch { setFailure({kind: 'full', title: 'This chat is full.', steps: ['Start a new chat to go on; this one stays in your history.']}); return; }
-    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})});
+    locals.current.set(answer.id, {reply, question, ...(results?.length ? {results} : {})}); fresh.current.add(answer.id);
     setFailure(null); setConfirmation(null); setChat(next); persist(next);
     if (!before.turns.length) rememberArea(next.id);
     zigiSignals.emit(localSignal(reply, question));
@@ -409,8 +424,8 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   const localFor = useCallback((turnId: string) => locals.current.get(turnId), []);
   /** Session V Part 10: words ZIGi writes on the device (the /help list, a command that needs an AI), kept as a local turn. */
   const say = useCallback((shown: string, text: string) => answerLocally(shown, shown, {kind: 'answer', text, calls: []}), [answerLocally]);
-  const startNew = useCallback(() => { abort.current?.abort(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [scope, setChat, settings.model, settings.provider]);
-  const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); setChat(found); setFailure(null); setConfirmation(null); } }, [setChat, store]);
+  const startNew = useCallback(() => { abort.current?.abort(); fresh.current.clear(); setChat(newChat(scope, settings.provider, settings.model)); setFailure(null); setConfirmation(null); setSpendCheck(null); setUsageNote(null); }, [scope, setChat, settings.model, settings.provider]);
+  const open = useCallback(async (id: string) => { const found = await store.read(id); if (found) { abort.current?.abort(); fresh.current.clear(); setChat(found); setFailure(null); setConfirmation(null); } }, [setChat, store]);
   const rename = useCallback(async (id: string, title: string) => { await store.rename(id, title); if (chatRef.current.id === id) setChat({...chatRef.current, title: title.trim() || chatRef.current.title}); }, [setChat, store]);
   const remove = useCallback(async (id: string) => { await store.remove(id); if (chatRef.current.id === id) startNew(); }, [startNew, store]);
   const removeAll = useCallback(async () => { await store.removeAll(); startNew(); }, [startNew, store]);
@@ -427,6 +442,6 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const turns = chatRef.current.turns.map(t => { if (t.id !== turnId || t.role !== 'assistant') return t; const next = {...t}; if (value) next.feedback = value; else delete next.feedback; return next; });
     const next = {...chatRef.current, turns}; setChat(next); persist(next);
   }, [persist, setChat]);
-  return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
+  return {chat, status, draft, failure, confirmation, saveNote, parsed, handlesFor, claimFresh, send, stop, regenerate, dismissFailure, cancelConfirmation, ask, choose, askMore, moreText, localFor, startNew, open, list, search, rename, remove, removeAll,
     looking, lookupsFor, lastMode, thinkDeeper, spendCheck, confirmSpend, cancelSpend, usageNote, toolState, pin, setFeedback, say};
 }

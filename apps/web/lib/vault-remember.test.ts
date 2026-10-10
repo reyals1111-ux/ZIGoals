@@ -8,7 +8,12 @@ import {activateAccount,clearAccountSession,getAccountScope,isAccountLocked,lock
 import {createDeviceKey,createVault,deviceCommitment,manifestDigest,sealDigest,unlockVaultForDevice} from './vault/crypto';
 import {DEVICE_DATABASE,readDevices,rememberDevice} from './vault/device-unlock';
 import {StaleDeviceError,noteAccessDenial} from './vault/stale-device';
-const h=vi.hoisted(()=>({access:{} as any,manifest:null as any,session:'',signedIn:null as string|null,held:[] as string[],requests:[] as string[],synchronize:vi.fn()}));
+import {getAppStorage} from './showcase-storage';
+import {HABITS_KEY} from './habits';
+import {readEverything} from './export/everything';
+import {habitsV2} from './vault/format-fixtures';
+import {DENIED_DELETED,DENIED_REVOKED} from '../components/vault-sync-controls';
+const h=vi.hoisted(()=>({access:{} as any,manifest:null as any,session:'',signedIn:null as string|null,denied:null as string|null,offline:false,held:[] as string[],requests:[] as string[],synchronize:vi.fn()}));
 vi.mock('../components/account-access',()=>({AccountAccess:(p:any)=>{h.access=p;return null;}}));
 vi.mock('../components/account-devices',()=>({AccountDevices:()=>null}));
 vi.mock('../components/account-deletion',()=>({AccountDeletion:()=>null}));
@@ -17,7 +22,7 @@ vi.mock('../components/domain-cloud-controls',()=>({DomainCloudControls:()=>null
 vi.mock('./vault/account-transport',()=>({accountTransport:()=>({read:async()=>({manifest:h.manifest}),write:async()=>({revision:1})})}));
 vi.mock('./vault/cloud-sync',async original=>({...await original<any>(),synchronize:(...args:any[])=>h.synchronize(...args),cloudSnapshot:async()=>({data:{}}),SyncJournal:class{read=async()=>({base:{},heldDomains:h.held});write=async()=>{};}}));
 vi.mock('./vault/account-data',async original=>({...await original<any>(),captureData:async()=>({}),applyData:async()=>{}}));
-vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
+vi.mock('./vault/local',async original=>({...await original<any>(),localDatabase:{pending:async()=>[],acknowledge:async()=>{}}}));
 import {VaultSyncProvider} from '../components/vault-sync-controls';
 import {VaultSyncControls} from '../components/vault-sync-panel';
 
@@ -31,6 +36,8 @@ let root:Root,element:HTMLDivElement,vault:Awaited<ReturnType<typeof createVault
 const settle=()=>act(async()=>{for(let i=0;i<30;i++)await new Promise(resolve=>setTimeout(resolve,4));});
 function server(){return vi.fn(async(input:RequestInfo|URL,init?:RequestInit)=>{
  const url=String(input);h.requests.push(url);
+ if(h.offline)throw new TypeError('Failed to fetch');
+ if(url.endsWith('?action=status')&&h.denied)return Response.json({signedIn:false,error:h.denied},{status:401});
  if(url.endsWith('?action=status'))return h.signedIn?Response.json({signedIn:true,accountId:h.signedIn}):Response.json({signedIn:false,error:'SIGN_IN_REQUIRED'},{status:401});
  if(url.endsWith('?action=sessions'))return Response.json({sessions:[{id:h.session,label:'This browser',createdAt:'2026-10-02T10:00:00.000Z',current:true}]});
  if(init?.method==='POST'&&String(init.body).includes('refresh'))return h.signedIn?Response.json({signedIn:true,accountId:h.signedIn}):Response.json({error:'SIGN_IN_REQUIRED'},{status:401});
@@ -58,7 +65,7 @@ async function remembered(){await mount();await verified();await unlock(vault.re
 
 beforeEach(async()=>{
  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT',true);vi.stubGlobal('navigator',{locks:{request:async(_key:string,work:()=>unknown)=>work()}});vi.stubGlobal('fetch',server());
- vault=await createVault();h.manifest=vault.manifest;h.session=S1;h.signedIn=A;h.held=[];h.requests=[];h.synchronize.mockReset().mockResolvedValue({data:{},commit:async()=>{}});
+ vault=await createVault();h.manifest=vault.manifest;h.session=S1;h.signedIn=A;h.denied=null;h.offline=false;h.held=[];h.requests=[];h.synchronize.mockReset().mockResolvedValue({data:{},commit:async()=>{}});
 });
 afterEach(async()=>{await unmount();clearAccountSession();localStorage.clear();sessionStorage.clear();vi.unstubAllGlobals();vi.useRealTimers();await new Promise<void>(resolve=>{const r=indexedDB.deleteDatabase(DEVICE_DATABASE);r.onsuccess=r.onerror=r.onblocked=()=>resolve();});});
 
@@ -156,6 +163,26 @@ describe('what makes it ask for the secret again',()=>{
  test('signed out elsewhere or unconfirmed: nothing opens, and the record stays for when the session is back',async()=>{
   await remembered();
   h.signedIn=null;await newTab(false);expect(isAccountLocked()).toBe(true);expect(await readDevices()).toHaveLength(1);
+ });
+ // Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05, owner edit 4): the status check names a revoked session or a deleted account;
+ // only then is the remembered unlock record dropped. The person's records on this device are never touched: they stay
+ // byte for byte, and after signing in and unlocking with the secret they read and export as before.
+ for(const [code,note] of [['SESSION_REVOKED',DENIED_REVOKED],['ACCOUNT_DELETED',DENIED_DELETED]] as const)test(`A7: ${code} at the status check drops only the remembered record; the records stay readable and exportable`,async()=>{
+  await remembered();
+  const habits=JSON.stringify(habitsV2());await act(async()=>getAppStorage().setItem(HABITS_KEY,habits));
+  const physical=`zigoals:account:v1:${A}:${HABITS_KEY}`;expect(localStorage.getItem(physical)).toBe(habits);
+  h.denied=code;await newTab(false);
+  expect(isAccountLocked()).toBe(true);expect(await readDevices()).toEqual([]);expect(localStorage.getItem(physical)).toBe(habits);
+  // In Settings the account panel reads the same answer (account-access.test.ts) and hands it to the vault, which says why.
+  await newTab(true);expect(typeof h.access.onDenied).toBe('function');await act(async()=>h.access.onDenied(code));await settle();expect(element.textContent).toContain(note);
+  // Signed in again (any session), the secret opens the vault; Export everything reads the records unchanged.
+  h.denied=null;await verified();expect(opened()).toBe(false);await unlock(vault.recovery,false);expect(opened()).toBe(true);
+  const {texts}=await readEverything(getAppStorage());expect(texts[HABITS_KEY]).toBe(habits);
+ });
+ test('A7: a failed status request (offline) keeps the remembered record',async()=>{
+  await remembered();
+  h.offline=true;await newTab(false);expect(isAccountLocked()).toBe(true);expect(await readDevices()).toHaveLength(1);
+  h.offline=false;await reload();await verified();expect(opened()).toBe(true);
  });
  test('a routine token expiry keeps it and opens again at once; a revoked session deletes it',async()=>{
   await remembered();

@@ -76,3 +76,39 @@ test('390x844: scrolled past the top the launcher is back in its corner; hidden,
   await tab.click();
   await expect(page.locator('.ai-launcher')).toBeVisible();
 });
+
+// Session Y (ADR-018 Y44): a tap on a control that lies where the corner launcher would sit is the control's, from the
+// press to the release. Before, the press's focus sent the launcher to its corner at once, onto that very control, so
+// the release landed on the launcher and the tap was lost (run10-source-pinning:31's "Options for Bitcoin" in CI).
+// Keyboard focus still sends it to the corner (a11y-wcag-x's 2.4.11 walk covers that path).
+test('390x844: a press on a control under the corner keeps that control under the pointer until the release', async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/app/settings');
+  await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await page.goto('/app/help');
+  await expect(page.locator('.ai-launcher')).toBeVisible();
+  await page.waitForTimeout(1600);
+  // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
+  const target = await page.evaluate(selector => {
+    const box = document.querySelector('.ai-launcher')!, lift = parseFloat(getComputedStyle(box).getPropertyValue('--zigi-rest-lift')) || 0;
+    const L = box.getBoundingClientRect(), C = {left: L.left, right: L.right, top: L.top + lift, bottom: L.bottom + lift};
+    for (const c of document.querySelectorAll<HTMLElement>(`main :is(${selector})`)) {
+      const r = c.getBoundingClientRect(), left = Math.max(r.left, C.left), right = Math.min(r.right, C.right), top = Math.max(r.top, C.top), bottom = Math.min(r.bottom, C.bottom);
+      if (r.width === 0 || right - left < 4 || bottom - top < 4) continue;
+      const x = (left + right) / 2, y = (top + bottom) / 2;
+      if (x >= L.left && x <= L.right && y >= L.top && y <= L.bottom) continue; // under the resting launcher already
+      if (document.elementFromPoint(x, y) !== c && !c.contains(document.elementFromPoint(x, y))) continue;
+      c.setAttribute('data-y44-target', '');
+      return {x, y, lift};
+    }
+    return null;
+  }, CONTROL_SELECTOR);
+  expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+  expect(target!.lift).toBeGreaterThan(0);
+  await page.mouse.move(target!.x, target!.y);
+  await page.mouse.down();
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const under = await page.evaluate(([x, y]) => !!document.elementFromPoint(x!, y!)?.closest('[data-y44-target]'), [target!.x, target!.y]);
+  await page.mouse.up();
+  expect(under, 'the pressed control is still under the pointer, not the launcher').toBe(true);
+});

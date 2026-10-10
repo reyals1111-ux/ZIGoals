@@ -97,6 +97,8 @@
 .habit-vacation-habits { border: 0; padding: 0; margin: 0; display: grid; gap: 4px; }.habit-vacation-habits legend { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: #aaa0bb; padding: 0 0 6px; }
 .habit-vacation-habits label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }.habit-vacation-habits input { width: 22px; height: 22px; margin: 0; }
 .habit-vacation-clear { display: grid; gap: 4px; padding-top: 8px; }.habit-vacation-clear .quiet { min-height: 44px; justify-self: start; }
+/* Session Y Part 8: vacation days ahead, each stretch with its own Clear. */
+.habit-vacation-ahead { display: grid; gap: 6px; padding-top: 12px; }.habit-vacation-ahead h3 { margin: 0; font-size: 16px; }.habit-vacation-ahead ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }.habit-vacation-ahead li { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 15px; }.habit-vacation-ahead .quiet { min-height: 44px; min-width: 44px; }
 /* H1 (Session P): on a phone "Vacation" lives at the foot of "Today's rhythm" instead of the hero's row, so the hero keeps
  * its one row ("+ New habit" and the backup link) and the first screen still ends with the rhythm figure and its arrival
  * shine (tests/motion-arrival.spec.ts). Desktop keeps the button in the hero. */

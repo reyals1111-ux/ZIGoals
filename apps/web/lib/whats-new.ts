@@ -5,8 +5,12 @@ import * as z from 'zod';
  * {version: 1, dismissed: [releaseId]} holds no personal content; unreadable bytes count as dismissed (fail closed).
  */
 export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
-/** Session X-Local bumps the release so the card shows once more (ZIGi comes alive); recorded in docs/handoff/X_LOCAL_TO_CLOUD.md. */
-export const WHATS_NEW_RELEASE = '2026-10-session-x';
+/**
+ * Session X-Local bumped the release so the card showed once more (ZIGi comes alive; docs/handoff/X_LOCAL_TO_CLOUD.md);
+ * Session Y bumps it again for its visible changes (ADR-018 Y40). Same key and schema: an earlier build reads the id as
+ * one more dismissed string.
+ */
+export const WHATS_NEW_RELEASE = '2026-10-session-y';
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;

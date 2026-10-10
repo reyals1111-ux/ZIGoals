@@ -47,6 +47,11 @@ export async function audit(scope: Locator): Promise<Finding[]> {
     // aria-label on an element with no role gives no name at all (ARIA 1.2 prohibits it there): it needs role="group" or similar.
     for (const el of all('div[aria-label], span[aria-label], p[aria-label], div[aria-labelledby], span[aria-labelledby], p[aria-labelledby]')) if (!el.getAttribute('role')) out.push({rule: 'aria-prohibited-attr', where: describe(el)});
     for (const el of all('[role=switch], [role=checkbox], [role=radio], [role=menuitemcheckbox]')) if (!(el instanceof HTMLInputElement) && !el.hasAttribute('aria-checked')) out.push({rule: 'aria-required-attr', where: describe(el)});
+    // Session Y Part 9 (persona row 19): a field marked invalid says why: its aria-describedby names a shown message.
+    for (const el of all('[aria-invalid="true"]')) {
+      const messages = (el.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean).map(id => doc.getElementById(id)).filter((m): m is HTMLElement => !!m && !!m.textContent?.trim());
+      if (!messages.length) out.push({rule: 'aria-invalid-message', where: describe(el)});
+    }
     for (const el of all('input[type=radio]')) {
       if (!shown(el)) continue;
       const group = el.closest('fieldset, [role=radiogroup], [role=group]');

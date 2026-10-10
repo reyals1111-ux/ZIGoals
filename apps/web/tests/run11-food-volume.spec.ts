@@ -3,6 +3,9 @@ import {openMealLog} from './phone-nav';
 import {createEmptyHealth,HEALTH_STORAGE_KEY,healthSchema} from '../lib/health';
 test('volume label, measured recipe yield and immutable version survive diary, planning and reload',async({page},testInfo)=>{
  if(testInfo.project.name==='mobile')await page.setViewportSize({width:320,height:844});
+ // Session Y (CI run on df436a1, 2026-10-10): the plan is for "today", so a run across midnight lost the planned meal's
+ // groceries after the reload; the test now starts at a fixed midday, and its few seconds cannot reach another day.
+ await page.clock.install({time:new Date('2026-09-15T10:00:00.000Z')});
  await page.route('**/api/**',r=>r.fulfill({status:503,json:{error:'Synthetic offline'}}));
  await page.addInitScript(({data,key})=>{if(!sessionStorage.getItem('volume-fixture')){localStorage.setItem(key,JSON.stringify(data));sessionStorage.setItem('volume-fixture','1');}},{data:createEmptyHealth(),key:HEALTH_STORAGE_KEY});
  await page.goto('/app/health');await page.getByRole('button',{name:'Foods & recipes',exact:true}).click();await page.getByRole('button',{name:'New food',exact:true}).click();

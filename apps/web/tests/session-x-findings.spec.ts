@@ -92,11 +92,19 @@ test('a page that fails while drawing shows the app\'s error page in the app, ne
   // The coin page is made to throw by replacing one of its strings in the served script (the test fails loudly if that
   // string ever moves). Before Session X, Next's own fallback wrote raw HTML, which Trusted Types refuses: a blank page.
   let patched = 0;
+  // A chunk the Showcase page was still loading when the test moves on is cut off by that navigation (CI run 38010192191:
+  // "Response has been disposed"); only that case is let go, and every chunk the coin page loads is still read and patched.
+  const gone = (error: unknown) => /disposed|has been closed|Target page, context or browser has been closed/.test(String(error));
   await page.route('**/_next/static/chunks/*.js', async route => {
-    const response = await route.fetch(), marker = '"Showcase: fixture prices and figures. These are not market data."';
-    let body = await response.text();
-    if (body.includes(marker)) { body = body.replace(marker, '(()=>{throw Error("a drawing failure for this test")})()'); patched++; }
-    await route.fulfill({response, body});
+    const marker = '"Showcase: fixture prices and figures. These are not market data."';
+    const fetched = await route.fetch().then(async response => ({response, body: await response.text()})).catch(error => { if (gone(error)) return null; throw error; });
+    if (!fetched) return;
+    const {response} = fetched;
+    let {body} = fetched;
+    const patch = body.includes(marker);
+    if (patch) body = body.replace(marker, '(()=>{throw Error("a drawing failure for this test")})()');
+    try { await route.fulfill({response, body}); } catch (error) { if (gone(error)) return; throw error; }
+    if (patch) patched++;
   });
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

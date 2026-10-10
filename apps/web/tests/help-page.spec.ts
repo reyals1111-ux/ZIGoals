@@ -168,3 +168,24 @@ test('New: your whole life: nineteen linkable questions; a hash opens its answer
   await expect(page.locator('#help-w-music')).toContainText('only up to five accounts the owner lists can connect');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
+
+// Session Y (ADR-018 Y40): this release's four answers sit under "Good to know about the Alpha", each linkable from What's new.
+test('Session Y: four linkable answers; a hash opens each and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const section = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true});
+  const answers: [string, string][] = [
+    ['y-vacation', 'it removes those planned skips from today on'],
+    ['y-minus', 'never goes below zero'],
+    ['y-unit', 'while nothing recorded counts in that unit yet'],
+    ['y-sync', 'Health sync stays off in this tab until you tick'],
+  ];
+  for (const [id] of answers) await expect(section.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(section.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, text] of answers) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(text);
+  }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});

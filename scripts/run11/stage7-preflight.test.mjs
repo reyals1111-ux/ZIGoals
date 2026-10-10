@@ -63,3 +63,19 @@ test('wrong tool versions and a shallow history fail with what the repository pi
  expect(statuses(result)).toMatchObject({'node version':'FAIL','pnpm version':'FAIL','wrangler version':'FAIL','git: full clone containing the preparation commit':'FAIL'});
  expect(report(result)).toContain('22.22.0; the repository pins 24.19.0');expect(report(result)).toContain('not found; the repository pins 11.19.0');
 });
+
+// Session Y Part 10: an env file within the owner build's reach (the app, or the monorepo root found by its lockfile, as
+// build:alpha decides) fails the preflight by path; its contents never reach the report. `.env.example` passes.
+test('an env file in the app or the monorepo root fails by path, never by contents; .env.example passes',async()=>{
+ const {root,first}=await opsCheckout();
+ await writeFile(join(root,'pnpm-lock.yaml'),'lockfileVersion: 9.0\n');git(root,'add','pnpm-lock.yaml');git(root,'commit','-q','-m','lockfile');
+ const label='no .env files within the build\'s reach';
+ expect(statuses(preflight(root,tools(first)))[label]).toBe('PASS');
+ await writeFile(join(root,'apps/web/.env.example'),'ZIGOALS_EXAMPLE=placeholder\n');
+ expect(statuses(preflight(root,tools(first)))[label]).toBe('PASS');
+ for(const path of ['apps/web/.env.local','.env.production'])await writeFile(join(root,path),'ZIGOALS_SECRET_FIXTURE=do-not-print-me\n',{mode:0o600});
+ const result=preflight(root,tools(first)),check=result.checks.find(c=>c.label===label);
+ expect(check.status).toBe('FAIL');expect(result.ok).toBe(false);
+ expect(check.detail).toContain('apps/web/.env.local');expect(check.detail).toContain('.env.production');expect(check.detail).not.toContain('.env.example');
+ const text=report(result);expect(text).toContain('apps/web/.env.local');expect(text).not.toContain('do-not-print-me');expect(text).not.toContain('ZIGOALS_SECRET_FIXTURE');
+});

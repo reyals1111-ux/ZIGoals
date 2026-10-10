@@ -1,4 +1,4 @@
-import {cloudSnapshot,mergePrivateData,type CloudTransport,type PrivateData,type SyncState,SyncJournal,type Domain} from './cloud-sync';
+import {cloudSnapshot,mergePrivateData,refuseOlderEpoch,type CloudTransport,type PrivateData,type SyncState,SyncJournal,type Domain} from './cloud-sync';
 import {type VaultManifest} from './crypto';
 import {encryptBackup} from './backup';
 export type ForwardReview={id:string;account:string;original:SyncState;local:PrivateData;cloud:PrivateData;merged:PrivateData;revision:number;domains:Domain[];file:string;recovery:string};
@@ -8,7 +8,8 @@ export async function prepareForwardRecovery(account:string,local:PrivateData,tr
  if(original.pending.vault!==manifest.vault)throw Error('Queued work belongs to another vault.');
  if((original.pendingHealth||original.pending.changes.some(r=>r.domain==='health'))&&!domains.includes('health'))throw Error('Review queued Health work only after explicitly enabling Health sync.');
  domains=domains.filter(d=>!original.heldDomains?.includes(d));
- const remote=await cloudSnapshot(transport,key,manifest,original.revision,domains,(original.epoch??1)===manifest.epoch?original.headRevision:0,(original.epoch??1)===manifest.epoch?original.headDigest:null);fence();
+ refuseOlderEpoch(original,manifest);
+ const remote=await cloudSnapshot(transport,key,manifest,original.revision,domains,original.headRevision,(original.epoch??1)===manifest.epoch?original.headDigest:null);fence();
  for(const domain of domains)if((original.domainGenerations?.[domain]??0)!==(remote.domainGenerations[domain]??0)&&local[domain]!==undefined)throw Error('A cloud section was deleted. Preserve the queue and review that deletion before forward recovery.');
  const select=(data:PrivateData)=>Object.fromEntries(domains.filter(d=>data[d]!==undefined).map(d=>[d,data[d]]));
  const merged=mergePrivateData(select(original.base),select(local),remote.data);validate(merged,select(original.base));validate(merged,select(local));validate(merged,remote.data);

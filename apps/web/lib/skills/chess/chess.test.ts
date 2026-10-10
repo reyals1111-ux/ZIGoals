@@ -108,7 +108,8 @@ describe('on this device', () => {
     expect(s.schemaVersion).toBe(3);
     expect(dashboardSettingsSchema.parse(s)).toEqual(s);
     const habitId = '59a35604-3696-4a78-b455-000000000009';
-    const fresh = () => createHabit(emptyHabitData(), {title: 'Play a game', category: 'Personal', description: '', notes: '', schedule: {kind: 'daily'}, measurement: {kind: 'count', unit: 'times'}, target: 1}, new Date('2026-10-01T08:00:00.000Z'), habitId);
+    // The habit journal is in UTC, as the games' times are written (Session Y Part 2: the machine's own zone no longer decides).
+    const fresh = () => createHabit({...emptyHabitData(), timeZone: 'UTC'}, {title: 'Play a game', category: 'Personal', description: '', notes: '', schedule: {kind: 'daily'}, measurement: {kind: 'count', unit: 'times'}, target: 1}, new Date('2026-10-01T08:00:00.000Z'), habitId);
     let habits = fresh();
     s = setChessHabit(s, habitId, AT);
     const now = new Date('2026-10-07T18:00:00.000Z');

@@ -304,6 +304,56 @@ Facts to start from:
 32. **API credits from a personal plan.** Do the credits' program terms allow using them to serve other people's requests (friends on the allowlist), or only the plan holder's own development? Does using them change who the customer of Anthropic is?
 33. **Health through the relay.** For Health records (GDPR Art. 9) sent to Anthropic with the person's explicit tick: is the existing disclosure enough, or does Anthropic need naming in that box, and does Anthropic's agreement cover special-category data?
 
+### 10a. API credits from a Max or Team plan: what the sources say (added 2026-10-09, Session Y Part 12; research, not advice)
+
+Read on 2026-10-09 (source, dated). Starting points were the owner's own reading the same day; each point below was
+checked against the page itself.
+- **[Supplemental Credit Terms](https://www.anthropic.com/legal/credit-terms)** ("Effective March 4, 2024"; the claim
+  flow links them as the program terms you accept by linking an organization):
+  - **Who may use them:** "Credits may only be used by the holder of the Anthropic account to which the Credits are
+    associated."
+  - **Transfer and sale:** "Customer may not transfer or sell Credits, whether paid for or provided as part of a
+    promotion"; credits are non-refundable.
+  - **Expiry:** purchased "Usage Credits expire one calendar year from the date Anthropic sends the Confirmation
+    Notice"; "Promotional Credits expire at the time indicated when issued"; all credits end if the account is closed.
+    The plan's monthly credits appear in the Console as **promotional credits** with their own expiry (below).
+  - **Not in the terms:** no sentence about using credit-funded API calls to serve other people, about which terms govern
+    that use, or about data use (the page only links the Commercial Terms and the Privacy Policy in its footer).
+- **[API credits for Max and Team plans](https://platform.claude.com/docs/en/about-claude/api-credits-for-subscribers)**
+  and support article [17154008](https://support.claude.com/en/articles/17154008) ("Monthly API credits for Max and Team
+  plans", shown as "Updated yesterday"):
+  - **Amounts:** Max 5x $100 and Max 20x $200 a month; Team $20 per Standard and $100 per Premium seat, pooled, capped at
+    $500. New subscribers can claim after 7 days. Free, Pro and Enterprise are not eligible.
+  - **Covered:** the Claude API (the Messages and Message Batches APIs), the Console Playground, Claude Managed Agents and
+    the Claude Agent SDK, on the Claude Platform only. **Not covered:** interactive Claude Code (terminal, IDE, desktop,
+    web), extra usage in the Claude apps, and Claude on Bedrock, Vertex AI, Foundry or Claude Platform on AWS.
+  - **Refresh and expiry:** each billing cycle (monthly on annual plans); unused credits expire at the end of the cycle,
+    no rollover; the plan's credits are spent before purchased ones.
+  - **No card:** "You don't need to add a card on Claude Platform to claim or use the credit."
+  - **One linked organization:** "Each plan links to one Console organization, and each Console organization can receive
+    credits from one plan. You can't change the linked organization yourself"; changing it needs support.
+  - **Workspaces and limits:** "Every API key and workspace in the linked organization draws from the same balance. To cap
+    spending on a project, give it its own workspace and set that workspace's spend limit." Credit-paid usage counts
+    toward the organization's monthly spend cap (which resets on the 1st of the calendar month, not on the billing
+    cycle); a linked organization moves to at least the Start tier (Build above $200 a month).
+  - **At $0:** with no other credits, "API requests stop until your next monthly API credits arrive. Usage is never
+    charged to your Claude plan." The API answers "Your credit balance is too low to access the Anthropic API…". With
+    purchased credits or auto-reload on, usage continues on those.
+
+**What changes in the relay brief's steps ([ZIGI_RELAY_ACTIVATION.md](../run11/ZIGI_RELAY_ACTIVATION.md)):** nothing
+technical. Link the organization you will keep (it cannot be changed without support); give the relay its own workspace
+with a spend limit (still the first step, since every key in the organization draws on one balance); no card is needed
+while only the plan's credits are used, and requests simply stop at $0 rather than billing anyone; keep auto-reload off
+if you want that hard stop. The monthly spend cap and the credit refresh run on different calendars.
+
+34. **OPEN (ask Anthropic support in writing, then counsel): may a plan's API credits pay for a hosted relay that people
+    other than the account holder use?** The terms say credits "may only be used by the holder of the Anthropic account"
+    and may not be transferred or sold; they do not say whether the holder may use them to run a service whose requests
+    come from other people (the friends on the allowlist). **Until answered in writing: the relay stays owner-only** (the
+    owner's own acceptance account), as ZIGI_RELAY_ACTIVATION.md already says for the first activation.
+35. **Which terms govern credit-paid API use** (Commercial Terms, as for any API key, or something else), and does that
+    change question 31 (processor or controller) or question 33 (Health data through the relay)?
+
 ## For the meeting
 - Bring:
   - [PRIVACY.md](../PRIVACY.md) and [SECURITY.md](../../SECURITY.md);

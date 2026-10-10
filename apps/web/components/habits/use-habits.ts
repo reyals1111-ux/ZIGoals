@@ -27,7 +27,8 @@ export const habitCheckIn = {
     const habit = data.habits.find((item) => item.id === id);
     if (!habit) throw new Error("Habit unavailable.");
     const day = habitDay(habit, date,habitCalendarDay(data));
-    return logHabitValue(data, id, date, Math.min(1_000_000_000, Math.max(0, day.count + delta)), { note: day.note });
+    // Decimal-safe as addValue is (Session Y Part 8: "−" on durations and quantities): 2.2 − 1 is 1.2, never 1.2000000000000002.
+    return logHabitValue(data, id, date, Math.min(1_000_000_000, Math.max(0, Number((day.count + delta).toFixed(9)))), { note: day.note });
   },
   smartDone: (id: string, date: string) => (data: HabitData) => {
     const habit = data.habits.find((item) => item.id === id);

@@ -8,7 +8,7 @@ import {PLATFORM_KEY,platformSchema} from '../positions';
 const DAY=86_400_000;
 const isoDay=(t:number)=>new Date(t).toISOString().slice(0,10);
 export function powerUserRecords(day='2026-10-01',{habits:habitCount=45,days:habitDays=287}:{habits?:number;days?:number}={}){
- const base=buildShowcase(day).records,end=Date.parse(day+'T00:00:00Z');
+ const base=buildShowcase(day,'UTC').records,end=Date.parse(day+'T00:00:00Z');
  const habits=JSON.parse(base[HABITS_KEY]!),template=habits.habits[0],start=end-(habitDays-1)*DAY,startDate=isoDay(start);
  habits.habits=Array.from({length:habitCount},(_,n)=>({...template,id:`93000000-0000-4000-8000-${String(n+1).padStart(12,'0')}`,title:`Habit ${n+1}`,startDate,createdAt:new Date(start).toISOString(),
   rules:[{...template.rules[0],from:startDate}],

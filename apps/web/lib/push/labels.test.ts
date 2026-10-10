@@ -51,6 +51,13 @@ describe('the text a push shows', () => {
     ['the same name twice', [row('Read', '20:00'), {...row('Read', '20:05'), id: 'b'}], '2026-09-20T20:06:00Z', 'Reminder: Read'],
     ['none', [], '2026-09-20T20:05:00Z', GENERIC_TEXT],
     ['an unknown zone', [row('Stretch', '20:00', 'Mars/Olympus')], '2026-09-20T20:05:00Z', GENERIC_TEXT],
+    // Session Y Part 3: across midnight the reminder belongs to the day before (2026-09-20 is a Sunday, bit 64).
+    ['due 23:50, the push at 00:05', [row('Stretch', '23:50')], '2026-09-21T00:05:00Z', 'Reminder: Stretch'],
+    ['due 23:50 on Sundays only, the push at 00:05 on Monday', [row('Stretch', '23:50', 'UTC', 64)], '2026-09-21T00:05:00Z', 'Reminder: Stretch'],
+    ['due 23:50 on Mondays only, the push at 00:05 on Monday', [row('Stretch', '23:50', 'UTC', 1)], '2026-09-21T00:05:00Z', GENERIC_TEXT],
+    ['due 23:50, the push at 00:21 (31 minutes late)', [row('Stretch', '23:50')], '2026-09-21T00:21:00Z', GENERIC_TEXT],
+    ['due 00:10, the push at 23:55 the evening before', [row('Stretch', '00:10')], '2026-09-20T23:55:00Z', GENERIC_TEXT],
+    ['across midnight in another zone', [row('Stretch', '23:45', 'Europe/Brussels')], '2026-09-20T22:05:00Z', 'Reminder: Stretch'],
   ];
   it('the page\'s rule and the worker\'s own copy agree on every case', () => {
     const sw = worker();

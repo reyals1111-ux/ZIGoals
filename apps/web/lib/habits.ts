@@ -405,6 +405,25 @@ export function clearVacation(data: HabitData, range: VacationRange, now = new D
   }
   return next;
 }
+/** Session Y Part 8: a stretch of vacation days still ahead and the habits it covers. */
+export type VacationRun = { from: string; to: string; habitIds: string[] };
+/**
+ * The vacation days still ahead (today on), as stretches the person can clear later: days with a vacation entry, one
+ * after another, joined across days on which none of the stretch's habits is scheduled (a weekday habit's weekend).
+ * Read from the entries themselves; nothing new is stored.
+ */
+export function upcomingVacation(data: HabitData, today: string): VacationRun[] {
+  const byDate = new Map<string, Set<string>>();
+  for (const habit of data.habits) for (const item of habit.entries) if (item.disposition === "skipped" && item.note === VACATION_NOTE && item.date >= today) { const ids = byDate.get(item.date) ?? new Set<string>(); ids.add(habit.id); byDate.set(item.date, ids); }
+  const unscheduled = (from: string, to: string, ids: Iterable<string>) => { const habits = data.habits.filter((habit) => [...ids].includes(habit.id)); return dayList(from, to).every((date) => habits.every((habit) => !scheduledOn(habit, habitRuleOn(habit, date), date))); };
+  const runs: VacationRun[] = [];
+  for (const date of [...byDate.keys()].sort()) {
+    const ids = byDate.get(date)!, last = runs.at(-1), next = last ? addLocalDays(last.to, 1) : null;
+    if (last && (next === date || unscheduled(next!, addLocalDays(date, -1), new Set([...last.habitIds, ...ids])))) { last.to = date; for (const id of ids) if (!last.habitIds.includes(id)) last.habitIds.push(id); }
+    else runs.push({ from: date, to: date, habitIds: [...ids] });
+  }
+  return runs;
+}
 export function habitStats(habit: Habit, today = localDate()) { return memoized(habit, `stats:${today}`, () => computeHabitStats(habit, today)); }
 function computeHabitStats(habit: Habit, today: string) {
   type StreakUnit = "days" | "weeks" | "months" | "years";

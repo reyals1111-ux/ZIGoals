@@ -199,21 +199,26 @@ What a real iPhone can prove that WebKit emulation cannot: the system's animated
 reduced motion from the device's own setting, the keyboard over the composer, haptics-free taps on 44-pt targets. Open
 the alpha on the phone (Safari, then the home-screen app) with the Showcase loaded, and tick:
 
-| Min | Check | Pass looks like |
+| # | Check | Pass looks like |
 |---|---|---|
 | 1 | Open Today | ZIGi's button bottom-right shows the still (the poster), then the idle clip starts breathing (Calm) |
 | 2 | Settings → ZIGi · your AI → ZIGi's look and feel → Animation **Full**; back to Today; wait a minute | a short glance or thought between the idle loops; never two in a row; nothing while you type |
 | 3 | iOS Settings → Accessibility → Motion → Reduce Motion **on**; back to the app | the still only, no clip, no breathing; off again afterwards |
 | 4 | Habits → tap **Complete** on one habit | ZIGi shows a small success, then settles; complete every habit of the day → one calm celebration |
-| 5 | Open the panel (tap ZIGi), type a question | ZIGi listens while you type, thinks while waiting, speaks while the words arrive |
+| 5 | Open the panel (tap ZIGi), type a question; then rotate the phone and back | ZIGi listens while you type, thinks while waiting, speaks while the words arrive; after the rotation the composer stays above the keyboard and the cards remain tappable (44-pt) |
 | 6 | Ask for a breakfast in Log mode | cards appear; **Add all**; a ten-second Undo; Activity → Actions by ZIGi lists them |
 | 7 | Settings → ZIGi · your AI → Auto-accept → switch **Water** on; ask "a glass of water" | "Added by ZIGi" with Undo in a toast; the weight card, if any, still waits for your tap |
 | 8 | Settings → ZIGi · your AI → Meet ZIGi | every state plays with its plain-words meaning; the worn states say which clip they wear |
-| 9 | Close the panel; leave the phone for two minutes | ZIGi waves goodbye, then idles, then sleeps after the inactivity rule |
-| 10 | Rotate the phone, open the panel again | the composer stays above the keyboard; the cards remain tappable (44-pt) |
-| 11 | Lock and unlock the phone | ZIGi is idle again; no clip is stuck mid-frame |
-| 12 | Open Help, then Markets, each at the top of the page | ZIGi rests to the right at mid-height, clear of the chips and the refresh button; scroll down and it glides to its corner above the tab bar; tap it there and the panel opens (Part 9, the owner's H7) |
-| 12 | Settings → ZIGi · your AI → the knock **on**; wait for a reminder | one knock at most per session, never while typing, never in quiet hours |
+| 9 | Close the panel; leave the phone for two minutes; then lock and unlock it | ZIGi waves goodbye, then idles, then sleeps after the inactivity rule; after unlocking ZIGi is idle again and no clip is stuck mid-frame |
+| 10 | Open Help, then Markets, each at the top of the page | ZIGi rests to the right at mid-height, clear of the chips and the refresh button; scroll down and it glides to its corner above the tab bar; tap it there and the panel opens (Part 9, the owner's H7) |
+| 11 | Settings → ZIGi · your AI → the knock **on**; wait for a reminder | one knock at most per session, never while typing, never in quiet hours |
+| 12 | **Dictation by hand:** Settings → ZIGi · your AI → Voice → Speaking to ZIGi → **Browser speech recognition**; open the panel, hold the microphone, say "a glass of water", release | the words appear in the message box (nothing is sent until you press Send); Safari's own permission prompt the first time; if Safari refuses, the panel says why in plain words (automated browsers cannot prove this row: X-Local Part 6e) |
+| 13 | **Wealth → Portfolio in the Showcase:** Settings → Load Showcase Demo; Wealth, then the Portfolio link; back and forth twice | Portfolio opens every time with its holdings; no blank page and no "Application error" (the one-off React #418 seen once on #32; Session Y checks its cause) |
+
+Rows 5, 9 and 12–13 changed on 2026-10-09 (Session Y-Cloud, ADR-018): the old list numbered two rows "12"; the
+keyboard-and-rotation check joined the panel row (5) and the lock check joined the idle row (9), so the two checks the
+owner asked to see explicitly (dictation by hand, Wealth → Portfolio in the Showcase) fit in 13 rows and 15 minutes
+with every earlier check kept.
 
 Anything that differs from the "pass looks like" column is an owner-reported finding for the next session; the clips
 themselves, the manifest and the controller rules are identical on every platform, so a difference here is the

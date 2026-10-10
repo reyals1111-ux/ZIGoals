@@ -36,7 +36,12 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * the person switched on are added by ZIGi itself (never a pre-fill, never past the daily cap, Health kinds only while
  * the gate is open right now), shown for ten seconds with Undo like a batch the person added, and noted in Activity.
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept}) {
+/**
+ * `claimAuto` (Session Y Part 4, SECURITY_REVIEW_Y F1): true exactly once, for a reply that arrived in this session and
+ * was never auto-added before. A list mounted again (History and back, another view, an older chat, a reload) gets
+ * false, so its cards wait for the person, as cards always did before auto-accept.
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean}) {
   const [refs] = useState(() => replyRefs(proposals));
   const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles, refs), status: 'proposed', error: null, after: null})));
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
@@ -76,8 +81,11 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const after: Stores[] = [];
     let error: string | null = null;
     for (const [i, plan] of plans.entries()) {
-      try { after.push(await runner.apply(plan, true)); autoAccept?.note(); }
-      catch (e) { error = e instanceof Error ? e.message : 'A proposal could not be written.'; void i; break; }
+      // Each write first takes its slot under today's cap from the stored count (F2); no slot, no write.
+      const slot = autoAccept?.reserve(chosen[i]!.action.kind) ?? {ok: false, reason: 'off'};
+      if (!slot.ok) { if (slot.reason === 'cap') setCapNote(AUTO_ACCEPT_REASONS.cap); break; }
+      try { after.push(await runner.apply(plan, true)); }
+      catch (e) { error = e instanceof Error ? e.message : 'A proposal could not be written.'; break; }
     }
     const done = chosen.slice(0, after.length), failed = chosen[after.length];
     setItems(current => current.map(item => { const i = done.findIndex(d => d.id === item.id); if (i >= 0) return {...item, status: 'auto', after: after[i]!}; if (failed && item.id === failed.id) return {...item, status: 'proposed', error}; if (chosen.some(c => c.id === item.id)) return {...item, status: 'proposed'}; return item; }));
@@ -90,6 +98,8 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   useEffect(() => {
     if (autoRan.current || !autoAccept?.ready || !runner.ready) return;
     autoRan.current = true;
+    // Only a reply that just arrived, once (F1); a replaced reply never (its pending cards are "Replaced").
+    if (replaced || !claimAuto?.()) return;
     const chosen: ProposalItem[] = []; let extra = 0, capped = false;
     for (const item of items) {
       const plan = planOf(item); if (item.status !== 'proposed' || !plan || plan.target === 'form') continue;
@@ -98,7 +108,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     }
     if (capped) setCapNote(AUTO_ACCEPT_REASONS.cap);
     if (chosen.length) void autoAdd(chosen);
-  }, [autoAccept, autoAdd, items, runner.ready]);
+  }, [autoAccept, autoAdd, claimAuto, items, replaced, runner.ready]);
   const undo = useCallback(async () => {
     if (!undoGroup) return;
     const group = items.filter(item => undoGroup.ids.includes(item.id) && (item.status === 'added' || item.status === 'auto') && item.after && planOf(item));

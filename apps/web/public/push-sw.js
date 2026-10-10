@@ -24,9 +24,12 @@ function labelText(rows, now) {
   for (const row of Array.isArray(rows) ? rows : []) {
     if (!row || typeof row.label !== 'string' || typeof row.time !== 'string' || typeof row.zone !== 'string' || typeof row.weekdays !== 'number') continue;
     const here = zoneClock(now, row.zone);
-    if (!here || !(row.weekdays & (1 << ((here.weekday + 6) % 7)))) continue;
-    const late = minutes(here.clock) - minutes(row.time);
-    if (late >= 0 && late <= WINDOW_MINUTES && !names.includes(row.label)) names.push(row.label);
+    if (!here) continue;
+    // Just after midnight, a reminder from just before it belongs to the day before, on that day's weekday.
+    let late = minutes(here.clock) - minutes(row.time), weekday = here.weekday;
+    if (late < 0) { late += 1440; weekday = (weekday + 6) % 7; }
+    if (!(row.weekdays & (1 << ((weekday + 6) % 7)))) continue;
+    if (late <= WINDOW_MINUTES && !names.includes(row.label)) names.push(row.label);
   }
   if (!names.length) return GENERIC;
   const shown = names.slice(0, 3).join(', '), more = names.length - 3;

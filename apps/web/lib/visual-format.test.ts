@@ -144,3 +144,19 @@ describe("Session M (QA2-08): what depends only on the locale and the currency i
         expect(currencyDigits(code), code).toBe(/^[A-Z]{3}$/.test(code) && !code.startsWith("X") && Intl.supportedValuesOf("currency").includes(code) ? new Intl.NumberFormat("en-US", {style: "currency", currency: code}).resolvedOptions().maximumFractionDigits ?? 2 : null);
   });
 });
+
+// Session Y Part 9 (QA2-08's leftover): a date written many times is kept, never changed.
+describe("repeated dates", () => {
+  it("read the same each time, past the kept limit and across a locale change", () => {
+    const options = { ...utc, month: "short", day: "numeric", year: "numeric" } as const;
+    const days = Array.from({ length: 2600 }, (_, i) => new Date(at.getTime() + i * 86_400_000));
+    const first = days.map(day => formatDate(day, options));
+    expect(first).toEqual(days.map(day => day.toLocaleDateString("en-US", options)));
+    expect(days.map(day => formatDate(day, options))).toEqual(first);
+    setDisplayLocale("de-DE");
+    expect(formatDate(at, utc)).toBe("1.10.2026");
+    setDisplayLocale(DEFAULT_DISPLAY_LOCALE);
+    expect(formatDate(at, utc)).toBe(at.toLocaleDateString("en-US", utc));
+    expect(formatDate(days[0]!, options)).toBe(first[0]);
+  });
+});

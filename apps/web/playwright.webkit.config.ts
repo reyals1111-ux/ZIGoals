@@ -2,13 +2,14 @@ import {defineConfig, devices} from '@playwright/test';
 
 /**
  * Session X-Local Part 6f: the same tests in WebKit (Playwright's build of Safari's engine), two projects, run by hand
- * on the owner's machines with `pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts`. CI's
- * workflow and the main config are unchanged; a WebKit run is evidence labelled "WebKit", never "Safari on an iPhone".
+ * with `pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts`; since Session Y Part 6 also in
+ * CI's `web-webkit` job. A WebKit run is evidence labelled "WebKit", never "Safari on an iPhone".
  */
 export default defineConfig({
   testDir: './tests',
   timeout: 60_000,
-  testMatch: process.env.WEBKIT_MATCH ? new RegExp(process.env.WEBKIT_MATCH) : /(webkit-smoke|zigi-[a-z0-9-]+)\.spec\.ts$/,
+  // Session Y Part 6: CI's WebKit job runs this selection; `webkit-phone` is its curated phone set.
+  testMatch: process.env.WEBKIT_MATCH ? new RegExp(process.env.WEBKIT_MATCH) : /(webkit-[a-z0-9-]+|zigi-[a-z0-9-]+)\.spec\.ts$/,
   testIgnore: /zigi-(real-model|conversations|pages-conversations|day-in-the-life|on-device|browser-agents)\.spec\.ts$/,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3102',

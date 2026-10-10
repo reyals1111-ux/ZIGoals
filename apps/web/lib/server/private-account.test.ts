@@ -56,6 +56,20 @@ test('a revoked durable session is locked even when provider token still validat
  const res=await privateAccountRequest(req,config,async url=>String(url).endsWith('/v1/sessions')?Response.json({error:'SESSION_REVOKED'},{status:401}):Response.json({id:crypto.randomUUID()}));expect(res.status).toBe(401);expect(res.headers.get('set-cookie')).toContain('Max-Age=0');
 });
 
+// Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the status answer names the two denials that end a remembered device's
+// record (the Worker's 401 SESSION_REVOKED and 410 ACCOUNT_DELETED); any other refusal stays SIGN_IN_REQUIRED.
+test('A7: status names a revoked session and a deleted account, clears the cookie, and calls nothing else a denial',async()=>{
+ const req=()=>new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'__Host-zigoals_session=fixture-token'}});
+ const answer=(registry:Response)=>async(url:RequestInfo|URL)=>String(url).endsWith('/v1/sessions')?registry:Response.json({id:crypto.randomUUID()});
+ for(const [registry,error] of [[Response.json({error:'SESSION_REVOKED'},{status:401}),'SESSION_REVOKED'],[Response.json({error:'ACCOUNT_DELETED'},{status:410}),'ACCOUNT_DELETED'],[Response.json({error:'OTHER'},{status:401}),'SIGN_IN_REQUIRED'],[Response.json({error:'ACCOUNT_DELETED'},{status:401}),'SIGN_IN_REQUIRED'],[Response.json({error:'SESSION_REVOKED'},{status:403}),'SIGN_IN_REQUIRED']] as const){
+  const res=await privateAccountRequest(req(),config,answer(registry));
+  expect(res.status,error).toBe(401);expect(res.headers.get('set-cookie')).toContain('Max-Age=0');expect(await res.json()).toEqual({signedIn:false,error});
+ }
+ // A 410 without the deleted code is not a denial: the status is unavailable, the cookie stays.
+ const odd=await privateAccountRequest(req(),config,answer(Response.json({error:'GONE'},{status:410})));
+ expect(odd.status).toBe(503);expect(odd.headers.has('set-cookie')).toBe(false);
+});
+
 test('temporary identity or session-registry outage preserves the session cookie without claiming signed out',async()=>{
  for(const unavailable of ['identity','registry'])for(const status of [429,500,503,507]){
   const req=new Request('https://app.test/api/private-account?action=status',{headers:{cookie:'__Host-zigoals_session=fixture-token'}});
