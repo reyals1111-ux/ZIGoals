@@ -94,3 +94,5 @@ START qwen36-mac-2 2026-10-10T19:21:43Z
 END ui-ui-pages-sonnet 2026-10-10T19:22:55Z rc=0
 START ui-ui-pages-haiku 2026-10-10T19:23:00Z
 END ui-ui-pages-haiku 2026-10-10T19:30:03Z rc=0
+START ui-ui-webkit-panel-sonnet 2026-10-10T19:30:08Z
+END ui-ui-webkit-panel-sonnet 2026-10-10T19:33:56Z rc=0
