@@ -82,3 +82,11 @@ lane, and the API-key one (owner edit 5). Details and evidence: `docs/verificati
   2026-10-17). Not reproducible in Session Y's sandbox (no WebKit). Candidates to look at first: the send path after an
   auto-accepted card was undone in the same chat (`proposal-list.tsx` `claimAuto`/`reserve`, `use-chat-session.ts`
   `claimFresh`), and anything that loops on layout in the chat log ("Jump to the latest message").
+- **For ZIGi's lane (phone, found at Gate C):** the launcher can take a tap meant for a control in its corner. Once a
+  scroll takes the page past 40 px, `ai-launcher.tsx`'s `place()` sends it back to the corner with the glide (about
+  0.3 s); a tap on a control there during the glide gets its pointerdown on the control (which takes the focus) and its
+  pointerup on the launcher, so neither is clicked. Seen as `tests/run10-source-pinning.spec.ts:31` (phone) failing 3
+  times in 51 local runs on PR #80's build (0 of 20 on `e30b7c6`'s, within chance; the code is X-Local's, unchanged by
+  Y): "Options for Bitcoin" focused, its options never opened; the screencast shows the launcher gliding over the "⋯"
+  button between the press and the release. Options: no glide when a scroll sends it back, or no pointer events on the
+  launcher while it glides. Not changed here (ZIGi's lane, the owner's S81 motion).
