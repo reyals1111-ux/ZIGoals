@@ -20,6 +20,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
    // Two refusals carry their own words from a relay before Session U (it named invite-only and email sign-in off; the
    // current relay answers every code request the same way); every other message is this panel's.
    if(res.status===403&&data&&typeof data==='object'&&(data.error==='INVITE_ONLY'||data.error==='EMAIL_UNAVAILABLE')&&typeof data.message==='string'&&data.message.length<=300)throw Error(data.message);
+   if(res.status===429&&data&&typeof data==='object'&&data.error==='CODES_PAUSED_TODAY')throw Error('Sign-in codes are paused for today; try again tomorrow.');
    throw Error(res.status===429?'Please wait before requesting another code.':res.status===401?'Your session expired. Sign in again to continue.':'Account access was not confirmed. Check the code and try again.');}
   return data;}
  const checkSession=useCallback(async()=>{

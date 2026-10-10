@@ -22,6 +22,8 @@ const actionSchema=z.discriminatedUnion('action',[
  * for every address. The panel shows its own words (components/account-access.tsx) and still reads an older relay's 403s.
  */
 export const CODE_REQUEST_MESSAGE='If this address has an invite, a code is on its way. Check your inbox and spam folder, and wait at least 60 seconds before requesting another.';
+/** Session Z-Cloud Part 5 (A5, ADR-019): the answer while the day's ceiling on code emails is reached, for every address. */
+export const CODES_PAUSED_MESSAGE='Sign-in codes are paused for today; try again tomorrow.';
 const reply=(data:unknown,status=200,headers:Record<string,string>={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers}});
 async function readBounded(response:Request|Response,max:number){
  const reader=response.body?.getReader();if(!reader)throw Error('Missing body');const chunks:Uint8Array[]=[];let total=0;
@@ -136,7 +138,10 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
   }
   // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an
   // address that is not on the invite list stays unknown even if sign-ups are ever switched back on.
-  if(admit){const admission=await admit(action.action,action.email);await admission.body?.cancel().catch(()=>{});if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
+  // Session Z-Cloud Part 5 (A5): the day's ceiling on code emails answers in its own words, the same for every address.
+  if(admit){const admission=await admit(action.action,action.email);const paused=admission.status===429&&action.action==='send'&&(await readBounded(admission,1024).catch(()=>null))?.error==='DAILY_LIMIT';await admission.body?.cancel().catch(()=>{});
+   if(paused)return reply({error:'CODES_PAUSED_TODAY',message:CODES_PAUSED_MESSAGE},429);
+   if(!admission.ok)return reply({error:admission.status===429?'TRY_LATER':'AUTH_ADMISSION_UNAVAILABLE',message:'Code requests are temporarily unavailable. Wait before trying again.'},admission.status===429?429:503);}
   if(action.action==='send'){
    // Session U Part 5 (FIX_PLAN A2): whatever the provider does with the request (a code sent; 422 `otp_disabled` or
    // `signup_disabled` for an address not on the invite list; `email_provider_disabled`; its own rate limit; an outage),
