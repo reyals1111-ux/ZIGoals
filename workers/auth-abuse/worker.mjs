@@ -61,16 +61,20 @@ export class AdmissionService extends WorkerEntrypoint{
   const hash=/** @param {string} value */async value=>[...new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))].map(v=>v.toString(16).padStart(2,'0')).join('');
   const email=await hash('email:'+input.email.trim().toLowerCase()),ip=await hash('ip:'+group);
   const shard=/** @param {string} dimension @param {string} value */(dimension,value)=>this.env.ADMISSION.get(this.env.ADMISSION.idFromName(dimension==='global'?'auth-admission-v2:global:send':`auth-admission-v2:${dimension}:${shardOf(value)}`));
-  const call=/** @param {string} dimension @param {string} value */(dimension,value)=>shard(dimension,value).fetch(new Request('https://internal/admit',{method:'POST',body:JSON.stringify({action:input.action,dimension,key:value,email})}));
+  const call=/** @param {string} dimension @param {string} value @param {boolean} [peek] */(dimension,value,peek=false)=>shard(dimension,value).fetch(new Request('https://internal/admit',{method:'POST',body:JSON.stringify({action:input.action,dimension,key:value,email,...(peek?{peek:true}:{})})}));
   // A failed verification is recorded against the email only.
   if(input.action==='verify-failed')return call('email',email);
+  // Session Z-Cloud Gate B (the A5 security read): while the day's ceiling is reached, a code request is refused before
+  // it reserves anything, so retrying on a paused day never uses up the person's own limits for tomorrow.
+  const global=input.action==='send'?await hash('global:send'):'';
+  if(input.action==='send'){const open=await call('global',global,true);if(!open.ok)return open;await open.body?.cancel();}
   // IP first: an IP that is over its limits never consumes the email's budget. Both reserve
   // before provider I/O, including attempts that later fail.
   const byIp=await call('ip',ip);if(!byIp.ok)return byIp;await byIp.body?.cancel();
   if(input.action!=='send')return call('email',email);
   // A code request reserves the day's ceiling last, so a request its IP or email refused never uses it up.
   const byEmail=await call('email',email);if(!byEmail.ok)return byEmail;await byEmail.body?.cancel();
-  return call('global',await hash('global:send'));
+  return call('global',global);
  }
 }
 
@@ -99,7 +103,7 @@ export class AdmissionAuthority{
  /** @param {Request} request */
  async fetch(request){
   const body=await request.json();
-  if(!['send','verify','verify-failed'].includes(body.action)||!['email','ip','global'].includes(body.dimension)||body.action==='verify-failed'&&body.dimension!=='email'||body.dimension==='global'&&body.action!=='send'||![body.key,body.email].every(v=>/^[a-f0-9]{64}$/.test(v??'')))return reply({error:'INVALID_ADMISSION'},400);
+  if(!['send','verify','verify-failed'].includes(body.action)||!['email','ip','global'].includes(body.dimension)||body.action==='verify-failed'&&body.dimension!=='email'||body.dimension==='global'&&body.action!=='send'||body.peek!==undefined&&(body.peek!==true||body.dimension!=='global')||![body.key,body.email].every(v=>/^[a-f0-9]{64}$/.test(v??'')))return reply({error:'INVALID_ADMISSION'},400);
   const observed=this.now();
   // A shard that holds records always has a sweep pending.
   if(await this.state.storage.getAlarm()===null)await this.state.storage.setAlarm(Date.now()+this.sweepMs());
@@ -119,6 +123,8 @@ export class AdmissionAuthority{
     const until=current?.until??(Math.floor(observed/86400000)+1)*86400000,local=Number(this.env.LOCAL_DAILY_SENDS);
     const ceiling=this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?local:DAILY_SENDS;
     if(current&&current.count>=ceiling)return reply({error:'DAILY_LIMIT'},429,Math.max(1,Math.ceil((until-observed)/1000)));
+    // A look before the request reserves its own limits: nothing written. The reservation below stays the authority.
+    if(body.peek===true)return reply({open:true});
     next={until,count:(current?.count??0)+1,next:0};
    }
    else{

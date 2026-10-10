@@ -102,7 +102,11 @@ test('code requests stop at 60 a UTC day across addresses and networks, and only
   expect(await a.call('verify','home0@example.invalid','2001:db8:aa:1::1')).toBe(200);
   // The ceiling holds across a restart and ends at the next UTC midnight.
   await a.restart(midnight-1000);const late=await a.raw('send','later@example.invalid','192.0.2.99');expect(late.status).toBe(429);expect((await late.json()).error).toBe('DAILY_LIMIT');
+  // Gate B (the A5 security read): retrying while paused reserves nothing, so the address and its network are not used up
+  // for tomorrow (6 a day, 60 s apart, would have answered TRY_LATER from the second try and after midnight).
+  for(let i=0;i<7;i++){const again=await a.raw('send','later@example.invalid','192.0.2.99');expect(again.status).toBe(429);expect((await again.json()).error).toBe('DAILY_LIMIT');}
   await a.restart(midnight+1);expect(await a.call('send','tomorrow@example.invalid','192.0.2.100')).toBe(200);
+  expect(await a.call('send','later@example.invalid','192.0.2.99')).toBe(200);
  }finally{await a.close();}
 },120000);
 
