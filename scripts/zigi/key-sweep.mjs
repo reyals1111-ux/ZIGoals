@@ -104,15 +104,26 @@ const dirs = [
 ];
 // Owner edit 3: Playwright's temporary browser profiles (removed with each context, but swept in case one was left behind).
 // Finding 5: a profile left behind by a killed run holds the sealed key as ciphertext the scan cannot see, so a recent one is a hit by itself.
+// A profile a running browser names in its own `--user-data-dir` is a live context of a stage still running, not one left behind:
+// it is walked for the patterns like every other folder, and the push goes on; the moment no process owns it, it is a hit again.
 const recent = Date.now() - 6 * 3600 * 1000;
+let inUse = new Set();
+try { inUse = new Set([...execFileSync('ps', ['-axo', 'command'], {encoding: 'utf8', maxBuffer: 64 * 1024 * 1024}).matchAll(/--user-data-dir=(\S+)/g)].map(m => m[1])); } catch { /* no ps: every recent profile counts as left behind */ }
+let live = 0;
 for (const base of [tmpdir(), '/tmp', '/private/tmp']) {
   try {
     for (const name of readdirSync(base)) if (/^playwright/i.test(name)) {
       const path = join(base, name); dirs.push(path);
-      try { if (/profile/i.test(name) && statSync(path).mtimeMs > recent) hits.push(`${path}: a browser profile left behind in the last six hours (remove it after the stage)`); } catch { /* gone */ }
+      try {
+        if (/profile/i.test(name) && statSync(path).mtimeMs > recent) {
+          if ([...inUse].some(d => d === path || d.startsWith(path + '/'))) live++;
+          else hits.push(`${path}: a browser profile left behind in the last six hours (remove it after the stage)`);
+        }
+      } catch { /* gone */ }
     }
   } catch { /* no such folder */ }
 }
+if (live) console.log(`${live} browser profile(s) in use by a running stage (walked, not counted as left behind).`);
 for (const d of dirs) walk(d);
 if (hits.length) { console.error(`KEY SWEEP: ${hits.length} hit(s) (values never printed):\n${hits.join('\n')}`); process.exit(1); }
 console.log(`Key sweep clean: ${needles.length} pattern(s) over the diff, both histories and ${dirs.length} folders.`);

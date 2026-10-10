@@ -136,6 +136,11 @@ each answered in the `TIER 3 (security)` commit that follows this record:
 6. (low) The prefix needle grew from 12 to 24 characters and is also searched in its base64 (three alignments) and
    UTF-16LE forms; every file is scanned whatever its size or name (the 200 MB ceiling is itself a hit).
 
+- **Finding 5, refined during the UI stages (2026-10-10):** the sweep refused every push while a UI stage was running, because the
+  stage's own live browser profile is a recent `playwright*profile*` folder. A profile that a running browser names in its
+  `--user-data-dir` (read from `ps`) is a live context, not one left behind: it is still walked for the key patterns like every
+  other folder, and the push goes on. The moment no process owns it, a recent profile is a hit again, as the finding asked.
+
 ## Part 7: Session Y's open findings (SECURITY_REVIEW_Y F5–F16), each with a test
 | Finding | Fix | Test |
 |---|---|---|
