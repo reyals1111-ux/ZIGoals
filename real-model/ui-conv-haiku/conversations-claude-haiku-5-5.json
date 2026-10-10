@@ -490,5 +490,743 @@
    "requests": 2,
    "costUsd": 0.000629005
   }
+ },
+ {
+  "id": "laptop-goal",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Draft a goal: a new laptop, 1200 euros by June 2027",
+  "reply": "Here is the corrected draft with the target at 1500 euros. It replaces the earlier card.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"revise\":true,\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```\n\nNothing is saved until you confirm the card.",
+  "cards": [
+   {
+    "kind": "create-goal",
+    "title": "Create the goal \"New laptop\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3501,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:49.710Z",
+  "steps": {
+   "plan": {
+    "ms": 1516,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-goal\",\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1200,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```\n\nThis is a draft you can adjust before adding. Nothing is saved until you confirm the card.\n\n⟪zigi: curious⟫"
+   },
+   "correct": {
+    "ms": 1985,
+    "cards": [
+     {
+      "kind": "create-goal",
+      "title": "Create the goal \"New laptop\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the corrected draft with the target at 1500 euros. It replaces the earlier card.\n\n```zigoals-action\n{\"kind\":\"create-goal\",\"revise\":true,\"name\":\"New laptop\",\"type\":\"VALUE\",\"target\":1500,\"currency\":\"EUR\",\"targetDate\":\"2027-06-01\",\"category\":\"Custom\"}\n```\n\nNothing is saved until you confirm the card."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 257,
+   "cacheWrite": 15378,
+   "cacheRead": 15249,
+   "requests": 2,
+   "costUsd": 0.00220404
+  }
+ },
+ {
+  "id": "goal-note",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a note to my Emergency fund goal: reviewed the budget",
+  "reply": "The earlier note card is still waiting for your confirmation, so this replaces it.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"revise\":true,\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\"}\n```",
+  "cards": [
+   {
+    "kind": "add-goal-note",
+    "title": "Add a note to \"Emergency fund\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3367,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:54.679Z",
+  "steps": {
+   "plan": {
+    "ms": 1388,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"add-goal-note\",\"goal\":\"g1\",\"note\":\"Reviewed the budget.\"}\n```"
+   },
+   "correct": {
+    "ms": 1979,
+    "cards": [
+     {
+      "kind": "add-goal-note",
+      "title": "Add a note to \"Emergency fund\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "The earlier note card is still waiting for your confirmation, so this replaces it.\n\n```zigoals-action\n{\"kind\":\"add-goal-note\",\"revise\":true,\"goal\":\"g1\",\"note\":\"Budget reviewed on Sunday.\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 244,
+   "cacheWrite": 885,
+   "cacheRead": 30010,
+   "requests": 2,
+   "costUsd": 0.0005335250000000001
+  }
+ },
+ {
+  "id": "meditation-minutes",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "I meditated for 12 minutes just now",
+  "reply": "```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"revise\":true}\n```\n\nI've changed that to 20 minutes. Your earlier 12-minute card is marked as replaced, so you only need to confirm this one.",
+  "cards": [
+   {
+    "kind": "log-meditation",
+    "title": "Add mindful minutes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 4051,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:09:59.500Z",
+  "steps": {
+   "plan": {
+    "ms": 1980,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Logging 12 minutes of meditation for today.\n\n```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":12}\n```"
+   },
+   "correct": {
+    "ms": 2071,
+    "cards": [
+     {
+      "kind": "log-meditation",
+      "title": "Add mindful minutes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"log-meditation\",\"minutes\":20,\"revise\":true}\n```\n\nI've changed that to 20 minutes. Your earlier 12-minute card is marked as replaced, so you only need to confirm this one."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 266,
+   "cacheWrite": 2847,
+   "cacheRead": 30708,
+   "requests": 2,
+   "costUsd": 0.000796755
+  }
+ },
+ {
+  "id": "mood-evening",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Today felt okay, a 3",
+  "reply": "Changed to a 4, good. Here is the card to confirm.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "log-mood",
+    "title": "How the day felt",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3789,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:04.914Z",
+  "steps": {
+   "plan": {
+    "ms": 2513,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Got it, a 3 for today. I've put it on a card for you to confirm.\n\nToday's records show no habits still open, 8,800 steps with 45 active minutes, and 750 mL of water logged.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":3}\n```"
+   },
+   "correct": {
+    "ms": 1276,
+    "cards": [
+     {
+      "kind": "log-mood",
+      "title": "How the day felt",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Changed to a 4, good. Here is the card to confirm.\n\n```zigoals-action\n{\"kind\":\"log-mood\",\"mood\":4,\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 326,
+   "cacheWrite": 15360,
+   "cacheRead": 15254,
+   "requests": 2,
+   "costUsd": 0.0022363400000000003
+  }
+ },
+ {
+  "id": "link-club",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "today",
+  "ask": "Add a link to my running club: https://www.strava.com/clubs/zig",
+  "reply": "This replaces the earlier card, so you will see only the new one.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```",
+  "cards": [
+   {
+    "kind": "add-link",
+    "title": "Add the link \"Sunday runners\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3493,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:10.065Z",
+  "steps": {
+   "plan": {
+    "ms": 1743,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"My running club\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "I can add that. It will appear as a button on Today once you confirm.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"My running club\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\"}\n```"
+   },
+   "correct": {
+    "ms": 1750,
+    "cards": [
+     {
+      "kind": "add-link",
+      "title": "Add the link \"Sunday runners\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "This replaces the earlier card, so you will see only the new one.\n\n```zigoals-action\n{\"kind\":\"add-link\",\"label\":\"Sunday runners\",\"url\":\"https://www.strava.com/clubs/zig\",\"icon\":\"strava\",\"revise\":true}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 213,
+   "cacheWrite": 337,
+   "cacheRead": 30292,
+   "requests": 2,
+   "costUsd": 0.00045234500000000005
+  }
+ },
+ {
+  "id": "groceries",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "health",
+  "ask": "Put oat milk and spinach on my grocery list",
+  "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nBananas go on your grocery list as a separate card. Nothing is added until you confirm it.",
+  "cards": [
+   {
+    "kind": "grocery-item",
+    "title": "Add \"Bananas\" to your grocery notes",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 2897,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:14.809Z",
+  "steps": {
+   "plan": {
+    "ms": 1408,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add 2 items to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Oat milk\",\"Spinach\"]}\n```\n\nThese two go on your grocery list as one card. Nothing is added until you confirm it."
+   },
+   "correct": {
+    "ms": 1489,
+    "cards": [
+     {
+      "kind": "grocery-item",
+      "title": "Add \"Bananas\" to your grocery notes",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Bananas\"]}\n```\n\nBananas go on your grocery list as a separate card. Nothing is added until you confirm it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 147,
+   "cacheWrite": 312,
+   "cacheRead": 30944,
+   "requests": 2,
+   "costUsd": 0.00042274
+  }
+ },
+ {
+  "id": "milestone",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "goals",
+  "ask": "Add a milestone to my Japan adventure goal: flights booked",
+  "reply": "Here is the renamed milestone for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\"}\n```",
+  "cards": [
+   {
+    "kind": "add-milestone",
+    "title": "Add a milestone to \"Japan adventure\"",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3289,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:19.010Z",
+  "steps": {
+   "plan": {
+    "ms": 1731,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the milestone for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights booked\"}\n```"
+   },
+   "correct": {
+    "ms": 1558,
+    "cards": [
+     {
+      "kind": "add-milestone",
+      "title": "Add a milestone to \"Japan adventure\"",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "Here is the renamed milestone for your Japan adventure goal.\n\n```zigoals-action\n{\"kind\":\"add-milestone\",\"goal\":\"g3\",\"title\":\"Flights and rail pass booked\"}\n```"
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 192,
+   "cacheWrite": 994,
+   "cacheRead": 30010,
+   "requests": 2,
+   "costUsd": 0.0005211500000000001
+  }
+ },
+ {
+  "id": "reminder-time",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Remind me to meditate at 7 in the morning",
+  "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nThis replaces the 07:00 reminder for Meditate (h4) with one at 07:30, daily. Confirm the card to set it.",
+  "cards": [
+   {
+    "kind": "create-reminder",
+    "title": "Remind me: Meditate",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3278,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:23.730Z",
+  "steps": {
+   "plan": {
+    "ms": 1768,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:00\"}\n```\n\nThis sets a daily reminder for Meditate (h4) at 07:00. Meditate is already complete for today, so it will start tomorrow.\n\n⟪zigi: encouraging⟫"
+   },
+   "correct": {
+    "ms": 1510,
+    "cards": [
+     {
+      "kind": "create-reminder",
+      "title": "Remind me: Meditate",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h4\",\"time\":\"07:30\",\"revise\":true}\n```\n\nThis replaces the 07:00 reminder for Meditate (h4) with one at 07:30, daily. Confirm the card to set it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 264,
+   "cacheWrite": 947,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0005485150000000001
+  }
+ },
+ {
+  "id": "challenge-days",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "project": "desktop",
+  "page": "habits",
+  "ask": "Start a 14 day challenge on my Read habit",
+  "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```\n\nThis replaces the 14-day card with a 21-day challenge on Read (h1), counted from today. Nothing starts until you confirm it.",
+  "cards": [
+   {
+    "kind": "start-challenge",
+    "title": "Start a 21-day challenge",
+    "status": "ai-card ai-card-proposed"
+   }
+  ],
+  "tools": [],
+  "ms": 3194,
+  "score": {
+   "pass": true,
+   "checks": [
+    {
+     "name": "card-of-kind",
+     "pass": true
+    },
+    {
+     "name": "correction-applied",
+     "pass": true,
+     "detail": ""
+    },
+    {
+     "name": "undo-exact",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "numbers": 0
+  },
+  "error": null,
+  "at": "2026-10-10T19:10:28.185Z",
+  "steps": {
+   "plan": {
+    "ms": 1808,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 14-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":14}\n```\n\nThis would start a 14-day challenge on Read (h1), counted from today. Your records show Read complete today at 30 minutes and a 13-day streak. Nothing starts until you confirm the card."
+   },
+   "correct": {
+    "ms": 1386,
+    "cards": [
+     {
+      "kind": "start-challenge",
+      "title": "Start a 21-day challenge",
+      "status": "ai-card ai-card-proposed"
+     }
+    ],
+    "reply": "```zigoals-action\n{\"kind\":\"start-challenge\",\"habit\":\"h1\",\"days\":21,\"revise\":true}\n```\n\nThis replaces the 14-day card with a 21-day challenge on Read (h1), counted from today. Nothing starts until you confirm it."
+   },
+   "cardOfKind": 1,
+   "accept": {
+    "exact": true,
+    "detail": "",
+    "restored": true
+   }
+  },
+  "usage": {
+   "model": "claude-haiku-5-5",
+   "input": 8,
+   "output": 243,
+   "cacheWrite": 1024,
+   "cacheRead": 29734,
+   "requests": 2,
+   "costUsd": 0.0005476400000000001
+  }
  }
 ]
