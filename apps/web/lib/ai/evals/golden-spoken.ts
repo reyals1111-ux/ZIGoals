@@ -83,6 +83,23 @@ const nav = (input: string, expect: {page: string; view?: string} | null) => { c
 nav('um, open my sleep page', {page: 'health', view: 'sleep'}); nav('hey zigi, take me to my portfolio', {page: 'portfolio'}); nav('ok zigi open the settings', {page: 'settings'}); nav('go to habits please', {page: 'habits'}); nav('show me the goals page', {page: 'goals'});
 nav('euh, ga naar mijn gewoontes', {page: 'habits'}); nav('hé zigi, open de instellingen', {page: 'settings'}); nav('open mijn slaappagina', {page: 'health', view: 'sleep'}); nav('laat de portfolio zien', {page: 'portfolio'}); nav('ga naar vandaag', {page: 'today'});
 nav('how many steps today?', null); nav('log two glasses of water', null); nav('open a bottle of wine', null); nav('open my walk habit', null);
+// Session Z-Local Part 6 (owner edit 9): every navigation page has a spoken EN and NL case; the eight pages the set lacked.
+nav('um open my activity', {page: 'activity'});
+nav('ga naar activiteit', {page: 'activity'});
+nav('show me the chess page', {page: 'chess'});
+nav('open schaken', {page: 'chess'});
+nav('take me to the ecosystem', {page: 'ecosystem'});
+nav('open het ecosysteem alsjeblieft', {page: 'ecosystem'});
+nav('open help', {page: 'help'});
+nav('ga naar help', {page: 'help'});
+nav('go to markets', {page: 'markets'});
+nav('open de markten', {page: 'markets'});
+nav('open music', {page: 'music'});
+nav('ga naar muziek', {page: 'music'});
+nav('open staking please', {page: 'staking'});
+nav('toon staking', {page: 'staking'});
+nav('go to wealth', {page: 'wealth'});
+nav('open mijn vermogen', {page: 'wealth'});
 
 // ---- On-device answers, spoken (the Showcase records, Health shared) ----
 const local = (id: string, question: string, expect: LocalCase['expect'], health: 'open' | 'closed' = 'open') => { cases.push({id: `sp-local-${id}`, category: 'local', kind: 'local', question, health, expect}); };
