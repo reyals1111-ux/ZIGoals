@@ -125,3 +125,7 @@ test('L34/L36: a reminder for a new habit is a create-habit card with its time; 
 test('L41: an open-page card comes only when the person asks to go somewhere, never beside an answer to a question', () => {
   expect(ACTION_PROTOCOL).toContain('a question gets its answer and no open-page card');
 });
+
+test('L42: "what do you know about me" calls about_me before answering, even with the page records attached', () => {
+  expect(TOOLS_NOTE).toContain('call it before answering, even when the page');
+});
