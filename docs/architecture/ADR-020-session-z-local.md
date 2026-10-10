@@ -203,7 +203,35 @@ each answered in the `TIER 3 (security)` commit that follows this record:
 F12 and F15 were Y's own (fixed, and an owner item).
 
 ## Rejected options
-None yet.
+- **Tuning the prompt or the oracles to one model.** Every fix round (L19–L42) states a rule of the app or of the harness's
+  conversation flow and is scored on every model; a miss that only one model makes stays a miss in its row.
+- **Scoring the harness as the app answers (device first).** The Node harness keeps scoring the model's reply even when
+  the device would have answered (L30): the UI panel is the truth for device-first behaviour, and mixing the two in one
+  figure would hide which side missed.
+- **Applying a conversation's earlier cards to the records between harness turns.** It would make the harness closer to
+  the app (the person taps Add), but the oracles for follow-up turns were written without it; the protocol now says a
+  record proposed earlier counts as there (L39), which is what the app's flow makes true.
+- **A spoken-message marker from the face to the brain.** Spoken understanding is device-side and post-parse (L6); the
+  message stays the person's exact words, so no field was added (Z-Cloud's ask answered in the handoff).
+- **Raising the harness's repeat budget or re-running a stage until it passes.** A run is reported as it came; a
+  re-run after a fix round is a new row beside the old one, never a replacement.
 
 ## Consequences
-Filled at the end of the session.
+- **The brain is proven on real Claude models with the exact cost of every call** (the ledger on the runs branch, the
+  rendered run table, cost per 100 messages per model) and on four local models; every figure in the document is rendered
+  from a summary file, never typed, and the targets table says met or not met per target with its evidence file.
+- **Prompt caching is on for every Anthropic call** (L2, L3): about −80 % input cost at the same scores; the relay and the
+  meter follow the same body rules (handoff).
+- **Spoken English and Dutch are understood on the device before the model sees the message** (L6): fillers, number words,
+  clock idioms, self-corrections, with 413 deterministic cases in CI and 557 model-scored ones; French is out (L7) with the
+  gemma4 before/after proof.
+- **Every action a person can take has a path** (Part 5): an existing kind, a new kind, a navigation intent, or a deliberate
+  "no" with its reason; money is a pre-filled form and a deletion opens the app's own confirmation (L8); the never-automatic
+  list covers them all.
+- **Forty-two session decisions and every changed assertion are listed here**; the oracle corrections (L29, L34, L40) make
+  the corpus describe the app's rules and the fixtures as they are, which lowered some earlier scores on re-scoring and is
+  the honest baseline for the monthly evaluation (Part 8).
+- **Prompt size grew to about 5,300–5,600 tokens** (every kind, the Part 6 sentences); the default context budget and output
+  cap follow (L26, L35), with the frozen-reader tests that keep a person's own stored values.
+- **What stays open** is in the targets table and `SESSION_STATUS.md`: the targets not met after the final runs, the photo
+  plates (owner item), the three spoken kinds without a case, and the Mac's slow page-records run.
