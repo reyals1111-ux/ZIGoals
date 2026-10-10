@@ -59,7 +59,7 @@ seed('food-lunch', 'a bowl for lunch', {en: 'I had the chicken and quinoa bowl f
 seed('food-breakfast-two', 'two servings of oats', {en: 'Two servings of berry overnight oats for breakfast', nl: 'Twee porties berry overnight oats als ontbijt'}, {kinds: ['log-food'], fields: [{kind: 'log-food', meal: 'Breakfast', quantity: 2}]}, H);
 seed('measurement', 'waist measurement', {en: 'My waist is eighty-one centimetres', nl: 'Mijn taille is eenentachtig centimeter'}, {kinds: ['log-measurement'], fields: [{kind: 'log-measurement', value: 81}]}, H);
 seed('sleep', 'last night in bed', {en: 'I went to bed at half past eleven and got up at seven', nl: 'Ik ging om half twaalf naar bed en stond om zeven uur op'}, P('log-sleep', {bedtime: '23:30', wake: '07:00'}), {...H, important: true});
-seed('nap', 'a twenty-minute nap', {en: 'I took a twenty minute nap after lunch', nl: 'Ik heb na de lunch twintig minuten gedut'}, {kinds: ['log-sleep', 'log-nap']}, H);
+seed('nap', 'a twenty-minute nap', {en: 'I took a twenty minute nap after lunch', nl: 'Ik heb na de lunch twintig minuten gedut'}, {kinds: ['log-sleep']}, H); // "log-nap" is an alias the parser folds into log-sleep
 seed('meditation', 'fifteen minutes of meditation', {en: 'I meditated for fifteen minutes this morning', nl: 'Ik heb vanmorgen vijftien minuten gemediteerd'}, P('log-meditation', {minutes: 15}), {...H, important: true});
 seed('mood', 'a good day', {en: 'Log my mood as good today', nl: 'Zet mijn stemming vandaag op goed'}, {kinds: ['log-mood']}, H);
 seed('counter', 'twenty push-ups', {en: 'Twenty push-ups done', nl: 'Twintig push-ups gedaan'}, P('counter', {count: 20}), {...H, important: true});
