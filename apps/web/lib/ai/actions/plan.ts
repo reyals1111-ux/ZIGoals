@@ -3,9 +3,9 @@ import {saveMeasurement} from '../../body-measurements';
 import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
-import {foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, type HealthData, type HealthFood} from '../../health';
-import {addWater, dailyData, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveMealFromRecipe, saveMealPlan} from '../../health-daily';
-import {changeCount, countOn, exerciseData} from '../../health-counters';
+import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
+import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
+import {addCounter, changeCount, countOn, deleteCounter, editCounter, exerciseData} from '../../health-counters';
 import {addLocalDays} from '../../local-date';
 import {closeGoal, deletePrivateGoal, platformSchema, privateGoalSchema, type Platform, type PrivateGoal} from '../../positions';
 import {reopenGoal} from '../../plan-revisions';
@@ -29,9 +29,9 @@ import {MOOD_WORDS, moodOn} from '../../wrap-up/engine';
 import {emptyMoods, moodsSchema, type MoodDay} from '../../moods/schema';
 import {HEALTH_V4_GROUPS} from '../../health';
 import {healthGroupIn, withHealthGroup} from '../../vault/w-homes';
-import {clockFromMidnight, deleteNight, saveNight, type NightInput} from '../../sleep/engine';
+import {clockFromMidnight, deleteNight, endNight, newSleepId, runningNights, saveNight, setSleepGoal, startNight, type NightInput} from '../../sleep/engine';
 import {emptySleep} from '../../sleep/schema';
-import {deleteSession, saveManual, type ManualInput} from '../../meditation/engine';
+import {deleteSession, saveManual, setBells, setMeditationGoal, type ManualInput} from '../../meditation/engine';
 import {emptyMeditation} from '../../meditation/schema';
 import {challengeOf, startChallenge} from '../../habits-v2/challenge';
 import {formatMinutes, instantAt, wallClock} from '../../zone-time';
@@ -759,6 +759,172 @@ export function planAction(action: Action, env: Env): PlanResult {
         write: s => { try { return {platform: closing ? closeGoal(s.platform, goal.id) : reopenGoal(s.platform, goal.id, env.now.getTime())}; } catch (error) { throw Error(error instanceof Error && error.message ? error.message : 'This goal could not be changed.'); } },
         undo: {label: closing ? 'Reopen it' : 'Close it again', write: s => ({platform: closing ? reopenGoal(s.platform, goal.id, env.now.getTime()) : closeGoal(s.platform, goal.id)}), unchanged: (after, current) => mine(after) === mine(current)},
         activity: {id: `goal:${goal.id}:${closing ? 'closed' : 'reopened'}:${at}`, title: `${goal.name}: ${closing ? 'closed' : 'reopened'}`}}};
+    }
+    // ---- Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night, the bell ----
+    case 'edit-diary-entry': {
+      const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const named = action.name.trim().toLowerCase(), hits = stores.health.diary.filter(e => e.date === day.day && e.snapshot.name.trim().toLowerCase() === named);
+      if (hits.length !== 1) return refuse(hits.length ? `${hits.length} entries named "${action.name}" on ${day.day}: change the one you mean in the diary.` : `No "${action.name}" in the diary on ${day.day}.`);
+      const entry = hits[0]!, next = {date: action.move_to ?? entry.date, meal: action.meal ?? entry.meal, quantityMilli: action.quantity !== undefined ? Math.round(action.quantity * 1000) : entry.quantityMilli};
+      if (next.date > env.healthDay) return refuse('A diary entry cannot move to a day that has not come yet.');
+      if (next.date === entry.date && next.meal === entry.meal && next.quantityMilli === entry.quantityMilli) return refuse('Nothing changes on that entry.');
+      const was = {date: entry.date, meal: entry.meal, quantityMilli: entry.quantityMilli}, changes = [...(next.meal !== entry.meal ? [`Meal: ${entry.meal} → ${next.meal}`] : []), ...(next.quantityMilli !== entry.quantityMilli ? [`Servings: ${num(entry.quantityMilli / 1000, 2)} → ${num(next.quantityMilli / 1000, 2)}`] : []), ...(next.date !== entry.date ? [`Day: ${entry.date} → ${next.date}`] : [])];
+      const mine = (s: Stores) => s.health.diary.find(e => e.id === entry.id);
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Change: ${entry.snapshot.name}`, lines: changes, where: 'Health · Diary', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => ({health: editDiaryEntry(s.health, entry.id, next, at)}), undo: {label: 'Put the entry back', write: s => ({health: editDiaryEntry(s.health, entry.id, was, at)}), unchanged: (after, current) => same(mine(after), mine(current))},
+        activity: {id: `diary-edit:${entry.id}:${at}`, title: `Diary: ${entry.snapshot.name} changed`}}};
+    }
+    case 'log-meal-plan': {
+      const day = resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return refuse(day.message);
+      const plans = dailyData(stores.health).plans.filter(p => p.date === day.day && !p.loggedAt && (!action.meal || p.meal === action.meal));
+      if (plans.length !== 1) return refuse(plans.length ? `${plans.length} planned meals on ${day.day}: say which meal.` : `No planned meal left to log on ${day.day}.`);
+      const plan = plans[0]!;
+      let before: HealthData | undefined;
+      const mine = (s: Stores) => dailyData(s.health).plans.find(p => p.id === plan.id);
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Log the planned ${plan.meal.toLowerCase()}: ${plan.name}`, lines: [`${plan.items.length} item${plan.items.length === 1 ? '' : 's'} into the diary for ${day.day}`], where: 'Health · Planning', day: dayLabel(day.day, env.healthDay), estimate: false},
+        write: s => { before = s.health; return {health: logMealPlan(s.health, plan.id, at)}; },
+        undo: {label: 'Take it out of the diary again', write: s => before ? {health: before} : {}, unchanged: (after, current) => same(after.health, current.health)},
+        activity: {id: `meal-plan:${plan.id}:logged`, title: `Planned ${plan.meal.toLowerCase()} logged: ${plan.name}`}}};
+    }
+    case 'grocery-notes': {
+      const previous = dailyData(stores.health).groceryNotes, next = action.append && previous.trim() ? `${previous.replace(/\s+$/, '')}\n${action.notes}` : action.notes;
+      if (next === previous) return refuse('The grocery notes already say that.');
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: action.append ? 'Add to the grocery notes' : 'Set the grocery notes', lines: [action.notes.slice(0, 160) || '(cleared)'], where: 'Health · Groceries', day: null, estimate: false},
+        write: s => ({health: saveGroceryNotes(s.health, next)}), undo: {label: 'Put the previous notes back', write: s => ({health: saveGroceryNotes(s.health, previous)}), unchanged: (after, current) => dailyData(after.health).groceryNotes === dailyData(current.health).groceryNotes},
+        activity: {id: `grocery-notes:${at}`, title: 'Grocery notes changed'}}};
+    }
+    case 'set-favorite': {
+      const kind = action.food !== undefined ? 'food' as const : 'recipe' as const, name = (action.food ?? action.recipe)!, list = kind === 'food' ? stores.health.foods : stores.health.recipes;
+      const byHandle = handleFor(env, kind, name), hit = byHandle ? list.find(x => x.id === byHandle.id) : list.filter(x => x.name.trim().toLowerCase() === name.trim().toLowerCase()).length === 1 ? list.find(x => x.name.trim().toLowerCase() === name.trim().toLowerCase()) : undefined;
+      if (!hit) return refuse(`No ${kind} named "${name}" is on this device (or more than one matches).`);
+      const isFavorite = (h: HealthData) => dailyData(h).favorites.some(f => f.sourceKind === kind && f.sourceId === hit.id);
+      if (isFavorite(stores.health) === action.favorite) return refuse(`${hit.name} is ${action.favorite ? 'already' : 'not'} a favourite.`);
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `${action.favorite ? 'Favourite' : 'Unfavourite'}: ${hit.name}`, lines: [action.favorite ? 'Shown among the quick picks' : 'Taken out of the quick picks'], where: `Health · ${kind === 'food' ? 'Foods' : 'Recipes'}`, day: null, estimate: false},
+        write: s => ({health: setFavorite(s.health, kind, hit.id, action.favorite)}), undo: {label: action.favorite ? 'Unfavourite it again' : 'Favourite it again', write: s => ({health: setFavorite(s.health, kind, hit.id, !action.favorite)}), unchanged: (after, current) => isFavorite(after.health) === isFavorite(current.health)},
+        activity: {id: `favorite:${hit.id}:${action.favorite}`, title: `${hit.name}: ${action.favorite ? 'favourite' : 'no longer a favourite'}`}}};
+    }
+    case 'create-counter': {
+      const name = action.name.trim(), existing = exerciseData(stores.health).counters;
+      if (existing.some(c => c.name.trim().toLowerCase() === name.toLowerCase())) return refuse(`A counter named "${name}" already exists.`);
+      const id = `health_counter-${crypto.randomUUID().replace(/-/g, '').slice(0, 20)}`, icon = action.icon ?? 'core';
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `New counter: ${name}`, lines: [`Icon: ${icon}; counts from today`], where: 'Health · Counters', day: null, estimate: false},
+        write: s => ({health: addCounter(s.health, name, icon, id)}), undo: {label: 'Remove the counter', write: s => ({health: deleteCounter(s.health, id)}), unchanged: (after, current) => same(exerciseData(after.health).counters.find(c => c.id === id), exerciseData(current.health).counters.find(c => c.id === id))},
+        activity: {id: `counter:${id}:created`, title: `Counter: ${name}`}}};
+    }
+    case 'edit-counter': {
+      const named = action.counter.trim().toLowerCase(), hits = exerciseData(stores.health).counters.filter(c => c.name.trim().toLowerCase() === named);
+      if (hits.length !== 1) return refuse(hits.length ? 'More than one counter matches; name it exactly.' : `No counter named "${action.counter}" is on this device.`);
+      const counter = hits[0]!, change = {...(action.name !== undefined ? {name: action.name.trim()} : {}), ...(action.icon !== undefined ? {icon: action.icon} : {})};
+      if ((change.name ?? counter.name) === counter.name && (change.icon ?? counter.icon) === counter.icon) return refuse('Nothing changes on that counter.');
+      const was = {name: counter.name, icon: counter.icon}, mine = (s: Stores) => exerciseData(s.health).counters.find(c => c.id === counter.id);
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Change the counter: ${counter.name}`, lines: [...(change.name && change.name !== counter.name ? [`Name: ${counter.name} → ${change.name}`] : []), ...(change.icon && change.icon !== counter.icon ? [`Icon: ${counter.icon} → ${change.icon}`] : [])], where: 'Health · Counters', day: null, estimate: false},
+        write: s => ({health: editCounter(s.health, counter.id, change)}), undo: {label: 'Put the counter back', write: s => ({health: editCounter(s.health, counter.id, was)}), unchanged: (after, current) => same(mine(after), mine(current))},
+        activity: {id: `counter:${counter.id}:edited:${at}`, title: `Counter changed: ${counter.name}`}}};
+    }
+    case 'set-target': {
+      const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone, prefs = dailyData(stores.health).preferences;
+      const v = action.value, clears = v === null, where = 'Health · Targets';
+      const unitOf = (allowed: readonly string[], fallback: string) => { if (action.unit !== undefined && !allowed.includes(action.unit)) return null; return action.unit ?? fallback; };
+      const grams = (value: number, unit: string) => Math.round(unit === 'lb' ? value * 453.59237 : value * 1000);
+      switch (action.target) {
+        case 'kcal': case 'protein': case 'carbs': case 'fat': case 'steps': {
+          const unit = unitOf(action.target === 'kcal' ? ['kcal'] : action.target === 'steps' ? ['steps'] : ['g'], action.target === 'kcal' ? 'kcal' : action.target === 'steps' ? 'steps' : 'g'); if (!unit) return refuse(`A ${action.target} target is in ${action.target === 'kcal' ? 'kcal' : action.target === 'steps' ? 'steps' : 'grams'}.`);
+          const key = action.target === 'kcal' ? 'kcal' : action.target === 'steps' ? 'steps' : action.target === 'protein' ? 'proteinMg' : action.target === 'carbs' ? 'carbsMg' : 'fatMg';
+          const value = clears ? null : key === 'kcal' || key === 'steps' ? Math.round(v) : Math.round(v * 1000);
+          if (value !== null && value < 1) return refuse('A target is a whole number above zero, or empty to clear it.');
+          const previous = stores.health.targets[key];
+          if (previous === value) return refuse('That target is already set so.');
+          const shown = (x: number | null) => x === null ? 'none' : key === 'kcal' ? `${x} kcal` : key === 'steps' ? `${x.toLocaleString('en-US')} steps` : `${num(x / 1000)} g`;
+          return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `${action.target[0]!.toUpperCase()}${action.target.slice(1)} target: ${shown(value)}`, lines: [`Was ${shown(previous)}`], where, day: null, estimate: false},
+            write: s => ({health: setHealthTargets(s.health, {...s.health.targets, [key]: value})}), undo: {label: 'Put the previous target back', write: s => ({health: setHealthTargets(s.health, {...s.health.targets, [key]: previous})}), unchanged: (after, current) => after.health.targets[key] === current.health.targets[key]},
+            activity: {id: `target:${key}:${at}`, title: `Target: ${action.target} ${shown(value)}`}}};
+        }
+        case 'weight': {
+          const unit = unitOf(['kg', 'lb'], prefs.weightUnit); if (!unit) return refuse('A weight target is in kg or lb.');
+          const value = clears ? null : grams(v, unit); if (value !== null && value < 1000) return refuse('A weight target is above one kilogram, or empty to clear it.');
+          const previous = stores.health.targets.weightGrams; if (previous === value) return refuse('That target is already set so.');
+          const shown = (x: number | null) => x === null ? 'none' : unit === 'lb' ? lb(x) : kg(x);
+          return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Weight target: ${shown(value)}`, lines: [`Was ${shown(previous)}`], where, day: null, estimate: false},
+            write: s => ({health: setHealthTargets(s.health, {...s.health.targets, weightGrams: value})}), undo: {label: 'Put the previous target back', write: s => ({health: setHealthTargets(s.health, {...s.health.targets, weightGrams: previous})}), unchanged: (after, current) => after.health.targets.weightGrams === current.health.targets.weightGrams},
+            activity: {id: `target:weight:${at}`, title: `Target: weight ${shown(value)}`}}};
+        }
+        case 'water': {
+          const unit = unitOf(['ml', 'l'], 'ml'); if (!unit) return refuse('A water target is in millilitres or litres a day.');
+          const value = clears ? null : Math.round(unit === 'l' ? v * 1000 : v); if (value !== null && value < 1) return refuse('A water target is above zero, or empty to clear it.');
+          const previous = prefs.waterTargetMl; if (previous === value) return refuse('That target is already set so.');
+          const shown = (x: number | null) => x === null ? 'none' : `${x.toLocaleString('en-US')} mL a day`;
+          return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Water target: ${shown(value)}`, lines: [`Was ${shown(previous)}`], where: 'Health · Water', day: null, estimate: false},
+            write: s => ({health: saveHealthPreferences(s.health, {...dailyData(s.health).preferences, waterTargetMl: value})}), undo: {label: 'Put the previous target back', write: s => ({health: saveHealthPreferences(s.health, {...dailyData(s.health).preferences, waterTargetMl: previous})}), unchanged: (after, current) => dailyData(after.health).preferences.waterTargetMl === dailyData(current.health).preferences.waterTargetMl},
+            activity: {id: `target:water:${at}`, title: `Target: water ${shown(value)}`}}};
+        }
+        case 'sleep': {
+          const unit = unitOf(['hours', 'minutes'], 'hours'); if (!unit) return refuse('A sleep goal is in hours (or minutes) a night.');
+          const minutes = clears ? null : Math.round(unit === 'minutes' ? v : v * 60); if (minutes !== null && (minutes < 180 || minutes > 900)) return refuse('A sleep goal is between 3 and 15 hours a night, or empty to clear it.');
+          const sleep = healthGroupIn(stores.health, 'sleep') ?? emptySleep(), previous = sleep.goal;
+          if ((previous?.minutes ?? null) === minutes) return refuse('That goal is already set so.');
+          const shown = (m: number | null) => m === null ? 'none' : `${num(m / 60, 2)} h a night`;
+          const goalOf_ = (m: number | null) => m === null ? null : {minutes: m, ...(previous?.bedFrom ? {bedFrom: previous.bedFrom} : {}), ...(previous?.bedTo ? {bedTo: previous.bedTo} : {})};
+          void zone;
+          return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Sleep goal: ${shown(minutes)}`, lines: [`Was ${shown(previous?.minutes ?? null)}`], where: 'Health · Sleep', day: null, estimate: false},
+            write: s => ({health: withHealthGroup(s.health, 'sleep', setSleepGoal(healthGroupIn(s.health, 'sleep') ?? emptySleep(), goalOf_(minutes), env.now), false)}),
+            undo: {label: 'Put the previous goal back', write: s => ({health: withHealthGroup(s.health, 'sleep', setSleepGoal(healthGroupIn(s.health, 'sleep') ?? emptySleep(), previous ? {minutes: previous.minutes, ...(previous.bedFrom ? {bedFrom: previous.bedFrom} : {}), ...(previous.bedTo ? {bedTo: previous.bedTo} : {})} : null, env.now), false)}), unchanged: (after, current) => same(healthGroupIn(after.health, 'sleep')?.goal ?? null, healthGroupIn(current.health, 'sleep')?.goal ?? null)},
+            activity: {id: `target:sleep:${at}`, title: `Sleep goal: ${shown(minutes)}`}}};
+        }
+        case 'meditation': {
+          const unit = unitOf(['minutes', 'hours'], 'minutes'); if (!unit) return refuse('A meditation goal is in minutes (or hours) a week.');
+          const minutes = clears ? null : Math.round(unit === 'hours' ? v * 60 : v); if (minutes !== null && minutes < 1) return refuse('A meditation goal is above zero minutes a week, or empty to clear it.');
+          const m = healthGroupIn(stores.health, 'meditation') ?? emptyMeditation(), previous = m.goal?.minutesPerWeek ?? null;
+          if (previous === minutes) return refuse('That goal is already set so.');
+          const shown = (x: number | null) => x === null ? 'none' : `${x} min a week`;
+          return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: `Mindful minutes goal: ${shown(minutes)}`, lines: [`Was ${shown(previous)}`], where: 'Health · Meditation', day: null, estimate: false},
+            write: s => ({health: withHealthGroup(s.health, 'meditation', setMeditationGoal(healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), minutes, env.now), false)}),
+            undo: {label: 'Put the previous goal back', write: s => ({health: withHealthGroup(s.health, 'meditation', setMeditationGoal(healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), previous, env.now), false)}), unchanged: (after, current) => (healthGroupIn(after.health, 'meditation')?.goal?.minutesPerWeek ?? null) === (healthGroupIn(current.health, 'meditation')?.goal?.minutesPerWeek ?? null)},
+            activity: {id: `target:meditation:${at}`, title: `Mindful minutes goal: ${shown(minutes)}`}}};
+        }
+      }
+    }
+    // eslint-disable-next-line no-fallthrough
+    case 'set-health-preference': {
+      const prefs = dailyData(stores.health).preferences, next = {...prefs, ...(action.waterUnit ? {waterUnit: action.waterUnit} : {}), ...(action.weightUnit ? {weightUnit: action.weightUnit} : {})};
+      if (next.waterUnit === prefs.waterUnit && next.weightUnit === prefs.weightUnit) return refuse('Those units are already set so.');
+      const lines = [...(next.waterUnit !== prefs.waterUnit ? [`Water: ${prefs.waterUnit} → ${next.waterUnit}`] : []), ...(next.weightUnit !== prefs.weightUnit ? [`Weight: ${prefs.weightUnit} → ${next.weightUnit}`] : []), 'Only how figures are shown changes; nothing recorded is converted'];
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Health units', lines, where: 'Health · Preferences', day: null, estimate: false},
+        write: s => ({health: saveHealthPreferences(s.health, {...dailyData(s.health).preferences, waterUnit: next.waterUnit, weightUnit: next.weightUnit})}), undo: {label: 'Put the previous units back', write: s => ({health: saveHealthPreferences(s.health, {...dailyData(s.health).preferences, waterUnit: prefs.waterUnit, weightUnit: prefs.weightUnit})}), unchanged: (after, current) => dailyData(after.health).preferences.waterUnit === dailyData(current.health).preferences.waterUnit && dailyData(after.health).preferences.weightUnit === dailyData(current.health).preferences.weightUnit},
+        activity: {id: `health-units:${at}`, title: 'Health units changed'}}};
+    }
+    case 'start-night': {
+      const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone, sleep = healthGroupIn(stores.health, 'sleep') ?? emptySleep();
+      if (runningNights(sleep).length) return refuse('A night is already running. Say "I\'m up" to end it first.');
+      let start = action.bedtime ? instantAt(env.healthDay, action.bedtime, zone) : env.now.getTime();
+      if (start > env.now.getTime() + 60_000) start = instantAt(addLocalDays(env.healthDay, -1), action.bedtime!, zone);
+      const id = newSleepId();
+      try { startNight(sleep, new Date(start), zone, id); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'The night could not be started.'); }
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Good night: start the night', lines: [`From ${action.bedtime ?? 'now'}; say "I\'m up" to end it`], where: 'Health · Sleep', day: null, estimate: false},
+        write: s => ({health: withHealthGroup(s.health, 'sleep', startNight(healthGroupIn(s.health, 'sleep') ?? emptySleep(), new Date(start), zone, id), false)}),
+        undo: {label: 'Cancel the night', write: s => ({health: withHealthGroup(s.health, 'sleep', deleteNight(healthGroupIn(s.health, 'sleep') ?? emptySleep(), id), false)}), unchanged: (after, current) => same(healthGroupIn(after.health, 'sleep')?.nights.find(n => n.id === id), healthGroupIn(current.health, 'sleep')?.nights.find(n => n.id === id))},
+        activity: {id, title: 'Night started'}}};
+    }
+    case 'end-night': {
+      const zone = dailyData(stores.health).preferences.timezone ?? env.timeZone, sleep = healthGroupIn(stores.health, 'sleep') ?? emptySleep(), running = runningNights(sleep)[0];
+      if (!running) return refuse('No night is running. Log the night instead ("I slept from 23:00 to 7:00").');
+      const end = action.wake ? instantAt(env.healthDay, action.wake, zone) : env.now.getTime();
+      if (end <= Date.parse(running.start)) return refuse('That wake time is before the night started.');
+      try { endNight(sleep, running.id, new Date(end)); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'The night could not be ended.'); }
+      const mine = (s: Stores) => healthGroupIn(s.health, 'sleep')?.nights.find(n => n.id === running.id);
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'Good morning: end the night', lines: [`Up at ${action.wake ?? 'now'}; ${num((end - Date.parse(running.start)) / 3_600_000, 1)} h in bed`], where: 'Health · Sleep', day: null, estimate: false},
+        write: s => ({health: withHealthGroup(s.health, 'sleep', endNight(healthGroupIn(s.health, 'sleep') ?? emptySleep(), running.id, new Date(end)), false)}),
+        undo: {label: 'Let the night run again', write: s => { const g = healthGroupIn(s.health, 'sleep') ?? emptySleep(); return {health: withHealthGroup(s.health, 'sleep', {...g, nights: g.nights.map(n => n.id === running.id ? {...running} : n)}, false)}; }, unchanged: (after, current) => same(mine(after), mine(current))},
+        activity: {id: `${running.id}:ended`, title: 'Night ended'}}};
+    }
+    case 'set-bells': {
+      const m = healthGroupIn(stores.health, 'meditation') ?? emptyMeditation(), previous = m.bells;
+      const next = {intervalMin: action.intervalMin === undefined ? previous?.intervalMin : action.intervalMin ?? undefined, sound: action.sound ?? previous?.sound ?? 'bowl', volume: action.volume ?? previous?.volume ?? 60};
+      if (previous && previous.intervalMin === next.intervalMin && previous.sound === next.sound && previous.volume === next.volume) return refuse('The bell is already set so.');
+      const lines = [`Every ${next.intervalMin ?? '—'} min · ${next.sound} · volume ${next.volume}`];
+      return {ok: true, plan: {target: 'health', card: {kind: action.kind, title: 'The meditation bell', lines, where: 'Health · Meditation', day: null, estimate: false},
+        write: s => ({health: withHealthGroup(s.health, 'meditation', setBells(healthGroupIn(s.health, 'meditation') ?? emptyMeditation(), next, env.now), false)}),
+        undo: {label: 'Put the previous bell back', write: s => { const g = healthGroupIn(s.health, 'meditation') ?? emptyMeditation(); return {health: withHealthGroup(s.health, 'meditation', previous ? setBells(g, {intervalMin: previous.intervalMin, sound: previous.sound, volume: previous.volume}, env.now) : {...g, bells: undefined}, false)}; }, unchanged: (after, current) => same(healthGroupIn(after.health, 'meditation')?.bells, healthGroupIn(current.health, 'meditation')?.bells)},
+        activity: {id: `bells:${at}`, title: 'Meditation bell changed'}}};
     }
     case 'add-link': {
       const icon = action.icon ?? suggestedIcon(action.url), input = {label: action.label, url: action.url, icon};

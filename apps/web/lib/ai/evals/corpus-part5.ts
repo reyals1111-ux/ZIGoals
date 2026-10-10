@@ -46,5 +46,23 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     // Still a "no": milestone ticks, money.
     g.refuse('p5-no-milestone', 'Mark the milestone "Flights booked" as reached on the Japan goal', REFUSE),
     g.refuse('p5-no-fund', 'Fund the Japan goal with 200 euros', REFUSE),
+    // Health's own edits, plans, counters, targets, preferences, the running night, the bell.
+    h.propose('p5-diary-edit', 'Change today\'s oatmeal to two servings', {kinds: ['edit-diary-entry'], fields: [{kind: 'edit-diary-entry', quantity: 2}]}),
+    h.propose('p5-diary-edit-nl', 'Zet de havermout van vandaag op twee porties', {kinds: ['edit-diary-entry'], fields: [{kind: 'edit-diary-entry', quantity: 2}]}, {lang: 'nl'}),
+    h.propose('p5-grocery-notes', 'Add oat milk and spinach to my grocery notes', {kinds: ['grocery-notes', 'grocery-item'], minCards: 1, maxCards: 1}),
+    h.propose('p5-favourite', 'Make my oatmeal a favourite', {kinds: ['set-favorite']}),
+    h.propose('p5-counter-create', 'Add a counter for burpees', {kinds: ['create-counter'], fields: [{kind: 'create-counter', name: 'Burpees'}]}, {important: true}),
+    h.propose('p5-counter-create-nl', 'Maak een teller voor burpees', {kinds: ['create-counter']}, {lang: 'nl'}),
+    h.propose('p5-counter-rename', 'Rename my Push-ups counter to Press-ups', {kinds: ['edit-counter'], fields: [{kind: 'edit-counter', name: 'Press-ups'}]}),
+    h.propose('p5-target-protein', 'Set my protein target to 120 grams a day', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'protein', value: 120}]}, {important: true}),
+    h.propose('p5-target-steps-nl', 'Zet mijn stappendoel op 9000 stappen per dag', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'steps', value: 9000}]}, {lang: 'nl', important: true}),
+    h.propose('p5-target-water', 'I want to drink 2.5 litres a day from now on, set that as my water target', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'water'}]}),
+    h.propose('p5-target-sleep', 'My sleep goal is 8 hours a night', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'sleep', value: 8}]}),
+    h.propose('p5-target-clear', 'Clear my calorie target', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'kcal', value: null}]}),
+    h.propose('p5-units', 'Show my weight in pounds from now on', {kinds: ['set-health-preference'], fields: [{kind: 'set-health-preference', weightUnit: 'lb'}]}),
+    h.propose('p5-night-start', 'I am going to bed now', {kinds: ['start-night']}, {important: true}),
+    h.propose('p5-night-start-nl', 'Ik ga nu slapen', {kinds: ['start-night']}, {lang: 'nl'}),
+    h.propose('p5-night-end', 'I am up, it is 7:10', {kinds: ['end-night'], fields: [{kind: 'end-night', wake: '07:10'}]}, {important: true}),
+    h.propose('p5-bells', 'Ring the meditation bell every 5 minutes with the chime sound', {kinds: ['set-bells'], fields: [{kind: 'set-bells', intervalMin: 5, sound: 'chime'}]}),
   );
 }

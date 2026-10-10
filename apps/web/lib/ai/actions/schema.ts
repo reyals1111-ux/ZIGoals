@@ -3,6 +3,8 @@ import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
 import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
 import {WIDGET_KINDS_V1, WIDGET_KINDS_V3_ONLY} from '../../dashboard-settings';
+import {EXERCISE_ICONS} from '../../health-counters';
+import {BELL_SOUNDS} from '../../meditation/schema';
 
 /**
  * The actions ZIGi may propose (ADR-012, Part 5), as a whitelist: anything else in a reply is text. Every proposal is
@@ -76,6 +78,8 @@ export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'port
 export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal'] as const;
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
+/** What a person can set a target for in Health (the targets record, the water target, the sleep goal, the weekly mindful minutes). */
+export const HEALTH_TARGETS = ['kcal', 'protein', 'carbs', 'fat', 'weight', 'steps', 'water', 'sleep', 'meditation'] as const;
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
@@ -148,6 +152,20 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
   z.strictObject({kind: z.literal('close-goal'), goal: goalName}),
   z.strictObject({kind: z.literal('reopen-goal'), goal: goalName}),
+  // ---- Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night, the bell ----
+  z.strictObject({kind: z.literal('edit-diary-entry'), name: text(100), day: daySchema, meal: z.enum(MEALS).optional(), quantity: positive.max(100).optional(), move_to: isoDay.optional()})
+    .refine(a => a.meal !== undefined || a.quantity !== undefined || a.move_to !== undefined, 'Say what to change: the meal, the servings or the day.'),
+  z.strictObject({kind: z.literal('log-meal-plan'), day: daySchema, meal: z.enum(MEALS).optional()}),
+  z.strictObject({kind: z.literal('grocery-notes'), notes: z.string().trim().max(2000), append: z.boolean().default(false)}),
+  z.strictObject({kind: z.literal('set-favorite'), food: named('f3').optional(), recipe: named('r1').optional(), favorite: z.boolean().default(true)}).refine(a => (a.food === undefined) !== (a.recipe === undefined), 'Name one food (f3) or one recipe (r1).'),
+  z.strictObject({kind: z.literal('create-counter'), name: text(40), icon: z.enum(EXERCISE_ICONS).optional()}),
+  z.strictObject({kind: z.literal('edit-counter'), counter: text(40), name: text(40).optional(), icon: z.enum(EXERCISE_ICONS).optional()}).refine(a => a.name !== undefined || a.icon !== undefined, 'Say what to change: the name or the icon.'),
+  z.strictObject({kind: z.literal('set-target'), target: z.enum(HEALTH_TARGETS), value: z.number().finite().min(0).max(1_000_000).nullable(), unit: z.enum(['kcal', 'g', 'steps', 'ml', 'l', 'kg', 'lb', 'hours', 'minutes']).optional()}),
+  z.strictObject({kind: z.literal('set-health-preference'), waterUnit: z.enum(['ml', 'fl-oz-us']).optional(), weightUnit: z.enum(['kg', 'lb']).optional()}).refine(a => a.waterUnit !== undefined || a.weightUnit !== undefined, 'Say which preference: the water unit or the weight unit.'),
+  z.strictObject({kind: z.literal('start-night'), bedtime: clock.optional()}),
+  z.strictObject({kind: z.literal('end-night'), wake: clock.optional()}),
+  z.strictObject({kind: z.literal('set-bells'), intervalMin: z.number().int().min(1).max(60).nullable().optional(), sound: z.enum(BELL_SOUNDS).optional(), volume: z.number().int().min(0).max(100).optional()})
+    .refine(a => a.intervalMin !== undefined || a.sound !== undefined || a.volume !== undefined, 'Say what to change about the bell: the interval, the sound or the volume.'),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -155,7 +173,8 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'counter', 'create-reminder', 'review-intention', 'remember',
   'log-sleep', 'log-meditation', 'add-milestone', 'update-account-balance', 'start-challenge',
   'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget',
-  'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal'] as const satisfies readonly ActionKind[];
+  'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal',
+  'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -188,6 +207,8 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   // Session Z-Local Part 5: the new kinds' plain names; no alias for a delete-* name (an unknown kind stays refused, golden `unknown-kind`).
   navigate: 'open-page', 'go-to': 'open-page', 'open_page': 'open-page', 'show-page': 'open-page', 'delete_record': 'delete-record', 'set_habit_state': 'set-habit-state', 'habit-state': 'set-habit-state',
   'vacation-days': 'vacation', 'set-vacation': 'vacation', 'mark-vacation': 'vacation', 'unplan-skip': 'unskip', 'un-skip': 'unskip', 'undo-skip': 'unskip', 'remove_reminder': 'remove-reminder', 'delete-reminder': 'remove-reminder', 'close_goal': 'close-goal', 'reopen_goal': 'reopen-goal',
+  'edit_diary_entry': 'edit-diary-entry', 'edit-food-entry': 'edit-diary-entry', 'log_meal_plan': 'log-meal-plan', 'eat-planned-meal': 'log-meal-plan', 'grocery_notes': 'grocery-notes', 'set_favorite': 'set-favorite', favourite: 'set-favorite', favorite: 'set-favorite', 'create_counter': 'create-counter', 'new-counter': 'create-counter', 'edit_counter': 'edit-counter', 'rename-counter': 'edit-counter',
+  'set_target': 'set-target', target: 'set-target', 'set-goal-target': 'set-target', 'set_health_preference': 'set-health-preference', 'health-preference': 'set-health-preference', 'start_night': 'start-night', 'going-to-bed': 'start-night', 'end_night': 'end-night', 'woke-up': 'end-night', 'set_bells': 'set-bells', bell: 'set-bells',
   // Session X-Local Phase 2: names seen on the wire (phi4-mini, qwen3.6) for kinds that exist.
   'create-goal-note': 'add-goal-note', 'note-goal': 'add-goal-note', 'log-nap': 'log-sleep', nap: 'log-sleep', 'mood-log': 'log-mood', 'set-reminder': 'create-reminder', 'add-reminder': 'create-reminder', 'add-grocery': 'grocery-item', 'log-measure': 'log-measurement',
   // Session W Part 21

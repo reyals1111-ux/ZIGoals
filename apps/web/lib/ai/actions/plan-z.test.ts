@@ -136,3 +136,117 @@ test('close-goal and reopen-goal: the status only; a closed goal cannot close ag
   const locked: Stores = {...s, platform: {...s.platform, goals: s.platform.goals.map(g => g.id === goal.id ? {...g, locked: true} : g)}};
   expect(refused(locked, {kind: 'close-goal', goal: handle})).toContain('locked');
 });
+
+// ---- Session Z-Local Part 5, the Health kinds ----
+import {dailyData, saveMealFromDiary, saveMealPlan} from '../../health-daily';
+import {exerciseData} from '../../health-counters';
+import {healthGroupIn} from '../../vault/w-homes';
+import {emptySleep} from '../../sleep/schema';
+import {emptyMeditation} from '../../meditation/schema';
+
+test('edit-diary-entry: the meal, the servings or the day of one named entry; Undo puts the three fields back', () => {
+  const s = base(), entry = s.health.diary.find(e => e.date === DAY)!;
+  expect(entry).toBeDefined();
+  const p = plan(s, {kind: 'edit-diary-entry', name: entry.snapshot.name, day: 'today', quantity: 2, meal: entry.meal === 'Lunch' ? 'Dinner' : 'Lunch'});
+  expect(p.card.lines.join(' ')).toContain('Servings');
+  const after = applyPlan(p, s), changed = after.health.diary.find(e => e.id === entry.id)!;
+  expect(changed.quantityMilli).toBe(2000); expect(changed.meal).not.toBe(entry.meal);
+  const back = {...after, ...p.undo!.write(after)} as Stores;
+  const restored = back.health.diary.find(e => e.id === entry.id)!;
+  expect({date: restored.date, meal: restored.meal, quantityMilli: restored.quantityMilli}).toEqual({date: entry.date, meal: entry.meal, quantityMilli: entry.quantityMilli});
+  expect(refused(s, {kind: 'edit-diary-entry', name: 'no such thing', day: 'today', quantity: 1})).toContain('No "no such thing"');
+  expect(refused(s, {kind: 'edit-diary-entry', name: entry.snapshot.name, day: 'today', move_to: '2027-01-01'})).toContain('has not come yet');
+});
+test('log-meal-plan: the planned meal of a day goes into the diary once; Undo restores the store; none left is refused', () => {
+  const s = base(), day = dailyData(s.health).plans.find(p => !p.loggedAt)?.date ?? null;
+  let stores = s, planDay = day;
+  if (!planDay) {
+    // The Showcase planned nothing: today's diary saved as a meal, planned for tonight.
+    const saved = saveMealFromDiary(s.health, 'health_saved-meal-test0001', 'Test meal', DAY, 'All', now.toISOString()), meal = dailyData(saved).savedMeals.at(-1)!;
+    stores = {...s, health: saveMealPlan(saved, {id: 'health_meal-plan-test0001', savedMealId: meal.id, date: DAY, meal: 'Dinner'}, now.toISOString())}; planDay = DAY;
+  }
+  const p = plan(stores, {kind: 'log-meal-plan', day: planDay!});
+  expect(p.card.title).toContain('Log the planned');
+  const after = applyPlan(p, stores);
+  expect(after.health.diary.length).toBeGreaterThan(stores.health.diary.length);
+  expect(refused(after, {kind: 'log-meal-plan', day: planDay!})).toContain('No planned meal left');
+  const back = {...after, ...p.undo!.write(after)} as Stores;
+  expect(back.health).toEqual(stores.health);
+});
+test('grocery-notes: set or append; Undo puts the previous notes back', () => {
+  const s = base(), was = dailyData(s.health).groceryNotes;
+  const p = plan(s, {kind: 'grocery-notes', notes: 'Oat milk, spinach'});
+  const after = applyPlan(p, s); expect(dailyData(after.health).groceryNotes).toBe('Oat milk, spinach');
+  const more = applyPlan(plan(after, {kind: 'grocery-notes', notes: 'Lentils', append: true}), after); expect(dailyData(more.health).groceryNotes).toBe('Oat milk, spinach\nLentils');
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(dailyData(back.health).groceryNotes).toBe(was);
+  expect(refused(after, {kind: 'grocery-notes', notes: 'Oat milk, spinach'})).toContain('already');
+});
+test('set-favorite: a food by name or handle becomes a favourite and back; the state it already has is refused', () => {
+  const s = base(), food = s.health.foods[0]!;
+  const p = plan(s, {kind: 'set-favorite', food: food.name});
+  const after = applyPlan(p, s);
+  expect(dailyData(after.health).favorites.some(f => f.sourceId === food.id)).toBe(true);
+  expect(refused(after, {kind: 'set-favorite', food: food.name})).toContain('already');
+  const off = applyPlan(plan(after, {kind: 'set-favorite', food: food.name, favorite: false}), after);
+  expect(dailyData(off.health).favorites.some(f => f.sourceId === food.id)).toBe(false);
+  expect(() => act({kind: 'set-favorite', favorite: true})).toThrow();
+});
+test('create-counter and edit-counter: a new counter with an icon, a rename; duplicates and nothing-to-change are refused; Undo reverses', () => {
+  const s = base(), existing = exerciseData(s.health).counters[0]!;
+  expect(refused(s, {kind: 'create-counter', name: existing.name})).toContain('already exists');
+  const p = plan(s, {kind: 'create-counter', name: 'Burpees', icon: 'jump'});
+  const after = applyPlan(p, s), made = exerciseData(after.health).counters.find(c => c.name === 'Burpees')!;
+  expect(made.icon).toBe('jump');
+  const renamed = applyPlan(plan(after, {kind: 'edit-counter', counter: 'Burpees', name: 'Burpees (sets)'}), after);
+  expect(exerciseData(renamed.health).counters.find(c => c.id === made.id)!.name).toBe('Burpees (sets)');
+  expect(refused(after, {kind: 'edit-counter', counter: 'Burpees', name: 'Burpees'})).toContain('Nothing changes');
+  const back = {...after, ...p.undo!.write(after)} as Stores;
+  expect(exerciseData(back.health).counters.some(c => c.id === made.id)).toBe(false);
+});
+test('set-target: kcal, protein, weight, steps, water, sleep and mindful minutes, with units; clearing; the same value is refused; Undo restores', () => {
+  const s = base();
+  const kcal = plan(s, {kind: 'set-target', target: 'kcal', value: 2100}); const a1 = applyPlan(kcal, s); expect(a1.health.targets.kcal).toBe(2100);
+  expect(refused(a1, {kind: 'set-target', target: 'kcal', value: 2100})).toContain('already');
+  const back1 = {...a1, ...kcal.undo!.write(a1)} as Stores; expect(back1.health.targets.kcal).toBe(s.health.targets.kcal);
+  expect(refused(s, {kind: 'set-target', target: 'protein', value: 120, unit: 'g'})).toContain('already'); // the Showcase's own target
+  const protein = applyPlan(plan(s, {kind: 'set-target', target: 'protein', value: 130, unit: 'g'}), s); expect(protein.health.targets.proteinMg).toBe(130_000);
+  const weight = applyPlan(plan(s, {kind: 'set-target', target: 'weight', value: 75, unit: 'kg'}), s); expect(weight.health.targets.weightGrams).toBe(75_000);
+  const steps = applyPlan(plan(s, {kind: 'set-target', target: 'steps', value: 9000}), s); expect(steps.health.targets.steps).toBe(9000);
+  const water = applyPlan(plan(s, {kind: 'set-target', target: 'water', value: 2.5, unit: 'l'}), s); expect(dailyData(water.health).preferences.waterTargetMl).toBe(2500);
+  const sleep = applyPlan(plan(s, {kind: 'set-target', target: 'sleep', value: 7.5, unit: 'hours'}), s); expect((healthGroupIn(sleep.health, 'sleep') ?? emptySleep()).goal?.minutes).toBe(450);
+  const med = applyPlan(plan(s, {kind: 'set-target', target: 'meditation', value: 90}), s); expect((healthGroupIn(med.health, 'meditation') ?? emptyMeditation()).goal?.minutesPerWeek).toBe(90);
+  const cleared = applyPlan(plan(protein, {kind: 'set-target', target: 'protein', value: null}), protein); expect(cleared.health.targets.proteinMg).toBeNull();
+  expect(refused(s, {kind: 'set-target', target: 'kcal', value: 100, unit: 'g'})).toContain('kcal');
+  expect(refused(s, {kind: 'set-target', target: 'sleep', value: 1})).toContain('between 3 and 15');
+});
+test('set-health-preference: the water or weight unit; nothing recorded is converted; Undo restores', () => {
+  const s = base(), prefs = dailyData(s.health).preferences;
+  const p = plan(s, {kind: 'set-health-preference', weightUnit: prefs.weightUnit === 'kg' ? 'lb' : 'kg'});
+  expect(p.card.lines.at(-1)).toContain('nothing recorded is converted');
+  const after = applyPlan(p, s); expect(dailyData(after.health).preferences.weightUnit).not.toBe(prefs.weightUnit); expect(after.health.weights).toEqual(s.health.weights);
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(dailyData(back.health).preferences.weightUnit).toBe(prefs.weightUnit);
+  expect(refused(s, {kind: 'set-health-preference', weightUnit: prefs.weightUnit})).toContain('already');
+});
+test('start-night and end-night: the running night; a second start is refused; ending with no night running is refused; Undo cancels or resumes', () => {
+  const s = base();
+  expect(refused(s, {kind: 'end-night'})).toContain('No night is running');
+  const start = plan(s, {kind: 'start-night', bedtime: '23:15'});
+  const night = applyPlan(start, s), running = (healthGroupIn(night.health, 'sleep') ?? emptySleep()).nights.filter(n => n.end === null);
+  expect(running).toHaveLength(1);
+  expect(refused(night, {kind: 'start-night'})).toContain('already running');
+  const end = plan(night, {kind: 'end-night', wake: '07:10'}); expect(end.card.lines[0]).toContain('h in bed');
+  const morning = applyPlan(end, night); expect((healthGroupIn(morning.health, 'sleep') ?? emptySleep()).nights.find(n => n.id === running[0]!.id)!.end).not.toBeNull();
+  const resumed = {...morning, ...end.undo!.write(morning)} as Stores; expect((healthGroupIn(resumed.health, 'sleep') ?? emptySleep()).nights.find(n => n.id === running[0]!.id)!.end).toBeNull();
+  const cancelled = {...night, ...start.undo!.write(night)} as Stores; expect((healthGroupIn(cancelled.health, 'sleep') ?? emptySleep()).nights.some(n => n.id === running[0]!.id)).toBe(false);
+});
+test('set-bells: interval, sound and volume merge with what is set; the same is refused; Undo restores', () => {
+  const s = base();
+  const p = plan(s, {kind: 'set-bells', intervalMin: 5, sound: 'chime'});
+  const after = applyPlan(p, s), bells = (healthGroupIn(after.health, 'meditation') ?? emptyMeditation()).bells!;
+  expect(bells).toMatchObject({intervalMin: 5, sound: 'chime'});
+  expect(refused(after, {kind: 'set-bells', intervalMin: 5, sound: 'chime', volume: bells.volume})).toContain('already');
+  const louder = applyPlan(plan(after, {kind: 'set-bells', volume: 90}), after); expect((healthGroupIn(louder.health, 'meditation') ?? emptyMeditation()).bells).toMatchObject({intervalMin: 5, sound: 'chime', volume: 90});
+  const sans = (b: {intervalMin?: number; sound: string; volume: number} | undefined) => b && {intervalMin: b.intervalMin, sound: b.sound, volume: b.volume};
+  const back = {...after, ...p.undo!.write(after)} as Stores; expect(sans((healthGroupIn(back.health, 'meditation') ?? emptyMeditation()).bells)).toEqual(sans((healthGroupIn(s.health, 'meditation') ?? emptyMeditation()).bells));
+  expect(() => act({kind: 'set-bells'})).toThrow();
+});

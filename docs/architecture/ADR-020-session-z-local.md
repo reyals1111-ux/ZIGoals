@@ -56,8 +56,10 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 - **Part 5, `lib/ai/actions/auto-accept.test.ts`:** the never list is asserted as exactly weight, fasting, the two money
   pre-fills, `delete-record` and `open-page` (two more, never fewer).
 - **Part 5, `lib/ai/actions/plan.test.ts` and `edit.test.ts`:** the "every kind" coverage samples gain the eight new kinds
-  (three of them, needing a planned skip, a reminder or a closed goal, are covered in `plan-z.test.ts` and listed in the
-  coverage set as `stop-fast` already was).
+  of the first batch and the eleven Health kinds of the second (those needing a planned skip, a reminder, a closed goal,
+  a diary entry by name, a planned meal, a favourite, an existing counter or a running night are covered in
+  `plan-z.test.ts` and listed in the coverage set as `stop-fast` already was). The auto-accept test's Health list is
+  asserted against the group it renders, not a literal, so the eleven new Health kinds change no assertion there.
 
 ## Rejected options
 None yet.

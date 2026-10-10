@@ -1,5 +1,7 @@
 import {CATEGORY_LABELS, REMEMBER_CATEGORIES} from '../memory';
 import {GOAL_CATEGORIES, GOAL_TYPES, HABIT_STATES, HOLDING_CATEGORIES, MEALS, MEASUREMENT_KINDS, WIDGET_KINDS, actionSchema, type Action, type ActionKind} from './schema';
+import {EXERCISE_ICONS} from '../../health-counters';
+import {BELL_SOUNDS} from '../../meditation/schema';
 import {LINK_ICONS} from '../../links/schema';
 
 /**
@@ -28,6 +30,17 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'remove-reminder': [],
   'close-goal': [],
   'reopen-goal': [],
+  'edit-diary-entry': [select('meal', 'Meal', MEALS, true), num('quantity', 'Servings', true), {key: 'move_to', label: 'Move to day', type: 'date', optional: true}, DAY],
+  'log-meal-plan': [select('meal', 'Meal', MEALS, true), DAY],
+  'grocery-notes': [text('notes', 'Notes', false, true)],
+  'set-favorite': [],
+  'create-counter': [text('name', 'Name'), select('icon', 'Icon', EXERCISE_ICONS, true)],
+  'edit-counter': [text('name', 'New name', true), select('icon', 'Icon', EXERCISE_ICONS, true)],
+  'set-target': [num('value', 'Value (empty clears the target)', true), select('unit', 'Unit', ['kcal', 'g', 'steps', 'ml', 'l', 'kg', 'lb', 'hours', 'minutes'], true)],
+  'set-health-preference': [select('waterUnit', 'Water unit', ['ml', 'fl-oz-us'], true), select('weightUnit', 'Weight unit', ['kg', 'lb'], true)],
+  'start-night': [{key: 'bedtime', label: 'Bedtime (HH:MM, empty = now)', type: 'text', optional: true}],
+  'end-night': [{key: 'wake', label: 'Woke up at (HH:MM, empty = now)', type: 'text', optional: true}],
+  'set-bells': [int('intervalMin', 'Bell every (minutes)', true), select('sound', 'Sound', BELL_SOUNDS, true), int('volume', 'Volume (0 to 100)', true)],
   'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
   'log-steps': [int('steps', 'Steps'), int('minutes', 'Minutes', true), DAY],

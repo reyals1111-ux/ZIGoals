@@ -24,6 +24,9 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     // Session Z-Local Part 5
     'open-page': {kind: 'open-page', page: 'health', view: 'sleep'}, 'delete-record': {kind: 'delete-record', what: 'habit', habit: 'h1'}, 'set-habit-state': {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, vacation: {kind: 'vacation', from: '2026-09-22', to: '2026-09-24'},
     unskip: {kind: 'unskip', habit: 'h1'}, 'remove-reminder': {kind: 'remove-reminder', for: 'water'}, 'close-goal': {kind: 'close-goal', goal: 'g1'}, 'reopen-goal': {kind: 'reopen-goal', goal: 'g1'},
+    'edit-diary-entry': {kind: 'edit-diary-entry', name: 'Oatmeal', quantity: 2}, 'log-meal-plan': {kind: 'log-meal-plan', meal: 'Dinner'}, 'grocery-notes': {kind: 'grocery-notes', notes: 'Oat milk'}, 'set-favorite': {kind: 'set-favorite', food: 'f1'},
+    'create-counter': {kind: 'create-counter', name: 'Burpees', icon: 'jump'}, 'edit-counter': {kind: 'edit-counter', counter: 'Burpees', name: 'Sets'}, 'set-target': {kind: 'set-target', target: 'kcal', value: 2100, unit: 'kcal'}, 'set-health-preference': {kind: 'set-health-preference', weightUnit: 'lb'},
+    'start-night': {kind: 'start-night', bedtime: '23:00'}, 'end-night': {kind: 'end-night', wake: '07:00'}, 'set-bells': {kind: 'set-bells', intervalMin: 5, sound: 'chime', volume: 50},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);

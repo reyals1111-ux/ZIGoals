@@ -12,7 +12,9 @@ import {WRITING_KINDS, type ActionKind} from './schema';
  */
 // Session Z-Local Part 5: a deletion (the card opens the app's own confirmation) and a page opening are never automatic either.
 export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'prefill-holding', 'update-account-balance', 'delete-record', 'open-page'] as const satisfies readonly ActionKind[];
-export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement'] as const satisfies readonly ActionKind[];
+// Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
+export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement',
+  'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
 export const AUTO_ACCEPT_KINDS: readonly ActionKind[] = WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k));
 export const AUTO_ACCEPT_CAP = {default: 20, min: 1, max: 100} as const;
 /** Days of counts kept in the record. */
@@ -65,6 +67,7 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
+  'edit-diary-entry': 'Changes to a diary entry', 'log-meal-plan': 'Logging a planned meal', 'grocery-notes': 'Grocery notes', 'set-favorite': 'Favourite foods and recipes', 'create-counter': 'New counters', 'edit-counter': 'Changes to a counter', 'set-target': 'Health targets', 'set-health-preference': 'Health units', 'start-night': 'Starting a night', 'end-night': 'Ending a night', 'set-bells': 'The meditation bell',
   'check-in': 'Habit check-ins', skip: 'Habit skips', 'create-habit': 'New habits', 'stack-habit': 'Habit stacks', 'edit-habit': 'Changes to a habit', 'start-challenge': 'Challenges',
   'create-goal': 'New goal drafts', 'add-goal-note': 'Goal notes', 'add-milestone': 'Milestones', 'edit-goal': 'Changes to a goal',
   'log-food': 'Food entries (typed or from a photo)', 'create-food': 'New foods', 'create-recipe': 'New recipes', 'plan-meal': 'Planned meals', 'grocery-item': 'Grocery items', 'log-water': 'Water', counter: 'Exercise counters',
