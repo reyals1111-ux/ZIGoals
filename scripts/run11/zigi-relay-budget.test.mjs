@@ -87,7 +87,10 @@ test('privacy by construction: no console call and no storage of a message anywh
  // The budget object's tables hold counts and account ids only.
  const budget=readFileSync(new URL('../../workers/zigi-relay/budget.mjs',import.meta.url),'utf8');
  const columns=(budget.match(/CREATE TABLE IF NOT EXISTS \w+ \(.*?\)'/g)??[]).flatMap(table=>table.slice(table.indexOf('(')+1).replace(/,\s*PRIMARY KEY \([^)]*\)/,'').replace(/\)'$/,'').split(',').map(c=>c.trim().split(/\s+/)[0]).filter(name=>name&&name!=='PRIMARY'));
- expect(new Set(columns)).toEqual(new Set(['day','account','requests','tokens','id','at','state']));
+ // Session Z-Cloud Part 6 (ADR-019 C40): a month and micro-dollars, created or added to older tables, are counts too.
+ const added=[...(budget.match(/const COLUMNS=.*$/m)?.[0]??'').matchAll(/\['(\w+)','(\w+)',(?:'[^']*'|"[^"]*")\]/g)].map(m=>m[2]);
+ expect(added).toEqual(['micros','micros','micros','month']);
+ expect(new Set([...columns,...added])).toEqual(new Set(['day','account','requests','tokens','id','at','state','month','micros']));
 });
 
 /** A stream from pieces: strings are sent as they are, a function errors the stream at that point. */

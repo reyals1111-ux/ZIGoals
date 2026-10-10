@@ -1,3 +1,4 @@
+import {costMicros} from './pricing.mjs';
 /**
  * The relay's Anthropic upstream (Session X Part 9, ADR-014 / ADR-016). Chosen only by the exact address
  * ANTHROPIC_MESSAGES. The app keeps speaking the OpenAI Chat Completions wire it already speaks to the relay; here the
@@ -13,14 +14,26 @@
  *   reason; "the token counts shown in the usage field of the message_delta event are cumulative"), message_stop; ping
  *   events anywhere; an `error` event such as overloaded_error; new event types may appear (Streaming).
  * Nothing is kept or logged: every event is read once, translated and handed on.
+ *
+ * Session Z-Cloud Part 6 (ADR-019 C40; Z-Local's handoff, Part 3 entry, owner follow-up 2): the body follows the app's own
+ * Anthropic adapter (`apps/web/lib/ai/adapters/anthropic.ts`, Z-Local ADR-020 L2–L4), all in `anthropicBody` so the two
+ * stay easy to align: no `thinking` field (Claude Sonnet 5.5 and Claude Opus 5.5 answer 400 to `disabled`; adaptive
+ * thinking is their default), depth by `output_config.effort` ("low" for the quick reply, "high" for "Think deeper",
+ * never per model; a model that rejects `output_config` gets the same request once more without it, worker.mjs), the
+ * system prompt as one text block with `cache_control: {type: "ephemeral"}` and a top-level `cache_control` for the
+ * automatic breakpoint on the conversation's last block (two of the four markers), and no `tool_choice` (forced choices
+ * answer 400 on the 5.5 models). Only the models in ANTHROPIC_MODELS may be configured. The usage counts and the price
+ * table (pricing.mjs, a copy of Z-Local's `lib/ai/pricing.ts`) cost each reply in micro-dollars.
  * @typedef {import('./worker.mjs').RelayEnv} RelayEnv
  */
 export const ANTHROPIC_MESSAGES='https://api.anthropic.com/v1/messages';
 export const ANTHROPIC_VERSION='2023-06-01';
+/** The models the relay may be configured with on Anthropic's address: Claude Sonnet 5.5 (the default) and Claude Haiku 5.5. */
+export const ANTHROPIC_MODELS=Object.freeze(['claude-sonnet-5-5','claude-haiku-5-5']);
+/** The effort the app may ask for: the quick reply, or "Think deeper". @param {unknown} value @returns {'low'|'high'} */
+export const effortOf=value=>value==='high'?'high':'low';
 /** @param {URL} url */
 export const isAnthropic=url=>url.href===ANTHROPIC_MESSAGES;
-/** Thinking stays off unless the owner chose the model's own default (ZIGI_THINKING), for models that reject "disabled". @param {RelayEnv} env */
-export const thinkingOff=env=>env.ZIGI_THINKING!=='model-default';
 /** The headers Anthropic needs; the key never goes anywhere else. @param {RelayEnv} env */
 export const anthropicHeaders=env=>({'x-api-key':String(env.ZIGI_UPSTREAM_KEY),'anthropic-version':ANTHROPIC_VERSION,'content-type':'application/json',accept:'text/event-stream'});
 
@@ -48,11 +61,12 @@ function userBlocks(content){
 }
 /**
  * The Messages API request, rebuilt from the relay's own checked chat (relay.mjs upstreamBody): the system texts
- * joined, the turns translated, the tools' schemas as they are; the model, the output cap and streaming are the
- * relay's; thinking off unless ZIGI_THINKING says otherwise. Null when the chat cannot be expressed exactly.
+ * joined into one cached block, the turns translated, the tools' schemas as they are; the model, the output cap, the
+ * effort, caching and streaming are the relay's. Null when the chat cannot be expressed exactly.
  * @param {Record<string,any>[]} messages @param {any[]|undefined} tools @param {RelayEnv} env @param {number} cap
+ * @param {'low'|'high'} [effort]
  */
-export function anthropicBody(messages,tools,env,cap){
+export function anthropicBody(messages,tools,env,cap,effort='low'){
  /** @type {string[]} */const system=[];
  /** @type {{role:'user'|'assistant',content:Record<string,unknown>[]}[]} */const turns=[];
  /** Consecutive turns of one role become one, in order (a tool's results and the next words share the person's turn). @param {'user'|'assistant'} role @param {Record<string,unknown>[]} blocks */
@@ -76,10 +90,9 @@ export function anthropicBody(messages,tools,env,cap){
  // The Messages API starts with the person's turn: a greeting the app keeps before the first question is left out.
  while(turns[0]?.role==='assistant'&&turns[0].content.every(b=>b.type==='text'))turns.shift();
  if(turns[0]?.role!=='user')return null;
- /** @type {Record<string,unknown>} */const out={model:env.ZIGI_MODEL,max_tokens:cap,stream:true,messages:turns};
- if(system.length)out.system=system.join('\n');
+ /** @type {Record<string,unknown>} */const out={model:env.ZIGI_MODEL,max_tokens:cap,stream:true,cache_control:{type:'ephemeral'},output_config:{effort},messages:turns};
+ if(system.length)out.system=[{type:'text',text:system.join('\n'),cache_control:{type:'ephemeral'}}];
  if(tools?.length)out.tools=tools.map(t=>({name:t.function.name,...(t.function.description!==undefined?{description:t.function.description}:{}),input_schema:t.function.parameters??{type:'object',properties:{}}}));
- if(thinkingOff(env))out.thinking={type:'disabled'};
  return out;
 }
 
@@ -132,6 +145,8 @@ export function anthropicStream(model){
   },
   /** Tokens to settle with: input (with cache) plus output, once reported; else null. */
   used(){return final?prompt()+usage.output:null;},
+  /** Session Z-Cloud Part 6: the reply's cost in micro-dollars from its four usage counts (pricing.mjs), once reported; else null. */
+  cost(){return final?costMicros(model,usage):null;},
   /** Whether the provider ended the reply with an error event. */
   failed(){return failed;},
  };
