@@ -1,0 +1,8 @@
+
+Running 3 tests using 1 worker
+
+[1/3] [D] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+[2/3] [T] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+[3/3] [P] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+  1 skipped
+  2 passed (17.5s)

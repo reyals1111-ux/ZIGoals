@@ -1,0 +1,260 @@
+
+Running 216 tests using 1 worker
+
+[1/216] [D] › human-x/kit.ts:18:9 › J001 [E] a new device opens Today: the welcome explains Local Demo and nothing is saved yet @live
+[2/216] [D] › human-x/kit.ts:18:9 › J002 [E] the welcome: Habits and Health chosen, Finish setup, Today shows exactly those areas @live
+[3/216] [D] › human-x/kit.ts:18:9 › J005 [E] Today with no data: every empty state says what to do next; no zero shown as a fact @live
+[4/216] [D] › human-x/kit.ts:18:9 › J007 [S] Quick add from Today: the dialog opens, Escape closes it and focus returns @live
+[5/216] [D] › human-x/kit.ts:18:9 › J009 [L] the Quick-add line: "drank 2 glasses of water" previewed, saved, shown on Health @live
+[6/216] [D] › human-x/kit.ts:18:9 › J027 [S] every Today link lands on its page with the title shown @live
+[7/216] [D] › human-x/kit.ts:18:9 › J031 [E] create a goal with the wizard; it appears in Active @live
+[8/216] [D] › human-x/kit.ts:18:9 › J031 [L] create a goal with the wizard; it appears in Active @live
+[9/216] [D] › human-x/kit.ts:18:9 › J047 [E] a goal that does not exist: a calm message and a way back @live
+[10/216] [D] › human-x/kit.ts:18:9 › J049 [S] /app/goals/positions leads to Staking @live
+[11/216] [D] › human-x/kit.ts:18:9 › J060 [E] Goals' empty state on a new device explains the first step @live
+[12/216] [D] › human-x/kit.ts:18:9 › J041 [L] "On track?" with zero return: what is left, the pace, the date it points to @live
+[13/216] [D] › human-x/kit.ts:18:9 › J061 [E] create a daily habit, check it in, see it done @live
+[14/216] [D] › human-x/kit.ts:18:9 › J065 [L] undo a check-in @live
+[15/216] [D] › human-x/kit.ts:18:9 › J073 [L] a habit title with emoji and 80 characters stays whole or ellipsed, never overflowing @live
+[16/216] [D] › human-x/kit.ts:18:9 › J085 [S] Habits in Showcase writes nothing to my own records @live
+[17/216] [D] › human-x/kit.ts:18:9 › J088 [E] Habits' empty state says what to do first @live
+[18/216] [D] › human-x/kit.ts:18:9 › J091 [E] Health's first visit says what stays on the device @live
+[19/216] [D] › human-x/kit.ts:18:9 › J092 [E] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[20/216] [D] › human-x/kit.ts:18:9 › J092 [L] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[21/216] [D] › human-x/kit.ts:18:9 › J099 [L] weight: 78.4 kg saved and listed; a second entry the same day @live
+[22/216] [D] › human-x/kit.ts:18:9 › J109 [L] Sleep: "I'm going to bed", then "I woke up"; time asleep marked estimated @live
+[23/216] [D] › human-x/kit.ts:18:9 › J115 [L] Meditation: a one-minute session timed to the end @live
+[24/216] [D] › human-x/kit.ts:18:9 › J119 [E] Devices: the honest list; without Web Bluetooth it says so @live
+[25/216] [D] › human-x/kit.ts:18:9 › J122 [S] Health in Showcase writes nothing to my records @live
+[26/216] [D] › human-x/kit.ts:18:9 › J136 [E] Wealth's empty state @live
+[27/216] [D] › human-x/kit.ts:18:9 › J138 [L] accounts in EUR, JPY and CHF: net worth per currency, never converted @live
+[28/216] [D] › human-x/kit.ts:18:9 › J146 [E] Portfolio: create one; without prices, values stay unknown @live
+[29/216] [D] › human-x/kit.ts:18:9 › J156 [S] Markets with the market service unavailable: an honest state, no invented prices @live
+[30/216] [D] › human-x/kit.ts:18:9 › J161 [E] Staking: a watch-only address that is not one is refused @live
+[31/216] [D] › human-x/kit.ts:18:9 › J162 [S] Staking in Showcase: positions and totals; nothing that moves funds @live
+[32/216] [D] › human-x/kit.ts:18:9 › J165 [S] Ecosystem cards: open in place with Enter and Space; several stay open @live
+[33/216] [D] › human-x/kit.ts:18:9 › J167 [S] Ecosystem links open safely: new tab, no referrer @live
+[34/216] [D] › human-x/kit.ts:18:9 › J166 [S] an Ecosystem #project link opens its card and brings it into view @live
+[35/216] [D] › human-x/kit.ts:18:9 › J137 [E] a manual cash asset added in Wealth, labelled as my own value @live
+[36/216] [D] › human-x/kit.ts:18:9 › J137 [L] a manual cash asset added in Wealth, labelled as my own value @live
+[37/216] [D] › human-x/kit.ts:18:9 › J137b [E] Escape closes "Add to your wealth" and focus returns to its button @live
+[38/216] [D] › human-x/kit.ts:18:9 › J194 [E] My links: three https links with my own names @live
+[39/216] [D] › human-x/kit.ts:18:9 › J195 [E] My links refuses http:// and javascript: addresses @live
+[40/216] [D] › human-x/kit.ts:18:9 › J201 [E] Settings: six groups; computers jump by chips, phones by the grouped list @live
+[41/216] [D] › human-x/kit.ts:18:9 › J205 [E] Motion Off from Settings; the choice survives a reload @live
+[42/216] [D] › human-x/kit.ts:18:9 › J211 [E] Account & sync without accounts on this build: it says so; local records stay @live
+[43/216] [D] › human-x/kit.ts:18:9 › J226 [E] Send feedback: without details, then with my edited details; nothing sent or stored @live
+[44/216] [D] › human-x/kit.ts:18:9 › J227 [E] Help: every question opens and closes; a hash link opens its answer @live
+[45/216] [D] › human-x/kit.ts:18:9 › J228 [E] Help → Known limitations: its links work @live
+[46/216] [D] › human-x/kit.ts:18:9 › J235 [E] ZIGi launcher and panel: open, close with Escape; nothing sent without a provider (smoke) @live
+[47/216] [D] › human-x/kit.ts:18:9 › J251 [S] the navigation reaches every page and marks the current one @live
+[48/216] [D] › human-x/kit.ts:18:9 › J252 [S] back and forward across five pages restore each page @live
+[49/216] [D] › human-x/kit.ts:18:9 › J254 [E] an unknown /app route shows a calm not-found with a way back @live
+[50/216] [D] › human-x/kit.ts:18:9 › J260 [S] the skip link on every page moves focus to the content @live
+[51/216] [D] › human-x/kit.ts:18:9 › J224 [E] "Keep my data on this device" asks the browser and says what it answered @live
+[52/216] [D] › human-x/kit.ts:18:9 › J225 [E] diagnostics: the connection check reads only, and the support preview copies nothing until asked @live
+[53/216] [D] › human-x/kit.ts:18:9 › J237 [E] the contract section says NOT DEPLOYED and financial execution is off @live
+[54/216] [D] › human-x/kit.ts:18:9 › J229 [E] Help → Install on iPhone on a phone: the steps for this browser @live
+[55/216] [D] › human-x/kit.ts:18:9 › J230 [E] Help with the keyboard only: topics, then a question opened and closed with Enter @live
+[56/216] [D] › human-x/kit.ts:18:9 › J232 [E] Settings at 320 px: every row reachable, nothing sideways, rows at least 44 px @live
+[57/216] [D] › human-x/kit.ts:18:9 › J209 [E] reminders while ZIGoals is closed: unavailable in this build says so; nothing is asked @live
+[58/216] [D] › human-x/kit.ts:18:9 › J210 [E] the market data section says what is fetched and from where; its link opens Markets @live
+[59/216] [D] › human-x/kit.ts:18:9 › J181 [L] Activity lists what I just did @live
+[60/216] [D] › human-x/kit.ts:18:9 › J182 [E] Activity's empty state @live
+[61/216] [D] › human-x/kit.ts:18:9 › J185 [E] Chess is hidden until shown; showing it adds it to the navigation @live
+[62/216] [D] › human-x/kit.ts:18:9 › J189 [E] Chess with no username: an honest empty state, no request to either site @live
+[63/216] [D] › human-x/kit.ts:18:9 › J190 [E] the music player is hidden until shown; Settings → Music shows it @live
+[64/216] [D] › human-x/kit.ts:18:9 › J192 [E] Spotify not registered here: it says so and offers no sign-in @live
+[65/216] [D] › human-x/kit.ts:18:9 › J193 [E] Apple Music is a link to its own app, safely @live
+[66/216] [D] › human-x/kit.ts:18:9 › J250 [S] every page at 320, 360 and 390 px: no sideways scroll, the title on the first screen @live
+[67/216] [D] › human-x/kit.ts:18:9 › J253 [E] a deep link to every page in a fresh tab @live
+[68/216] [D] › human-x/kit.ts:18:9 › J253 [S] a deep link to every page in a fresh tab @live
+[69/216] [D] › human-x/kit.ts:18:9 › J501 [E] ZIGi's launcher shows its art on every main page and rests clear of the first action @live
+[70/216] [D] › human-x/kit.ts:18:9 › J502 [E] Meet ZIGi from Settings: every state with its code, nothing written on view @live
+[71/216] [D] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+[72/216] [D] › human-x/kit.ts:18:9 › J504 [S] in the Showcase ZIGi is the same and Meet ZIGi shows nothing personal @live
+[73/216] [T] › human-x/kit.ts:18:9 › J001 [E] a new device opens Today: the welcome explains Local Demo and nothing is saved yet @live
+[74/216] [T] › human-x/kit.ts:18:9 › J002 [E] the welcome: Habits and Health chosen, Finish setup, Today shows exactly those areas @live
+[75/216] [T] › human-x/kit.ts:18:9 › J005 [E] Today with no data: every empty state says what to do next; no zero shown as a fact @live
+[76/216] [T] › human-x/kit.ts:18:9 › J007 [S] Quick add from Today: the dialog opens, Escape closes it and focus returns @live
+[77/216] [T] › human-x/kit.ts:18:9 › J009 [L] the Quick-add line: "drank 2 glasses of water" previewed, saved, shown on Health @live
+[78/216] [T] › human-x/kit.ts:18:9 › J027 [S] every Today link lands on its page with the title shown @live
+[79/216] [T] › human-x/kit.ts:18:9 › J031 [E] create a goal with the wizard; it appears in Active @live
+[80/216] [T] › human-x/kit.ts:18:9 › J031 [L] create a goal with the wizard; it appears in Active @live
+[81/216] [T] › human-x/kit.ts:18:9 › J047 [E] a goal that does not exist: a calm message and a way back @live
+[82/216] [T] › human-x/kit.ts:18:9 › J049 [S] /app/goals/positions leads to Staking @live
+[83/216] [T] › human-x/kit.ts:18:9 › J060 [E] Goals' empty state on a new device explains the first step @live
+[84/216] [T] › human-x/kit.ts:18:9 › J041 [L] "On track?" with zero return: what is left, the pace, the date it points to @live
+[85/216] [T] › human-x/kit.ts:18:9 › J061 [E] create a daily habit, check it in, see it done @live
+[86/216] [T] › human-x/kit.ts:18:9 › J065 [L] undo a check-in @live
+[87/216] [T] › human-x/kit.ts:18:9 › J073 [L] a habit title with emoji and 80 characters stays whole or ellipsed, never overflowing @live
+[88/216] [T] › human-x/kit.ts:18:9 › J085 [S] Habits in Showcase writes nothing to my own records @live
+[89/216] [T] › human-x/kit.ts:18:9 › J088 [E] Habits' empty state says what to do first @live
+[90/216] [T] › human-x/kit.ts:18:9 › J091 [E] Health's first visit says what stays on the device @live
+[91/216] [T] › human-x/kit.ts:18:9 › J092 [E] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[92/216] [T] › human-x/kit.ts:18:9 › J092 [L] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[93/216] [T] › human-x/kit.ts:18:9 › J099 [L] weight: 78.4 kg saved and listed; a second entry the same day @live
+[94/216] [T] › human-x/kit.ts:18:9 › J109 [L] Sleep: "I'm going to bed", then "I woke up"; time asleep marked estimated @live
+[95/216] [T] › human-x/kit.ts:18:9 › J115 [L] Meditation: a one-minute session timed to the end @live
+[96/216] [T] › human-x/kit.ts:18:9 › J119 [E] Devices: the honest list; without Web Bluetooth it says so @live
+[97/216] [T] › human-x/kit.ts:18:9 › J122 [S] Health in Showcase writes nothing to my records @live
+[98/216] [T] › human-x/kit.ts:18:9 › J136 [E] Wealth's empty state @live
+[99/216] [T] › human-x/kit.ts:18:9 › J138 [L] accounts in EUR, JPY and CHF: net worth per currency, never converted @live
+[100/216] [T] › human-x/kit.ts:18:9 › J146 [E] Portfolio: create one; without prices, values stay unknown @live
+[101/216] [T] › human-x/kit.ts:18:9 › J156 [S] Markets with the market service unavailable: an honest state, no invented prices @live
+[102/216] [T] › human-x/kit.ts:18:9 › J161 [E] Staking: a watch-only address that is not one is refused @live
+[103/216] [T] › human-x/kit.ts:18:9 › J162 [S] Staking in Showcase: positions and totals; nothing that moves funds @live
+[104/216] [T] › human-x/kit.ts:18:9 › J165 [S] Ecosystem cards: open in place with Enter and Space; several stay open @live
+[105/216] [T] › human-x/kit.ts:18:9 › J167 [S] Ecosystem links open safely: new tab, no referrer @live
+[106/216] [T] › human-x/kit.ts:18:9 › J166 [S] an Ecosystem #project link opens its card and brings it into view @live
+[107/216] [T] › human-x/kit.ts:18:9 › J137 [E] a manual cash asset added in Wealth, labelled as my own value @live
+[108/216] [T] › human-x/kit.ts:18:9 › J137 [L] a manual cash asset added in Wealth, labelled as my own value @live
+[109/216] [T] › human-x/kit.ts:18:9 › J137b [E] Escape closes "Add to your wealth" and focus returns to its button @live
+[110/216] [T] › human-x/kit.ts:18:9 › J194 [E] My links: three https links with my own names @live
+[111/216] [T] › human-x/kit.ts:18:9 › J195 [E] My links refuses http:// and javascript: addresses @live
+[112/216] [T] › human-x/kit.ts:18:9 › J201 [E] Settings: six groups; computers jump by chips, phones by the grouped list @live
+[113/216] [T] › human-x/kit.ts:18:9 › J205 [E] Motion Off from Settings; the choice survives a reload @live
+[114/216] [T] › human-x/kit.ts:18:9 › J211 [E] Account & sync without accounts on this build: it says so; local records stay @live
+[115/216] [T] › human-x/kit.ts:18:9 › J226 [E] Send feedback: without details, then with my edited details; nothing sent or stored @live
+[116/216] [T] › human-x/kit.ts:18:9 › J227 [E] Help: every question opens and closes; a hash link opens its answer @live
+[117/216] [T] › human-x/kit.ts:18:9 › J228 [E] Help → Known limitations: its links work @live
+[118/216] [T] › human-x/kit.ts:18:9 › J235 [E] ZIGi launcher and panel: open, close with Escape; nothing sent without a provider (smoke) @live
+[119/216] [T] › human-x/kit.ts:18:9 › J251 [S] the navigation reaches every page and marks the current one @live
+[120/216] [T] › human-x/kit.ts:18:9 › J252 [S] back and forward across five pages restore each page @live
+[121/216] [T] › human-x/kit.ts:18:9 › J254 [E] an unknown /app route shows a calm not-found with a way back @live
+[122/216] [T] › human-x/kit.ts:18:9 › J260 [S] the skip link on every page moves focus to the content @live
+[123/216] [T] › human-x/kit.ts:18:9 › J224 [E] "Keep my data on this device" asks the browser and says what it answered @live
+[124/216] [T] › human-x/kit.ts:18:9 › J225 [E] diagnostics: the connection check reads only, and the support preview copies nothing until asked @live
+[125/216] [T] › human-x/kit.ts:18:9 › J237 [E] the contract section says NOT DEPLOYED and financial execution is off @live
+[126/216] [T] › human-x/kit.ts:18:9 › J229 [E] Help → Install on iPhone on a phone: the steps for this browser @live
+[127/216] [T] › human-x/kit.ts:18:9 › J230 [E] Help with the keyboard only: topics, then a question opened and closed with Enter @live
+[128/216] [T] › human-x/kit.ts:18:9 › J232 [E] Settings at 320 px: every row reachable, nothing sideways, rows at least 44 px @live
+[129/216] [T] › human-x/kit.ts:18:9 › J209 [E] reminders while ZIGoals is closed: unavailable in this build says so; nothing is asked @live
+[130/216] [T] › human-x/kit.ts:18:9 › J210 [E] the market data section says what is fetched and from where; its link opens Markets @live
+[131/216] [T] › human-x/kit.ts:18:9 › J181 [L] Activity lists what I just did @live
+[132/216] [T] › human-x/kit.ts:18:9 › J182 [E] Activity's empty state @live
+[133/216] [T] › human-x/kit.ts:18:9 › J185 [E] Chess is hidden until shown; showing it adds it to the navigation @live
+[134/216] [T] › human-x/kit.ts:18:9 › J189 [E] Chess with no username: an honest empty state, no request to either site @live
+[135/216] [T] › human-x/kit.ts:18:9 › J190 [E] the music player is hidden until shown; Settings → Music shows it @live
+[136/216] [T] › human-x/kit.ts:18:9 › J192 [E] Spotify not registered here: it says so and offers no sign-in @live
+[137/216] [T] › human-x/kit.ts:18:9 › J193 [E] Apple Music is a link to its own app, safely @live
+[138/216] [T] › human-x/kit.ts:18:9 › J250 [S] every page at 320, 360 and 390 px: no sideways scroll, the title on the first screen @live
+[139/216] [T] › human-x/kit.ts:18:9 › J253 [E] a deep link to every page in a fresh tab @live
+[140/216] [T] › human-x/kit.ts:18:9 › J253 [S] a deep link to every page in a fresh tab @live
+[141/216] [T] › human-x/kit.ts:18:9 › J501 [E] ZIGi's launcher shows its art on every main page and rests clear of the first action @live
+[142/216] [T] › human-x/kit.ts:18:9 › J502 [E] Meet ZIGi from Settings: every state with its code, nothing written on view @live
+[143/216] [T] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+[144/216] [T] › human-x/kit.ts:18:9 › J504 [S] in the Showcase ZIGi is the same and Meet ZIGi shows nothing personal @live
+[145/216] [P] › human-x/kit.ts:18:9 › J001 [E] a new device opens Today: the welcome explains Local Demo and nothing is saved yet @live
+[146/216] [P] › human-x/kit.ts:18:9 › J002 [E] the welcome: Habits and Health chosen, Finish setup, Today shows exactly those areas @live
+[147/216] [P] › human-x/kit.ts:18:9 › J005 [E] Today with no data: every empty state says what to do next; no zero shown as a fact @live
+[148/216] [P] › human-x/kit.ts:18:9 › J007 [S] Quick add from Today: the dialog opens, Escape closes it and focus returns @live
+[149/216] [P] › human-x/kit.ts:18:9 › J009 [L] the Quick-add line: "drank 2 glasses of water" previewed, saved, shown on Health @live
+[150/216] [P] › human-x/kit.ts:18:9 › J027 [S] every Today link lands on its page with the title shown @live
+[151/216] [P] › human-x/kit.ts:18:9 › J031 [E] create a goal with the wizard; it appears in Active @live
+[152/216] [P] › human-x/kit.ts:18:9 › J031 [L] create a goal with the wizard; it appears in Active @live
+[153/216] [P] › human-x/kit.ts:18:9 › J047 [E] a goal that does not exist: a calm message and a way back @live
+[154/216] [P] › human-x/kit.ts:18:9 › J049 [S] /app/goals/positions leads to Staking @live
+[155/216] [P] › human-x/kit.ts:18:9 › J060 [E] Goals' empty state on a new device explains the first step @live
+[156/216] [P] › human-x/kit.ts:18:9 › J041 [L] "On track?" with zero return: what is left, the pace, the date it points to @live
+[157/216] [P] › human-x/kit.ts:18:9 › J061 [E] create a daily habit, check it in, see it done @live
+[158/216] [P] › human-x/kit.ts:18:9 › J065 [L] undo a check-in @live
+[159/216] [P] › human-x/kit.ts:18:9 › J073 [L] a habit title with emoji and 80 characters stays whole or ellipsed, never overflowing @live
+[160/216] [P] › human-x/kit.ts:18:9 › J085 [S] Habits in Showcase writes nothing to my own records @live
+[161/216] [P] › human-x/kit.ts:18:9 › J088 [E] Habits' empty state says what to do first @live
+[162/216] [P] › human-x/kit.ts:18:9 › J091 [E] Health's first visit says what stays on the device @live
+[163/216] [P] › human-x/kit.ts:18:9 › J092 [E] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[164/216] [P] › human-x/kit.ts:18:9 › J092 [L] the diary: a food, then a meal of 1.5 servings, the calories right @live
+[165/216] [P] › human-x/kit.ts:18:9 › J099 [L] weight: 78.4 kg saved and listed; a second entry the same day @live
+[166/216] [P] › human-x/kit.ts:18:9 › J109 [L] Sleep: "I'm going to bed", then "I woke up"; time asleep marked estimated @live
+[167/216] [P] › human-x/kit.ts:18:9 › J115 [L] Meditation: a one-minute session timed to the end @live
+[168/216] [P] › human-x/kit.ts:18:9 › J119 [E] Devices: the honest list; without Web Bluetooth it says so @live
+[169/216] [P] › human-x/kit.ts:18:9 › J122 [S] Health in Showcase writes nothing to my records @live
+[170/216] [P] › human-x/kit.ts:18:9 › J136 [E] Wealth's empty state @live
+[171/216] [P] › human-x/kit.ts:18:9 › J138 [L] accounts in EUR, JPY and CHF: net worth per currency, never converted @live
+[172/216] [P] › human-x/kit.ts:18:9 › J146 [E] Portfolio: create one; without prices, values stay unknown @live
+[173/216] [P] › human-x/kit.ts:18:9 › J156 [S] Markets with the market service unavailable: an honest state, no invented prices @live
+[174/216] [P] › human-x/kit.ts:18:9 › J161 [E] Staking: a watch-only address that is not one is refused @live
+[175/216] [P] › human-x/kit.ts:18:9 › J162 [S] Staking in Showcase: positions and totals; nothing that moves funds @live
+[176/216] [P] › human-x/kit.ts:18:9 › J165 [S] Ecosystem cards: open in place with Enter and Space; several stay open @live
+[177/216] [P] › human-x/kit.ts:18:9 › J167 [S] Ecosystem links open safely: new tab, no referrer @live
+[178/216] [P] › human-x/kit.ts:18:9 › J166 [S] an Ecosystem #project link opens its card and brings it into view @live
+[179/216] [P] › human-x/kit.ts:18:9 › J137 [E] a manual cash asset added in Wealth, labelled as my own value @live
+[180/216] [P] › human-x/kit.ts:18:9 › J137 [L] a manual cash asset added in Wealth, labelled as my own value @live
+[181/216] [P] › human-x/kit.ts:18:9 › J137b [E] Escape closes "Add to your wealth" and focus returns to its button @live
+[182/216] [P] › human-x/kit.ts:18:9 › J194 [E] My links: three https links with my own names @live
+[183/216] [P] › human-x/kit.ts:18:9 › J195 [E] My links refuses http:// and javascript: addresses @live
+[184/216] [P] › human-x/kit.ts:18:9 › J201 [E] Settings: six groups; computers jump by chips, phones by the grouped list @live
+[185/216] [P] › human-x/kit.ts:18:9 › J205 [E] Motion Off from Settings; the choice survives a reload @live
+[186/216] [P] › human-x/kit.ts:18:9 › J211 [E] Account & sync without accounts on this build: it says so; local records stay @live
+[187/216] [P] › human-x/kit.ts:18:9 › J226 [E] Send feedback: without details, then with my edited details; nothing sent or stored @live
+[188/216] [P] › human-x/kit.ts:18:9 › J227 [E] Help: every question opens and closes; a hash link opens its answer @live
+[189/216] [P] › human-x/kit.ts:18:9 › J228 [E] Help → Known limitations: its links work @live
+[190/216] [P] › human-x/kit.ts:18:9 › J235 [E] ZIGi launcher and panel: open, close with Escape; nothing sent without a provider (smoke) @live
+[191/216] [P] › human-x/kit.ts:18:9 › J251 [S] the navigation reaches every page and marks the current one @live
+[192/216] [P] › human-x/kit.ts:18:9 › J252 [S] back and forward across five pages restore each page @live
+[193/216] [P] › human-x/kit.ts:18:9 › J254 [E] an unknown /app route shows a calm not-found with a way back @live
+[194/216] [P] › human-x/kit.ts:18:9 › J260 [S] the skip link on every page moves focus to the content @live
+[195/216] [P] › human-x/kit.ts:18:9 › J224 [E] "Keep my data on this device" asks the browser and says what it answered @live
+[196/216] [P] › human-x/kit.ts:18:9 › J225 [E] diagnostics: the connection check reads only, and the support preview copies nothing until asked @live
+[197/216] [P] › human-x/kit.ts:18:9 › J237 [E] the contract section says NOT DEPLOYED and financial execution is off @live
+[198/216] [P] › human-x/kit.ts:18:9 › J229 [E] Help → Install on iPhone on a phone: the steps for this browser @live
+[199/216] [P] › human-x/kit.ts:18:9 › J230 [E] Help with the keyboard only: topics, then a question opened and closed with Enter @live
+[200/216] [P] › human-x/kit.ts:18:9 › J232 [E] Settings at 320 px: every row reachable, nothing sideways, rows at least 44 px @live
+[201/216] [P] › human-x/kit.ts:18:9 › J209 [E] reminders while ZIGoals is closed: unavailable in this build says so; nothing is asked @live
+[202/216] [P] › human-x/kit.ts:18:9 › J210 [E] the market data section says what is fetched and from where; its link opens Markets @live
+[203/216] [P] › human-x/kit.ts:18:9 › J181 [L] Activity lists what I just did @live
+[204/216] [P] › human-x/kit.ts:18:9 › J182 [E] Activity's empty state @live
+[205/216] [P] › human-x/kit.ts:18:9 › J185 [E] Chess is hidden until shown; showing it adds it to the navigation @live
+[206/216] [P] › human-x/kit.ts:18:9 › J189 [E] Chess with no username: an honest empty state, no request to either site @live
+[207/216] [P] › human-x/kit.ts:18:9 › J190 [E] the music player is hidden until shown; Settings → Music shows it @live
+[208/216] [P] › human-x/kit.ts:18:9 › J192 [E] Spotify not registered here: it says so and offers no sign-in @live
+[209/216] [P] › human-x/kit.ts:18:9 › J193 [E] Apple Music is a link to its own app, safely @live
+[210/216] [P] › human-x/kit.ts:18:9 › J250 [S] every page at 320, 360 and 390 px: no sideways scroll, the title on the first screen @live
+[211/216] [P] › human-x/kit.ts:18:9 › J253 [E] a deep link to every page in a fresh tab @live
+[212/216] [P] › human-x/kit.ts:18:9 › J253 [S] a deep link to every page in a fresh tab @live
+[213/216] [P] › human-x/kit.ts:18:9 › J501 [E] ZIGi's launcher shows its art on every main page and rests clear of the first action @live
+[214/216] [P] › human-x/kit.ts:18:9 › J502 [E] Meet ZIGi from Settings: every state with its code, nothing written on view @live
+[215/216] [P] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live
+  1) [P] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "F001-idle.anim.webp"
+    Received: ""
+
+       at 10-zigi-alive.spec.ts:54
+
+      52 |   await open(j.page, '/app');
+      53 |   await expect.poll(() => playing(j.page), {timeout: 15_000}).toBe(true);
+    > 54 |   expect(await file(j.page)).toBe('F001-idle.anim.webp');
+         |                              ^
+      55 |   await j.page.evaluate(([key, value]) => localStorage.setItem(key!, value!), [ZIGI_KEY, JSON.stringify({version: 1, animation: 'off'})]);
+      56 |   await open(j.page, '/app');
+      57 |   await stillPoster(j.page);
+        at /home/user/ZIGoals/apps/web/human-x/10-zigi-alive.spec.ts:54:30
+        at /home/user/ZIGoals/apps/web/human-x/kit.ts:25:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/human-live/output/10-zigi-alive-J503-E-ZIGi--9e8f8-tion-Off-or-Motion-Off-live-P/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../../../tmp/claude-0/human-live/output/10-zigi-alive-J503-E-ZIGi--9e8f8-tion-Off-or-Motion-Off-live-P/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/human-live/output/10-zigi-alive-J503-E-ZIGi--9e8f8-tion-Off-or-Motion-Off-live-P/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/human-live/output/10-zigi-alive-J503-E-ZIGi--9e8f8-tion-Off-or-Motion-Off-live-P/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[216/216] [P] › human-x/kit.ts:18:9 › J504 [S] in the Showcase ZIGi is the same and Meet ZIGi shows nothing personal @live
+  Slow test file: [D] › human-x/kit.ts (7.3m)
+  Slow test file: [T] › human-x/kit.ts (5.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    [P] › human-x/kit.ts:18:9 › J503 [E] ZIGi breathes while it waits (Calm), and holds still with its animation Off or Motion Off @live 
+  27 skipped
+  188 passed (21.4m)
