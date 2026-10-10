@@ -16,7 +16,7 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-z-local`
    - `qwen36-mac-corpus` — qwen3.6 on the Mac's Ollama (slow). Log `stage-logs/qwen36-mac-corpus.log`.
 3. The forwarder (`forwarder.mjs`, 127.0.0.1:11435 → the PC) must be started with `PC_OLLAMA_URL` set to the Tailscale address (the tailnet IP in `~/CLAUDE.md`):
    Node gets `EHOSTUNREACH` on the LAN address in `~/.config/zigoals/local-llm.env` (macOS's Local Network permission is not granted to Node; curl and Python reach it). Never print either address. If it is down, every PC stage fails its probe and `pc-status.log` on the runs worktree records the error.
-4. When every chain has its END line: commit the summaries and the rendered table if the Part 6 chain's commit did not land (`git status`), re-score the earlier runs (`ZIGI_RESCORE`), and write Part 6's verdict lines (one per target, with evidence) into `ZIGI_CLAUDE_TEST_Z.md` and ADR-020.
+4. When every chain has its END line: commit the summaries and the rendered table if the Part 6 chain's commit did not land (`git status`), re-score the earlier runs (`ZIGI_RESCORE`), render the targets table (`node scripts/zigi/targets.mjs --golden 272/272 --golden-spoken 397/397`, after the golden tests ran) and the run table (`render-claude-doc.mjs`), and carry each "not met" into ADR-020 with its reason.
 5. Then Part 2's document (recommendation per job, cost per 100 messages from the rendered rows), Part 9, the STATUS entry, Gates A/B/C (CI green on a quiet head: every push cancels the running Milestone quality run), the second security read, and stop caffeinate (`caffeinate.pid`), the forwarder (`forwarder.pid`) and the :3103 server (`serve-3103.pid`).
 
 ## Done (commits on the feature branch)

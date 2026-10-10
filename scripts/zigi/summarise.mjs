@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
-import {basename, join} from 'node:path';
+import {basename, dirname, join} from 'node:path';
 
 /**
  * Session Z-Local: one run file → its summary JSON (kept on the feature branch under
@@ -26,17 +26,18 @@ for (const file of files) {
     const byKind = Object.fromEntries(Object.entries(s.byKind ?? {}).map(([k, v]) => [k, `${v.passed}/${v.total}`]));
     const requests = timed.reduce((a, r) => a + (r.requests ?? 1), 0);
     const perTurn = timed.length ? {input: s.tokens.input / timed.length, cacheWrite: (s.tokens.cacheWrite ?? 0) / timed.length, cacheRead: (s.tokens.cacheRead ?? 0) / timed.length, output: s.tokens.output / timed.length, usd: s.costUsd !== null && s.costUsd !== undefined ? s.costUsd / timed.length : null} : null;
-    summary = {kind: 'harness', file: basename(file), provider: s.provider ?? 'local', model: s.model, host: s.host, mode: s.mode, think: s.think, cache: s.cache ?? null, pageContext: s.pageContext ?? false, batch: s.batch ?? false, cases: s.cases, repeat: s.repeat, runs: s.runs, passed: s.passed, rate: s.rate, byKind: s.byKind,
+    summary = {kind: 'harness', file: basename(file), stage: basename(dirname(file)), provider: s.provider ?? 'local', model: s.model, host: s.host, mode: s.mode, think: s.think, cache: s.cache ?? null, pageContext: s.pageContext, set: s.set ?? 'typed' ?? false, batch: s.batch ?? false, cases: s.cases, repeat: s.repeat, runs: s.runs, passed: s.passed, rate: s.rate, byKind: s.byKind,
       latency: {firstTokenMedianMs: median(timed.map(r => r.firstTokenMs)), firstTokenP90Ms: p90(timed.map(r => r.firstTokenMs)), totalMedianMs: median(timed.map(r => r.totalMs)), totalP90Ms: p90(timed.map(r => r.totalMs))},
       tokens: s.tokens, requests, costUsd: s.costUsd ?? null, pricesAsOf: s.pricesAsOf ?? null, perTurn, costPer100Messages: perTurn?.usd !== null && perTurn?.usd !== undefined ? perTurn.usd * 100 : null, repaired: runs.filter(r => r.repaired).length, errors: runs.filter(r => r.error).length, misses: top, startedAt: s.startedAt, finishedAt: s.finishedAt};
     row = `| \`${s.model}\` | ${s.host} | ${s.passed} / ${s.runs} · **${pct(s.passed, s.runs)}** | ${Object.entries(byKind).map(([k, v]) => `${k} ${v}`).join(' · ')} | ${n(summary.latency.firstTokenMedianMs)} / ${n(summary.latency.firstTokenP90Ms)} | ${n(summary.latency.totalMedianMs)} | ${perTurn ? `${n(Math.round(perTurn.input))} + ${n(Math.round(perTurn.cacheWrite))} w + ${n(Math.round(perTurn.cacheRead))} r → ${n(Math.round(perTurn.output))}` : '—'} | ${summary.costPer100Messages !== null ? `$${summary.costPer100Messages.toFixed(2)}` : '—'} | ${top || '—'} |`;
   } else if (Array.isArray(data)) {
     const groups = new Map();
     for (const r of data) { const k = `${r.model} on ${r.host} (${r.project})`; const g = groups.get(k) ?? {runs: 0, passed: 0, ms: [], errors: 0, usd: 0, usage: 0}; g.runs++; if (r.score?.pass && !r.error) g.passed++; if (r.ms) g.ms.push(r.ms); if (r.error) g.errors++; if (r.usage?.costUsd) { g.usd += r.usage.costUsd; g.usage++; } groups.set(k, g); }
-    summary = {kind: 'panel', file: basename(file), groups: Object.fromEntries([...groups].map(([k, g]) => [k, {runs: g.runs, passed: g.passed, rate: g.runs ? g.passed / g.runs : 0, medianMs: median(g.ms), p90Ms: p90(g.ms), errors: g.errors, costUsd: g.usage ? g.usd : null}]))};
+    summary = {kind: 'panel', file: basename(file), stage: basename(dirname(file)), groups: Object.fromEntries([...groups].map(([k, g]) => [k, {runs: g.runs, passed: g.passed, rate: g.runs ? g.passed / g.runs : 0, medianMs: median(g.ms), p90Ms: p90(g.ms), errors: g.errors, costUsd: g.usage ? g.usd : null}]))};
     row = [...groups].map(([k, g]) => `| ${k} | ${g.passed} / ${g.runs} · **${pct(g.passed, g.runs)}** | ${n(median(g.ms))} | ${g.errors} | ${g.usage ? `$${g.usd.toFixed(3)}` : '—'} |`).join('\n');
   } else { console.error(`Unknown shape: ${file}`); continue; }
-  const out = join(OUT, `${basename(file)}.summary.json`);
+  // A panel file carries no stamp, so two stages (Chrome and WebKit) write the same name: its summary is prefixed with the stage folder.
+  const out = join(OUT, `${summary.kind === 'panel' ? `${basename(dirname(file))}--` : ''}${basename(file)}.summary.json`);
   writeFileSync(out, JSON.stringify(summary, null, 1));
   console.log(`${basename(file)}\n${row}\n→ ${out}`);
 }

@@ -77,6 +77,40 @@ UI panel (150 Sonnet, 150 Haiku, 60 Opus), the 15 conversations ×3, the day on 
 (17 × 10, Sonnet desktop and phone, Haiku desktop), the four photo plates ×3, the WebKit subset (60 Sonnet + 5
 conversations), and the second half of the caching measurement. Each lands here as a rendered row when its summary is in.
 
+## The targets (Part 6)
+<!-- targets:start -->
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-10 from 8 summary file(s): 2 met · 2 not met · 21 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+
+| Target | Result | Verdict | Evidence |
+|---|---:|---|---|
+| Sonnet · corpus (typed) ≥ 97 % | 693/773 · 89.7 % | not met, 7.3 pt short; misses: cards 51, never 10, fields 9, contains 6, no-numbers 5 | `corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json` |
+| Sonnet · the spoken set ≥ 95 % | — | not run yet | — |
+| Sonnet · UI panel 150 ≥ 95 % | — | not run yet | — |
+| Sonnet · 15 conversations ×3: 15/15 | — | not run yet | — |
+| Sonnet · the day, desktop + phone: 36/36 | — | not run yet | — |
+| Sonnet · pages 17 × 10 ≥ 99 % | — | not run yet | — |
+| Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
+| Sonnet · WebKit subset (60 panel + 5 conversations), reported | — | not run yet | — |
+| Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
+| Haiku · corpus ≥ 92 % | 2182/2493 · 87.5 % | not met, 4.5 pt short; misses: cards 238, fields 62, never 26, refusal 18, schema 18 | `corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json` |
+| Haiku · the spoken set ≥ 92 % | — | not run yet | — |
+| Haiku · UI panel 150 ≥ 92 % | — | not run yet | — |
+| Haiku · pages 17 × 10 (desktop) ≥ 92 % | — | not run yet | — |
+| Opus · corpus ≥ 97 % | — | not run yet | — |
+| Opus · important set ≥ 97 % (the re-run after the fix rounds) | — | not run yet | — |
+| Opus · UI panel 60 ≥ 97 % | — | not run yet | — |
+| qwen3.8 (RTX 5090) ≥ 90 % | — | not run yet | — |
+| qwen3.6 (RTX 5090) ≥ 85 % | — | not run yet | — |
+| qwen3.6 (Mac M1 Max) ≥ 85 % | — | not run yet | — |
+| gemma4 (RTX 5090) ≥ 89 % | — | not run yet | — |
+| gemma4 · the spoken set, reported | — | not run yet | — |
+| phi4-mini (RTX 5090), reported (X-Local: 61 %) | — | not run yet | — |
+| gemma4 · important ×3 variance (spread) | — | not run yet | — |
+| qwen3.8 · important ×3 variance (spread) | — | not run yet | — |
+| Golden set (272, byte-identical) 100 % | 272/272 · 100.0 % | **met** | `vitest (CI: web checks)` |
+| Golden spoken set 100 % | 397/397 · 100.0 % | **met** | `vitest (CI: web checks)` |
+<!-- targets:end -->
+
 ## Recommendation per job
 Filled when the round is complete (friends through the relay, budget, deep).
 
