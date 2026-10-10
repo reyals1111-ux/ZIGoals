@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
     const h = {...r.headers, 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,OPTIONS'};
     res.writeHead(r.statusCode ?? 502, h); r.pipe(res);
   });
-  up.on('error', e => { res.writeHead(502, {'content-type': 'application/json', 'access-control-allow-origin': '*'}); res.end(JSON.stringify({error: `upstream: ${e.code ?? e.message}`})); });
+  up.on('error', e => { res.writeHead(502, {'content-type': 'application/json', 'access-control-allow-origin': '*'}); res.end(JSON.stringify({error: `upstream: ${e.code ?? 'error'}`})); });
   if (req.method === 'OPTIONS') { res.writeHead(204, {'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': 'GET,POST,OPTIONS'}); res.end(); up.destroy(); return; }
   req.pipe(up);
 });

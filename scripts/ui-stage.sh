@@ -5,6 +5,7 @@
 # The key is read from the owner's env file inside this process only; after the stage: leftover profiles removed, the key
 # sweep, the run files copied to the runs worktree, the ledger rebuilt, the runs branch committed and pushed.
 set -u
+unset DEBUG PWDEBUG   # Gate C read: Playwright's protocol debug logging would print the init script, which carries the key
 STAGE="$1"; MODEL="$2"; SPEC="$3"; PROJECT="$4"; FORECAST="$5"; shift 5
 SC=/private/tmp/claude-502/-Users-AIUSER-Documents-ZIGoals-Claude/897eacab-d419-4a8a-bc51-21efae38e430/scratchpad
 RUNS=/Users/AIUSER/Documents/ZIGoals-Claude-z-runs
