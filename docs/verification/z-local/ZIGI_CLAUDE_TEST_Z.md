@@ -18,6 +18,13 @@ branch) is the spend against the $130 cap; prices as in `lib/ai/pricing.ts` (as 
 - **Counting:** input, cache-write and cache-read tokens and output tokens (thinking tokens are output) per request,
   summed per turn with the tool rounds and the repair round; cost from the dated price table; latency as time to first
   token and total time per turn.
+- **Two pass counts per row:** "then" is the count the run wrote with the scorer and corpus of that moment; "re-scored
+  now" is the same stored replies under the scorer and corpus as they are at the end of the session
+  (`lib/ai/evals/rescore.test.ts`: the oracle corrections and scorer fixes of Part 6, listed in ADR-020, over the turns
+  still in the corpus after French went). A fix round is judged on the re-scored column before anything is re-run.
+- **Page records:** this round's corpus stages sent the question's records only (as every round before); the Part 6 runs
+  send the page's own records with stable handles on every turn as the app does (`ZIGI_PAGE_CONTEXT=1`, ADR-020 L23),
+  and say so in the Mode column.
 - **The corpus during this round:** the typed corpus was 626 cases (773 turns) when the Sonnet corpus run started; Part 5
   added 60 cases during the round, so later stages ran on the grown corpus (the row says the count it saw). The important
   set grew from 172 to 198 the same way.
