@@ -183,7 +183,16 @@ Owner decision A6 option (a), ADR-019 C35. `[TIER 3] (auth/sync)`.
   first. A stolen session on a vault that has no verifier yet could register its own; once the person's own device has
   registered (any secret entry on this build), it cannot be replaced. The threat this closes: a remembered device or a
   stolen session alone can no longer delete cloud data, the account or a section, rotate, or sign other devices out
-  through ZIGoals.
+  through ZIGoals' five endpoints.
+- **Gate C security read (fixed, ADR-019 C53):** trust on first use let any valid session register first, so a stolen
+  older session could register its own verifier and from then on refuse the owner's "Sign out all other devices". The
+  first verifier of a vault without one (a register, or a rotation's staged next) is now kept only from a session whose
+  email-code sign-in began within the hour; an older session gets STEP_UP_SIGN_IN_AGAIN and the vault stays as #35 had
+  it until a fresh sign-in registers. A remembered device whose record is dated more than a day ahead counts as expired.
+- **What step-up guards (recorded, Gate C):** the five endpoints, not the data. A remembered device holds the vault's
+  root key, so it can still write ordinary encrypted changes through sync, deletion marks on records included; receivers
+  refuse to remove only the append-only evidence. Step-up stops a lost device or a stolen session from ending the vault,
+  the account, a section or other devices' access in one request; it does not make a remembered device read-only.
 - **Gate B security read (fixed):** after a first rotation the live verifier sat only in the record's `next`, and
   staging a second rotation overwrote it, so the live epoch had none: the five actions passed without a proof, and a
   session alone could register its own verifier and abort the rotation to keep it. Now the record is settled before

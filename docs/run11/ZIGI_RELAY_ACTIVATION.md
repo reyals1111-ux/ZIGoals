@@ -125,7 +125,12 @@ the kill switch is `on`, the public Alpha's build has `NEXT_PUBLIC_ZIGI_HOSTED` 
   a token (dense text runs well above the usual four), each photo at 4,784 tokens (the most a Claude 5.5 model bills for
   one, whatever its file size) with at most four a request, and Anthropic's own tool-use system prompt. At most two
   replies per person at once ("ZIGi is still answering your other questions"), so a reservation that falls short can
-  miss a reply's real cost by two replies at most, never by a burst. A request Anthropic did not answer within 20 seconds
+  miss a reply's real cost by two replies at most, never by a burst. **Accepted limit (Gate C security read):** two
+  characters a token is not a strict ceiling: dense ASCII (punctuation, random strings) can bill close to a token a
+  character, and some rare characters more, so a prompt under the 90k guard can bill up to about 180–270k tokens. Each
+  reply is settled from Anthropic's real usage, so the overshoot is at most two replies in flight per person (about
+  $0.5–0.8 over a $1 daily cap on Sonnet 5.5); counting UTF-8 bytes instead would be strict but would refuse ordinary
+  large prompts. If friends' days run over, lower the per-person daily cap. A request Anthropic did not answer within 20 seconds
   keeps its reservation (it may have been billed). The relay refuses to start if `ZIGI_UPSTREAM_URL` names
   api.anthropic.com at any other path than `/v1/messages`, if a money budget is set for a model the price table does not
   know, and it never runs its test clock on a real app origin.
