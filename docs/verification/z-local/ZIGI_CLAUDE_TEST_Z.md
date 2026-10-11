@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 32 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 33 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -85,6 +85,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 32 summary file(s) on 202
 | Part 2 · corpus ×1 | `claude-haiku-5-5` | tools, page records | 595 · 725 | **668/725 · 92.1 %** | — | lookup 93/93 · propose 228/249 · chat 38/43 · brief 27/27 · unknown 14/14 · refuse 46/48 · advice 9/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,586 + 17,064 → 365 | $0.0006 | $0.37 | 1,515 / 2,097 |
 | Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **424/557 · 76.1 %** | 460/557 | propose 359/448 · lookup 40/52 · refuse 23/31 · local-first 2/26 | 12,059 + 0 + 0 → 192 | — | — | 299 / 1,248 |
 | Part 6 · local, gemma4-page | `gemma4:12b` | tools, page records | 595 · 725 | **647/725 · 89.2 %** | — | lookup 93/93 · propose 212/249 · chat 37/43 · brief 23/27 · unknown 13/14 · refuse 48/48 · advice 10/11 · multi 139/162 · followup 41/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 13,086 + 0 + 0 → 229 | — | — | 1,119 / 1,711 |
+| Part 2 · corpus ×1 | `claude-sonnet-5-5` | tools, page records | 595 · 725 | **687/725 · 94.8 %** | — | lookup 92/93 · propose 239/249 · chat 40/43 · brief 27/27 · unknown 13/14 · refuse 46/48 · advice 9/11 · multi 147/162 · followup 40/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,529 + 16,687 → 249 | $0.0080 | $5.36 | 796 / 2,327 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -106,6 +107,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 32 summary file(s) on 202
 | `claude-haiku-5-5` | Part 2 · corpus ×1 | $0.06 |
 | `gemma4:12b` | Part 6 · the spoken set, page records | $0.00 |
 | `gemma4:12b` | Part 6 · local, gemma4-page | $0.00 |
+| `claude-sonnet-5-5` | Part 2 · corpus ×1 | $0.80 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
@@ -135,11 +137,11 @@ folder on this Mac). Each stage lands here as a rendered row when its summary is
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 32 summary file(s): 7 met · 9 not met · 6 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 33 summary file(s): 7 met · 9 not met · 6 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
-| Sonnet · corpus (typed) ≥ 97 % | 693/773 · 89.7 % | not met, 7.3 pt short; misses: cards 51, never 10, fields 9, contains 6, no-numbers 5 | `corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-10T15-17-18-583Z.json` |
+| Sonnet · corpus (typed) ≥ 97 % | 687/725 · 94.8 % | not met, 2.2 pt short; misses: cards 30, fields 10, no-numbers 3, schema 3, never 2 | `part6-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T11-55-37-709Z.json` |
 | Sonnet · the spoken set ≥ 95 % | — | not run yet | — |
 | Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** | `ui-conv-sonnet/conversations-claude-sonnet-5-5.json` |
