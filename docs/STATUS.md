@@ -1,4 +1,27 @@
-# Session Z-Local — "ZIGi's brain, flawless" (ADR-020) (2026-10-10/11, [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82), not merged)
+# Alpha deploy #37 — 2026-10-11 evening, `32cb9c5` live
+Recorded by Session AA-Cloud (2026-10-11).
+- **Source:** `32cb9c5addedf6dfcd2c68887c7ded6ecf81b730`, `main` after [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82) (Merge #82, Session Z-Local, "ZIGi's brain, flawless", ADR-020; it carries Z-Cloud's #81, which was #36).
+- **CI:** Milestone quality #861 ([run 38170851435](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38170851435)) on `32cb9c5` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 39 ([run 38173412593](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38173412593)), dispatched 2026-10-11 20:43:39 UTC from `main`, exact source `32cb9c5`, finished 20:53:58 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route after 4 reads; live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z (19 days left at the deploy). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** live version `4a563125-41eb-4c5f-980d-d477371f27f3`; rollback `b5bb3df1-cdd5-43b1-b1bc-d861d534ca7b` (#36). Owner-reported.
+- **What went live:** Session Z-Local ("ZIGi's brain, flawless", ADR-020) on top of Z-Cloud.
+- **Record note:** Z-Local's PR description had stayed in its draft wording ("not merged", "PR ready" still to come) when the owner marked the PR ready for review by hand and merged it; the PR text is not a record of its final state. Its STATUS entry below is the record (its heading now says merged and deployed).
+
+---
+
+# Alpha deploy #36 — 2026-10-11 afternoon, `a6e8bb9` live
+Recorded by Session AA-Cloud (2026-10-11): Z-Local listed this record in its Parts table (row R), but the entry and the Release identity update did not reach `main`, so it is recorded here from the same sources.
+- **Source:** `a6e8bb9e81b211f6ab5c26168441e8fd5f879a53`, `main` after [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81) (Merge #81, Session Z-Cloud, "ZIGi's new face + friends-ready", ADR-019).
+- **CI:** Milestone quality #846 ([run 38138554787](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38138554787)) on `a6e8bb9` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 38 ([run 38142490505](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38142490505)), dispatched 2026-10-11 13:16:00 UTC from `main`, exact source `a6e8bb9`, finished 13:25:51 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route after 5 reads; live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z. Owner-reported (as Z-Local recorded it).
+- **Alpha Worker `zigoals-alpha`:** live version `b5bb3df1-cdd5-43b1-b1bc-d861d534ca7b`; rollback `a6210b0a-19f4-4218-9285-d2430f8e44f1` (#35). Owner-reported.
+- **What went live:** Session Z-Cloud ("ZIGi's new face + friends-ready", ADR-019) on top of Y-Cloud.
+
+---
+
+# Session Z-Local — "ZIGi's brain, flawless" (ADR-020) (2026-10-10/11, [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82), merged into `main` as `32cb9c5` and deployed as Alpha #37)
 **Evidence labels:**
 - **local:** the owner's Mac (M1 Max). Node 24.19.0 via fnm, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`; production builds on :3103.
 - **Claude:** the owner's test key against api.anthropic.com (Haiku 5.5, Sonnet 5.5, Opus 5.5), cached prefix, quick replies at low effort; every call's usage in the ledger on the runs branch. Fictional Showcase data only.
@@ -104,7 +127,7 @@ Every one is listed under ADR-020 "Assertions changed" with its reason; none wea
 
 ---
 
-# Session Z-Cloud — "ZIGi's new face + friends-ready" (ADR-019) (2026-10-10/11, [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81), ready for review)
+# Session Z-Cloud — "ZIGi's new face + friends-ready" (ADR-019) (2026-10-10/11, [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81), merged into `main` as `a6e8bb9` and deployed as Alpha #36)
 
 **Evidence labels:**
 - **local:** this cloud session's sandbox. Node 24.19.0 (from nodejs.org, SHASUMS256-checked), pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`; Playwright's Chromium stands in for Chrome (CLAUDE.md), so the brand-film specs fail here by design and pass in CI. Browser runs on production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`): this branch on :3101, `12a3ef9`'s own build (a scratch worktree) on :3102; 2 workers, never two suites, builds or single tests at once.
@@ -5808,7 +5831,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-10 for the [Alpha deploy #35](#alpha-deploy-35--2026-10-10-afternoon-12a3ef9-live) record at the top of this file (recorded by Session Z-Cloud).
+Updated 2026-10-11 for the [Alpha deploy #37](#alpha-deploy-37--2026-10-11-evening-32cb9c5-live) record at the top of this file (recorded by Session AA-Cloud).
+- Deployed source `32cb9c5addedf6dfcd2c68887c7ded6ecf81b730`, `main` after [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82) (Merge #82, Session Z-Local). Verified: Actions API.
+- CI: Milestone quality #861 ([run 38170851435](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38170851435)) on `32cb9c5`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 39 ([run 38173412593](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38173412593)), exact source `32cb9c5`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `4a563125-41eb-4c5f-980d-d477371f27f3`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z, 19 days left); rollback `b5bb3df1-cdd5-43b1-b1bc-d861d534ca7b` (#36). Owner-reported.
+
+Previous release identity (#36, 2026-10-11 afternoon, recorded by Session AA-Cloud):
+- Deployed source `a6e8bb9e81b211f6ab5c26168441e8fd5f879a53`, `main` after [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81) (Merge #81, Session Z-Cloud). Verified: Actions API.
+- CI: Milestone quality #846 ([run 38138554787](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38138554787)) on `a6e8bb9`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 38 ([run 38142490505](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38142490505)), exact source `a6e8bb9`: success; new version confirmed after 5 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: version `b5bb3df1-cdd5-43b1-b1bc-d861d534ca7b`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `a6210b0a-19f4-4218-9285-d2430f8e44f1` (#35). Owner-reported.
+
+Previous release identity (#35, 2026-10-10 afternoon, recorded by Session Z-Cloud):
 - Deployed source `12a3ef9c2ef4c73052fc336c0b86721fd69a4889`, `main` after [PR #80](https://github.com/reyals1111-ux/ZIGoals/pull/80) (Merge #80, Session Y-Cloud). Verified: Actions API.
 - CI: Milestone quality #759 ([run 38048585265](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38048585265)) on `12a3ef9`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 37 ([run 38052367329](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38052367329)), exact source `12a3ef9`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API and the deploy job's CI log.
