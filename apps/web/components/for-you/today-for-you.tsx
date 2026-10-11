@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useMemo, useState} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useMemo, useState, type ReactNode} from 'react';
 import type {HabitData} from '../../lib/habits';
 import type {HealthData} from '../../lib/health';
 import type {Platform} from '../../lib/positions';
@@ -20,7 +20,7 @@ import {WeeklyReviewCard} from '../weekly-review/weekly-review-card';
 import {FastingLine} from './fasting-line';
 // Session Z-Local (ADR-020 L60): the card and its link lists load on use (Today sat at 514.9 of its 515.0 kB), as the brief card does.
 const WhatsNewCard = lazy(() => import('./whats-new-card').then(m => ({default: m.WhatsNewCard})));
-import {ForYou, type ForYouCard} from './for-you';
+import {ForYou, TODAY_FOR_YOU_OPEN, type ForYouCard} from './for-you';
 import {useGuide} from '../coach/use-guide';
 import {useReminders} from '../reminders/use-reminders';
 import {GuideCard} from '../coach/guide-card';
@@ -59,7 +59,11 @@ const formatWealth = (s: {currency: string; value: bigint}) => wealthMoney(s.val
  * when due, the health goals and the insight cards; at most two open (components/for-you/for-you.tsx). Every card reads
  * this device's own key and writes only when the person acts on it.
  */
-export function TodayForYou({habits, health, platform, localGoals, metadata, quotes, now, today, financial, showcase}: {habits: HabitData; health: HealthData; platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[]; now: number; today: string; financial: boolean; showcase: boolean}) {
+/** Where Today places each part (Session AA-Cloud Part 1): the fasting clock in "Today's focus", the cards for the day
+ * after the widgets, and What's new, the weekly review and the wrap-up with the summaries at the end. */
+export type ForYouParts = {focus: ReactNode; main: ReactNode; end: ReactNode};
+const END_CARDS = new Set(['whats-new', 'weekly-review', 'wrap-up']), FOCUS_CARDS = new Set(['fasting']);
+export function TodayForYou({habits, health, platform, localGoals, metadata, quotes, now, today, financial, showcase, render}: {habits: HabitData; health: HealthData; platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[]; now: number; today: string; financial: boolean; showcase: boolean; render?: (parts: ForYouParts) => ReactNode}) {
   const fasting = useFasting(), review = useWeeklyReview(), healthGoals = useHealthGoals(), links = useHabitHealthLinks(), guide = useGuide(), reminders = useReminders();
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), zonePrompt = useDeviceRecord(W_REMINDERS);
   const insights = useInsightCards({habits, health, links: links.loaded && !links.unreadable ? links.data : undefined});
@@ -107,5 +111,13 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
     cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
   const intention = settings.loaded && !settings.error ? intentionFrom(settings.data, addLocalDays(today, -1)) : null;
-  return <>{zigiOn && <LoadBoundary quiet><Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense></LoadBoundary>}<ForYou cards={cards} status={reviewNote} note={intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null} /></>;
+  const probe = zigiOn && <LoadBoundary quiet><Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense></LoadBoundary>;
+  const note = intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null;
+  if (!render) return <>{probe}<ForYou cards={cards} status={reviewNote} note={note} /></>;
+  const focus = cards.filter(c => FOCUS_CARDS.has(c.id)), end = cards.filter(c => END_CARDS.has(c.id)), main = cards.filter(c => !FOCUS_CARDS.has(c.id) && !END_CARDS.has(c.id));
+  return <>{probe}{render({
+    focus: focus.length ? <>{focus.map(c => <div key={c.id} id={`for-you-${c.id}`} className="for-you-slot" data-card={c.id}>{c.node}</div>)}</> : null,
+    main: <ForYou cards={main} note={note} openCards={TODAY_FOR_YOU_OPEN} />,
+    end: <ForYou cards={end} status={reviewNote} label="Updates and summaries" openCards={TODAY_FOR_YOU_OPEN} />,
+  })}</>;
 }

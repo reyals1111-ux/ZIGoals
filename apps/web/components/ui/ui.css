@@ -1,0 +1,80 @@
+/*
+ * Session AA-Cloud: shared pieces every page uses (section and group headings, focus tiles, empty states, skeletons, the
+ * Undo toast). Colours come from the design system's tokens; motion is one short fade, off under reduced motion and
+ * Motion Off. Liquid-glass hover follows components/liquid-glass.css (intent after ~70 ms, no pointer tracking).
+ */
+
+/* Section heading: eyebrow, then a white title whose nebula colour starts in the middle (the design system's flow). */
+:root .aa-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 0 0 16px; min-width: 0; }
+:root .aa-section-heading > div { min-width: 0; }
+:root .aa-section-heading .eyebrow { margin: 0 0 4px; }
+:root .aa-section-heading h2 { margin: 0; font-size: clamp(22px, 1.2vw + 14px, 28px); line-height: 1.2; letter-spacing: -0.01em; }
+:root .aa-section-heading p.aa-lede { margin: 6px 0 0; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+:root .aa-section-heading > :last-child:not(:first-child) { flex: 0 0 auto; }
+@media (max-width: 599px) { :root .aa-section-heading { flex-wrap: wrap; align-items: flex-start; } }
+
+/* Today's group headings: a small label row between groups while Today keeps its default order. */
+:root .today-group-heading { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; margin: 12px 0 -4px; font-size: 14px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: var(--text-meta); }
+:root .today-group-heading::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #7fb6e055, #a98bf233 60%, transparent); }
+:root .today-group-heading:first-child { margin-top: 0; }
+
+/* Today's focus. */
+:root .today-focus { display: grid; gap: 14px; margin: 0 0 24px; }
+:root .today-focus > .aa-section-heading { margin-bottom: 2px; }
+:root .today-focus-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
+:root .focus-tile { position: relative; display: grid; align-content: start; gap: 6px; min-width: 0; padding: 16px 18px; border-radius: 18px; border: 1px solid #6c9cc540; background: linear-gradient(140deg, #13253ccc, #1c1a3acc); color: var(--text-strong); }
+:root .focus-tile > .focus-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-meta); }
+:root .focus-tile > strong { font-size: 22px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
+:root .focus-tile > p { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.5; }
+:root .focus-tile .focus-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+:root .focus-tile .focus-actions .secondary { min-height: 44px; }
+:root .focus-tile[data-tone="habits"] { background: linear-gradient(140deg, #10303acc, #16233dcc); }
+:root .focus-tile[data-tone="goals"] { background: linear-gradient(140deg, #182447cc, #26204acc); }
+:root .focus-tile[data-tone="health"] { background: linear-gradient(140deg, #0f2d33cc, #182a3dcc); }
+:root .focus-tile[data-tone="rest"] { background: linear-gradient(140deg, #1d1d43cc, #2a1d45cc); }
+:root .today-focus .aa-slot, :root .today-focus .reminder-cards { min-width: 0; }
+/* Phones: one row of compact tiles that scrolls sideways (the native-app pattern), so the focus adds about one row. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .today-focus { gap: 10px; margin-bottom: 16px; }
+  :root .today-focus-tiles { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(212px, 62%); gap: 10px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -16px; padding: 2px 16px 6px; scroll-padding-inline: 16px; }
+  :root .today-focus-tiles::-webkit-scrollbar { display: none; }
+  :root .focus-tile { scroll-snap-align: start; padding: 12px 14px; gap: 2px; border-radius: 16px; }
+  :root .focus-tile > .focus-label { font-size: 14px; letter-spacing: .06em; }
+  :root .focus-tile > strong { font-size: 18px; line-height: 1.3; }
+  :root .focus-tile > p { font-size: 14px; line-height: 1.4; }
+  :root .focus-tile .focus-actions { margin-top: 2px; gap: 4px 12px; flex-wrap: nowrap; }
+  :root .focus-tile .focus-actions .secondary { padding-inline: 12px; }
+  :root .focus-tile .focus-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+  /* The heading absorbs the grid's own 20 px gap, so a group label costs one line. */
+  :root .today-group-heading { margin: 0 0 -16px; }
+  :root .today-focus > .aa-section-heading .eyebrow { display: none; }
+  :root .today-focus > .aa-section-heading h2 { font-size: 20px; }
+}
+
+/* Empty states with one clear first action. */
+:root .aa-empty { display: grid; justify-items: start; gap: 10px; padding: 24px; border-radius: 20px; border: 1px dashed #7aa7d055; background: radial-gradient(at 90% 10%, #6c4aaa30, transparent 60%), #0d1a2ecc; }
+:root .aa-empty h3 { margin: 0; font-size: 20px; }
+:root .aa-empty p { margin: 0; color: var(--text-secondary); font-size: 15px; }
+
+/* Skeletons: calm placeholders while a part loads (no shimmer under reduced motion or Motion Off). */
+:root .aa-skeleton { display: grid; gap: 10px; padding: 18px; border-radius: 18px; background: #0f1d33aa; border: 1px solid #6c9cc526; }
+:root .aa-skeleton > i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+:root .aa-skeleton > i:nth-child(2) { width: 82%; } :root .aa-skeleton > i:nth-child(3) { width: 64%; }
+@keyframes aa-skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > i { animation: none; } }
+:root[data-app-motion=off] .aa-skeleton > i { animation: none; }
+
+/* The Undo toast: above the phone's tab bar, bottom-centre on computers. */
+:root .aa-toast-region { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; width: min(560px, calc(100vw - 32px)); pointer-events: none; }
+:root .aa-toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 16px; border: 1px solid #7fc6e655; background: linear-gradient(135deg, #0e2036f5, #1d1a3cf5); box-shadow: 0 12px 40px #0009; color: var(--text-strong); font-size: 15px; animation: aa-toast-in 180ms ease-out; }
+:root .aa-toast > span { flex: 1; min-width: 0; }
+:root .aa-toast-undo { min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 1px solid #8fe6f466; background: #12314aa0; color: #b9f1fb; font: inherit; font-weight: 700; cursor: pointer; }
+:root .aa-toast-close { min-width: 44px; min-height: 44px; border: 0; border-radius: 12px; background: none; color: var(--text-meta); font-size: 22px; cursor: pointer; }
+@keyframes aa-toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-toast { animation: none; } }
+:root[data-app-motion=off] .aa-toast { animation: none; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root .aa-toast-region { bottom: calc(var(--phone-tabs, 60px) + env(safe-area-inset-bottom, 0px) + 16px); } }
+
+/* Progress slots and named places render nothing until filled; once filled they sit in the page's flow. */
+:root .progress-slot, :root .aa-slot { display: grid; gap: 12px; min-width: 0; }
+:root .progress-slot { margin: 0 0 20px; }

@@ -63,3 +63,23 @@ registerSlotCard(place: 'today:habit-time'|'today:game'|'today:coach'|'review:co
 ### Coming in later entries
 Each page's new section order (Part 1, with `docs/product/PAGE_ORDER_AA.md`), the Health top reorder before it is made, and
 for every new feature its store module and pure mutators (for ZIGi card kinds after this PR merges).
+
+## 2026-10-11 — Part 1: every page in order (pushed with this entry)
+The full table is `docs/product/PAGE_ORDER_AA.md`. What touches your lane:
+- **Health (announced before it was made):** the only change in `components/health/health-app.tsx` is one line,
+  `<ProgressSlot page="health" />`, between the page heading block and the body region (plus its import). Nothing in Health's
+  order, cards or CSS changed. If you reorder Health's top yourself, keep that line under the heading.
+- **Today:** hero → `ProgressSlot page="today"` and `Slot place="today:game"` → **Today's focus**
+  (`components/dashboard/today-focus.tsx`: the reminder cards, a fasting card while a fast runs, and four tiles: habits
+  due, next goal step, one-tap water with Undo, fasting or last night's sleep; then `today:habit-time` and `today:coach`)
+  → the widget grid under group headings (Your day: Daily Habits, Daily Health → Goals → Money → Your widgets → Your
+  whole life) → **For you** (the brief, the Guide, insights, Health goals, the journal zone) → **Updates and summaries**
+  (What's new, the weekly review, the wrap-up; `aria-label="Updates and summaries"`) → How it works, My links, Your week.
+  `TodayForYou` takes an optional `render` prop and hands the three parts out; without it it renders as before.
+- **The Undo toast:** `components/ui/undo-toast.tsx` (`showToast({message, undo, undone})`), mounted once by the shell.
+  Use it for your own reversible actions if you like; it is one toast at a time, polite, 8 s, held on hover and focus.
+- **Shared look:** `components/ui/section-heading.tsx` (`<SectionHeading eyebrow title lede action/>`) and
+  `components/ui/premium.css` (section titles white → nebula). Habits' `.habit-section-heading` is not touched.
+- **Fonts:** the app's font stack is the system UI font now (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  "Helvetica Neue", Arial, "Liberation Sans", system-ui, sans-serif`; no Inter). ZIGi's title fit (C56) measures whatever
+  font draws it; on CI's Linux runners Arial resolves to Liberation Sans in both Chrome and WebKit.

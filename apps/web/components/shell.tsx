@@ -33,6 +33,7 @@ import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
+import { UndoToastHost } from "./ui/undo-toast";
 import { AiLauncher } from "./ai/ai-launcher";
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
@@ -261,6 +262,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
+        <UndoToastHost />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>

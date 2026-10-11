@@ -48,9 +48,12 @@ test('legacy settings keep their original shape while placement resolves determi
  const old=emptyDashboardSettings(),raw=JSON.stringify(old),parsed=dashboardSettingsSchema.parse(JSON.parse(raw));
  expect(JSON.stringify(parsed)).toBe(raw);expect(parsed.placement).toBeUndefined();
  const placement=reconcileDashboardPlacement(parsed);
- expect(placement.version).toBe(1);expect(placement.main.slice(0,11).map(r=>r.id)).toEqual(['whole-life','attention','funding','needs-attention','watchlist','goals','progress','habits','health','next-action','summary']);
+ expect(placement.version).toBe(1);// Session AA-Cloud Part 1 (deliberate, as strict): the day's items first, the whole-life overview after the widgets.
+ expect(placement.main.slice(0,10).map(r=>r.id)).toEqual(['habits','health','goals','next-action','attention','funding','needs-attention','watchlist','progress','summary']);
+ expect(placement.main.slice(10,-1)).toEqual(parsed.widgets.map(w=>widget(w.id)));expect(placement.main.at(-1)).toEqual(builtin('whole-life'));expect(placement.main).toHaveLength(11+parsed.widgets.length);
  expect(placement.rail.map(r=>r.id)).toEqual(['wallet','staking','destination','activity']);
- expect(placement.main.slice(11)).toEqual(old.widgets.map(w=>widget(w.id)));
+ // (Before Session AA-Cloud the widgets were main.slice(11); they are main.slice(10,-1) now, checked above.)
+ expect(placement.main.slice(10,-1)).toEqual(old.widgets.map(w=>widget(w.id)));
  expect(reconcileDashboardPlacement(parsed)).toEqual(placement);expect(JSON.stringify(old)).toBe(raw);
 });
 test('widgets move before and after built-ins and into rail without changing their records',()=>{

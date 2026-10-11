@@ -1,4 +1,5 @@
 "use client";
+import { ProgressSlot } from "../progress/slot";
 import { HealthTrends } from "../bottom-sections";
 import { useHealthToday } from "./use-health-today";
 import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
@@ -204,6 +205,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
     {phone && <ExerciseCounters data={data} update={update} />}
+    {/* Session AA-Cloud Part 1 (announced in AA_CLOUD_TO_LOCAL.md): the page's progress slot under its heading. */}
+    <ProgressSlot page="health" />
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},

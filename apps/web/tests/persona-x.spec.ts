@@ -97,7 +97,9 @@ test('a new person is not asked to review a week with nothing in it; a week with
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await page.waitForLoadState('networkidle');
-  const empty = page.getByRole('region', {name: 'For you', exact: true}).getByRole('button', {name: /^Show more/});
+  // The review sits in "Updates and summaries" (Session AA-Cloud Part 1); open every fold on Today before looking.
+  for (const fold of await page.locator('.for-you').getByRole('button', {name: /^Show more/}).all()) await fold.click();
+  const empty = page.getByRole('region', {name: 'Updates and summaries', exact: true}).getByRole('button', {name: /^Show more/});
   if (await empty.count()) await empty.click();
   await expect(page.locator('#for-you-weekly-review')).toHaveCount(0);
   // The same device with one check-in last week: the review is there.
@@ -105,8 +107,8 @@ test('a new person is not asked to review a week with nothing in it; a week with
   const habits = logHabitCount(createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date('2026-09-20T09:00:00.000Z'), HABIT), HABIT, '2026-10-02', 1, '', lastWeek);
   await seed(page, {[HABITS_KEY]: habits});
   await page.goto('/app');
-  // On a phone one "For you" card is open; the review may wait behind Show more.
-  const forYou = page.getByRole('region', {name: 'For you', exact: true});
+  // The review sits in "Updates and summaries" (Session AA-Cloud Part 1); on a phone it waits behind Show more there.
+  const forYou = page.getByRole('region', {name: 'Updates and summaries', exact: true});
   await expect(forYou).toBeVisible();
   const more = forYou.getByRole('button', {name: /^Show more/});
   if (await more.count()) await more.click();

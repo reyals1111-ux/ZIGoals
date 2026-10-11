@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {FOR_YOU_OPEN} from '../components/for-you/for-you';
+import {TODAY_FOR_YOU_OPEN} from '../components/for-you/for-you';
 import {isPhone} from './phone-nav';
 
 // Today's "For you" area (Session P, owner addition 2): at most two cards open, the rest behind one "Show more" row.
@@ -12,8 +12,10 @@ test('Showcase: at most two cards are open and the rest fold behind Show more', 
   const area = page.getByRole('region', {name: 'For you', exact: true});
   await expect(area).toBeVisible();
   const open = area.locator('> .for-you-slot');
-  expect(await open.count()).toBeLessThanOrEqual(await isPhone(page) ? FOR_YOU_OPEN.phone : FOR_YOU_OPEN.wide);
-  expect(await open.count()).toBeGreaterThan(0);
+  // Session AA-Cloud Part 1 (deliberate, as strict): on a phone Today's focus shows what is due at the top, and every
+  // For you card waits behind the one row (exactly none open); elsewhere one or two stay open as before.
+  if (await isPhone(page)) expect(await open.count()).toBe(TODAY_FOR_YOU_OPEN.phone);
+  else { expect(await open.count()).toBeLessThanOrEqual(TODAY_FOR_YOU_OPEN.wide); expect(await open.count()).toBeGreaterThan(0); }
   const fold = area.getByRole('button', {name: /^Show more \(\d+\)$/});
   if (await fold.count()) {
     const folded = Number((await fold.textContent())!.match(/\((\d+)\)/)![1]);

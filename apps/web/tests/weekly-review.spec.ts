@@ -38,10 +38,13 @@ async function nextToLastStep(dialog: Locator) {
   while (await next.count()) { const before = await step.textContent(); await next.click(); await expect(step).not.toHaveText(before!); }
 }
 const card = (page: Page) => page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
-/** On a phone one "For you" card is open; the review may wait behind Show more. */
+/**
+ * The review sits in Today's "Updates and summaries" (Session AA-Cloud Part 1; it was in "For you"), under the same fold
+ * rules: on a phone its cards wait behind Show more.
+ */
 async function reveal(page: Page) {
-  await expect(page.getByRole('region', {name: 'For you', exact: true})).toBeVisible();
-  if (!(await card(page).isVisible().catch(() => false))) { const fold = page.getByRole('region', {name: 'For you', exact: true}).getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
+  await expect(page.getByRole('region', {name: 'Updates and summaries', exact: true})).toBeVisible();
+  if (!(await card(page).isVisible().catch(() => false))) { const fold = page.getByRole('region', {name: 'Updates and summaries', exact: true}).getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
 }
 
 test('on the review day: six steps with the week\'s own numbers, an intention, finish; the card leaves and stays away', async ({page}) => {

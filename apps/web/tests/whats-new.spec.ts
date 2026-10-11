@@ -12,6 +12,16 @@ const seed = async (page: import('@playwright/test').Page) => {
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
 };
 
+/**
+ * Session AA-Cloud Part 1: the card sits in Today's "Updates and summaries" at the end of the page; on a phone that
+ * area's cards wait behind its one row, so open it first (nothing else about the card changes).
+ */
+const revealUpdates = async (page: import('@playwright/test').Page) => {
+  await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  const fold = page.getByRole('region', {name: 'Updates and summaries', exact: true}).getByRole('button', {name: /^Show more/});
+  if (await fold.count()) await fold.click();
+};
+
 test('a brand-new device sees the welcome and no "What\'s new" card', async ({page}) => {
   await page.goto('/app');
   await page.evaluate(() => localStorage.clear());
@@ -24,6 +34,7 @@ test('a brand-new device sees the welcome and no "What\'s new" card', async ({pa
 test('after onboarding the card lists the Help entries, is dismissed once per device and writes nothing on view', async ({page}) => {
   await seed(page);
   await page.goto('/app');
+  await revealUpdates(page);
   const card = page.getByRole('region', {name: 'A few new things.'});
   await expect(card).toBeVisible();
   expect(await page.evaluate(key => localStorage.getItem(key), WHATS_NEW_KEY)).toBeNull();
@@ -36,6 +47,7 @@ test('after onboarding the card lists the Help entries, is dismissed once per de
   await expect(card).toHaveCount(0);
   expect(await page.evaluate(key => localStorage.getItem(key), WHATS_NEW_KEY)).toBe(JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}));
   await page.reload();
+  await revealUpdates(page);
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'A few new things.'})).toHaveCount(0);
 });
@@ -43,6 +55,7 @@ test('after onboarding the card lists the Help entries, is dismissed once per de
 test('a link opens its Help answer; the earlier release\'s links wait under "Earlier updates"', async ({page}) => {
   await seed(page);
   await page.goto('/app');
+  await revealUpdates(page);
   const card = page.getByRole('region', {name: 'A few new things.'});
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
@@ -54,6 +67,7 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await expect(page.locator('#help-your-ai-act')).toHaveAttribute('open', '');
   await expect(page.locator('#help-your-ai-act')).toContainText('Every ordinary task in the app is a card now');
   await page.goto('/app');
+  await revealUpdates(page);
   await expect(card.getByRole('link', {name: 'Delete an archived habit for good'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'End a vacation early'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'ZIGi comes alive: the real art, idle, emotions'})).toHaveCount(0);
@@ -70,11 +84,13 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await expect(page.locator('#help-y-vacation')).toHaveAttribute('open', '');
   await expect(page.locator('#help-y-vacation')).toContainText('it removes those planned skips from today on');
   await page.goto('/app');
+  await revealUpdates(page);
   await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Sleep and sleep debt'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-w-sleep$/);
   await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');
   await page.goto('/app');
+  await revealUpdates(page);
   await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Habits that tick themselves off from Health'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-auto-checkins$/);
