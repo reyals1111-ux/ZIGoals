@@ -262,6 +262,23 @@ modes), the sixteen chain scripts on the runs branch, an artifact spot-check (fi
 - **Not fixable locally (owner item):** `git push --no-verify` or a `core.hooksPath` override skips every hook; GitHub's
   secret-scanning push protection is the non-bypassable layer.
 
+## Independent security read after Part 9 (owner edit 1, 2026-10-11, read-only agent, no secret value read or printed)
+Scope: the lane's four `[TIER 3]` commits (`2fb9d774`, `5d887599`, `02f911dd`, `16f3eec9`), the key handling of every paid
+stage (`harness.sh`, `ui-stage.sh`, `tests/real-model.ts`, `playwright.anthropic.config.ts`, `key-sweep.mjs`, the pre-push
+hook, `ledger.mjs`, `spoken-corpus-gen.mjs`, `eval-monthly.mjs`), the lock in `record()` and the ledger estimate, and a grep
+for the key, the env assignments and the PC's addresses over the diff against main, the runs worktree and the scratchpad.
+Verdict: the key is only ever an environment variable or an init-script argument; every real-model Playwright run has trace,
+video and screenshots off; the sweep covers the diff, both histories, the Playwright output dirs, the runs worktree and the
+temp profiles; the pre-push hook runs it from every worktree; the ledger's estimate row counts toward the cap and nothing is
+counted twice. Secrets seen: none (the one pattern match is the placeholder `ANTHROPIC_TEST_KEY=` in
+`docs/product/ZIGI_MONTHLY_EVAL.md`). Six findings, all fixed in `33f1386d` (F1) and the L62 commit:
+- F1 (low): the S64 prefetch filter admitted three path segments after `/app`; it admits two (`/app/goals/<id>`), as its message says.
+- F2 (medium): `record()`'s write was not atomic, a torn results file was silently skipped by the ledger, so a kill mid-write could hide spend: the file is written to `.tmp` and renamed; the ledger refuses (`--check` exits 1) when any run file cannot be read.
+- F3 (low): a lock left by a killed worker made every later `record()` wait 30 s and throw after its paid call: a lock older than a minute is cleared before retrying.
+- F4 (low): the ledger estimate row printed like a measured one: it is labelled "(estimate)" as batch rows are labelled "(batch)".
+- F5 (low): `git log -p` omits a merge commit's own diff: the sweep's three history scans pass `--diff-merges=remerge` (the agent wrote `remerge-diff`, which this git rejects; the sweep failed closed on it, which also refused a runs-branch push through the hook until the value was corrected).
+- F6 (low): the scratchpad's stage logs were not a sweep root: `ui-stage.sh` sweeps it beside the Playwright output dir.
+
 ## Part 7: Session Y's open findings (SECURITY_REVIEW_Y F5–F16), each with a test
 | Finding | Fix | Test |
 |---|---|---|
