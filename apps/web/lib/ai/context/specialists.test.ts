@@ -134,3 +134,9 @@ test('L45: the "turn yourself off" example no longer teaches a blanket refusal o
   const ex = Object.values(EXAMPLES).flat().find(e => e.ask === 'Turn yourself off')!;
   expect(ex.reply).toContain('that switch is yours'); expect(ex.reply).toContain('I can set with a card'); expect(ex.reply).not.toContain('I cannot change settings myself');
 });
+
+test('L46: the goals example fills in the Fund form instead of refusing; a steps example shows the card beside the records line; "done" with no figure is a check-in at the target', () => {
+  const fund = EXAMPLES.goals.find(e => e.ask === 'Move 200 euros into the goal')!; expect(fund.reply).toContain('"kind":"prefill-contribution"'); expect(fund.reply).not.toContain('I cannot move money');
+  const steps = EXAMPLES.health.find(e => e.ask === 'I walked 9000 steps today')!; expect(steps.reply).toContain('"kind":"log-steps"'); expect(steps.reply).toContain('steps add up');
+  expect(ACTION_PROTOCOL).toContain('is a check-in at the habit\'s target');
+});
