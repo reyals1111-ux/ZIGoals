@@ -1,5 +1,5 @@
 import {test,expect,vi} from 'vitest';
-import {CODE_REQUEST_MESSAGE,privateAccountRequest} from './private-account';
+import {CODE_REQUEST_MESSAGE,CODES_PAUSED_MESSAGE,privateAccountRequest} from './private-account';
 const config={authOrigin:'https://test.supabase.co',publicKey:'public',syncOrigin:'https://sync.example.workers.dev'};
 test('configuration and cross-origin fail closed before external calls',async()=>{
  const fetcher=vi.fn();const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://evil.test','content-type':'application/json'},body:'{"action":"send","email":"a@example.com"}'});
@@ -153,7 +153,7 @@ test('local http development keeps the unprefixed cookie names without Secure',a
 
 test('a rejected code is reported to admission as a failed verification; a provider throttle is not',async()=>{
  for(const [status,reported] of [[400,true],[403,true],[429,false]] as const){
-  const admit=vi.fn<(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>>(async()=>Response.json({allowed:true}));
+  const admit=vi.fn<(action:'send'|'verify'|'verify-failed'|'send-refund',email:string)=>Promise<Response>>(async()=>Response.json({allowed:true}));
   const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'a@example.com',code:'123456'})});
   const result=await privateAccountRequest(req,config,async()=>Response.json({},{status}),admit);
   expect(result.ok).toBe(false);expect(admit.mock.calls.map(c=>c[0])).toEqual(reported?['verify','verify-failed']:['verify']);
@@ -191,7 +191,9 @@ test('every outcome of a code request gets the same answer, byte for byte, and t
   answers.push(await snapshot(result));
   await queued[0]!();
   expect(calls,name).toEqual([['https://test.supabase.co/auth/v1/otp',{email:'friend@example.com',create_user:false}]]);
-  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(['send']);
+  // Gate C (ADR-019 C54, stricter): a code that went out keeps its place in the day's ceiling; any outcome that sent
+  // nothing gives it back, after the answer, which stays the same for every outcome.
+  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(name==='a code sent'?['send']:['send','send-refund']);
  }
  expect(answers[0]).toEqual({status:200,headers:expect.any(Array),body:JSON.stringify({message:CODE_REQUEST_MESSAGE})});
  for(const answer of answers)expect(answer).toEqual(answers[0]);
@@ -209,6 +211,21 @@ test('our own admission still answers for itself, before any provider call: the 
   const result=await privateAccountRequest(sendRequest(),config,upstream,async()=>Response.json({},{status}),work=>{queued.push(work);});
   expect(result.status).toBe(status);expect((await result.json()).error).toBe(error);expect(upstream).not.toHaveBeenCalled();expect(queued).toEqual([]);
  }
+});
+// Session Z-Cloud Part 5 (A5): the day's ceiling has its own sentence, the same for every address, and no provider call.
+test('the day\'s ceiling on code emails answers "paused for today" for every address, before any provider call',async()=>{
+ const answers=[];
+ for(const email of ['friend@example.com','stranger@example.invalid']){
+  const upstream=vi.fn(),queued:unknown[]=[];
+  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'send',email})});
+  const result=await privateAccountRequest(request,config,upstream,async()=>Response.json({error:'DAILY_LIMIT'},{status:429}),work=>{queued.push(work);});
+  expect(result.status).toBe(429);answers.push(await result.json());expect(upstream).not.toHaveBeenCalled();expect(queued).toEqual([]);
+ }
+ expect(answers).toEqual([{error:'CODES_PAUSED_TODAY',message:CODES_PAUSED_MESSAGE},{error:'CODES_PAUSED_TODAY',message:CODES_PAUSED_MESSAGE}]);
+ expect(CODES_PAUSED_MESSAGE).toBe('Sign-in codes are paused for today; try again tomorrow.');
+ // A verification is never told the ceiling: only code requests have one.
+ const verify=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'friend@example.com',code:'123456'})});
+ expect((await (await privateAccountRequest(verify,config,vi.fn(),async()=>Response.json({error:'DAILY_LIMIT'},{status:429}))).json()).error).toBe('TRY_LATER');
 });
 test('a rejected code never reads as invite-only, even when the provider names otp_disabled',async()=>{
  const request=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'friend@example.com',code:'123456'})});

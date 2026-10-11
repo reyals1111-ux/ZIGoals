@@ -78,6 +78,13 @@
 .habit-hero { grid-template-columns: minmax(0, 1fr) auto 240px; column-gap: 28px; min-height: 236px; }
 .habit-hero .habit-hero-actions { margin: 0; flex-direction: column; align-items: flex-end; gap: 14px; position: relative; z-index: 1; }
 .habit-hero-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session Z-Cloud Gate B: "Ask ZIGi about my habits" (Part 4.10) shares the last row with the backup link, so the hero keeps
+   its height and the page's first figures stay where they were. */
+.habit-hero-minor { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 16px; }
+/* Gate C (CI on 001e363e, motion-arrival): on a phone the two links join the actions' own row, so "+ New habit" and "Ask ZIGi
+   about my habits" share the first row from 360 px and the backup link takes the second; the hero is 263 px at 390 (311
+   with the links stacked) and the overview's first figure is back on the first screen, above where #35 had it. */
+@media (max-width: 600px) { .habit-hero-minor { display: contents; } }
 .habit-hero p.page-lede { max-width: 560px; color: #e9f0fb; }
 .habit-journal-settings { display: grid; gap: 12px; }
 .habit-journal-settings .habit-privacy { margin: 0; }
@@ -133,3 +140,12 @@
 .habit-weeks-table th, .habit-weeks-table td { text-align: left; padding: 4px 8px; border-top: 1px solid #a6c1fa1f; }
 /* Session W Part 10: on a phone "Habit ideas" sits above the list, so the hero keeps its two buttons and its title width. */
 .habit-phone-ideas { display: flex; justify-content: flex-end; margin: 0 0 8px; }
+/* Session Z-Cloud Part 4.6: "Delete for good" in an archived habit, its typed confirmation and the page's Undo. */
+.habit-delete{margin-top:8px}
+.habit-delete-open{min-height:44px}
+.habit-delete-confirm{display:grid;gap:8px;padding:12px;border:1px solid color-mix(in srgb,#ff8a8a 45%,var(--line,#2a325a));border-radius:14px}
+.habit-delete-confirm p{margin:0}
+.habit-delete-confirm .actions{display:flex;flex-wrap:wrap;gap:8px}
+.habit-delete-confirm .actions button{min-height:44px}
+.habit-deleted{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.habit-deleted button{min-height:44px}

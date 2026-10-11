@@ -153,3 +153,45 @@ test('Stop keeps the partial reply, and the question can be asked again', async 
     await new Promise<void>(resolve => slow.close(() => resolve()));
   }
 });
+
+// Session Z-Cloud Gate B (Z-Local's F11): Stop while the automatic retry is running keeps the FIRST answer, its emotion
+// marker stripped; the retry carried that answer without the marker.
+test('Stop during the automatic retry keeps the first answer, without its marker, and the retry never carried the marker', async ({page}) => {
+  const sockets = new Set<import('node:net').Socket>(), bodies: Body[] = [];
+  const held: Server = createServer((req, res) => {
+    const cors = {'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'};
+    if (req.method === 'OPTIONS') { res.writeHead(204, cors); res.end(); return; }
+    if (req.url?.endsWith('/v1/models')) { res.writeHead(200, {...cors, 'Content-Type': 'application/json'}); res.end(JSON.stringify({object: 'list', data: [{id: 'mock-chat'}]})); return; }
+    let raw = ''; req.on('data', part => { raw += String(part); }); req.on('end', () => {
+      bodies.push(JSON.parse(raw) as Body);
+      res.writeHead(200, {...cors, 'Content-Type': 'text/event-stream'});
+      if (bodies.length === 1) { res.end(stream('Logged it for you.\n\n```zigoals-action\n{"kind":"log-water","millilitres":"a lot"}\n```\n\n⟦zigi: encouraging⟧')); return; }
+      res.write(chunk({role: 'assistant', content: 'Fixing the cards'})); sockets.add(res.socket!);
+    });
+  });
+  await new Promise<void>(resolve => held.listen(0, '127.0.0.1', resolve));
+  const port = (held.address() as {port: number}).port;
+  try {
+    await seed(page, `http://127.0.0.1:${port}`);
+    await page.goto('/app/health');
+    await openChat(page);
+    await panel(page).getByRole('button', {name: 'Log mode'}).click();
+    await page.getByLabel('Message to your AI').fill('a lot of water');
+    await panel(page).getByRole('button', {name: 'Log', exact: true}).click();
+    // The retry shows no live text ("Waiting for your AI to reply…"); its request is the sign it is running.
+    await expect.poll(() => bodies.length).toBe(2);
+    await expect(panel(page).getByText('Waiting for your AI to reply…')).toBeVisible();
+    expect(String(bodies[1]!.messages.at(-2)!.content)).toContain('Logged it for you.');
+    expect(String(bodies[1]!.messages.at(-2)!.content)).not.toContain('⟦zigi');
+    await panel(page).getByRole('button', {name: 'Stop', exact: true}).click();
+    const reply = panel(page).locator('.ai-turn-assistant').last();
+    await expect(reply).toContainText('Logged it for you.');
+    await expect(reply.locator('.ai-turn-stopped')).toHaveText('Stopped');
+    await expect(reply).not.toContainText('Fixing the cards');
+    await expect(reply).not.toContainText('⟦');
+    await expect(reply).not.toContainText(REPAIR_NOTE.replace(/_/g, ''));
+  } finally {
+    for (const s of sockets) s.destroy();
+    await new Promise<void>(resolve => held.close(() => resolve()));
+  }
+});

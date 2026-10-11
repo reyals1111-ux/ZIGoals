@@ -40,6 +40,8 @@ export function getAppStorage():Storage{
  }
  const selected=selector(window.sessionStorage);if(!selected)throw Error('Showcase selection changed. Reload to continue.');return namespace(window.sessionStorage,`${PREFIX}${selected.generation}:`);
 }
+/** Session Z-Cloud Part 5 (A7): a read-only view built elsewhere (lib/deleted-account-records.ts) names its prefix here. */
+export function registerStorageScope(view:Storage,prefix:string):void{scopes.set(view,prefix);}
 export function storageLockKey(storage:Storage,key:string):string{return `${scopes.get(storage)??''}${key}`;}
 export function showcaseStorageKey(key:string):string{return storageLockKey(getAppStorage(),key);}
 /** Commit a prepared dataset with one final selector write. Old data stays intact on failure. */

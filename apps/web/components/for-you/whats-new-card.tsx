@@ -3,14 +3,24 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session Y (release `2026-10-session-y`): small things people asked for; each link opens its Help answer. */
+/** Session Z-Cloud (release `2026-10-session-z-cloud`, ADR-019): ZIGi's new face, voice and the persona decisions; each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-z-panel', label: 'ZIGi’s cleaner panel and your own suggestions'},
+  {href: '/app/help#help-your-ai-voice', label: 'Talk to ZIGi in English or Dutch'},
+  {href: '/app/help#help-z-delete-habit', label: 'Delete an archived habit for good'},
+  {href: '/app/help#help-z-status', label: 'A phone’s status line and Status sheet'},
+  {href: '/app/help#help-z-have', label: '“What you have” in Wealth'},
+  {href: '/app/help#help-z-units', label: 'Weight in pounds, water in fluid ounces'},
+  {href: '/app/help#help-z-step-up', label: 'Why your recovery secret is asked again'},
+];
+/** Session Y (release `2026-10-session-y`), folded under "Earlier updates" first. */
+const SESSION_Y_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-y-vacation', label: 'End a vacation early'},
   {href: '/app/help#help-y-minus', label: '“−” beside “+” on measured habits'},
   {href: '/app/help#help-y-unit', label: 'Change a metal’s weight unit'},
   {href: '/app/help#help-y-sync', label: 'Sync explains an older or missing cloud copy'},
 ];
-/** Session X-Local (release `2026-10-session-x`), folded under "Earlier updates" first. */
+/** Session X-Local (release `2026-10-session-x`), folded under "Earlier updates" after Session Y's. */
 const SESSION_X_LOCAL_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-your-ai-alive', label: 'ZIGi comes alive: the real art, idle, emotions'},
   {href: '/app/help#help-your-ai-act', label: 'ZIGi creates anything: stacks, edits, the mood, links, widgets'},
@@ -30,8 +40,9 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-w-chess', label: 'Chess: chess.com, Lichess'},
   {href: '/app/help#help-w-links', label: 'My links on Today'},
 ];
-/** The earlier releases' links (Session X-Local, W, V), folded under "Earlier updates". */
+/** The earlier releases' links (Session Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_Y_LINKS,
   ...SESSION_X_LOCAL_LINKS,
   ...SESSION_W_LINKS,
   {href: '/app/help#help-auto-checkins', label: 'Habits that tick themselves off from Health'},
@@ -45,7 +56,7 @@ export const EARLIER_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-quick-add', label: 'Type a line into Quick add'},
   {href: '/app/help#help-push-reminders', label: 'Reminders when ZIGoals is closed'},
   {href: '/app/help#help-guide', label: 'The Guide, on this device'},
-  {href: '/app/help#help-your-ai-what', label: 'ZIGi · your AI (Premium, free during Alpha)'},
+  {href: '/app/help#help-your-ai-what', label: 'ZIGi · Your Personal AI Companion (Premium, free during Alpha)'},
   {href: '/app/help#help-your-ai-data', label: 'Ask ZIGi about your records, and more from ZIGi'},
 ];
 /**

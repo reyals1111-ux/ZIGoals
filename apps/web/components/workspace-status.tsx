@@ -10,7 +10,8 @@ export function useWorkspaceSelection(){
  useEffect(()=>{const update=()=>{try{setState({selected:!!getAccountScope(),locked:isAccountLocked(),ready:true,error:false});}catch{setState({selected:true,locked:true,ready:true,error:true});}};update();window.addEventListener(ACCOUNT_CHANGE,update);return()=>window.removeEventListener(ACCOUNT_CHANGE,update);},[]);
  return state;
 }
-export function WorkspaceStatus(){
+/** Gate C (persona round): the line's words, also read by a phone's Status sheet, which shows them in full. */
+export function useWorkspaceStatusText(){
  const vault=useVaultStatus(),selection=useWorkspaceSelection(),showcase=useShowcase();
  const [online,setOnline]=useState(true),[saved,setSaved]=useState(false);
  useEffect(()=>{const network=()=>setOnline(navigator.onLine),local=()=>setSaved(true),account=()=>setSaved(false);network();window.addEventListener('online',network);window.addEventListener('offline',network);window.addEventListener('zigoals:private-change',local);window.addEventListener(ACCOUNT_CHANGE,account);return()=>{window.removeEventListener('online',network);window.removeEventListener('offline',network);window.removeEventListener('zigoals:private-change',local);window.removeEventListener(ACCOUNT_CHANGE,account);};},[]);
@@ -26,5 +27,9 @@ export function WorkspaceStatus(){
   else if(vault.last)text=`${saved?'Changes saved on this device · ':''}Last sync acknowledgement: ${vault.last}`;
   else text='Account unlocked · awaiting sync acknowledgement';
  }
+ return text;
+}
+export function WorkspaceStatus(){
+ const text=useWorkspaceStatusText();
  return <div className="workspace-status"><span role="status">{text}</span><Link href="/app/settings#encrypted-sync">Storage &amp; sync settings →</Link></div>;
 }

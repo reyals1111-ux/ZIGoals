@@ -31,7 +31,7 @@ function chain(chainId:string,legacy=false):typeof fetch{
    :path.includes('by_denom')?{balance:{denom,amount:ZIG('263000',legacy?6:18)}}
    :path.includes('/rewards')?{rewards:[{validator_address:validator,reward:[{denom,amount:ZIG('12',legacy?6:18)+'.5'}]}]}
    :path.includes('unbonding_delegations')?{unbonding_responses:[{delegator_address:account,validator_address:validator,entries:[{creation_height:'5',completion_time:'2026-10-24T00:00:00Z',balance:ZIG('20',legacy?6:18)}]}],pagination:{next_key:null}}
-   :path.includes('/validators/')?{validator:{operator_address:validator,description:{moniker:'Fixture validator'},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.100000000000000000'}},tokens:'100000'}}
+   :path.endsWith('/staking/v1beta1/validators')?{validators:[{operator_address:validator,description:{moniker:'Fixture validator'},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.100000000000000000'}},tokens:'100000'}],pagination:{next_key:null}}
    :{delegation_responses:[{delegation:{delegator_address:account,validator_address:validator},balance:{denom,amount:ZIG('100',legacy?6:18)}}],pagination:{next_key:null}};
   return Response.json(value,{headers:{'x-cosmos-block-height':'12632388'}});
  }) as typeof fetch;

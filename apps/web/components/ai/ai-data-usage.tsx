@@ -52,7 +52,7 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
     <h4>How your AI gets your data</h4>
     <label className="field">Data for each message<select value={mode} onChange={e => save(options, current => ({...current, toolMode: e.target.value as ToolMode}), `Data mode: ${MODE_LABELS[e.target.value as ToolMode]}.`)}>{TOOL_MODES.map(m => <option key={m} value={m}>{MODE_LABELS[m]}</option>)}</select><small>{MODE_NOTES[mode]} Either way only what your page switches and Include Health allow, and nothing on private screens. Your AI can only read: changes still come as cards you confirm.</small></label>
     {provider && settings.model && <div className="ai-photo-setting">
-      <label className="ai-check"><input type="checkbox" checked={options.data.visionDeclared?.[`${provider}:${settings.model}`] === true} onChange={e => save(options, current => { const visionDeclared = {...(current.visionDeclared ?? {})}; if (e.target.checked) visionDeclared[`${provider}:${settings.model}`] = true; else delete visionDeclared[`${provider}:${settings.model}`]; return {...current, visionDeclared}; }, e.target.checked ? 'Meal photos are offered in the chat when Health is shared.' : 'Meal photos are not offered for this model.')}/> {settings.model} reads photos</label>
+      <label className="ai-check"><input type="checkbox" checked={options.data.visionDeclared?.[`${provider}:${settings.model}`] === true} onChange={e => save(options, current => { const visionDeclared = {...(current.visionDeclared ?? {})}; if (e.target.checked) visionDeclared[`${provider}:${settings.model}`] = true; else delete visionDeclared[`${provider}:${settings.model}`]; return {...current, visionDeclared}; }, e.target.checked ? 'Meal photos are offered in the chat when Health is shared.' : 'Meal photos are not offered for this model.')}/> <span className="ai-check-name" title={settings.model ?? undefined}>{settings.model}</span>&nbsp;reads photos</label>
       <small className="ai-note">For meal photos in the chat: tick it if your provider&rsquo;s model page says this model takes images (OpenRouter, Ollama and LM Studio also say so themselves). A photo needs Health shared, goes only with that message to your AI, and is never kept by ZIGoals.</small>
     </div>}
     {provider && <div className="ai-deep-model">
@@ -65,26 +65,26 @@ export function AiDataUsage({settings, scope}: {settings: AiSettings; scope: str
     </div>}
     <h4>Usage on this device</h4>
     <p className="ai-note">Tokens as your provider reported them, counted on this device this month ({month}). Your provider&rsquo;s own usage page is the record that counts.</p>
-    {routes.length === 0 ? <p className="ai-note">No replies from your AI this month yet.</p> : <table className="ai-usage-table">
+    {routes.length === 0 ? <p className="ai-note">No replies from your AI this month yet.</p> : <div className="ai-usage-scroll"><table className="ai-usage-table">
       <thead><tr><th scope="col">Route</th><th scope="col">Requests</th><th scope="col">Tokens in</th><th scope="col">Tokens out</th></tr></thead>
       <tbody>{routes.map(([route, used]) => <tr key={route}><th scope="row">{routeName(route)}</th><td>{used.requests.toLocaleString('en-US')}{used.unreported ? ` (${used.unreported.toLocaleString('en-US')} without counts)` : ''}</td><td>{used.input.toLocaleString('en-US')}</td><td>{used.output.toLocaleString('en-US')}</td></tr>)}</tbody>
-    </table>}
+    </table></div>}
     {result.amounts.length > 0 && <p className="ai-note">Estimate from your prices: {result.amounts.map(a => money(a.amount, a.currency)).join(' and ')}{result.unpriced.length ? ` (without ${result.unpriced.map(routeName).join(', ')}: no price entered)` : ''}. Never converted between currencies; not a bill.</p>}
     {note && <p className="ai-note" role="status">{note}</p>}
-    {provider && <fieldset className="ai-usage-prices"><legend>Your prices for {PROVIDERS[provider].name} (optional)</legend>
+    {provider && <fieldset className="ai-usage-prices"><legend>Your prices (optional)</legend>
       <div className="ai-fields">
         <label className="field">Per million tokens in<input inputMode="decimal" defaultValue={price?.input ?? ''} key={`in-${provider}-${price?.input ?? ''}`} onBlur={e => setPrice('input', e.target.value)} placeholder="e.g. 2.5" autoComplete="off"/></label>
         <label className="field">Per million tokens out<input inputMode="decimal" defaultValue={price?.output ?? ''} key={`out-${provider}-${price?.output ?? ''}`} onBlur={e => setPrice('output', e.target.value)} placeholder="e.g. 10" autoComplete="off"/></label>
         <label className="field">Currency<select value={price?.currency ?? 'USD'} onChange={e => save<AiUsage>(usage, current => ({...current, prices: {...(current.prices ?? {}), [provider]: {...(current.prices?.[provider] ?? {}), currency: e.target.value}}}))}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       </div>
-      <small>Copy them from your provider&rsquo;s pricing page; ZIGoals never looks prices up. They stay on this device.</small>
+      <small>For {provider === 'local' ? 'your local model' : PROVIDERS[provider].name}. Copy them from your provider&rsquo;s pricing page; ZIGoals never looks prices up. They stay on this device.</small>
     </fieldset>}
     <fieldset className="ai-usage-cap"><legend>Monthly cap (optional)</legend>
       <div className="ai-fields">
         <label className="field">Amount<input inputMode="decimal" defaultValue={usage.data.softCap?.amount ?? ''} key={`cap-${usage.data.softCap?.amount ?? ''}`} placeholder="e.g. 10" autoComplete="off" onBlur={e => { const v = e.target.value.trim(); if (v && !DECIMAL.test(v)) { setMessage({text: 'The cap is a plain number such as 10.', failed: true}); return; } save<AiUsage>(usage, current => ({...current, softCap: v ? {amount: v, currency: current.softCap?.currency ?? price?.currency ?? 'USD'} : null}), v ? 'Monthly cap saved.' : 'No monthly cap.'); }}/></label>
         <label className="field">Currency<select value={usage.data.softCap?.currency ?? price?.currency ?? 'USD'} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => current.softCap ? {...current, softCap: {...current.softCap, currency: e.target.value}} : current)}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></label>
       </div>
-      <label className="ai-check"><input type="checkbox" checked={!!usage.data.askFirst} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => ({...current, askFirst: e.target.checked}))}/> Ask me before sending once the cap is reached</label>
+      <label className="ai-check"><input type="checkbox" checked={!!usage.data.askFirst} disabled={!usage.data.softCap} onChange={e => save<AiUsage>(usage, current => ({...current, askFirst: e.target.checked}))}/> Ask first past the cap</label>
       <small>ZIGi notes 80 % and 100 % of the cap, estimated from your prices in the cap&rsquo;s currency. It asks before sending only if you tick the box; it never stops you.</small>
     </fieldset>
     {routes.length > 0 && <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => save<AiUsage>(usage, current => ({...current, months: {}}), 'The counts on this device were cleared; your prices and cap are kept.')}>Clear the counts on this device</button></div>}

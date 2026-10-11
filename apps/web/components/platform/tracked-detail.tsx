@@ -115,7 +115,8 @@ export function TrackedDetail({id}:{id:string}){
     const current=data.goals.find(g=>g.id===id);if(!current?.plan||current.status==='closed')throw Error('Contribution plan is unavailable.');
     const previousId=current.plan.habitId;
     const referenced=habits.data.habits.find(h=>h.id===previousId);
-    reservedId=previousId&&z.uuid().safeParse(previousId).success&&(!referenced||goalLinkMatches(referenced.goalLink,{chainId:'private',owner:'local',goalId:id}))?previousId:crypto.randomUUID();
+    // Gate B: a habit deleted for good keeps its id as a hidden shell; a new supporting habit takes a new id.
+    reservedId=previousId&&z.uuid().safeParse(previousId).success&&!habits.deletedIds.has(previousId)&&(!referenced||goalLinkMatches(referenced.goalLink,{chainId:'private',owner:'local',goalId:id}))?previousId:crypto.randomUUID();
     return {...data,goals:data.goals.map(g=>g.id===id&&g.plan?{...g,plan:{...g.plan,habitId:reservedId}}:g)};
    });
    await habits.update(data=>{

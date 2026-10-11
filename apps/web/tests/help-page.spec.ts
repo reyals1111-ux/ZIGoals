@@ -11,7 +11,7 @@ const SECTIONS: [id: string, title: string][] = [
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · your AI', 'Questions', 'New: your whole life', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 test('Help has one title and eleven topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
@@ -151,10 +151,10 @@ test('at phone width the top bar names Help and steps back to Settings', async (
 });
 
 // Session W Part 24: every new feature has a linkable answer under "New: your whole life"; a hash opens it.
-test('New: your whole life: nineteen linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
+test('New: your whole life: twenty linkable questions; a hash opens its answer and writes nothing', async ({page}) => {
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'Sleep, mind, music, chess, links and more', exact: true});
-  const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'w-newer-section', 'w-web-limits'];
+  const ids = ['w-pages', 'w-welcome', 'w-sleep', 'w-meditation', 'w-sounds', 'w-import', 'w-devices', 'w-quick', 'w-habits', 'w-goals', 'w-wealth', 'w-wrapup', 'w-chess', 'w-portfolio', 'w-links', 'w-music', 'w-signout', 'z-step-up', 'w-newer-section', 'w-web-limits'];
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(section.locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(section.locator('details[open]')).toHaveCount(0);
@@ -187,5 +187,32 @@ test('Session Y: four linkable answers; a hash opens each and nothing is written
     await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`), id).toContainText(text);
   }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session Z-Cloud (ADR-019): this release's answers, each linkable from What's new; the voice answer no longer says
+// read-aloud is off by default, and nothing is written on view.
+test('Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true}), ai = page.getByRole('region', {name: 'Your own AI, page by page', exact: true});
+  const answers: [string, string][] = [
+    ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
+    ['z-status', 'Demo · no real money'],
+    ['z-have', 'with All, Accounts, Assets and Debts'],
+    ['z-units', 'your records stay in kilograms and millilitres'],
+    ['z-more', 'Today is one centred column when nothing sits beside it'],
+  ];
+  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(ai.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, text] of [...answers, ['z-panel', 'Nothing in the panel wraps onto a second line'], ['your-ai-voice', 'in English or Dutch, wherever your browser offers speech recognition, with or without an AI connected']] as [string, string][]) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(text);
+  }
+  await expect(page.locator('#help-your-ai-voice')).not.toContainText('off by default');
+  await expect(page.locator('#help-your-ai-voice')).toContainText('never between 22:00 and 08:00');
+  await expect(page.locator('#help-your-ai-voice')).not.toContainText(/French|Fran[cç]ais/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

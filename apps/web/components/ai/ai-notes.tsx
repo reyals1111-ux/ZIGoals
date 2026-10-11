@@ -5,6 +5,7 @@ import {AI_MEMORY, AI_OPTIONS, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, typ
 import {isShowcase} from '../../lib/showcase-storage';
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
+import {trackedQuestions, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
 
 /**
  * Settings → ZIGi · your AI → "What ZIGi knows about me" (Session V Part 8): the person's own notes for ZIGi, written
@@ -57,7 +58,26 @@ export default function AiNotes() {
     {notes.length > 0 && (!confirmAll ? <div className="ai-card-actions"><button type="button" className="text-link" onClick={() => setConfirmAll(true)}>Delete all notes</button></div>
       : <div className="ai-confirm" role="group" aria-label="Delete all notes"><p>All {notes.length} notes go from this device. This cannot be undone.</p><div className="ai-card-actions"><button type="button" className="primary" onClick={deleteAll}>Delete all {notes.length}</button><button type="button" className="text-link" onClick={() => setConfirmAll(false)}>Keep them</button></div></div>)}
     {message && <p role={message.failed ? 'alert' : 'status'} className="ai-note">{message.text}{message.restore && <> <button type="button" className="text-link" onClick={() => change(current => restoreNote(current, message.restore!), 'The note is back.')}>Undo</button></>}</p>}
+    <YourQuestions/>
   </div>;
+}
+/**
+ * Session Z-Cloud Part 2 (owner plan edit 9): the questions this device counts for "Yours" suggestions, every one of them,
+ * with a one-tap "Forget all". Kept on this device only (`zigoals:zigi-suggestions:v1`), never synced, never sent.
+ */
+function YourQuestions() {
+  const record = useDeviceRecord(ZIGI_SUGGESTIONS), [note, setNote] = useState('');
+  const list = record.loaded ? trackedQuestions(record.data).sort((a, b) => Number(b.promoted) - Number(a.promoted) || b.asks - a.asks) : [];
+  const forget = () => { try { record.clear(); setNote('Your questions were forgotten on this device.'); } catch { setNote('They could not be removed on this device.'); } };
+  return <section className="ai-your-questions" aria-labelledby="ai-your-questions-title">
+    <h5 id="ai-your-questions-title" className="ai-your-questions-title">Your frequent questions</h5>
+    <p className="ai-note">A question you ask three times within a month becomes a &ldquo;Yours&rdquo; suggestion. Kept on this device only and never synced; it goes to your AI only when you send it. Health questions are kept only while Health is shared with ZIGi.</p>
+    {list.length === 0 ? <p className="ai-note">None yet.</p> : <>
+      <ul className="ai-memory-list" aria-label="Your frequent questions">{list.map(q => <li key={q.key} className="ai-memory-note"><p className="ai-memory-text">{q.text}</p><p className="ai-memory-meta">{q.promoted ? 'A suggestion' : `Asked ${q.asks === 1 ? 'once' : `${q.asks} times`} in the last 30 days`}{q.pinned ? ' · pinned' : ''}{q.health ? ' · Health' : ''}</p></li>)}</ul>
+      <div className="ai-card-actions"><button type="button" className="secondary" onClick={forget}>Forget all</button></div>
+    </>}
+    {note && <p role="status" className="ai-note">{note}</p>}
+  </section>;
 }
 function NoteEdit({note, onSave, onCancel}: {note: MemoryNoteRecord; onSave: (text: string, category: MemoryCategory) => void; onCancel: () => void}) {
   const [text, setText] = useState(note.text), [kind, setKind] = useState<MemoryCategory>(note.category);

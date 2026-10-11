@@ -19,7 +19,7 @@ import './accounts.css';
  * A debt's payoff date appears only with the person's own rate and a monthly payment. Nothing here links a bank or
  * moves money. Kept on this device (`zigoals:accounts:v1`) until account sync carries it.
  */
-const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
+export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
 const toMoney = (text: string, date: string): Money & {date: string} => { const value = parseAmountInput(text, 2); if (value < 0n) throw Error('Enter the amount as a positive number; a debt\'s balance is what is owed.'); return {value, decimals: 2, date}; };
 export function AccountsSection(layout: LayoutAttrs) {

@@ -33,7 +33,7 @@ test('the Customize panel cannot load: the panel says so, the rest of the ZIGi s
   await expect(failed).toContainText('Customize could not be opened. Reload the page to try again.');
   await expect(failed.getByRole('button', {name: 'Reload'})).toBeEnabled();
   // The section around it is whole: its heading, and another panel still opens.
-  await expect(section.getByRole('heading', {name: 'Your own AI, page by page.'})).toBeVisible();
+  await expect(section.getByRole('heading', {name: 'ZIGi · Your Personal AI Companion'})).toBeVisible();
   await expect(page.locator('main')).toBeVisible();
   expect(errors.filter(e => !/ChunkLoadError|Loading chunk|Failed to fetch dynamically imported module|Importing a module script failed/.test(e))).toEqual([]);
 });

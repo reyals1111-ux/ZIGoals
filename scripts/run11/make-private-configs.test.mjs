@@ -37,6 +37,19 @@ test('writes six ignored 0600 copies that pass the private check and keep every 
  expect(printed).toContain('vars set: MARKET_QUOTE_DISPATCH, MARKET_ACCOUNT_ID, MARKET_POLICY (values not printed)');
 });
 
+// Session Z-Cloud Part 5 (A6, ADR-019 C35): the private copy carries the step-up switch, exactly "on" or "off".
+test('the step-up switch is copied "on", may be set "off", and anything else is refused without printing it',async()=>{
+ const {root,input}=await sandbox();makePrivateConfigs(root,input);
+ const copies=await load(root,privatePath),templates=await load(root,p=>p);
+ expect(copies.private.vars.STEP_UP_REQUIRED).toBe('on');
+ for(const value of ['off','on'])expect(validatePrivateCopies({...copies,private:{...copies.private,vars:{...copies.private.vars,STEP_UP_REQUIRED:value}}},templates)).toEqual([]);
+ for(const value of ['On','yes','of',' on'])expect(validatePrivateCopies({...copies,private:{...copies.private,vars:{...copies.private.vars,STEP_UP_REQUIRED:value}}},templates),value).toEqual(['private: STEP_UP_REQUIRED must be "on" or "off".']);
+ const without={...copies.private.vars};delete without.STEP_UP_REQUIRED;
+ expect(validatePrivateCopies({...copies,private:{...copies.private,vars:without}},templates)).toContain('private: a template var is missing.');
+ // The fixture-only knobs never belong in a private copy.
+ for(const name of ['LOCAL_DAILY_SENDS','LOCAL_SHARD_CAPACITY'])expect(validatePrivateCopies({...copies,admission:{...copies.admission,vars:{...copies.admission.vars,[name]:'1000000'}}},templates),name).toContain('admission: the test clock vars must never be configured.');
+});
+
 test('refuses to overwrite and writes nothing when any copy already exists',async()=>{
  const {root,input}=await sandbox(),existing=join(root,privatePath(CONFIGS.food));await writeFile(existing,'{"owner":"edits"}',{mode:0o600});
  expect(()=>makePrivateConfigs(root,input)).toThrow('Refusing to overwrite');

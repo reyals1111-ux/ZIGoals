@@ -1,6 +1,7 @@
 import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
+import {isDeletedHabit, isDeletedHabitRef, withoutDeletedHabits} from '../habit-delete';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, type DashboardSettings} from '../dashboard-settings';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
@@ -17,6 +18,7 @@ import {AI_SETTINGS_KEY} from '../ai/launcher-record';
 import {TODAY_FOLDS_KEY} from '../today-folds';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from '../ai/store/keys';
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
+import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -42,7 +44,10 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   aiOptions: AI_OPTIONS_KEY, aiUsage: AI_USAGE_KEY, aiMemory: AI_MEMORY_KEY, aiActions: AI_ACTIONS_KEY, zigi: ZIGI_KEY, zigiReminders: ZIGI_REMINDERS_KEY, zigiKnock: ZIGI_KNOCK_KEY,
   // Session W: accounts and debts, milestone dates, import batches, reminders, the chess cache, celebrations shown, a
   // running meditation, the music player's choices and the visible-pages mirror (lib/w-device-keys.ts).
-  accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY} as const;
+  accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY,
+  // Session Z-Cloud: ZIGi's suggestions from the person's own questions, the voice choices and what became of ZIGi's cards
+  // (lib/z-device-keys.ts).
+  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
@@ -124,7 +129,26 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   if (localSimulation) { json.localSimulation = JSON.parse(localSimulation.section); if (localSimulation.warning) warnings.push(localSimulation.warning); }
   const typed = <T,>(name: string, value: unknown, parse: (value: unknown) => {success: true; data: T} | {success: false}): T | null => { if (value === undefined) return null; const result = parse(value); if (result.success) return result.data; warnings.push(`Your ${name} records did not read as expected, so their CSV files hold the header only; everything.json still holds them as stored.`); return null; };
   const platform = typed<Platform>('finance', json.modules.finance, v => platformSchema.safeParse(v));
-  const habits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
+  const parsedHabits = typed<HabitData>('habits', json.modules.habits, v => habitDataSchema.safeParse(v));
+  // Session Z-Cloud Part 4.6: a habit deleted for good is a nameless shell kept for sync; the export leaves it out.
+  const shells = new Set((parsedHabits?.habits ?? []).filter(isDeletedHabit).map(h => h.id));
+  if (shells.size) { const raw = json.modules.habits as {habits: {id: string}[]}; json.modules.habits = {...raw, habits: raw.habits.filter(h => !shells.has(h.id))}; }
+  // Gate B security read: what still names or points at a deleted habit goes too: ZIGi's action notes ("Check-in: <name>"),
+  // and the Health links and per-day markers for it (they stay in the records, unused, and are left out of the copy).
+  if (shells.size) {
+    const actions = json.device.aiActions as {actions?: {activityId?: unknown}[]} | undefined;
+    if (actions && Array.isArray(actions.actions)) json.device.aiActions = {...actions, actions: actions.actions.filter(a => typeof a.activityId !== 'string' || !isDeletedHabitRef(a.activityId, shells))};
+    const unlinked = (group: unknown): unknown => {
+      if (!group || typeof group !== 'object') return group;
+      const g = group as {links?: {habitId?: unknown}[]; applied?: {habitId?: unknown}[]};
+      const keep = (list: {habitId?: unknown}[] | undefined) => Array.isArray(list) ? list.filter(item => !(typeof item?.habitId === 'string' && shells.has(item.habitId))) : list;
+      return {...g, ...(g.links ? {links: keep(g.links)} : {}), ...(g.applied ? {applied: keep(g.applied)} : {})};
+    };
+    if (json.device.habitHealthLinks !== undefined) json.device.habitHealthLinks = unlinked(json.device.habitHealthLinks);
+    const rawHealth = json.modules.health as {habitLinks?: unknown} | undefined;
+    if (rawHealth && typeof rawHealth === 'object' && rawHealth.habitLinks) json.modules.health = {...rawHealth, habitLinks: unlinked(rawHealth.habitLinks)};
+  }
+  const habits = parsedHabits && withoutDeletedHabits(parsedHabits);
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
   // Session U Part 9: with the sync writes on, the markers live in Health v3 (`habitLinks`); the device key's are read too

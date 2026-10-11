@@ -48,7 +48,7 @@ const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function clickThatCloses(mini: Page, target: Locator) {
   await Promise.all([mini.waitForEvent('close'), target.click().catch(error => { if (!mini.isClosed()) throw error; })]);
 }
-const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi|Close ZIGi, your AI/});
+const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi|Close ZIGi, your personal AI companion/});
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 
 test('"Pop out" only where the browser offers the mini window, and never on a phone', async ({page, isMobile}) => {

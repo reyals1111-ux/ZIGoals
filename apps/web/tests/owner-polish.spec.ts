@@ -82,7 +82,7 @@ test('Today reports private-store recovery errors while preserving legacy destin
 
 test('Positions utilities expose wallet reader and APR calculator below wealth',async({page})=>{
  await page.setViewportSize({width:1440,height:1000});await seed(page);await page.goto('/app/staking');
- await expect(page.locator('.position-metrics')).toContainText('526000');
+ await expect(page.locator('.position-metrics')).toContainText('526,000');
  await shot(page,'09-wealth-first');await shot(page,'10-positions-right-rail');
  await page.locator('.positions-wallet > summary').click();await expect(page.getByLabel('Public ZIG address')).toBeVisible();await shot(page,'11-track-wallet-open');
  await page.locator('.positions-wallet > summary').click();await page.locator('.positions-scenario > summary').click();await expect(page.getByLabel('Net APR assumption %',{exact:true})).toHaveValue('6');await shot(page,'12-apr-open');

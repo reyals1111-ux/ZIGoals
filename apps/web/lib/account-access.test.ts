@@ -68,7 +68,8 @@ test('A7: a revoked session or a deleted account is passed on once, with no refr
   vi.stubGlobal('fetch',async(url:string,init?:RequestInit)=>{calls.push(init?.body?String(init.body):url);return Response.json({signedIn:false,error:code},{status:401});});
   const view=await mount({onDenied:c=>{denied.push(c);}});
   expect(denied).toEqual([code]);expect(calls).toEqual(['/api/private-account?action=status']);expect(isAccountLocked()).toBe(true);
-  expect(view.textContent).toContain(code==='ACCOUNT_DELETED'?'This account was deleted.':'This browser was signed out on another device.');
+  // Session Z-Cloud Part 5 (A7): the cloud copy was deleted; the identity may remain and this device keeps its records.
+  expect(view.textContent).toContain(code==='ACCOUNT_DELETED'?'Your cloud copy was deleted; this device keeps its records.':'This browser was signed out on another device.');
   await act(async()=>root?.unmount());root=undefined;document.body.replaceChildren();clearAccountSession();
  }
  activateAccount(id);unlockAccount();const denied:string[]=[],calls:string[]=[];

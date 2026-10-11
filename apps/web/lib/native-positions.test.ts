@@ -16,7 +16,8 @@ function endpoint(path:string):unknown {
  if(path.includes('by_denom'))return {balance:{denom:'azig',amount:'9007199254740993000'}};
  if(path.includes('/rewards'))return {rewards:[{validator_address:validator,reward:[{denom:'azig',amount:'12.987654321012345678'}]}],total:[{denom:'azig',amount:'12.987654321012345678'}]};
  if(path.includes('unbonding_delegations'))return {unbonding_responses:[{delegator_address:account,validator_address:validator,entries:[{creation_height:'5',completion_time:'2026-10-01T00:00:00Z',balance:'20'}]}],pagination:{next_key:null}};
- if(path.includes('/validators/'))return {validator:{operator_address:validator,description:{moniker:'Fixture validator'},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.100000000000000000'}},tokens:'100000'}};
+ // Session Z-Cloud Part 5 (C4): the validator list, one page, instead of one read per validator.
+ if(path.endsWith('/staking/v1beta1/validators'))return {validators:[{operator_address:validator,description:{moniker:'Fixture validator'},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.100000000000000000'}},tokens:'100000'}],pagination:{next_key:null}};
  return {delegation_responses:[{delegation:{delegator_address:account,validator_address:validator},balance:{denom:'azig',amount:'1000'}}],pagination:{next_key:null}};
 }
 it('reads exact public mainnet Positions with GET-only, no credentials or private payload',async()=>{
@@ -35,6 +36,16 @@ it('rejects malformed addresses before requests and wrong network/denom evidence
 it('fails closed on duplicate responses and incomplete pagination',async()=>{
  const fetcher=(async(url)=>{const value=endpoint(new URL(String(url)).pathname) as Record<string,unknown>;if(value.delegation_responses)value.pagination={next_key:'repeat'};return Response.json(value,{headers:{'x-cosmos-block-height':'100'}});}) as typeof fetch;
  await expect(readNativePositions('MAINNET_READ_ONLY',account,fetcher)).rejects.toThrow();
+});
+it('Session Z-Cloud C4: validators come from the paged list, one read per page however many the address touches; one missing from the list fails closed',async()=>{
+ const other=toBech32('zigvaloper',new Uint8Array(20).fill(5));let listReads=0;
+ const fetcher=(missing:boolean)=>(async(url)=>{const at=new URL(String(url));if(at.pathname.endsWith('/staking/v1beta1/validators')){listReads++;const second=at.searchParams.get('pagination.key')==='page-2';
+  const row=(address:string)=>({operator_address:address,description:{moniker:'Fixture '+address.slice(-4)},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.050000000000000000'}},tokens:'7'});
+  return Response.json(second?{validators:missing?[]:[row(validator)],pagination:{next_key:null}}:{validators:[row(other)],pagination:{next_key:'page-2'}},{headers:{'x-cosmos-block-height':'100'}});}
+  return Response.json(endpoint(at.pathname),{headers:{'x-cosmos-block-height':'100'}});}) as typeof fetch;
+ const ps=await readNativePositions('MAINNET_READ_ONLY',account,fetcher(false));
+ expect(listReads).toBe(2);expect(ps.find(p=>p.validator)?.validator).toMatchObject({address:validator,commission:'0.050000000000000000'});
+ await expect(readNativePositions('MAINNET_READ_ONLY',account,fetcher(true))).rejects.toThrow('Validator identity mismatch.');
 });
 it('retains vanished Positions as zero and their allocations for deficit review',async()=>{
  const ps=await readNativePositions('MAINNET_READ_ONLY',account,(async(url)=>Response.json(endpoint(new URL(String(url)).pathname),{headers:{'x-cosmos-block-height':'100'}})) as typeof fetch);

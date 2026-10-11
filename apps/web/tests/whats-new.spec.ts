@@ -47,19 +47,28 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
   await expect(card).not.toContainText('stays on this device');
-  // Session Y (ADR-018 Y40): this release's links are the card's own; X-Local's, W's and V's wait under "Earlier updates".
-  await card.getByRole('link', {name: 'End a vacation early'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-y-vacation$/);
-  await expect(page.locator('#help-y-vacation')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-y-vacation')).toContainText('it removes those planned skips from today on');
+  // Session Z-Cloud (ADR-019, deliberate): this release's links are the card's own; Y's, X-Local's, W's and V's wait under
+  // "Earlier updates", Y's first.
+  await card.getByRole('link', {name: 'Delete an archived habit for good'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-z-delete-habit$/);
+  await expect(page.locator('#help-z-delete-habit')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-z-delete-habit')).toContainText('Its name, notes and every check-in go, on every device you sync');
   await page.goto('/app');
+  await expect(card.getByRole('link', {name: 'End a vacation early'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'ZIGi comes alive: the real art, idle, emotions'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'Sleep and sleep debt'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'Habits that tick themselves off from Health'})).toHaveCount(0);
   await card.getByText('Earlier updates', {exact: true}).click();
   const earlier = card.locator('.whats-new-earlier').getByRole('link');
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
-  await expect(earlier.first()).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  await expect(earlier.first()).toHaveText('End a vacation early');
+  await expect(earlier.nth(4)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  await card.getByRole('link', {name: 'End a vacation early'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-y-vacation$/);
+  await expect(page.locator('#help-y-vacation')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-y-vacation')).toContainText('it removes those planned skips from today on');
+  await page.goto('/app');
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Sleep and sleep debt'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-w-sleep$/);
   await expect(page.locator('#help-w-sleep')).toHaveAttribute('open', '');

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { toBech32 } from "@cosmjs/encoding";
+import { connectKeplr } from "./phone-nav";
 const alice = toBech32("zig", new Uint8Array(20).fill(1));
 const bob = toBech32("zig", new Uint8Array(20).fill(2));
 const operationId = "1c24a834-76f3-4b56-a152-77bce8f57fc6";
@@ -96,7 +97,7 @@ test("restart preserves scoped journal and damaged rows without replay", async (
     },
     { alice, bob, operationId },
   );
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
   await expect(page.getByLabel("Testnet transaction outcomes")).toContainText(
     alice,
   );
@@ -114,7 +115,7 @@ test("restart preserves scoped journal and damaged rows without replay", async (
     page.getByText("ZIGChain testnet · Known local receipts only · Incomplete"),
   ).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
   await expect(page.getByLabel("Testnet transaction outcomes")).toContainText(
     alice,
   );
@@ -122,7 +123,7 @@ test("restart preserves scoped journal and damaged rows without replay", async (
     localStorage.setItem("test-wallet", bob);
     window.dispatchEvent(new Event("keplr_keystorechange"));
   }, bob);
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
   await expect(page.getByLabel("Testnet transaction outcomes")).toContainText(
     bob,
   );

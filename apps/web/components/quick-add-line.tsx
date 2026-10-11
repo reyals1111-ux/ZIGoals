@@ -15,7 +15,12 @@ import {storageMessageOr} from '../lib/storage-error-copy';
  * Save. Unknown input is explained with three examples. The parser runs on this device against the person's own habit
  * titles and counter names; the records are ordinary Health and Habit records. The dialog stays open for the next line.
  */
-export function QuickAddLine() {
+/**
+ * Session Z-Cloud Part 3: ZIGi's panel, with no AI connected, hands the person's own words (typed or spoken) here as
+ * `initialText`: they are previewed at once, and with `onlyIfUnderstood` nothing shows unless the parser understood them.
+ * Nothing is written before Save, exactly as in Quick add.
+ */
+export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialText?: string; onlyIfUnderstood?: boolean} = {}) {
   const health = useHealth(), habits = useHabits();
   const [text, setText] = useState(''), [result, setResult] = useState<QuickAddResult | null>(null), [chosen, setChosen] = useState<QuickAddKnown | null>(null);
   const [saved, setSaved] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false), [wake, setWake] = useState('');
@@ -29,6 +34,8 @@ export function QuickAddLine() {
     };
   }, [health.data, habits.data]);
   const ready = health.loaded && habits.loaded && !health.error && !habits.error;
+  const primed = useRef(false);
+  useEffect(() => { if (!initialText || primed.current || !ready) return; primed.current = true; setText(initialText); setResult(parse(initialText, 'en', context)); }, [initialText, ready, context]);
   function preview() { setSaved(''); setError(''); setChosen(null); setWake(''); setResult(parse(text, 'en', context)); }
   async function save(item: QuickAddKnown) {
     setBusy(true); setError('');
@@ -51,6 +58,7 @@ export function QuickAddLine() {
   // Session W Part 9: a night needs its wake time (the bedtime is worked out from it); nothing else is asked.
   const active = found?.kind === 'sleep' && wake ? {...found, wake} : found, needsWake = active?.kind === 'sleep' && !active.wake;
   const bedtime = active?.kind === 'sleep' && active.wake ? (() => { const [h, m] = active.wake.split(':').map(Number); const t = ((h! * 60 + m! - Math.round(active.minutes)) % 1440 + 1440) % 1440; return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; })() : null;
+  if (onlyIfUnderstood && !saved && (!result || result.kind === 'unknown')) return null;
   return <form className="quick-add-line" aria-label="Type a line" onSubmit={event => { event.preventDefault(); preview(); }}>
     <label className="field"><span>Type a line</span><input ref={field} data-sheet-focus type="text" value={text} maxLength={200} autoComplete="off" enterKeyHint="go" placeholder="drank 2 glasses of water" disabled={!ready || busy} onChange={event => { setText(event.target.value); if (result) setResult(null); if (chosen) setChosen(null); }} /></label>
     <div className="actions"><button type="submit" className="quiet" disabled={!ready || busy || !text.trim()}>Preview</button></div>

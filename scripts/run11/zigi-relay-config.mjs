@@ -10,8 +10,13 @@ import {fileURLToPath} from 'node:url';
 
 const SECRETS=['AUTH_PUBLIC_KEY','ZIGI_UPSTREAM_KEY','ZIGI_ALLOWLIST'];
 const VARS=['AUTH_ORIGIN','APP_ORIGIN','ZIGI_UPSTREAM_URL','ZIGI_PROVIDER_NAME','ZIGI_MODEL','ZIGI_DAILY_REQUESTS','ZIGI_DAILY_TOKENS','ZIGI_GLOBAL_DAILY_TOKENS','ZIGI_KILL_SWITCH'];
-// Session X Part 9: optional; only the Anthropic upstream reads it ("off" when absent).
-const OPTIONAL_VARS=['ZIGI_THINKING'];
+// Session X Part 9: optional; only the Anthropic upstream read it ("off" when absent). Session Z-Cloud Part 6: no longer
+// sent (the 5.5 models refuse "disabled"); still accepted so an older private copy passes. The monthly and money budgets
+// (ADR-019 C40) are optional; each one set is enforced by the relay.
+const OPTIONAL_VARS=['ZIGI_THINKING','ZIGI_MONTHLY_REQUESTS','ZIGI_DAILY_USD','ZIGI_MONTHLY_USD','ZIGI_GLOBAL_DAILY_USD'];
+// Session Z-Cloud Part 6: the models the relay accepts on Anthropic's address (workers/zigi-relay/anthropic.mjs).
+const ANTHROPIC_MODELS=['claude-sonnet-5-5','claude-haiku-5-5'];
+const dollars=(/** @type {unknown} */v)=>/^\d{1,6}(\.\d{1,6})?$/.test(String(v))&&Number(v)>0;
 const ANTHROPIC_MESSAGES='https://api.anthropic.com/v1/messages';
 /** JSONC without comments (a // or /* inside a string is kept). @param {string} text */
 export function stripComments(text){
@@ -53,6 +58,11 @@ export function relayConfigProblems(config,{template=false}={}){
  if(!https(vars.ZIGI_UPSTREAM_URL))problems.push('ZIGI_UPSTREAM_URL must be an https address.');
  else if(new URL(String(vars.ZIGI_UPSTREAM_URL)).hostname==='api.anthropic.com'&&vars.ZIGI_UPSTREAM_URL!==ANTHROPIC_MESSAGES)problems.push(`On Anthropic, ZIGI_UPSTREAM_URL must be exactly ${ANTHROPIC_MESSAGES} (the relay translates to that API only).`);
  if(!/^[A-Za-z0-9._:/-]{1,100}$/.test(String(vars.ZIGI_MODEL??'')))problems.push('ZIGI_MODEL must be a model id.');
+ else if(vars.ZIGI_UPSTREAM_URL===ANTHROPIC_MESSAGES&&!ANTHROPIC_MODELS.includes(vars.ZIGI_MODEL))problems.push(`On Anthropic, ZIGI_MODEL must be one of ${ANTHROPIC_MODELS.join(', ')}.`);
+ if(Object.hasOwn(vars,'ZIGI_MONTHLY_REQUESTS')&&!positive(vars.ZIGI_MONTHLY_REQUESTS))problems.push('ZIGI_MONTHLY_REQUESTS must be a positive whole number.');
+ for(const name of ['ZIGI_DAILY_USD','ZIGI_MONTHLY_USD','ZIGI_GLOBAL_DAILY_USD'])if(Object.hasOwn(vars,name)&&!dollars(vars[name]))problems.push(`${name} must be a positive amount in US dollars, such as "10" or "0.50".`);
+ if(dollars(vars.ZIGI_DAILY_USD)&&dollars(vars.ZIGI_MONTHLY_USD)&&Number(vars.ZIGI_DAILY_USD)>Number(vars.ZIGI_MONTHLY_USD))problems.push('One account\'s daily money cannot be more than its monthly money.');
+ if(dollars(vars.ZIGI_DAILY_USD)&&dollars(vars.ZIGI_GLOBAL_DAILY_USD)&&Number(vars.ZIGI_DAILY_USD)>Number(vars.ZIGI_GLOBAL_DAILY_USD))problems.push('One account\'s daily money cannot be more than the relay\'s own daily money.');
  if(!template){
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(String(vars.AUTH_ORIGIN??''))||vars.AUTH_ORIGIN==='https://unconfigured.supabase.co')problems.push('AUTH_ORIGIN must be the real account provider origin.');
   if(!https(vars.APP_ORIGIN)||new URL(String(vars.APP_ORIGIN)).origin!==vars.APP_ORIGIN)problems.push('APP_ORIGIN must be the app\'s https origin.');

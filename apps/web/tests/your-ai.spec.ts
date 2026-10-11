@@ -60,8 +60,8 @@ test('off until connected: the launcher opens a setup pointer, and no provider i
   await page.goto('/app');
   await expect(launcher(page)).toBeVisible();
   await openChat(page);
-  await expect(panel(page)).toContainText('Connect your own AI to start');
-  await expect(panel(page).getByRole('link', {name: 'Set up in Settings'})).toHaveAttribute('href', '/app/settings#your-ai');
+  await expect(panel(page).getByRole('note', {name: 'ZIGi is not connected to an AI'})).toContainText('Not connected to an AI yet');
+  await expect(panel(page).getByRole('link', {name: 'Set up', exact: true})).toHaveAttribute('href', '/app/settings#your-ai');
   await page.goto('/app/habits');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   expect(external.filter(url => PROVIDER_ORIGINS.some(host => url.includes(host)))).toEqual([]);
@@ -106,6 +106,8 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
   await send(page, 'How is my day?');
   await expect(panel(page).locator('.ai-turn-assistant')).toContainText('You logged nothing yet today.');
   await expect(panel(page).locator('.ai-turn-label')).toHaveText('Answer from your AI (OpenAI), not from ZIGoals.');
+  // Panel polish round 2 (mechanics): the token count is in the reply's "⋯".
+  await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'More for this reply'}).click();
   await expect(panel(page).locator('.ai-turn-usage')).toContainText('120 in · 30 out tokens');
   const chat = captured.find(c => c.url.endsWith('/v1/chat/completions'))!;
   expect(chat.headers.authorization).toBe(`Bearer ${FAKE_KEY}`);
@@ -184,7 +186,7 @@ test('Habits: two proposals in one reply become cards, "Add all" writes through 
   await page.goto('/app/habits');
   const before = await habits(page);
   await openChat(page);
-  await expect(panel(page).locator('.ai-context-switch')).toContainText('Habits');
+  await expect(panel(page).locator('.ai-share-line')).toContainText('Habits');
   await send(page, 'Mark Read done and skip Exercise');
   const cards = panel(page).locator('.ai-card');
   await expect(cards).toHaveCount(2);
@@ -306,7 +308,7 @@ test('the context is only what the page shares: Settings reads nothing, the swit
   await seed(page, connectedLocal({contextBudgetTokens: 1000}));
   await page.goto('/app/habits');
   await openChat(page);
-  await panel(page).getByText('What your AI sees').click();
+  await panel(page).getByLabel('What your AI sees').click();
   const preview = panel(page).locator('.ai-context-preview pre');
   await expect(preview).toContainText('h1: '); await expect(preview).toContainText('Read');
   expect(await preview.textContent()).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
@@ -328,7 +330,7 @@ test('Today\'s data carries the review week from the weekly review on this devic
   await page.goto('/app');
   await openChat(page);
   const bar = panel(page).locator('.ai-context-bar');
-  await bar.getByText('What your AI sees').click();
+  await bar.getByLabel('What your AI sees').click();
   const preview = bar.locator('.ai-context-preview pre');
   await expect(preview).toContainText('This week (for your weekly review)');
   await expect(preview).toContainText(/Week \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2} · review /);
@@ -531,9 +533,12 @@ test('"Ask ZIGi about this" on a habit card and on a goal detail opens the chat 
   const captured = await mockLocal(page, () => stream('Read is going well: 26 days in a row.'));
   await seed(page, connectedLocal());
   await page.goto('/app/habits');
-  const ask = page.getByRole('button', {name: /^Ask ZIGi about /}).first();
+  // Session Z-Cloud Part 4.10: the question about one habit is in its card's options menu.
+  const card = page.locator('article.habit-card').first();
+  const label = (await card.getAttribute('aria-label'))!;
+  await card.getByRole('button', {name: `Options for ${label}`, exact: true}).click();
+  const ask = card.getByRole('button', {name: 'Ask ZIGi about this habit', exact: true});
   await expect(ask).toBeVisible();
-  const label = (await ask.getAttribute('aria-label'))!.replace('Ask ZIGi about ', '');
   await ask.click();
   await expect(panel(page)).toBeVisible();
   await expect(page.getByLabel('Message to your AI')).toHaveValue(`About my habit "${label}": `);

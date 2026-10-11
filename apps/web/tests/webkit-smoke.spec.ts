@@ -25,6 +25,10 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/settings');
   const ai = {...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), ...extra});
+  // Session Z-Cloud Gate C: Settings, too, is left only once its network is idle, as every page below is. Its account,
+  // push and music checks now start a moment later (their code loads on use, ADR-019 C39), and leaving while WebKit still
+  // had them in flight was reported as page errors although nothing failed (the same S64 shape, an API address).
+  await settled(page);
 }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

@@ -5,6 +5,7 @@ import "./collection.css";
 import { GoalSummaryCard } from "../../../components/goal-card";
 import { OrbitalArt } from "../../../components/orbital-art";
 import { useUnifiedGoals } from "../../../components/use-unified-goals";
+import { useGoals } from "../../../components/goal-provider";
 import { PlatformNav } from "../../../components/platform/common";
 import { PageHeader } from "../../../components/page-header";
 import { GoalMilestones } from "../../../components/bottom-sections";
@@ -17,6 +18,8 @@ import { useHealthGoals } from "../../../components/health-goals/use-health-goal
 import { HealthGoalsSection } from "../../../components/health-goals/health-goals-section";
 export default function GoalsPage() {
   const collection = useUnifiedGoals();
+  // Session Z-Cloud Part 4.3: plain words until Keplr is connected.
+  const wallet = useGoals(), plainWords = wallet.mode === "local" && wallet.walletState !== "CONNECTED";
   const today = useLocalToday();
   // G3 (Session P): health goals read the Health journal and live in their own device key.
   const health = useHealth(), healthGoals = useHealthGoals();
@@ -33,7 +36,7 @@ export default function GoalsPage() {
     {collection.error&&<p role="alert" className="notice">{collection.error}</p>}
     {large&&<section id="goal-collection-controls" className="goal-collection-controls" aria-label="Browse Goals" tabIndex={-1}><label>Search Goals<input aria-label="Search Goals" type="search" value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}}/></label><label>Sort Goals<select aria-label="Sort Goals" value={sort} onChange={e=>{setSort(e.target.value);setPage(0);}}><option value="pinned">Pinned first</option><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option></select></label>{pages>1&&<nav className="goal-collection-pages" aria-label="Goals pages"><button className="secondary" aria-label="Previous Goals page" disabled={currentPage===0} onClick={()=>changePage(currentPage-1)}>Previous</button><span role="status">Page {currentPage+1} of {pages}</span><button className="secondary" aria-label="Next Goals page" disabled={currentPage+1===pages} onClick={()=>changePage(currentPage+1)}>Next</button></nav>}</section>}
     {!collection.loaded ? <p role="status">Loading your local goals…</p> : <LayoutRegion region="body" items={[
-      {id:"goals:collection",label:"Your Goals",node:total ? <section className="goal-grid" aria-label="Your goals">{large?displayed.map(g=><GoalSummaryCard key={g.key} summary={g}/>):<LayoutRegion region="cards" grid allIds={collection.goals.map(g=>entityLayoutId(g.key))} items={displayed.map(g=>({id:entityLayoutId(g.key),label:g.name,node:<GoalSummaryCard summary={g}/>}))}/>}</section> : <section className="destination-state"><OrbitalArt/><p className="eyebrow">Start with what matters</p><h2><NebulaFlow identity="goals-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for.<br/> Give your ZIG a purpose.</p><Link className="primary" href="/app/goals/new">Plan my first goal →</Link></section>},
+      {id:"goals:collection",label:"Your Goals",node:total ? <section className="goal-grid" aria-label="Your goals">{large?displayed.map(g=><GoalSummaryCard key={g.key} summary={g}/>):<LayoutRegion region="cards" grid allIds={collection.goals.map(g=>entityLayoutId(g.key))} items={displayed.map(g=>({id:entityLayoutId(g.key),label:g.name,node:<GoalSummaryCard summary={g}/>}))}/>}</section> : <section className="destination-state"><OrbitalArt/><p className="eyebrow">Start with what matters</p><h2><NebulaFlow identity="goals-destination-title">A destination for your next chapter.</NebulaFlow></h2><p>A home. A safety net. A trip you’ve been waiting for.<br/> {plainWords ? "Give your savings a purpose." : "Give your ZIG a purpose."}</p><Link className="primary" href="/app/goals/new">Plan my first goal →</Link></section>},
       !!total && !count && {id:"goals:filter-empty",label:"No Goals in this view",node:<section className="panel empty-small"><h2>{query.trim()?"No matching goals.":`No ${filter.toLowerCase()} goals.`}</h2><p>{query.trim()?"Try a different name or clear your search.":"Your other destinations are under All. Closed Goals keep their history."}</p><button className="secondary" onClick={() => {setFilter("All");setQuery("");setPage(0);}}>View all goals</button></section>},
       {id:"goals:milestones",label:"Milestones ahead",node:<GoalMilestones goals={collection.goals} today={today}/>},
       {id:"goals:health",label:"Health goals",node:<HealthGoalsSection goals={healthGoals} health={health.data} healthLoaded={health.loaded&&!health.error}/>},

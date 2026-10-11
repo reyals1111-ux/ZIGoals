@@ -136,10 +136,10 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  const nav=page.getByRole('navigation',{name:'Main navigation'});
  if(await isPhone(page)){
   // The tab bar is unchanged; More keeps the same groups: Wealth / Markets, Staking / Ecosystem, Chess (the Showcase shows it
-  // since Session W Part 14), Activity, Settings.
+  // since Session W Part 14), Activity, Settings, Help (last since Session Z-Cloud Part 4.11).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health']);
   const sheet=await openMore(page),rows=sheet.locator('.phone-more-list > li');
-  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings']);
+  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
   const gaps=await rows.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
   const gap=(i:number)=>gaps[i]!;
   // Portfolio (Session I, Part 11) sits in the money group: the group gaps are now before Markets (1) and Ecosystem (4).
@@ -149,7 +149,7 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  }
  const links=nav.getByRole('link');
  // The Showcase's visible set (Chess included, Session W Part 14) applies once the page knows it is the Showcase.
- await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings']);
+ await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
  const gaps=await links.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
  const gap=(i:number)=>gaps[i]!;
  // Space, not a line: the gap before Markets and before Ecosystem is clearly larger than inside a group.
@@ -159,13 +159,13 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  // Keyboard order follows the visual order.
  await page.getByRole('link',{name:'ZIGoals home',exact:true}).focus();
  const order:string[]=[];
- for(let i=0;i<12;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
- expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings']);
+ for(let i=0;i<13;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
+ expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
  // The narrow-tablet header: the last group starts its own row, and Quick add (below the nav) follows it in tab order.
  await page.setViewportSize({width:820,height:1180});await page.goto('/app/goals');await expect(page.locator('main h1')).toBeVisible();
  const today=await box(page,'.app-nav a[href="/app"]'),ecosystem=await box(page,'.app-nav a[href="/app/ecosystem"]'),staking=await box(page,'.app-nav a[href="/app/staking"]');
  expect(ecosystem.x).toBeCloseTo(today.x,0);expect(ecosystem.y).toBeGreaterThan(today.y+today.height-1);expect(staking.y).toBeCloseTo(today.y,0);
- await page.locator('.app-nav a[href="/app/settings"]').focus();await page.keyboard.press('Tab');
+ await page.locator('.app-nav a[href="/app/help"]').focus();await page.keyboard.press('Tab');
  await expect(page.locator('.app-sidebar .quick-add-trigger')).toBeFocused();
 });
 

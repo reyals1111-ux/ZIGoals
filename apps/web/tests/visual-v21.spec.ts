@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { installRun7Demo } from "./fixtures/run7-demo";
-import { openTodayWidgets } from "./phone-nav";
+import { openTodayWidgets, walletArea } from "./phone-nav";
 
 test.use({ timezoneId: "Europe/Brussels" });
 test("V2.1 artwork, summary-first composition and stable decorative identities", async ({ page }, info) => {
@@ -14,7 +14,8 @@ test("V2.1 artwork, summary-first composition and stable decorative identities",
   await expect(snapshot).toBeVisible();
   await expect(snapshot.getByRole("heading", { name: "Destinations in motion" })).toBeVisible();
   expect(await page.locator(".today-hero").evaluate((hero, section) => Boolean(hero.compareDocumentPosition(section as Node) & Node.DOCUMENT_POSITION_FOLLOWING), await snapshot.elementHandle())).toBe(true);
-  await expect(page.getByRole("button", { name: "Connect Keplr" })).toBeVisible();
+  // Session Z-Cloud Part 4.2 (mechanics): on a phone the wallet button is in the Status sheet.
+  await expect((await walletArea(page)).getByRole("button", { name: "Connect Keplr" })).toBeVisible();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await page.goto("/app/goals");
   await expect(page.locator(".goal-card")).toHaveCount(3);

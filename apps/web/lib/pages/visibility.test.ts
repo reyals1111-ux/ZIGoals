@@ -21,18 +21,18 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(groupStarts(NAV_ITEMS, navGroupOf)).toEqual(NAV_GROUP_START);
     const {tabs, more} = phoneTabs(everyday);
     expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health']);
-    expect(labels(more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings']);
+    expect(labels(more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
     expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/markets', 2], ['/app/ecosystem', 3]]));
-    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings']);
+    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
     expect(startHref(viewOf(undefined))).toBe('/app');
     expect(homeHref(viewOf(undefined))).toBe('/app');
   });
-  test('only Habits and Health: two tabs, More holds Settings, Habits is the start page', () => {
+  test('only Habits and Health: two tabs, More holds Settings and Help, Habits is the start page', () => {
     const pages = hide('today', 'goals', 'wealth', 'markets', 'staking', 'portfolio', 'ecosystem', 'activity');
     const items = nav(pages), {tabs, more} = phoneTabs(items);
-    expect(labels(items)).toEqual(['Habits', 'Health', 'Settings']);
+    expect(labels(items)).toEqual(['Habits', 'Health', 'Settings', 'Help']);
     expect(labels(tabs)).toEqual(['Habits', 'Health']);
-    expect(labels(more)).toEqual(['Settings']);
+    expect(labels(more)).toEqual(['Settings', 'Help']);
     expect(groupStarts(items, navGroupOf)).toEqual(new Map([['/app/settings', 3]]));
     expect(groupStarts(more, navGroupOf)).toEqual(new Map());
     expect(startHref(viewOf(pages))).toBe('/app/habits');
@@ -54,12 +54,12 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(pagesSchema.parse(pages)).toEqual(pages);
     expect(viewOf(pages).start).toBeUndefined();
   });
-  test('every page hidden: only Settings is left, in More, and ZIGoals opens on Settings', () => {
+  test('every page hidden: only Settings and Help are left, in More, and ZIGoals opens on Settings', () => {
     const pages = hide(...AVAILABLE_PAGES);
     const items = nav(pages), {tabs, more} = phoneTabs(items);
-    expect(labels(items)).toEqual(['Settings']);
+    expect(labels(items)).toEqual(['Settings', 'Help']);
     expect(tabs).toEqual([]);
-    expect(labels(more)).toEqual(['Settings']);
+    expect(labels(more)).toEqual(['Settings', 'Help']);
     expect(visiblePages(viewOf(pages))).toEqual([]);
     expect(startPage(viewOf(pages))).toBeNull();
     expect(startHref(viewOf(pages))).toBe('/app/settings');

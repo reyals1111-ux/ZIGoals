@@ -127,10 +127,12 @@ test('around an answer: its time, the person\'s own note (kept here, never sent)
   await say(page, 'What should I focus on?');
   const reply = panel(page).locator('.ai-turn-assistant').last();
   await expect(reply).toContainText('MOCK: two things to try.');
-  await expect(reply.locator('time')).toHaveAttribute('datetime', /^2026-09-20T19:/);
+  await expect(reply.locator('time:visible')).toHaveAttribute('datetime', /^2026-09-20T19:/);
   const note = reply.getByRole('group', {name: 'Your own note on this answer (kept on this device, never sent)'});
   await note.getByRole('button', {name: 'Useful', exact: true}).click();
   await expect(note.getByRole('button', {name: 'Useful', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Panel polish round 2 (mechanics): Copy as Markdown and Continue in my AI are in the reply's "⋯".
+  await reply.getByRole('button', {name: 'More for this reply'}).click();
   await reply.getByRole('button', {name: 'Copy as Markdown'}).click();
   await expect(reply.getByRole('button', {name: 'Copied as Markdown'})).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('MOCK: **two** things to try.\n\n_Answer from your AI (your local server), not from ZIGoals._');
@@ -139,6 +141,7 @@ test('around an answer: its time, the person\'s own note (kept here, never sent)
   await expect.poll(() => bodies.length).toBe(2);
   expect(JSON.stringify(bodies[1])).not.toMatch(/"feedback"|Useful/);
   // Continue in my AI: the exact text first; copying copies that text.
+  await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'More for this reply'}).click();
   await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'Continue in my AI'}).click();
   const view = panel(page).getByRole('region', {name: 'Continue in my AI'});
   const text = await view.getByLabel('What will be copied').textContent();
@@ -179,6 +182,15 @@ test('with no AI: a local answer brings a stat card or a chart from the records 
   // The log scrolls smoothly (instantly under reduced motion): wait for it to arrive, and the button stays away meanwhile.
   await expect.poll(() => panel(page).locator('.ai-chat-log').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
   await expect(jump).toHaveCount(0);
+  // Gate C (ADR-019 C57): only ZIGi's own move glides; the log does not animate a scroll something else asks for (a focus,
+  // a tool bringing a button into view), and under the app's Motion Off the jump arrives at once.
+  const log = panel(page).locator('.ai-chat-log');
+  expect(await log.evaluate(el => getComputedStyle(el).scrollBehavior)).toBe('auto');
+  await page.evaluate(() => { document.documentElement.dataset.appMotion = 'off'; });
+  await log.evaluate(el => { el.scrollTop = 0; el.dispatchEvent(new Event('scroll')); });
+  await expect(jump).toBeVisible();
+  await jump.click();
+  expect(await log.evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
 });
 
 test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the message box, Escape closes only the sheet', async ({page}) => {
@@ -186,6 +198,8 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   await seed(page, {});
   await page.goto('/app');
   await openChat(page);
+  // Session Z-Cloud Part 2: the first-run tips wait in the Suggestions sheet's Ideas tab.
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
   const tips = panel(page).getByRole('complementary', {name: 'Tips'});
   await expect(tips).toContainText('Type / for commands');
   expect(await stored(page, ZIGI_KEY)).toBeNull();
@@ -197,18 +211,23 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   await expect(box(page)).toHaveValue('?');
   await expect(page.getByRole('dialog', {name: 'Keyboard shortcuts'})).toHaveCount(0);
   await box(page).fill('');
-  const history = panel(page).getByRole('button', {name: 'Chat history'});
+  // A control outside the message box (Session Z-Cloud Part 2: History moved into "⋯"; New chat stays in the header).
+  const history = panel(page).getByRole('button', {name: 'New chat'});
   await history.focus();
   await page.keyboard.press('Shift+Slash');
   const sheet = page.getByRole('dialog', {name: 'Keyboard shortcuts'});
   await expect(sheet).toBeVisible();
   await expect(sheet).toContainText('Edit your last message');
+  // Gate C (persona round): Part 3's talk shortcut is listed too.
+  await expect(sheet).toContainText('⌘ / Ctrl + Shift + Space');
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
   await expect(panel(page)).toBeVisible();
   await expect(history).toBeFocused();
   await page.reload();
   await openChat(page);
+  await panel(page).getByRole('button', {name: 'Suggestions', exact: true}).click();
+  await expect(panel(page).getByRole('region', {name: 'Suggestions for you'})).toBeVisible();
   await expect(panel(page).getByRole('complementary', {name: 'Tips'})).toHaveCount(0);
 });
 
@@ -225,7 +244,7 @@ test('History: Pin puts a chat under "Pinned"; the page filter uses where each c
   await openChat(page);
   await say(page, 'Habits question');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: noted.');
-  await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   const history = panel(page).locator('.ai-history');
   await expect(history.getByRole('button', {name: /^Habits question/})).toBeVisible();
   const row = (title: string) => history.getByRole('listitem').filter({hasText: title});

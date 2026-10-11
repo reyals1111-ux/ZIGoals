@@ -10,9 +10,13 @@ const UNREADABLE='Private data could not be read. It has not been changed.';
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function expectBanners(page:Page,path:string){
  await expect(page.locator('.app-topbar'),path).toBeVisible();
- await expect(page.locator('.app-topbar .network-banner'),path).toContainText('ZIGCHAIN TESTNET · PUBLIC ALPHA');
- await expect(page.locator('.mode-strip'),path).toBeVisible();
+ // Session Z-Cloud Part 4.3: without a wallet the label says practice money (the testnet's words return with Keplr).
+ await expect(page.locator('.app-topbar .network-banner strong'),path).toHaveText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
  await expect(page.locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
+ // Part 4.2: on a phone with scripts both are one status line that opens them in full; elsewhere both show in place.
+ const line=page.locator('.phone-status-line');
+ if(await line.isVisible())await expect(line,path).toHaveText('Demo · no real money');
+ else{await expect(page.locator('.app-topbar .network-banner'),path).toBeVisible();await expect(page.locator('.mode-strip'),path).toBeVisible();}
 }
 
 const stores=[

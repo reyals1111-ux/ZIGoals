@@ -135,7 +135,10 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
    await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();
    const w=await where(page);
    // On phones the whole status strip sits below the navigation and banners; on desktop it is in the first view.
-   expect(w,path).toMatchObject({inRow:true,afterBalance:true,clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
+   // Session Z-Cloud Part 4.2 (assertion changed, ADR-019): on a phone the balance is in the Status sheet behind the one
+   // status line, so there the lock is alone at the end of its row; everything else is checked as before.
+   expect(w,path).toMatchObject({inRow:true,...(isMobile?{}:{afterBalance:true}),clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
+   if(isMobile)await expect(page.locator('.phone-status-line'),path).toBeVisible();
    expect(w.size[0],path).toBeGreaterThanOrEqual(44);expect(w.size[1],path).toBeGreaterThanOrEqual(44);spots.add(w.right);
   }
   expect(spots.size).toBe(1);
@@ -181,13 +184,15 @@ test.describe('Part 2: personal layouts',()=>{
   await page.getByRole('button',{name:'Done',exact:true}).click();
   await expect(page.locator('.layout-controls')).toHaveCount(0);await expect(page.getByRole('region',{name:'Arrange this page'})).toHaveCount(0);
  });
- test('honesty banners and the page header are never movable',async({page})=>{
+ test('honesty banners and the page header are never movable',async({page,isMobile})=>{
   await showcase(page);
   for(const path of ['/app','/app/goals','/app/wealth','/app/health']){
    await page.goto(path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
    await expect(page.locator('.layout-controls').first()).toBeVisible();
-   for(const selector of ['.network-banner','.showcase-banner','.mode-strip','main h1']){
-    const el=page.locator(selector).first();await expect(el).toBeVisible();
+   for(const selector of ['.network-banner','.showcase-banner','.mode-strip','main h1',...(isMobile?['.phone-status-line']:[])]){
+    // Part 4.2 (mechanics): on a phone the network banner and the mode strip wait in the Status sheet, behind the status
+    // line (checked here too); hidden, they are still never inside a movable item.
+    const el=page.locator(selector).first();if(isMobile&&(selector==='.network-banner'||selector==='.mode-strip'))await expect(el).toBeAttached();else await expect(el).toBeVisible();
     expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')||!!e.querySelector('[data-layout-item],.layout-controls')),`${path} ${selector}`).toBe(false);
    }
    await page.getByRole('button',{name:'Done',exact:true}).click();

@@ -16,7 +16,8 @@ test('browsers are told apart and each gets its own honest disclosure; the langu
   expect(detectBrowser(chrome)).toBe('chrome'); expect(detectBrowser(safari)).toBe('safari'); expect(detectBrowser(firefox)).toBe('firefox'); expect(detectBrowser('curl/8')).toBe('other');
   expect(browserSpeechDisclosure('chrome', false)).toMatch(/Google/); expect(browserSpeechDisclosure('chrome', true)).toMatch(/on this device/); expect(browserSpeechDisclosure('safari', false)).toMatch(/Apple/); expect(browserSpeechDisclosure('firefox', false)).toMatch(/no speech recognition/);
   for (const b of ['chrome', 'safari', 'other'] as const) expect(browserSpeechDisclosure(b, false)).toMatch(/Nothing goes through ZIGoals/);
-  expect(speechLanguage('de-DE', 'en-US')).toBe('de-DE'); expect(speechLanguage(null, 'fr-FR')).toBe('fr-FR'); expect(speechLanguage('nonsense value', undefined)).toBe('en-US'); expect(iso639('pt-BR')).toBe('pt');
+  // Session Z-Cloud Part 3: English and Dutch only; any other choice or device language maps onto the four.
+  expect(speechLanguage('nl-BE', 'en-US')).toBe('nl-BE'); expect(speechLanguage('de-DE', 'en-US')).toBe('en-US'); expect(speechLanguage(null, 'fr-FR')).toBe('en-GB'); expect(speechLanguage('fr-FR', 'nl-BE')).toBe('nl-BE'); expect(speechLanguage('nonsense value', undefined)).toBe('en-GB'); expect(iso639('pt-BR')).toBe('pt');
   expect(recognitionConstructor({})).toBeNull(); expect(recognitionConstructor({webkitSpeechRecognition: class {}})).not.toBeNull();
   expect(recognitionText([Object.assign([{transcript: 'log two '}], {isFinal: true}), Object.assign([{transcript: 'glasses'}], {isFinal: false})])).toEqual({final: 'log two', interim: 'glasses'});
   expect(recognitionErrorText('not-allowed')).toMatch(/microphone was not allowed/); expect(recognitionErrorText('aborted')).toBe('');

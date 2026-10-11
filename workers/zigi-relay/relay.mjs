@@ -1,7 +1,8 @@
 import {UUID,providerConfigured} from '../push-reminders/verify.mjs';
 import {positive} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
-import {anthropicBody,isAnthropic} from './anthropic.mjs';
+import {ANTHROPIC_MODELS,anthropicBody,effortOf,isAnthropic} from './anthropic.mjs';
+import {micros,priceFor} from './pricing.mjs';
 /**
  * The relay's pure parts (Session V Part 17, ADR-014), apart from worker.mjs so that its module exports only the
  * handler and the budget object: who may use it, the body the provider gets, and the metered stream.
@@ -15,9 +16,21 @@ export function upstreamUrl(env){try{const url=new URL(env.ZIGI_UPSTREAM_URL??''
 export function configured(env){
  return providerConfigured(env)&&!!upstreamUrl(env)&&!!env.ZIGI_UPSTREAM_KEY&&/^[A-Za-z0-9._:/-]{1,100}$/.test(env.ZIGI_MODEL??'')&&/^[\w .()-]{1,40}$/.test(env.ZIGI_PROVIDER_NAME??'')
   &&!!positive(env.ZIGI_DAILY_REQUESTS)&&!!positive(env.ZIGI_DAILY_TOKENS)&&!!positive(env.ZIGI_GLOBAL_DAILY_TOKENS)
-  // Session X Part 9: the Anthropic upstream's thinking choice; absent means off. Anything else fails closed.
-  &&(env.ZIGI_THINKING===undefined||env.ZIGI_THINKING==='off'||env.ZIGI_THINKING==='model-default');
+  // Session X Part 9: the Anthropic upstream's thinking choice; absent means off. Anything else fails closed. Session
+  // Z-Cloud Part 6: no longer sent (the 5.5 models refuse "disabled"); an older private config that names it still passes.
+  &&(env.ZIGI_THINKING===undefined||env.ZIGI_THINKING==='off'||env.ZIGI_THINKING==='model-default')
+  // Session Z-Cloud Part 6 (ADR-019 C40): on Anthropic's address only Claude Sonnet 5.5 or Claude Haiku 5.5; the money
+  // and monthly budgets are optional, but a value that is set must be a positive amount or count.
+  &&(!isAnthropicUrl(env)||ANTHROPIC_MODELS.includes(String(env.ZIGI_MODEL)))
+  &&[env.ZIGI_DAILY_USD,env.ZIGI_MONTHLY_USD,env.ZIGI_GLOBAL_DAILY_USD].every(v=>v===undefined||micros(v)!==null)
+  &&(env.ZIGI_MONTHLY_REQUESTS===undefined||positive(env.ZIGI_MONTHLY_REQUESTS)!==null)
+  // Gate B (the relay's security read, ADR-019 C48): Anthropic's host only at its Messages address (another path would
+  // skip the model list), and a money budget only for a model the price table knows (else it would reserve nothing).
+  &&(upstreamUrl(env)?.hostname!=='api.anthropic.com'||isAnthropicUrl(env))
+  &&([env.ZIGI_DAILY_USD,env.ZIGI_MONTHLY_USD,env.ZIGI_GLOBAL_DAILY_USD].every(v=>v===undefined)||priceFor(String(env.ZIGI_MODEL))!==null);
 }
+/** @param {RelayEnv} env */
+const isAnthropicUrl=env=>{const url=upstreamUrl(env);return !!url&&isAnthropic(url);};
 /** Paused unless the switch is exactly "off": a missing or mistyped value fails closed. @param {RelayEnv} env */
 export const paused=env=>env.ZIGI_KILL_SWITCH!=='off';
 /** The invited accounts (a secret): account ids, separated by commas or spaces. @param {RelayEnv} env */
@@ -46,7 +59,8 @@ export function upstreamBody(body,env,url){
  const messages=/** @type {(Record<string,unknown>|null)[]} */(body.messages.map(message));if(messages.some(m=>m===null))return null;
  if(body.tools!==undefined&&(!Array.isArray(body.tools)||body.tools.length>LIMITS.tools||!body.tools.every(validTool)))return null;
  const asked=[body.max_completion_tokens,body.max_tokens].find(n=>Number.isSafeInteger(n)&&n>0)??LIMITS.maxOutputTokens,cap=Math.min(asked,LIMITS.maxOutputTokens),openai=url.hostname==='api.openai.com';
- if(isAnthropic(url))return anthropicBody(/** @type {Record<string,any>[]} */(messages),body.tools,env,cap);
+ // Session Z-Cloud Part 6: "Think deeper" arrives as Chat Completions' own `reasoning_effort` ("high"); anything else is the quick reply.
+ if(isAnthropic(url))return anthropicBody(/** @type {Record<string,any>[]} */(messages),body.tools,env,cap,effortOf(body.reasoning_effort));
  /** @type {Record<string,unknown>} */const out={model:env.ZIGI_MODEL,stream:true,stream_options:{include_usage:true},messages,...(openai?{max_completion_tokens:cap,store:false}:{max_tokens:cap})};
  if(body.tools?.length)out.tools=body.tools.map(/** @param {any} t */t=>({type:'function',function:{name:t.function.name,...(t.function.description!==undefined?{description:t.function.description}:{}),...(t.function.parameters!==undefined?{parameters:t.function.parameters}:{})}}));
  return out;

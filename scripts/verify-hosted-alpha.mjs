@@ -8,7 +8,7 @@ import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { probeAlphaMarket } from './lib/alpha-market-probe.mjs';
 import { REVIEWED_TESTNET_VERSIONS } from '../packages/chain-config/src/index.ts';
-import { appNonceFindings, priceFinding, reviewReason, hostedStatus } from './lib/hosted-alpha-review.mjs';
+import { appNonceFindings, priceFinding, reviewReason, hostedStatus, reviewedRestPattern } from './lib/hosted-alpha-review.mjs';
 import { readPolicyWindow, policyWindowNote } from './lib/market-policy-window.mjs';
 import { GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal } from './lib/hosted-alpha-goal-stage.mjs';
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
@@ -25,8 +25,9 @@ const fallback = 'https://zigoals-alpha.reyals1111.workers.dev';
 const apex = 'https://zigoals.app';
 // Session W Part 1d: with EXPECTED_COMMIT set to a full SHA, every /app answer must name that build (x-zigoals-build).
 const expectedBuild = /^[a-f0-9]{40}$/.test(process.env.EXPECTED_COMMIT ?? '') ? process.env.EXPECTED_COMMIT : null;
-// Session X Part 1: the REST row names one of the reviewed zigchaind versions (packages/chain-config).
-const REVIEWED_REST = new RegExp(`Verified zig-test-2 · azig · 18 decimals · (?:${REVIEWED_TESTNET_VERSIONS.map(v => v.replaceAll('.', '\\.')).join('|')})\\b`);
+// Session X Part 1: the REST row names one of the reviewed zigchaind versions (packages/chain-config). Session Z-Cloud
+// Part 1: its end is "no further digit or dot", not `\b` (the row's textContent runs into "Goal Manager").
+const REVIEWED_REST = reviewedRestPattern(REVIEWED_TESTNET_VERSIONS);
 const report = { observedAt: new Date().toISOString(), evidenceSource: 'INDEPENDENT_HOSTED_SMOKE', expectedBuild, builds: [], review: [], sourceScript: fileURLToPath(import.meta.url), mocks: false, walletInteraction: false, freshEphemeralContext: true, responses: [], requestRecords: [], pageErrors: [], consoleErrors: [], failedRequests: [], httpErrors: [], layouts: [], stages: [], limits: ['Single client and small request sample; not load testing or Core Web Vitals.', 'This automated smoke does not inspect Cloudflare CPU/account metrics or private email settings.', 'No real wallet extension test; owner evidence remains separate.'] };
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', permissions: [] });
