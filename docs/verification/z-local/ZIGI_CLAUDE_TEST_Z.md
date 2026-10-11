@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 41 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 44 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -85,7 +85,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 41 summary file(s) on 202
 | Part 6 · local, phi4-pc | `phi4-mini:3.8b` | tools, page records | 595 · 725 | **457/725 · 63.0 %** | 454/725 | lookup 84/93 · propose 139/249 · chat 21/43 · brief 21/27 · unknown 12/14 · refuse 36/48 · advice 6/11 · multi 81/162 · followup 29/43 · privacy 9/12 · injection 15/19 · local-first 4/4 | 12,174 + 0 + 0 → 81 | — | — | 393 / 591 |
 | Part 6 · local, qwen36-mac-2 | `qwen3.6:35b-a3b` | tools, page records | 595 · 725 | **601/725 · 82.9 %** | 602/725 | lookup 91/93 · propose 189/249 · chat 39/43 · brief 27/27 · unknown 13/14 · refuse 44/48 · advice 8/11 · multi 119/162 · followup 39/43 · privacy 10/12 · injection 18/19 · local-first 4/4 | 12,618 + 0 + 0 → 93 | — | — | 2,301 / 5,467 |
 | Part 2 · corpus ×1 | `claude-haiku-5-5` | tools, page records | 595 · 725 | **668/725 · 92.1 %** | 672/725 | lookup 93/93 · propose 228/249 · chat 38/43 · brief 27/27 · unknown 14/14 · refuse 46/48 · advice 9/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,586 + 17,064 → 365 | $0.0006 | $0.37 | 1,515 / 2,097 |
-| Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **424/557 · 76.1 %** | 465/557 | propose 359/448 · lookup 40/52 · refuse 23/31 · local-first 2/26 | 12,059 + 0 + 0 → 192 | — | — | 299 / 1,248 |
+| Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **424/557 · 76.1 %** | 471/557 | propose 359/448 · lookup 40/52 · refuse 23/31 · local-first 2/26 | 12,059 + 0 + 0 → 192 | — | — | 299 / 1,248 |
 | Part 6 · local, gemma4-page | `gemma4:12b` | tools, page records | 595 · 725 | **647/725 · 89.2 %** | 643/725 | lookup 93/93 · propose 212/249 · chat 37/43 · brief 23/27 · unknown 13/14 · refuse 48/48 · advice 10/11 · multi 139/162 · followup 41/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 13,086 + 0 + 0 → 229 | — | — | 1,119 / 1,711 |
 | Part 2 · corpus ×1 | `claude-sonnet-5-5` | tools, page records | 595 · 725 | **687/725 · 94.8 %** | 693/725 | lookup 92/93 · propose 239/249 · chat 40/43 · brief 27/27 · unknown 13/14 · refuse 46/48 · advice 9/11 · multi 147/162 · followup 40/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,529 + 16,687 → 249 | $0.0080 | $5.36 | 796 / 2,327 |
 | Part 6 · local, variance-gemma4 | `gemma4:12b` | tools, page records | 194 · 852 | **752/852 · 88.3 %** | 749/852 | lookup 78/78 · propose 214/240 · brief 27/27 · unknown 0/3 · refuse 61/66 · multi 295/345 · advice 5/9 · privacy 20/24 · chat 24/27 · injection 22/27 · local-first 6/6 | 13,144 + 0 + 0 → 289 | — | — | 580 / 1,865 |
@@ -93,7 +93,10 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 41 summary file(s) on 202
 | Part 6 · local, variance-qwen38 | `qwen3.8:27b` | tools, page records | 194 · 852 | **729/852 · 85.6 %** | 729/852 | lookup 75/78 · propose 206/240 · brief 23/27 · unknown 2/3 · refuse 59/66 · multi 287/345 · advice 2/9 · privacy 21/24 · chat 22/27 · injection 26/27 · local-first 6/6 | 17,496 + 0 + 0 → 175 | — | — | 449 / 1,748 |
 | Part 6 · the spoken set, page records | `claude-haiku-5-5` | tools, page records | 557 · 557 | **460/557 · 82.6 %** | 519/557 | propose 369/448 · lookup 47/52 · refuse 18/31 · local-first 26/26 | 4 + 1,148 + 16,780 → 332 | $0.0005 | $0.25 | 1,571 / 2,143 |
 | Part 2 · important ×1 | `claude-opus-5-5` | tools, page records | 194 · 284 | **272/284 · 95.8 %** | 274/284 | lookup 26/26 · propose 77/80 · brief 9/9 · unknown 1/1 · refuse 22/22 · multi 108/115 · advice 2/3 · privacy 8/8 · chat 9/9 · injection 8/9 · local-first 2/2 | 4 + 2,150 + 16,105 → 290 | $0.0198 | $5.20 | 2,174 / 3,753 |
-| Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **471/557 · 84.6 %** | — | propose 380/448 · lookup 41/52 · refuse 24/31 · local-first 26/26 | 12,243 + 0 + 0 → 230 | — | — | 280 / 1,296 |
+| Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **471/557 · 84.6 %** | 480/557 | propose 380/448 · lookup 41/52 · refuse 24/31 · local-first 26/26 | 12,243 + 0 + 0 → 230 | — | — | 280 / 1,296 |
+| Part 6 · local, gemma4-page-2 | `gemma4:12b` | tools, page records | 595 · 725 | **649/725 · 89.5 %** | 645/725 | lookup 93/93 · propose 220/249 · chat 35/43 · brief 26/27 · unknown 13/14 · refuse 45/48 · advice 9/11 · multi 135/162 · followup 42/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 13,240 + 0 + 0 → 218 | — | — | 1,109 / 1,728 |
+| Part 6 · local, qwen38-pc-2 | `qwen3.8:27b` | tools, page records | 595 · 725 | **632/725 · 87.2 %** | 631/725 | lookup 91/93 · propose 213/249 · chat 33/43 · brief 21/27 · unknown 14/14 · refuse 40/48 · advice 8/11 · multi 142/162 · followup 39/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 18,447 + 0 + 0 → 159 | — | — | 569 / 1,622 |
+| Part 6 · local, qwen36-pc-2 | `qwen3.6:35b-a3b` | tools, page records | 595 · 725 | **602/725 · 83.0 %** | 598/725 | lookup 91/93 · propose 193/249 · chat 32/43 · brief 24/27 · unknown 13/14 · refuse 41/48 · advice 8/11 · multi 130/162 · followup 40/43 · privacy 11/12 · injection 15/19 · local-first 4/4 | 13,212 + 0 + 0 → 96 | — | — | 227 / 574 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -124,6 +127,9 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 41 summary file(s) on 202
 | `claude-haiku-5-5` | Part 6 · the spoken set, page records | $0.05 |
 | `claude-opus-5-5` | Part 2 · important ×1 | $1.98 |
 | `gemma4:12b` | Part 6 · the spoken set, page records | $0.00 |
+| `gemma4:12b` | Part 6 · local, gemma4-page-2 | $0.00 |
+| `qwen3.8:27b` | Part 6 · local, qwen38-pc-2 | $0.00 |
+| `qwen3.6:35b-a3b` | Part 6 · local, qwen36-pc-2 | $0.00 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
@@ -153,7 +159,7 @@ summary is in.
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 41 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 44 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -173,11 +179,11 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 41 summary file(s): 8
 | Opus · corpus ≥ 97 % | 675/725 · 93.1 % | not met, 3.9 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json (re-scored; 665/725 at run time)` |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | 274/284 · 96.5 % | not met, 0.5 pt short; misses: cards 10, fields 5, schema 2, refusal 1, no-numbers 1 | `part6-opus-important/anthropic-api-claude-opus-5-5-tools-page-important-2026-10-11T13-10-28-792Z.json (re-scored; 272/284 at run time)` |
 | Opus · UI panel 60 ≥ 97 % | 57/60 · 95.0 % | not met, 2.0 pt short | `ui-panel-opus/ui-claude-opus-5-5.json` |
-| qwen3.8 (RTX 5090) ≥ 90 % | 631/725 · 87.0 % | not met, 3.0 pt short; misses: cards 78, fields 30, schema 9, refusal 6, no-numbers 4 | `qwen38-pc/rtx-5090-qwen3.8-27b-tools-page-all-2026-10-10T19-34-41-378Z.json (re-scored; 631/725 at run time)` |
-| qwen3.6 (RTX 5090) ≥ 85 % | 612/725 · 84.4 % | not met, 0.6 pt short; misses: cards 93, fields 34, refusal 9, schema 6, no-numbers 3 | `qwen36-pc/rtx-5090-qwen3.6-35b-a3b-tools-page-all-2026-10-10T20-06-02-681Z.json (re-scored; 616/725 at run time)` |
+| qwen3.8 (RTX 5090) ≥ 90 % | 631/725 · 87.0 % | not met, 3.0 pt short; misses: cards 81, fields 21, refusal 7, schema 6, no-numbers 4 | `qwen38-pc-2/rtx-5090-qwen3.8-27b-tools-page-all-2026-10-11T14-17-14-379Z.json (re-scored; 632/725 at run time)` |
+| qwen3.6 (RTX 5090) ≥ 85 % | 598/725 · 82.5 % | not met, 2.5 pt short; misses: cards 101, fields 32, schema 10, refusal 9, contains 8 | `qwen36-pc-2/rtx-5090-qwen3.6-35b-a3b-tools-page-all-2026-10-11T14-43-41-132Z.json (re-scored; 602/725 at run time)` |
 | qwen3.6 (Mac M1 Max) ≥ 85 % | 602/725 · 83.0 % | not met, 2.0 pt short; misses: cards 99, fields 41, schema 24, refusal 6, no-numbers 4 | `qwen36-mac-2/mac-m1-max-qwen3.6-35b-a3b-tools-page-all-2026-10-11T11-26-48-526Z.json (re-scored; 601/725 at run time)` |
-| gemma4 (RTX 5090) ≥ 89 % | 643/725 · 88.7 % | not met, 0.3 pt short; misses: cards 58, fields 28, schema 20, hint 3, contains 3 | `gemma4-page/rtx-5090-gemma4-12b-tools-page-all-2026-10-11T11-42-48-635Z.json (re-scored; 647/725 at run time)` |
-| gemma4 · the spoken set, reported | 471/557 · 84.6 % | reported | `spoken-gemma4-2/rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T13-39-04-532Z.json` |
+| gemma4 (RTX 5090) ≥ 89 % | 645/725 · 89.0 % | not met, 0.0 pt short; misses: cards 58, fields 23, schema 17, contains 5, refusal 4 | `gemma4-page-2/rtx-5090-gemma4-12b-tools-page-all-2026-10-11T13-53-54-770Z.json (re-scored; 649/725 at run time)` |
+| gemma4 · the spoken set, reported | 480/557 · 86.2 % | reported | `spoken-gemma4-2/rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T13-39-04-532Z.json (re-scored; 471/557 at run time)` |
 | phi4-mini (RTX 5090), reported (X-Local: 61 %) | 454/725 · 62.6 % | reported | `phi4-pc/rtx-5090-phi4-mini-3.8b-tools-page-all-2026-10-10T20-18-08-379Z.json (re-scored; 457/725 at run time)` |
 | gemma4 · important ×3 variance (spread) | 749/852 · 87.9 % · spread 3.2 pt (89.8 % / 86.6 % / 88.4 %) | reported | `variance-gemma4/rtx-5090-gemma4-12b-tools-page-important-2026-10-11T12-06-22-223Z.json (re-scored; 752/852 at run time)` |
 | qwen3.8 · important ×3 variance (spread) | 729/852 · 85.6 % · spread 3.2 pt (87.3 % / 85.2 % / 84.2 %) | reported | `variance-qwen38/rtx-5090-qwen3.8-27b-tools-page-important-2026-10-11T12-33-51-318Z.json (re-scored; 729/852 at run time)` |

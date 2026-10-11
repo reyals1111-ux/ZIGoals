@@ -1,0 +1,97 @@
+{
+ "kind": "harness",
+ "file": "rtx-5090-qwen3.6-35b-a3b-tools-page-all-2026-10-11T14-43-41-132Z.json",
+ "stage": "qwen36-pc-2",
+ "provider": "local",
+ "model": "qwen3.6:35b-a3b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "think": false,
+ "cache": null,
+ "pageContext": true,
+ "set": "typed",
+ "batch": false,
+ "cases": 595,
+ "repeat": 1,
+ "runs": 725,
+ "passed": 602,
+ "rate": 0.8303448275862069,
+ "byKind": {
+  "lookup": {
+   "passed": 91,
+   "total": 93
+  },
+  "propose": {
+   "passed": 193,
+   "total": 249
+  },
+  "chat": {
+   "passed": 32,
+   "total": 43
+  },
+  "brief": {
+   "passed": 24,
+   "total": 27
+  },
+  "unknown": {
+   "passed": 13,
+   "total": 14
+  },
+  "refuse": {
+   "passed": 41,
+   "total": 48
+  },
+  "advice": {
+   "passed": 8,
+   "total": 11
+  },
+  "multi": {
+   "passed": 130,
+   "total": 162
+  },
+  "followup": {
+   "passed": 40,
+   "total": 43
+  },
+  "privacy": {
+   "passed": 11,
+   "total": 12
+  },
+  "injection": {
+   "passed": 15,
+   "total": 19
+  },
+  "local-first": {
+   "passed": 4,
+   "total": 4
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 227,
+  "firstTokenP90Ms": 541,
+  "totalMedianMs": 574,
+  "totalP90Ms": 1901
+ },
+ "tokens": {
+  "input": 8865141,
+  "output": 64094,
+  "cacheWrite": 0,
+  "cacheRead": 0
+ },
+ "requests": 708,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": {
+  "input": 13211.834575260806,
+  "cacheWrite": 0,
+  "cacheRead": 0,
+  "output": 95.52011922503726,
+  "usd": null
+ },
+ "costPer100Messages": null,
+ "repaired": 31,
+ "errors": 0,
+ "misses": "cards 101, fields 32, schema 10, refusal 9, contains 8",
+ "startedAt": "2026-10-11T14:43:41.132Z",
+ "finishedAt": "2026-10-11T14:53:47.143Z"
+}
