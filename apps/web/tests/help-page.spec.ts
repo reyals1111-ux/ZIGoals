@@ -189,3 +189,30 @@ test('Session Y: four linkable answers; a hash opens each and nothing is written
   }
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
+
+// Session Z-Cloud (ADR-019): this release's answers, each linkable from What's new; the voice answer no longer says
+// read-aloud is off by default, and nothing is written on view.
+test('Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true}), ai = page.getByRole('region', {name: 'Your own AI, page by page', exact: true});
+  const answers: [string, string][] = [
+    ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
+    ['z-status', 'Demo · no real money'],
+    ['z-have', 'with All, Accounts, Assets and Debts'],
+    ['z-units', 'your records stay in kilograms and millilitres'],
+    ['z-more', 'Today is one centred column when nothing sits beside it'],
+  ];
+  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(ai.locator('#help-z-panel > summary')).toHaveText('What changed in ZIGi’s panel?');
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, text] of [...answers, ['z-panel', 'Nothing in the panel wraps onto a second line'], ['your-ai-voice', 'in English or Dutch, wherever your browser offers speech recognition, with or without an AI connected']] as [string, string][]) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(text);
+  }
+  await expect(page.locator('#help-your-ai-voice')).not.toContainText('off by default');
+  await expect(page.locator('#help-your-ai-voice')).toContainText('never in your quiet hours');
+  await expect(page.locator('#help-your-ai-voice')).not.toContainText(/French|Fran[cç]ais/);
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
