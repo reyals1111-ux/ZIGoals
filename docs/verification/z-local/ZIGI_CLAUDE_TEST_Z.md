@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 33 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 34 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -86,6 +86,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 33 summary file(s) on 202
 | Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **424/557 · 76.1 %** | 460/557 | propose 359/448 · lookup 40/52 · refuse 23/31 · local-first 2/26 | 12,059 + 0 + 0 → 192 | — | — | 299 / 1,248 |
 | Part 6 · local, gemma4-page | `gemma4:12b` | tools, page records | 595 · 725 | **647/725 · 89.2 %** | — | lookup 93/93 · propose 212/249 · chat 37/43 · brief 23/27 · unknown 13/14 · refuse 48/48 · advice 10/11 · multi 139/162 · followup 41/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 13,086 + 0 + 0 → 229 | — | — | 1,119 / 1,711 |
 | Part 2 · corpus ×1 | `claude-sonnet-5-5` | tools, page records | 595 · 725 | **687/725 · 94.8 %** | — | lookup 92/93 · propose 239/249 · chat 40/43 · brief 27/27 · unknown 13/14 · refuse 46/48 · advice 9/11 · multi 147/162 · followup 40/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,529 + 16,687 → 249 | $0.0080 | $5.36 | 796 / 2,327 |
+| Part 6 · local, variance-gemma4 | `gemma4:12b` | tools, page records | 194 · 852 | **752/852 · 88.3 %** | — | lookup 78/78 · propose 214/240 · brief 27/27 · unknown 0/3 · refuse 61/66 · multi 295/345 · advice 5/9 · privacy 20/24 · chat 24/27 · injection 22/27 · local-first 6/6 | 13,144 + 0 + 0 → 289 | — | — | 580 / 1,865 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
@@ -108,6 +109,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 33 summary file(s) on 202
 | `gemma4:12b` | Part 6 · the spoken set, page records | $0.00 |
 | `gemma4:12b` | Part 6 · local, gemma4-page | $0.00 |
 | `claude-sonnet-5-5` | Part 2 · corpus ×1 | $0.80 |
+| `gemma4:12b` | Part 6 · local, variance-gemma4 | $0.00 |
 
 ### The UI stages (the real panel)
 | Stage | Model | Browser · project | Pass | Median ms | Errors | Cost |
@@ -137,7 +139,7 @@ folder on this Mac). Each stage lands here as a rendered row when its summary is
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 33 summary file(s): 7 met · 9 not met · 6 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 34 summary file(s): 7 met · 9 not met · 5 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -163,7 +165,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 33 summary file(s): 7
 | gemma4 (RTX 5090) ≥ 89 % | 647/725 · 89.2 % | **met** | `gemma4-page/rtx-5090-gemma4-12b-tools-page-all-2026-10-11T11-42-48-635Z.json` |
 | gemma4 · the spoken set, reported | 424/557 · 76.1 % | reported | `spoken-gemma4/rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T11-26-51-588Z.json` |
 | phi4-mini (RTX 5090), reported (X-Local: 61 %) | 457/725 · 63.0 % | reported | `phi4-pc/rtx-5090-phi4-mini-3.8b-tools-page-all-2026-10-10T20-18-08-379Z.json` |
-| gemma4 · important ×3 variance (spread) | — | not run yet | — |
+| gemma4 · important ×3 variance (spread) | 752/852 · 88.3 % · spread 3.2 pt (89.8 % / 86.6 % / 88.4 %) | reported | `variance-gemma4/rtx-5090-gemma4-12b-tools-page-important-2026-10-11T12-06-22-223Z.json` |
 | qwen3.8 · important ×3 variance (spread) | — | not run yet | — |
 | Golden set (272, byte-identical) 100 % | 272/272 · 100.0 % | **met** | `vitest (CI: web checks)` |
 | Golden spoken set 100 % | 440/440 · 100.0 % | **met** | `vitest (CI: web checks)` |
