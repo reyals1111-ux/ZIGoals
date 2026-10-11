@@ -12,8 +12,8 @@
   "cases": 684,
   "repeat": 3,
   "runs": 2493,
-  "passed": 1945,
-  "rate": 0.8942528735632184,
+  "passed": 1942,
+  "rate": 0.8928735632183908,
   "byKind": {
    "lookup": {
     "passed": 352,
@@ -78,7 +78,7 @@
   "costUsd": 1.182902310000002,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:46:12.628Z",
+  "rescoredAt": "2026-10-11T18:43:15.050Z",
   "unscorable": 318
  },
  "runs": [
@@ -50597,13 +50597,13 @@
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-goal, create-habit, create-habit, create-reminder], got [create-goal]"
+     "pass": true,
+     "detail": "wanted [create-goal, create-habit, create-habit, create-reminder], got [create-goal, create-habit, create-habit]"
     },
     {
      "name": "schema",
      "pass": false,
-     "detail": "The proposal was cut off before it finished.; reminder: A time is HH:MM on a 24-hour clock.; reminder: A time is HH:MM on a 24-hour clock."
+     "detail": "The proposal was cut off before it finished."
     },
     {
      "name": "arguments",
@@ -50613,16 +50613,16 @@
     {
      "name": "fields:kind=create-goal,currency=EUR",
      "pass": true,
-     "detail": "{\"kind\":\"create-goal\",\"name\":\"Winter trip\",\"type\":\"VALUE\",\"target\":2000,\"currency\":\"EUR\",\"targetDate\":\"2026-12-20\",\"category\":\"Travel\",\"notes\":\"\"}"
+     "detail": "{\"kind\":\"create-goal\",\"name\":\"Winter trip\",\"type\":\"VALUE\",\"target\":2000,\"currency\":\"EUR\",\"targetDate\":\"2026-12-20\",\"category\":\"Travel\",\"notes\":\"\"} {\"kind\":\"create-habit\",\"title\":\"Save 15 euros\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"} "
     },
     {
      "name": "fields:kind=create-reminder,time=07:00",
      "pass": false,
-     "detail": "{\"kind\":\"create-goal\",\"name\":\"Winter trip\",\"type\":\"VALUE\",\"target\":2000,\"currency\":\"EUR\",\"targetDate\":\"2026-12-20\",\"category\":\"Travel\",\"notes\":\"\"}"
+     "detail": "{\"kind\":\"create-goal\",\"name\":\"Winter trip\",\"type\":\"VALUE\",\"target\":2000,\"currency\":\"EUR\",\"targetDate\":\"2026-12-20\",\"category\":\"Travel\",\"notes\":\"\"} {\"kind\":\"create-habit\",\"title\":\"Save 15 euros\",\"type\":\"build\",\"measurement\":\"done\",\"target\":1,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"\"} "
     }
    ],
-   "cards": 1,
-   "rejected": 3,
+   "cards": 3,
+   "rejected": 1,
    "hint": null,
    "refused": false,
    "firstTokenMs": 3883,
@@ -120285,12 +120285,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -120301,11 +120301,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,
@@ -120344,12 +120339,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -120360,11 +120355,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,
@@ -120403,12 +120393,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -120419,11 +120409,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

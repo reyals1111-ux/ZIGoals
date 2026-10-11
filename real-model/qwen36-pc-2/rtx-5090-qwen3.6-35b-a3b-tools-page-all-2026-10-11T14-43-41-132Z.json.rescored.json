@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 598,
-  "rate": 0.8248275862068966,
+  "passed": 597,
+  "rate": 0.8234482758620689,
   "byKind": {
    "lookup": {
     "passed": 91,
@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:58:58.211Z",
+  "rescoredAt": "2026-10-11T18:55:53.064Z",
   "unscorable": 0
  },
  "runs": [
@@ -19623,7 +19623,7 @@
     {
      "name": "fields:schedule={\"anyOf\":[{\"weekdays\":[6,0]},{\"weekdays\":[0,6]}]}",
      "pass": false,
-     "detail": "{\"kind\":\"edit-habit\",\"habit\":\"h3\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"count\",\"target\":8000,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"anytime\",\"description\":\"\"}"
+     "detail": "{\"kind\":\"edit-habit\",\"habit\":\"h3\",\"title\":\"Walk\",\"type\":\"build\",\"measurement\":\"count\",\"target\":8000,\"schedule\":{\"weekdays\":[1,2,3,4,5]},\"timeOfDay\":\"anytime\"}"
     }
    ],
    "cards": 1,
@@ -31140,7 +31140,7 @@
     {
      "name": "fields:mood=4",
      "pass": true,
-     "detail": "{\"kind\":\"log-mood\",\"mood\":4,\"note\":\"\",\"day\":\"today\"}"
+     "detail": "{\"kind\":\"log-mood\",\"mood\":4,\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -31733,7 +31733,7 @@
     {
      "name": "fields:mood=5",
      "pass": true,
-     "detail": "{\"kind\":\"log-mood\",\"mood\":5,\"note\":\"\",\"day\":\"today\"}"
+     "detail": "{\"kind\":\"log-mood\",\"mood\":5,\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -38467,12 +38467,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -38483,11 +38483,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

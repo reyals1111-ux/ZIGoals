@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 693,
-  "rate": 0.9558620689655173,
+  "passed": 692,
+  "rate": 0.9544827586206897,
   "byKind": {
    "lookup": {
     "passed": 92,
@@ -80,7 +80,7 @@
   "costUsd": 5.358859699999999,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:50:11.664Z",
+  "rescoredAt": "2026-10-11T18:47:22.768Z",
   "unscorable": 0
  },
  "runs": [
@@ -39029,12 +39029,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -39045,11 +39045,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

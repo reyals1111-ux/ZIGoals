@@ -14,8 +14,8 @@
   "cases": 194,
   "repeat": 3,
   "runs": 852,
-  "passed": 749,
-  "rate": 0.8791079812206573,
+  "passed": 746,
+  "rate": 0.8755868544600939,
   "byKind": {
    "lookup": {
     "passed": 78,
@@ -76,7 +76,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:55:07.247Z",
+  "rescoredAt": "2026-10-11T18:52:20.059Z",
   "unscorable": 0
  },
  "runs": [
@@ -47381,12 +47381,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -47397,11 +47397,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,
@@ -47440,12 +47435,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -47456,11 +47451,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,
@@ -47499,12 +47489,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -47515,11 +47505,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

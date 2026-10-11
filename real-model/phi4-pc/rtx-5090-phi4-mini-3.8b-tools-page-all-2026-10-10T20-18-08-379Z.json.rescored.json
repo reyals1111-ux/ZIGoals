@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:51:39.026Z",
+  "rescoredAt": "2026-10-11T18:48:51.271Z",
   "unscorable": 0
  },
  "runs": [
@@ -1247,17 +1247,17 @@
    "area": "today",
    "lang": "en",
    "turn": 1,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "pass": true,
+     "detail": "wanted [create-habit], got [create-habit]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "ref: A new habit of this reply is named new1, new2, …"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -1265,8 +1265,8 @@
      "detail": "every call accepted"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": false,
    "firstTokenMs": 372,
@@ -1307,16 +1307,16 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-reminder], got []"
+     "detail": "wanted [create-reminder], got [create-habit]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "ref: A new habit of this reply is named new1, new2, …"
+     "pass": true,
+     "detail": "every block valid"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": false,
    "firstTokenMs": 339,
@@ -16353,12 +16353,12 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-goal, create-habit, create-habit, create-reminder], got []"
+     "detail": "wanted [create-goal, create-habit, create-habit, create-reminder], got [create-habit, create-habit]"
     },
     {
      "name": "schema",
      "pass": false,
-     "detail": "target: Give the goal a target amount.; ref: A new habit of this reply is named new1, new2, …; ref: A new habit of this reply is named new1, new2, …; habit: Name the habit (h1, or new1 for a habit made in this reply)."
+     "detail": "target: Give the goal a target amount.; habit: Name the habit (h1, or new1 for a habit made in this reply)."
     },
     {
      "name": "arguments",
@@ -16368,16 +16368,16 @@
     {
      "name": "fields:kind=create-goal,currency=EUR",
      "pass": false,
-     "detail": "no card"
+     "detail": "{\"kind\":\"create-habit\",\"title\":\"Save for Winter Trip\",\"type\":\"limit\",\"measurement\":\"done\",\"target\":2000,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"Save 15 euros every day for the winter trip.\",\"category\":\"Travel\"} {\"kind\":\"create-habit\",\"title\":\"Run\",\"type\":\"build\",\"measurement\":\"done\","
     },
     {
      "name": "fields:kind=create-reminder,time=07:00",
      "pass": false,
-     "detail": "no card"
+     "detail": "{\"kind\":\"create-habit\",\"title\":\"Save for Winter Trip\",\"type\":\"limit\",\"measurement\":\"done\",\"target\":2000,\"schedule\":\"daily\",\"timeOfDay\":\"anytime\",\"description\":\"Save 15 euros every day for the winter trip.\",\"category\":\"Travel\"} {\"kind\":\"create-habit\",\"title\":\"Run\",\"type\":\"build\",\"measurement\":\"done\","
     }
    ],
-   "cards": 0,
-   "rejected": 4,
+   "cards": 2,
+   "rejected": 2,
    "hint": null,
    "refused": false,
    "firstTokenMs": 489,
@@ -17018,13 +17018,13 @@
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit, create-habit, create-reminder], got [create-reminder]"
+     "pass": true,
+     "detail": "wanted [create-habit, create-habit, create-reminder], got [create-habit, create-habit, create-reminder]"
     },
     {
      "name": "schema",
      "pass": false,
-     "detail": "target: Give the goal a target amount.; category: Too small: expected string to have >=1 characters; category: Too small: expected string to have >=1 characters"
+     "detail": "target: Give the goal a target amount."
     },
     {
      "name": "arguments",
@@ -17034,11 +17034,11 @@
     {
      "name": "fields:kind=create-reminder,time=21:00",
      "pass": true,
-     "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"teekenen\",\"time\":\"21:00\"}"
+     "detail": "{\"kind\":\"create-habit\",\"title\":\"Zwemmen\",\"type\":\"build\",\"measurement\":\"count\",\"target\":3,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"Zwemmen elke avond\"} {\"kind\":\"create-habit\",\"title\":\"Teekenen\",\"type\":\"build\",\"measurement\":\"count\",\"target\":1,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"de"
     }
    ],
-   "cards": 1,
-   "rejected": 3,
+   "cards": 3,
+   "rejected": 1,
    "hint": null,
    "refused": false,
    "firstTokenMs": 225,
@@ -38427,12 +38427,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -38443,11 +38443,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

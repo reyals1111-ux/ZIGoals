@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 612,
-  "rate": 0.8441379310344828,
+  "passed": 611,
+  "rate": 0.8427586206896551,
   "byKind": {
    "lookup": {
     "passed": 92,
@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:53:23.671Z",
+  "rescoredAt": "2026-10-11T18:50:37.181Z",
   "unscorable": 0
  },
  "runs": [
@@ -14090,7 +14090,7 @@
     {
      "name": "schema",
      "pass": false,
-     "detail": "name: Too small: expected string to have >=1 characters"
+     "detail": "name: Invalid input: expected string, received undefined"
     },
     {
      "name": "refusal",
@@ -33209,13 +33209,13 @@
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [], got [prefill-account]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "institution: Too small: expected string to have >=1 characters"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -33224,12 +33224,12 @@
     },
     {
      "name": "refusal",
-     "pass": true,
+     "pass": false,
      "detail": "refused in words"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": true,
    "firstTokenMs": 400,
@@ -36773,7 +36773,7 @@
     {
      "name": "fields:mood=2",
      "pass": true,
-     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"note\":\"\",\"day\":\"today\"}"
+     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -38527,12 +38527,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -38543,11 +38543,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,

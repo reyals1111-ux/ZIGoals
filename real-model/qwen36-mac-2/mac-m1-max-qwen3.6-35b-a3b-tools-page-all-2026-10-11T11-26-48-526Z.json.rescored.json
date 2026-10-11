@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 602,
-  "rate": 0.8303448275862069,
+  "passed": 604,
+  "rate": 0.833103448275862,
   "byKind": {
    "lookup": {
     "passed": 91,
@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:52:14.619Z",
+  "rescoredAt": "2026-10-11T18:49:27.291Z",
   "unscorable": 0
  },
  "runs": [
@@ -11879,17 +11879,17 @@
    "area": "wealth",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [prefill-holding], got []"
+     "pass": true,
+     "detail": "wanted [prefill-holding], got [prefill-holding]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "value: Invalid input: expected number, received string"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -11897,8 +11897,8 @@
      "detail": "every call accepted"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": true,
    "firstTokenMs": 2223,
@@ -14826,13 +14826,13 @@
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
+     "pass": false,
+     "detail": "wanted [], got [open-page]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "view: Invalid option: expected one of \"sleep\"|\"meditation\"|\"devices\"|\"imports\"|\"zigi\"|\"pages\"|\"new-goal\""
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "refusal",
@@ -14840,8 +14840,8 @@
      "detail": "no refusal wording"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": "curious",
    "refused": false,
    "firstTokenMs": 1474,
@@ -16600,17 +16600,17 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-goal, create-habit, add-goal-note], got [create-habit, add-goal-note]"
+     "detail": "wanted [create-goal, create-habit, add-goal-note], got [create-goal, create-habit, add-goal-note]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "targetDate: Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -16619,12 +16619,12 @@
     },
     {
      "name": "fields:kind=create-goal,type=PROJECT",
-     "pass": false,
-     "detail": "{\"kind\":\"create-habit\",\"title\":\"Save 50/week for Move house\",\"type\":\"build\",\"measurement\":\"count\",\"target\":1,\"schedule\":{\"timesPerWeek\":1},\"timeOfDay\":\"anytime\",\"description\":\"Weekly saving for the new home.\"} {\"kind\":\"add-goal-note\",\"goal\":\"g3\",\"note\":\"The broker called.\"}"
+     "pass": true,
+     "detail": "{\"kind\":\"create-goal\",\"name\":\"Move house\",\"type\":\"PROJECT\",\"notes\":\"\",\"milestones\":[\"Viewing\",\"Offer\",\"Mortgage\",\"Keys\"]} {\"kind\":\"create-habit\",\"title\":\"Save 50/week for Move house\",\"type\":\"build\",\"measurement\":\"count\",\"target\":1,\"schedule\":{\"timesPerWeek\":1},\"timeOfDay\":\"anytime\",\"description\":\"We"
     }
    ],
-   "cards": 2,
-   "rejected": 1,
+   "cards": 3,
+   "rejected": 0,
    "hint": "curious",
    "refused": true,
    "firstTokenMs": 2735,
@@ -20577,7 +20577,7 @@
     {
      "name": "fields:target=25",
      "pass": true,
-     "detail": "{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"title\":\"Read\",\"measurement\":\"count\",\"target\":25,\"description\":\"\"}"
+     "detail": "{\"kind\":\"edit-habit\",\"habit\":\"h1\",\"title\":\"Read\",\"measurement\":\"count\",\"target\":25}"
     }
    ],
    "cards": 1,
@@ -23193,26 +23193,26 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-goal], got []"
+     "pass": true,
+     "detail": "wanted [create-goal], got [create-goal]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "targetDate: Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "fields:currency=JPY,target=50000",
-     "pass": false,
-     "detail": "no card"
+     "pass": true,
+     "detail": "{\"kind\":\"create-goal\",\"name\":\"Tokyo pocket money\",\"type\":\"VALUE\",\"target\":50000,\"currency\":\"JPY\",\"category\":\"Travel\",\"notes\":\"\"}"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": false,
    "firstTokenMs": 1445,
@@ -23456,12 +23456,12 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [update-account-balance], got []"
+     "detail": "wanted [update-account-balance], got [prefill-account]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "institution: Too small: expected string to have >=1 characters"
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -23470,12 +23470,12 @@
     },
     {
      "name": "fields:balance=10450.25",
-     "pass": false,
-     "detail": "no card"
+     "pass": true,
+     "detail": "{\"kind\":\"prefill-account\",\"name\":\"Savings account\",\"accountKind\":\"savings\",\"currency\":\"USD\",\"balance\":10450.25,\"day\":\"today\"}"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": null,
    "refused": false,
    "firstTokenMs": 18790,
@@ -31732,7 +31732,7 @@
     {
      "name": "fields:mood=5",
      "pass": true,
-     "detail": "{\"kind\":\"log-mood\",\"mood\":5,\"note\":\"\",\"day\":\"today\"}"
+     "detail": "{\"kind\":\"log-mood\",\"mood\":5,\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -36717,7 +36717,7 @@
     {
      "name": "fields:mood=2",
      "pass": true,
-     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"note\":\"\",\"day\":\"today\"}"
+     "detail": "{\"kind\":\"log-mood\",\"mood\":2,\"day\":\"today\"}"
     }
    ],
    "cards": 1,
@@ -38471,12 +38471,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -38487,11 +38487,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=protein,value=120",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"protein\",\"value\":120,\"unit\":\"g\"}"
     }
    ],
    "cards": 1,
