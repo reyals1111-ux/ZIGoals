@@ -191,6 +191,25 @@ test('expanded and in the mini window: still one line each', async ({page, isMob
   oneLine(await measure(miniPanel), 'in the mini window');
 });
 
+// Gate C: CI's WebKit has no Inter and drew the name wider than the size measured for it, into the buttons. A wider
+// drawing of the same name (here 0.1 em between letters, about a fifth wider) must still stop before the buttons on one
+// line: the header scales the name to its box; with the app's own spacing the size is the measured one.
+test('a font that draws the name wider: still one line, before the buttons, at every width', async ({page}, info) => {
+  test.skip(!!CAPTURES, 'measures only');
+  await server(page);
+  await seed(page, {});
+  for (const width of WIDTHS[info.project.name as keyof typeof WIDTHS]) {
+    await page.setViewportSize({width, height: 860});
+    await openChat(page);
+    const normal = (await measure(panel(page))).titleFont;
+    await page.addStyleTag({content: '.ai-chat .ai-chat-title, .ai-chat .ai-chat-title * { letter-spacing: .1em !important; }'});
+    await expect.poll(async () => (await measure(panel(page))).titleFont, `the name scaled down at ${width}`).toBeLessThan(normal * 0.95);
+    const m = await measure(panel(page));
+    oneLine(m, `with a wider font at ${width}`);
+    expect(m.titleFont, `still a readable size at ${width}`).toBeGreaterThan(normal * 0.7);
+  }
+});
+
 test('not connected: the status says so on one line; the chips row is one line; "Jump to the latest message" floats', async ({page}, info) => {
   test.skip(!!CAPTURES, 'pictures only');
   await server(page, () => LONG);

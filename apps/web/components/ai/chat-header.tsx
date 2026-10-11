@@ -75,12 +75,40 @@ export type ChatHeaderProps = {
   /** An entry of its own at the top of "⋯" (the model list when an AI is connected). */
   extra?: ReactNode;
 };
+/**
+ * Gate C: the name fits its box in any font. The size in panel-z.css is measured for Inter; a browser without it (CI's
+ * WebKit) draws the name wider and it ran into the buttons. This scales the size down by what the name actually needs, in
+ * the document the header lives in (the mini window has its own), again when the box or the font changes. Never above
+ * the CSS size, so with Inter nothing changes.
+ */
+function useNameFits() {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = box.current, title = el?.querySelector<HTMLElement>('.ai-chat-title'), view = el?.ownerDocument.defaultView;
+    if (!el || !title || !view?.ResizeObserver) return;
+    let fit = 1;
+    const measure = () => {
+      const last = title.lastElementChild?.getBoundingClientRect(), start = title.getBoundingClientRect().left, room = el.clientWidth;
+      if (!last || !room) return;
+      const natural = (last.right - start) / fit, next = Math.min(1, Math.floor(room / natural * 0.99 * 1000) / 1000);
+      if (Math.abs(next - fit) < 0.005) return;
+      fit = next; el.style.setProperty('--zigi-title-fit', String(fit));
+    };
+    const observer = new view.ResizeObserver(measure);
+    observer.observe(el); if (title.lastElementChild) observer.observe(title.lastElementChild);
+    const fonts = el.ownerDocument.fonts;
+    fonts?.addEventListener?.('loadingdone', measure); void fonts?.ready.then(measure);
+    measure();
+    return () => { observer.disconnect(); fonts?.removeEventListener?.('loadingdone', measure); };
+  }, []);
+  return box;
+}
 export function ChatHeader({titleId, figure, status, premium, phone, miniWindow, miniSupported, expanded, onNew, onExpand, onPopOut, onBackToTab, onClose, more, extra}: ChatHeaderProps) {
-  const gradient = `zigi-glyph-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const gradient = `zigi-glyph-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`, identity = useNameFits();
   return <header className="ai-chat-head" data-phone={phone ? '' : undefined}>
     <GlyphGradient id={gradient}/>
     {figure}
-    <div className="ai-chat-identity">
+    <div className="ai-chat-identity" ref={identity}>
       <ZigiTitle id={titleId}/>
       <div className="ai-chat-via">{status}{premium && <span className="ai-chat-premium">{premium}</span>}</div>
     </div>
