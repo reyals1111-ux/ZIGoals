@@ -85,7 +85,9 @@ test('390x844: a press on a control under the corner keeps that control under th
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/app/settings');
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  await page.goto('/app/help');
+  // Session Z-Cloud Gate B (mechanics): Activity, a page whose first screen has a control where the corner is; Help's
+  // controls moved above it once Part 4.2 made the phone's notices one line (the launcher rests in its corner there).
+  await page.goto('/app/activity');
   await expect(page.locator('.ai-launcher')).toBeVisible();
   await page.waitForTimeout(1600);
   // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
@@ -103,7 +105,7 @@ test('390x844: a press on a control under the corner keeps that control under th
     }
     return null;
   }, CONTROL_SELECTOR);
-  expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+  expect(target, 'Activity has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
   expect(target!.lift).toBeGreaterThan(0);
   await page.mouse.move(target!.x, target!.y);
   await page.mouse.down();
