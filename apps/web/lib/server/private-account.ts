@@ -46,7 +46,7 @@ const LOOPBACK=new Set(['localhost','127.0.0.1','[::1]']);
  * Cloudflare, OpenNext's waitUntil), proven in the packaged Worker by scripts/run11/packaged-runtime.test.mjs. Without it
  * the work is awaited first, and the answer is the same.
  */
-export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>,later?:(work:()=>Promise<void>)=>void):Promise<Response>{
+export async function privateAccountRequest(request:Request,config:AccountConfig|null,fetcher:typeof fetch=fetch,admit?:(action:'send'|'verify'|'verify-failed'|'send-refund',email:string)=>Promise<Response>,later?:(work:()=>Promise<void>)=>void):Promise<Response>{
  const url=new URL(request.url),origin=url.origin;
  // FIX_PLAN A4 (Q-AUTH-09, Session X Part 10): plain http is for this machine only (local development and fixtures on a
  // loopback host); any other http origin would get session cookies without Secure, so it is refused before anything else.
@@ -157,7 +157,10 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    // `signup_disabled` for an address not on the invite list; `email_provider_disabled`; its own rate limit; an outage),
    // the answer is CODE_REQUEST_MESSAGE, byte for byte. With `later` the provider call starts after the answer, so its
    // timing says nothing either. Help says what to do when no code arrives.
-   const send=async()=>{try{const remote=await upstream(`${cfg.authOrigin}/auth/v1/otp`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify({email:action.email,create_user:false})});await remote.body?.cancel().catch(()=>{});}catch{/* The same answer either way. */}};
+   // Gate C (the security read, ADR-019 C54): when the provider sent nothing (refused, its own limit, an outage, or no
+   // answer), the day's place on code emails is given back; the answer to the person was already the same either way.
+   const refund=async()=>{if(!admit)return;const back=await admit('send-refund',action.email).catch(()=>null);await back?.body?.cancel().catch(()=>{});};
+   const send=async()=>{try{const remote=await upstream(`${cfg.authOrigin}/auth/v1/otp`,{method:'POST',headers:{apikey:cfg.publicKey,'content-type':'application/json'},body:JSON.stringify({email:action.email,create_user:false})});await remote.body?.cancel().catch(()=>{});if(!remote.ok)await refund();}catch{await refund();/* The same answer either way. */}};
    if(later)later(send);else await send();
    return reply({message:CODE_REQUEST_MESSAGE});
   }

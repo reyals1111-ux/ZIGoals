@@ -153,7 +153,7 @@ test('local http development keeps the unprefixed cookie names without Secure',a
 
 test('a rejected code is reported to admission as a failed verification; a provider throttle is not',async()=>{
  for(const [status,reported] of [[400,true],[403,true],[429,false]] as const){
-  const admit=vi.fn<(action:'send'|'verify'|'verify-failed',email:string)=>Promise<Response>>(async()=>Response.json({allowed:true}));
+  const admit=vi.fn<(action:'send'|'verify'|'verify-failed'|'send-refund',email:string)=>Promise<Response>>(async()=>Response.json({allowed:true}));
   const req=new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json'},body:JSON.stringify({action:'verify',email:'a@example.com',code:'123456'})});
   const result=await privateAccountRequest(req,config,async()=>Response.json({},{status}),admit);
   expect(result.ok).toBe(false);expect(admit.mock.calls.map(c=>c[0])).toEqual(reported?['verify','verify-failed']:['verify']);
@@ -191,7 +191,9 @@ test('every outcome of a code request gets the same answer, byte for byte, and t
   answers.push(await snapshot(result));
   await queued[0]!();
   expect(calls,name).toEqual([['https://test.supabase.co/auth/v1/otp',{email:'friend@example.com',create_user:false}]]);
-  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(['send']);
+  // Gate C (ADR-019 C54, stricter): a code that went out keeps its place in the day's ceiling; any outcome that sent
+  // nothing gives it back, after the answer, which stays the same for every outcome.
+  expect(admit.mock.calls.map(c=>c[0]),name).toEqual(name==='a code sent'?['send']:['send','send-refund']);
  }
  expect(answers[0]).toEqual({status:200,headers:expect.any(Array),body:JSON.stringify({message:CODE_REQUEST_MESSAGE})});
  for(const answer of answers)expect(answer).toEqual(answers[0]);

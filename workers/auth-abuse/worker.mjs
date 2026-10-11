@@ -15,6 +15,8 @@ const DAILY_FAILED_VERIFICATIONS=20;
 // Session Z-Cloud Part 5 (A5, ADR-019): at most this many code emails per UTC day across every address and IP, counted
 // in one record of one object of the existing class (`auth-admission-v2:global:send`) and reserved last, after the IP's
 // and the email's own limits passed, still before any provider call. Over it: DAILY_LIMIT until the next UTC midnight.
+// Gate C (C54): when the provider then sends nothing (an address not on the invite list among them), the app gives the
+// place back (`send-refund`), so made-up addresses from one network cannot pause codes for everyone.
 const DAILY_SENDS=60;
 const SHARDS=32;
 // Records per shard (32 shards per dimension, so at most 256,000 records across both). Each shard
@@ -54,8 +56,8 @@ export class AdmissionService extends WorkerEntrypoint{
   if(request.method!=='POST')return reply({error:'INVALID_ADMISSION'},400);
   /** @type {any} */
   let input;try{const reader=request.body?.getReader();if(!reader)throw Error();let raw='',size=0;const decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:false});for(;;){const part=await reader.read();if(part.done)break;size+=part.value.length;if(size>1024){await reader.cancel();throw Error();}raw+=decoder.decode(part.value,{stream:true});}input=JSON.parse(raw+decoder.decode());}catch{return reply({error:'INVALID_ADMISSION'},400);}
-  if(!['send','verify','verify-failed'].includes(input?.action)||typeof input.email!=='string'||input.email.length>254||!/^\S+@\S+\.\S+$/.test(input.email)||typeof input.ip!=='string'||input.ip.length>64||!/^[:.0-9a-f]+$/i.test(input.ip))return reply({error:'INVALID_ADMISSION'},400);
-  const group=ipGroup(input.ip,input.action==='send'?48:64);if(!group)return reply({error:'INVALID_ADMISSION'},400);
+  if(!['send','verify','verify-failed','send-refund'].includes(input?.action)||typeof input.email!=='string'||input.email.length>254||!/^\S+@\S+\.\S+$/.test(input.email)||typeof input.ip!=='string'||input.ip.length>64||!/^[:.0-9a-f]+$/i.test(input.ip))return reply({error:'INVALID_ADMISSION'},400);
+  const group=ipGroup(input.ip,input.action==='send'||input.action==='send-refund'?48:64);if(!group)return reply({error:'INVALID_ADMISSION'},400);
   if(typeof this.env.AUTH_ADMISSION_KEY!=='string'||this.env.AUTH_ADMISSION_KEY.length<32)return reply({error:'ADMISSION_SETUP_REQUIRED'},503);
   const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(this.env.AUTH_ADMISSION_KEY),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const hash=/** @param {string} value */async value=>[...new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))].map(v=>v.toString(16).padStart(2,'0')).join('');
@@ -64,6 +66,9 @@ export class AdmissionService extends WorkerEntrypoint{
   const call=/** @param {string} dimension @param {string} value @param {boolean} [peek] */(dimension,value,peek=false)=>shard(dimension,value).fetch(new Request('https://internal/admit',{method:'POST',body:JSON.stringify({action:input.action,dimension,key:value,email,...(peek?{peek:true}:{})})}));
   // A failed verification is recorded against the email only.
   if(input.action==='verify-failed')return call('email',email);
+  // Gate C (the security read, ADR-019 C54): the provider sent nothing (an address not on the invite list, its own limit, an
+  // outage), so the day's place is given back; the IP's and the email's own limits keep what they counted.
+  if(input.action==='send-refund')return call('global',await hash('global:send'));
   // Session Z-Cloud Gate B (the A5 security read): while the day's ceiling is reached, a code request is refused before
   // it reserves anything, so retrying on a paused day never uses up the person's own limits for tomorrow.
   const global=input.action==='send'?await hash('global:send'):'';
@@ -103,7 +108,7 @@ export class AdmissionAuthority{
  /** @param {Request} request */
  async fetch(request){
   const body=await request.json();
-  if(!['send','verify','verify-failed'].includes(body.action)||!['email','ip','global'].includes(body.dimension)||body.action==='verify-failed'&&body.dimension!=='email'||body.dimension==='global'&&body.action!=='send'||body.peek!==undefined&&(body.peek!==true||body.dimension!=='global')||![body.key,body.email].every(v=>/^[a-f0-9]{64}$/.test(v??'')))return reply({error:'INVALID_ADMISSION'},400);
+  if(!['send','verify','verify-failed','send-refund'].includes(body.action)||!['email','ip','global'].includes(body.dimension)||body.action==='verify-failed'&&body.dimension!=='email'||body.dimension==='global'&&!['send','send-refund'].includes(body.action)||body.action==='send-refund'&&body.dimension!=='global'||body.peek!==undefined&&(body.peek!==true||body.dimension!=='global')||![body.key,body.email].every(v=>/^[a-f0-9]{64}$/.test(v??'')))return reply({error:'INVALID_ADMISSION'},400);
   const observed=this.now();
   // A shard that holds records always has a sweep pending.
   if(await this.state.storage.getAlarm()===null)await this.state.storage.setAlarm(Date.now()+this.sweepMs());
@@ -114,10 +119,12 @@ export class AdmissionAuthority{
    // An index entry whose record was since renewed only removes itself.
    const remove=/** @param {Iterable<[string,any]>} entries */async entries=>{for(const [indexKey,recordKey]of entries){const until=Number(indexKey.slice(2,18)),record=await store.get(recordKey);await store.delete(indexKey);if(record&&record.until===until){await store.delete(recordKey);count--;}}};
    await remove(await store.list({prefix:'x:',end:'x:'+pad(observed+1),limit:PRUNE_BATCH}));
-   const recordKey=body.action==='verify-failed'?'f:'+body.key:'r:'+body.action+':'+body.dimension+':'+body.key,stored=await store.get(recordKey),current=stored&&stored.until>observed?stored:undefined;
+   const recordKey=body.action==='verify-failed'?'f:'+body.key:'r:'+(body.action==='send-refund'?'send':body.action)+':'+body.dimension+':'+body.key,stored=await store.get(recordKey),current=stored&&stored.until>observed?stored:undefined;
    /** @type {{until:number,count:number,next:number,emails?:string[]}} */
    let next;
    if(body.action==='verify-failed'){next={until:current?.until??observed+86400000,count:(current?.count??0)+1,next:0};}
+   // Gate C (C54): a refund gives back one of today's places, never below zero and never to another day's record.
+   else if(body.action==='send-refund'){if(!current||current.count<=0)return reply({refunded:false});next={...current,count:current.count-1};}
    else if(body.dimension==='global'){
     // The day is the UTC day: the record ends at the next UTC midnight, whenever its first send came.
     const until=current?.until??(Math.floor(observed/86400000)+1)*86400000,local=Number(this.env.LOCAL_DAILY_SENDS);

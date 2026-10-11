@@ -110,6 +110,31 @@ test('code requests stop at 60 a UTC day across addresses and networks, and only
  }finally{await a.close();}
 },120000);
 
+// Gate C (the security read, ADR-019 C54): made-up addresses from one network used up the 60 (30 an hour per IP, 10
+// distinct addresses each window: about an hour). A send the provider refused gives its place back, so only codes that
+// went out count; a refund never goes below zero, never touches the IP's or the address's own limits, and is send-only.
+test('a send the provider refused gives its place in the day back; made-up addresses no longer pause codes for everyone',async()=>{
+ const a=await admission({LOCAL_DAILY_SENDS:'3'}),midnight=Date.UTC(2026,9,11),now=midnight-3600000;
+ try{
+  await a.restart(now);
+  for(let i=0;i<3;i++){expect(await a.call('send',`made-up${i}@example.invalid`,'198.51.100.7')).toBe(200);expect(await a.call('send-refund',`made-up${i}@example.invalid`,'198.51.100.7')).toBe(200);}
+  // Three refused sends gave their places back: three real ones still fit, the fourth is over the day's ceiling.
+  for(let i=0;i<3;i++)expect(await a.call('send',`friend${i}@example.invalid`,`192.0.2.${10+i}`)).toBe(200);
+  const over=await a.raw('send','friend3@example.invalid','192.0.2.20');expect(over.status).toBe(429);expect((await over.json()).error).toBe('DAILY_LIMIT');
+  // A refund gives back one place only: one more send fits, then the ceiling holds again.
+  expect(await a.call('send-refund','friend0@example.invalid','192.0.2.10')).toBe(200);
+  expect(await a.call('send','friend4@example.invalid','192.0.2.21')).toBe(200);
+  expect((await (await a.raw('send','friend5@example.invalid','192.0.2.22')).json()).error).toBe('DAILY_LIMIT');
+  // Never below zero on a new day, and it gives nothing to the IP's own limits: 30 an hour still count every request.
+  await a.restart(midnight+1);
+  const none=await a.raw('send-refund','nobody@example.invalid','192.0.2.30');expect(none.status).toBe(200);expect(await none.json()).toEqual({refunded:false});
+  for(let i=0;i<10;i++){expect(await a.call('send',`net${i}@example.invalid`,'203.0.113.5')).toBe(200);expect(await a.call('send-refund',`net${i}@example.invalid`,'203.0.113.5')).toBe(200);}
+  const capped=await a.raw('send','net10@example.invalid','203.0.113.5');expect(capped.status).toBe(429);expect((await capped.json()).error).toBe('TRY_LATER');
+  // Only the day's ceiling takes a refund: anything else is refused as invalid.
+  expect(await a.call('send-refund','not-an-email','203.0.113.5')).toBe(400);
+ }finally{await a.close();}
+},120000);
+
 test('code verification keeps grouping IPv6 by /64',async()=>{
  const a=await admission(),now=Date.now();
  try{
