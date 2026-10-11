@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 30 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 31 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -82,6 +82,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 30 summary file(s) on 202
 | Part 3 · cache markers on (second half) | `claude-opus-5-5` | tools | 19 · 130 | **121/130 · 93.1 %** | — | multi 107/115 · followup 14/15 | 4 + 2,471 + 17,067 → 285 | $0.0215 | $2.79 | 2,115 / 3,517 |
 | Part 6 · local, qwen36-pc | `qwen3.6:35b-a3b` | tools, page records | 595 · 725 | **616/725 · 85.0 %** | — | lookup 92/93 · propose 197/249 · chat 38/43 · brief 27/27 · unknown 12/14 · refuse 40/48 · advice 7/11 · multi 134/162 · followup 37/43 · privacy 11/12 · injection 17/19 · local-first 4/4 | 12,802 + 0 + 0 → 97 | — | — | 234 / 611 |
 | Part 6 · local, phi4-pc | `phi4-mini:3.8b` | tools, page records | 595 · 725 | **457/725 · 63.0 %** | — | lookup 84/93 · propose 139/249 · chat 21/43 · brief 21/27 · unknown 12/14 · refuse 36/48 · advice 6/11 · multi 81/162 · followup 29/43 · privacy 9/12 · injection 15/19 · local-first 4/4 | 12,174 + 0 + 0 → 81 | — | — | 393 / 591 |
+| Part 2 · corpus ×1 | `claude-haiku-5-5` | tools, page records | 595 · 725 | **668/725 · 92.1 %** | — | lookup 93/93 · propose 228/249 · chat 38/43 · brief 27/27 · unknown 14/14 · refuse 46/48 · advice 9/11 · multi 138/162 · followup 41/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,586 + 17,064 → 365 | $0.0006 | $0.37 | 1,515 / 2,097 |
 | Part 6 · the spoken set, page records | `gemma4:12b` | tools, page records | 557 · 557 | **424/557 · 76.1 %** | 460/557 | propose 359/448 · lookup 40/52 · refuse 23/31 · local-first 2/26 | 12,059 + 0 + 0 → 192 | — | — | 299 / 1,248 |
 
 ### Cost per 100 messages
@@ -101,6 +102,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 30 summary file(s) on 202
 | `claude-opus-5-5` | Part 3 · cache markers on (second half) | $2.15 |
 | `qwen3.6:35b-a3b` | Part 6 · local, qwen36-pc | $0.00 |
 | `phi4-mini:3.8b` | Part 6 · local, phi4-pc | $0.00 |
+| `claude-haiku-5-5` | Part 2 · corpus ×1 | $0.06 |
 | `gemma4:12b` | Part 6 · the spoken set, page records | $0.00 |
 
 ### The UI stages (the real panel)
@@ -131,7 +133,7 @@ folder on this Mac). Each stage lands here as a rendered row when its summary is
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 30 summary file(s): 5 met · 11 not met · 6 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 31 summary file(s): 6 met · 10 not met · 6 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
@@ -144,7 +146,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 30 summary file(s): 5
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
 | Sonnet · WebKit subset (60 panel + 5 conversations), reported | 62/65 · 95.4 % | reported | `ui-webkit-conv-sonnet/conversations-claude-sonnet-5-5.json, ui-webkit-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
-| Haiku · corpus ≥ 92 % | 2182/2493 · 87.5 % | not met, 4.5 pt short; misses: cards 238, fields 62, never 26, refusal 18, schema 18 | `corpus/anthropic-api-claude-haiku-5-5-tools-all-2026-10-10T16-30-17-356Z.json` |
+| Haiku · corpus ≥ 92 % | 668/725 · 92.1 % | **met** | `part6-haiku-after/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T11-26-49-396Z.json` |
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
 | Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
 | Haiku · pages 17 × 10 (desktop) ≥ 92 % | 168/170 · 98.8 % | **met** | `ui-pages-haiku/pages-claude-haiku-5-5.json` |
