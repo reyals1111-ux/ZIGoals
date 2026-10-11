@@ -1,9 +1,9 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 76.40106633249998,
+ "total": 76.77220265749999,
  "byModel": {
-  "claude-haiku-5-5": 2.047203882500002,
+  "claude-haiku-5-5": 2.4183402075000022,
   "claude-sonnet-5-5": 37.97439944999999,
   "claude-opus-5-5": 36.37946300000001
  },
@@ -174,6 +174,19 @@
    "cacheRead": 10609127,
    "output": 208044,
    "usd": 5.9370882,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/final-haiku-page",
+   "model": "claude-haiku-5-5",
+   "batch": false,
+   "requests": 750,
+   "input": 2956,
+   "cacheWrite": 1069231,
+   "cacheRead": 11715735,
+   "output": 240059,
+   "usd": 0.37113632500000027,
    "unreported": 0,
    "files": 0
   },
@@ -521,6 +534,11 @@
    "turns": 723
   },
   {
+   "file": "real-model/final-haiku-page/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T15-52-00-149Z.json",
+   "model": "claude-haiku-5-5",
+   "turns": 671
+  },
+  {
    "file": "real-model/part6-haiku-after/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T11-26-49-396Z.json",
    "model": "claude-haiku-5-5",
    "turns": 671
@@ -641,5 +659,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-11T15:54:57.057Z"
+ "rebuiltAt": "2026-10-11T16:20:50.033Z"
 }
