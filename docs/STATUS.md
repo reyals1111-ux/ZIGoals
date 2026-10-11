@@ -1,3 +1,109 @@
+# Session Z-Local — "ZIGi's brain, flawless" (ADR-020) (2026-10-10/11, [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82), not merged)
+**Evidence labels:**
+- **local:** the owner's Mac (M1 Max). Node 24.19.0 via fnm, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`; production builds on :3103.
+- **Claude:** the owner's test key against api.anthropic.com (Haiku 5.5, Sonnet 5.5, Opus 5.5), cached prefix, quick replies at low effort; every call's usage in the ledger on the runs branch. Fictional Showcase data only.
+- **PC:** the RTX 5090 (Ollama through a loopback forwarder over the tailnet): gemma4 12B, qwen3.8 27B, qwen3.6 35B-A3B, phi4-mini. **Mac:** qwen3.6 on the Mac's Ollama.
+- **Chrome / WebKit:** Playwright's Chrome and WebKit 26.6 on this Mac against the production build; the real-model specs with trace, video and screenshots off.
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API), on the quiet head at the end.
+**Base:** `main` `12a3ef9c` (Alpha #35); `origin/main` `a6e8bb9e` (Merge #81, Session Z-Cloud, Alpha #36) merged in as `df34fbfb` on 2026-10-11 (this lane the second merger: STATUS, What's new, Help, the weight budgets, `proposal-list.tsx`). Raw run data lives on the orphan branch `review/session-z-local-runs`; the feature branch carries only summaries.
+**Time:** branch created 2026-10-10 14:15 (local); this entry 2026-10-11 19:00 UTC.
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| R | Records: Alpha #36 (`a6e8bb9e`, Z-Cloud's PR #81), Release identity (#36 live, #35 previous): Manual Alpha deployment run 38142490505 success and Milestone quality 38138554787 success, both read through the Actions API; owner-reported: version `b5bb3df1-cdd5-43b1-b1bc-d861d534ca7b`, rollback `a6210b0a-19f4-4218-9285-d2430f8e44f1` (#35), the new version answering on every route after 5 reads, live prices verified, market policy period ends 2026-10-31T16:00Z | 1 | this commit | Actions API; owner-reported |
+| 0 | Setup: runs worktree, ledger, hours log, the key sweep (pre-push), forwarder, handoff, ADR-020 L1–L8 | — | `8cf528b5` | local |
+| 1 | The WebKit freeze (ADR-018 Y42): never reproduced on this Mac's WebKit (60 of 60 in isolation, 48 of 48 under eight concurrent pages); CI's one trace read; a looping regression spec with probes (`webkit-zigi-freeze.spec.ts`, both scenarios six rounds each, in CI's WebKit job and in Chrome); the freeze fix in `proposal-list.tsx` kept through the merge beside Z-Cloud's receipts (L10) | 2 | `b6cb65c0` `12966c6a` | WebKit |
+| 3 | Prompt caching on the Anthropic wire (L2, L3), exact cost (`lib/ai/pricing.ts`, usage with cache fields); input cost −81 % Sonnet / −78 % Opus on the first half | 2 | `dbe59ea4` `6bae491e` `c920fb9a` | Claude |
+| 2 | The real-Claude round: corpus Sonnet ×1, important ×2, Haiku ×3, Opus ×1; UI panel/conversations/day/pages on Sonnet, Haiku, Opus; WebKit subset; photos skipped (no plates folder: owner item) | — | `dac21747` `36046e12` `0e466fdc` `fe2d64d2` `7962228d` `4f72b3ab` (+14) | Claude, Chrome, WebKit |
+| 5 | ZIGi can do everything: inventory, 29 new kinds in three batches, navigation intents, deliberate "no"s (money = pre-filled form; deletions = the app's own confirmation), `docs/product/ZIGI_ACTIONS_Z.md` | 2 | `4f8abebb` `9dc9a860` `f45aae49` `48fd2adc` `7d2577ad` | local |
+| 4 | Spoken EN/NL: 1,880 Opus-generated asks ($1.30), the normaliser, the quantity cue, golden-spoken 440 at 100 %, French out (L7) with the gemma4 before/after proof | 2 | `9ad3bba8` `9c350736` `1eb3e82c` `4ddfc4e3` `20b2f303` `1281d89d` (+12) | local, Claude, PC |
+| 6 | Fix rounds L19–L55 (prompt, parser, scorer, the device's spoken cues, oracles listed under "Assertions changed"), the targets table rendered by `scripts/zigi/targets.mjs`; L51: the ledger counted re-scored copies twice ($132.94 read, $73.10 true) | 2 | `4dd19727` `ac92a537` `9c754347` `6bda762b` `3770d35e` `b3c106f2` (+45) | Claude, PC, Mac |
+| 7 | Y's findings F5–F16, each with a failing-then-passing test | 2 | `6b61f63d` `2141db18` | local |
+| 8 | `scripts/zigi/eval-monthly.mjs` + `docs/product/ZIGI_MONTHLY_EVAL.md`; dry run $0.16 (Haiku 33/40, Sonnet 35/40) | — | `aa4c8491` `1270b90e` | Claude |
+| 9 | Owner checklist rows (Claude on iPhone and Mac, in `ZIGI_CLAUDE_TEST_Z.md`), the recommendation per job, What's new with this release's four links on top (Z-Cloud's under Earlier updates) and four Help answers extended; `WHATS_NEW_RELEASE` is `2026-10-session-z-local` | 2 | `9a6effe5` `1729ce1e` `f5343bab` `0daee36c` | Chrome |
+| Gates | A: the ZIGi suites in Chrome and WebKit on the production build, the unit suite, the golden sets, CI, the handoff read. B: the suites again, every target's verdict in the table, the ledger under budget, the secret scan. C: the full unit suite, the ZIGi and WebKit sets on the final build on :3103, the weights against main's build, the revert gate, the one audit subagent (three findings fixed), the independent security read after Part 9 (six findings fixed; secrets seen: none), CI on the quiet head, the handoff read | — | `fa278829` `26e30aab` `712a53a8` `a086bbf3` `15c36a54` `64ec6f65` (+11) | local, CI |
+| — | This entry, PR ready | — | this commit | — |
+## Tier 2, in plain words (owner visual OK)
+- **ZIGi's brain on real Claude models:** the Anthropic wire caches the stable prefix (−79 % input cost on the second half of a conversation) and maps the quick/deep choice to `output_config.effort`; usage carries cache reads and writes; `lib/ai/pricing.ts` is the one price table (the meter still shows money only from the person's own prices, ADR-014).
+- **Spoken English and Dutch:** the device reads fillers, number words, clock idioms ("kwart voor acht 's avonds" is 19:45), halves, "N en 0.5", self-corrections and code-switching before intent, routing and the local answers; a log card's quantity, a reminder's time, a skip's "tomorrow" and a card's `"date"` key are corrected on the device whatever the model wrote; French is out of the voice options (an old stored `'fr'` reads as the device default).
+- **ZIGi can do everything:** 29 new card kinds (vacation days, habit states, counters' edits, the timers, Settings' safe toggles, the knock, widgets on Today, navigation, deletions through the app's own confirmation, money as a pre-filled form), each with Undo and a browser test; the table in `docs/product/ZIGI_ACTIONS_Z.md`.
+- **What a person sees in the chat:** "nothing to change" is said in words, not as a dead card ("no fast is running", "already active", "already set so"); a water reminder "every two hours" is seven cards in one reply; a decline never substitutes another card; a web link never enters a reply unless it is the person's own; several logs in one message come as one short line per card; a reply's footer names the records that were sent (persona finding #7); a new habit that twins an active one says so; an edited habit applies from tomorrow, as Habits does; the knock is offered once a day; the setup chooser names the hosted provider and sends phone-and-privacy to the API with an honest reason; the chat title holds an 11 px floor from 360 px up.
+- **Dutch:** a Dutch refusal ("ik kan niets verkopen", "ik kan zelf geen geld storten") is read as one by the device and the scorer; Dutch unit words ("uur", "glazen", "pond") and short forms ("h", "min") are the schema's own.
+## Tier 3, in plain words (risk → rollback)
+- `TIER 3 (security)` `16f3eec9`: the independent security read's six findings answered (the key sweep scans both branch histories, the Playwright output dirs and every temp profile; the Anthropic Playwright config keeps trace, video and screenshots off). Risk: a sweep that refuses a clean push → run it by hand with `--ref`; nothing in the app changes.
+- `[TIER 3] (CI)` `2fb9d774`, `5d887599`, `02f911dd` (owner item 4a/4b): the WebKit job installs fonts-liberation and pins every sans-serif request to Liberation Sans through fontconfig; the S64 prefetch filter also covers Goals' nested router prefetches cut off by navigation (exact shape and moment, nothing else loosened). Risk: a WebKit run that measures a different font than the Mac → the job is advisory until two green runs (owner item 4c); revert the three commits to go back.
+- No wallet, signing, key, chain-config, auth/sync or Workers change in this lane (Z-Cloud's `[TIER 3]` commits came in with the merge of `a6e8bb9e`, unchanged).
+## Ledger
+$93.70 of $130 by `scripts/zigi/ledger.mjs` at the published rates (claude-haiku-5-5 $2.67 · claude-sonnet-5-5 $49.26 · claude-opus-5-5 $41.77; the spoken-corpus batch $1.30 and the monthly dry run $0.16 inside those; the lost pages attempt as a marked $2.18 estimate, L61). Cost per 100 messages with the cached prefix: Haiku $0.05, Sonnet $0.80–1.03, Opus $1.70–2.15; caching cut input cost by 79 % on both Sonnet and Opus over the second half of a conversation (Part 3).
+## Targets (from the rendered table)
+As rendered by `scripts/zigi/targets.mjs` after the final re-score of every run (38 files) against the oracles as they stand; the full table with the file behind each row is in `docs/verification/z-local/ZIGI_CLAUDE_TEST_Z.md`.
+
+| Target | Result | Verdict |
+|---|---|---|
+| Sonnet · corpus (typed) ≥ 97 % | 699/725 · 96.4 % | not met, 0.6 pt short; misses: cards 24, fields 8, schema 4, no-numbers 3, refusal 1 |
+| Sonnet · the spoken set ≥ 95 % | 543/557 · 97.5 % | **met** |
+| Sonnet · UI panel 150 ≥ 95 % | 143/150 · 95.3 % | **met** |
+| Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** |
+| Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** |
+| Sonnet · pages 17 × 10 ≥ 99 % | 338/340 · 99.4 % | **met** |
+| Sonnet · four photo plates ×3: 4/4 | — | not run yet |
+| Sonnet · WebKit subset (60 panel + 5 conversations), reported | 57/60 · 95.0 % | reported |
+| Sonnet · important ×2 variance (spread between repeats) | 499/568 · 87.9 % · spread 0.0 pt (86.5 % / 86.5 %) | reported |
+| Haiku · corpus ≥ 92 % | 689/725 · 95.0 % | **met** |
+| Haiku · the spoken set ≥ 92 % | 523/557 · 93.9 % | **met** |
+| Haiku · UI panel 150 ≥ 92 % | 140/150 · 93.3 % | **met** |
+| Haiku · pages 17 × 10 (desktop) ≥ 92 % | 168/170 · 98.8 % | **met** |
+| Opus · corpus ≥ 97 % | 674/725 · 93.0 % | not met, 4.0 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 |
+| Opus · important set ≥ 97 % (the re-run after the fix rounds) | 272/284 · 95.8 % | not met, 1.2 pt short; misses: cards 12, fields 5 |
+| Opus · UI panel 60 ≥ 97 % | 57/60 · 95.0 % | not met, 2.0 pt short |
+| qwen3.8 (RTX 5090) ≥ 90 % | 630/725 · 86.9 % | not met, 3.1 pt short; misses: cards 81, fields 21, refusal 7, schema 6, no-numbers 4 |
+| qwen3.6 (RTX 5090) ≥ 85 % | 597/725 · 82.3 % | not met, 2.7 pt short; misses: cards 101, fields 32, schema 10, refusal 9, contains 8 |
+| qwen3.6 (Mac M1 Max) ≥ 85 % | 604/725 · 83.3 % | not met, 1.7 pt short; misses: cards 99, fields 41, schema 24, refusal 6, no-numbers 4 |
+| gemma4 (RTX 5090) ≥ 89 % | 644/725 · 88.8 % | not met, 0.2 pt short; misses: cards 58, fields 23, schema 17, contains 5, refusal 4 |
+| gemma4 · the spoken set, reported | 480/557 · 86.2 % | reported |
+| phi4-mini (RTX 5090), reported (X-Local: 61 %) | 454/725 · 62.6 % | reported |
+| gemma4 · important ×3 variance (spread) | 746/852 · 87.6 % · spread 3.2 pt (89.8 % / 86.6 % / 88.4 %) | reported |
+| qwen3.8 · important ×3 variance (spread) | 726/852 · 85.2 % · spread 3.2 pt (87.3 % / 85.2 % / 84.2 %) | reported |
+| Golden set (272, byte-identical) 100 % | 272/272 · 100.0 % | **met** |
+| Golden spoken set 100 % | 440/440 · 100.0 % | **met** |
+
+## Tests and assertions changed
+**Tests, on the final build:** the unit suite 4,622 passed and 56 skipped of 4,678 (505 files); the golden sets 272/272 (byte-identical to main) and 440/440; the ZIGi suites in Chrome 416/416 under `TZ=UTC` and the WebKit set as CI runs it 405/405 on this Mac (L65); the pages stage 338/340; the What's new, Help and ZIGi help-settings specs 40/40; the revert gate ten of ten (L67); the weights within budget on main's build and this one (L66); CI: Milestone quality green on `e8797b9f` in every job including WebKit, then one different WebKit-mobile test per run (L64; the aggregate `web` stays green, the WebKit job advisory).
+
+Every one is listed under ADR-020 "Assertions changed" with its reason; none weakens a check: each now asks for the reply the app itself gives, or reads a form the protocol allows.
+- Oracles: Part 5's deletion and funding cases (a deletion is a card that opens the app's own confirmation; money pre-fills the Fund form); L24 `log-steps` without `steps`; L29 archive/delete; L33 the Dutch evening habit; L34 reminder shapes; L40 eight oracles (contributions as pre-fills, DST night, plan turns); L47 six (about-me by "notes", …); L48 fourteen spoken seeds; L50 the "nothing to change" asks (`p5-reopen-goal`, `p5-units`, the chat-plan "stop the fast"); L52 `p5-target-sleep`, "Delete the fast" (card or none), the spoken weight and water facts.
+- Scorer: L19 a refused phrase is not a said one; L25 `factNumbers` skips handles; L32 tool checks pass on the page whose records came with the question; L52 a field check has nothing to check when the oracle allows no card and none was sent; L53 a day written as its date is that day; the Dutch refusal cue reads "ik kan niets …" and "ik kan zelf geen …".
+- Settings tests: L26 a 10,000-token context budget; L35 a 2,048-token output cap; L7 `LANGS` en/nl (French out, the golden 272 byte-identical throughout).
+- Browser specs after the merge: four specs follow deliberate decisions string-level (the output cap, "from tomorrow", the knock's `offeredOn`, the chooser's labels); L49 the engine no longer answers "And my habits?"; L54 the wide-font check reads "scaled down" as down to the 11 px floor where the unscaled name already sits within 5 % of it.
+
+## Owner items
+- The four photo plates (no plates folder on this Mac): the photo stage never ran; `ZIGI_CLAUDE_TEST_Z.md` says so.
+- Safari's "Allow Remote Automation" was off: the freeze scenario is a checklist row (Mac, Safari: ask twice after an Undo), not a `safaridriver` run.
+- GitHub secret-scanning push protection for the repository (the local pre-push sweep can be skipped with `--no-verify`).
+- Persona finding #4: a whole question in Dutch without an AI gets the English fallback; the golden cases pin it and the set is byte-identical by your rule. Releasing the pin is your call.
+- Spoken corpus kinds with no seed yet: create-food, log-meal-plan, plan-goal (three of the 29 kinds); the vacation, partial and milestone-tick spoken seeds stay as model misses.
+- The design font: the app asks for Inter, which neither the Mac nor CI has, so the title and Settings' name are measured in each machine's own sans-serif (the Mac's UI font; Liberation Sans in CI, now in both jobs). Ship Inter with the app, or name the Mac's font in the rule, if the pixel checks are to mean the same everywhere.
+- The WebKit job (owner item 4c): not promoted. After the fontconfig change it went green once (`e8797b9f`, 405 of 405), then failed one different mobile test per run (`zigi-memory.spec.ts:54`, `webkit-zigi-freeze.spec.ts:81`), 404 of 405 each time, never on desktop or in Chrome's shards, never the same test twice in a row (ADR-020 L64). The same specs pass on this Mac's WebKit. It stays advisory; the two-greens rule holds, and the runner's load on the mobile project is the first thing to look at.
+- Copy the X-Local photo plates and run the three `ui-photos-*` stages.
+- Safari: "Allow Remote Automation" is off; the checklist row covers the freeze scenario.
+- Rotate nothing: the key never appeared anywhere (both security reads).
+
+## Commit lists as of 2026-10-10T19:41:52Z (head ced3af21)
+- Part 0: 8cf528b5 
+- Part 1: b6cb65c0 
+- Part 3: c920fb9a 
+- Part 2: 00e3fa7e f8c485bd 1d0e529d 617596bd d15903b6 bb43ee7c 47530eb1 8689ced1 885d3aef 4fd13bed 024f4c68 dac21747 36046e12 0e466fdc fe2d64d2 
+- Part 5: d2d99d4d 9c754347 9dc9a860 f45aae49 48fd2adc 7d2577ad 
+- Part 4: 4d3cccb6 c205b3aa 9a3e3005 5d287868 243effd3 9ad3bba8 9c350736 1eb3e82c 4ddfc4e3 20b2f303 1281d89d 
+- Part 6: 238cd6f0 f9206745 c0f6d683 6544047f f8f8ecda 8689ced1 628f9e57 a25bb1a2 6d63cb62 ae218217 6fb118c9 d2d99d4d 1a48debf 4dd19727 0e466fdc ac92a537 9c754347 6bda762b 3770d35e b3c106f2 
+- Part 7: 2141db18 
+- Part 8: 1270b90e 
+- Part 9: 1270b90e 
+- TIER 3: 16f3eec9 
+- first commit: 8cf528b5 2026-10-10T16:25:12+02:00
+
+---
+
 # Session Z-Cloud — "ZIGi's new face + friends-ready" (ADR-019) (2026-10-10/11, [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81), ready for review)
 
 **Evidence labels:**
