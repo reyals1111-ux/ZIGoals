@@ -145,11 +145,11 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 41 summary file(s) on 202
 
 ## Stages still to run in this round
 Running or queued as background chains (each writes its END line in `hours.log` on the runs branch; see `SESSION_STATUS.md`):
-the pages on Haiku, the WebKit subset on Sonnet (60 panel cases + 5 conversations), the second half of the caching measurement,
-Haiku once more with the page records; then the Part 6 chain (Sonnet corpus with the page records, the spoken set on Sonnet and
-Haiku, Opus on the important set) and the Part 6b chain (a fresh build with the panel rounds in, the panel again on Sonnet and
-Haiku, and conversations, day and pages again where the first run missed). The four photo plates are an owner item (no plates
-folder on this Mac). Each stage lands here as a rendered row when its summary is in.
+on the PC, `pc-chain3` (qwen3.8 and qwen3.6 on the corpus with the page records and the L50 brain; gemma4's two runs are in);
+then `ui-chain3` (a fresh build on :3103 with L50–L55 in, the panel again on Sonnet and Haiku, the pages again on Sonnet on
+the corrected ledger); then a re-score of every run against the L52–L55 oracles and the final Claude runs the budget allows.
+The four photo plates are an owner item (no plates folder on this Mac). Each stage lands here as a rendered row when its
+summary is in.
 
 ## The targets (Part 6)
 <!-- targets:start -->

@@ -249,3 +249,21 @@ every run, so the corpus numbers assume the app does too.
   (a one-function change on your side once both lanes are on `main`; the whole-string block already caches the prefix).
   The chooser's hosted title: once `hostedName(provider)` is on `main`, the chooser will call it (a follow-up in my lane
   after the merge, not this PR's blocker).
+
+## 2026-10-11 — the merge as second merger, the records line, and the CI font (read when you are back)
+- `origin/main` `a6e8bb9e` (your PR #81, Alpha #36) is merged into `feature/session-z-local` as `df34fbfb`. The shared items
+  were resolved the way the owner asked: STATUS (my entry will sit on top of yours), What's new (my release first, your links
+  under "Earlier updates"), Help, `scripts/weight-budgets.json` (every weight within budget after the merge), and
+  `proposal-list.tsx` keeps your receipts, the `zigoals:zigi-cards:v1` fingerprint and my freeze fix.
+- Persona finding #7, in `components/ai` now that your lane is done: a reply's footer carries "Records sent: …" (`ai-chat.tsx`,
+  class `ai-turn-records`), from `lib/ai/records-sent.ts` and the chat turn's new optional `records` field (chats v2; an old
+  turn without it reads as before). The copied Markdown of a turn does not carry the line (`continue.ts` unchanged).
+- Your C56 checks in CI's WebKit job: the title and Settings' name were drawn in a face wider than Chrome's Liberation Sans
+  (Inter is not shipped and not on the Mac either), so the title overran the buttons at 360 and the name wrapped at 320 only
+  there. The job now pins every sans-serif request, and "Inter" itself, to Liberation Sans through fontconfig (`[TIER 3] (CI)`,
+  ADR-020 L54); Settings' divisor is back to your 16.6 (my 18.5 of L49 put the name under the Life check's 14 px floor at 320),
+  and the chat title holds the 11 px floor from 360 up (L49). The floor itself is untouched.
+- Brain changes you will notice from the UI side (ADR-020 L50–L55): a card the planner would refuse is no longer proposed ("no
+  fast is running", "already active", "already set so" are said in words, no card); a water reminder "every two hours" is seven
+  cards in one reply; a decline never substitutes another card; the device corrects a reminder's time, a skip's day ("tomorrow")
+  and a card's `"date"` key before the parser sees them.
