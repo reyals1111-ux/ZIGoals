@@ -1,11 +1,11 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 106.73407941749998,
+ "total": 132.94421211749997,
  "byModel": {
   "claude-haiku-5-5": 3.5285560674999985,
-  "claude-sonnet-5-5": 57.201130750000004,
-  "claude-opus-5-5": 46.004392599999996
+  "claude-sonnet-5-5": 64.68590665,
+  "claude-opus-5-5": 64.72974939999999
  },
  "rows": [
   {
@@ -64,12 +64,12 @@
    "stage": "real-model/cache-after-2",
    "model": "claude-opus-5-5",
    "batch": false,
-   "requests": 148,
-   "input": 562,
-   "cacheWrite": 321284,
-   "cacheRead": 2218709,
-   "output": 37038,
-   "usd": 2.793169799999998,
+   "requests": 296,
+   "input": 1124,
+   "cacheWrite": 642568,
+   "cacheRead": 4437418,
+   "output": 74076,
+   "usd": 5.586339600000001,
    "unreported": 0,
    "files": 0
   },
@@ -77,12 +77,12 @@
    "stage": "real-model/cache-after-2",
    "model": "claude-sonnet-5-5",
    "batch": false,
-   "requests": 161,
-   "input": 594,
-   "cacheWrite": 356286,
-   "cacheRead": 2450769,
-   "output": 45348,
-   "usd": 1.5904598999999993,
+   "requests": 322,
+   "input": 1188,
+   "cacheWrite": 712572,
+   "cacheRead": 4901538,
+   "output": 90696,
+   "usd": 3.1809198000000016,
    "unreported": 0,
    "files": 0
   },
@@ -116,12 +116,12 @@
    "stage": "real-model/cache-before-2",
    "model": "claude-opus-5-5",
    "batch": false,
-   "requests": 144,
-   "input": 2488190,
+   "requests": 288,
+   "input": 4976380,
    "cacheWrite": 0,
    "cacheRead": 0,
-   "output": 38908,
-   "usd": 10.730920000000003,
+   "output": 77816,
+   "usd": 21.461840000000002,
    "unreported": 0,
    "files": 0
   },
@@ -129,12 +129,12 @@
    "stage": "real-model/cache-before-2",
    "model": "claude-sonnet-5-5",
    "batch": false,
-   "requests": 158,
-   "input": 2733013,
+   "requests": 316,
+   "input": 5466026,
    "cacheWrite": 0,
    "cacheRead": 0,
-   "output": 42829,
-   "usd": 5.894316,
+   "output": 85658,
+   "usd": 11.788631999999998,
    "unreported": 0,
    "files": 0
   },
@@ -187,6 +187,19 @@
    "cacheRead": 22899384,
    "output": 490090,
    "usd": 0.7405908399999998,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/part6-opus-important",
+   "model": "claude-opus-5-5",
+   "batch": false,
+   "requests": 278,
+   "input": 1082,
+   "cacheWrite": 565385,
+   "cacheRead": 4235570,
+   "output": 76145,
+   "usd": 5.201267,
    "unreported": 0,
    "files": 0
   },
@@ -439,7 +452,17 @@
    "turns": 130
   },
   {
+   "file": "real-model/cache-after-2/anthropic-api-claude-opus-5-5-tools-subset-2026-10-10T19-59-10-992Z.json.rescored.json",
+   "model": "claude-opus-5-5",
+   "turns": 130
+  },
+  {
    "file": "real-model/cache-after-2/anthropic-api-claude-sonnet-5-5-tools-subset-2026-10-10T19-42-09-884Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 130
+  },
+  {
+   "file": "real-model/cache-after-2/anthropic-api-claude-sonnet-5-5-tools-subset-2026-10-10T19-42-09-884Z.json.rescored.json",
    "model": "claude-sonnet-5-5",
    "turns": 130
   },
@@ -469,7 +492,17 @@
    "turns": 130
   },
   {
+   "file": "real-model/cache-before-2/anthropic-api-claude-opus-5-5-tools-nocache-subset-2026-10-10T19-49-55-048Z.json.rescored.json",
+   "model": "claude-opus-5-5",
+   "turns": 130
+  },
+  {
    "file": "real-model/cache-before-2/anthropic-api-claude-sonnet-5-5-tools-nocache-subset-2026-10-10T19-34-40-331Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 130
+  },
+  {
+   "file": "real-model/cache-before-2/anthropic-api-claude-sonnet-5-5-tools-nocache-subset-2026-10-10T19-34-40-331Z.json.rescored.json",
    "model": "claude-sonnet-5-5",
    "turns": 130
   },
@@ -512,6 +545,11 @@
    "file": "real-model/part6-haiku-after/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T11-26-49-396Z.json.rescored.json",
    "model": "claude-haiku-5-5",
    "turns": 671
+  },
+  {
+   "file": "real-model/part6-opus-important/anthropic-api-claude-opus-5-5-tools-page-important-2026-10-11T13-10-28-792Z.json",
+   "model": "claude-opus-5-5",
+   "turns": 263
   },
   {
    "file": "real-model/part6-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T11-55-37-709Z.json",
@@ -629,5 +667,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-11T13:10:22.187Z"
+ "rebuiltAt": "2026-10-11T13:29:04.093Z"
 }

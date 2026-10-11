@@ -12,8 +12,8 @@
   "cases": 626,
   "repeat": 1,
   "runs": 773,
-  "passed": 596,
-  "rate": 0.7710219922380336,
+  "passed": 599,
+  "rate": 0.7749029754204398,
   "byKind": {
    "lookup": {
     "passed": 117,
@@ -74,7 +74,7 @@
   "costUsd": 5.9370882,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T19:26:18.215Z"
+  "rescoredAt": "2026-10-11T13:28:57.256Z"
  },
  "runs": [
   {
@@ -277,7 +277,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -2806,7 +2806,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -3015,12 +3015,12 @@
    "area": "habits",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit], got [edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [edit-habit]"
     },
     {
      "name": "schema",
@@ -8083,9 +8083,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "tool:about_me",
-     "pass": false,
-     "detail": "called []"
+     "name": "contains:notes",
+     "pass": false
     },
     {
      "name": "never:password",
@@ -15623,7 +15622,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "detail": "wanted [create-habit, create-habit, edit-habit, edit-habit], got []"
     },
     {
      "name": "schema",
@@ -15823,7 +15822,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got []"
     },
     {
      "name": "schema",
@@ -21712,7 +21711,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -30723,7 +30722,7 @@
    "area": "habits",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -30741,8 +30740,8 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=20:30",
-     "pass": false,
+     "name": "fields:time={\"anyOf\":[\"08:30\",\"20:30\"]}",
+     "pass": true,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"08:30\"}"
     }
    ],
@@ -32705,7 +32704,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit, stack-habit], got [create-habit, edit-habit, stack-habit]"
+     "detail": "wanted [create-habit, edit-habit, stack-habit], got [create-habit, edit-habit, stack-habit]"
     },
     {
      "name": "schema",
@@ -33703,11 +33702,11 @@
    "area": "today",
    "lang": "en",
    "turn": 19,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [stop-fast], got []"
     },
     {
@@ -40185,7 +40184,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "tool-not:vitals",

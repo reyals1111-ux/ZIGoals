@@ -12,8 +12,8 @@
   "cases": 684,
   "repeat": 3,
   "runs": 2493,
-  "passed": 1932,
-  "rate": 0.7749699157641395,
+  "passed": 1941,
+  "rate": 0.7785800240673887,
   "byKind": {
    "lookup": {
     "passed": 352,
@@ -78,7 +78,7 @@
   "costUsd": 1.182902310000002,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T19:25:07.751Z"
+  "rescoredAt": "2026-10-11T13:27:49.550Z"
  },
  "runs": [
   {
@@ -652,7 +652,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -712,7 +712,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -772,7 +772,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -4758,7 +4758,7 @@
    "cards": 0,
    "rejected": 0,
    "hint": "insight",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 3789,
    "totalMs": 5062,
    "tokens": {
@@ -4816,7 +4816,7 @@
    "cards": 0,
    "rejected": 0,
    "hint": "insight",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 2042,
    "totalMs": 3514,
    "tokens": {
@@ -8247,7 +8247,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -8303,7 +8303,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -8359,7 +8359,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -8899,7 +8899,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -8968,7 +8968,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -9037,7 +9037,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -24109,9 +24109,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "tool:about_me",
-     "pass": false,
-     "detail": "called []"
+     "name": "contains:notes",
+     "pass": false
     },
     {
      "name": "never:password",
@@ -24145,7 +24144,7 @@
    "area": "today",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -24158,9 +24157,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "tool:about_me",
-     "pass": false,
-     "detail": "called []"
+     "name": "contains:notes",
+     "pass": true
     },
     {
      "name": "never:password",
@@ -24194,7 +24192,7 @@
    "area": "today",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -24207,9 +24205,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "tool:about_me",
-     "pass": false,
-     "detail": "called []"
+     "name": "contains:notes",
+     "pass": true
     },
     {
      "name": "never:password",
@@ -46423,7 +46420,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "detail": "wanted [create-habit, create-habit, edit-habit, edit-habit], got []"
     },
     {
      "name": "schema",
@@ -46590,7 +46587,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "detail": "wanted [create-habit, create-habit, edit-habit, edit-habit], got []"
     },
     {
      "name": "schema",
@@ -46757,7 +46754,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit], got []"
+     "detail": "wanted [create-habit, create-habit, edit-habit, edit-habit], got []"
     },
     {
      "name": "schema",
@@ -47145,7 +47142,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -47262,7 +47259,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -47379,7 +47376,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -64889,7 +64886,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -64950,7 +64947,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -65011,7 +65008,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -92195,7 +92192,7 @@
    "area": "habits",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -92213,8 +92210,8 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=20:30",
-     "pass": false,
+     "name": "fields:time={\"anyOf\":[\"08:30\",\"20:30\"]}",
+     "pass": true,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"08:30\"}"
     }
    ],
@@ -92255,7 +92252,7 @@
    "area": "habits",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -92273,8 +92270,8 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=20:30",
-     "pass": false,
+     "name": "fields:time={\"anyOf\":[\"08:30\",\"20:30\"]}",
+     "pass": true,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"08:30\"}"
     }
    ],
@@ -92315,7 +92312,7 @@
    "area": "habits",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -92333,8 +92330,8 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=20:30",
-     "pass": false,
+     "name": "fields:time={\"anyOf\":[\"08:30\",\"20:30\"]}",
+     "pass": true,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"08:30\"}"
     }
    ],
@@ -97897,7 +97894,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit, stack-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, stack-habit], got [create-habit]"
     },
     {
      "name": "schema",
@@ -98894,11 +98891,11 @@
    "area": "today",
    "lang": "en",
    "turn": 19,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [stop-fast], got []"
     },
     {
@@ -99208,12 +99205,12 @@
    "area": "today",
    "lang": "en",
    "turn": 2,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [create-habit, stack-habit], got [edit-habit]"
+     "pass": true,
+     "detail": "wanted [create-habit, edit-habit, stack-habit], got [edit-habit]"
     },
     {
      "name": "schema",
@@ -100202,11 +100199,11 @@
    "area": "today",
    "lang": "en",
    "turn": 19,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [stop-fast], got []"
     },
     {
@@ -100521,7 +100518,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit, stack-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, stack-habit], got [create-habit]"
     },
     {
      "name": "schema",
@@ -101517,11 +101514,11 @@
    "area": "today",
    "lang": "en",
    "turn": 19,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [stop-fast], got []"
     },
     {
@@ -120760,7 +120757,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "tool-not:vitals",
@@ -120833,7 +120830,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "tool-not:vitals",
@@ -120906,7 +120903,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "tool-not:vitals",
@@ -136630,12 +136627,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [reopen-goal], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -136683,12 +136680,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [reopen-goal], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -136736,12 +136733,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [reopen-goal], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -139154,12 +139151,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-health-preference], got [set-health-preference]"
+     "pass": false,
+     "detail": "wanted [], got [set-health-preference]"
     },
     {
      "name": "schema",
@@ -139170,11 +139167,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-health-preference,weightUnit=lb",
-     "pass": true,
-     "detail": "{\"kind\":\"set-health-preference\",\"weightUnit\":\"lb\"}"
     }
    ],
    "cards": 1,
@@ -139212,12 +139204,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-health-preference], got [set-health-preference]"
+     "pass": false,
+     "detail": "wanted [], got [set-health-preference]"
     },
     {
      "name": "schema",
@@ -139228,11 +139220,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-health-preference,weightUnit=lb",
-     "pass": true,
-     "detail": "{\"kind\":\"set-health-preference\",\"weightUnit\":\"lb\"}"
     }
    ],
    "cards": 1,
@@ -139270,12 +139257,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-health-preference], got [set-health-preference]"
+     "pass": false,
+     "detail": "wanted [], got [set-health-preference]"
     },
     {
      "name": "schema",
@@ -139286,11 +139273,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-health-preference,weightUnit=lb",
-     "pass": true,
-     "detail": "{\"kind\":\"set-health-preference\",\"weightUnit\":\"lb\"}"
     }
    ],
    "cards": 1,

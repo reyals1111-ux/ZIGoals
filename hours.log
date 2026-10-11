@@ -141,3 +141,5 @@ END mac-run2 2026-10-11T13:02:00Z rc=0
 END variance-qwen38 2026-10-11T13:07:15Z rc=0
 END pc-chain2 2026-10-11T13:07:20Z rc=0
 END part6-spoken-haiku 2026-10-11T13:10:21Z rc=0
+START part6-opus-important 2026-10-11T13:10:27Z
+END part6-opus-important 2026-10-11T13:29:03Z rc=0
