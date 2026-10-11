@@ -6,7 +6,7 @@ Evidence behind the STATUS entry "Session Z-Cloud" and ADR-019. Local production
 
 - `gate-b/full-suite-quarter1.json`: the full browser suite's first quarter (both projects), before the Gate B fixes.
 - `gate-b/ci-failures-repro.log`, `gate-b/ci-failures-after-fix.log`: CI run 38094619622's failures reproduced locally,
-  then the same specs green after the fixes (`938ae21`, `4fe6e8e`).
+  then the same specs green after the fixes (`938ae21`, `15c36a5`).
 - `gate-b/habit-shell-35-reader.*`: a #35 device (`12a3ef9`'s own sync, validation, merge, habit readers and
   private-sync Worker in Miniflare) receiving a habit deleted for good by this branch: 3 passed. The test ran from a
   scratch worktree of `12a3ef9` and was never committed to either branch.
