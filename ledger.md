@@ -30,7 +30,7 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (36 files
 | real-model/ui-day-sonnet | claude-sonnet-5-5 | 30 | 120 | 140,645 | 339,955 | 6,181 | 0.4477 |
 | real-model/ui-pages-haiku | claude-haiku-5-5 | 166 | 626 | 220,834 | 2,468,800 | 45,693 | 0.0752 |
 | real-model/ui-pages-sonnet | claude-sonnet-5-5 | 362 | 1,306 | 353,960 | 5,566,075 | 87,982 | 2.3239 |
-| real-model/ui-pages-sonnet-2-lost | claude-sonnet-5-5 | 340 | 1,227 | 332,449 | 5,227,805 | 82,635 | 2.1827 |
+| real-model/ui-pages-sonnet-2-lost | claude-sonnet-5-5 (estimate) | 340 | 1,227 | 332,449 | 5,227,805 | 82,635 | 2.1827 |
 | real-model/ui-panel-haiku | claude-haiku-5-5 | 130 | 502 | 211,425 | 1,853,180 | 48,331 | 0.0692 |
 | real-model/ui-panel-haiku-2 | claude-haiku-5-5 | 134 | 514 | 224,145 | 1,972,402 | 48,104 | 0.0718 |
 | real-model/ui-panel-opus | claude-opus-5-5 | 43 | 172 | 121,164 | 559,467 | 12,599 | 0.9704 |

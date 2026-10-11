@@ -26,7 +26,7 @@ RC=${PIPESTATUS[0]}
 echo "END ui-$STAGE $(date -u +%FT%TZ) rc=$RC" >> "$RUNS/hours.log"
 # Owner edit 3 / security read finding 5: no browser profile may be left behind.
 for base in "${TMPDIR:-/tmp}" /tmp /private/tmp; do find "$base" -maxdepth 1 -name 'playwright*profile*' -newer "$SC/forecast.env" -exec rm -rf {} + 2>/dev/null; done
-node scripts/zigi/key-sweep.mjs --paths "$PW_OUT" >/dev/null 2>&1 || { echo "== KEY SWEEP HIT after $STAGE: stage stopped, artifacts kept for the owner to rotate the key =="; exit 5; }
+node scripts/zigi/key-sweep.mjs --paths "$PW_OUT" "$SC" >/dev/null 2>&1 || { echo "== KEY SWEEP HIT after $STAGE: stage stopped, artifacts kept for the owner to rotate the key =="; exit 5; }
 node scripts/zigi/ledger.mjs | tail -1
 (cd "$RUNS" && git add -A && git commit -q -m "Part 2: UI stage $STAGE ($MODEL) run files and the ledger" && git push -q 2>&1 | tail -1)
 echo "== ui-stage $STAGE rc=$RC =="
