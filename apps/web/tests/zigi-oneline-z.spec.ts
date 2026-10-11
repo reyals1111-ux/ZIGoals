@@ -66,11 +66,13 @@ async function measure(root: Locator) {
     // Session Z-Local L57: with the overflow hidden (the 11 px floor from 360 up, L49/L57) the painted name ends at its box, with an
     // ellipsis; the text's own layout extent beyond it is not what the person sees. Visible overflow measures the text itself.
     const titleClipped = getComputedStyle(title).overflowX === 'hidden' || getComputedStyle(title).overflow === 'hidden', titleRight = titleClipped ? Math.min(titleBox.right, rect(title).right) : titleBox.right;
+    // The Gate C audit: the name's own extent beyond its box (an ellipsis is drawn where this is true); allowed only in the wide-font test.
+    const titleOverflows = titleBox.right > rect(title).right + 1;
     // A control past the panel's edge, unless a row that scrolls sideways holds it (the chips row may scroll, never wrap).
     const scrolled = (e: Element) => { for (let p = e.parentElement; p && p !== el; p = p.parentElement) if (/auto|scroll/.test(getComputedStyle(p).overflowX)) return true; return false; };
     const panelBox = rect(el), outside = [...el.querySelectorAll('.ai-chat-head *, .ai-reply-row, .ai-reply-row *, .ai-share-line, .ai-share-line *, .ai-composer *, .ai-card, .ai-card *, .ai-setup-line *, .ai-history-list *')].filter(shown).filter(e => !scrolled(e)).filter(e => { const r = rect(e); return r.right > panelBox.right + 1 || r.left < panelBox.left - 1; }).map(e => (e.className || e.tagName).toString().slice(0, 40));
     return {
-      titleText: title.textContent, titleFont: parseFloat(getComputedStyle(title).fontSize), titleRight, titleClipped, toolsLeft, titleWrapped: titleBox.height > lineHeight(title) * 1.2,
+      titleText: title.textContent, titleFont: parseFloat(getComputedStyle(title).fontSize), titleRight, titleClipped, titleOverflows, toolsLeft, titleWrapped: titleBox.height > lineHeight(title) * 1.2,
       tools: tools.map(t => t.getAttribute('aria-label')), toolMids: tools.map(t => { const r = rect(t); return (r.top + r.bottom) / 2; }),
       headOverlaps: overlaps(head), composerOverlaps: overlaps(composer), composerMids: composer.map(c => (c.r.top + c.r.bottom) / 2),
       textLines, rows, outside,
@@ -78,7 +80,10 @@ async function measure(root: Locator) {
   });
 }
 type Measured = Awaited<ReturnType<typeof measure>>;
-function oneLine(m: Measured, where: string) {
+function oneLine(m: Measured, where: string, {clipAllowed = false} = {}) {
+  // The Gate C audit: with the overflow hidden from 360 up (L57), "stops before the buttons" reads the painted name, so the name
+  // must also fit without an ellipsis wherever the design font is in play; only the wide-font test may clip at the floor.
+  if (!clipAllowed) expect(m.titleOverflows, `the name fits without an ellipsis ${where}`).toBe(false);
   // Gate C (the test audit): the header's buttons were found, so the row, the title's edge and the overlaps below are
   // measured on something (an empty list would make them pass on nothing).
   expect(m.tools.length, `the header's buttons ${where}`).toBeGreaterThanOrEqual(3);
@@ -210,7 +215,7 @@ test('a font that draws the name wider: still one line, before the buttons, at e
     // floor (CI's fonts at 360: 11.19 px), "scaled down" means down to the floor. Above that, the 5 % holds as before.
     await expect.poll(async () => (await measure(panel(page))).titleFont, `the name scaled down at ${width}`).toBeLessThan(width >= 360 ? Math.max(normal * 0.95, 11.01) : normal * 0.95);
     const m = await measure(panel(page));
-    oneLine(m, `with a wider font at ${width}`);
+    oneLine(m, `with a wider font at ${width}`, {clipAllowed: true});
     expect(m.titleFont, `still a readable size at ${width}`).toBeGreaterThan(normal * 0.7);
   }
 });

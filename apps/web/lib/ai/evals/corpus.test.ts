@@ -12,9 +12,9 @@ import {SPOKEN} from './corpus-spoken';
  * not the models.
  */
 const TOOL_NAMES = new Set(TOOLS.map(t => t.name)), KINDS = new Set<string>(ACTION_KINDS), LANGS = new Set(['en', 'nl']);
-test('the corpus holds at least 600 model-scored cases, 248 of them from Phase 2 (288 before French went, ADR-020 L7), with unique ids', () => {
-  // 636 typed cases after Session Z-Local (686 with Part 5, minus the 50 French ones and the French third of 41 three-language builders, ADR-020 L7); the bar follows the count it guards.
-  expect(CORPUS.length).toBeGreaterThanOrEqual(590);
+test('the corpus holds at least 595 model-scored cases (its count after French went, ADR-020 L7), 248 of them from Phase 2 (288 before), with unique ids', () => {
+  // 595 typed cases (725 turns) after Session Z-Local; the floor is the count itself (the Gate C audit: a floor under the count lets cases vanish unnoticed).
+  expect(CORPUS.length).toBeGreaterThanOrEqual(595);
   expect(PHASE2.length).toBe(248);
   const ids = CORPUS.map(c => c.id);
   expect(new Set(ids).size).toBe(ids.length);

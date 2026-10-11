@@ -97,6 +97,9 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 | L18 | 2 | **The photo stage is owed to the owner's plates folder.** The X-Local plates (`real-1-1600.jpg` … and the script-drawn breakfast plate) are not on this Mac (searched the home folder); the UI chain skips the photo stage unless `ZIGI_PHOTOS_DIR` names the folder. Owner item: copy the folder and run the three `ui-photos-*` stages. | The plates were X-Local's and outside the repository by design. |
 
 ## Assertions changed (deliberate, listed)
+- **`[TIER 3] (CI)` `5d887599` and `33f1386d`, `tests/webkit-phone.spec.ts` and `webkit-smoke.spec.ts` (the S64 filter):** the filter for a router prefetch cut off by navigation admitted `/app/<page>` only; it admits one nested segment (`/app/goals/<id>`, the Goals routes that prefetch on navigation), identified as before by the exact shape (`?_rsc=`, "due to access control checks") and the 1.5 s navigation window; the security read's F1 then narrowed an over-wide first cut (three segments) back to two. Nothing else dropped out of `toEqual([])`.
+- **Part 9, `tests/zigi-help-settings.spec.ts`:** the pinned `WHATS_NEW_RELEASE` is `2026-10-session-z-local` (was Z-Cloud's), the release this entry ships.
+- **The Gate C audit, `tests/zigi-oneline-z.spec.ts`:** `oneLine()` also asserts the name fits without an ellipsis (`titleOverflows` false) at every call site except the wide-font test, so L57's painted-extent measure cannot let a clipped name pass at the normal font; `lib/ai/evals/corpus.test.ts` pins the corpus floor at its real count (595 cases, 725 turns) instead of a floor beneath it.
 - **L57, `tests/zigi-oneline-z.spec.ts` (`measure`):** `titleRight` is the painted extent of the name: where the title's overflow is hidden (from 360 up, L57) it is the smaller of the text's layout extent and the title's box, since the box ends the painted name with an ellipsis; with visible overflow it is the text's own extent, as before. `titleClipped` is reported beside it. The checks on it ("stops before the buttons") are unchanged.
 - **Part 6 L52 (`corpus-part5.ts`, `corpus-phase2.ts`, the spoken seeds):** `p5-target-sleep` expected a `set-target` card for a sleep goal the Showcase already holds (8 h a night); it now expects no card, the L50 reply. The chat-plan turn "Delete the fast" accepted only a `delete-record` card; it now accepts the card or none (`minCards: 0, maxCards: 1`), because the fast of that conversation is a card the harness never adds. The spoken `lk-weight` fact gains `args: {range: 'the last 7 days'}` so the latest reading is among the numbers the check reads. The Dutch refusal cue (`REFUSAL_REPLY`, shared by the device and the scorer) recognises "ik kan niets …" and "ik kan zelf/ook/hier/nu geen|niet …": real refusals it read as none.
 - **Part 6 L50, the "nothing to change" oracles (`lib/ai/evals/corpus-part5.ts`, `corpus-phase2.ts`, the spoken seeds):**
@@ -261,6 +264,15 @@ modes), the sixteen chain scripts on the runs branch, an artifact spot-check (fi
   in `main`'s history). The test fixtures' fake addresses on `main` are allowlisted test values, unchanged.
 - **Not fixable locally (owner item):** `git push --no-verify` or a `core.hooksPath` override skips every hook; GitHub's
   secret-scanning push protection is the non-bypassable layer.
+
+## Gate C audit (owner edit 1, 2026-10-11, read-only agent: weakened assertions and the key in artifacts)
+Scope: the 49 test files this branch changed against the merged main (41 modified, 8 new), the golden sets, and a key scan
+over the diff, the runs worktree, the scratchpad, the Playwright output dirs and `/tmp/zigoals-*`. Verdict: no `.skip`,
+`.only`, `.todo` or `.fixme` added, no timeout stretched; the golden 272 byte-identical to main; `golden-spoken.ts` is new on
+this branch. Secrets seen: none. Three findings, all fixed in the same commit as this section:
+- The corpus floor (`corpus.test.ts`) had followed the count down to 590 while the count is 595: a floor under the count lets cases vanish unnoticed; it is 595 now (the test's own comment had a stale 636).
+- The S64 filter's one-to-two-segment admission (`5d887599`) was not under "Assertions changed" (only the later narrowing was): recorded now, with its reason.
+- L57's painted-extent measure applied to every one-line call site, not only the wide-font test it was made for, so a clipped name at the normal font would have passed: `oneLine()` now also asserts the name fits without an ellipsis everywhere except in the wide-font test.
 
 ## Independent security read after Part 9 (owner edit 1, 2026-10-11, read-only agent, no secret value read or printed)
 Scope: the lane's four `[TIER 3]` commits (`2fb9d774`, `5d887599`, `02f911dd`, `16f3eec9`), the key handling of every paid
