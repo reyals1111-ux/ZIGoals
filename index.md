@@ -1,5 +1,7 @@
 # Session Z-Cloud: ZIGi's panel, before and after (Part 2)
 
+**Panel polish round 2 (2026-10-11):** [round2/index.md](round2/index.md), the phone and computer panel before and after, and every ZIGi surface after the fixes.
+
 Local production builds, 2026-10-10: **before** = `12a3ef9` (Alpha #35's source), **after** = `feature/session-z-cloud` at Part 2 (`4f72b3a`).
 Playwright's Chromium in the `chrome` channel, reduced motion; phones 320–430 px (touch, the phone layout), computers 768–1440 px.
 Connected states answer through a **MOCK** local OpenAI-compatible server; the Showcase's records except the two empty states.
