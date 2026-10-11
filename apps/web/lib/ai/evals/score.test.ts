@@ -101,3 +101,13 @@ test('L38: a never-phrase that starts with a digit is a whole number, and a sent
   expect(saysUnrefused('Nobody can reliably know which coin will double.', 'will double')).toBe(false);
   expect(saysUnrefused('Your savings will double in five years.', 'will double')).toBe(true);
 });
+
+test('L52: a field check has nothing to check when the oracle allows no card and none was sent; with a card it still applies', () => {
+  const expect0 = {kinds: ['delete-record'], minCards: 0, maxCards: 1, fields: [{kind: 'delete-record', what: 'fast'}]};
+  const none = score(expect0, {text: 'Nothing was saved yet: the fast is only a card.', calls: []});
+  expect(none.pass).toBe(true);
+  const wrong = score(expect0, {text: 'Here.\n\n```zigoals-action\n{"kind":"delete-record","what":"habit","habit":"h1"}\n```', calls: []});
+  expect(wrong.pass).toBe(false);
+  const right = score(expect0, {text: 'Here.\n\n```zigoals-action\n{"kind":"delete-record","what":"fast"}\n```', calls: []});
+  expect(right.pass).toBe(true);
+});

@@ -96,9 +96,10 @@ export function score(expect: Expect, observed: Observed): Score {
     const pass = want.length === 0 || (f.fact.pick === 'first' ? want.every(n => have.includes(n)) : want.some(n => have.includes(n)));
     checks.push({name: `fact:${f.fact.tool}`, pass, detail: `records say ${want.join(', ') || '(no number)'}; reply has ${have.slice(0, 8).join(', ') || 'none'}`});
   }
-  // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind.
+  // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind. Session Z-Local L52:
+  // a field check describes a card; where the oracle allows no card (minCards 0) and none was sent, it has nothing to check.
   for (const want of expect.fields ?? []) {
-    const match = parsed.proposals.some(p => Object.entries(want).every(([k, v]) => sameField((p as Record<string, unknown>)[k], v)));
+    const match = (expect.minCards === 0 && kinds.length === 0) || parsed.proposals.some(p => Object.entries(want).every(([k, v]) => sameField((p as Record<string, unknown>)[k], v)));
     checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${v && typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
   }
   if (expect.hint) checks.push({name: 'hint', pass: expect.hint === 'any' ? hint !== null : expect.hint === 'none' ? hint === null : hint === expect.hint, detail: `hint ${hint ?? 'none'}`});
