@@ -1,7 +1,7 @@
 # Session Z-Cloud: ZIGi's panel, panel polish round 2 (owner follow-up, 2026-10-11)
 
 Local production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`): **before** = `feature/session-z-cloud` at `aa4c849`
-(Part 2's panel), **after** = `feature/session-z-cloud` at `4fe6e8e`. Playwright's Chromium in the `chrome` channel; phones 320–430 px (touch, the phone
+(Part 2's panel), **after** = `feature/session-z-cloud` at `15c36a5`. Playwright's Chromium in the `chrome` channel; phones 320–430 px (touch, the phone
 layout), computers 768–1440 px. The connected panel with two replies, answered by a **MOCK** local OpenAI-compatible server
 (`tests/zigi-oneline-z.spec.ts` with `ZIGI_ONELINE_CAPTURES`). JPEG at most 900 px wide.
 The rule and its measurements: `docs/verification/z-cloud/ZIGI_UI_AUDIT.md` ("Panel polish round 2") and ADR-019 C45.
