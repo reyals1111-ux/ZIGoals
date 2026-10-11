@@ -186,7 +186,15 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 41 summary file(s): 8
 <!-- targets:end -->
 
 ## Recommendation per job
-Filled when the round is complete (friends through the relay, budget, deep).
+Read off the rows above as they stand after the L52 re-score (the final figures land with the last runs; the tables are the record).
+
+| Job | Model | Why, in the numbers |
+|---|---|---|
+| **Friends through the relay** (the owner's key, everyday use) | **Claude Sonnet 5.5**, quick replies at low effort | the best accuracy of the three for the money: typed corpus 95.6 %, spoken 95.2 %, conversations 15/15, the day 36/36, pages 97 %; $0.80–1.03 per 100 messages with the cached prefix (−79 % input cost against no caching) |
+| **Budget** (a person's own key, or no key) | **Claude Haiku 5.5**; without a key, **gemma4 12B on a PC** | Haiku: 92.7 % typed, 93.2 % spoken, 15/15 conversations, pages 168/170, $0.05–0.06 per 100 messages, under a cent a day for most people. gemma4 on the RTX 5090 through the forwarder: 89.5 % typed with the L50 brain, 84.6 % spoken, free, but no phone can reach it away from home |
+| **Deep** ("Think deeper", long plans with many cards) | **Claude Sonnet 5.5 at high effort**; Opus 5.5 only when the person asks for it | Opus did not score above Sonnet on these tasks (typed 93.1 %, important set 96.5 %) at twice the price ($1.70–2.15 per 100); its wins are the long multi-step plans, where both ran out of output before the last card until L52 shortened the per-card text. The relay's "Think deeper" maps to `output_config.effort: high` on either model (L2) |
+| **Not recommended** | qwen3.6 35B-A3B on the Mac (82.8 %), phi4-mini (62.6 %) | the Mac is bandwidth-bound and the small model misses a third of the cards; qwen3.8 27B (87.0 %) and qwen3.6 on the PC (84.4 %) sit under their lines after the rounds so far |
+
 
 ## Owner checklist rows (Part 9): Claude on the phone and on the Mac
 What a real phone and a real Mac prove that the harness and Chrome cannot: the keyboard, dictation by the system, the
