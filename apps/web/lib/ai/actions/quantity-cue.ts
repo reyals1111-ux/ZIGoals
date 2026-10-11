@@ -22,6 +22,7 @@ const CLASSES: [RegExp, Slot[]][] = [
   [/^(?:kg|kilos?|kilograms?)$/i, [{kind: 'log-weight', fields: ['value'], unit: 'kg'}]],
   [/^(?:lbs?|pounds?|pond)$/i, [{kind: 'log-weight', fields: ['value'], unit: 'lb'}]],
   [/^(?:reps?|push-?ups|times|keer)$/i, [{kind: 'counter', fields: ['count']}]],
+  [/^(?:cm|centimet(?:re|er)s?)$/i, [{kind: 'log-measurement', fields: ['value']}]],
   [/^(?:servings?|porties?|portie)$/i, [{kind: 'log-food', fields: ['quantity']}]],
 ];
 const QUANTITY = /(?<![\d:.,])(\d+(?:\.\d+)?)\s*([A-Za-zÀ-ÿ-]+)/g;

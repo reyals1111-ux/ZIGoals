@@ -60,3 +60,8 @@ test('a check-in that already carries minutes keeps that one field (the strict s
   expect(cards(applyQuantityCue(block('{"kind":"check-in","habit":"h1","minutes":2}'), 'I meditated for twenty minutes'))).toEqual([{kind: 'check-in', habit: 'h1', minutes: 20, day: 'today'}]);
   expect(cards(applyQuantityCue(block('{"kind":"check-in","habit":"h1"}'), 'I meditated for twenty minutes'))).toEqual([{kind: 'check-in', habit: 'h1', minutes: 20, day: 'today'}]);
 });
+
+test('L56: a measurement in centimetres takes the figure the person corrected themselves to', () => {
+  const reply = '```zigoals-action\n{"kind":"log-measurement","kind_of":"waist","value":82,"unit":"cm"}\n```';
+  expect(applyQuantityCue(reply, 'waist is eighty two no eighty three centimetres')).toContain('"value":83');
+});

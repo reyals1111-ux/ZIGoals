@@ -100,3 +100,9 @@ test('L55: "half twelve to seven" is a range, not twelve minutes to seven', () =
   expect(normalizeSpoken('I slept from half twelve to seven')).not.toContain('6:48');
   expect(normalizeSpoken('ten to eight')).toBe('7:50');
 });
+
+test('L56: a bare "no" or "nee" between two figures is a self-correction ("eighty two no eighty three centimetres" is 83)', () => {
+  expect(normalizeSpoken('waist is eighty two no eighty three centimetres')).toBe('waist is 83 centimetres');
+  expect(normalizeSpoken('drie glazen nee vier glazen')).toBe('4 glazen');
+  expect(normalizeSpoken('no sugar today')).toBe('no sugar today');
+});
