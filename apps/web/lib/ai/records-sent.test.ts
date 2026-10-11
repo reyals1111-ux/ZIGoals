@@ -9,7 +9,7 @@ test('the records sent with a question, as labels: grouped by kind, the page whe
   expect(recordsSent([], null)).toEqual([]);
   expect(recordsSent([], 'wealth')).toEqual(["Wealth's page data"]);
 });
-test('the copied Markdown carries the records line after the source line', () => {
+test('the copied Markdown stays the reply and its source line: the records line is the panel\'s (zigi-chat-polish pins the clipboard text)', () => {
   const turn = {...assistantTurn({text: 'Two glasses so far.', provider: null, model: null, usage: null}), records: ['Habits: Drink water', "Today's page data"]};
-  expect(turnMarkdown(turn, 'Answer from your AI (Mock), not from ZIGoals.')).toBe("Two glasses so far.\n\n_Answer from your AI (Mock), not from ZIGoals._\n\n_Records sent: Habits: Drink water · Today's page data_");
+  expect(turnMarkdown(turn, 'Answer from your AI (Mock), not from ZIGoals.')).toBe('Two glasses so far.\n\n_Answer from your AI (Mock), not from ZIGoals._');
 });

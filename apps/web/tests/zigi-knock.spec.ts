@@ -176,7 +176,7 @@ test('offered once after the first chat: "Not now" keeps knocking off and the qu
   await expect(offer).toContainText(KNOCK_OFFER);
   await offer.getByRole('button', {name: 'Not now'}).click();
   await expect(offer).toHaveCount(0);
-  expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'declined'});
+  expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'declined', offeredOn: DAY}); // Session Z-Local (ADR-020 L43): the day the offer showed is kept
   await page.reload();
   await page.getByRole('button', {name: /Open ZIGi/}).click();
   await page.getByLabel('Message to your AI').fill('Hello again');
@@ -193,7 +193,7 @@ test('"Yes, knock" on a later day turns knocking on; ZIGi knocks once the panel 
   const offer = panel(page).getByRole('group', {name: 'A question from ZIGi'});
   await expect(offer).toContainText(KNOCK_OFFER);
   await offer.getByRole('button', {name: 'Yes, knock'}).click();
-  expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'accepted', enabled: true});
+  expect((await stored(page, ZIGI_KEY)).knock).toEqual({offer: 'accepted', enabled: true, offeredOn: DAY}); // Session Z-Local (ADR-020 L43)
   await expect(knock(page)).toHaveCount(0);
   await panel(page).getByRole('button', {name: 'Close ZIGi', exact: true}).click();
   await expect(knock(page)).toBeVisible();

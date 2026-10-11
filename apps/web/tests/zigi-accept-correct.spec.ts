@@ -1,5 +1,6 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
+import {addLocalDays} from '../lib/local-date';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
@@ -193,7 +194,7 @@ const CASES: readonly Case[] = [
   {kind: 'stack-habit', page: '/app/habits', ask: 'Put meditation right after reading', reply: body => block({kind: 'stack-habit', habit: handle(body, 'h', 'Meditate'), after: handle(body, 'h', 'Read')}),
     check: after => { expect(habitOf(after, 'Meditate').stackAfterId).toBe(habitOf(after, 'Read').id); }},
   {kind: 'edit-habit', page: '/app/habits', ask: 'Rename meditate to evening meditation, 15 minutes, in the evening', reply: body => block({kind: 'edit-habit', habit: handle(body, 'h', 'Meditate'), title: 'Evening meditation', target: 15, timeOfDay: 'evening'}), daySensitive: true, visible: {page: '/app/habits', text: 'Evening meditation'},
-    check: (after, before, {today}) => { const h = habitOf(after, 'Evening meditation'); expect(h.id).toBe(habitOf(before, 'Meditate').id); expect(h.timeOfDay).toBe('evening'); expect(rule(h)).toMatchObject({from: today, target: 15, measurement: rule(habitOf(before, 'Meditate')).measurement}); expect(h.entries).toEqual(habitOf(before, 'Meditate').entries); }},
+    check: (after, before, {today}) => { const h = habitOf(after, 'Evening meditation'); expect(h.id).toBe(habitOf(before, 'Meditate').id); expect(h.timeOfDay).toBe('evening'); expect(rule(h)).toMatchObject({from: addLocalDays(today, 1), target: 15, measurement: rule(habitOf(before, 'Meditate')).measurement}); /* Session Z-Local (ADR-020 L43): from tomorrow, as Habits' own form */ expect(h.entries).toEqual(habitOf(before, 'Meditate').entries); }},
   {kind: 'edit-goal', page: '/app/goals', ask: 'Rename my emergency fund to Emergency fund 2027, by May 2027', reply: body => block({kind: 'edit-goal', goal: handle(body, 'g', 'Emergency fund'), name: 'Emergency fund 2027', targetDate: '2027-05-01', notes: 'Three months of costs'}), visible: {page: '/app/goals', text: 'Emergency fund 2027'},
     // The platform's own ledgers (`lifecycle`, `planRevisions`) record the change; the plain fields are compared.
     check: (after, before) => { const was = goalOf(before, 'Emergency fund'), g = goalOf(after, 'Emergency fund 2027'); const {lifecycle: l1, planRevisions: p1, ...plain} = g; const {lifecycle: l2, planRevisions: p2, ...wasPlain} = was; void l1; void l2; void p1; void p2; expect(plain).toEqual({...wasPlain, name: 'Emergency fund 2027', targetDate: '2027-05-01', notes: 'Three months of costs'}); }},

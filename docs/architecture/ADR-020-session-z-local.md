@@ -104,6 +104,11 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
 - **Part 6 (L46), `context/examples.test.ts`:** the examples' whitelist admits `prefill-contribution` beside `prefill-holding` (the
   two money pre-fills of Part 5, both forms the person saves); the two-or-three-examples bound is untouched (the Health steps
   example replaced the "two eggs" one, whose point the oatmeal example already makes).
+- **After the merge of Z-Cloud (2026-10-11), four browser specs follow deliberate decisions, string-level:** `your-ai.spec.ts`
+  expects `max_completion_tokens` 2,048 (L35); `zigi-accept-correct.spec.ts`'s edit-habit row expects the rule from tomorrow (L43);
+  `zigi-knock.spec.ts`'s two offer tests expect `offeredOn` beside the answer in the stored knock prefs (L43); `zigi-on-device.spec.ts`
+  picks "Nothing leaves my device" and expects a key for a phone with nothing and privacy (L43). The copied Markdown keeps its
+  old text (the records line is the panel's), so `zigi-chat-polish.spec.ts` is untouched.
 - **After Z-Cloud (L43), three unit tests follow the findings:** `actions/plan.test.ts` "edit-habit" expects the rule from
   tomorrow and the card line "From tomorrow, as in Habits; earlier days keep the rule they had" (was today); `setup-chooser.test.ts`
   expects a key, not the bridge, for a phone with nothing and privacy (the bridge needs a subscription); `store/records.test.ts`'s
