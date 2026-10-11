@@ -1,3 +1,4 @@
+import {hostedName} from './hosted';
 import type {OnDeviceAvailability} from './on-device';
 
 /**
@@ -39,7 +40,7 @@ const BRIDGE: Omit<Recommendation, 'why'> = {route: 'subscription', title: 'The 
   cons: ['Copy and paste: ZIGi writes the prompt, you paste it into the app', 'Answers cannot become cards here'],
   steps: ['Settings → ZIGi · Your Personal AI Companion → "I only have a subscription", pick your app.', 'Ask in ZIGi, copy the prompt, paste it into the app.']};
 /** The recommendation for these answers, given what Chrome says about its own model here and whether hosted is offered. */
-export function recommend(answers: Answers, {onDevice, hosted = false}: {onDevice: OnDeviceAvailability; hosted?: boolean}): Recommendation {
+export function recommend(answers: Answers, {onDevice, hosted = false, hostedProvider = 'Anthropic'}: {onDevice: OnDeviceAvailability; hosted?: boolean; hostedProvider?: string}): Recommendation {
   const chromeModel = onDevice === 'available' || onDevice === 'downloadable' || onDevice === 'downloading';
   if (answers.where === 'computer' && answers.matters === 'privacy') {
     if (answers.memory === 'plenty') return {...LOCAL, why: 'You want nothing to leave your computer, and it has the memory a local model needs.', ...(chromeModel ? {also: 'on-device' as const} : {})};
@@ -58,7 +59,7 @@ export function recommend(answers: Answers, {onDevice, hosted = false}: {onDevic
     if (answers.where === 'computer' && answers.memory === 'plenty') return {...LOCAL, why: 'No extra cost: a model on your own computer.'};
     return {...BRIDGE, why: 'Without a subscription or a capable computer, ZIGi still answers questions about your records on this device; the bridge works once you have any chat app.', also: 'api'};
   }
-  if (hosted) return {route: 'hosted', title: 'ZIGoals hosted', why: 'The best answers without a key of your own, within your plan’s limits.', pros: ['No key to manage', 'Works on phones and computers'], cons: ['Your messages pass through ZIGoals to its provider (nothing is stored)', 'Daily limits apply'], steps: ['Settings → ZIGi · Your Personal AI Companion → "ZIGoals hosted", read what passes through, then turn it on.'], also: 'api'};
+  if (hosted) return {route: 'hosted', title: hostedName(hostedProvider), why: 'The best answers without a key of your own, within your plan’s limits.', pros: ['No key to manage', 'Works on phones and computers'], cons: ['Your messages pass through ZIGoals to its provider (nothing is stored)', 'Daily limits apply'], steps: ['Settings → ZIGi · Your Personal AI Companion → "ZIGoals hosted", read what passes through, then turn it on.'], also: 'api'};
   if (answers.have === 'subscription') return {...API, why: 'For the best answers inside ZIGoals (tools and cards) a key is needed; your subscription stays useful through the bridge.', also: 'subscription'};
   return {...API, why: answers.have === 'api' ? 'You already have an API account: it gives the best answers here.' : 'The best answers here, with tools and cards; you pay your provider for what you use.'};
 }

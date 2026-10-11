@@ -140,3 +140,7 @@ test('L46: the goals example fills in the Fund form instead of refusing; a steps
   const steps = EXAMPLES.health.find(e => e.ask === 'I walked 9000 steps today')!; expect(steps.reply).toContain('"kind":"log-steps"'); expect(steps.reply).toContain('steps add up');
   expect(ACTION_PROTOCOL).toContain('is a check-in at the habit\'s target');
 });
+
+test('L47: a careful reply has no digit at all; a card is proposed even when the records cannot tell whether the entry is already there', () => {
+  expect(SAFETY_RULES).toContain('no digit at all in that reply'); expect(ACTION_PROTOCOL).toContain('or you cannot tell whether they do');
+});

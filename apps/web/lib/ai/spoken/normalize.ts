@@ -171,8 +171,10 @@ const UNIT_AFTER = new RegExp(`^\\s+(${UNITS})(?![A-Za-z])`, 'i');
 /** The last number before the marker takes the first number after it; the unit stays where it was, and "maak er 4 van" loses its "van". */
 /** "78.3, no, point four" and "78,3 nee komma vier": a bare decimal fragment after the marker replaces the decimals of the number before it. */
 const DECIMAL_FIX = /(\d+)\.(\d+)\s*[,.]?\s*(?:no[,.]?\s*wait[,.]?|no[,.]?|sorry[,.]?|i mean[,.]?|nee[,.]?\s*wacht[,.]?|nee[,.]?|ik bedoel[,.]?)\s*(?:point|komma|comma)\s*(\d+)\b/gi;
+/** "at eight, no, half past eight" after the clocks became digits: the time before the marker goes, the one after stays (Session Z-Local Part 6, L47). */
+const CLOCK_FIX = /\b\d{1,2}:\d{2}\s*[,.]?\s*(?:no[,.]?\s*wait[,.]?|wait[,.]?\s*no[,.]?|no[,.]?|sorry[,.]?|i mean[,.]?|nee[,.]?\s*wacht[,.]?|nee[,.]?|ik bedoel[,.]?|make that|maak er)\s*(\d{1,2}:\d{2})\b/gi;
 function corrections(text: string): string {
-  text = text.replace(DECIMAL_FIX, '$1.$3');
+  text = text.replace(DECIMAL_FIX, '$1.$3').replace(CLOCK_FIX, '$1').replace(/\b(om|at|around|om|rond)\s+\1\b/gi, '$1');
   for (let guard = 0; guard < 4; guard++) {
     const m = MARKER.exec(text); if (!m) return text;
     const before = text.slice(0, m.index), after = text.slice(m.index + m[0].length);

@@ -85,3 +85,9 @@ test('a correction with words between the marker and the number: "actually it wa
   expect(normalizeSpoken('twintig minuten gelopen, eigenlijk eerder dertig')).toBe('30 minuten gelopen');
   expect(normalizeSpoken('two glasses, actually about three')).toBe('3 glasses');
 });
+
+// Session Z-Local Part 6 (ADR-020 L47): a corrected clock keeps the second time; a stuttered preposition collapses.
+test('"om acht uur nee half negen" keeps 8:30 and the stuttered "om om" collapses; "at 8:00, no wait, 8:30" keeps 8:30', () => {
+  expect(normalizeSpoken('herinner me om eh om acht uur nee half negen aan het lezen')).toBe('herinner me om 8:30 aan het lezen');
+  expect(normalizeSpoken('remind me at 8:00, no wait, 8:30 to read')).toBe('remind me at 8:30 to read');
+});

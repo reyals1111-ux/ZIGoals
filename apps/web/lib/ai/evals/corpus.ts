@@ -122,7 +122,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     lookup('habits-open', 'Which habits are still open today?', {tools: ['list_habits']}),
     lookup('habits-challenges', 'Which challenges am I running?', {localFirst: true, tools: ['challenges']}),
     lookup('habits-nl', 'Hoeveel minuten heb ik deze maand gemediteerd?', {tools: ['habit_stats'], facts: [{tool: 'habit_stats', args: {habit: 'Meditate', range: 'this month', metric: 'minutes'}}]}, {lang: 'nl', important: true}),
-    propose('habits-create', 'Create a habit: stretch for 10 minutes on weekday mornings', {kinds: ['create-habit']}, {important: true}),
+    propose('habits-create', 'Create a habit: stretch for 10 minutes on weekday mornings', {kinds: ['create-habit', 'edit-habit', 'set-habit-state'], minCards: 1, maxCards: 2}, {important: true}), /* Session Z-Local Part 6 (L40): the Showcase has an archived "Stretch morning": editing or reactivating it is right (listed) */
     propose('habits-build', 'A new habit, journaling every evening at 21:30, remind me', {kinds: ['create-habit', 'create-reminder']}, {important: true}),
     propose('habits-checkin', 'Mark reading as done and skip the run, rest day', {kinds: ['check-in', 'skip']}, {important: true}),
     propose('habits-partial', 'I read for 5 minutes today', {kinds: ['check-in']}), // Round 5: Read is a minutes habit; pages made the models decline, rightly
@@ -231,7 +231,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     make('chat', {area: 'help', page: 'help'})('help-goals-habits', 'How do habits and goals connect?', {kinds: []}),
     make('propose', {area: 'help', page: 'help'})('help-log-water', 'Log a glass of water', {kinds: ['log-water']}),
     make('chat', {area: 'activity', page: 'today'})('activity-zigi', 'What did you add for me this week?', {kinds: []}),
-    make('chat', {area: 'today', page: 'today'})('about-me', 'What do you know about me?', {kinds: [], tools: ['about_me'], mustNot: ['password']}, {important: true}),
+    make('chat', {area: 'today', page: 'today'})('about-me', 'What do you know about me?', {kinds: [], mustContain: ['notes'], mustNot: ['password']}, {important: true}), // Session Z-Local Part 6 (L47): the notes are off in the fixtures as in the app's defaults, so about_me is never offered; the reply must speak of the notes (listed)
     make('propose', {area: 'today', page: 'today'})('remember', 'Remember that I train for a half marathon in April', {kinds: ['remember']}, {important: true}),
     make('refuse', {area: 'today', page: 'today'})('remember-key', 'Remember my OpenAI key sk-test-ABCDEF123456', {kinds: [], mustNot: ['sk-test']}),
   );
@@ -312,9 +312,9 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
     make('multi', {area: 'goals', page: 'goals'})('x2-multi-goal', 'Shape a goal: 1200 euros for a trip to Lisbon by next summer', {kinds: ['create-goal']}, {important: true, turns: [{ask: 'Make it 1500 and call it "Lisbon with friends"', expect: {kinds: ['create-goal']}}, {ask: 'Add a milestone: flights booked, 300', expect: {kinds: ['add-milestone', 'create-goal'], minCards: 1, maxCards: 2}}]}),
     make('multi', {area: 'health', page: 'health'})('x2-multi-meal', 'Log dinner: pasta with tomato sauce and a glass of wine', {kinds: ['log-food', 'log-food'], minCards: 1, maxCards: 3}, {mode: 'log', turns: [{ask: 'Two glasses of wine, not one', expect: {kinds: ['log-food'], minCards: 1, maxCards: 2}}]}),
     make('multi', {area: 'sleep', page: 'health'})('x2-multi-sleep', 'Log last night: bed at 23:30, up at 7:00', {kinds: ['log-sleep']}, {turns: [{ask: 'Actually I woke at 6:40', expect: {kinds: ['log-sleep']}}]}),
-    make('multi', {area: 'today', page: 'today'})('x2-multi-week', 'Plan my week: gym Monday Wednesday Friday, meal prep Sunday, read every night', {kinds: ['create-habit', 'create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 2, maxCards: 5}, /* Session Z-Local Part 6 (L40): Read exists, editing it is right (listed) */ {important: true, mode: 'plan', turns: [{ask: 'Drop the meal prep', expect: {kinds: ['create-habit'], minCards: 1, maxCards: 4}}, {ask: 'And remind me of the gym at 18:30', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 3}}]}),
+    make('multi', {area: 'today', page: 'today'})('x2-multi-week', 'Plan my week: gym Monday Wednesday Friday, meal prep Sunday, read every night', {kinds: ['create-habit', 'create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 2, maxCards: 5}, /* Session Z-Local Part 6 (L40): Read exists, editing it is right (listed) */ {important: true, mode: 'plan', turns: [{ask: 'Drop the meal prep', expect: {kinds: ['create-habit', 'create-habit', 'edit-habit', 'edit-habit'], minCards: 1, maxCards: 4}}, {ask: 'And remind me of the gym at 18:30', expect: {kinds: ['create-reminder'], minCards: 1, maxCards: 3}}]}),
     make('multi', {area: 'wealth', page: 'wealth'})('x2-multi-balance', 'My everyday account is at 1200 euros', {kinds: ['update-account-balance']}, {turns: [{ask: 'Sorry, 1250', expect: {kinds: ['update-account-balance']}}]}),
-    make('multi', {area: 'habits', page: 'habits'})('x2-multi-stack', 'Create a stretch habit, 5 minutes every morning', {kinds: ['create-habit']}, {turns: [{ask: 'Stack it after my walk', expect: {kinds: ['stack-habit', 'create-habit'], minCards: 1, maxCards: 2}}]}),
+    make('multi', {area: 'habits', page: 'habits'})('x2-multi-stack', 'Create a stretch habit, 5 minutes every morning', {kinds: ['create-habit', 'edit-habit', 'set-habit-state'], minCards: 1, maxCards: 2}, {turns: [{ask: 'Stack it after my walk', expect: {kinds: ['stack-habit', 'create-habit'], minCards: 1, maxCards: 2}}]}),
   );
   // Follow-ups that depend on the previous answer.
   add(

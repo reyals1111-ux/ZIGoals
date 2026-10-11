@@ -222,7 +222,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     g.propose('p2-voice-note', 'put a note on the japan thing that um the flights are booked', {kinds: ['add-goal-note']}),
     h.propose('p2-voice-fast', "I'm gonna fast till tomorrow morning so like sixteen hours", {kinds: ['start-fast']}),
     h.propose('p2-voice-nl', 'eh noteer twee nee drie glazen water', {kinds: ['log-water'], fields: [{glasses: 3}]}, {lang: 'nl', mode: 'log', important: true}),
-    hb.propose('p2-voice-nl-remind', 'herinner me om eh om acht uur nee half negen aan het lezen', {kinds: ['create-reminder'], fields: [{time: '20:30'}]}, {lang: 'nl'}),
+    hb.propose('p2-voice-nl-remind', 'herinner me om eh om acht uur nee half negen aan het lezen', {kinds: ['create-reminder'], fields: [{time: {anyOf: ['08:30', '20:30']}}]}, {lang: 'nl'}), // Session Z-Local Part 6 (L47): "half negen" names no half of the day (listed)
     t.lookup('p2-voice-lookup', 'hey um how much water did I have today', {tools: ['water'], kinds: []}),
     hb.lookup('p2-voice-lookup-streak', 'what is my uh my walk streak right now', {tools: ['habit_stats'], kinds: []}),
     h.propose('p2-voice-meditation', 'did ten minutes of meditation um no sorry fifteen', {kinds: ['log-meditation', 'check-in'], minCards: 1, maxCards: 2, mustNot: ['"minutes":10', '"minutes": 10']}, {mode: 'log'}),
@@ -261,7 +261,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
   ]});
   const plan = t.multi('p2-chat-plan', 'I want to get my mornings in order. Where do I start?', {kinds: [], mustNot: ['⟦']}, {important: true, mode: 'plan', turns: [
     {ask: 'Make a habit: up at 6:30 on weekdays', expect: {kinds: ['create-habit']}},
-    {ask: 'And ten minutes of stretching right after', expect: {kinds: ['create-habit', 'stack-habit'], minCards: 1, maxCards: 2}},
+    {ask: 'And ten minutes of stretching right after', expect: {kinds: ['create-habit', 'edit-habit', 'stack-habit'], minCards: 1, maxCards: 2}},
     {ask: 'Make the stretching 15 minutes', expect: {kinds: ['create-habit', 'stack-habit', 'edit-habit'], minCards: 1, maxCards: 2, fields: [{target: 15}]}},
     {ask: 'A reminder for the first one at 6:30', expect: {kinds: ['create-reminder'], fields: [{time: '06:30'}]}},
     {ask: 'Then breakfast: plan oatmeal for every weekday', expect: {kinds: ['plan-meal', 'create-habit'], minCards: 1, maxCards: 5}},
