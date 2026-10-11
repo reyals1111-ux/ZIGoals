@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 97.36961419749997,
+ "total": 106.73407941749998,
  "byModel": {
-  "claude-haiku-5-5": 2.9045129474999984,
-  "claude-sonnet-5-5": 48.46070864999999,
+  "claude-haiku-5-5": 3.5285560674999985,
+  "claude-sonnet-5-5": 57.201130750000004,
   "claude-opus-5-5": 46.004392599999996
  },
  "rows": [
@@ -181,12 +181,12 @@
    "stage": "real-model/part6-haiku-after",
    "model": "claude-haiku-5-5",
    "batch": false,
-   "requests": 748,
-   "input": 2910,
-   "cacheWrite": 1063880,
-   "cacheRead": 11449692,
-   "output": 245045,
-   "usd": 0.37029541999999993,
+   "requests": 1496,
+   "input": 5820,
+   "cacheWrite": 2127760,
+   "cacheRead": 22899384,
+   "output": 490090,
+   "usd": 0.7405908399999998,
    "unreported": 0,
    "files": 0
   },
@@ -194,12 +194,25 @@
    "stage": "real-model/part6-sonnet-page",
    "model": "claude-sonnet-5-5",
    "batch": false,
-   "requests": 727,
-   "input": 2826,
-   "cacheWrite": 1025706,
-   "cacheRead": 11196727,
-   "output": 166927,
-   "usd": 5.358859699999999,
+   "requests": 1454,
+   "input": 5652,
+   "cacheWrite": 2051412,
+   "cacheRead": 22393454,
+   "output": 333854,
+   "usd": 10.717719400000021,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/part6-spoken-haiku",
+   "model": "claude-haiku-5-5",
+   "batch": false,
+   "requests": 576,
+   "input": 2370,
+   "cacheWrite": 609622,
+   "cacheRead": 8910045,
+   "output": 176415,
+   "usd": 0.2537477000000001,
    "unreported": 0,
    "files": 0
   },
@@ -207,12 +220,12 @@
    "stage": "real-model/part6-spoken-sonnet",
    "model": "claude-sonnet-5-5",
    "batch": false,
-   "requests": 549,
-   "input": 2208,
-   "cacheWrite": 628283,
-   "cacheRead": 8376789,
-   "output": 96876,
-   "usd": 3.3815623999999995,
+   "requests": 1098,
+   "input": 4416,
+   "cacheWrite": 1256566,
+   "cacheRead": 16753578,
+   "output": 193752,
+   "usd": 6.763124799999993,
    "unreported": 0,
    "files": 0
   },
@@ -496,12 +509,32 @@
    "turns": 671
   },
   {
+   "file": "real-model/part6-haiku-after/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T11-26-49-396Z.json.rescored.json",
+   "model": "claude-haiku-5-5",
+   "turns": 671
+  },
+  {
    "file": "real-model/part6-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T11-55-37-709Z.json",
    "model": "claude-sonnet-5-5",
    "turns": 671
   },
   {
+   "file": "real-model/part6-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T11-55-37-709Z.json.rescored.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 671
+  },
+  {
+   "file": "real-model/part6-spoken-haiku/anthropic-api-claude-haiku-5-5-tools-page-spoken-all-2026-10-11T12-48-29-443Z.json",
+   "model": "claude-haiku-5-5",
+   "turns": 531
+  },
+  {
    "file": "real-model/part6-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T12-27-03-053Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 531
+  },
+  {
+   "file": "real-model/part6-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T12-27-03-053Z.json.rescored.json",
    "model": "claude-sonnet-5-5",
    "turns": 531
   },
@@ -596,5 +629,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-11T12:48:27.687Z"
+ "rebuiltAt": "2026-10-11T13:10:22.187Z"
 }
