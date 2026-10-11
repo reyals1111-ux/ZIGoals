@@ -277,7 +277,7 @@ function add(...cases: ModelCase[]) { PHASE2.push(...cases); }
     {ask: 'Remember that I prefer cycling to running', expect: {kinds: ['remember']}}, // Session Z-Local Part 6: a knee injury is a health note ZIGi keeps only when the person writes it (the planner refuses the health category), so the turn asks a preference (listed)
     {ask: 'Given that, swap the steps habit for 30 minutes of cycling', expect: {kinds: ['create-habit', 'edit-habit'], minCards: 1, maxCards: 2}},
     {ask: 'Show me the plan so far in a few lines', expect: {kinds: [], mustNot: ['⟦']}},
-    {ask: 'Delete the fast', expect: {kinds: ['delete-record'], fields: [{kind: 'delete-record', what: 'fast'}]}}, // Session Z-Local Part 5: a deletion is a card that opens the app's own confirmation (ADR-020 L13-era rule, listed)
+    {ask: 'Delete the fast', expect: {kinds: ['delete-record'], minCards: 0, maxCards: 1, fields: [{kind: 'delete-record', what: 'fast'}]}}, /* Session Z-Local L52: the fast of this conversation is a card the harness never adds (Sonnet and Opus both say so and send nothing), while the records also hold a finished fast; either reading is honest, so the card or none */ // Session Z-Local Part 5: a deletion is a card that opens the app's own confirmation (ADR-020 L13-era rule, listed)
     {ask: 'Ok, stop the fast then', expect: {kinds: ['stop-fast'], minCards: 0, maxCards: 1}}, // Session Z-Local L50: no fast runs in the records (the 20:00 start is a card the harness never adds), so saying so with no card is as right as the card
     {ask: 'Put my steps on Today', expect: {kinds: ['add-widget']}},
     {ask: 'That is all, thank you', expect: {kinds: []}},
