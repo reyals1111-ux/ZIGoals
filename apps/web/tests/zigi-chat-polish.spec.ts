@@ -127,10 +127,12 @@ test('around an answer: its time, the person\'s own note (kept here, never sent)
   await say(page, 'What should I focus on?');
   const reply = panel(page).locator('.ai-turn-assistant').last();
   await expect(reply).toContainText('MOCK: two things to try.');
-  await expect(reply.locator('time')).toHaveAttribute('datetime', /^2026-09-20T19:/);
+  await expect(reply.locator('time:visible')).toHaveAttribute('datetime', /^2026-09-20T19:/);
   const note = reply.getByRole('group', {name: 'Your own note on this answer (kept on this device, never sent)'});
   await note.getByRole('button', {name: 'Useful', exact: true}).click();
   await expect(note.getByRole('button', {name: 'Useful', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Panel polish round 2 (mechanics): Copy as Markdown and Continue in my AI are in the reply's "⋯".
+  await reply.getByRole('button', {name: 'More for this reply'}).click();
   await reply.getByRole('button', {name: 'Copy as Markdown'}).click();
   await expect(reply.getByRole('button', {name: 'Copied as Markdown'})).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('MOCK: **two** things to try.\n\n_Answer from your AI (your local server), not from ZIGoals._');
@@ -139,6 +141,7 @@ test('around an answer: its time, the person\'s own note (kept here, never sent)
   await expect.poll(() => bodies.length).toBe(2);
   expect(JSON.stringify(bodies[1])).not.toMatch(/"feedback"|Useful/);
   // Continue in my AI: the exact text first; copying copies that text.
+  await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'More for this reply'}).click();
   await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'Continue in my AI'}).click();
   const view = panel(page).getByRole('region', {name: 'Continue in my AI'});
   const text = await view.getByLabel('What will be copied').textContent();
@@ -230,7 +233,7 @@ test('History: Pin puts a chat under "Pinned"; the page filter uses where each c
   await openChat(page);
   await say(page, 'Habits question');
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: noted.');
-  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   const history = panel(page).locator('.ai-history');
   await expect(history.getByRole('button', {name: /^Habits question/})).toBeVisible();
   const row = (title: string) => history.getByRole('listitem').filter({hasText: title});

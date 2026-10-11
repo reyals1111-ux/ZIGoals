@@ -262,7 +262,7 @@ test with your own records. Every reply, card and file says when its data is fic
    conversation the message says the photo went to your AI and ZIGoals did not keep it.
 5. Quick and deep: **Advanced → Choose a deep model**, pick a larger model. Ask a question, then press **Think
    deeper** under the reply. Expected: the same question answered again by the deep model, labelled with it.
-6. Optional prices: **Advanced → Your prices for <provider>**, enter the prices from the provider's pricing page.
+6. Optional prices: **Advanced → Your prices** (for the connected provider), enter the prices from the provider's pricing page.
    Expected: "Estimate from your prices", per currency, never converted, "not a bill".
 7. Log by voice: press **Log mode**, hold the microphone (or tap it), say `two eggs, toast and a coffee for breakfast,
    30 minutes meditation and two glasses of water`. Expected: editable words in the box; after **Send**, several

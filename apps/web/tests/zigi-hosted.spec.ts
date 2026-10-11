@@ -159,7 +159,9 @@ test('on Claude: "ZIGoals AI · powered by Claude", the person\'s own allowance 
   await expect(card).toContainText('In use, without Health.');
   await go(page, 'Habits', '/app/habits');
   await page.getByRole('button', {name: /Open ZIGi/}).click();
-  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('ZIGoals AI · powered by Claude · claude-sonnet-5-5');
+  // Panel polish round 2 (assertion changed, ADR-019 C45): the status is one short line; the full name is its tooltip.
+  await expect(panel(page).locator('.ai-chat-via-text')).toHaveText('via ZIGoals AI · Sonnet 5.5');
+  await expect(panel(page).locator('.ai-chat-via-text')).toHaveAttribute('title', 'ZIGoals AI · powered by Claude · claude-sonnet-5-5');
   await panel(page).getByLabel('Message to your AI').fill('How did my habits go this month?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   const reply = panel(page).locator('.ai-turn-assistant').last();

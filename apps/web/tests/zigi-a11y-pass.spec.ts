@@ -100,10 +100,15 @@ test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   await expect(panel(page).getByRole('region', {name: 'Your morning brief'})).toBeVisible();
   await clean(panel(page), 'ZIGi panel with the Suggestions sheet');
   await panel(page).getByRole('button', {name: 'Close suggestions'}).click();
-  // The page-data switch keeps one name; the area and its size are its description.
+  // The page-data switch keeps one name; the area is its description. Panel polish round 2 (assertion changed, ADR-019):
+  // the size moved from the row into "What your AI sees", checked there with the same pattern, and that sheet is audited.
   const share = panel(page).getByRole('checkbox', {name: 'Share this page’s data', exact: true});
   await expect(share).toBeChecked();
-  await expect(share).toHaveAccessibleDescription(/^Habits · about [\d,]+ tokens$/);
+  await expect(share).toHaveAccessibleDescription(/^Habits$/);
+  await panel(page).getByLabel('What your AI sees').click();
+  await expect(panel(page).locator('.ai-share-size')).toHaveText(/^Habits · about [\d,]+ tokens$/);
+  await clean(panel(page), 'ZIGi panel with "What your AI sees" open');
+  await panel(page).getByLabel('What your AI sees').click();
   await page.getByLabel('Message to your AI').fill('Log two glasses of water, five minutes of meditation and an evening stretch habit');
   await page.getByRole('button', {name: 'Send', exact: true}).click();
   const cards = panel(page).getByTestId('ai-proposals');
@@ -115,7 +120,7 @@ test('ZIGi\'s panel, proposal cards and Customize', async ({page}) => {
   await expect(water.getByRole('button', {name: 'Dismiss', exact: true})).toHaveAccessibleDescription('Add water');
   await water.getByRole('button', {name: 'Edit', exact: true}).click();
   await clean(water.getByRole('form', {name: 'Edit: Add water'}), 'Edit a card');
-  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Customize ZIGi'}).click();
   const customize = panel(page).getByRole('region', {name: 'Customize ZIGi'});
   // Each option is named by its label alone; its note is the description.
   const calm = customize.getByRole('radio', {name: 'Calm', exact: true});

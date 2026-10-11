@@ -80,7 +80,7 @@ test('one header row at every width: the full name, glyph buttons with names and
   }
 });
 
-test('"⋯" lists History, Customize, Settings, Meet ZIGi, Help and the model; arrows move, Escape closes and gives the focus back', async ({page}) => {
+test('"⋯" lists History, Customize, Settings, Meet ZIGi and Help; the model is in the status line; arrows move, Escape closes and gives the focus back', async ({page}) => {
   await server(page);
   await seed(page, {});
   await openChat(page);
@@ -89,13 +89,15 @@ test('"⋯" lists History, Customize, Settings, Meet ZIGi, Help and the model; a
   await more.click();
   const list = panel(page).getByRole('group', {name: 'More'});
   await expect(list).toBeVisible();
-  await expect(list.locator('.ai-more-item')).toHaveText([/^Change model \(mock-chat\)/, 'History', 'Customize', 'Settings', 'Meet ZIGi', 'Help']);
+  // Panel polish round 2 (assertion changed, ADR-019 C45): the model moved from "⋯" to the status line's switcher.
+  await expect(list.locator('.ai-more-item')).toHaveText(['History', 'Customize', 'Settings', 'Meet ZIGi', 'Help']);
+  await expect(panel(page).locator('.ai-chat-via summary[aria-label="Model: mock-chat. Change model"]')).toBeVisible();
   await expect(list.getByRole('link', {name: 'ZIGi settings'})).toHaveAttribute('href', '/app/settings#your-ai');
   await expect(list.getByRole('link', {name: 'Meet ZIGi'})).toHaveAttribute('href', '/app/zigi');
   await expect(list.getByRole('link', {name: 'Help about ZIGi'})).toHaveAttribute('href', '/app/help#help-your-ai-what');
-  await expect(list.locator('summary')).toBeFocused();
-  await page.keyboard.press('ArrowDown');
   await expect(list.getByRole('button', {name: 'Chat history'})).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(list.getByRole('button', {name: 'Customize ZIGi'})).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(list).toBeHidden();
   await expect(more).toBeFocused();
@@ -155,8 +157,11 @@ test('not connected: one compact line with "Set up" and "Which setup fits me?", 
   const [lineBox, logBox, composerBox] = await Promise.all([line.boundingBox(), panel(page).locator('.ai-chat-log').boundingBox(), panel(page).locator('.ai-composer-wrap').boundingBox()]);
   expect(lineBox!.y).toBeGreaterThanOrEqual(logBox!.y + logBox!.height - 1);
   expect(lineBox!.y + lineBox!.height).toBeLessThanOrEqual(composerBox!.y + 1);
-  expect(lineBox!.height).toBeLessThanOrEqual(112);
-  await expect(box(page)).toHaveAttribute('placeholder', 'Ask about your records');
+  // Panel polish round 2 (assertion changed, ADR-019): the line is one row (was ≤112 px, two rows), and the placeholder
+  // is the short one at every width ("Ask about your records" was cut off at 320 px); the long words stay its tooltip.
+  expect(lineBox!.height).toBeLessThanOrEqual(60);
+  await expect(box(page)).toHaveAttribute('placeholder', 'Ask ZIGi…');
+  await expect(box(page)).toHaveAttribute('title', 'Ask about your records: answered here, no AI');
   await line.getByRole('button', {name: 'Which setup fits me?'}).click();
   await expect(panel(page).getByRole('region', {name: 'Which setup fits me?'})).toBeVisible();
 });

@@ -6,7 +6,9 @@ import {ZigiTitle} from './zigi-title';
 /**
  * ZIGi's panel header (Session Z-Cloud Part 2, ADR-019): one row at every width. ZIGi's figure, the title with a small
  * status line, then glyph buttons in the nebula style of the launcher's chevron: a new chat, expand or shrink and pop out
- * (computers only), "⋯" for the rest, and close. Every button keeps a 44 px target, an accessible name and a tooltip. The
+ * (computers and tablets), "⋯" for the rest, and close. Panel polish round 2: on a phone the row keeps only "+", "⋯" and
+ * "×": a full-screen phone panel has nothing to expand, and a phone never offers the mini window (zigi-mini-window), so
+ * neither moves into "⋯" there. Every button keeps a 44 px target, an accessible name and a tooltip. The
  * "⋯" list (which also holds "Change model" when an AI is connected) is a disclosure (a button and the buttons and links it shows), so each entry keeps its role and name; arrow
  * keys move between entries, Escape closes it and gives the focus back.
  */
@@ -75,7 +77,7 @@ export type ChatHeaderProps = {
 };
 export function ChatHeader({titleId, figure, status, premium, phone, miniWindow, miniSupported, expanded, onNew, onExpand, onPopOut, onBackToTab, onClose, more, extra}: ChatHeaderProps) {
   const gradient = `zigi-glyph-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  return <header className="ai-chat-head">
+  return <header className="ai-chat-head" data-phone={phone ? '' : undefined}>
     <GlyphGradient id={gradient}/>
     {figure}
     <div className="ai-chat-identity">

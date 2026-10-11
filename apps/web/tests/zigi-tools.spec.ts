@@ -89,7 +89,7 @@ test('the AI asks for records: ZIGi runs the tools here and sends the results ba
   // After a reload the chat keeps what was looked at (never the results), and makes them again under today's gate.
   await page.reload();
   await openChat(page);
-  await panel(page).getByRole('button', {name: /^More/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
   await panel(page).getByRole('button', {name: /Tell me about my week/}).click();
   const kept = panel(page).locator('.ai-turn-assistant').last().getByRole('group', {name: 'ZIGi looked at'});
   await expect(kept).toContainText('Meditate · this month');
@@ -134,13 +134,17 @@ test('Attach mode, Think deeper with the deep model, and "ask me first" once the
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK from mock-chat');
   expect(bodies).toHaveLength(1); expect(bodies[0]!.tools).toBeUndefined();
   expect(bodies[0]!.messages[0]!.content).not.toContain('You may also call the read-only tools');
-  // Think deeper: the same question with the deep model.
+  // Think deeper: the same question with the deep model (panel polish round 2, mechanics: in the reply's "⋯").
+  await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'More for this reply'}).click();
   await panel(page).getByRole('button', {name: 'Think deeper'}).click();
   await panel(page).getByRole('group', {name: 'Your monthly cap is reached'}).getByRole('button', {name: 'Send anyway'}).click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK from mock-deep');
   expect(bodies).toHaveLength(2); expect(bodies[1]!.model).toBe('mock-deep');
   expect(bodies[1]!.messages.filter(m => m.role === 'user').map(m => m.content)).toEqual(['Tell me about my week']);
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('Thought deeper with mock-deep');
+  await expect(panel(page).getByRole('button', {name: 'Think deeper'})).toHaveCount(0);
+  await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'More for this reply'}).click();
+  await expect(panel(page).locator('.ai-turn-assistant').last().getByRole('group', {name: 'More for this reply'})).toBeVisible();
   await expect(panel(page).getByRole('button', {name: 'Think deeper'})).toHaveCount(0);
 });
 

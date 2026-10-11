@@ -46,7 +46,7 @@ function YoursList({healthShared, onAsk}: {healthShared: boolean; onAsk: (text: 
   return <>
     <ul className="ai-yours" aria-label="Your own suggestions">
       {shown.map(s => <li key={s.key} className="ai-yours-item">
-        <button type="button" className="ai-chip ai-yours-ask" onClick={() => onAsk(s.text)}><span className="ai-yours-tag">Yours</span> {s.text}</button>
+        <button type="button" className="ai-chip ai-yours-ask" title={s.text} onClick={() => onAsk(s.text)}><span className="ai-yours-tag">Yours</span> {s.text}</button>
         <button type="button" className="ai-yours-pin" aria-pressed={s.pinned} aria-label={`${s.pinned ? 'Unpin' : 'Pin'}: ${s.text}`} data-tip={s.pinned ? 'Unpin' : 'Pin to the top'} onClick={() => change(() => record.update(r => setPinned(r, s.key, !s.pinned)), s.pinned ? 'Unpinned.' : 'Pinned to the top.')}>
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M9 4h6l-1 6 3 3v2H7v-2l3-3zM12 15v5" fill={s.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/></svg></button>
         <button type="button" className="ai-yours-remove" aria-label={`Remove: ${s.text}`} data-tip="Remove" onClick={() => change(() => record.update(r => removeSuggestion(r, s.key)), 'Removed from this device.')}><span aria-hidden="true">×</span></button>

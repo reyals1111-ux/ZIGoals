@@ -50,7 +50,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
   return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>
-    <header className="ai-card-head"><span className="ai-card-where">{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
+    <header className="ai-card-head"><span className="ai-card-where" title={`${card.where}${card.day ? ` · ${card.day}` : ''}`}>{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
     <h4 id={titleId}>{card.title}</h4>
     <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
     {card.safety && <p className="ai-card-safety">{card.safety}</p>}

@@ -47,6 +47,8 @@ const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
  * a device setting; keys live in the encrypted key store and are never shown back. Session V Part 18 sorts it into
  * five groups: Connection, Privacy & data, ZIGi's look and feel (with Voice since Session Z-Cloud Part 3), Reminders, Advanced.
  */
+/** Panel polish round 2: a switch's name is one short line; a part in brackets becomes its description ("Food entries", "Typed or from a photo."). */
+const switchLabel = (text: string): [string, string | undefined] => { const m = /^(.+?) \((.+)\)$/.exec(text); return m ? [m[1]!, `${m[2]![0]!.toUpperCase()}${m[2]!.slice(1)}.`] : [text, undefined]; };
 const PAGE_NOTES: Record<PageArea, string> = {
   today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates',
   goals: 'each goal\'s name, target, progress and next planned date; never account, wallet or chain details',
@@ -242,8 +244,9 @@ export default function AiSettings() {
       {data.enabled && <div className="ai-connection">
         <ZigiAvatar state="idle" size={44} decorative/>
         <div className="ai-connection-copy">
-          <strong>{data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`}</strong>
-          <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
+          {/* Panel polish round 2: the connection's name is one line (an ellipsis on a long model name; the whole name is its tooltip). */}
+          {(name => <strong className="ai-one-line" title={name}>{name}</strong>)(data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`)}
+          <small className={data.mode === 'local' ? 'ai-one-line' : undefined} title={data.mode === 'local' ? data.baseUrl ?? undefined : undefined}>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
         </div>
         <div className="ai-card-actions">
           {connected && <button type="button" className="secondary" disabled={modelsBusy} onClick={() => models ? setModels(null) : void loadModels()}>{modelsBusy ? 'Loading models…' : models ? 'Hide models' : 'Change model'}</button>}
@@ -252,7 +255,7 @@ export default function AiSettings() {
       </div>}
       {models && <div className="ai-setup-form"><ModelPicker models={models} value={data.model} onChange={id => { save(s => ({...s, model: id}), `Model changed to ${id}.`); setModels(null); }}/></div>}
       {data.enabled && data.mode !== 'subscription' && data.provider && !showcase && <div className="ai-setup-form ai-key-replace">
-        <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
+        <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key" note="Kept on this device, encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
         <label className="field">Replace the key<input type="password" value={keyDraft} onChange={e => setKeyDraft(e.target.value)} autoComplete="off" spellCheck={false} autoCapitalize="off" placeholder="Paste a new key"/></label>
         <div className="ai-card-actions"><button type="button" className="secondary" disabled={!keyDraft.trim()} onClick={() => void replaceKey()}>Use this key</button></div>
       </div>}
@@ -287,9 +290,10 @@ export default function AiSettings() {
     {data.enabled && options.loaded && <Group id="zigi-auto-accept" title="Auto-accept">
       <p className="ai-note">Off by default. A kind you switch on is added by ZIGi without a tap when it proposes it: each addition shows for ten seconds with Undo, is listed under Activity &rarr; Actions by ZIGi, and counts toward a daily cap. Weight, fasting and anything about money are always confirmed by you.</p>
       {AUTO_ACCEPT_GROUPS.map(group => <div key={group.title} className="ai-auto-accept-group">
-        <h4>{group.title}{group.health ? ' (only while Health is shared with ZIGi)' : ''}</h4>
+        <h4>{group.title}</h4>
+        {group.health && healthOpen && <p className="ai-note">Only while Health is shared.</p>}
         {group.health && !healthOpen && <p className="ai-note" data-testid="auto-accept-health-closed">{AUTO_ACCEPT_REASONS['health-gate-closed']} Turn on &ldquo;Include Health&rdquo; under Privacy &amp; data first.</p>}
-        <div className="ai-switch-list">{group.kinds.map(kind => <Switch key={kind} checked={autoAcceptOn(options.data, kind)} disabled={!!group.health && !healthOpen} onChange={next => saveOptions(o => setAutoAcceptKind(o, kind, next))} label={AUTO_ACCEPT_LABELS[kind]}/>)}</div>
+        <div className="ai-switch-list">{group.kinds.map(kind => { const [label, detail] = switchLabel(AUTO_ACCEPT_LABELS[kind]); return <Switch key={kind} checked={autoAcceptOn(options.data, kind)} disabled={!!group.health && !healthOpen} onChange={next => saveOptions(o => setAutoAcceptKind(o, kind, next))} label={label} note={detail}/>; })}</div>
       </div>)}
       <label className="field">Daily cap<input type="number" min={AUTO_ACCEPT_CAP.min} max={AUTO_ACCEPT_CAP.max} step={1} value={autoAcceptCap(options.data)} onChange={e => { const v = Number(e.target.value); if (Number.isInteger(v) && v >= AUTO_ACCEPT_CAP.min && v <= AUTO_ACCEPT_CAP.max) saveOptions(o => setAutoAcceptCap(o, v)); }}/><small>{autoAcceptedOn(options.data, localDate())} of {autoAcceptCap(options.data)} added by ZIGi today. Past the cap, cards wait for your tap.</small></label>
     </Group>}
@@ -301,7 +305,7 @@ export default function AiSettings() {
         <label className="field">Context budget (tokens)<input type="number" min={CONTEXT_BUDGET.min} max={CONTEXT_BUDGET.max} step={500} value={data.contextBudgetTokens} onChange={e => { const v = Number(e.target.value); if (v >= CONTEXT_BUDGET.min && v <= CONTEXT_BUDGET.max) save(s => ({...s, contextBudgetTokens: Math.round(v)})); }}/><small>Page data plus the last messages, estimated at four characters a token; above it ZIGi asks before sending. Default {CONTEXT_BUDGET.default}.</small></label>
       </div>
       <h4>Your own instructions</h4>
-      <label className="field">Sent with every message (up to 2,000 characters)<textarea value={data.customInstructions} maxLength={2000} rows={3} onChange={e => save(s => ({...s, customInstructions: e.target.value}))} placeholder="For example: answer in Spanish; keep it under five sentences; I prefer kilograms."/></label>
+      <label className="field">Sent with every message<textarea value={data.customInstructions} maxLength={2000} rows={3} onChange={e => save(s => ({...s, customInstructions: e.target.value}))} placeholder="For example: answer in Spanish; keep it under five sentences; I prefer kilograms."/><small>Up to 2,000 characters.</small></label>
       <h4>Turn off</h4>
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}

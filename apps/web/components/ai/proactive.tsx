@@ -73,7 +73,8 @@ export function BriefLines({brief, footer}: {brief: Brief; footer?: ReactNode}) 
   return <section className="ai-brief" aria-label="Your morning brief">
     <p className="ai-brief-title">Your day, from your records</p>
     <ul className="ai-brief-lines">{brief.lines.map(line => <li key={line}>{line}</li>)}</ul>
-    <p className="ai-note ai-brief-label">{BRIEF_LABEL}</p>
+    {/* Panel polish round 2: one short line; the full label is its tooltip and what a screen reader reads. */}
+    <p className="ai-note ai-brief-label ai-one-line" title={BRIEF_LABEL}><span aria-hidden="true">On this device · no AI used</span><span className="ai-sr-only">{BRIEF_LABEL}</span></p>
     {footer}
   </section>;
 }
@@ -93,8 +94,8 @@ export function ProactiveChips({context, connected, onChip, onView}: {context: C
     catch { setMessage('This could not be hidden on this device.'); }
   };
   return <div className="ai-chips ai-proactive-chips" role="group" aria-label="Suggestions">
-    {chips.map(chip => chip.id.startsWith('starter:') ? <button key={chip.id} type="button" className="ai-chip" onClick={() => run(chip)}>{chip.text}</button>
-      : <span key={chip.id} className="ai-chip-pair"><button type="button" className="ai-chip ai-chip-data" onClick={() => run(chip)}>{chip.text}</button><button type="button" className="ai-chip-hide" onClick={() => hide(chip)} aria-label={`Hide for today: ${chip.text}`} title="Hide for today">×</button></span>)}
+    {chips.map(chip => chip.id.startsWith('starter:') ? <button key={chip.id} type="button" className="ai-chip" title={chip.text} onClick={() => run(chip)}>{chip.text}</button>
+      : <span key={chip.id} className="ai-chip-pair"><button type="button" className="ai-chip ai-chip-data" title={chip.text} onClick={() => run(chip)}>{chip.text}</button><button type="button" className="ai-chip-hide" onClick={() => hide(chip)} aria-label={`Hide for today: ${chip.text}`} title="Hide for today">×</button></span>)}
     {message && <span className="ai-sr-only" role="status">{message}</span>}
   </div>;
 }

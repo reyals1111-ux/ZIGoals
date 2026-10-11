@@ -291,3 +291,13 @@ html[data-ai-sheet],html[data-ai-sheet] body{overflow:hidden;overscroll-behavior
 .ai-your-questions{margin-top:18px;padding-top:12px;border-top:1px solid var(--line,#2a325a);display:grid;gap:8px}
 .ai-your-questions-title{margin:0;font-size:16px;font-weight:650}
 .ai-your-questions .ai-card-actions button{min-height:44px}
+/* Panel polish round 2: one line, an ellipsis when it does not fit (the element's title holds the whole text). */
+.ai-one-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Panel polish round 2: a link at the end of a sentence moves to the next line whole, never split. */
+.ai-settings .fine .text-link{white-space:nowrap}
+/* The usage table: each cell one line; a narrow phone scrolls the table sideways. The photo switch: the model's name gives way. */
+.ai-usage-scroll{overflow-x:auto;max-width:100%}
+.ai-usage-table th,.ai-usage-table td{white-space:nowrap}
+.ai-check:has(.ai-check-name){display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;white-space:nowrap;min-width:0}
+.ai-check-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ai-connection-copy{grid-template-columns:minmax(0,1fr)}

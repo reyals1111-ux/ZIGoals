@@ -77,6 +77,15 @@ html[data-zigi-launcher="shown"] .zigi-explain-corner{display:inline-flex;positi
 html[data-zigi-launcher="shown"] .habit-consistency-month{position:relative}
 /* Session Z-Cloud Part 2: ZIGi's full name keeps the spaces around its dot (zigi-title.tsx). */
 .ai-title-dot{white-space:pre}
+/* Panel polish round 2: the name in Settings is one line; on a phone its size follows the width (measured: the name is
+   16.25 font-sizes wide, the section's text 66 px narrower than the screen), 15.3 px at 320, the heading's 22.4 from 430. */
+.ai-settings-title{white-space:nowrap}
+@media (max-width:600px){.ai-settings .ai-settings-title{font-size:min(1.4rem,calc((100vw - 66px) / 16.6))}}
+/* Its eyebrow is one line too: on a phone only the tag stays (the name below says what the section is). */
+.ai-settings-eyebrow{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;white-space:nowrap;min-width:0}
+.ai-settings-eyebrow-text{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ai-settings-eyebrow .ai-chat-premium{flex:none}
+@media (max-width:600px){.ai-settings-eyebrow-text{display:none}}
 /* Session Z-Cloud Part 3: ZIGi's listening waves (voice-waves.tsx and the launcher). Three nebula rings flow outward,
    sized and lit by the microphone's level (--zigi-level, 0–1); transforms and opacity only. Reduced motion and Motion
    Off: one still ring with a glow and a level bar, nothing pulsing. Touch holds on the launcher and the microphone never

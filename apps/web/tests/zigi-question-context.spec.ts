@@ -86,7 +86,7 @@ test('AI path (MOCK local server) on Health: a question that names the habit car
   await composer.fill('Help me meditate more this month');
   const chips = panel(page).getByRole('group', {name: 'Records ZIGi chose for this question'});
   await expect(chips).toContainText('Meditate · this month');
-  await panel(page).getByText('What your AI sees').click();
+  await panel(page).getByLabel('What your AI sees').click();
   await expect(panel(page).locator('.ai-context-preview pre').last()).toContainText(`"valueText":"${meditationMinutes()} minutes"`);
   await page.getByRole('button', {name: 'Send', exact: true}).click();
   await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: here is a gentle idea.');

@@ -42,10 +42,10 @@ controls) and the composer's centre line (centres of the box, the mic and Send).
 | B3 | The composer's box, mic and Send align on one line; the box grows to five lines, then scrolls; Send keeps its size; the box's global margin is cleared. | spread 0 at every width (one line) |
 | B4 | The panel is opaque deep navy on every width. | captures |
 | B5 | A new chat is one greeting ("Hi, I’m ZIGi. Ask about your records or tell me what to log. Nothing is written until you add a card.") and the box. Ideas, "Your day" (the brief, Your week, Patterns) and "Yours" wait in the Suggestions sheet, opened from a chip by the box; the first-run tips live in its Ideas tab. The data line is one row (the switch and "What your AI sees"; the data-mode sentence moved inside it). | captures |
-| B6 | "Jump to the latest message" is a slim row of its own above the data line. | 0 covered |
+| B6 | "Jump to the latest message" is a slim row of its own above the data line (round 2: a floating pill, R6). | 0 covered |
 | B7 | Every control in the panel ≥ 44 × 44 (chips, Log mode, the data switch, "What your AI sees", the × chips, reply actions, Edit, Clear all, the History and Meet ZIGi links). | 0 under 44 px in the panel |
-| B8 | The status line and History's titles wrap instead of ending in an ellipsis. | 0 clipped |
-| B9 | Not connected: one compact line above the box, "Not connected to an AI yet" · Set up · "Which setup fits me?"; the same short greeting; the examples in the sheet. | one or two lines, ≤ 112 px, never over the chat |
+| B8 | The status line and History's titles wrap instead of ending in an ellipsis (round 2: one line each, with the whole text in the tooltip, R2 and R10). | 0 clipped |
+| B9 | Not connected (round 2: one row, R9): one compact line above the box, "Not connected to an AI yet" · Set up · "Which setup fits me?"; the same short greeting; the examples in the sheet. | one or two lines, ≤ 112 px, never over the chat |
 | B10 | The new name everywhere in this lane; strings in `lib/ai` (Z-Local's) asked for in the handoff. | text |
 | — | Still listed by the script and not ZIGi's: on Settings → ZIGi and Meet ZIGi at phone widths, a control scrolled under the phone's fixed top bar or tab bar at the moment of measuring (the page scrolls under them by design; focus scroll padding keeps a focused control clear). | page layout, unchanged |
 
@@ -56,3 +56,41 @@ controls) and the composer's centre line (centres of the box, the mic and Send).
 - The person's own frequent questions (`zigoals:zigi-suggestions:v1`): see ADR-019 and `lib/zigi-suggestions.ts`.
 
 Images: `review/session-z-cloud-screens`, folders `before/` and `after/` (one PNG per state and width; `index.md` pairs them).
+
+## Panel polish round 2 (owner follow-up, 2026-10-11): no chrome wraps
+
+**The rule:** in ZIGi's panel every line of chrome is one line at 320, 360, 390, 430, 768, 1024 and 1440 px, in the panel,
+expanded and in the mini window. Where it meets another rule (44 px targets, the name never under 15 px, never an
+ellipsis on the name) the measurement is in ADR-019 C45. Evidence: **local**, MOCK answers, production builds.
+
+| # | What changed | Proof |
+|---|---|---|
+| R1 | The name on one line: "ZIGi" in the nebula flow, "Your Personal" white, the flow from "AI" to the end (the app's headings); its size follows its box (`min(18px, 5.95cqi)`); the panel is 548 px on computers; phones keep "+", "⋯", "×" and a 28 px figure (Expand and Pop out do nothing on a full-screen phone panel, C45 c). | `zigi-oneline-z`: title one line, before the buttons, one header row, no overlap, every width; sizes in C45 |
+| R2 | The status line: "via your local server · <model>" / "via ZIGoals AI · Sonnet 5.5" / "not connected yet", the model's name with an ellipsis, the chevron inline, the full name in its tooltip and the switcher; the premium tag drops first. | `zigi-oneline-z`, `zigi-hosted` |
+| R3 | Under each reply one row: the time on the left, then Copy, Read aloud, Regenerate, Useful, Not useful and "⋯" (Copy as Markdown, Think deeper, Continue in my AI, the token count), each 44 px with a name and a tooltip; shown on the latest reply, on hover, focus or tap on earlier ones. A reply narrower than 340 px shows its time first in the source line (C45 d). | `zigi-oneline-z` (buttons ≥ 44 px with tooltips, earlier reply on focus, one time, no text links) |
+| R4 | The source: one short line ("From your AI · local server"), the full sentence in its tooltip and for screen readers. | `zigi-oneline-z` |
+| R5 | The data line: the switch, "Share this page's data · Habits + Health" and an info button that opens "What your AI sees" (the token count is there). On phones the same row (C45 b). | `zigi-oneline-z`, `your-ai`, `zigi-question-context` |
+| R6 | "Jump to the latest message" floats over the log, bottom centre, and moves nothing. | `zigi-oneline-z` (the log keeps its size) |
+| R7 | The chips row is one line and scrolls sideways if more chips come; the voice chip is its icon under 350 px; question chips end in an ellipsis with the whole question as the tooltip. | `zigi-oneline-z`, the item 10 scan |
+| R8 | The composer: the box, the mic and Send on one centre line at every width; the placeholder "Ask ZIGi…" (one line at 320 px). | `zigi-oneline-z`, `zigi-face-z` |
+| R9 | Not connected: "Set up" and "Which setup fits me?" on one row; the sentence beside them where it fits (≥ 470 px). | `zigi-oneline-z`, `zigi-face-z` (≤ 60 px, was ≤ 112) |
+| R10 | History: each chat one line of title and one of details (short date), Pin, Rename and Delete as 44 px icons with the same names; the page filter beside its word. | `zigi-oneline-z`, `zigi-chat-polish` |
+| R11 | Cards: the "where" line is one line (ellipsis, tooltip); a card never grows past its reply. | `zigi-oneline-z` (nothing outside the panel) |
+| R12 | Settings → ZIGi: the name one line on phones (15.3 px at 320), the eyebrow keeps only its tag on phones, the connection's name one line, shorter labels, the usage table scrolls sideways (C45 g). Meet ZIGi: its eyebrow one line. The brief's label "On this device · no AI used". | the item 10 scan |
+| R13 | Found by the new spec and fixed: an earlier reply's buttons stayed invisible when a keyboard reached them (a CSS rule outranked the focus rule). | `zigi-oneline-z` |
+
+**Item 10, the last look at every ZIGi surface** (a temporary scan, not committed: every element's own text counted in
+lines with `Range.getClientRects`, every control checked against the viewport, both projects, 320–1440). Surfaces: not
+connected, the setup chooser, the voice disclosure and listening (MOCK recognition), connected and empty, the Suggestions
+sheet's three tabs, "What your AI sees", cards with the auto-accept toast, receipts and Undo, the reply's "⋯", the model
+switcher, the header's "⋯", History, Customize, Settings → ZIGi, Meet ZIGi, Help's ZIGi section. **Before the fixes**
+(the first round-2 build), at 320 px: the Suggestions sheet wider than the panel (its close button and a chip's × off
+screen), the reply's last two buttons off screen at 320–390 px, History's rows on up to eight lines, the setup line's
+sentence on two lines at 430 px, a card's "where" line on two lines, Settings' title, eyebrow, three labels, a legend
+and the usage table on two or three lines, Meet ZIGi's eyebrow on two lines. **After:** labels one line on every
+surface and width; what still takes two lines is prose (greetings, notes, descriptions, the person's own words, the live
+transcript) and Help's section eyebrow (C45 h). The scan's one remaining flag, the model list's option inside a closed
+`<details>`, is a measuring artefact (one line when open).
+
+Before and after pictures of the phone panel (320–430 and 768–1440): `review/session-z-cloud-screens`, folder
+`round2/` (`index.md` pairs them).

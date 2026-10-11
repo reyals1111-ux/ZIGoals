@@ -16,3 +16,6 @@
 .meet-zigi-sizes figcaption{font-size:13px;color:var(--muted,#aab2d9)}
 .meet-zigi-card button{justify-self:start;min-height:44px}
 .meet-zigi-card[data-offscreen] .zigi img{animation-play-state:paused}
+/* Panel polish round 2: ZIGi's name as the eyebrow stays one line; a narrow phone tightens its letter spacing. */
+.meet-zigi .page-eyebrow{white-space:nowrap}
+@media (max-width:380px){.meet-zigi .page-eyebrow{letter-spacing:.04em}}
