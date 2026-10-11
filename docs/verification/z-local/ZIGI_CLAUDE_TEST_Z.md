@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 44 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 46 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -143,8 +143,10 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 44 summary file(s) on 202
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **162/170 · 95.3 %** | 2,755 | 0 | $1.20 |
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **168/170 · 98.8 %** | 2,781 | 0 | $1.13 |
 | ui-panel-haiku | `claude-haiku-5-5` | Chrome · desktop | **125/150 · 83.3 %** | 2,287 | 0 | $0.07 |
+| ui-panel-haiku-2 | `claude-haiku-5-5` | Chrome · desktop | **140/150 · 93.3 %** | 2,319 | 0 | $0.07 |
 | ui-panel-opus | `claude-opus-5-5` | Chrome · desktop | **57/60 · 95.0 %** | 4,063 | 0 | $0.97 |
 | ui-panel-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **121/150 · 80.7 %** | 2,766 | 0 | $1.03 |
+| ui-panel-sonnet-2 | `claude-sonnet-5-5` | Chrome · desktop | **143/150 · 95.3 %** | 2,566 | 0 | $1.05 |
 | ui-webkit-conv-sonnet | `claude-sonnet-5-5` | WebKit · desktop | **5/5 · 100.0 %** | 4,645 | 0 | $0.12 |
 | ui-webkit-panel-sonnet | `claude-sonnet-5-5` | WebKit · desktop | **57/60 · 95.0 %** | 2,547 | 0 | $0.46 |
 <!-- tables:end -->
@@ -159,7 +161,7 @@ summary is in.
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 44 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 46 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
