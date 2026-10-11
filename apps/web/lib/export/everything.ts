@@ -1,7 +1,7 @@
 import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
-import {isDeletedHabit, withoutDeletedHabits} from '../habit-delete';
+import {isDeletedHabit, isDeletedHabitRef, withoutDeletedHabits} from '../habit-delete';
 import {HEALTH_STORAGE_KEY, healthSchema, type HealthData} from '../health';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, type DashboardSettings} from '../dashboard-settings';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
@@ -132,6 +132,21 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
   // Session Z-Cloud Part 4.6: a habit deleted for good is a nameless shell kept for sync; the export leaves it out.
   const shells = new Set((parsedHabits?.habits ?? []).filter(isDeletedHabit).map(h => h.id));
   if (shells.size) { const raw = json.modules.habits as {habits: {id: string}[]}; json.modules.habits = {...raw, habits: raw.habits.filter(h => !shells.has(h.id))}; }
+  // Gate B security read: what still names or points at a deleted habit goes too: ZIGi's action notes ("Check-in: <name>"),
+  // and the Health links and per-day markers for it (they stay in the records, unused, and are left out of the copy).
+  if (shells.size) {
+    const actions = json.device.aiActions as {actions?: {activityId?: unknown}[]} | undefined;
+    if (actions && Array.isArray(actions.actions)) json.device.aiActions = {...actions, actions: actions.actions.filter(a => typeof a.activityId !== 'string' || !isDeletedHabitRef(a.activityId, shells))};
+    const unlinked = (group: unknown): unknown => {
+      if (!group || typeof group !== 'object') return group;
+      const g = group as {links?: {habitId?: unknown}[]; applied?: {habitId?: unknown}[]};
+      const keep = (list: {habitId?: unknown}[] | undefined) => Array.isArray(list) ? list.filter(item => !(typeof item?.habitId === 'string' && shells.has(item.habitId))) : list;
+      return {...g, ...(g.links ? {links: keep(g.links)} : {}), ...(g.applied ? {applied: keep(g.applied)} : {})};
+    };
+    if (json.device.habitHealthLinks !== undefined) json.device.habitHealthLinks = unlinked(json.device.habitHealthLinks);
+    const rawHealth = json.modules.health as {habitLinks?: unknown} | undefined;
+    if (rawHealth && typeof rawHealth === 'object' && rawHealth.habitLinks) json.modules.health = {...rawHealth, habitLinks: unlinked(rawHealth.habitLinks)};
+  }
   const habits = parsedHabits && withoutDeletedHabits(parsedHabits);
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);

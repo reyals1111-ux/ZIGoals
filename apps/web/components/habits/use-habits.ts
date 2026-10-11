@@ -5,7 +5,7 @@ import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
-import { withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
+import { deletedHabitIds, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
 
 /** The previous read's unchanged habit objects are kept (lib/habit-sharing.ts), so memoized cards and caches hold. */
@@ -45,6 +45,8 @@ export function useHabits() {
   // Session Z-Cloud Part 4.6: habits deleted for good are shells kept for sync; nothing shows them. Every write below is a
   // change of the latest whole record, shells included, so none is ever dropped.
   const visible = useMemo(() => withoutDeletedHabits(store.data), [store.data]);
+  // Gate B: the shells' ids, for a Goal's supporting habit (never reuse one) and Activity (never name one).
+  const deletedIds = useMemo(() => deletedHabitIds(store.data), [store.data]);
   const data = useSharedHabitData(visible);
   const [today, setToday] = useState(localDate);
   const timeZone=data.timeZone;
@@ -92,7 +94,7 @@ export function useHabits() {
   const latest = useRef(data); latest.current = data;
   const journalData = useCallback(() => latest.current, []);
   const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, journalData, ...actions }), [today, update, timeZone, schemaVersion, journalData, actions]);
-  return { ...store, data, today, ...actions, card };
+  return { ...store, data, today, deletedIds, ...actions, card };
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */

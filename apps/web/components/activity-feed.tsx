@@ -16,6 +16,7 @@ import "./activity-product.css";
 import { formatTime } from "../lib/visual-format";
 import { activityKeys } from "./activity-keys";
 import { useZigiActions } from "./activity/use-zigi-actions";
+import { isDeletedHabitRef } from "../lib/habit-delete";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -31,7 +32,8 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).
   const shownIds = new Set(base.map(event => event.id));
-  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
+  // Gate B: a note that names a habit deleted for good is left out (the habit's name went with it).
+  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId) && !isDeletedHabitRef(a.activityId, habits.deletedIds)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
   // Session X-Local Part 5b after the merge: a record ZIGi added under auto-accept says so on its own event too (before the merge
   // the feed listed such records only as ZIGi's entries; X-Cloud's feed now shows the record itself, marked by ZIGi).
   const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));

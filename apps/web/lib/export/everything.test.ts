@@ -10,6 +10,8 @@ import {CSV_FILES, EVERYTHING_KEYS, buildEverythingZip, collectEverything, csvCe
 import {readStoredZip} from './zip-reader';
 import {deleteHabitForGood} from '../habit-delete-write';
 import {scheduleHabitState} from '../habit-actions';
+import {HABIT_HEALTH_LINKS_KEY} from '../habit-health-links/schema';
+import {AI_ACTIONS_KEY} from '../ai/store/keys';
 
 const NOW = new Date('2026-10-03T12:00:00.000Z'), APP = {now: NOW, version: '0.0.0-test', commit: 'abc1234', localSimulation: null};
 const lines = (text: string) => text.split('\r\n');
@@ -100,5 +102,18 @@ describe('T4 export everything', () => {
     expect(exported).toHaveLength(habits.habits.length - 1);
     expect(collected.csv['habits.csv']).not.toContain(target.id);
     expect(collected.csv['check-ins.csv']).not.toContain(target.id);
+  });
+  test('Gate B: ZIGi\'s notes and the Health links or markers that point at a deleted habit are left out too; the others stay', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), target = habits.habits[0]!, other = habits.habits[1]!;
+    const archived = scheduleHabitState(habits, target.id, 'archived', '2026-09-21', new Date('2026-09-20T12:00:00.000Z'));
+    const {data} = deleteHabitForGood(archived, target.id, new Date('2026-09-22T12:00:00.000Z'));
+    const notes = {version: 1, actions: [{activityId: `habit:${target.id}:2026-09-20`, title: `Check-in: ${target.title}`}, {activityId: `habit-created:${target.id}`, title: `Habit created: ${target.title}`}, {activityId: `habit:${other.id}:2026-09-20`, title: `Check-in: ${other.title}`}, {activityId: 'water:1', title: 'Water'}]};
+    const links = {version: 1, links: [{habitId: target.id, rule: 'steps'}, {habitId: other.id, rule: 'steps'}], applied: [{habitId: target.id, date: '2026-09-20'}, {habitId: other.id, date: '2026-09-20'}]};
+    const collected = collectEverything({[HABITS_KEY]: JSON.stringify(data), [AI_ACTIONS_KEY]: JSON.stringify(notes), [HABIT_HEALTH_LINKS_KEY]: JSON.stringify(links)}, APP);
+    expect((collected.json.device.aiActions as typeof notes).actions.map(a => a.activityId)).toEqual([`habit:${other.id}:2026-09-20`, 'water:1']);
+    expect(JSON.stringify(collected.json.device.aiActions)).not.toContain(target.title);
+    expect((collected.json.device.habitHealthLinks as typeof links).links.map(l => l.habitId)).toEqual([other.id]);
+    expect((collected.json.device.habitHealthLinks as typeof links).applied.map(l => l.habitId)).toEqual([other.id]);
   });
 });

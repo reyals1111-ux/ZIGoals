@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createHabit, emptyHabitData, habitDataSchema, logHabitValue, type HabitData} from './habits';
 import {scheduleHabitState} from './habit-actions';
-import {DELETED_HABIT_MARK, isDeletedHabit, withoutDeletedHabits} from './habit-delete';
+import {DELETED_HABIT_MARK, deletedHabitIds, isDeletedHabit, isDeletedHabitRef, withoutDeletedHabits} from './habit-delete';
 import {deleteHabitForGood, undoDeleteHabit} from './habit-delete-write';
 import {validateData} from './vault/account-data';
 import {mergePrivateData} from './vault/cloud-sync';
@@ -55,6 +55,38 @@ describe('Delete for good', () => {
     expect(undoDeleteHabit(after, deleted)).toEqual(habitDataSchema.parse({...before, habits: before.habits.map(h => h.id === B ? {...h, updatedAt: after.habits.find(x => x.id === B)!.updatedAt} : h)}));
     const touched = {...after, habits: after.habits.map(h => h.id === A ? {...h, updatedAt: '2026-09-26T09:00:00.000Z'} : h)};
     expect(() => undoDeleteHabit(touched, deleted)).toThrow(/changed since/);
+  });
+  // Gate B security read (ADR-019 C44).
+  it('needs the archive to be in effect, not only scheduled: a shell is never still due', () => {
+    const data = journal(); // archived from 2026-09-21
+    expect(() => deleteHabitForGood(data, A, new Date('2026-09-20T12:00:00.000Z'))).toThrow('The archive starts on 2026-09-21; the habit can be deleted for good from then.');
+    expect(() => deleteHabitForGood(data, A, new Date('2026-09-21T12:00:00.000Z'))).not.toThrow();
+  });
+  it('says what stays: the rules keep the type, unit, target and schedule, and nothing else names the habit', () => {
+    const before = journal(), original = before.habits.find(h => h.id === A)!, shell = deleteHabitForGood(before, A, T2).data.habits.find(h => h.id === A)!;
+    expect(shell.rules).toEqual(original.rules);
+    expect(JSON.stringify(shell.rules)).toContain('cigarettes');
+    expect(shell.endCondition).toEqual(original.endCondition);
+    expect(JSON.stringify({...shell, rules: [], ruleRevisions: []})).not.toMatch(/cigarettes|Smoke-free|Private reason|Very private|a hard day/);
+  });
+  it('a habit stacked after the deleted one keeps its own updatedAt, so its check-ins elsewhere stay ordinary edits', () => {
+    const before = journal(), read = before.habits.find(h => h.id === B)!, after = deleteHabitForGood(before, A, T2).data.habits.find(h => h.id === B)!;
+    expect(after.stackAfterId).toBeUndefined();
+    expect(after.updatedAt).toBe(read.updatedAt);
+    // Another device checks in on Read meanwhile: the merge takes both, with no review.
+    const remote = logHabitValue(before, B, '2026-09-25', 1, {}, T2);
+    const merged = mergePrivateData({habits: JSON.stringify(before)}, {habits: JSON.stringify(deleteHabitForGood(before, A, T2).data)}, {habits: JSON.stringify(remote)});
+    const habits = habitDataSchema.parse(JSON.parse(merged.habits!)).habits;
+    expect(habits.find(h => h.id === B)!.stackAfterId).toBeUndefined();
+    expect(habits.find(h => h.id === B)!.entries).toHaveLength(1);
+    expect(isDeletedHabit(habits.find(h => h.id === A)!)).toBe(true);
+  });
+  it('finds what names a deleted habit: ZIGi\'s notes for its check-ins, creation and edits', () => {
+    const data = deleteHabitForGood(journal(), A, T2).data, ids = deletedHabitIds(data);
+    expect([...ids]).toEqual([A]);
+    for (const note of [`habit:${A}:2026-09-02`, `habit-created:${A}`, `habit-edit:${A}:2026-09-20T09:00:00.000Z`]) expect(isDeletedHabitRef(note, ids), note).toBe(true);
+    for (const note of [`habit:${B}:2026-09-02`, `habit-created:${B}`, `water:${A}`, 'habit:', `habit-edit:${A}`]) expect(isDeletedHabitRef(note, ids), note).toBe(false);
+    expect(isDeletedHabitRef(`habit:${A}:2026-09-02`, new Set())).toBe(false);
   });
   it('a habit a person named "Deleted habit" is never taken for a shell', () => {
     const data = createHabit(emptyHabitData(), {title: 'Deleted habit', category: 'Deleted', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, T0, A);
