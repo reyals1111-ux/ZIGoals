@@ -163,6 +163,15 @@ describe('what makes it ask for the secret again',()=>{
    expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);expect(element.textContent).toContain(REMEMBER_EXPIRED);
   }finally{clock.mockRestore();}
  });
+ // Gate C (the security read): a record dated more than a day ahead (remembered by a clock that was ahead) never lasts past 30 days.
+ test('a record dated more than a day ahead counts as expired: deleted, and the secret asked for once',async()=>{
+  await remembered();
+  const now=Date.now(),clock=vi.spyOn(Date,'now');
+  try{
+   clock.mockReturnValue(now-2*86400000);await reload();await verified();
+   expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);expect(element.textContent).toContain(REMEMBER_EXPIRED);
+  }finally{clock.mockRestore();}
+ });
  test('a new sign-in (another server session) needs the secret once',async()=>{
   await remembered();
   h.session=S2;await reload();await verified();expect(opened()).toBe(false);expect(await readDevices()).toEqual([]);

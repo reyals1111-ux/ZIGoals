@@ -12,9 +12,9 @@ import {verifierOf} from '../../workers/private-sync/step-up.mjs';
  * proof; with it off, or for a vault without a verifier (every vault #32–#35 made), nothing changes; unlock, sync and
  * sessions never ask.
  */
-async function runtime(required){
- const persist=await mkdtemp(join(tmpdir(),'zigoals-step-up-'));
- const mf=await createPrivateMiniflare({persist,bindings:{STEP_UP_REQUIRED:required}});
+async function runtime(required,{persist,now}={}){
+ persist??=await mkdtemp(join(tmpdir(),'zigoals-step-up-'));
+ const mf=await createPrivateMiniflare({persist,bindings:{STEP_UP_REQUIRED:required,...(now===undefined?{}:{ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(now)})}});
  const call=(path,body,{who='fixture',headers={}}={})=>mf.dispatchFetch('https://sync.test'+path,{method:body?'POST':'GET',headers:{origin:'https://app.test',authorization:'Bearer '+fixtureToken(who),'x-zigoals-account':ACCOUNT,'content-type':'application/json',...headers},...(body?{body:JSON.stringify(body)}:{})});
  return {mf,call};
 }
@@ -151,3 +151,28 @@ test('switch off, or empty: a registered verifier changes nothing (the rollback 
   }finally{await r.mf.dispose();}
  }
 },60000);
+
+// Gate C (the security read, ADR-019 C53): trust on first use is bound to a fresh sign-in, so a stolen older session cannot
+// register its own verifier first (or stage one through a rotation) and keep the owner from signing it out.
+test('the first verifier comes only from a sign-in within the hour; an older session registers none and stages none',async()=>{
+ const persist=await mkdtemp(join(tmpdir(),'zigoals-step-up-fresh-')),T0=Date.parse('2026-10-11T08:00:00Z');
+ let r=await runtime('on',{persist,now:T0}),vault,verifier;
+ try{({vault,verifier}=await vaultWithSecret(r));}finally{await r.mf.dispose();}
+ // 61 minutes later the same sessions are stale: no verifier is kept, so the vault stays as #35 had it.
+ r=await runtime('on',{persist,now:T0+61*60000});
+ try{
+  const late=await r.call('/v1/step-up',{action:'register',epoch:1,verifier});expect(late.status).toBe(409);expect(await late.json()).toEqual({error:'STEP_UP_SIGN_IN_AGAIN'});
+  expect(await status(await r.call('/v1/step-up',{action:'register',epoch:1,verifier:'0'.repeat(64)},{who:'other'}))).toBe(409);
+  // A rotation a stale session begins (allowed: the vault has no verifier) stages none of its own for the new epoch.
+  const next=await createVault(vault.manifest.vault,2),nextProof=await stepUpProof(next.recovery,ACCOUNT,vault.manifest.vault,2);
+  const begin={action:'begin',operation:crypto.randomUUID(),base:1,manifest:next.manifest};
+  expect(await status(await r.call('/v1/rotation',begin,{who:'other',headers:{'x-zigoals-step-up-next':'0'.repeat(64)}}))).toBe(200);
+  expect(await status(await r.call('/v1/rotation',{action:'commit',operation:begin.operation},{who:'other'}))).toBe(200);
+  expect((await (await r.call('/v1/vault')).json()).manifest.epoch).toBe(2);
+  // A fresh sign-in keeps the first verifier (not the stale session's); from then on the five actions need its proof.
+  expect(await status(await r.call('/v1/sessions',{action:'register',label:'Fictional fresh'},{who:'fresh'}))).toBe(200);
+  expect(await status(await r.call('/v1/step-up',{action:'register',epoch:2,verifier:await stepUpVerifier(nextProof)},{who:'fresh'}))).toBe(200);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{who:'fresh'}))).toBe(403);
+  expect(await status(await r.call('/v1/sessions',revokeOthers,{who:'fresh',headers:{'x-zigoals-step-up':nextProof}}))).toBe(200);
+ }finally{await r.mf.dispose();}
+},90000);

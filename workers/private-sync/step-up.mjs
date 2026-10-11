@@ -16,6 +16,14 @@ import {sessionAllowed} from './sessions.mjs';
  * The proof travels in a header, so a Worker before this one ignores it and an app before this one never sends it.
  */
 export const STEP_UP_HEADER='x-zigoals-step-up',STEP_UP_NEXT_HEADER='x-zigoals-step-up-next',STEP_UP_INTERNAL='x-zigoals-step-up-internal';
+/**
+ * Gate C (the security read, ADR-019 C53): trust on first use is bound to a fresh sign-in. While the live epoch has no
+ * verifier, the first one (a `register`, or a rotation's `next`) is kept only from a session whose email-code sign-in
+ * began within this window (`createdAt` of its record, carried across refreshes). A stolen older session therefore cannot
+ * register its own verifier first and keep the owner from signing it out; the owner registers when creating a vault or
+ * entering the secret after signing in. Refused: STEP_UP_SIGN_IN_AGAIN (the vault then stays as #35 had it).
+ */
+export const FIRST_REGISTRATION_MS=60*60*1000;
 const HEX=/^[a-f0-9]{64}$/;
 /** @param {unknown} value @param {number} [status] */
 const reply=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store'}});
@@ -52,8 +60,9 @@ export function settledRecord(record,manifest){
  * internal header, which the Worker strips from every incoming request): `check` a proof, and `next` (the verifier for
  * the epoch a rotation that just began will publish).
  * @param {Request} request @param {RecordState} state @param {(request:Request,max?:number)=>Promise<any>} readJSON
+ * @param {()=>number} [now]
  */
-export async function stepUpRequest(request,state,readJSON){
+export async function stepUpRequest(request,state,readJSON,now=Date.now){
  const hash=request.headers.get('x-zigoals-token-hash'),internal=request.headers.get(STEP_UP_INTERNAL)==='1';
  if(request.method!=='POST')return reply({error:'METHOD_NOT_ALLOWED'},405);
  /** @type {any} */let input;try{input=await readJSON(request,512);}catch{return reply({error:'INVALID_STEP_UP'},400);}
@@ -68,11 +77,15 @@ export async function stepUpRequest(request,state,readJSON){
   if(!await sessionAllowed(store,hash))return reply({error:'SESSION_REVOKED'},401);
   const record=await store.get('step-up')??{version:1,current:null,next:null},manifest=await store.get('manifest'),active=activeVerifier(record,manifest);
   if(input.action==='check')return !active||proved===active?reply({checked:true}):reply({error:'STEP_UP_REQUIRED'},403);
+  // The first verifier of a vault without one comes only from a fresh sign-in (FIRST_REGISTRATION_MS above).
+  const born=Date.parse((await store.get(`session:${hash}`))?.createdAt??''),stale=!active&&!!input.verifier&&(!Number.isFinite(born)||now()-born>FIRST_REGISTRATION_MS);
   // Every rotation that begins sets `next` (its verifier, or none when the app sent none), so a verifier staged by an
   // aborted rotation never becomes another rotation's.
-  if(input.action==='next'){if(!manifest||input.epoch!==manifest.epoch+1)return reply({error:'STEP_UP_EPOCH'},409);await store.put('step-up',{...settledRecord(record,manifest),next:input.verifier?{epoch:input.epoch,verifier:input.verifier}:null});return reply({staged:true});}
+  // A rotation that begins always resets `next`: a stale session's verifier is not staged (the new epoch then has none).
+  if(input.action==='next'){if(!manifest||input.epoch!==manifest.epoch+1)return reply({error:'STEP_UP_EPOCH'},409);await store.put('step-up',{...settledRecord(record,manifest),next:input.verifier&&!stale?{epoch:input.epoch,verifier:input.verifier}:null});return stale?reply({error:'STEP_UP_SIGN_IN_AGAIN'},409):reply({staged:true});}
   if(!manifest||input.epoch!==manifest.epoch)return reply({error:'STEP_UP_EPOCH'},409);
   if(active)return active===input.verifier?reply({registered:true}):reply({error:'STEP_UP_DIFFERENT'},409);
+  if(stale)return reply({error:'STEP_UP_SIGN_IN_AGAIN'},409);
   await store.put('step-up',{...settledRecord(record,manifest),current:{epoch:input.epoch,verifier:input.verifier}});return reply({registered:true});
  });
 }

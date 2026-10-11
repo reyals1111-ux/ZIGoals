@@ -162,7 +162,7 @@ export class PrivateVault{
   const path=new URL(request.url).pathname,sessionHash=request.headers.get('x-zigoals-token-hash');
   const authoritative=JSON.parse(request.headers.get('x-domain-generations')??'{}');
   // Session Z-Cloud Part 5 (A6): the step-up record has its own path, outside the lifecycle's reconciliation and fences.
-  if(path==='/v1/step-up')return stepUpRequest(request,this.state,boundedJSON);
+  if(path==='/v1/step-up')return stepUpRequest(request,this.state,boundedJSON,()=>this.now());
   if(path!=='/v1/sessions'&&Object.keys(authoritative).length&&!await this.state.storage.get('domain-delete-intent')){
    const reconciled=await this.state.storage.transaction(async store=>{
     if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
