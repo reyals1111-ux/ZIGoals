@@ -2,6 +2,7 @@
 import {forgetPushOnThisDevice} from '../lib/push/device';
 import {forgetAiAccount} from '../lib/ai/account';
 import {forgetZigiFace} from '../lib/z-device-forget';
+import {forgetAaDeviceRecords} from '../lib/aa-device-forget';
 import {createContext,useCallback,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
 import * as z from 'zod';
 import type {ConflictReview,Choices} from '../lib/vault/conflict-review';
@@ -231,7 +232,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    // this account with 410 from then on, so nothing is enrolled on it again.
    if(!identity){const journal=new SyncJournal(selected.account),state=await journal.read().catch(()=>null);if(state&&hadVault(state))await journal.recover(crypto.randomUUID(),state,freshJournal(),()=>{}).catch(()=>undefined);}
    // Gate C (the security read): ZIGi's suggestions go only once the deletion is confirmed; a refused one keeps them.
-   void noteCloudDeleted(selected.account);forgetZigiFace();await forgetHere(selected,'');lockAccount();});});return result;}
+   void noteCloudDeleted(selected.account);forgetZigiFace();forgetAaDeviceRecords();await forgetHere(selected,'');lockAccount();});});return result;}
  function rotationSession(){const selected=session.current;if(!selected)throw Error('Unlock the vault before rotation.');const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Account changed. Rotation paused.');};return {selected,fence};}
  async function prepareRotation(){await guarded(async()=>{const {rotationTransport}=await import('../lib/vault/rotation-transport');const {selected,fence}=rotationSession();auto.current=false;const status=z.object({rotation:z.object({manifest:manifestSchema}).nullable()}).parse(await rotationTransport(selected.account,fence).request());fence();if(status.rotation){setStagedRotation(status.rotation.manifest);return;}const next=await createVault(selected.manifest.vault,selected.manifest.epoch+1);fence();setRotationKeys(next);});}
  async function resumeRotation(secret:string){await guarded(async()=>{const {selected,fence}=rotationSession();if(!stagedRotation)throw Error('Read staged rotation first.');await forgetHere(selected,'');fence();const key=await unlockVault(stagedRotation,secret);fence();setRotationKeys({key,manifest:stagedRotation,recovery:secret});});}

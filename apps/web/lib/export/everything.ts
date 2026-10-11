@@ -19,6 +19,7 @@ import {TODAY_FOLDS_KEY} from '../today-folds';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from '../ai/store/keys';
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
+import {AISLES_KEY, GAME_KEY, HABIT_EXTRAS_KEY, HEALTH_COACH_KEY, MACRO_MODE_KEY, MEASUREMENTS_CUSTOM_KEY, MICRO_TARGETS_KEY, ONBOARDING_SETUP_KEY, PROGRESS_PHOTOS_KEY, REMINDERS_PLAN_KEY, ROUTINE_RUN_KEY} from '../aa-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -47,7 +48,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY,
   // Session Z-Cloud: ZIGi's suggestions from the person's own questions, the voice choices and what became of ZIGi's cards
   // (lib/z-device-keys.ts).
-  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY} as const;
+  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY,
+  // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
+  habitExtras: HABIT_EXTRAS_KEY, routineRun: ROUTINE_RUN_KEY, game: GAME_KEY, healthCoach: HEALTH_COACH_KEY, microTargets: MICRO_TARGETS_KEY, macroMode: MACRO_MODE_KEY, aisles: AISLES_KEY, measurementsCustom: MEASUREMENTS_CUSTOM_KEY, progressPhotos: PROGRESS_PHOTOS_KEY, remindersPlan: REMINDERS_PLAN_KEY, onboardingSetup: ONBOARDING_SETUP_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
