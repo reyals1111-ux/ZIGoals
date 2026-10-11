@@ -48,7 +48,7 @@ const MIXED = /(?:,|;|\band\b|\bthen\b|\balso\b|\bplus\b|\ben\b|\bdan\b|\book\b)
  */
 const HABITS_OPEN = /\b(?:which|what) habits? (?:are|is) (?:still )?(?:open|left|due|remaining|undone|not done)(?: for)? today\b|\b(?:which|what) habits? (?:are|is) today (?:still )?(?:open|left|due|remaining)\b|\bhabits? (?:still )?(?:open|left|due|remaining) today\b/; // "today" is required: "Which habits are open?" (no day) stays the model's, as Session T's test pins
 const HABITS_COUNT = /\bhow many habits? (?:do|have|did) i\b/;
-const HABITS_LIST = /\b(?:what|which) habits? (?:do|have) i(?: have| track| keep)?\b|\b(?:list|show)(?: me)?(?: all)? my habits\b|^(?:my habits|all my habits)\??$/;
+const HABITS_LIST = /\b(?:what|which) habits? (?:do|have) i(?: have| track| keep)?\b|\b(?:list|show)(?: me)?(?: all)? my habits\b/; // a bare "my habits?" stays the model's: "And my habits?" is a follow-up in a conversation (zigi-emotions pins it)
 const HABITS_ARCHIVED = /\b(?:which|what) habits? (?:did i|have i|were|are|got) archiv|\barchived habits?\b|\bhabits? (?:i|i've|i have) archived\b/;
 const DID_I = /^did i (\w+(?: \w+)?) (?:today|yesterday)\??$/;
 const NOT_A_HABIT_WORD = /\b(?:water|drink|eat|sleep|steps?|walk|run|weigh|fast|log|check|exercise|meditate|read|spend|save)\b/;
@@ -192,7 +192,7 @@ const NAV_END = String.raw`(?:\s*(?:page|pagina|tab|screen|scherm|view|section|o
 const NAV_A = new RegExp(`^${NAV_PRE}${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`);
 const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
 const NAV_B2 = new RegExp(`^${NAV_PRE}naar\\s+${NAV_ART}${NAV_WORD}(?:\\s+toe)?\\s+(?:kunnen )?gaan[.!?]?$`);
-const NAV_C = new RegExp(`^${NAV_ART}${NAV_WORD}(?:\\s*(?:page|pagina))?(?:\\s+(?:openen|open))?[.!?]?$`);
+const NAV_C = new RegExp(`^${NAV_WORD}(?:\\s*(?:page|pagina))?(?:\\s+(?:openen|open))?[.!]?$`); // a bare page word ("settings", "portfolio openen"): no article, no question mark ("my habits?" is a question)
 const NAV_D = new RegExp(`^${NAV_ART}${NAV_WORD}(?:pagina)?,?\\s+(?:die wil ik zien|ga daar (?:even )?naartoe|go back to (?:that|it))[.!?]?$`);
 const NAV_POLITE_END = /[,.!?]?\s*(?:thanks|thank you|please|for me|voor me|alsjeblieft|alstublieft|aub|graag|dank je|dankjewel|bedankt|dank u)\s*$/;
 const NAV_CORRECTION = /\b(?:no wait|wait no|no,|i mean|nee wacht|nee,|ik bedoel|make that)\s*,?\s*/g;

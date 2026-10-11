@@ -227,3 +227,8 @@ test('a whole question in Dutch stays unanswered here, as the golden set pins (n
   expect(localAnswer('Hoeveel minuten heb ik deze maand gemediteerd?', env).kind).toBe('none');
   expect(localAnswer('Welke gewoontes zijn vandaag nog open?', env).kind).toBe('none');
 });
+
+test('a follow-up "And my habits?" is the model\'s, not the device\'s (the zigi-emotions spec sends it to a mock AI)', () => {
+  expect(localAnswer('And my habits?', open()).kind).toBe('none');
+  expect(localAnswer('my habits?', open()).kind).toBe('none');
+});
