@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {readDeviceRecord, updateDeviceRecord} from './device-record';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {EVERYTHING_KEYS} from './export/everything';
-import {MAX_REPLIES, ZIGI_CARDS, cardsSchema, keepCards, keptCards, type CardsRecord, type KeptCard} from './zigi-cards';
+import {MAX_REPLIES, ZIGI_CARDS, cardSig, cardsSchema, keepCards, keptCards, type CardsRecord, type KeptCard} from './zigi-cards';
 import {ZIGI_CARDS_KEY} from './z-device-keys';
 
 // Session Z-Cloud Gate C, the persona round (ADR-019 C50): a card's outcome outlives the open panel, so a chat reopened
@@ -40,6 +40,26 @@ describe('keeping the outcomes of a reply\'s cards', () => {
     expect(keptCards(record, 'turn-0').size).toBe(0);
     expect(keptCards(record, `turn-${MAX_REPLIES + 4}`).size).toBe(1);
     expect(cardsSchema.safeParse(record).success).toBe(true);
+  });
+});
+
+// Gate C (the security read): an outcome is kept with its card's fingerprint, so a later build that reads a reply's cards
+// in another order or number never applies it to another card.
+describe('fingerprints', () => {
+  it('the same action has the same 8-hex fingerprint; another action, another; no words in it', () => {
+    const water = {kind: 'log-water', millilitres: 250}, sig = cardSig(water);
+    expect(sig).toMatch(/^[0-9a-f]{8}$/);
+    expect(cardSig({kind: 'log-water', millilitres: 250})).toBe(sig);
+    expect(cardSig({kind: 'log-water', millilitres: 300})).not.toBe(sig);
+    expect(cardSig({kind: 'add-goal-note', note: 'Japan'})).not.toMatch(/japan|note/i);
+  });
+  it('is kept with the outcome and read back; a malformed one is not kept', () => {
+    const record = keepCards(empty, 'turn-1', cards([['p1', {outcome: 'added', edited: false, sig: 'deadbeef'}], ['p2', {outcome: 'dismissed', edited: false, sig: 'NOT-HEX!'}]]), 1);
+    expect(keptCards(record, 'turn-1').get('p1')).toEqual({outcome: 'added', edited: false, sig: 'deadbeef'});
+    expect(keptCards(record, 'turn-1').get('p2')).toEqual({outcome: 'dismissed', edited: false});
+    expect(cardsSchema.safeParse(record).success).toBe(true);
+    // A new fingerprint for the same place is a change and is written.
+    expect(keepCards(record, 'turn-1', cards([['p1', {outcome: 'added', edited: false, sig: 'feedface'}]]), 2)).not.toBe(record);
   });
 });
 

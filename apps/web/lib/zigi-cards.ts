@@ -10,12 +10,15 @@ import {ZIGI_CARDS_KEY} from './z-device-keys';
  * turn's id, the card's place in the reply ("p1"…) and the outcome. Device-only through `getAppStorage()`, never synced,
  * in "Export everything". Loose (a later build's fields and outcomes survive and an unknown outcome reads as none) and
  * capped at the 300 most recent replies. Builds #32–#35 never read it: an unknown key is ignored there.
+ * Gate C (the security read): each outcome also keeps a short fingerprint of the card's action (`sig`, 8 hex digits, no
+ * words), and a kept outcome applies only to the card it was kept for, so a later build that reads a reply's cards
+ * differently (another card count or order) never shows "Added" on a card that was not written, nor offers one again.
  */
 export const CARD_OUTCOMES = ['added', 'auto', 'opened', 'dismissed', 'undone', 'replaced'] as const;
 export type CardOutcome = typeof CARD_OUTCOMES[number];
 export const MAX_REPLIES = 300;
 const stamp = z.number().int().min(0).max(8_640_000_000_000_000);
-const cardSchema = z.looseObject({outcome: z.string().min(1).max(20), edited: z.boolean().optional()});
+const cardSchema = z.looseObject({outcome: z.string().min(1).max(20), edited: z.boolean().optional(), sig: z.string().regex(/^[0-9a-f]{8}$/).optional()});
 const replySchema = z.looseObject({at: stamp, cards: z.record(z.string().regex(/^p\d{1,3}$/), cardSchema)});
 export const cardsSchema = z.looseObject({
   version: z.literal(1),
@@ -23,13 +26,19 @@ export const cardsSchema = z.looseObject({
 });
 export type CardsRecord = z.infer<typeof cardsSchema>;
 export const ZIGI_CARDS: DeviceRecordSpec<CardsRecord> = {key: ZIGI_CARDS_KEY, schema: cardsSchema, empty: () => ({version: 1})};
-export type KeptCard = {outcome: CardOutcome; edited: boolean};
+export type KeptCard = {outcome: CardOutcome; edited: boolean; sig?: string};
+/** A card's fingerprint: FNV-1a over its action's JSON, 8 hex digits (not reversible to the words). */
+export function cardSig(action: unknown): string {
+  let h = 0x811c9dc5;
+  for (const ch of JSON.stringify(action) ?? '') { h ^= ch.codePointAt(0)!; h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
 const known = (value: string): value is CardOutcome => (CARD_OUTCOMES as readonly string[]).includes(value);
 
 /** The kept outcomes of one reply's cards, by card id; an outcome this build does not know reads as none. */
 export function keptCards(record: CardsRecord, replyId: string): ReadonlyMap<string, KeptCard> {
   const out = new Map<string, KeptCard>();
-  for (const [id, card] of Object.entries(record.replies?.[replyId]?.cards ?? {})) if (known(card.outcome)) out.set(id, {outcome: card.outcome, edited: card.edited === true});
+  for (const [id, card] of Object.entries(record.replies?.[replyId]?.cards ?? {})) if (known(card.outcome)) out.set(id, {outcome: card.outcome, edited: card.edited === true, ...(card.sig ? {sig: card.sig} : {})});
   return out;
 }
 /**
@@ -38,12 +47,12 @@ export function keptCards(record: CardsRecord, replyId: string): ReadonlyMap<str
  */
 export function keepCards(record: CardsRecord, replyId: string, cards: ReadonlyMap<string, KeptCard>, now: number): CardsRecord {
   if (!replyId || replyId.length > 200 || cards.size === 0) return record;
-  const before = record.replies?.[replyId]?.cards ?? {}, merged: Record<string, {outcome: string; edited?: boolean}> = {...before};
+  const before = record.replies?.[replyId]?.cards ?? {}, merged: Record<string, {outcome: string; edited?: boolean; sig?: string}> = {...before};
   let changed = false;
   for (const [id, card] of cards) {
     if (!/^p\d{1,3}$/.test(id)) continue;
-    const next = card.edited ? {outcome: card.outcome, edited: true} : {outcome: card.outcome};
-    if (before[id]?.outcome === next.outcome && (before[id]?.edited === true) === card.edited) continue;
+    const next = {outcome: card.outcome, ...(card.edited ? {edited: true} : {}), ...(card.sig && /^[0-9a-f]{8}$/.test(card.sig) ? {sig: card.sig} : {})};
+    if (before[id]?.outcome === next.outcome && (before[id]?.edited === true) === card.edited && before[id]?.sig === next.sig) continue;
     merged[id] = next; changed = true;
   }
   if (!changed) return record;

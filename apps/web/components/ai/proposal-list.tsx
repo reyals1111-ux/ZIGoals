@@ -14,7 +14,7 @@ import {AUTO_ACCEPT_REASONS} from '../../lib/ai/actions/auto-accept';
 import type {AutoAccept} from './use-auto-accept';
 import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
 import {getAppStorage} from '../../lib/showcase-storage';
-import {CARD_OUTCOMES, keepCards, keptCards, ZIGI_CARDS, type CardOutcome, type KeptCard} from '../../lib/zigi-cards';
+import {CARD_OUTCOMES, cardSig, keepCards, keptCards, ZIGI_CARDS, type CardOutcome, type KeptCard} from '../../lib/zigi-cards';
 import './ai.css';
 
 /**
@@ -57,16 +57,18 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
 export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean}) {
   const [refs] = useState(() => replyRefs(proposals));
   const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
-  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => { const id = `p${i + 1}`, was = kept.get(id); return {id, action, result: runner.plan(action, handles, refs), status: was?.outcome ?? 'proposed', error: null, after: null, ...(was?.edited ? {edited: true} : {})}; }));
+  // A kept outcome applies only to the card it was kept for (its fingerprint, the action as the reply first gave it).
+  const [sigs] = useState(() => new Map(proposals.map((action, i) => [`p${i + 1}`, cardSig(action)])));
+  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => { const id = `p${i + 1}`, kept_ = kept.get(id), was = kept_ && kept_.sig === sigs.get(id) ? kept_ : undefined; return {id, action, result: runner.plan(action, handles, refs), status: was?.outcome ?? 'proposed', error: null, after: null, ...(was?.edited ? {edited: true} : {})}; }));
   // Each outcome is kept once it is reached (an Undo or a later outcome replaces it); a storage that refuses keeps it in
   // this panel only, as before.
-  const written = useRef(new Map<string, string>([...kept].map(([id, k]) => [id, `${k.outcome}:${k.edited}`])));
+  const written = useRef(new Map<string, string>([...kept].filter(([id, k]) => k.sig === sigs.get(id)).map(([id, k]) => [id, `${k.outcome}:${k.edited}`])));
   useEffect(() => {
     if (!replyId) return;
     const changed = new Map<string, KeptCard>();
     for (const item of items) {
       if (!(CARD_OUTCOMES as readonly string[]).includes(item.status)) continue;
-      const card = {outcome: item.status as CardOutcome, edited: item.edited === true}, sig = `${card.outcome}:${card.edited}`;
+      const card = {outcome: item.status as CardOutcome, edited: item.edited === true, sig: sigs.get(item.id)}, sig = `${card.outcome}:${card.edited}`;
       if (written.current.get(item.id) === sig) continue;
       written.current.set(item.id, sig); changed.set(item.id, card);
     }

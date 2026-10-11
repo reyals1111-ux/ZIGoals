@@ -284,6 +284,15 @@ test('a chat reopened from History, or after a reload, shows its added and dismi
   expect(await water(), 'nothing was written twice').toBe(before + 1);
   const kept = await page.evaluate(k => localStorage.getItem(k), ZIGI_CARDS_KEY);
   expect(kept, 'outcomes and ids only, no words').not.toMatch(/water/i);
+  // Gate C (the security read): a kept outcome applies only to the card it was kept for. With the first card's fingerprint
+  // changed (as a later build reading the reply differently would see it), that card waits for the person again.
+  await page.evaluate(k => { const r = JSON.parse(localStorage.getItem(k)!); for (const reply of Object.values(r.replies) as {cards: Record<string, {sig?: string}>}[]) if (reply.cards.p1) reply.cards.p1.sig = '00000000'; localStorage.setItem(k, JSON.stringify(r)); }, ZIGI_CARDS_KEY);
+  await page.reload();
+  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).locator('.ai-history-open', {hasText: 'Two waters for today'}).click();
+  await expect(panel(page).locator('.ai-card').nth(0).getByRole('button', {name: 'Add', exact: true})).toBeVisible();
+  await expect(panel(page).locator('.ai-card').nth(1).locator('.ai-card-status')).toHaveText('Dismissed');
 });
 
 test('on a 768 px tablet the top bar never sits over the panel: every header button takes its click', async ({page}, info) => {
