@@ -13,7 +13,7 @@
   "repeat": 1,
   "runs": 37,
   "passed": 27,
-  "rate": 0.7297297297297297,
+  "rate": 0.7941176470588235,
   "byKind": {
    "chat": {
     "passed": 1,
@@ -46,7 +46,8 @@
   "costUsd": 2.6855679999999995,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:26:02.449Z"
+  "rescoredAt": "2026-10-11T13:41:33.703Z",
+  "unscorable": 3
  },
  "runs": [
   {
@@ -141,60 +142,6 @@
    "repaired": false,
    "error": null,
    "rescored": true
-  },
-  {
-   "id": "habits-fr-create",
-   "repeat": 1,
-   "kind": "propose",
-   "area": "habits",
-   "lang": "fr",
-   "turn": 0,
-   "pass": true,
-   "checks": [
-    {
-     "name": "cards",
-     "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
-    },
-    {
-     "name": "schema",
-     "pass": true,
-     "detail": "every block valid"
-    },
-    {
-     "name": "arguments",
-     "pass": true,
-     "detail": "every call accepted"
-    }
-   ],
-   "cards": 1,
-   "rejected": 0,
-   "hint": "curious",
-   "refused": false,
-   "firstTokenMs": 1892,
-   "totalMs": 3600,
-   "tokens": {
-    "input": 12880,
-    "output": 299,
-    "cacheWrite": 0,
-    "cacheRead": 0
-   },
-   "requests": 1,
-   "costUsd": 0.0575,
-   "calls": [
-    {
-     "name": "habit_stats",
-     "args": {
-      "habit": "Read",
-      "range": "this month",
-      "metric": "minutes"
-     },
-     "accepted": true
-    }
-   ],
-   "reply": "Voici une proposition d'habitude. Tu as déjà « Read » (h1), qui se mesure en minutes. Celle-ci serait une habitude à part, qui se compte en pages.\n\n```zigoals-action\n{\"kind\":\"create-habit\",\"title\":\"Lire 20 pages\",\"type\":\"build\",\"measurement\":{\"unit\":\"pages\"},\"target\":20,\"schedule\":\"daily\",\"timeOfDay\":\"evening\",\"description\":\"\"}\n```\n\nSi tu préfères plutôt mesurer « Read » (h1) en pages, dis-le-moi et je te proposerai de la modifier.\n\n⟦zigi: curious⟧",
-   "repaired": false,
-   "error": null
   },
   {
    "id": "x2-multi-habits",
@@ -1144,136 +1091,6 @@
    "repaired": false,
    "error": null,
    "rescored": true
-  },
-  {
-   "id": "p2-carry-pronoun-fr",
-   "repeat": 1,
-   "kind": "followup",
-   "area": "habits",
-   "lang": "fr",
-   "turn": 0,
-   "pass": true,
-   "checks": [
-    {
-     "name": "cards",
-     "pass": true,
-     "detail": "wanted [], got []"
-    },
-    {
-     "name": "schema",
-     "pass": true,
-     "detail": "every block valid"
-    },
-    {
-     "name": "tool:habit_stats",
-     "pass": true,
-     "detail": "called [list_habits, habit_stats, habit_stats, habit_stats, habit_stats]"
-    },
-    {
-     "name": "arguments",
-     "pass": true,
-     "detail": "every call accepted"
-    }
-   ],
-   "cards": 0,
-   "rejected": 0,
-   "hint": "insight",
-   "refused": false,
-   "firstTokenMs": 1490,
-   "totalMs": 3784,
-   "tokens": {
-    "input": 14661,
-    "output": 346,
-    "cacheWrite": 0,
-    "cacheRead": 0
-   },
-   "requests": 1,
-   "costUsd": 0.065564,
-   "calls": [
-    {
-     "name": "list_habits",
-     "args": {},
-     "accepted": true
-    },
-    {
-     "name": "habit_stats",
-     "args": {
-      "habit": "Read",
-      "range": "this week",
-      "metric": "minutes"
-     },
-     "accepted": true
-    },
-    {
-     "name": "habit_stats",
-     "args": {
-      "habit": "Exercise",
-      "range": "this week",
-      "metric": "minutes"
-     },
-     "accepted": true
-    },
-    {
-     "name": "habit_stats",
-     "args": {
-      "habit": "Walk",
-      "range": "this week",
-      "metric": "quantity"
-     },
-     "accepted": true
-    },
-    {
-     "name": "habit_stats",
-     "args": {
-      "habit": "Meditate",
-      "range": "this week",
-      "metric": "minutes"
-     },
-     "accepted": true
-    }
-   ],
-   "reply": "Deux habitudes sont à égalité, avec une série de **27 jours** chacune :\n\n- **Walk (h3)** : 8000 pas par jour, déjà atteints aujourd'hui.\n- **Contribute (h5)** : 1 fois par jour, déjà fait aujourd'hui.\n\nRead, Exercise, Meditate et Drink water suivent avec 26 jours chacune. Stretch morning et Stretch evening sont à 0 jour pour l'instant.\n\nPour Walk, ces 27 jours sont aussi votre meilleure série jusqu'ici. Je n'ai pas consulté la meilleure série de Contribute. Je peux le faire si vous voulez.\n\nJe me base sur votre liste d'habitudes et les statistiques de cette semaine.\n\n⟦zigi: insight⟧",
-   "repaired": false,
-   "error": null
-  },
-  {
-   "id": "p2-carry-pronoun-fr",
-   "repeat": 1,
-   "kind": "followup",
-   "area": "habits",
-   "lang": "fr",
-   "turn": 1,
-   "pass": true,
-   "checks": [
-    {
-     "name": "cards",
-     "pass": true,
-     "detail": "wanted [check-in], got []"
-    },
-    {
-     "name": "schema",
-     "pass": true,
-     "detail": "every block valid"
-    }
-   ],
-   "cards": 0,
-   "rejected": 0,
-   "hint": "curious",
-   "refused": false,
-   "firstTokenMs": 1444,
-   "totalMs": 3594,
-   "tokens": {
-    "input": 12796,
-    "output": 245,
-    "cacheWrite": 0,
-    "cacheRead": 0
-   },
-   "requests": 1,
-   "costUsd": 0.056084,
-   "calls": [],
-   "reply": "Les deux habitudes à égalité, Walk (h3) et Contribute (h5), sont déjà faites aujourd'hui : 8000 pas pour Walk, 1 fois pour Contribute. Une nouvelle coche n'ajouterait rien.\n\nVouliez-vous parler d'une autre habitude ? Par exemple Stretch morning ou Stretch evening, qui sont encore à 0 jour. Dites-moi laquelle et je vous prépare la carte.\n\n⟦zigi: curious⟧",
-   "repaired": false,
-   "error": null
   },
   {
    "id": "p2-carry-widget",

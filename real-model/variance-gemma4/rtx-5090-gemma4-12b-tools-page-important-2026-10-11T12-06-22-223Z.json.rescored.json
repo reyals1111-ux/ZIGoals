@@ -76,7 +76,8 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:09:02.681Z"
+  "rescoredAt": "2026-10-11T13:52:20.203Z",
+  "unscorable": 0
  },
  "runs": [
   {

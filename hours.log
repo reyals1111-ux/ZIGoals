@@ -143,3 +143,9 @@ END pc-chain2 2026-10-11T13:07:20Z rc=0
 END part6-spoken-haiku 2026-10-11T13:10:21Z rc=0
 START part6-opus-important 2026-10-11T13:10:27Z
 END part6-opus-important 2026-10-11T13:29:03Z rc=0
+END part6-chain 2026-10-11T13:29:12Z rc=0 (resumed in resume-anthropic.sh)
+START build-3103-2 2026-10-11T13:29:15Z
+END build-3103-2 2026-10-11T13:29:29Z rc=0
+END resume-anthropic 2026-10-11T13:29:36Z rc=0
+START spoken-gemma4-2 2026-10-11T13:39:03Z
+END spoken-gemma4-2 2026-10-11T13:53:46Z rc=0

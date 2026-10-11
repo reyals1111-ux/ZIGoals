@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 456,
-  "rate": 0.6289655172413793,
+  "passed": 454,
+  "rate": 0.6262068965517241,
   "byKind": {
    "lookup": {
     "passed": 84,
@@ -80,7 +80,8 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:06:29.735Z"
+  "rescoredAt": "2026-10-11T13:48:50.570Z",
+  "unscorable": 0
  },
  "runs": [
   {
@@ -36283,7 +36284,7 @@
    "area": "today",
    "lang": "en",
    "turn": 1,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
@@ -36297,8 +36298,8 @@
     },
     {
      "name": "tool:list_habits",
-     "pass": true,
-     "detail": "answered on the device: no model ran"
+     "pass": false,
+     "detail": "called []"
     }
    ],
    "cards": 0,
@@ -37916,12 +37917,12 @@
    "area": "goals",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [reopen-goal], got [reopen-goal]"
+     "pass": false,
+     "detail": "wanted [], got [reopen-goal]"
     },
     {
      "name": "schema",
@@ -38730,7 +38731,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [set-health-preference], got [log-weight]"
+     "detail": "wanted [], got [log-weight]"
     },
     {
      "name": "schema",
@@ -38741,11 +38742,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-health-preference,weightUnit=lb",
-     "pass": false,
-     "detail": "{\"kind\":\"log-weight\",\"value\":82,\"unit\":\"lb\",\"day\":\"today\"}"
     }
    ],
    "cards": 1,

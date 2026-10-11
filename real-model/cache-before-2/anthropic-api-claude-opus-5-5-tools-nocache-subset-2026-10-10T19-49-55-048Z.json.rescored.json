@@ -40,7 +40,8 @@
   "costUsd": 10.730920000000003,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:25:54.495Z"
+  "rescoredAt": "2026-10-11T13:41:25.942Z",
+  "unscorable": 0
  },
  "runs": [
   {

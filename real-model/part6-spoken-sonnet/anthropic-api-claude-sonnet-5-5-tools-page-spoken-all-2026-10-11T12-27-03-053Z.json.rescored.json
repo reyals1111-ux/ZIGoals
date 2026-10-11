@@ -14,8 +14,8 @@
   "cases": 557,
   "repeat": 1,
   "runs": 557,
-  "passed": 524,
-  "rate": 0.940754039497307,
+  "passed": 528,
+  "rate": 0.947935368043088,
   "byKind": {
    "propose": {
     "passed": 397,
@@ -48,7 +48,8 @@
   "costUsd": 3.3815623999999995,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T12:55:08.129Z"
+  "rescoredAt": "2026-10-11T13:48:15.134Z",
+  "unscorable": 0
  },
  "runs": [
   {
@@ -2212,17 +2213,17 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [set-target], got [set-target]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "unit: Invalid option: expected one of \"kcal\"|\"g\"|\"steps\"|\"ml\"|\"l\"|\"kg\"|\"lb\"|\"hours\"|\"minutes\""
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -2231,12 +2232,12 @@
     },
     {
      "name": "fields:kind=set-target,target=sleep,value=7.5",
-     "pass": false,
-     "detail": "no card"
+     "pass": true,
+     "detail": "{\"kind\":\"set-target\",\"target\":\"sleep\",\"value\":7.5,\"unit\":\"hours\"}"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": "encouraging",
    "refused": true,
    "firstTokenMs": 643,
@@ -10516,7 +10517,7 @@
     {
      "name": "fact:weight",
      "pass": false,
-     "detail": "records say 30; reply has 162, 2026, 10, 04, 160, 2026, 10, 02"
+     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 160, 2026, 10, 02"
     }
    ],
    "cards": 0,
@@ -10574,7 +10575,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30; reply has 162, 2026, 10, 04, 160, 2026, 10, 02"
+     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 160, 2026, 10, 02"
     }
    ],
    "cards": 0,
@@ -19008,17 +19009,17 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [set-target], got [set-target]"
     },
     {
      "name": "schema",
-     "pass": false,
-     "detail": "unit: Invalid option: expected one of \"kcal\"|\"g\"|\"steps\"|\"ml\"|\"l\"|\"kg\"|\"lb\"|\"hours\"|\"minutes\""
+     "pass": true,
+     "detail": "every block valid"
     },
     {
      "name": "arguments",
@@ -19027,12 +19028,12 @@
     },
     {
      "name": "fields:kind=set-target,target=sleep,value=7.5",
-     "pass": false,
-     "detail": "no card"
+     "pass": true,
+     "detail": "{\"kind\":\"set-target\",\"target\":\"sleep\",\"value\":7.5,\"unit\":\"hours\"}"
     }
    ],
-   "cards": 0,
-   "rejected": 1,
+   "cards": 1,
+   "rejected": 0,
    "hint": "encouraging",
    "refused": true,
    "firstTokenMs": 857,
@@ -25444,7 +25445,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30; reply has 162, 2026, 10, 04, 2026, 10, 02, 160"
+     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 2026, 10, 02, 160"
     }
    ],
    "cards": 0,
@@ -25502,7 +25503,7 @@
     {
      "name": "fact:weight",
      "pass": false,
-     "detail": "records say 30; reply has 162, 2026, 10, 04"
+     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,
@@ -25560,7 +25561,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30; reply has 162, 2026, 10, 04, 2026, 10, 02, 160"
+     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 2026, 10, 02, 160"
     }
    ],
    "cards": 0,
@@ -25953,7 +25954,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25972,8 +25973,8 @@
     },
     {
      "name": "fact:water",
-     "pass": false,
-     "detail": "records say 0; reply has 750"
+     "pass": true,
+     "detail": "records say 750, 25.4, 2000; reply has 750"
     }
    ],
    "cards": 0,
@@ -26011,7 +26012,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -26030,8 +26031,8 @@
     },
     {
      "name": "fact:water",
-     "pass": false,
-     "detail": "records say 0; reply has 2026, 10, 04, 750, 25.4, 2, 2000"
+     "pass": true,
+     "detail": "records say 750, 25.4, 2000; reply has 2026, 10, 04, 750, 25.4, 2, 2000"
     }
    ],
    "cards": 0,
