@@ -91,3 +91,7 @@ test('"om acht uur nee half negen" keeps 8:30 and the stuttered "om om" collapse
   expect(normalizeSpoken('herinner me om eh om acht uur nee half negen aan het lezen')).toBe('herinner me om 8:30 aan het lezen');
   expect(normalizeSpoken('remind me at 8:00, no wait, 8:30 to read')).toBe('remind me at 8:30 to read');
 });
+
+test('"tweeënzeventig en een halve kilo" reads 72.5 (the Dutch inflected half)', () => {
+  expect(normalizeSpoken('Ik weeg tweeënzeventig en een halve kilo')).toBe('Ik weeg 72.5 kilo');
+});

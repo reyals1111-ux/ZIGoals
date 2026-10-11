@@ -144,3 +144,7 @@ test('L46: the goals example fills in the Fund form instead of refusing; a steps
 test('L47: a careful reply has no digit at all; a card is proposed even when the records cannot tell whether the entry is already there', () => {
   expect(SAFETY_RULES).toContain('no digit at all in that reply'); expect(ACTION_PROTOCOL).toContain('or you cannot tell whether they do');
 });
+
+test('L48: a water reminder "every two hours" is one card per time, no question first', () => {
+  expect(ACTION_PROTOCOL).toContain('one water reminder card per time from 08:00 to 20:00');
+});

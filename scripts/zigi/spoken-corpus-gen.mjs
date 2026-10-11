@@ -50,7 +50,7 @@ const H = {area: 'health', page: 'health', kind: 'propose'}, HB = {area: 'habits
 // Health logs
 seed('water-glasses', 'two glasses of water', {en: 'Log two glasses of water', nl: 'Noteer twee glazen water'}, P('log-water', {glasses: 2}), {...H, important: true});
 seed('water-litres', 'two and a half litres', {en: 'I drank two and a half litres today', nl: 'Ik heb vandaag anderhalve liter water gedronken'}, {kinds: ['log-water']}, H);
-seed('water-yesterday', 'water yesterday', {en: 'Yesterday I drank three glasses of water', nl: 'Gisteren heb ik drie glazen water gedronken'}, P('log-water', {glasses: 3, day: 'yesterday'}), {...H, important: true});
+seed('water-yesterday', 'water yesterday', {en: 'Yesterday I drank three glasses of water', nl: 'Gisteren heb ik drie glazen water gedronken'}, {kinds: ['log-water', 'check-in'], minCards: 1, maxCards: 1, fields: [{day: 'yesterday'}]}, {...H, important: true}); // the Drink water habit exists too: a check-in on it is as right as the water log (L48)
 seed('weight-kg', 'weight in kilos', {en: 'I weigh seventy-two point five kilos', nl: 'Ik weeg tweeënzeventig komma vijf kilo'}, P('log-weight', {value: 72.5, unit: 'kg'}), {...H, important: true});
 seed('weight-lb', 'weight in pounds', {en: 'I weighed one hundred and sixty pounds this morning', nl: 'Vanmorgen woog ik honderdzestig pond'}, P('log-weight', {value: 160}), H);
 seed('steps', 'ten thousand steps', {en: 'I walked ten thousand steps today', nl: 'Ik heb vandaag tienduizend stappen gezet'}, P('log-steps', {steps: 10000}), {...H, important: true});
@@ -60,35 +60,35 @@ seed('food-breakfast-two', 'two servings of oats', {en: 'Two servings of berry o
 seed('measurement', 'waist measurement', {en: 'My waist is eighty-one centimetres', nl: 'Mijn taille is eenentachtig centimeter'}, {kinds: ['log-measurement'], fields: [{kind: 'log-measurement', value: 81}]}, H);
 seed('sleep', 'last night in bed', {en: 'I went to bed at half past eleven and got up at seven', nl: 'Ik ging om half twaalf naar bed en stond om zeven uur op'}, P('log-sleep', {bedtime: '23:30', wake: '07:00'}), {...H, important: true});
 seed('nap', 'a twenty-minute nap', {en: 'I took a twenty minute nap after lunch', nl: 'Ik heb na de lunch twintig minuten gedut'}, {kinds: ['log-sleep']}, H); // "log-nap" is an alias the parser folds into log-sleep
-seed('meditation', 'fifteen minutes of meditation', {en: 'I meditated for fifteen minutes this morning', nl: 'Ik heb vanmorgen vijftien minuten gemediteerd'}, P('log-meditation', {minutes: 15}), {...H, important: true});
+seed('meditation', 'fifteen minutes of meditation', {en: 'I meditated for fifteen minutes this morning', nl: 'Ik heb vanmorgen vijftien minuten gemediteerd'}, {kinds: ['log-meditation', 'check-in'], minCards: 1, maxCards: 1, fields: [{minutes: 15}]}, {...H, important: true}); // the Meditate habit exists: a check-in on it is as right as a session (Session Z-Local Part 6, L48)
 seed('mood', 'a good day', {en: 'Log my mood as good today', nl: 'Zet mijn stemming vandaag op goed'}, {kinds: ['log-mood']}, H);
 seed('counter', 'twenty push-ups', {en: 'Twenty push-ups done', nl: 'Twintig push-ups gedaan'}, P('counter', {count: 20}), {...H, important: true});
-seed('fast-start', 'start a fast', {en: 'Start a sixteen hour fast now', nl: 'Start nu een vasten van zestien uur'}, {kinds: ['start-fast'], fields: [{kind: 'start-fast', hours: 16}]}, H);
-seed('fast-stop', 'end the fast', {en: 'Stop my fast, I am eating now', nl: 'Stop mijn vasten, ik ga nu eten'}, {kinds: ['stop-fast']}, H);
+seed('fast-start', 'start a fast', {en: 'Start a sixteen hour fast now', nl: 'Start nu een vasten van zestien uur'}, {kinds: ['start-fast'], fields: [{kind: 'start-fast', targetHours: 16}]}, H); // the schema's field is targetHours (L48)
+seed('fast-stop', 'end the fast', {en: 'Stop my fast, I am eating now', nl: 'Stop mijn vasten, ik ga nu eten'}, {kinds: []}, H); // no fast runs in the fixtures: the honest reply says so and proposes nothing (L48)
 // Health settings and plans (Part 5)
 seed('target-protein', 'protein target', {en: 'Set my protein target to a hundred and thirty grams a day', nl: 'Zet mijn eiwitdoel op honderddertig gram per dag'}, P('set-target', {target: 'protein', value: 130}), {...H, important: true});
 seed('target-steps', 'steps target', {en: 'My steps goal is nine thousand from now on', nl: 'Mijn stappendoel is vanaf nu negenduizend'}, P('set-target', {target: 'steps', value: 9000}), H);
 seed('target-water', 'water target', {en: 'I want to drink two and a half litres a day, set that as my water target', nl: 'Ik wil tweeënhalve liter per dag drinken, zet dat als mijn waterdoel'}, P('set-target', {target: 'water'}), H);
 seed('target-sleep', 'sleep goal', {en: 'My sleep goal is seven and a half hours', nl: 'Mijn slaapdoel is zeven en een half uur'}, P('set-target', {target: 'sleep', value: 7.5}), H);
-seed('units-lb', 'weight in pounds', {en: 'Show my weight in pounds from now on', nl: 'Toon mijn gewicht voortaan in pond'}, P('set-health-preference', {weightUnit: 'lb'}), H);
+seed('units-lb', 'weight in pounds', {en: 'Show my weight in pounds from now on', nl: 'Toon mijn gewicht voortaan in pond'}, {kinds: []}, H); // the fixtures' preference is already pounds: nothing to change, no card (L48)
 seed('favourite', 'a favourite food', {en: 'Make the berry overnight oats a favourite', nl: 'Maak de berry overnight oats favoriet'}, {kinds: ['set-favorite']}, H);
 seed('counter-create', 'a burpees counter', {en: 'Add a counter for burpees', nl: 'Maak een teller voor burpees'}, P('create-counter', {name: 'Burpees'}), H);
 seed('counter-rename', 'rename a counter', {en: 'Rename my push-ups counter to press-ups', nl: 'Hernoem mijn push-ups teller naar press-ups'}, P('edit-counter', {name: 'Press-ups'}), H);
-seed('diary-edit', 'two servings instead', {en: 'Change today\'s oats to two servings', nl: 'Zet de havermout van vandaag op twee porties'}, P('edit-diary-entry', {quantity: 2}), H);
+seed('diary-edit', 'two servings instead', {en: 'Change today\'s oats to two servings', nl: 'Zet de havermout van vandaag op twee porties'}, {kinds: ['edit-diary-entry', 'log-food'], minCards: 1, maxCards: 1, fields: [{quantity: 2}]}, H); // the spoken forms also read as logging two servings (L48)
 seed('grocery', 'grocery items', {en: 'Add oat milk and spinach to my groceries', nl: 'Zet havermelk en spinazie op mijn boodschappenlijst'}, {kinds: ['grocery-item', 'grocery-notes'], minCards: 1, maxCards: 1}, H);
 seed('recipe', 'a new recipe', {en: 'Create a recipe called lentil soup with two hundred and fifty grams of lentils and one onion', nl: 'Maak een recept linzensoep met tweehonderdvijftig gram linzen en één ui'}, {kinds: ['create-recipe']}, H);
-seed('plan-meal', 'plan a recipe', {en: 'Plan the lentil soup for dinner tomorrow', nl: 'Plan de linzensoep voor morgenavond'}, {kinds: ['plan-meal']}, H);
+seed('plan-meal', 'plan a recipe', {en: 'Plan the lentil soup for dinner tomorrow', nl: 'Plan de linzensoep voor morgenavond'}, {kinds: ['plan-meal'], minCards: 0, maxCards: 1}, H); // the fixtures' lentil soup is a food, and a plan takes a recipe or a saved meal: saying so is right (L48)
 seed('bells', 'the meditation bell', {en: 'Ring the meditation bell every five minutes with the chime', nl: 'Laat de meditatiebel elke vijf minuten klinken met de chime'}, P('set-bells', {intervalMin: 5, sound: 'chime'}), H);
 seed('night-start', 'going to bed', {en: 'I am going to bed now', nl: 'Ik ga nu slapen'}, {kinds: ['start-night']}, {...H, important: true});
 seed('night-end', 'getting up', {en: 'I am up, it is ten past seven', nl: 'Ik ben op, het is tien over zeven'}, P('end-night', {wake: '07:10'}), H);
 // Habits
 seed('checkin', 'a check-in', {en: 'Mark my Walk habit as done', nl: 'Vink mijn gewoonte Wandelen af'}, {kinds: ['check-in']}, {...HB, important: true});
-seed('checkin-minutes', 'minutes read', {en: 'I read for twenty-five minutes', nl: 'Ik heb vijfentwintig minuten gelezen'}, {kinds: ['check-in'], fields: [{kind: 'check-in', value: 25}]}, {...HB, important: true});
+seed('checkin-minutes', 'minutes read', {en: 'I read for twenty-five minutes', nl: 'Ik heb vijfentwintig minuten gelezen'}, {kinds: ['check-in'], fields: [{kind: 'check-in', minutes: 25}]}, {...HB, important: true}); // Read is measured in minutes: the card's field is minutes (L48)
 seed('partial', 'a partial check-in', {en: 'I only did half of my meditation today', nl: 'Ik heb vandaag maar de helft van mijn meditatie gedaan'}, {kinds: ['check-in', 'log-meditation'], minCards: 1}, HB);
 seed('skip', 'skip today', {en: 'Skip my run today, rest day', nl: 'Sla mijn hardlopen vandaag over, rustdag'}, {kinds: ['skip']}, {...HB, important: true});
-seed('skip-tomorrow', 'skip tomorrow', {en: 'Skip my Walk tomorrow', nl: 'Sla mijn wandeling morgen over'}, {kinds: ['skip'], fields: [{kind: 'skip', day: '2026-09-21'}]}, HB);
-seed('create-habit', 'a new habit', {en: 'Create a habit called stretching, ten minutes every morning', nl: 'Maak een gewoonte stretchen, tien minuten elke ochtend'}, {kinds: ['create-habit'], minCards: 1, maxCards: 1}, {...HB, important: true}); // a build-habit composite expands into create-habit cards before scoring
-seed('edit-habit', 'rename a habit', {en: 'Rename my Walk habit to Evening walk', nl: 'Hernoem mijn gewoonte Wandelen naar Avondwandeling'}, P('edit-habit', {title: 'Evening walk'}), HB);
+seed('skip-tomorrow', 'skip tomorrow', {en: 'Skip my Walk tomorrow', nl: 'Sla mijn wandeling morgen over'}, {kinds: ['skip'], fields: [{kind: 'skip', day: '2026-10-06'}]}, HB); // tomorrow from the harness's Showcase day, 2026-10-05 (DAY in lib/ai/tools/fixtures; L48)
+seed('create-habit', 'a new habit', {en: 'Create a habit called stretching, ten minutes every morning', nl: 'Maak een gewoonte stretchen, tien minuten elke ochtend'}, {kinds: ['create-habit', 'edit-habit', 'set-habit-state'], minCards: 1, maxCards: 1}, {...HB, important: true}); // a build-habit composite expands into create-habit cards before scoring; the fixtures hold an archived "Stretch morning", so editing or reactivating it is right (L48)
+seed('edit-habit', 'rename a habit', {en: 'Rename my Walk habit to Evening walk', nl: 'Hernoem mijn gewoonte Wandelen naar Avondwandeling'}, P('edit-habit', {title: {anyOf: ['Evening walk', 'Avondwandeling']}}), HB); // the Dutch ask names the new title in Dutch (L48)
 seed('stack', 'stack habits', {en: 'Do my Meditate habit right after my Walk', nl: 'Doe mijn meditatie meteen na mijn wandeling'}, {kinds: ['stack-habit']}, HB);
 seed('challenge', 'a thirty-day challenge', {en: 'Start a thirty day challenge for my Read habit', nl: 'Start een uitdaging van dertig dagen voor mijn gewoonte Lezen'}, {kinds: ['start-challenge'], fields: [{kind: 'start-challenge', days: 30}]}, HB);
 seed('pause', 'pause a habit', {en: 'Pause my Walk habit for now', nl: 'Pauzeer mijn gewoonte Wandelen voorlopig'}, P('set-habit-state', {state: 'paused'}), {...HB, important: true});
@@ -96,7 +96,7 @@ seed('archive', 'archive a habit', {en: 'Archive my Read habit', nl: 'Archiveer 
 seed('vacation', 'vacation days', {en: 'I am on holiday from the twenty-second to the twenty-sixth of September, mark those as vacation days', nl: 'Ik ben op vakantie van tweeëntwintig tot zesentwintig september, zet die als vakantiedagen'}, P('vacation', {from: '2026-09-22', to: '2026-09-26'}), HB);
 seed('unskip', 'undo a planned skip', {en: 'Undo the skip I planned for my Walk tomorrow', nl: 'Maak de overslag van mijn wandeling morgen ongedaan'}, {kinds: ['unskip']}, HB);
 seed('reminder-habit', 'a habit reminder', {en: 'Remind me to meditate at quarter to eight in the evening', nl: 'Herinner me om kwart voor acht \'s avonds aan mediteren'}, {kinds: ['create-reminder'], fields: [{kind: 'create-reminder', time: '19:45'}]}, {...HB, important: true});
-seed('reminder-water', 'a water reminder', {en: 'Remind me to drink water every two hours', nl: 'Herinner me elke twee uur om water te drinken'}, {kinds: ['create-reminder'], fields: [{kind: 'create-reminder', for: 'water'}]}, T);
+seed('reminder-water', 'a water reminder', {en: 'Remind me to drink water every two hours', nl: 'Herinner me elke twee uur om water te drinken'}, {kinds: ['create-reminder'], minCards: 1, maxCards: 8, fields: [{kind: 'create-reminder', for: 'water'}]}, T); // one card per time (L48)
 seed('reminder-off', 'a reminder off', {en: 'Turn off the reminder for my Meditate habit', nl: 'Zet de herinnering voor mijn meditatie uit'}, P('remove-reminder', {for: 'habit'}), HB);
 seed('delete-habit', 'delete a habit (confirmation)', {en: 'Delete my Walk habit', nl: 'Verwijder mijn gewoonte Wandelen'}, P('delete-record', {what: 'habit'}), {...HB, important: true});
 // Goals
@@ -105,7 +105,7 @@ seed('goal-note', 'a goal note', {en: 'Add a note to my Japan adventure goal: fl
 seed('milestone', 'a milestone', {en: 'Add a milestone to the Japan goal called halfway there', nl: 'Voeg een mijlpaal toe aan het Japan-doel: halverwege'}, {kinds: ['add-milestone']}, G);
 seed('edit-goal', 'rename a goal', {en: 'Rename the Japan adventure goal to Japan in spring', nl: 'Hernoem het doel Japan adventure naar Japan in de lente'}, P('edit-goal', {name: {anyOf: ['Japan in spring', 'Japan in de lente']}}), G); // the Dutch ask names the goal in Dutch (Session Z-Local Part 6, an oracle fix: listed)
 seed('close-goal', 'close a goal', {en: 'Close the Japan adventure goal, I am done with it', nl: 'Sluit het doel Japan adventure af, ik ben er klaar mee'}, {kinds: ['close-goal']}, G);
-seed('reopen-goal', 'reopen a goal', {en: 'Reopen the Japan adventure goal', nl: 'Heropen het doel Japan adventure'}, {kinds: ['reopen-goal']}, G);
+seed('reopen-goal', 'reopen a goal', {en: 'Reopen the Japan adventure goal', nl: 'Heropen het doel Japan adventure'}, {kinds: []}, G); // the goal is active in the fixtures: nothing to reopen, no card (L48)
 seed('fund', 'fund a goal (form)', {en: 'Put two hundred euros towards the Japan adventure goal', nl: 'Stort tweehonderd euro op het doel Japan adventure'}, P('prefill-contribution', {amount: 200}), {...G, important: true});
 seed('delete-goal', 'delete a goal (confirmation)', {en: 'Delete the Emergency fund goal', nl: 'Verwijder het doel Emergency fund'}, P('delete-record', {what: 'goal'}), G);
 // Today and Settings

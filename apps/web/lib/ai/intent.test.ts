@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {detectIntent, refusedBlocksMayRepair, wantsCard} from './intent';
+import {detectIntent, refusedBlocksMayRepair, wantsCard, REFUSAL_REPLY} from './intent';
 
 test('a logging ask is read as one in English and Dutch, with fillers and self-corrections', () => {
   for (const ask of ['Log a glass of water', 'I had my usual oatmeal and two glasses of water', 'Weight this morning 78.4 kg', 'uh log two glasses no wait three glasses of water', 'so I ran for like thirty minutes', 'Noteer twee glazen water', 'Ik heb vandaag 2 liter water gedronken', 'Slept 23:00 to 06:45', 'Twenty push-ups', 'Breakfast: two eggs, toast and a coffee']) {
@@ -50,3 +50,9 @@ test('refused blocks may be repaired on a plain logging attempt, never on a look
   expect(refusedBlocksMayRepair(detectIntent('Log a glass of water'), "I can't log that without the amount.")).toBe(false);
 });
 
+
+// Session Z-Local Part 6 (ADR-020 L48): a refusal said in Dutch counts as one (the spoken set's "ik geef geen koersvoorspellingen" scored as no refusal).
+test('a Dutch refusal is a refusal: "ik geef geen koersvoorspellingen", "dat weet ik niet", "ik mag geen advies geven"', () => {
+  for (const t of ['Dat weet ik niet. Ik geef geen koersvoorspellingen.', 'Ik mag geen medisch advies geven.', 'Koersen kan ik niet voorspellen.']) expect(REFUSAL_REPLY.test(t), t).toBe(true);
+  expect(REFUSAL_REPLY.test('Je hebt vandaag 2 glazen water gedronken.')).toBe(false);
+});

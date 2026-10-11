@@ -109,8 +109,8 @@ function numberWords(text: string): string {
 /** Halves and decimals: "two and a half" → 2.5, "half a litre" → 0.5 litre, "anderhalf uur" → 1.5 uur, "two point five" → 2.5, "twee komma vijf" → 2.5. */
 function fractions(text: string): string {
   return text
-    .replace(/\b(\d+)\s+(?:and|en)\s+(?:a|een|'n)?\s*half\b/gi, (_, n: string) => `${n}.5`)
-    .replace(/\b(\d+)\s*(?:en\s*een\s*)?half\b/gi, (_, n: string) => `${n}.5`)
+    .replace(/\b(\d+)\s+(?:and|en)\s+(?:a|een|'n)?\s*half(?:e)?\b/gi, (_, n: string) => `${n}.5`)
+    .replace(/\b(\d+)\s*(?:en\s*een\s*)?half(?:e)?\b/gi, (_, n: string) => `${n}.5`)
     .replace(/\b(?:(?:an?|1|een)\s+)?(hour|uur|lit(?:re|er)|kilo|glass|glas|minute|minuut|cup|bottle|fles|mile|mijl)\s+(?:and|en)\s+(?:a\s+|een\s+)?half(?:\s+(?:an?|een)\b)?/gi, (_, u: string) => `1.5 ${u}`)
     .replace(/\banderhal(?:f|ve)\b/gi, '1.5')
     .replace(re(`\\b(?:a\\s+|een\\s+)?hal(?:f|ve)\\s+(?:an?\\s+|een\\s+|1\\s+)?(?=(?:${UNITS})(?![A-Za-z]))`, 'gi'), '0.5 ')
@@ -201,6 +201,8 @@ export function normalizeSpoken(text: string): string {
   t = t.replace(/\b(\d{1,3}),(\d{3})\b(?!,\d)/g, '$1$2').replace(/\b(\d+),(\d{1,2})\b/g, '$1.$2');
   t = clocks(t);
   t = corrections(t);
+  // "tweeënzeventig en een halve": the half became 0.5 on its own in an earlier pass; joined to its whole here (Session Z-Local Part 6, L48).
+  t = t.replace(/\b(\d+)\s+(?:en|and)\s+0\.5\b/g, '$1.5');
   return t.replace(/\s+([,.!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
 }
 /** Whether the normalised form differs from the words (so a caller can tell a spoken reading happened). */

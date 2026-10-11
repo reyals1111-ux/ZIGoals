@@ -143,3 +143,10 @@ test('L37: set-target with value null clears the target (the null stays); a null
   const water = parseReply('One glass.\n\n```zigoals-action\n{"kind":"log-water","glasses":null,"millilitres":250}\n```');
   expect(water.proposals).toHaveLength(1); expect((water.proposals[0] as {glasses?: unknown}).glasses).toBeUndefined();
 });
+
+test('L48: a unit written in Dutch is the schema\'s own unit word ("uur" → hours, "glazen" → glasses, "pond" → lb)', () => {
+  const r = parseReply('Doel gezet.\n\n```zigoals-action\n{"kind":"set-target","target":"sleep","value":7.5,"unit":"uur"}\n```');
+  expect(r.proposals).toHaveLength(1); expect((r.proposals[0] as {unit?: string}).unit).toBe('hours');
+  const w = parseReply('Noted.\n\n```zigoals-action\n{"kind":"log-weight","value":72.5,"unit":"kilo"}\n```');
+  expect(w.proposals).toHaveLength(1); expect((w.proposals[0] as {unit?: string}).unit).toBe('kg');
+});

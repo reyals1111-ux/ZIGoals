@@ -72,6 +72,7 @@ export function repairJson(body: string): unknown {
   return null;
 }
 /** Fields the schema counts as numbers; a model that quotes them ("300") still means the number. */
+const UNIT_ALIASES: Readonly<Record<string, string>> = {uur: 'hours', uren: 'hours', hour: 'hours', minuut: 'minutes', minuten: 'minutes', minute: 'minutes', glas: 'glasses', glazen: 'glasses', glass: 'glasses', kilo: 'kg', kilogram: 'kg', kilos: 'kg', pond: 'lb', pounds: 'lb', pound: 'lb', stappen: 'steps', step: 'steps', liter: 'l', liters: 'l', litre: 'l', litres: 'l', gram: 'g', grams: 'g', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml'};
 const NUMERIC_KEYS = new Set(['millilitres', 'glasses', 'value', 'steps', 'minutes', 'hours', 'quantity', 'target', 'targetHours', 'servings', 'count', 'weekday', 'quality', 'mood', 'days', 'serving_g', 'serving_ml', 'grams', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'balance']);
 const NUMBER = /^-?\d+(?:[.,]\d+)?$/;
 function coerceNumbers(value: unknown): unknown {
@@ -87,6 +88,8 @@ function coerceNumbers(value: unknown): unknown {
     // Session Z-Local Part 6 (ADR-020 L37): where the schema makes null a meaning (set-target's value clears the target; set-bells' intervalMin
     // stops the bell), the null stays; Opus wrote `"value": null` to clear a calorie target and the block was refused as "received undefined".
     if (v === null && NUMERIC_KEYS.has(key) && !((o.kind === 'set-target' && key === 'value') || (o.kind === 'set-bells' && key === 'intervalMin'))) continue;
+    // Session Z-Local Part 6 (ADR-020 L48): a unit written in Dutch ("uur", "glazen", "pond") is the schema's own unit word; the block is otherwise refused.
+    if (key === 'unit' && typeof v === 'string' && UNIT_ALIASES[v.trim().toLowerCase()]) { out[key] = UNIT_ALIASES[v.trim().toLowerCase()]; continue; }
     out[key] = typeof v === 'string' && NUMERIC_KEYS.has(key) && NUMBER.test(v.trim()) ? Number(v.trim().replace(',', '.')) : typeof v === 'object' ? coerceNumbers(v) : v;
   }
   return out;
