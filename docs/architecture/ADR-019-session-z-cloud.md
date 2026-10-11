@@ -182,8 +182,10 @@ Each difference it reports at Gate C is explained against this list (filled per 
   `lib/pages/visibility.test.ts` expect "Help" after "Settings"; `lib/nav-prefetch.test.ts` lists `/app/help` as not
   prefetched.
   `help-settings-link` (Gate B) still requires exactly one Help link in the Settings page itself (`main`); every other
-  Help link must be a navigation entry named "Help", exactly one in the sidebar and at most one in any other navigation
-  (made per navigation at Gate C, the test audit; it first allowed any two). It expected one link on the whole page, which
+  Help link must be a navigation entry named "Help", at most two in the page, and (Gate C, the test audit, stricter)
+  exactly one in the sidebar and one per navigation that shows (a `nav` or an open sheet; a computer can still hold the
+  phone's hidden More row until the layout is known, which CI on `91830b5` caught when the check counted hidden rows
+  too). It expected one link on the whole page, which
   the new navigation entry made two (three on a phone, where both navigations are in the page). `phone-shell`'s More list
   now ends in "Help" (stricter: one more item, in order).
 - **Part 4.2–4.3, the honesty label (as strict, new words):** `honesty-banners`, `private-read-delay`, `dashboard-visual` and
