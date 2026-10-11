@@ -254,6 +254,28 @@ jobs:
       # (C56's two checks); the 11 px floor in those checks stays.
       - name: The Chrome shards' font (fonts-liberation)
         run: sudo apt-get install -y --no-install-recommends fonts-liberation
+      # Session Z-Local L54 ([TIER 3] (CI)): WebKit's own dependencies bring FreeFont, Unifont and Cantarell, and fontconfig
+      # drew the app's sans-serif (Inter is not shipped; the Mac uses its own UI font) in a wider face than the Chrome shards'
+      # Liberation Sans, so ZIGi's title overran the buttons at 360 and Settings' name wrapped at 320 only in this job. Every
+      # sans-serif request, and "Inter" itself, is pinned to Liberation Sans here, so both jobs measure the same font.
+      - name: The same sans-serif as the Chrome shards (fontconfig)
+        run: |
+          mkdir -p ~/.config/fontconfig
+          cat > ~/.config/fontconfig/fonts.conf <<'CONF'
+          <?xml version="1.0"?>
+          <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+          <fontconfig>
+            <match target="pattern"><test qual="any" name="family"><string>Inter</string></test><edit name="family" mode="assign" binding="strong"><string>Liberation Sans</string></edit></match>
+            <match target="pattern"><test qual="any" name="family"><string>Cantarell</string></test><edit name="family" mode="assign" binding="strong"><string>Liberation Sans</string></edit></match>
+            <match target="pattern"><test qual="any" name="family"><string>DejaVu Sans</string></test><edit name="family" mode="assign" binding="strong"><string>Liberation Sans</string></edit></match>
+            <match target="pattern"><test qual="any" name="family"><string>FreeSans</string></test><edit name="family" mode="assign" binding="strong"><string>Liberation Sans</string></edit></match>
+            <alias binding="strong"><family>sans-serif</family><prefer><family>Liberation Sans</family></prefer></alias>
+            <alias binding="strong"><family>system-ui</family><prefer><family>Liberation Sans</family></prefer></alias>
+            <alias binding="strong"><family>ui-sans-serif</family><prefer><family>Liberation Sans</family></prefer></alias>
+          </fontconfig>
+          CONF
+          fc-cache -f >/dev/null
+          for f in sans-serif system-ui ui-sans-serif Inter Cantarell; do echo "$f -> $(fc-match "$f")"; done
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - name: WebKit suite
