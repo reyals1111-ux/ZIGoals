@@ -1,7 +1,7 @@
 # ADR-019: Session Z-Cloud, "ZIGi's new face + friends-ready": session decisions
 
-Status: **In progress** on `feature/session-z-cloud`, from `main` `12a3ef9` (Merge #80, Session Y; live as Alpha deploy
-#35). This record holds every decision Session Z-Cloud took without asking the owner (the brief asks for the safest option
+Status: **Ready for review** ([PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81), `feature/session-z-cloud`, Gate C
+done; the owner merges), from `main` `12a3ef9` (Merge #80, Session Y; live as Alpha deploy #35). This record holds every decision Session Z-Cloud took without asking the owner (the brief asks for the safest option
 that keeps the project's promises), and the owner's own decisions. A parallel lane, Session Z-Local
 (`feature/session-z-local`), owns ZIGi's brain; the two lanes talk through `docs/handoff/Z_CLOUD_TO_LOCAL.md` and
 `docs/handoff/Z_LOCAL_TO_CLOUD.md`.

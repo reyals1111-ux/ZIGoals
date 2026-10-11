@@ -1,3 +1,148 @@
+# Session Z-Cloud — "ZIGi's new face + friends-ready" (ADR-019) (2026-10-10/11, [PR #81](https://github.com/reyals1111-ux/ZIGoals/pull/81), ready for review)
+
+**Evidence labels:**
+- **local:** this cloud session's sandbox. Node 24.19.0 (from nodejs.org, SHASUMS256-checked), pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`; Playwright's Chromium stands in for Chrome (CLAUDE.md), so the brand-film specs fail here by design and pass in CI. Browser runs on production builds (`PUBLIC_ALPHA_UNDEPLOYED`, `next start`): this branch on :3101, `12a3ef9`'s own build (a scratch worktree) on :3102; 2 workers, never two suites, builds or single tests at once.
+- **WebKit:** Playwright's WebKit build 2359 (CI's build), here and in CI's advisory job; never "Safari on an iPhone".
+- **Miniflare:** the Workers in `workerd` (CI's integration list, run here one file at a time).
+- **MOCK:** every AI provider and the Anthropic upstream; speech recognition and synthesis in the browser specs.
+- **agent:** the four independent reads the owner allowed (owner follow-up 1), one at a time: the security read of Part 5's `[TIER 3]` commits and of the relay (Gate B), Part 9's persona round, the Gate C security read of every `[TIER 3]` commit, and the Gate C audit of every changed test file.
+- **CI:** Milestone quality and Canonical reproducibility on the PR (Actions API).
+
+Nothing was deployed, dispatched, merged or approved. No session logged into any service, handled a real secret, signed with a wallet, or changed a key, contract or chain config. No new dependency (runtime, dev or Actions); no new download in CI. The relay for friends is ready and not activated (its kill switch is on in the committed template; the public Alpha builds without `NEXT_PUBLIC_ZIGI_HOSTED`).
+
+**Base:** `main` `12a3ef9` (Merge #80; Alpha #35). `main` did not move during the session (checked at every gate and before this entry). Z-Local's branch (`feature/session-z-local`) stayed at `64ec6f6` from Gate B on; its handoff was read at every gate (ADR-019 "Handoff applied"); this lane's entries are in `docs/handoff/Z_CLOUD_TO_LOCAL.md`.
+**Time:** branch created 2026-10-10 14:15 UTC; this entry 2026-10-11 09:35 UTC: about 19 h 20 min of wall-clock time in one session (Parts 1–6 on the 10th; Gate B, round 2, Parts 7–9 and Gate C through the night and the morning of the 11th), past the weekly reset as the owner approved (plan edit 3).
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| Setup | ADR-019 (owner decisions, plan edits, C1–C57), the Z_CLOUD_TO_LOCAL handoff | 1 | `44959ae` | — |
+| 1 | Records: Alpha #35, Release identity (#35 live, #34 previous), #34's owner notes; the hosted verifier's REST row no longer fails on "v5.1.2Goal Manager" (unit test with the exact text) | 1 | `12966c6` | Actions API; live (read-only) |
+| 2 | ZIGi's chat, premium and clean: "ZIGi · Your Personal AI Companion", one header row of glyph buttons with "⋯", a new chat as one greeting and the box, the Suggestions sheet, the person's own suggestions, one-line receipts, the composer on one line; `[TIER 3] (storage)` two device-only keys | 2 / 3 | `30f18cd` `4f72b3a` `7962228` `37f3c8f` | local; CI |
+| 3 | Talk to ZIGi in English and Dutch: the microphone with or without an AI (the iPhone's missing mic, C12), tap or hold, the launcher's hold, ⌘/Ctrl+Shift+Space, waves, send when I stop, replies read aloud with Mute and quiet hours, the per-browser disclosure | 2 | `6bae491` `985a3fc` | local (MOCK speech); WebKit |
+| 4 | The persona decisions, items 1–3 and 5–12; `[TIER 3] (data formats)` "Delete for good" as a nameless archived shell | 2 / 3 | `64ab97f` `d5d0217` | local; Miniflare (two devices, a #35 reader) |
+| 5 | A5 (60 codes a UTC day, IPv6 /48), A6 (the recovery secret asked again; a 30-day remembered device), Y38, A7, C4 (testnet only on public builds) | 3 / 2 | `fcfff5e` `85a0db1` `4f8abeb` | Miniflare; local |
+| 6 | "ZIGoals AI · powered by Claude": the relay on Claude Sonnet 5.5 for friends (allowlist, budgets in messages and dollars, kill switch on), ready, not activated | 3 / 2 | `7699e94` `64ad200` | Miniflare (MOCK Anthropic); local |
+| Round 2 | Owner follow-up: no chrome wraps in ZIGi's panel at 320–1440 px | 2 | `fe04c9f` | local; `review/session-z-cloud-runs` |
+| Gate B | The security reads' fixes (step-up across two rotations, a paused day spends no personal limits, delete-for-good, the relay's reservation), Z-Local's handoff on ZIGi's face, CI fixes | 3 / 2 | `f4994bb` `f96d23d` `f0e4300` `3cfeee1` `b8e99e3` `2bb9d75` `1f85d92` `938ae21` `15c36a5` `4cfc2b1` | agent; Miniflare; CI |
+| 7 | F15 (the Alpha gate watches every script), `meditation:277` measured (C47), weights by on-use imports | 3 / 1 | `463bec1` `6b61f63` | local; CI |
+| 8 | Friends-readiness docs: FRIENDS_GUIDE, Stage 8 rows G1–G7 and E3, the relay's activation | 1 | `aa4c849` | — |
+| What's new | Release `2026-10-session-z-cloud` (seven links) and Help for this release | 1 | `001e363` | local |
+| 9 | The fresh-eyes persona round (one independent agent, 20 sessions, 28 issues): what became of ZIGi's cards kept on the device (`[TIER 3] (storage)`), units, Dutch words, cut text; `docs/verification/z-cloud/PERSONAS_Z.md` | 3 / 2 | `704eded` `0daee36` `a086bbf` | agent; local; CI |
+| Gate C | The security read's fixes (C53–C55), the test audit (stricter), ZIGi's name in any font (C56), WebKit's root causes (C57), the freeze record, CI fixes | 3 / 2 / 1 | `d00f2a3` `10c6d44` `3508f71` `249f69d` `712a53a` `26e30aa` `7f25944` `fa27882` `7472d1d` `3d8a844` `248b1f0` `20d4bd2` `91830b5` `f950c6d` `1019fe3` `88e7a41` `034b8a4` | agent; Miniflare; WebKit; CI |
+| — | This entry, PR ready | — | this commit | — |
+
+## Tier 2, in plain words (owner visual OK)
+- **`4f72b3a`, `7962228`, `37f3c8f`, `fe04c9f` ZIGi's panel.** The new name, one header row of glyph buttons with "⋯", a new chat as one greeting and the box, the Suggestions sheet, one-line receipts, the composer on one line; round 2: nothing in the panel's chrome wraps at 320–1440 px (C3–C11, C20, C45). Risk: the panel looks different from #35 (the owner's request). Rollback: revert these four with Part 2's storage commit.
+- **`6bae491`, `985a3fc` voice.** The microphone with or without an AI; tap, hold, the launcher's hold, the shortcut; replies read aloud with Mute, never between 22:00 and 08:00 (C12–C19, C32). Risk: a browser's speech service hears what is said (disclosed once per browser). Rollback: revert both.
+- **`d5d0217`, `4f8abeb`, `15c36a5`, `2bb9d75` the persona decisions and C4.** Today one centred column; the phone's one status line and its Status sheet; plain words without Keplr; "What you have"; lb and fl oz; grouped quantities; a compact phone goal card; Ask ZIGi in a habit's menu; Help last; ZIGi the phone's one floating button; public builds read testnet positions only (C21–C31, C38, C39). Risk: desktop captures change where listed under Freeze. Rollback: revert (no stored format changed).
+- **`64ad200`, `f0e4300` ZIGi's face for the relay and Z-Local's handoff.** "ZIGoals AI · powered by Claude" in hosted builds only; the runner's three effects; Stop during the retry. Rollback: revert.
+- **`0daee36`, `a086bbf` the persona round's fixes.** Units, Dutch words in Quick add, the water target in fl oz, cut text on phones, the status line naming who answered (PERSONAS_Z.md). Rollback: revert.
+- **`7472d1d` ZIGi's name in any font (C56).** The header scales the name to its box when a font draws it wider than Inter. Rollback: revert (the name can run into the buttons again in such a font).
+- **`248b1f0` the log's scrolling (C57).** The log glides only when ZIGi moves it, never under reduced motion or Motion Off. Rollback: revert (WebKit's Undo flake and the Motion Off gap return).
+- **`001e363` What's new and Help.** The card shows once more (release `2026-10-session-z-cloud`); Help answers. Rollback: revert.
+
+## Tier 3, in plain words (risk → rollback)
+- **`30f18cd` storage.** Two device-only keys: `zigoals:zigi-suggestions:v1` (the person's frequent questions; in Export everything and "What ZIGi knows", cleared by Turn off ZIGi, Disconnect and the account's erase, never with Health unless shared) and `zigoals:zigi-voice:v1` (voice choices). #32–#35 ignore both. Rollback: revert; the keys stay unread.
+- **`704eded`, `3508f71`, `7f25944` storage.** `zigoals:zigi-cards:v1`: each reply's cards' outcomes (added, opened, dismissed, undone, replaced; edited or not; a fingerprint of the action), no words, at most 300 replies, so a reopened chat never offers an added card again. Risk: a card shows as a receipt where #35 offered it again. Rollback: revert; the key stays unread.
+- **`64ab97f`, `b8e99e3` data formats.** "Delete for good" leaves a nameless archived shell with no check-ins, which syncs like any habit; #32–#35 readers accept it (a #35 device received one in Miniflare, 3/3). Only once the archive is in effect; nothing of the habit stays in Activity or exports. Risk: a deletion cannot be taken back after its ten-second Undo. Rollback: revert both; shells already written stay nameless and archived.
+- **`fcfff5e`, `f96d23d`, `10c6d44` Workers (auth-abuse).** At most 60 sign-in code emails per UTC day across the installation, reserved before the provider is asked and given back when the provider sends nothing; code requests group IPv6 by /48 (verification keeps /64); a paused day spends no personal limits. Risk: a busy day pauses codes until 00:00 UTC ("Sign-in codes are paused for today"). Rollback: revert and redeploy the auth-abuse Worker (owner step).
+- **`85a0db1`, `f4994bb`, `d00f2a3` auth/sync.** The recovery secret is asked again for Delete cloud data, Delete account, Delete a section, Sign out other devices, Rotate and revoking one session; the private-sync Worker requires a step-up proof for them once a vault has a verifier, behind `STEP_UP_REQUIRED` (on in this PR's config); the first verifier comes only from a sign-in within the hour; a remembered device asks again after 30 days (or at once if its date is in the future); Y38 and A7. Risk: one more typed secret before those actions. Rollback: set `STEP_UP_REQUIRED` to "off" on the sync Worker (owner switch; #35 then works unchanged), then revert.
+- **`7699e94`, `4cfc2b1` Workers (zigi-relay).** Claude Sonnet 5.5 (Haiku 5.5 allowed) for allowlisted friends: daily and monthly budgets in messages and dollars priced with cache reads and writes, two replies per person at once, the prompt reserved at its ceiling, fail-closed checks, kill switch on. Not activated. Risk: none until the owner activates it. Rollback: kill switch on, or delete the relay's origin on the app Worker.
+- **`3cfeee1` CI.** The integration step also runs the two-tab Health test. Rollback: revert.
+- **`463bec1`, `1f85d92`, `249f69d` security tests.** The Alpha gate watches every script on every app page and after opening ZIGi (MutationObserver and CSP violation listener), finds "Connect Keplr" in the phone's Status sheet, and requires a nonced script with an address to be the server's or this origin's chunk. Rollback: revert.
+
+## Storage, sync and formats
+New device keys: `zigoals:zigi-suggestions:v1`, `zigoals:zigi-voice:v1`, `zigoals:zigi-cards:v1` (loose schemas; a later build's fields survive; unreadable bytes are left as they are). New synced shape: the nameless archived habit shell (delete for good). Server side: the step-up verifier records in the private-sync Worker, the day's code counter in the auth-abuse Worker's existing Durable Object class, the relay's budget tables. #32–#35 readers: the shell passes a #35 device's own readers (`12a3ef9` worktree, Miniflare, 3/3, `review/session-z-cloud-runs`); the three keys are unknown to them and ignored (`noExistingData`, the export readers: unit tests). Schema-snapshot digests unchanged for every existing key.
+
+## Egress, CSP, Workers
+No app CSP, header or Permissions-Policy change (`next.config.ts`, `lib/csp-compose.mjs` unchanged; the microphone was already `self` on /app). Workers changed: auth-abuse (A5), private-sync (step-up, `STEP_UP_REQUIRED` in the local config), zigi-relay (Anthropic, budgets, pricing). The relay's only upstream for friends is `https://api.anthropic.com/v1/messages` (the config check refuses any other address there).
+
+## Weight (gzip -6 of the scripts each page loads, production builds, Gate C)
+Measured with `scripts/check-weight-budget.mjs` on two production builds side by side: `12a3ef9`'s own (a worktree, :3102) and this branch's final code (`248b1f0`, :3101; the commits after it change tests and documents only).
+
+| Page | `12a3ef9` (#35) | This PR | Change | Budget |
+|---|---|---|---|---|
+| Today `/app` | 510.6 kB | 514.8 kB | +4.2 kB | 515 kB |
+| Goals | 429.5 kB | 432.6 kB | +3.1 kB | 434 kB |
+| Habits | 456.0 kB | 456.6 kB | +0.6 kB | 458 kB |
+| Health | 478.4 kB | 481.4 kB | +3.0 kB | 482 kB |
+| Wealth | 462.2 kB | 464.6 kB | +2.4 kB | 465 kB |
+| Markets | 428.5 kB | 431.6 kB | +3.1 kB | 432 kB |
+| Portfolio | 449.9 kB | 452.8 kB | +2.9 kB | 454 kB |
+| Staking | 437.7 kB | 441.1 kB | +3.4 kB | 442 kB |
+| Activity | 408.7 kB | 411.6 kB | +2.9 kB | 415 kB |
+| Settings | 480.4 kB | 477.8 kB | −2.6 kB | 482 kB |
+| Help | 406.1 kB | 408.9 kB | +2.8 kB | 409 kB |
+| Chess | 412.8 kB | 415.6 kB | +2.8 kB | 417 kB |
+| Shell (every page) | 402.2 kB | 405.0 kB | +2.8 kB | 406 kB |
+
+Every page within its budget (CI's "Page weight budgets" step green on every head that reached it); no budget raised (owner plan edit 7). The closest: Help 0.1 kB, Today 0.2 kB, Wealth and Markets 0.4 kB, Health 0.6 kB under. Settings is 2.6 kB lighter than #35: its vault panel's rarely used parts load on use (C39); the shell grew 2.8 kB with the parts every page needs (the launcher's hold detector, the phone's status line, Part 4's shell changes; measured at each gate, ADR-019 C39).
+
+## Tests (counts are not summed across overlapping runs)
+| Run | Result | Evidence |
+|---|---|---|
+| Unit, full suite, `TZ=UTC`, tree of `88e7a41` (Gate C) | 500 files passed, 20 skipped; **4,468 tests passed**, 44 skipped, 0 failed (299 s) | local |
+| Browser, full suite run 2, both projects, production build of the final code (`248b1f0`; later commits change tests and documents), 224 spec files in two halves | **1,952 passed**, 552 skipped, 6 failed (1.97 h): the brand film ×4 (`logo-quickadd-goals-header:53`, `:79`, both projects; this sandbox's Chromium cannot play it, by design), `motion-polish:137` (phone; the fill sampled after its glide under two-worker load, 10/10 alone), `send-feedback:9` (desktop; ZIGi's own figure files inside the "nothing requested" window, fixed in `88e7a41`; with it and `1019fe3`, `send-feedback` and `session-x-findings` 117 passed, 15 skipped, ×3 on both projects) | local; `review/session-z-cloud-runs` `gate-c/` |
+| Browser, run 1 (Gate B) | the first quarter locally, before Gate B's fixes: 579 passed, 6 failed (the brand film ×2; `motion-arrival:18`, `public-alpha:134`, `run10-widgets-status:8`, `run11-financial-previews:3`, addressed by `938ae21` and `15c36a5` and passing in run 2); CI's three shards on every head since | local; CI |
+| Focused Gate C runs (each alone, after its fix) | WebKit `zigi-accept-correct` create-goal 24/24 (2 in 10 failed before; 0 in 10 on `12a3ef9`'s build); `webkit-smoke` + `zigi-accept-correct` both projects 142 passed (the 2 failures were WebKit's "internal error" under a parallel typecheck; 6/6 alone); `small-features-y` 18/18; `help-settings-link` 10/10; `zigi-oneline-z` 11 passed, 1 skipped; `zigi-chat-polish` jump test fails on the code before (both checks) and passes after; persona-z, zigi-face-z, zigi-voice-z, zigi-oneline-z 79 passed, 5 skipped | local; WebKit |
+| Miniflare | `auth-abuse` 7/7, `step-up` 6/6 (each new test fails on the code before), `zigi-relay-anthropic` 10/10, `zigi-relay-pricing` 1 passed, 1 skipped by name; CI's integration list on every head | Miniflare; CI |
+| Weights, freeze | see above | local |
+| CI's WebKit job (advisory) | `91830b5`: 399 passed, 2 failed (the runner-font checks, C56), 55 skipped; `88e7a41`: 398 passed, 3 failed (the same two, and `webkit-smoke` on nested Goals prefetches, see Owner items) | CI |
+| Data safety | the delete-for-good shell read by a #35 device's own code in Miniflare 3/3 (Gate B); the three new keys ignored by #32–#35 (unit tests); schema-snapshot digests unchanged | Miniflare; local |
+| Stretch: human-style journeys | five journeys (a new person logs water by Quick add and finds it in Health and Help; ZIGi without an AI; archiving a habit; Wealth's "What you have" to an asset; Settings' Voice and back to Help) at a computer, a tablet and a phone size: 15 of 15 clean (no page error, no request off 127.0.0.1, no sideways scroll, every step as expected) | local; `review/session-z-cloud-screens` `gate-c-journeys/` |
+| The persona round (Part 9) | one independent agent, 20 sessions, six personas, 320–1440 px, empty and Showcase; 28 issues: 14 fixed with tests (some in part), the rest recorded (`PERSONAS_Z.md`) | agent (MOCK AI) |
+| New test files (20) | unit: `zigi-cards`, `zigi-suggestions`, `zigi-voice`, `zigi-voice-engine`, `habit-delete`, `health-ask`, `health-units`, `positions-relay`, `runner-effects`, `z-device-forget`; browser: `zigi-face-z`, `zigi-voice-z`, `zigi-oneline-z`, `persona-z`; Miniflare and two-browser: `step-up`, `habit-delete-sync`, `health-ask-tabs-browser`, `zigi-relay-claude`, `zigi-relay-pricing`; plus new cases in existing files (A5 and the refund, remember, Help, the font-fit and Motion Off checks) | — |
+
+## Assertions changed (none weakened)
+Every deliberate change is in [ADR-019](architecture/ADR-019-session-z-cloud.md) "Assertions changed" with its reason, as strict or stricter. An independent audit of every test file changed since `12a3ef9` (96 files: 77 modified, 19 added) found no unlisted weakening, three checks that could pass on nothing and ADR entries that understated changes (music on a phone, the banner's scope); all were tightened or corrected (`fa27882`). CI then found one of the audit's tightenings too strict for a computer's hidden phone row; it was restated with Gate B's checks kept (`f950c6d`). Three timing-sensitive tests now wait for what they read (`20d4bd2`, `1019fe3`, `88e7a41`), each listed in ADR-019 as mechanics.
+
+## Freeze (local, desktop and tablet against `12a3ef9`'s own build)
+155 captures of every main page, empty and Showcase, at desktop and tablet sizes (`scripts/desktop-freeze-check.mjs`), from `12a3ef9`'s own production build (a worktree, :3102) and this branch's final code (`248b1f0`, :3101), same machine and browser, 0 page errors in either: **all 155 differ, every difference explained.**
+- **96, the shell only:** the sidebar's last entry "Help" and the footer's "Send feedback" (4.11), the honesty label's plain words without a wallet ("PRACTICE MONEY (NO REAL VALUE)", "Demo records", "Give your savings a purpose", 4.3), grouped amounts (4.8; Staking with the Showcase at 1280 wraps them in a few cards, +29 px). Their accessibility snapshots are otherwise identical.
+- **59 with a listed change as well:** Wealth (12) and its add-asset dialog (2), "What you have" (4.5); Habits (12), "Ask ZIGi" in each card's menu and one "Ask ZIGi about my habits" (4.10); Help (12), the new name and this release's answers; Settings (12), ZIGi's section "ZIGi · Your Personal AI Companion" with "Voice: talk to ZIGi" and the page list ending in Help (Help and Settings also carry the feedback mail's build stamp, an environment difference as in Session Y); Today (6), Quick add (2) and the launcher capture (1), What's new's links for this release.
+Phones get this PR's phone changes (Parts 4.2, 4.9, 4.12, round 2), each with a test on the phone project. The summary is on `review/session-z-cloud-runs` (`gate-c/freeze-summary.txt`).
+
+## Revert gate (local, scratch worktree at `88e7a41`)
+All 49 commits `12a3ef9..88e7a41` (every code, test and record commit up to the last test change) revert newest first without a conflict, `pnpm typecheck` passes after each of the 49 reverts (about 48 s each), and the tree after the last revert is identical to `12a3ef9` (`gate-c/revert-gate-88e7a41.log`). After it: `034b8a4` (ADR-019 C57's note) and this entry, documents only. Groups that revert together: Part 2's keys and panel (`30f18cd`, `4f72b3a`, `7962228`, `37f3c8f`), delete for good (`64ab97f`, `b8e99e3`), A5 (`fcfff5e`, `f96d23d`, `10c6d44`), A6 (`85a0db1`, `f4994bb`, `d00f2a3`), the relay (`7699e94`, `4cfc2b1`, `64ad200`), the cards' outcomes (`704eded`, `3508f71`, `7f25944`, with `0daee36`'s use of them).
+
+## CI
+- **Green:** Milestone quality run 38123181588 on `88e7a41` (the last code and test change): checks, the three browser shards, integration (the weight budgets, the packaged Alpha and its security gate), contract and "web"; Canonical reproducibility green. This entry's own run (documents only) is checked before the PR is marked ready.
+- **Red runs at Gate C, each root-caused** (runs cancelled by a newer push are not failures and are not listed):
+  - on `001e363`: `a11y-wcag-x:121`, `motion-arrival:47`, `phone-pages:30` (phone) → `0daee36` (C52).
+  - on `0daee36`: Help's weight 409.1 kB of 409 → `a086bbf` (Activity writes pounds without importing `health-units`).
+  - run 38113581035 on `3d8a844`: `small-features-y:56` (phone; read before the save) → `20d4bd2`.
+  - run 38118549278 on `91830b5`: `help-settings-link` (the audit's tightening counted the phone's hidden More row) → `f950c6d`.
+  - run 38121211483 on `f950c6d`: `session-x-findings:121` (a route cut off as "Test ended") → `1019fe3`.
+  - Earlier red runs (Parts 2–6, Gate B) are root-caused in ADR-019 C20, C32 and the Gate B entries.
+- **WebKit job:** advisory (pull requests only); see Owner items.
+
+## Known CI intermittents (this session)
+- **`tests/small-features-y.spec.ts:56`** (Session Y's, phone) read 0 once in CI on `3d8a844`: the card shows a check-in while its save runs, and the test read the stored record once. It now waits for the save (`20d4bd2`); 21 of 21 before on both builds.
+- **`tests/motion-polish.spec.ts:137`** (phone) failed once in the local full suite under two workers (the fill sampled after its glide ended; recorded the same way in an earlier session); 10 of 10 alone. Unchanged.
+- **WebKit "internal error" on `page.goto`** twice at once while typecheck and lint ran beside a local WebKit run; 6 of 6 alone. Not seen in CI.
+- **`tests/zigi-question-context.spec.ts:35`** and **`tests/zigi-robustness.spec.ts:159`** each failed once in CI's WebKit job on `3d8a844` (advisory); 8 of 8 locally; green in CI on `91830b5`.
+- **`tests/send-feedback.spec.ts:9`** (desktop) failed twice locally under load (once with lint beside it, once in the full suite): ZIGi's launcher art loaded inside its "nothing requested" window. Investigated and fixed at the test (`88e7a41`: ZIGi hidden there, the assertion unchanged).
+- **`tests/session-x-findings.spec.ts:121`** (X-Cloud's, desktop) failed once in CI on `f950c6d` ("route.fetch: Test ended"); fixed at the test (`1019fe3`).
+- **`tests/webkit-smoke.spec.ts:35`** (WebKit, desktop) failed once in CI on `88e7a41` on nested Goals prefetches (Owner items).
+- One re-run is the rule for any of them; a second failure means investigate.
+
+## Decisions made without the owner
+ADR-019 "Session decisions" C1–C57, each the safest option that keeps the brief's promises. Read first: C12 (why the iPhone showed no microphone), C25 and C44 (delete for good), C33–C35 and C42 (A5, A6), C40, C41 and C48 (the relay), C50 and C55 (cards kept on the device), C53 and C54 (the Gate C security read), C56 (the name in any font), C57 (WebKit's root causes).
+
+## Owner items
+- Review the PR; merging and deploying stay yours (the Manual Alpha workflow from `main`). Workers first: the auth-abuse and private-sync Workers change (A5, A6); `STEP_UP_REQUIRED` stays "on" unless you roll the app back to #35 (FINAL_ACCTEST_REDEPLOY.md).
+- **Friends on Claude (not activated):** the steps are in `docs/run11/ZIGI_RELAY_ACTIVATION.md` (the allowlist, the Anthropic key as a secret, budgets, a hosted build and its browser tests, then the kill switch off). Accepted limit: the prompt reservation counts two characters a token, which dense text can exceed (bounded by two replies in flight, settled at real usage).
+- **ZIGi's name and fonts (C56):** the app names Inter first but does not ship it. Where a browser draws the name wider, the panel scales it to fit (9.8 px at 360 in CI's DejaVu Sans) and Settings wraps it at 320. Ship Inter as the app's own web font (OFL), or accept; iPhone row 19 in ZIGI_ALIVE_X.md.
+- **WebKit job:** advisory. On `91830b5` it failed only the two runner-font checks (399 passed); on `88e7a41` also `webkit-smoke` on a computer once, on router prefetches of nested Goals paths that the spec's S64 pattern (one path segment) does not accept although S64 names any same-origin `_rsc` address: widen the pattern (an assertion decision for you or X-Local) or leave it. Promote the job (ADR-018 Y42) once the font is decided and it is green twice.
+- **iPhone checklist:** rows 12 and 14–19 in ZIGI_ALIVE_X.md (talking to ZIGi in English and Dutch, the hold, the home-screen app, ZIGi's name).
+- **The persona round's owner items** (PERSONAS_Z.md): the Showcase's "Load" resets what the banner says stays (#5); a "Records used" line under an answer (#7); History's Delete without a confirm (#10); numbers that disagree between pages in the Showcase (#12) and "2 Health entries for 3 logged" (#13); the default currency (#18); "prices update on request" while held assets' ids are asked on load (#19); "See how it works" is the brand film (#21); keep the scroll place on Expand (#24); the interest cards' pressed state (#26); "1 readings" and troy ounces (#27); footer link sizes, Quick add's × at 320, the Hide-ZIGi toast, the music button with ZIGi on the left (#28).
+- **Help's ZIGi section:** its eyebrow, the full name "ZIGi · Your Personal AI Companion", takes two lines on a phone (round 2's scan of ZIGi's surfaces at 320–1440; prose and questions wrap by design). A size or wording choice.
+- **The runs branch:** `review/session-z-cloud-runs`'s first commit copied the source tree by mistake; the next commit removed it, but the history keeps it. Replace or delete that branch if you want it gone (this session deletes no branch).
+- **Z-Local:** the handoff entries of 2026-10-11 (on-device answers, Dutch questions, the setup chooser, the edit-habit card's day, the water card's fields, a duplicate habit from a card, the knock offer) are in `docs/handoff/Z_CLOUD_TO_LOCAL.md`; `proposal-list.tsx` keeps both lanes' changes whichever PR merges second.
+
+---
+
 # Alpha deploy #35 — 2026-10-10 afternoon, `12a3ef9` live
 Recorded by Session Z-Cloud (2026-10-10).
 - **Source:** `12a3ef9c2ef4c73052fc336c0b86721fd69a4889`, `main` after [PR #80](https://github.com/reyals1111-ux/ZIGoals/pull/80) (Merge #80, Session Y-Cloud, "Loose ends to zero", ADR-018).
