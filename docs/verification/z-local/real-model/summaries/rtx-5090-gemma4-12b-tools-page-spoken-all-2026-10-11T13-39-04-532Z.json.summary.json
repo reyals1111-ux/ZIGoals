@@ -1,0 +1,65 @@
+{
+ "kind": "harness",
+ "file": "rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T13-39-04-532Z.json",
+ "stage": "spoken-gemma4-2",
+ "provider": "local",
+ "model": "gemma4:12b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "think": false,
+ "cache": null,
+ "pageContext": true,
+ "set": "spoken",
+ "batch": false,
+ "cases": 557,
+ "repeat": 1,
+ "runs": 557,
+ "passed": 471,
+ "rate": 0.8456014362657092,
+ "byKind": {
+  "propose": {
+   "passed": 380,
+   "total": 448
+  },
+  "lookup": {
+   "passed": 41,
+   "total": 52
+  },
+  "refuse": {
+   "passed": 24,
+   "total": 31
+  },
+  "local-first": {
+   "passed": 26,
+   "total": 26
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 280,
+  "firstTokenP90Ms": 1633,
+  "totalMedianMs": 1296,
+  "totalP90Ms": 3875
+ },
+ "tokens": {
+  "input": 6501292,
+  "output": 121893,
+  "cacheWrite": 0,
+  "cacheRead": 0
+ },
+ "requests": 554,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": {
+  "input": 12243.487758945386,
+  "cacheWrite": 0,
+  "cacheRead": 0,
+  "output": 229.5536723163842,
+  "usd": null
+ },
+ "costPer100Messages": null,
+ "repaired": 18,
+ "errors": 0,
+ "misses": "cards 60, fields 37, schema 8, fact 6, refusal 6",
+ "startedAt": "2026-10-11T13:39:04.532Z",
+ "finishedAt": "2026-10-11T13:53:46.170Z"
+}
