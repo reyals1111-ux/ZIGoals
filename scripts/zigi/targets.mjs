@@ -30,8 +30,10 @@ const harness = (model, set, filter, host) => () => {
 };
 /** A panel summary (UI runs) by stage folder; every group (project) summed. */
 const panel = stage => () => {
-  const c = all.filter(s => s.kind === 'panel' && (stage instanceof RegExp ? stage.test(s.stage ?? '') : s.stage === stage));
-  if (!c.length) return null;
+  const matching = all.filter(s => s.kind === 'panel' && (stage instanceof RegExp ? stage.test(s.stage ?? '') : s.stage === stage));
+  if (!matching.length) return null;
+  // Several stages match when a stage was re-run (a '-2' folder): the newest stage alone is judged, never a sum across runs.
+  const latest = matching.at(-1).stage, c = matching.filter(s => s.stage === latest);
   const passed = c.reduce((n, s) => n + Object.values(s.groups).reduce((m, g) => m + g.passed, 0), 0), total = c.reduce((n, s) => n + Object.values(s.groups).reduce((m, g) => m + g.runs, 0), 0);
   const errors = c.reduce((n, s) => n + Object.values(s.groups).reduce((m, g) => m + (g.errors ?? 0), 0), 0);
   return {passed, total, where: c.map(s => `${s.stage}/${s.file}`).join(', '), misses: errors ? `${errors} error(s)` : null};
@@ -50,20 +52,21 @@ const fixed = text => () => text ? {passed: Number(text.split('/')[0]), total: N
 const T = [
   ['Sonnet · corpus (typed) ≥ 97 %', harness('claude-sonnet-5-5', 'typed', 'all'), 0.97],
   ['Sonnet · the spoken set ≥ 95 %', harness('claude-sonnet-5-5', 'spoken', 'all'), 0.95],
-  ['Sonnet · UI panel 150 ≥ 95 %', panel('ui-panel-sonnet'), 0.95],
-  ['Sonnet · 15 conversations ×3: 15/15', panel('ui-conv-sonnet'), 1],
-  ['Sonnet · the day, desktop + phone: 36/36', panel('ui-day-sonnet'), 1],
-  ['Sonnet · pages 17 × 10 ≥ 99 %', panel('ui-pages-sonnet'), 0.99],
+  // Session Z-Local: a UI stage re-run lives in a '-2' folder; the newest matching run is the one judged (the summaries sort by start time).
+  ['Sonnet · UI panel 150 ≥ 95 %', panel(/^ui-panel-sonnet(-\d+)?$/), 0.95],
+  ['Sonnet · 15 conversations ×3: 15/15', panel(/^ui-conv-sonnet(-\d+)?$/), 1],
+  ['Sonnet · the day, desktop + phone: 36/36', panel(/^ui-day-sonnet(-\d+)?$/), 1],
+  ['Sonnet · pages 17 × 10 ≥ 99 %', panel(/^ui-pages-sonnet(-\d+)?$/), 0.99],
   ['Sonnet · four photo plates ×3: 4/4', panel('ui-photos-sonnet-5-5'), 1],
   ['Sonnet · WebKit subset (60 panel + 5 conversations), reported', panel(/^ui-webkit-/), null],
   ['Sonnet · important ×2 variance (spread between repeats)', spread(harness('claude-sonnet-5-5', 'typed', 'important')), null],
   ['Haiku · corpus ≥ 92 %', harness('claude-haiku-5-5', 'typed', 'all'), 0.92],
   ['Haiku · the spoken set ≥ 92 %', harness('claude-haiku-5-5', 'spoken', 'all'), 0.92],
-  ['Haiku · UI panel 150 ≥ 92 %', panel('ui-panel-haiku'), 0.92],
-  ['Haiku · pages 17 × 10 (desktop) ≥ 92 %', panel('ui-pages-haiku'), 0.92],
+  ['Haiku · UI panel 150 ≥ 92 %', panel(/^ui-panel-haiku(-\d+)?$/), 0.92],
+  ['Haiku · pages 17 × 10 (desktop) ≥ 92 %', panel(/^ui-pages-haiku(-\d+)?$/), 0.92],
   ['Opus · corpus ≥ 97 %', harness('claude-opus-5-5', 'typed', 'all'), 0.97],
   ['Opus · important set ≥ 97 % (the re-run after the fix rounds)', harness('claude-opus-5-5', 'typed', 'important'), 0.97],
-  ['Opus · UI panel 60 ≥ 97 %', panel('ui-panel-opus'), 0.97],
+  ['Opus · UI panel 60 ≥ 97 %', panel(/^ui-panel-opus(-\d+)?$/), 0.97],
   ['qwen3.8 (RTX 5090) ≥ 90 %', harness('qwen3.8', 'typed', 'all'), 0.90],
   ['qwen3.6 (RTX 5090) ≥ 85 %', harness('qwen3.6', 'typed', 'all', 'RTX'), 0.85],
   ['qwen3.6 (Mac M1 Max) ≥ 85 %', harness('qwen3.6', 'typed', 'all', 'Mac'), 0.85],

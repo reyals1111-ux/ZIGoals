@@ -174,22 +174,22 @@ summary is in.
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 53 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 53 summary file(s): 11 met · 8 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
 | Sonnet · corpus (typed) ≥ 97 % | 697/725 · 96.1 % | not met, 0.9 pt short; misses: cards 24, fields 8, schema 4, no-numbers 3, refusal 1 | `final-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T16-20-56-924Z.json` |
 | Sonnet · the spoken set ≥ 95 % | 543/557 · 97.5 % | **met** | `final-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T17-13-25-271Z.json` |
-| Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
+| Sonnet · UI panel 150 ≥ 95 % | 143/150 · 95.3 % | **met** | `ui-panel-sonnet-2/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** | `ui-conv-sonnet/conversations-claude-sonnet-5-5.json` |
 | Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** | `ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json` |
-| Sonnet · pages 17 × 10 ≥ 99 % | 330/340 · 97.1 % | not met, 1.9 pt short | `ui-pages-sonnet/pages-claude-sonnet-5-5.json` |
+| Sonnet · pages 17 × 10 ≥ 99 % | 338/340 · 99.4 % | **met** | `ui-pages-sonnet-2/pages-claude-sonnet-5-5.json` |
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
-| Sonnet · WebKit subset (60 panel + 5 conversations), reported | 62/65 · 95.4 % | reported | `ui-webkit-conv-sonnet/conversations-claude-sonnet-5-5.json, ui-webkit-panel-sonnet/ui-claude-sonnet-5-5.json` |
+| Sonnet · WebKit subset (60 panel + 5 conversations), reported | 57/60 · 95.0 % | reported | `ui-webkit-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · important ×2 variance (spread between repeats) | 501/568 · 88.2 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json (re-scored; 526/608 at run time)` |
 | Haiku · corpus ≥ 92 % | 688/725 · 94.9 % | **met** | `final-haiku-page/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T15-52-00-149Z.json` |
 | Haiku · the spoken set ≥ 92 % | 523/557 · 93.9 % | **met** | `final-spoken-haiku/anthropic-api-claude-haiku-5-5-tools-page-spoken-all-2026-10-11T16-52-20-649Z.json` |
-| Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
+| Haiku · UI panel 150 ≥ 92 % | 140/150 · 93.3 % | **met** | `ui-panel-haiku-2/ui-claude-haiku-5-5.json` |
 | Haiku · pages 17 × 10 (desktop) ≥ 92 % | 168/170 · 98.8 % | **met** | `ui-pages-haiku/pages-claude-haiku-5-5.json` |
 | Opus · corpus ≥ 97 % | 675/725 · 93.1 % | not met, 3.9 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json (re-scored; 665/725 at run time)` |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | 272/284 · 95.8 % | not met, 1.2 pt short; misses: cards 12, fields 5 | `final-opus-important/anthropic-api-claude-opus-5-5-tools-page-important-2026-10-11T17-35-03-798Z.json` |
