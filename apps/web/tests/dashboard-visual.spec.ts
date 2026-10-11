@@ -16,10 +16,12 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     // wallet buttons in the Status sheet behind its one status line.
     const line = page.locator(".phone-status-line"), phone = await line.isVisible();
     if (phone) await line.click();
+    // On a computer the label and the sentence stay the network banner's own (Gate C, the test audit: as strict as before).
     const notices = phone ? page.getByRole("dialog", { name: "Status" }) : page.locator(".app-topbar");
+    const banner = phone ? notices : page.locator(".network-banner");
     await expect(notices.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
-    await expect(notices).toContainText("PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA");
-    await expect(notices).toContainText("No blockchain transactions or financial signatures.");
+    await expect(banner).toContainText("PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA");
+    await expect(banner).toContainText("No blockchain transactions or financial signatures.");
     if (phone) await page.keyboard.press("Escape");
     await expect(page.locator(".today-hero").getByRole("button", { name: "+ Quick add", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Plan my first goal" })).toHaveAttribute("href", "/app/goals/new");

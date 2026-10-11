@@ -8,8 +8,9 @@ import {PRICES,PRICES_AS_OF,costMicros,estimateCost,micros} from '../../workers/
 const APP_TABLE=new URL('../../apps/web/lib/ai/pricing.ts',import.meta.url);
 const USAGES=[{input:0,output:0},{input:1000,output:300},{input:1000,output:300,cacheWrite:2000,cacheRead:8000},{input:90_000,output:4096,cacheWrite:6000,cacheRead:5000},{input:120_000,output:10},{input:null,output:null,cacheWrite:null,cacheRead:null}];
 
-test('the copy matches the app\'s table wherever both exist',async()=>{
- if(!existsSync(APP_TABLE)){expect(PRICES_AS_OF).toBe('2026-10-10');return;}// Before Z-Local's table is on this branch.
+// Gate C (the test audit): before Z-Local's table is on this branch this is reported as skipped, not as passed; the two
+// models the relay allows are pinned in the next test either way.
+test.skipIf(!existsSync(APP_TABLE))('the copy matches the app\'s table wherever both exist',async()=>{
  const app=await import(APP_TABLE.href);
  expect(PRICES_AS_OF).toBe(app.PRICES_AS_OF);
  expect(JSON.parse(JSON.stringify(PRICES))).toEqual(JSON.parse(JSON.stringify(app.PRICES)));

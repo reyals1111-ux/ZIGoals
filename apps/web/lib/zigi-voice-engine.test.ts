@@ -105,7 +105,10 @@ describe('the words, the end and the microphone', () => {
   it('listening stops by itself after a minute', async () => {
     const s = scope(IPHONE), engine = new VoiceEngine(s.win as never);
     engine.start({lang: 'en-GB', origin: 'composer'});
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(59_999);
+    expect(s.made[0]!.stopped).toBe(0);
+    expect(engine.current.state).not.toBe('idle');
+    await vi.advanceTimersByTimeAsync(1);
     expect(s.made[0]!.stopped).toBe(1);
     expect(engine.current.state).toBe('idle');
   });

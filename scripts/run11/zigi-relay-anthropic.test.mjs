@@ -115,7 +115,7 @@ test('Miniflare: the real Worker sends Anthropic its headers and request, and th
   // The relay's output cap wins over the app's 9000 (LIMITS.maxOutputTokens); no thinking field, the quick effort, the
   // system text cached (Session Z-Cloud Part 6); the tools as schemas.
   expect(sent.body).not.toHaveProperty('thinking');
-  expect(sent.body).toMatchObject({model:'claude-haiku-5-5',max_tokens:4096,stream:true,system:[{type:'text',text:'You are ZIGi.',cache_control:{type:'ephemeral'}}],output_config:{effort:'low'},messages:[{role:'user',content:[{type:'text',text:'How many minutes did I meditate this month?'}]}]});
+  expect(sent.body).toMatchObject({model:'claude-haiku-5-5',max_tokens:4096,stream:true,system:[{type:'text',text:'You are ZIGi.',cache_control:{type:'ephemeral'}}],cache_control:{type:'ephemeral'},output_config:{effort:'low'},messages:[{role:'user',content:[{type:'text',text:'How many minutes did I meditate this month?'}]}]});
   expect(sent.body.tools.map((/** @type {any} */t)=>t.name)).toEqual(['goals_progress','wealth_summary']);
   expect(sent.body).not.toHaveProperty('stream_options');expect(sent.body).not.toHaveProperty('max_completion_tokens');
  }finally{await r.dispose();}

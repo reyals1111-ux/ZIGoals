@@ -100,7 +100,7 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await expect(
     (await walletArea(page)).getByRole("button", { name: "Connect Keplr" }),
   ).toBeEnabled();
-  await expect(page.locator(".wallet-balance").first()).toContainText("0 ZIG");
+  await expect(page.locator(".wallet-balance")).toContainText("0 ZIG");
   if (await page.getByRole("dialog", { name: "Status" }).isVisible()) await page.keyboard.press("Escape");
   await (await navLink(page, "Settings")).click();
   await expect(

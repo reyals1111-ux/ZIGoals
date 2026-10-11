@@ -76,6 +76,9 @@ async function measure(root: Locator) {
 }
 type Measured = Awaited<ReturnType<typeof measure>>;
 function oneLine(m: Measured, where: string) {
+  // Gate C (the test audit): the header's buttons were found, so the row, the title's edge and the overlaps below are
+  // measured on something (an empty list would make them pass on nothing).
+  expect(m.tools.length, `the header's buttons ${where}`).toBeGreaterThanOrEqual(3);
   expect(m.titleText, where).toBe(TITLE);
   expect(m.titleWrapped, `the title on one line ${where}`).toBe(false);
   expect(m.titleRight, `the title stops before the buttons ${where}`).toBeLessThanOrEqual(m.toolsLeft + 1);
@@ -177,12 +180,12 @@ test('expanded and in the mini window: still one line each', async ({page, isMob
   await panel(page).getByRole('button', {name: 'Expand the chat'}).click();
   oneLine(await measure(panel(page)), 'expanded');
   await panel(page).getByRole('button', {name: 'Shrink the chat'}).click();
-  // The mini window, where the browser offers it (or the stand-in the mini-window spec uses).
+  // The mini window, where the browser offers it; elsewhere this part is not measured, and the test says so. Where it is
+  // offered, "Pop out" must open it (Gate C, the test audit: a missing window used to pass).
   const real = await page.evaluate(() => typeof (window as unknown as {documentPictureInPicture?: {requestWindow?: unknown}}).documentPictureInPicture?.requestWindow === 'function');
   test.info().annotations.push({type: 'mini window', description: real ? "the browser's own" : 'none here: not measured'});
   if (!real) return;
-  const [mini] = await Promise.all([page.context().waitForEvent('page').catch(() => null), panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'}).click()]);
-  if (!mini) return;
+  const [mini] = await Promise.all([page.context().waitForEvent('page', {timeout: 15_000}), panel(page).getByRole('button', {name: 'Pop out ZIGi into a mini window'}).click()]);
   const miniPanel = mini.locator('dialog.ai-chat, .ai-chat').first();
   await expect(miniPanel).toBeVisible();
   oneLine(await measure(miniPanel), 'in the mini window');

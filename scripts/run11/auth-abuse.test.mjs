@@ -92,12 +92,13 @@ test('code requests stop at 60 a UTC day across addresses and networks, and only
   // N+1 from distinct /64s inside one /48: the /48 is one group, so its distinct-email cap (10) applies, not the ceiling.
   for(let i=0;i<10;i++)expect(await a.call('send',`home${i}@example.invalid`,`2001:db8:aa:${(i+1).toString(16)}::1`)).toBe(200);
   const home=await raw('home10@example.invalid','2001:db8:aa:ff::1');expect(home.status).toBe(429);expect((await home.json()).error).toBe('TRY_LATER');
-  // Across /48s and IPv4 networks: 50 more fill the day's 60.
+  // Across /48s and IPv4 networks: 50 more fill the day's 60 exactly, so the request its own /48 refused above counted
+  // nothing towards the day (10 + 50 = 60; one more would have reached the limit a request early).
   for(let i=0;i<50;i++)expect(await a.call('send',`spread${i}@example.invalid`,i%2?`2001:db8:${(0x100+i).toString(16)}::1`:`198.51.${i}.1`)).toBe(200);
   const over=await raw('late@example.invalid','203.0.113.77');
   expect(over.status).toBe(429);expect((await over.json()).error).toBe('DAILY_LIMIT');expect(over.headers.get('retry-after')).toBe('3600');
-  // A request its own IP or email refused never used up the day: the refused /48 above counted nothing.
-  expect(await a.call('send','home10@example.invalid','2001:db8:aa:ff::2')).toBe(429);
+  // While sending is paused the day's limit answers first, for that /48 too.
+  const homeAgain=await raw('home10@example.invalid','2001:db8:aa:ff::2');expect(homeAgain.status).toBe(429);expect((await homeAgain.json()).error).toBe('DAILY_LIMIT');
   // Codes already sent can still be verified while sending is paused.
   expect(await a.call('verify','home0@example.invalid','2001:db8:aa:1::1')).toBe(200);
   // The ceiling holds across a restart and ends at the next UTC midnight.

@@ -141,6 +141,9 @@ test('desktop and tablet keep the sidebar and never render the phone chrome',asy
   if(await isPhone(page))continue;
   await expect(page.locator('.app-sidebar')).toBeVisible();
   await expect(page.locator('.phone-topbar, .phone-tabbar')).toHaveCount(0);await expect(page.locator('.phone-status-line')).toBeHidden();
+  // Gate C (the test audit): the line is in the page for phones only by its style; here no one can reach it, by pointer or
+  // by assistive technology.
+  await expect(page.getByRole('button', {name: /^Status:/})).toHaveCount(0);
   expect(await page.evaluate(()=>document.documentElement.dataset.phoneStatus)).toBeUndefined();
  }
 });

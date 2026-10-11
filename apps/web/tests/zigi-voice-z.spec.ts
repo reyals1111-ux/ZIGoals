@@ -11,7 +11,7 @@ import {ZIGI_VOICE_KEY} from '../lib/z-device-keys';
  * ran, so a start inside the person's own press, click or key is proven); the microphone is a real Web Audio stream whose
  * tracks the test can watch end; speech synthesis is a MOCK that records what would be read. AI replies are MOCK.
  */
-const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z', NIGHT = '2026-09-20T23:30:00.000Z';
+const BASE = 'http://127.0.0.1:1234', DAY = '2026-09-20', EVENING = '2026-09-20T19:00:00.000Z';
 const chunk = (delta: Record<string, unknown>, finish: string | null = null) => `data: ${JSON.stringify({id: 'mock', object: 'chat.completion.chunk', choices: [{index: 0, delta, finish_reason: finish}]})}\n\n`;
 const stream = (text: string) => [chunk({role: 'assistant', content: text}), chunk({}, 'stop'), 'data: [DONE]\n\n'].join('');
 type Log = {starts: {lang: string; event: string; processLocally?: boolean}[]; stops: number; aborts: number; streams: number; ended: number};
@@ -159,16 +159,23 @@ test('replies to a spoken question are read aloud in the chosen language; a type
   expect(await spoken(page)).toHaveLength(1);
 });
 
-test('quiet hours: a reply to a spoken question is not read at 23:30', async ({page}) => {
-  await fakes(page);
-  await server(page);
-  await seed(page, {ai: {}, voice: SEEN, time: NIGHT});
-  await openChat(page);
-  await tap(mic(page));
-  await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Tell me something nice about my week'));
-  await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
-  await page.waitForTimeout(300);
-  expect(await spoken(page)).toEqual([]);
+// Gate C (the test audit): the same settings on each side of both edges, so a silence means the quiet hours (22:00–08:00,
+// the browser's own clock), not a reader that never reads: 21:59 and 08:00 read, 22:00, 23:30 and 07:59 do not.
+test.describe('quiet hours, in the browser\'s own time', () => {
+  test.use({timezoneId: 'UTC'});
+  for (const [at, read] of [['21:59', true], ['22:00', false], ['23:30', false], ['07:59', false], ['08:00', true]] as const) {
+    test(`a reply to a spoken question at ${at} is ${read ? 'read aloud' : 'not read'}`, async ({page}) => {
+      await fakes(page);
+      await server(page);
+      await seed(page, {ai: {}, voice: SEEN, time: `2026-09-${at < '12:00' ? '21' : '20'}T${at}:00.000Z`});
+      await openChat(page);
+      await tap(mic(page));
+      await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Tell me something nice about my week'));
+      await expect(panel(page).locator('.ai-turn-assistant').last()).toContainText('MOCK: you drank');
+      if (read) await expect.poll(() => spoken(page)).toEqual([expect.objectContaining({text: 'MOCK: you drank 1.2 litres today.'})]);
+      else { await page.waitForTimeout(600); expect(await spoken(page)).toEqual([]); }
+    });
+  }
 });
 
 test('Settings → Voice: English and Dutch only, no French; an old French choice listens in the device language', async ({page}) => {

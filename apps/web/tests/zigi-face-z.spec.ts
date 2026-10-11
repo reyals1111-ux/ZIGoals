@@ -73,6 +73,8 @@ test('one header row at every width: the full name, glyph buttons with names and
     expect(Math.max(...l.tools.map(t => t.mid)) - Math.min(...l.tools.map(t => t.mid)), `one row at ${width}`).toBeLessThanOrEqual(1);
     expect(l.figureRight).toBeLessThanOrEqual(l.identityRight);
     expect(l.identityRight, `the title stops before the buttons at ${width}`).toBeLessThanOrEqual(l.toolsLeft + 1);
+    // Gate C (the test audit): the box and its buttons were found, so the centre line is measured on something.
+    expect(l.composer.length, `the composer's box and buttons at ${width}`).toBeGreaterThanOrEqual(2);
     expect(Math.max(...l.composer) - Math.min(...l.composer), `the composer's centre line at ${width}`).toBeLessThanOrEqual(1);
     expect(l.outside, `nothing outside the panel at ${width}`).toEqual([]);
     expect(l.small, `targets at ${width}`).toEqual([]);

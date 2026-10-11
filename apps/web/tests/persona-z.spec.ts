@@ -223,7 +223,7 @@ test('7b. persona round: the water target is typed in US fl oz; the week reads f
   await expect(page.locator('main')).not.toContainText('72.4 kg');
 });
 
-test('8. asset quantities are grouped in the person\'s locale ("300,000 ZIG"); inputs stay ungrouped', async ({page}) => {
+test('8. asset quantities are grouped in the person\'s locale ("300,000 ZIG"); the Edit form\'s input stays ungrouped', async ({page}) => {
   await showcase(page);
   await page.goto('/app/wealth');
   const quantities = page.locator('.owned-asset-card .owned-value span');
@@ -231,6 +231,17 @@ test('8. asset quantities are grouped in the person\'s locale ("300,000 ZIG"); i
   const texts = await quantities.allTextContents();
   expect(texts.some(t => /\d{1,3}(?:,\d{3})+(?:\.\d+)? [A-Z]/.test(t)), texts.join(' | ')).toBe(true);
   expect(texts.filter(t => /(?:^|[^\d,.])\d{4,}(?:\.\d+)? [A-Z]/.test(t))).toEqual([]);
+  // The input: a grouped manual holding's Edit form holds its quantity without separators, the same number.
+  const grouped = page.locator('.owned-asset-card').filter({has: page.getByRole('heading', {name: 'USD Coin', exact: true})});
+  const shown = (await grouped.locator('.owned-value span').textContent())!.split(' ')[0]!;
+  expect(shown).toMatch(/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/);
+  await grouped.getByRole('link', {name: 'View & manage asset →'}).click();
+  await page.getByRole('button', {name: 'Edit asset', exact: true}).click();
+  const quantity = page.locator('input[name="quantity"]');
+  await expect(quantity).toBeVisible();
+  const typed = await quantity.inputValue();
+  expect(typed).toMatch(/^\d+(?:\.\d+)?$/);
+  expect(Number(typed)).toBe(Number(shown.replaceAll(',', '')));
 });
 
 test('9. phones: a goal card is about a third of a screen; details open on the goal\'s page', async ({page}) => {

@@ -169,19 +169,25 @@ Each difference it reports at Gate C is explained against this list (filled per 
   `lib/pages/visibility.test.ts` expect "Help" after "Settings"; `lib/nav-prefetch.test.ts` lists `/app/help` as not
   prefetched.
   `help-settings-link` (Gate B) still requires exactly one Help link in the Settings page itself (`main`); every other
-  Help link must be a navigation entry named "Help", at most two (the sidebar, and More on a phone). It expected one link
-  on the whole page, which the new navigation entry made two (three on a phone, where both navigations are in the page).
+  Help link must be a navigation entry named "Help", exactly one in the sidebar and at most one in any other navigation
+  (made per navigation at Gate C, the test audit; it first allowed any two). It expected one link on the whole page, which
+  the new navigation entry made two (three on a phone, where both navigations are in the page). `phone-shell`'s More list
+  now ends in "Help" (stricter: one more item, in order).
 - **Part 4.2–4.3, the honesty label (as strict, new words):** `honesty-banners`, `private-read-delay`, `dashboard-visual` and
   `phone-shell` expect "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" without a wallet where they expected "ZIGCHAIN
-  TESTNET · PUBLIC ALPHA"; on a phone with scripts they expect the one status line "Demo · no real money" (≥44 px, one line,
+  TESTNET · PUBLIC ALPHA" (on a computer `dashboard-visual` still reads the label and "No blockchain transactions or
+  financial signatures." in `.network-banner`; for a while it read them anywhere in the top bar, put back at Gate C, the
+  test audit); on a phone with scripts they expect the one status line "Demo · no real money" (≥44 px, one line,
   whole, on the first screen, the layout lock below it) where they expected the strip, and the mode strip's words in the
   Status sheet (its text still asserted) instead of on the first screen. `phone-shell`'s "Status details" toggle test became
   the Status sheet test (every notice in full, both wallet buttons ≥44 px, Close returns focus to the line; stricter); the
-  no-JS test now also asserts the line is absent. `persona-x` expects the button "Demo records" (was "Local demo") and
+  no-JS test now also asserts the line is absent. On a computer `phone-shell` expected no `.phone-status-toggle`; the
+  new line is in the page for phones by its style, so it expects `.phone-status-line` hidden and, since Gate C (the test
+  audit), no button named "Status:…" for anyone (as strict: nothing reachable). `persona-x` expects the button "Demo records" (was "Local demo") and
   `run10-restored-today` "Give your savings a purpose." (was "Give your ZIG a purpose.") in the Showcase, which has no wallet.
 - **Part 4.3, 4.7 and 4.8, the same values in their new words (as strict):** `goals` clicks "Demo records" (was "Local
   demo") after a missing Keplr and finds "Connect Keplr" in the Status sheet on a phone (`walletArea`, now shared in
-  `tests/phone-nav.ts`); `health-daily` expects "150 lb" in the weight history where it expected "68.039 kg", and now also
+  `tests/phone-nav.ts`; its `.wallet-balance` line is the base's again, a `.first()` with one match removed at Gate C); `health-daily` expects "150 lb" in the weight history where it expected "68.039 kg", and now also
   that the record holds 68,039 g (stricter: the stored grams were not checked before); `owner-polish` expects "526,000" and
   `wealth` "80,000 USD" where they expected "526000" and "80000 USD" (the same quantities, grouped); likewise
   `owner-preview` ("263,559.957014"), `coherence` ("263,000 ZIG", "526,000", and a button named "…263,000 ZIG"),
@@ -217,18 +223,27 @@ Each difference it reports at Gate C is explained against this list (filled per 
 - **Part 6, the relay's Anthropic body (as strict, new rules):** `scripts/run11/zigi-relay-anthropic.test.mjs` expected
   `thinking: {type: "disabled"}` and a plain-string `system`; it now expects no `thinking` field (with `ZIGI_THINKING` "off"
   or "model-default"), `output_config: {effort: "low"}` (and "high" for "Think deeper"), the system text as one block with
-  `cache_control` and the top-level `cache_control`, in the translation and in the Miniflare request.
+  `cache_control` and the top-level `cache_control`, in the translation and in the Miniflare request (the Miniflare request's
+  top-level marker was asserted from Gate C, the test audit; before, only `zigi-relay-claude.test.mjs` checked it, for
+  Sonnet).
   `scripts/run11/zigi-relay-config.test.mjs` expects the template's `claude-sonnet-5-5` and no `ZIGI_THINKING` (was
   `claude-haiku-5-5` and "off"); the older values' checks are unchanged.
   `scripts/run11/zigi-relay-budget.test.mjs`'s privacy check expects the budget tables' columns to be exactly the old seven
   plus `month` and `micros` (still counts and account ids only), and now also reads the columns added to older tables, which it
   did not see before (stricter).
-- **Part 4.10 and 4.12, controls moved (mechanics only, every assertion unchanged):** `your-ai` opens a habit card's options
-  menu before "Ask ZIGi about this habit"; `music` and `a11y-wcag-x` open the player from the More sheet on a phone (the
-  floating button exists only on computers); `wallet-reload` finds the wallet buttons in the Status sheet on a phone.
+- **Part 4.10 and 4.12, controls moved (mechanics, assertions unchanged on computers):** `your-ai` opens a habit card's
+  options menu before "Ask ZIGi about this habit"; `music` and `a11y-wcag-x` open the player from the More sheet on a
+  phone (the floating button exists only on computers); `wallet-reload` finds the wallet buttons in the Status sheet on a
+  phone. **`music` on a phone (assertions changed, C31; corrected at Gate C, the test audit, which found this entry said
+  "every assertion unchanged"):** the button's checks (left half of the screen, ≥44 px, clear of ZIGi) become "no music
+  button, ZIGi's launcher shown, the More sheet's row shown"; `.music-launcher[data-playing]` is not checked (there is no
+  button to mark; the panel's "Playing · until you stop it" status still is); after Escape focus is expected on ZIGi's
+  launcher (or More when ZIGi is hidden) instead of the music button.
 - **Gate B, the full suite and CI on `aa4c849` (Part 4.2 and 4.8, Part 5 C38):** `public-alpha`, `visual-v21`,
   `product-shell`, `multitab` and `transactions` reach "Connect Keplr" (and `product-shell` the network notice) through
-  the Status sheet on a phone (`walletArea`, `connectKeplr` in `tests/phone-nav.ts`; mechanics, assertions unchanged);
+  the Status sheet on a phone (`walletArea`, `connectKeplr` in `tests/phone-nav.ts`; mechanics, assertions unchanged:
+  on a computer `product-shell` reads the notice in `.network-banner` as before, put back at Gate C after it had read the
+  whole top bar);
   `ui-design-pass`'s "honesty banners are never movable" checks the hidden network banner and mode strip as attached
   (still never inside a movable item) and the status line as visible on a phone (stricter there); its "the lock sits
   right after the demo balance" no longer expects the balance beside the lock on a phone (it is in the Status sheet) and
@@ -270,7 +285,8 @@ Each difference it reports at Gate C is explained against this list (filled per 
   name "Unmute ZIGi's voice" when pressed). `help-page`'s Session Z-Cloud test reads "never between 22:00 and 08:00" (was
   "never in your quiet hours", this PR's own sentence). New: `zigi-chat-polish` lists the talk shortcut; `phone-shell`'s
   Status sheet test checks the storage line and uncut wallet buttons at 320; `zigi-oneline-z` "Settings: ZIGi's name…";
-  `persona-z` 7b, 10b and "Meet ZIGi and Help's local-model answer…"; `zigi-face-z` "a chat reopened from History…";
+  `persona-z` 7b, 10b, "Meet ZIGi and Help's local-model answer…" and "an earlier on-device answer keeps its examples as
+  words…"; `zigi-face-z` "a chat reopened from History…";
   `lib/zigi-cards.test.ts`; `lib/health.test.ts` (Activity in pounds).
 
 - **Gate C, the security read (as strict or stricter):** `lib/server/private-account.test.ts` expects every provider outcome
@@ -279,6 +295,23 @@ Each difference it reports at Gate C is explained against this list (filled per 
   `step-up.test.mjs` "the first verifier comes only from a sign-in within the hour…", `auth-abuse.test.mjs` "a send the
   provider refused gives its place in the day back…", `vault-remember.test.ts` "a record dated more than a day ahead…",
   `zigi-cards.test.ts` fingerprints.
+
+- **Gate C, the test audit (stricter; one independent agent read every changed test file):** `zigi-oneline-z`'s `oneLine`
+  first requires at least three header buttons and `zigi-face-z`'s layout check at least the box and its buttons (an
+  empty list made the row and centre-line checks pass on nothing); where the browser offers the mini window, "Pop out"
+  must open it (it passed when nothing opened). `zigi-voice-z`'s quiet hours: one test at 23:30 became five in the
+  browser's own UTC clock, 21:59 and 08:00 read aloud (the positive control it lacked), 22:00, 23:30 and 07:59 silent.
+  `persona-z` 8 opens a grouped holding's Edit form and expects its quantity input ungrouped and equal (its title promised
+  it; nothing checked it). `help-settings-link` per navigation (above). `lib/zigi-voice-engine.test.ts` "stops after a
+  minute" also expects listening still on at 59.999 s. `auth-abuse.test.mjs`: the line said to prove the refused /48
+  counted nothing got 429 from the day's limit either way; the comment now sits on the 50 sends that prove it (10 + 50 =
+  60) and the line expects `DAILY_LIMIT`. `zigi-relay-anthropic` (above), `product-shell`, `dashboard-visual` and
+  `phone-shell` (above). `zigi-relay-pricing.test.mjs`'s "the copy matches the app's table" is skipped, by name, while
+  `apps/web/lib/ai/pricing.ts` is absent (Z-Local's table, on neither this branch nor main); it had passed after checking
+  only the date. The Sonnet and Haiku rows stay pinned in the second test. **Not run in CI:** `zigi-hosted`'s hosted
+  tests (C45's status assertion among them) skip unless `ZIGI_HOSTED_BUILD=on` against a build made with
+  `NEXT_PUBLIC_ZIGI_HOSTED=on`; run locally against one in round 2 (6 passed on both projects, MOCK relay); before
+  activation an owner step (`docs/run11/ZIGI_RELAY_ACTIVATION.md` §5).
 
 ## Rejected options
 None yet.

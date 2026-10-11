@@ -57,6 +57,7 @@ On the private **app** Worker: `wrangler secret put ZIGOALS_ZIGI_RELAY_ORIGIN` (
 
 ## 5. A hosted build (reviewed change)
 Build the acceptance app with `NEXT_PUBLIC_ZIGI_HOSTED=on` (a change to the build you deploy; for the public Alpha it is a deploy-workflow change that needs your review). Without it the app never asks `/api/zigi` and shows nothing.
+Before deploying it, run the hosted browser tests against that build: CI builds the public configuration, where they are skipped (Session Z-Cloud Gate C). With the build started on a local port: `ZIGI_HOSTED_BUILD=on PLAYWRIGHT_BASE_URL=http://127.0.0.1:<port> pnpm --filter @zigoals/web exec playwright test tests/zigi-hosted.spec.ts --workers=2` (MOCK relay; nothing leaves the machine).
 
 ## 6. Un-pause (one mutation), then verify
 Set `ZIGI_KILL_SWITCH` to `off` in the private copy, run the config check, deploy. **Verify** with an invited test account:
