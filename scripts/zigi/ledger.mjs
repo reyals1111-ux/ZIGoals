@@ -19,8 +19,8 @@ const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 &&
 const RUNS = opt('--runs', '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs'), CAP = Number(opt('--cap', '130')), CHECK = opt('--check', null);
 const rows = new Map();
 const key = (stage, model, batch) => `${stage}\u0000${model}\u0000${batch ? 'batch' : 'api'}`;
-function addRow(stage, model, batch, usage, requests, cost) {
-  const k = key(stage, model, batch), r = rows.get(k) ?? {stage, model, batch, requests: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0, usd: 0, unreported: 0, files: 0};
+function addRow(stage, model, batch, usage, requests, cost, estimate = false) {
+  const k = key(stage, model, batch), r = rows.get(k) ?? {stage, model, batch, estimate, requests: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0, usd: 0, unreported: 0, files: 0};
   r.requests += requests; r.input += usage.input ?? 0; r.cacheWrite += usage.cacheWrite ?? 0; r.cacheRead += usage.cacheRead ?? 0; r.output += usage.output ?? 0;
   if (usage.input === null && usage.output === null && requests > 0) r.unreported += requests;
   r.usd += cost ?? 0;
@@ -33,17 +33,17 @@ function walk(dir, out = []) {
   return out;
 }
 const files = walk(join(RUNS, 'real-model')).concat(walk(join(RUNS, 'spoken')), walk(join(RUNS, 'monthly')));
-const read = [];
+const read = [], unreadable = [];
 for (const file of files) {
-  let data; try { data = JSON.parse(readFileSync(file, 'utf8')); } catch { continue; }
+  let data; try { data = JSON.parse(readFileSync(file, 'utf8')); } catch { unreadable.push(relative(RUNS, file)); continue; }
   const stage = relative(RUNS, file).split('/').slice(0, -1).join('/') || '(root)';
   if (data && data.summary && data.summary.provider === 'anthropic' && Array.isArray(data.runs)) {
-    const model = data.summary.model, batch = data.summary.batch === true;
+    const model = data.summary.model, batch = data.summary.batch === true, estimate = data.summary.estimate === true;
     let count = 0;
     for (const run of data.runs) {
       if (!run.requests) continue;
       const usage = {input: run.tokens?.input ?? null, output: run.tokens?.output ?? null, cacheWrite: run.tokens?.cacheWrite ?? null, cacheRead: run.tokens?.cacheRead ?? null};
-      addRow(stage, model, batch, usage, run.requests, estimateCost(model, usage, {batch})); count++;
+      addRow(stage, model, batch, usage, run.requests, estimateCost(model, usage, {batch}), estimate); count++;
     }
     read.push({file: relative(RUNS, file), model, turns: count});
   } else if (data && data.summary && data.summary.provider === 'anthropic' && data.summary.batch === true && data.summary.tokens) {
@@ -68,13 +68,14 @@ const n = v => v.toLocaleString('en-US');
 const md = [`# API ledger — Session Z-Local (owner cap $${CAP}; hard stop)`, '',
   `Rebuilt by \`scripts/zigi/ledger.mjs\` from the run files on this branch (${read.length} files), each call priced at the published table in \`apps/web/lib/ai/pricing.ts\` (as of ${PRICES_AS_OF}: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.`, '',
   '| Stage | Model | Requests | Input | Cache write | Cache read | Output | USD |', '|---|---|---:|---:|---:|---:|---:|---:|',
-  ...list.map(r => `| ${r.stage} | ${r.model}${r.batch ? ' (batch)' : ''} | ${n(r.requests)}${r.unreported ? ` (${r.unreported} unreported)` : ''} | ${n(r.input)} | ${n(r.cacheWrite)} | ${n(r.cacheRead)} | ${n(r.output)} | ${r.usd.toFixed(4)} |`),
+  ...list.map(r => `| ${r.stage} | ${r.model}${r.batch ? ' (batch)' : ''}${r.estimate ? ' (estimate)' : ''} | ${n(r.requests)}${r.unreported ? ` (${r.unreported} unreported)` : ''} | ${n(r.input)} | ${n(r.cacheWrite)} | ${n(r.cacheRead)} | ${n(r.output)} | ${r.usd.toFixed(4)} |`),
   '', `**Per model:** ${Object.entries(byModel).map(([m, v]) => `${m} $${v.toFixed(2)}`).join(' · ') || 'nothing yet'}`, '', `**Total: $${total.toFixed(2)} of $${CAP}.**`, ''];
 writeFileSync(join(RUNS, 'ledger.md'), md.join('\n'));
 writeFileSync(join(RUNS, 'ledger.json'), JSON.stringify({pricesAsOf: PRICES_AS_OF, cap: CAP, total, byModel, rows: list, files: read, rebuiltAt: new Date().toISOString()}, null, 1));
 console.log(`Ledger: $${total.toFixed(2)} of $${CAP} over ${list.length} stage rows (${read.length} files).`);
 if (CHECK !== null) {
   const forecast = Number(CHECK);
+  if (unreadable.length) { console.error(`REFUSED: ${unreadable.length} run file(s) could not be read (${unreadable.join(', ')}); a torn file hides spend`); process.exit(1); }
   if (total + forecast > CAP) { console.error(`REFUSED: $${total.toFixed(2)} spent + $${forecast.toFixed(2)} forecast = $${(total + forecast).toFixed(2)} > cap $${CAP}.`); process.exit(1); }
   console.log(`OK to start: $${total.toFixed(2)} + $${forecast.toFixed(2)} forecast stays under $${CAP}.`);
 }

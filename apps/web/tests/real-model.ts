@@ -1,4 +1,4 @@
-import {closeSync, mkdirSync, openSync, unlinkSync, writeFileSync, readFileSync, existsSync} from 'node:fs';
+import {closeSync, mkdirSync, openSync, renameSync, statSync, unlinkSync, writeFileSync, readFileSync, existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {expect, type Page, type TestInfo} from '@playwright/test';
@@ -185,12 +185,16 @@ export function record(info: TestInfo, file: string, run: UiRun) {
   // write lost 32 of 34 page cases once. A lock file (created exclusively, retried) serialises the read-modify-write.
   const until = Date.now() + 30_000; let fd: number | null = null;
   while (fd === null) {
-    try { fd = openSync(lock, 'wx'); } catch { if (Date.now() > until) throw new Error(`record: ${lock} held for 30 s`); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25); }
+    try { fd = openSync(lock, 'wx'); } catch {
+      // A lock a killed worker left behind (older than a minute) is stale; the critical section takes milliseconds.
+      try { if (Date.now() - statSync(lock).mtimeMs > 60_000) unlinkSync(lock); } catch { /* gone already */ }
+      if (Date.now() > until) throw new Error(`record: ${lock} held for 30 s`); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+    }
   }
   try {
     const list: UiRun[] = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) as UiRun[] : [];
     list.push(run);
-    writeFileSync(path, JSON.stringify(list, null, 1));
+    writeFileSync(`${path}.tmp`, JSON.stringify(list, null, 1)); renameSync(`${path}.tmp`, path); // atomic: a kill mid-write cannot tear the file
   } finally { closeSync(fd); unlinkSync(lock); }
   info.annotations.push({type: 'real-model', description: `${run.model} on ${run.host}: ${run.score ? (run.score.pass ? 'pass' : 'fail') : 'unscored'} in ${run.ms} ms`});
 }

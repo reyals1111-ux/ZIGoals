@@ -89,15 +89,15 @@ try {
   const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {cwd: repo, encoding: 'utf8', env: gitEnv}).split('\n').filter(Boolean);
   for (const f of untracked) scanFile(join(repo, f));
   // Finding 2: the branch's whole history (a key committed then removed would still be pushed), and the runs branch's.
-  const history = execFileSync('git', ['log', '-p', '--no-color', 'origin/main..HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
+  const history = execFileSync('git', ['log', '-p', '--diff-merges=remerge', '--no-color', 'origin/main..HEAD'], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
   scanText('git log -p origin/main..HEAD', history);
   // Gate C read: a push names its refs on stdin; the hook passes each local sha, so a ref other than HEAD is scanned too.
-  for (const ref of refs) { const h = execFileSync('git', ['log', '-p', '--no-color', `origin/main..${ref}`], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv}); scanText(`git log -p origin/main..${ref}`, h); }
+  for (const ref of refs) { const h = execFileSync('git', ['log', '-p', '--diff-merges=remerge', '--no-color', `origin/main..${ref}`], {cwd: repo, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv}); scanText(`git log -p origin/main..${ref}`, h); }
   const runs = '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs';
   if (!existsSync(runs)) hits.push(`${runs}: the runs worktree is missing, so its history could not be swept`);
   else {
     // The orphan branch only: the worktree shares the repository's objects, and main's history holds allowlisted fake keys in test fixtures.
-    const runsHistory = execFileSync('git', ['log', '-p', '--no-color', 'review/session-z-local-runs'], {cwd: runs, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
+    const runsHistory = execFileSync('git', ['log', '-p', '--diff-merges=remerge', '--no-color', 'review/session-z-local-runs'], {cwd: runs, encoding: 'latin1', maxBuffer: 1024 * 1024 * 1024, env: gitEnv});
     scanText('runs worktree: git log -p review/session-z-local-runs', runsHistory);
   }
 } catch (error) { hits.push(`git diff failed: ${error instanceof Error ? error.message : String(error)}`); }
