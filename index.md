@@ -1,5 +1,7 @@
 # Session Z-Cloud: ZIGi's panel, before and after (Part 2)
 
+**Gate C journeys (2026-10-11):** [gate-c-journeys/index.md](gate-c-journeys/index.md), five human-style journeys at three sizes on the final code.
+
 **Panel polish round 2 (2026-10-11):** [round2/index.md](round2/index.md), the phone and computer panel before and after, and every ZIGi surface after the fixes.
 
 Local production builds, 2026-10-10: **before** = `12a3ef9` (Alpha #35's source), **after** = `feature/session-z-cloud` at Part 2 (`4f72b3a`).
