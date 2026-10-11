@@ -1,1 +1,0 @@
-Deployment configs are isolated and internally consistent.
