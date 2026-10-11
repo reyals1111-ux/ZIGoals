@@ -333,7 +333,9 @@ Each difference it reports at Gate C is explained against this list (filled per 
   reads the stored count until the save lands (CI on `3d8a844` read 0 once: the card shows a check-in while its save
   runs, by design; 21 of 21 locally on both builds; mechanics, the expected value unchanged). `session-x-findings` (X-Cloud's
   chunk patcher) also lets go of a route cut off as "Test ended" (CI on `f950c6d`, J201), the same case it already let go
-  as "disposed" (mechanics; every chunk the coin page loads is still read and patched).
+  as "disposed" (mechanics; every chunk the coin page loads is still read and patched). `send-feedback`'s Help test hides
+  ZIGi's launcher (as the freeze check does): its figure files, which load on their own schedule, twice arrived inside
+  the window where nothing may be requested (two-worker load); the assertion itself is unchanged, nothing at all.
 
 ## Rejected options
 None yet.

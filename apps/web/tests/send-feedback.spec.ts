@@ -1,4 +1,6 @@
 import {expect, test, type Page} from '@playwright/test';
+import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
+import {ZIGI_KEY} from '../lib/ai/store/keys';
 
 // Session X Part 11: "Send feedback" in Help and in Settings → Help & diagnostics. The email opens in the person's own
 // mail app; device details join it only when ticked, shown in full and editable; nothing is sent, stored or requested.
@@ -7,7 +9,11 @@ const body = async (page: Page, scope = page.locator('body')) => decodeURICompon
 const storage = (page: Page) => page.evaluate(() => JSON.stringify({local: {...localStorage}, session: {...sessionStorage}}));
 
 test('Help: details only when ticked, shown in full, the person\'s to edit, and nothing sent, stored or requested', async ({page}) => {
+  // Session Z-Cloud Gate C: ZIGi's launcher is hidden here, so its own figure files (which load on their own schedule and
+  // twice arrived inside the window below under two-worker load) are not in the page; nothing at all may be requested.
+  await page.addInitScript(([aiKey, ai, zigiKey]) => { if (!localStorage.getItem(aiKey)) { localStorage.setItem(aiKey, ai); localStorage.setItem(zigiKey, JSON.stringify({version: 1, edgeTab: false})); } }, [AI_SETTINGS_KEY, JSON.stringify({...defaultAiSettings(), launcherHidden: true}), ZIGI_KEY] as const);
   await page.goto('/app/help');
+  await expect(page.getByRole('button', {name: /^Open ZIGi/})).toHaveCount(0);
   const section = page.getByRole('region', {name: 'Tell us what you think', exact: true});
   await expect(section.getByRole('link', {name: 'Email feedback to contact@zigoals.app', exact: true})).toBeVisible();
   const plain = await body(page, section);
