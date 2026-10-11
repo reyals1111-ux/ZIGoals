@@ -137,6 +137,17 @@ Each difference it reports at Gate C is explained against this list (filled per 
 - **Gate C (C50–C52):** Habits' hero on tablets is unchanged (the phone rule is under 600 px); Wealth's "What you have"
   line reads "Portfolio is a separate tracker for coins, kept apart from Wealth."; Health's week reads "Water · US fl oz"
   only when that unit is chosen; Meet ZIGi's sizes wrap only under 400 px.
+- **Measured at Gate C** (`12a3ef9`'s own build on :3102, this branch's final code `248b1f0` on :3101, same machine and
+  browser; 155 captures each, 0 page errors in either): all 155 differ, every difference explained. **96** differ only by
+  the shell's changes every page carries: the sidebar's last entry "Help" and the footer's "Send feedback" (4.11), the
+  honesty label's plain words without a wallet ("PRACTICE MONEY (NO REAL VALUE)", "Demo records", "Give your savings a
+  purpose", 4.3) and grouped amounts (4.8; on Staking with the Showcase at 1280 they wrap a line in a few cards, +29 px).
+  Their accessibility snapshots are otherwise identical. **59** also carry a listed change: Wealth (12) and its add-asset
+  dialog (2), "What you have" (4.5); Habits (12), "Ask ZIGi" in each card's menu and one "Ask ZIGi about my habits" (4.10;
+  −104 to +102 px); Help (12), the new name and this release's answers (C49), and Settings (12), ZIGi's section named
+  "ZIGi · Your Personal AI Companion" with "Voice: talk to ZIGi" (C3, C19) and the page list ending in Help; both carry
+  the feedback mail's build stamp (an environment difference, as in Session Y); Today (6), Quick add (2) and the
+  launcher capture (1), What's new's links for this release (C49). Raw captures' summary on `review/session-z-cloud-runs`.
 
 ## Assertions changed (deliberate, listed)
 - **Part 2, the new name (as strict):** `tests/help-page.spec.ts` (the topic list) and `tests/send-feedback.spec.ts` (the Known
