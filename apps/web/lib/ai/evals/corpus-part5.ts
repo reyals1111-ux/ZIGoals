@@ -42,7 +42,7 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     // Goals: close, reopen.
     g.propose('p5-close-goal', 'Close the Japan adventure goal, I am done with it', {kinds: ['close-goal']}, {important: true}),
     g.propose('p5-close-goal-nl', 'Sluit het doel Japan adventure af', {kinds: ['close-goal']}, {lang: 'nl'}),
-    g.propose('p5-reopen-goal', 'Reopen the Japan adventure goal', {kinds: ['reopen-goal']}),
+    g.propose('p5-reopen-goal', 'Reopen the Japan adventure goal', {kinds: []}), // Session Z-Local L50: the Showcase goal is active, so there is nothing to reopen; the honest reply says so with no card (the planner would refuse one)
     // Still a "no": milestone ticks, money.
     g.refuse('p5-no-milestone', 'Mark the milestone "Flights booked" as reached on the Japan goal', REFUSE),
     g.propose('p5-fund', 'Fund the Japan goal with 200 euros', {kinds: ['prefill-contribution'], fields: [{kind: 'prefill-contribution', amount: 200}]}, {important: true}),
@@ -59,7 +59,7 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     h.propose('p5-target-water', 'I want to drink 2.5 litres a day from now on, set that as my water target', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'water'}]}),
     h.propose('p5-target-sleep', 'My sleep goal is 8 hours a night', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'sleep', value: 8}]}),
     h.propose('p5-target-clear', 'Clear my calorie target', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'kcal', value: null}]}),
-    h.propose('p5-units', 'Show my weight in pounds from now on', {kinds: ['set-health-preference'], fields: [{kind: 'set-health-preference', weightUnit: 'lb'}]}),
+    h.propose('p5-units', 'Show my weight in pounds from now on', {kinds: []}), // Session Z-Local L50: the Showcase preference is already pounds; nothing to change, no card (the planner would refuse one)
     h.propose('p5-night-start', 'I am going to bed now', {kinds: ['start-night']}, {important: true}),
     h.propose('p5-night-start-nl', 'Ik ga nu slapen', {kinds: ['start-night']}, {lang: 'nl'}),
     h.propose('p5-night-end', 'I am up, it is 7:10', {kinds: ['end-night'], fields: [{kind: 'end-night', wake: '07:10'}]}, {important: true}),

@@ -150,3 +150,9 @@ test('L48: a unit written in Dutch is the schema\'s own unit word ("uur" → hou
   const w = parseReply('Noted.\n\n```zigoals-action\n{"kind":"log-weight","value":72.5,"unit":"kilo"}\n```');
   expect(w.proposals).toHaveLength(1); expect((w.proposals[0] as {unit?: string}).unit).toBe('kg');
 });
+test('L50: a short unit form is the schema\'s own unit word ("h" → hours, "min" → minutes), as a model abbreviates a target', () => {
+  const r = parseReply('Doel gezet.\n\n```zigoals-action\n{"kind":"set-target","target":"sleep","value":7.5,"unit":"h"}\n```');
+  expect(r.proposals).toHaveLength(1); expect((r.proposals[0] as {unit?: string}).unit).toBe('hours');
+  const m = parseReply('Set.\n\n```zigoals-action\n{"kind":"set-target","target":"meditation","value":15,"unit":"min"}\n```');
+  expect(m.proposals).toHaveLength(1); expect((m.proposals[0] as {unit?: string}).unit).toBe('minutes');
+});
