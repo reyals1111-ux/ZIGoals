@@ -78,6 +78,10 @@
 .habit-hero { grid-template-columns: minmax(0, 1fr) auto 240px; column-gap: 28px; min-height: 236px; }
 .habit-hero .habit-hero-actions { margin: 0; flex-direction: column; align-items: flex-end; gap: 14px; position: relative; z-index: 1; }
 .habit-hero-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Session Z-Cloud Gate B: "Ask ZIGi about my habits" (Part 4.10) shares the last row with the backup link, so the hero keeps
+   its height and the page's first figures stay where they were. */
+.habit-hero-minor { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 16px; }
+@media (max-width: 600px) { .habit-hero-minor { justify-content: flex-start; } }
 .habit-hero p.page-lede { max-width: 560px; color: #e9f0fb; }
 .habit-journal-settings { display: grid; gap: 12px; }
 .habit-journal-settings .habit-privacy { margin: 0; }
