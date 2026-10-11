@@ -1,0 +1,136 @@
+{
+  "recordedAt": "2026-09-13T22:42:12.924380+00:00",
+  "observedAt": null,
+  "evidenceSource": "OWNER_OBSERVED_SANITIZED",
+  "worker": "zigoals-alpha",
+  "workerVersion": "d37151a2-d6fd-4744-8b5c-ca4c3da4c433",
+  "sourceCommit": "01ebf00f7a177ab86fb41b52164fa7f5320f644c",
+  "plan": "WORKERS_PAID",
+  "ownerPlanPrice": "$5/month + usage",
+  "dashboard": {
+    "window": "last one hour, version-specific",
+    "approximate": true,
+    "cpuMs": {
+      "p50": 67.98,
+      "p90": 160,
+      "p99": 200,
+      "p999": 200
+    },
+    "invocations": 79,
+    "assetRequests": 74,
+    "assetCacheHitPercent": 100,
+    "subrequests": 0,
+    "errors": 0,
+    "deploymentErrorPercent": 0
+  },
+  "controlledRoutes": [
+    {
+      "route": "/app",
+      "cpuMs": [
+        539,
+        26,
+        34,
+        285,
+        23
+      ],
+      "wallTimeMs": null,
+      "sampleCount": 5,
+      "medianCpuMs": 34,
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "outcomes": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "exceptionsObserved": false
+    },
+    {
+      "route": "/app/settings",
+      "cpuMs": [
+        32,
+        18,
+        19,
+        16,
+        18
+      ],
+      "wallTimeMs": null,
+      "sampleCount": 5,
+      "medianCpuMs": 18,
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "outcomes": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "exceptionsObserved": false
+    },
+    {
+      "route": "/icon.svg",
+      "cpuMs": [
+        60,
+        29,
+        12,
+        9,
+        6
+      ],
+      "wallTimeMs": null,
+      "sampleCount": 5,
+      "medianCpuMs": 12,
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "outcomes": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "exceptionsObserved": false
+    }
+  ],
+  "liveOwnerVerification": {
+    "alphaHttp200": true,
+    "nonceCspIntact": true,
+    "iconSvg200": true,
+    "faviconVisible": true,
+    "realKeplrConnection": true,
+    "localDemoOnRefresh": true,
+    "explicitReconnectSucceeds": true,
+    "financialSigningOrBroadcast": false,
+    "goalManager": "NOT_DEPLOYED",
+    "codeId": "NOT_DEPLOYED",
+    "walletBalanceZig": 0,
+    "testnetDiagnostics": true,
+    "alphaAndApexFit320x800": true,
+    "apexWorkerVersion": "de83a26a-d2ce-4f19-8067-09fa46a49fff",
+    "ctaAndDisclaimerPreserved": true
+  },
+  "limitations": [
+    "Small owner-observed controlled samples; no statistical confidence or production guarantees.",
+    "Raw wall times and exact observation timestamps not supplied; null means unknown.",
+    "Dashboard distribution and sequential route sample are different observations.",
+    "Spikes do not establish cold-start/JIT/SSR causality.",
+    "Owner evidence is not an independently repeated M6 production test."
+  ]
+}

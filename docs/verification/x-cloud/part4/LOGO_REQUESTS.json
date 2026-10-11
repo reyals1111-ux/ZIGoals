@@ -1,0 +1,104 @@
+{
+  "about": "Session X Part 4: market-logo requests that reached the server when one browser profile (HTTP cache on) viewed ten public CoinGecko logos through /api/market-logo on /app/markets, then again after a navigation, then on /app/portfolio. Production builds under `next start` on loopback, measured by scripts/perf/logo-cache-requests.mjs (local). The server fetched the ten images from coin-images.coingecko.com.",
+  "before": {
+    "build": "72ad872 + Parts 1-3 (middleware sets private, no-store on the route)",
+    "results": [
+      {
+        "view": "first view",
+        "logoRequests": 10,
+        "servedFromCache": 0,
+        "reachedServer": 10,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "private, no-store, max-age=0"
+        ],
+        "csp": [
+          "page policy (nonce, strict-dynamic)"
+        ]
+      },
+      {
+        "view": "second view (navigation)",
+        "logoRequests": 10,
+        "servedFromCache": 0,
+        "reachedServer": 10,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "private, no-store, max-age=0"
+        ],
+        "csp": [
+          "page policy (nonce, strict-dynamic)"
+        ]
+      },
+      {
+        "view": "third view (another page)",
+        "logoRequests": 10,
+        "servedFromCache": 0,
+        "reachedServer": 10,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "private, no-store, max-age=0"
+        ],
+        "csp": [
+          "page policy (nonce, strict-dynamic)"
+        ]
+      }
+    ]
+  },
+  "after": {
+    "build": "this change",
+    "results": [
+      {
+        "view": "first view",
+        "logoRequests": 10,
+        "servedFromCache": 0,
+        "reachedServer": 10,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "public, max-age=86400"
+        ],
+        "csp": [
+          "default-src 'none'; sandbox"
+        ]
+      },
+      {
+        "view": "second view (navigation)",
+        "logoRequests": 10,
+        "servedFromCache": 10,
+        "reachedServer": 0,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "public, max-age=86400"
+        ],
+        "csp": [
+          "default-src 'none'; sandbox"
+        ]
+      },
+      {
+        "view": "third view (another page)",
+        "logoRequests": 10,
+        "servedFromCache": 10,
+        "reachedServer": 0,
+        "statuses": [
+          200
+        ],
+        "cacheControl": [
+          "public, max-age=86400"
+        ],
+        "csp": [
+          "default-src 'none'; sandbox"
+        ]
+      }
+    ]
+  },
+  "summary": "Before: every view sent all 10 logo requests to the server (30 of 30). After: only the first view did (10 of 30); the other views were served from the browser's cache for a day. On the Alpha each avoided request is one Worker invocation less (and one less cold start when it would have landed on a fresh Worker)."
+}

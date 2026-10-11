@@ -1,0 +1,34 @@
+{
+ "title": "Native ZIG denomination reads used by the acquisition and on-ramp items",
+ "readOn": "2026-10-02",
+ "note": "Read-only GET responses from official chain APIs, as read. sha256 is the SHA-256 of JSON.stringify(body) (compact JSON); for a record with \"trimmed\" it is of the full body before trimming. height is the x-cosmos-block-height response header (for api.noble.xyz, grpc-metadata-x-cosmos-block-height). Index: docs/earn/EVIDENCE_2026-10.md.",
+ "records": [
+  {
+   "name": "research/b/lcd_staking_params",
+   "retrievedAt": "2026-10-02T20:46:59Z",
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12610424",
+   "sha256": "37d1b16cd59488c119809fa0a1e809d47208a1a8359ac35afd81a939e8bc1a3f",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/b/lcd_denoms_metadata",
+   "retrievedAt": "2026-10-02T20:46:57Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata",
+   "httpStatus": 200,
+   "height": "12610423",
+   "sha256": "5b755a9dd49455027c8ad994f20c3379fa38da71e483c19e74228e0b9e6ce0f6",
+   "bodyOmitted": "57853 bytes in compact JSON; the entries this evidence relies on are quoted in EVIDENCE_2026-10.md"
+  }
+ ]
+}

@@ -1,0 +1,120 @@
+{
+  "criteria": "GOAL-06",
+  "generatedApplication": true,
+  "mutationPath": "visible UI only",
+  "projectSemantics": "Milestone changes and linked weekly review Habit; no financial plan, allocation or contribution controls.",
+  "journeys": [
+    {
+      "name": "Packaged Value continuity",
+      "path": "/app/goals/tracked/218817531471573147618935917523829255333",
+      "habit": "Contribute 50 USD monthly",
+      "type": "Value",
+      "original": [
+        {
+          "id": "goal-event-contribution:498da84b-b809-4d14-90b0-abf04fd5df09",
+          "label": "Contribution recorded",
+          "detail": [
+            "contribution:498da84b-b809-4d14-90b0-abf04fd5df09",
+            "2026-09-26T22:54:12.337Z",
+            "MANUAL_ATTRIBUTION",
+            "200 USD",
+            "Fictional original Value receipt"
+          ]
+        }
+      ],
+      "reversed": [
+        {
+          "id": "goal-event-contribution:d1a5b88f-2602-487a-94d9-e3760053fa8e",
+          "label": "Contribution reversed",
+          "detail": [
+            "contribution:d1a5b88f-2602-487a-94d9-e3760053fa8e",
+            "2026-09-26T22:54:12.671Z",
+            "MANUAL_ATTRIBUTION",
+            "200 USD",
+            "Explicit user reversal",
+            "498da84b-b809-4d14-90b0-abf04fd5df09"
+          ]
+        }
+      ],
+      "allocationText": "$Fictional Value continuity cash200 USD intended · 200 USD counted · LIQUID · MANUALAllocated to this Goal: 200 USDAvailable Position amount: 0 USDChange allocationRelease allocationManual observation · 27/09/2026, 00:54:12 · refresh to verify current state (verified snapshots age after 15 minutes)",
+      "secondProfileHistoryEqual": true,
+      "todayGoalAndHabitReceived": true,
+      "financialContribution": true
+    },
+    {
+      "name": "Packaged Quantity continuity",
+      "path": "/app/goals/tracked/18161765777052961647906911984711968985",
+      "habit": "Contribute 1 BTC monthly",
+      "type": "Quantity",
+      "original": [
+        {
+          "id": "goal-event-contribution:6d2a5f77-6b01-4fc7-ae60-221e4bd73d66",
+          "label": "Contribution recorded",
+          "detail": [
+            "contribution:6d2a5f77-6b01-4fc7-ae60-221e4bd73d66",
+            "2026-09-26T22:54:17.636Z",
+            "MANUAL_ATTRIBUTION",
+            "2 BTC",
+            "Fictional original Quantity receipt"
+          ]
+        }
+      ],
+      "reversed": [
+        {
+          "id": "goal-event-contribution:2a53eea6-85ac-4d1b-a89c-ce386c566096",
+          "label": "Contribution reversed",
+          "detail": [
+            "contribution:2a53eea6-85ac-4d1b-a89c-ce386c566096",
+            "2026-09-26T22:54:17.937Z",
+            "MANUAL_ATTRIBUTION",
+            "2 BTC",
+            "Explicit user reversal",
+            "6d2a5f77-6b01-4fc7-ae60-221e4bd73d66"
+          ]
+        }
+      ],
+      "allocationText": "₿Fictional Quantity continuity BTC2 BTC intended · 2 BTC counted · UNKNOWN · MANUALAllocated to this Goal: 2 BTCAvailable Position amount: 0 BTCChange allocationRelease allocationManual observation · 27/09/2026, 00:54:17 · refresh to verify current state (verified snapshots age after 15 minutes)",
+      "secondProfileHistoryEqual": true,
+      "todayGoalAndHabitReceived": true,
+      "financialContribution": true
+    },
+    {
+      "name": "Packaged Project continuity",
+      "path": "/app/goals/tracked/130454563081669901320221030012714509289",
+      "habit": "Review Packaged Project continuity",
+      "type": "Project",
+      "changes": [
+        {
+          "id": "goal-event-change:130454563081669901320221030012714509289:milestone:29a9b6e9-42e9-4c7d-a72e-58bddb47b94c",
+          "label": "Goal milestones changed",
+          "detail": [
+            "change:130454563081669901320221030012714509289:milestone:29a9b6e9-42e9-4c7d-a72e-58bddb47b94c",
+            "2026-09-26T22:54:22.220Z",
+            "LOCAL_EDIT"
+          ]
+        },
+        {
+          "id": "goal-event-change:130454563081669901320221030012714509289:milestone:e6392b0d-a7dd-4981-9dfe-34b0a03a9935",
+          "label": "Goal milestones changed",
+          "detail": [
+            "change:130454563081669901320221030012714509289:milestone:e6392b0d-a7dd-4981-9dfe-34b0a03a9935",
+            "2026-09-26T22:54:22.153Z",
+            "LOCAL_EDIT"
+          ]
+        },
+        {
+          "id": "goal-event-change:130454563081669901320221030012714509289:milestone:a94fff75-d2e4-4741-ba07-99b12c0173cc",
+          "label": "Goal milestones changed",
+          "detail": [
+            "change:130454563081669901320221030012714509289:milestone:a94fff75-d2e4-4741-ba07-99b12c0173cc",
+            "2026-09-26T22:54:22.054Z",
+            "LOCAL_EDIT"
+          ]
+        }
+      ],
+      "secondProfileHistoryEqual": true,
+      "todayGoalAndHabitReceived": true,
+      "financialContribution": false
+    }
+  ]
+}

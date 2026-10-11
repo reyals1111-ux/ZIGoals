@@ -1,0 +1,18 @@
+{
+ "file": "photos-gemma4-12b.json",
+ "kind": "photos",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 4,
+   "passed": 3,
+   "scored": 4,
+   "errors": 0,
+   "replyMedianMs": 9768,
+   "first": "2026-10-08T07:20:53.371Z",
+   "last": "2026-10-08T07:22:47.142Z"
+  }
+ ]
+}

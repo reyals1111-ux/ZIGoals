@@ -1,0 +1,29 @@
+
+ RUN  v5.0.0 <isolated-worktree>
+
+ × scripts/run11/packaged-runtime.test.mjs > full generated OpenNext artifact uses local named account, market and food services across restart 45170ms
+   → locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('article', { name: 'Breakfast today', exact: true }).getByText('150 kcal') to be visible
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/run11/packaged-runtime.test.mjs > full generated OpenNext artifact uses local named account, market and food services across restart
+TimeoutError: locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('article', { name: 'Breakfast today', exact: true }).getByText('150 kcal') to be visible
+
+ ❯ receiveAndCorrectPackagedRecords scripts/run11/packaged-consumer-journey.mjs:22:177
+
+ ❯ scripts/run11/packaged-runtime.test.mjs:76:80
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { log: [ '  - waiting for getByRole('article', { name: 'Breakfast today', exact: true }).getByText('150 kcal') to be visible' ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  00:28:11
+   Duration  47.08s (tests 96%, import 3%)

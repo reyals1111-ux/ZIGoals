@@ -1,0 +1,37 @@
+{
+  "$schema": "../../apps/web/node_modules/wrangler/config-schema.json",
+  // Session W Part 8: the health-link Worker's local template (docs/run11/HEALTH_LINK_ACTIVATION.md). Off by default:
+  // the kill switch is on, and no provider has a client secret. Check a deployment config with
+  // `node scripts/run11/health-link-config.mjs <config.jsonc>` before the owner deploys it.
+  "name": "zigoals-health-link-local",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-13",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LINK_BUDGET",
+        "class_name": "LinkBudget"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "LinkBudget"
+      ]
+    }
+  ],
+  "vars": {
+    "AUTH_ORIGIN": "https://unconfigured.supabase.co",
+    "APP_ORIGIN": "http://127.0.0.1:3110",
+    "HEALTH_LINK_DAILY_REQUESTS": "200",
+    "HEALTH_LINK_GLOBAL_DAILY_REQUESTS": "1800",
+    "HEALTH_LINK_KILL_SWITCH": "on"
+  },
+  "observability": {
+    "enabled": false
+  },
+  "workers_dev": false,
+  "preview_urls": false
+}

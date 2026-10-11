@@ -1,0 +1,61 @@
+{
+  "headRefOid": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "isDraft": true,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "0001-01-01T00:00:00Z",
+      "conclusion": "",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751664/job/108503647039",
+      "name": "web",
+      "startedAt": "2026-09-26T22:54:05Z",
+      "status": "IN_PROGRESS",
+      "workflowName": "Milestone quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T22:55:57Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751583/job/108503646527",
+      "name": "canonical-build-a",
+      "startedAt": "2026-09-26T22:54:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T22:56:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751583/job/108503646686",
+      "name": "canonical-build-b",
+      "startedAt": "2026-09-26T22:54:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T22:58:45Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751583/job/108504011069",
+      "name": "compare",
+      "startedAt": "2026-09-26T22:56:43Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-26T22:58:24Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/36277751664/job/108503647205",
+      "name": "contract",
+      "startedAt": "2026-09-26T22:54:05Z",
+      "status": "COMPLETED",
+      "workflowName": "Milestone quality"
+    }
+  ],
+  "url": "https://github.com/reyals1111-ux/ZIGoals/pull/21",
+  "observedAt": "2026-09-26T23:03:35.480824+00:00",
+  "localImplementationSource": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "scope": "Read-only PR21 observation; no merge or deployment. Later evidence-only review commits are distinguished by final PR head."
+}

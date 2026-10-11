@@ -1,0 +1,14 @@
+# Finance fixes — 56623c4
+- Fixed all four review findings; committed only the ten authorized finance/provider/UI/test files. No push or deployment.
+- RESEARCH_ONLY valuations can no longer overwrite exclusion or contribute verified/current progress.
+- Existing manual Positions retain asset, denomination, decimals, network and account; editor parses original precision, and atomic updates reject identity changes while preserving allocation and historical units.
+- Verified snapshots/valuations require review after 15 minutes; invalid/future timestamps also fail freshness. Historical quantities and dates stay intact. Failed reads mark only the relevant cached source ERROR, with visible failed/stale labels.
+- Public reads acquire a chain-validated block height, pin all metadata/account/validator/pagination requests using x-cosmos-block-height, reject missing/mismatched response evidence, and record block/time provenance; total deadline 45s, individual request timeout 12s.
+- Added GET /api/positions relay: exact network/address keys, no duplicate/extra keys, fixed official endpoints, validated public address, no credential forwarding, no cache, no private content or signer path. Browser code no longer imports the native reader.
+- Relay is required because official mainnet OPTIONS for x-cosmos-block-height returned 403 and GET headers did not expose block height through CORS; server-side pinned params query honored block 12208962.
+- Real local relay returned HTTP 200 for synthetic zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr: mainnet block 12209071 at 2026-09-17T19:53:41.055Z, quantity 0 uzig / 6 decimals, authority NONE.
+- Same synthetic testnet read returned HTTP 200: block 7813748 at 2026-09-17T19:54:48.003Z, quantity 0 azig / 18 decimals, authority NONE. No owner balance was queried.
+- Verification: 40 tests across positions/native/private-storage/relay passed; typecheck, targeted ESLint and diff whitespace checks passed; platform browser suite passed 8/8 across desktop/mobile Chrome.
+- Regression red evidence covered research-value inclusion, stale snapshots/valuations, absent/mixed block evidence, and browser manual-edit identity before changes; browser save test needed an explicit async saved-status wait.
+- Live evidence covers empty synthetic accounts; multi-validator/reward/unbonding paths are fixture-tested. Browser runner emitted existing Node engine/color warnings but completed successfully.
+- Backup: /tmp/run8-finance-backup-1789674553415972000. Live response artifacts: /tmp/run8-finance-live-relay.json and /tmp/run8-finance-live-testnet.json.

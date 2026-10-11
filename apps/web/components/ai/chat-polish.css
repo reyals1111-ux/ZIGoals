@@ -1,0 +1,53 @@
+/* Session V Part 10: chat polish. Its own file, loaded with the chat chunk, so ai.css and the launcher shell stay as they were. */
+.ai-turn-time{font-size:14px;color:var(--muted,#aab2d9);font-variant-numeric:tabular-nums}
+.ai-feedback{display:inline-flex;gap:8px}
+.ai-feedback-button[aria-pressed="true"]{color:var(--cyan,#6fd3ff);text-decoration:underline;text-underline-offset:3px}
+.ai-turn-edit{justify-content:flex-end;margin:-10px 0 0!important}
+.ai-turn-extras{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;margin-top:4px;font-size:14px;color:var(--muted,#aab2d9)}
+.ai-followups{margin-top:8px}
+.ai-data-viz{display:grid;gap:8px;margin-top:10px}
+.ai-stat{display:grid;gap:2px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--violet,#8b7cff) 8%,transparent);max-width:320px}
+.ai-stat-value{font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.ai-stat-label{font-size:14px}
+.ai-stat-source{font-size:13px;color:var(--muted,#aab2d9)}
+.ai-viz{margin:0;display:grid;gap:4px;max-width:100%}
+.ai-viz svg{max-width:100%;height:auto}
+.ai-viz-bar{fill:color-mix(in srgb,var(--violet,#8b7cff) 70%,var(--cyan,#6fd3ff))}
+.ai-viz-line{stroke:var(--cyan,#6fd3ff);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ai-viz-dot{fill:var(--cyan,#6fd3ff)}
+.ai-viz-label{fill:var(--muted,#aab2d9);font-size:10px;font-variant-numeric:tabular-nums}
+.ai-viz-table summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:var(--cyan,#6fd3ff);font-size:14px}
+.ai-viz-table table{border-collapse:collapse;font-size:14px;margin-top:4px}
+.ai-viz-table th,.ai-viz-table td{padding:4px 10px;border-bottom:1px solid var(--line,#2a325a);text-align:left}
+.ai-viz-table td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.ai-slash-menu{list-style:none;margin:0;padding:4px;display:grid;gap:2px;max-height:220px;overflow:auto;border-radius:12px;border:1px solid var(--line,#2a325a);background:var(--panel,#0f1530)}
+.ai-slash-menu li{display:flex;gap:8px;align-items:baseline;min-height:40px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.ai-slash-menu li span{color:var(--muted,#aab2d9)}
+.ai-slash-menu li:hover,.ai-slash-active{background:color-mix(in srgb,var(--violet,#8b7cff) 22%,transparent)}
+.ai-editing{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:14px;color:var(--muted,#aab2d9)}
+/* "Jump to latest" sits over the bottom of the conversation from a zero-height holder after it, so the log keeps its layout. */
+.ai-jump-holder{position:relative;height:0;flex:none}
+.ai-jump-latest{position:absolute;right:16px;bottom:10px;z-index:2;min-height:40px;padding:8px 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));background:var(--panel,#0f1530);color:var(--text,#eef1ff);font-size:14px;cursor:pointer;box-shadow:0 6px 20px rgb(0 0 0 / .35)}
+.ai-jump-latest:hover,.ai-jump-latest:focus-visible{background:color-mix(in srgb,var(--violet,#8b7cff) 24%,var(--panel,#0f1530))}
+.ai-tips{display:grid;gap:6px;padding:10px 12px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--violet,#8b7cff) 45%,var(--line,#2a325a));font-size:14px}
+.ai-tips ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.ai-tips .text-link{justify-self:start}
+.ai-shortcuts{max-width:min(440px,calc(100vw - 32px));padding:16px 18px;border-radius:16px;border:1px solid var(--line,#2a325a);background:var(--panel,#0f1530);color:var(--text,#eef1ff)}
+.ai-shortcuts::backdrop{background:rgb(4 6 18 / .6)}
+.ai-shortcuts h3{margin:0 0 10px;font-size:17px}
+.ai-shortcuts-list{display:grid;gap:8px;margin:0 0 12px}
+.ai-shortcuts-list div{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:10px;align-items:baseline}
+.ai-shortcuts-list dd{margin:0;font-size:14px}
+.ai-shortcuts kbd{font-family:inherit;font-size:13px;padding:2px 6px;border-radius:6px;border:1px solid var(--line,#2a325a);background:color-mix(in srgb,var(--bg,#070a1a) 70%,transparent);white-space:nowrap}
+.ai-history-filter{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted,#aab2d9)}
+.ai-history-filter select{min-height:44px;padding:6px 10px;border-radius:12px;border:1px solid var(--line,#2a325a);background:transparent;color:var(--text,#eef1ff);font-size:16px}
+.ai-history-pin[aria-pressed="true"]{color:var(--cyan,#6fd3ff);text-decoration:underline;text-underline-offset:3px}
+.ai-history-heading{margin:6px 0 2px;font-size:14px;font-weight:600;color:var(--muted,#aab2d9);text-transform:none}
+.ai-continue{display:grid;gap:10px;padding:12px 14px;overflow:auto}
+.ai-continue pre{max-height:220px;overflow:auto;white-space:pre-wrap;font-size:14px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--bg,#070a1a) 80%,transparent);border:1px solid var(--line,#2a325a);margin:0}
+@media (max-width:767.98px){
+  .ai-turn-extras button,.ai-tips .text-link,.ai-editing button,.ai-feedback-button,.ai-history-actions button{min-height:44px;min-width:44px}
+  .ai-slash-menu li,.ai-jump-latest{min-height:44px}
+  .ai-viz-table summary{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){.ai-jump-latest{transition:none}}

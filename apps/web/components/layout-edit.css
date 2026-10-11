@@ -1,0 +1,57 @@
+/* Personal layouts (layout-edit.tsx). Nothing here applies while a page is locked except the lock button itself. */
+.layout-lock { display:inline-grid;place-items:center;width:44px;height:44px;flex:none;padding:0;border-radius:14px;border:1px solid #8fb6ff40;background:linear-gradient(150deg,#16264299,#1b173499);color:#d7e5fb;box-shadow:inset 0 1px 0 #ffffff14;cursor:pointer;transition:border-color 160ms ease,background-color 160ms ease,color 160ms ease; }
+.layout-lock:hover { border-color:#9fd6ff99;color:#fff; }
+.layout-lock[data-unlocked] { border-color:#7fe3f3;color:#0a1426;background:linear-gradient(120deg,#6fe3f2,#a8a4ff); }
+/* One place on every page: the Shell's status row, right after the demo balance (or alone at the right when the strip is hidden). */
+.status-row { display:flex;align-items:center;gap:12px; }
+.status-row > .mode-strip { flex:1 1 auto;min-width:0; }
+.layout-lock-slot { display:flex;flex:none;margin-left:auto; }
+.layout-lock-slot:empty { display:none; }
+/* A little air under the row so the lock never touches the card or hero below it. */
+.status-row:has(.layout-lock) { margin-bottom:8px; }
+/* Phones: the strip wraps onto three lines; the lock lines up with its last line, the demo balance. */
+@media (max-width:700px) { .status-row { align-items:flex-end; } .status-row > .layout-lock-slot { margin-bottom:6px; } }
+
+:root[data-layout-editing] [data-layout-item] { position:relative;outline:1px solid #9fc8ff66;outline-offset:5px;border-radius:var(--radius,20px); }
+:root[data-layout-editing] [data-layout-item]:focus-within { outline-color:#9fe6ff; }
+/* A movable section whose own children are movable cards gets a lane for its controls, clear of the first row's. */
+:root[data-layout-editing] [data-layout-item]:has(> [data-layout-item]) { padding-top:66px; }
+/* Controls are portalled into the card itself, so `:root` keeps a page's own child rules (e.g. `.x > div`, `.x span`) off them.
+   Centred by auto margins so a narrow card wraps them onto two rows instead of spilling over its neighbour. */
+:root .layout-controls { position:absolute;z-index:6;top:8px;left:0;right:0;width:max-content;max-width:calc(100% - 4px);margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;padding:4px;border-radius:27px;border:1px solid #a9c9ff55;background:linear-gradient(140deg,#0f1c33,#1a1633);box-shadow:0 10px 30px -12px #4f7bffaa,0 0 0 4px #060b19b3,inset 0 1px 0 #ffffff1c; }
+:root .layout-handle { display:grid;place-items:center;width:44px;height:44px;border-radius:999px;color:#cfe3ff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none; }
+.layout-handle:active { cursor:grabbing; }
+.layout-move { display:grid;place-items:center;min-width:44px;height:44px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#e7f0ff;font-size:18px;font-weight:700;line-height:1;transition:background-color .15s,border-color .15s,color .15s; }
+:root .layout-move > span { font:inherit;color:inherit; }
+.layout-move:hover:not(:disabled) { background:#ffffff14;border-color:#a9c9ff55; }
+.layout-move:disabled { opacity:.35; }
+.layout-move:focus-visible { outline:3px solid var(--cyan);outline-offset:1px; }
+
+/* The picked-up card: the glass lift (Part 3 language) follows the pointer; its slot stays as the drop placeholder. */
+.layout-ghost { transform:translateY(-4px) scale(1.02);opacity:.96;box-shadow:0 30px 70px -24px #3f6bffb3,0 0 0 1px #b8d5ff66,0 0 40px -10px #c77dff66;border-radius:var(--radius,20px);cursor:grabbing;transition:transform 180ms cubic-bezier(.3,1.4,.5,1); }
+.layout-ghost[data-still] { transform:none;transition:none; }
+.layout-ghost .layout-controls { visibility:hidden; }
+[data-layout-placeholder] { outline:2px dashed #8fd8ffcc!important;outline-offset:-2px!important;background:linear-gradient(140deg,#5d8cff14,#b36bff12)!important;box-shadow:none!important; }
+[data-layout-placeholder] > * { visibility:hidden; }
+
+.layout-bar { position:fixed;z-index:60;left:50%;bottom:20px;translate:-50% 0;display:flex;align-items:center;gap:18px;width:min(760px,calc(100vw - 32px));padding:12px 14px 12px 20px;border-radius:20px;border:1px solid #a9c9ff55;background:linear-gradient(140deg,#0d1a30f5,#1b1535f5);box-shadow:0 24px 60px -20px #000c,0 0 0 1px #ffffff0d inset; }
+.layout-bar p { margin:0;color:#e3ecfa;font-size:15px;line-height:1.45; }
+.layout-bar p strong { color:#fff; }
+.layout-bar-actions { display:flex;gap:10px;margin-left:auto;flex:none; }
+@media (max-width:600px) { .layout-bar { flex-direction:column;align-items:stretch;gap:10px;bottom:12px;padding:12px; }.layout-bar-actions { margin:0; }.layout-bar-actions>* { flex:1; } }
+@media (min-width:901px) { .layout-bar { left:calc(50% + var(--sidebar-width,0px) / 2); } }
+/* Keep the bottom of the page reachable above the bar. */
+:root[data-layout-editing] .workspace { padding-bottom:120px; }
+
+@media (prefers-reduced-motion:reduce) { .layout-ghost { transform:none;transition:none; } }
+:root[data-app-motion=off] .layout-ghost { transform:none;transition:none; }
+@media (forced-colors:active) {
+  :root[data-layout-editing] [data-layout-item] { outline:2px solid CanvasText; }
+  :root .layout-controls, .layout-bar { border:1px solid CanvasText;background:Canvas; }
+  .layout-move, :root .layout-handle { color:ButtonText; }
+  [data-layout-placeholder] { outline:2px dashed Highlight!important; }
+}
+/* While a card is carried, the bar steps aside so it never covers a drop target. */
+:root[data-layout-dragging] .layout-bar { opacity:0;pointer-events:none; }
+:root[data-layout-dragging] { cursor:grabbing; }
+:root[data-layout-dragging] body { user-select:none;-webkit-user-select:none; }

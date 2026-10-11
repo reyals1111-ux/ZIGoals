@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-13T15:33:55.114206+00:00",
+  "sourceCommit": "7d354e3c72fa671abc100facf908b247fb992cc0",
+  "mainPushCI": {
+    "runId": 34764912650,
+    "event": "push",
+    "conclusion": "success",
+    "url": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34764912650"
+  },
+  "javascript": {
+    "total": 399,
+    "passed": 399,
+    "failed": 0
+  },
+  "rust": {
+    "total": 25,
+    "boundary": 6,
+    "integration": 18,
+    "seededInvariant": 1,
+    "failed": 0
+  },
+  "browser": {
+    "startTime": "2026-09-13T15:28:14.398Z",
+    "duration": 12108.526,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "restart": {
+    "recordedAt": "2026-09-13T15:28:28.317Z",
+    "status": "passed",
+    "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+    "appUrl": "http://127.0.0.1:3102/app/activity",
+    "recordsRetained": 4,
+    "unknownHashRetained": true,
+    "corruptRecordPreserved": true,
+    "corruptionAndNetworkWarningsVisible": true,
+    "accountScopeVerified": true,
+    "signerCalls": 0,
+    "broadcastRequests": 0,
+    "pageErrors": [],
+    "realKeplr": false,
+    "networkAndWallet": "mocked external boundaries; no live transaction"
+  },
+  "otherPassed": [
+    "frozen offline install",
+    "lint",
+    "typecheck",
+    "production build",
+    "Rust fmt",
+    "Clippy",
+    "schema generation",
+    "generated type drift",
+    "Wasm validation",
+    "limited tracked credential-pattern check"
+  ],
+  "scope": "Local production build; isolated Chrome profiles with mocked network/wallet action boundaries; no real signing or chain deployment."
+}

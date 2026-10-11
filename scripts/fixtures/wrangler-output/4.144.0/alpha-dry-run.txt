@@ -1,0 +1,14 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+
+ ⛅️ wrangler 4.144.0 (update available 4.145.0)
+───────────────────────────────────────────────
+✨ Read 129 files from the assets directory /home/user/ZIGoals/apps/web/.open-next/assets
+Total Upload: 13560.94 KiB / gzip: 2625.33 KiB
+Your Worker has access to the following bindings:
+Binding                                        Resource      
+env.WORKER_SELF_REFERENCE (zigoals-alpha)      Worker        
+env.ASSETS                                     Assets        
+
+--dry-run: exiting now.

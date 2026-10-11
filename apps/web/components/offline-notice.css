@@ -1,0 +1,5 @@
+/* QA-23 (Session I, Part 10): shown only while offline, kept in view at the top of the page. */
+.offline-notice { position: sticky; top: 12px; z-index: 30; margin: 0 0 16px; padding: 12px 16px; border: 1px solid #ffcf7a66; border-radius: 16px; background: linear-gradient(150deg, #2a2213f2, #1b1a24f2); color: #ffe7b8; font-size: 15px; line-height: 1.45; box-shadow: 0 10px 30px #0008; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .offline-notice { top: calc(var(--phone-bar, 64px) + var(--safe-top, 0px) + 8px); }
+}

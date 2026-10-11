@@ -1,0 +1,59 @@
+{
+  "baseRefOid": "b81262f1b9ae7e4a07efb9a6415e64d90fe120f9",
+  "headRefOid": "2db283ae7cf80ddf6322bcdbd4af6bc2728c9329",
+  "number": 9,
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T10:36:37Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639274/job/104346652681",
+      "name": "canonical-build-a",
+      "startedAt": "2026-09-15T10:34:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T10:38:39Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639247/job/104346653397",
+      "name": "web",
+      "startedAt": "2026-09-15T10:34:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Milestone quality"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T10:36:38Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639274/job/104346652523",
+      "name": "canonical-build-b",
+      "startedAt": "2026-09-15T10:34:12Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T10:38:34Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639274/job/104347371719",
+      "name": "compare",
+      "startedAt": "2026-09-15T10:36:41Z",
+      "status": "COMPLETED",
+      "workflowName": "Canonical reproducibility"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T10:37:50Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/reyals1111-ux/ZIGoals/actions/runs/34958639247/job/104346653043",
+      "name": "contract",
+      "startedAt": "2026-09-15T10:34:13Z",
+      "status": "COMPLETED",
+      "workflowName": "Milestone quality"
+    }
+  ],
+  "url": "https://github.com/reyals1111-ux/ZIGoals/pull/9"
+}

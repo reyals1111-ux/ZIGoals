@@ -1,0 +1,9 @@
+# Final bounded residual review
+
+- **No unresolved material findings in the five requested paths.**
+- Habit post-end history/load: `ruleSchema` again accepts historical post-end state rules, while `createHabit` rejects an initially past end and `editHabit` rejects only a newly changed past end. Existing ended Habits can now edit, pause, archive, restore, and round-trip without weakening new-input validation (`apps/web/lib/habits.ts:53-56, 123-141`; regression at `habits-beta.test.ts:139-151, 196-200`).
+- Interval anchoring: `editHabit` anchors a newly selected interval to the change date and retains the prior anchor only when the current rule is already interval; the editor mirrors that intent (`apps/web/lib/habits.ts:132-137`; `habit-editor.tsx:61-65`; regression at `habits-beta.test.ts:153-163`).
+- Goal eligibility: `allocatedNativePrincipal` returns zero for REWARD Goals, matching `goalProgress`’s `NATIVE_REWARDS` requirement (`apps/web/lib/positions.ts:135-146`; regression at `positions.test.ts:118-124`).
+- Stale Habit references: display and reconciliation require the referenced Habit to carry this exact private Goal link, and reconciliation rechecks ownership inside the latest Habit-store update before mutation (`apps/web/components/platform/tracked-detail.tsx:27-32, 42-49`; browser regression at `platform-habits.spec.ts:30-41`).
+- Two-store recovery: the platform update reserves one UUID first; a failed Habit write leaves that ID retryable, and retry reuses it while refusing any cross-Goal collision (`tracked-detail.tsx:50-72`; browser regression at `platform-habits.spec.ts:42-54`).
+- Verification: clean source `d806ae0`; focused Habits/Positions unit run passed 52/52. Both fix commits pass `git show --check`. The local focused browser rerun could not launch Chrome on this host (SIGABRT before test execution); parent-reported production browser verification passed 104/104.

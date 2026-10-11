@@ -1,0 +1,18 @@
+{
+ "file": "conversations-before-gemma4-12b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 15,
+   "passed": 10,
+   "scored": 14,
+   "errors": 1,
+   "replyMedianMs": 3846,
+   "first": "2026-10-08T03:48:15.037Z",
+   "last": "2026-10-08T03:50:03.271Z"
+  }
+ ]
+}

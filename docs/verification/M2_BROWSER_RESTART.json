@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-09-13T03:48:45.078Z",
+  "status": "passed",
+  "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+  "appUrl": "http://127.0.0.1:3101/app/activity",
+  "recordsRetained": 4,
+  "unknownHashRetained": true,
+  "corruptRecordPreserved": true,
+  "corruptionAndNetworkWarningsVisible": true,
+  "accountScopeVerified": true,
+  "signerCalls": 0,
+  "broadcastRequests": 0,
+  "pageErrors": [],
+  "realKeplr": false,
+  "networkAndWallet": "mocked external boundaries; no live transaction",
+  "resultPath": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-browser-restart-dy39Yp/result.json"
+}

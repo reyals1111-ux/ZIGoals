@@ -1,0 +1,18 @@
+{
+ "file": "phase2/ui/conversations-gemma4-12b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 45,
+   "passed": 44,
+   "scored": 45,
+   "errors": 0,
+   "replyMedianMs": 3686,
+   "first": "2026-10-08T16:28:54.492Z",
+   "last": "2026-10-08T17:29:32.742Z"
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "../../apps/web/node_modules/wrangler/config-schema.json",
+  "name": "zigoals-push-reminders-local",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-13",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "PUSH_ACCOUNTS",
+        "class_name": "PushAccount"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "PushAccount"
+      ]
+    }
+  ],
+  "vars": {
+    "AUTH_ORIGIN": "https://unconfigured.supabase.co",
+    "APP_ORIGIN": "http://127.0.0.1:3110",
+    "VAPID_SUBJECT": "mailto:hello@zigoals.app"
+  },
+  "observability": {
+    "enabled": false
+  },
+  "workers_dev": false,
+  "preview_urls": false
+}

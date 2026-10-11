@@ -1,0 +1,16 @@
+{
+  "source": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
+  "method": "Sum of emitted .next/static JS/CSS files, each gzip-compressed independently; not per-route transfer or production CPU.",
+  "assets": {
+    ".js": {
+      "files": 28,
+      "rawBytes": 2982601,
+      "gzipBytes": 687960
+    },
+    ".css": {
+      "files": 3,
+      "rawBytes": 103563,
+      "gzipBytes": 23685
+    }
+  }
+}

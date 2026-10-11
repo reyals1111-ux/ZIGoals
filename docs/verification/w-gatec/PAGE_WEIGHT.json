@@ -1,0 +1,111 @@
+{
+  "what": "gzip (level 6) of the scripts each app page loads, and the shell every app page loads, from next start of production builds (PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs",
+  "recordedAt": "2026-10-07",
+  "main": {
+    "commit": "1063765",
+    "pages": {
+      "/app": 616920,
+      "/app/goals": 515136,
+      "/app/habits": 525604,
+      "/app/health": 550777,
+      "/app/wealth": 542531,
+      "/app/markets": 512265,
+      "/app/portfolio": 515751,
+      "/app/staking": 534717,
+      "/app/activity": 497594,
+      "/app/settings": 525883,
+      "/app/help": 493600
+    },
+    "shell": 491608
+  },
+  "branch": {
+    "commit": "ff5042b",
+    "pages": {
+      "/app": 646074,
+      "/app/goals": 519617,
+      "/app/habits": 543407,
+      "/app/health": 567671,
+      "/app/wealth": 556107,
+      "/app/markets": 523180,
+      "/app/portfolio": 545694,
+      "/app/staking": 548384,
+      "/app/activity": 503585,
+      "/app/settings": 570597,
+      "/app/help": 499700,
+      "/app/chess": 508147
+    },
+    "shell": 497708
+  },
+  "deltaBytes": {
+    "/app": 29154,
+    "/app/goals": 4481,
+    "/app/habits": 17803,
+    "/app/health": 16894,
+    "/app/wealth": 13576,
+    "/app/markets": 10915,
+    "/app/portfolio": 29943,
+    "/app/staking": 13667,
+    "/app/activity": 5991,
+    "/app/settings": 44714,
+    "/app/help": 6100,
+    "shell": 6100
+  },
+  "budgets": {
+    "version": 1,
+    "about": "Session W Part 22: gzip (level 6) of the scripts each page loads in a production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED), measured by scripts/check-weight-budget.mjs. main = main 1063765; budget = this release's measurement plus about 5 kB. Raise a budget only with the reason in the same change (docs/performance/SESSION_W_PERFORMANCE.md).",
+    "pages": {
+      "/app": {
+        "main": 616920,
+        "budget": 651000
+      },
+      "/app/goals": {
+        "main": 515136,
+        "budget": 525000
+      },
+      "/app/habits": {
+        "main": 525604,
+        "budget": 549000
+      },
+      "/app/health": {
+        "main": 550777,
+        "budget": 573000
+      },
+      "/app/wealth": {
+        "main": 542531,
+        "budget": 562000
+      },
+      "/app/markets": {
+        "main": 512265,
+        "budget": 529000
+      },
+      "/app/portfolio": {
+        "main": 515751,
+        "budget": 551000
+      },
+      "/app/staking": {
+        "main": 534717,
+        "budget": 554000
+      },
+      "/app/activity": {
+        "main": 497594,
+        "budget": 509000
+      },
+      "/app/settings": {
+        "main": 525876,
+        "budget": 576000
+      },
+      "/app/help": {
+        "main": 493600,
+        "budget": 505000
+      },
+      "/app/chess": {
+        "main": null,
+        "budget": 514000
+      }
+    },
+    "shell": {
+      "main": 491608,
+      "budget": 503000
+    }
+  }
+}

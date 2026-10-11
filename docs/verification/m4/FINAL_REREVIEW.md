@@ -1,0 +1,7 @@
+M4-FINAL-01 canonical metadata — ADDRESSED: apps/web/app/layout.tsx:11 emits served-origin /app, excluding goal IDs and queries; apps/web/tests/public-alpha.spec.ts:54 and :73 verify entry/detail canonical while retaining noindex and CSP assertions.
+M4-FINAL-02 copied-diagnostic evidence — ADDRESSED: docs/RUN_4_REPORT.md:103 now lists actual build identity/mode, session label, RPC/REST status and checked UTC fields without adding private payload fields.
+New breakage in supplied 97ef3b5..790a50d fix diff: None.
+Additional disclosure check: docs/RUN_4_REPORT.md:83 separates protected apex Google Fonts from Alpha local assets; :125 and :145 disclose the official download-artifact Buffer deprecation as nonfatal, without changing vendor code, pins, permissions or landing assets.
+Evidence check: /tmp/zigoals-final-fix-red.log fails because canonical is absent; /tmp/zigoals-final-fix-next-clean-test.log and /tmp/zigoals-final-fix-workerd-clean-test.log each report two passing desktop/mobile production-security cases covering the added assertions. No suite rerun, Git mutation or subagent; initial truncated diff range recovered narrowly.
+Out-of-scope observations: None; controller's final observed evidence/status updates and final acceptance remain separate completion work.
+Fix round: All findings addressed, no new Critical/Important breakage. Source review is approved for owner merge subject to final acceptance; no public/chain deployment, signing or funds approval is granted.

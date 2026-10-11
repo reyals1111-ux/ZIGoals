@@ -1,0 +1,37 @@
+/* Journey banner (Today): what ZIGoals is, in the orbit theme. Static art; nothing loops. */
+.journey-panel.journey-orbit { position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:28px;margin-top:28px;padding:clamp(28px,4vw,48px);border:1px solid #8fb6ff33;border-top:1px solid #8fb6ff33;border-radius:28px;
+ background:radial-gradient(ellipse at 90% 0,#7a4dff2e,transparent 55%),radial-gradient(ellipse at 0 110%,#1fcfe829,transparent 50%),linear-gradient(160deg,#0e1a33,#0a1224 55%,#15112c); }
+/* Orbit art: thin elliptical orbits and one star, drawn as gradients on a pseudo-element so nothing leaves the card. */
+.journey-panel.journey-orbit::before { content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background:
+  radial-gradient(circle at 93% 8%,#fff 0 3px,#ffd3aecc 4px,#a98bff55 9px,transparent 22px),
+  radial-gradient(ellipse 34% 15% at 93% 8%,transparent 96%,#7fd8f02e 97.5%,transparent 99%),
+  radial-gradient(ellipse 46% 21% at 93% 8%,transparent 97%,#a98bff2b 98%,transparent 99.2%),
+  radial-gradient(ellipse 60% 28% at 93% 8%,transparent 97.6%,#f08bd824 98.4%,transparent 99.4%); }
+.journey-panel.journey-orbit .journey-intro { max-width:880px; }
+.journey-panel.journey-orbit .journey-intro .eyebrow { margin:0 0 12px;font-size:15px;color:#cfe0f7; }
+.journey-panel.journey-orbit .journey-intro h2 { margin:0;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.03em;color:var(--text-strong,#f4f8ff); }
+.journey-panel.journey-orbit .journey-lede { margin:14px 0 0;font-size:var(--page-lede-size,19px);font-weight:500;line-height:1.5;color:#e9f0fb; }
+.journey-panel.journey-orbit .journey-steps { position:relative;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px; }
+/* The orbit line the three steps sit on. */
+.journey-panel.journey-orbit .journey-steps::before { content:'';position:absolute;left:24px;right:24px;top:22px;height:2px;border-radius:2px;background:linear-gradient(90deg,#5fe6f5,#9d8cff 50%,#f07fd8);opacity:.55; }
+.journey-panel.journey-orbit .journey-steps li { position:relative;display:grid;align-content:start;gap:8px;padding:0 4px; }
+.journey-panel.journey-orbit .journey-step-mark { display:grid;place-items:center;width:46px;height:46px;border-radius:50%;font-weight:750;font-size:15px;letter-spacing:.04em;color:#0a1428;background:linear-gradient(135deg,#6fe6f6,#a3a0ff 60%,#f08bd6);box-shadow:0 0 0 5px #0b1328,0 0 26px -4px #9d8cffaa; }
+.journey-panel.journey-orbit .journey-steps strong { margin-top:6px;font-size:19px;color:var(--text-strong,#f4f8ff); }
+.journey-panel.journey-orbit .journey-steps p { margin:0;font-size:16px;line-height:1.55;color:var(--text-secondary,#dde7f7); }
+.journey-panel.journey-orbit .journey-truths { display:flex;flex-wrap:wrap;gap:10px 28px;padding-top:18px;border-top:1px solid #8fb6ff26; }
+.journey-panel.journey-orbit .journey-truths p { display:block;margin:0;font-size:15px;line-height:1.55;font-weight:550;color:#e3ecfa; }
+.journey-panel.journey-orbit .journey-truths p>span { margin-right:10px;color:var(--accent-cyan,#9ee8f8); }
+.journey-panel.journey-orbit .journey-truths .text-link { font-size:15px; }
+@media (max-width:760px) {
+ .journey-panel.journey-orbit .journey-steps { grid-template-columns:minmax(0,1fr);gap:20px; }
+ .journey-panel.journey-orbit .journey-steps::before { left:22px;right:auto;top:24px;bottom:24px;width:2px;height:auto;background:linear-gradient(180deg,#5fe6f5,#9d8cff 50%,#f07fd8); }
+ .journey-panel.journey-orbit .journey-steps li { grid-template-columns:46px minmax(0,1fr);column-gap:14px; }
+ .journey-panel.journey-orbit .journey-steps li>.journey-step-mark { grid-row:span 2; }
+ .journey-panel.journey-orbit .journey-steps strong { margin-top:10px; }
+}
+@media (forced-colors:active) {
+ .journey-panel.journey-orbit,.journey-panel.journey-orbit .journey-truths { border:1px solid CanvasText; }
+ .journey-panel.journey-orbit .journey-steps::before,.journey-panel.journey-orbit::before { display:none; }
+ .journey-panel.journey-orbit .journey-step-mark { background:Canvas;color:CanvasText;border:1px solid CanvasText; }
+}

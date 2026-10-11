@@ -1,0 +1,30 @@
+{
+ "file": "ui-qwen3-6-35b-a3b.json",
+ "kind": "ui",
+ "groups": [
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "Mac M1 Max",
+   "project": "desktop",
+   "runs": 60,
+   "passed": 45,
+   "scored": 60,
+   "errors": 0,
+   "replyMedianMs": 5257,
+   "first": "2026-10-08T03:38:37.596Z",
+   "last": "2026-10-08T03:47:00.967Z"
+  },
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 150,
+   "passed": 115,
+   "scored": 150,
+   "errors": 0,
+   "replyMedianMs": 849,
+   "first": "2026-10-08T03:30:58.420Z",
+   "last": "2026-10-08T03:38:32.344Z"
+  }
+ ]
+}

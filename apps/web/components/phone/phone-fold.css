@@ -1,0 +1,11 @@
+/* A folded secondary module on a phone (Session I, Part 9): one glass row that opens the module in place. */
+.phone-fold { display: grid; gap: 12px; min-width: 0; }
+.phone-fold-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 56px; padding: 12px 18px; border: 1px solid var(--edge-soft, #8fb4ff2e); border-radius: 20px; background: linear-gradient(150deg, #16233dcc, #0f1830e6); color: #f4f8ff; font: inherit; font-size: 16px; font-weight: 650; text-align: start; cursor: pointer; transition: transform 120ms ease, background-color 120ms ease; }
+.phone-fold-toggle:active { transform: scale(.985); }
+.phone-fold-toggle:focus-visible { outline: 2px solid #6fdcff; outline-offset: 2px; }
+.phone-fold-hint { display: inline-flex; align-items: center; gap: 4px; flex: none; color: #9fdcff; font-size: 15px; font-weight: 600; }
+.phone-fold-hint svg { transition: transform 160ms ease; }
+.phone-fold[data-open] .phone-fold-hint svg { transform: rotate(180deg); }
+.phone-fold-body { min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .phone-fold-toggle, .phone-fold-hint svg { transition: none; } }
+:root[data-app-motion=off] :is(.phone-fold-toggle, .phone-fold-hint svg) { transition: none; }

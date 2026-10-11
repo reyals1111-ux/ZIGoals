@@ -1,0 +1,54 @@
+/* Meditation (Session W Part 5): the view, the running session (the whole view while it runs), the breathing guide and
+   the Health card. Charts and stat tiles share Sleep's styles (sleep.css). The breathing circle moves only while motion
+   is allowed and the circle is on screen (breathing-visual.tsx sets data-motion); otherwise it stands still. */
+.meditation-view { display: grid; gap: 18px; }
+.meditation-view .page-heading { margin-bottom: 0; }
+.meditation-form { display: grid; gap: 14px; }
+.meditation-form :is(input:not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px; min-height: 44px; }
+.meditation-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.meditation-segment, .meditation-moods { margin: 0; padding: 0; border: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.meditation-segment legend, .meditation-moods legend { width: 100%; margin-bottom: 6px; font-size: .9375rem; }
+.meditation-segment > label { position: relative; display: inline-flex; }
+.meditation-segment > label input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.meditation-segment > label span { display: inline-grid; align-content: center; gap: 2px; min-height: 44px; padding: 6px 14px; border: 1px solid #3a4c6e; border-radius: 14px; background: #0f192d; font-size: .9375rem; }
+.meditation-segment > label span small { font-size: .8125rem; color: #bccae0; }
+.meditation-segment > label input:checked + span { border-color: #7fe3f3; box-shadow: 0 0 0 1px #7fe3f3; }
+.meditation-segment > label input:focus-visible + span { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.meditation-chip { min-height: 44px; padding: 0 14px; border: 1px solid #3a4c6e; border-radius: 14px; background: #0f192d; color: var(--text); font-size: .9375rem; cursor: pointer; }
+.meditation-chip[aria-pressed="true"] { border-color: #7fe3f3; box-shadow: 0 0 0 1px #7fe3f3; }
+.meditation-custom { max-width: 220px; }
+.meditation-begin { justify-self: start; min-height: 48px; padding-inline: 28px; }
+.meditation-form input[type="range"] { width: 100%; max-width: 360px; min-height: 44px; accent-color: #6f7ff5; }
+
+.meditation-focus { min-height: min(78vh, 760px); align-content: center; }
+.meditation-session { display: grid; justify-items: center; gap: 14px; text-align: center; padding-block: 28px; }
+.meditation-session .actions { justify-content: center; }
+.meditation-session .meditation-controls button { min-height: 48px; min-width: 120px; }
+.meditation-finished { justify-items: stretch; text-align: left; max-width: 640px; justify-self: center; width: 100%; }
+.meditation-finished .actions { justify-content: flex-start; }
+.meditation-clock { position: relative; width: min(64vw, 280px); aspect-ratio: 1; display: grid; place-items: center; }
+.meditation-clock svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.meditation-ring-track { fill: none; stroke: #7fc8ff1f; stroke-width: 6; }
+.meditation-ring { fill: none; stroke: #6f7ff5; stroke-width: 6; stroke-linecap: round; }
+.meditation-clock strong { font-size: clamp(2.6rem, 11vw, 3.6rem); font-variant-numeric: tabular-nums; letter-spacing: .02em; color: var(--text); }
+.meditation-left { margin: 0; color: #cbd9f2; font-size: 1rem; }
+
+.breathing { display: grid; justify-items: center; gap: 12px; }
+.breathing-stage { width: min(64vw, 280px); aspect-ratio: 1; display: grid; place-items: center; }
+.breathing-circle { width: 100%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #8f9cff 0%, #6f7ff5 45%, #3a3f9a 100%); box-shadow: 0 0 48px #6f7ff540; transform: scale(.78); will-change: transform; }
+.breathing[data-motion="off"] .breathing-circle { will-change: auto; }
+.breathing-words { margin: 0; font-size: 1.375rem; color: var(--text); }
+.breathing-count { font-variant-numeric: tabular-nums; color: #cbd9f2; }
+.breathing-pattern { margin: 0; }
+
+.meditation-card .meditation-week { margin: 0; font-size: 16px; }
+.meditation-card .meditation-week strong { font-size: 22px; }
+@media (max-width: 767.98px) {
+  .meditation-focus { min-height: calc(100dvh - 190px); }
+  .meditation-session { padding-block: 20px; }
+}
+@media (forced-colors: active) {
+  .breathing-circle { background: CanvasText; box-shadow: none; }
+  .meditation-ring { stroke: CanvasText; } .meditation-ring-track { stroke: GrayText; }
+  .meditation-segment > label input:checked + span, .meditation-chip[aria-pressed="true"] { outline: 2px solid Highlight; }
+}

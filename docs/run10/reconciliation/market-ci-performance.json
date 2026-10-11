@@ -1,0 +1,839 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-09-23T21:40:57.287520+00:00",
+  "scope": "Bounded reconciliation of MKT/CI/EXT/PERF requirements; not main-ledger acceptance.",
+  "basis": "Exact specifications copied from REQUIREMENTS.json; current source inspection and recorded focused local verification, including the later opt-in durable-v1 quote slice. This final documentation update ran no tests, provider calls, hosted checks, deploy or application edits.",
+  "status_note": "Ledger-compatible suggestions. IMPLEMENTED_UNVERIFIED identifies implementation awaiting final integrated or hosted proof. IN_PROGRESS does not mean owner setup alone can close it. MKT-04 VERIFIED covers dated-fact preservation only. Conditional deferral is not owner acceptance or whole milestone completion.",
+  "architecture_distinction": "Pure budget/fence/breaker/acceptance contracts predate this slice. The opt-in durable-v1 app quote route now uses a named Worker service binding, real SQLite Durable Object admission/cache, and a fixture-tested provider dispatcher. Production Alpha activation is unchanged. Legacy-default quotes, catalog, history, insights and native fallback remain outside this supported durable path; no whole-provider protection claim.",
+  "requirements": [
+    {
+      "id": "MKT-01",
+      "title": "Investigate the actual 503 path with controlled evidence",
+      "specification": "The latest record reports Alpha ZIG/catalog/history/insights failures while Bitcoin quote succeeded, and direct tested CoinGecko requests using the same credential succeeded. The precise deployed-runtime cause remains unconfirmed. Reproduce with source-bound local Workers behavior and approved bounded live observations when available; compare normalization, runtime fetch/body handling, admission, caches, credentials binding and request lifecycle without logging secrets. Distinguish source hypotheses from proven failures. Do not claim this run fixed production without a later approved deployment and market acceptance.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 304
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Recorded Alpha 503 remains unconfirmed. Client catalog duplicate-request defect was reproduced and fixed. Real Workers named-service/SQLite fixtures now exercise supported quote HTTP with every provider request intercepted, including successful Bitcoin and failed ZIG batches.",
+      "precise_remaining": "Fixture behavior establishes local lifecycle and partial-result correctness, not the cause of historical deployed Bitcoin versus ZIG/catalog/history/insights failures. Deployed credential binding, runtime fetch/body and source identity still need discriminating approved evidence.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/coingecko.ts",
+        "apps/web/lib/market-catalog-client.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "workers/market-coordinator/README.md",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Reachable approved runner, bounded live-call budget and later deployment permission are needed for hosted proof, not for the missing local reproduction.",
+      "next_concrete_step": "Use the supported local fixture harness to distinguish remaining deployed-runtime hypotheses, then collect only approved bounded observations without claiming production repair."
+    },
+    {
+      "id": "MKT-02",
+      "title": "Preserve the partial-evidence trust boundary",
+      "specification": "Valid independent quote batches and non-ZIG recovery must survive later unrelated failures. Each upstream response still validates atomically against canonical expected identity, duplicate/unexpected IDs, exact numeric lexemes, timestamps and provenance. Never weaken strict parsing to accept malformed data. Every deduplicated requested pair has an explicit outcome. Cached complete coverage does not prove a refresh succeeded, and a null generic error cannot be presented as provider-health evidence.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 306
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Strict provider parsing and independent batches retain usable Bitcoin evidence through failed ZIG work. The opt-in durable-v1 public route and browser transport now preserve ordered per-pair outcomes alongside legacy quotes/error; real Worker fixtures verify partial publication and cache reuse.",
+      "precise_remaining": "Persisted browser quote snapshots and consuming hooks still do not retain/display per-pair attempt history. Legacy-default quotes are explicitly unversioned; fresh coverage alone remains insufficient provider-health evidence. Other endpoint/fallback paths are not durably integrated.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/coingecko.ts",
+        "apps/web/lib/server/market-pair-result.ts",
+        "apps/web/app/api/market-quotes/route.ts",
+        "apps/web/lib/market-quotes-route.test.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/market-pair-wire.ts",
+        "apps/web/lib/market-quote-client.ts",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Carry validated pair attempt evidence into retained client state and consumers, preserving original timestamps and independence of usable quotes from unrelated failures."
+    },
+    {
+      "id": "MKT-03",
+      "title": "Keep failures accurately classified",
+      "specification": "Preserve sanitized distinctions among throttle, upstream 5xx, timeout, network/body transport, authentication, entitlement, malformed/unsupported, local budget/queue and unknown internal failures. A generic 403 does not automatically prove entitlement or provider fault. A Cloudflare-blocked diagnostic runner is not a CoinGecko failure. Expected validation failures can be MALFORMED; programming exceptions stay UNKNOWN. Bound rejected-body cleanup so it cannot replace the original failure or retain concurrency indefinitely.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 308
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Closed sanitized classifier distinguishes HTTP/network/body/timeout/authentication/local budget and queue errors; generic403/programming exceptions stay UNKNOWN, expected parser failures MALFORMED. Rejected-body cleanup is bounded250ms and preserves the original failure. Focused regression evidence passed. Supported durable dispatch now propagates sanitized failures through strict v1 route/transport; duplicate failure precedence is deterministic.",
+      "precise_remaining": "No new classifier/cleanup defect found. Final integrated-source verification remains; persisted breaker/probe wiring is still incomplete under MKT-12. Local fixture outcomes do not establish hosted outcomes.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/provider-failure.ts",
+        "apps/web/lib/server/coingecko.ts",
+        "apps/web/lib/market-quotes.ts",
+        "apps/web/lib/server/provider-boundary.test.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/market-pair-wire.ts",
+        "apps/web/lib/server/durable-quote-dispatch.test.ts"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "gap_classification": "FINAL_INTEGRATION_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Retain classifier/cleanup and strict-wire negative regressions in final verification; connect the same categories to future durable breakers without treating UNKNOWN as provider fault."
+    },
+    {
+      "id": "MKT-04",
+      "title": "Preserve real account facts as dated evidence",
+      "specification": "The owner observed CoinGecko Demo 100 calls/minute, 10,000 monthly credits, exclusive ZIGoals key usage, and 171 used/9,829 remaining on 2026-09-22, with October 1 replenishment shown. This is not a live balance. `/key` was unavailable for the Demo account and must not be required. No verified provider daily cap exists. Distinguish provider entitlement, internal operating ceilings, monitoring allocations, endpoint costs and diagnostic limits. Do not silently select production policy based on test constants or an obsolete snapshot.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 310
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Plan records owner-observed Demo100calls/minute,10000monthly credits,171used/9829remaining on2026-09-22, October1 replenishment and exclusive key use as dated facts. Demo/key unavailable/not required; no daily cap invented. Isolated adapter requires explicit policy without production defaults.",
+      "precise_remaining": "No missing dated-fact-preservation behavior found. Current usage/reset timezone/endpoint weights remain activation inputs. Active process-local12attempt ceiling is neither provider entitlement nor global quota.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "docs/RUN_10_BETA_RELIABILITY_MASTER_PLAN.md",
+        "docs/PRE_RUN_10_HARDENING.md",
+        "apps/web/lib/server/durable-market-account.ts",
+        "apps/web/lib/server/coingecko.ts"
+      ],
+      "suggested_status": "VERIFIED",
+      "gap_classification": "DOCUMENTARY_REQUIREMENT_SATISFIED",
+      "owner_setup_or_activation_prerequisites": "Before activation: verify usage seed, provider reset timezone and endpoint credit weights; no/key dependency.",
+      "next_concrete_step": "Preserve historical snapshot unchanged; record separate current usage/reset/cost evidence when activation is proposed."
+    },
+    {
+      "id": "MKT-05",
+      "title": "Make operating policy concrete without activating guesses",
+      "specification": "Implement strict versioned configuration for minute attempts, monthly credit costs/periods, operating ceilings, concurrency, queue limits, monitoring reserve/cap, optional cutoff, breaker settings, cache retention and idempotency horizon. Produce a conservative proposed activation profile and reasoning based on measured workload and documented account facts. Mark unresolved reset timezone, current usage seed and endpoint credit weights as activation prerequisites. Missing/invalid mandatory policy fails closed for upstream dispatch. Nonproduction fixtures are clearly synthetic, not hidden production defaults.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 312
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Pure policy/strict isolated config cover minute/month ceilings, monitor reserve/maximum, optional ceiling, concurrency/queue, holds/ownership, explicit month and quote cost. Missing/invalid inputs fail closed; fixture numbers remain synthetic. The supported quote dispatcher requires explicit trusted mode/account/policy/credential and has no numerical production defaults.",
+      "precise_remaining": "Config still lacks version discriminator, integrated breaker settings, cache retention and idempotency horizon. No measured conservative activation profile or all-endpoint cost map. Strict policy governs the opt-in simple-price quote path only; legacy/default and other endpoints remain process-local.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-budget-policy.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "workers/market-coordinator/wrangler.local.jsonc",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "workers/market-coordinator/app-preview.jsonc"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Owner confirms current usage seed/reset timezone/endpoint weights and approves final ceilings/infrastructure; missing schema/dispatcher work is not owner-blocked.",
+      "next_concrete_step": "Implement strict versioned all-endpoint configuration including retention/breaker/replay rules; propose numerical profile only after measured synthetic workload."
+    },
+    {
+      "id": "MKT-06",
+      "title": "Implement the durable serialized budget authority",
+      "specification": "Use a concrete durable adapter, likely a suitably designed Cloudflare Durable Object if compatible, to serialize admission per provider credential/account across instances/endpoints. It must survive eviction/restart and enforce transactional/idempotent reservation, dispatch ownership, dispatch marking, settlement and cancellation. Account selection is trusted server configuration, not user-supplied credentials. Do not put private portfolios, account IDs or quantities into this public market coordinator. Prove behavior in the actual runtime test environment, not only pure function tests.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 314
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Real Workers SQLite adapter atomically persists quote admission/ownership/dispatch/settlement/publication. App GET/POST market-quotes now has opt-in durable-v1 selection through a named QuoteService service binding with trusted server-selected opaque provider account. Runtime proves concurrent equivalent callers, DISPATCHED before fixture HTTP, partial outcomes and restart cache. Public work keys contain no portfolio/user quantities; default public Worker remains404.",
+      "precise_remaining": "Only up to64 unique coin/USD-or-EUR simple-price pairs are supported. Catalog/history/insights, legacy-default quotes and native fallback remain outside durable authority. Complete built-OpenNext preview and hosted activation were not tested; this is not global provider protection.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/durable-market-account.ts",
+        "workers/market-coordinator/worker.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/server/market-service.ts",
+        "apps/web/lib/server/market-history-service.ts",
+        "apps/web/lib/server/market-insights-service.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/app/api/market-quotes/route.ts",
+        "apps/web/lib/server/durable-quote-route.ts",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "workers/market-coordinator/app-preview.jsonc",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Extend the supported dispatcher to remaining required endpoint classes with explicit policy/costs, and verify a built isolated app preview before any separately approved activation."
+    },
+    {
+      "id": "MKT-07",
+      "title": "Preserve lifecycle separation",
+      "specification": "Queueing is not budget reservation; reservation is not concurrency ownership; ownership is not dispatch; dispatch is not settlement or publication. The sequence remains bounded queue → reserve → own dispatch → durable dispatch mark → network I/O → settle → fenced per-work publication. Queued work holds no provider capacity, reservations hold budget but not concurrency, and owned/dispatched work holds concurrency. Only proven undispatched work can be canceled/refunded. Dispatched uncertainty stays charged until explicit recovery handling; do not recreate allowance by forgetting a crashed request.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 316
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Supported quote owners execute queue, reserve, own, persisted DISPATCHED, bounded HTTP, settlement and fenced publication. Actual Workers fixture asserts DISPATCHED before HTTP. Unconfirmed dispatch blocks I/O; unconfirmed settlement blocks publication; dispatched uncertainty is not canceled/refunded. Each ZIG/non-ZIG batch is a separate configured charge.",
+      "precise_remaining": "Explicit uncertain-dispatch recovery, full crash matrix and remaining endpoint/retry/fallback lifecycles remain absent. No retry or native-token fallback is attempted in the supported path. Legacy services retain prior admission.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-budget-policy.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/server/coingecko.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "apps/web/lib/server/durable-quote-dispatch.test.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Add explicit conservative recovery and remaining endpoint lifecycles; inject each before-send/after-response/settle/publication failure without refunding uncertain dispatched work."
+    },
+    {
+      "id": "MKT-08",
+      "title": "Protect monitoring and interactive fairness",
+      "specification": "Reserve monitoring capacity and independently cap monitoring consumption so monitoring cannot exhaust the account or revoke already accepted interactive reservations. Optional/prefetch work yields under pressure. Implement bounded queue fairness and starvation behavior with explicit priorities and deadlines, and test both admission orders. Recovery probes consume their own reserved attempts. Do not add a background poller that drains monthly credits simply because the page is closed or no user needs fresh data.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 318
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Pure admission tests cover monitoring reserve/maximum, optional yielding, both admission orders and no revocation of accepted holds. Durable quote config accepts priorities. No new always-on market poller.",
+      "precise_remaining": "No durable fair scheduler/starvation policy/queue deadlines, independent follower cancellation or budgeted recovery-probe dispatcher. Priority labels and pure admission tests do not prove cross-instance fairness.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-budget-policy.ts",
+        "apps/web/lib/server/market-budget-policy.test.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "apps/web/lib/server/market-breaker.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Implement deterministic queue selection with priority/deadline/starvation rules and test both orderings plus separately reserved recovery probes."
+    },
+    {
+      "id": "MKT-09",
+      "title": "Choose a real shared-cache topology",
+      "specification": "Fresh shared last-good evidence should be checked before paid provider admission. A Durable Object is not automatically a complete shared-cache strategy. Define where normalized public quotes/catalog/history/insights live, how freshness and partitions are validated, how capacity/eviction works and how concurrent refreshes publish. If a cache is eventually consistent, it must not be used as an atomic quota/lock authority. Hydration never advances source observation timestamps. Cache failures degrade honestly without wiping valid local evidence.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 320
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Supported opt-in route checks normalized shared durable quote evidence before provider admission and preserves timestamps. Actual Workers fixtures prove restart reuse and equivalent concurrent callers; independent runtime fixture retains20 warm hits without attempts. Capacity exhaustion fails closed.",
+      "precise_remaining": "No shared catalog/history/insights topology. Quote storage has bounded capacity but no pruning/retention/recovery policy. Legacy-default app paths still use process caches. Durable quote cache alone is not a complete provider shared-cache strategy.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/durable-market-account.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/server/market-service.ts",
+        "apps/web/lib/server/market-history-service.ts",
+        "apps/web/lib/server/market-insights-service.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Implement remaining endpoint storage/freshness partitions and conservative bounded eviction/retention while preserving the tested fresh-quote-before-admission order."
+    },
+    {
+      "id": "MKT-10",
+      "title": "Implement coalescing and fenced publication",
+      "specification": "Normalize public work keys by provider, request kind, canonical asset, currency and range. Coalesce equivalent work, bound followers/deadlines and use generation/fence tokens so expired owners cannot overwrite successors. Publication must occur before the relevant lease and work deadline, with follower deadlines independently enforced. A request's completed I/O does not authorize late publication. Preserve partial evidence with degradation where valid. Do not share cross-request Worker I/O promises whose owner context has ended.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 322
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Canonical public keys include provider/kind/asset/currency/range; pure fence/follower tests cover expiry and late publication. Durable quote acquire returns WAITING with persisted generation/fence/deadline, without cross-request I/O promises. Client catalog pending lifetime fixed. Real supported quote dispatcher coalesces equivalent concurrent calls: an existing owner produces terminal LOCAL_QUEUE with retained evidence instead of duplicate provider I/O.",
+      "precise_remaining": "Durable follower counts, independent deadlines/cancellation and wait-notification remain absent. Other endpoint/process-local pending work is not migrated. Terminal queue outcomes are not a complete follower lifecycle.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-coordinator.ts",
+        "apps/web/lib/server/market-work-fence.ts",
+        "apps/web/lib/server/market-work-fence.test.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "apps/web/lib/market-catalog-client.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Add bounded independent follower lifecycle around the existing durable lease, then connect remaining request kinds and test expiry/late publication."
+    },
+    {
+      "id": "MKT-11",
+      "title": "Batch attempts without double charging",
+      "specification": "One provider request serving many public work keys is one minute attempt with the configured monthly cost, not one charge per asset. Reserve/dispatch/settle once and publish each associated key independently under its fence. Each actual retry/fallback is a separate charged attempt. Duplicate settlement, cancellation after dispatch and ID reuse must be rejected. Test mixed success/failure, cancellation of one follower, expiry, large batches, fallback chains and restart after dispatch marking.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 324
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "One durable ProviderAttempt associates a supported simple-price batch with one configured charge. Non-ZIG and ZIG are separate atomic batches; actual Workers fixture proves usable Bitcoin survives failed ZIG. Duplicate ownership/settlement and dispatched cancellation are rejected, with per-key publication fences.",
+      "precise_remaining": "Follower cancellation, retry/fallback chains and larger workload behavior remain unproved/unimplemented. Supported request cap is64 unique coin pairs; larger requests fail LOCAL_QUEUE without I/O. Native token fallback is not attempted.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-coordinator.ts",
+        "apps/web/lib/server/market-coordinator.test.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "apps/web/lib/server/durable-market-account.test.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Implement remaining explicitly charged fallback/retry paths and follower cancellation with runtime fixtures; benchmark larger accepted batches without changing strict atomic validation."
+    },
+    {
+      "id": "MKT-12",
+      "title": "Implement scoped circuit breakers",
+      "specification": "Preserve separate scopes for account authentication/proven throttle, endpoint availability/integrity and individual pairs. Local queue/budget denial, blocked runners and unknown internal errors must not increment provider failure counters, including half-open probes. Bound observation windows, thresholds, cooldowns, maximum cooldown and recovery permits. Late/duplicate settlement is fenced. Demonstrate that one malformed pair does not unnecessarily poison every market endpoint, and that account-level problems are not retried endlessly per asset.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 326
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Pure scoped breaker transitions/tests distinguish account authentication/proven throttle, endpoint integrity/availability, pairs and ignored local/blocked/UNKNOWN outcomes. Bounded window/cooldown/probes and late/duplicate settlement modeled.",
+      "precise_remaining": "No persisted breaker state/permits or integration with durable quote adapter/provider dispatch. Recovery probes are not charged attempts; retention/restart handling absent. This remains a pure contract, not runtime protection.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-breaker.ts",
+        "apps/web/lib/server/market-breaker.test.ts",
+        "apps/web/lib/server/market-coordinator.ts",
+        "apps/web/lib/server/durable-market-account.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Persist scoped breaker state/permits, wire budgeted probes/outcome recording and prove malformed pair isolation plus account-wide auth/throttle containment."
+    },
+    {
+      "id": "MKT-13",
+      "title": "Complete the public per-pair schema migration",
+      "specification": "Define versioned route/client/cache results with freshness, completeness, degradation and sanitized attempt outcome per pair. Preserve exact values and backward compatibility for cached/stale clients or use an explicit version boundary. Define duplicate-category precedence and ordering rather than assuming parallel arrays align. A caller's selected pairs must not inherit an unrelated global cache error. Maintain the permanent provider→server cache→route→transport→browser regression for Bitcoin surviving failed ZIG work.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 328
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Opt-in app route emits version1 ordered pair outcomes plus quotes/error/completeness/degradation. Browser transport strictly validates version, keys, identities, ordering and consistent summaries; unknown versions never fall through to legacy inference. Legacy unversioned responses have a separate validated compatibility path. Failure precedence is explicit and order-independent; elapsed freshness ages to stale without changing observation time.",
+      "precise_remaining": "Persisted quote cache and downstream consumer attempt-health migration remain incomplete. Legacy-default routes remain unversioned by design. Complete stale-client/version rollout acceptance and hosted source proof are not established.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-pair-result.ts",
+        "apps/web/lib/server/market-pair-result.test.ts",
+        "apps/web/app/api/market-quotes/route.ts",
+        "apps/web/lib/market-quote-client.ts",
+        "apps/web/lib/market-quote-cache.ts",
+        "apps/web/lib/market-quotes-route.test.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/market-pair-wire.ts",
+        "apps/web/lib/server/durable-quote-route.test.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Persist and consume validated pair attempt evidence, then test old/new cached state and client rollout boundaries without discarding usable quotes."
+    },
+    {
+      "id": "MKT-14",
+      "title": "Plan crash recovery, tombstones and period transitions",
+      "specification": "Test restart before send, after durable dispatch mark, after provider response, during settlement and during publication. Define conservative handling of ambiguous network send and retain charge where dispatch cannot be disproven. Prevent replay after pruning through a documented idempotency horizon/epoch policy. Test calendar boundaries, time regression, lease expiry and concurrent rollovers. Do not reset counters from the local browser clock or infer CoinGecko reset timezone from the owner's Brussels timezone.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 330
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Pure tests cover clock reversal, expiry and explicit calendar periods. Real runtime proves retained dispatch uncertainty, duplicate settlement, restart cache and successor fences. Tombstones retained until capacity denial; no automatic refund. Supported dispatcher also rejects unconfirmed dispatch/settlement and proves restart fresh-cache reuse after fixture HTTP.",
+      "precise_remaining": "No pruning/idempotency horizon/epoch, production rollover or usage reconciliation. Failure matrix before send/after response/during settle/publication and concurrent rollover incomplete. Supplied fixed period expiry denies instead of transitioning.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/market-budget-policy.ts",
+        "apps/web/lib/server/market-budget-policy.test.ts",
+        "apps/web/lib/server/durable-market-account.ts",
+        "scripts/run10/market-runtime.test.mjs",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-dispatch.test.ts",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Provider reset timezone/current usage seed required for real activation; local recovery/retention implementation is not blocked.",
+      "next_concrete_step": "Define conservative recovery/retention epoch policy, implement trusted-server rollover and test each crash boundary, replay and concurrent rollover."
+    },
+    {
+      "id": "MKT-15",
+      "title": "Add bounded privacy-safe observability",
+      "specification": "Record sanitized aggregate outcome, work class, cache hits/misses, admission reason, reserved/dispatched units, wait/duration buckets and build identity with explicit retention/access rules. No raw URLs/headers/bodies, credentials, private user IDs, portfolio combinations correlated to identity, quantities, goals or Health. A bounded optional owner diagnostic can show budget/cache health without exposing secrets. Existing observability remains off unless separately activated under an approved environment policy.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 332
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Strict public-work schema excludes private fields. Prototype inspect exposes numeric aggregate counts only; provider errors sanitized and observability configs remain off.",
+      "precise_remaining": "No retained class/cache/admission/reserved/dispatched/wait/duration/build metrics or sampling/retention/access policy. inspect is a fixture diagnostic, not requested operational observability.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/server/durable-market-account.ts",
+        "apps/web/lib/server/market-coordinator.ts",
+        "apps/web/lib/server/provider-failure.ts",
+        "workers/market-coordinator/wrangler.local.jsonc",
+        "apps/web/wrangler.alpha.jsonc"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "External observability activation requires separate environment approval; local implementation does not.",
+      "next_concrete_step": "Implement bounded aggregate metrics with retention/access/build identity and adversarial privacy tests in isolated environment."
+    },
+    {
+      "id": "MKT-16",
+      "title": "Keep acceptance multidimensional",
+      "specification": "Retain application reachability, security, deployment identity and separate Bitcoin quote, native ZIG quote, valid complete catalog and supported Bitcoin history probes. Insights can be an additional dimension. Distinguish VERIFIED, STALE/PARTIAL, provider unavailable/throttled/malformed, application/security failure and BLOCKED runner. No exact-price assertions. Security/source acceptance and market availability are different gates; a blocked runner is neither a pass nor automatic rollback authority. Preserve raw sanitized dimensions alongside the summary.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 334
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Pure classifier and copied report preserve reachability/security/source identity and four independent probes with BLOCKED/stale/partial outcomes. No exact-price assertions. Existing HTML smoke separately checks security/deployed identity.",
+      "precise_remaining": "Classifier/report have no operational runner caller in inspected source. Canonical market probe runner/raw dimension recording and later source-bound acceptance remain absent; passing classifier tests is not market availability.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/market-acceptance.ts",
+        "apps/web/lib/market-acceptance.test.ts",
+        "scripts/lib/alpha-smoke.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Approved reachable runner and bounded live-call budget needed only for later hosted run.",
+      "next_concrete_step": "Implement bounded canonical four-probe runner with raw sanitized dimensions plus security/identity; blocked access neither passes nor authorizes rollback."
+    },
+    {
+      "id": "MKT-17",
+      "title": "Measure capacity synthetically",
+      "specification": "Benchmark warm/fresh cache, cold correlated misses, many requested pairs, mixed fallback, provider outage, slow body streams, queue pressure and multiple simulated instances. Verify zero unreserved dispatch, no double charge, bounded concurrency/memory, no stale-as-fresh and no private fields. Use fake clocks and deterministic adapters for load. Report tested workload, latency distributions and remaining limits; do not exercise hundreds of thousands of real provider requests to simulate the commercial ambition.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 336
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Deterministic invariants plus two actual Workers runtime tests cover contenders, DISPATCHED-before-HTTP, equivalent quote coalescing, Bitcoin/ZIG partial outcomes, unsupported no-I/O denial and restart cache reuse. Fixture HTTP intercepts every provider request; no live provider load was generated.",
+      "precise_remaining": "No capacity workload matrix for cold correlated misses, larger sets, fallback, outages, slow bodies, queue pressure or multiple app instances. No latency distributions or peak-memory/throughput measurements. Correctness fixtures are not benchmarks.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/server/market-budget-policy.test.ts",
+        "apps/web/lib/server/durable-market-account.test.ts",
+        "workers/market-coordinator/README.md",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Benchmark deterministic fake-provider workloads through the supported dispatcher with declared inputs/instances, latency distributions, peak memory/concurrency and dispatch/charge invariants."
+    },
+    {
+      "id": "MKT-18",
+      "title": "Keep activation separate and fail safely",
+      "specification": "Implement bindings/configuration and deployment checks in isolated local/preview configuration without activating production infrastructure. Do not accidentally change the existing production config while adding a coordinator or database. Prepare rollout/migration/rollback instructions, conservative policy and acceptance commands. A missing shared backend must not silently fall back to unconstrained per-process quota while claiming global protection. The app can retain manual/local functionality with honest market-unavailable messaging when a required service is unavailable.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 338
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Opt-in durable-v1 app bridge and isolated binding template are implemented. Missing/failed binding or unknown configured mode returns a degraded v1 envelope without legacy provider fallback. Named service requires explicit dispatcher mode/account/policy/credential; default public Worker404 and production Alpha config unchanged. README documents activation gates and rollback preserving durable state.",
+      "precise_remaining": "Complete built-OpenNext preview, all-provider required paths/policy/recovery, conservative workload-based activation profile, operational market acceptance runner and hosted readiness proof remain incomplete. The supported route is useful tested implementation, not activation-ready whole-provider protection.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "workers/market-coordinator/wrangler.local.jsonc",
+        "workers/market-coordinator/worker.ts",
+        "apps/web/wrangler.alpha.jsonc",
+        "apps/web/lib/server/market-service.ts",
+        "workers/market-coordinator/README.md",
+        "apps/web/lib/server/durable-quote-route.ts",
+        "apps/web/lib/server/durable-quote-route.test.ts",
+        "workers/market-coordinator/app-preview.jsonc",
+        "scripts/run10/market-dispatch.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "After code gaps close: owner approval for infrastructure, operating profile and separately gated deploy/acceptance.",
+      "next_concrete_step": "Complete remaining mandatory provider behavior and isolated built-app/readiness checks; prepare source-bound acceptance and an explicitly approved rollout without resetting durable counters."
+    },
+    {
+      "id": "CI-01",
+      "title": "Diagnose before changing policy",
+      "specification": "Inspect current canonical workflows, environment capture, manifest schema, comparator, candidate verification and deployment consumers. Compare current artifacts/logs for the recorded mismatch rather than assuming all future failures have the same cause. Preserve full source/ref identity and actual byte/hash/size checks. An identical contract artifact on an old source is not authorization for a newer source or proof that later validation stages completed.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 344
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Recorded run35778740375 artifacts/logs independently inspected: both255532-byte Wasm have identical9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10; only runner ImageVersion differs. Workflow/schema/consumers read; synthetic merge source kept distinct from head; failed run remains failed.",
+      "precise_remaining": "Diagnosis applies to that source/run. Final/newer hosted evidence requires independent inspection; old bytes do not verify newer source/skipped stages. No hosted checks made during reconciliation.",
+      "evidence_paths": [
+        "docs/run10/CI_EVIDENCE.md",
+        "scripts/release/build.mjs",
+        "scripts/release/manifest.mjs",
+        "scripts/release/verify.mjs",
+        "docs/architecture/ADR-005-canonical-release-build.md"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "gap_classification": "FINAL_HOSTED_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Source push and existing GitHub workflow completion; no deploy permission implied.",
+      "next_concrete_step": "At parent-owned final checkpoint record exact source/ref/run and inspect any new failure on its own evidence."
+    },
+    {
+      "id": "CI-02",
+      "title": "Resolve reproducibility deliberately",
+      "specification": "Choose and document either an actually immutable/digest-pinned relevant build environment, or a reviewed separation between build-critical inputs that must match and host-runner metadata retained as evidence. Verify all affected consumers/schema transitions. Do not delete the entire environment check, accept arbitrary toolchain differences, rewrite stored evidence, mark a failed workflow passed or rerun until GitHub randomly supplies matching host images. An environment-policy correction must be a narrow auditable change.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 346
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Schema2/canonical-linux-v2 moves only imageVersion to mandatory per-builder runner metadata. Both values required; full remaining environment equality retained. ADR/consumers document explicit v1 rejection; original evidence never rewritten.",
+      "precise_remaining": "Fresh final-source Linux v2 reproducibility/real cosmwasm-check2.2.2 evidence pending. Local synthetic validator fixtures prove orchestration, not artifact validity.",
+      "evidence_paths": [
+        "docs/run10/CI_EVIDENCE.md",
+        "docs/release/artifact-manifest.schema.json",
+        "docs/architecture/ADR-005-canonical-release-build.md",
+        "docs/release/RELEASE_PROCESS.md",
+        "docs/deployment/VERIFY_RELEASE_ARTIFACT.md",
+        "scripts/release/build.mjs"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "gap_classification": "FINAL_HOSTED_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Existing GitHub Linux workflow execution; no production activation required.",
+      "next_concrete_step": "Complete one meaningful final-source hosted build/compare/real-validator run and inspect both retained image values and all critical equality checks."
+    },
+    {
+      "id": "CI-03",
+      "title": "Add positive and negative regression tests",
+      "specification": "Prove allowed noncritical metadata differences are handled as specified while different source/tree/lockfile, toolchain, build parameters, artifact bytes/hash/size and invalid manifests still fail. Preserve rerun of the required validator and downstream source verification. Retain both builders' provenance rather than copying one environment over the other. Include backward compatibility or explicit rejection for old manifest versions and document the transition.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 348
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "78focused tests passed across manifest/verifier/preparation. Allowed image-only drift plus critical source/tree/lock/epoch/toolchain/flags/bytes/hash/size/schema/provenance rejection retained. CLI fixtures rerun both validators and verify downloaded candidate; old/future/mixed versions reject.",
+      "precise_remaining": "Parent final integrated-source rerun and real Linux validator results remain. Controlled validator/synthetic bytes are not real Wasm validation.",
+      "evidence_paths": [
+        "docs/run10/CI_EVIDENCE.md",
+        "scripts/release/manifest.test.mjs",
+        "scripts/release/verify.test.mjs",
+        "scripts/prepare-deployment.test.mjs"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "gap_classification": "FINAL_INTEGRATION_AND_HOSTED_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Keep regression suite in final verification; record real pinned validator results separately for final source."
+    },
+    {
+      "id": "CI-04",
+      "title": "Preserve release trust boundaries",
+      "specification": "Canonical reproducibility, attestation, source approval and deployment permission remain distinct. No contract upload is performed. Pin existing actions/toolchains as required and avoid broad upgrades during the fix. Keep credential permissions least-privileged. Inspect hosted CI at meaningful checkpoints and final handoff, not in a repeated polling loop; report actual running/failing status when it has not completed.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 350
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Reproducibility stays unapproved; attestation/source approval/deploy permission distinct. Pins/permissions unchanged; no upgrade, rewrite, contract upload, merge or deploy by CI slice. Meaningful failed-run read recorded.",
+      "precise_remaining": "Final hosted status/ref/handoff still needs current observation after parent checkpoint. Schema fix cannot relabel pending/running/failed jobs passed.",
+      "evidence_paths": [
+        "docs/run10/CI_EVIDENCE.md",
+        ".github/workflows/reproducibility.yml",
+        ".github/workflows/release-candidate.yml",
+        ".github/workflows/deploy-alpha.yml",
+        "scripts/release/verify.mjs",
+        "scripts/prepare-deployment.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "FINAL_HOSTED_STATUS_AND_HANDOFF",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Record exact final run state once at meaningful checkpoint; keep upload/deploy authorization separate."
+    },
+    {
+      "id": "EXT-01",
+      "title": "Wearables remain later by default",
+      "specification": "Do not build a broad Apple Health/Health Connect/Fitbit/Garmin/connected-scale integration program during this run. The owner permits only a genuinely easy, bounded Apple Watch-related feasibility/import slice with their own device if the existing environment supports it. Check official platform capabilities rather than pretending an ordinary web wallet/app can directly read HealthKit. Do not turn this into a native-app rewrite, developer-account purchase, App Store submission or permission-changing project.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 500
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "Wearables labelled planned/not connected; no broad integration/native rewrite/developer purchase/HealthKit access claim.",
+      "precise_remaining": "No current official-platform Apple Watch feasibility assessment recorded. Restraint is preserved but roadmap text does not satisfy bounded capability assessment. Device execution remains conditional.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/components/health/health-app.tsx",
+        "docs/roadmap/HEALTH_BETA_FUTURE_RUN.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "ASSESSMENT_INCOMPLETE",
+      "owner_setup_or_activation_prerequisites": "Only a chosen optional real-device trial needs owner device/export; no purchase or permission-changing project authorized.",
+      "next_concrete_step": "Perform one official-platform feasibility assessment; record supported export/import choice or evidence-based parked outcome without a native program."
+    },
+    {
+      "id": "EXT-02",
+      "title": "A safe manual import can be a useful bounded slice",
+      "specification": "If readily supportable, implement a narrowly scoped explicit import of supported owner-exported Health observations, with local parsing, file-size/decompression/record bounds, preview, consent, unit/timezone conversion, provenance and duplicate handling. Do not upload an entire raw Health export or retain unselected sensitive categories. Imported data is labeled imported, not continuously synced from Apple Watch. Real-device testing is an owner action and no actual Health file belongs in repository fixtures.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 502
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "Manual journal and app-backup restore exist; no raw owner Health export uploaded or checked into fixtures.",
+      "precise_remaining": "Optional bounded observation import absent: no decompression/parser bounds, preview/selection/consent, observation timezone/unit/provenance/dedup. App JSON restore is not a wearable importer; readily-supportable condition not assessed.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/lib/health.ts",
+        "apps/web/components/private-backups.tsx",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "DEFERRED_BOUNDED",
+      "gap_classification": "CONDITIONAL_FEATURE_UNIMPLEMENTED",
+      "owner_setup_or_activation_prerequisites": "Actual owner export only for optional private acceptance, never repository fixtures.",
+      "next_concrete_step": "Use EXT01 to choose one documented format, then record why parked or implement synthetic bounded selected-observation import before any real-device trial."
+    },
+    {
+      "id": "EXT-03",
+      "title": "Build a useful normalized observation seam",
+      "specification": "Where wearable execution is deferred, preserve a tested adapter contract for source/device identity, observation timestamps, metric units, provenance, deduplication, update/delete and consent scope. Manual and imported observations must not double-count. Use executable fixture tests and a real consumer of the normalized data where possible. Do not claim multiple connected services from an interface enum or a collection of disabled logos.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 504
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "Manual water/weight/activity have local IDs/dates/units and consumers; food products have separate provenance. These do not implement a normalized wearable observation adapter.",
+      "precise_remaining": "Required seam when wearables deferred is missing: source/device identity, observation timestamp, metric units, consent scope, cross-source dedup, imported update/delete contract and fixture/consumer tests. Manual operation idempotency does not prevent manual/import double count.",
+      "evidence_paths": [
+        "apps/web/lib/health.ts",
+        "apps/web/lib/health-daily.ts",
+        "docs/run10/HEALTH_EVIDENCE.md"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "gap_classification": "MANDATORY_IMPLEMENTATION_MISSING",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Implement one normalized observation contract and synthetic water/weight consumer with consent/provenance, deterministic update/delete and manual/import dedup tests."
+    },
+    {
+      "id": "EXT-04",
+      "title": "Photo and voice remain permission/cost-gated",
+      "specification": "Create only narrowly useful tested capture/provider/correction boundaries where they fit the chosen Health architecture. Do not enable external image recognition, transcription, paid inference, continuous microphone use or uploads of private meals by default. A camera barcode decoder is not meal-photo recognition. Any real capture feature needs explicit permission, correction UX, data-handling policy, supported provider and verified cost/access; otherwise it remains visibly unimplemented without a misleading connected state.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 506
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "Photo recognition visibly unavailable. Camera is explicit local-frame barcode decoding only; microphone denied, no private meal upload/external inference/transcription activation.",
+      "precise_remaining": "No meal-photo/voice provider/capture/correction boundary, policy or verified cost/access. Barcode cannot satisfy photo recognition. This is gated unimplemented capability, not connected functionality.",
+      "evidence_paths": [
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/components/health/barcode-food-lookup.tsx",
+        "apps/web/next.config.ts",
+        "docs/run10/FOOD_EVIDENCE.md"
+      ],
+      "suggested_status": "DEFERRED_BOUNDED",
+      "gap_classification": "CONDITIONAL_PERMISSION_AND_COST_GATE",
+      "owner_setup_or_activation_prerequisites": "External provider/private uploads/paid inference need separately established permission and verified access/cost.",
+      "next_concrete_step": "Keep unavailable state; if a narrow feature is later selected, first document permission/data handling/cost/access and test correction boundaries before capture/upload activation."
+    },
+    {
+      "id": "EXT-05",
+      "title": "Assess optional USDA and extra providers once",
+      "specification": "A food-data provider requiring credentials or a separate setup is not automatically authorized. Check official access/terms and prefer completing the no-subscription primary path. Add a tested adapter only if it brings a clear supported benefit without jeopardizing mandatory Health/sync work. Record prerequisites and parked outcomes. No endless switching between external providers to avoid a bounded failure.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 508
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "Primary no-subscription Open Food Facts path prioritized; no USDA credentials/subscriptions/extra-provider activation.",
+      "precise_remaining": "One-time official USDA/extra-provider access/terms assessment and precise prerequisites/parked outcome absent. Adapter is not mandatory without demonstrated supported benefit.",
+      "evidence_paths": [
+        "docs/run10/FOOD_EVIDENCE.md",
+        "docs/roadmap/HEALTH_BETA_FUTURE_RUN.md",
+        "apps/web/lib/food-lookup.ts"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "gap_classification": "MANDATORY_ASSESSMENT_MISSING",
+      "owner_setup_or_activation_prerequisites": "Credentials/separate setup not implicitly authorized; no owner action needed to research and park.",
+      "next_concrete_step": "Record one official USDA access/terms/benefit assessment; park with setup prerequisites unless clear benefit justifies a tested adapter without displacing mandatory work."
+    },
+    {
+      "id": "EXT-06",
+      "title": "Keep external financial execution gates intact",
+      "specification": "Improved ecosystem research, watch-only reads, provider logos and account login do not authorize Goal Manager deployment, Valdora/WME/Zignaly execution, swaps, staking transactions, delegated investing or custody. Update capability records with sources and dates, including precise missing testnet/interface/provenance gates. Previously researched audits are not automatically mapped to current deployed code. A verified link is not a verified integration and a read-only adapter is not an execution adapter.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 510
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "canExecuteProvider always false. Valdora/WME/Zignaly remain dated FUTURE_GATED research with missing interface/provenance/custody gates; audits explicitly lack current deployed-source mapping. Run10 directory adds dated links/disclosures without changing execution; Settings says disabled.",
+      "precise_remaining": "No financial execution is intended or authorized. Final integrated gate regression remains; directory links are not contract verification and historical lastVerified dates are not fresh audits.",
+      "evidence_paths": [
+        "packages/ecosystem-registry/src/index.ts",
+        "packages/ecosystem-registry/src/providers.json",
+        "packages/ecosystem-registry/src/registry.test.ts",
+        "packages/ecosystem-registry/src/directory.ts",
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "apps/web/app/app/settings/page.tsx"
+      ],
+      "suggested_status": "IMPLEMENTED_UNVERIFIED",
+      "gap_classification": "FINAL_INTEGRATION_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Retain denial tests and dated missing-gate disclosures at final review; never infer transaction authorization from login/directory readiness."
+    },
+    {
+      "id": "PERF-01",
+      "title": "Measure a baseline and final result",
+      "specification": "Record representative cold/warm route timings, bundle/chunk sizes, render work, layout shift, memory and relevant Workers CPU/network behavior in the available environment. Compare like with like and document sample size/configuration. Do not claim a production CPU improvement from a local development build or a single cached request. Attribute response-stream cancellation diagnostics before deciding on a framework adapter change; do not randomly upgrade the whole stack to remove a warning.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 566
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Existing bounded performance script reports request wall-time sample sizes/percentiles distinct from Workers CPU. Historical m4/m5 measurements record older bundles/routes/dashboard limits. No random stack upgrade to suppress diagnostics.",
+      "precise_remaining": "No Run10 comparable production-build cold/warm timings/chunks/render/layout shift/memory/Workers CPU/network baseline/final matrix. Historical samples cannot measure changed app. Stream-cancellation attribution unresolved.",
+      "evidence_paths": [
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/measure-alpha-performance.test.mjs",
+        "docs/verification/m4/PERFORMANCE_BEFORE.json",
+        "docs/verification/m4/PERFORMANCE_AFTER.json",
+        "docs/verification/m5/HOSTED_PERFORMANCE.json"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "MANDATORY_MEASUREMENT_INCOMPLETE",
+      "owner_setup_or_activation_prerequisites": "Hosted CPU proof requires approved deployment/metrics access; local bundle/render/timing measurement does not.",
+      "next_concrete_step": "Measure fixed fictional-data production-build baseline/final with declared routes/sample sizes and browser memory/render work; attribute Worker stream warnings before adapter changes."
+    },
+    {
+      "id": "PERF-02",
+      "title": "Keep the dashboard economical",
+      "specification": "Reuse derived selectors, bound chart work, lazy-load heavy optional editors/scanners and avoid re-rendering the entire page for every timer tick or quote update. Offscreen widgets should not cause repeated remote requests. Debounce appropriate UI updates without losing committed data or delaying meaningful feedback. Detect duplicate cache/admission work during navigation and multiple simultaneous widgets. Preserve actual values during optimization; performance changes cannot relax validation.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 568
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Today uses canonical selectors, one quote hook, no financial request for nonfinancial layouts,24widget cap/hidden controls. Shared quote timer ages locally without remote polling. Catalog pending request coalescing fixed and2browser regressions passed.",
+      "precise_remaining": "No measured viewport/render isolation for multiple widgets/timer/quote updates. Today recomputes summaries; EvidenceChart sorts/renders all input and unpaginated exact table with no explicit work cap. Optional editor/scanner imports are static; navigation/bundle impact unmeasured.",
+      "evidence_paths": [
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/components/platform/use-market-quotes.ts",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/market-catalog-client.ts",
+        "apps/web/components/health/barcode-food-lookup.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Profile render/request counts under visible/hidden widgets and updates; bound/paginate chart work and isolate/lazy-load proven heavy optional UI while preserving exact values."
+    },
+    {
+      "id": "PERF-03",
+      "title": "Assess a polished home-screen/PWA experience",
+      "specification": "Implement installability/offline-shell support where compatible with the existing app and useful for the owner’s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 570
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "App metadata has title/icon; no competing service worker or fake native background/HealthKit capability.",
+      "precise_remaining": "No home-screen/installability assessment, manifest, install help or offline-shell strategy found. No safe update/cache design yet; execution conditional on compatibility but assessment unfinished.",
+      "evidence_paths": [
+        "apps/web/app/layout.tsx",
+        "apps/web/next.config.ts",
+        "apps/web/middleware.ts"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "gap_classification": "CONDITIONAL_ASSESSMENT_AND_IMPLEMENTATION_MISSING",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Assess nonce/SSR/private-route architecture for safe installation/offline boundaries; document compatible subset and implement honest manifest/help only with a safe design."
+    },
+    {
+      "id": "PERF-04",
+      "title": "Make updates and caches schema-safe",
+      "specification": "Never cache private authenticated responses or decrypted vault contents in a shared service-worker/CDN cache. Define app-shell/public-data caching separately from private local storage. A new version must not activate destructively over unsynced old-schema work. Test stale shell, offline startup, update available, controlled reload and protocol mismatch. No broad `skipWaiting`/cache purge pattern that discards drafts or mixes incompatible app versions without a safety plan.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 572
+      },
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "implemented_subset": "HTML private/no-store; private account/sync no-store. No service-worker cache of decrypted data. Versioned local/journal schemas reject future incompatible state; migration/backup recovery exists.",
+      "precise_remaining": "No app-shell/public-cache update protocol or stale-shell/offline-start/update-available/controlled-reload/protocol-mismatch browser matrix. No service worker avoids one hazard but does not prove safe updates over unsynced work.",
+      "evidence_paths": [
+        "apps/web/middleware.ts",
+        "apps/web/lib/server/private-account.ts",
+        "workers/private-sync/worker.mjs",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "CONDITIONAL_UPDATE_PROTOCOL_AND_VERIFICATION_INCOMPLETE",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Define draft/outbox-safe update handshake before offline shell; exercise old unsynced state through stale shell/protocol refusal/explicit reload."
+    },
+    {
+      "id": "PERF-05",
+      "title": "Bound operational load and cost",
+      "specification": "Provide measured small/friends-Alpha assumptions for sync traffic, encrypted storage, provider calls, email sends and logs, with sources for platform limits where relevant. Distinguish included allowance from genuinely free unlimited use. Avoid background tasks that run per user indefinitely without need. Configure limits and backpressure so unexpected traffic fails safely rather than producing runaway bills or exposing private data. New billing or paid tiers remain owner decisions.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 574
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Body/storage bounds exist; sync refuses32MB/50000operations, food has persisted rate/cache bounds, prototype market policy fails closed. Sync debounces and pauses on error;30second polling only while unlocked. Observability off.",
+      "precise_remaining": "No measured friends-Alpha traffic/storage/email/log/cost model/current sourced allowances. Unlocked polling downloads ciphertext snapshots; prolonged load unmeasured. Client OTP cooldown is not server abuse admission. Active market quota process-local; private/OTP aggregate backpressure and retention/compaction incomplete.",
+      "evidence_paths": [
+        "docs/run10/OWNER_ACTIVATION.md",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/server/private-account.ts",
+        "workers/private-sync/worker.mjs",
+        "workers/food-lookup/worker.mjs",
+        "docs/run10/MARKET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "Owner confirms actual account allowances and any billing changes; workload modeling/local admission implementation can proceed independently.",
+      "next_concrete_step": "Measure synthetic per-session requests/bytes/storage growth/email attempts under stated workload; source current limits and add server backpressure/idle-aware sync before activation."
+    },
+    {
+      "id": "PERF-06",
+      "title": "Provide privacy-safe support diagnostics",
+      "specification": "Add a useful build/version identifier, a safe summary of local/sync/provider status and an explicit preview-before-copy issue report. Do not automatically collect emails, Goal names, balances, diary contents, auth tokens or raw provider bodies. A screenshot/report can be manually attached by the user after review. Keep developer logs out of consumer UI and distinguish source verification from actual deployed identity.",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 576
+      },
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "implemented_subset": "Safe summary whitelists environment/version/commit/session/RPC/REST/timestamp with adversarial privacy tests. Build config emits version/commit/dirty; consumer diagnostics under Advanced Diagnostics.",
+      "precise_remaining": "Copy occurs before preview; textarea appears only when clipboard fails. Summary lacks durable-store/sync/market health and dirty/source qualification. No explicit preview-before-copy Run10 issue report.",
+      "evidence_paths": [
+        "apps/web/lib/diagnostic-summary.ts",
+        "apps/web/lib/public-safety.test.ts",
+        "apps/web/components/connection-diagnostics.tsx",
+        "apps/web/next.config.ts",
+        "apps/web/app/app/settings/page.tsx"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "gap_classification": "IMPLEMENTATION_AND_VERIFICATION",
+      "owner_setup_or_activation_prerequisites": "No owner setup is needed for the next local implementation or fixture step.",
+      "next_concrete_step": "Add readonly preview then explicit copy, narrow storage/sync/market enums and truthful source/deployed/dirty identity; prove names/balances/tokens/raw errors excluded."
+    }
+  ]
+}

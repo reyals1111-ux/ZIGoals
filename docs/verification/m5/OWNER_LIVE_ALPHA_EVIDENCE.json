@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "evidenceSource": "OWNER_OBSERVED",
+  "recordedAt": "2026-09-13T19:19:31.914970+00:00",
+  "observedAt": null,
+  "observationTimeNote": "Owner supplied no observation timestamps. recordedAt is record creation, not observation time.",
+  "source": "Owner Run 5 brief; no screenshots or machine capture supplied. Independent checks are separate records.",
+  "labels": [
+    "OWNER_VERIFIED_LIVE",
+    "PUBLIC_ALPHA_DEPLOYED",
+    "CONTRACT_NOT_DEPLOYED",
+    "ATTESTED_CANDIDATE_NOT_APPROVED"
+  ],
+  "alpha": {
+    "url": "https://alpha.zigoals.app/app",
+    "fallbackUrl": "https://zigoals-alpha.reyals1111.workers.dev/app",
+    "customDomain": "alpha.zigoals.app",
+    "worker": "zigoals-alpha",
+    "workerVersion": "c3843317-2105-4a18-bfb3-53067e81999b",
+    "sourceCommit": "3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+    "appVersion": "0.1.0",
+    "mode": "PUBLIC_ALPHA_UNDEPLOYED",
+    "modeMeaning": "Public web deployed; financial contract not deployed.",
+    "httpStatus": 200,
+    "httpVersion": "HTTP/2",
+    "goalManager": "NOT_DEPLOYED",
+    "codeId": "NOT_DEPLOYED",
+    "onchainChecksum": "NOT_DEPLOYED"
+  },
+  "headers": {
+    "cache-control": "private, no-store, max-age=0",
+    "strict-transport-security": "max-age=31536000",
+    "script-src": "'self' nonce 'strict-dynamic'; no unsafe-inline or unsafe-eval",
+    "connect-src": [
+      "'self'",
+      "https://testnet-rpc.zigchain.com",
+      "https://testnet-api.zigchain.com"
+    ],
+    "object-src": "'none'",
+    "frame-src": "'none'",
+    "frame-ancestors": "'none'",
+    "base-uri": "'none'",
+    "form-action": "'self'",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-robots-tag": "noindex, nofollow, noarchive",
+    "cloudflareNel": "cf-nel infrastructure reporting observed; separate from ZIGoals application analytics",
+    "applicationAnalytics": "absent"
+  },
+  "network": {
+    "chainId": "zig-test-2",
+    "baseDenom": "azig",
+    "decimals": 18,
+    "chainVersion": "v5.0.0-patch-1",
+    "rpc": "https://testnet-rpc.zigchain.com",
+    "rest": "https://testnet-api.zigchain.com",
+    "rpcHealthy": true,
+    "restHealthy": true
+  },
+  "keplr": {
+    "evidenceLabel": "OWNER_VERIFIED_HOSTED_EXTENSION_EVIDENCE",
+    "origins": [
+      "https://alpha.zigoals.app",
+      "https://zigoals-alpha.reyals1111.workers.dev"
+    ],
+    "actualExtensionUnderHostedProductionCsp": true,
+    "walletTruncated": "zig1dlw2...2yn7",
+    "balanceZig": "0",
+    "reject": [
+      "Connect requested",
+      "Permission rejected",
+      "App remained usable",
+      "Request rejected displayed",
+      "Account disconnected",
+      "RPC/REST healthy"
+    ],
+    "connect": [
+      "Reconnect requested",
+      "Permission approved",
+      "Correct test wallet displayed",
+      "Connection only / financial actions unavailable",
+      "Goal Manager undeployed"
+    ],
+    "feePromptObserved": false,
+    "arbitraryMessageSigningObserved": false,
+    "financialSigningObserved": false,
+    "broadcastObserved": false,
+    "limitation": "Owner observation, not automated Playwright extension evidence. No independent wallet interaction performed by M5."
+  },
+  "reload": {
+    "originsTested": [
+      "https://alpha.zigoals.app",
+      "https://zigoals-alpha.reyals1111.workers.dev"
+    ],
+    "observed": [
+      "Refresh returns Local Demo with no wallet displayed",
+      "Keplr permission remembered",
+      "Explicit Connect Keplr reconnects immediately without another prompt"
+    ],
+    "classification": "UX/state restoration finding; not financial-security bypass"
+  },
+  "landing": {
+    "url": "https://zigoals.app",
+    "worker": "zigoals",
+    "workerVersion": "c1b16589-ea0a-4a11-a314-4b2454e6ce5b",
+    "sourceCurrentMain": "6be2de74f22f676e6a633ed05208decebb0dbff3",
+    "httpStatus": 200,
+    "httpVersion": "HTTP/2",
+    "ctaText": "Explore the Alpha \u2192",
+    "ctaUrl": "https://alpha.zigoals.app/app",
+    "safetyCopy": [
+      "Public Alpha \u00b7 Simulation + wallet connection only.",
+      "Goal Manager is not deployed. No blockchain transaction will be sent."
+    ],
+    "visualClickVerified": true
+  },
+  "releaseCandidate": {
+    "runId": 34772005556,
+    "sourceCommit": "3645b489e4bc2a31ef16d39bdc27f7c00e2ecd72",
+    "status": "ATTESTED_CANDIDATE_NOT_APPROVED",
+    "sha256": "9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10",
+    "githubNativeAttestation": "Owner reported successful issuance; independent verification in RELEASE_VERIFICATION.json",
+    "notAttestedByThisEvidence": [
+      "6be2de74f22f676e6a633ed05208decebb0dbff3",
+      "M5 branch",
+      "future main commits"
+    ]
+  },
+  "productionMutationDuringM5": false
+}

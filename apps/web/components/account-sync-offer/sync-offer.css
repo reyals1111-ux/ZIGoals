@@ -1,0 +1,30 @@
+/*
+ * The encrypted-sync offer (sync-offer.tsx). A calm glass card in the account area of Settings, with the shared panel,
+ * button and checkbox styles. One opacity fade when it first appears, never repeated, and none under reduced motion or
+ * Motion Off. Nothing moves the controls around it.
+ */
+.panel.sync-offer {
+  border-color: #6fd8f04d;
+  background: linear-gradient(160deg, #0f1d36f2, #0b1528f2 60%, #1a1336f2);
+  animation: sync-offer-in 200ms ease-out both;
+}
+.sync-offer h2 { margin-bottom: 12px; }
+.sync-offer p { font-size: 16px; line-height: 1.55; color: var(--text-secondary, #dde7f7); max-width: 68ch; }
+.sync-offer .sync-offer-secret { color: var(--text-strong, #f4f8ff); }
+.sync-offer .sync-offer-health { margin: 18px 0 4px; }
+.sync-offer .sync-offer-health .checkbox { font-size: 16px; font-weight: 600; min-height: 44px; }
+.sync-offer .sync-offer-health .fine { margin: 4px 0 0; font-size: 15px; color: var(--text-meta, #c2d0e5); }
+.sync-offer .actions > button { flex: 0 1 auto; min-height: 44px; font-size: 15px; }
+.sync-offer [tabindex="-1"]:focus-visible { outline: 2px solid #8bddeb; outline-offset: 4px; border-radius: 6px; }
+.sync-offer-reminder p { margin: 8px 0; }
+@keyframes sync-offer-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .panel.sync-offer { animation: none; } }
+:root[data-app-motion=off] .panel.sync-offer { animation: none; }
+/* Phones: one column, full-width choices. */
+@media (max-width: 600px) {
+  .sync-offer .actions { flex-direction: column; }
+  .sync-offer .actions > button { width: 100%; white-space: normal; }
+}
+@media (forced-colors: active) {
+  .panel.sync-offer { border-color: CanvasText; }
+}

@@ -1,0 +1,6 @@
+/* Session W Part 18: "Sign out all other devices" as its own block above the session list. */
+.account-sessions .sign-out-others { display: grid; gap: 10px; margin-block: 12px 18px; padding: 14px 16px; border: 1px solid #7fc8ff2e; border-radius: 16px; background: #0f1a30cc; }
+.account-sessions .sign-out-others h3 { margin: 0; }
+.account-sessions .sign-out-others p { margin: 0; }
+.account-sessions .sign-out-others > button, .account-sessions .sign-out-others .notice button { justify-self: start; min-height: 44px; }
+.account-sessions > h3 { margin: 18px 0 6px; }

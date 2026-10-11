@@ -1,0 +1,11 @@
+
+ RUN  v5.0.0 /Users/AIUSER/.codex/.chatgpt-projects/g-p-6a9ef321fe54819194d286235dcda765/ZIGoals/.superpowers/run9
+
+
+ Test Files  55 passed (55)
+      Tests  885 passed (885)
+   Start at  15:53:45
+   Duration  4.69s (tests 68%, import 15%, environment 11%, transform 6%, worker 1%)
+
+    Isolate  55 workers spawned · ~97ms startup each (spawn + environment, per file)
+             at least ~1.24s faster with isolate: false — reuses workers across files instead of one per file

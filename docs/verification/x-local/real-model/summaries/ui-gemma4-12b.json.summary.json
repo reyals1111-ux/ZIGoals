@@ -1,0 +1,30 @@
+{
+ "file": "ui-gemma4-12b.json",
+ "kind": "ui",
+ "groups": [
+  {
+   "model": "gemma4:12b",
+   "host": "Mac M1 Max",
+   "project": "desktop",
+   "runs": 60,
+   "passed": 50,
+   "scored": 59,
+   "errors": 1,
+   "replyMedianMs": 47829,
+   "first": "2026-10-08T06:43:49.421Z",
+   "last": "2026-10-08T07:19:15.249Z"
+  },
+  {
+   "model": "gemma4:12b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 150,
+   "passed": 129,
+   "scored": 150,
+   "errors": 0,
+   "replyMedianMs": 1551,
+   "first": "2026-10-08T03:11:19.812Z",
+   "last": "2026-10-08T03:20:13.125Z"
+  }
+ ]
+}

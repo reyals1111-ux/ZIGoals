@@ -1,0 +1,74 @@
+# ZIGoals build log — Milestone 1 local alpha
+
+Draft for owner review. Not published or sent. Based on working code and local verification, not deployment or external approval.
+
+> ZIGoals now has a working local alpha: create a savings goal, plan contributions, add simulated funds, withdraw and track progress. Funding Health uses 0% future return; optional scenarios stay clearly labelled.
+>
+> The idle Goal Manager contract has local bank-accounting, permission and withdrawal tests. Private goal plans stay on your device and can be exported.
+>
+> Next: testnet funding and upload approval, then a small owner-signed deployment and withdrawal smoke test. Nothing is deployed yet. Valdora and WME remain pending verified interfaces. No yield or investment-return claims.
+
+Evidence: engine sources/tests; contract integration/boundary tests; responsive browser lifecycle tests; primary live testnet reads. Exact totals, versions and limitations are in [the implementation report](../IMPLEMENTATION_REPORT.md). Local screenshots, if shared, must retain the LOCAL SIMULATION and testnet labels. Do not imply ZIGChain affiliation, a security audit, official approval or support for real funds.
+
+## Run 2 draft material — not published
+
+Draft 1:
+> ZIGoals now records known testnet transaction outcomes on the device. If a browser session is interrupted after broadcast, recovery checks the original transaction hash; a missing receipt stays uncertain. It never silently retries a transfer. Real Keplr and live-contract smoke tests are still pending.
+
+Draft 2:
+> The local alpha now includes sourced ZIGChain ecosystem research, verified ZIGScan links and official Range/Hub entry points. External strategies stay disabled while interfaces, security and eligibility are checked. Research metadata is not an endorsement.
+
+Draft 3:
+> A clean build directory reproduced the Goal Manager Wasm checksum exactly with the same pinned toolchain. That strengthens local reproducibility; it does not mean a Docker build, hosted CI or testnet deployment has run. Funding and upload permission remain separate gates.
+
+Use only after the final Run 2 report confirms the associated implementation and tests. Preserve LOCAL SIMULATION/testnet labels in screenshots. Do not turn research into partnership, certification, audit or return claims. No posts have been sent.
+
+## Milestone 3 drafts — owner review only, not published
+
+Draft 1:
+> The owner tested ZIGoals with the real Keplr extension: connection, rejection, reconnect, permission revocation and a late approval after switching back to Local demo behaved as expected. Real testnet balance stayed separate from simulated funds. Signing and deployed-contract action tests are still waiting on test funds and deployment approval.
+
+Draft 2:
+> Two browser tabs exposed real alpha defects: one could overwrite another tab's simulated deposit or recovered private plan. ZIGoals now coordinates those writes and cancels stale reviews. Transaction history also refuses duplicate signed-hash claims and retains unsupported data with a warning. These controls have local automated and browser evidence; they are not an independent security audit.
+
+Draft 3:
+> ZIGoals now has a read-only environment check and connection diagnostics. Prepared deployment manifests keep real IDs empty, and the client checks actual code identity and checksum before a financial action. Nothing has been deployed and no external strategy is enabled. Funding Health still assumes zero investment return.
+
+Use final hosted CI and cross-host build facts only after the M3 report records the observed results. Do not call different hashes reproducible or imply funding/whitelist approval, a live integration, certification, partnership, guaranteed return or mainnet readiness. No build-log post was sent during this run.
+
+Draft 4 — verified hosted result:
+> GitHub now checks the ZIGoals alpha and retains the actual Wasm build evidence. The Linux and Mac artifacts both validate but have different hashes. We investigated source-path and build-layout differences and documented the remaining limit: cross-host byte identity is not established. Nothing is deployed, and no external strategy has been enabled.
+
+Evidence: M3_REPRODUCIBILITY.md and successful GitHub run34763386600. Owner-review draft only; not published.
+
+## Milestone 4 drafts — owner review only, not published
+
+Draft 1 — merged baseline:
+> The first three ZIGoals engineering milestones are merged. A fresh check passed the existing JavaScript, Rust and production browser suites, plus full browser restart recovery. Real Keplr connection evidence is recorded separately. Goal Manager is still not deployed, and financial signing remains untested.
+
+Draft 2 — observed release engineering:
+> ZIGoals now compares the Goal Manager Wasm from two independent clean Linux builds. The release verifier checks the actual bytes, source commit and toolchain evidence before accepting a candidate. Reproducible does not mean approved for upload: testnet funding, upload permission and owner authorization remain separate gates.
+
+Draft 3 — locally verified Alpha safeguards:
+> The ZIGoals web Alpha separates local simulation from wallet connection. Its undeployed public mode blocks financial execution at the transaction boundary, and the production browser policy uses fresh script nonces. Private goal plans stay in the browser in the tested flows; the host still sees ordinary requests and goal IDs in page paths. This is experimental software, not a security audit or a promise of returns.
+
+Draft 4 — prepared hosting, publication pending:
+> The isolated ZIGoals Cloudflare Alpha package is prepared and locally tested. Publication is still pending permitted account access and live HTTPS verification. The existing zigoals.app landing and email settings were preserved. Goal Manager is not deployed and no return claim is being made.
+
+Attach only links, hashes, totals and URLs confirmed in the final Run4 report. Do not publish this draft automatically, claim an attestation that has not run, imply ZIGChain approval or describe the web preview as an onchain deployment. Keep the separate apex landing CTA unpublished until owner review.
+
+Evidence: [Run 4](../RUN_4_REPORT.md), [canonical hosted results](../verification/m4/FIRST_HOSTED_RESULTS.json), [publication status](../verification/m4/PUBLICATION.json). All drafts remain unpublished.
+
+## Milestone 5 drafts — owner review only, not published
+
+The earlier milestone drafts above are historical and must not be posted as current facts. New evidence: [owner live observations](../verification/m5/OWNER_LIVE_ALPHA_EVIDENCE.json), [release verification](../verification/m5/RELEASE_VERIFICATION.json), [Run 5](../RUN_5_REPORT.md).
+
+> The ZIGoals public web Alpha is available at alpha.zigoals.app/app. It supports simulation and optional wallet connection. Goal Manager is not deployed, and no financial signature or blockchain transaction is part of this Alpha.
+
+> Real Keplr rejection and reconnection were owner-tested on both hosted Alpha origins under the production CSP. The app remained usable after rejection. The test wallet had 0 ZIG; no fee prompt, financial signature or broadcast occurred.
+
+> Our first canonical contract candidate has a GitHub-native attestation for its exact reviewed source commit. That is build provenance, not approval to upload a contract. Funding and upload permission remain separate gates.
+
+> Run 5 checks the live Alpha, records evidence with its source, and hardens the two separate website deployment paths. Reloads keep Local Demo and reconnect stays an explicit choice. Repository changes still require owner review and a separate deployment.
+
+No post was sent. Do not add partnership, audit, users, TVL, funding, mainnet or return claims.

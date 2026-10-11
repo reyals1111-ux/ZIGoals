@@ -1,0 +1,51 @@
+{
+  "baseline": {
+    "source": "94df488cd98d2a1cdc15bd11011521d24fc8066e",
+    "method": "Sum of emitted .next/static JS/CSS files, each gzip-compressed independently; not per-route transfer or production CPU.",
+    "assets": {
+      ".js": {
+        "files": 28,
+        "rawBytes": 2982601,
+        "gzipBytes": 687960
+      },
+      ".css": {
+        "files": 3,
+        "rawBytes": 103563,
+        "gzipBytes": 23685
+      }
+    }
+  },
+  "candidate": {
+    "source": "d806ae010c03439f48730f5cea39f0efa133bdec",
+    "method": "Sum of emitted .next/static JS/CSS files, each gzip-compressed independently; not per-route transfer or production CPU.",
+    "assets": {
+      ".js": {
+        "files": 33,
+        "rawBytes": 3111354,
+        "gzipBytes": 725484
+      },
+      ".css": {
+        "files": 4,
+        "rawBytes": 106904,
+        "gzipBytes": 24597
+      }
+    }
+  },
+  "delta": {
+    ".js": {
+      "rawBytes": 128753,
+      "gzipBytes": 37524,
+      "gzipPercent": 5.454
+    },
+    ".css": {
+      "rawBytes": 3341,
+      "gzipBytes": 912,
+      "gzipPercent": 3.851
+    }
+  },
+  "limitations": [
+    "Aggregate emitted files across all routes, not initial page transfer or runtime CPU.",
+    "Baseline uses source archive with Unknown/dirty public Git identity fallback.",
+    "Captured UI/client source d806ae0; final product change only server redirect handling and its regression. No production deployment or live CPU comparison."
+  ]
+}

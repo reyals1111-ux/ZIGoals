@@ -1,0 +1,25 @@
+{
+ "checkpoint": {
+  "version": 1,
+  "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "lifecycle": {
+   "generation": 2,
+   "deleted": true,
+   "provider": "retained",
+   "authorizedFamily": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+   "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+   "deletedAt": "2026-10-01T11:59:57.616Z",
+   "domainGenerations": {
+    "health": 1
+   }
+  },
+  "receipts": [
+   {
+    "operation": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    "domain": "health",
+    "generation": 1
+   }
+  ]
+ },
+ "digest": "33e70212b302c80fd63479ace8c50f52581c4714a11940e826d571ea8f86e637"
+}

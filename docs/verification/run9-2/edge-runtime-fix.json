@@ -1,0 +1,15 @@
+{
+  "before": {
+    "keyConfigured": true,
+    "fetchStatus": null,
+    "error": "Invalid redirect value: Workers supports follow or manual, not error"
+  },
+  "after": {
+    "keyConfigured": true,
+    "fetchStatus": 200,
+    "realBitcoinObservations": 2161,
+    "error": null
+  },
+  "fix": "Server adapters use manual redirects and reject non-2xx or redirected responses before reading bodies. Browser client fetch behavior is unchanged.",
+  "regression": "2 new regressions failed before the fix; 21 tests passed across the three affected files afterward."
+}

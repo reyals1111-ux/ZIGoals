@@ -1,0 +1,156 @@
+"use client";
+import { useState } from "react";
+import { usePlatform } from "../../../components/platform/use-platform";
+import { AppIcon } from "../../../components/app-icon";
+import { ActivityFeed } from "../../../components/activity-feed";
+import { useZigiActions } from "../../../components/activity/use-zigi-actions";
+import Link from "next/link";
+import { ExplorerLinks } from "../../../components/explorer-links";
+import { useGoals } from "../../../components/goal-provider";
+import {
+  pendingDescription,
+  isTerminal,
+} from "../../../lib/transaction-journal";
+import { formatUnits, TESTNET } from "@zigoals/chain-config";
+import { LayoutLockButton, LayoutPage, LayoutRegion } from "../../../components/layout-edit";
+import { NebulaFlow } from "../../../components/nebula-flow";
+import {formatDateTime,formatPlainDecimal} from "../../../lib/visual-format";
+export default function ActivityPage() {
+  const s = useGoals();
+  const platform = usePlatform();
+  const [category, setCategory] = useState("ALL");
+  // Session V Part 7: the "Actions by ZIGi" filter appears once a ZIGi card was confirmed on this device.
+  const zigi = useZigiActions();
+  const [limit, setLimit] = useState(30);
+  return (
+    <LayoutPage page="activity"><div className="activity-page">
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow page-eyebrow"><NebulaFlow identity="activity-eyebrow">Every step forward</NebulaFlow></p>
+          <h1><NebulaFlow identity="activity-title">Activity.</NebulaFlow></h1>
+          <p className="page-lede">
+            {s.mode === "local"
+              ? "Your Goals, wealth, habits and health — a private history of the steps you take."
+              : "Known transactions saved on this device for this wallet and chain. This is incomplete history; other wallets, devices, and applications are not indexed."}
+          </p>
+        </div>
+        <LayoutLockButton />
+      </div>
+      <LayoutRegion region="body" items={[
+        {id: "activity:sources", label: "Your activity sources", node: <section className="activity-context" aria-label="Your current activity sources"><div><AppIcon name="goals" size={26}/><strong>Goals & contributions</strong><span>Plans, funding and corrections</span></div><div><AppIcon name="wallet" size={26}/><strong>Every kind of wealth</strong><span>Crypto, stocks, metals and cash</span></div><div><AppIcon name="health" size={26}/><strong>Your everyday progress</strong><span>Habit check-ins and Health logs</span></div></section>},
+        platform.data.watchlist.length > 0 && {id: "activity:favourites", label: "Markets in your favourites", node: <aside className="activity-favourites"><AppIcon name="star" size={25}/><div><strong>{platform.data.watchlist.length} markets in your favourites</strong><p>{platform.data.watchlist.map(item => item.name).join(" · ")}</p><small>Current saved favourites. Follow dates are not recorded.</small></div><Link className="text-link" href="/app/markets">Explore favourites →</Link></aside>},
+        {id: "activity:timeline", label: "Your progress, in moments", node: <section className="panel activity-timeline" aria-label="Unified private activity"><div className="activity-filter-row"><div><p className="eyebrow">YOUR PROGRESS, IN MOMENTS</p><h2>One journey. Every step.</h2></div><nav className="tab-row view-tabs" aria-label="Activity categories">{["ALL", "GOAL", "WEALTH", "HABIT", "HEALTH", ...(zigi.actions.length ? ["ZIGI"] : [])].map(value => <button key={value} aria-pressed={category === value} onClick={() => { setCategory(value); setLimit(30); }}>{value === "ALL" ? "All" : value === "ZIGI" ? "Actions by ZIGi" : value[0] + value.slice(1).toLowerCase()}</button>)}</nav></div><ActivityFeed limit={limit} category={category} onMore={() => setLimit(value => value + 30)}/><p className="fine">Habit and Health entries reflect current saved logs. Corrections update this view; removing a log removes it here. This is private browser history, separate from testnet receipts.</p></section>},
+      ]}/>
+      <p className="eyebrow">
+        {/* Session X (first-week polish): the source in words, not its code (LOCAL_SIMULATION / TESTNET_CHAIN). */}
+        {s.mode === "local"
+          ? "On this device · Local simulation history"
+          : "ZIGChain testnet · Known local receipts only · Incomplete"}
+      </p>
+      {s.mode === "testnet" && s.owner && (
+        <button
+          className="button secondary"
+          onClick={() =>
+            void s.refresh().catch((error) => s.setError(String(error)))
+          }
+        >
+          Check known receipts
+        </button>
+      )}
+      {s.mode === "testnet" && (
+        <section
+          className="panel"
+          aria-label="Saved testnet transaction history"
+        >
+          {s.journalRecords.length ? (
+            s.journalRecords.map((record) => (
+              <div className="activity-row" key={record.operationId}>
+                <div>
+                  <strong>
+                    {record.action} · {record.state.replaceAll("_", " ")}
+                  </strong>
+                  <small>{formatDateTime(record.createdAt)}</small>
+                  <p>
+                    {!isTerminal(record.state)
+                      ? pendingDescription(record)
+                      : record.state === "CONFIRMED"
+                        ? `Confirmed at block ${record.height}.`
+                        : record.state === "REJECTED"
+                          ? "Cancelled in wallet before broadcast."
+                          : record.hash
+                            ? "Execution failed; a network fee may have been charged."
+                            : "Stopped before a broadcast was recorded."}
+                  </p>
+                </div>
+                {record.goalId ? (
+                  <Link href={`/app/goals/${record.goalId}`}>
+                    {s.metadata?.goals[record.goalId]?.name ??
+                      `Goal #${record.goalId}`}
+                  </Link>
+                ) : (
+                  <span>Create goal</span>
+                )}
+                <span>
+                  {record.amount !== "0"
+                    ? `${formatPlainDecimal(formatUnits(record.amount, TESTNET.nativeAsset.decimals))} ZIG`
+                    : ""}
+                </span>
+                {record.hash && (
+                  <div>
+                    <p style={{ overflowWrap: "anywhere" }}>
+                      Transaction {record.hash}
+                    </p>
+                    <ExplorerLinks
+                      chainId={record.chainId}
+                      kind="transaction"
+                      identifier={record.hash}
+                    />
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>
+              No saved transactions for this wallet and chain. This does not
+              prove the wallet has no onchain history.
+            </p>
+          )}
+        </section>
+      )}
+      {s.mode === "local" && (
+        <details className="panel legacy-goal-history"><summary>Detailed Goal simulation history</summary>
+          {s.activity.length ? (
+            s.activity.map((a, i) => (
+              <div className="activity-row" key={i}>
+                <span className="activity-symbol" aria-hidden="true">
+                  ↗
+                </span>
+                <div>
+                  <strong>{a.action}</strong>
+                  <small>{formatDateTime(a.timestamp)}</small>
+                </div>
+                <Link href={`/app/goals/${a.goalId}`}>
+                  {s.metadata?.goals[a.goalId]?.name ?? `Goal #${a.goalId}`}
+                </Link>
+                <span>
+                  {a.amount !== "0"
+                    ? formatPlainDecimal(formatUnits(a.amount, TESTNET.nativeAsset.decimals)) +
+                      " ZIG"
+                    : ""}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="empty-small">
+              <h2>Your next step starts here.</h2>
+              <p>Creating and funding a goal will appear in your activity.</p>
+              <Link href="/app/goals" className="text-link">
+                Go to goals →
+              </Link>
+            </div>
+          )}
+        </details>
+      )}
+    </div></LayoutPage>
+  );
+}

@@ -1,0 +1,22 @@
+{
+  "getStatus": 200,
+  "arbitraryQueryStatus": 400,
+  "postStatus": 405,
+  "response": {
+    "quote": {
+      "base": {
+        "network": "zigchain-1",
+        "denom": "uzig",
+        "decimals": 6
+      },
+      "currency": "USD",
+      "price": "5142910876220416",
+      "priceDecimals": 17,
+      "source": "CoinGecko",
+      "providerAssetId": "zignaly",
+      "observedAt": "2026-09-18T20:32:40.000Z",
+      "verification": "VERIFIED"
+    },
+    "error": null
+  }
+}

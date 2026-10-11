@@ -1,0 +1,68 @@
+{
+ "model": "qwen3.6:35b-a3b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "think": false,
+ "base": "redacted",
+ "startedAt": "2026-10-08T09:50:14.424Z",
+ "finishedAt": "2026-10-08T10:03:08.739Z",
+ "cases": 626,
+ "repeat": 1,
+ "runs": 773,
+ "passed": 612,
+ "rate": 0.7917205692108668,
+ "latency": {
+  "firstTokenMedianMs": 215,
+  "totalMedianMs": 738
+ },
+ "tokens": {
+  "input": 6996384,
+  "output": 67790
+ },
+ "byKind": {
+  "lookup": {
+   "passed": 103,
+   "total": 120
+  },
+  "propose": {
+   "passed": 191,
+   "total": 232
+  },
+  "chat": {
+   "passed": 34,
+   "total": 46
+  },
+  "brief": {
+   "passed": 19,
+   "total": 29
+  },
+  "unknown": {
+   "passed": 10,
+   "total": 15
+  },
+  "refuse": {
+   "passed": 42,
+   "total": 57
+  },
+  "advice": {
+   "passed": 7,
+   "total": 13
+  },
+  "multi": {
+   "passed": 143,
+   "total": 183
+  },
+  "followup": {
+   "passed": 38,
+   "total": 45
+  },
+  "privacy": {
+   "passed": 9,
+   "total": 13
+  },
+  "injection": {
+   "passed": 16,
+   "total": 20
+  }
+ }
+}

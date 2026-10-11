@@ -1,0 +1,1689 @@
+{
+  "schema": 1,
+  "audit_kind": "independent bounded semantic review and one targeted required correction",
+  "base_source": "ff3bc621b5c0a0e57ad1ba1b575e0df4fbb08c33",
+  "diagnostic_fix_source": "661efc2f6ae18d658894ddbcc3c5fd5d7f44e1d8",
+  "scope_read": "Assigned exact SCOPE_MAP rows; full authoritative master not reread. Historical SOURCE_REGISTER and PROOF are historical evidence, not fresh full-source reads.",
+  "required_followup": [
+    "Run final rebuilt diagnostics/public-alpha browser cases; unit27 focused pass and tsc/lint passed.",
+    "Retain executed route/control inventory and annotate purpose/expected action/friction using existing journey evidence; collected control names alone do not assert every action was exercised.",
+    "Complete new landscape/short-viewport browser test and representative visual inspection. Browser-specific zoom/physical virtual keyboard remains explicitly unverified;125%text and required responsive widths are existing local reflow proof.",
+    "Complete source-bound inspected SS01\u201310 map, same-condition final performance, closure reconciliation, recovery and NovaVault receipts."
+  ],
+  "requirements": [
+    {
+      "id": "GOV-01",
+      "criterion": "Deliver a coherent product in which a new user can select their interests, create useful Goals/Habits/Health/Wealth records, personalize Today, return later, understand trustworthy progress, and synchronize the same private state between independent devices. Do not optimize exclusively for a populated Showcase or a landing-page screenshot. A user interested only in Health or Habits must not need a wallet or see unrelated financial actions as prerequisites.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Packaged three-profile consumer journey exercises useful financial/Habit/Health records, reload, sync, correction and protected restore; root is expanding four-preset cross-client proof. Hosted and physical proof remains owner activity.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-02",
+      "criterion": "This brief supersedes older scheduling exclusions that reserved storage/history for Run #11, financial revisions for Run #12, or kept Health/UI/sync outside preparatory Run #10. Preserve those requirements as named internal workstreams, not separate tasks the owner must initiate later. It does not supersede evidence requirements, privacy boundaries, financial-execution prohibitions or owner-controlled release gates. Historical notes remain historical; do not rewrite them to pretend the new work was already delivered.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Scope map preserves expanded 314 IDs and current owner override; no historical Run12 scheduling exclusion should remove finance/Health/sync rows.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-03",
+      "criterion": "Plans, interfaces and screenshots alone cannot satisfy a requested working feature. Implement application code, persistent state, meaningful interactions, error handling and executable tests. Where a requirement explicitly allows a foundation, produce a tested contract and actual integration seam rather than an empty class or decorative disabled card. Label full features, foundations, conditional integrations and external blockers separately throughout the run.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Concrete Workers, application controls and persistent browser journeys exist. Final closure must classify conditional foundations separately and await current-source receipts.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-04",
+      "criterion": "Do not upload or instantiate Goal Manager, enable mainnet or testnet financial signing/broadcast, send tokens, stake, claim, swap, trade, grant token approvals, add custody, or activate external investment execution. No seed phrase, wallet private key, recovery phrase, exchange trading credential or financial signature is requested by the implementation agent. The limited authentication-signature feature described later is a distinct user-initiated login capability, never a transaction adapter.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "No financial execution added by inspected diagnostic/UI changes; public-alpha tests retain signerCalls=0. Final low-level release guards remain required.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-05",
+      "criterion": "Implementation, local builds, local/emulated backend migrations, nonproduction tests, scoped draft-branch commits and pushes are authorized when this brief is launched in the owner's execution environment. This brief does not authorize merge, auto-merge, release publication, production deployment, live database migration, new production bindings, DNS/email-domain changes, new public tunnels, billing changes or automatic rollback. Prepare exact commands and required configuration; keep activation awaiting separate owner approval. Do not mistake working local integration tests for an already deployed phone\u2013desktop service.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "ACTIVATION explicitly separates six local bundles from future provisioning and owner approval; PR21 draft is review only.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-06",
+      "criterion": "Prefer the existing repository, approved hosting and maintained libraries. No new paid barcode/scanner subscription, paid authentication plan, paid data provider, paid monitoring service or automatic upgrade. A free tier is not unlimited and does not imply account access or sender verification. Identify any needed owner setup near the start, not only after hours of implementation. Credentials belong in existing secret mechanisms, never prompts, reports, Git, screenshots or NovaVault.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "ACTIVATION records current primary pricing references and owner quota checks, with no purchase authority. Diagnostic change adds no network calls or dependencies.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-07",
+      "criterion": "NovaVault is the owner's project knowledge store, not the database for end-user Health or finance. Do not turn Hermes, n8n, a personal Obsidian vault, the Mac home directory, or an internal service into a public consumer backend. Do not expose local administrative services. Reuse project conventions and approved development tools without activating unrelated automations, changing global shell configuration or performing large speculative dependency/model downloads.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Consumer runtime consists of packaged app and named Workers; NovaVault is documentation-only. No personal lab service enters consumer topology.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-08",
+      "criterion": "The long-term ambition of hundreds of thousands of customers informs portability, cost controls, privacy, responsiveness and migration design. It is not an acceptance claim of demonstrated traffic, sales, regulatory approval or production scale. Test defined synthetic workloads and report the measured envelope. Do not add payments, subscription billing, a token/DAO, social feeds, investment recommendations or medical advice merely because commercialization is a long-term goal.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "ACTIVATION labels 20-friend arithmetic planning and fixture measurements without claiming production scale. Performance envelope still needs final measured receipt.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-09",
+      "criterion": "The owner accepts parking an isolated failure instead of repeatedly burning credits. A failed external logo, camera integration or provider lookup need not stop a storage or mobile improvement. A failing tenant-isolation test, encryption boundary, financial invariant or migration blocks the affected feature and release; it must not be bypassed so a checkbox can turn green. Continue only work independent of that risk, preserve the last good implementation and report the blocker prominently.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Review-found vault/crypto/storage issues are being fixed with regression coverage; final release cannot be labeled ready while safety checks fail.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "GOV-10",
+      "criterion": "Preserve the established space/orbit identity, existing visual assets where suitable, readable bright typography and preferred Habits nebula palette. Substantial navigation, forms, card layout, charts and workflow improvements are authorized. Do not perform a framework rewrite, replace the Goal Engine with AI, swap the app into an unrelated aesthetic or remove working behavior to make screenshots easier. The current baseline is Run #9.2, not the older V2.1 freeze.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#GOV-10",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Run10 palettes, hero, motion, placement and source cards retained; only required diagnostics review flow added by this audit.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-01",
+      "criterion": "Repository: `reyals1111-ux/ZIGoals`. Expected existing branch: `codex/run10-beta-reliability-foundation`. Expected draft PR: `#20`. Last verified remote head: `709816a7e6d0779b45c48d729c69e0eabd671f0e`. Last documented base/main: `95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90`. Verify the actual worktree, local and remote heads, ancestry, uncommitted work, PR state and relevant main divergence. Never reset, delete, overwrite, rebase, force-push or discard owner changes to force this snapshot to match.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Current worktree is codex/run11-completion, source history includes verified preparation. Historical PR20 instruction superseded by merged PR20/new PR21 explicit request; final remote receipt pending.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-02",
+      "criterion": "PRE-RUN #10 is completed foundation work, not the actual product milestone. It includes partial-evidence preservation, typed failures, budget contracts, deadlines/fences, multidimensional acceptance and pure breakers. Local evidence recorded 200 focused and 1,120 total unit tests. Its final implementation build was from `ce5f19a5a64316bc6ddcbe403705f6bccc5b639e`; the later `709816a...` commit was documentation-only. Reuse this tested work; do not rebuild or remove it under a new abstraction without proving equivalent behavior.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Current source retains preparation modules/tests and does not replace Goal Engine. Record prep ancestor in final source receipt.",
+      "source_and_test_references": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-03",
+      "criterion": "Run #9.2 documented deployment `35702856008` passed deployment/security checks. Its recorded Worker is `768673e8-9d39-4022-b1c0-fdd805fa2318`, with rollback `cca2b972-3b40-47a6-affe-1249fe260465`. These are recorded historical release facts, not a fresh runtime observation. `PUBLIC_ALPHA_UNDEPLOYED` means the financial Goal Manager contract is absent, not that the website is absent. Do not restore obsolete \u201cawaiting initial test funds\u201d claims: funding was historically solved, while current balance/upload authorization remain separate facts.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Historical deployment IDs must stay historical. New local build/review source is distinct from unchanged deployed Run10 source.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-04",
+      "criterion": "Final-head-associated Milestone Quality run `35778740348` was successful. Canonical run `35778740375` failed with `environment disagreement`; both build jobs succeeded. Existing comparison found byte-identical 255,532-byte Wasm with SHA-256 `9ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10`, differing runner `imageVersion` values `20260920.314.1` and `20260907.300.1`. The artifacts used synthetic PR merge `f5bf8017250d3463f26c4160984d68975e7975db`, not an approved main release. Verify current evidence before correcting policy.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "CI_EVIDENCE retains original failed environment comparison and exact byte identity; later schema2 allowed metadata difference is tested. New final CI result remains pending.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-05",
+      "criterion": "Read applicable `AGENTS.md`/project instructions; `docs/STATUS.md`; `docs/PRE_RUN_10_HARDENING.md`; `docs/RUN_10_BETA_RELIABILITY_MASTER_PLAN.md` including its final account/runtime addendum; `docs/RUN_9_MARKET_DATA.md`; current Run #9/#9.1/#9.2 reports and deliverables; `docs/RUN_9_BETA_BACKLOG.md`; `docs/RUN_9_1_BETA_BACKLOG.md`; `docs/RUN_8_BETA_BACKLOG.md`; privacy/security/threat-model documents; manual Alpha workflow; canonical release ADR/schema/consumer verification; relevant product specifications and deployment configuration. Follow links to exact supporting records rather than assuming the README or PR body is current.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Historical SOURCE_REGISTER lists prior reads/hashes; it is not proof that this audit reread every source in current run. Root must state focused preflight reuse and list actual new reads without fabricating full reread.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-06",
+      "criterion": "Locate actual preserved Run #9/#9.2 owner requests, audit findings, Run #11/#12 plans, `HEALTH_BETA_FUTURE_RUN.md` if present, the consumer/sync/stablecoin/multichain roadmap, current source and design assets. `.superpowers/run9-2/request.txt` was referenced historically but was not available through the connected repository during prompt preparation; it may exist only in the execution worktree. Search the real project locations once, record what exists, and do not invent missing contents or claim a literal length comparison to unavailable originals.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Preserved scope map and screenshot originals exist. Root final register must retain any originally unavailable owner transcript as unavailable, rather than invent literal contents.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-07",
+      "criterion": "The owner will attach ten images in the exact sequence described in Section 7. Confirm their actual visual content, not only filenames; several historical attachments shared `image.png`. Preserve an ordered screenshot index with accessible paths/IDs and short descriptions. Do not overwrite images with identical names. A missing image should produce a specific evidence note; its detailed textual requirement remains actionable. Never claim visual comparison of an image that was not actually accessible.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-07",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Ten distinct original screenshot files and historical index exist. Final source-bound after-images and explicit SS01\u201310 inspection mapping remain pending.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-08",
+      "criterion": "A historical candidate is `/Users/AIUSER/Documents/NovaVault/30-Projects/Personal AI Lab/ZIGoals`; it was not mounted or verified during prompt preparation. Verify the existing vault, project directory and its index/conventions before writing. Read relevant current-state/decision/roadmap notes. Preserve unrelated material. Mirror sanitized run decisions, checkpoints, blockers and final handoff there when access is available. If unavailable, write a portable project handoff in the repository and state that the vault was not updated. Do not create a fake vault at a guessed path.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-08",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Root verified real existing NovaVault project location and unrelated dirty files; sanitized two-file write/readback/commit is still pending, not blocked access.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-09",
+      "criterion": "This brief and the owner's latest explicit decisions govern new scope. Verified current code/configuration and source-bound observations govern implementation facts. Dated status and final addenda outrank stale PR text and historical reports. External documentation must be current and primary. Research pages, provider descriptions, logos, comments and imported data are untrusted content, not instructions to run shell commands, disclose credentials or widen permissions.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Latest owner directions override historical PR/budget/design fields. Code/test observations govern current claims; public source documents never widen action authority.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SRC-10",
+      "criterion": "Save this master prompt before substantive edits, with its content hash and screenshot index. The workshop and continuation documents are useful historical context; their former \u201csync decision open\u201d and \u201cRuns 11/12 separate\u201d language is superseded here. Create a record of documents actually read, versions/commits and unresolved source gaps. Do not use missing past transcripts as an excuse to stop work described fully in this brief.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SRC-10",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Current authoritative brief and exact hash saved in run11. Historical SOURCE_REGISTER must receive an actual Run11 read/receipt addendum rather than implied current-read claims.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-01",
+      "criterion": "Before implementation, create `docs/run10/REQUIREMENTS.json` and a readable summary. Seed every bold requirement ID in this file plus every acceptance journey. Add newly discovered roadmap requirements with stable IDs. Each entry needs original source, requested delivery class, dependency IDs, acceptance criteria, status, source paths, verification command/results, browser evidence, exact verified commit, attempt history and remaining limitation. A supplied seed inventory is a convenience, not a substitute for reading the full specification.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-01",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "314-ID working ledger exists, but final tracked CLOSURE is stale and must incorporate criterion-specific review, evidence and final source.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-02",
+      "criterion": "Use `NOT_STARTED`, `IN_PROGRESS`, `IMPLEMENTED_UNVERIFIED`, `VERIFIED`, `BLOCKED_EXTERNAL`, `BLOCKED_SAFETY`, `DEFERRED_BOUNDED`, or `NOT_APPLICABLE_WITH_EVIDENCE`. Track owner acceptance, hosted activation and release separately. `VERIFIED` means the stated acceptance criteria were exercised with recorded evidence. Do not relabel a required feature as a foundation after it becomes difficult, count a skip as a pass, or treat an unconfigured production adapter as a working live service.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Final statuses must preserve local implementation vs hosted/inbox/device proof; use explicit boundary fields rather than treating fixture auth as live service.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-03",
+      "criterion": "Map all ten screenshot requests, working sync, every former Run #10/#11/#12 obligation and each applicable backlog item into the ledger. Identify already-delivered functionality and verify/reuse it instead of rebuilding it. Distinguish genuine obsolete items from items that remain blocked. Explain every exclusion with owner instruction, existing verified delivery or evidence. Do not silently remove a difficult item from the denominator of completion.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "All original plus polish IDs remain in SCOPE_MAP; do not drop difficult crypto, sync, migration or mobile acceptance rows to improve aggregate counts.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-04",
+      "criterion": "Follow a dependency graph rather than an arbitrary paragraph sequence. For example, shared domain IDs and migration contracts precede synced widgets; safe transaction semantics precede financial-history merge. A dependency that is implemented but unsafe cannot support a \u201cverified\u201d descendant. Independent work can continue when a different branch of the graph is blocked. Keep the manifest current after each coherent slice, not merely at the end.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Validator refuses VERIFIED rows with unresolved dependencies. Final reconcile must also check semantic dependency safety, not only IDs.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-05",
+      "criterion": "Passing many existing unit tests is baseline regression evidence, not proof that a new feature exists. Each requested feature needs its own observable user behavior and failure-state coverage. A screenshot is not persistence evidence, a mocked browser context is not a real iPhone test, and a local SMTP inbox is not proof of external email delivery. Report these levels explicitly so the owner can tell what is usable and what still needs setup or device acceptance.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Feature-specific package/browser/runtime tests exist; use their actual assertions, not suite counts, as acceptance. Source-bound final reruns pending.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-06",
+      "criterion": "Implement a lightweight validator that reads the ledger, rejects missing/duplicate IDs, unknown statuses, unresolved dependencies for verified items and missing evidence references. For every required item not verified, require a blocker/defer record and final-report inclusion. Validate counts by workstream and delivery class. It must not fake semantic verification, but it should prevent accidental omission, nonexistent evidence paths and misleading aggregate \u201call done\u201d statements.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "closure-check rejects duplicate/missing IDs, statuses, missing paths and unresolved verified dependencies; nine validator tests exist. It explicitly cannot assess semantic completeness.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-07",
+      "criterion": "Use an available independent reviewer/context with the exact brief, ledger, source diff and evidence. Ask specifically for lost scope, misleading completion claims, mobile regressions, fake integrations, unsafe migration, cross-account leakage and accounting changes. Reviewer suggestions do not independently authorize new scope. If no independent review capability exists, perform a separate structured review and label it self-review rather than inventing an independent audit.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "This independent context reviewed assigned exact criteria and source/tests; helper contexts review product/crypto. Preserve findings and resolution receipts, including PERF06 correction.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "TRC-08",
+      "criterion": "Any source change after a verification pass invalidates affected evidence until retested. Record the implementation SHA, build-source SHA, final documentation SHA, CI-tested ref and deployed ref separately. A final docs-only commit may refer back to a verified implementation SHA, but it must not claim that an earlier build attests to future code. Do not infer a release artifact's source from a branch name or an unchanged Wasm hash.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#TRC-08",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Late backup/crypto/diagnostics/package changes invalidate affected old-source evidence. Keep implementation/build/docs/CI/deployed identity distinct.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-01",
+      "criterion": "Allocate a substantial session to implementation across all workstreams. Do not finish after planning, a UI polish slice or reliability alone while core sync, history and personalization remain unattempted. Use the available execution window productively and proceed autonomously within this brief. There is no mandatory sleep or runtime padding. If scope is genuinely verified early, finish; if usage or an external gate interrupts it, provide a precise partial handoff rather than declaring the milestone complete.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Extended completion run has integrated concrete runtime, daily-use and recovery work; no arbitrary budget threshold used.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-02",
+      "criterion": "Aim to retain approximately one quarter of planned effort for integration, browser testing, independent review, corrections and recovery documentation. This is an effort allocation, not a known model-credit formula. Do not claim access to a weekly usage meter that is unavailable. Use any actual usage notifications to checkpoint early. The owner is willing to use the reset allowance, but completion quality and preserved work matter more than exhausting it.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Final integration/review/recovery is active; no inference about new reset or backup balance is needed.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-03",
+      "criterion": "On an unexpected isolated blocker, capture the smallest reproducible case and classify it. Default budget: one focused diagnosis and one targeted repair, generally no more than about 20 minutes without demonstrable progress; external capability/setup probing should usually stop sooner. One materially different supported alternative is allowed when evidence justifies it. Repeating the same failed command, refreshing CI, or retrying the same unavailable service is not a new attempt. Record the spent effort and park unresolved work.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Root records bounded external/local failures and corrective evidence. Do not resurrect the old three-cause repair cap.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-04",
+      "criterion": "An expected red test during implementation, a straightforward compiler error or a regression with a clear cause can be corrected normally. The retry budget limits stalled investigation and speculative rewrites, not ordinary development feedback. It must not become an excuse to abandon every feature on its first failing test. When a sequence stops producing new evidence or improvements, invoke the blocker policy instead of persevering indefinitely.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Expected red-green crypto/backup/diagnostic regression development is productive iteration; do not misclassify it as stalled repeated probing.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-05",
+      "criterion": "For each parked item, record the requirement ID, failure symptom, minimal reproduction, attempted fixes, evidence, dependency impact, current safe fallback and exact next step. Remove or feature-gate incomplete code that destabilizes working flows; retain a safe branch/patch if needed. Do not ship half-migrated data or disable validations. Reopen a parked item at most once during integration if genuinely new evidence or a completed dependency changes its prospects.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Owner external setup is separated in ACTIVATION; any actual internal mandatory gap must remain visible until fixed or safely blocked.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-06",
+      "criterion": "After each coherent tested slice, and before risky migrations or broad refactors, create a durable source checkpoint. A practical target is a meaningful checkpoint every 20\u201330 minutes of active changes, without making empty commits to satisfy a clock. Scan staged content for secrets and sensitive user data before committing/pushing. Push to the existing draft branch when authorized and available; confirm remote SHA. Do not wait for every workflow to finish before preserving the next independent slice.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Git history has tested checkpoints. Final remote SHA push/verification pending; source commits alone do not preserve ignored evidence.",
+      "source_and_test_references": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-07",
+      "criterion": "Maintain `docs/run10/RESUME_STATE.md` with exact local/remote source, active worktree, completed IDs, current incomplete slice, commands last run, known failures, environment prerequisites, next three actions and locations of safe backups/evidence. Update it before long-running commands, at each checkpoint, before context compaction and after a blocker. An abrupt process stop may occur before a final message; the filesystem state must already be enough to resume without reconstructing the entire run.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-07",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "STATE exists with current checkpoints but final implementation and remote identities/next commands must be refreshed after late fixes.",
+      "source_and_test_references": [
+        "scripts/run11/domain-deletion.test.mjs",
+        "apps/web/lib/vault/forward-recovery.test.ts",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-08",
+      "criterion": "Git commits protect tracked source, not uncommitted code, database contents, ignored test evidence or user browser data. Preserve an incremental safe patch/bundle for uncommitted project work in an ignored recovery location where useful. Maintain migration backups separately. Never include `.env`, production credentials, decrypted vault content, Health records or wallet secrets in public artifacts, Git bundles shared outside the local private boundary, or NovaVault notes. Label each backup's coverage and restore procedure.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Source archive is separate from private-data encrypted backup. source-recovery excludes secrets; browser restore exercises fictional records only.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-09",
+      "criterion": "Continue the established draft branch unless the actual environment requires a documented safe worktree arrangement. Do not start a competing PR, merge PR #20, mark it ready for review automatically or force-push. If unrelated owner edits exist, preserve them and use an isolated worktree without discarding them. If remote/main changed incompatibly, stop only source integration that cannot be done safely and report the exact divergence; do not manufacture a clean starting point.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Isolated new branch is explicitly authorized by latest request; PR20 merged must remain untouched; PR21 remains draft.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-10",
+      "criterion": "Available independent agents may review or implement disjoint areas after shared interfaces are fixed. Give each explicit files, acceptance IDs and no overlapping schema/shared-file ownership. Keep a single integration authority. Do not spawn unbounded agents, duplicate full-repo reads, allow concurrent migrations or send private data to new model providers. If subagents are unavailable, use the same workstream plan sequentially and do not claim otherwise.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-10",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Disjoint agents have explicit ownership; this audit owned six diagnostic/test files only and root retains integration authority.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-11",
+      "criterion": "Use deterministic fixtures and local/emulated services for most tests. Where existing project authority and credentials allow it, limit controlled public market sampling to a small documented run-wide budget, proposed maximum 24 CoinGecko upstream attempts, including failed requests/retries/fallbacks, with at most six attempts/minute or any lower enforced limit. No live load testing, continuous polling or unapproved broad crawling. Stop on throttling, access denial or unclear credential scope; record the boundary. These are diagnostic limits, not invented provider entitlements.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-11",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Package tests intercept upstream requests and use fixture data; no new live call is needed for this audit or support preview.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "RUN-12",
+      "criterion": "During preflight, emit one consolidated list of missing backend bindings, email-sender configuration, account access, approved test recipients and real-device actions. Continue implementing and testing independent local pieces while waiting. Do not repeatedly ask the same question or use a live service without authority. Core sync that lacks necessary configuration stays visibly blocked for hosted use, even if local integration works. Do not downgrade its required status to hide that fact.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#RUN-12",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Eight owner activities are already consolidated for after run. Do not request repeated setup or turn fixture success into hosted delivery.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-01",
+      "criterion": "Run the current app in an isolated profile and inspect every route, main dialog and major interactive surface: landing, Today, Goals list/create/detail, Funding Wealth, Wealth, asset add/edit/detail, Markets/detail/favorites, Stake/Positions, Habits/history/editing, Health/diary/recipes/trends, Activity, Ecosystem, Settings, Showcase, wallet diagnostics and all new auth/sync/recovery screens. Build a route/control inventory recording purpose, visible state, expected action and present friction. Do not infer usability from component names alone.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-01",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Acceptance documentation gap: existing independent review explicitly labels route list existence-only. Build a route/control inventory from actual inspected current route/dialog states, purpose, actions and friction; tests alone cannot claim visual inspection of every surface. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-02",
+      "criterion": "Spend a bounded initial design pass comparing two or three credible directions using the established ZIGoals theme and owner screenshots. Select one with rationale, layout hierarchy, shared primitives and end-to-end journeys. Add up to several high-value improvements discovered by the audit, each with its own ID and acceptance. Do not endlessly generate alternatives, replace mandatory requirements with personal taste, or spend the run producing mockups instead of functioning UI.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Current user forbids redesign; preserve chosen Run10 direction and reference existing decisions. No new brainstorming pass needed.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-03",
+      "criterion": "Follow a first-time user from onboarding through first Goal/Habit/Health entry, dashboard customization, editing/correction, reload, phone\u2013desktop sync and recovery. Follow a returning user through today's tasks, stale prices, unavailable network, an unfinished form and a second account. Test cancellation, double-clicks, back/forward navigation, keyboard entry and unsuccessful saves. Action outcomes must be understandable without technical project knowledge.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Package/account/goal-draft/recovery failures exercise real journeys, edits, cancellation, persistence and failure preservation. Final exact-source suite pending.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-04",
+      "criterion": "Keep Funding Wealth as the current consumer term. Explain tracked/manual, watch-only, current value, contribution, recorded income, estimated scenario and unavailable evidence in context. Do not present APR as guaranteed return or a funding contribution. Put secondary explanation in accessible details rather than stacking every qualifier inside a tiny mobile row. Essential limitations remain adjacent to the metric they qualify, not hidden in a generic disclaimer.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Funding Wealth remains consumer term; evidence chart explicitly labels illustrative lines, first observation, units/gaps. Verify final captions visually rather than altering arithmetic.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/positions-view.tsx",
+        "apps/web/app/app/settings/page.tsx",
+        "apps/web/components/habits/habit-card.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-05",
+      "criterion": "A new account, Health-only preset, single history observation, no wallet, unavailable logo, paused Habit and missing quote should all look intentional. Give each state an appropriate next action without manufacturing data. Showcase stays an optional, visibly fictional exploration mode. Never auto-populate a real account with demo balances, nutrition history or simulated investment returns to make the app appear complete.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Health-only/no-record presets, locked account, missing source and unavailable quote tests exist; final image inspection must include empty/error states.",
+      "source_and_test_references": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/ecosystem-directory.tsx",
+        "apps/web/lib/account-isolation.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-06",
+      "criterion": "The primary slogan remains two lines: `Today's Goals, Habits & Health` and `= Tomorrow's Wealth`. Keep `Today's Goals,` and `= Tomorrow's` bright/light; use the same continuous preferred nebula spectrum for `Habits & Health` and `Wealth`. Retain `Your Financial Orbit` as supporting identity and `The Goal Layer for ZIGChain` in appropriate ecosystem context. Do not reintroduce competing prominent slogans or the washed-out italic sidebar treatment.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Shared visuals tests inspect exact hero and absence of topbar Quick Add; established slogan and palette retained.",
+      "source_and_test_references": [
+        "apps/web/components/orbit-slogan.tsx",
+        "apps/web/components/platform/run92-product.css",
+        "apps/web/components/shell.tsx",
+        "apps/web/lib/run10-motion.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-07",
+      "criterion": "Consolidate controls, form labels, validation, dialogs/drawers, tabs, state badges, numeric formatting, progress, chart legends, save/sync states and action spacing. Fix root layout problems rather than adding per-page absolute offsets. Reuse existing accessible primitives where possible; justify every new dependency against functionality, maintenance, license and bundle cost. Do not add a second full design library for one dropdown.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Shared chart/motion/diagnostics/widget primitives reused; diagnostics fix adds no dependency. Existing forms are not rewritten merely for stylistic uniformity.",
+      "source_and_test_references": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/visual-format.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/motion.css",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "UX-08",
+      "criterion": "Customization should reduce work, not create another complex editor users must learn. Default presets must be useful immediately, with progressive disclosure for advanced configuration. Critical data-integrity and sync failures cannot be hidden by a widget preference. Keep prominent actions few and contextual. Navigation should work for different interests without assuming a Health user needs staking or a wealth tracker wants nutrition prominently displayed.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#UX-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Preset interest domains gate financial requests and widgets; integrity warnings are independent. Root four-layout cross-client acceptance closes remaining integrated proof.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/components/shell.tsx",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-01",
+      "criterion": "The reference ring shows `65.00%`; render `65%`, and render `45.00%` as `45%`. Use nearest-whole, half-up presentation for nonnegative progress: 0.49\u21920, 0.50\u21921, 0.51\u21921. Preserve exact stored values and calculations; do not round financial rates, quantities or prices by this rule. For a completion-style Goal below its real target, avoid a false completed-looking 100%: cap its whole-number label at 99 until actual completion, with exact detail available. A value that genuinely rounds to 0 can still have a small meaningful arc; missing data is an unavailable state, not zero. Fill clockwise from the top once on route entrance, with final accessible value immediately available and reduced-motion support. Test boundary, missing, negative where invalid, zero, complete and over-target cases.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Goal ring assertion45% and settled --ring-reveal=100%; visual unit boundary cases preserve exact values. New final screenshot must wait entrance settlement.",
+      "source_and_test_references": [
+        "apps/web/lib/visual-format.ts",
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/platform/financial-ui.css",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/lib/run10-motion.test.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-02",
+      "criterion": "Fix mismatches between colored legend dots and the chart segments/bars they describe. Introduce a stable category/series style map shared by chart, legend, tooltip and accessible data table. Asset-category colors stay stable under sorting, filtering, reload and theme layout changes. Single-series progress can use the full nebula gradient; multi-category composition needs distinguishable corresponding colors/segments rather than every category sharing an indistinguishable rainbow. Preserve the owner-preferred Habits palette and readable labels. Display rounding may cause category labels not to total exactly 100; do not mutate the underlying proportions to hide this. Add cross-component tests and before/after screenshots.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Shared chart/legend colors and gradient unit tests preserve category mapping. Final chart screenshot mapping remains pending.",
+      "source_and_test_references": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/components/goal-card.tsx",
+        "apps/web/lib/wealth.ts",
+        "apps/web/lib/wealth.test.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-03",
+      "criterion": "Remove Quick Add from the top wallet/connect bar so it no longer stretches that strip. Integrate it into a designed desktop sidebar/navigation action and a purposeful mobile action/navigation area, not a button pasted onto the dashboard background or covering content. Reuse working add flows and offer contextual choices where useful. Preserve keyboard shortcuts where present, focus return, Escape/cancel, accessible names, dialog scrolling, consumed URL intents and repeated same-page invocation. Ensure it never opens a financial signing action or modifies records merely by opening the chooser. Test with wallet disconnected/connected and on very narrow screens.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Quick Add is navigation-owned; tests assert absent topbar control, repeated dialog opening, Escape/focus return and route intents.",
+      "source_and_test_references": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/navigation.css",
+        "apps/web/components/quick-add.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-04",
+      "criterion": "Replace the visually disconnected Goal-type native dropdown/plain-blanks experience with theme-consistent selection cards and progressive setup. Include meaningful type descriptions, category/artwork choices, a canonical asset/currency picker, understandable target/date/plan inputs, optional Habit links and a live summary/review. Show only relevant fields for Quantity, Value, Reward/Income and Project Goals. Native controls may remain where they provide better device accessibility, but must be coherently styled; custom pickers must work with keyboard, touch and assistive technology. Preserve exact units, validation, data schemas and local/watch-only distinctions. Creating a Goal never transfers funds. Test all types outside Showcase, not only a rendered example.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "All four Goal types created outside Showcase with preview and validation; native advanced selectors explicitly permitted when coherently styled. Final zoom controls still need acceptance.",
+      "source_and_test_references": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/platform/asset-picker.tsx",
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/unified-goals.spec.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-05",
+      "criterion": "Audit every page using the sparse large-dot history treatment and replace it with an appropriate line/area/step chart in the preferred nebula palette. Use actual observation times, provenance, gaps and units. Do not fabricate points, resample missing personal history into invented values, make every line smoothly rise, or imply a portfolio return from a market chart. Zero points gets an empty state; one point gets an attractive first-observation summary; two points show only the true endpoints and an explicitly illustrative connecting segment when suitable. Use point markers mainly for selection/hover if helpful. Keep exact-value accessible tables, suitable scales, readable date/value axes, currency separation and one-time draw-in motion.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "EvidenceChart uses actual timestamps, gaps, zero/one-point states, illustrative lines, currency and exact-value table; motion recording keeps table exact during entrance.",
+      "source_and_test_references": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/components/platform/price-chart.tsx",
+        "apps/web/components/platform/goal-intelligence.tsx",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/lib/run10-visuals.test.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-06",
+      "criterion": "Reconcile the existing registry with current official ZIGChain ecosystem and individual official project sources. Build a dated coverage manifest, official logo/source records, concise attributed self-descriptions or sourced paraphrases, useful categories, filter/search, verified external website/app/docs links and informative detail cards. \u201cZIGChain ecosystem project\u201d is not \u201cZIGoals partner\u201d; \u201cResearch only\u201d is not \u201cintegrated\u201d or \u201caudited.\u201d Make external destinations usable while keeping execution disabled. Add appropriate contextual links such as Open OroSwap on financial surfaces and staking-provider discovery on Stake/Positions, with optional Today widgets rather than financial links imposed on Health-only users. Do not invent logos, affiliations, APYs or live capability claims. Unavailable assets get honest fallbacks.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Ecosystem source registry/logos, safe links, filtering and mobile tests retained. Contextual financial/staking link evidence is delegated to product review, not inferred from directory alone.",
+      "source_and_test_references": [
+        "apps/web/components/ecosystem-directory.tsx",
+        "packages/ecosystem-registry/src/directory.ts",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-07",
+      "criterion": "Remove the mismatched cursive/italic block shown in the reference, or replace it with a compact, coherent treatment using the established font and stronger palette only if that improves the composition. Prefer less competing copy. Preserve useful orbital artwork, sidebar navigation clarity, selected-state visibility and spacing across desktop/mobile. Do not add another large marketing slogan that competes with the exact primary hero.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Historical italic sidebar removed; root inspected current sidebar image. Final indexed source identity remains pending.",
+      "source_and_test_references": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/navigation.css",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-08",
+      "criterion": "Move the whole-life summary above the \u201cWhat matters today\u201d/attention block as the first functional dashboard section. Improve its hierarchy, number formatting, icons and useful coverage of Goals, Habits, Health, Wealth and optional Stake/Positions. Deliver real user-configurable widgets, not hardcoded cards disguised as customization: catalog, chosen entity/metric, suitable size, order, hide/show, reset and useful presets. A user can build Health-only, Habits+Health, Wealth-only or balanced dashboards and pin particular Goals, Habits, assets or Positions. Persist and sync layout/preferences, preserve local-only mode, support non-drag reordering, isolate Showcase, and handle archived/missing entities. Reference canonical records rather than copying balances. Fix the apparently empty Health icon slot and ungrouped large currency figures. Keep essential integrity warnings attached to affected values.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Personalized summary, placements and source-bound widgets retained. Root testing four distinct layouts through real sync/backup; final screenshot mapping pending.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/lib/vault/account-data.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-09",
+      "criterion": "Introduce the beautiful slogan/orbit with a brief, lightweight reveal that feels like it comes into view. Preserve the exact copy, composition and existing brand. No forced splash screen, long intro gate, looping orbit, continuous spinning, autoplay video/audio or heavy WebGL background by default. Content and buttons must be available immediately. Animate once on a documented route/session entrance, not each rerender, quote refresh, widget edit or tab return. Respect reduced motion and an app preference. Coordinate hero, chart and progress entrances so the dashboard feels alive briefly, then rests. Do not represent decorative animation as actual network progress.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Entrance hook is per-mount/visit, visibility gated and reduced-motion aware; recorded test checks no replay on quick-add interaction. Do not claim global once-per-session behavior.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/app/product-v2.css",
+        "apps/web/app/visual-v21.css",
+        "apps/web/components/motion.css",
+        "apps/web/components/use-entrance.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "SS-10",
+      "criterion": "Treat the overlapping Habit text/control example as a shared-layout defect and a mobile release blocker, not a request to shorten just the sample names. Replace desktop row assumptions with deliberate mobile label/metric/action grouping. Let containers grow; remove conflicting fixed heights, absolute positions and cramped columns where responsible. Move redundant secondary detail behind accessible expansion while retaining important status, units and warnings. Do not hide overflow, clip values or shrink functional text until screenshots pass. Test 320/360/390/430 CSS px, tablet and desktop, long titles, large exact values, enlarged text, browser zoom/reflow, virtual keyboards, dialogs, landscape and safe areas. Verify real actions and visible controls, not only bounding boxes of outer cards.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#SS-10",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Actual overlap/44px controls tests at320/360/390/430/768/1440 and wealth1024 exist; enlarged Habit text125% tested. Local browser zoom/landscape/short-height keyboard surrogate sweep is still missing; physical keyboard/safe-area remains owner acceptance. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/components/habits/habits.css",
+        "apps/web/components/dashboard/dashboard.css",
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "apps/web/tests/coherence.spec.ts",
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-01",
+      "criterion": "Add locale-aware display grouping for large money values and useful compact variants, while preserving exact decimal strings/integer-unit math and explicit currency. Do not silently convert USD/EUR or parse localized display text back into arithmetic. Choose defensible precision by metric: whole progress labels, suitable currency display, token quantity precision and exact-value detail. Test decimal commas, narrow layouts, very small prices, negative corrections, zero, unknown values and copy/export precision.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "visual-format and financial exact tables preserve stored integers/currencies; final test-source mapping needed, no numerical change requested.",
+      "source_and_test_references": [
+        "apps/web/lib/visual-format.ts",
+        "apps/web/lib/goal-summary.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/lib/dashboard-metrics.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-02",
+      "criterion": "Centralize motion duration/easing/reduced-motion behavior. Use short entrance transitions, primarily opacity/transforms or bounded SVG drawing, and finite progress animation. Preserve final semantic values during animation and avoid announcing every intermediate number to screen readers. No perpetual shimmer after data is available, no animation-induced layout shift and no accessibility failure when animation is disabled. Keep controls usable during transitions and avoid replay caused by ordinary React rerenders.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "useEntrance centralizes intersection entrance and motion preference; motion recordings assert start/mid/end and stable exact data.",
+      "source_and_test_references": [
+        "apps/web/components/motion.css",
+        "apps/web/components/use-entrance.ts",
+        "apps/web/components/motion-preference.tsx",
+        "apps/web/app/product-v2.css",
+        "apps/web/lib/run10-motion.test.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-03",
+      "criterion": "Create reusable chart adapters for observations, discrete events, category composition and progress. Data semantics determine the chart, not a desire for a smoother shape. Distinguish missing, stale, partial and complete series; gaps and single observations are first-class cases. Accessible labels/table data must match the graph exactly. Avoid zero-baseline assumptions that conceal meaningful variation or truncated axes that exaggerate change; choose and explain scales appropriate to the metric.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "EvidenceChart empty/one/multiple/gap/invalid cases retain exact tables and explicit10% scale padding; no invented history.",
+      "source_and_test_references": [
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/components/platform/price-chart.tsx",
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-04",
+      "criterion": "Consolidate field labels, descriptions, error placement, required/optional states, input modes, dates, submit/loading states and cancel behavior. Make errors actionable without clearing valid input. Prevent duplicate submission with idempotency rather than only disabling a button. Successful writes show truthful saved/sync-pending feedback; a toast cannot imply server persistence when only a local draft exists. Validate dynamically revealed fields and preserve input through recoverable navigation/network failures.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Goal draft tests guard discard/reload; recovery-failure tests prove unsuccessful append has no false success and retains independent usable stores. Root integrated package exercises repeated enrollment/idempotency.",
+      "source_and_test_references": [
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/components/health/health-app.tsx",
+        "apps/web/components/account-access.tsx",
+        "apps/web/components/use-private-store.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-05",
+      "criterion": "Maintain strong contrast, visible focus, semantic headings, descriptive labels, keyboard operation, sensible reading order, touch targets and reduced-motion behavior. Do not rely on color alone, hover-only information or drag-only controls. Keep functional text at the established readable scale; do not solve density by making essential text tiny. Use automated checks plus manual keyboard/zoom inspection, and do not claim formal accessibility certification from those tests.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-05",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Keyboard/Escape/44px/enlarged-text checks exist. Concrete local acceptance gap remains browser zoom/landscape/short-height form actions; no formal accessibility certification claim. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "apps/web/tests/health-daily.spec.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "VIS-06",
+      "criterion": "Styling changes must not change wallet connection semantics, private-store ownership, financial arithmetic or sync behavior. Shared components need empty/error/large-data tests. Logos/icons should be safe local assets or tightly validated sources with fallbacks; do not loosen CSP broadly to load arbitrary third-party assets. Keep custom chart SVGs and imported brand assets free of active scripts and external references that bypass asset validation.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#VIS-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Public-safety tests preserve nonce/CSP, no-store and financial guard; logo sources stay bounded. No private store or arithmetic changes made by visual audit.",
+      "source_and_test_references": [
+        "apps/web/components/platform/financial-ui.tsx",
+        "apps/web/lib/visual-format.ts",
+        "apps/web/lib/account-isolation.test.ts",
+        "apps/web/lib/goal-provider.test.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "CI-01",
+      "criterion": "Inspect current canonical workflows, environment capture, manifest schema, comparator, candidate verification and deployment consumers. Compare current artifacts/logs for the recorded mismatch rather than assuming all future failures have the same cause. Preserve full source/ref identity and actual byte/hash/size checks. An identical contract artifact on an old source is not authorization for a newer source or proof that later validation stages completed.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#CI-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Historical CI_EVIDENCE preserves actual failure, artifacts and exact provenance; compare/build/verify source policy retained, not relaxed by Run11.",
+      "source_and_test_references": [
+        "scripts/release/build.mjs",
+        "scripts/release/manifest.mjs",
+        "scripts/release/verify.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "CI-02",
+      "criterion": "Choose and document either an actually immutable/digest-pinned relevant build environment, or a reviewed separation between build-critical inputs that must match and host-runner metadata retained as evidence. Verify all affected consumers/schema transitions. Do not delete the entire environment check, accept arbitrary toolchain differences, rewrite stored evidence, mark a failed workflow passed or rerun until GitHub randomly supplies matching host images. An environment-policy correction must be a narrow auditable change.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#CI-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Schema2 moves only ImageVersion to each builder runner provenance; remaining environment equality remains enforced. No broad environment check removed.",
+      "source_and_test_references": [
+        "scripts/release/build.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "CI-03",
+      "criterion": "Prove allowed noncritical metadata differences are handled as specified while different source/tree/lockfile, toolchain, build parameters, artifact bytes/hash/size and invalid manifests still fail. Preserve rerun of the required validator and downstream source verification. Retain both builders' provenance rather than copying one environment over the other. Include backward compatibility or explicit rejection for old manifest versions and document the transition.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#CI-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "manifest.test has positive independent images and negatives for source/tree/lock/toolchain/bytes/hash/size/versions/unknown fields; final-source CI suite needs receipt.",
+      "source_and_test_references": [
+        "scripts/release/manifest.test.mjs",
+        "scripts/release/verify.test.mjs",
+        "scripts/prepare-deployment.test.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "CI-04",
+      "criterion": "Canonical reproducibility, attestation, source approval and deployment permission remain distinct. No contract upload is performed. Pin existing actions/toolchains as required and avoid broad upgrades during the fix. Keep credential permissions least-privileged. Inspect hosted CI at meaningful checkpoints and final handoff, not in a repeated polling loop; report actual running/failing status when it has not completed.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#CI-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "NOT_APPROVED reproducibility remains separate from deployment/source approval. No contract upload authorized; bounded final hosted check pending.",
+      "source_and_test_references": [
+        ".github/workflows/reproducibility.yml",
+        ".github/workflows/release-candidate.yml",
+        ".github/workflows/deploy-alpha.yml",
+        "scripts/release/verify.mjs",
+        "scripts/prepare-deployment.mjs",
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-01",
+      "criterion": "Check the complete app at 320, 360, 390 and 430 CSS-pixel widths and at representative tablet/desktop widths including 768, 1024 and 1440. Use responsive structure, not screenshot-specific offsets. Mobile navigation/actions, keyboard-open states, safe areas and dialog scrolling must work. Keep the excellent desktop functionality while simplifying mobile hierarchy. No essential action may disappear behind a fixed footer or on-screen keyboard.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-01",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Widths covered across existing tests including1024 in wealth. Root should add local landscape/short viewport form/dialog visibility as available surrogate; physical keyboard is external owner check. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-02",
+      "criterion": "Use long Goal/Habit/asset names, large grouped numbers, very small prices, custom units, multi-line errors, translations/locale variation where supported, and enlarged text. Detect actual text/control overlap and clipping in addition to document-level overflow. Do not turn every label into an ellipsis with inaccessible full meaning. Accessible details can hold secondary material, but principal values, action names, units and warnings remain readable.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Long Habit titles/units and125% enlarged text plus large Goal collection and exact values covered. Final route-wide zoom inspection remains pending. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/lib/run10-visuals.test.ts",
+        "apps/web/components/dashboard/dashboard.css",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-03",
+      "criterion": "Preserve initial focus, focus trap where appropriate, Escape/cancel, return focus, labels, keyboard selection and screen-reader structure. Searchable asset/food pickers need predictable typing/navigation and no accidental submit. Mobile drawers need clear close/back and scroll behavior. Native date/numeric controls may be retained where they are the safest device experience, styled coherently instead of replaced for appearance alone.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-03",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Native dialog Escape/focus and keyboard selection covered; widget editor close and Goal creator cancellation retained. Need zoom/short viewport review for accessible actions. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "apps/web/components/quick-add.tsx",
+        "apps/web/components/platform/asset-picker.tsx",
+        "apps/web/components/unified-goal-wizard.tsx",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-04",
+      "criterion": "Offer interest selection, a useful dashboard preset, a first useful action, local-only versus encrypted-sync choice and clear data-location/recovery explanation. Do not force a wallet or health disclosure. Existing users keep their data and can skip onboarding. Settings should make account, sync, devices, backup/recovery, units/timezone, motion, visual privacy and Showcase controls understandable without exposing internal development terminology.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "First-run preset selection persists and Health-only needs no wallet; Settings privacy/backups/account remain reachable. New protected backup inventory is independently being completed.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/app/app/settings/page.tsx",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/components/motion-preference.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-05",
+      "criterion": "Distinguish signed-out local-only, authenticated locked vault, syncing, offline pending, Showcase and watch-only wallet/network states. A user must not confuse fictional Showcase values with their synced account or a wallet connection with sign-in. Account switching should not leave the previous person's summary visible. Wallet reload/reconnect behavior remains deliberate, and login must not silently invoke a financial signer.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Cold account lock and account-switch tests prevent identity leakage; authenticated Showcase isolation checks exact local storage/IndexedDB and zero private requests.",
+      "source_and_test_references": [
+        "apps/web/components/shell.tsx",
+        "apps/web/components/goal-provider.tsx",
+        "apps/web/components/account-access.tsx",
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/tests/run10-account-access.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/components/workspace-status.tsx",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "MOB-06",
+      "criterion": "Capture and inspect representative mobile/desktop screenshots and short motion evidence for the relevant requirements. Run keyboard and reflow checks with content at useful zoom/text sizes. Browser emulation does not prove physical Safari/Chrome camera, passkey, wallet or storage behavior; record actual device checks separately. If a real device is unavailable, provide the exact remaining checklist without saying it passed.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#MOB-06",
+      "disposition": "ADDED_LOCAL_ACCEPTANCE_FINAL_RECEIPT_PENDING",
+      "finding": "Root has inspected representative actual screenshots, recorded motion exists; final manifest and zoom inspection remain local tasks. Physical Safari/Chrome is explicitly not established by Chromium. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-01",
+      "criterion": "Record representative cold/warm route timings, bundle/chunk sizes, render work, layout shift, memory and relevant Workers CPU/network behavior in the available environment. Compare like with like and document sample size/configuration. Do not claim a production CPU improvement from a local development build or a single cached request. Attribute response-stream cancellation diagnostics before deciding on a framework adapter change; do not randomly upgrade the whole stack to remove a warning.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-01",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Final same-condition browser timings/heap/CLS/resources and bundle measurements pending. Existing baseline has configuration; report warm server/fresh-context vs repeated navigation honestly, no Worker CPU claim from local timing.",
+      "source_and_test_references": [
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/measure-alpha-performance.test.mjs",
+        "scripts/run11/market-fanout.test.mjs",
+        "scripts/run11/incremental-sync.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-02",
+      "criterion": "Reuse derived selectors, bound chart work, lazy-load heavy optional editors/scanners and avoid re-rendering the entire page for every timer tick or quote update. Offscreen widgets should not cause repeated remote requests. Debounce appropriate UI updates without losing committed data or delaying meaningful feedback. Detect duplicate cache/admission work during navigation and multiple simultaneous widgets. Preserve actual values during optimization; performance changes cannot relax validation.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Quote hook shares one cache/timer, ticks local aging only, refreshes on mounts/identity/explicit action; scanner decoder dynamically imported only on scan. Dashboard recomputes selectors on render and EvidenceChart renders supplied points; do not claim measured render optimization without profiling. Final representative load/heap evidence required.",
+      "source_and_test_references": [
+        "apps/web/components/dashboard/today-dashboard.tsx",
+        "apps/web/lib/dashboard-settings.ts",
+        "apps/web/components/platform/use-market-quotes.ts",
+        "apps/web/components/platform/evidence-chart.tsx",
+        "apps/web/lib/market-catalog-client.ts",
+        "apps/web/components/health/barcode-food-lookup.tsx",
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/run11/market-fanout.test.mjs",
+        "scripts/run11/incremental-sync.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-03",
+      "criterion": "Implement installability/offline-shell support where compatible with the existing app and useful for the owner\u2019s phone. Keep the correct name/icons/theme and an honest install help experience. Do not claim native HealthKit/background behavior from PWA installation. Avoid adding a service worker purely for marketing if its update/cache strategy is unsafe. If existing PWA infrastructure is present, improve it rather than creating competing registrations.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-03",
+      "disposition": "CONDITIONAL_DEFERRED",
+      "finding": "PWA is explicitly conditional/deferred; no service-worker implementation is needed merely to satisfy marketing/installability. Owner phone native behavior remains unclaimed.",
+      "source_and_test_references": [
+        "apps/web/app/layout.tsx",
+        "apps/web/next.config.ts",
+        "apps/web/middleware.ts",
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/run11/market-fanout.test.mjs",
+        "scripts/run11/incremental-sync.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-04",
+      "criterion": "Never cache private authenticated responses or decrypted vault contents in a shared service-worker/CDN cache. Define app-shell/public-data caching separately from private local storage. A new version must not activate destructively over unsynced old-schema work. Test stale shell, offline startup, update available, controlled reload and protocol mismatch. No broad `skipWaiting`/cache purge pattern that discards drafts or mixes incompatible app versions without a safety plan.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Private adapter/Worker replies and upstream are no-store; historical client test preserves newer fields/pending work. Service-worker-specific startup/update cases are conditional because none is registered; do not defer the mandatory private cache/schema protection itself.",
+      "source_and_test_references": [
+        "apps/web/middleware.ts",
+        "apps/web/lib/server/private-account.ts",
+        "workers/private-sync/worker.mjs",
+        "apps/web/lib/vault/cloud-sync.ts",
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/run11/market-fanout.test.mjs",
+        "scripts/run11/incremental-sync.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-05",
+      "criterion": "Provide measured small/friends-Alpha assumptions for sync traffic, encrypted storage, provider calls, email sends and logs, with sources for platform limits where relevant. Distinguish included allowance from genuinely free unlimited use. Avoid background tasks that run per user indefinitely without need. Configure limits and backpressure so unexpected traffic fails safely rather than producing runaway bills or exposing private data. New billing or paid tiers remain owner decisions.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "ACTIVATION has sourced quotas, admission limits and measured delta/request fixture planning. Actual friend capacity remains conditional on observed hosted usage; included allowance is not unlimited.",
+      "source_and_test_references": [
+        "apps/web/components/vault-sync-controls.tsx",
+        "apps/web/lib/server/private-account.ts",
+        "workers/private-sync/worker.mjs",
+        "workers/food-lookup/worker.mjs",
+        "scripts/measure-alpha-performance.mjs",
+        "scripts/run11/market-fanout.test.mjs",
+        "scripts/run11/incremental-sync.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "PERF-06",
+      "criterion": "Add a useful build/version identifier, a safe summary of local/sync/provider status and an explicit preview-before-copy issue report. Do not automatically collect emails, Goal names, balances, diary contents, auth tokens or raw provider bodies. A screenshot/report can be manually attached by the user after review. Keep developer logs out of consumer UI and distinguish source verification from actual deployed identity.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#PERF-06",
+      "disposition": "FIX_IMPLEMENTED_FOCUSED_VERIFIED_FINAL_BROWSER_PENDING",
+      "finding": "Found and fixed mandatory gap: clipboard previously wrote before review. Commit661efc2 adds reviewed allowlist preview, explicit copy, cancellation/account-change invalidation, vault/connectivity/acknowledged-session status. Market availability honestly not checked.27 focused tests pass; final browser acceptance pending.",
+      "source_and_test_references": [
+        "apps/web/components/connection-diagnostics.tsx",
+        "apps/web/lib/diagnostic-summary.ts",
+        "apps/web/lib/support-preview.test.ts",
+        "apps/web/lib/public-safety.test.ts",
+        "apps/web/tests/diagnostics.spec.ts",
+        "apps/web/tests/public-alpha.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-01",
+      "criterion": "Read current pin files and package scripts; the recorded baseline used Node 24.19.0 and pnpm 11.19.0. Use the real pinned versions unless a necessary reviewed change is explicitly justified. Do not globally upgrade the owner's machine or invoke the wrong `pnpm doctor` command where the project requires `pnpm run doctor`. Keep development services isolated and record existing environmental problems before modifying code.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": ".node-version24.19.0 and pnpm11.19.0 remain unchanged. Tests run pinned toolchain; no global installation or owner service change.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-02",
+      "criterion": "Use the repository's actual lint, typecheck, unit, deployment-config and landing checks, appropriate browser suite, Alpha/OpenNext build, Wrangler dry-run and relevant contract/schema/canonical tests. Read scripts before invoking guessed names. Add targeted tests for new storage/auth/sync/financial/UI code and preserve all baseline tests unless an owner-requested behavior legitimately changes the assertion. A changed assertion needs a documented reason, not removal of a failing safeguard.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Final lint/types/unit/browser/package/dryrun/contract gates pending late code changes. Earlier receipts must retain exact source rather than aggregate disjoint runs.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-03",
+      "criterion": "Pure algorithms already existed for much of the reliability foundation; this run must prove concrete durable/runtime integration. Similarly, test actual local backend persistence, encrypted requests, authentication boundary, outbox and independent clients rather than stubbing all of them in one UI test. Mock external providers for deterministic failures/load, but preserve an honest distinction between mocked upstream data and actual application transport/storage code.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Actual generated OpenNext, durable SQLite, transport, encryption and independent browsers used in package test. Identity/provider responses remain controlled fixtures.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-04",
+      "criterion": "Any unresolved tenant-isolation, key custody, data-loss migration, financial conservation, duplicate transaction-like record, secret exposure or unintended signing/broadcast defect blocks activation/release of the affected feature. Do not convert those failures into ordinary UI backlog entries. Use feature isolation or revert incomplete implementation safely, continue independent work, and report the blocker. No disabled test, swallowed exception or fake green status to bypass the gate.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Key custody/migration/account bugs found during review are being corrected with red tests. Activation blocked if their final acceptance fails.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-05",
+      "criterion": "Capture representative desktop/tablet/mobile screenshots with route, dimensions, data state, source identity and before/after mapping for SS-01\u2013SS-10. Include empty and error states, not only Showcase. Inspect images with available visual tools; file creation alone is not inspection. Where a brief clip helps show finite entrance motion, record it without private data. Never publish the owner's Health, email codes, vault recovery secrets or genuine wallet account details in evidence.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-05",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Final screenshots must be copied/indexed with source/route/viewport/data and inspected before marking verified. Existing860a captures are earlier-source evidence only. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-06",
+      "criterion": "Validate the ledger, check every acceptance journey/disposition, inspect the final diff and run the integrated suite against the final implementation source. Complete independent review and bounded corrections where possible. Make every unresolved requirement visible in the final report, grouped by mandatory versus conditional/preparation scope. A large test count or long session cannot substitute for missing acceptance. Late changes require affected checks to run again.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-06",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Independent product/crypto/closure review is active. Final314-row reconcile and source diff review remain required after late fixes.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-07",
+      "criterion": "Push checkpoints safely, inspect checks at meaningful boundaries and make a final bounded status check. Preserve the exact job/run/ref if still pending or failing. Do not repeatedly rerun nondeterministic jobs without diagnosis or discard historical failures. Hosted results, local results, owner browser acceptance and real deployment remain separate. A draft PR stays draft until the owner explicitly changes that state.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Final hosted result is a bounded check after push, not repeated polling. Preserve actual pending/failure rather than call old success current.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-08",
+      "criterion": "Give exact configuration names, chosen services, free/paid constraints, sender/domain prerequisites, schema/binding migration commands, environment separation, minimum client version, backup/rollback/forward-fix policy and smoke commands. Identify the smallest ordered owner actions needed for hosted email/sync and real phone\u2013desktop acceptance. Do not include secret values or execute live changes. Explicitly state that a backend configuration file or local server is not a deployed service for friends.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "ACTIVATION has eight ordered owner stages, binding matrix, no-secret templates, local exact-source checker and recovery compatibility rules.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-09",
+      "criterion": "No Goal Manager upload/instantiate, contract deployment, live staking, token approvals, swaps or transaction broadcast. If auth-only wallet signing is included, tests and docs must name that narrow exception without widening financial privileges. Preserve `PUBLIC_ALPHA_UNDEPLOYED` meaning and verify no UI mode, environment setting or new login state bypasses the existing low-level financial guards.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Public-alpha and lower-level guard tests preserve disabled deployment/signing; final package authorization does not grant financial execution.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "QA-10",
+      "criterion": "A successful implementation may be ready for owner review while production remains unchanged. A fully configured, owner-approved future rollout still needs exact-source deployment/security and market/sync acceptance with rollback/data compatibility. Do not auto-deploy merely to make \u201cworks on phone\u201d true. If the owner separately authorizes an isolated test environment during execution, record exact scope, source, services and cleanup; that does not grant production or financial authority.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#QA-10",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Implementation may finish for review while live Run10 remains unchanged. Owner inbox/provider/device/deploy proof is separately pending.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-01",
+      "criterion": "Create or update the actual project equivalents of `docs/run10/MASTER_PROMPT.md`, `REQUIREMENTS.json`, `REQUIREMENTS.md`, `DECISIONS.md`, `BLOCKERS.md`, `RESUME_STATE.md`, `VERIFICATION.md`, `SCREENSHOT_INDEX.md`, `SYNC_SECURITY_AND_RECOVERY.md`, `OPERATING_POLICY.md`, `OWNER_ACTIVATION.md` and `FINAL_REPORT.md`. Names may follow established conventions, but link them consistently. Do not spend disproportionate effort making dozens of repetitive reports; the documents should preserve executable decisions and evidence.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-01",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Run11 source/activation/proof/state/closure complement existingRun10 docs. Final concise handoff/evidence map and consistent links pending; no dozens of duplicate documents needed.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-02",
+      "criterion": "Mark old delivered items as such, preserve former Run #11/#12 requirements inside the Run #10 record, and retain all unimplemented conditional items with explicit reason, tested foundation and next gate where applicable. Wearables remain a later track unless the bounded slice truly worked. No stale \u201csync is architecture only\u201d description when working sync was implemented, and no \u201csync delivered\u201d claim when only foundations exist. Update current status without rewriting the meaning of historical reports.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-02",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Update current STATUS/roadmap without rewriting historical reports; distinguish working local sync from owner-hosted service and retain conditional wearables/PWA.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-03",
+      "criterion": "If the verified owner vault is accessible, update its ZIGoals current-state/index, decisions, roadmap and run handoff according to existing conventions. Preserve links to source commits and evidence; no credentials, decrypted user records or giant raw logs. Verify the actual writes and list the changed vault paths in the handoff. If access fails, record the specific limitation and create a portable vault-update note without saying synchronization occurred.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-03",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Real NovaVault verified by root but sanitized run note/index write/readback/commit pending. Preserve unrelated dirty files.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-04",
+      "criterion": "Each skipped/blocked item must identify its requirement ID, requested outcome, delivered safe subset, actual evidence, bounded attempts, cause category, dependency impact and exact next step. Separate external configuration/owner interaction from implementation defects and from explicit later scope. Do not bury core sync, migration or mobile failures in a long generic backlog. The owner should not need another audit to discover what was not done.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-04",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Final blockers must separate implementation, local acceptance, owner setup and conditional scope. This audit identifies preview defect fixed plus remaining inventory/zoom/visual/performance receipts.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-05",
+      "criterion": "Report starting head, final local head, remote head, current branch/worktree status, pushed checkpoints, implementation/build/CI refs and any uncommitted preserved patch. State where the complete brief/ledger/resume file and safe data-backup evidence live. Distinguish code preservation from actual private data protection. An abrupt failure may prevent a final reply, so these receipts must also exist in the continuously updated resume record.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-05",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Final report must include prep/head/remote/build/CI/deployed/archive/private-backup distinctions. Recovery sourcearchive2a and newerff3 may be superseded by late changes.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-06",
+      "criterion": "Use one of: `IMPLEMENTATION_VERIFIED \u2014 OWNER_ACTIVATION_PENDING`; `PARTIAL \u2014 REQUIRED_GAPS_REMAIN`; or `BLOCKED \u2014 SAFETY_OR_ENVIRONMENT`, with a precise explanation. Conditional features may be deferred while core implementation passes; missing required working sync or unresolved data-integrity issues cannot be hidden under a complete label. \u201cFriends-ready live\u201d is allowed only after separately authorized actual deployment and relevant real acceptance, not as a synonym for passing local tests.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Use IMPLEMENTATION_VERIFIED only after required current-source local gates and gaps closed. Real inbox/hosted/physical owner activity alone does not mean internal required gaps remain.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-07",
+      "criterion": "Summarize meaningful new working journeys, not just lines of code, number of files, time spent or credits used. Include a concise feature/status matrix, SS-01\u2013SS-10 results, sync/auth verification level, financial/storage migrations, Health/Habits improvements, ecosystem coverage and performance changes. Link representative before/after screenshots. Do not inflate progress with placeholders, repeated test counts, unmeasured scaling claims or obsolete already-delivered work.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-07",
+      "disposition": "LOCAL_RECEIPT_OR_DOCUMENTATION_PENDING",
+      "finding": "Feature matrix should reference actual integrated journeys and SS01\u201310; do not label existing preserved polish as all new or inflate with counts.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "DOC-08",
+      "criterion": "If complete for review, give the ordered owner activation/device-acceptance actions and retain all release gates. If partial, give the next highest-value safe actions with requirement IDs and exact resume command/context, so the next session continues rather than restarting Run #10. Do not ask the owner to paste the entire project history again. Do not start a new scope, workflow or financial action during the final report.",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#DOC-08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Single owner activation continuation is already ordered inACTIVATION; no new code run should be required solely because docs omit current recovery context.",
+      "source_and_test_references": [
+        "docs/run11/STATE.md",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P01",
+      "criterion": "Original Today hierarchy, account-safe rail and mobile",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Restored Today hierarchy and account-safe rail have browser assertions; preserve source and complete final empty/locked visual comparison.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-restored-today.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P02",
+      "criterion": "Versioned built-in/widget placement and recovery",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P02",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Versioned placement/reconciliation, hide/show and encrypted settings backup exist; root four-preset package expands true cross-client proof.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-dashboard-placement.spec.ts",
+        "apps/web/lib/dashboard-settings.test.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P03",
+      "criterion": "True selected-widget summary, all chosen instances",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P03",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Selected-widget overview uses all visible selected instances; widget-overview/status tests cover source changes and locked/no-data. Final visual verdict remains owner review.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-widget-overview.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P04",
+      "criterion": "Visual widget library and source-card pinning",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Source pinning, missing-source rebind and new food-entry/per-meal widgets covered by dedicated browser tests; final package repeats food-widget sync/restore.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-source-pinning.spec.ts",
+        "apps/web/tests/run11-food-widgets.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P05",
+      "criterion": "Illustrated cards and quiet accessible settings menus",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Accessible card menus and Escape/focus assertions retained; browser zoom/menu action sweep remains local acceptance gap. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-source-pinning.spec.ts",
+        "apps/web/tests/run10-widgets-status.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P06",
+      "criterion": "Approved copy/button treatment",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Approved text/button treatment retained; no redesign authorized. Current visual/source map pending.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-restored-today.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P07",
+      "criterion": "Visible motion, preference, reduced-motion proof",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Finite hero/ring/bars/line entrances and reduced/off covered including recorded clip; physical Safari is separate owner gate.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-motion.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P08",
+      "criterion": "Smooth category color transitions with exact data",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P08",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Gradient map and exact percentages retained. Final ranking-bar screenshot visual consistency should be included in inspected Wealth map.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run10-motion.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P09",
+      "criterion": "Premium progressive Goal creator and themed selectors",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Four-type short create path and draft guards work; styled native advanced selects are permitted by SS04, not automatic defect. Zoom verification pending. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/run11-goal-draft.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P10",
+      "criterion": "Wealth hierarchy/bars",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P10",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Larger Wealth labels/swatches/ranking bars retained with currency separation; final screenshot mapping pending.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run11-wealth-changes.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P11",
+      "criterion": "Always-visible Health overview",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P11",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Health overview stays visible; daily-use package Health correction and reload provide integration; final health browser gates pending.",
+      "source_and_test_references": [
+        "apps/web/tests/health.spec.ts",
+        "apps/web/tests/health-daily.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P12",
+      "criterion": "Full-width official-logo ecosystem cards",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P12",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "18-entry directory, official local assets/fallbacks and contextual links reviewed elsewhere; no partnership or audited-logo claim. Final visual gate pending.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "apps/web/tests/ecosystem.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "P13",
+      "criterion": "Accepted work and mobile coherence",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#P13",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Accepted Habits/Run10/Sol work retained; broader final mobile/zoom acceptance remains. Root added an observed route/control inventory and 844x390 to390x360 food-form draft, keyboard Enter/save/reload test; source inspected by this reviewer, execution receipt pending. This is short-viewport emulation, not physical keyboard or genuine browser zoom.",
+      "source_and_test_references": [
+        "apps/web/tests/product-visual.spec.ts",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run11-route-mobile-acceptance.spec.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E01",
+      "criterion": "Portable CI screenshots",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E01",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Screenshot outputs use Playwright testInfo paths for Run10/11 evidence. Final hosted screenshot artifact receipt pending; older test /tmp paths are hostportable but should not be mistaken for indexed final artifacts.",
+      "source_and_test_references": [
+        "apps/web/tests/run9-1-visual.spec.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E02",
+      "criterion": "Real crypto prices/market coordination",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E02",
+      "disposition": "LOCAL_IMPLEMENTATION_FINAL_RECEIPT_PENDING_OWNER_ACCEPTANCE_SEPARATE",
+      "finding": "Durable market runtime/admission/caches/load/fault tests exist; new real account/provider probe is owner activation and not authorized now.",
+      "source_and_test_references": [
+        "scripts/run11/market-open-next.test.mjs",
+        "scripts/run11/market-browser.test.mjs",
+        "docs/run11/OWNED-CLOSURE.json"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E03",
+      "criterion": "Email account integration and physical sync proof",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E03",
+      "disposition": "LOCAL_IMPLEMENTATION_FINAL_RECEIPT_PENDING_OWNER_ACCEPTANCE_SEPARATE",
+      "finding": "Packaged app with fixture auth and real private Workers proves local integration, not real email or physical phone. Owner stages explicitly retain those.",
+      "source_and_test_references": [
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/packaged-runtime.test.mjs",
+        "docs/run11/ACTIVATION.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E04",
+      "criterion": "Deletion, no-resurrection, key rotation",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E04",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Lifecycle authority, no-resurrection recovery and domain/rotation paths have concrete tests. Hosted provider deletion/PITR external checkpoint custody remains owner proof.",
+      "source_and_test_references": [
+        "scripts/run11/domain-review-race.test.mjs",
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run11/LIFECYCLE_RECOVERY.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E05",
+      "criterion": "Conflict and pending-queue recovery",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E05",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Conflict UI, protected dual-copy export, forward journal review and both merge-order financial preservation tested; final affected source rerun pending.",
+      "source_and_test_references": [
+        "scripts/run10/account-browser.test.mjs",
+        "apps/web/lib/vault/conflict-review.ts",
+        "apps/web/lib/vault/forward-recovery.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E06",
+      "criterion": "Durable storage delta/paging/capacity",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E06",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Selective sync/chunks/CAS cleanup and capacity tests plus migration failures exist; helper completing actual schema upgrade old-tab lifecycle.",
+      "source_and_test_references": [
+        "apps/web/lib/vault/cloud-sync.ts",
+        "apps/web/lib/vault/database.ts"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E07",
+      "criterion": "Financial and Goal-history acceptance",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E07",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Goal/Wealth histories and finance source tests plus packaged funding/surplus exercise concrete data; final source acceptance pending.",
+      "source_and_test_references": [
+        "apps/web/tests/run11-financial-previews.spec.ts",
+        "apps/web/tests/run11-goal-history.spec.ts",
+        "scripts/run11/packaged-runtime.test.mjs"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E08",
+      "criterion": "Practical camera/barcode path",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E08",
+      "disposition": "LOCAL_IMPLEMENTATION_FINAL_RECEIPT_PENDING_OWNER_ACCEPTANCE_SEPARATE",
+      "finding": "Local decoder/manual review/cancel/failure paths exist. Physical HTTPScamera/inbox/provider setup is external owner activity.",
+      "source_and_test_references": [
+        "apps/web/tests/run10-barcode.spec.ts",
+        "docs/run11/FOOD_EVIDENCE.md"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E09",
+      "criterion": "Daily-use gaps",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E09",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Food/recipes/plans/grocery/Habit corrections and largeGoal collection gaps now locally implemented with tests; no remaining product defect found in this bounded visual/governance audit.",
+      "source_and_test_references": [
+        "docs/run11/OWNED-CLOSURE.json",
+        "scripts/run11/packaged-consumer-journey.mjs"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E10",
+      "criterion": "Cross-cutting security/migration/performance gates",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E10",
+      "disposition": "SOURCE_REVIEWED_FINAL_RECEIPT_PENDING",
+      "finding": "Late crypto/backup/diagnostics fixes require final security/migration/performance gates; old suite cannot certify future changes.",
+      "source_and_test_references": [
+        ".github/workflows/ci.yml",
+        "scripts/run11/activation-check.mjs",
+        "scripts/check-secrets.mjs"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    },
+    {
+      "id": "E11",
+      "criterion": "Isolated activation request and friends-ready gate",
+      "criterion_ref": "docs/run11/SCOPE_MAP.json#E11",
+      "disposition": "LOCAL_IMPLEMENTATION_FINAL_RECEIPT_PENDING_OWNER_ACCEPTANCE_SEPARATE",
+      "finding": "Six exact-source templates/checker/package are prepared for review. No deployment or friends-live claim; eight owner actions remain after final prerequisites.",
+      "source_and_test_references": [
+        "docs/run11/ACTIVATION.md",
+        "scripts/run11/activation-check.mjs"
+      ],
+      "evidence_boundary": "References identify implementation/assertions; this audit did not rerun full suites. Final current-source receipts remain root integration work. External inbox/hosted-provider/physical-device proof is never inferred."
+    }
+  ]
+}

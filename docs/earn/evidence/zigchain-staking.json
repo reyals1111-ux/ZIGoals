@@ -1,0 +1,882 @@
+{
+ "title": "ZIGChain chain parameters, denominations and the v5 upgrade (zigchain-1 and zig-test-2)",
+ "readOn": "2026-10-02",
+ "note": "Read-only GET responses from official chain APIs, as read. sha256 is the SHA-256 of JSON.stringify(body) (compact JSON); for a record with \"trimmed\" it is of the full body before trimming. height is the x-cosmos-block-height response header (for api.noble.xyz, grpc-metadata-x-cosmos-block-height). Index: docs/earn/EVIDENCE_2026-10.md.",
+ "records": [
+  {
+   "name": "verify/v1/f01_main_staking",
+   "retrievedAt": "2026-10-02T22:50:43Z",
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12612756",
+   "sha256": "37d1b16cd59488c119809fa0a1e809d47208a1a8359ac35afd81a939e8bc1a3f",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f01_test_staking",
+   "retrievedAt": "2026-10-02T22:50:44Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/staking/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8046718",
+   "sha256": "37d1b16cd59488c119809fa0a1e809d47208a1a8359ac35afd81a939e8bc1a3f",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f01_main_slashing",
+   "retrievedAt": "2026-10-02T22:50:45Z",
+   "url": "https://api.zigchain.com/cosmos/slashing/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12612757",
+   "sha256": "3161d84f2995fdc9c45db1fc17525aecd74182035633c0a291aed8bd042be82b",
+   "body": {
+    "params": {
+     "signed_blocks_window": "35000",
+     "min_signed_per_window": "0.800000000000000000",
+     "downtime_jail_duration": "600s",
+     "slash_fraction_double_sign": "0.000500000000000000",
+     "slash_fraction_downtime": "0.000100000000000000"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f01_test_slashing",
+   "retrievedAt": "2026-10-02T22:50:45Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/slashing/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8046719",
+   "sha256": "3161d84f2995fdc9c45db1fc17525aecd74182035633c0a291aed8bd042be82b",
+   "body": {
+    "params": {
+     "signed_blocks_window": "35000",
+     "min_signed_per_window": "0.800000000000000000",
+     "downtime_jail_duration": "600s",
+     "slash_fraction_double_sign": "0.000500000000000000",
+     "slash_fraction_downtime": "0.000100000000000000"
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f01_main_distr",
+   "retrievedAt": "2026-10-02T22:50:46Z",
+   "url": "https://api.zigchain.com/cosmos/distribution/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12612757",
+   "sha256": "24ecb75ee76ab56dae831cff6e618f5a92384b48cb361a608dfc00553dab875e",
+   "body": {
+    "params": {
+     "community_tax": "0.020000000000000000",
+     "base_proposer_reward": "0.000000000000000000",
+     "bonus_proposer_reward": "0.000000000000000000",
+     "withdraw_addr_enabled": true
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f01_test_distr",
+   "retrievedAt": "2026-10-02T22:50:47Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/distribution/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8046719",
+   "sha256": "24ecb75ee76ab56dae831cff6e618f5a92384b48cb361a608dfc00553dab875e",
+   "body": {
+    "params": {
+     "community_tax": "0.020000000000000000",
+     "base_proposer_reward": "0.000000000000000000",
+     "bonus_proposer_reward": "0.000000000000000000",
+     "withdraw_addr_enabled": true
+    }
+   }
+  },
+  {
+   "name": "verify/v1/chainid_main_latest",
+   "retrievedAt": "2026-10-02T22:50:54Z",
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
+   "httpStatus": 200,
+   "height": "12612760",
+   "sha256": "2b672e6c47c9431422b97cbc050fb5466562d04035f0e671a8be7efa87638ae0",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "3dZqoTUlEMspoxKHgx48ms3J7fyse4CJZdNWG/9OWF4=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "CWlvl5slZMIoF2bn87+gSLmqWoq0jt1OTpy+hgq2Hds="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zigchain-1",
+      "height": "12612760",
+      "time": "2026-10-02T22:50:50.763251190Z",
+      "last_block_id": {
+       "hash": "n+cqG73H4TZm01eNrNlvK2bRh059jqWJWi7/VRjbUeM=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "1eUnUTcJDqO3HibYsiYtm58e7rqdyaSlWkvwMD79o5c="
+       }
+      },
+      "last_commit_hash": "+6AArvv1/1OrL28kPD/0ow8tqZitMF3A9JRaGEWiDK0=",
+      "data_hash": "RA4fv5mvjC6XOVru6ZXnf/VhxjVO70cTFYMrie2srco=",
+      "validators_hash": "TfTnk2HfdOBhuBplzzRCa5rvAlnKNlYB/Q+cZTftLDM=",
+      "next_validators_hash": "TfTnk2HfdOBhuBplzzRCa5rvAlnKNlYB/Q+cZTftLDM=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "fBBjKmb5sXpbUIbY8Hh7wrQ5socMU+L6gpWls+aie5M=",
+      "last_results_hash": "SBJbR82eQrCoKcvIZANnCmMhS6HCKzS7CRGbknEGKY0=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "37519YhYETo7Xou7gvkR2WVzQ4E="
+     }
+    }
+   }
+  },
+  {
+   "name": "verify/v1/chainid_test_latest",
+   "retrievedAt": "2026-10-02T22:50:54Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
+   "httpStatus": 200,
+   "height": "8046720",
+   "sha256": "86083a3eac28df7ce7eb22b5469c0ecc9d412b3332437f4099482cca2b8d901d",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "7gWdkzxxZBcaYbeebGsnqY3x35zJLChM9juEnUHzj6A=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "HsXGR8uPSy+9Orxb/cEyS9xcV/479PIGbu40driJNXY="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zig-test-2",
+      "height": "8046720",
+      "time": "2026-10-02T22:50:45.908957735Z",
+      "last_block_id": {
+       "hash": "RoA9iKrZp+slBM2QB8kY9nR9hM56yBo3/jP+DWSWLeg=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "0nl6eix6BVoX1XHZTCJbg1HQbR/bWyBcHcn3TjCOBFk="
+       }
+      },
+      "last_commit_hash": "gPb22QHTDOk53F28hsLP82N8GYbIJZ1a2wmUGkmpesE=",
+      "data_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "validators_hash": "UDDgf9V97wT0MXAxl6V0uZxulHR2Ru62DOPQYZZSYe8=",
+      "next_validators_hash": "UDDgf9V97wT0MXAxl6V0uZxulHR2Ru62DOPQYZZSYe8=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "ulyS5hchePxibcZ11ZQDrSIspr36xuEwkMpZCIAzG3M=",
+      "last_results_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "tmM52sJNZhOdEBszXJ11FmX6RR4="
+     }
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f02_main_plan",
+   "retrievedAt": "2026-10-02T22:50:55Z",
+   "url": "https://api.zigchain.com/cosmos/upgrade/v1beta1/applied_plan/v5",
+   "httpStatus": 200,
+   "height": "12612760",
+   "sha256": "05d9f85dbe56ef8740021b444cc58ca30c5ee670dc029bfd2705d378e3b9e074",
+   "body": {
+    "height": "12549000"
+   }
+  },
+  {
+   "name": "verify/v1/f02_test_plan",
+   "retrievedAt": "2026-10-02T22:50:56Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/upgrade/v1beta1/applied_plan/v5",
+   "httpStatus": 200,
+   "height": "8046720",
+   "sha256": "0b685b1705ad043ad65a21f4451e0402cb2a7abda06779d22a51d21011c7a735",
+   "body": {
+    "height": "7669200"
+   }
+  },
+  {
+   "name": "verify/v1/f02_main_block_12549000",
+   "retrievedAt": "2026-10-02T22:51:01Z",
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/12549000",
+   "httpStatus": 200,
+   "height": "12612762",
+   "sha256": "45437465432467e3be07581bb8ff33d073d84096a354fa3a880aac50495ac7da",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "bBjFhx8nQpU1qJglv36XDC1vb0rvMghD6Cuo4IMcIGk=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "WrkQqefIjmJCcS2YmEQDzcK+wytsF6BBuqJNXBC9c2I="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zigchain-1",
+      "height": "12549000",
+      "time": "2026-09-30T09:45:17.367173229Z",
+      "last_block_id": {
+       "hash": "exJ7klRhobjFqWD43DAoBvMHLxkq8sfJSIjT2kvlQYM=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "rTPzrp1nO2KjpZT4UU3XYgguP65UMxfBAxE+jvPwOTU="
+       }
+      },
+      "last_commit_hash": "1X/jE6qkwHc8oLsF/mqZaDgvMGvfHhA5Rhr+cILHKGs=",
+      "data_hash": "qADby1lngIR6D+yKkgH0VKIkYNrmg9+jakfmUu1aAYc=",
+      "validators_hash": "7mzs0qUo+VdJvwdSQLrAjrxFPt+xj0nW7NVErGAZzgk=",
+      "next_validators_hash": "7mzs0qUo+VdJvwdSQLrAjrxFPt+xj0nW7NVErGAZzgk=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "mmiVOVK32l+h13Lrj/hU9m+bjITuYbSb8JkfmyWznDQ=",
+      "last_results_hash": "5+6vWhgx1EzuQFOAX3FGmj/804LNB0exY5KrDuSDS00=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "w+TZV1btsF+p+pjumIlFi/Ft6bU="
+     }
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f02_test_block_7669200",
+   "retrievedAt": "2026-10-02T22:51:02Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/7669200",
+   "httpStatus": 200,
+   "height": "8046721",
+   "sha256": "5b460a92a52b357b3c69250d85323d88bdfd46fad528e8c09639d3f4fdd39380",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "LjSDPvbNR0GjfD05WrGktb6f8c8+FK30yJ1hU9+yA6M=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "5N0wLWrwLhQDziEb6qvx+q0ALzmbbk5AU9QDqneay3E="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zig-test-2",
+      "height": "7669200",
+      "time": "2026-09-08T09:10:49.599297395Z",
+      "last_block_id": {
+       "hash": "Tj2Vwgw/sXxUZGKEKeJtytx7zyehfQSvvwhkoGthVM8=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "oG5Lir7fNc43cpV5a2WLxkX2R7T2oTaCEJahSMkGips="
+       }
+      },
+      "last_commit_hash": "VfA+YmEOAP42Ea3kHnGmyyBmGq8NpM7OSHHEAzJ1WAM=",
+      "data_hash": "1bo6ti7W4yxKs+nHiekLdVOdxp8YrHC8ChLhhtFD3Q8=",
+      "validators_hash": "kqLUbD5FTBmD23MpitmXqmr+JTGjiEI8ySIw+0vIbcg=",
+      "next_validators_hash": "kqLUbD5FTBmD23MpitmXqmr+JTGjiEI8ySIw+0vIbcg=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "v/Too7RquzibsmPjOP/Spksp/L3WbR1h0F5Eb9VGhBc=",
+      "last_results_hash": "zQxED3jwHQP0r5GwYqZhOhH//ONQ2khLCHcrC0tJlk0=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "j1fOFWcZJdBrtOxW6WFT42/v65k="
+     }
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f03_main_azig",
+   "retrievedAt": "2026-10-02T22:51:11Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig",
+   "httpStatus": 200,
+   "height": "12612765",
+   "sha256": "cb9c4a2388f6cd33d8279f26e02cc85da77358830497430d6ca6c757a4b04d8c",
+   "body": {
+    "metadata": {
+     "description": "The native staking and gas token of ZIGChain (18-decimal base denom azig).",
+     "denom_units": [
+      {
+       "denom": "azig",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "zig",
+       "exponent": 18,
+       "aliases": []
+      }
+     ],
+     "base": "azig",
+     "display": "zig",
+     "name": "ZIG",
+     "symbol": "ZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f03_test_azig",
+   "retrievedAt": "2026-10-02T22:51:12Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig",
+   "httpStatus": 200,
+   "height": "8046723",
+   "sha256": "cb9c4a2388f6cd33d8279f26e02cc85da77358830497430d6ca6c757a4b04d8c",
+   "body": {
+    "metadata": {
+     "description": "The native staking and gas token of ZIGChain (18-decimal base denom azig).",
+     "denom_units": [
+      {
+       "denom": "azig",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "zig",
+       "exponent": 18,
+       "aliases": []
+      }
+     ],
+     "base": "azig",
+     "display": "zig",
+     "name": "ZIG",
+     "symbol": "ZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f03_main_uzig",
+   "retrievedAt": "2026-10-02T22:51:12Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/uzig",
+   "httpStatus": 200,
+   "height": "12612766",
+   "sha256": "76b62c7ba30f6ad73a75984412eecf38aa488e7a3af94716ea3a2d42f14924cf",
+   "body": {
+    "metadata": {
+     "description": "Legacy 6-decimal ZIGChain base denom, retained only as IBC escrow backing after the v5 redenomination.",
+     "denom_units": [
+      {
+       "denom": "uzig",
+       "exponent": 0,
+       "aliases": [
+        "microzig"
+       ]
+      },
+      {
+       "denom": "mzig",
+       "exponent": 3,
+       "aliases": [
+        "millizig"
+       ]
+      }
+     ],
+     "base": "uzig",
+     "display": "uzig",
+     "name": "ZIG",
+     "symbol": "UZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "verify/v1/f03_test_uzig",
+   "retrievedAt": "2026-10-02T22:51:13Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/uzig",
+   "httpStatus": 200,
+   "height": "8046723",
+   "sha256": "76b62c7ba30f6ad73a75984412eecf38aa488e7a3af94716ea3a2d42f14924cf",
+   "body": {
+    "metadata": {
+     "description": "Legacy 6-decimal ZIGChain base denom, retained only as IBC escrow backing after the v5 redenomination.",
+     "denom_units": [
+      {
+       "denom": "uzig",
+       "exponent": 0,
+       "aliases": [
+        "microzig"
+       ]
+      },
+      {
+       "denom": "mzig",
+       "exponent": 3,
+       "aliases": [
+        "millizig"
+       ]
+      }
+     ],
+     "base": "uzig",
+     "display": "uzig",
+     "name": "ZIG",
+     "symbol": "UZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_cosmos_base_tendermint_v1beta1_node_info",
+   "retrievedAt": "2026-10-02T20:26:52Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+   "httpStatus": 200,
+   "height": "8045179",
+   "sha256": "092032dcc2be0667c79aa4d03246f0ad3c2d8c36503a2704d50c7d57bb8c9cce",
+   "trimmed": "kept default_node_info.network/version/moniker and application_version without build_deps; sha256 is of the full body",
+   "body": {
+    "default_node_info": {
+     "network": "zig-test-2",
+     "version": "0.38.25",
+     "moniker": "znode05-testnet"
+    },
+    "application_version": {
+     "name": "zigchain",
+     "app_name": "zigchaind",
+     "version": "v5.1.0",
+     "git_commit": "3dd8a7ea24a62e92d16b6f094a34f27637e00cc5",
+     "build_tags": "muslc,ledger",
+     "go_version": "go version go1.25.13 linux/amd64",
+     "cosmos_sdk_version": "v0.53.8"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_cosmos_base_tendermint_v1beta1_node_info",
+   "retrievedAt": "2026-10-02T20:26:53Z",
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+   "httpStatus": 200,
+   "height": "12610044",
+   "sha256": "bd44b2ab923a5a7ba7cc468a6093073f6f9e241c31c90d5231b38ea5421337ea",
+   "trimmed": "kept default_node_info.network/version/moniker and application_version without build_deps; sha256 is of the full body",
+   "body": {
+    "default_node_info": {
+     "network": "zigchain-1",
+     "version": "0.38.25",
+     "moniker": "zrpc02-mainnet"
+    },
+    "application_version": {
+     "name": "zigchain",
+     "app_name": "zigchaind",
+     "version": "v5.1.2",
+     "git_commit": "2de3c0f4d637efd187c373f17e30ac534ca308a0",
+     "build_tags": "muslc,ledger",
+     "go_version": "go version go1.25.13 linux/amd64",
+     "cosmos_sdk_version": "v0.53.8"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_cosmos_staking_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:54Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/staking/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8045179",
+   "sha256": "37d1b16cd59488c119809fa0a1e809d47208a1a8359ac35afd81a939e8bc1a3f",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_cosmos_staking_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:54Z",
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12610044",
+   "sha256": "37d1b16cd59488c119809fa0a1e809d47208a1a8359ac35afd81a939e8bc1a3f",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_cosmos_slashing_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:55Z",
+   "url": "https://api.zigchain.com/cosmos/slashing/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12610044",
+   "sha256": "3161d84f2995fdc9c45db1fc17525aecd74182035633c0a291aed8bd042be82b",
+   "body": {
+    "params": {
+     "signed_blocks_window": "35000",
+     "min_signed_per_window": "0.800000000000000000",
+     "downtime_jail_duration": "600s",
+     "slash_fraction_double_sign": "0.000500000000000000",
+     "slash_fraction_downtime": "0.000100000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_cosmos_slashing_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:55Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/slashing/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8045180",
+   "sha256": "3161d84f2995fdc9c45db1fc17525aecd74182035633c0a291aed8bd042be82b",
+   "body": {
+    "params": {
+     "signed_blocks_window": "35000",
+     "min_signed_per_window": "0.800000000000000000",
+     "downtime_jail_duration": "600s",
+     "slash_fraction_double_sign": "0.000500000000000000",
+     "slash_fraction_downtime": "0.000100000000000000"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_cosmos_distribution_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:57Z",
+   "url": "https://api.zigchain.com/cosmos/distribution/v1beta1/params",
+   "httpStatus": 200,
+   "height": "12610045",
+   "sha256": "24ecb75ee76ab56dae831cff6e618f5a92384b48cb361a608dfc00553dab875e",
+   "body": {
+    "params": {
+     "community_tax": "0.020000000000000000",
+     "base_proposer_reward": "0.000000000000000000",
+     "bonus_proposer_reward": "0.000000000000000000",
+     "withdraw_addr_enabled": true
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_cosmos_distribution_v1beta1_params",
+   "retrievedAt": "2026-10-02T20:26:56Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/distribution/v1beta1/params",
+   "httpStatus": 200,
+   "height": "8045180",
+   "sha256": "24ecb75ee76ab56dae831cff6e618f5a92384b48cb361a608dfc00553dab875e",
+   "body": {
+    "params": {
+     "community_tax": "0.020000000000000000",
+     "base_proposer_reward": "0.000000000000000000",
+     "bonus_proposer_reward": "0.000000000000000000",
+     "withdraw_addr_enabled": true
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_denoms_metadata_azig",
+   "retrievedAt": "2026-10-02T20:27:03Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig",
+   "httpStatus": 200,
+   "height": "12610047",
+   "sha256": "cb9c4a2388f6cd33d8279f26e02cc85da77358830497430d6ca6c757a4b04d8c",
+   "body": {
+    "metadata": {
+     "description": "The native staking and gas token of ZIGChain (18-decimal base denom azig).",
+     "denom_units": [
+      {
+       "denom": "azig",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "zig",
+       "exponent": 18,
+       "aliases": []
+      }
+     ],
+     "base": "azig",
+     "display": "zig",
+     "name": "ZIG",
+     "symbol": "ZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_denoms_metadata_azig",
+   "retrievedAt": "2026-10-02T20:27:02Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig",
+   "httpStatus": 200,
+   "height": "8045181",
+   "sha256": "cb9c4a2388f6cd33d8279f26e02cc85da77358830497430d6ca6c757a4b04d8c",
+   "body": {
+    "metadata": {
+     "description": "The native staking and gas token of ZIGChain (18-decimal base denom azig).",
+     "denom_units": [
+      {
+       "denom": "azig",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "zig",
+       "exponent": 18,
+       "aliases": []
+      }
+     ],
+     "base": "azig",
+     "display": "zig",
+     "name": "ZIG",
+     "symbol": "ZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_denoms_metadata_uzig",
+   "retrievedAt": "2026-10-02T20:27:04Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/uzig",
+   "httpStatus": 200,
+   "height": "12610047",
+   "sha256": "76b62c7ba30f6ad73a75984412eecf38aa488e7a3af94716ea3a2d42f14924cf",
+   "body": {
+    "metadata": {
+     "description": "Legacy 6-decimal ZIGChain base denom, retained only as IBC escrow backing after the v5 redenomination.",
+     "denom_units": [
+      {
+       "denom": "uzig",
+       "exponent": 0,
+       "aliases": [
+        "microzig"
+       ]
+      },
+      {
+       "denom": "mzig",
+       "exponent": 3,
+       "aliases": [
+        "millizig"
+       ]
+      }
+     ],
+     "base": "uzig",
+     "display": "uzig",
+     "name": "ZIG",
+     "symbol": "UZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_supply_uzig",
+   "retrievedAt": "2026-10-02T20:57:53Z",
+   "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=uzig",
+   "httpStatus": 200,
+   "height": "12610629",
+   "sha256": "a2584c317f483bb6bec87ed8f3342be5ae9c604cadbb34971c7964f7ba07097a",
+   "body": {
+    "amount": {
+     "denom": "uzig",
+     "amount": "136936694446"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_supply_uzig",
+   "retrievedAt": "2026-10-02T20:57:54Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=uzig",
+   "httpStatus": 200,
+   "height": "8045511",
+   "sha256": "46dc9d47699ac450f004a9f75a6775b7ea774d5b0463891b168f55e0f17181a4",
+   "body": {
+    "amount": {
+     "denom": "uzig",
+     "amount": "1085969753"
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_upgrade_applied_plan_v5",
+   "retrievedAt": "2026-10-02T20:36:01Z",
+   "url": "https://api.zigchain.com/cosmos/upgrade/v1beta1/applied_plan/v5",
+   "httpStatus": 200,
+   "height": "12610216",
+   "sha256": "05d9f85dbe56ef8740021b444cc58ca30c5ee670dc029bfd2705d378e3b9e074",
+   "body": {
+    "height": "12549000"
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_upgrade_applied_plan_v5",
+   "retrievedAt": "2026-10-02T20:36:00Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/upgrade/v1beta1/applied_plan/v5",
+   "httpStatus": 200,
+   "height": "8045277",
+   "sha256": "0b685b1705ad043ad65a21f4451e0402cb2a7abda06779d22a51d21011c7a735",
+   "body": {
+    "height": "7669200"
+   }
+  },
+  {
+   "name": "research/a/lcd/mainnet_block_12549000",
+   "retrievedAt": "2026-10-02T20:36:02Z",
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/12549000",
+   "httpStatus": 200,
+   "height": "12610217",
+   "sha256": "45437465432467e3be07581bb8ff33d073d84096a354fa3a880aac50495ac7da",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "bBjFhx8nQpU1qJglv36XDC1vb0rvMghD6Cuo4IMcIGk=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "WrkQqefIjmJCcS2YmEQDzcK+wytsF6BBuqJNXBC9c2I="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zigchain-1",
+      "height": "12549000",
+      "time": "2026-09-30T09:45:17.367173229Z",
+      "last_block_id": {
+       "hash": "exJ7klRhobjFqWD43DAoBvMHLxkq8sfJSIjT2kvlQYM=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "rTPzrp1nO2KjpZT4UU3XYgguP65UMxfBAxE+jvPwOTU="
+       }
+      },
+      "last_commit_hash": "1X/jE6qkwHc8oLsF/mqZaDgvMGvfHhA5Rhr+cILHKGs=",
+      "data_hash": "qADby1lngIR6D+yKkgH0VKIkYNrmg9+jakfmUu1aAYc=",
+      "validators_hash": "7mzs0qUo+VdJvwdSQLrAjrxFPt+xj0nW7NVErGAZzgk=",
+      "next_validators_hash": "7mzs0qUo+VdJvwdSQLrAjrxFPt+xj0nW7NVErGAZzgk=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "mmiVOVK32l+h13Lrj/hU9m+bjITuYbSb8JkfmyWznDQ=",
+      "last_results_hash": "5+6vWhgx1EzuQFOAX3FGmj/804LNB0exY5KrDuSDS00=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "w+TZV1btsF+p+pjumIlFi/Ft6bU="
+     }
+    }
+   }
+  },
+  {
+   "name": "research/a/lcd/testnet_block_7669200",
+   "retrievedAt": "2026-10-02T20:36:01Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/7669200",
+   "httpStatus": 200,
+   "height": "8045277",
+   "sha256": "5b460a92a52b357b3c69250d85323d88bdfd46fad528e8c09639d3f4fdd39380",
+   "trimmed": "kept block_id and block.header; sha256 is of the full body",
+   "body": {
+    "block_id": {
+     "hash": "LjSDPvbNR0GjfD05WrGktb6f8c8+FK30yJ1hU9+yA6M=",
+     "part_set_header": {
+      "total": 1,
+      "hash": "5N0wLWrwLhQDziEb6qvx+q0ALzmbbk5AU9QDqneay3E="
+     }
+    },
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zig-test-2",
+      "height": "7669200",
+      "time": "2026-09-08T09:10:49.599297395Z",
+      "last_block_id": {
+       "hash": "Tj2Vwgw/sXxUZGKEKeJtytx7zyehfQSvvwhkoGthVM8=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "oG5Lir7fNc43cpV5a2WLxkX2R7T2oTaCEJahSMkGips="
+       }
+      },
+      "last_commit_hash": "VfA+YmEOAP42Ea3kHnGmyyBmGq8NpM7OSHHEAzJ1WAM=",
+      "data_hash": "1bo6ti7W4yxKs+nHiekLdVOdxp8YrHC8ChLhhtFD3Q8=",
+      "validators_hash": "kqLUbD5FTBmD23MpitmXqmr+JTGjiEI8ySIw+0vIbcg=",
+      "next_validators_hash": "kqLUbD5FTBmD23MpitmXqmr+JTGjiEI8ySIw+0vIbcg=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "v/Too7RquzibsmPjOP/Spksp/L3WbR1h0F5Eb9VGhBc=",
+      "last_results_hash": "zQxED3jwHQP0r5GwYqZhOhH//ONQ2khLCHcrC0tJlk0=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "j1fOFWcZJdBrtOxW6WFT42/v65k="
+     }
+    }
+   }
+  },
+  {
+   "name": "research/c/main_node_info",
+   "retrievedAt": "2026-10-02T21:08:29Z",
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+   "httpStatus": 200,
+   "height": "12610829",
+   "sha256": "6a83a822b3ab79e8498e54e585615682e97712f2997ea9818cf8b8dc166db286",
+   "trimmed": "kept default_node_info.network/version/moniker and application_version without build_deps; sha256 is of the full body",
+   "body": {
+    "default_node_info": {
+     "network": "zigchain-1",
+     "version": "0.38.25",
+     "moniker": "zrpc01-mainnet"
+    },
+    "application_version": {
+     "name": "zigchain",
+     "app_name": "zigchaind",
+     "version": "v5.1.2",
+     "git_commit": "2de3c0f4d637efd187c373f17e30ac534ca308a0",
+     "build_tags": "muslc,ledger",
+     "go_version": "go version go1.25.13 linux/amd64",
+     "cosmos_sdk_version": "v0.53.8"
+    }
+   }
+  },
+  {
+   "name": "research/c/test_node_info",
+   "retrievedAt": "2026-10-02T21:08:30Z",
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+   "httpStatus": 200,
+   "height": "8045624",
+   "sha256": "092032dcc2be0667c79aa4d03246f0ad3c2d8c36503a2704d50c7d57bb8c9cce",
+   "trimmed": "kept default_node_info.network/version/moniker and application_version without build_deps; sha256 is of the full body",
+   "body": {
+    "default_node_info": {
+     "network": "zig-test-2",
+     "version": "0.38.25",
+     "moniker": "znode05-testnet"
+    },
+    "application_version": {
+     "name": "zigchain",
+     "app_name": "zigchaind",
+     "version": "v5.1.0",
+     "git_commit": "3dd8a7ea24a62e92d16b6f094a34f27637e00cc5",
+     "build_tags": "muslc,ledger",
+     "go_version": "go version go1.25.13 linux/amd64",
+     "cosmos_sdk_version": "v0.53.8"
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+  "comparedWith": "today-1440-viewport.png",
+  "width": 1440,
+  "height": 1024,
+  "changedPixels": 6396,
+  "bounds": {
+    "minX": 925,
+    "minY": 388,
+    "maxX": 1050,
+    "maxY": 465
+  },
+  "screenshotSha256": "76d23d705179b4f41da15bcee1bcf8e5cc45464560c486c4bfb459cdb8655be0",
+  "continuationBase": "7445e90fd4a8f3f50207deb99bfd89d4514662ea",
+  "runtimeChange": "Remove only the absolute-positioned aria-hidden hero-slogan and its two CSS rules.",
+  "screenshot": "today-1440-no-slogan.png",
+  "allOtherPixelsIdentical": true,
+  "unchangedPublicFiles": 11,
+  "artSha256": {
+    "apps/web/public/art/v21/destination.webp": "9111cae8b119155ac568b2dac214142a42286e402bbbd7cc830cbf3d7986a7be",
+    "apps/web/public/art/v21/hero-mobile.webp": "1032d37e988ee243f87a2f91db1eff49eecf5aa0cf10ef1a2b51a046cd332914",
+    "apps/web/public/art/v21/hero.webp": "82aa6704f13826475b76bf172eb40c7b74d34af7d9db2d9bad07e30582345c96",
+    "apps/web/public/art/v21/horizon.webp": "b230e5c547bdb0eace288358516efbb1ae2985c7ef7b05a9db3eae66a10abd97",
+    "apps/web/public/art/v21/space.webp": "f2d329ed84bdcf5e35e4519e0b7d866bb51af70ab0da5b6fd7103e5c2c3e2b67",
+    "apps/web/public/art/v21/wallet.webp": "f3b25fdead5441b65a3ccf3d110c9d9ef432822a3e0e45da452a934bd0400270"
+  },
+  "validation": [
+    "TypeScript passed",
+    "ESLint of changed TSX passed",
+    "Production Next build passed",
+    "Existing desktop visual-v21 browser test passed",
+    "Isolated Today capture assertions passed; normal copy and sidebar quote preserved"
+  ],
+  "alphaBuildDryRun": "Not repeated: all runtime artwork files unchanged. Prior clean Alpha validation remains historical at bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5.",
+  "productionMutations": "NONE"
+}

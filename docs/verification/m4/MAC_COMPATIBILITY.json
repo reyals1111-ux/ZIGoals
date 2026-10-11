@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "DEVELOPMENT_ONLY",
+  "approval": "NOT_APPROVED",
+  "source": {
+    "commit": "f2e3a21c3d8031acc4ffd95305842a79bffa7a10",
+    "tree": "95a6a5ceae27b8a6f0629e2bd6d921141a0f14e0",
+    "cargoLockSha256": "79aee297543060d068666823087e6304e1f5806f4a6534984ab5b389fa105565",
+    "sourceDateEpoch": 1789314413
+  },
+  "environment": {
+    "policy": "canonical-linux-v1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.6.0",
+    "imageOS": "not-github-hosted",
+    "imageVersion": "not-github-hosted",
+    "rust": "rustc 1.85.1 (4eb161250 2025-03-15)\nbinary: rustc\ncommit-hash: 4eb161250e340c8f48f66e2b929ef4a5bed7c181\ncommit-date: 2025-03-15\nhost: aarch64-apple-darwin\nrelease: 1.85.1\nLLVM version: 19.1.7",
+    "cargo": "cargo 1.85.1 (d73d2caf9 2024-12-31)",
+    "node": "24.19.0",
+    "binaryen": "wasm-opt version 123 (version_123)",
+    "validator": "Contract checking 2.2.2",
+    "target": "wasm32-unknown-unknown",
+    "flags": "-C target-feature=-reference-types,-multivalue; remap source=/src cargo=/cargo rustup=/rustup; optimizer=-Oz --signext-lowering",
+    "locale": "C",
+    "timezone": "UTC"
+  },
+  "artifact": {
+    "name": "zigoals_goal_manager.wasm",
+    "sha256": "ea33ec7f6dadc50e1467cbdaf9767a35b85e6b6778b1a7ae6e1d9143222c94d6",
+    "sizeBytes": 255532
+  },
+  "independentBuildCount": 0,
+  "builds": [],
+  "authority": "Non-authoritative local compatibility diagnostic"
+}

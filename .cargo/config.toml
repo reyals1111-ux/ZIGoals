@@ -1,0 +1,9 @@
+[alias]
+wasm = "build --release --target wasm32-unknown-unknown --lib -p zigoals-goal-manager"
+schema = "run --example schema -p zigoals-goal-manager"
+
+# CosmWasm 2.2 rejects the reference-types/multivalue proposals that Rust 1.82+
+# enables by default. Limit project code; build-wasm.sh also canonicalizes the
+# precompiled standard library's indirect-call encodings using official Binaryen.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=-reference-types,-multivalue"]

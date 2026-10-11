@@ -1,0 +1,11 @@
+ZIGoals doctor — read-only; no installs, configuration changes or live network queries
+PASS: node: expected 24.19.0; actual 24.19.0
+PASS: pnpm: expected 11.19.0; actual 11.19.0
+PASS: rust: expected 1.85.1; actual 1.85.1
+PASS: wasm32-unknown-unknown: installed for pinned Rust
+PASS: Git: codex/run8-goals-positions-habits d806ae010c03; clean
+PASS: Configured testnet: zig-test-2 / azig / 18 decimals; live health not queried
+WARNING: Optional Docker daemon unavailable; pinned non-container Wasm build remains available
+PASS: Required source, lockfile and toolchain pins present
+PASS: Node pin files agree
+Web prerequisites are ready. Review warnings for the work you plan to do.

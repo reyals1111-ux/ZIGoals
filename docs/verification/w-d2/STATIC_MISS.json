@@ -1,0 +1,27 @@
+{
+  "what": "GET https://alpha.zigoals.app/_next/static/chunks/does-not-exist.js through two local dry-run bundles of the public Alpha in Miniflare (hermetic: outbound refused, no secrets)",
+  "recordedAt": "2026-10-07",
+  "after": {
+    "entry": "apps/web/alpha/worker.mjs",
+    "status": 404,
+    "contentType": "text/plain; charset=utf-8",
+    "csp": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; sandbox",
+    "cacheControl": "no-store",
+    "xFrameOptions": "DENY",
+    "bodyStartsWith": "Not found\n",
+    "bodyBytes": 10,
+    "hasScriptTag": false
+  },
+  "before": {
+    "entry": ".open-next/worker.js (OpenNext's own)",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "csp": null,
+    "cacheControl": "private, no-cache, no-store, max-age=0, must-revalidate",
+    "xFrameOptions": "DENY",
+    "bodyStartsWith": "<!DOCTYPE html><html lang=\"en\"><head><me",
+    "bodyBytes": 11366,
+    "hasScriptTag": true
+  },
+  "notes": "Local workerd, not the live platform. The live check after the Alpha deploy is in docs/run11/FINAL_ACCTEST_REDEPLOY.md (Session W changes, Part 23)."
+}

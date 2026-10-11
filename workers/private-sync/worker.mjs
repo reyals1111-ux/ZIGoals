@@ -1,0 +1,261 @@
+import {WorkerEntrypoint} from 'cloudflare:workers';
+import {rotationRequest} from './rotation.mjs';
+import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
+import {portfolioRequest} from './portfolio.mjs';
+import {STEP_UP_HEADER,STEP_UP_INTERNAL,STEP_UP_NEXT_HEADER,isStepUpValue,stepUpRequest} from './step-up.mjs';
+/** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const DOMAINS=new Set(['finance','health','habits','settings']);
+/** @typedef {{VAULTS:DurableObjectNamespace,LIFECYCLE:Fetcher,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string,STEP_UP_REQUIRED?:string}} SyncEnv */
+/** @param {unknown} value @param {number} [status] */
+const response=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+/** @param {any} value @param {string[]} keys */
+function exact(value,keys){return value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(k=>keys.includes(k))&&keys.every(k=>Object.hasOwn(value,k));}
+/** @param {any} v */
+function envelope(v){const shape=v?.version===1?exact(v,['version','nonce','ciphertext']):v?.version===2&&exact(v,['version','salt','nonce','ciphertext'])&&typeof v.salt==='string'&&/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(v.salt);return shape&&typeof v.nonce==='string'&&/^[\w-]{16}$/.test(v.nonce)&&typeof v.ciphertext==='string'&&v.ciphertext.length>=22&&v.ciphertext.length<=350000&&/^[\w-]+$/.test(v.ciphertext);}
+/** @param {any} v */
+function manifest(v){return exact(v,['version','vault','epoch','wrapped'])&&v.version===1&&UUID.test(v.vault)&&Number.isSafeInteger(v.epoch)&&v.epoch>0&&v.wrapped?.version===1&&envelope(v.wrapped);}
+/** @param {Request|Response} request @param {number} [max] */
+async function boundedJSON(request,max=1_000_000){
+ const reader=request.body?.getReader();if(!reader)throw Error('body');const chunks=[];let size=0;
+ try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max)throw Error('size');chunks.push(value);}}catch(error){await reader.cancel().catch(()=>{});throw error;}
+ const data=new Uint8Array(size);let offset=0;for(const c of chunks){data.set(c,offset);offset+=c.length;}return JSON.parse(new TextDecoder('utf-8',{fatal:true,ignoreBOM:false}).decode(data));
+}
+/** @type {ExportedHandler<SyncEnv>} */
+const privateSyncWorker={async fetch(request,env){
+ const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio','/v1/step-up'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
+ if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.AUTH_ORIGIN??'')||!env.AUTH_PUBLIC_KEY||!env.APP_ORIGIN)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
+ if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
+ const token=request.headers.get('authorization');if(!token||!/^Bearer [A-Za-z0-9._-]{1,4096}$/.test(token))return response({error:'SIGN_IN_REQUIRED'},401);
+ let user;
+ try{const auth=await fetch(`${env.AUTH_ORIGIN}/auth/v1/user`,{headers:{authorization:token,apikey:env.AUTH_PUBLIC_KEY},redirect:'manual',signal:AbortSignal.timeout(8000)});if(!auth.ok)return response({error:'SIGN_IN_REQUIRED'},401);user=await boundedJSON(auth,32768);}catch{return response({error:'SIGN_IN_REQUIRED'},401);}
+ if(!UUID.test(user?.id))return response({error:'SIGN_IN_REQUIRED'},401);
+ let family;try{const claims=JSON.parse(atob(/** @type {string} a malformed token throws inside this try */(token.slice(7).split('.')[1]).replace(/-/g,'+').replace(/_/g,'/')));if(claims.sub!==user.id||!UUID.test(claims.session_id??''))throw Error();family=claims.session_id;}catch{return response({error:'VERIFIED_SESSION_REQUIRED'},401);}
+ if(request.headers.get('x-zigoals-account')?.toLowerCase()!==user.id.toLowerCase())return response({error:'ACCOUNT_CHANGED'},409);
+ // Client-supplied account/vault identifiers never select another tenant's object.
+ const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.delete('x-lifecycle-delete-authorized');headers.delete('x-domain-generations');for(const name of [STEP_UP_HEADER,STEP_UP_NEXT_HEADER,STEP_UP_INTERNAL])headers.delete(name);headers.set('x-verified-account',user.id);headers.set('x-zigoals-session-family',family);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));
+ if(!env.LIFECYCLE)return response({error:'LIFECYCLE_CONFIGURATION_REQUIRED'},503);
+ const lifecycleCall=/** @param {unknown} [body] */async body=>{const result=await env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:body?'POST':'GET',headers:{'x-verified-account':user.id,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));if(!result.ok)return {error:result};return {value:await boundedJSON(result,4096)};};
+ let lifecycle=await lifecycleCall();if(lifecycle.error)return lifecycle.error;
+ // Session Z-Cloud Part 5 (A6, step-up.mjs): the vault checks the recovery secret's proof for the five actions that end
+ // data or access, before anything is decided; the owner's switch STEP_UP_REQUIRED turns the check off.
+ const internal=/** @param {unknown} body */body=>{const h=new Headers();for(const name of ['x-verified-account','x-zigoals-session-family','x-zigoals-token-hash'])h.set(name,/** @type {string} set above */(headers.get(name)));h.set(STEP_UP_INTERNAL,'1');h.set('content-type','application/json');return stub.fetch(new Request('https://vault.internal/v1/step-up',{method:'POST',headers:h,body:JSON.stringify(body)}));};
+ const stepUp=async()=>{if(env.STEP_UP_REQUIRED!=='on')return null;const proof=request.headers.get(STEP_UP_HEADER);const checked=await internal({action:'check',proof:isStepUpValue(proof)?proof:null});if(checked.ok){await checked.body?.cancel();return null;}return checked;};
+ /** @param {number} max */
+ const peek=async max=>{try{return await boundedJSON(request.clone(),max);}catch{return null;}};
+ if(url.pathname==='/v1/account'){
+  if(request.method==='GET'){
+   // Account state is readable only by an active session. After deletion every session is
+   // erased, so the terminal deleted state stays readable for the account's verified identity.
+   if(!lifecycle.value.deleted){const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();}
+   return response(lifecycle.value);
+  }
+  let action;try{action=await boundedJSON(request.clone(),256);}catch{return response({error:'INVALID_ACCOUNT_REQUEST'},400);}
+  if(!exact(action,['action','confirm'])||!['delete-cloud-data','delete-account'].includes(action.action)||action.confirm!==(action.action==='delete-account'?'DELETE ACCOUNT':'DELETE CLOUD DATA'))return response({error:'INVALID_ACCOUNT_REQUEST'},400);
+  const refused=await stepUp();if(refused)return refused;
+  if(!lifecycle.value.deleted){const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();lifecycle=await lifecycleCall({action:'delete',confirm:'DELETE CLOUD DATA',generation:lifecycle.value.generation,family});if(lifecycle.error)return lifecycle.error;}
+  headers.set('x-lifecycle-delete-authorized','1');headers.set('content-type','application/json');
+  const erased=await stub.fetch(new Request('https://vault.internal/v1/account',{method:'POST',headers,body:'{"action":"delete-cloud-data","confirm":"DELETE CLOUD DATA"}'}));if(!erased.ok)return erased;await erased.body?.cancel();
+  if(action.action==='delete-account'){
+   if(lifecycle.value.authorizedFamily!==family)return response({error:'SESSION_REVOKED'},401);
+   const recorded=await lifecycleCall({action:'request-provider-delete',family});if(recorded.error)return recorded.error;
+   const confirmed=recorded.value.provider==='deleted';return response({deleted:true,providerDeleted:confirmed,providerPending:!confirmed},confirmed?200:202);
+  }
+  return response({deleted:true});
+ }
+ if(lifecycle.value.deleted)return response({error:'ACCOUNT_DELETED'},410);
+ if(url.pathname==='/v1/domain'){
+  if(request.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
+  let body;try{body=await boundedJSON(request,512);}catch{return response({error:'INVALID_DOMAIN_REQUEST'},400);}
+  if(!exact(body,['action','domain','confirm','operation','revision','generation'])||body.action!=='delete-domain'||!DOMAINS.has(body.domain)||body.confirm!=='DELETE CLOUD '+body.domain.toUpperCase()||!UUID.test(body.operation)||!Number.isSafeInteger(body.revision)||body.revision<0||!Number.isSafeInteger(body.generation)||body.generation<0)return response({error:'INVALID_DOMAIN_REQUEST'},400);
+  const refused=await stepUp();if(refused)return refused;
+  headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
+  return stub.fetch(new Request('https://vault.internal/v1/domain',{method:'POST',headers,body:JSON.stringify(body)}));
+ }
+ if(request.method==='POST'&&(url.pathname==='/v1/sessions'||url.pathname==='/v1/rotation')){
+  const body=await peek(url.pathname==='/v1/sessions'?8192:1_000_000);
+  // Revoking one other session is the same power one at a time, so it asks too.
+  if(url.pathname==='/v1/sessions'&&(body?.action==='revoke-others'||body?.action==='revoke')||url.pathname==='/v1/rotation'&&body?.action==='begin'){const refused=await stepUp();if(refused)return refused;}
+  if(url.pathname==='/v1/rotation'&&body?.action==='begin'){
+   // The new secret's verifier waits beside the old one and counts once the rotation publishes its epoch.
+   headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
+   const begun=await stub.fetch(new Request(request,{headers})),next=request.headers.get(STEP_UP_NEXT_HEADER);
+   // Every begun rotation sets it, to the new verifier or to none, so an aborted rotation's verifier never carries over.
+   if(begun.ok&&Number.isSafeInteger(body.manifest?.epoch)){const staged=await internal({action:'next',epoch:body.manifest.epoch,verifier:isStepUpValue(next)?next:null});await staged.body?.cancel();}
+   return begun;
+  }
+ }
+ headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
+ return stub.fetch(new Request(request,{headers}));
+}};
+export default privateSyncWorker;
+/**
+ * Session U Part 5 (item 7; FIX_PLAN H1 follow-up, ADR-007): the owner's erase also removes the account's encrypted vault
+ * rows. Only the owner's local recovery-admin Worker binds this entrypoint (a second remote binding, while one erase
+ * command runs); the app never does, and activation-check refuses it in every other config. It erases exactly as the
+ * app's "Delete cloud data" does (every row, then the terminal marker that stops a device re-enrolling), and only when the
+ * lifecycle authority reports the account deleted. In reconcile mode the authority does not serve, so nothing is removed
+ * and the owner runs erase again after the serve switch. Answers carry no row, count or identifier.
+ * @extends {WorkerEntrypoint<SyncEnv>}
+ */
+export class PrivateVaultRecoveryAdmin extends WorkerEntrypoint{
+ /** @param {Request} request */
+ async fetch(request){
+  const account=request.headers.get('x-verified-account'),url=new URL(request.url);
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(account??''))return response({error:'IDENTITY_REQUIRED'},403);
+  if(url.search||url.pathname!=='/admin/erase-vault'||request.method!=='POST')return response({error:'NOT_FOUND'},404);
+  let body;try{body=await boundedJSON(request,256);}catch{return response({error:'INVALID_ERASE'},400);}
+  if(!exact(body,['confirm'])||body.confirm!=='ERASE VAULT')return response({error:'INVALID_ERASE'},400);
+  if(!this.env.LIFECYCLE)return response({error:'LIFECYCLE_CONFIGURATION_REQUIRED'},503);
+  const decision=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{headers:{'x-verified-account':/** @type {string} checked above */(account)}}));
+  if(!decision.ok){await decision.body?.cancel();return response({error:decision.status===503?'LIFECYCLE_NOT_SERVING':'LIFECYCLE_UNAVAILABLE'},503);}
+  /** @type {any} */let state;try{state=await boundedJSON(decision,4096);}catch{return response({error:'LIFECYCLE_UNAVAILABLE'},503);}
+  if(state?.deleted!==true)return response({error:'ACCOUNT_NOT_DELETED'},409);
+  const stub=this.env.VAULTS.get(this.env.VAULTS.idFromName(/** @type {string} checked above */(account)));
+  const erased=await stub.fetch(new Request('https://vault.internal/v1/account',{method:'POST',headers:{'x-lifecycle-delete-authorized':'1','x-verified-account':/** @type {string} */(account),'content-type':'application/json'},body:'{"action":"delete-cloud-data","confirm":"DELETE CLOUD DATA"}'}));
+  await erased.body?.cancel();
+  return erased.ok?response({vaultErased:true}):response({error:'VAULT_UNAVAILABLE'},503);
+ }
+}
+export class PrivateVault{
+ /** @param {RecordState} state @param {SyncEnv} env */
+ constructor(state,env){this.state=state;this.env=env;}
+ /** The fixture clock and alarm spacing: scripts/run11 tests only; activation-check refuses these vars in every owner config. */
+ now(){const local=Number(this.env.LOCAL_TEST_NOW);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)?local:Date.now();}
+ /** @param {number} due */
+ alarmAt(due){const local=Number(this.env.LOCAL_SWEEP_MS);return this.env.ISOLATED_FIXTURE==='true'&&Number.isSafeInteger(local)&&local>0?Date.now()+local:due;}
+ async alarm(){
+  if(await this.state.storage.get('domain-delete-intent'))await this.finishDomainDeletion();
+  // Session U Part 5: the revoked-session sweep shares the vault's one alarm; a pending domain deletion keeps its own.
+  await this.state.storage.transaction(async store=>{await sweepRevokedSessions(store,this.now());if(!await store.get('domain-delete-intent'))await armSweep(store,due=>this.alarmAt(due));});
+ }
+ /** A durable intent fences writes before the independent deletion decision. Alarms replay it after response loss. */
+ async finishDomainDeletion(){
+  const intent=await this.state.storage.get('domain-delete-intent');if(!intent)return response({error:'NO_DOMAIN_INTENT'},409);
+  await this.state.storage.setAlarm(Date.now()+60000);
+  let decision;try{const result=await this.env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:'POST',headers:{'x-verified-account':intent.account,'content-type':'application/json'},body:JSON.stringify({action:'delete-domain',domain:intent.domain,operation:intent.operation,generation:intent.generation})}));if(!result.ok){if([400,409,410,507].includes(result.status)){await this.state.storage.transaction(async store=>{if((await store.get('domain-delete-intent'))?.operation===intent.operation){await store.delete('domain-delete-intent');await armSweep(store,due=>this.alarmAt(due));}});return response({error:result.status===507?'LIFECYCLE_CAPACITY':'DOMAIN_REVIEW_CHANGED'},result.status===507?507:409);}return response({error:'DOMAIN_DELETION_PENDING'},503);}decision=await boundedJSON(result,4096);}catch{return response({error:'DOMAIN_DELETION_PENDING'},503);}
+  return this.state.storage.transaction(async store=>{
+   const current=await store.get('domain-delete-intent');if(!current||current.operation!==intent.operation)return response({error:'DOMAIN_DELETION_CHANGED'},409);
+   if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+   const applied=await store.get('domain-generations')??{},next={...applied};for(const [domain,generation]of Object.entries(decision.domainGenerations??{}))next[domain]=Math.max(next[domain]??0,generation);
+   if((next[intent.domain]??0)<=intent.generation)return response({error:'DOMAIN_DELETION_PENDING'},503);
+   let bytes=await store.get('bytes')??0,cursor;for(;;){const rows=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!rows.size)break;cursor=[...rows.keys()].at(-1);for(const [id,row]of rows)if((next[row.domain]??0)>(applied[row.domain]??0)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
+   for(;;){const rows=await store.list({prefix:'rotation-row:',limit:128});if(!rows.size)break;await store.delete([...rows.keys()]);}
+   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
+  });
+ }
+ /** @param {Request} request @param {string|null} sessionHash */
+ async prepareDomainDeletion(request,sessionHash){
+  let input;try{input=await boundedJSON(request,512);}catch{return response({error:'INVALID_DOMAIN_REQUEST'},400);}
+  const prepared=await this.state.storage.transaction(async store=>{
+   if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   const intent={account:request.headers.get('x-verified-account'),domain:input.domain,operation:input.operation,revision:input.revision,generation:input.generation};
+   const receipt=await store.get('domain-delete-receipt:'+input.operation);if(receipt)return JSON.stringify(receipt)===JSON.stringify(intent)?response({deleted:true}):response({error:'OPERATION_REUSED'},409);
+   const pending=await store.get('domain-delete-intent');if(pending)return JSON.stringify(pending)===JSON.stringify(intent)?null:response({error:'DOMAIN_DELETION_PENDING'},409);
+   if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
+   if((await store.get('revision')??0)!==input.revision||((await store.get('domain-generations')??{})[input.domain]??0)!==input.generation)return response({error:'DOMAIN_REVIEW_CHANGED'},409);
+   await store.put('domain-delete-intent',intent);await store.setAlarm(Date.now()+60000);return null;
+  });return prepared??this.finishDomainDeletion();
+ }
+ /** @param {Request} request */
+ async fetch(request){
+  const path=new URL(request.url).pathname,sessionHash=request.headers.get('x-zigoals-token-hash');
+  const authoritative=JSON.parse(request.headers.get('x-domain-generations')??'{}');
+  // Session Z-Cloud Part 5 (A6): the step-up record has its own path, outside the lifecycle's reconciliation and fences.
+  if(path==='/v1/step-up')return stepUpRequest(request,this.state,boundedJSON);
+  if(path!=='/v1/sessions'&&Object.keys(authoritative).length&&!await this.state.storage.get('domain-delete-intent')){
+   const reconciled=await this.state.storage.transaction(async store=>{
+    if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+    const applied=await store.get('domain-generations')??{};
+    const changed=Object.keys(authoritative).filter(d=>(applied[d]??0)<authoritative[d]);if(!changed.length)return null;
+    let bytes=await store.get('bytes')??0;let cursor;
+    for(;;){const page=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [id,row]of page)if(changed.includes(row.domain)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
+    // A staged rotation must never re-publish rows removed by the lifecycle authority.
+    for(;;){const staged=await store.list({prefix:'rotation-row:',limit:128});if(!staged.size)break;await store.delete([...staged.keys()]);}await store.delete('rotation');
+    await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});return null;
+   });if(reconciled)return reconciled;
+  }
+  if(path==='/v1/domain')return this.prepareDomainDeletion(request,sessionHash);
+  if(!['/v1/sessions','/v1/account'].includes(path)&&await this.state.storage.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},503);
+  if(path==='/v1/rotation')return rotationRequest(request,this.state,boundedJSON,manifest,envelope);
+  if(path==='/v1/account'){
+   if(/** @type {string|undefined} */(request.headers.get('content-type')?.split(';')[0])?.trim()!=='application/json')return response({error:'JSON_REQUIRED'},415);
+   let action;try{action=await boundedJSON(request,256);}catch{return response({error:'INVALID_ACCOUNT_REQUEST'},400);}
+   if(!exact(action,['action','confirm'])||action.action!=='delete-cloud-data'||action.confirm!=='DELETE CLOUD DATA')return response({error:'INVALID_ACCOUNT_REQUEST'},400);
+   return this.state.storage.transaction(async store=>{
+    if(await store.get('account-deleted'))return request.headers.get('x-lifecycle-delete-authorized')==='1'?response({deleted:true}):response({error:'ACCOUNT_DELETED'},410);
+    if(request.headers.get('x-lifecycle-delete-authorized')!=='1'&&!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+    // Erase all active vault, receipt and session keys atomically, then retain only a
+    // terminal marker so an offline device cannot reenroll and recreate this vault.
+    for(;;){const batch=await store.list({limit:128});if(!batch.size)break;await store.delete([...batch.keys()]);}
+    await store.put('account-deleted',{version:1,at:new Date().toISOString()});return response({deleted:true});
+   });
+  }
+  if(await this.state.storage.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+  // Session U Part 9 (ADR-013): the opt-in Portfolio copy, in its own keyspace (portfolio.mjs).
+  if(path==='/v1/portfolio')return portfolioRequest(request,this.state,boundedJSON,envelope,sessionHash);
+  if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON,()=>this.now(),due=>this.alarmAt(due));
+  if(request.method==='GET'){
+   const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'',ids=url.searchParams.has('ids')?/** @type {string} */(url.searchParams.get('ids')).split(','):null;
+   if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return response({error:'INVALID_CURSOR'},400);
+   if(ids&&(cursor||ids.length>100||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!UUID.test(id))))return response({error:'INVALID_RECORD_SELECTION'},400);
+   return this.state.storage.transaction(async store=>{
+    if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+    if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+    const rows=ids?await store.get(ids.map(id=>'record:'+id)):await store.list({prefix:'record:',startAfter:cursor||undefined,limit:101}),entries=[...rows.entries()],page=entries.slice(0,100);
+    return response({protocol:1,revision:await store.get('revision')??0,manifest:await store.get('manifest')??null,records:page.map(([,v])=>v),domainGenerations:await store.get('domain-generations')??{},storedBytes:await store.get('bytes')??0,cursor:entries.length>100?/** @type {[string,unknown]} */(page.at(-1))[0]:null});
+   });
+  }
+  if(/** @type {string|undefined} */(request.headers.get('content-type')?.split(';')[0])?.trim()!=='application/json')return response({error:'JSON_REQUIRED'},415);
+  let input;try{input=await boundedJSON(request);}catch{return response({error:'INVALID_OR_OVERSIZED_REQUEST'},400);}
+  if(input?.action==='compact')return this.compact(input,sessionHash);
+  const allowed=['protocol','vault','operation','base','changes',...(Object.hasOwn(input??{},'manifest')?['manifest']:[]),...(Object.hasOwn(input??{},'domainGenerations')?['domainGenerations']:[])];
+  if(!exact(input,allowed)||input.protocol!==1||!UUID.test(input.vault)||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Array.isArray(input.changes)||input.changes.length>100||(input.manifest&&!manifest(input.manifest)))return response({error:'INVALID_PROTOCOL'},400);
+  if(input.domainGenerations&&(!input.domainGenerations||typeof input.domainGenerations!=='object'||Array.isArray(input.domainGenerations)||Object.entries(input.domainGenerations).some(([d,g])=>!DOMAINS.has(d)||!Number.isSafeInteger(g)||g<0)))return response({error:'INVALID_DOMAIN_GENERATIONS'},400);
+  const ids=new Set();for(const row of input.changes){if(!exact(row,['id','domain','revision','epoch','envelope','deleted'])||!UUID.test(row.id)||ids.has(row.id)||!DOMAINS.has(row.domain)||!Number.isSafeInteger(row.revision)||row.revision<1||(!Number.isSafeInteger(row.epoch)||row.epoch<1)||typeof row.deleted!=='boolean'||!envelope(row.envelope))return response({error:'INVALID_RECORD'},400);ids.add(row.id);}
+  const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(x=>x.toString(16).padStart(2,'0')).join('');
+  return this.state.storage.transaction(async store=>{
+   if(await store.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
+   if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   if(await store.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},409);
+   if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
+   const activeManifest=await store.get('manifest');if(activeManifest&&input.changes.some(/** @param {any} row */row=>row.epoch!==activeManifest.epoch))return response({error:'EPOCH_RETIRED'},409);
+   const domainGenerations=await store.get('domain-generations')??{};if([...DOMAINS].some(d=>(domainGenerations[d]??0)!==(input.domainGenerations?.[d]??0)))return response({error:'DOMAIN_GENERATION_CHANGED'},409);
+   const old=await store.get(`receipt:${input.operation}`);if(old)return old.digest===digest?response({revision:old.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);
+   if(input.base<(await store.get('receipt-floor')??0))return response({error:'REPLAY_HORIZON_REQUIRES_RECOVERY'},409);
+   const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
+   const currentManifest=await store.get('manifest');if(input.manifest&&currentManifest)return response({error:'VAULT_ALREADY_EXISTS'},409);
+   if(!currentManifest&&!input.manifest)return response({error:'ENROLL_FIRST'},409);
+   if(!currentManifest&&input.changes.some(/** @param {any} row */row=>row.epoch!==input.manifest.epoch))return response({error:'INVALID_EPOCH'},409);
+   if(input.vault!==(currentManifest??input.manifest).vault)return response({error:'VAULT_CHANGED'},409);
+   let used=await store.get('bytes')??0,operations=await store.get('operations')??0;
+   if(operations>=50000)return response({error:'OPERATION_CAPACITY_EXPORT_REQUIRED'},507);
+   for(const row of input.changes){const previous=await store.get(`record:${row.id}`);if((previous?.revision??0)+1!==row.revision||previous&&previous.domain!==row.domain)return response({error:'RECORD_CONFLICT'},409);used+=JSON.stringify(row).length-(previous?JSON.stringify(previous).length:0);}
+   if(used>32_000_000)return response({error:'VAULT_CAPACITY_EXPORT_REQUIRED'},507);
+   const writes={revision:revision+1,bytes:used,operations:operations+1,[`receipt:${input.operation}`]:{digest,revision:revision+1}};
+   if(input.manifest)writes.manifest=input.manifest;for(const row of input.changes)writes[`record:${row.id}`]=row;
+   await store.put(writes);return response({revision:revision+1});
+  });
+ }
+ /** @param {any} input @param {string|null} sessionHash */
+ async compact(input,sessionHash){
+  const HEAD='00000000-0000-4000-8000-000000000001';
+  if(!exact(input,['protocol','action','vault','operation','base','epoch','headDigest','retain','domainGenerations'])||input.protocol!==1||!UUID.test(input.vault)||!UUID.test(input.operation)||!Number.isSafeInteger(input.base)||input.base<0||!Number.isSafeInteger(input.epoch)||input.epoch<1||!/^[a-f0-9]{64}$/.test(input.headDigest)||!Array.isArray(input.retain)||input.retain.length>2801||!input.retain.includes(HEAD)||new Set(input.retain).size!==input.retain.length||input.retain.some(/** @param {string} id */id=>!UUID.test(id))||!input.domainGenerations||typeof input.domainGenerations!=='object'||Array.isArray(input.domainGenerations)||Object.entries(input.domainGenerations).some(([d,g])=>!DOMAINS.has(d)||!Number.isSafeInteger(g)||g<0))return response({error:'INVALID_COMPACTION'},400);
+  const digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input))))].map(v=>v.toString(16).padStart(2,'0')).join('');
+  return this.state.storage.transaction(async store=>{
+   if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);
+   if(await store.get('domain-delete-intent'))return response({error:'DOMAIN_DELETION_PENDING'},409);
+   if(await store.get('rotation'))return response({error:'ROTATION_IN_PROGRESS'},409);
+   const manifest=await store.get('manifest'),generations=await store.get('domain-generations')??{};if(manifest?.vault!==input.vault||manifest.epoch!==input.epoch||[...DOMAINS].some(d=>(generations[d]??0)!==(input.domainGenerations[d]??0)))return response({error:'LIFECYCLE_CHANGED'},409);
+   const receipt=await store.get('receipt:'+input.operation);if(receipt)return receipt.digest===digest?response({revision:receipt.revision,replayed:true}):response({error:'OPERATION_REUSED'},409);
+   const revision=await store.get('revision')??0;if(revision!==input.base)return response({error:'REVISION_CONFLICT',revision},409);
+   const head=await store.get('record:'+HEAD),actual=head?[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(head.envelope))))].map(v=>v.toString(16).padStart(2,'0')).join(''):null;if(actual!==input.headDigest)return response({error:'CATALOG_CHANGED'},409);
+   const retain=new Set(input.retain.map(/** @param {string} id */id=>'record:'+id));if((await store.get([...retain])).size!==retain.size)return response({error:'RETAINED_RECORD_MISSING'},409);
+   let used=0,cursor;for(;;){const page=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [key,row]of page){if(retain.has(key))used+=JSON.stringify(row).length;else await store.delete(key);}}
+   // Keep 2,000 revisions of request receipts. Requests older than this durable
+   // floor require protected forward recovery. Lifecycle tombstones never prune.
+   const floor=Math.max(await store.get('receipt-floor')??0,revision+1-2000);let count=0;cursor=undefined;for(;;){const page=await store.list({prefix:'receipt:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [key,r]of page){if(r.revision<floor)await store.delete(key);else count++;}}
+   await store.put({revision:revision+1,bytes:used,operations:count+1,'receipt-floor':floor,['receipt:'+input.operation]:{digest,revision:revision+1}});return response({revision:revision+1});
+  });
+ }
+}

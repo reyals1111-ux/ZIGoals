@@ -1,0 +1,27 @@
+name: Alpha bug report
+description: Report a reproducible issue using synthetic data.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Security/privacy issues: email hello@zigoals.app privately. Never include secrets, wallet credentials, private goal backups or personal financial data."
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Minimal steps using fictional data
+      description: Include whether a second tab, reload, account change or uncertain receipt was involved.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: App version/commit, OS/browser, LOCAL SIMULATION or TESTNET, public diagnostics timestamp. Redact screenshots.
+    validations:
+      required: true

@@ -1,0 +1,32 @@
+/* Session W Part 14: the Chess page. */
+.chess-page { display: grid; gap: 22px; min-width: 0; }
+.chess-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.chess-head h2 { margin: 0; }
+.chess-rating-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
+.chess-rating { display: grid; gap: 2px; padding: 14px; border: 1px solid #a6c1fa30; border-radius: 16px; }
+.chess-rating strong { font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+.chess-rating small { color: #b5c6db; }
+.chess-chart { margin: 16px 0 0; }
+.chess-chart figcaption { margin-bottom: 6px; font-size: .9375rem; font-weight: 600; }
+.chess-chart-plot { position: relative; }
+.chess-chart svg { display: block; overflow: visible; }
+.chess-grid line { stroke: #a6c1fa26; stroke-width: 1; }
+.chess-grid text, .chess-axis { fill: #b5c6db; font-size: 14px; }
+.chess-line { fill: none; stroke: #6f7ff5; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chess-dot { fill: #6f7ff5; stroke: var(--panel, #0d1530); stroke-width: 2; }
+.chess-hit { fill: transparent; }
+.chess-chart-tip { position: absolute; top: 0; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 10px; border: 1px solid #7fc8ff40; border-radius: 10px; background: #0b1431; font-size: .875rem; white-space: nowrap; }
+.chess-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin: 12px 0; }
+.chess-results div { padding: 10px 12px; border: 1px solid #a6c1fa24; border-radius: 12px; }
+.chess-results dt { font-size: .8125rem; color: #b5c6db; }
+.chess-results dd { margin: 2px 0 0; }
+.chess-game-list, .chess-goal-list { list-style: none; padding: 0; margin: 12px 0; }
+.chess-game-list li, .chess-goal-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 0; border-top: 1px solid #a6c1fa20; min-width: 0; }
+.chess-game-list li > div, .chess-goal-list li > div { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.chess-game-list small, .chess-goal-list small { color: #b5c6db; }
+.chess-result { min-width: 52px; font-weight: 650; }
+.chess-frame-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 16px; border: 1px solid #a6c1fa40; border-radius: 18px; background: #0b1431; color: inherit; }
+.chess-frame-dialog::backdrop { background: #02061799; }
+.chess-frame-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.chess-frame-dialog iframe { display: block; width: 100%; aspect-ratio: 400 / 444; border: 0; border-radius: 12px; background: #050b1f; }
+.chess-settings summary { cursor: pointer; font-weight: 650; }

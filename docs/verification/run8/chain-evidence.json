@@ -1,0 +1,216 @@
+[
+  {
+    "name": "mainnet-node",
+    "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
+    "retrievedAt": "2026-09-17T19:37:34.912148+00:00",
+    "body": {
+      "network": "zigchain-1",
+      "version": "v4.3.0"
+    }
+  },
+  {
+    "name": "mainnet-denom",
+    "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig",
+    "error": "Command '['curl', '-fsS', '--max-time', '15', 'https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/azig']' returned non-zero exit status 56."
+  },
+  {
+    "name": "mainnet-staking",
+    "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
+    "retrievedAt": "2026-09-17T19:37:35.304772+00:00",
+    "body": {
+      "params": {
+        "unbonding_time": "1814400s",
+        "max_validators": 14,
+        "max_entries": 7,
+        "historical_entries": 10000,
+        "bond_denom": "uzig",
+        "min_commission_rate": "0.000000000000000000"
+      }
+    }
+  },
+  {
+    "name": "testnet-wasm",
+    "url": "https://testnet-api.zigchain.com/cosmwasm/wasm/v1/params",
+    "error": "Command '['curl', '-fsS', '--max-time', '15', 'https://testnet-api.zigchain.com/cosmwasm/wasm/v1/params']' returned non-zero exit status 56."
+  },
+  {
+    "name": "evm-mainnet",
+    "url": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/chains/evm/zigchain-mainnet.json",
+    "retrievedAt": "2026-09-17T19:37:35.726614+00:00",
+    "body": {
+      "$schema": "../../schemas/chain.evm.schema.json",
+      "chain_id": 944,
+      "network_id": 944,
+      "name": "ZIGChain",
+      "short_name": "zigchain",
+      "chain": "ZIG",
+      "native_currency": {
+        "name": "ZIG",
+        "symbol": "ZIG",
+        "decimals": 18
+      },
+      "rpc": [],
+      "faucets": [],
+      "info_url": "https://zigchain.com",
+      "status": "incubating",
+      "cosmos_chain_id": "zigchain-1",
+      "is_verified": true
+    }
+  },
+  {
+    "name": "evm-testnet",
+    "url": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/chains/evm/zigchain-testnet.json",
+    "retrievedAt": "2026-09-17T19:37:35.936253+00:00",
+    "body": {
+      "$schema": "../../schemas/chain.evm.schema.json",
+      "chain_id": 2061,
+      "network_id": 2061,
+      "name": "ZIGChain Testnet",
+      "short_name": "zigchain-testnet",
+      "chain": "ZIG",
+      "native_currency": {
+        "name": "ZIG",
+        "symbol": "ZIG",
+        "decimals": 18
+      },
+      "rpc": [],
+      "faucets": [],
+      "info_url": "https://zigchain.com",
+      "status": "incubating",
+      "cosmos_chain_id": "zig-test-2",
+      "is_verified": true
+    }
+  },
+  {
+    "name": "approved-test-tx",
+    "url": "https://testnet-api.zigchain.com/cosmos/tx/v1beta1/txs/53216EEFF500DDD5D5A69B6EABF2E844ADC3988BE8D61CA277C1A979BCE5EA4C",
+    "retrievedAt": "2026-09-17T19:37:36.078239+00:00",
+    "body": {
+      "height": "7812205",
+      "txhash": "53216EEFF500DDD5D5A69B6EABF2E844ADC3988BE8D61CA277C1A979BCE5EA4C",
+      "code": 0,
+      "gas_wanted": "109675",
+      "gas_used": "89869",
+      "fee": {
+        "amount": [
+          {
+            "denom": "azig",
+            "amount": "2741875000000000"
+          }
+        ],
+        "gas_limit": "109675",
+        "payer": "",
+        "granter": ""
+      }
+    }
+  },
+  {
+    "name": "mainnet-uzig-metadata",
+    "url": "https://api.zigchain.com/cosmos/bank/v1beta1/denoms_metadata/uzig",
+    "body": {
+      "metadata": {
+        "description": "ZIGChain Mainnet Native Token",
+        "denom_units": [
+          {
+            "denom": "uzig",
+            "exponent": 0,
+            "aliases": [
+              "microzig"
+            ]
+          },
+          {
+            "denom": "mzig",
+            "exponent": 3,
+            "aliases": [
+              "millizig"
+            ]
+          },
+          {
+            "denom": "zig",
+            "exponent": 6,
+            "aliases": []
+          }
+        ],
+        "base": "uzig",
+        "display": "zig",
+        "name": "ZIG",
+        "symbol": "ZIG",
+        "uri": "",
+        "uri_hash": ""
+      }
+    }
+  },
+  {
+    "name": "official-native-mainnet-registry",
+    "url": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/assets/native/zig.mainnet.json",
+    "body": {
+      "$schema": "../../schemas/asset.native.schema.json",
+      "order": 1,
+      "network": "mainnet",
+      "asset_id": "zigchain",
+      "type": "native",
+      "symbol": "ZIG",
+      "name": "ZIGChain Native Token",
+      "description": "The native token of ZIGChain",
+      "extended_description": "ZIGChain (ZIG) is a Layer 1 blockchain focused on unlocking financial opportunities for everyone - regardless of their income, location, or level of knowledge.",
+      "decimals": 6,
+      "display_denom": "ZIG",
+      "base_denom": "uzig",
+      "denom_units": [
+        {
+          "denom": "uzig",
+          "exponent": 0,
+          "aliases": [
+            "microzig"
+          ]
+        },
+        {
+          "denom": "mzig",
+          "exponent": 3,
+          "aliases": [
+            "millizig"
+          ]
+        },
+        {
+          "denom": "zig",
+          "exponent": 6
+        }
+      ],
+      "traces": [
+        {
+          "type": "additional-mintage",
+          "counterparty": {
+            "chain_name": "ethereum",
+            "base_denom": "0xb2617246d0c6c0087f18703d576831899ca94f01"
+          },
+          "provider": "ZIGChain"
+        }
+      ],
+      "logo_uris": {
+        "png": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/logos/zigchain.png",
+        "svg": "https://raw.githubusercontent.com/ZIGChain/zigchain-registry/main/logos/zigchain.svg"
+      },
+      "images": [
+        {
+          "chain_name": "ethereum",
+          "base_denom": "0xb2617246d0c6c0087f18703d576831899ca94f01"
+        }
+      ],
+      "is_verified": true,
+      "coingecko_id": "zignaly",
+      "keywords": [
+        "zigchain",
+        "rwa",
+        "wealth generation infrastructure",
+        "wasm"
+      ],
+      "socials": {
+        "website": "https://zigchain.com/",
+        "telegram": "https://t.me/ZignalyHQ",
+        "discord": "https://discord.zignaly.com",
+        "medium": "https://medium.com/zignaly",
+        "x": "https://x.com/zigchain"
+      }
+    }
+  }
+]

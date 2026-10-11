@@ -1,0 +1,12 @@
+import {expect,type Page} from '@playwright/test';
+import {emptyPlatform,privateGoalSchema,type Platform} from '../lib/positions';
+import type {MarketCatalogAsset} from '../lib/market-assets';
+export const catalog:MarketCatalogAsset[]=[{ref:{provider:'coingecko',kind:'coin',id:'bitcoin'},name:'Bitcoin',symbol:'btc'},{ref:{provider:'coingecko',kind:'coin',id:'ethereum'},name:'Ethereum',symbol:'eth'},{ref:{provider:'coingecko',kind:'rwa',id:'nvidia',assetType:'stock'},name:'Nvidia',symbol:'NVDA'},{ref:{provider:'coingecko',kind:'rwa',id:'gold',assetType:'commodity'},name:'Gold',symbol:'GOLD'}];
+const prices:Record<string,string>={bitcoin:'65000',ethereum:'3000',nvidia:'180',gold:'4000'};
+export const goal=()=>privateGoalSchema.parse({id:'91',name:'iPhone DUO',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'200000',notes:'Controlled browser fixture',createdAt:new Date().toISOString(),milestones:[]});
+export async function setup(page:Page,data:Platform=emptyPlatform()){
+ await page.route('**/api/market-assets',route=>route.fulfill({json:{assets:catalog,error:null}}));
+ await page.route('**/api/market-quotes',route=>{const body=route.request().postDataJSON();expect(Object.keys(body).every(k=>['requests','refresh'].includes(k))).toBe(true);return route.fulfill({json:{quotes:body.requests.map((r:{marketRef:MarketCatalogAsset['ref'];currency:string})=>({base:{network:'coingecko',denom:r.marketRef.id,decimals:18},marketRef:r.marketRef,currency:r.currency,price:prices[r.marketRef.id]??'1',priceDecimals:0,source:r.marketRef.kind==='rwa'?'CoinGecko tokenized RWA reference':'CoinGecko',providerAssetId:r.marketRef.id,observedAt:new Date().toISOString(),fetchedAt:new Date().toISOString(),verification:'VERIFIED'})),error:null}});});
+ await page.route('**/api/market-history',route=>{const {request:r}=route.request().postDataJSON();return route.fulfill({json:{history:{marketRef:r.marketRef,currency:r.currency,range:r.range,source:'CoinGecko',fetchedAt:new Date().toISOString(),points:Array.from({length:31},(_,i)=>({at:new Date(Date.now()-(30-i)*86400000).toISOString(),value:String(60000+i*150),decimals:0}))},error:null,stale:false,nextAttemptAt:Date.now()+60000}});});
+ await page.goto('/app/wealth');await page.evaluate(data=>localStorage.setItem('zigoals:platform:v1',JSON.stringify(data)),data);await page.reload();await expect(page.getByRole('heading',{name:'Wealth, with every source in view.'})).toBeVisible();await page.emulateMedia({reducedMotion:'reduce'});
+}

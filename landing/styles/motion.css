@@ -1,0 +1,24 @@
+/* Content is visible without JavaScript. Motion only enhances supported views. */
+@keyframes settle{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rhythm{from{transform:scaleY(.1)}to{transform:scaleY(1)}}
+@media(prefers-reduced-motion:no-preference){
+ html:not(.motion-off) .hero-enter{animation:settle 1s var(--ease) both}
+ html:not(.motion-off) .hero h1{animation-delay:.09s}
+ html:not(.motion-off) .hero-description{animation-delay:.18s}
+ html:not(.motion-off) .hero-copy .button-row{animation-delay:.25s}
+ html:not(.motion-off) .hero-copy .alpha-status{animation-delay:.31s}
+ html:not(.motion-off) .hero-media{animation-delay:.16s;animation-duration:1.3s}
+ html.reveal-ready:not(.motion-off) .reveal{opacity:0;transform:translateY(21px);transition:opacity .9s var(--ease),transform 1s var(--ease)}
+ html.reveal-ready:not(.motion-off) .reveal.in-view{opacity:1;transform:none}
+ html:not(.motion-off) .in-view .rhythm-bars i{animation:rhythm .85s var(--ease) both;transform-origin:bottom}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(2){animation-delay:.055s}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(3){animation-delay:.11s}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(4){animation-delay:.165s}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(5){animation-delay:.22s}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(6){animation-delay:.275s}
+ html:not(.motion-off) .in-view .rhythm-bars i:nth-child(7){animation-delay:.33s}
+ html.equation-enabled:not(.motion-off) [data-equation]{opacity:.13;transform:translateY(10px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+ html.equation-enabled:not(.motion-off) [data-equation].active{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*:before,*:after{animation:none!important;transition:none!important}.reveal,[data-equation]{opacity:1!important;transform:none!important}.equation-section{height:auto!important;min-height:0!important}.equation-sticky{position:relative!important;min-height:750px!important}.hero-film,.film-toggle{display:none!important}.hero-media.has-film .hero-mark,.hero-media.has-film .hero-orbits{visibility:visible!important}}
+html.motion-off{scroll-behavior:auto}html.motion-off *,html.motion-off *:before,html.motion-off *:after{animation:none!important;transition:none!important}html.motion-off .reveal,html.motion-off [data-equation]{opacity:1!important;transform:none!important}html.motion-off .equation-section{height:auto;min-height:0}html.motion-off .equation-sticky{position:relative;min-height:750px}

@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-09-18T20:25:23.943578+00:00",
+  "identityEndpoint": "https://api.coingecko.com/api/v3/coins/zignaly?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false",
+  "identity": {
+    "id": "zignaly",
+    "symbol": "zig",
+    "name": "ZIGChain",
+    "asset_platform_id": "ethereum"
+  },
+  "homepage": [
+    "https://zigchain.com/"
+  ],
+  "priceEndpoint": "https://api.coingecko.com/api/v3/simple/price?ids=zignaly&vs_currencies=usd&include_last_updated_at=true&precision=full",
+  "priceResponseText": "{\"zignaly\":{\"usd\":0.052543775042079535,\"last_updated_at\":1789762740}}",
+  "priceNote": "Actual unauthenticated response read this session; evidence only, never a runtime fallback or hardcoded price.",
+  "nativeIdentityEvidence": "docs/verification/run8/CHAIN_FEE_FINDINGS.md (existing live mainnet bank metadata uzig, 6 decimals; zigchain-1)",
+  "security": "One fixed host/pair; no forwarded headers, cookies, credentials, wallet addresses or private payload; 8s timeout; 8192-byte streamed limit; redirects refused.",
+  "nativeRegistryEndpoint": "https://raw.githubusercontent.com/cosmos/chain-registry/master/zigchain/assetlist.json",
+  "nativeRegistryMapping": {
+    "description": "The native token of ZIGChain",
+    "base": "uzig",
+    "denom_units": [
+      {
+        "denom": "uzig",
+        "exponent": 0,
+        "aliases": [
+          "microzig"
+        ]
+      },
+      {
+        "denom": "mzig",
+        "exponent": 3,
+        "aliases": [
+          "millizig"
+        ]
+      },
+      {
+        "denom": "zig",
+        "exponent": 6
+      }
+    ],
+    "symbol": "ZIG",
+    "coingecko_id": "zignaly"
+  },
+  "primaryDocs": [
+    "https://docs.coingecko.com/v3.0.1/reference/simple-price",
+    "https://www.coingecko.com/en/coins/zigchain",
+    "https://docs.zigchain.com/about-zigchain/zig"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "observedAt": "2026-09-17T19:50:56.960Z",
+  "source": "69aa0260eaa6bde3294ba7a778086839246c030a",
+  "checks": [
+    {
+      "route": "/app",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/habits",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/health",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/goals",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/goals/new",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/activity",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/ecosystem",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app/settings",
+      "status": 200,
+      "security": "PASS"
+    },
+    {
+      "route": "/app",
+      "status": 200,
+      "security": "PASS"
+    }
+  ],
+  "mutation": false
+}

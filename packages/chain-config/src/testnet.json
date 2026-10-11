@@ -1,0 +1,15 @@
+{
+  "network": "testnet",
+  "chainId": "zig-test-2",
+  "rpcUrl": "https://testnet-rpc.zigchain.com",
+  "restUrl": "https://testnet-api.zigchain.com",
+  "grpcUrl": "grpc-t.zigchain.nodestake.org:443",
+  "addressPrefix": "zig",
+  "nativeAsset": {
+    "symbol": "ZIG",
+    "displayDenom": "ZIG",
+    "baseDenom": "azig",
+    "decimals": 18
+  },
+  "gasPrice": "2500000000"
+}

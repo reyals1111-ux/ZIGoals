@@ -1,0 +1,14 @@
+# Habits Beta implementation
+- Delivered strict Habits schema V2 with deterministic V1 migration and fail-closed malformed/newer data handling.
+- Preserved V1 IDs, content, Goal links, dated rules, entries, and timestamps.
+- Added BUILD/QUIT/LIMIT, measurements, recurrence, period targets, prospective rule history, statuses, reflections, and insights.
+- Integrated contract and private Goal links; private Goals use `private`/`local` scope and `/app/goals/tracked/<id>` routes.
+- Completion endings now count completed day or natural-period outcomes instead of check-in rows.
+- Weekly/monthly/yearly outcomes are singular natural periods; pause/resume gaps stay neutral, and mid-period rule edits cannot create retroactive failures.
+- Post-end edits and state changes remain valid history; newly selected intervals begin on the change date while existing interval anchors remain stable.
+- Frequency bounds are feasible: 7/week, 28/month, and 365/year maximum.
+- Streaks reset at cadence changes and retain separate day/week/month/year boards.
+- Goal-target endings remain preserved metadata and are disabled/labeled honestly in the editor until Goal progress integration exists.
+- Frequency cards, completion controls, and history display the recurrence period used for evaluation.
+- Verified: Habit unit suites 30/30, web TypeScript, targeted ESLint, and targeted Playwright desktop 2/2.
+- Known limits: timers require the open page; stack links and Goal-target endings do not automate behavior; historical rules have no editing UI.

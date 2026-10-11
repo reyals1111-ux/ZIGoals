@@ -1,0 +1,267 @@
+{
+  "recordedAt": "2026-09-13T23:10:08.976554+00:00",
+  "source": "0380e6a6b8b667709c5674c7abb22089674bc509",
+  "sourceDirtyAtBuild": false,
+  "status": "LOCAL_GATE_PASSED",
+  "counts": {
+    "javascript": 559,
+    "rust": 25,
+    "productionBrowser": 46,
+    "localWorkerd": 14
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "command": [
+        "pnpm",
+        "lint"
+      ],
+      "exitCode": 0,
+      "seconds": 2.62,
+      "log": "/tmp/zigoals-m6-final-lint.log"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "pnpm",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "seconds": 2.67,
+      "log": "/tmp/zigoals-m6-final-typecheck.log"
+    },
+    {
+      "name": "javascript",
+      "command": [
+        "pnpm",
+        "test",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=/tmp/zigoals-m6-final-js.json"
+      ],
+      "exitCode": 0,
+      "seconds": 3.71,
+      "log": "/tmp/zigoals-m6-final-javascript.log"
+    },
+    {
+      "name": "next-build",
+      "command": [
+        "pnpm",
+        "build"
+      ],
+      "exitCode": 0,
+      "seconds": 3.88,
+      "log": "/tmp/zigoals-m6-final-next-build.log"
+    },
+    {
+      "name": "deployment-configs",
+      "command": [
+        "pnpm",
+        "check:deploy-configs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.31,
+      "log": "/tmp/zigoals-m6-final-deployment-configs.log"
+    },
+    {
+      "name": "landing-dryrun",
+      "command": [
+        "pnpm",
+        "check:landing"
+      ],
+      "exitCode": 0,
+      "seconds": 1.14,
+      "log": "/tmp/zigoals-m6-final-landing-dryrun.log"
+    },
+    {
+      "name": "secrets",
+      "command": [
+        "node",
+        "scripts/check-secrets.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.09,
+      "log": "/tmp/zigoals-m6-final-secrets.log"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "exec",
+        "playwright",
+        "test",
+        "--output=/tmp/zigoals-m6-final-browser-results"
+      ],
+      "exitCode": 0,
+      "seconds": 16.82,
+      "log": "/tmp/zigoals-m6-final-browser.log"
+    },
+    {
+      "name": "browser-restart",
+      "command": [
+        "node",
+        "scripts/verify-browser-restart.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 2.02,
+      "log": "/tmp/zigoals-m6-final-browser-restart.log"
+    },
+    {
+      "name": "alpha-build",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "build:alpha"
+      ],
+      "exitCode": 0,
+      "seconds": 8.34,
+      "log": "/tmp/zigoals-m6-final-alpha-build.log"
+    },
+    {
+      "name": "alpha-dryrun",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "check:alpha"
+      ],
+      "exitCode": 0,
+      "seconds": 1.48,
+      "log": "/tmp/zigoals-m6-final-alpha-dryrun.log"
+    },
+    {
+      "name": "workerd",
+      "command": [
+        "pnpm",
+        "--filter",
+        "@zigoals/web",
+        "exec",
+        "playwright",
+        "test",
+        "public-alpha.spec.ts",
+        "diagnostics.spec.ts",
+        "wallet-reload.spec.ts",
+        "--output=/tmp/zigoals-m6-final-workerd-results"
+      ],
+      "exitCode": 0,
+      "seconds": 7.33,
+      "log": "/tmp/zigoals-m6-final-workerd.log"
+    },
+    {
+      "name": "rustfmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exitCode": 0,
+      "seconds": 0.11,
+      "log": "/tmp/zigoals-m6-final-rustfmt.log"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exitCode": 0,
+      "seconds": 0.27,
+      "log": "/tmp/zigoals-m6-final-clippy.log"
+    },
+    {
+      "name": "rust-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked"
+      ],
+      "exitCode": 0,
+      "seconds": 9.04,
+      "log": "/tmp/zigoals-m6-final-rust-tests.log"
+    },
+    {
+      "name": "schema",
+      "command": [
+        "cargo",
+        "schema",
+        "--locked"
+      ],
+      "exitCode": 0,
+      "seconds": 0.45,
+      "log": "/tmp/zigoals-m6-final-schema.log"
+    },
+    {
+      "name": "generated",
+      "command": [
+        "node",
+        "contracts/goal-manager/scripts/generate-types.mjs"
+      ],
+      "exitCode": 0,
+      "seconds": 0.16,
+      "log": "/tmp/zigoals-m6-final-generated.log"
+    },
+    {
+      "name": "contract-drift",
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "01ebf00f7a177ab86fb41b52164fa7f5320f644c",
+        "--",
+        "contracts",
+        "packages/shared-types/src/contract.generated.ts"
+      ],
+      "exitCode": 0,
+      "seconds": 0.02,
+      "log": "/tmp/zigoals-m6-final-contract-drift.log"
+    }
+  ],
+  "browserRestart": {
+    "recordedAt": "2026-09-13T23:05:31.437Z",
+    "status": "passed",
+    "method": "Close entire persistent Chrome context, relaunch Chrome with same isolated profile, reconnect and switch wallet",
+    "appUrl": "http://127.0.0.1:3108/app/activity",
+    "recordsRetained": 4,
+    "unknownHashRetained": true,
+    "corruptRecordPreserved": true,
+    "corruptionAndNetworkWarningsVisible": true,
+    "accountScopeVerified": true,
+    "signerCalls": 0,
+    "broadcastRequests": 0,
+    "pageErrors": [],
+    "realKeplr": false,
+    "networkAndWallet": "mocked external boundaries; no live transaction"
+  },
+  "contractsPackagesLockfileChanged": false,
+  "productionMutations": "NONE",
+  "review": {
+    "kind": "independent code/config/docs security-performance review; not a professional audit",
+    "source": "0380e6a6b8b667709c5674c7abb22089674bc509",
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "limitations": "No independent production/runtime-cap verification. Parent local workerd gate covers routing."
+  },
+  "ci": {
+    "ledger": "https://github.com/reyals1111-ux/ZIGoals/pull/6",
+    "checks": "https://github.com/reyals1111-ux/ZIGoals/pull/6/checks",
+    "note": "Final exact-head workflow results recorded in PR description after checkpoint push."
+  },
+  "limits": [
+    "No new deployment, real extension experiment, signing or transaction.",
+    "CPU cap enforcement and production CPU improvement await owner rollout.",
+    "Full integrated local gate run once; no test failures. Targeted red/green development tests preceded it."
+  ]
+}

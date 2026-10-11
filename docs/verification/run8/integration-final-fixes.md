@@ -1,0 +1,13 @@
+# Final integration review fixes — d71c89b
+- Fixed all three findings in integration-fix-review.md; only four authorized files committed. No push or deployment.
+- Reward Goals cannot treat NATIVE_STAKING as projected principal when observed Goal progress rejects that source.
+- A saved contribution habit ID is usable only when the Habit already links to this private Goal. Mismatches show a warning and allow creation of a separate linked habit, preserving the unrelated Habit exactly.
+- Reconciliation repeats the Goal-link check inside the locked Habits update, preventing stale UI state from rewriting a Habit whose link changed.
+- Creation reserves a valid new or missing UUID under the Platform store lock before touching Habits. Failed second-store writes retain that reservation; retries reuse it. An already-created correctly linked Habit is reused without rewriting its history. Unrelated existing UUIDs are never overwritten.
+- Regression red phase reproduced reward-principal inclusion, missing cross-store warning/protection, and absence of a retryable reservation after an injected Habit-store quota failure.
+- Final checks: 21 Position tests passed; targeted ESLint, typecheck and diff whitespace checks passed; 6/6 desktop/mobile browser tests passed.
+- Browser cases verify successful explicit reconciliation preserving prior-day monthly rules and entries, no financial gain from Habit completion, unrelated Habit byte-equivalent preservation, and failed second-store retry producing exactly one Habit with the reserved ID.
+- One test initially observed Next's empty route-announcer alert before the real asynchronous quota error; filtering for the actual save-error text removed that test race.
+- Source is stable and ready for parent production checks. Browser output: /tmp/run8-final-regression-green-browser. Backup: /tmp/run8-integration-final-backup-1789675797438327000.
+- Follow-up commit 354c7b9 stores newly entered price assumptions at 18 decimals while preserving contribution-currency amount precision and rendering old saved prices using their own decimals. $0.012345/ZIG is now representable exactly.
+- Follow-up verification: 22 Position tests, targeted ESLint, typecheck and whitespace checks passed. Added browser regression checks exact storage, reload and unchanged observed progress; parent explicitly deferred its run to the upcoming production browser suite instead of restarting dev.

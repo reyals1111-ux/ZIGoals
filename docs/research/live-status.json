@@ -1,0 +1,15 @@
+{
+  "retrievedAt": "2026-09-13T00:58:38.352Z",
+  "data": {
+    "network": "zig-test-2",
+    "latest_block_hash": "B7F182DE390F964536A9DD647ADDFA821CA506D17D44B069A0CF85443C79259F",
+    "latest_app_hash": "B32D07D12A91E055530598C50D9B388942706B4F7317DBD3BD1AA3F8AA57A950",
+    "latest_block_height": "7739907",
+    "latest_block_time": "2026-09-13T00:55:40.674054001Z",
+    "earliest_block_hash": "01E77C0D85BE34A0E87B1F5AC55D6A2832DECAC9A8BFE8AA4717899B2BF92D51",
+    "earliest_app_hash": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "earliest_block_height": "1",
+    "earliest_block_time": "2025-05-23T12:17:56.338648979Z",
+    "catching_up": false
+  }
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="458" viewBox="0 0 720 458" role="img" aria-label="Mockup A: ways to let your ZIG work, inside Staking" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+<title>Mockup A: ways to let your ZIG work, inside Staking</title>
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#7fe7f5"/><stop offset=".55" stop-color="#9ea7ff"/><stop offset="1" stop-color="#f0a7d8"/></linearGradient></defs>
+<rect width="720" height="458" fill="#030916"/>
+<rect x="16" y="16" width="688" height="426" rx="20" fill="#060d1f" stroke="#1f2c47"/>
+<text x="40" y="58" font-size="13" letter-spacing="2" fill="#aebed6">MOCKUP · DESIGN ONLY · NOT AVAILABLE</text>
+<text x="40" y="96" font-size="22" font-weight="600" fill="#f3f6ff">Let your ZIG work</text>
+<text x="680" y="96" font-size="14" fill="#9fd8e6" text-anchor="end">Testnet · no value</text>
+<text x="40" y="130" font-size="15" fill="#c9d6ea">Choose an option to read about it. Nothing happens until you sign a step yourself.</text>
+<rect x="32" y="146" width="656" height="64" rx="12" fill="#0b1730" stroke="#2a3a5c"/>
+<text x="52" y="170" font-size="17" font-weight="600" fill="#f3f6ff">Stake with a validator</text>
+<text x="52" y="194" font-size="14" fill="#aebed6">Out in 21 days · you keep control</text>
+<text x="668" y="170" font-size="14" fill="#d6c8e6" text-anchor="end">Run by ZIGChain validators</text>
+<rect x="32" y="224" width="656" height="64" rx="12" fill="#0b1730" stroke="#2a3a5c"/>
+<text x="52" y="248" font-size="17" font-weight="600" fill="#f3f6ff">Liquid staking (stZIG)</text>
+<text x="52" y="272" font-size="14" fill="#aebed6">Out after a queue and 21 days · contract risk</text>
+<text x="668" y="248" font-size="14" fill="#d6c8e6" text-anchor="end">Run by Valdora</text>
+<rect x="32" y="302" width="656" height="64" rx="12" fill="#0b1730" stroke="#2a3a5c"/>
+<text x="52" y="326" font-size="17" font-weight="600" fill="#f3f6ff">Vaults</text>
+<text x="52" y="350" font-size="14" fill="#aebed6">Not available: eligibility and legal review first</text>
+<text x="668" y="326" font-size="14" fill="#d6c8e6" text-anchor="end">Needs review</text>
+<text x="40" y="430" font-size="13" fill="#aebed6">Not financial advice. A rate is never shown as a promise.</text>
+</svg>

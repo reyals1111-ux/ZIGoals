@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-09-15T10:29:08.004339+00:00",
+  "base": "b81262f1b9ae7e4a07efb9a6415e64d90fe120f9",
+  "implementationSource": "6889ffe7510dda8d4f7394eb1a5016121bd804b3",
+  "alphaBuild": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "176f209600b8c7ba7b2c1fcf746f105fe84a14ff",
+    "dirty": false
+  },
+  "workerUploadKiB": 9029.61,
+  "workerGzipKiB": 1687.49,
+  "v1ApproxGzipKiB": 1623,
+  "approxGzipIncreasePercent": 3.97,
+  "lint": "PASS",
+  "typecheck": "PASS",
+  "jsTests": {
+    "passed": 610,
+    "files": 32
+  },
+  "productionNextBrowser": {
+    "initialPassed": 78,
+    "initialSelectorFailures": 2,
+    "targetedCorrectedPassed": 2,
+    "distinctCasesVerified": 80,
+    "projects": [
+      "desktop",
+      "mobile"
+    ]
+  },
+  "workerdBrowser": {
+    "passed": 20,
+    "failed": 0
+  },
+  "deploymentConfig": "PASS",
+  "dependencyAudit": "PASS",
+  "credentialPatternScan": "PASS",
+  "protectedPathDiff": {
+    "paths": [
+      "contracts",
+      "packages",
+      "scripts",
+      ".github/workflows",
+      "apps/web/lib/wallet.ts",
+      "apps/web/lib/transaction.ts",
+      "apps/web/lib/transaction-journal.ts",
+      "apps/web/lib/local-ledger.ts",
+      "apps/web/lib/storage.ts",
+      "apps/web/components/goal-provider.tsx",
+      "apps/web/middleware.ts",
+      "apps/web/config",
+      "apps/web/wrangler.alpha.jsonc",
+      "pnpm-lock.yaml"
+    ],
+    "changed": []
+  },
+  "independentReview": "One P3 rejected-draft issue fixed and regression tested; no higher-severity finding",
+  "productionMutations": "NONE",
+  "chainActions": "NONE",
+  "releaseCandidatesGenerated": "NONE",
+  "prCi": {
+    "url": "https://github.com/reyals1111-ux/ZIGoals/pull/9",
+    "head": "2db283ae7cf80ddf6322bcdbd4af6bc2728c9329",
+    "conclusion": "PASS",
+    "checks": 5,
+    "qualityRun": 34958639247,
+    "reproducibilityRun": 34958639274,
+    "jsTestsPassed": 610,
+    "browserTestsPassed": 80,
+    "workersSecurityTestsPassed": 12,
+    "workerUploadKiB": 9029.12,
+    "workerGzipKiB": 1687.32,
+    "note": "Successful review-package head; closing documentation commit changes no application code. Latest head checks are shown on the PR."
+  }
+}

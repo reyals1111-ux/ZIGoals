@@ -1,0 +1,13 @@
+{
+  "retrievedAt": "2026-09-13T00:58:38.352Z",
+  "data": {
+    "params": {
+      "unbonding_time": "1814400s",
+      "max_validators": 14,
+      "max_entries": 7,
+      "historical_entries": 10000,
+      "bond_denom": "azig",
+      "min_commission_rate": "0.000000000000000000"
+    }
+  }
+}

@@ -1,0 +1,577 @@
+{
+  "at": "2026-09-26T21:12:19.036827+00:00",
+  "scope": "Installed web runtime production dependency graph; package metadata and license-file hashes, not a legal determination. pnpm licenses command lacked package index metadata, so actual installed manifests were traversed. Optional/platform dependencies are outside this graph.",
+  "packages": [
+    {
+      "name": "@cosmjs/amino",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/cosmwasm",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/cosmwasm-stargate",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/crypto",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/encoding",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/json-rpc",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/math",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/proto-signing",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/socket",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/stargate",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/stream",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/tendermint-rpc",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@cosmjs/utils",
+      "version": "0.38.1",
+      "declaredLicense": "Apache-2.0",
+      "notices": []
+    },
+    {
+      "name": "@next/env",
+      "version": "16.3.5",
+      "declaredLicense": "MIT",
+      "notices": []
+    },
+    {
+      "name": "@noble/ciphers",
+      "version": "1.3.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "f36671a5487c9c5050efacb58011c37c24c55a889803cb036cf9d9a6347c1e2d"
+        }
+      ]
+    },
+    {
+      "name": "@noble/curves",
+      "version": "1.9.7",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "4f221aee6e072336700c408c68ab3b96a3fc09f6aebe6f48f1bd99e5ef13faec"
+        }
+      ]
+    },
+    {
+      "name": "@noble/hashes",
+      "version": "1.8.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "4f221aee6e072336700c408c68ab3b96a3fc09f6aebe6f48f1bd99e5ef13faec"
+        }
+      ]
+    },
+    {
+      "name": "@scure/base",
+      "version": "1.2.6",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "3239e134eb6e6d64538ca76498c7fcb08a395249dd9d4af9927bf6d0169ee429"
+        }
+      ]
+    },
+    {
+      "name": "@scure/base",
+      "version": "2.4.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "3239e134eb6e6d64538ca76498c7fcb08a395249dd9d4af9927bf6d0169ee429"
+        }
+      ]
+    },
+    {
+      "name": "@scure/bip39",
+      "version": "1.6.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "1565efd0ec4580bfaa96c7eeaaa9af3791baa1cc562c3bde62d0a055910b9ec7"
+        }
+      ]
+    },
+    {
+      "name": "@swc/helpers",
+      "version": "0.5.23",
+      "declaredLicense": "Apache-2.0",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "d96eba1f1881334d50ffc144276dfa98e147a415e7c591ecdfcb81680361dc91"
+        }
+      ]
+    },
+    {
+      "name": "@zigoals/chain-config",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zigoals/ecosystem-registry",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zigoals/goal-engine",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zigoals/shared-types",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zigoals/strategy-types",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zigoals/web",
+      "version": "0.1.0",
+      "declaredLicense": null,
+      "notices": []
+    },
+    {
+      "name": "@zxing/browser",
+      "version": "0.2.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "4c26c3077daa7ce4d56ad91f279fafc395bf33c3a0f1ba9ab8cf511bad148ea5"
+        }
+      ]
+    },
+    {
+      "name": "@zxing/library",
+      "version": "0.23.0",
+      "declaredLicense": "Apache-2.0",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "849b3ff4527ff587eecc78736b5685bbba7a44b071f3b944da914e832292f6c0"
+        }
+      ]
+    },
+    {
+      "name": "base64-js",
+      "version": "1.5.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "5b37224c080cdcc97c871ada971c224e9926370fe74f11b539aa1cf9f3b1aca1"
+        }
+      ]
+    },
+    {
+      "name": "baseline-browser-mapping",
+      "version": "2.11.22",
+      "declaredLicense": "Apache-2.0",
+      "notices": [
+        {
+          "file": "LICENSE.txt",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "name": "caniuse-lite",
+      "version": "1.0.30001810",
+      "declaredLicense": "CC-BY-4.0",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "fd3a263fe19ed8faa9068b43abaebafc02c77897b0c6fc09abc04bb592e5f16e"
+        }
+      ]
+    },
+    {
+      "name": "client-only",
+      "version": "0.0.1",
+      "declaredLicense": "MIT",
+      "notices": []
+    },
+    {
+      "name": "cosmjs-types",
+      "version": "0.11.0",
+      "declaredLicense": "Apache-2.0",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ]
+    },
+    {
+      "name": "decimal.js",
+      "version": "10.6.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENCE.md",
+          "sha256": "3108b546bcff5d346923a82f48b2d252ca722f9088076db6d145f6b67757ad6c"
+        }
+      ]
+    },
+    {
+      "name": "define-data-property",
+      "version": "1.1.4",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "b41d08bc3624d8c436fc80237d73ebb361985a67f4504bbcd703e5ca2b27254c"
+        }
+      ]
+    },
+    {
+      "name": "define-properties",
+      "version": "1.2.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "00d402c2bbe7c67369bd01ce2c16b8ed46ccc949a1ee2d6bb8f9606afa8c7434"
+        }
+      ]
+    },
+    {
+      "name": "es-define-property",
+      "version": "1.0.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "5e325595b4ea8cfec3802f545b1def5d7b73e4a5b8e9ba63e32a320f67732292"
+        }
+      ]
+    },
+    {
+      "name": "es-errors",
+      "version": "1.3.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "5e325595b4ea8cfec3802f545b1def5d7b73e4a5b8e9ba63e32a320f67732292"
+        }
+      ]
+    },
+    {
+      "name": "globalthis",
+      "version": "1.0.4",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "acfaf437865d82f0fa9b9cdcae8b550bed8d011adaa5b42d973191caf99f62a8"
+        }
+      ]
+    },
+    {
+      "name": "gopd",
+      "version": "1.2.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "d90bf0a089da4cf43d644ed240a0b3825dcdb705e64e38371d56995a4cc9e4c5"
+        }
+      ]
+    },
+    {
+      "name": "has-property-descriptors",
+      "version": "1.0.2",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "0f0ca96f50793990031ebc488a38f7292ff70bce8ab6a8e5eeda674abc32ccdf"
+        }
+      ]
+    },
+    {
+      "name": "hash-wasm",
+      "version": "4.12.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "c14dea172f72f2714284a0ac2ab1b00b5352a01409d58255a46227ffc541debd"
+        }
+      ]
+    },
+    {
+      "name": "isomorphic-ws",
+      "version": "4.0.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "12a66fee27259312cf2101ac5a17f009da37dffdfcd051f821116a74ae9bf841"
+        }
+      ]
+    },
+    {
+      "name": "nanoid",
+      "version": "3.3.19",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "da4db1480d9beea3483a2eda5c53b22238d0827d57da162b48f122e04d2d9987"
+        }
+      ]
+    },
+    {
+      "name": "next",
+      "version": "16.3.5",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "license.md",
+          "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+        }
+      ]
+    },
+    {
+      "name": "object-keys",
+      "version": "1.1.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "5640e5cbe2e9f57f6ccfdd8dbfbeadb875495bdbcb69d2666ce3177ccd0942e4"
+        }
+      ]
+    },
+    {
+      "name": "picocolors",
+      "version": "1.1.1",
+      "declaredLicense": "ISC",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "6582629e2979466878f6014313dcc2f3756c9616148682227ce3063dde310750"
+        }
+      ]
+    },
+    {
+      "name": "postcss",
+      "version": "8.5.23",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "5be1f3465bba68a626777f984878814aaf35e7ef8e9fd314d469bcf887050fb8"
+        }
+      ]
+    },
+    {
+      "name": "react",
+      "version": "19.3.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "readonly-date-esm",
+      "version": "2.0.0",
+      "declaredLicense": "Apache-2.0",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "file": "NOTICE",
+          "sha256": "ed83a4f77cb4fddad903fda248f2d9c7cf0309645ccc3c7f02584469efe529f4"
+        }
+      ]
+    },
+    {
+      "name": "scheduler",
+      "version": "0.28.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "source-map-js",
+      "version": "1.2.1",
+      "declaredLicense": "BSD-3-Clause",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "6cb0631f71c7749763fd3dd1d5bee52dd1070ec17f2edc1710079ad070bd2fbd"
+        }
+      ]
+    },
+    {
+      "name": "styled-jsx",
+      "version": "5.1.6",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "license.md",
+          "sha256": "24d4a4580df855c345705b3016404f0c9da7e7674dc3b21a3ce7d0e5d0c37e2d"
+        }
+      ]
+    },
+    {
+      "name": "symbol-observable",
+      "version": "2.0.3",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "license",
+          "sha256": "a2d1b73a87aba97d475ee920f2dbbf147291a094568431144e350fd1f3469904"
+        }
+      ]
+    },
+    {
+      "name": "ts-custom-error",
+      "version": "3.3.1",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "659b010fe62ce794cf25e1e36c2d739db17ea10a159f9a46ba2293e1f26d31c7"
+        }
+      ]
+    },
+    {
+      "name": "tslib",
+      "version": "2.8.1",
+      "declaredLicense": "0BSD",
+      "notices": [
+        {
+          "file": "LICENSE.txt",
+          "sha256": "210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751"
+        }
+      ]
+    },
+    {
+      "name": "ws",
+      "version": "7.5.13",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "3de284c8e6fa7e8437eff6f53695471e0332129a5b42a79361e17b7637de94b3"
+        }
+      ]
+    },
+    {
+      "name": "xstream",
+      "version": "11.14.0",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "aef69a3a58d788b4bab870b72f813a29f33791131438381e769d9449026d8fa3"
+        }
+      ]
+    },
+    {
+      "name": "zod",
+      "version": "4.6.2",
+      "declaredLicense": "MIT",
+      "notices": [
+        {
+          "file": "LICENSE",
+          "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
+        }
+      ]
+    }
+  ],
+  "unresolved": []
+}

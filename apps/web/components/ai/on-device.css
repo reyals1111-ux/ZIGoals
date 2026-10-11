@@ -1,0 +1,4 @@
+/* Chrome's on-device model in Settings (Session V Part 15). */
+.ai-on-device{display:grid;gap:10px}
+.ai-on-device-progress{display:flex;align-items:center;gap:10px}
+.ai-on-device-progress progress{flex:1;min-width:0;height:12px}

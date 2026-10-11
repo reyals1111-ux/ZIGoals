@@ -1,0 +1,41 @@
+
+Running 28 tests using 2 workers
+
+(node:60916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:60915) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [desktop] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves (881ms)
+  ✓   1 [desktop] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence (1.1s)
+  ✓   3 [desktop] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie (968ms)
+  ✓   5 [desktop] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection (1.0s)
+  ✓   4 [desktop] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 320px (2.2s)
+  ✓   6 [desktop] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP (2.3s)
+  ✓   8 [desktop] › tests/public-alpha.spec.ts:140:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP (59ms)
+  ✓   7 [desktop] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 390px (2.2s)
+  ✓  10 [desktop] › tests/run10-account-access.spec.ts:24:5 › unconfigured email access explains unavailable setup without attempting provider calls (373ms)
+  ✓  11 [desktop] › tests/run10-private-vault.spec.ts:2:5 › Health storage upgrade keeps records, accepts further writes and reloads (1.8s)
+  ✓  12 [desktop] › tests/run10-private-vault.spec.ts:11:5 › encrypted backup requires recovery acknowledgement and unknown hosted config fails safely (679ms)
+  ✓   9 [desktop] › tests/run10-health-only-journey.spec.ts:3:5 › JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests (3.5s)
+(node:61028) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  13 [desktop] › tests/run10-private-vault.spec.ts:19:5 › durable edits notify another already-open tab without losing either write (1.4s)
+  ✓  14 [mobile] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence (754ms)
+  ✓  16 [mobile] › tests/public-alpha.spec.ts:5:5 › Alpha declares an explicit same-origin icon that resolves (364ms)
+  ✓  17 [mobile] › tests/public-alpha.spec.ts:44:5 › egress capture detects a sentinel carried only in an HttpOnly cookie (905ms)
+  ✓  15 [desktop] › tests/run10-private-vault.spec.ts:25:5 › durable Health accepts and exports a real domain backup above the old 2 MB ceiling (2.1s)
+(node:61055) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  18 [mobile] › tests/public-alpha.spec.ts:55:5 › strict production headers, fresh nonce, navigation and script rejection (942ms)
+  ✓  19 [mobile] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 320px (2.5s)
+  ✓  20 [mobile] › tests/public-alpha.spec.ts:89:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP (2.8s)
+  ✓  22 [mobile] › tests/public-alpha.spec.ts:140:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP (71ms)
+  ✓  21 [mobile] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 390px (2.1s)
+  ✓  24 [mobile] › tests/run10-account-access.spec.ts:24:5 › unconfigured email access explains unavailable setup without attempting provider calls (314ms)
+  ✓  25 [mobile] › tests/run10-private-vault.spec.ts:2:5 › Health storage upgrade keeps records, accepts further writes and reloads (1.7s)
+  ✓  26 [mobile] › tests/run10-private-vault.spec.ts:11:5 › encrypted backup requires recovery acknowledgement and unknown hosted config fails safely (644ms)
+  ✓  23 [mobile] › tests/run10-health-only-journey.spec.ts:3:5 › JRN-01 empty Health-only profile saves meals, water and a pinned metric without financial requests (4.8s)
+  ✓  27 [mobile] › tests/run10-private-vault.spec.ts:19:5 › durable edits notify another already-open tab without losing either write (1.3s)
+  ✓  28 [mobile] › tests/run10-private-vault.spec.ts:25:5 › durable Health accepts and exports a real domain backup above the old 2 MB ceiling (1.9s)
+
+  28 passed (23.9s)

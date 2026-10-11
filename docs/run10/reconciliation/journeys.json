@@ -1,0 +1,1091 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-09-23T22:10:35.750319+00:00",
+  "scope": "Documentation-only reconciliation of all40 JRN requirements; original specifications preserved verbatim; not main-ledger acceptance.",
+  "basis": "Read main ledger, named evidence reports and actual account-browser fixture. No test reruns, provider calls, code changes or new deployment. Prior scoped results are historical evidence, not a final full-suite pass.",
+  "status_note": "All combined journeys remain incomplete. Integration owner reports full browser run at89246251cfba1407a1badb3fcd060804ebd234f1:219passed,77failed,16skipped; corrections are running. This reconciliation did not rerun that suite or independently inspect its raw log. Historical scoped/source-only checks do not establish fresh full-suite proof. Helper completion is not workstream completion; no owner acceptance or scope reduction is inferred.",
+  "activation_boundary": "No activated owner service, external email delivery or physical-device acceptance is established. Those are distinct hosted/device prerequisites, not excuses for missing local behavior or integrated tests.",
+  "latest_four_domain_fixture": {
+    "source": "scripts/run10/account-browser.test.mjs",
+    "log": "/private/tmp/run10-multidomain-offline-sync.log",
+    "observed_result": "1 test /1 file passed;14.80s; reported start23:54:55; log does not encode timezone/date.",
+    "actual_scope": "Two independent desktop/mobile-emulated browser contexts; real server adapter/WebCrypto/local durable storage and persistent Miniflare SQLite backend; fixture auth/email. A Project Goal, Habit, custom food/meal and water widget reach B; B Habit completion reaches A; B reload/unlock; offline A250mL+B500mL reconnect B then A and converge750mL; four private text markers absent from returned backend ciphertext; other-session revocation locks B.",
+    "limits": "Only one reconnect order; no same-record/preference conflict journey; both-profile all-domain reload not asserted; no physical device/external inbox/hosted provider proof. Ephemeral log is not a committed artifact."
+  },
+  "requirements": [
+    {
+      "id": "JRN-01",
+      "title": "New Health-only user",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 619
+      },
+      "specification": "Start with empty isolated storage, choose Health-only interests/preset, create a custom food and log a meal/water entry, pin chosen metrics and reload. The experience is coherent without a wallet, fake wealth, forced crypto actions or Showcase data. Enter and leave settings/dialogs with touch/keyboard and preserve saved records.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Start with empty isolated storage, choose Health-only interests/preset, create a custom food and log a meal/water entry, pin chosen metrics and reload. The experience is coherent without a wallet, fake wealth, forced crypto actions or Showcase data. Enter and leave settings/dialogs with touch/keyboard and preserve saved records."
+      ],
+      "implemented_subset": "Health-only preset and no-wallet/no-market behavior have focused widget browser evidence; Health food, diary, water and reload have separate local browser evidence. Four-domain account fixture also creates custom food/meal and a selected water widget.",
+      "precise_remaining": "No single empty-profile Health-only journey proves the entire interest→food→meal/water→pin→reload sequence with touch/keyboard settings/dialog transitions. Separate helper passes do not establish combined acceptance; current full browser integration is unresolved.",
+      "next_concrete_step": "Run one final-source empty Health-only journey with saved-byte assertions, focus/touch checks and no financial requests.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-02",
+      "title": "First email account and encrypted vault",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 621
+      },
+      "specification": "Use the implemented auth path, complete email verification/code in the available actual test level, set up independent vault unlock/recovery, explicitly consent to sync and upload fictional private records. Inspect backend storage and transport for ciphertext and minimal metadata. Do not label local mail capture as external email delivery.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Use the implemented auth path, complete email verification/code in the available actual test level, set up independent vault unlock/recovery, explicitly consent to sync and upload fictional private records. Inspect backend storage and transport for ciphertext and minimal metadata. Do not label local mail capture as external email delivery."
+      ],
+      "implemented_subset": "Actual UI fixture email-code login, independent recovery acknowledgement, Health consent, encrypted upload and server adapter/SQLite transport run in two independent browser profiles. Latest four-domain fixture checks backend response lacks fictional Goal, Habit, food and widget names.",
+      "precise_remaining": "External email delivery and hosted binding are not activated. Latest fixture does not inspect every network/storage/log boundary or establish minimal-metadata acceptance under all failures. Recovery lifecycle and prolonged operation remain partial.",
+      "next_concrete_step": "Retain local four-domain evidence, inspect remaining transport/storage metadata boundaries, then perform separately approved configured email/hosted acceptance.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-03",
+      "title": "Independent phone/desktop-equivalent clients",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 623
+      },
+      "specification": "Use separate profiles/storage with one real implemented backend. A creates a Goal/Habit/Health record and widget; B authenticates/unlocks and receives them; B edits and A sees the accepted change. Reload both. Physical phone/desktop acceptance is recorded separately when available; two tabs sharing a store cannot satisfy the independent-client test.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Use separate profiles/storage with one real implemented backend. A creates a Goal/Habit/Health record and widget; B authenticates/unlocks and receives them; B edits and A sees the accepted change. Reload both. Physical phone/desktop acceptance is recorded separately when available; two tabs sharing a store cannot satisfy the independent-client test."
+      ],
+      "implemented_subset": "Latest14.80s fixture creates a Project Goal, Habit, custom food/diary record and water widget on A; independently authenticated/unlocked B receives all four domains, completes the Habit, and A receives it. B cold-reloads/unlocks; later independent water additions converge. Profiles use separate storage and one actual persistent local Worker.",
+      "precise_remaining": "The fixture explicitly reloads B, not both profiles with all four-domain records reasserted after reload. It does not prove B edits each domain, real hosted auth/email or physical phone/desktop acceptance.",
+      "next_concrete_step": "Extend the final-source fixture to reload/unlock both profiles and assert four-domain identities; record physical/hosted acceptance separately when configured.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "/private/tmp/run10-multidomain-offline-sync.log"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-04",
+      "title": "Empty second device cannot erase data",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 625
+      },
+      "specification": "Populate A, then start B empty and begin enrollment twice with an interruption. B must attach to the existing vault without publishing an empty replacement, duplicating records or generating an incompatible key epoch. Wrong unlock input preserves both server ciphertext and A's working data.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Populate A, then start B empty and begin enrollment twice with an interruption. B must attach to the existing vault without publishing an empty replacement, duplicating records or generating an incompatible key epoch. Wrong unlock input preserves both server ciphertext and A's working data."
+      ],
+      "implemented_subset": "Empty B attaches to A existing vault and receives all four domains in latest actual browser fixture. Cloud tests reject first-attach nonempty conflicts; crypto rejects wrong recovery secret.",
+      "precise_remaining": "No integrated twice-started/interrupted enrollment and wrong-unlock matrix proves server ciphertext/key epoch and A data remain unchanged. Component rejection tests alone are insufficient.",
+      "next_concrete_step": "Interrupt B enrollment at each local/remote boundary, retry twice, then compare vault epoch/ciphertext and A/B stable IDs after wrong/correct unlock.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "apps/web/lib/vault/crypto.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-05",
+      "title": "Offline merge across domains",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 627
+      },
+      "specification": "Disconnect both clients, add independent Health/Habit records, change separate preferences and reconnect in opposite orders. Accepted independent events survive with stable identities and no duplication. Conflicting edits to the same record are preserved/resolved under the documented policy, with visible status rather than silent loss.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Disconnect both clients, add independent Health/Habit records, change separate preferences and reconnect in opposite orders. Accepted independent events survive with stable identities and no duplication. Conflicting edits to the same record are preserved/resolved under the documented policy, with visible status rather than silent loss."
+      ],
+      "implemented_subset": "Latest browser fixture disconnects both contexts, adds250mL on A and500mL on B, reconnects B then A, and verifies750mL on both. Actual Health receipt union/replay regression accompanies the implementation; generic merges and conflicts have unit evidence.",
+      "precise_remaining": "Only one reconnect order and Health water additions are covered. Offline Habit additions, separate preference changes, opposite reconnect order, same-record conflict preservation/resolution and visible domain status remain incomplete.",
+      "next_concrete_step": "Add opposite-order replay plus independent Habit/settings changes and same-record conflicts, checking IDs, receipts, both copies and visible resolution.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "/private/tmp/run10-multidomain-offline-sync.log",
+        "docs/run10/FINAL_SAFETY_REVIEW.md",
+        "apps/web/lib/vault/cloud-sync.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-06",
+      "title": "Concurrent financial aggregate",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 629
+      },
+      "specification": "Two clients attempt funding/allocation changes against the same base revision. Demonstrate atomic conflict detection/revalidation so neither partial writes nor over-allocation occur. Repeating the same accepted request after losing its response cannot duplicate contribution or surplus effects. Pending/provisional versus committed state is visible.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Two clients attempt funding/allocation changes against the same base revision. Demonstrate atomic conflict detection/revalidation so neither partial writes nor over-allocation occur. Repeating the same accepted request after losing its response cannot duplicate contribution or surplus effects. Pending/provisional versus committed state is visible."
+      ],
+      "implemented_subset": "Local finance is a single CAS aggregate; crypto journal replay and conservative finance conflict handling have unit/runtime evidence. Final safety review verifies accepted immutable evidence cannot be replaced or removed by sync.",
+      "precise_remaining": "No two-profile concurrent funding/allocation journey against one base proves revalidation, no over-allocation, lost-response replay with exact surplus and user-visible pending/conflict resolution. Project Goal sync is not financial funding acceptance.",
+      "next_concrete_step": "Use two isolated clients to race the known capped-funding case, lose one acknowledgement, retry and assert one contribution plus consistent allocation/surplus.",
+      "evidence_paths": [
+        "docs/run10/FINAL_SAFETY_REVIEW.md",
+        "apps/web/lib/vault/final-safety-review.test.ts",
+        "apps/web/lib/vault/cloud-sync.test.ts",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-07",
+      "title": "Account switching and late response",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 631
+      },
+      "specification": "Sign in as A, start private requests, sign out/switch to B, then release A's delayed responses. B must not display A's names, balances, diary or widgets. A's pending work is retained/fenced under the correct identity or explicitly quarantined, not sent to B's vault.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Sign in as A, start private requests, sign out/switch to B, then release A's delayed responses. B must not display A's names, balances, diary or widgets. A's pending work is retained/fenced under the correct identity or explicitly quarantined, not sent to B's vault."
+      ],
+      "implemented_subset": "Account namespaces, captured generation fences, cold-lock, late-result rejection and Showcase separation have focused source/unit/browser evidence. Latest actual two-profile fixture revokes B and observes denial/lock on focus.",
+      "precise_remaining": "Revocation is not an A→B identity-switch delayed-response journey across names, balances, Health and widgets. Full queued-request/outbox/delayed-apply matrix and visible quarantine handling remain unverified.",
+      "next_concrete_step": "Hold A private responses, switch to distinct B account, release each response and assert B views/storage/outbox contain no A markers.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/ACCOUNT_INTEGRATION_REVIEW.md",
+        "apps/web/tests/run10-account-access.spec.ts",
+        "apps/web/lib/vault/cloud-sync.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-08",
+      "title": "Cross-tenant access denial",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 633
+      },
+      "specification": "Try to read/list/write/delete A's vault/blob/export with B's session, altered client IDs and batch/pagination paths. Access must be denied without leaking meaningful record metadata. Test every direct storage/signed-link path as applicable, not only the main UI route.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Try to read/list/write/delete A's vault/blob/export with B's session, altered client IDs and batch/pagination paths. Access must be denied without leaking meaningful record metadata. Test every direct storage/signed-link path as applicable, not only the main UI route."
+      ],
+      "implemented_subset": "Local actual Workers fixture verifies separate authenticated tenant scopes, captured-account mismatch, replay/CAS and revocation checks; default public surfaces and identity fences are tested.",
+      "precise_remaining": "No complete enumerated read/list/write/delete/export/batch/pagination/direct-object attack matrix or hosted authorization acceptance is recorded. Unsupported signed-link paths must be documented explicitly, not assumed tested.",
+      "next_concrete_step": "Inventory every implemented storage route and operation; execute B-session/A-identity denial matrix and compare response metadata before hosted activation.",
+      "evidence_paths": [
+        "docs/run10/SESSION_EVIDENCE.md",
+        "scripts/run10/sync-runtime.test.mjs",
+        "docs/run10/FINAL_SAFETY_REVIEW.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-09",
+      "title": "Recovery without destructive reset",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 635
+      },
+      "specification": "Export an encrypted backup/recovery mechanism using fictional keys, clear a disposable test profile, restore/unlock and verify record counts, operation IDs, layout and history. Wrong passphrase, corrupted ciphertext and future schema each produce a safe distinct failure, leaving existing data unchanged. Account password reset alone cannot falsely claim vault recovery.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Export an encrypted backup/recovery mechanism using fictional keys, clear a disposable test profile, restore/unlock and verify record counts, operation IDs, layout and history. Wrong passphrase, corrupted ciphertext and future schema each produce a safe distinct failure, leaving existing data unchanged. Account password reset alone cannot falsely claim vault recovery."
+      ],
+      "implemented_subset": "Encrypted2.1MB backup fixture retains exact strings and rejects wrong secret, missing/corrupted parts and future format; Settings recovery acknowledgement and local durable reload have browser evidence. Generation fences protect backup preview/restore during account changes.",
+      "precise_remaining": "No disposable-profile full four-domain restore verifies record/operation counts, widget layout and complete history after clear. Distinct user-visible error paths and non-destructive existing-data preservation need integrated proof.",
+      "next_concrete_step": "Export populated fictional four-domain state, clear only disposable profile, restore and compare stable IDs/layout/history; repeat each failure without altering existing bytes.",
+      "evidence_paths": [
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "docs/run10/ACCOUNT_INTEGRATION_REVIEW.md",
+        "apps/web/lib/vault/backup.test.ts",
+        "apps/web/tests/run10-private-vault.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-10",
+      "title": "Device revocation and deletion",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 637
+      },
+      "specification": "Revoke one device/session, test delayed writes and reconnect, then exercise selected-domain/cloud/account deletion under the implemented policy. Explain already-downloaded data limits. Reconnecting an old/offline client after deletion must not silently recreate deleted server state.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Revoke one device/session, test delayed writes and reconnect, then exercise selected-domain/cloud/account deletion under the implemented policy. Explain already-downloaded data limits. Reconnecting an old/offline client after deletion must not silently recreate deleted server state."
+      ],
+      "implemented_subset": "Durable session revocation, denied re-registration and restart-persisted access tombstones have runtime evidence. Latest real browser fixture lists sessions, revokes others and locks B on focus. UI discloses already-downloaded data/recovery-secret limits.",
+      "precise_remaining": "Selected-domain/cloud/account deletion and cryptographic key rotation remain incomplete. Delayed-write/offline-client resurrection matrix is not fully exercised; session registry expiry/retention limitations remain recorded.",
+      "next_concrete_step": "Complete explicit deletion/epoch policy and test delayed/reconnecting revoked clients cannot recreate deleted state, retaining current revocation proof.",
+      "evidence_paths": [
+        "docs/run10/SESSION_EVIDENCE.md",
+        "docs/run10/ACCOUNT_INTEGRATION_REVIEW.md",
+        "scripts/run10/sync-runtime.test.mjs",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-11",
+      "title": "Wallet auth when supported",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 639
+      },
+      "specification": "Test purpose-bound challenge creation, signature validation, nonce replay, expiration, wrong origin/account and rejected user action. Confirm ordinary watch-only connection/reload never prompts an auth signature. Financial signing/broadcast remains blocked. Real Keplr acceptance requires the owner's explicit gesture and is not inferred from mocks.",
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "acceptance_criteria": [
+        "Test purpose-bound challenge creation, signature validation, nonce replay, expiration, wrong origin/account and rejected user action. Confirm ordinary watch-only connection/reload never prompts an auth signature. Financial signing/broadcast remains blocked. Real Keplr acceptance requires the owner's explicit gesture and is not inferred from mocks."
+      ],
+      "implemented_subset": "Email account path and watch-only/financial-execution gates remain separate. No implemented wallet authentication challenge/signature path is established by this reconciliation.",
+      "precise_remaining": "Purpose-bound nonce/signature/origin/account/expiry/replay acceptance is not implemented or verified. Conditional real Keplr acceptance needs explicit owner gesture; it cannot be inferred from watch-only connection or mocks.",
+      "next_concrete_step": "Record wallet-auth support decision and exact missing challenge adapter; if included, implement/test purpose-bound challenge before any owner-initiated wallet acceptance.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/REQUIREMENTS.json"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "acceptance_level": "CONDITIONAL_UNIMPLEMENTED",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-12",
+      "title": "Legacy migration interruption",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 641
+      },
+      "specification": "Load representative valid old platform/Habits/Health fixtures, interrupt migration at several boundaries, reopen with another tab and recover. Preserve original bytes, reference integrity and outbox consistency. Invalid/future data must not silently reset; original user-visible records remain recoverable.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Load representative valid old platform/Habits/Health fixtures, interrupt migration at several boundaries, reopen with another tab and recover. Preserve original bytes, reference integrity and outbox consistency. Invalid/future data must not silently reset; original user-visible records remain recoverable."
+      ],
+      "implemented_subset": "Explicit migration retains original source bytes, publishes old-reader-incompatible marker last and retries after failed pointer publication. Invalid source, future-schema refusal and Showcase spoof have local/database tests; canonical empty-domain initialization has regression coverage.",
+      "precise_remaining": "No full real platform/Habits/Health migration interruption matrix with concurrent tab, outbox/reference comparisons and user-visible recovery at every boundary.",
+      "next_concrete_step": "Use representative old domain fixtures and interrupt stage/commit/pointer steps with a second tab, then compare original bytes, references and operation receipts.",
+      "evidence_paths": [
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "apps/web/lib/vault/local.test.ts",
+        "apps/web/lib/vault/database.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-13",
+      "title": "Storage pressure and long history",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 643
+      },
+      "specification": "Use defined larger synthetic histories and trigger quota/storage failures. Verify meaningful warnings, paged queries, backup/export and no silent financial-history deletion. Appending a record that cannot persist must not show success. Document actual tested sizes and timings.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Use defined larger synthetic histories and trigger quota/storage failures. Verify meaningful warnings, paged queries, backup/export and no silent financial-history deletion. Appending a record that cannot persist must not show success. Document actual tested sizes and timings."
+      ],
+      "implemented_subset": "Local2.4MB/300-row and encrypted2.1MB backup fixtures exist; explicit capacity refusal replaces financial history pruning in current source and schema caps were expanded. Financial statement UI pages ten events.",
+      "precise_remaining": "No declared long-history quota-pressure benchmark covering all modules, paged queries, export and save-failure UI. Higher caps do not establish adequate performance, and earlier pruned facts are not recovered.",
+      "next_concrete_step": "Publish a size matrix, inject real transaction/quota failures and assert no success/no history deletion, then measure bounded query/export behavior.",
+      "evidence_paths": [
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md",
+        "docs/run10/FINAL_SAFETY_REVIEW.md",
+        "apps/web/lib/vault/database.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-14",
+      "title": "Code/protocol version mismatch",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 645
+      },
+      "specification": "Simulate an old app shell/client after the new schema/protocol is active. It must not down-convert/delete new data. Preserve unsynced work and offer an upgrade/compatibility path. Demonstrate the chosen rollback or forward-recovery plan without mutating production.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Simulate an old app shell/client after the new schema/protocol is active. It must not down-convert/delete new data. Preserve unsynced work and offer an upgrade/compatibility path. Demonstrate the chosen rollback or forward-recovery plan without mutating production."
+      ],
+      "implemented_subset": "Strict future schema/backup/protocol rejection and incompatible durable markers protect against silent stripping; evidence documents optional fields and forward-backup rollback limits.",
+      "precise_remaining": "No old-shell/client integration journey proves unsynced work preservation, actionable upgrade path and executed forward-recovery/rollback drill. Pending operations prepared by older builds are not fully revalidated by the reported safety pass.",
+      "next_concrete_step": "Exercise an old disposable client against new local/cloud state plus queued work, verifying refusal and documented forward recovery without production mutation.",
+      "evidence_paths": [
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "docs/run10/FINAL_SAFETY_REVIEW.md",
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md",
+        "apps/web/lib/vault/backup.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-15",
+      "title": "Premium Goal creator types",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 647
+      },
+      "specification": "Create valid Quantity, Value, Reward/Income and Project Goals with the correct conditional inputs and summary. Exercise cancel, validation errors, type changes, long names, mobile keyboard and keyboard selection. No funds move; type labels use the chosen asset/currency rather than hardcoded ZIG assumptions.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Create valid Quantity, Value, Reward/Income and Project Goals with the correct conditional inputs and summary. Exercise cancel, validation errors, type changes, long names, mobile keyboard and keyboard selection. No funds move; type labels use the chosen asset/currency rather than hardcoded ZIG assumptions."
+      ],
+      "implemented_subset": "Progressive Quantity/Value/Reward/Project cards, relevant asset/currency fields, type-change confirmation, review, keyboard radios and existing validation have focused creator/browser evidence.",
+      "precise_remaining": "Full final-source type/error/cancel/long-name/mobile virtual-keyboard matrix remains unreconciled; broad browser suite has active stale assertions and small regressions. Emulated mobile does not prove physical keyboard interaction.",
+      "next_concrete_step": "Complete one parameterized final creator journey per type with cancel/error/type-switch and long-label keyboard checks.",
+      "evidence_paths": [
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "apps/web/tests/run10-goal-creator.spec.ts",
+        "apps/web/tests/unified-goals.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-16",
+      "title": "Known funding-surplus regression",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 649
+      },
+      "specification": "Execute the fictional 20,000 USD contribution into a 2,000 USD Goal under the supported local tracking flow. Verify one accepted contribution, 2,000 allocation, 18,000 available surplus, one completion event and consistent Today/Wealth/Goal history. Replay/reload must not duplicate effects.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Execute the fictional 20,000 USD contribution into a 2,000 USD Goal under the supported local tracking flow. Verify one accepted contribution, 2,000 allocation, 18,000 available surplus, one completion event and consistent Today/Wealth/Goal history. Replay/reload must not duplicate effects."
+      ],
+      "implemented_subset": "Known20,000USD contribution→2,000 allocation→18,000 surplus exact regression exists in unit/browser source; prior scoped integration results retained one contribution on reload. Completion lifecycle now captures one observed event per cycle.",
+      "precise_remaining": "Current final-source combined Today/Wealth/Goal/history, one completion event and lost-response replay are not independently reconciled. Existing browser source alone is not a fresh passing run.",
+      "next_concrete_step": "Execute the exact amount case at final source with all views, completion ledger and retry/reload identity assertions.",
+      "evidence_paths": [
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/tests/run9-1.spec.ts",
+        "apps/web/lib/local-contributions.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-17",
+      "title": "History-only correction",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 651
+      },
+      "specification": "Record a contribution history entry, reverse/correct it under the documented semantics and inspect all views. The original remains, applicable history totals change, and actual/observed balances are not secretly changed. A second full reversal or a concurrent conflicting correction must be prevented or explicitly resolved.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Record a contribution history entry, reverse/correct it under the documented semantics and inspect all views. The original remains, applicable history totals change, and actual/observed balances are not secretly changed. A second full reversal or a concurrent conflicting correction must be prevented or explicitly resolved."
+      ],
+      "implemented_subset": "History-only contribution preserves holdings/allocations; immutable exact reversal, unmatched-plan and duplicate correction rules have accounting/revision tests. Statement void corrections also preserve originals but are a separate ledger.",
+      "precise_remaining": "No final integrated contribution reversal journey across all views plus concurrent conflicting correction; statement-event void proof cannot substitute for contribution-history semantics.",
+      "next_concrete_step": "Record and reverse a history-only contribution on final source, compare balances unchanged and history totals corrected, then race/repeat reversal.",
+      "evidence_paths": [
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/tests/run9-1.spec.ts",
+        "apps/web/lib/local-contributions.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-18",
+      "title": "Plan revision and installments",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 653
+      },
+      "specification": "Create a plan, partially fund an installment, revise future terms, pause/resume and inspect old/new obligations. Historic revision-specific status remains correct; unmatched contributions stay unmatched rather than being guessed into a schedule. Test end-of-month and timezone boundaries with known expected results.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Create a plan, partially fund an installment, revise future terms, pause/resume and inspect old/new obligations. Historic revision-specific status remains correct; unmatched contributions stay unmatched rather than being guessed into a schedule. Test end-of-month and timezone boundaries with known expected results."
+      ],
+      "implemented_subset": "Revision-specific installments, future-effective terms, retained superseded intentions, partial funding/reversal, explicit matching and anchored month-end/leap schedules have focused tests; local revise→reload→partial fund browser journey passed.",
+      "precise_remaining": "Cross-device revision conflict/resolution, complete pause/resume chronology and full timezone/end-month integrated journey remain incomplete. Older contribution-Habit reconciliation has a separate future-rule gap.",
+      "next_concrete_step": "Combine partial funding, future pause/resume/revision and unmatched contributions in a dated end-month fixture, then verify both client conflict behavior.",
+      "evidence_paths": [
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/lib/plan-revisions.test.ts",
+        "docs/run10/HABIT_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-19",
+      "title": "Performance eligibility and FX",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 655
+      },
+      "specification": "Test complete synthetic cash-flow/valuation fixtures against the documented method and incomplete cases that must remain unavailable. Verify USD/EUR separation, dated manual FX evidence where supported, missing constituents and tokenized-metal unit distinctions. No invented historical rates or false annualized first-day performance.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Test complete synthetic cash-flow/valuation fixtures against the documented method and incomplete cases that must remain unavailable. Verify USD/EUR separation, dated manual FX evidence where supported, missing constituents and tokenized-metal unit distinctions. No invented historical rates or false annualized first-day performance."
+      ],
+      "implemented_subset": "Exact-boundary cumulative TWR, documented primary reference, eligibility refusals and dated manual FX have13 focused model tests and four local browser cases; independent review corrected content-basis and arithmetic-load defects. Currency separation and tokenized-RWA semantics have existing unit/browser fixtures.",
+      "precise_remaining": "Complete supported-scope owned-wealth/constituent reconciliation and final cross-module missing-constituent/metal-unit journey remain unverified. Manual statement completeness is user-attested. The original journey permits the documented supported TWR method and dated manual FX; MWR/XIRR and automatic FX are unsupported alternatives, not mandatory missing acceptance for this journey.",
+      "next_concrete_step": "Run the final supported mixed-currency/unit/constituent eligibility matrix and retain precise unavailable reasons; do not expand the original acceptance into a requirement for MWR or automatic FX.",
+      "evidence_paths": [
+        "docs/run10/FINANCIAL_EVENTS_EVIDENCE.md",
+        "docs/run10/FINANCIAL_METHOD_REVIEW.md",
+        "apps/web/tests/run10-financial-evidence.spec.ts",
+        "apps/web/tests/run9-1.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-20",
+      "title": "Completion and lifecycle",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 657
+      },
+      "specification": "Test a Goal at 99.6%, true completion, subsequent Value decline, explicit reopen/target revision and closure. Display rounding does not create financial completion. Archive/restore an asset and inspect ownership/allocation/history membership without erased facts or auto-restored allocations.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Test a Goal at 99.6%, true completion, subsequent Value decline, explicit reopen/target revision and closure. Display rounding does not create financial completion. Archive/restore an asset and inspect ownership/allocation/history membership without erased facts or auto-restored allocations."
+      ],
+      "implemented_subset": "Exact99.6% incomplete display, true completion, retained milestones, closure/reopen and no automatic allocation restoration have revision/status tests; completion→close→reopen→reload local browser case passed. Asset archive semantics have existing fixtures.",
+      "precise_remaining": "No single final journey joins subsequent Value decline, target revision, archive/restore and ownership/allocation/history membership across views/devices.",
+      "next_concrete_step": "Combine exact threshold, decline and lifecycle transitions with asset archive/restore; assert milestone retention and no recreated allocations.",
+      "evidence_paths": [
+        "docs/run10/FINANCIAL_REVISION_EVIDENCE.md",
+        "apps/web/tests/run10-plan-revisions.spec.ts",
+        "apps/web/tests/run9-1.spec.ts",
+        "apps/web/lib/goal-status.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-21",
+      "title": "Personalized Today presets and widgets",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 659
+      },
+      "specification": "Build Balanced, Wealth, Habits+Health and Health-only layouts. Add/edit/remove/reorder a chosen Goal/Habit/asset/Health widget, use non-drag controls, reload, sync and restore a backup. The summary is above attention tasks; missing/archived entities produce correct states rather than replacement by similarly named records.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Build Balanced, Wealth, Habits+Health and Health-only layouts. Add/edit/remove/reorder a chosen Goal/Habit/asset/Health widget, use non-drag controls, reload, sync and restore a backup. The summary is above attention tasks; missing/archived entities produce correct states rather than replacement by similarly named records."
+      ],
+      "implemented_subset": "All four presets and explicit non-drag customization/reload have scoped browser evidence. Stable Goal/Habit/Position/Health references use canonical selectors; missing/archived states are explicit. Latest independent-client fixture syncs a selected water widget and its title.",
+      "precise_remaining": "No complete four-preset/type edit/remove/order/sync/backup round-trip, archived-identity replacement or summary-above-attention final-source matrix. One synced water widget is not full WID-10 acceptance.",
+      "next_concrete_step": "Round-trip each preset and selected widget type through both clients and encrypted backup, then remove/archive/recreate similarly named sources and verify identity states.",
+      "evidence_paths": [
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "apps/web/tests/run10-widgets.spec.ts",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-22",
+      "title": "All ten owner screenshots",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 661
+      },
+      "specification": "Produce a dedicated S01–S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Produce a dedicated S01–S10 before/after record with exact route, viewport, fixture/state and implementation references. Inspect each requested change, not just the new Today hero. Verify chart/legend colors, percentage boundary behavior, Quick Add location, Goal forms, sparse charts, ecosystem, sidebar motto, summary/widgets, finite motion and mobile overlap."
+      ],
+      "implemented_subset": "All ten supplied originals are preserved with hashes. Dedicated shared-visual evidence covers SS01/02/03/05/07/09/10; creator/Today and ecosystem records cover SS04/08/06 in separate slices with local screenshots.",
+      "precise_remaining": "No single final-state S01–S10 acceptance record reconciles all exact route/viewport/fixture/source refs after integration. Physical keyboard/zoom/motion recording and final cross-feature overlap remain incomplete.",
+      "next_concrete_step": "Assemble final ten-item before/after matrix from exact captured states, refresh changed views and record each requested visual check explicitly.",
+      "evidence_paths": [
+        "docs/run10/SCREENSHOT_INDEX.md",
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-23",
+      "title": "Food diary efficiency",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 663
+      },
+      "specification": "Create custom food/recipe, use Recent/Frequent/Favorites and saved meals, copy to selected dates, adjust servings and inspect per-meal/daily totals. Edit the underlying recipe afterward and prove historical logged values retain their intended version/snapshot. Missing nutrients are not silently treated as zero.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Create custom food/recipe, use Recent/Frequent/Favorites and saved meals, copy to selected dates, adjust servings and inspect per-meal/daily totals. Edit the underlying recipe afterward and prove historical logged values retain their intended version/snapshot. Missing nutrients are not silently treated as zero."
+      ],
+      "implemented_subset": "Food/recipe snapshots, Recent/Frequent/Favorites, saved meals, copy preview/idempotent receipts, servings/grams and daily totals have local Health tests and diary/copy/plan/reload browser evidence.",
+      "precise_remaining": "Broader/unknown nutrients and expanded per-meal totals are unimplemented; current four nutrients are required rather than fabricated zeroes. Full recipe-edit-after-log combined journey and current final-source result need explicit reconciliation.",
+      "next_concrete_step": "Exercise recipe revision after historical meal logging and compare immutable snapshots/totals; complete required unknown-nutrient representation before claiming full journey.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/tests/health-daily.spec.ts",
+        "apps/web/lib/health-daily.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-24",
+      "title": "Water, measurements and activity",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 665
+      },
+      "specification": "Log/edit/delete water, weight/body measurement and manual activity entries with supported units; pin them on Today and synchronize. Test midnight/DST and repeated taps. Distinguish manual versus imported provenance and prevent a later import from silently double-counting the same observations.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Log/edit/delete water, weight/body measurement and manual activity entries with supported units; pin them on Today and synchronize. Test midnight/DST and repeated taps. Distinguish manual versus imported provenance and prevent a later import from silently double-counting the same observations."
+      ],
+      "implemented_subset": "Water add/edit/remove in mL/fl-oz, kg/lb weight and activity correction plus timezone/midnight/DST tests exist. Latest actual two-client fixture merges independent water250+500mL and both show750mL; selected water widget syncs.",
+      "precise_remaining": "Body measurement types/time input, imported-observation deduplication and complete weight/activity/widget sync plus repeated-tap/DST UI matrix remain incomplete.",
+      "next_concrete_step": "Extend water proof to supported weight/activity corrections and repeated taps at timezone boundaries; implement missing measurements/import identity before full acceptance.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/tests/health-daily.spec.ts",
+        "docs/run10/ACCOUNT_SYNC_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "/private/tmp/run10-multidomain-offline-sync.log"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-25",
+      "title": "Meal planning and optional fasting",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 667
+      },
+      "specification": "Schedule a saved meal and show it as planned, not consumed; log it explicitly and derive the supported grocery-list basics without guessed unit conversion. Exercise the opt-in fasting timer/history only when implemented and keep it neutral, reload-safe and conflict-aware. Parked slices remain explicit gaps, not enabled dead controls.",
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "acceptance_criteria": [
+        "Schedule a saved meal and show it as planned, not consumed; log it explicitly and derive the supported grocery-list basics without guessed unit conversion. Exercise the opt-in fasting timer/history only when implemented and keep it neutral, reload-safe and conflict-aware. Parked slices remain explicit gaps, not enabled dead controls."
+      ],
+      "implemented_subset": "Saved-meal planning remains planned until explicit consumption; snapshot-compatible grocery aggregation and unresolved ingredient/manual-note behavior have local Health tests/browser evidence. No guessed mL-to-g conversion.",
+      "precise_remaining": "Optional fasting is explicitly deferred with no live control. Full conflict-aware planner sync/restore journey remains unverified; deferred fasting is not an enabled feature.",
+      "next_concrete_step": "Exercise plan→consume→grocery→reload/sync with mixed units and duplicate action; retain explicit bounded fasting deferral unless separately implemented.",
+      "evidence_paths": [
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "apps/web/tests/health-daily.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-26",
+      "title": "Free barcode happy path",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 669
+      },
+      "specification": "Decode or manually enter a supported barcode, fetch the validated product through the selected no-subscription source, review serving/nutrients and confirm one diary entry. Assert no private diary context or camera frame was transmitted and no paid scanner service is required. Record camera hardware versus synthetic fixture evidence separately.",
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "acceptance_criteria": [
+        "Decode or manually enter a supported barcode, fetch the validated product through the selected no-subscription source, review serving/nutrients and confirm one diary entry. Assert no private diary context or camera frame was transmitted and no paid scanner service is required. Record camera hardware versus synthetic fixture evidence separately."
+      ],
+      "implemented_subset": "Manual leading-zero barcode fixture validates product, missing nutrients and explicit serving/meal confirmation before immutable diary snapshot. Shared Worker fixture proves bounded public lookup/cache with no diary context. Camera uses local frames and no paid scanner.",
+      "precise_remaining": "No activated provider binding/application identity or live lookup acceptance. Compatible physical-camera decode and complete network-frame privacy proof are unverified; manual fixture success is not camera hardware proof.",
+      "next_concrete_step": "Finish source/application setup only when authorized, then run bounded lookup and explicit physical-camera acceptance; keep fixture and hardware results separate.",
+      "evidence_paths": [
+        "docs/run10/FOOD_EVIDENCE.md",
+        "apps/web/tests/run10-barcode.spec.ts",
+        "scripts/run10/food-runtime.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-27",
+      "title": "Barcode failure path",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 671
+      },
+      "specification": "Test unsupported camera, denied permission, cancel/navigation, repeated frames, leading zeros, unknown product, missing nutrition, provider throttle/offline and account switching. Media tracks stop and manual logging remains usable. No automatic upload, link opening, invented product data or repeated unbounded lookup.",
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "acceptance_criteria": [
+        "Test unsupported camera, denied permission, cancel/navigation, repeated frames, leading zeros, unknown product, missing nutrition, provider throttle/offline and account switching. Media tracks stop and manual logging remains usable. No automatic upload, link opening, invented product data or repeated unbounded lookup."
+      ],
+      "implemented_subset": "Browser fixtures cover unsupported camera, leading-zero/manual unknown values, unavailable/notfound/cooldown and added stop-on-cancel/navigation camera lifecycle. Provider parser rejects unsafe identities/QR URL inputs.",
+      "precise_remaining": "Denied physical camera, repeated frames, account-switch during lookup, offline recovery and full media-track cleanup matrix lack final integrated evidence. Current broad suite is not declared green.",
+      "next_concrete_step": "Run each failure/race with intercepted network and track-stop assertions, including delayed response across account switch; separately record physical permission behavior.",
+      "evidence_paths": [
+        "docs/run10/FOOD_EVIDENCE.md",
+        "apps/web/tests/run10-barcode.spec.ts",
+        "apps/web/lib/food-lookup.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-28",
+      "title": "Habit rule and timer history",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 673
+      },
+      "specification": "Create different Habit types/cadences, log progress, edit a future rule, pause/end/reopen where supported and inspect historical periods. Reload a duration timer and synchronize concurrent logs. Completion is idempotent, pauses are interpreted correctly and no Goal funding is generated by a Habit action.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Create different Habit types/cadences, log progress, edit a future rule, pause/end/reopen where supported and inspect historical periods. Reload a duration timer and synchronize concurrent logs. Completion is idempotent, pauses are interpreted correctly and no Goal funding is generated by a Habit action."
+      ],
+      "implemented_subset": "Future rule revisions preserve prior terms; supported timer segments survive reload and logging uses replay receipts.45 focused units,18 scoped browser cases and four final timer-guard browser cases are recorded. No Habit action gains financial authority.",
+      "precise_remaining": "Independent-device timer races, account switching, encrypted replay, mixed cadence/future-rule conflict and full historical pause/end/reopen matrix remain unverified. Goal-end automation and cross-midnight allocation are not implemented.",
+      "next_concrete_step": "Exercise two-client timer/rule races and all stated supported cadences/lifecycle histories, retaining explicit review instead of guessing cross-day allocation.",
+      "evidence_paths": [
+        "docs/run10/HABIT_EVIDENCE.md",
+        "apps/web/tests/run10-habit-actions.spec.ts",
+        "apps/web/tests/habits.spec.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-29",
+      "title": "Market partial-evidence regression",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 675
+      },
+      "specification": "Exercise valid Bitcoin evidence plus failed ZIG and unrelated market activity through provider, server cache, route, transport and browser cache. Every requested pair has an honest state; independent valid evidence remains visible; malformed response boundaries still reject atomically. Cached coverage does not falsely attest to a successful refresh.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Exercise valid Bitcoin evidence plus failed ZIG and unrelated market activity through provider, server cache, route, transport and browser cache. Every requested pair has an honest state; independent valid evidence remains visible; malformed response boundaries still reject atomically. Cached coverage does not falsely attest to a successful refresh."
+      ],
+      "implemented_subset": "Opt-in durable-v1 quote route, named Worker and strict versioned browser transport preserve Bitcoin through failed ZIG; actual runtime asserts partial outcomes and shared cache reuse. Atomic parser boundaries, deterministic failure precedence and stale aging have focused regressions.",
+      "precise_remaining": "Persisted browser cache/consumer per-pair attempt history remains incomplete; fresh coverage cannot prove refresh success. Legacy-default route and other endpoints remain outside durable protection; no final whole-chain consumer journey or hosted acceptance.",
+      "next_concrete_step": "Persist/consume pair attempt states then execute provider→durable cache→route→transport→browser cache partial-failure journey with unrelated activity and malformed batch.",
+      "evidence_paths": [
+        "workers/market-coordinator/README.md",
+        "scripts/run10/market-dispatch.test.mjs",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/market-pair-wire.ts",
+        "docs/run10/MARKET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-30",
+      "title": "Durable provider fault matrix",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 677
+      },
+      "specification": "Crash before/after dispatch mark, during settlement and around publication; test duplicate settle, expired lease/follower, successor fencing, monitoring-first/interactive-first ordering and a multi-key single-charge batch. Verify rolling/month boundaries and no free refund of uncertain dispatched work. Use deterministic synthetic traffic, not live load.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Crash before/after dispatch mark, during settlement and around publication; test duplicate settle, expired lease/follower, successor fencing, monitoring-first/interactive-first ordering and a multi-key single-charge batch. Verify rolling/month boundaries and no free refund of uncertain dispatched work. Use deterministic synthetic traffic, not live load."
+      ],
+      "implemented_subset": "Pure and actual local Worker tests prove transition separation, persisted dispatch-before-I/O, duplicate settle rejection, dispatched uncertainty retained, successor fencing, equivalent quote coalescing, multi-key charge and restart cache. Pure admission tests exercise both monitoring/interactive orders.",
+      "precise_remaining": "No complete crash/recovery/rollover/pruning matrix, durable follower lifecycle/fair scheduler or persisted breakers. Pure monitoring order is not runtime fairness; current fixed period expiry denies rather than rolling forward.",
+      "next_concrete_step": "Add remaining durable recovery/follower/period policies and deterministic failures at every transition before capacity or activation claims.",
+      "evidence_paths": [
+        "workers/market-coordinator/README.md",
+        "scripts/run10/market-dispatch.test.mjs",
+        "scripts/run10/market-runtime.test.mjs",
+        "apps/web/lib/server/market-budget-policy.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-31",
+      "title": "Runtime incident and market acceptance",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 679
+      },
+      "specification": "Run only authorized bounded diagnostics and preserve reachability/security/source/individual market probes. Distinguish BLOCKED runner from provider/application failure. State whether a root cause was reproduced and whether a local fix was verified; do not claim the live Alpha fixed before owner-approved deployment/acceptance.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Run only authorized bounded diagnostics and preserve reachability/security/source/individual market probes. Distinguish BLOCKED runner from provider/application failure. State whether a root cause was reproduced and whether a local fix was verified; do not claim the live Alpha fixed before owner-approved deployment/acceptance."
+      ],
+      "implemented_subset": "Historical deployed503 evidence is retained without a confirmed cause. Local catalog coalescing was fixed and bounded durable fixture dispatcher verifies independent Bitcoin/ZIG behavior without real provider calls. Acceptance classifier preserves BLOCKED/security/source/probe distinctions.",
+      "precise_remaining": "Canonical operational four-probe runner and source-bound hosted acceptance remain absent. Fixture failure classification does not identify historical production cause, and Alpha is not claimed repaired.",
+      "next_concrete_step": "Complete bounded probe runner/raw dimensions and obtain only authorized discriminating runtime evidence; keep deployment and later acceptance separately gated.",
+      "evidence_paths": [
+        "workers/market-coordinator/README.md",
+        "scripts/run10/market-dispatch.test.mjs",
+        "scripts/run10/market-runtime.test.mjs",
+        "docs/run10/MARKET_EVIDENCE.md",
+        "apps/web/lib/market-acceptance.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-32",
+      "title": "Ecosystem coverage and navigation",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 681
+      },
+      "specification": "Reconcile the dated source set, inspect representative official logos/descriptions and verify safe website/app/docs destinations. Confirm relationship labels do not imply ZIGoals partnerships or execution. Test search/filter/mobile cards and optional contextual links, including a Health-only Today layout without unwanted financial promotions.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Reconcile the dated source set, inspect representative official logos/descriptions and verify safe website/app/docs destinations. Confirm relationship labels do not imply ZIGoals partnerships or execution. Test search/filter/mobile cards and optional contextual links, including a Health-only Today layout without unwanted financial promotions."
+      ],
+      "implemented_subset": "Dated22-candidate coverage manifest,18 searchable cards, category filters, safe distinct links, relationship/access labels and no-execution gates have registry/browser evidence at320/390/1440. Health-only layout suppresses financial chrome/requests.",
+      "precise_remaining": "Official logos are not acquired/verified; initials fallbacks remain. Unresolved social identity, optional contextual placement and live dynamic external-app behavior remain incomplete. No partnership/execution inference allowed.",
+      "next_concrete_step": "Finish permitted official asset provenance and missing contextual/source reconciliation, then verify final mobile navigation and Health-only absence of unwanted promotion.",
+      "evidence_paths": [
+        "docs/run10/ECOSYSTEM_COVERAGE.md",
+        "docs/run10/ECOSYSTEM_COVERAGE.json",
+        "apps/web/tests/run10-ecosystem.spec.ts",
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-33",
+      "title": "Large collections and accessible charts",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 683
+      },
+      "specification": "Use a larger synthetic asset/Goal/history set, sort/filter/page, follow a favorite and inspect composed totals in compatible currencies. Verify zero/one/two/many observation chart states, exact tables, stable colors and long labels. No excessive provider fan-out, fabricated points or horizontal overflow.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Use a larger synthetic asset/Goal/history set, sort/filter/page, follow a favorite and inspect composed totals in compatible currencies. Verify zero/one/two/many observation chart states, exact tables, stable colors and long labels. No excessive provider fan-out, fabricated points or horizontal overflow."
+      ],
+      "implemented_subset": "Shared charts handle sparse observations, exact tables, genuine dates/gaps and canonical colors; long Habit labels and320px layouts have screenshots. Existing asset/watchlist and history fixtures cover sort/detail and compatible currencies.",
+      "precise_remaining": "No larger synthetic combined collections journey with bounded paging/render/provider fan-out and measured performance. Charts still have unbounded input/table work in reported reconciliation; favorites and composed totals need final integrated proof.",
+      "next_concrete_step": "Define a larger dataset, measure requests/render work, implement needed paging/bounds and run sort/filter/favorite/chart states without invented observations.",
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "apps/web/tests/run10-shared-visuals.spec.ts",
+        "apps/web/tests/run9-1.spec.ts",
+        "docs/run10/reconciliation/market-ci-performance.json"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-34",
+      "title": "Mobile, motion and keyboard",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 685
+      },
+      "specification": "Exercise key routes/dialogs at the required widths with enlarged text/zoom and keyboard navigation; inspect actual text collision and touch access. Test motion reduced/off, entrance replay suppression and immediate content availability. Intro animation cannot block a sign-in, input, save or urgent error.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Exercise key routes/dialogs at the required widths with enlarged text/zoom and keyboard navigation; inspect actual text collision and touch access. Test motion reduced/off, entrance replay suppression and immediate content availability. Intro animation cannot block a sign-in, input, save or urgent error."
+      ],
+      "implemented_subset": "Focused checks cover320/360/390/430/768/1440 layouts, long labels at125% root font, keyboard Quick Add/dialog focus and finite650ms entrances with reduced/off/session replay rules. Other Health/widget slices cover additional geometry.",
+      "precise_remaining": "No complete final route/dialog matrix with real browser zoom/enlarged text, physical touch/virtual keyboard or motion recording. Current broad browser run has unresolved regressions; scoped historical green is not final acceptance.",
+      "next_concrete_step": "Finish final-source route/dialog geometry/focus and immediate save/error checks under reduced/off motion, then record physical touch/keyboard acceptance separately.",
+      "evidence_paths": [
+        "docs/run10/VISUAL_EVIDENCE.md",
+        "docs/run10/HEALTH_EVIDENCE.md",
+        "docs/run10/WIDGET_EVIDENCE.md"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-35",
+      "title": "PWA/offline/update when included",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 687
+      },
+      "specification": "Install or exercise the supported home-screen path, start offline with cached shell/private local state, make a supported pending edit, reconnect and update app version. Confirm no shared private-response cache and no destructive activation over an outbox. Label unsupported native/background capabilities honestly.",
+      "scope_hint": "CONDITIONAL_OR_GATED",
+      "acceptance_criteria": [
+        "Install or exercise the supported home-screen path, start offline with cached shell/private local state, make a supported pending edit, reconnect and update app version. Confirm no shared private-response cache and no destructive activation over an outbox. Label unsupported native/background capabilities honestly."
+      ],
+      "implemented_subset": "Private responses use no-store and there is no competing service-worker private-data cache. Offline in-memory-loaded app edits are supported locally, including the latest water sync fixture.",
+      "precise_remaining": "No installability/offline-shell/update design or home-screen journey is established. Loaded-app offline editing does not prove cold offline startup or safe app-version activation over an outbox.",
+      "next_concrete_step": "Complete conditional PWA compatibility assessment and safe shell/update policy, then test install/cold-offline/edit/reconnect/update without private shared caching.",
+      "evidence_paths": [
+        "docs/run10/reconciliation/market-ci-performance.json",
+        "apps/web/middleware.ts",
+        "scripts/run10/account-browser.test.mjs"
+      ],
+      "suggested_status": "NOT_STARTED",
+      "acceptance_level": "CONDITIONAL_UNIMPLEMENTED",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-36",
+      "title": "Showcase isolation end to end",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 689
+      },
+      "specification": "Load/edit/reset/exit Showcase while normal local and authenticated records exist. Verify normal records, outbox, keys, wallet scope and layouts are unchanged, and late Showcase operations cannot enter the real vault. Public market data remains distinguishable from fictional historical holdings and Health records.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Load/edit/reset/exit Showcase while normal local and authenticated records exist. Verify normal records, outbox, keys, wallet scope and layouts are unchanged, and late Showcase operations cannot enter the real vault. Public market data remains distinguishable from fictional historical holdings and Health records."
+      ],
+      "implemented_subset": "Showcase storage is separate; spoofed durable pointers are rejected and account-scoped views/market keys have isolation tests. Account access evidence preserves normal local bytes on lock/signout; fictional provenance remains labeled.",
+      "precise_remaining": "No comprehensive load/edit/reset/exit journey while populated normal and authenticated outboxes/keys/layouts coexist, with delayed Showcase writes released after exit.",
+      "next_concrete_step": "Execute the full three-scope fixture and compare exact bytes, account journals, key state and wallet/layout identities before/after delayed operations.",
+      "evidence_paths": [
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "apps/web/lib/vault/local.test.ts",
+        "docs/run10/WIDGET_EVIDENCE.md",
+        "apps/web/lib/showcase.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-37",
+      "title": "Credential and plaintext boundary checks",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 691
+      },
+      "specification": "With fictional sensitive markers and actual available secret scan inputs handled privately, inspect source/build/client/runtime/sync/storage/log boundaries. Test hostile imports, oversized requests, unsafe assets, forbidden media and direct object access. Record scan scope and unsupported checks instead of claiming an exhaustive audit.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "With fictional sensitive markers and actual available secret scan inputs handled privately, inspect source/build/client/runtime/sync/storage/log boundaries. Test hostile imports, oversized requests, unsafe assets, forbidden media and direct object access. Record scan scope and unsupported checks instead of claiming an exhaustive audit."
+      ],
+      "implemented_subset": "Actual encrypted local Worker tests and latest browser ciphertext response exclude four fictional private markers; auth tokens stay cookie/server-side. Backup/crypto/tenant/schema/size guards and targeted safety reviews cover bounded hostile inputs.",
+      "precise_remaining": "No comprehensive final source/build/client/runtime/storage/log secret-scan inventory with actual available secret inputs handled privately. Media/assets/direct paths and all unsupported checks still need explicit scope; no exhaustive audit claim.",
+      "next_concrete_step": "Record final scan inputs/scope privately and test every listed boundary with fictional markers, preserving separate unsupported/deferred checks.",
+      "evidence_paths": [
+        "docs/run10/FINAL_SAFETY_REVIEW.md",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/FOOD_EVIDENCE.md",
+        "scripts/run10/account-browser.test.mjs",
+        "scripts/run10/sync-runtime.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-38",
+      "title": "Canonical CI policy regression",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 693
+      },
+      "specification": "Test the chosen allowed host-metadata difference, then intentionally different critical inputs/bytes and invalid manifests. Downstream validators/source verification must still run and reject invalid evidence. Record actual hosted workflow result/ref without converting a pending/red result into a pass.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Test the chosen allowed host-metadata difference, then intentionally different critical inputs/bytes and invalid manifests. Downstream validators/source verification must still run and reject invalid evidence. Record actual hosted workflow result/ref without converting a pending/red result into a pass."
+      ],
+      "implemented_subset": "Canonical v2 accepts only differing mandatory per-builder imageVersion while preserving all critical environment/source/byte checks.78 focused tests cover invalid/missing/mixed manifests, both controlled validator invocations and source/preparation refusal. Original same-Wasm hosted failure remains recorded. Fresh hosted run35925474426 completed success with both real Linux builds and compare/validator reruns; downloaded v2 artifact independently verified at255532bytes/SHA2569ac9fec2941db7be4db13b4f6d7f8512b3d4fb87165e0284eaa10385782bea10. Source is synthetic mergeac201b86c4a4d7ba5eeb319246f590b6070a9e8e, tree22232687eda8d6873ec58bece270dff770d8a750, combining PR head89246251cfba1407a1badb3fcd060804ebd234f1 with main95ff4d3ea3e0d8c2c33b497bdcefaac0cc539a90.",
+      "precise_remaining": "Hosted positive reproducibility/real-validator evidence is now established for that exact synthetic merge; earlier run35778740375 remains failed. Final checkpoint must bind the existing negative local regressions and successful hosted artifact to the accepted source, explicitly qualifying subsequent edits. No release approval or final whole-browser acceptance follows from canonical success.",
+      "next_concrete_step": "Retain exact run/merge/head/tree/hash evidence in final handoff and reconcile any subsequent code delta before source-specific acceptance; do not rerun merely to replace an already successful observed result.",
+      "evidence_paths": [
+        "docs/run10/CI_EVIDENCE.md",
+        "scripts/release/manifest.test.mjs",
+        "scripts/release/verify.test.mjs",
+        "scripts/prepare-deployment.test.mjs"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-39",
+      "title": "Graceful partial failure",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 695
+      },
+      "specification": "Remove a provider credential, expire auth, deny camera permission and make a local save fail in separate tests. Health/Habit local logging and available manual tracking remain usable where independent; missing sync/provider capability is clear. No endless spinners, silent resets, invented zeroes or falsely successful toasts.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Remove a provider credential, expire auth, deny camera permission and make a local save fail in separate tests. Health/Habit local logging and available manual tracking remain usable where independent; missing sync/provider capability is clear. No endless spinners, silent resets, invented zeroes or falsely successful toasts."
+      ],
+      "implemented_subset": "Missing quote binding/config fails closed with usable/manual fallback; account unavailable/locked states, local storage refusal and food unsupported/unavailable states have separate regressions. Shared status distinguishes local/offline/locked/sync errors.",
+      "precise_remaining": "No final combined fault-injection matrix covers removed credential, expired auth, denied camera and failed local save while proving independent Health/Habit/manual use, no spinner/reset/zero/falsely successful toast.",
+      "next_concrete_step": "Inject each failure independently at final source, verify persisted bytes and accessible error/success state while exercising unaffected local logging.",
+      "evidence_paths": [
+        "docs/run10/WIDGET_STATUS_EVIDENCE.md",
+        "docs/run10/ACCOUNT_ACCESS_EVIDENCE.md",
+        "docs/run10/FOOD_EVIDENCE.md",
+        "docs/run10/STORAGE_SYNC_EVIDENCE.md",
+        "apps/web/lib/server/durable-quote-route.test.ts"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    },
+    {
+      "id": "JRN-40",
+      "title": "Interruption and resume drill",
+      "source": {
+        "file": "docs/run10/MASTER_PROMPT.md",
+        "line": 697
+      },
+      "specification": "Stop a disposable in-progress implementation/test scenario at a checkpoint, then use only the saved brief, ledger and resume file to identify exact source, outstanding IDs and next actions. Verify pushed source and protected private-data recovery coverage separately. Do not claim uninterrupted completion as the only recovery strategy.",
+      "scope_hint": "REQUIRED_UNLESS_EXPLICITLY_CONDITIONAL_IN_SPECIFICATION",
+      "acceptance_criteria": [
+        "Stop a disposable in-progress implementation/test scenario at a checkpoint, then use only the saved brief, ledger and resume file to identify exact source, outstanding IDs and next actions. Verify pushed source and protected private-data recovery coverage separately. Do not claim uninterrupted completion as the only recovery strategy."
+      ],
+      "implemented_subset": "A recorded source-only disposable recovery drill restored66files, verified archive SHA256d050834ce629fb8130412a4f9c3c10e69992943f2f17d0ef4e742457f7362a76, and read source/next actions from saved brief/ledger/resume. Receipt resultPASS at2026-09-23T22:06:29.105112+00:00; base845fd8a266887efe385ee4fba297bde5521aeb5e. Receipt explicitly excludes owner-private data.",
+      "precise_remaining": "Source-only recovery is demonstrated for the recorded base, not a complete private-data recovery drill or proof every latest source delta is pushed. Protected owner-private-data recovery coverage and final current-source/push reconciliation remain separate required checks.",
+      "next_concrete_step": "Preserve the successful source receipt; reconcile final pushed ref and outstanding IDs, then verify protected private-data recovery coverage separately without claiming the source ZIP contains owner records.",
+      "evidence_paths": [
+        "docs/run10/MASTER_PROMPT.md",
+        "docs/run10/REQUIREMENTS.json",
+        "docs/run10/RESUME_STATE.md",
+        "docs/run10/recovery-receipt.json"
+      ],
+      "suggested_status": "IN_PROGRESS",
+      "acceptance_level": "PARTIAL_LOCAL_EVIDENCE",
+      "gap_classification": "IMPLEMENTATION_OR_INTEGRATED_ACCEPTANCE_INCOMPLETE",
+      "owner_accepted": false,
+      "released": false
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "metric": "request_wall_time_not_cloudflare_cpu",
+  "target": "http://127.0.0.1:8791",
+  "recordedAt": "2026-09-13T22:50:52.016Z",
+  "countPerRoute": 5,
+  "intervalMs": 200,
+  "timeoutMs": 10000,
+  "maxResponseBytes": 2097152,
+  "concurrency": 1,
+  "percentileMethod": "nearest_rank",
+  "warmupRequests": 0,
+  "ok": true,
+  "routes": [
+    {
+      "route": "/app",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 261.595,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 11.962,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 14.188,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 18.831,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 10.934,
+          "error": null
+        }
+      ],
+      "successfulRequests": 5,
+      "wall": {
+        "count": 5,
+        "totalMs": 317.51,
+        "medianMs": 14.188,
+        "p90Ms": 261.595,
+        "p95Ms": 261.595
+      }
+    },
+    {
+      "route": "/app/settings",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 11.44,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 12.784,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 13.07,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 14.733,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 19.592,
+          "error": null
+        }
+      ],
+      "successfulRequests": 5,
+      "wall": {
+        "count": 5,
+        "totalMs": 71.619,
+        "medianMs": 13.07,
+        "p90Ms": 19.592,
+        "p95Ms": 19.592
+      }
+    },
+    {
+      "route": "/icon.svg",
+      "samples": [
+        {
+          "status": 200,
+          "wallMs": 36.837,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 13.855,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 9.139,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 10.13,
+          "error": null
+        },
+        {
+          "status": 200,
+          "wallMs": 10.004,
+          "error": null
+        }
+      ],
+      "successfulRequests": 5,
+      "wall": {
+        "count": 5,
+        "totalMs": 79.965,
+        "medianMs": 10.13,
+        "p90Ms": 36.837,
+        "p95Ms": 36.837
+      }
+    }
+  ],
+  "totalBatchWallMs": 3287.838
+}

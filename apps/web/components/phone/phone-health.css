@@ -1,0 +1,65 @@
+/* Health on a phone (Session E): the title first, then the journal date it drives, the quick counters (one bar per
+   row, Part 18.6), a compact summary, the views as one scrolling row and the diary before the log card. Every honesty
+   line stays visible. */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .health-page .page-heading { margin: 8px 0 12px; padding: 18px 16px; gap: 12px; }
+  :root .health-page .page-heading h1 { font-size: clamp(28px, 8.4vw, 34px); margin: 8px 0 10px; }
+  :root .health-page .page-heading .actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; }
+  :root .health-page .page-heading .actions .primary { min-height: 48px; }
+  :root .health-page .page-heading .badge { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 14px; font-size: 15px; }
+
+  /* The journal date: one row of 44 px controls right under the title. */
+  :root .health-date-strip { margin: 0 0 12px; padding: 10px 12px 12px; border: 1px solid var(--edge-soft, #a6c1fa24); border-radius: 20px; background: #0a1123a6; }
+  :root .health-date-strip .health-date { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px auto; align-items: end; gap: 6px; width: 100%; max-width: none; }
+  :root .health-date-strip .health-date .field { width: auto; min-width: 0; margin: 0; }
+  :root .health-date-strip .health-date .field > span { font-size: 15px; }
+  :root .health-date-strip .health-date .field input { width: 100%; min-height: 44px; font-size: 16px; }
+  :root .health-date-strip .health-date .quiet { min-width: 44px; min-height: 44px; padding: 6px 12px; }
+
+  :root .health-page .exercise-counters { margin: 0 0 12px; padding: 16px 14px 12px; }
+  /* A counter menu can overflow onto the section below; the press effect makes the card its own stacking context, so
+     the whole counters section stays above what follows it (otherwise a menu button loses the tap at release). */
+  :root .health-page .exercise-counters { position: relative; z-index: 2; }
+
+  /* Today's nourishment: the gauge beside its figures, the three macros in one row. */
+  :root .health-page .health-summary { grid-template-columns: 112px minmax(0, 1fr); align-items: center; gap: 14px 16px; padding: 18px 16px; }
+  :root .health-page .health-gauge { width: 112px; height: 112px; margin: 0; }
+  :root .health-page .health-gauge strong { font-size: 1.6rem; }
+  :root .health-page .health-summary-main { text-align: left; }
+  :root .health-page .health-summary h2 { font-size: 20px; line-height: 1.3; }
+  :root .health-page .health-summary .health-daily-facts { font-size: 15px; }
+  :root .health-page .health-macro-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-top: 14px; }
+  :root .health-page .health-macro { min-width: 0; padding: 10px 8px; border-radius: 14px; }
+  :root .health-page .health-macro strong { font-size: 20px; margin-top: 4px; overflow-wrap: anywhere; }
+  :root .health-page .health-inline-button { min-height: 44px; font-size: 15px; }
+
+  /* Nutrition patterns: the distribution and the 30 days as a swipeable pair. */
+  :root .nutrition-dashboard { display: flex; gap: 12px; margin-top: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .nutrition-dashboard::-webkit-scrollbar { display: none; }
+  :root .nutrition-dashboard > .panel { flex: 0 0 88%; min-width: 0; margin: 0; padding: 18px 16px; scroll-snap-align: start; }
+  :root .nutrition-dashboard h2 { font-size: 21px; }
+  :root .nutrition-dashboard header > p:last-child { font-size: 15px; }
+
+  /* The journal: the eight views as one scrolling row of 44 px segments; the diary before the log card. */
+  :root .health-page .health-toolbar { margin-top: 16px; }
+  :root .health-page .health-views { flex-wrap: nowrap; width: 100%; overflow-x: auto; scrollbar-width: none; }
+  :root .health-page .health-views::-webkit-scrollbar { display: none; }
+  :root .health-page .health-views button { flex: none; min-height: 44px; padding: 10px 14px; white-space: nowrap; }
+  :root .health-page .health-content { margin-top: 14px; }
+  :root .health-page .health-diary-side { grid-row: auto; }
+  :root .health-page .health-diary-layout { gap: 12px; }
+  :root .health-page .health-meals { gap: 12px; }
+  :root .health-page .health-meal { padding: 16px; }
+  :root .health-page .health-meal h2 { font-size: 20px; }
+  :root .health-page :is(.health-entry-main > small, .health-nutrient-line, .health-form .field > span) { font-size: 15px; }
+  :root .health-page .health-quick-picks .health-pick { flex: 1 1 100%; }
+  :root .health-page .health-content > details > summary { min-height: 44px; padding: 10px 0; font-size: 15px; }
+
+  /* Planned features: a swipeable row; each card keeps its status line. */
+  :root .health-page .health-roadmap-grid { display: flex; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+  :root .health-page .health-roadmap-grid::-webkit-scrollbar { display: none; }
+  :root .health-page .health-roadmap-grid > article { flex: 0 0 84%; scroll-snap-align: start; }
+  :root .health-page .health-roadmap b { font-size: 15px; }
+
+  :root .health-page .health-private-note { font-size: 15px; }
+}

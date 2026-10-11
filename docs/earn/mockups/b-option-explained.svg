@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="444" viewBox="0 0 720 444" role="img" aria-label="Mockup B: liquid staking explained, with the provider claim labelled" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+<title>Mockup B: liquid staking explained, with the provider claim labelled</title>
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#7fe7f5"/><stop offset=".55" stop-color="#9ea7ff"/><stop offset="1" stop-color="#f0a7d8"/></linearGradient></defs>
+<rect width="720" height="444" fill="#030916"/>
+<rect x="16" y="16" width="688" height="412" rx="20" fill="#060d1f" stroke="#1f2c47"/>
+<text x="40" y="58" font-size="13" letter-spacing="2" fill="#aebed6">MOCKUP · DESIGN ONLY · NOT AVAILABLE</text>
+<text x="40" y="96" font-size="22" font-weight="600" fill="#f3f6ff">Liquid staking (stZIG)</text>
+<text x="680" y="96" font-size="14" fill="#9fd8e6" text-anchor="end">Run by Valdora</text>
+<text x="40" y="130" font-size="14" font-weight="600" fill="#9fd8e6">What it is</text>
+<text x="170" y="130" font-size="15" fill="#dce7f7">You deposit ZIG and receive stZIG, which you hold.</text>
+<text x="40" y="158" font-size="14" font-weight="600" fill="#9fd8e6">Getting out</text>
+<text x="170" y="158" font-size="15" fill="#dce7f7">Redeem, then a queue, then 21 days, then claim. No cancel.</text>
+<text x="40" y="186" font-size="14" font-weight="600" fill="#9fd8e6">Fees</text>
+<text x="170" y="186" font-size="15" fill="#dce7f7">"10% performance fee on rewards"</text>
+<text x="40" y="214" font-size="14" font-weight="600" fill="#9fd8e6"></text>
+<text x="170" y="214" font-size="15" fill="#dce7f7">Valdora’s own claim · read 2026-10-02 · source</text>
+<text x="40" y="242" font-size="14" font-weight="600" fill="#9fd8e6">Risks</text>
+<text x="170" y="242" font-size="15" fill="#dce7f7">Smart-contract risk · one admin key · delays</text>
+<text x="40" y="270" font-size="14" font-weight="600" fill="#9fd8e6">Checked by</text>
+<text x="170" y="270" font-size="15" fill="#dce7f7">OAK Security audits (3) · findings listed</text>
+<text x="40" y="298" font-size="14" font-weight="600" fill="#9fd8e6">On testnet</text>
+<text x="170" y="298" font-size="15" fill="#dce7f7">Your stZIG: 12.5 (read from the chain just now)</text>
+<rect x="40" y="314" width="220" height="44" rx="10" fill="url(#g)"/>
+<text x="150" y="341" font-size="15" font-weight="600" fill="#06101f" text-anchor="middle">Open Valdora ↗</text>
+<text x="280" y="341" font-size="14" fill="#c9d6ea">ZIGoals never moves your money.</text>
+<text x="40" y="416" font-size="13" fill="#aebed6">Facts from docs/earn/EVIDENCE_2026-10.md. Provider claims are labelled and dated.</text>
+</svg>

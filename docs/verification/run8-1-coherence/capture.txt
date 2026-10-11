@@ -1,0 +1,11 @@
+
+Running 4 tests using 1 worker
+
+(node:83992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › tests/coherence.spec.ts:5:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history (2.9s)
+  ✓  2 [desktop] › tests/coherence.spec.ts:17:5 › legacy overview keeps optional simulation recoverable and archives safely (1.3s)
+  ✓  3 [desktop] › tests/coherence.spec.ts:20:5 › manual selector creates a cash Position and allocates its value on Goal creation (1.8s)
+  ✓  4 [desktop] › tests/coherence.spec.ts:23:5 › deterministic ring palettes and responsive top-right wealth dashboard (5.9s)
+
+  4 passed (12.5s)

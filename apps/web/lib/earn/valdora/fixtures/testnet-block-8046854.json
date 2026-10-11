@@ -1,0 +1,255 @@
+{
+ "network": "zig-test-2",
+ "rest": "https://testnet-api.zigchain.com",
+ "pinnedHeight": "8046854",
+ "retrievedAt": "2026-10-02T23:03:25Z",
+ "source": "Read-only GET requests to the official testnet LCD listed in https://raw.githubusercontent.com/ZIGChain/networks/main/zig-test-2/api-nodes.txt, every one sent with x-cosmos-block-height: 8046854 and answered at that height (Session N, 2026-10-02). The synthetic address is bech32(\"zig\", 20 bytes of 0x01); the non-zero holder is the protocol treasury named in protocol_info.",
+ "responses": {
+  "latest": {
+   "path": "/cosmos/base/tendermint/v1beta1/blocks/latest",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "616c5026dfecd76e2b6ec787391cb9c920338f9e51e03ea9c645cc4aa31cae4e",
+   "body": {
+    "block": {
+     "header": {
+      "version": {
+       "block": "11",
+       "app": "0"
+      },
+      "chain_id": "zig-test-2",
+      "height": "8046854",
+      "time": "2026-10-02T23:03:18.036653617Z",
+      "last_block_id": {
+       "hash": "As0ue42Pt1iw2w1SFY22bTSNQ2c2FaTV9lRORIAsX2A=",
+       "part_set_header": {
+        "total": 1,
+        "hash": "Y6LqNu8PmkLkkguyMhEjq6P6XWbvnstNRc6g4NRlNso="
+       }
+      },
+      "last_commit_hash": "IKrCYTVbSzm3hJwmlvy5CJKXXbOf59WI3u/QbgjGLeM=",
+      "data_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "validators_hash": "UDDgf9V97wT0MXAxl6V0uZxulHR2Ru62DOPQYZZSYe8=",
+      "next_validators_hash": "UDDgf9V97wT0MXAxl6V0uZxulHR2Ru62DOPQYZZSYe8=",
+      "consensus_hash": "ZHdfQNb6TeBZ9vPu6vRUZ1zw4KuHvy55oizxWch7UCo=",
+      "app_hash": "i2WuCcODTH19C1zPuWvc40tbeilTFevMg4lLts40t/s=",
+      "last_results_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "evidence_hash": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "proposer_address": "j1fOFWcZJdBrtOxW6WFT42/v65k="
+     }
+    }
+   },
+   "trimmed": "Only block.header is kept; block_id, block.data, block.evidence, block.last_commit and sdk_block were removed. sha256 is of the full original body."
+  },
+  "node_info": {
+   "path": "/cosmos/base/tendermint/v1beta1/node_info",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "092032dcc2be0667c79aa4d03246f0ad3c2d8c36503a2704d50c7d57bb8c9cce",
+   "body": {
+    "default_node_info": {
+     "network": "zig-test-2",
+     "version": "0.38.25"
+    },
+    "application_version": {
+     "name": "zigchain",
+     "app_name": "zigchaind",
+     "version": "v5.1.0",
+     "git_commit": "3dd8a7ea24a62e92d16b6f094a34f27637e00cc5",
+     "go_version": "go version go1.25.13 linux/amd64",
+     "cosmos_sdk_version": "v0.53.8"
+    }
+   },
+   "trimmed": "Only default_node_info.network and .version and the application_version identity fields are kept; the rest (node id, listen address, moniker, build_deps) was removed. sha256 is of the full original body."
+  },
+  "contract": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "263c501fbf8cacbcf2dffbf3e3ab21f6180ce6433133460f53d048e76f586a6c",
+   "body": {
+    "address": "zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69",
+    "contract_info": {
+     "code_id": "2532",
+     "creator": "zig1699nzk4hsf0v68pkrpqlw689a6ly0hhpvgf9a3",
+     "admin": "zig1699nzk4hsf0v68pkrpqlw689a6ly0hhpvgf9a3",
+     "label": "stZIG Staker",
+     "created": {
+      "block_height": "2652705",
+      "tx_index": "5709453"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  "code_info": {
+   "path": "/cosmwasm/wasm/v1/code-info/2532",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "8597e85343aadd8a0db79e6ee1401bc11c3b272f19a094db5b5c0aa0a98fac0f",
+   "body": {
+    "code_id": "2532",
+    "creator": "zig1699nzk4hsf0v68pkrpqlw689a6ly0hhpvgf9a3",
+    "checksum": "2E68EC999E2182831C359EB87344A0E0B043168DF667AB1C5DE8463359E15F1C",
+    "instantiate_permission": {
+     "permission": "Everybody",
+     "addresses": []
+    }
+   }
+  },
+  "contract_version": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "44ee96ac91cf2efc835d097e6a1520c462370923d5f2b31ec9f4bd37696dddbd",
+   "body": {
+    "data": {
+     "version": "1.1.0",
+     "contract": "stzig-staker"
+    }
+   }
+  },
+  "paused": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJwYXVzZWQiOnt9fQ==",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "6ee26f9e40491119493cc2297cbcb33dbed4b2b1badaeabf3dfa26994c5af59b",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  "protocol_info": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJwcm90b2NvbF9pbmZvIjp7fX0=",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "267a9f6cb0880ba4fa0ba7b4154881479537506c641c3b81954c0ef98e83a2ed",
+   "body": {
+    "data": {
+     "token_name": "stzig",
+     "token_denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+     "minting_cap": "100000000000000",
+     "min_stzig": "1000000",
+     "min_deposit": "1000000000000000000",
+     "max_withdrawal_scan_limit": 100,
+     "withdrawal_request_limit": 1,
+     "fees_percentage": "1000",
+     "treasury_address": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx"
+    }
+   }
+  },
+  "total_supply": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJ0b3RhbF9zdXBwbHkiOnt9fQ==",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "7fa63cd137472ec37a7b8e99b1e9b26ae0f971389e574271ee093a27947aba9b",
+   "body": {
+    "data": {
+     "total_supply": "18633318795402"
+    }
+   }
+  },
+  "token_contract": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJ0b2tlbl9jb250cmFjdCI6e319",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "67ace5e0340716e440d2d8bf4e6f9ce2a5b313cf3f23e451a99c0d8393e6937b",
+   "body": {
+    "data": {
+     "token_contract": "zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr"
+    }
+   }
+  },
+  "st_zig_balance_synthetic": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJzdF96aWdfYmFsYW5jZSI6eyJhZGRyZXNzIjoiemlnMXF5cXN6cWdwcXlxc3pxZ3BxeXFzenFncHF5cXN6cWdwbmV5djA1In19",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "4eaad81559ac89b7ea59b23fb029214d1b22f3a8d046e21d05893183289618bf",
+   "body": {
+    "data": {
+     "address": "zig1qyqszqgpqyqszqgpqyqszqgpqyqszqgpneyv05",
+     "balance": "0"
+    }
+   }
+  },
+  "st_zig_price_1": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJzdF96aWdfcHJpY2UiOnsiYW1vdW50IjoiMTAwMDAwMCJ9fQ==",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "9e1f8fdf4d0a648833b66aab8f88719fbe5f30ce4b78be3a47f4abc1990bb61b",
+   "body": {
+    "data": {
+     "stzig_amount": "1129883713421761571",
+     "uzig_amount": "1000000"
+    }
+   }
+  },
+  "denom_metadata": {
+   "path": "/cosmos/bank/v1beta1/denoms_metadata/coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "d8b7d62e7707e4ecad6fad0e84625956e3eedb48986db4a2a8f6902b2cb0ac41",
+   "body": {
+    "metadata": {
+     "description": "Staked ZIG",
+     "denom_units": [
+      {
+       "denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+       "exponent": 0,
+       "aliases": []
+      },
+      {
+       "denom": "stZIG",
+       "exponent": 6,
+       "aliases": []
+      }
+     ],
+     "base": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+     "display": "stZIG",
+     "name": "Staked ZIG",
+     "symbol": "stZIG",
+     "uri": "",
+     "uri_hash": ""
+    }
+   }
+  },
+  "balance_synthetic": {
+   "path": "/cosmos/bank/v1beta1/balances/zig1qyqszqgpqyqszqgpqyqszqgpqyqszqgpneyv05/by_denom?denom=coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "eafc9169561d78eb7e6d9497fd3e8bbb31d85e251994ab10f6a73d4e47c69082",
+   "body": {
+    "balance": {
+     "denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+     "amount": "0"
+    }
+   }
+  },
+  "balance_treasury": {
+   "path": "/cosmos/bank/v1beta1/balances/zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx/by_denom?denom=coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "77fa7de139551392c2631fb2293ee40923bb4f1bae2d4fe7af40e60e3a7078c9",
+   "body": {
+    "balance": {
+     "denom": "coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig",
+     "amount": "10511520227"
+    }
+   }
+  },
+  "st_zig_balance_treasury": {
+   "path": "/cosmwasm/wasm/v1/contract/zig19a8klywtvkfvh03sdna4vd4h8dq6yp9vyjh2u4skuwft95ejtpuq6lqy69/smart/eyJzdF96aWdfYmFsYW5jZSI6eyJhZGRyZXNzIjoiemlnMWd5NXprZXRlenJmZGVhOWc4MHdlMDI2NjNyMmdqejN6MDAwMmt4In19",
+   "httpStatus": 200,
+   "blockHeight": "8046854",
+   "sha256": "c9cc348e92a741cbb30181de2f3d8f2af6d2a8928f06b7cb2bcc82d13a989714",
+   "body": {
+    "data": {
+     "address": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "balance": "10511520227"
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+  "source": "51a6a2fcb7c45aa6ec4fd7a24a66db8baefc106d",
+  "checkpoint": "/var/folders/11/_vyq85yn2fl228nxdpslcxpr0000gp/T/zigoals-run11-source-recovery-2qaAeX/checkpoint.json",
+  "archiveSha256": "faf736c7bdb3d1fb884cdfa41ec94302b00f784aa51a853dfb41458430dac601",
+  "stage": "resumed-and-verified",
+  "verified": {
+    "fileCount": 1421,
+    "offlineFrozenInstall": true,
+    "checks": [
+      "pnpm typecheck",
+      "pnpm exec vitest run apps/web/lib/vault/crypto.test.ts apps/web/lib/vault/local.test.ts scripts/run11/historical-client.test.mjs"
+    ],
+    "routes": [
+      {
+        "route": "/app/health",
+        "status": 200,
+        "bytes": 34854
+      },
+      {
+        "route": "/app/settings",
+        "status": 200,
+        "bytes": 49682
+      }
+    ]
+  },
+  "durableArchive": ".superpowers/run11-recovery/source-51a6a2fcb7c45aa6ec4fd7a24a66db8baefc106d.tar",
+  "scope": "Source and committed review documentation; private-data backup is the separate protected package journey."
+}

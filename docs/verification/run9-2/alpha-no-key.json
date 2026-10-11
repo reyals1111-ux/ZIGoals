@@ -1,0 +1,9 @@
+{
+  "status": 503,
+  "response": {
+    "history": null,
+    "error": "Market history is unavailable. Saved local observations remain available.",
+    "stale": true,
+    "nextAttemptAt": 1789950467276
+  }
+}

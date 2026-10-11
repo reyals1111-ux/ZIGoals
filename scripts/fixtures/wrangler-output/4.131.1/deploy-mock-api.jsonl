@@ -1,0 +1,2 @@
+{"type":"wrangler-session","version":1,"wrangler_version":"4.131.1","command_line_args":["deploy","--config","wrangler.jsonc","--name","zigoals-alpha","--secrets-file","secrets.json"],"log_file_path":"/root/.config/.wrangler/logs/wrangler-2026-09-30_20-00-48_599.log","timestamp":"2026-09-30T20:00:48.825Z"}
+{"type":"deploy","version":1,"worker_name":"zigoals-alpha","worker_tag":null,"version_id":"5f2b7c1e-3a4d-4e6f-8a9b-0c1d2e3f4a5b","targets":[],"worker_name_overridden":false,"bundle_size":{"raw_bytes":181,"gzip_bytes":148},"timestamp":"2026-09-30T20:00:49.014Z"}

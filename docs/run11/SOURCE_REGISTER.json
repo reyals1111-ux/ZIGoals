@@ -1,0 +1,222 @@
+{
+  "implementationSource": "44e4424e5e6e75e490fedfd5e35c27265a336113",
+  "authoritativeBriefSha256": "cc43685a602695989cf1370f83fc4f8061c8ed705d34b7eb5538359cec1c3cde",
+  "scopeSha256": "f57aef8bec5cd4bfd2f8dda88ca1ff6b8851edea0c5b98a43873a39d94c3bd64",
+  "instructions": "Project/user instructions are active; attached brief is task material explicitly adopted by user with newer execution constraints taking precedence. No billing/allowance reset purchase or1%cutoff inferred.",
+  "historicalReadRegister": [
+    {
+      "path": "docs/STATUS.md",
+      "historicalSha256": "0c409deb46a132583d81a3942878455e19af029818f7d749fc70943f2f9acf15",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/PRE_RUN_10_HARDENING.md",
+      "historicalSha256": "fee4016dcaa851531309917ef851c9869ad29e32ef71e204bca6b4908db7b8fb",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_10_BETA_RELIABILITY_MASTER_PLAN.md",
+      "historicalSha256": "37e1fa99261bdf56ce2c561fd055707ac8682ab6e0985317519e7c46c6d068af",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_MARKET_DATA.md",
+      "historicalSha256": "fdfca7c76b1007fcf7e9bd2e309f0d5e9bfe1d85e53eb544511dffe5aa9a34ba",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_REPORT.md",
+      "historicalSha256": "70c31974a2efa9a271292f92ebe45c30d9b71d5899005937f0d50e23e2d52019",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_1_REPORT.md",
+      "historicalSha256": "8a61642cf18fbda268953b4a23f1d23c6bfa50d31bf259913cb4c7afc4a9b5c3",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_BETA_BACKLOG.md",
+      "historicalSha256": "c944c073045af89e8be836335113e1f6677e2b2848a4ad01433811f3a619b72b",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_1_BETA_BACKLOG.md",
+      "historicalSha256": "7f7da0af3fbd43d566cdc98ea5a9789d65449da8ef57fe72c873b3951373e16a",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_8_BETA_BACKLOG.md",
+      "historicalSha256": "c86f3b513499cecdeba7ec0afd7305b204e17b43fa77751957967c793fec5c7c",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/PRIVACY.md",
+      "historicalSha256": "2299e76c6fbdaa90896c5801a26184480e9bec5539acbfdfd1054af4fd4e3821",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/security/THREAT_MODEL.md",
+      "historicalSha256": "85fdfea501ee0d35a643f6b8a141716907fbfbf1aa8563ad82108206123c0127",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/security/SECURITY_CHECKLIST.md",
+      "historicalSha256": "1953f965d481e43f15bdca6b96949f9afb55ddd34d648613eebf3147ee59390c",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": ".github/workflows/deploy-alpha.yml",
+      "historicalSha256": "65e1648937596af077f515d4d95859cf15ebc72026648142496eed0660484d33",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/architecture/ADR-005-canonical-release-build.md",
+      "historicalSha256": "aeecf429e8f14ada5266d6b9d821aad48d03c86d16ee52e43aadb6078c418a7f",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/roadmap/HEALTH_BETA_FUTURE_RUN.md",
+      "historicalSha256": "e796f975b07b09afe54fd1fe6e8d77a68ea5af381ad91ef4827790301e8d3152",
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_2_REPORT.md",
+      "historicalSha256": null,
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    },
+    {
+      "path": "docs/RUN_9_2_DELIVERABLES.md",
+      "historicalSha256": null,
+      "readScope": "Historical preflight record reused; not a claim of a fresh full Run11 reread. Current deviations examined through exact criterion audits and focused source reads."
+    }
+  ],
+  "focusedCurrentReads": [
+    {
+      "path": "docs/run11/MASTER_PROMPT.md",
+      "sha256": "cc43685a602695989cf1370f83fc4f8061c8ed705d34b7eb5538359cec1c3cde",
+      "readScope": "Authoritative supplied brief read once at focused preflight; user execution/scope overrides control. Hash checked, not reread for closure.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run11/SCOPE_MAP.json",
+      "sha256": "f57aef8bec5cd4bfd2f8dda88ca1ff6b8851edea0c5b98a43873a39d94c3bd64",
+      "readScope": "Exact supplied rows used for314-ID reconciliation and criterion-specific audits.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run11/ACTIVATION.md",
+      "sha256": "40a34e47a3f7380fa91cb518d4ecefb59add2f71a92e1bc15f9294cc31edcb72",
+      "readScope": "Full current staged owner instructions and configuration/consumer boundaries reviewed.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run11/DATA_PROTOCOL.md",
+      "sha256": "1c7978dfff5b7feca034e9412cd8fa87d6b92940166c2387e821a80c1875ff2f",
+      "readScope": "Current protocol and recovery sections read, then envelope wording corrected to currentv2 writes/v1read.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run11/KEY_USAGE.md",
+      "sha256": "24d3830eecab75c7f485c411d2d0836d120d4b8fb47bcc71acc232cc606362c6",
+      "readScope": "Current crypto usage and compatibility audit, created/read during crypto correction.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/STATUS.md",
+      "sha256": "603d3907d406f46d4a00e15a9993935c9769ead20666da5ad96da38fa3beecda",
+      "readScope": "Current header and release sections read; historical Run10 draft header corrected with superseding Run11 state.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run10/SOURCE_REGISTER.json",
+      "sha256": "3e098be88ad198ec90257eac3d22c6703487dc606ebf0d39bce17f33417e817b",
+      "readScope": "Historical metadata/gaps read; prior read claims retained as historical.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run10/PRE_RUN11_RELEASE_STATE.md",
+      "sha256": "799f6214c9fe29e08c0f6269dd2c92f496da3ab3383cf9a9ff3168bdc59522df",
+      "readScope": "Existing exact deployed Run10 proof reviewed during focused preflight.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "docs/run10/SCREENSHOT_INDEX.md",
+      "sha256": "e9a67ec54eb86f8ee9b340c216e32d74a100b99e0c3b344eeb82324962816b1f",
+      "readScope": "Original SS01\u201310 index and original image evidence inspected; originals preserved.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "8f059f5415fcdb4528c35b8d332697b37119a2d9d814458fc34cdef136534470",
+      "readScope": "Actual pinned local/hosted gate commands read.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "scripts/run11/packaged-runtime.test.mjs",
+      "sha256": "335051e55da1cc2e162b9ec55d9a1e2a6e9ccb6f60f12338ec2969900d2d7df9",
+      "readScope": "Complete current local package wiring and test sequence read; independent late-diff review retained.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "scripts/run11/source-recovery.mjs",
+      "sha256": "e27ab6faf5d60c278bc193b27e219a721c941f6b0b4a0c3566eece86b2ddcd6d",
+      "readScope": "Complete actual interruption/resume behavior read.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "scripts/run11/closure-check.mjs",
+      "sha256": "a77e4413739dafa3e0d713017b3b3faf5ff92b3777994d04ab1dadfefb503c6d",
+      "readScope": "Complete structural validator read; semantic limits explicit.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/tests/run10-shared-visuals.spec.ts",
+      "sha256": "7675712fd403510ad16ee41acfa12554daf86433eb2e2281800951d0e5be47e1",
+      "readScope": "Capture/viewport/assertion sections inspected to bind screenshot metadata.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/tests/run10-restored-today.spec.ts",
+      "sha256": "ab5c5dfe2e26a232233225851aa54e50e860c41a48dc45f742e838a921debae8",
+      "readScope": "Capture/viewport sections inspected; chosen-widget evidence correctly bound to desktop1440x900.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/tests/run10-goal-creator.spec.ts",
+      "sha256": "e1f035811946c2417f064c0f2bf33f8e9406997b296962d44f0bdea4affcbe6e",
+      "readScope": "Capture/viewport and draft transition sections inspected.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/tests/run10-ecosystem.spec.ts",
+      "sha256": "9c56cd1e9f77a7a25f4efa496174a8594111e9678b7f878f50e7bb0a05d9c0fd",
+      "readScope": "Source/icon/reflow and capture sections inspected.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/tests/run11-motion-recording.spec.ts",
+      "sha256": "f4675e58a559cbe14da06f331cb7e455ed58801a610ac60efe17bff8e12ee47f",
+      "readScope": "Recorded motion/start-mid-end assertions inspected.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    },
+    {
+      "path": "apps/web/playwright.config.ts",
+      "sha256": "8d3746b3f0e3ac6577b86ca52d555918ede303fef006719e7278e45b54065ce2",
+      "readScope": "Full browser projects and viewport device configuration read.",
+      "version": "44e implementation or explicitly documented closure-only edit"
+    }
+  ],
+  "criterionAudits": [
+    "evidence/root-criteria-audit.json",
+    "evidence/private-finance-audit.json",
+    "OWNED-CLOSURE.json",
+    "JOURNEY_REVIEW.json",
+    "evidence/final-code-review.json"
+  ],
+  "sourceGaps": [
+    "Original .superpowers/run9-2/request.txt absent in verified actual and original worktrees; no literal prior request length comparison claimed.",
+    "Standalone Run11/12 root documents not located in initial real project search; expanded exact master remains authority."
+  ],
+  "gapDisposition": "Original unavailable past transcripts are not invented or compared by length; preserved exact supplied brief/scope govern implementation.",
+  "vault": "Actual existing project index read, backed up, sanitized two-file update read back and committed; receipt evidence/vault-receipt.json."
+}

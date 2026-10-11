@@ -1,0 +1,8 @@
+{
+  "retrievedAt": "2026-09-13T01:35:29.795347Z",
+  "source": "https://grpc-t.zigchain.nodestake.org:443/cosmos.base.tendermint.v1beta1.Service/GetNodeInfo",
+  "httpStatus": 200,
+  "grpcStatus": 0,
+  "network": "zig-test-2",
+  "version": "v5.0.0-patch-1"
+}

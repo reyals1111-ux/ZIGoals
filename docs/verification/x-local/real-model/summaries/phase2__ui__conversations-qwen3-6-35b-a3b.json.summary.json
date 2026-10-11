@@ -1,0 +1,30 @@
+{
+ "file": "phase2/ui/conversations-qwen3-6-35b-a3b.json",
+ "kind": "conversations",
+ "groups": [
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "Mac M1 Max",
+   "project": "desktop",
+   "runs": 20,
+   "passed": 15,
+   "scored": 20,
+   "errors": 0,
+   "replyMedianMs": 14769,
+   "first": "2026-10-08T17:03:17.878Z",
+   "last": "2026-10-08T17:35:54.046Z"
+  },
+  {
+   "model": "qwen3.6:35b-a3b",
+   "host": "RTX 5090",
+   "project": "desktop",
+   "runs": 45,
+   "passed": 40,
+   "scored": 45,
+   "errors": 0,
+   "replyMedianMs": 2530,
+   "first": "2026-10-08T16:32:53.536Z",
+   "last": "2026-10-08T17:32:58.950Z"
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+
+Running 28 tests using 2 workers
+
+(node:40587) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40586) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [desktop] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress (1.2s)
+  ✓   3 [desktop] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit (743ms)
+  ✓   1 [desktop] › tests/owner-preview.spec.ts:4:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private (2.0s)
+  ✓   4 [desktop] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits (868ms)
+  ✓   5 [desktop] › tests/owner-preview.spec.ts:27:5 › APR persistence, account isolation, rail order and navigation (1.6s)
+  ✓   6 [desktop] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress (902ms)
+  ✓   8 [desktop] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion (1.1s)
+  ✓   9 [desktop] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects (1.7s)
+  ✓  10 [desktop] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint (630ms)
+  ✓   7 [desktop] › tests/owner-preview.spec.ts:39:5 › responsive owner preview captures (4.1s)
+  ✓  11 [desktop] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority (988ms)
+  ✓  12 [desktop] › tests/owner-preview.spec.ts:54:5 › shared navigation keeps Health accessible without writing its store (532ms)
+  ✓  14 [desktop] › tests/product-shell.spec.ts:2:5 › unified shell exposes all eight destinations and preserves Alpha controls (539ms)
+  ✓  13 [desktop] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale (826ms)
+(node:40660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  16 [mobile] › tests/platform-habits.spec.ts:4:5 › a linked contribution Habit records behavior but never adds financial progress (1.1s)
+  ✓  15 [mobile] › tests/owner-preview.spec.ts:4:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private (1.8s)
+  ✓  17 [mobile] › tests/platform-habits.spec.ts:30:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit (766ms)
+  ✓  19 [mobile] › tests/platform-habits.spec.ts:42:5 › a failed second-store creation reserves one ID and retries without duplicate habits (815ms)
+  ✓  18 [mobile] › tests/owner-preview.spec.ts:27:5 › APR persistence, account isolation, rail order and navigation (1.5s)
+  ✓  20 [mobile] › tests/platform-habits.spec.ts:55:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress (934ms)
+  ✓  22 [mobile] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion (999ms)
+  ✓  21 [mobile] › tests/owner-preview.spec.ts:39:5 › responsive owner preview captures (3.2s)
+  ✓  23 [mobile] › tests/platform.spec.ts:2:5 › private position allocation and plans survive reload without financial or Health side effects (1.8s)
+  ✓  24 [mobile] › tests/owner-preview.spec.ts:54:5 › shared navigation keeps Health accessible without writing its store (533ms)
+  ✓  25 [mobile] › tests/platform.spec.ts:27:5 › watch-only invalid input never calls a wallet or chain endpoint (633ms)
+  ✓  26 [mobile] › tests/product-shell.spec.ts:2:5 › unified shell exposes all eight destinations and preserves Alpha controls (533ms)
+  ✓  27 [mobile] › tests/platform.spec.ts:36:5 › mainnet watch-only displays exact six-decimal observations without wallet authority (1.1s)
+  ✓  28 [mobile] › tests/platform.spec.ts:57:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale (762ms)
+
+  28 passed (19.6s)

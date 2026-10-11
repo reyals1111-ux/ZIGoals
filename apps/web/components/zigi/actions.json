@@ -1,0 +1,438 @@
+{
+  "about": "Session X-Local Part 4 (ADR-017): the rules ZIGi's companion controller enforces per state, ported from Studio-2's actions-foundation.json for the eleven delivered states (priority, cooldown, interruptibility, whether the state may show on a sensitive screen, the clip's verified markers at 24 fps); the fourteen worn states carry ZIGoals' own values. Data only; components/zigi/semantic.ts reads it.",
+  "fps": 24,
+  "states": {
+    "idle": {
+      "code": "F001",
+      "priority": 0,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "blink",
+          "frame": 80,
+          "kind": "beat"
+        }
+      ]
+    },
+    "greeting": {
+      "code": "F002",
+      "priority": 40,
+      "cooldownSeconds": 30,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "entry",
+          "frame": 1,
+          "kind": "beat"
+        },
+        {
+          "name": "step_1_plant",
+          "frame": 8,
+          "kind": "beat"
+        },
+        {
+          "name": "step_2_plant",
+          "frame": 18,
+          "kind": "beat"
+        },
+        {
+          "name": "wave_start",
+          "frame": 30,
+          "kind": "beat"
+        },
+        {
+          "name": "wave_peak",
+          "frame": 32,
+          "kind": "event"
+        }
+      ]
+    },
+    "insight": {
+      "code": "F003",
+      "priority": 45,
+      "cooldownSeconds": 0,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "think",
+          "frame": 16,
+          "kind": "beat"
+        },
+        {
+          "name": "insight",
+          "frame": 38,
+          "kind": "event"
+        }
+      ]
+    },
+    "listening": {
+      "code": "F004",
+      "priority": 30,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "lean_in",
+          "frame": 17,
+          "kind": "beat"
+        },
+        {
+          "name": "nod",
+          "frame": 45,
+          "kind": "beat"
+        },
+        {
+          "name": "slow_blink",
+          "frame": 64,
+          "kind": "beat"
+        }
+      ]
+    },
+    "speaking": {
+      "code": "F005",
+      "priority": 35,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "phrase_1",
+          "frame": 6,
+          "kind": "beat"
+        },
+        {
+          "name": "pause",
+          "frame": 52,
+          "kind": "beat"
+        },
+        {
+          "name": "phrase_2",
+          "frame": 62,
+          "kind": "beat"
+        }
+      ]
+    },
+    "presenting": {
+      "code": "F006",
+      "priority": 50,
+      "cooldownSeconds": 0,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "eye_to_target",
+          "frame": 7,
+          "kind": "beat"
+        },
+        {
+          "name": "index_up",
+          "frame": 12,
+          "kind": "beat"
+        },
+        {
+          "name": "point",
+          "frame": 28,
+          "kind": "event"
+        },
+        {
+          "name": "to_viewer",
+          "frame": 37,
+          "kind": "beat"
+        },
+        {
+          "name": "back_to_target",
+          "frame": 49,
+          "kind": "beat"
+        }
+      ]
+    },
+    "attention": {
+      "code": "F007",
+      "priority": 20,
+      "cooldownSeconds": 45,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": false,
+      "markers": [
+        {
+          "name": "lean_in",
+          "frame": 12,
+          "kind": "beat"
+        },
+        {
+          "name": "knock_contact_1",
+          "frame": 20,
+          "kind": "contact"
+        },
+        {
+          "name": "knock_contact_2",
+          "frame": 27,
+          "kind": "contact"
+        },
+        {
+          "name": "look_around",
+          "frame": 36,
+          "kind": "beat"
+        }
+      ]
+    },
+    "sleepy": {
+      "code": "F008",
+      "priority": 10,
+      "cooldownSeconds": 90,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "heavy_lids",
+          "frame": 20,
+          "kind": "beat"
+        },
+        {
+          "name": "yawn_peak",
+          "frame": 54,
+          "kind": "event"
+        },
+        {
+          "name": "nod_off_1",
+          "frame": 92,
+          "kind": "beat"
+        },
+        {
+          "name": "nod_off_2",
+          "frame": 108,
+          "kind": "beat"
+        },
+        {
+          "name": "rouse",
+          "frame": 126,
+          "kind": "event"
+        }
+      ]
+    },
+    "celebrate": {
+      "code": "F009",
+      "priority": 70,
+      "cooldownSeconds": 30,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": false,
+      "markers": [
+        {
+          "name": "anticipation",
+          "frame": 9,
+          "kind": "beat"
+        },
+        {
+          "name": "takeoff",
+          "frame": 12,
+          "kind": "event"
+        },
+        {
+          "name": "apex",
+          "frame": 17,
+          "kind": "beat"
+        },
+        {
+          "name": "landing_contact",
+          "frame": 22,
+          "kind": "event"
+        },
+        {
+          "name": "settled",
+          "frame": 44,
+          "kind": "event"
+        }
+      ]
+    },
+    "thinking": {
+      "code": "T001",
+      "priority": 30,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "gaze_away",
+          "frame": 6,
+          "kind": "beat"
+        },
+        {
+          "name": "paw_to_mouth",
+          "frame": 17,
+          "kind": "beat"
+        },
+        {
+          "name": "tap_1",
+          "frame": 26,
+          "kind": "beat"
+        },
+        {
+          "name": "tap_2",
+          "frame": 34,
+          "kind": "beat"
+        },
+        {
+          "name": "slow_blink",
+          "frame": 60,
+          "kind": "beat"
+        }
+      ]
+    },
+    "error": {
+      "code": "E001",
+      "priority": 55,
+      "cooldownSeconds": 8,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": [
+        {
+          "name": "oops_blink",
+          "frame": 7,
+          "kind": "beat"
+        },
+        {
+          "name": "glance_aside",
+          "frame": 12,
+          "kind": "beat"
+        },
+        {
+          "name": "shrug",
+          "frame": 28,
+          "kind": "event"
+        },
+        {
+          "name": "recover",
+          "frame": 48,
+          "kind": "event"
+        }
+      ]
+    },
+    "reading-your-data": {
+      "code": "F010",
+      "priority": 30,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "writing-proposal": {
+      "code": "F011",
+      "priority": 35,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "success": {
+      "code": "F012",
+      "priority": 45,
+      "cooldownSeconds": 5,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "proud": {
+      "code": "F013",
+      "priority": 70,
+      "cooldownSeconds": 30,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": false,
+      "markers": []
+    },
+    "curious": {
+      "code": "F014",
+      "priority": 45,
+      "cooldownSeconds": 0,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "surprised": {
+      "code": "F015",
+      "priority": 45,
+      "cooldownSeconds": 10,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "confused": {
+      "code": "F016",
+      "priority": 50,
+      "cooldownSeconds": 5,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "empathetic": {
+      "code": "F017",
+      "priority": 60,
+      "cooldownSeconds": 0,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "encouraging": {
+      "code": "F018",
+      "priority": 40,
+      "cooldownSeconds": 20,
+      "interruptibility": "after_settle",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "wave-goodbye": {
+      "code": "F019",
+      "priority": 40,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "reminder": {
+      "code": "F020",
+      "priority": 20,
+      "cooldownSeconds": 45,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": false,
+      "markers": [
+        {
+          "name": "knock_contact_1",
+          "frame": 20,
+          "kind": "contact"
+        },
+        {
+          "name": "knock_contact_2",
+          "frame": 27,
+          "kind": "contact"
+        }
+      ]
+    },
+    "offline": {
+      "code": "F021",
+      "priority": 15,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    },
+    "peek": {
+      "code": "F022",
+      "priority": 0,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": false,
+      "markers": []
+    },
+    "loading-model": {
+      "code": "F023",
+      "priority": 30,
+      "cooldownSeconds": 0,
+      "interruptibility": "anytime",
+      "sensitiveContextAllowed": true,
+      "markers": []
+    }
+  }
+}

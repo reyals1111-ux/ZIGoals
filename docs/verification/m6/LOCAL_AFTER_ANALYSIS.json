@@ -1,0 +1,57 @@
+{
+  "recordedAt": "2026-09-13T23:10:08.974698+00:00",
+  "build": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "0380e6a6b8b667709c5674c7abb22089674bc509",
+    "dirty": false
+  },
+  "runtime": {
+    "node": "24.19.0",
+    "next": "16.3.5",
+    "opennext": "1.20.6",
+    "wrangler": "4.131.1",
+    "host": "local macOS arm64"
+  },
+  "startup": {
+    "metric": "local_sampled_import_startup_not_invocation_cpu",
+    "windowUs": 95174,
+    "sampledUs": 88081,
+    "activeUs": 17429,
+    "idleUs": 70652,
+    "gcUs": 1255,
+    "sampleCount": 15,
+    "sampledFunctionUs": {
+      "(idle)": 70652,
+      "(program)": 11455,
+      "(anonymous)": 3610,
+      "Writable": 1109,
+      "(garbage collector)": 1255
+    }
+  },
+  "dryRunBundle": {
+    "totalKiB": 8740.99,
+    "gzipKiB": 1621.67
+  },
+  "assets": {
+    "count": 30,
+    "htmlCount": 0,
+    "iconDirectAsset": true,
+    "robotsDirectAsset": true
+  },
+  "measurementScriptSha256": "dfb7889270bd16e2d4339658cab029bea0471dc9225bb4e97387421bcf78aae1",
+  "limitations": [
+    "One local startup profile,15 samples; cannot attribute individual application modules reliably.",
+    "Original source bytes are an inventory, not emitted bundle contribution or executed CPU; dynamically loaded modules may appear.",
+    "Wrangler profile imports the Worker entry but does not invoke the application fetch handler.",
+    "First /app request in a fresh local process; 5 sequential requests per route, 200ms spacing, no warmup. Wall time includes fetch/body/client overhead; not Cloudflare CPU.",
+    "No production measurements or mutations performed.",
+    "Dynamic-page medians did not improve in this matched tiny sample; no production CPU reduction is established."
+  ],
+  "serverMetafile": {
+    "inputCount": 382,
+    "nextAppRouteTurboRuntimeIncluded": false,
+    "baselineInputCount": 393,
+    "baselineNextAppRouteTurboRuntimeIncluded": true
+  }
+}

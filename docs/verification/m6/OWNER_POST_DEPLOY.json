@@ -1,0 +1,180 @@
+{
+  "status": "COMPLETED + MERGED + DEPLOYED + OWNER-VERIFIED LIVE",
+  "evidenceSource": "OWNER_VERIFIED_LIVE_SANITIZED",
+  "provenance": {
+    "conversationTitle": "ZIGoals Strategy",
+    "conversationId": "6aa48a36-f198-83ed-a195-c95f8640afce",
+    "ownerConfirmation": "Owner supplied deployment, browser, HTTP and dashboard observations in the referenced conversation and confirmed the exact values in the housekeeping request.",
+    "controlledCapture": "Ten saved sanitized records were re-read and validated during housekeeping; no raw trace or new production capture.",
+    "independentLiveRetestDuringHousekeeping": false
+  },
+  "observedAt": null,
+  "worker": "zigoals-alpha",
+  "workerVersion": "00799604-7999-4ef4-b75f-268d8a459f6f",
+  "trafficPercent": 100,
+  "sourceCommit": "0c953a00d9f3e615289ae286549c74298b95dbdc",
+  "appVersion": "0.1.0",
+  "appEnvironment": "PUBLIC_ALPHA_UNDEPLOYED",
+  "alphaScope": "Simulation + wallet connection only",
+  "plan": "WORKERS_PAID",
+  "deployment": {
+    "implementationPr": "https://github.com/reyals1111-ux/ZIGoals/pull/6",
+    "implementationHead": "1ed639df909cf2f8c2f17241fc91264920e570c0",
+    "mergedAt": "2026-09-13T23:27:53Z"
+  },
+  "dashboard": {
+    "window": "last 1 hour, exact version",
+    "windowStart": null,
+    "windowEnd": null,
+    "cpuMs": {
+      "p50": 120,
+      "p90": 229,
+      "p99": 428,
+      "p999": 428
+    },
+    "invocations": 61,
+    "assetRequests": 12,
+    "assetCacheHitPercent": 100,
+    "subrequests": 0,
+    "errors": 0,
+    "exceededCpuEvents": 0
+  },
+  "controlledCaptureHourUtc": "2026-09-14T19:00:00.000Z",
+  "controlledRoutes": [
+    {
+      "route": "/app",
+      "workerInvocations": 5,
+      "cpuMs": [
+        524,
+        42,
+        33,
+        28,
+        42
+      ],
+      "medianCpuMs": 42,
+      "workerWallMs": [
+        562,
+        60,
+        34,
+        29,
+        43
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "outcomes": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "clientWallMs": null
+    },
+    {
+      "route": "/app/settings",
+      "workerInvocations": 5,
+      "cpuMs": [
+        25,
+        29,
+        26,
+        37,
+        27
+      ],
+      "medianCpuMs": 27,
+      "workerWallMs": [
+        35,
+        34,
+        29,
+        38,
+        28
+      ],
+      "statuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "outcomes": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "clientWallMs": null
+    },
+    {
+      "route": "/icon.svg",
+      "workerInvocations": 0,
+      "cpuMs": null,
+      "medianCpuMs": null,
+      "workerWallMs": null,
+      "workerCpuClassification": "ASSET_BYPASS_WORKER_CPU_NA",
+      "clientRequestCount": 5,
+      "clientStatuses": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ],
+      "clientWallMs": null,
+      "corroboration": [
+        "Five owner-reported client HTTP 200 requests",
+        "Direct static asset routing/package",
+        "Owner-observed cf-cache-status: HIT",
+        "Exact-version dashboard asset requests and 100% cache hit"
+      ]
+    }
+  ],
+  "directAssets": [
+    "/icon.svg",
+    "/robots.txt"
+  ],
+  "cpuLimit": {
+    "configuredMs": 2000,
+    "presentInDeployedConfig": true,
+    "dashboardOrVersionViewConfirmation": "NOT_SEPARATELY_CONFIRMED",
+    "enforcementIndependentlyVerified": false
+  },
+  "bundle": {
+    "baselineKiB": 9382.72,
+    "m6KiB": 8740.99,
+    "reductionPercentApprox": 6.84,
+    "evidence": "LOCAL_AFTER_ANALYSIS.json and LOCAL_BASELINE_ANALYSIS.json; original matched bundle comparison retained"
+  },
+  "liveOwnerVerification": {
+    "realKeplrConnection": true,
+    "localDemoOnRefresh": true,
+    "explicitReconnectSucceeds": true,
+    "testnetDiagnostics": true,
+    "layout320px": true,
+    "nonceCspAndSecurityHeadersPreserved": true,
+    "financialSigningOrBroadcast": false,
+    "goalManager": "NOT_DEPLOYED",
+    "codeId": "NOT_DEPLOYED"
+  },
+  "minorCleanupCandidates": [
+    {
+      "route": "/app",
+      "finding": "Duplicate HSTS and X-Robots-Tag values on the dynamic response",
+      "classification": "Minor cleanup candidate, not a rollback issue",
+      "fixedDuringHousekeeping": false
+    }
+  ],
+  "verdict": "Static-routing optimization succeeded; dynamic Next/OpenNext SSR CPU did not improve in this window.",
+  "limitations": [
+    "Owner production observations are not an independently repeated housekeeping live test.",
+    "Exact observation timestamps and dashboard absolute window were not supplied; null means unknown. The controlled capture hour is rounded and is not the dashboard window.",
+    "Five requests per route and the separate dashboard window do not establish statistical confidence, matched traffic, tail-risk guarantees or spike causality.",
+    "Asset bypass means Worker CPU N/A, not zero CPU; five HTTP 200 client requests and cache-hit corroboration support the classification.",
+    "Client wall arrays are not retained here and are not reconstructed from Worker wall time.",
+    "The 2000ms cap is present in deployed config but not separately confirmed by dashboard/version view. Zero exceededCpu events does not prove enforcement."
+  ]
+}

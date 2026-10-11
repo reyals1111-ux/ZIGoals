@@ -1,0 +1,23 @@
+/* Session W Part 8: Health → Devices. */
+.devices-view { display: grid; gap: 18px; }
+.devices-section { display: grid; gap: 12px; }
+.devices-section h2 { margin: 0; }
+.devices-card { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid rgba(171, 144, 211, .22); border-radius: 14px; }
+.devices-card h3 { margin: 0; font-size: 1.05rem; }
+.devices-card p { margin: 0; }
+.devices-reading { font-size: 1.1rem; }
+.devices-reading strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; }
+.devices-reading span { color: #c45bb0; }
+.devices-weight { display: grid; gap: 6px; }
+.devices-reload { display: grid; gap: 8px; }
+.devices-platforms { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.devices-platforms li { display: grid; gap: 4px; padding-top: 10px; border-top: 1px solid rgba(171, 144, 211, .15); }
+.devices-platforms li:first-child { border-top: 0; padding-top: 0; }
+.devices-platforms p { margin: 0; font-size: 15px; }
+.devices-state { font-size: 14px; color: #c9bfe0; }
+.devices-connect, .devices-confirm { display: grid; gap: 6px; }
+.devices-connect label, .devices-confirm label { min-height: 44px; align-items: center; gap: 10px; font-size: 15px; }
+.devices-card button, .devices-platforms button, .devices-reload button { min-height: 44px; }
+.meditation-heart { margin: 6px 0 0; text-align: center; font-variant-numeric: tabular-nums; }
+.meditation-heart span { color: #c45bb0; }
+.devices-reload-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 999px; text-decoration: none; justify-self: start; }

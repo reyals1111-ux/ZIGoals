@@ -1,0 +1,114 @@
+:root { --entrance-duration:650ms;--entrance-easing:cubic-bezier(.2,.7,.3,1);--motion-glide:cubic-bezier(.22,1,.36,1);--motion-mark:420ms;--motion-hover:220ms;--motion-press:90ms;--motion-fill:800ms; }
+.slogan-entrance { display:block; }
+.slogan-entrance[data-entrance=once] { animation:slogan-arrive var(--entrance-duration) var(--entrance-easing) both; }
+@keyframes slogan-arrive { from { opacity:.65;transform:translateY(9px); } to { opacity:1;transform:translateY(0); } }
+.motion-preference { display:grid;gap:10px;max-width:560px; }
+.motion-preference select { min-height:44px;font-size:16px; }
+.motion-preference p { color:#b7cbe2;margin:0; }
+.motion-preview{display:flex;align-items:center;gap:1rem;min-height:60px;padding:1rem;border:1px solid #6286a9;border-radius:14px;background:#102139}
+.motion-preview-sample{display:inline-block;width:30px;height:30px;flex:none;border-radius:50%;background:linear-gradient(120deg,#33dbed,#8b88fa,#e778d0);box-shadow:0 0 20px #7b9be777;animation:motion-sample-arrive 650ms ease-out both}
+@keyframes motion-sample-arrive{from{opacity:.3;transform:translateX(-25px) scale(.8)}to{opacity:1;transform:translateX(0) scale(1)}}
+:root[data-app-motion=off] .motion-preview-sample{animation:none}
+:root[data-app-motion=off] :is(.slogan-entrance,.evidence-line,.price-chart-line,.nutrition-month-bars i) { animation:none!important;transition:none!important; }
+@media(prefers-reduced-motion:reduce) { .slogan-entrance[data-entrance=once],.motion-preview-sample { animation:none; } }
+/* Slogan: the second line trails the first by a breath, then one sweep of light travels from today's Habits & Health to tomorrow's Wealth and rests. The words are readable at every frame. */
+.slogan-entrance[data-entrance=once] .slogan-line+.slogan-line { animation:slogan-line-trail calc(var(--entrance-duration) + 150ms) var(--motion-glide) 70ms backwards; }
+@keyframes slogan-line-trail { from { transform:translateY(.2em); } }
+.slogan-entrance[data-entrance=once] .slogan-gradient { background-image:linear-gradient(100deg,transparent 42%,#ffffffa6 50%,transparent 58%),var(--slogan-gradient);background-size:250% 100%,100% 100%;background-repeat:no-repeat;background-position:100% 0,0 0;animation:slogan-shine 1200ms cubic-bezier(.45,0,.25,1) 420ms both; }
+.slogan-entrance[data-entrance=once] .slogan-line+.slogan-line .slogan-gradient { animation-delay:640ms; }
+@keyframes slogan-shine { from { background-position:100% 0,0 0; } to { background-position:0 0,0 0; } }
+:root[data-app-motion=off] :is(.slogan-line,.slogan-gradient) { animation:none!important; }
+
+/* Charts: once the line or sweep has drawn, its marks settle in behind it. Values, labels and tables are final from first render; only paint moves. --at is a mark's 0–1 horizontal position, --i its order. */
+@keyframes motion-fade-in { from { opacity:0; } }
+@keyframes motion-mark-in { from { opacity:0;transform:scale(.25); } }
+@keyframes motion-line-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
+@keyframes motion-rise { from { transform:scaleY(.04); } to { transform:scaleY(1); } }
+@keyframes motion-cell-in { from { opacity:.15;transform:scale(.72); } }
+:is(.evidence-chart,.price-chart)[data-entrance=once] svg>line { animation:motion-fade-in 520ms ease-out backwards; }
+:is(.evidence-chart,.price-chart)[data-entrance=once] :is(.evidence-point,circle[data-observation]) { transform-box:fill-box;transform-origin:center;animation:motion-mark-in var(--motion-mark) var(--motion-glide) backwards;animation-delay:calc(120ms + var(--at,1) * var(--entrance-duration) * .75); }
+.price-chart[data-entrance=once] .price-chart-plot polygon { animation:motion-fade-in 600ms ease-out 400ms backwards; }
+.price-chart-plot circle[data-observation] { transition:r 180ms var(--motion-glide),fill 180ms ease; }
+.market-movement figure[data-entrance=once] .market-movement-line { animation:motion-line-draw 900ms var(--entrance-easing) both; }
+.nutrition-trend[data-entrance=once] .nutrition-month-bars>div>i { animation-delay:calc(var(--i,0) * 14ms); }
+.habit-week-momentum[data-entrance=once] .habit-week-bars i { transform-origin:bottom;animation:motion-rise var(--entrance-duration) var(--entrance-easing) backwards;animation-delay:calc(var(--i,0) * 55ms); }
+.habit-consistency-month[data-entrance=once] .habit-month-grid>span { animation:motion-cell-in 480ms var(--motion-glide) backwards;animation-delay:calc(var(--i,0) * 16ms); }
+:root[data-app-motion=off] :is(.evidence-point,circle[data-observation],.evidence-chart svg>line,.price-chart-plot>line,.price-chart-plot polygon,.market-movement-line,.habit-week-bars i,.habit-month-grid>span) { animation:none!important;transition:none!important; }
+
+/* Buttons: hover, selection and focus glide; a press gives slightly; a primary action catches one sweep of light on hover, never a loop. Controls are usable at every frame. */
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:transform var(--motion-hover) var(--motion-glide),box-shadow var(--motion-hover) var(--motion-glide),filter var(--motion-hover) ease,background-color var(--motion-hover) ease,border-color var(--motion-hover) ease,color var(--motion-hover) ease,outline-offset 160ms var(--motion-glide); }
+:where(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { outline-offset:8px; }
+:is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active:not(:disabled) { transform:translateY(0) scale(.97);transition-duration:var(--motion-press); }
+.primary { position:relative;isolation:isolate; }
+.primary::after { content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 38%,#ffffff5c 50%,transparent 62%) 100% 0/250% 100% no-repeat;opacity:0; }
+@media(hover:hover) { .primary:hover:not(:disabled)::after { background-position:0 0;opacity:1;transition:background-position 850ms var(--motion-glide),opacity 120ms ease; } }
+@media(prefers-reduced-motion:reduce) { :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):active { transform:none; }.primary::after { content:none; } }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button) { transition:none!important; }
+:root[data-app-motion=off] :is(.primary,.secondary,.quiet,.account-action,.price-chart-refresh,.price-chart-ranges button,.picker-tabs button,.health-views button):is(:hover,:active) { transform:none!important; }
+:root[data-app-motion=off] .primary::after { content:none; }
+
+/* Progress bars and rings: components/progress/glass-progress.css (Session I). */
+
+/* Navigation: the active highlight glides from the previous item to the new one, items give on press, and page content settles in softly. aria-current and focus move immediately. */
+.app-nav { position:relative; }
+.app-nav a { position:relative;z-index:1;transition:color 180ms,background 180ms,box-shadow 180ms,transform var(--motion-hover) var(--motion-glide); }
+.app-nav a:active { transform:scale(.97);transition-duration:var(--motion-press); }
+.nav-glide { position:absolute;left:0;top:0;z-index:0;box-sizing:border-box;pointer-events:none;opacity:0; }
+.nav-glide[data-state=start] { opacity:1;transition:none; }
+.nav-glide[data-state=moving] { opacity:1;transition:transform 380ms var(--motion-glide),width 380ms var(--motion-glide),height 380ms var(--motion-glide); }
+.nav-glide[data-state=done] { opacity:0;transition:opacity 180ms ease; }
+.app-nav[data-gliding] a[aria-current=page] { background:transparent!important;border-color:transparent!important;box-shadow:none!important; }
+.workspace main>div { animation:motion-page-enter 320ms var(--motion-glide); }
+@keyframes motion-page-enter { from { opacity:.85;transform:translateY(6px); } }
+@media(prefers-reduced-motion:reduce) { .app-nav a:active { transform:none; }.nav-glide { display:none; }.workspace main>div { animation:none; } }
+:root[data-app-motion=off] :is(.app-nav a,.workspace main>div) { animation:none!important;transition:none!important;transform:none!important; }
+:root[data-app-motion=off] .nav-glide { display:none; }
+
+/* Hero star: a transient layer between the artwork (::before) and its shade (::after), removed when the bloom ends. */
+.hero-star { position:absolute;inset:0;z-index:-2;overflow:hidden;pointer-events:none; }
+.hero-star>span { position:absolute;left:0;top:0;opacity:0;border-radius:50%; }
+.hero-star-veil { background:radial-gradient(closest-side,#020918e0 0%,#020918b0 42%,#0209184d 70%,#02091800 100%); }
+.hero-star-core { background:radial-gradient(closest-side,#fff 0 8%,#fff6ea 14%,#ffd3aecc 24%,#ff9fb866 40%,#a98bff26 60%,#0000 100%);mix-blend-mode:screen; }
+@media(prefers-reduced-motion:reduce) { .hero-star { display:none; } }
+:root[data-app-motion=off] .hero-star { display:none; }
+
+/* Navigation arrival: the newly selected item's icon gives one small pop and a single nebula light passes across it as the glide lands. Off at rest; never loops. */
+@keyframes nav-arrive-pop { 45% { transform:scale(1.18); } }
+@keyframes nav-arrive-sweep { from { background-position:100% 0;opacity:.55; } 80% { opacity:.55; } to { background-position:0 0;opacity:0; } }
+.app-nav a[data-arrive]>:first-child { animation:nav-arrive-pop 460ms var(--motion-glide) 200ms; }
+.app-nav a[data-arrive]::after { content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:screen;opacity:0;background:linear-gradient(100deg,transparent 36%,var(--brand-cyan) 45%,var(--brand-violet) 50%,var(--brand-magenta) 55%,transparent 64%) 0 0/250% 100% no-repeat;animation:nav-arrive-sweep 720ms cubic-bezier(.45,0,.25,1) 240ms; }
+
+/* Page arrival (page-arrival.tsx): one light sweep across the title, a short staggered settle for the first cards that arrive, one shine on the key figures. The band rests past the right edge, so the settled text is exactly as before; marks are removed after their single pass. */
+@keyframes arrive-sweep { from { background-position:100% 0; } to { background-position:0 0; } }
+@keyframes arrive-shine { from { background-position:100% 0,var(--arrive-pos,0 0); } to { background-position:0 0,var(--arrive-pos,0 0); } }
+@keyframes arrive-card { from { opacity:.85;transform:translateY(8px); } }
+main [data-arrive=tint] { background-image:linear-gradient(100deg,currentColor 38%,var(--brand-cyan) 45%,var(--brand-violet) 50%,var(--brand-magenta) 55%,currentColor 62%)!important;background-size:250% 100%!important;background-repeat:no-repeat!important;background-position:0 0;background-clip:text!important;-webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;animation:arrive-sweep var(--arrive-duration,1000ms) linear var(--arrive-delay,0ms) backwards; }
+main [data-arrive=shine] { background-image:linear-gradient(100deg,transparent 42%,#ffffffa6 50%,transparent 58%),var(--arrive-base)!important;background-size:250% 100%,var(--arrive-size,auto)!important;background-repeat:no-repeat,var(--arrive-repeat,no-repeat)!important;background-position:0 0,var(--arrive-pos,0 0);animation:arrive-shine var(--arrive-duration,1000ms) linear var(--arrive-delay,0ms) backwards; }
+main [data-arrive=card] { animation:arrive-card 560ms var(--motion-glide) calc(var(--arrive-i,0) * 60ms) backwards; }
+@media(prefers-reduced-motion:reduce) { :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }.app-nav a[data-arrive]::after { content:none; } }
+:root[data-app-motion=off] :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }
+:root[data-app-motion=off] .app-nav a[data-arrive]::after { content:none; }
+@media(forced-colors:active) { :is(main [data-arrive],.app-nav a[data-arrive],.app-nav a[data-arrive]>:first-child) { animation:none!important; }.app-nav a[data-arrive]::after { content:none; } }
+
+/* Logo fold intro (logo-intro.tsx, Session I): screen blend makes the clip's near-black vanish into the dark UI; the static Z
+   hides only while the clip actually plays and returns in a 240 ms crossfade. The frame clips to the sidebar's width and
+   never forms a stacking context of its own, so the blend still sees the sidebar behind it. The clip starts slightly
+   smaller (the folded figures are wider than the Z) and eases to its exact size once the bull is a Z again. */
+.app-sidebar .brand { position:relative; }
+.logo-intro-frame { position:absolute;overflow:hidden;pointer-events:none; }
+.logo-intro { position:absolute;max-width:none;pointer-events:none;mix-blend-mode:screen;opacity:1;transform-origin:var(--intro-origin,50% 50%);transform:scale(var(--intro-start,1)); }
+.logo-intro.logo-intro-phone { position:fixed;z-index:41; }
+.logo-intro[data-settle] { transform:none;transition:transform 500ms var(--motion-glide); }
+.logo-intro[data-state=waiting] { opacity:0; }
+.logo-intro[data-state=ending] { opacity:0;transition:opacity 240ms ease,transform 500ms var(--motion-glide); }
+.brand-logo[data-intro=playing] { opacity:0; }
+.brand-logo[data-intro=ending] { opacity:1;transition:opacity 240ms ease; }
+@media(prefers-reduced-motion:reduce) { :is(.logo-intro,.logo-intro-frame) { display:none; }.brand-logo[data-intro] { opacity:1; } }
+:root[data-app-motion=off] :is(.logo-intro,.logo-intro-frame) { display:none; }
+:root[data-app-motion=off] .brand-logo[data-intro] { opacity:1; }
+/* Keyboard focus on the logo link: the clip steps aside for the static logo so it never covers the focus ring. */
+.brand:focus-visible :is(.logo-intro,.logo-intro-frame) { display:none; }
+:root:has(.phone-home:focus-visible) .logo-intro-phone { display:none; }
+:is(.brand,.phone-home):focus-visible .brand-logo[data-intro] { opacity:1; }
+/* The route focus fallback (shell.tsx) focuses the main landmark; a ring around the whole page region adds nothing. */
+#main:focus { outline:none; }

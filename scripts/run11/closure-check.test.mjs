@@ -1,0 +1,8 @@
+import {test,expect} from 'vitest';
+import {validateClosure} from './closure-check.mjs';
+const scope={original_requirements_with_execution_overlay:[{id:'SYN-01'}],polish_readiness_entries:[{id:'E01'}]};
+const row=id=>({id,status:'IMPLEMENTED_UNVERIFIED',implementation:'implemented',local_proof:'final_source_pending',external_proof:'owner_pending',source:'a'.repeat(40),evidence:['evidence.json'],delta:'Final source acceptance pending.',owner:'implementation',dependencies:[]});
+const ledger=()=>({requirements:[row('SYN-01'),row('E01')]});
+test('complete dimensioned ledger retains every exact original and polish ID',()=>expect(validateClosure(scope,ledger(),()=>true)).toEqual([]));
+test.each(['missing','duplicate','status','evidence','dependency','verified','disposition'])('closure validator rejects %s omission or misleading claim',kind=>{const l=ledger();if(kind==='missing')l.requirements.pop();if(kind==='duplicate')l.requirements.push(row('E01'));if(kind==='status')l.requirements[0].status='DONEISH';if(kind==='evidence')l.requirements[0].evidence=['missing'];if(kind==='dependency')l.requirements[0].dependencies=['unknown'];if(kind==='verified'){l.requirements[0].status='VERIFIED';l.requirements[0].local_proof='not_run';}if(kind==='disposition')l.requirements[0].delta='';expect(validateClosure(scope,l,path=>path!=='missing').length).toBeGreaterThan(0);});
+test('verified local implementation cannot borrow an unresolved implementation dependency',()=>{const l=ledger();Object.assign(l.requirements[0],{status:'VERIFIED',local_proof:'pass',dependencies:['E01']});expect(validateClosure(scope,l,()=>true)).toContain('SYN-01: unresolved verified dependency E01');});

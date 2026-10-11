@@ -1,0 +1,13 @@
+/* G3: health goals (Session P). */
+.health-goals .habit-section-heading { align-items: flex-start; gap: 12px; }.health-goals .habit-section-heading .primary { min-height: 44px; }
+.health-goal-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }.health-goal-list.compact { gap: 8px; }
+.health-goal-row { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 0; border-top: 1px solid rgba(171, 144, 211, .17); }
+.health-goal-row:first-child { border-top: 0; padding-top: 4px; }.health-goal-row[data-status="closed"] .health-goal-row-copy, .health-goal-row[data-status="done"] .health-goal-row-copy { opacity: .78; }
+.health-goal-row-copy { display: grid; gap: 4px; min-width: 0; flex: 1 1 240px; font-size: 15px; }.health-goal-row-copy strong { font-size: 1rem; }.health-goal-line { font-size: 15px; }.health-goal-row-copy small { font-size: 14px; color: #aaa0bb; }
+.health-goal-track { height: 8px; margin: 4px 0 2px; }.health-goal-row-actions { display: flex; flex-wrap: wrap; gap: 6px; }.health-goal-row-actions button { min-height: 44px; }
+.health-goals-empty { font-size: 15px; }.health-goals-fold > .quiet { min-height: 44px; }
+.health-goal-creator .health-goal-target { display: flex; align-items: center; gap: 8px; }.health-goal-creator .health-goal-target input { min-width: 0; flex: 1; }
+.health-goal-fixed { display: grid; gap: 6px; margin: 0; }.health-goal-fixed strong { min-height: 44px; display: flex; align-items: center; }
+.health-goal-window { display: grid; gap: 8px; }.health-goal-window label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; }.health-goal-window input[type="radio"] { width: 22px; height: 22px; margin: 0; }
+.health-goal-window input[type="date"], .health-goal-window input[type="text"] { min-height: 44px; font-size: 16px; }.health-goal-window input[type="text"] { width: 5rem; }
+@media (max-width: 600px) { .health-goal-creator input, .health-goal-creator select, .health-goal-creator textarea { font-size: 16px; } }

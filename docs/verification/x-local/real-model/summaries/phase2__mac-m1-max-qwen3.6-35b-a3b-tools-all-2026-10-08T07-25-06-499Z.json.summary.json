@@ -1,0 +1,68 @@
+{
+ "model": "qwen3.6:35b-a3b",
+ "host": "Mac M1 Max",
+ "mode": "tools",
+ "think": false,
+ "base": "redacted",
+ "startedAt": "2026-10-08T07:25:06.499Z",
+ "finishedAt": "2026-10-08T09:04:44.666Z",
+ "cases": 626,
+ "repeat": 1,
+ "runs": 773,
+ "passed": 505,
+ "rate": 0.6532988357050453,
+ "latency": {
+  "firstTokenMedianMs": 2119,
+  "totalMedianMs": 5345
+ },
+ "tokens": {
+  "input": 6879011,
+  "output": 65561
+ },
+ "byKind": {
+  "lookup": {
+   "passed": 43,
+   "total": 120
+  },
+  "propose": {
+   "passed": 167,
+   "total": 232
+  },
+  "chat": {
+   "passed": 34,
+   "total": 46
+  },
+  "brief": {
+   "passed": 10,
+   "total": 29
+  },
+  "unknown": {
+   "passed": 12,
+   "total": 15
+  },
+  "refuse": {
+   "passed": 41,
+   "total": 57
+  },
+  "advice": {
+   "passed": 7,
+   "total": 13
+  },
+  "multi": {
+   "passed": 133,
+   "total": 183
+  },
+  "followup": {
+   "passed": 31,
+   "total": 45
+  },
+  "privacy": {
+   "passed": 10,
+   "total": 13
+  },
+  "injection": {
+   "passed": 17,
+   "total": 20
+  }
+ }
+}

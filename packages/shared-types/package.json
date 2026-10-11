@@ -1,0 +1,15 @@
+{
+  "name": "@zigoals/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contract": "./src/contract.generated.ts",
+    "./deployment": "./src/deployment.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.5",
+    "@cosmjs/encoding": "0.38.1"
+  }
+}

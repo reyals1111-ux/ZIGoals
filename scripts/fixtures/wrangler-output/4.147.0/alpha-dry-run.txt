@@ -1,0 +1,16 @@
+▲ [WARNING] Proxy environment variables detected. We'll use your proxy for fetch requests.
+
+
+
+ ⛅️ wrangler 4.147.0
+────────────────────
+✨ Read 196 files from the assets directory /home/user/ZIGoals/apps/web/.open-next/assets
+Total Upload: 13834.97 KiB / gzip: 2680.43 KiB
+Your Worker has access to the following bindings:
+Binding                                                                               Resource                  
+env.WORKER_SELF_REFERENCE (zigoals-alpha)                                             Worker                    
+env.MARKET_QUOTES (zigoals-acctest-market-coordinator#QuoteService)                   Worker                    
+env.ASSETS                                                                            Assets                    
+env.ZIGOALS_MARKET_QUOTES_MODE ("durable-v1")                                         Environment Variable      
+
+--dry-run: exiting now.

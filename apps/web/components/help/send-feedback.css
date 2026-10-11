@@ -1,0 +1,11 @@
+/* "Send feedback" (Session X Part 11), in Help and in Settings → Help & diagnostics. Labels 15px, the text box 16px (no
+   zoom on phones), every control at least 44px tall; the checkbox sits beside its sentence as in Export everything. */
+.send-feedback { display: grid; gap: 12px; min-width: 0; }
+.send-feedback p { margin: 0; }
+.send-feedback-add { display: flex; flex-direction: row; align-items: flex-start; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
+.send-feedback-add input { width: 22px; height: 22px; min-height: 22px; margin: 2px 0 0; padding: 0; flex: none; }
+.send-feedback-details { display: grid; gap: 8px; }
+.send-feedback-details label { font-size: 15px; }
+.send-feedback-details textarea { margin: 0; min-height: 150px; font-size: 16px; line-height: 1.5; resize: vertical; }
+.send-feedback .send-feedback-mail { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; white-space: normal; text-align: center; font-size: 15px; }
+.send-feedback .fine { font-size: 15px; }

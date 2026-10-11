@@ -1,0 +1,16 @@
+import {describe,it,expect} from 'vitest';
+import {emptyPlatform,privateGoalSchema,allocate,allocationBalance,goalProgress,closeGoal,deletePrivateGoal,assertGoalEditsUnlocked} from './positions';
+import {manualSourcePosition} from './manual-source';
+import {unifiedGoalSummaries} from './goal-summary';
+const goal=(id:string)=>privateGoalSchema.parse({id,name:id,type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'',createdAt:'2026-09-18T00:00:00Z',milestones:[]});
+const position=()=>manualSourcePosition({category:'Cash',name:'Emergency cash',quantity:'500',currency:'USD'},'cash','2026-09-18T00:00:00Z');
+const state=()=>({...emptyPlatform(),goals:[goal('1'),goal('2')],positions:[position()]});
+describe('owner coherence',()=>{
+ it('releases and reallocates exactly without double counting',()=>{let s=allocate(state(),'1','cash','500000000000000000000');s=allocate(s,'1','cash','0');expect(allocationBalance(s,'cash').unallocated).toBe('500000000000000000000');s=allocate(s,'2','cash','500000000000000000000');expect(goalProgress(s,'1').current).toBe('0');expect(goalProgress(s,'2').current).toBe('50000');expect(()=>allocate(s,'1','cash','1')).toThrow();});
+ it('deletes private planning and allocations but preserves Positions',()=>{const s=allocate(state(),'1','cash','500000000000000000000');const next=deletePrivateGoal(s,'1');expect(next.goals.map(g=>g.id)).toEqual(['2']);expect(next.allocations).toEqual([]);expect(next.positions).toEqual(s.positions);});
+ it('blocks target, plan, allocation and destructive mutations while locked',()=>{const s=state();s.goals[0]={...s.goals[0]!,locked:true};expect(()=>allocate(s,'1','cash','1')).toThrow(/unlock/i);expect(()=>closeGoal(s,'1')).toThrow(/unlock/i);expect(()=>deletePrivateGoal(s,'1')).toThrow(/unlock/i);expect(()=>assertGoalEditsUnlocked(s,{...s,goals:s.goals.map(g=>g.id==='1'?{...g,target:'1'}:g)})).toThrow(/unlock/i);expect(()=>assertGoalEditsUnlocked(s,{...s,goals:s.goals.map(g=>({...g,locked:false}))})).not.toThrow();});
+ it('pins by display ordering without changing accounting',()=>{const s=state();s.goals[1]={...s.goals[1]!,pinned:true};expect(unifiedGoalSummaries([],{},s).map(g=>g.id)).toEqual(['2','1']);expect(s.goals.map(g=>g.id)).toEqual(['1','2']);});
+ for(const category of ['Cash','Crypto','Stablecoins','Stocks','Precious metals','Custom asset'] as const)it(`creates ${category} using ordinary manual Position valuation`,()=>{const p=manualSourcePosition({category,name:'Fictional asset',symbol:'TEST',metal:'Gold',unit:'grams',quantity:'2.5',currency:'USD',value:'500'},category,'2026-09-18T00:00:00Z');expect(p).toMatchObject({sourceType:'MANUAL',verification:'MANUAL',valuation:{source:'MANUAL',value:'50000'}});const s={...state(),positions:[p]};expect(goalProgress(allocate(s,'1',p.id,p.quantity),'1').current).toBe('50000');});
+ it('never assumes a stablecoin peg',()=>{expect(manualSourcePosition({category:'Stablecoins',name:'USDC',symbol:'USDC',quantity:'500',currency:'USD'}).valuation).toBeUndefined();});
+ it('calculates explicit unit prices using integer arithmetic',()=>{expect(manualSourcePosition({category:'Precious metals',name:'Gold',metal:'Gold',unit:'grams',quantity:'2.5',currency:'USD',price:'80.125'}).valuation?.value).toBe('20031');});
+});

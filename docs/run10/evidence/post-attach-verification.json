@@ -1,0 +1,74 @@
+{
+  "recorded_utc": "2026-09-23T22:45:13.554286+00:00",
+  "build": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+    "dirty": false
+  },
+  "runs": [
+    {
+      "kind": "packaged-browser",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "28 passed23.9s",
+      "path": "docs/run10/evidence/run10-post-attach-packaged-browser.txt",
+      "sha256": "29c5d126e717757863745119edff7dd2eb1801e311700d52db26c7dbd6fb58b4"
+    },
+    {
+      "kind": "alpha-build",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS clean85cbb34",
+      "path": "docs/run10/evidence/run10-post-attach-alpha-build.txt",
+      "sha256": "9af57853d435ce1bbbc2a689fa62acbfd85af0649c308a5c4ce386b410d57b82"
+    },
+    {
+      "kind": "alpha-dryrun",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS12206.25KiB/gzip2331.60KiB",
+      "path": "docs/run10/evidence/run10-post-attach-alpha-dryrun.txt",
+      "sha256": "1811043e12a29d872f4289b6d3bd962cadfa530b29557c5ad24061d4f91c8a17"
+    },
+    {
+      "kind": "production-build",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS",
+      "path": "docs/run10/evidence/run10-post-attach-build.txt",
+      "sha256": "67c82c2be1ee9ce46827b6ebda1710540fbb90222da07266b268c7ce7d708934"
+    },
+    {
+      "kind": "types",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS",
+      "path": "docs/run10/evidence/run10-attach-types.txt",
+      "sha256": "8366207267355d3e3d5bf3bf6e8c94c5f93f6078c34f08973fa2b38cdda6cc92"
+    },
+    {
+      "kind": "affected-lint",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS",
+      "path": "docs/run10/evidence/run10-attach-lint.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "two-profile-attach",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "PASS16.89s",
+      "path": "docs/run10/evidence/run10-local-attach-atomic-browser.txt",
+      "sha256": "0b4f395b799d76eb3e4a17ff0fd29ae93d02654ae86da156138f7304f59d614e"
+    },
+    {
+      "kind": "full-units",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "1337pass/4sandbox-loopback failures/1skip",
+      "path": "docs/run10/evidence/run10-post-attach-units.txt",
+      "sha256": "6ff8ec535864fb04a0f45d28fd7b96bb96f88db44f77f7e1b1b5abac2e71e6f3"
+    },
+    {
+      "kind": "four-runtime-rerun",
+      "source": "85cbb34016376f79204a138bd0f8cddd6c3d6b77",
+      "result": "4pass with permission",
+      "path": "docs/run10/evidence/run10-post-attach-runtime.txt",
+      "sha256": "1cbc96283981c87dbae0144709b6f8f147727ca21d5049f16990de625fe5ef2f"
+    }
+  ]
+}

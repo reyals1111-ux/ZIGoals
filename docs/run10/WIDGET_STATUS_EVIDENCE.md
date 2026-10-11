@@ -1,0 +1,15 @@
+# Widget catalog and shared account status
+- Scope: selected observed staking/rewards/unbonding and per-Position allocation widgets; shared shell status and interest-aware financial chrome.
+- Catalog/schema/editor/preview/renderer use stable Position IDs; quantities use canonical allocationBalance and exact decimal formatting, without projections or combined assets/networks.
+- Missing/ineligible/archived sources remain unavailable; stale and failed observations retain timestamps and warnings; closed Goals release canonical allocation accounting.
+- Allocation displays recorded quantity, allocated, unallocated and deficit; unallocated is explicitly not a guarantee of spendability. Details open the exact selected Position.
+- Shell shows local-only, locked, unlocked awaiting acknowledgement, syncing, last acknowledgement, local changes, offline, error and Showcase states without account IDs or recovery material.
+- Nonfinancial layouts hide wallet/demo chrome; selected accounts hide misleading financial demo banners. Essential Today allocation warnings remain visible.
+- Test-first: new kinds/metrics failed before implementation; selected detail links and malformed-selector safety also had failing regressions before fixes.
+- Focused verification: dashboard-settings, dashboard-metrics and workspace-status: 13 tests passed; existing GoalProvider/Shell regression: 27 passed; scoped ESLint passed.
+- Browser: run10-widgets-status.spec.ts, desktop Chromium, 3 passed in 5.5s on local port3110. Fictional fixtures only; all API requests intercepted, no hosted or financial calls.
+- Browser checks cover real editor/save/reload, large exact stake, testnet rewards, failed/stale observations and allocation deficit at320/390px; Health-only issues no financial requests and preserves the integrity warning; cold selected account stays visibly locked.
+- Screenshots: visual-evidence/widgets-scope-320.png, widgets-scope-390.png and account-locked-shell-320.png. Screenshots were visually inspected; no horizontal overflow in asserted widths.
+- Ambient loop: root removal independently rechecked; product-v2.css ambient-light has no animation. This slice did not redo or claim whole-page motion acceptance.
+- Remaining: per-widget Health consent/domain pending/conflict qualification, four-layout independent-client sync/backup acceptance, physical-browser/assistive coverage and whole-page motion recording remain outside this proof.
+- Logs: /private/tmp/run10-widgets-status-green.log, run10-status-shell-regression.log, run10-widgets-status-browser.log, run10-widgets-status-lint.log; final typecheck is blocked only by concurrent positions.ts/financialEvents and durable-quote-dispatch.test.ts changes; see run10-widgets-status-typecheck.log.

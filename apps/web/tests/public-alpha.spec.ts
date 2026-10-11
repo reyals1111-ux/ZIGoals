@@ -1,0 +1,219 @@
+import { test, expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { navLink, walletArea } from "./phone-nav";
+import { toBech32 } from "@cosmjs/encoding";
+import { connectSources } from "../lib/csp-compose.mjs";
+const sentinel = "PRIVATE_SENTINEL_7cc2a9";
+
+test("Alpha declares an explicit same-origin icon that resolves", async ({ page, request }) => {
+  const response = await page.goto("/app");
+  const icon = page.locator('link[rel="icon"]');
+  await expect(icon).toHaveAttribute("type", "image/svg+xml");
+  const href = await icon.getAttribute("href");
+  expect(href).toBeTruthy();
+  const iconUrl = new URL(href!, response!.url());
+  expect(iconUrl.origin).toBe(new URL(response!.url()).origin);
+  const iconResponse = await request.get(iconUrl.href);
+  expect(iconResponse.status()).toBe(200);
+  expect(iconResponse.headers()["content-type"]).toContain("image/svg+xml");
+  expect((await iconResponse.body()).byteLength).toBeGreaterThan(0);
+});
+
+function captureRequestEgress(page: Page) {
+  type Capture = { record: string } | { error: unknown };
+  const pending: Promise<Capture>[] = [];
+  page.on("request", request => {
+    pending.push(request.allHeaders().then(headers => ({
+      record: JSON.stringify({ url: request.url(), headers, body: request.postData() }),
+    })).catch(error => ({ error })));
+  });
+  return async () => {
+    const records: string[] = [];
+    let drained = 0;
+    // New request events can arrive while earlier header captures are resolving.
+    while (drained < pending.length) {
+      const batch = pending.slice(drained);
+      drained += batch.length;
+      for (const capture of await Promise.all(batch)) {
+        if ("error" in capture)
+          throw new Error("Complete request-header capture failed.", { cause: capture.error });
+        records.push(capture.record);
+      }
+    }
+    return records.join("\n");
+  };
+}
+
+test("egress capture detects a sentinel carried only in an HttpOnly cookie", async ({page, context, baseURL}) => {
+  await context.addCookies([{
+    name: "alpha_capture_probe", value: sentinel, httpOnly: true,
+    url: new URL(baseURL!).origin,
+  }]);
+  const capture = captureRequestEgress(page);
+  await page.goto("/app");
+  await page.waitForLoadState("networkidle");
+  expect(await page.evaluate(() => document.cookie)).not.toContain(sentinel);
+  expect(await capture()).toContain(`alpha_capture_probe=${sentinel}`);
+});
+// Permissions-Policy per route (Session T, ADR-012): read from the one data file next.config.ts reads, so the spec
+// proves the effective headers of the running build (next start, and the OpenNext artifact in the integration job).
+const egress = JSON.parse(readFileSync(join(__dirname, "../lib/egress-policy.json"), "utf8")) as Parameters<typeof connectSources>[0];
+test("the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere", async ({request}) => {
+  for (const [path, expected] of [["/app", egress.permissionsPolicy.app], ["/app/habits", egress.permissionsPolicy.app], ["/app/health", egress.permissionsPolicy.health]] as const) {
+    const response = await request.get(path);
+    expect(response.headers()["permissions-policy"], path).toBe(expected);
+  }
+  expect(egress.permissionsPolicy.app).toContain("microphone=(self)"); expect(egress.permissionsPolicy.app).toContain("camera=()");
+  expect(egress.permissionsPolicy.health).toContain("camera=(self)"); expect(egress.permissionsPolicy.health).toContain("microphone=(self)");
+  // Session W Part 8: Web Bluetooth only on Health.
+  expect(egress.permissionsPolicy.health).toContain("bluetooth=(self)"); expect(egress.permissionsPolicy.app).toContain("bluetooth=()"); expect(egress.permissionsPolicy.global).toContain("bluetooth=()");
+  // The root redirects to /app (307); the global policy is asserted on that response itself, not on the page it leads to.
+  const root = await request.get("/", {maxRedirects: 0});
+  expect([200, 307, 308]).toContain(root.status());
+  expect(root.headers()["permissions-policy"]).toBe(egress.permissionsPolicy.global);
+  const app = await request.get("/app");
+  // Session W Part 1e: the reviewed connect-src from the app's own composer.
+  expect(app.headers()["content-security-policy"]).toContain(`connect-src ${connectSources(egress, "app").join(" ")};`);
+});
+test("strict production headers, fresh nonce, navigation and script rejection", async ({page,request}) => {
+  const errors:string[]=[]; page.on("pageerror",e=>errors.push(e.message));
+  const response=await page.goto("/app");
+  const h=response!.headers();
+  expect(h["content-security-policy"]).toMatch(/script-src 'self' 'nonce-[A-Za-z0-9+/]+=*' 'strict-dynamic'/);
+  expect(h["content-security-policy"]!.split(";").find(s=>s.includes("script-src"))).not.toMatch(/unsafe-inline|unsafe-eval/);
+  expect(h["content-security-policy"]).toContain("worker-src 'self'");
+  // Session V Part 19: Trusted Types enforced with the default policy only.
+  expect(h["content-security-policy"]).toContain("require-trusted-types-for 'script'; trusted-types default");
+  expect(h["x-frame-options"]).toBe("DENY"); expect(h["x-content-type-options"]).toBe("nosniff");
+  expect(h["referrer-policy"]).toBe("no-referrer"); expect(h["cache-control"]).toContain("no-store");
+  expect(h["cross-origin-opener-policy"]).toBe("same-origin");
+  expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
+  // Session W Part 1d: the build names its exact source commit, the one the page itself shows (Settings, Help).
+  expect(h["x-zigoals-build"]).toMatch(/^[a-f0-9]{40}$/);
+  const socialUrl = new URL("/social-card.png", response!.url());
+  // NextURL intentionally normalizes loopback addresses to localhost.
+  if (socialUrl.hostname === "127.0.0.1") socialUrl.hostname = "localhost";
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", socialUrl.href);
+  const canonicalUrl = new URL("/app", socialUrl.origin).href;
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);
+  const other=await request.get("/app"); expect(other.headers()["content-security-policy"]).not.toBe(h["content-security-policy"]);
+  // Session X-Local Part 9, H8 option 1 (the owner's decision; ADR-017 S79, [TIER 3] security headers/tests). Turbopack's
+  // runtime appends every chunk it loads on demand as <script src> with no nonce (there is no hook for one), and under
+  // 'strict-dynamic' a nonced script may load it; so a script without a nonce passes only when it is such a chunk: not
+  // parser-inserted (absent from the HTML the server sent) and its src on this page's own origin under
+  // /_next/static/chunks/. Stronger than before on what the server sends: every <script in its HTML carries the
+  // header's own nonce. The injection probe below still fails a parser-inserted <script>.
+  const nonce=/'nonce-([A-Za-z0-9+/]+=*)'/.exec(h["content-security-policy"]!)![1]!;
+  const html=await response!.text(), serverScripts=[...html.matchAll(/<script\b[^>]*>/gi)].map(m=>m[0]);
+  expect(serverScripts.length).toBeGreaterThan(0);
+  for (const tag of serverScripts) expect(tag,"a script the server sent carries the header's nonce").toContain(`nonce="${nonce}"`);
+  const pageUrl=new URL(response!.url()), serverSrcs=new Set(serverScripts.map(t=>/\bsrc="([^"]+)"/.exec(t)?.[1]).filter((v): v is string=>!!v).map(v=>new URL(v,pageUrl).href));
+  const unnonced=await page.locator("script").evaluateAll(nodes=>nodes.filter(n=>!((n as HTMLScriptElement).nonce?.length)).map(n=>(n as HTMLScriptElement).src));
+  for (const src of unnonced) {
+    expect(src,"a script without a nonce is a chunk of this origin the runtime appended").toMatch(new RegExp(`^${pageUrl.origin.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}/_next/static/chunks/`));
+    expect(serverSrcs.has(src),`${src} was not in the server's HTML (not parser-inserted)`).toBe(false);
+  }
+  // Inject into the received HTML: DevTools evaluate-created scripts are privileged.
+  await page.route("**/app?injection-probe=1", async route => {
+    const response = await route.fetch();
+    await route.fulfill({response,body:(await response.text()).replace("<head>","<head><script>window.__untrustedScript = true</script>")});
+  });
+  await page.goto("/app?injection-probe=1");
+  expect(await page.evaluate(()=>Reflect.get(window,"__untrustedScript"))).toBeUndefined();
+  await (await navLink(page,"Settings")).click();
+  await expect(page.getByRole("heading",{name:"Your data. Your control."})).toBeVisible();
+  await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures");
+  expect(await page.locator('a[target="_blank"]').evaluateAll(nodes=>nodes.every(n=>n.getAttribute("rel")?.includes("noopener")&&n.getAttribute("rel")?.includes("noreferrer")))).toBe(true);
+  await page.goto("/app/goals/987654321?view=canonical-probe");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonicalUrl);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  expect(errors).toEqual([]);
+});
+
+test("private lifecycle, backup, diagnostics and connection remain bounded under production CSP", async ({page},info) => {
+  await page.setViewportSize({width:320,height:568}); await page.emulateMedia({reducedMotion:"reduce"});
+  const capture = captureRequestEgress(page);
+  const errors:string[]=[];
+  page.on("pageerror",e=>errors.push(e.message));
+  await page.route("https://testnet-**.zigchain.com/**",async route=>{
+    const url=route.request().url();
+    expect(route.request().method()).toBe("GET");
+    const json=url.endsWith("/status")?{result:{node_info:{network:"zig-test-2"},sync_info:{catching_up:false,latest_block_height:"77",latest_block_time:new Date().toISOString()}}}:url.includes("node_info")?{default_node_info:{network:"zig-test-2"},application_version:{version:"v5.1.0"}}:url.includes("staking")?{params:{bond_denom:"azig"}}:url.includes("balances")?{balance:{denom:"azig",amount:"0"}}:{metadata:{base:"azig",display:"ZIG",denom_units:[{denom:"ZIG",exponent:18}]}};
+    await route.fulfill({json});
+  });
+  // App injection boundary only: addInitScript bypasses CSP and is not proof of real extension compatibility.
+  await page.addInitScript(({owner})=>{
+    Reflect.set(window,"signerCalls",0);
+    Object.assign(window,{keplr:{experimentalSuggestChain:async()=>{},enable:async()=>{},getKey:async()=>({bech32Address:owner}),getOfflineSignerAuto:async()=>{Reflect.set(window,"signerCalls",1);throw Error("No signer allowed");}}});
+    Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async()=>{throw Error("Unavailable");}}});
+  },{owner:toBech32("zig",new Uint8Array(20).fill(7))});
+  await page.goto("/app/goals/new");
+  await page.getByText("Personalize artwork and notes (optional)").click();
+  await page.getByRole("group",{name:"Category / artwork"}).getByRole("radio",{name:"Travel"}).check();
+  await page.getByLabel("Goal name",{exact:true}).fill(sentinel); await page.getByLabel("Target amount").fill("1200");
+  await page.getByRole("button",{name:"Continue"}).click(); await page.getByLabel("ZIGoals funding / Local simulation",{exact:true}).check(); await page.getByRole("button",{name:"Continue"}).click(); await page.getByRole("button",{name:"Continue"}).click();
+  await page.getByRole("button",{name:"Create goal",exact:true}).click();
+  await page.getByRole("button",{name:"Confirm simulation"}).focus(); await page.keyboard.press("Tab"); await expect(page.getByRole("button",{name:"Cancel",exact:true})).toBeFocused();
+  await page.getByRole("button",{name:"Confirm simulation"}).click();
+  await expect(page.getByRole("heading",{name:sentinel})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
+  // Each simulation finishes (its review closes) before the next step, as goals.spec waits for its result. Without this
+  // wait, Withdraw's review once never opened in CI (run 37663282444); the cause is not known (STATUS, Session W).
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Add funds",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
+  if(!await page.getByLabel("Amount in ZIG").isVisible()) await page.locator("#local-simulation > summary").click();
+  await page.getByLabel("Amount in ZIG").fill("10"); await page.getByRole("button",{name:"Withdraw",exact:true}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
+  await (await navLink(page,"Settings")).click();
+  const downloaded=page.waitForEvent("download"); await page.getByRole("button",{name:"Export Goal Data"}).click(); await downloaded;
+  const backup=await page.evaluate(()=>localStorage.getItem("zigoals:metadata:v1:local-simulation:local-demo-user")!);
+  const edited=JSON.parse(backup); edited.goals["1"].name=sentinel+"_EDIT"; edited.goals["1"].notes=sentinel+"_NOTE";
+  await page.getByLabel("Or paste backup JSON").fill(JSON.stringify(edited)); await page.getByRole("button",{name:"Import backup"}).click();
+  await page.getByText("Advanced Diagnostics", {exact:true}).click();
+  await page.getByRole("button",{name:"Check connection"}).click(); await expect(page.getByText("Verified zig-test-2 · height 77")).toBeVisible();
+  await page.getByRole("button",{name:"Preview safe diagnostics"}).click();
+  const safe=page.getByLabel("Safe diagnostic summary"); await expect(safe).toBeVisible(); expect(await safe.inputValue()).not.toContain(sentinel);
+  await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
+  await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
+  await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
+  // Session Z-Cloud Part 4.2: at 320 px the wallet buttons sit in the phone's Status sheet (walletArea).
+  await (await walletArea(page)).getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
+  expect(await page.evaluate(()=>Reflect.get(window,"signerCalls"))).toBe(0);
+  await page.waitForLoadState("networkidle");
+  expect(await capture()).not.toContain(sentinel);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:`/tmp/zigoals-m4-alpha-${info.project.name}-320.png`,fullPage:true});
+  expect(errors).toEqual([]);
+});
+
+
+test("public icon and robots bypass nonce work while lookalike HTML retains CSP", async ({request}) => {
+  // Session X Part 5a: the web app manifest is a public file too, answered by the asset layer.
+  for (const route of ["/icon.svg", "/apple-touch-icon.png", "/robots.txt", "/social-card.svg", "/social-card.png", "/manifest.webmanifest"]) {
+    const response = await request.get(route);
+    expect(response.status()).toBe(200);
+    const h = response.headers();
+    // Session U Part 6 (FIX_PLAN D2): an SVG opened on its own runs under a static, script-free policy (public/_headers);
+    // no public file gets the pages' nonce policy.
+    if (route.endsWith(".svg")) expect(h["content-security-policy"]).toBe("default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox");
+    else expect(h["content-security-policy"]).toBeUndefined();
+    expect(h["cross-origin-opener-policy"]).toBe("same-origin");
+    expect(h["cache-control"]).not.toContain("no-store");
+    expect(h["x-frame-options"]).toBe("DENY");
+    expect(h["x-content-type-options"]).toBe("nosniff");
+    expect(h["referrer-policy"]).toBe("no-referrer");
+    expect(h["x-robots-tag"]).toBe("noindex, nofollow, noarchive");
+    expect(h["strict-transport-security"]).toBe("max-age=31536000");
+    if (route === "/manifest.webmanifest") expect(h["content-type"]).toContain("application/manifest+json");
+    if (route === "/robots.txt") {
+      expect(h["content-type"]).toContain("text/plain");
+      expect(await response.text()).toBe("User-Agent: *\nDisallow: /\n\n");
+    }
+  }
+  for (const route of ["/favicon.ico", "/icon.svg/app", "/apple-touch-icon.png/app", "/robots.txt/app", "/social-cardXpng", "/_next/image/app", "/manifest.webmanifest/app"]) {
+    const response = await request.get(route);
+    expect(response.status()).toBe(404);
+    expect(response.headers()["content-security-policy"]).toContain("'nonce-");
+    expect(response.headers()["cache-control"]).toContain("no-store");
+  }
+});

@@ -1,0 +1,53 @@
+{
+ "about": "Session W Part 22, measured locally on 2026-10-07 by scripts/check-weight-budget.mjs --json against `next start` of each production build (NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED): gzip level 6 bytes of the scripts each page loads; shell = the scripts every app page loads.",
+ "main_1063765": {
+  "pages": {
+   "/app": 616920,
+   "/app/goals": 515136,
+   "/app/habits": 525604,
+   "/app/health": 550777,
+   "/app/wealth": 542531,
+   "/app/markets": 512265,
+   "/app/portfolio": 515751,
+   "/app/staking": 534717,
+   "/app/activity": 497594,
+   "/app/settings": 525876,
+   "/app/help": 493600
+  },
+  "shell": 491608
+ },
+ "branch_417a382_before_part22": {
+  "pages": {
+   "/app": 654780,
+   "/app/goals": 531266,
+   "/app/habits": 552717,
+   "/app/health": 577071,
+   "/app/wealth": 567762,
+   "/app/markets": 534846,
+   "/app/portfolio": 556799,
+   "/app/staking": 558085,
+   "/app/activity": 516254,
+   "/app/settings": 581151,
+   "/app/help": 512369,
+   "/app/chess": 520816
+  },
+  "shell": 510377
+ },
+ "branch_part22": {
+  "pages": {
+   "/app": 645755,
+   "/app/goals": 519575,
+   "/app/habits": 543365,
+   "/app/health": 567629,
+   "/app/wealth": 556065,
+   "/app/markets": 523138,
+   "/app/portfolio": 545652,
+   "/app/staking": 548342,
+   "/app/activity": 503543,
+   "/app/settings": 570254,
+   "/app/help": 499658,
+   "/app/chess": 508105
+  },
+  "shell": 497666
+ }
+}

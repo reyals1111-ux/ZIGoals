@@ -1,0 +1,77 @@
+{
+  "recordedAt": "2026-09-15T18:10:26.340556+00:00",
+  "continuationBase": "85e2a56536d8078da5c7acbcf99c98c0b63fcac3",
+  "implementationSource": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5",
+  "alphaBuild": {
+    "environment": "PUBLIC_ALPHA_UNDEPLOYED",
+    "version": "0.1.0",
+    "commit": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5",
+    "dirty": false
+  },
+  "lint": "PASS",
+  "typecheck": "PASS",
+  "jsTests": {
+    "passed": 610,
+    "files": 32
+  },
+  "productionNextBuild": "PASS",
+  "productionBrowser": {
+    "passed": 82,
+    "failed": 0,
+    "projects": [
+      "desktop",
+      "mobile"
+    ]
+  },
+  "alphaBuildAndDryRun": "PASS",
+  "workerUploadKiB": 9033.15,
+  "workerGzipKiB": 1689.09,
+  "v2GzipKiB": 1687.49,
+  "v21GzipDeltaKiB": 1.6,
+  "v21GzipDeltaPercent": 0.095,
+  "v1ApproxGzipKiB": 1623,
+  "v1ApproxGzipDeltaPercent": 4.07,
+  "localArtworkBytes": 294232,
+  "workerdBrowser": {
+    "passed": 22,
+    "failed": 0
+  },
+  "staticArtworkExactByteGate": {
+    "passed": 6,
+    "failed": 0
+  },
+  "requiredViewports": [
+    1440,
+    1280,
+    768,
+    390,
+    320
+  ],
+  "requiredRoutesChecked": 9,
+  "deploymentConfig": "PASS",
+  "productionMutations": "NONE",
+  "chainActions": "NONE",
+  "newContractCandidates": "NONE",
+  "protectedPathDiff": {
+    "paths": [
+      "contracts",
+      "packages",
+      "scripts",
+      ".github",
+      "apps/web/lib",
+      "apps/web/components/goal-provider.tsx",
+      "apps/web/middleware.ts",
+      "apps/web/wrangler.alpha.jsonc",
+      "pnpm-lock.yaml"
+    ],
+    "changed": []
+  },
+  "ci": {
+    "source": "bd5cf393aebebfddfa6f64dbfc3c1a0274855aa5",
+    "checksPassed": 5,
+    "qualityRun": 35004857622,
+    "reproducibilityRun": 35004857692,
+    "conclusion": "PASS",
+    "latestReviewPackageHead": "See PR #9; subsequent documentation-only commits do not change runtime."
+  }
+}

@@ -1,0 +1,4 @@
+/* Session V Part 11: careful mode's supportive note, calm and quiet (no alarm colours, no motion). */
+.ai-care-note{margin-top:8px;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 40%,var(--line,#2a325a));background:color-mix(in srgb,var(--cyan,#6fd3ff) 8%,transparent);font-size:14px;line-height:1.45;text-align:left}
+.ai-care-note p{margin:0}
+.ai-care-label{font-weight:600;margin-bottom:4px!important;color:var(--muted,#aab2d9)}
