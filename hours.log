@@ -137,3 +137,5 @@ START variance-qwen38 2026-10-11T12:33:49Z
 END part6-spoken-sonnet 2026-10-11T12:48:23Z rc=0
 START part6-spoken-haiku 2026-10-11T12:48:27Z
 END qwen36-mac-2 2026-10-11T13:01:56Z rc=0
+END mac-run2 2026-10-11T13:02:00Z rc=0
+END variance-qwen38 2026-10-11T13:07:15Z rc=0

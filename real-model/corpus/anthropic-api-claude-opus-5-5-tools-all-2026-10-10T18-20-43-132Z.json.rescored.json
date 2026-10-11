@@ -79,7 +79,7 @@
   "costUsd": 11.3736378,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-10T19:25:44.309Z"
+  "rescoredAt": "2026-10-11T13:03:32.587Z"
  },
  "runs": [
   {
@@ -289,7 +289,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -2685,7 +2685,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -2840,7 +2840,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -7748,9 +7748,8 @@
      "detail": "every block valid"
     },
     {
-     "name": "tool:about_me",
-     "pass": false,
-     "detail": "called []"
+     "name": "contains:notes",
+     "pass": false
     },
     {
      "name": "never:password",
@@ -13030,7 +13029,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit, create-habit]"
+     "detail": "wanted [create-habit, create-habit, edit-habit, edit-habit], got [create-habit, create-habit]"
     },
     {
      "name": "schema",
@@ -13203,7 +13202,7 @@
     {
      "name": "cards",
      "pass": true,
-     "detail": "wanted [create-habit], got [create-habit]"
+     "detail": "wanted [create-habit, edit-habit, set-habit-state], got [create-habit]"
     },
     {
      "name": "schema",
@@ -18735,7 +18734,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
@@ -26883,7 +26882,7 @@
      "detail": "every call accepted"
     },
     {
-     "name": "fields:time=20:30",
+     "name": "fields:time={\"anyOf\":[\"08:30\",\"20:30\"]}",
      "pass": true,
      "detail": "{\"kind\":\"create-reminder\",\"for\":\"habit\",\"habit\":\"h1\",\"time\":\"20:30\"}"
     }
@@ -28788,7 +28787,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [create-habit, stack-habit], got [create-habit, edit-habit, stack-habit]"
+     "detail": "wanted [create-habit, edit-habit, stack-habit], got [create-habit, edit-habit, stack-habit]"
     },
     {
      "name": "schema",
@@ -35125,7 +35124,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [habits_due, list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "tool-not:vitals",
@@ -37432,7 +37431,7 @@
     {
      "name": "tool:list_habits",
      "pass": true,
-     "detail": "called [list_habits]"
+     "detail": "answered on the device: no model ran"
     },
     {
      "name": "arguments",
