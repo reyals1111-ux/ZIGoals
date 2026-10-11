@@ -1,6 +1,6 @@
 # API ledger — Session Z-Local (owner cap $130; hard stop)
 
-Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (34 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
+Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (35 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
 
 | Stage | Model | Requests | Input | Cache write | Cache read | Output | USD |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -29,6 +29,7 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (34 files
 | real-model/ui-day-sonnet | claude-sonnet-5-5 | 30 | 120 | 140,645 | 339,955 | 6,181 | 0.4477 |
 | real-model/ui-pages-haiku | claude-haiku-5-5 | 166 | 626 | 220,834 | 2,468,800 | 45,693 | 0.0752 |
 | real-model/ui-pages-sonnet | claude-sonnet-5-5 | 362 | 1,306 | 353,960 | 5,566,075 | 87,982 | 2.3239 |
+| real-model/ui-pages-sonnet-2-lost | claude-sonnet-5-5 | 320 | 1,154 | 312,893 | 4,920,287 | 77,774 | 2.0543 |
 | real-model/ui-panel-haiku | claude-haiku-5-5 | 130 | 502 | 211,425 | 1,853,180 | 48,331 | 0.0692 |
 | real-model/ui-panel-haiku-2 | claude-haiku-5-5 | 134 | 514 | 224,145 | 1,972,402 | 48,104 | 0.0718 |
 | real-model/ui-panel-opus | claude-opus-5-5 | 43 | 172 | 121,164 | 559,467 | 12,599 | 0.9704 |
@@ -39,6 +40,6 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (34 files
 | real-model/variance | claude-sonnet-5-5 | 708 | 2,674 | 1,104,531 | 10,168,288 | 191,179 | 5.6953 |
 | spoken/gen | claude-opus-5-5 (batch) | 188 | 133,035 | 0 | 0 | 103,574 | 1.3018 |
 
-**Per model:** claude-haiku-5-5 $2.05 · claude-sonnet-5-5 $35.79 · claude-opus-5-5 $36.38
+**Per model:** claude-haiku-5-5 $2.05 · claude-sonnet-5-5 $37.85 · claude-opus-5-5 $36.38
 
-**Total: $74.22 of $130.**
+**Total: $76.27 of $130.**
