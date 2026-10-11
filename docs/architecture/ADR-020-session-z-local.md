@@ -96,6 +96,9 @@ lane Z-Cloud (`feature/session-z-cloud`) owns ZIGi's face; the lanes talk throug
   pins both sides. The corpus stages before this round ran without page records, so their figures are unaffected.
 - **Part 6 (L33), `corpus-phase2.ts` `p2-long-week-nl`:** the evening habit is drawing (tekenen), not reading: the Showcase already
   has a reading habit and the model rightly edited it instead of creating a second one, which the oracle (two new habits) refused.
+- **Part 6, the spoken corpus's seeds (two oracle fixes, 17 held-out cases re-derived by `rebuild`, same ids and asks):**
+  `balance` expected the string `'1250'` while every card carries the number (each balance case failed on type, not value);
+  `edit-goal` expected the English name "Japan in spring" for the Dutch ask that names "Japan in de lente" (now either).
 - **After Z-Cloud (L43), three unit tests follow the findings:** `actions/plan.test.ts` "edit-habit" expects the rule from
   tomorrow and the card line "From tomorrow, as in Habits; earlier days keep the rule they had" (was today); `setup-chooser.test.ts`
   expects a key, not the bridge, for a phone with nothing and privacy (the bridge needs a subscription); `store/records.test.ts`'s

@@ -103,7 +103,7 @@ seed('delete-habit', 'delete a habit (confirmation)', {en: 'Delete my Walk habit
 seed('create-goal', 'a new goal', {en: 'Create a goal for a new laptop, fifteen hundred euros by next June', nl: 'Maak een doel voor een nieuwe laptop, vijftienhonderd euro tegen volgend jaar juni'}, {kinds: ['create-goal'], fields: [{kind: 'create-goal', target: 1500}]}, {...G, important: true});
 seed('goal-note', 'a goal note', {en: 'Add a note to my Japan adventure goal: flights booked', nl: 'Voeg een notitie toe aan mijn doel Japan adventure: vluchten geboekt'}, {kinds: ['add-goal-note']}, {...G, important: true});
 seed('milestone', 'a milestone', {en: 'Add a milestone to the Japan goal called halfway there', nl: 'Voeg een mijlpaal toe aan het Japan-doel: halverwege'}, {kinds: ['add-milestone']}, G);
-seed('edit-goal', 'rename a goal', {en: 'Rename the Japan adventure goal to Japan in spring', nl: 'Hernoem het doel Japan adventure naar Japan in de lente'}, P('edit-goal', {name: 'Japan in spring'}), G);
+seed('edit-goal', 'rename a goal', {en: 'Rename the Japan adventure goal to Japan in spring', nl: 'Hernoem het doel Japan adventure naar Japan in de lente'}, P('edit-goal', {name: {anyOf: ['Japan in spring', 'Japan in de lente']}}), G); // the Dutch ask names the goal in Dutch (Session Z-Local Part 6, an oracle fix: listed)
 seed('close-goal', 'close a goal', {en: 'Close the Japan adventure goal, I am done with it', nl: 'Sluit het doel Japan adventure af, ik ben er klaar mee'}, {kinds: ['close-goal']}, G);
 seed('reopen-goal', 'reopen a goal', {en: 'Reopen the Japan adventure goal', nl: 'Heropen het doel Japan adventure'}, {kinds: ['reopen-goal']}, G);
 seed('fund', 'fund a goal (form)', {en: 'Put two hundred euros towards the Japan adventure goal', nl: 'Stort tweehonderd euro op het doel Japan adventure'}, P('prefill-contribution', {amount: 200}), {...G, important: true});
@@ -124,7 +124,7 @@ seed('zigi-look', 'ZIGi\'s side and size', {en: 'Put ZIGi on the left and make i
 seed('zigi-knock', 'no knocking', {en: 'Stop ZIGi from knocking', nl: 'Laat ZIGi niet meer kloppen'}, P('set-zigi-look', {knock: false}), S);
 // Wealth forms
 seed('holding', 'a holding (form)', {en: 'Add a holding of half a bitcoin', nl: 'Voeg een bezit toe van een halve bitcoin'}, {kinds: ['prefill-holding']}, W);
-seed('balance', 'an account balance (form)', {en: 'My savings account balance is twelve hundred and fifty euros', nl: 'Het saldo van mijn spaarrekening is twaalfhonderdvijftig euro'}, {kinds: ['update-account-balance'], fields: [{kind: 'update-account-balance', balance: '1250'}]}, {...W, important: true});
+seed('balance', 'an account balance (form)', {en: 'My savings account balance is twelve hundred and fifty euros', nl: 'Het saldo van mijn spaarrekening is twaalfhonderdvijftig euro'}, {kinds: ['update-account-balance'], fields: [{kind: 'update-account-balance', balance: 1250}]}, {...W, important: true}); // a number, as the card carries it (was the string '1250': every balance case failed on type; Session Z-Local Part 6, listed)
 seed('account', 'a new account (form)', {en: 'Add a savings account called Rainy day with fifteen hundred euros', nl: 'Voeg een spaarrekening toe, Rainy day, met vijftienhonderd euro'}, P('prefill-account', {accountKind: 'savings', balance: 1500}), W);
 // Lookups (the device answers most of these without a model; the model is scored on the facts when it is asked)
 const L = (area, page) => ({area, page, kind: 'lookup'});
