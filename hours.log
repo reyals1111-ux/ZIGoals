@@ -133,3 +133,5 @@ START variance-gemma4 2026-10-11T12:06:20Z
 END part6-sonnet-page 2026-10-11T12:26:57Z rc=0
 START part6-spoken-sonnet 2026-10-11T12:27:00Z
 END variance-gemma4 2026-10-11T12:33:46Z rc=0
+START variance-qwen38 2026-10-11T12:33:49Z
+END part6-spoken-sonnet 2026-10-11T12:48:23Z rc=0

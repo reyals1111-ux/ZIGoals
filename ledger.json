@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 130,
- "total": 93.98805179749998,
+ "total": 97.36961419749997,
  "byModel": {
   "claude-haiku-5-5": 2.9045129474999984,
-  "claude-sonnet-5-5": 45.07914624999999,
+  "claude-sonnet-5-5": 48.46070864999999,
   "claude-opus-5-5": 46.004392599999996
  },
  "rows": [
@@ -200,6 +200,19 @@
    "cacheRead": 11196727,
    "output": 166927,
    "usd": 5.358859699999999,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/part6-spoken-sonnet",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "requests": 549,
+   "input": 2208,
+   "cacheWrite": 628283,
+   "cacheRead": 8376789,
+   "output": 96876,
+   "usd": 3.3815623999999995,
    "unreported": 0,
    "files": 0
   },
@@ -488,6 +501,11 @@
    "turns": 671
   },
   {
+   "file": "real-model/part6-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T12-27-03-053Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 531
+  },
+  {
    "file": "real-model/probe/anthropic-api-claude-sonnet-5-5-tools-important-20-2026-10-10T15-03-39-425Z.json",
    "model": "claude-sonnet-5-5",
    "turns": 18
@@ -578,5 +596,5 @@
    "turns": 31
   }
  ],
- "rebuiltAt": "2026-10-11T12:27:00.955Z"
+ "rebuiltAt": "2026-10-11T12:48:23.907Z"
 }
