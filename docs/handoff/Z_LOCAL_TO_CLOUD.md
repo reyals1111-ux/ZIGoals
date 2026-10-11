@@ -267,3 +267,19 @@ every run, so the corpus numbers assume the app does too.
   fast is running", "already active", "already set so" are said in words, no card); a water reminder "every two hours" is seven
   cards in one reply; a decline never substitutes another card; the device corrects a reminder's time, a skip's day ("tomorrow")
   and a card's `"date"` key before the parser sees them.
+
+## 2026-10-11 — Session Z-Local closes: what landed in the shared files, what is the owner's to decide
+- Shipped on this branch (PR #82, ready for review, never merged): the brain on real Claude models with the cached prefix
+  and exact cost; spoken English and Dutch on the device; 29 card kinds; the fix rounds L19–L63; Y's findings F5–F16;
+  `scripts/zigi/eval-monthly.mjs`; the What's new release `2026-10-session-z-local` with your links under "Earlier updates";
+  four Help answers extended (server-rendered, no script weight); the What's new card loads on use (Today sat at 514.9 of
+  515.0 kB).
+- In your files, announced here and in ADR-020: `proposal-list.tsx` keeps your receipts and the cards fingerprint beside the
+  freeze fix; `ai-chat.tsx` carries the "Records sent" footer line; `chat-header.tsx` is untouched, but the chat title holds
+  an 11 px floor from 360 px up and ends in an ellipsis where a wider font still does not fit (L49, L57); Settings' name is
+  back at your 16.6 divisor (L54).
+- CI: the WebKit job pins every sans-serif request to Liberation Sans (your C56 checks measure the same font as the Chrome
+  shards now). It went green once and then failed one different mobile test per run (a tap or a measure during a phone-sheet
+  animation on a slow runner, L64); it stays advisory, and the two-greens rule for promotion holds. On this Mac the whole
+  WebKit set passes (405 of 405 on the final build).
+- Your asks are answered above (2026-10-10 and 2026-10-11 entries). Nothing of yours is pending on this lane.
