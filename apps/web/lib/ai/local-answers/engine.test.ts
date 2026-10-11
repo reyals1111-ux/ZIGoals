@@ -211,3 +211,19 @@ test('L30: a question that also asks for an action returns none, so the model pr
   for (const q of ['How much water have I had today, and log one more glass', "What's my walk streak? And mark today's walk as done", 'How far is the Japan goal, and add a note that I booked the hotel', 'How did I sleep this week? Last night was 23:40 to 7:20, log it', 'What was my weight last month, and log 78.0 kg for this morning', 'Hoeveel water heb ik vandaag gedronken, en log nog een glas', 'Wat is mijn wandelreeks? En vink mijn wandeling van vandaag af']) expect(localAnswer(q, env).kind, q).toBe('none');
   expect(localAnswer("What's my walk streak?", env).kind).not.toBe('none');
 });
+
+// Session Z-Local, the persona round (ADR-020 L43): ZIGi's own example questions are answered on the device.
+test('L43: which habits are open today, how many habits, which habits, the archived ones, and a habit that is not there', () => {
+  const env = open();
+  const open_ = localAnswer('Which habits are open today?', env); expect(open_.kind).toBe('answer'); expect('text' in open_ ? open_.text : '').toMatch(/still open today|Nothing is open today/);
+  const count = localAnswer('How many habits do I have?', env); expect(count.kind).toBe('answer'); expect('text' in count ? count.text : '').toMatch(/^\d+ habits/);
+  const list = localAnswer('What habits do I have?', env); expect(list.kind).toBe('answer'); expect('text' in list ? list.text : '').toContain('- ');
+  const archived = localAnswer('Which habits did I archive?', env); expect(archived.kind).toBe('answer'); expect('text' in archived ? archived.text : '').toMatch(/archived habit|No habit is archived/);
+  const floss = localAnswer('Did I floss today?', env); expect(floss.kind).toBe('answer'); expect('text' in floss ? floss.text : '').toContain('no habit called "floss"');
+  const water = localAnswer('Did I drink water today?', env); expect('text' in water ? water.text : '').not.toContain('no habit called'); // a metric word: the water lookup answers, never "no habit called"
+});
+test('a whole question in Dutch stays unanswered here, as the golden set pins (nl-question, x-nl-whole, x-nl-sleep): the persona round\'s finding #4 is held by that pin (owner item)', () => {
+  const env = open();
+  expect(localAnswer('Hoeveel minuten heb ik deze maand gemediteerd?', env).kind).toBe('none');
+  expect(localAnswer('Welke gewoontes zijn vandaag nog open?', env).kind).toBe('none');
+});

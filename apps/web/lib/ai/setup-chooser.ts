@@ -15,7 +15,7 @@ export type Recommendation = {route: Route; title: string; why: string; pros: st
 export const QUESTIONS = {
   have: {label: 'What do you have today?', options: {subscription: 'A ChatGPT, Claude, Gemini or Grok subscription', api: 'An API account with an AI provider', nothing: 'Nothing yet'}},
   where: {label: 'Where do you use ZIGoals most?', options: {computer: 'On a computer', phone: 'On a phone'}},
-  matters: {label: 'What matters most to you?', options: {privacy: 'Nothing leaves my computer', quality: 'The best answers', free: 'No extra cost'}},
+  matters: {label: 'What matters most to you?', options: {privacy: 'Nothing leaves my device', quality: 'The best answers', free: 'No extra cost'}},
   memory: {label: 'How much memory does your computer have?', options: {plenty: '16 GB or more', little: 'Less than 16 GB', unknown: 'I don’t know'}},
 } as const;
 /** Each route's name, for "Also a good fit". */
@@ -47,8 +47,10 @@ export function recommend(answers: Answers, {onDevice, hosted = false}: {onDevic
     return {...LOCAL, why: 'You want nothing to leave your computer. A local model does that; check that it has 16 GB of memory or more first.'};
   }
   if (answers.where === 'phone' && answers.matters === 'privacy') {
-    // A phone runs no model, so an AI always means sending something; the bridge sends only what the person copies.
-    return {...BRIDGE, why: 'A phone cannot run a model, so any AI means sending something. With the bridge you see and copy exactly what goes, and ZIGi’s own answers about your records never leave the phone.', ...(answers.have === 'api' ? {also: 'api' as const} : {})};
+    // A phone runs no model, so an AI always means sending something; the bridge sends only what the person copies, but it
+    // needs a subscription (Session Z-Local, the persona round: with nothing, it suggested a bridge to nothing).
+    if (answers.have !== 'subscription') return {...API, why: 'A phone cannot run a model, so any AI means sending your question somewhere. ZIGi\'s own answers about your records never leave the phone; a key sends only what you ask, to your provider.', ...(hosted ? {also: 'hosted' as const} : {})};
+    return {...BRIDGE, why: 'A phone cannot run a model, so any AI means sending something. With the bridge you see and copy exactly what goes, and ZIGi’s own answers about your records never leave the phone.'};
   }
   if (answers.matters === 'free') {
     if (answers.where === 'computer' && chromeModel) return {...ON_DEVICE, why: 'No extra cost and nothing to set up beyond one download in Chrome.', ...(answers.memory === 'plenty' ? {also: 'local' as const} : {})};

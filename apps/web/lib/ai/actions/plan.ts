@@ -2,6 +2,7 @@ import {parseAmountInput} from '../../amount-input';
 import {saveMeasurement} from '../../body-measurements';
 import {applyAutoStop, fastingHistory, removeFast, runningSession, startFast, stopFast} from '../../fasting/engine';
 import {FASTING_PRESETS, MAX_CUSTOM_HOURS, fastingSchema, type Fasting} from '../../fasting/schema';
+import {earliestHabitChange} from '../../habit-actions';
 import {clearVacation, createHabit, editHabit, habitDataSchema, habitInputSchema, latestHabitRule, logHabitValue, measurementUnit, planSkip, setHabitEntryStatus, setHabitState, setVacation, smartDoneValue, unplanSkip, type Habit, type HabitData, type HabitInput} from '../../habits';
 import {editDiaryEntry, foodSchema, healthSchema, logHealthItem, newHealthId, removeHealthItem, saveActivity, saveFood, saveRecipe, saveWeight, setHealthTargets, type HealthData, type HealthFood} from '../../health';
 import {addWater, dailyData, logMealPlan, removeMealPlan, removeSavedMeal, removeWater, saveGroceryNotes, saveHealthPreferences, saveMealFromRecipe, saveMealPlan, setFavorite} from '../../health-daily';
@@ -304,11 +305,13 @@ export function planAction(action: Action, env: Env): PlanResult {
       const schedule = scheduleFor(action.schedule, env.habitDay);
       const input: HabitInput = {title: action.title, category: action.category ?? 'Personal', description: action.description, notes: '', type: action.type, measurement, schedule, target, targetPeriod: 'day', timeOfDay: action.timeOfDay};
       const parsed = habitInputSchema.safeParse(input); if (!parsed.success) return refuse(`This habit cannot be created as proposed: ${parsed.error.issues[0]?.message ?? 'check its target and measurement'}.`);
+      // Session Z-Local, the persona round (ADR-020 L43): a card added after an edited resend made a second "Stretch" with no warning.
+      const twin = stores.habits.habits.find(h => latestHabitRule(h).state !== 'archived' && h.title.trim().toLowerCase() === action.title.trim().toLowerCase());
       const unit = measurement.kind === 'boolean' ? '' : ` ${measurement.unit}`;
-      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Create the habit "${action.title}"`, lines: [`${action.type} · ${measurement.kind === 'boolean' ? 'done or not' : `target ${target}${unit} a day`} · ${scheduleText(schedule)} · ${action.timeOfDay}`, ...(action.description ? [action.description] : []), 'Starts today; you can edit everything in Habits'], where: 'Habits', day: null, estimate: false},
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Create the habit "${action.title}"`, lines: [...(twin ? [`A habit called "${twin.title}" is already there: this adds a second one`] : []), `${action.type} · ${measurement.kind === 'boolean' ? 'done or not' : `target ${target}${unit} a day`} · ${scheduleText(schedule)} · ${action.timeOfDay}`, ...(action.description ? [action.description] : []), 'Starts today; you can edit everything in Habits'], where: 'Habits', day: null, estimate: false},
         write: s => ({habits: createHabit(s.habits, input, env.now, id)}),
         undo: {label: 'Remove this habit', write: s => ({habits: habitDataSchema.parse({...s.habits, habits: s.habits.habits.filter(h => h.id !== id)})}), unchanged: (after, current) => same(after.habits.habits.find(h => h.id === id), current.habits.habits.find(h => h.id === id))},
-        activity: {id: `habit-created:${id}`, title: `Habit created: ${action.title}`}}};
+        activity: {id: `habit-created:${id}`, title: `Habit created: ${action.title}`}, ...(twin ? {duplicate: true} : {})}};
     }
     case 'start-fast': {
       if (runningSession(applyAutoStop(stores.fasting, env.now))) return refuse('A fast is already running; stop it first.');
@@ -640,11 +643,13 @@ export function planAction(action: Action, env: Env): PlanResult {
       if (action.category !== undefined && action.category !== habit.category) changes.push(`Category: ${habit.category} → ${action.category}`);
       if (!changes.length) return refuse(`"${habit.title}" already is as proposed; nothing to change.`);
       const parsed = habitInputSchema.safeParse(input); if (!parsed.success) return refuse(`This change cannot be made as proposed: ${parsed.error.issues[0]?.message ?? 'check its target and measurement'}.`);
-      try { editHabit(stores.habits, habit.id, input, env.now); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'This change cannot be made as proposed.'); }
+      // Session Z-Local, the persona round (ADR-020 L43): the rule changes from the earliest day Habits' own form allows (tomorrow at the earliest), never from today.
+      const from = earliestHabitChange(habit, env.habitDay), fromLabel = from === addLocalDays(env.habitDay, 1) ? 'tomorrow' : from;
+      try { editHabit(stores.habits, habit.id, input, env.now, from); } catch (error) { return refuse(error instanceof Error && error.message ? error.message : 'This change cannot be made as proposed.'); }
       let before: Habit | undefined;
       const mine = (s: Stores) => s.habits.habits.find(h => h.id === habit.id);
-      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Change the habit "${habit.title}"`, lines: [...changes, 'From today; earlier days keep the rule they had, as in Habits'], where: `Habits · ${habit.title}`, day: null, estimate: false},
-        write: s => { before = mine(s); if (!before) throw Error('This habit is no longer here.'); return {habits: editHabit(s.habits, habit.id, inputFor(before), env.now)}; },
+      return {ok: true, plan: {target: 'habits', card: {kind: action.kind, title: `Change the habit "${habit.title}"`, lines: [...changes, `From ${fromLabel}, as in Habits; earlier days keep the rule they had`], where: `Habits · ${habit.title}`, day: null, estimate: false},
+        write: s => { before = mine(s); if (!before) throw Error('This habit is no longer here.'); return {habits: editHabit(s.habits, habit.id, inputFor(before), env.now, from)}; },
         undo: {label: 'Put the habit back as it was', write: s => before ? {habits: habitDataSchema.parse({...s.habits, habits: s.habits.habits.map(h => h.id === habit.id ? before! : h)})} : {}, unchanged: (afterApply, now) => same(mine(afterApply), mine(now))},
         activity: {id: `habit-edit:${habit.id}:${at}`, title: `Habit changed: ${action.title ?? habit.title}`}}};
     }

@@ -25,6 +25,7 @@ import {runTool} from '../../lib/ai/tools/registry';
 import {recordsForAi} from '../../lib/ai/local-answers/more';
 import {dataMode, fallbackKey, isToolRejection, readCapability, type Capability, type DataMode} from '../../lib/ai/capabilities';
 import {Handles} from '../../lib/ai/handles';
+import {recordsSent} from '../../lib/ai/records-sent';
 import {readDeviceRecord} from '../../lib/device-record';
 import {AI_OPTIONS, type AiOptions} from '../../lib/ai/store/records';
 import {AI_USAGE_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
@@ -144,14 +145,14 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
   // handle, which could now mean another record (SECURITY_REVIEW_Y F1).
   const handlesFor = useCallback((turnId: string) => handles.current.get(turnId) ?? staleHandles(context.context?.handles ?? []), [context.context]);
   const claimFresh = useCallback((turnId: string) => fresh.current.delete(turnId), []);
-  const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean} = {}) => {
+  const finish = useCallback((text: string, usage: Usage | null, stopped: string | undefined, contextHandles: readonly Handle[], extra: {model?: string; lookups?: Lookup[]; deep?: boolean; careful?: boolean; records?: string[]} = {}) => {
     if (!text && !stopped) return;
     // Session X-Local Part 4: the AI's one emotion hint is read and stripped here, before the turn is stored or shown.
     const {text: shown, hint} = extractHint(text);
     text = shown;
     const made = {...assistantTurn({text, provider: hosted ? null : settings.provider, model: extra.model ?? (hosted ? hosted.model : settings.model), usage, stopped}), ...(hosted ? {source: 'hosted' as const} : {})};
     // What the AI looked at (tool, arguments, label; never the results) and "deep" make the chat a version 2 record.
-    const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {})};
+    const turn = {...made, ...(extra.lookups?.length ? {tools: extra.lookups.slice(0, 16).map(l => ({tool: l.result.tool.slice(0, 60) || 'tool', ...storedArgs(l.args), label: l.label.slice(0, 160) || 'Lookup'}))} : {}), ...(extra.deep ? {mode: 'deep'} : {}), ...(extra.records?.length ? {records: extra.records} : {})};
     if (extra.lookups?.length) lookups.current.set(turn.id, extra.lookups);
     handles.current.set(turn.id, contextHandles); fresh.current.add(turn.id);
     let next: Chat;
@@ -303,7 +304,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     // Round 8 (ADR-017 S74): a correction of a card the previous reply only proposed (an edit of a record that does not exist) becomes that card again, corrected.
     // Round 9 (ADR-017 S75): a money ask the reply declines in words carries no card (the protocol's own rule, enforced).
     const previousReply = [...before.turns].reverse().find(t => t.role === 'assistant')?.text ?? null;
-    const done = (stopped: string | undefined) => finish(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk});
+    const done = (stopped: string | undefined) => finish(stripDeclinedBlocks(reviseEdits(applyDayCue(reply, text, localDate()), previousReply, mode === 'tools' ? [...toolHandles.list] : contextHandles), text), usage, stopped, mode === 'tools' ? [...toolHandles.list] : contextHandles, {model, lookups: found, deep: !!options.deep, careful: !!risk, records: recordsSent(mode === 'tools' ? [...toolHandles.list] : contextHandles, pageText ? context.area : null)}); // Session Z-Local, persona finding #7
     try {
       try { await run(mode); }
       catch (error) {

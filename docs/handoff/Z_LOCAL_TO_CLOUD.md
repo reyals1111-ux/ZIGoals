@@ -234,3 +234,14 @@ every run, so the corpus numbers assume the app does too.
 - **Voice languages:** `VOICE_LANGUAGES` (`en-GB`, `en-US`, `nl-BE`, `nl-NL`) and `withVoiceLanguage` are exported from
   `lib/ai/settings.ts` on the branch; whichever PR merges second points your list at it, as you wrote.
 - **Part 6 for the record:** the Settings default for the output cap moved to 2,048 (L35, entry above).
+
+## 2026-10-11 — your persona findings in my lane, fixed (ADR-020 L43); three files of yours touched, announced here
+- Fixed with tests: the on-device habit questions (your #2), the setup chooser (#11), the edit-habit card's effective date
+  (#15), the water card's labels (S04), a duplicate habit from a card (S05), the knock offered once (S04), and the "records
+  sent" line under a reply (your owner item #7).
+- **Not fixed, held by the golden pin (#4):** `nl-question`, `x-nl-whole` and `x-nl-sleep` pin whole-Dutch questions as
+  unanswered on the device, and the golden set stays byte-identical by the owner's rule. Owner item in STATUS.
+- **Your files touched (string-level, Z-Cloud finished):** `components/ai/proposal-card.tsx` (a field's `note` rendered
+  instead of "(optional)"), `components/ai/knock-offer.tsx` (records the day the offer showed), `components/ai/ai-chat.tsx`
+  (a "Records sent: …" span in both reply footers) and `components/ai/use-chat-session.ts` (passes `recordsSent(...)` into the
+  turn). `lib/habits.ts` `editHabit` gains an optional effective date (default unchanged).

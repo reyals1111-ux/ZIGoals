@@ -26,5 +26,5 @@ export function continuePrompt({turns, context, questionData = '', customInstruc
 }
 /** A conversation as Markdown, for "Copy as Markdown" on one answer or the whole chat (the label of each answer kept). */
 export function turnMarkdown(turn: ChatTurn, label: string): string {
-  return `${stripHint(turn.text).trim()}\n\n_${label}_`;
+  return `${stripHint(turn.text).trim()}\n\n_${label}_${turn.records?.length ? `\n\n_Records sent: ${turn.records.join(' · ')}_` : ''}`;
 }

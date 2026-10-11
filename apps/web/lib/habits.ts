@@ -171,8 +171,8 @@ export function createHabit(data: HabitData, raw: HabitInput, now = new Date(), 
   if (endCondition.kind === "date" && endCondition.date < startDate) throw new Error("An end date cannot be before this habit begins.");
   return habitDataSchema.parse({ ...data, habits: [...data.habits, { ...details, id, startDate, endCondition, createdAt: now.toISOString(), updatedAt: now.toISOString(), entries: [], rules: [{ from: startDate, schedule, target, type, measurement, targetPeriod, endCondition, state: "active" }] }] });
 }
-export function editHabit(data: HabitData, id: string, raw: HabitInput, now = new Date()): HabitData {
-  const parsed = habitInputSchema.parse(raw); const { schedule: rawSchedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const from = dateSchema.parse(habitCalendarDay(data,now));
+export function editHabit(data: HabitData, id: string, raw: HabitInput, now = new Date(), effectiveFrom?: string): HabitData {
+  const parsed = habitInputSchema.parse(raw); const { schedule: rawSchedule, target, type, measurement, targetPeriod, endCondition, ...details } = parsed; const from = dateSchema.parse(effectiveFrom ?? habitCalendarDay(data,now));
   return replaceHabit(data, id, (habit) => {
     const current = latestHabitRule(habit); let schedule = rawSchedule;
     if (schedule.kind === "interval") schedule = { ...schedule, anchor: current.schedule.kind === "interval" ? current.schedule.anchor : from };

@@ -41,6 +41,17 @@ const ACTION = /^(?:please |can you |could you |ok |okay )?(?:log|add|track|reco
  * question and the card would never come (seen in the Sonnet UI panel: five such asks answered in 300 ms with no card).
  */
 const MIXED = /(?:,|;|\band\b|\bthen\b|\balso\b|\bplus\b|\ben\b|\bdan\b|\book\b)\s+(?:please\s+|also\s+|ook\s+|even\s+)?(?:log|add|track|record|mark|tick|skip|create|make|set|remind|start|stop|delete|remove|note|put|save|zet|voeg|noteer|vink|sla|registreer|verwijder|maak|plan)\b/;
+/**
+ * Session Z-Local, the persona round (ADR-020 L43): the questions ZIGi's own examples ask are answered on the device, no
+ * AI needed: which habits are open today, how many habits, which habits, the archived ones, and "did I <habit> today"
+ * for a habit the records do not have (it says so, never the generic fallback).
+ */
+const HABITS_OPEN = /\b(?:which|what) habits? (?:are|is) (?:still )?(?:open|left|due|remaining|undone|not done)(?: for)? today\b|\b(?:which|what) habits? (?:are|is) today (?:still )?(?:open|left|due|remaining)\b|\bhabits? (?:still )?(?:open|left|due|remaining) today\b/; // "today" is required: "Which habits are open?" (no day) stays the model's, as Session T's test pins
+const HABITS_COUNT = /\bhow many habits? (?:do|have|did) i\b/;
+const HABITS_LIST = /\b(?:what|which) habits? (?:do|have) i(?: have| track| keep)?\b|\b(?:list|show)(?: me)?(?: all)? my habits\b|^(?:my habits|all my habits)\??$/;
+const HABITS_ARCHIVED = /\b(?:which|what) habits? (?:did i|have i|were|are|got) archiv|\barchived habits?\b|\bhabits? (?:i|i've|i have) archived\b/;
+const DID_I = /^did i (\w+(?: \w+)?) (?:today|yesterday)\??$/;
+const NOT_A_HABIT_WORD = /\b(?:water|drink|eat|sleep|steps?|walk|run|weigh|fast|log|check|exercise|meditate|read|spend|save)\b/;
 const STATEMENT = /^(?:i|i've|i have|we) (?:ate|drank|had|did|walked|ran|meditated|read|weighed|slept|went|took|spent|bought|sold|logged|finished|completed|just)\b/;
 const ADVICE = /\b(why|should|suggest|recommend|advice|advise|tips?|help me|how can i|how do i|how to|improve|explain|what if|motivat|healthy|unhealthy|good for me|bad for me|is that (?:good|bad|ok|okay|enough)|enough|too much|too little|plan|diet|lose weight|gain weight|need attention|needs attention|focus on|worried|worry|feel|feeling)\b/;
 const W = {
@@ -175,11 +186,13 @@ export function navigationIntent(question: string): {page: string; view?: string
 }
 const navigationReply = (nav: {page: string; view?: string; label: string}): LocalReply => ({kind: 'answer', text: `Opening ${nav.label}.\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: nav.page, ...(nav.view ? {view: nav.view} : {})})}\n\`\`\``, calls: []});
 function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // A whole question in Dutch is not answered here (the golden case nl-question pins it): the model's, or the fallback without an AI.
   const q = question.toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   if (!q || q.length > 300) return NONE;
   const nav = navigationIntent(q); if (nav) return navigationReply(nav);
   if (ACTION.test(q) || STATEMENT.test(q) || MIXED.test(q)) return NONE;
   if (ADVICE.test(q)) return NONE;
+  const habitList = habitListAnswer(env, q); if (habitList) return habitList;
   if (env.areas.today === false && env.areas.habits === false && env.areas.goals === false && env.areas.wealth === false && !env.health) return {kind: 'refusal', text: 'Paused on this private screen: ZIGi reads nothing here.', calls: []};
   // A lookup asks: question words, or a figure's name ending in a question mark ("Minutes of reading this month?").
   const asked = /\?\s*$/.test(q) && (W.minutes.test(q) || W.streak.test(q) || W.average.test(q) || W.rate.test(q) || /\b(steps|water|calories|protein)\b/.test(q) || WEALTH_TOTAL.test(q) || OWE.test(q));
@@ -252,6 +265,29 @@ const PHRASES = new Set(['today', 'this month', 'the last 7 days', 'the last 30 
 const rangeArg = (range: DayRange & {phrase?: string}) => range.phrase ?? (PHRASES.has(range.label) ? range.label : range.from === range.to ? range.from : `${range.from}..${range.to}`);
 const lines = (head: string, items: (string | false | null | undefined)[]) => [head, ...items.filter((x): x is string => !!x).map(x => `- ${x}`)].join('\n');
 
+function habitListAnswer(env: ToolEnv, q: string): LocalReply | null {
+  if (HABITS_OPEN.test(q)) {
+    const r = call(env, 'habits_due', {}), refused = refusalOf([r]); if (refused) return refused;
+    const open = (dataOf(r.result).open ?? []) as {title: string; status: string; logged: unknown; target: string}[];
+    const text = open.length ? `${plural(open.length, 'habit')} still open today:\n${open.map(h => `- ${h.title}: ${typeof h.logged === 'number' ? `${h.logged} of ${h.target}` : h.status === 'partial' ? `partly done, target ${h.target}` : `not yet, target ${h.target}`}`).join('\n')}` : 'Nothing is open today: every habit scheduled for today is done.';
+    return {kind: 'answer', text, calls: [r.record]};
+  }
+  if (HABITS_COUNT.test(q) || HABITS_LIST.test(q) || HABITS_ARCHIVED.test(q)) {
+    const archivedAsked = HABITS_ARCHIVED.test(q);
+    const r = call(env, 'list_habits', {include_archived: archivedAsked}), refused = refusalOf([r]); if (refused) return refused;
+    const rows = (dataOf(r.result).habits ?? []) as {title: string; state?: string; schedule?: string; target?: string}[];
+    if (archivedAsked) { const gone = rows.filter(h => h.state === 'archived'); return {kind: 'answer', text: gone.length ? `${plural(gone.length, 'archived habit')}:\n${gone.map(h => `- ${h.title}`).join('\n')}` : 'No habit is archived.', calls: [r.record]}; }
+    const live = rows.filter(h => h.state !== 'archived');
+    if (!live.length) return {kind: 'answer', text: 'No habit yet: Habits → New habit, or ask me to create one.', calls: [r.record]};
+    return {kind: 'answer', text: `${plural(live.length, 'habit')}:\n${live.map(h => `- ${h.title}${h.schedule ? ` · ${h.schedule}` : ''}${h.target ? `, ${h.target}` : ''}`).join('\n')}`, calls: [r.record]};
+  }
+  const m = DID_I.exec(q);
+  if (m && !NOT_A_HABIT_WORD.test(m[1]!) && !habitHits(env, q).length) {
+    const titles = env.habits.habits.filter(h => latestHabitRule(h).state !== 'archived').map(h => clean(h.title, 40));
+    return {kind: 'answer', text: `There is no habit called "${m[1]}" in your records${titles.length ? `; your habits are ${titles.join(', ')}` : ''}.`, calls: []};
+  }
+  return null;
+}
 function habitAnswer(env: ToolEnv, habit: Habit, q: string, found: DayRange[]): LocalReply {
   const title = clean(habit.title, 60), rule = latestHabitRule(habit), unit = measurementUnit(rule) || (rule.measurement.kind === 'boolean' ? 'check-ins' : '');
   const timed = rule.measurement.kind === 'duration' || MIN_UNITS.has(unit.toLowerCase()) || /^(h|hr|hrs|hour|hours)$/i.test(unit);

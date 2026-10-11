@@ -14,7 +14,7 @@ import {PRESET_IDS, WEEKDAY_NAMES} from './schema';
  * (h1, g2, f3) are not editable: the person never sees identifiers, and a record is chosen by asking again.
  */
 /** `lines` (Session V Part 7): a list edited as one item per line (grocery items, goal milestones). */
-export type Field = {key: string; label: string; type: 'number' | 'integer' | 'text' | 'date' | 'select' | 'day' | 'lines'; options?: readonly string[]; optional?: boolean; multiline?: boolean;
+export type Field = {key: string; label: string; type: 'number' | 'integer' | 'text' | 'date' | 'select' | 'day' | 'lines'; options?: readonly string[]; optional?: boolean; multiline?: boolean; note?: string;
   /** Words shown for a select's options (Part 8), when they differ from the stored values. */
   labels?: Readonly<Record<string, string>>};
 const num = (key: string, label: string, optional = false): Field => ({key, label, type: 'number', optional});
@@ -56,7 +56,7 @@ const FIELDS: Record<ActionKind, readonly Field[]> = {
   'set-zigi-look': [text('skin', 'Look (its name)', true), select('animation', 'Animation', ZIGI_ANIMATIONS, true), select('side', 'Side', ZIGI_SIDES, true), select('size', 'Size', ZIGI_SIZES, true), select('greeting', 'Greeting', ZIGI_GREETINGS, true)],
   'prefill-contribution': [text('amount', 'Amount'), text('asset', 'Asset or currency', true), DAY, text('note', 'Note', true)],
   'prefill-account': [text('name', 'Account name'), select('accountKind', 'Kind', ACCOUNT_KINDS), text('currency', 'Currency', true), text('institution', 'Institution', true), text('balance', 'Opening balance', true), text('ratePercent', 'Interest rate (%)', true), DAY],
-  'log-water': [num('millilitres', 'Millilitres', true), num('glasses', 'Glasses (250 mL)', true), DAY],
+  'log-water': [{...num('millilitres', 'Millilitres', true), note: 'one of the two'}, {...num('glasses', 'Glasses (250 mL)', true), note: 'one of the two'}, DAY], // Session Z-Local, the persona round: both said "(optional)" though one is required
   'log-weight': [num('value', 'Weight'), select('unit', 'Unit', ['kg', 'lb']), DAY],
   'log-steps': [int('steps', 'Steps', true), int('minutes', 'Minutes', true), DAY],
   'log-food': [text('name', 'Name'), select('meal', 'Meal', MEALS), num('quantity', 'Servings'), num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true), num('estimate.serving_g', 'Serving weight (g)', true), DAY],

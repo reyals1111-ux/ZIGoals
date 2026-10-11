@@ -318,6 +318,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{label}</span>
+        {turn.records && turn.records.length > 0 && <span className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</span>}
         <TurnTime at={turn.at}/>
         <span className="ai-turn-actions"><button type="button" className="text-link" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>{connected && calls.length > 0 && question && <button type="button" className="text-link" onClick={() => void session.askMore(question, calls, {withContext: attach})}>Ask my AI for more</button>}</span>
       </footer>
@@ -380,6 +381,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       <footer className="ai-turn-meta">
         <span className="ai-turn-label">{label}</span>
+        {turn.records && turn.records.length > 0 && <span className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</span>}
         <TurnTime at={turn.at}/>
         {usage && <span className="ai-turn-usage">{usage}{usageUrl && <> · <a href={usageUrl} target="_blank" rel="noopener noreferrer">usage at {providerName} ↗</a></>}</span>}
         {turn.mode === 'deep' && <span className="ai-turn-deep">Thought deeper with {turn.model}</span>}

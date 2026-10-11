@@ -441,3 +441,13 @@ test('L24: log-steps takes minutes without a step count (a Walk entry with 0 ste
   expect(plan(s, {kind: 'log-steps', steps: 8000}).card.title).toBe('Add steps');
   expect(() => act({kind: 'log-steps'})).toThrow(); expect(() => act({kind: 'log-steps', steps: 0, minutes: 0})).toThrow();
 });
+
+// Session Z-Local, the persona round (ADR-020 L43): a habit with this name is already there.
+test('create-habit for a title an active habit already has: the card says so and is a duplicate (never automatic)', () => {
+  const stores = base();
+  const existing = stores.habits.habits.find(h => latestHabitRule(h).state !== 'archived')!;
+  const p = plan(stores, {kind: 'create-habit', title: existing.title.toUpperCase()});
+  expect(p.duplicate).toBe(true); expect(p.card.lines[0]).toContain('is already there');
+  const fresh = plan(stores, {kind: 'create-habit', title: 'Floss'});
+  expect(fresh.duplicate).toBeUndefined();
+});

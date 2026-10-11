@@ -1,4 +1,5 @@
 import {expect, test} from 'vitest';
+import {addLocalDays} from '../../local-date';
 import {buildShowcase} from '../../showcase-data';
 import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
 import {healthSchema, saveRecipe, saveWeight, type HealthData} from '../../health';
@@ -376,16 +377,16 @@ test('stack-habit: written through the habit editor, undone exactly; after itsel
   expect(pending.card.lines).toContain('For a habit proposed in this reply: add that card first');
   expect(() => applyPlan(pending, stores)).toThrow(/Add both habits first/);
 });
-test('edit-habit: only the named plain fields change, from today; the card lists each change; undo restores the habit; nothing to change is refused', () => {
+test('edit-habit: only the named plain fields change, from tomorrow (the earliest day Habits\' own form allows); the card lists each change; undo restores the habit; nothing to change is refused', () => {
   const i = stores.habits.habits.findIndex(h => h.title === 'Meditate'), h = stores.habits.habits[i]!, handle = `h${i + 1}`;
   const p = plan({kind: 'edit-habit', habit: handle, title: 'Evening meditation', description: 'Ten calm minutes before bed', target: 15});
   expect(p.card.title).toBe('Change the habit "Meditate"');
   expect(p.card.lines).toContain('Title: Meditate → Evening meditation'); expect(p.card.lines).toContain('Description: Ten calm minutes before bed');
   expect(p.card.lines.find(l => l.startsWith('Target: '))).toMatch(/^Target: \d+ → 15 minutes a day$/);
-  expect(p.card.lines.at(-1)).toBe('From today; earlier days keep the rule they had, as in Habits');
+  expect(p.card.lines.at(-1)).toBe('From tomorrow, as in Habits; earlier days keep the rule they had'); // Session Z-Local, the persona round (ADR-020 L43)
   const after = roundTrip(p), changed = after.habits.habits[i]!;
   expect(changed).toMatchObject({id: h.id, title: 'Evening meditation', description: 'Ten calm minutes before bed', entries: h.entries});
-  expect(latestHabitRule(changed)).toMatchObject({target: 15, from: DAY, measurement: latestHabitRule(h).measurement, schedule: latestHabitRule(h).schedule});
+  expect(latestHabitRule(changed)).toMatchObject({target: 15, from: addLocalDays(DAY, 1), measurement: latestHabitRule(h).measurement, schedule: latestHabitRule(h).schedule});
   expect(refusal({kind: 'edit-habit', habit: handle, title: 'Meditate'})).toMatch(/already is as proposed/);
   expect(refusal({kind: 'edit-habit', habit: 'h99', title: 'x'})).toMatch(/not in this page/);
   expect(() => actionSchema.parse({kind: 'edit-habit', habit: handle})).toThrow(/Say what to change/);
