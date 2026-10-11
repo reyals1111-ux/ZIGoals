@@ -29,7 +29,7 @@ function addRow(stage, model, batch, usage, requests, cost) {
 }
 function walk(dir, out = []) {
   if (!existsSync(dir)) return out;
-  for (const name of readdirSync(dir)) { const p = join(dir, name); const st = statSync(p); if (st.isDirectory()) walk(p, out); else if (name.endsWith('.json') && !name.endsWith('.summary.json')) out.push(p); }
+  for (const name of readdirSync(dir)) { const p = join(dir, name); const st = statSync(p); if (st.isDirectory()) walk(p, out); else if (name.endsWith('.json') && !name.endsWith('.summary.json') && !name.endsWith('.rescored.json')) out.push(p); }
   return out;
 }
 const files = walk(join(RUNS, 'real-model')).concat(walk(join(RUNS, 'spoken')), walk(join(RUNS, 'monthly')));

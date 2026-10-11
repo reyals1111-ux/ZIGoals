@@ -26,9 +26,9 @@ describe.skipIf(!FILES.length)('rescore (owner machines only)', () => {
       const cases = new Map((spoken ? SPOKEN : CORPUS).map(c => [c.id, c] as const));
       let was = 0, now = 0, missing = 0; const flips: string[] = [];
       const out = d.runs.map(r => {
-        const c = cases.get(String(r.id)); if (!c) { missing++; return r; }
+        const c = cases.get(String(r.id)); if (!c) { missing++; return {...r, unscorable: true}; }
         const turn = Number(r.turn ?? 0), spec = turn === 0 ? {ask: c.ask, expect: c.expect} : c.turns?.[turn - 1];
-        if (!spec) { missing++; return r; }
+        if (!spec) { missing++; return {...r, unscorable: true}; }
         const sources = sourcesFor(c), gates = gatesFor(c.health !== 'closed', c.page), local = toolEnv(sources, gates, 'local');
         const reply = String(r.reply ?? ''), calls = (r.calls ?? []) as Call[];
         const facts = (spec.expect.facts ?? []).map(fact => { const res = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(res).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(res)}; });
@@ -43,8 +43,11 @@ describe.skipIf(!FILES.length)('rescore (owner machines only)', () => {
         if (pass !== r.pass) flips.push(`${pass ? '+' : '-'}${r.id}${turn ? `/t${turn}` : ''}`);
         return {...r, pass, checks: r.error ? [...s.checks, {name: 'error', pass: false, detail: r.error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, rescored: true};
       });
-      writeFileSync(`${file}.rescored.json`, JSON.stringify({summary: {...d.summary, rescoredAt: new Date().toISOString(), passed: now, rate: out.length ? now / out.length : 0}, runs: out}, null, 1));
-      console.info(`rescore ${file.split('/').pop()}: ${was}/${d.runs.length} → ${now}/${d.runs.length}${missing ? ` (${missing} turn(s) no longer in the corpus)` : ''}${flips.length ? `; flips: ${flips.slice(0, 40).join(' ')}${flips.length > 40 ? ' …' : ''}` : ''}`);
+      // Session Z-Local L51: a turn whose case is no longer in the corpus (the French cases of L7, an important set that shrank) is
+      // left out of the re-scored copy, not carried as a pass or a miss: it has nothing to be scored against. The raw file keeps it.
+      const kept = out.filter(r => (r as {unscorable?: boolean}).unscorable !== true);
+      writeFileSync(`${file}.rescored.json`, JSON.stringify({summary: {...d.summary, rescoredAt: new Date().toISOString(), passed: now, rate: kept.length ? now / kept.length : 0, unscorable: missing}, runs: kept}, null, 1));
+      console.info(`rescore ${file.split('/').pop()}: ${was}/${d.runs.length} → ${now}/${kept.length}${missing ? ` (${missing} turn(s) no longer in the corpus, left out)` : ''}${flips.length ? `; flips: ${flips.slice(0, 40).join(' ')}${flips.length > 40 ? ' …' : ''}` : ''}`);
     }
     expect(FILES.length).toBeGreaterThan(0);
   }, 3_600_000); // Session Z-Local Part 6: a re-score of a 2,500-turn run takes minutes; vitest's 5 s default marked a finished loop as failed.
