@@ -144,8 +144,14 @@ test('replies to a spoken question are read aloud in the chosen language; a type
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(2);
   await page.waitForTimeout(300);
   expect(await spoken(page)).toHaveLength(1);
-  await panel(page).getByRole('button', {name: 'Mute ZIGi’s voice'}).click();
-  await expect(panel(page).getByRole('button', {name: 'Unmute ZIGi’s voice'})).toHaveAttribute('aria-pressed', 'true');
+  // Gate C (persona round, WCAG 2.5.3): one name that holds the visible word, its state in aria-pressed (it read "Voice on"
+  // under the name "Mute ZIGi's voice", and switched to "Unmute ZIGi's voice" when pressed).
+  const mute = panel(page).getByRole('button', {name: 'Mute ZIGi’s voice'});
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await expect(mute.locator('.ai-chip-label')).toHaveText('Mute');
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  await expect(mute).toHaveAccessibleName('Mute ZIGi’s voice');
   await tap(mic(page));
   await page.evaluate(() => (window as unknown as {__voiceEnd: (t: string) => void}).__voiceEnd('Nog iets leuks?'));
   await expect(panel(page).locator('.ai-turn-assistant')).toHaveCount(3);

@@ -51,3 +51,5 @@
   .ai-viz-table summary{min-height:44px}
 }
 @media (prefers-reduced-motion:reduce){.ai-jump-latest{transition:none}}
+/* Gate C (persona round): the keyboard tip only where a keyboard is likely (a fine pointer or hover). */
+@media (hover:none) and (pointer:coarse){.ai-tips .ai-tip-keyboard{display:none}}

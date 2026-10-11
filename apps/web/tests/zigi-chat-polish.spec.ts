@@ -209,6 +209,8 @@ test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the m
   const sheet = page.getByRole('dialog', {name: 'Keyboard shortcuts'});
   await expect(sheet).toBeVisible();
   await expect(sheet).toContainText('Edit your last message');
+  // Gate C (persona round): Part 3's talk shortcut is listed too.
+  await expect(sheet).toContainText('⌘ / Ctrl + Shift + Space');
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
   await expect(panel(page)).toBeVisible();

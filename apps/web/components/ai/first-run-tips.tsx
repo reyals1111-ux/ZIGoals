@@ -20,7 +20,8 @@ export function FirstRunTips() {
     catch { /* the tips stay; nothing else changes */ }
   };
   return <aside className="ai-tips" aria-label="Tips">
-    <ul>{TIPS.map(tip => <li key={tip}>{tip}</li>)}</ul>
+    {/* Gate C (persona round): the "?" tip is for a keyboard; a touch screen without one hides it (chat-polish.css). */}
+    <ul>{TIPS.map(tip => <li key={tip} className={tip.startsWith('Press ?') ? 'ai-tip-keyboard' : undefined}>{tip}</li>)}</ul>
     <button type="button" className="text-link" onClick={dismiss}>Got it</button>
   </aside>;
 }

@@ -12,6 +12,9 @@ import {zigiSignals} from '../zigi/bus';
 import {streakMilestone} from '../../lib/ai/actions/milestone';
 import {AUTO_ACCEPT_REASONS} from '../../lib/ai/actions/auto-accept';
 import type {AutoAccept} from './use-auto-accept';
+import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
+import {getAppStorage} from '../../lib/showcase-storage';
+import {CARD_OUTCOMES, keepCards, keptCards, ZIGI_CARDS, type CardOutcome, type KeptCard} from '../../lib/zigi-cards';
 import './ai.css';
 
 /**
@@ -20,7 +23,7 @@ import './ai.css';
  * ten seconds; the undo is the inverse operation through the normal save path and is refused calmly if a record changed.
  * Proposals ZIGi made outside the whitelist are reported in plain words, never shown as cards.
  */
-export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null; opened?: string};
+export type ProposalItem = {id: string; action: Action; result: PlanResult; status: ProposalStatus; error: string | null; after: Stores | null; opened?: string; edited?: boolean};
 type UndoGroup = {ids: string[]; until: number};
 const planOf = (item: ProposalItem): Plan | null => item.result.ok ? item.result.plan : null;
 /** Session V Part 12 / X-Local Part 4 (D5): a check-in that took a streak onto a milestone makes ZIGi proud; any other accepted card is a small success. */
@@ -45,12 +48,36 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * `earlier` (Session Z-Cloud Part 2, render only): a newer reply has cards of its own, so this reply's untouched cards fold
  * into one line the person can open; cards already acted on stay as their one-line receipts.
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false}: {proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean}) {
+/**
+ * `replyId` (Gate C, the persona round; `[TIER 3] (storage)`, lib/zigi-cards.ts): the chat turn these cards came with.
+ * Each card's outcome is kept on this device under it, so a chat reopened from History, popped out or reloaded shows its
+ * added, dismissed or undone cards as receipts again and never offers an added card twice. Without it (a browser agent's
+ * or a knock's cards) nothing is kept, as before.
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean}) {
   const [refs] = useState(() => replyRefs(proposals));
-  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => ({id: `p${i + 1}`, action, result: runner.plan(action, handles, refs), status: 'proposed', error: null, after: null})));
+  const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
+  const [items, setItems] = useState<ProposalItem[]>(() => proposals.map((action, i) => { const id = `p${i + 1}`, was = kept.get(id); return {id, action, result: runner.plan(action, handles, refs), status: was?.outcome ?? 'proposed', error: null, after: null, ...(was?.edited ? {edited: true} : {})}; }));
+  // Each outcome is kept once it is reached (an Undo or a later outcome replaces it); a storage that refuses keeps it in
+  // this panel only, as before.
+  const written = useRef(new Map<string, string>([...kept].map(([id, k]) => [id, `${k.outcome}:${k.edited}`])));
+  useEffect(() => {
+    if (!replyId) return;
+    const changed = new Map<string, KeptCard>();
+    for (const item of items) {
+      if (!(CARD_OUTCOMES as readonly string[]).includes(item.status)) continue;
+      const card = {outcome: item.status as CardOutcome, edited: item.edited === true}, sig = `${card.outcome}:${card.edited}`;
+      if (written.current.get(item.id) === sig) continue;
+      written.current.set(item.id, sig); changed.set(item.id, card);
+    }
+    if (!changed.size) return;
+    try { updateDeviceRecord(getAppStorage(), ZIGI_CARDS, record => keepCards(record, replyId, changed, Date.now())); } catch { /* kept in this panel only */ }
+  }, [items, replyId]);
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
   const [autoTitles, setAutoTitles] = useState<string[] | null>(null), [capNote, setCapNote] = useState(''), autoRan = useRef(false);
   const live = undoGroup !== null && undoGroup.until > now;
+  // Gate C (persona round): once the window ends, the line that offered Undo goes too.
+  useEffect(() => { if (!live && note.includes('Undo is available')) setNote(''); }, [live, note]);
   useEffect(() => {
     if (!live) return;
     const timer = window.setInterval(() => setNow(Date.now()), 500);
@@ -126,7 +153,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     setItems(current => current.map(item => group.some(g => g.id === item.id) ? {...item, status: 'undone'} : item));
     announce(group.length === 1 ? 'Undone.' : `Undone: ${group.length} additions.`);
   }, [announce, items, runner, undoGroup]);
-  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: runner.plan(action, handles, refs), error: null}), [handles, patch, refs, runner]);
+  const edit = useCallback((item: ProposalItem, action: Action) => patch(item.id, {action, result: runner.plan(action, handles, refs), error: null, edited: true}), [handles, patch, refs, runner]);
   const pendingBatch = useMemo(() => items.filter(item => item.status === 'proposed' && planOf(item) && planOf(item)!.target !== 'form'), [items]);
   const secondsLeft = undoGroup ? Math.max(0, Math.ceil((undoGroup.until - now) / 1000)) : 0;
   if (!items.length && !rejected.length) return null;
@@ -135,7 +162,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
     {(() => {
-      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))}
+      const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))} receiptDetail={item.edited && !item.after ? 'edited' : undefined}
         onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);

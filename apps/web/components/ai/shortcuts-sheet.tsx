@@ -8,6 +8,8 @@ import './chat-polish.css';
  */
 export const SHORTCUTS: readonly [string, string][] = [
   ['⌘K / Ctrl+K', 'Open or close ZIGi'],
+  // Gate C (persona round): Part 3's talk shortcut was missing here.
+  ['⌘ / Ctrl + Shift + Space', 'Talk to ZIGi from any page (Escape stops listening)'],
   ['Enter', 'Send the message'],
   ['Shift+Enter', 'A new line in the message'],
   ['/', 'Commands: /log, /ask, /plan, /review, /pack, /insights, /remember, /help'],

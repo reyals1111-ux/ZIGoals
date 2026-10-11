@@ -81,7 +81,10 @@
 /* Session Z-Cloud Gate B: "Ask ZIGi about my habits" (Part 4.10) shares the last row with the backup link, so the hero keeps
    its height and the page's first figures stay where they were. */
 .habit-hero-minor { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 16px; }
-@media (max-width: 600px) { .habit-hero-minor { justify-content: flex-start; } }
+/* Gate C (CI on 001e363e, motion-arrival): on a phone the two links join the actions' own row, so "+ New habit" and "Ask ZIGi
+   about my habits" share the first row from 360 px and the backup link takes the second; the hero is 263 px at 390 (311
+   with the links stacked) and the overview's first figure is back on the first screen, above where #35 had it. */
+@media (max-width: 600px) { .habit-hero-minor { display: contents; } }
 .habit-hero p.page-lede { max-width: 560px; color: #e9f0fb; }
 .habit-journal-settings { display: grid; gap: 12px; }
 .habit-journal-settings .habit-privacy { margin: 0; }

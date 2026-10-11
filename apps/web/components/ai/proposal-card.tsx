@@ -20,11 +20,13 @@ export type ProposalCardProps = {
   receipt?: boolean;
   /** Session Z-Cloud Gate B: what a runner effect did ("Opened: Sleep"), in place of the money form's words. */
   opened?: string;
+  /** Gate C (persona round): the receipt's detail in place of the card's first line ("edited" for a kept card the person changed). */
+  receiptDetail?: string;
 };
 const STATUS_TEXT: Record<Exclude<ProposalStatus, 'proposed'>, string> = {busy: 'Adding…', added: 'Added', undone: 'Undone', dismissed: 'Dismissed', opened: 'Opened in Wealth: review it and save it yourself', replaced: 'Replaced by the next reply', auto: 'Added by ZIGi (auto-accept)'};
 /** A kept note says where it went, on the full card (while its Undo window is open) and on its receipt alike. */
 const statusText = (status: Exclude<ProposalStatus, 'proposed'>, kind: string, opened?: string) => status === 'added' && kind === 'remember' ? 'Remembered: in What ZIGi knows about me' : status === 'opened' && opened ? opened : STATUS_TEXT[status];
-export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened}: ProposalCardProps) {
+export function ProposalCard({action, plan, refusal, status, error, onAdd, onDismiss, onEdit, fromPhoto = false, receipt = true, opened, receiptDetail}: ProposalCardProps) {
   const titleId = useId();
   const [editing, setEditing] = useState(false), [editError, setEditError] = useState('');
   if (!plan) return <article className="ai-card ai-card-refused" aria-labelledby={titleId}>
@@ -46,7 +48,8 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
   if (status !== 'proposed' && status !== 'busy' && receipt) return <article className={`ai-card ai-card-${status} ai-card-receipt`} aria-labelledby={titleId} data-kind={card.kind}>
     <span className="ai-card-receipt-mark" aria-hidden="true">{status === 'added' || status === 'auto' || status === 'opened' ? '✓' : '–'}</span>
     <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>
-    <h4 id={titleId} className="ai-card-receipt-title">{card.title}</h4>
+    {/* Gate C (persona round): the receipt says how much ("Add water · 300 mL"); the card's name stays its title alone. */}
+    {(() => { const detail = receiptDetail ?? card.lines[0]; return <h4 className="ai-card-receipt-title" title={detail ? `${card.title} · ${detail}` : card.title}><span id={titleId}>{card.title}</span>{detail && <span className="ai-card-receipt-detail"> · {detail}</span>}</h4>; })()}
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
   return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>

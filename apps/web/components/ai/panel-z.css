@@ -137,7 +137,8 @@
 .ai-card-receipt-mark{flex:none;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;font-size:14px;font-weight:700;color:#06101f;background:linear-gradient(120deg,#6fe6f6,#8fa6ff)}
 .ai-card-undone .ai-card-receipt-mark,.ai-card-dismissed .ai-card-receipt-mark,.ai-card-replaced .ai-card-receipt-mark{background:var(--line,#2a325a);color:var(--text,#eef1ff)}
 .ai-chat .ai-card-receipt .ai-card-status{flex:none;font-size:14px;color:var(--muted,#a1afc8)}
-.ai-chat .ai-card-receipt-title{margin:0;flex:1 1 120px;min-width:0;font-size:15px;font-weight:600;overflow-wrap:anywhere}
+.ai-chat .ai-card-receipt-title{margin:0;flex:1 1 120px;min-width:0;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-chat .ai-card-receipt-detail{font-weight:500;color:var(--muted,#a1afc8)}
 .ai-chat .ai-card-receipt .ai-card-error{flex-basis:100%;margin:0}
 .ai-proposals-earlier{border:1px solid var(--line,#2a325a);border-radius:12px;padding:0 12px}
 .ai-proposals-earlier>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--cyan,#6fd3ff);font-size:14px}
@@ -146,7 +147,8 @@
 /* ---- "Jump to the latest message": round 2, a small pill floating over the log (bottom centre, above the composer); it
    takes no row and pushes nothing ---- */
 .ai-chat .ai-jump-holder{position:relative;height:0;padding:0;margin:0;z-index:4;display:block}
-.ai-chat .ai-jump-latest{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);min-height:44px;padding:0 16px;border-radius:999px;white-space:nowrap;font-size:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 55%,var(--line,#2a325a));background:#0d1330;color:var(--text,#eef1ff);box-shadow:0 10px 26px -12px rgba(0,0,0,.9)}
+/* Gate C (persona round): as wide as its words (an absolute box from the middle could be only half the log wide: 142 px for 198 px of text at 320). */
+.ai-chat .ai-jump-latest{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);min-height:44px;padding:0 16px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 55%,var(--line,#2a325a));background:#0d1330;color:var(--text,#eef1ff);box-shadow:0 10px 26px -12px rgba(0,0,0,.9)}
 
 /* ---- Every action under a reply keeps a 44 px target; a source line is never under 14 px ---- */
 .ai-chat .ai-turn-actions .text-link,.ai-chat .ai-turn-extras button,.ai-chat .ai-history .text-link,.ai-chat .ai-history-actions button,.ai-chat .ai-feedback-button,.ai-chat .ai-tips .text-link,.ai-chat .ai-editing button{min-height:44px;min-width:44px}
@@ -206,6 +208,7 @@
 .ai-reply-more{position:relative;flex:none;display:inline-flex}
 .ai-reply-more-list{position:absolute;right:0;top:calc(100% + 4px);z-index:9;min-width:220px;display:grid;gap:2px;padding:6px;border-radius:16px;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 40%,var(--line,#2a325a));background:#0d1330;box-shadow:0 22px 50px -18px rgba(0,0,0,.9)}
 .ai-reply-more-list[hidden]{display:none}
+.ai-reply-more-list[data-up]{top:auto;bottom:calc(100% + 4px)}
 .ai-reply-more-info{padding:6px 14px;font-size:14px;line-height:1.4;color:var(--muted,#a1afc8)}
 .ai-reply-more-info a{color:var(--cyan,#6fd3ff)}
 .ai-chat .ai-turn-edit{display:flex;justify-content:flex-end;margin:0}
@@ -256,3 +259,5 @@
 .ai-chat .ai-history-filter{flex-direction:row;flex-wrap:nowrap;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){.ai-reply-icon,.ai-reply-icon::after,.ai-chat .ai-reply-row .ai-reply-icons{transition:none!important}}
 :root[data-app-motion=off] :is(.ai-reply-icon,.ai-reply-icon::after,.ai-chat .ai-reply-row .ai-reply-icons){transition:none!important}
+/* Gate C (persona round): an earlier on-device reply's examples, as quiet plain words. */
+.ai-chat .ai-local-examples{margin:4px 0 0;padding-left:18px;font-size:14px;color:var(--muted,#a1afc8)}

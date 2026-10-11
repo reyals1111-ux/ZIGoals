@@ -15,6 +15,7 @@ import './bottom-sections.css';
 import {NebulaFlow} from './nebula-flow';
 import {GlassSegments} from './progress/glass-progress';
 import { formatNumber, progressPresentation } from '../lib/visual-format';
+import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
 
 const dayLabel=(date:string)=>{const d=new Date(`${date}T12:00:00Z`);return {weekday:WEEKDAYS[(d.getUTCDay()+6)%7]!,day:d.getUTCDate()};};
@@ -68,7 +69,8 @@ export function HabitRhythmSection({habits,today,...layout}:LayoutAttrs&{habits:
 }
 
 /** Health: 7 days of calories, water and exercise counters; a dash is no entry. */
-export function HealthTrends({health,today,...layout}:LayoutAttrs&{health:HealthData;today:string}){
+// Gate C (persona round): water reads in the person's chosen unit here too (Part 4.7, display only; whole US fl oz).
+export function HealthTrends({health,today,waterUnit='ml',...layout}:LayoutAttrs&{health:HealthData;today:string;waterUnit?:WaterUnit}){
  const week=healthWeek(health,today),counters=week[0]?.exercise.map(e=>e.name)??[];
  // Session W Part 7: imported or linked vitals, one record a day (the most recently updated when two sources gave one);
  // the rows appear only when the week has any.
@@ -78,7 +80,7 @@ export function HealthTrends({health,today,...layout}:LayoutAttrs&{health:Health
  return <Shell layout={layout} id="bottom-health-trends" eyebrow="SEVEN DAYS OF CARE" title={<>Your week, gently tracked.</>} lede="Calories, water and quick counters you logged. A dash means no entry, not zero.">
   <div className="bottom-rows">
    {row('Calories · kcal','health',week.map(d=>[d.date,d.kcal,d.kcalPartial]))}
-   {row('Water · mL','water',week.map(d=>[d.date,d.waterMl,false]))}
+   {row(waterUnit==='fl-oz-us'?'Water · US fl oz':'Water · mL','water',week.map(d=>[d.date,d.waterMl===null||waterUnit!=='fl-oz-us'?d.waterMl:Math.round(d.waterMl/ML_PER_US_FL_OZ),false]))}
    {counters.map((name,i)=><div key={name+i} className="bottom-row-slot">{row(name,'habits',week.map(d=>[d.date,d.exercise[i]?.count??null,false]))}</div>)}
    {restingRow.some(([,v])=>v!==null)&&row('Resting heart rate · bpm','health',restingRow)}
    {activeRow.some(([,v])=>v!==null)&&row('Active energy · kcal','health',activeRow)}

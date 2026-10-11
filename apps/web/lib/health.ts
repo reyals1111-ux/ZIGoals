@@ -10,6 +10,7 @@ import { sleepSchema } from "./sleep/schema";
 import { meditationSchema } from "./meditation/schema";
 import { vitalsSchema } from "./vitals/schema";
 import { healthQuickSchema } from "./health-quick/schema";
+import { weightText, type WeightUnit } from "./health-units";
 import { moodsSchema } from "./moods/schema";
 
 export const HEALTH_STORAGE_KEY = "zigoals:health:v1";
@@ -296,10 +297,11 @@ export function weightTrend(data: HealthData, endDate: string) {
   const last = readings.at(-1);
   return { readings, count: readings.length, latestGrams: last?.grams ?? null, changeGrams: last && first && readings.length > 1 ? last.grams - first.grams : null, averageGrams: readings.length ? Math.round(readings.reduce((total, w) => total + w.grams, 0) / readings.length) : null };
 }
-export function getHealthActivities(data: HealthData): { id: string; category: "HEALTH"; title: string; detail: string; at: string; href: string }[] {
+/** Gate C (persona round): a weight reads in the person's chosen unit here too (Part 4.7, display only); kilograms keep today's text. */
+export function getHealthActivities(data: HealthData, weightUnit: WeightUnit = "kg"): { id: string; category: "HEALTH"; title: string; detail: string; at: string; href: string }[] {
   return [
     ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${e.date}`, at: e.updatedAt, href: "/app/health" })),
-    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${formatHealthGrams(w.grams)} kg · ${w.date}`, at: w.updatedAt, href: "/app/health" })),
+    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? weightText(w.grams, "lb") : `${formatHealthGrams(w.grams)} kg`} · ${w.date}`, at: w.updatedAt, href: "/app/health" })),
     ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

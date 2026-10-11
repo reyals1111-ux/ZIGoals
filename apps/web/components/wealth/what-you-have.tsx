@@ -13,7 +13,8 @@ import {KIND_LABEL} from './accounts-section';
 /**
  * Session Z-Cloud Part 4.5 (persona item 5): one "What you have" list on Wealth: accounts, assets and debts together, with
  * All · Accounts · Assets · Debts. Presentation only: each row opens where it is managed (an asset's own page, the
- * accounts section), the records and their formats are unchanged, and Portfolio stays the analysis view, linked here.
+ * accounts section), the records and their formats are unchanged; Portfolio, a separate coin tracker, is linked here
+ * (Gate C, persona round: "Portfolio has the analysis" read as if it analysed this list, but it stays apart from Wealth).
  * A debt reads as what is owed ("-"), each amount in its own currency, never converted.
  */
 type Row = ReturnType<typeof wealthOverview>['rows'][number];
@@ -31,7 +32,7 @@ export function WhatYouHave({rows, ...layout}: LayoutAttrs & {rows: readonly Row
   ];
   const shown = items.filter(item => filter === 'All' || item.group === filter), count = (f: Filter) => f === 'All' ? items.length : items.filter(i => i.group === f).length;
   return <section {...layout} className="panel what-you-have" aria-labelledby="what-you-have-title">
-    <header className="wealth-section-heading"><div><p className="eyebrow">ACCOUNTS · ASSETS · DEBTS</p><h2 id="what-you-have-title">What you have</h2><p>Everything you track, in one list. Portfolio has the analysis.</p></div><Link className="text-link" href="/app/portfolio">Open Portfolio →</Link></header>
+    <header className="wealth-section-heading"><div><p className="eyebrow">ACCOUNTS · ASSETS · DEBTS</p><h2 id="what-you-have-title">What you have</h2><p>Everything you track here, in one list. Portfolio is a separate tracker for coins, kept apart from Wealth.</p></div><Link className="text-link" href="/app/portfolio">Open Portfolio →</Link></header>
     <div className="picker-tabs what-you-have-filters" role="group" aria-label="Show">{FILTERS.map(f => <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}>{f} <span className="what-you-have-count">{count(f)}</span></button>)}</div>
     {shown.length ? <ul className="what-you-have-list">{shown.map(item => <li key={item.key} data-group={item.group}>
       <Link href={item.href}><span><strong>{item.name}</strong><small>{item.group === 'Assets' ? '' : `${item.group === 'Debts' ? 'Debt' : 'Account'} · `}{item.detail}</small></span><span className="what-you-have-value">{item.value}</span></Link>

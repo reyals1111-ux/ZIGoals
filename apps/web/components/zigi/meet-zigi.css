@@ -19,3 +19,6 @@
 /* Panel polish round 2: ZIGi's name as the eyebrow stays one line; a narrow phone tightens its letter spacing. */
 .meet-zigi .page-eyebrow{white-space:nowrap}
 @media (max-width:380px){.meet-zigi .page-eyebrow{letter-spacing:.04em}}
+/* Gate C (persona round; the same on #35): under 400 px the three sizes wrap, the large one on its own row, so the page
+   never scrolls sideways (a card was 352 px wide at 320). */
+@media (max-width:399.98px){.meet-zigi-sizes{flex-wrap:wrap;justify-content:space-around;row-gap:12px}}

@@ -185,6 +185,9 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // Session Z-Cloud Part 3: a reply to a spoken question is read aloud (the person's choice, on by default), never in quiet
   // hours and never while muted; a tap anywhere in the panel, or talking again, stops it.
   const voiceRec = useDeviceRecord(ZIGI_VOICE), vprefs = voicePrefs(voiceRec.data), zigiRec = useDeviceRecord(ZIGI), spokenAsked = useRef(false);
+  // Gate C (persona round): Quick add reads English lines, so a question spoken in Dutch gets no Quick add card under the
+  // answer made on this device ("2 glazen water" read as 2 mL). Set when a spoken question goes, cleared by a typed one.
+  const [spokenDutch, setSpokenDutch] = useState(false);
   const toggleMute = useCallback(() => { try { voiceRec.update(r => ({...r, muted: !vprefs.muted})); } catch { /* stays as it was */ } if (!vprefs.muted) reader.stop(); }, [reader, voiceRec, vprefs.muted]);
   useVisualViewportInsets(phone && open);
   // The page behind a phone sheet does not scroll (iOS scrolls the document behind a modal dialog otherwise).
@@ -212,10 +215,14 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   }, [agentBatches]);
   useEffect(() => {
     if (replies > lastReplies.current) {
-      setNote('Your AI replied.');
-      const spoken = spokenAsked.current; spokenAsked.current = false;
+      const spoken = spokenAsked.current; spokenAsked.current = false; if (!spoken) setSpokenDutch(false);
       const knock = zigiPrefs(zigiRec.data).knock, quiet = inQuietHours(new Date().toTimeString().slice(0, 5), knock.quietFrom, knock.quietTo);
-      if (open && !vprefs.muted && (data.voice.readAloud || (spoken && vprefs.readSpoken && !quiet))) { const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant'); if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); }
+      // Gate C (persona round): the announcement names who answered (an answer made on this device is not "your AI"), and
+      // says when a spoken question's reply stays silent for the quiet hours.
+      const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant');
+      const who = last?.source === 'local' ? 'ZIGi answered on this device.' : last?.source === 'on-device' ? 'Chrome’s on-device model replied.' : last?.source === 'hosted' ? 'ZIGoals AI replied.' : 'Your AI replied.';
+      setNote(open && !vprefs.muted && !data.voice.readAloud && spoken && vprefs.readSpoken && quiet ? `${who} Not read aloud between ${knock.quietFrom} and ${knock.quietTo}.` : who);
+      if (open && !vprefs.muted && (data.voice.readAloud || (spoken && vprefs.readSpoken && !quiet))) { if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); }
     }
     lastReplies.current = replies;
   }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed, vprefs.muted, vprefs.readSpoken, zigiRec.data]);
@@ -266,7 +273,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
         {connected && session.chat.turns.length === 0 && !busy && <Greeting/>}
         {(connected || localOnly) && session.chat.turns.map((turn, i) => turn.role === 'assistant' && (turn.source === 'local' || turn.source === 'on-device')
-          ? <LocalTurn key={turn.id} turn={turn} earlier={turn.id !== latestCards} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask} autoAccept={autoAccept}/>
+          ? <LocalTurn key={turn.id} turn={turn} earlier={turn.id !== latestCards} asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} session={session} context={context} connected={connected} attach={attach} isLast={turn === lastAssistant && !busy} runner={runner} onNavigate={onClose} onAsk={ask} autoAccept={autoAccept} quickAdd={!spokenDutch}/>
           : <TurnView key={turn.id} turn={turn} session={session} runner={runner} earlier={turn.role === 'assistant' && turn.id !== latestCards} providerName={providerName} usageUrl={provider?.usageUrl ?? null} isLast={turn === lastAssistant && !busy} onNavigate={onClose} reader={reader} context={context} deepModel={connected ? deepModel : null} fromPhoto={turn.role === 'assistant' && !!session.chat.turns[i - 1]?.attachments?.length} replaced={turn.role === 'assistant' && revisedAfter(session, i)} autoAccept={autoAccept}
             asked={session.chat.turns[i - 1]?.role === 'user' ? session.chat.turns[i - 1]!.text : ''} onAsk={ask} onContinue={() => setView('continue')} onEdit={turn.role === 'user' && !busy && turn === lastAsked ? () => startEdit(turn) : undefined}/>)}
         {!busy && <KnockOffer connected={data.enabled} sensitive={sensitive} chatEnded={session.chat.turns.some(t => t.role === 'assistant' && t.source !== 'local' && t.source !== 'on-device')} today={localDate()} connectedOn={data.connectedOn ?? null}/>}
@@ -295,8 +302,8 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       {connected && <ContextBar context={context} attach={attach} onAttach={setAttach} sensitive={sensitive} total={conversationTokens(session.chat.turns)} question={question} onRemove={id => setRemoved(current => new Set([...current, id]))} modeLine={dataLine}/>}
       {/* One composer for both modes, so a starting sentence ("Ask ZIGi about this") survives the settings loading. */}
       {(connected || (localOnly && !sensitive)) && <Composer ref={composer} session={session} attach={connected && attach} phone={phone} settings={data} scope={scope} local={!connected} onDraft={connected ? setDraft : undefined} onSend={connected ? sendQuestion : undefined} onAbout={connected ? onAbout : undefined} photo={photo} providerName={providerName} onCommand={onCommand} editing={editing} onEditing={setEditing} onAsked={asked}
-        onSpoken={() => { spokenAsked.current = true; }}
-        chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label={vprefs.muted ? 'Unmute ZIGi’s voice' : 'Mute ZIGi’s voice'} title={vprefs.muted ? 'ZIGi reads nothing aloud until you unmute' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg><span className="ai-chip-label">{vprefs.muted ? 'Muted' : 'Voice on'}</span></button>}</>}
+        onSpoken={() => { spokenAsked.current = true; setSpokenDutch(resolveVoiceLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language).startsWith('nl')); }}
+        chips={<><SuggestionsChip open={sheet} controls={sheetId} onToggle={() => setSheet(o => !o)}/>{reader.supported && (vprefs.readSpoken || data.voice.readAloud) && <button type="button" className="ai-chip ai-mute" aria-pressed={vprefs.muted} aria-label="Mute ZIGi’s voice" title={vprefs.muted ? 'Muted: ZIGi reads nothing aloud until you press again' : 'Mute: ZIGi reads nothing aloud'} onClick={toggleMute}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/>{vprefs.muted ? <path d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/> : <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>}</svg><span className="ai-chip-label">Mute</span></button>}</>}
         placeholder="Ask ZIGi…" title={!connected ? 'Ask about your records: answered here, no AI' : `Ask about ${AREA_LABELS[area]}, or say what to log`}/>}
     </>}
     <p className="ai-sr-only" role="status" aria-live="polite">{note}</p>
@@ -347,7 +354,7 @@ function RecordsUsed({calls, context}: {calls: readonly {tool: string; args?: Re
     {results && results.length > 0 && <p className="ai-note">Recomputed now from the records on this device.</p>}
   </details>;
 }
-function LocalTurn({turn, asked, session, context, connected, attach, isLast, runner, onNavigate, onAsk, autoAccept, earlier = false}: {earlier?: boolean; turn: ChatTurn; asked: string; session: ChatSession; context: ReturnType<typeof useAiContext>; connected: boolean; attach: boolean; isLast: boolean; runner: ReturnType<typeof useProposals>; onNavigate: () => void; onAsk: (question: string) => void; autoAccept?: AutoAccept}) {
+function LocalTurn({turn, asked, session, context, connected, attach, isLast, runner, onNavigate, onAsk, autoAccept, earlier = false, quickAdd = true}: {earlier?: boolean; quickAdd?: boolean; turn: ChatTurn; asked: string; session: ChatSession; context: ReturnType<typeof useAiContext>; connected: boolean; attach: boolean; isLast: boolean; runner: ReturnType<typeof useProposals>; onNavigate: () => void; onAsk: (question: string) => void; autoAccept?: AutoAccept}) {
   const [copied, setCopied] = useState(false), [preview, setPreview] = useState<string | null>(null);
   // Session V Part 10: a /remember card rides in the turn's own text, read by the same whitelist parser as a reply.
   const parsed = session.parsed.get(turn.id), shown = parsed?.text ?? turn.text;
@@ -363,11 +370,13 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
     <ZigiAvatar state="idle" size={28} decorative/>
     <div className="ai-turn-body">
       <SafeText className="ai-local-answer" text={shown}/>
-      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier}/>}
+      {parsed && parsed.proposals.length > 0 && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={[]} runner={runner} onNavigate={onNavigate} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id}/>}
       <DataViz results={info?.results}/>
+      {/* Gate C (persona round): an earlier reply keeps its examples as plain words, so its "For example:" never ends empty. */}
+      {!isLast && reply?.kind === 'examples' && reply.examples.length > 0 && <ul className="ai-local-examples" aria-label="Questions ZIGi answers here">{reply.examples.map(e => <li key={e}>{e}</li>)}</ul>}
       {chips.length > 0 && <div className="ai-chips" role="group" aria-label={reply?.kind === 'examples' ? 'Questions ZIGi answers here' : 'Which one?'}>{chips.map(c => <button key={c.label} type="button" className="ai-chip" title={c.label} onClick={c.run}>{c.label}</button>)}</div>}
       {calls.length > 0 && <RecordsUsed calls={calls} context={context}/>}
-      {!connected && isLast && question && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
+      {!connected && isLast && question && quickAdd && <div className="ai-quick-add"><ZigiPartBoundary quiet><Suspense fallback={null}><QuickAddLine initialText={question} onlyIfUnderstood/></Suspense></ZigiPartBoundary></div>}
       {connected && calls.length > 0 && question && <details className="ai-context-preview" onToggle={event => { if (event.currentTarget.open) setPreview(session.moreText(calls)?.text ?? null); }}>
         <summary>What your AI sees if you ask for more</summary>
         <p className="ai-note">Your question, these records{attach ? ' and this page’s data' : ''}, sent to your AI only when you choose “Ask my AI for more”.</p>
@@ -441,7 +450,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {parsed.text && <SafeText text={parsed.text}/>}
       <LookedAt turn={turn} session={session} context={context}/>
       <DataViz results={session.lookupsFor(turn.id)?.map(l => l.result)}/>
-      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier}/>}
+      {(parsed.proposals.length > 0 || parsed.rejected.length > 0) && <ProposalList proposals={parsed.proposals} rejected={parsed.rejected} handles={session.handlesFor(turn.id)} runner={runner} onNavigate={onNavigate} fromPhoto={fromPhoto} replaced={replaced} autoAccept={autoAccept} claimAuto={() => session.claimFresh(turn.id)} earlier={earlier} replyId={turn.id}/>}
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>
@@ -498,7 +507,7 @@ function ContextBar({context, attach, onAttach, sensitive, total, question, onRe
       {(mode || (attach && context.preview) || questionPreview || totalLine) && info(<>
         {attach && context.preview && <p className="ai-share-size">{scope} · about {context.preview.estimatedTokens.toLocaleString('en-US')} tokens</p>}
         {mode}
-        {attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ')}.</p>}<pre>{context.preview.text}</pre></>}
+        {attach && context.preview && <><p>{context.preview.summary}</p>{context.preview.omitted.length > 0 && <p className="ai-note">Not included: {context.preview.omitted.join(', ').replace(/\.$/, '')}.</p>}<pre>{context.preview.text}</pre></>}
         {questionPreview}{totalLine}
       </>)}
     </div>

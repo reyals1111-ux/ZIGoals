@@ -101,3 +101,27 @@ and announces the change here or in its own file.
 - **One ask:** `lib/ai/setup-chooser.ts:59` titles the hosted route "ZIGoals hosted". On the Claude relay the product's
   name is "ZIGoals AI · powered by Claude" (`hostedName(provider)` in `lib/ai/hosted.ts`, mine). If you want the chooser to
   say it too, call `hostedName` there; I left your file alone.
+
+## 2026-10-11 — Gate C: the persona round's findings in your lane (nothing of yours edited)
+The fresh-eyes round (`docs/verification/z-cloud/PERSONAS_Z.md`, 20 sessions, MOCK AI, this branch's build) found these
+in `lib/ai`; I changed only my side of each and left your files alone.
+- **On-device answers** (`lib/ai/local-answers`, S02, S03, S08): with no AI, "Which habits are open today?" (one of ZIGi's
+  own examples), "How many habits do I have?", "What habits do I have?", "Did I floss today?" and "Which habits did I
+  archive?" all get the generic fallback, also with six Showcase habits. An example ZIGi offers should be one it answers.
+  My side: an earlier reply now keeps its examples as plain words (they were buttons on the latest reply only).
+- **Dutch questions without an AI** (S06, S16): "Hoeveel minuten heb ik deze maand gemediteerd" gets the English fallback;
+  the English question answers "95 minutes". Your L6 work covers it once both lanes are on `main`. My side: the Voice note
+  and Help say "questions in English" for now, and a question spoken in Dutch gets no Quick add card (Quick add reads
+  English; it now also asks for a unit after a number and an unknown word: "2 glazen water" was 2 mL).
+- **Which setup fits me?** (`lib/ai/setup-chooser`, S02): "Nothing yet" → "On a phone" → "Nothing leaves my computer"
+  suggests the subscription bridge, and the next option says "computer" right after "phone" was picked.
+- **The edit-habit card** (the planner, S19): the card says "From today… as in Habits" and changes today, while Habits'
+  own edit form says rule changes begin tomorrow.
+- **The water card's edit fields** (`lib/ai/actions/edit.ts`, S04): both say "(optional)" though one is required (the
+  validation message is right).
+- **A duplicate habit from a card** (S05): a create-habit card added after an edited resend made a second "Stretch" with
+  no warning (your `dedupePlans` may already cover it).
+- **The knock offer** (`lib/ai/knock/offer.ts`, S04): it shows in every new chat until answered; Help says ZIGi asks once.
+  If "once" should mean once, the rule is yours.
+- **For the merger of `proposal-list.tsx`:** it now keeps each reply's card outcomes on the device (`replyId`,
+  `lib/zigi-cards.ts`, ADR-019 C50) so a reopened chat never offers an added card again; keep both lanes' changes.

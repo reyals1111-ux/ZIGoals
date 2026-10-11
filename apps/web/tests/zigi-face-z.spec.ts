@@ -3,7 +3,8 @@ import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 import {AI_SETTINGS_KEY, defaultAiSettings, type AiSettings} from '../lib/ai/settings';
-import {ZIGI_SUGGESTIONS_KEY} from '../lib/z-device-keys';
+import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY} from '../lib/z-device-keys';
+import {HEALTH_STORAGE_KEY} from '../lib/health';
 
 /**
  * Session Z-Cloud Part 2 (ADR-019): ZIGi's panel, premium and clean, through the real panel on a production build, both
@@ -222,7 +223,10 @@ test('acted-on cards are one-line receipts; a newer reply with cards folds the e
   expect((await undo.boundingBox())!.y).toBe(at.y);
   // When the window ends it folds into its one-line receipt.
   await expect(cards.nth(0)).toHaveClass(/ai-card-receipt/, {timeout: 15_000});
-  await expect(cards.nth(0)).toHaveText(/^✓\s*Added\s*Add water$/);
+  // Gate C (persona round, stricter): the receipt carries the amount; the Undo line goes with the window.
+  await expect(cards.nth(0)).toHaveText(/^✓\s*Added\s*Add water · 300 mL$/);
+  await expect(cards.nth(0)).toHaveAccessibleName('Add water');
+  await expect(panel(page).locator('.ai-proposals-live').first()).not.toContainText('Undo is available');
   expect((await cards.nth(0).boundingBox())!.height).toBeLessThanOrEqual(64);
   await cards.nth(1).getByRole('button', {name: 'Dismiss', exact: true}).click();
   await expect(cards.nth(1)).toHaveClass(/ai-card-receipt/);
@@ -237,6 +241,49 @@ test('acted-on cards are one-line receipts; a newer reply with cards folds the e
   await expect(panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: 'Add', exact: true})).toBeVisible();
   await earlier.locator('summary').click();
   await expect(earlier.getByRole('button', {name: 'Add', exact: true})).toBeVisible();
+});
+
+// Gate C, the persona round (ADR-019 C50): a card's outcome lived only in the open panel, so a chat reopened from History
+// offered an added card again and "Add all" wrote it twice. Its outcome is kept on this device now.
+test('a chat reopened from History, or after a reload, shows its added and dismissed cards as receipts, never as choices', async ({page}) => {
+  test.setTimeout(90_000);
+  await server(page, () => block([{kind: 'log-water', millilitres: 250}, {kind: 'log-water', millilitres: 300}]));
+  await seed(page, {includeHealth: true, pageShare: {...defaultAiSettings().pageShare, health: true}});
+  await openChat(page, '/app/health');
+  const water = () => page.evaluate(k => (JSON.parse(localStorage.getItem(k)!) as {daily?: {water?: unknown[]}}).daily?.water?.length ?? 0, HEALTH_STORAGE_KEY);
+  const before = await water();
+  await say(page, 'Two waters for today');
+  const cards = panel(page).locator('.ai-card');
+  await expect(cards).toHaveCount(2);
+  await cards.nth(0).getByRole('button', {name: 'Add', exact: true}).click();
+  await expect(cards.nth(0)).toHaveClass(/ai-card-added/);
+  await cards.nth(1).getByRole('button', {name: 'Dismiss', exact: true}).click();
+  await expect(cards.nth(1)).toHaveClass(/ai-card-receipt/);
+  await expect.poll(water).toBe(before + 1);
+  const receipts = async () => {
+    const again = panel(page).locator('.ai-card');
+    await expect(again).toHaveCount(2);
+    await expect(again.nth(0)).toHaveClass(/ai-card-receipt/);
+    await expect(again.nth(0).locator('.ai-card-status')).toHaveText('Added');
+    await expect(again.nth(0)).toHaveAccessibleName('Add water');
+    await expect(again.nth(1).locator('.ai-card-status')).toHaveText('Dismissed');
+    await expect(panel(page).getByRole('button', {name: /^Add( all)?\b/})).toHaveCount(0);
+  };
+  // A new chat, then this one again from History.
+  await panel(page).getByRole('button', {name: 'New chat'}).click();
+  await expect(panel(page).locator('.ai-card')).toHaveCount(0);
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).locator('.ai-history-open', {hasText: 'Two waters for today'}).click();
+  await receipts();
+  // And after a reload.
+  await page.reload();
+  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await panel(page).getByRole('button', {name: /^More:/}).click(); await panel(page).getByRole('button', {name: 'Chat history'}).click();
+  await panel(page).locator('.ai-history-open', {hasText: 'Two waters for today'}).click();
+  await receipts();
+  expect(await water(), 'nothing was written twice').toBe(before + 1);
+  const kept = await page.evaluate(k => localStorage.getItem(k), ZIGI_CARDS_KEY);
+  expect(kept, 'outcomes and ids only, no words').not.toMatch(/water/i);
 });
 
 test('on a 768 px tablet the top bar never sits over the panel: every header button takes its click', async ({page}, info) => {

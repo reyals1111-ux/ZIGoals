@@ -212,7 +212,7 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
     await expect(page.locator(`#help-${id}`), id).toContainText(text);
   }
   await expect(page.locator('#help-your-ai-voice')).not.toContainText('off by default');
-  await expect(page.locator('#help-your-ai-voice')).toContainText('never in your quiet hours');
+  await expect(page.locator('#help-your-ai-voice')).toContainText('never between 22:00 and 08:00');
   await expect(page.locator('#help-your-ai-voice')).not.toContainText(/French|Fran[cç]ais/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

@@ -1,5 +1,5 @@
 'use client';
-import {useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type Ref} from 'react';
+import {useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type Ref} from 'react';
 
 /**
  * Session Z-Cloud panel polish round 2 (the owner's rule: no chrome wraps in ZIGi's panel): one compact row under each
@@ -38,7 +38,15 @@ export type ReplyMoreItem = {key: string; label: string; done?: string; title?: 
  * token count, the provider's usage page). Arrow keys move, Escape closes and gives the focus back.
  */
 export function ReplyMore({items, info}: {items: readonly ReplyMoreItem[]; info?: ReactNode}) {
-  const [open, setOpen] = useState(false), [done, setDone] = useState<string | null>(null), listId = useId(), trigger = useRef<HTMLButtonElement>(null), list = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false), [done, setDone] = useState<string | null>(null), [up, setUp] = useState(false), listId = useId(), trigger = useRef<HTMLButtonElement>(null), list = useRef<HTMLDivElement>(null);
+  // Gate C (persona round): near the bottom of the conversation (above the Suggestions sheet) the list opens upward, so the
+  // log's own edge never cuts it off; measured before paint.
+  useLayoutEffect(() => {
+    if (!open || !trigger.current || !list.current) { setUp(false); return; }
+    const log = trigger.current.closest('.ai-chat-log'), box = trigger.current.getBoundingClientRect(), height = list.current.offsetHeight;
+    const bottom = log ? log.getBoundingClientRect().bottom : window.innerHeight, top = log ? log.getBoundingClientRect().top : 0;
+    setUp(box.bottom + 4 + height > bottom && box.top - 4 - height >= top);
+  }, [open]);
   const close = useCallback((focus = true) => { setOpen(false); setDone(null); if (focus) trigger.current?.focus({preventScroll: true}); }, []);
   useEffect(() => {
     if (!open) return;
@@ -59,7 +67,7 @@ export function ReplyMore({items, info}: {items: readonly ReplyMoreItem[]; info?
   if (!items.length && !info) return null;
   return <span className="ai-reply-more">
     <ReplyIcon buttonRef={trigger} glyph="more" label="More for this reply" tip="More" expanded={open} controls={listId} onClick={() => { setOpen(o => !o); setDone(null); }}/>
-    <div id={listId} ref={list} className="ai-reply-more-list" role="group" aria-label="More for this reply" hidden={!open} onKeyDown={onKey}>
+    <div id={listId} ref={list} className="ai-reply-more-list" role="group" aria-label="More for this reply" hidden={!open} data-up={up ? '' : undefined} onKeyDown={onKey}>
       {info && <div className="ai-reply-more-info">{info}</div>}
       {items.map(item => <button key={item.key} type="button" className="ai-more-item" title={item.title} onClick={() => { item.onSelect(); if (item.keepOpen) setDone(item.key); else close(false); }}>{done === item.key && item.done ? item.done : item.label}</button>)}
     </div>

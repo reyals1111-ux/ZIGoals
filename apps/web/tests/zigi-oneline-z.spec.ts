@@ -215,3 +215,22 @@ test('not connected: the status says so on one line; the chips row is one line; 
   await jump.click();
   await expect(jump).toBeHidden();
 });
+
+// Gate C (CI on 001e363e, a11y-wcag-x 1.4.12): Settings' name is one line at every width by its size, never by nowrap, so a
+// person's own text spacing wraps it instead of widening the page.
+test('Settings: ZIGi\'s name is one line at every width, and wraps instead of widening the page under text spacing', async ({page}, info) => {
+  test.skip(!!CAPTURES, 'pictures only');
+  await seed(page, null);
+  const title = page.locator('.ai-settings .ai-settings-title');
+  for (const width of WIDTHS[info.project.name as keyof typeof WIDTHS]) {
+    await page.setViewportSize({width, height: 760});
+    await page.goto('/app/settings#your-ai');
+    await expect(title).toHaveText(TITLE);
+    const {height, line, wrap} = await title.evaluate(e => { const cs = getComputedStyle(e); return {height: e.getBoundingClientRect().height, line: parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2, wrap: cs.whiteSpace}; });
+    expect(height, `one line at ${width}`).toBeLessThanOrEqual(line * 1.2);
+    expect(wrap, 'wraps under text spacing rather than overflowing').not.toBe('nowrap');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `no sideways scroll at ${width}`).toBeLessThanOrEqual(width);
+  }
+  await page.addStyleTag({content: '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }'});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth), 'text spacing widens nothing').toBeLessThanOrEqual(page.viewportSize()!.width);
+});

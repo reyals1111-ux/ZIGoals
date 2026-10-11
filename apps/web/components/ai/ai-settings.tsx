@@ -326,7 +326,7 @@ function VoiceCard(props: VoiceProps) {
   const {open, setOpen, card} = useAnchoredCard(VOICE_ANCHOR);
   return <details ref={card} id={VOICE_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
     <summary className="ai-pack-summary">Voice: talk to ZIGi</summary>
-    <p className="ai-note">The microphone, English or Dutch, sending when you stop talking, and reading replies aloud. On this device; ZIGoals never stores audio.</p>
+    <p className="ai-note">The microphone, English or Dutch, sending when you stop talking, and reading replies aloud. These choices stay on this device; your browser&rsquo;s speech service hears what you say (below), and ZIGoals never stores audio.</p>
     {open && <VoiceSettings {...props}/>}
   </details>;
 }
@@ -336,13 +336,13 @@ function VoiceSettings({data, save, browser, providerName, providerTranscribes}:
   const set = (change: Partial<VoiceRecord>) => { try { voice.update(r => ({...r, ...change})); } catch { /* the switch stays as it was; nothing else depends on it */ } };
   const supported = typeof window !== 'undefined' && !!recognitionConstructor(window as unknown as {SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown});
   return <div className="ai-fields ai-voice-settings">
-    <Switch checked={prefs.micShown} onChange={next => set({micShown: next})} label="Show the microphone" note={supported ? 'Talk to ZIGi with the microphone by the message box: tap to start and tap again to stop, or hold and release. Works without an AI connected too: ZIGi answers from your records on this device.' : `${browser === 'firefox' ? 'Firefox has no speech recognition yet.' : 'This browser doesn’t offer speech recognition here.'} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type.`}/>
+    <Switch checked={prefs.micShown} onChange={next => set({micShown: next})} label="Show the microphone" note={supported ? 'Talk to ZIGi with the microphone by the message box: tap to start and tap again to stop, or hold and release. Works without an AI connected too: ZIGi answers questions in English from your records on this device.' : `${browser === 'firefox' ? 'Firefox has no speech recognition yet.' : 'This browser doesn’t offer speech recognition here.'} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type.`}/>
     <label className="field">Language<select value={chosen} onChange={e => save(s => ({...s, voice: {...s.voice, language: e.target.value || null}}))}>
       <option value="">This device’s language ({VOICE_LANGUAGE_LABELS[device]})</option>
       {VOICE_LANGUAGES.map(l => <option key={l} value={l}>{VOICE_LANGUAGE_LABELS[l]}</option>)}
     </select><small>For listening and for reading replies aloud. English or Dutch.</small></label>
     <Switch checked={prefs.sendOnStop} onChange={next => set({sendOnStop: next})} label="Send when I stop talking" note="On: your words go to ZIGi when you stop. Off: they stay in the message box for you to edit and send."/>
-    <Switch checked={prefs.readSpoken} onChange={next => set({readSpoken: next})} label="Read replies to spoken questions aloud" note="With this device’s own voices; never in your quiet hours (Customize); stops when you talk or tap. The panel’s mute button silences it."/>
+    <Switch checked={prefs.readSpoken} onChange={next => set({readSpoken: next})} label="Read replies to spoken questions aloud" note="With this device’s own voices; never between 22:00 and 08:00; stops when you talk or tap. The panel’s mute button silences it."/>
     <Switch checked={prefs.tapToTalk} onChange={next => set({tapToTalk: next})} label="Tap ZIGi to talk" note="Off: a tap on ZIGi’s button opens the panel, and holding it talks. On: a tap starts listening too. ⌘ or Ctrl + Shift + Space talks from any page."/>
     <Switch checked={data.voice.readAloud} onChange={next => save(s => ({...s, voice: {...s.voice, readAloud: next}}))} label="Read every reply aloud" note="Uses the browser's own voices on this device. Off by default; every reply also has its own Read aloud button."/>
     <p className="ai-note ai-voice-who" role="note">{browserSpeechDisclosure(browser, false)} ZIGoals never stores the audio; the microphone is released the moment you stop.</p>

@@ -152,6 +152,8 @@
   :root .phone-status-sheet strong { font-size: 13px; letter-spacing: .03em; color: var(--text-strong, #f4f8ff); }
   :root .phone-status-sheet .phone-status-mode strong { font-size: 15px; letter-spacing: 0; }
   :root .phone-status-sheet .wallet { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 6px; }
+  /* Gate C (persona round): under 400 px the two wallet buttons stack, so "Connect Keplr" is never cut to "Connect Kep". */
+  @media (max-width: 399.98px) { :root .phone-status-sheet .wallet { grid-template-columns: minmax(0, 1fr); } }
   :root .phone-status-sheet .wallet button { min-height: 44px; min-width: 0; margin: 0; padding: 6px 10px; border-radius: 14px; font-size: 15px; justify-content: center; }
   :root .phone-status-sheet .wallet .quiet { display: inline-flex; align-items: center; border: 1px solid #9fc8ff2e; background: #0a1a30; color: var(--text); }
   :root .phone-status-sheet .wallet .quiet[aria-pressed="true"] { border-color: #6fdcff77; background: #0b2a42; color: #fff; }

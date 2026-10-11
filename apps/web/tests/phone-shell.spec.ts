@@ -114,8 +114,14 @@ test('the status line opens the Status sheet: every notice in full, the wallet b
  await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions');
  await expect(sheet.getByRole('button',{name:'Demo records',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
  for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
+ // Gate C (persona round): the storage line the page shortens ("This device o…") is in the sheet in full.
+ await expect(sheet.locator('.phone-status-storage')).toContainText('This device only · account sync is off');
  await sheet.getByRole('button',{name:'Close Status',exact:true}).click();
  await expect(sheet).toBeHidden();await expect(line).toBeFocused();await expect(line).toHaveAttribute('aria-expanded','false');
+ // At 320 px the wallet buttons stack, so no button's words are cut ("Connect Kep").
+ await page.setViewportSize({width:320,height:640});
+ await line.click();await expect(sheet).toBeVisible();
+ for(const name of ['Demo records','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
 });
 
 test('without JavaScript a phone still shows the tab bar, the top bar and the honesty labels',async({browser})=>{

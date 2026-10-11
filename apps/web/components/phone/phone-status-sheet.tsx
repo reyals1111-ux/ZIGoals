@@ -1,6 +1,7 @@
 'use client';
 import type {ReactNode} from 'react';
 import {PhoneFormSheet} from './phone-form-sheet';
+import {useWorkspaceStatusText} from '../workspace-status';
 
 /**
  * Session Z-Cloud Part 4.2 (persona item 2): on a phone the honesty notices are one 44 px line under the top bar
@@ -9,11 +10,14 @@ import {PhoneFormSheet} from './phone-form-sheet';
  * Loaded on the first tap (components/shell.tsx); Escape, the close button and the backdrop close it.
  */
 export default function PhoneStatusSheet({onClose, label, sentence, mode, balance, showcase, children}: {onClose: () => void; label: string; sentence: string; mode: string; balance: string; showcase: boolean; children: ReactNode}) {
+  // Gate C (persona round): the storage line ("This device only · account sync is off") is shortened on the page; here in full.
+  const storage = useWorkspaceStatusText();
   return <PhoneFormSheet title="Status" onClose={onClose}>
     <div className="phone-status-sheet">
       <p className="phone-status-network"><strong>{label}</strong><span>{sentence}</span></p>
       <div className="wallet phone-status-wallet">{children}</div>
       <p className="phone-status-mode">{mode}<strong>{balance}</strong></p>
+      <p className="phone-status-storage"><strong>STORAGE &amp; SYNC</strong><span>{storage}</span></p>
       {showcase && <p className="phone-status-showcase"><strong>SHOWCASE DATA</strong><span>Fictional portfolio &amp; history · anything you add here stays in the demo when you exit.</span></p>}
     </div>
   </PhoneFormSheet>;

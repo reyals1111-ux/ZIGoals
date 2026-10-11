@@ -200,6 +200,29 @@ test('7. lb and fl oz: weight history, the chart and Today read the chosen unit;
   expect(stored.daily.water[0].amountMilli).toBe(1_250_000);
 });
 
+// Gate C, the persona round: a US user typed 64 as the water target meaning fluid ounces and got "2 fl oz"; the week still
+// read mL and Activity kg. The target is typed in the chosen unit (kept in mL), the week and Activity follow the units.
+test('7b. persona round: the water target is typed in US fl oz; the week reads fl oz and Activity reads lb', async ({page}) => {
+  const day = localDate();
+  let health = saveHealthPreferences(createEmptyHealth(), {...dailyData(createEmptyHealth()).preferences, weightUnit: 'lb', waterUnit: 'fl-oz-us'});
+  health = saveWeight(health, {id: 'health_6f7f6c5e-2c0c-4f0e-9d39-0f6f1e0c1a11', date: day, grams: 72_400}, new Date().toISOString());
+  health = addWater(health, {id: 'health_4b1d3f0e-8a2c-4b55-9f5d-2d7f3a9c0b22', date: day, amountMilli: 1_250_000, unit: 'ml'}, new Date().toISOString());
+  await seed(page, {[HEALTH_STORAGE_KEY]: health});
+  await page.goto('/app/health');
+  await expect(page.getByRole('group', {name: 'Water · US fl oz, last 7 days'})).toContainText('42');
+  await expect(page.getByRole('group', {name: 'Water · mL, last 7 days'})).toHaveCount(0);
+  await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Journal settings', exact: true}).click();
+  const form = page.getByRole('form', {name: 'Health preferences'});
+  await form.getByLabel('Personal water target (US fl oz, optional)').fill('64');
+  await form.getByRole('button', {name: 'Save journal preferences', exact: true}).click();
+  await expect.poll(async () => (await page.evaluate(k => JSON.parse(localStorage.getItem(k)!), HEALTH_STORAGE_KEY)).daily.preferences.waterTargetMl).toBe(1893);
+  await form.getByLabel('Preferred water unit').selectOption('ml');
+  await expect(form.getByLabel('Personal water target (mL, optional)')).toHaveValue('1893');
+  await page.goto('/app/activity');
+  await expect(page.locator('main')).toContainText('159.6 lb');
+  await expect(page.locator('main')).not.toContainText('72.4 kg');
+});
+
 test('8. asset quantities are grouped in the person\'s locale ("300,000 ZIG"); inputs stay ungrouped', async ({page}) => {
   await showcase(page);
   await page.goto('/app/wealth');
@@ -237,6 +260,26 @@ test('10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi 
   await expect(card.getByRole('group', {name: 'Stretch options'}).getByRole('button', {name: 'Ask ZIGi about this habit', exact: true})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', {name: 'Ask ZIGi about my habits', exact: true})).toHaveCount(1);
+});
+
+// Gate C (CI on 001e363e, motion-arrival on the phone): the two links joined "+ New habit"'s row, so the hero is two rows of
+// actions from 360 px and the overview's first figure stays on the first screen of an iPhone 13.
+test('10b. phones: Habits\' hero actions take two rows from 360 px, and the first figure is on the first screen', async ({page, isMobile}) => {
+  test.skip(!isMobile, 'phones only');
+  await showcase(page);
+  for (const width of [360, 390, 430]) {
+    await page.setViewportSize({width, height: 664});
+    await page.goto('/app/habits');
+    const tops = (await page.locator('.habit-hero-actions').evaluate(a => [...a.querySelectorAll('button, a')].map(e => e.getBoundingClientRect().top))).sort((a, b) => a - b);
+    expect(tops, `three actions at ${width}`).toHaveLength(3);
+    expect(1 + tops.slice(1).filter((t, i) => t - tops[i]! > 10).length, `rows of actions at ${width}`).toBe(2);
+  }
+  await page.setViewportSize({width: 390, height: 664});
+  await page.goto('/app/habits');
+  const figure = page.locator('.habit-overview strong').first();
+  await expect(figure).toBeVisible();
+  // With the links stacked it started 656 px down a 664 px screen (and below it while the page arrived); now about 608.
+  expect((await figure.boundingBox())!.y, 'the first figure starts well inside the first screen').toBeLessThanOrEqual(634);
 });
 
 test('11. Help is the last item of the sidebar and of More; the footer\'s "Send feedback" opens the feedback form', async ({page}) => {
@@ -278,4 +321,40 @@ test('12. phones: ZIGi is the one floating button; the music player opens from Z
   const sheet = await openMore(page);
   await sheet.getByRole('button', {name: /Your soundtrack/}).click();
   await expect(page.locator('.music-panel[role=dialog]')).toBeVisible();
+});
+
+// Gate C, the persona round (docs/verification/z-cloud/PERSONAS_Z.md): two pages scrolled sideways at 320 px (both the same
+// on #35): Meet ZIGi (each card's three sizes forced 352 px) and Help with the local-model answer open (a long command).
+test('persona round: Meet ZIGi and Help\'s local-model answer never scroll sideways at 320 and 360 px', async ({page, isMobile}) => {
+  test.skip(!isMobile, 'phones only');
+  for (const width of [320, 360]) {
+    await page.setViewportSize({width, height: 640});
+    await page.goto('/app/zigi');
+    await expect(page.locator('.meet-zigi-card').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `Meet ZIGi at ${width}`).toBeLessThanOrEqual(width);
+    await page.goto('/app/help#help-your-ai-local');
+    await expect(page.locator('#help-your-ai-local')).toHaveAttribute('open', '');
+    await expect(page.locator('#help-your-ai-local code').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `Help at ${width}`).toBeLessThanOrEqual(width);
+  }
+});
+
+// Gate C, the persona round: an earlier answer made on this device kept "For example:" but lost its examples (they were
+// buttons on the latest answer only); it keeps them as plain words now.
+test('persona round: an earlier on-device answer keeps its examples as words; the latest keeps them as buttons', async ({page}) => {
+  await seed(page, {});
+  await page.goto('/app');
+  await page.getByRole('button', {name: /Open ZIGi/}).click();
+  const panel = page.locator('dialog.ai-chat[open]');
+  await expect(panel).toBeVisible();
+  const box = panel.getByRole('textbox', {name: /^(Message to your AI|Ask ZIGi about your records)$/});
+  for (const [n, q] of ['Tell me a joke', 'Sing me a song'].entries()) {
+    await box.fill(q); await panel.locator('.ai-composer button[type=submit]').click();
+    await expect(panel.locator('.ai-turn-local')).toHaveCount(n + 1);
+  }
+  const first = panel.locator('.ai-turn-local').first(), last = panel.locator('.ai-turn-local').last();
+  await expect(first).toContainText('For example');
+  await expect(first.getByRole('list', {name: 'Questions ZIGi answers here'}).getByRole('listitem').first()).toBeVisible();
+  await expect(first.getByRole('group', {name: 'Questions ZIGi answers here'})).toHaveCount(0);
+  await expect(last.getByRole('group', {name: 'Questions ZIGi answers here'}).getByRole('button').first()).toBeVisible();
 });
