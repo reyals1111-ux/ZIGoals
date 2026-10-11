@@ -1,4 +1,4 @@
-import {mkdirSync, writeFileSync, readFileSync, existsSync} from 'node:fs';
+import {closeSync, mkdirSync, openSync, unlinkSync, writeFileSync, readFileSync, existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {expect, type Page, type TestInfo} from '@playwright/test';
@@ -180,10 +180,18 @@ export function scoreUi(expect_: Expect, reply: string, tools: string[], source?
 /** Appends one run to the model's UI results file (one JSON array per model and spec), and attaches it to the test. */
 export function record(info: TestInfo, file: string, run: UiRun) {
   mkdirSync(OUT, {recursive: true});
-  const path = join(OUT, file);
-  const list: UiRun[] = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) as UiRun[] : [];
-  list.push(run);
-  writeFileSync(path, JSON.stringify(list, null, 1));
+  const path = join(OUT, file), lock = `${path}.lock`;
+  // Session Z-Local (ADR-020 L61): two workers (desktop and mobile) share one results file; a read torn by the other worker's
+  // write lost 32 of 34 page cases once. A lock file (created exclusively, retried) serialises the read-modify-write.
+  const until = Date.now() + 30_000; let fd: number | null = null;
+  while (fd === null) {
+    try { fd = openSync(lock, 'wx'); } catch { if (Date.now() > until) throw new Error(`record: ${lock} held for 30 s`); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25); }
+  }
+  try {
+    const list: UiRun[] = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) as UiRun[] : [];
+    list.push(run);
+    writeFileSync(path, JSON.stringify(list, null, 1));
+  } finally { closeSync(fd); unlinkSync(lock); }
   info.annotations.push({type: 'real-model', description: `${run.model} on ${run.host}: ${run.score ? (run.score.pass ? 'pass' : 'fail') : 'unscored'} in ${run.ms} ms`});
 }
 export const lastReply = async (page: Page) => { const turns = await storedTurns(page); const last = [...turns].reverse().find(t => t.role === 'assistant'); return {text: last?.text ?? '', tools: (last?.tools ?? []).map(t => t.tool), stopped: last?.stopped ?? null, source: last?.source ?? null}; };
