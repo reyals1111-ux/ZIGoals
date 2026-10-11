@@ -1,6 +1,7 @@
 import { toBech32 } from "@cosmjs/encoding";
 import { test, expect, type Page } from "@playwright/test";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
+import { connectKeplr } from "./phone-nav";
 const ledgerKey = "zigoals:local-ledger:v1";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 async function seed(page: Page) {
@@ -110,7 +111,7 @@ test("mode selection stays in its own tab while local reviews stay local", async
   // An inert stand-in for the extension in this tab only (it offers nothing that can sign): since Session X P2.1,
   // Connect without any extension keeps the Local demo, so the switch needs one to be there.
   await page.evaluate(() => { Reflect.set(window, "keplr", {}); });
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
   await expect(page.locator(".mode-strip")).toContainText("KEPLR TESTNET");
   await expect(other.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await expect(
@@ -167,7 +168,7 @@ test("two tabs share only the active wallet's journal notifications and retain f
   await page.goto("/app/activity");
   const other = await context.newPage();
   await other.goto("/app/activity");
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
   await expect(page.locator(".mode-strip")).toContainText("connected");
   await other.evaluate(
     async ({ alice }) => {

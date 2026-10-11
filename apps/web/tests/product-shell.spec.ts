@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { closeMore, navLink } from "./phone-nav";
+import { closeMore, navLink, walletArea } from "./phone-nav";
 test("unified shell exposes all eight destinations and preserves Alpha controls", async ({ page }) => {
   await page.goto("/app");
   const nav = page.getByRole("navigation", { name: "Main navigation" });
@@ -9,8 +9,11 @@ test("unified shell exposes all eight destinations and preserves Alpha controls"
   }
   await closeMore(page);
   await expect(nav.getByRole("link", { name: "Today", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
-  await expect(page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures.");
+  // Session Z-Cloud Part 4.2 (mechanics): on a phone the wallet button and the notice are in the Status sheet.
+  const status = await walletArea(page);
+  await expect(status.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
+  await expect(status).toContainText("No blockchain transactions or financial signatures.");
+  if (await page.getByRole("dialog", { name: "Status" }).isVisible()) await page.keyboard.press("Escape");
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 800 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

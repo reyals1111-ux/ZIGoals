@@ -167,7 +167,7 @@ test('Settings: the data mode, the deep model, prices and the cap are device cho
   await expect.poll(() => stored(page, AI_USAGE_KEY)).toMatchObject({prices: {local: {input: '0.5', currency: 'USD'}}});
   await section.getByLabel('Amount').fill('5'); await section.getByLabel('Amount').blur();
   await expect.poll(() => stored(page, AI_USAGE_KEY)).toMatchObject({softCap: {amount: '5', currency: 'USD'}});
-  await section.getByRole('checkbox', {name: /Ask me before sending/}).check();
+  await section.getByRole('checkbox', {name: 'Ask first past the cap'}).check(); // panel polish round 2: the label's one-line words
   await expect.poll(() => stored(page, AI_USAGE_KEY)).toMatchObject({askFirst: true});
   await expect(section).toContainText('Estimate from your prices: under 0.01 USD');
   await section.getByRole('button', {name: 'Clear the counts on this device'}).click();

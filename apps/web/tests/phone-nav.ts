@@ -71,6 +71,12 @@ export async function openTodayWidgets(page:Page){
  const closed=modules.locator('.phone-fold-toggle[aria-expanded="false"]');
  while(await closed.count())await closed.first().click();
 }
+/** Session Z-Cloud Part 4.2: "Connect Keplr" wherever it is (the Status sheet on a phone), then that sheet closed again. */
+export async function connectKeplr(page:Page){
+ await (await walletArea(page)).getByRole('button',{name:'Connect Keplr'}).click();
+ const sheet=page.getByRole('dialog',{name:'Status'});
+ if(await sheet.isVisible()){await page.keyboard.press('Escape');await expect(sheet).toBeHidden();}
+}
 /** Session Z-Cloud Part 4.2: the wallet buttons. On a phone they are in the Status sheet behind the one status line. */
 export async function walletArea(page:Page):Promise<Locator>{
  const line=page.locator('.phone-status-line');

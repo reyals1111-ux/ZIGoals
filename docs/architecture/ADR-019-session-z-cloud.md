@@ -235,7 +235,8 @@ Each difference it reports at Gate C is explained against this list (filled per 
   moved to the status line, now asserted there), History is focused first and ArrowDown reaches Customize; the setup line
   is at most 60 px (was 112, stricter) and the box's placeholder is "Ask ZIGi…" (was "Ask about your records"), its
   tooltip asserted (new). `zigi-hosted` expects the status "via ZIGoals AI · Sonnet 5.5" with the full name as its
-  tooltip (was the full name as the text). New: `zigi-oneline-z` (both projects, 320–1440, the panel, expanded and, where the browser offers it, the
+  tooltip (was the full name as the text). `zigi-tools` checks Settings' cap box by its new name "Ask first past the cap" (was
+  /Ask me before sending/; as strict). New: `zigi-oneline-z` (both projects, 320–1440, the panel, expanded and, where the browser offers it, the
   mini window).
 
 ## Rejected options
