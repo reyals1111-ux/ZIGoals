@@ -13,6 +13,9 @@ browser (`tests/zigi-accept-correct.spec.ts`, `tests/zigi-act.spec.ts`).
 Legend: **existing** = a kind from Sessions V–Y; **new** = added in Part 5; **nav** = `open-page`; **no** = refused with
 the reason in the reply; **form** = a pre-filled form the person submits; **effect** = needs the runner (Z-Cloud).
 
+
+**When there is nothing to change (ADR-020 L50).** A card the app would refuse is not a proposal: when the records show no fast running to stop, a goal to reopen that is already active, or a unit, target, bell or look already set as asked, ZIGi says so in one line and sends no card. A second log entry for a day is different: that card still comes, with a line on what the records already hold.
+
 ## Today
 | Action | ZIGi path | Kind | Auto-accept | Test |
 |---|---|---|---|---|
