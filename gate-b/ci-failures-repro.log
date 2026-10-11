@@ -1,0 +1,250 @@
+
+Running 74 tests using 2 workers
+
+[1/74] [desktop] › tests/motion-arrival.spec.ts:18:5 › a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change
+[2/74] [desktop] › tests/multitab.spec.ts:43:5 › two tabs cancel stale funds review and retain both sequential deposits
+[3/74] [desktop] › tests/multitab.spec.ts:69:5 › another tab's recovered plan rejects a stale recovery save
+[4/74] [desktop] › tests/multitab.spec.ts:103:5 › mode selection stays in its own tab while local reviews stay local
+[5/74] [desktop] › tests/motion-arrival.spec.ts:57:6 › reduced motion: no arrival marks, no nav animation and no logo intro
+[6/74] [desktop] › tests/multitab.spec.ts:123:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[7/74] [desktop] › tests/multitab.spec.ts:261:5 › simultaneous confirmations serialize and the losing tab must review again
+[8/74] [desktop] › tests/motion-arrival.spec.ts:57:6 › Motion Off: no arrival marks, no nav animation and no logo intro
+[9/74] [desktop] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[10/74] [desktop] › tests/product-shell.spec.ts:3:5 › unified shell exposes all eight destinations and preserves Alpha controls
+[11/74] [desktop] › tests/public-alpha.spec.ts:9:5 › Alpha declares an explicit same-origin icon that resolves
+[12/74] [desktop] › tests/public-alpha.spec.ts:48:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[13/74] [desktop] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[14/74] [desktop] › tests/public-alpha.spec.ts:62:5 › the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere
+[15/74] [desktop] › tests/public-alpha.spec.ts:79:5 › strict production headers, fresh nonce, navigation and script rejection
+[16/74] [desktop] › tests/public-alpha.spec.ts:134:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[17/74] [desktop] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[18/74] [desktop] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[19/74] [desktop] › tests/public-alpha.spec.ts:190:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+[20/74] [desktop] › tests/run11-financial-previews.spec.ts:3:5 › allocation preview and cancel keep the saved aggregate unchanged until confirmation
+[21/74] [desktop] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[22/74] [desktop] › tests/transactions.spec.ts:7:5 › restart preserves scoped journal and damaged rows without replay
+[23/74] [desktop] › tests/ui-design-pass.spec.ts:46:6 › Part 1: readability foundation › Habits: New habit sits beside the orbit and the journal timezone moves to the bottom
+[24/74] [desktop] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page
+[25/74] [desktop] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[26/74] [desktop] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[27/74] [desktop] › tests/persona-z.spec.ts:203:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); inputs stay ungrouped
+[28/74] [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the health layout
+[29/74] [desktop] › tests/persona-z.spec.ts:213:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[30/74] [desktop] › tests/persona-z.spec.ts:231:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[31/74] [desktop] › tests/persona-z.spec.ts:242:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[32/74] [desktop] › tests/persona-z.spec.ts:262:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[33/74] [desktop] › tests/visual-v21.spec.ts:6:5 › V2.1 artwork, summary-first composition and stable decorative identities
+[34/74] [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout
+[35/74] [desktop] › tests/your-ai.spec.ts:500:5 › phone: a denied microphone shows the steps for this browser and the composer stays usable; the keyboard inset lifts the composer
+[36/74] [desktop] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release
+  1) [desktop] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release 
+
+    Error: Help has a first-screen control where the corner launcher would sit (why it rests lifted)
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      104 |     return null;
+      105 |   }, CONTROL_SELECTOR);
+    > 106 |   expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+          |                                                                                                                   ^
+      107 |   expect(target!.lift).toBeGreaterThan(0);
+      108 |   await page.mouse.move(target!.x, target!.y);
+      109 |   await page.mouse.down();
+        at /home/user/ZIGoals/apps/web/tests/zigi-phone-rest.spec.ts:106:115
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[37/74] [desktop] › tests/zigi-tools.spec.ts:151:5 › Settings: the data mode, the deep model, prices and the cap are device choices; the counts show per route
+[38/74] [mobile] › tests/motion-arrival.spec.ts:18:5 › a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change
+  2) [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  locator('[data-layout-announcer]')
+    Expected: "Moved The shape of your wealth to position 2 of 10."
+    Received: "Moved The shape of your wealth to position 2 of 11."
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" locator('[data-layout-announcer]') with timeout 5000ms
+      - waiting for locator('[data-layout-announcer]')
+        14 × locator resolved to <div role="status" class="sr-only" aria-live="polite" data-layout-announcer="">Moved The shape of your wealth to position 2 of 1…</div>
+           - unexpected value "Moved The shape of your wealth to position 2 of 11."
+
+
+      71 |   await expect(page.getByRole('button',{name:'Lock layout',exact:true})).toBeFocused();
+      72 |   await tabTo(page,`Move ${label} down`);await page.keyboard.press('Enter');
+    > 73 |   await expect(page.locator('[data-layout-announcer]')).toHaveText(`Moved ${label} to position 2 of ${count}.`);
+         |                                                         ^
+      74 |   await expect(page.getByRole('button',{name:`Move ${label} down`,exact:true})).toBeFocused();
+      75 |   expect((await order())[1]).toBe(before[0]);
+      76 |   await tabTo(page,'Reset this page');await page.keyboard.press('Enter');
+        at /home/user/ZIGoals/apps/web/tests/ui-evidence.spec.ts:73:57
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[39/74] [mobile] › tests/multitab.spec.ts:43:5 › two tabs cancel stale funds review and retain both sequential deposits
+[40/74] [mobile] › tests/multitab.spec.ts:69:5 › another tab's recovered plan rejects a stale recovery save
+[41/74] [mobile] › tests/motion-arrival.spec.ts:57:6 › reduced motion: no arrival marks, no nav animation and no logo intro
+[42/74] [mobile] › tests/multitab.spec.ts:103:5 › mode selection stays in its own tab while local reviews stay local
+[43/74] [mobile] › tests/multitab.spec.ts:123:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[44/74] [mobile] › tests/multitab.spec.ts:261:5 › simultaneous confirmations serialize and the losing tab must review again
+[45/74] [mobile] › tests/motion-arrival.spec.ts:57:6 › Motion Off: no arrival marks, no nav animation and no logo intro
+[46/74] [mobile] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[47/74] [mobile] › tests/product-shell.spec.ts:3:5 › unified shell exposes all eight destinations and preserves Alpha controls
+[48/74] [mobile] › tests/public-alpha.spec.ts:9:5 › Alpha declares an explicit same-origin icon that resolves
+[49/74] [mobile] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[50/74] [mobile] › tests/public-alpha.spec.ts:48:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[51/74] [mobile] › tests/public-alpha.spec.ts:62:5 › the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere
+[52/74] [mobile] › tests/public-alpha.spec.ts:79:5 › strict production headers, fresh nonce, navigation and script rejection
+[53/74] [mobile] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[54/74] [mobile] › tests/public-alpha.spec.ts:134:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[55/74] [mobile] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[56/74] [mobile] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[57/74] [mobile] › tests/public-alpha.spec.ts:190:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+[58/74] [mobile] › tests/run11-financial-previews.spec.ts:3:5 › allocation preview and cancel keep the saved aggregate unchanged until confirmation
+[59/74] [mobile] › tests/transactions.spec.ts:7:5 › restart preserves scoped journal and damaged rows without replay
+[60/74] [mobile] › tests/ui-design-pass.spec.ts:46:6 › Part 1: readability foundation › Habits: New habit sits beside the orbit and the journal timezone moves to the bottom
+[61/74] [mobile] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[62/74] [mobile] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page
+[63/74] [mobile] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[64/74] [mobile] › tests/persona-z.spec.ts:203:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); inputs stay ungrouped
+  3) [mobile] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page 
+
+    Error: /app
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "clearOfMain": true,
+    +   "clearOfMain": false,
+        "count": 1,
+        "inRow": true,
+        "right": 16,
+      }
+
+      138 |    // Session Z-Cloud Part 4.2 (assertion changed, ADR-019): on a phone the balance is in the Status sheet behind the one
+      139 |    // status line, so there the lock is alone at the end of its row; everything else is checked as before.
+    > 140 |    expect(w,path).toMatchObject({inRow:true,...(isMobile?{}:{afterBalance:true}),clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
+          |                   ^
+      141 |    if(isMobile)await expect(page.locator('.phone-status-line'),path).toBeVisible();
+      142 |    expect(w.size[0],path).toBeGreaterThanOrEqual(44);expect(w.size[1],path).toBeGreaterThanOrEqual(44);spots.add(w.right);
+      143 |   }
+        at /home/user/ZIGoals/apps/web/tests/ui-design-pass.spec.ts:140:19
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-design-pass-Part-18-4-o-3a0c7-the-same-spot-on-every-page-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-design-pass-Part-18-4-o-3a0c7-the-same-spot-on-every-page-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-design-pass-Part-18-4-o-3a0c7-the-same-spot-on-every-page-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[65/74] [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the health layout
+[66/74] [mobile] › tests/persona-z.spec.ts:213:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[67/74] [mobile] › tests/persona-z.spec.ts:231:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[68/74] [mobile] › tests/persona-z.spec.ts:242:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[69/74] [mobile] › tests/persona-z.spec.ts:262:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[70/74] [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout
+[71/74] [mobile] › tests/visual-v21.spec.ts:6:5 › V2.1 artwork, summary-first composition and stable decorative identities
+[72/74] [mobile] › tests/your-ai.spec.ts:500:5 › phone: a denied microphone shows the steps for this browser and the composer stays usable; the keyboard inset lifts the composer
+[73/74] [mobile] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release
+  4) [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  locator('[data-layout-announcer]')
+    Expected: "Moved Portfolio pulse to position 2 of 10."
+    Received: "Moved Portfolio pulse to position 2 of 11."
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveText" locator('[data-layout-announcer]') with timeout 5000ms
+      - waiting for locator('[data-layout-announcer]')
+        14 × locator resolved to <div role="status" class="sr-only" aria-live="polite" data-layout-announcer="">Moved Portfolio pulse to position 2 of 11.</div>
+           - unexpected value "Moved Portfolio pulse to position 2 of 11."
+
+
+      71 |   await expect(page.getByRole('button',{name:'Lock layout',exact:true})).toBeFocused();
+      72 |   await tabTo(page,`Move ${label} down`);await page.keyboard.press('Enter');
+    > 73 |   await expect(page.locator('[data-layout-announcer]')).toHaveText(`Moved ${label} to position 2 of ${count}.`);
+         |                                                         ^
+      74 |   await expect(page.getByRole('button',{name:`Move ${label} down`,exact:true})).toBeFocused();
+      75 |   expect((await order())[1]).toBe(before[0]);
+      76 |   await tabTo(page,'Reset this page');await page.keyboard.press('Enter');
+        at /home/user/ZIGoals/apps/web/tests/ui-evidence.spec.ts:73:57
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/ui-evidence-keyboard-only--92a28--and-lock-the-wealth-layout-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[74/74] [mobile] › tests/zigi-tools.spec.ts:151:5 › Settings: the data mode, the deep model, prices and the cap are device choices; the counts show per route
+  5) [mobile] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release 
+
+    Error: Help has a first-screen control where the corner launcher would sit (why it rests lifted)
+
+    expect(received).not.toBeNull()
+
+    Received: null
+
+      104 |     return null;
+      105 |   }, CONTROL_SELECTOR);
+    > 106 |   expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+          |                                                                                                                   ^
+      107 |   expect(target!.lift).toBeGreaterThan(0);
+      108 |   await page.mouse.move(target!.x, target!.y);
+      109 |   await page.mouse.down();
+        at /home/user/ZIGoals/apps/web/tests/zigi-phone-rest.spec.ts:106:115
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/pw-ci/zigi-phone-rest-390x844-a--7a9ee-e-pointer-until-the-release-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  5 failed
+    [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout 
+    [desktop] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release 
+    [mobile] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page 
+    [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout 
+    [mobile] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release 
+  2 skipped
+  67 passed (3.6m)

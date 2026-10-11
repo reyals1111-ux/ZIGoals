@@ -1,0 +1,13 @@
+
+Running 8 tests using 2 workers
+
+[1/8] [desktop] › tests/zigi-oneline-z.spec.ts:93:5 › connected, two replies: title, status, source lines, action rows, share row, chips, a card and History are one line each at every width
+[2/8] [mobile] › tests/zigi-oneline-z.spec.ts:93:5 › connected, two replies: title, status, source lines, action rows, share row, chips, a card and History are one line each at every width
+[3/8] [desktop] › tests/zigi-oneline-z.spec.ts:153:5 › the reply's "⋯": Copy as Markdown, Continue in my AI and the token count; no row of text links under a reply
+[4/8] [desktop] › tests/zigi-oneline-z.spec.ts:170:5 › expanded and in the mini window: still one line each
+[5/8] [mobile] › tests/zigi-oneline-z.spec.ts:153:5 › the reply's "⋯": Copy as Markdown, Continue in my AI and the token count; no row of text links under a reply
+[6/8] [desktop] › tests/zigi-oneline-z.spec.ts:191:5 › not connected: the status says so on one line; the chips row is one line; "Jump to the latest message" floats
+[7/8] [mobile] › tests/zigi-oneline-z.spec.ts:170:5 › expanded and in the mini window: still one line each
+[8/8] [mobile] › tests/zigi-oneline-z.spec.ts:191:5 › not connected: the status says so on one line; the chips row is one line; "Jump to the latest message" floats
+  1 skipped
+  7 passed (51.3s)

@@ -1,0 +1,12 @@
+
+ RUN  v5.0.2 /tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/main-wt
+
+ ✓ scripts/run11/tmp-habit-delete-35.test.mjs > #35 receives the deletion: it parses, validates and merges the shell; the habit stays archived, never due, nothing private left 589ms
+ ✓ scripts/run11/tmp-habit-delete-35.test.mjs > #35 edits the deleted habit offline: a conflict to review, never a silent overwrite 379ms
+ ✓ scripts/run11/tmp-habit-delete-35.test.mjs > #35 checks in another habit while the deletion is offline: both kept 411ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:39:11
+   Duration  3.16s (tests 46%, transform 33%, import 21%)
+

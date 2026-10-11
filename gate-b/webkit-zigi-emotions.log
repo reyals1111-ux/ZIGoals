@@ -1,0 +1,14 @@
+
+Running 10 tests using 2 workers
+
+[1/10] [mobile] › tests/zigi-emotions.spec.ts:48:5 › on Habits with the panel closed: a completed habit is a small success, the day's last one a celebration (once a day), a streak milestone makes ZIGi proud
+[2/10] [desktop] › tests/zigi-emotions.spec.ts:48:5 › on Habits with the panel closed: a completed habit is a small success, the day's last one a celebration (once a day), a streak milestone makes ZIGi proud
+[3/10] [mobile] › tests/zigi-emotions.spec.ts:69:5 › a streak milestone the engine counted makes ZIGi proud; the AI never decides it
+[4/10] [desktop] › tests/zigi-emotions.spec.ts:69:5 › a streak milestone the engine counted makes ZIGi proud; the AI never decides it
+[5/10] [mobile] › tests/zigi-emotions.spec.ts:77:5 › the knock obeys the controller: one nudge per session, none after a dismissal, none while the person types
+[6/10] [desktop] › tests/zigi-emotions.spec.ts:77:5 › the knock obeys the controller: one nudge per session, none after a dismissal, none while the person types
+[7/10] [mobile] › tests/zigi-emotions.spec.ts:108:5 › the AI's hint moves ZIGi only inside the fixed list, never shows in the text, and yields to cards and to careful mode
+[8/10] [desktop] › tests/zigi-emotions.spec.ts:108:5 › the AI's hint moves ZIGi only inside the fixed list, never shows in the text, and yields to cards and to careful mode
+[9/10] [mobile] › tests/zigi-emotions.spec.ts:147:5 › Meet ZIGi shows the studio's art for every state with what it means in plain words
+[10/10] [desktop] › tests/zigi-emotions.spec.ts:147:5 › Meet ZIGi shows the studio's art for every state with what it means in plain words
+  10 passed (1.1m)

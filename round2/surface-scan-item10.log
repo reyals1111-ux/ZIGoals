@@ -1,0 +1,661 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [desktop] › tests/tmp-surface-scan.spec.ts:60:5 › scan
+[desktop] › tests/tmp-surface-scan.spec.ts:60:5 › scan
+
+==== 768
+
+## not connected panel
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+ok
+
+## suggestions your day
+ok
+
+## suggestions yours
+ok
+
+## what your ai sees
+ok
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+LABEL 2L small. "Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K ope"
+
+## meet zigi
+LABEL 2L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L small. "ZIGi holds still: a still frame for every state."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Hello: the panel’s first open of the day."
+LABEL 2L p.meet-zigi-meaning "The microphone is on, or you are typing."
+LABEL 2L p.meet-zigi-meaning "Cards to look at: an answer with proposals."
+LABEL 2L p.meet-zigi-meaning "Something went wrong; it can be tried again."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 3L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meaning "A streak milestone the habit engine counted."
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+LABEL 2L summary. "Can I ask ZIGi about my records, like “How many minutes did I meditate"
+
+
+==== 1024
+
+## not connected panel
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+ok
+
+## suggestions your day
+ok
+
+## suggestions yours
+ok
+
+## what your ai sees
+ok
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+ok
+
+## meet zigi
+LABEL 2L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L small. "ZIGi holds still: a still frame for every state."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Hello: the panel’s first open of the day."
+LABEL 2L p.meet-zigi-meaning "The microphone is on, or you are typing."
+LABEL 2L p.meet-zigi-meaning "Cards to look at: an answer with proposals."
+LABEL 2L p.meet-zigi-meaning "The panel has been quiet for a while."
+LABEL 2L p.meet-zigi-meaning "Something went wrong; it can be tried again."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 3L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meaning "A streak milestone the habit engine counted."
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meaning "ZIGi needs you to choose which one."
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meaning "A gentle look after a sensitive topic."
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meaning "Chrome’s on-device model is loading."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+ok
+
+
+==== 1440
+
+## not connected panel
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+ok
+
+## suggestions your day
+ok
+
+## suggestions yours
+ok
+
+## what your ai sees
+ok
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+ok
+
+## meet zigi
+LABEL 2L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Hello: the panel’s first open of the day."
+LABEL 2L p.meet-zigi-meaning "The microphone is on, or you are typing."
+LABEL 2L p.meet-zigi-meaning "Cards to look at: an answer with proposals."
+LABEL 2L p.meet-zigi-meaning "The panel has been quiet for a while."
+LABEL 2L p.meet-zigi-meaning "Something went wrong; it can be tried again."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 3L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meaning "A streak milestone the habit engine counted."
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meaning "ZIGi needs you to choose which one."
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meaning "A gentle look after a sensitive topic."
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meaning "Chrome’s on-device model is loading."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+ok
+
+[2/2] [mobile] › tests/tmp-surface-scan.spec.ts:60:5 › scan
+[mobile] › tests/tmp-surface-scan.spec.ts:60:5 › scan
+
+==== 320
+
+## not connected panel
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+LABEL 2L p.ai-voice-live "drank three hundred millilitres of water"
+
+## connected empty
+ok
+
+## suggestions ideas
+LABEL 2L li. "Type / for commands such as /log or /remember."
+LABEL 2L li. "Press ? (outside the message box) for keyboard shortcuts."
+LABEL 2L li. "ZIGi writes nothing by itself: every change comes as a card you add."
+
+## suggestions your day
+LABEL 2L li. "Still open today: Exercise, Meditate and Drink water."
+LABEL 2L li. "From yesterday: Contribute, 27 days in a row."
+LABEL 2L li. "One to start with: Drink water (26 days in a row so far)."
+
+## suggestions yours
+ok
+
+## what your ai sees
+LABEL 2L p.ai-note "The records chosen from your question are attached to your message."
+
+## cards and toast
+LABEL 2L p. "Drank 300 ml and I weigh 72.5 kg"
+
+## receipts and undo
+LABEL 2L p. "Drank 300 ml and I weigh 72.5 kg"
+
+## reply more
+LABEL 2L p. "Drank 300 ml and I weigh 72.5 kg"
+
+## model switcher
+LABEL 2L p. "Drank 300 ml and I weigh 72.5 kg"
+
+## header more
+LABEL 2L button. "mock-chat"
+LABEL 2L p. "Drank 300 ml and I weigh 72.5 kg"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+LABEL 3L small. "each habit's title, schedule, target, today's state and streak"
+LABEL 3L small. "the Help notes about how ZIGoals works; no records"
+LABEL 5L small. "Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K ope"
+LABEL 2L small. "1 of 20 added by ZIGi today. Past the cap, cards wait for your tap."
+LABEL 3L small. "Sent as the provider’s maximum; a longer reply is cut off and says so."
+
+## meet zigi
+LABEL 2L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L small. "ZIGi holds still: a still frame for every state."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+LABEL 2L p.eyebrow "ZIGi · Your Personal AI Companion"
+LABEL 2L h2. "Your own AI, page by page"
+LABEL 2L summary. "What does ZIGi send, and to whom?"
+LABEL 2L summary. "Can ZIGi change my records?"
+LABEL 3L summary. "I pay for ChatGPT, Claude, Grok or Gemini. Can ZIGi use that?"
+LABEL 2L summary. "How do I use a model on my own computer?"
+LABEL 2L summary. "Does ZIGi give health or money advice?"
+LABEL 4L summary. "Can I ask ZIGi about my records, like “How many minutes did I meditate"
+LABEL 2L summary. "How does my AI get the records it needs?"
+LABEL 2L summary. "What can ZIGi log or plan for me?"
+LABEL 2L summary. "Can ZIGi add things without my tap?"
+LABEL 2L summary. "What does ZIGi know about me?"
+LABEL 2L summary. "Where do ZIGi’s chips, brief and patterns come from?"
+LABEL 2L summary. "Which slash commands and shortcuts does ZIGi know?"
+LABEL 2L summary. "Can ZIGi knock when a reminder is due?"
+LABEL 2L summary. "Can an AI agent in my browser use ZIGoals?"
+LABEL 2L summary. "What is Chrome’s on-device model?"
+LABEL 2L summary. "Can I change how ZIGi looks?"
+LABEL 2L summary. "How do I turn ZIGi off, or hide the button?"
+
+
+==== 360
+
+## not connected panel
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+LABEL 2L li. "Type / for commands such as /log or /remember."
+LABEL 2L li. "Press ? (outside the message box) for keyboard shortcuts."
+LABEL 2L li. "ZIGi writes nothing by itself: every change comes as a card you add."
+
+## suggestions your day
+LABEL 2L li. "Still open today: Exercise, Meditate and Drink water."
+LABEL 2L li. "From yesterday: Contribute, 27 days in a row."
+LABEL 2L li. "One to start with: Drink water (26 days in a row so far)."
+
+## suggestions yours
+ok
+
+## what your ai sees
+LABEL 2L p.ai-note "The records chosen from your question are attached to your message."
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+LABEL 3L small. "each habit's title, schedule, target, today's state and streak"
+LABEL 2L small. "the Help notes about how ZIGoals works; no records"
+LABEL 4L small. "Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K ope"
+LABEL 2L small. "1 of 20 added by ZIGi today. Past the cap, cards wait for your tap."
+LABEL 2L small. "Sent as the provider’s maximum; a longer reply is cut off and says so."
+
+## meet zigi
+LABEL 4L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L small. "ZIGi holds still: a still frame for every state."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+LABEL 2L p.eyebrow "ZIGi · Your Personal AI Companion"
+LABEL 2L summary. "What does ZIGi send, and to whom?"
+LABEL 2L summary. "I pay for ChatGPT, Claude, Grok or Gemini. Can ZIGi use that?"
+LABEL 2L summary. "How do I use a model on my own computer?"
+LABEL 2L summary. "Does ZIGi give health or money advice?"
+LABEL 3L summary. "Can I ask ZIGi about my records, like “How many minutes did I meditate"
+LABEL 2L summary. "How does my AI get the records it needs?"
+LABEL 2L summary. "Can ZIGi add things without my tap?"
+LABEL 2L summary. "Where do ZIGi’s chips, brief and patterns come from?"
+LABEL 2L summary. "Which slash commands and shortcuts does ZIGi know?"
+LABEL 2L summary. "Can ZIGi knock when a reminder is due?"
+LABEL 2L summary. "Can an AI agent in my browser use ZIGoals?"
+LABEL 2L summary. "What is Chrome’s on-device model?"
+LABEL 2L summary. "How do I turn ZIGi off, or hide the button?"
+
+
+==== 390
+
+## not connected panel
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 3L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+LABEL 2L li. "Type / for commands such as /log or /remember."
+LABEL 2L li. "Press ? (outside the message box) for keyboard shortcuts."
+LABEL 2L li. "ZIGi writes nothing by itself: every change comes as a card you add."
+
+## suggestions your day
+LABEL 2L li. "Still open today: Exercise, Meditate and Drink water."
+LABEL 2L li. "From yesterday: Contribute, 27 days in a row."
+LABEL 2L li. "One to start with: Drink water (26 days in a row so far)."
+
+## suggestions yours
+ok
+
+## what your ai sees
+LABEL 2L p.ai-note "The records chosen from your question are attached to your message."
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+LABEL 2L small. "each habit's title, schedule, target, today's state and streak"
+LABEL 2L small. "the Help notes about how ZIGoals works; no records"
+LABEL 3L small. "Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K ope"
+LABEL 2L small. "1 of 20 added by ZIGi today. Past the cap, cards wait for your tap."
+LABEL 2L small. "Sent as the provider’s maximum; a longer reply is cut off and says so."
+
+## meet zigi
+LABEL 4L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L small. "ZIGi holds still: a still frame for every state."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+LABEL 2L p.eyebrow "ZIGi · Your Personal AI Companion"
+LABEL 2L summary. "I pay for ChatGPT, Claude, Grok or Gemini. Can ZIGi use that?"
+LABEL 2L summary. "How do I use a model on my own computer?"
+LABEL 2L summary. "Does ZIGi give health or money advice?"
+LABEL 3L summary. "Can I ask ZIGi about my records, like “How many minutes did I meditate"
+LABEL 2L summary. "How does my AI get the records it needs?"
+LABEL 2L summary. "Where do ZIGi’s chips, brief and patterns come from?"
+LABEL 2L summary. "Which slash commands and shortcuts does ZIGi know?"
+LABEL 2L summary. "Can ZIGi knock when a reminder is due?"
+LABEL 2L summary. "Can an AI agent in my browser use ZIGoals?"
+LABEL 2L summary. "How do I turn ZIGi off, or hide the button?"
+
+
+==== 430
+
+## not connected panel
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## setup chooser
+ok
+
+mic buttons: Talk to ZIGi | Send
+
+## voice first use
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## voice listening
+LABEL 2L p.ai-greeting-text "Hi, I’m ZIGi. Ask about your records: I answer here, on this device, w"
+
+## connected empty
+ok
+
+## suggestions ideas
+LABEL 2L li. "Press ? (outside the message box) for keyboard shortcuts."
+LABEL 2L li. "ZIGi writes nothing by itself: every change comes as a card you add."
+
+## suggestions your day
+LABEL 2L li. "Still open today: Exercise, Meditate and Drink water."
+LABEL 2L li. "One to start with: Drink water (26 days in a row so far)."
+
+## suggestions yours
+ok
+
+## what your ai sees
+LABEL 2L p.ai-note "The records chosen from your question are attached to your message."
+
+## cards and toast
+ok
+
+## receipts and undo
+ok
+
+## reply more
+ok
+
+## model switcher
+ok
+
+## header more
+LABEL 2L button. "mock-chat"
+
+## history
+LABEL 2L button. "mock-chat"
+
+## customize
+LABEL 2L button. "mock-chat"
+
+## settings section
+LABEL 2L small. "each habit's title, schedule, target, today's state and streak"
+LABEL 2L small. "the Help notes about how ZIGoals works; no records"
+LABEL 3L small. "Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K ope"
+LABEL 2L small. "1 of 20 added by ZIGi today. Past the cap, cards wait for your tap."
+LABEL 2L small. "Sent as the provider’s maximum; a longer reply is cut off and says so."
+
+## meet zigi
+LABEL 3L small. "ZIGi’s idle clip while it waits, and a clip for what happens."
+LABEL 2L p.meet-zigi-meaning "At rest. Under Full, a rare glance or thought comes between."
+LABEL 2L p.meet-zigi-meaning "Your AI is looking at your records through ZIGi’s tools."
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meaning "A small success: an answer on the device, an accepted card, a logged e"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the celebrate clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the insight clip for now, with this state’s own move. Falls back"
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the speaking clip for now, with this state’s own move. Falls bac"
+LABEL 2L p.meet-zigi-meta "Wears the idle clip for now, with this state’s own move. Falls back to"
+LABEL 2L p.meet-zigi-meta "Wears the attention clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the sleepy clip for now, with this state’s own move. Falls back "
+LABEL 2L p.meet-zigi-meta "Wears the listening clip for now, with this state’s own move. Falls ba"
+LABEL 2L p.meet-zigi-meta "Wears the thinking clip for now, with this state’s own move. Falls bac"
+
+## help your ai
+LABEL 2L p.eyebrow "ZIGi · Your Personal AI Companion"
+LABEL 2L summary. "I pay for ChatGPT, Claude, Grok or Gemini. Can ZIGi use that?"
+LABEL 2L summary. "How do I use a model on my own computer?"
+LABEL 2L summary. "Can I ask ZIGi about my records, like “How many minutes did I meditate"
+LABEL 2L summary. "Where do ZIGi’s chips, brief and patterns come from?"
+LABEL 2L summary. "Which slash commands and shortcuts does ZIGi know?"
+LABEL 2L summary. "Can an AI agent in my browser use ZIGoals?"
+
+  2 passed (4.2m)

@@ -1,0 +1,201 @@
+
+Running 136 tests using 2 workers
+
+[1/136] [desktop] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[2/136] [desktop] › tests/ui-design-pass.spec.ts:18:6 › Part 1: readability foundation › page ledes and eyebrows use the shared header system
+[3/136] [desktop] › tests/ui-design-pass.spec.ts:30:6 › Part 1: readability foundation › Goal card secondary text is near-white, medium weight and at least 15px
+[4/136] [desktop] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[5/136] [desktop] › tests/ui-design-pass.spec.ts:39:6 › Part 1: readability foundation › Today eyebrow nebula flows from the middle of the line
+[6/136] [desktop] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[7/136] [desktop] › tests/ui-design-pass.spec.ts:46:6 › Part 1: readability foundation › Habits: New habit sits beside the orbit and the journal timezone moves to the bottom
+[8/136] [desktop] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[9/136] [desktop] › tests/ui-design-pass.spec.ts:65:6 › Part 1: readability foundation › the sidebar shows the page mark above the planet, and no longer a Shape & Fold tagline
+[10/136] [desktop] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[11/136] [desktop] › tests/ui-design-pass.spec.ts:75:6 › Part 1: readability foundation › Habits and Health load without hydration warnings
+[12/136] [desktop] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › desktop: 3 bars per row; icon and name on the left, − / count / + on the right, in one row
+[13/136] [desktop] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › tablet: 2 bars per row; icon and name on the left, − / count / + on the right, in one row
+[14/136] [desktop] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › phone: 1 bar per row; icon and name on the left, − / count / + on a second line
+[15/136] [desktop] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[16/136] [desktop] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[17/136] [desktop] › tests/persona-z.spec.ts:203:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); inputs stay ungrouped
+[18/136] [desktop] › tests/ui-design-pass.spec.ts:107:6 › Part 18.5: one white→nebula style for titles and topics › every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility
+[19/136] [desktop] › tests/persona-z.spec.ts:213:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[20/136] [desktop] › tests/persona-z.spec.ts:231:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[21/136] [desktop] › tests/persona-z.spec.ts:242:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[22/136] [desktop] › tests/persona-z.spec.ts:262:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[23/136] [desktop] › tests/ui-evidence.spec.ts:24:7 › reduced motion › gradient sweeps, entrances and page arrivals never run on any main page
+[24/136] [desktop] › tests/ui-evidence.spec.ts:29:7 › reduced motion › hover and a mouse drag move nothing on their own: no lift, no glide, no transition
+[25/136] [desktop] › tests/ui-design-pass.spec.ts:120:6 › Part 18.5: one white→nebula style for titles and topics › reduced motion and Motion Off show the final mid-to-right state at once
+[26/136] [desktop] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page
+[27/136] [desktop] › tests/ui-evidence.spec.ts:24:7 › Motion Off › gradient sweeps, entrances and page arrivals never run on any main page
+[28/136] [desktop] › tests/ui-design-pass.spec.ts:148:6 › Part 18.4: one place for the layout lock › without the mode strip, the lock keeps its place at the right of the same row
+[29/136] [desktop] › tests/ui-design-pass.spec.ts:158:6 › Part 2: personal layouts › unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls
+[30/136] [desktop] › tests/ui-evidence.spec.ts:29:7 › Motion Off › hover and a mouse drag move nothing on their own: no lift, no glide, no transition
+[31/136] [desktop] › tests/ui-evidence.spec.ts:50:5 › forced colours: every main page renders and keyboard focus stays visible
+[32/136] [desktop] › tests/ui-design-pass.spec.ts:187:6 › Part 2: personal layouts › honesty banners and the page header are never movable
+[33/136] [desktop] › tests/ui-design-pass.spec.ts:201:6 › Part 2: personal layouts › Today moves go through the synced Today placement and Reset restores its default order
+[34/136] [desktop] › tests/ui-design-pass.spec.ts:215:6 › Part 2: personal layouts › dragging a Goal card with the mouse reorders the collection
+[35/136] [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the health layout
+[36/136] [desktop] › tests/ui-design-pass.spec.ts:233:6 › Part 2: personal layouts › Motion Off: moves are instant, with no glide animations
+[37/136] [desktop] › tests/ui-design-pass.spec.ts:243:6 › Part 2: personal layouts › touch: a long-press on the handle picks a card up and moves it
+[38/136] [desktop] › tests/ui-design-pass.spec.ts:272:6 › Part 3: liquid glass › hovering lifts a Goal card and a habit calendar tile; the shared rim follows the element, never the pointer
+[39/136] [desktop] › tests/ui-design-pass.spec.ts:293:6 › Part 3: liquid glass › list rows get a rounded glass pill that never moves or crowds their content
+[40/136] [desktop] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout
+[41/136] [desktop] › tests/ui-design-pass.spec.ts:313:6 › Part 3: liquid glass › keyboard focus gives the same lift with the focus ring
+[42/136] [desktop] › tests/ui-design-pass.spec.ts:324:7 › Part 3: liquid glass › reduced motion: hover never moves anything; a static highlight only
+[43/136] [desktop] › tests/ui-design-pass.spec.ts:324:7 › Part 3: liquid glass › Motion Off: hover never moves anything; a static highlight only
+[44/136] [desktop] › tests/ui-design-pass.spec.ts:334:6 › Part 3: liquid glass › touch gets press feedback only, never a hover lift
+[45/136] [desktop] › tests/ui-design-pass.spec.ts:342:6 › Part 3: liquid glass › hover intent: a pointer that presses straight away never lifts the tile; resting lifts it
+[46/136] [desktop] › tests/ui-design-pass.spec.ts:362:6 › Part 3: liquid glass › long sections and typing stay still; the sidebar star is a plain layer
+[47/136] [desktop] › tests/ui-design-pass.spec.ts:386:6 › Part 4: Health › quick counters: +/− on today, never below zero, and they survive a reload
+[48/136] [desktop] › tests/ui-evidence.spec.ts:83:5 › unlocked layouts: each card keeps its move controls inside itself, never over another card's
+[49/136] [desktop] › tests/ui-design-pass.spec.ts:409:6 › Part 4: Health › a custom counter can be added, renamed and deleted after confirmation
+[50/136] [desktop] › tests/ui-design-pass.spec.ts:428:6 › Part 4: Health › Showcase counters are fictional and never touch real Health data
+[51/136] [desktop] › tests/ui-design-pass.spec.ts:434:6 › Part 4: Health › the Health titles carry the nebula flow from the middle
+[52/136] [desktop] › tests/ui-design-pass.spec.ts:444:6 › Part 5: Wealth headline › one headline total in one currency; other currencies on their own line, never converted
+[53/136] [desktop] › tests/ui-evidence.spec.ts:105:5 › no hydration errors or page errors on any main page
+[54/136] [desktop] › tests/ui-design-pass.spec.ts:460:6 › Part 6: journey banner › describes ZIGoals in three orbit steps and keeps the Alpha truths visible
+[55/136] [desktop] › tests/ui-design-pass.spec.ts:477:6 › Part 7: Today widgets › new widgets add from their category with a live preview, arrow keys move between choices, and Remove works
+[56/136] [desktop] › tests/ui-design-pass.spec.ts:499:6 › Part 8: bottom sections › each main page ends with its new section, movable and honest
+[57/136] [desktop] › tests/ui-evidence.spec.ts:112:5 › no hydration errors or page errors on a cold load of any main page
+[58/136] [desktop] › tests/ui-design-pass.spec.ts:522:6 › Part 9: quality sweep › button text links read as links, and Ecosystem labels are at least 14px
+[59/136] [desktop] › tests/wealth-v2.spec.ts:28:5 › accounts and debts: net worth per currency with Wealth's valued holding as its own line; a payoff from the person's own rate
+[60/136] [desktop] › tests/wealth-v2.spec.ts:68:5 › a contribution reminder: set on the Goal, a calm card on Today once due, "Fund now" opens the form filled in, "Not today" puts it off
+[61/136] [desktop] › tests/ui-evidence.spec.ts:120:5 › no horizontal overflow at 390px on any main page
+[62/136] [desktop] › tests/wealth-v2.spec.ts:97:5 › Showcase: fictional accounts and debts show net worth and a payoff; nothing is requested from a bank
+[63/136] [desktop] › tests/wealth.spec.ts:24:5 › manual sources stay selected and all allocations are created
+[64/136] [desktop] › tests/wealth.spec.ts:33:5 › Wealth shows every category, preserves allocations and fits all viewports
+[65/136] [desktop] › tests/zigi-phone-rest.spec.ts:34:7 › 390x844: on every app page the launcher rests clear of the first screen's controls and stays on screen
+[66/136] [mobile] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[67/136] [mobile] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[desktop] › tests/zigi-phone-rest.spec.ts:34:7 › 390x844: on every app page the launcher rests clear of the first screen's controls and stays on screen
+phone-rest 390x844:
+  /app 322,674–378,776
+  /app/goals 322,674–378,776
+  /app/habits 322,674–378,776
+  /app/health 322,546–378,648
+  /app/wealth 322,506–378,608
+  /app/markets 322,338–378,440
+  /app/portfolio 322,674–378,776
+  /app/staking 322,674–378,776
+  /app/ecosystem 322,586–378,688
+  /app/activity 322,522–378,624
+  /app/chess 322,594–378,696
+  /app/help 322,674–378,776
+
+[68/136] [desktop] › tests/zigi-phone-rest.spec.ts:34:7 › 360x800: on every app page the launcher rests clear of the first screen's controls and stays on screen
+[69/136] [mobile] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[70/136] [mobile] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[71/136] [mobile] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[72/136] [mobile] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[73/136] [mobile] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[74/136] [mobile] › tests/persona-z.spec.ts:203:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); inputs stay ungrouped
+[desktop] › tests/zigi-phone-rest.spec.ts:34:7 › 360x800: on every app page the launcher rests clear of the first screen's controls and stays on screen
+phone-rest 360x800:
+  /app 292,630–348,732
+  /app/goals 292,630–348,732
+  /app/habits 292,630–348,732
+  /app/health 292,542–348,644
+  /app/wealth 292,542–348,644
+  /app/markets 292,358–348,460
+  /app/portfolio 292,494–348,596
+  /app/staking 292,630–348,732
+  /app/ecosystem 292,582–348,684
+  /app/activity 292,518–348,620
+  /app/chess 292,622–348,724
+  /app/help 292,286–348,388
+
+[75/136] [desktop] › tests/zigi-phone-rest.spec.ts:56:5 › 390x844: scrolled past the top the launcher is back in its corner; hidden, the edge tab shows it again
+[76/136] [mobile] › tests/persona-z.spec.ts:213:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[77/136] [mobile] › tests/persona-z.spec.ts:231:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[78/136] [mobile] › tests/persona-z.spec.ts:242:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[79/136] [mobile] › tests/persona-z.spec.ts:262:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[80/136] [desktop] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release
+[81/136] [mobile] › tests/ui-design-pass.spec.ts:18:6 › Part 1: readability foundation › page ledes and eyebrows use the shared header system
+[82/136] [mobile] › tests/ui-evidence.spec.ts:24:7 › reduced motion › gradient sweeps, entrances and page arrivals never run on any main page
+[83/136] [mobile] › tests/ui-design-pass.spec.ts:30:6 › Part 1: readability foundation › Goal card secondary text is near-white, medium weight and at least 15px
+[84/136] [mobile] › tests/ui-design-pass.spec.ts:39:6 › Part 1: readability foundation › Today eyebrow nebula flows from the middle of the line
+[85/136] [mobile] › tests/ui-design-pass.spec.ts:46:6 › Part 1: readability foundation › Habits: New habit sits beside the orbit and the journal timezone moves to the bottom
+[86/136] [mobile] › tests/ui-design-pass.spec.ts:65:6 › Part 1: readability foundation › the sidebar shows the page mark above the planet, and no longer a Shape & Fold tagline
+[87/136] [mobile] › tests/ui-design-pass.spec.ts:75:6 › Part 1: readability foundation › Habits and Health load without hydration warnings
+[88/136] [mobile] › tests/ui-evidence.spec.ts:29:7 › reduced motion › hover and a mouse drag move nothing on their own: no lift, no glide, no transition
+[89/136] [mobile] › tests/ui-evidence.spec.ts:24:7 › Motion Off › gradient sweeps, entrances and page arrivals never run on any main page
+[90/136] [mobile] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › desktop: 3 bars per row; icon and name on the left, − / count / + on the right, in one row
+[91/136] [mobile] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › tablet: 2 bars per row; icon and name on the left, − / count / + on the right, in one row
+[92/136] [mobile] › tests/ui-design-pass.spec.ts:86:7 › Part 18.6: quick counters as bars › phone: 1 bar per row; icon and name on the left, − / count / + on a second line
+[93/136] [mobile] › tests/ui-evidence.spec.ts:29:7 › Motion Off › hover and a mouse drag move nothing on their own: no lift, no glide, no transition
+[94/136] [mobile] › tests/ui-evidence.spec.ts:50:5 › forced colours: every main page renders and keyboard focus stays visible
+[95/136] [mobile] › tests/ui-design-pass.spec.ts:107:6 › Part 18.5: one white→nebula style for titles and topics › every page title and page eyebrow reads white on the left and turns nebula from the middle, from one shared utility
+[96/136] [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the health layout
+[97/136] [mobile] › tests/ui-evidence.spec.ts:64:6 › keyboard only: unlock, move, hear it, reset and lock the wealth layout
+[98/136] [mobile] › tests/ui-design-pass.spec.ts:120:6 › Part 18.5: one white→nebula style for titles and topics › reduced motion and Motion Off show the final mid-to-right state at once
+[99/136] [mobile] › tests/ui-design-pass.spec.ts:131:6 › Part 18.4: one place for the layout lock › the lock sits right after the demo balance, in the same spot on every page
+[100/136] [mobile] › tests/ui-evidence.spec.ts:83:5 › unlocked layouts: each card keeps its move controls inside itself, never over another card's
+[101/136] [mobile] › tests/ui-design-pass.spec.ts:148:6 › Part 18.4: one place for the layout lock › without the mode strip, the lock keeps its place at the right of the same row
+[102/136] [mobile] › tests/ui-design-pass.spec.ts:158:6 › Part 2: personal layouts › unlock, move with the keyboard, reload keeps it, reset restores it, lock hides the controls
+[103/136] [mobile] › tests/ui-design-pass.spec.ts:187:6 › Part 2: personal layouts › honesty banners and the page header are never movable
+[104/136] [mobile] › tests/ui-evidence.spec.ts:105:5 › no hydration errors or page errors on any main page
+[105/136] [mobile] › tests/ui-design-pass.spec.ts:201:6 › Part 2: personal layouts › Today moves go through the synced Today placement and Reset restores its default order
+[106/136] [mobile] › tests/ui-design-pass.spec.ts:215:6 › Part 2: personal layouts › dragging a Goal card with the mouse reorders the collection
+[107/136] [mobile] › tests/ui-design-pass.spec.ts:233:6 › Part 2: personal layouts › Motion Off: moves are instant, with no glide animations
+[108/136] [mobile] › tests/ui-design-pass.spec.ts:243:6 › Part 2: personal layouts › touch: a long-press on the handle picks a card up and moves it
+[109/136] [mobile] › tests/ui-evidence.spec.ts:112:5 › no hydration errors or page errors on a cold load of any main page
+[110/136] [mobile] › tests/ui-design-pass.spec.ts:272:6 › Part 3: liquid glass › hovering lifts a Goal card and a habit calendar tile; the shared rim follows the element, never the pointer
+[111/136] [mobile] › tests/ui-design-pass.spec.ts:293:6 › Part 3: liquid glass › list rows get a rounded glass pill that never moves or crowds their content
+[112/136] [mobile] › tests/ui-design-pass.spec.ts:313:6 › Part 3: liquid glass › keyboard focus gives the same lift with the focus ring
+[113/136] [mobile] › tests/ui-design-pass.spec.ts:324:7 › Part 3: liquid glass › reduced motion: hover never moves anything; a static highlight only
+[114/136] [mobile] › tests/ui-design-pass.spec.ts:324:7 › Part 3: liquid glass › Motion Off: hover never moves anything; a static highlight only
+[115/136] [mobile] › tests/ui-design-pass.spec.ts:334:6 › Part 3: liquid glass › touch gets press feedback only, never a hover lift
+[116/136] [mobile] › tests/ui-design-pass.spec.ts:342:6 › Part 3: liquid glass › hover intent: a pointer that presses straight away never lifts the tile; resting lifts it
+[117/136] [mobile] › tests/ui-design-pass.spec.ts:362:6 › Part 3: liquid glass › long sections and typing stay still; the sidebar star is a plain layer
+[118/136] [mobile] › tests/ui-design-pass.spec.ts:386:6 › Part 4: Health › quick counters: +/− on today, never below zero, and they survive a reload
+[119/136] [mobile] › tests/ui-design-pass.spec.ts:409:6 › Part 4: Health › a custom counter can be added, renamed and deleted after confirmation
+[120/136] [mobile] › tests/ui-design-pass.spec.ts:428:6 › Part 4: Health › Showcase counters are fictional and never touch real Health data
+[121/136] [mobile] › tests/ui-evidence.spec.ts:120:5 › no horizontal overflow at 390px on any main page
+[122/136] [mobile] › tests/ui-design-pass.spec.ts:434:6 › Part 4: Health › the Health titles carry the nebula flow from the middle
+[123/136] [mobile] › tests/ui-design-pass.spec.ts:444:6 › Part 5: Wealth headline › one headline total in one currency; other currencies on their own line, never converted
+[124/136] [mobile] › tests/ui-design-pass.spec.ts:460:6 › Part 6: journey banner › describes ZIGoals in three orbit steps and keeps the Alpha truths visible
+[125/136] [mobile] › tests/ui-design-pass.spec.ts:477:6 › Part 7: Today widgets › new widgets add from their category with a live preview, arrow keys move between choices, and Remove works
+[126/136] [mobile] › tests/wealth-v2.spec.ts:28:5 › accounts and debts: net worth per currency with Wealth's valued holding as its own line; a payoff from the person's own rate
+[127/136] [mobile] › tests/wealth-v2.spec.ts:68:5 › a contribution reminder: set on the Goal, a calm card on Today once due, "Fund now" opens the form filled in, "Not today" puts it off
+[128/136] [mobile] › tests/ui-design-pass.spec.ts:499:6 › Part 8: bottom sections › each main page ends with its new section, movable and honest
+[129/136] [mobile] › tests/wealth-v2.spec.ts:97:5 › Showcase: fictional accounts and debts show net worth and a payoff; nothing is requested from a bank
+[130/136] [mobile] › tests/wealth.spec.ts:24:5 › manual sources stay selected and all allocations are created
+[131/136] [mobile] › tests/ui-design-pass.spec.ts:522:6 › Part 9: quality sweep › button text links read as links, and Ecosystem labels are at least 14px
+[132/136] [mobile] › tests/wealth.spec.ts:33:5 › Wealth shows every category, preserves allocations and fits all viewports
+[133/136] [mobile] › tests/zigi-phone-rest.spec.ts:34:7 › 390x844: on every app page the launcher rests clear of the first screen's controls and stays on screen
+[mobile] › tests/zigi-phone-rest.spec.ts:34:7 › 390x844: on every app page the launcher rests clear of the first screen's controls and stays on screen
+phone-rest 390x844:
+  /app 322,674–378,776
+  /app/goals 322,674–378,776
+  /app/habits 322,674–378,776
+  /app/health 322,546–378,648
+  /app/wealth 322,506–378,608
+  /app/markets 322,338–378,440
+  /app/portfolio 322,674–378,776
+  /app/staking 322,674–378,776
+  /app/ecosystem 322,586–378,688
+  /app/activity 322,522–378,624
+  /app/chess 322,594–378,696
+  /app/help 322,674–378,776
+
+[134/136] [mobile] › tests/zigi-phone-rest.spec.ts:34:7 › 360x800: on every app page the launcher rests clear of the first screen's controls and stays on screen
+[mobile] › tests/zigi-phone-rest.spec.ts:34:7 › 360x800: on every app page the launcher rests clear of the first screen's controls and stays on screen
+phone-rest 360x800:
+  /app 292,630–348,732
+  /app/goals 292,630–348,732
+  /app/habits 292,630–348,732
+  /app/health 292,542–348,644
+  /app/wealth 292,542–348,644
+  /app/markets 292,358–348,460
+  /app/portfolio 292,494–348,596
+  /app/staking 292,630–348,732
+  /app/ecosystem 292,582–348,684
+  /app/activity 292,518–348,620
+  /app/chess 292,622–348,724
+  /app/help 292,286–348,388
+
+[135/136] [mobile] › tests/zigi-phone-rest.spec.ts:56:5 › 390x844: scrolled past the top the launcher is back in its corner; hidden, the edge tab shows it again
+[136/136] [mobile] › tests/zigi-phone-rest.spec.ts:84:5 › 390x844: a press on a control under the corner keeps that control under the pointer until the release
+  14 skipped
+  122 passed (10.6m)
