@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { navLink } from "./phone-nav";
+import { navLink, walletArea } from "./phone-nav";
 import { toBech32 } from "@cosmjs/encoding";
 import { connectSources } from "../lib/csp-compose.mjs";
 const sentinel = "PRIVATE_SENTINEL_7cc2a9";
@@ -176,7 +176,8 @@ test("private lifecycle, backup, diagnostics and connection remain bounded under
   await page.getByRole("button",{name:"Copy reviewed diagnostics"}).click();
   await page.goto("/app/goals/1"); await expect(page.getByRole("heading",{name:sentinel+"_EDIT"})).toBeVisible();
   await page.locator("#local-simulation > summary").click(); await page.getByRole("button",{name:"Close empty goal"}).click(); await page.getByRole("button",{name:"Confirm simulation"}).click(); await expect(page.locator('dialog[aria-labelledby="review-title"]')).toHaveCount(0);
-  await page.getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
+  // Session Z-Cloud Part 4.2: at 320 px the wallet buttons sit in the phone's Status sheet (walletArea).
+  await (await walletArea(page)).getByRole("button",{name:"Connect Keplr"}).click(); await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   expect(await page.evaluate(()=>Reflect.get(window,"signerCalls"))).toBe(0);
   await page.waitForLoadState("networkidle");
   expect(await capture()).not.toContain(sentinel);
