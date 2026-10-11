@@ -51,7 +51,7 @@ export function copyStylesheets(from: SheetSource, to: Document): number {
 export async function openPipWindow(host: PipHost, from: Document = document): Promise<Window> {
   const win = await host.requestWindow({...PIP_SIZE});
   const doc = win.document;
-  doc.title = 'ZIGi · your AI';
+  doc.title = 'ZIGi · Your Personal AI Companion';
   doc.documentElement.lang = from.documentElement.lang || 'en';
   doc.documentElement.classList.add('zigi-pip-root');
   copyStylesheets(from, doc);

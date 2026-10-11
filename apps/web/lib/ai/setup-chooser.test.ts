@@ -40,11 +40,20 @@ it('the main rows', () => {
   expect(r({have: 'nothing', where: 'phone', matters: 'quality'}, 'unavailable', true).route).toBe('hosted');
   expect(r({have: 'subscription', where: 'computer', matters: 'quality'}).also).toBe('subscription');
   // A phone and privacy first: the bridge, which sends only what the person copies.
-  expect(r({have: 'nothing', where: 'phone', matters: 'privacy'}, 'unavailable', true).route).toBe('subscription');
+  expect(r({have: 'nothing', where: 'phone', matters: 'privacy'}, 'unavailable', true).route).toBe('api'); // Session Z-Local, the persona round: the bridge needs a subscription (listed)
+  expect(r({have: 'subscription', where: 'phone', matters: 'privacy'}, 'unavailable', true).route).toBe('subscription');
 });
 it('no money words that are not true: costs are the provider\'s own, and nothing claims to be free that is not', () => {
   for (const answers of all) for (const onDevice of states) {
     const text = JSON.stringify(recommend(answers, {onDevice}));
     expect(text).not.toMatch(/\$|€|£|per month|cheap/i);
   }
+});
+
+// Session Z-Local, the persona round: a phone with nothing and "nothing leaves my device" is not the bridge (it needs a subscription).
+it('a phone, nothing yet, privacy: a key with the honest why, not the bridge; with a subscription the bridge stays', () => {
+  expect(recommend({have: 'nothing', where: 'phone', matters: 'privacy'}, {onDevice: 'unavailable'}).route).toBe('api');
+  expect(recommend({have: 'api', where: 'phone', matters: 'privacy'}, {onDevice: 'unavailable'}).why).toContain('never leave the phone');
+  expect(recommend({have: 'subscription', where: 'phone', matters: 'privacy'}, {onDevice: 'unavailable'}).route).toBe('subscription');
+  expect(QUESTIONS.matters.options.privacy).toBe('Nothing leaves my device');
 });

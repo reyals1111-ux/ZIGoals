@@ -1,4 +1,5 @@
 import {expect, test} from 'vitest';
+import {addLocalDays} from '../../local-date';
 import {buildShowcase} from '../../showcase-data';
 import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
 import {healthSchema, saveRecipe, saveWeight, type HealthData} from '../../health';
@@ -87,7 +88,7 @@ test('water, steps, weight and a measurement: card, write through the Health mut
   expect(measurement.card.lines).toEqual(['waist: 81.5 cm']); expect(measurement.card.day).toBe('2026-09-18');
   const afterMeasurement = roundTrip(measurement);
   const saved = (afterMeasurement.health.measurements ?? []).find(m => m.kind === 'waist' && m.quantityMilli === 81_500);
-  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · your AI'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
+  expect(saved).toMatchObject({unit: 'cm', sourceLabel: 'ZIGi · Your Personal AI Companion'}); expect(saved!.observedAt.startsWith('2026-09-18')).toBe(true);
 });
 test('food from the library keeps the person\'s nutrients; an AI estimate is labelled, unknown stays unknown, and a missing serving weight is recorded transparently', () => {
   const library = plan({kind: 'log-food', name: 'oats', meal: 'Breakfast', food: 'f1', quantity: 1.5});
@@ -247,7 +248,11 @@ test('cards name records by title, never by identifier, and every kind the parse
     {kind: 'update-account-balance', account: 'Rainy-day savings', balance: 10450}, {kind: 'start-challenge', habit: 'h1', days: 30},
     // Session X-Local Part 5a
     {kind: 'stack-habit', habit: 'h2', after: 'h1'}, {kind: 'edit-habit', habit: 'h1', title: 'Renamed'}, {kind: 'edit-goal', goal: 'g1', name: 'Renamed goal'}, {kind: 'log-mood', mood: 3},
-    {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, {kind: 'add-widget', widget: 'habit', habit: 'h3', metric: 'today'}];
+    {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, {kind: 'add-widget', widget: 'habit', habit: 'h3', metric: 'today'},
+    // Session Z-Local Part 5
+    {kind: 'open-page', page: 'health', view: 'sleep'}, {kind: 'delete-record', what: 'habit', habit: 'h1'}, {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, {kind: 'vacation', from: '2026-09-22', to: '2026-09-23'}, {kind: 'close-goal', goal: 'g1'},
+    {kind: 'grocery-notes', notes: 'Oat milk'}, {kind: 'create-counter', name: 'Burpees'}, {kind: 'set-target', target: 'kcal', value: 2100}, {kind: 'set-health-preference', weightUnit: 'lb'}, {kind: 'start-night', bedtime: '23:00'}, {kind: 'set-bells', volume: 40},
+    {kind: 'set-today-preset', preset: 'wealth'}, {kind: 'skip-review'}, {kind: 'set-wrap-up', time: '21:30'}, {kind: 'set-page-visibility', page: 'markets', shown: false}, {kind: 'set-start-page', page: 'habits'}, {kind: 'set-zigi-look', animation: 'full'}, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings'}];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
   const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
@@ -259,6 +264,7 @@ test('cards name records by title, never by identifier, and every kind the parse
     expect(p.card.title.length, p.card.kind).toBeGreaterThan(3); expect(p.card.where.length, p.card.kind).toBeGreaterThan(3);
   }
   kinds.add('stop-fast'); // needs a running fast; covered above
+  for (const k of ['unskip', 'remove-reminder', 'reopen-goal', 'edit-diary-entry', 'log-meal-plan', 'set-favorite', 'edit-counter', 'end-night', 'edit-link', 'set-review-weekday', 'prefill-contribution']) kinds.add(k); // need a planned skip, a reminder, a closed goal, a diary name, a plan, a food, a counter, a running night, a link, a weekday other than the Showcase's, an active goal; covered in plan-z.test.ts
   expect([...kinds].sort()).toEqual([...ACTION_KINDS].sort());
 });
 test('end to end: a reply with an injected instruction yields one whitelisted card and nothing else is touched', () => {
@@ -371,16 +377,16 @@ test('stack-habit: written through the habit editor, undone exactly; after itsel
   expect(pending.card.lines).toContain('For a habit proposed in this reply: add that card first');
   expect(() => applyPlan(pending, stores)).toThrow(/Add both habits first/);
 });
-test('edit-habit: only the named plain fields change, from today; the card lists each change; undo restores the habit; nothing to change is refused', () => {
+test('edit-habit: only the named plain fields change, from tomorrow (the earliest day Habits\' own form allows); the card lists each change; undo restores the habit; nothing to change is refused', () => {
   const i = stores.habits.habits.findIndex(h => h.title === 'Meditate'), h = stores.habits.habits[i]!, handle = `h${i + 1}`;
   const p = plan({kind: 'edit-habit', habit: handle, title: 'Evening meditation', description: 'Ten calm minutes before bed', target: 15});
   expect(p.card.title).toBe('Change the habit "Meditate"');
   expect(p.card.lines).toContain('Title: Meditate → Evening meditation'); expect(p.card.lines).toContain('Description: Ten calm minutes before bed');
   expect(p.card.lines.find(l => l.startsWith('Target: '))).toMatch(/^Target: \d+ → 15 minutes a day$/);
-  expect(p.card.lines.at(-1)).toBe('From today; earlier days keep the rule they had, as in Habits');
+  expect(p.card.lines.at(-1)).toBe('From tomorrow, as in Habits; earlier days keep the rule they had'); // Session Z-Local, the persona round (ADR-020 L43)
   const after = roundTrip(p), changed = after.habits.habits[i]!;
   expect(changed).toMatchObject({id: h.id, title: 'Evening meditation', description: 'Ten calm minutes before bed', entries: h.entries});
-  expect(latestHabitRule(changed)).toMatchObject({target: 15, from: DAY, measurement: latestHabitRule(h).measurement, schedule: latestHabitRule(h).schedule});
+  expect(latestHabitRule(changed)).toMatchObject({target: 15, from: addLocalDays(DAY, 1), measurement: latestHabitRule(h).measurement, schedule: latestHabitRule(h).schedule});
   expect(refusal({kind: 'edit-habit', habit: handle, title: 'Meditate'})).toMatch(/already is as proposed/);
   expect(refusal({kind: 'edit-habit', habit: 'h99', title: 'x'})).toMatch(/not in this page/);
   expect(() => actionSchema.parse({kind: 'edit-habit', habit: handle})).toThrow(/Say what to change/);

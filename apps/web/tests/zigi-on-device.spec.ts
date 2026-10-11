@@ -71,9 +71,9 @@ test('"Which setup fits me?": a few answers, one honest suggestion with its step
   const result = card.getByRole('article', {name: 'Recommendation'});
   await expect(result.getByRole('heading')).toHaveText('An API key from a provider');
   await expect(result.getByRole('listitem').filter({hasText: 'Set a monthly spending limit'})).toBeVisible();
-  // A phone with privacy first: a phone runs no model, so the bridge, which sends only what the person copies.
-  await card.getByRole('radio', {name: 'Nothing leaves my computer'}).check();
-  await expect(result.getByRole('heading')).toHaveText('The subscription bridge');
+  // A phone with privacy first and nothing yet: a phone runs no model and the bridge needs a subscription, so a key with the honest why (Session Z-Local, ADR-020 L43).
+  await card.getByRole('radio', {name: 'Nothing leaves my device'}).check();
+  await expect(result.getByRole('heading')).toHaveText('An API key from a provider');
   await expect(card.getByRole('radio', {name: '16 GB or more'})).toHaveCount(0);
   // A computer with privacy first asks about memory, then suggests a local model.
   await card.getByRole('radio', {name: 'On a computer'}).check();

@@ -1,0 +1,25 @@
+{
+ "kind": "panel",
+ "file": "day-in-the-life-claude-sonnet-5-5.json",
+ "stage": "ui-day-sonnet",
+ "groups": {
+  "claude-sonnet-5-5 on Anthropic API (desktop)": {
+   "runs": 18,
+   "passed": 18,
+   "rate": 1,
+   "medianMs": 2263,
+   "p90Ms": 4542,
+   "errors": 0,
+   "costUsd": 0.18255200000000005
+  },
+  "claude-sonnet-5-5 on Anthropic API (mobile)": {
+   "runs": 18,
+   "passed": 18,
+   "rate": 1,
+   "medianMs": 2019,
+   "p90Ms": 4326,
+   "errors": 0,
+   "costUsd": 0.26510600000000006
+  }
+ }
+}

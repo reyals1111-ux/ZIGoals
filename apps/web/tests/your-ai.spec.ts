@@ -112,7 +112,7 @@ test('setup with an API key (MOCK OpenAI): test, pick a model, connect, chat; th
   const chat = captured.find(c => c.url.endsWith('/v1/chat/completions'))!;
   expect(chat.headers.authorization).toBe(`Bearer ${FAKE_KEY}`);
   const body = JSON.parse(chat.body!) as {model: string; stream: boolean; store: boolean; max_completion_tokens: number; messages: {role: string; content: string}[]};
-  expect(body.model).toBe('mock-chat'); expect(body.stream).toBe(true); expect(body.store).toBe(false); expect(body.max_completion_tokens).toBe(1024);
+  expect(body.model).toBe('mock-chat'); expect(body.stream).toBe(true); expect(body.store).toBe(false); expect(body.max_completion_tokens).toBe(2048); // Session Z-Local (ADR-020 L35): the default output cap is 2,048
   expect(body.messages[0]!.role).toBe('system'); expect(body.messages[0]!.content).toContain('⟪'); expect(body.messages.at(-1)).toEqual({role: 'user', content: 'How is my day?'});
   expect(JSON.stringify(body)).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
   await page.reload();

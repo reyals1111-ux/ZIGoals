@@ -3,8 +3,15 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session Z-Cloud (release `2026-10-session-z-cloud`, ADR-019): ZIGi's new face, voice and the persona decisions; each link opens its Help answer. */
+/** Session Z-Local (release `2026-10-session-z-local`, ADR-020): ZIGi's brain, spoken and complete; each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-your-ai-voice', label: 'Say it the way you say it: numbers, times, “no wait, three”'},
+  {href: '/app/help#help-your-ai-act', label: 'ZIGi can do every ordinary task in the app'},
+  {href: '/app/help#help-your-ai-writes', label: 'ZIGi says when there is nothing to change, and which records it saw'},
+  {href: '/app/help#help-your-ai-cost', label: 'On Claude, cached prompts cost about four fifths less'},
+];
+/** Session Z-Cloud (release `2026-10-session-z-cloud`, ADR-019): ZIGi's new face, voice and the persona decisions, folded under "Earlier updates" first. */
+const SESSION_Z_CLOUD_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-z-panel', label: 'ZIGi’s cleaner panel and your own suggestions'},
   {href: '/app/help#help-your-ai-voice', label: 'Talk to ZIGi in English or Dutch'},
   {href: '/app/help#help-z-delete-habit', label: 'Delete an archived habit for good'},
@@ -13,7 +20,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-z-units', label: 'Weight in pounds, water in fluid ounces'},
   {href: '/app/help#help-z-step-up', label: 'Why your recovery secret is asked again'},
 ];
-/** Session Y (release `2026-10-session-y`), folded under "Earlier updates" first. */
+/** Session Y (release `2026-10-session-y`), folded under "Earlier updates" after Z-Cloud's. */
 const SESSION_Y_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-y-vacation', label: 'End a vacation early'},
   {href: '/app/help#help-y-minus', label: '“−” beside “+” on measured habits'},
@@ -40,8 +47,9 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-w-chess', label: 'Chess: chess.com, Lichess'},
   {href: '/app/help#help-w-links', label: 'My links on Today'},
 ];
-/** The earlier releases' links (Session Y, X-Local, W, V), folded under "Earlier updates". */
+/** The earlier releases' links (Session Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_Z_CLOUD_LINKS,
   ...SESSION_Y_LINKS,
   ...SESSION_X_LOCAL_LINKS,
   ...SESSION_W_LINKS,

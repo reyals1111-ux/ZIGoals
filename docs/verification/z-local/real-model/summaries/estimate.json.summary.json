@@ -1,0 +1,24 @@
+{
+ "kind": "harness",
+ "file": "estimate.json",
+ "stage": "ui-pages-sonnet-2-lost",
+ "provider": "anthropic",
+ "model": "claude-sonnet-5-5",
+ "cache": null,
+ "set": "typed",
+ "batch": false,
+ "latency": {
+  "firstTokenMedianMs": null,
+  "firstTokenP90Ms": null,
+  "totalMedianMs": null,
+  "totalP90Ms": null
+ },
+ "requests": 0,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": null,
+ "costPer100Messages": null,
+ "repaired": 0,
+ "errors": 1,
+ "misses": ""
+}

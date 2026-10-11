@@ -18,7 +18,8 @@ import {useInsightCards, InsightsCard} from '../insights/insights-card';
 import {HealthGoalsCard} from '../health-goals/health-goals-card';
 import {WeeklyReviewCard} from '../weekly-review/weekly-review-card';
 import {FastingLine} from './fasting-line';
-import {WhatsNewCard} from './whats-new-card';
+// Session Z-Local (ADR-020 L60): the card and its link lists load on use (Today sat at 514.9 of its 515.0 kB), as the brief card does.
+const WhatsNewCard = lazy(() => import('./whats-new-card').then(m => ({default: m.WhatsNewCard})));
 import {ForYou, type ForYouCard} from './for-you';
 import {useGuide} from '../coach/use-guide';
 import {useReminders} from '../reminders/use-reminders';
@@ -92,7 +93,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const guideNote = useMemo(() => guideOn ? guideWeekSummary({...window, habits, health, platform, financial, review: review.data, now}) : undefined, [guideOn, window, habits, health, platform, financial, review.data, now]);
   const cards: ForYouCard[] = [];
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
-  if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <WhatsNewCard onDismiss={dismissNew} />});
+  if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <LoadBoundary quiet><Suspense fallback={null}><WhatsNewCard onDismiss={dismissNew} /></Suspense></LoadBoundary>});
   if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});

@@ -1,0 +1,57 @@
+{
+ "kind": "harness",
+ "file": "anthropic-api-claude-opus-5-5-tools-subset-2026-10-10T19-59-10-992Z.json",
+ "stage": "cache-after-2",
+ "provider": "anthropic",
+ "model": "claude-opus-5-5",
+ "host": "Anthropic API",
+ "mode": "tools",
+ "think": false,
+ "cache": true,
+ "pageContext": false,
+ "set": "typed",
+ "batch": false,
+ "cases": 19,
+ "repeat": 1,
+ "runs": 130,
+ "passed": 121,
+ "rate": 0.9307692307692308,
+ "byKind": {
+  "multi": {
+   "passed": 107,
+   "total": 115
+  },
+  "followup": {
+   "passed": 14,
+   "total": 15
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 2115,
+  "firstTokenP90Ms": 5074,
+  "totalMedianMs": 3517,
+  "totalP90Ms": 6555
+ },
+ "tokens": {
+  "input": 562,
+  "output": 37038,
+  "cacheWrite": 321284,
+  "cacheRead": 2218709
+ },
+ "requests": 148,
+ "costUsd": 2.793169799999998,
+ "pricesAsOf": "2026-10-10",
+ "perTurn": {
+  "input": 4.323076923076923,
+  "cacheWrite": 2471.4153846153845,
+  "cacheRead": 17066.992307692308,
+  "output": 284.9076923076923,
+  "usd": 0.021485921538461523
+ },
+ "costPer100Messages": 2.1485921538461525,
+ "repaired": 1,
+ "errors": 0,
+ "misses": "cards 9, fields 1",
+ "startedAt": "2026-10-10T19:59:10.992Z",
+ "finishedAt": "2026-10-10T20:07:39.987Z"
+}

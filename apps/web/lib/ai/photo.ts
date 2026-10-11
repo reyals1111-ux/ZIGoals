@@ -14,8 +14,8 @@ export type PhotoAllowance = {allowed: true} | {allowed: false; reason: string};
 /** Whether this message may carry a photo: a model that reads images, and Health shared. */
 export function photoAllowance({capability, declared, healthOpen}: {capability: Capability | null; declared: boolean | undefined; healthOpen: boolean}): PhotoAllowance {
   const reads = declared ?? capability?.vision ?? null;
-  if (reads !== true) return {allowed: false, reason: reads === false ? 'Your model does not read photos.' : 'Turn on "This model reads photos" in Settings → ZIGi · your AI if your model does.'};
-  if (!healthOpen) return {allowed: false, reason: 'Meal photos need Health shared with ZIGi (Settings → ZIGi · your AI → Include Health).'};
+  if (reads !== true) return {allowed: false, reason: reads === false ? 'Your model does not read photos.' : 'Turn on "This model reads photos" in Settings → ZIGi · Your Personal AI Companion if your model does.'};
+  if (!healthOpen) return {allowed: false, reason: 'Meal photos need Health shared with ZIGi (Settings → ZIGi · Your Personal AI Companion → Include Health).'};
   return {allowed: true};
 }
 /** The size a photo is drawn at: the longest side at most `max`, never enlarged. */

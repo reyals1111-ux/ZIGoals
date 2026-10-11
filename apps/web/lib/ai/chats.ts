@@ -48,13 +48,15 @@ export const chatTurnV2Schema = z.strictObject({
   feedback: z.enum(['up', 'down']).optional(),
   attachments: z.array(z.strictObject({kind: z.enum(['photo'])})).max(4).optional(),
   mode: z.string().min(1).max(40).optional(),
+  /** Session Z-Local (persona finding #7): which records went with the question, as labels ("Habits: Drink water, Walk", "Today's page"); never their values. */
+  records: z.array(z.string().min(1).max(80)).max(40).optional(),
 });
 export const chatV2Schema = z.strictObject({...chatSchema.shape, version: z.literal(2), turns: z.array(chatTurnV2Schema).max(MAX_TURNS), pinned: z.boolean().optional(), area: z.enum(PAGE_AREAS).optional()});
 /** What this build reads: version 1 (T, build #29) and version 2. */
 export const storedChatSchema = z.union([chatSchema, chatV2Schema]);
 /** A chat in memory: either version, with V's optional fields. */
 export type ChatToolRecord = {tool: string; args?: Record<string, unknown>; label: string};
-export type ChatTurn = z.infer<typeof chatTurnSchema> & {source?: (typeof TURN_SOURCES)[number]; tools?: ChatToolRecord[]; feedback?: 'up' | 'down'; attachments?: {kind: 'photo'}[]; mode?: string};
+export type ChatTurn = z.infer<typeof chatTurnSchema> & {source?: (typeof TURN_SOURCES)[number]; tools?: ChatToolRecord[]; feedback?: 'up' | 'down'; attachments?: {kind: 'photo'}[]; mode?: string; records?: string[]};
 export type Chat = Omit<z.infer<typeof chatSchema>, 'version' | 'turns'> & {version: 1 | 2; turns: ChatTurn[]; pinned?: boolean; area?: PageArea};
 const V1_CHAT_KEYS = new Set(Object.keys(chatSchema.shape)), V1_TURN_KEYS = new Set(Object.keys(chatTurnSchema.shape));
 const extraKeys = (value: object, known: Set<string>) => Object.entries(value).some(([key, v]) => !known.has(key) && v !== undefined);

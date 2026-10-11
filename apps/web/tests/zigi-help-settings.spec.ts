@@ -62,7 +62,7 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session X-Local bumped the release (ZIGi comes alive); the card shows once more for every device.
   // Session Y bumped it again (ADR-018 Y40); X-Local's links now wait under "Earlier updates" with this one.
   // Session Z-Cloud bumped it once more (ADR-019, deliberate); Y's links lead "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-z-cloud');
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-z-local');
   await page.goto('/app');
   const card = page.getByRole('region', {name: 'A few new things.'});
   await expect(card).toBeVisible();

@@ -39,7 +39,7 @@ it('the window opens at the mini size, named, with the page\'s styles and marks'
   document.head.innerHTML = '<style>.z{color:green}</style>';
   const win = await openPipWindow(host, document);
   expect(asked).toEqual(PIP_SIZE);
-  expect(win.document.title).toBe('ZIGi · your AI');
+  expect(win.document.title).toBe('ZIGi · Your Personal AI Companion');
   expect(win.document.documentElement.classList.contains('zigi-pip-root')).toBe(true);
   expect([...win.document.head.querySelectorAll('style')].map(s => s.textContent)).toEqual(['.z { color: green; }']);
 });

@@ -7,7 +7,7 @@ import {AI_SETTINGS_KEY, readAiSettings, turnOffAi, updateAiSettings} from '../s
 import {toolEnv} from '../tools/env';
 import {gatesFor, showcaseSources} from '../tools/fixtures';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_DISPLAY_KEYS, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_PERSONAL_KEYS, ZIGI_REMINDERS_KEY} from './keys';
-import {ACTION_DAYS, AI_ACTIONS, AI_MEMORY, AI_OPTIONS, forgetAction, HEALTH_NOTE_CATEGORIES, MAX_ACTIONS, readZigiPrefs, recordAction, resetOnTurnOff, ZIGI, ZIGI_DEFAULTS, ZIGI_KNOCK, ZIGI_RECORDS, zigiPrefs} from './records';
+import {ACTION_DAYS, AI_ACTIONS, AI_MEMORY, AI_OPTIONS, aiOptionsSchema, forgetAction, HEALTH_NOTE_CATEGORIES, MAX_ACTIONS, readZigiPrefs, recordAction, resetOnTurnOff, ZIGI, ZIGI_DEFAULTS, ZIGI_KNOCK, ZIGI_RECORDS, zigiPrefs} from './records';
 
 // Session V storage foundation ([TIER 3], ADR-014 S3/S18): every new device key defined once, read tolerantly, written
 // only on a choice, loose so a later part's fields survive an older build, registered for onboarding and the export.
@@ -121,4 +121,11 @@ test('T\'s record stays exactly what build #29 reads: a frozen copy of its reade
   expect(frozen29.safeParse(JSON.parse(s.map.get(AI_SETTINGS_KEY)!)).success).toBe(true);
   // V's options never enter T's record: its mode and provider stay T's.
   expect(JSON.parse(s.map.get(AI_SETTINGS_KEY)!)).not.toHaveProperty('route');
+});
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F13): the stored auto-accept options are parsed strictly
+test('F13: an unknown key inside autoAccept is dropped on read, the record is never refused for it', () => {
+  const parsed = aiOptionsSchema.parse({version: 1, autoAccept: {kinds: {'log-water': true}, dailyCap: 5, extra: 'kept?'}});
+  expect(parsed.autoAccept).toEqual({kinds: {'log-water': true}, dailyCap: 5});
+  expect('extra' in (parsed.autoAccept as object)).toBe(false);
 });

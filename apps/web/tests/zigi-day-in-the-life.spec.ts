@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, DAY, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, removeShowcaseNightEndingOn, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, DAY, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, removeShowcaseNightEndingOn, seedReal, shownReply, slug, type UiRun, usageOf} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 
 /**
@@ -82,6 +82,7 @@ for (const s of SCENARIOS) {
         run.score = {pass: checks.every(c => c.pass), checks, cards: run.cards.length, rejected: 0, hint: null, refused: false, numbers: 0};
         if (!run.score.pass) problems.push(`${i + 1}. ${step.ask}: ${checks.filter(c => !c.pass).map(c => c.name).join(', ')}`);
       } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 300) : String(error); problems.push(`${i + 1}. ${step.ask}: ${run.error}`); }
+      run.usage = (await usageOf(page)) ?? undefined;
       record(info, file, run);
       if (run.error) throw new Error(run.error);
     }

@@ -59,3 +59,19 @@ test('nothing but counts and the person\'s own choices is kept; unreadable bytes
   expect(readUsage(broken)).toEqual({data: {version: 1}, unreadable: true});
   expect(broken.map.get(AI_USAGE_KEY)).toBe('{not json');
 });
+
+// Session Z-Local Part 3 (ADR-020 L9): the prompt-cache counts a wire reports are kept beside input, never added into it;
+// the person's-price estimate counts them at the input price (a ceiling).
+test('cache writes and reads are kept per route and month beside input; absent on routes that never reported them', () => {
+  const s = memory();
+  recordUsage(s, 'anthropic', {input: 30, output: 12, cacheWrite: 4000, cacheRead: 8000}, 1, OCT);
+  recordUsage(s, 'anthropic', {input: 20, output: 10, cacheWrite: null, cacheRead: 9000}, 1, OCT);
+  recordUsage(s, 'openai', {input: 500, output: 40}, 1, OCT);
+  expect(readUsage(s).data.months?.['2026-10']).toEqual({anthropic: {input: 50, output: 22, requests: 2, cacheWrite: 4000, cacheRead: 17000}, openai: {input: 500, output: 40, requests: 1}});
+});
+test('the estimate from the person\'s prices counts cached prompt tokens as input (a ceiling)', () => {
+  const s = memory({[AI_USAGE_KEY]: JSON.stringify({version: 1, prices: {anthropic: {input: '2', output: '10', currency: 'USD'}}})});
+  recordUsage(s, 'anthropic', {input: 1_000_000, output: 100_000, cacheWrite: 500_000, cacheRead: 2_000_000}, 1, OCT);
+  // (1,000,000 + 500,000 + 2,000,000) × 2 + 100,000 × 10 per million = 7 + 1 = 8 USD
+  expect(estimate(readUsage(s).data, '2026-10')).toEqual({amounts: [{currency: 'USD', amount: 8}], unpriced: []});
+});

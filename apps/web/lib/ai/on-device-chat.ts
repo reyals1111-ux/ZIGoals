@@ -40,7 +40,7 @@ export function onDevicePrompts(question: string): {rewrite: OnDevicePrompt; cha
 export const readAs = (question: string) => `Read as “${question}” with Chrome’s on-device model; the numbers come from your records on this device.`;
 export const ON_DEVICE_FAILED = 'Chrome’s on-device model could not answer just now.';
 /** The model is not on this computer (any more): only Settings downloads it, from its own button. */
-export const ON_DEVICE_NOT_READY = 'Chrome’s on-device model is not ready on this computer; Settings → ZIGi · your AI → “Chrome’s on-device model” gets it ready.';
+export const ON_DEVICE_NOT_READY = 'Chrome’s on-device model is not ready on this computer; Settings → ZIGi · Your Personal AI Companion → “Chrome’s on-device model” gets it ready.';
 /** The model's rewrite as one question, or null: NONE, empty, more than one line, too long, or not a question. */
 export function parseRewrite(answer: string): string | null {
   const text = answer.trim().replace(/^["“]|["”]$/g, '').trim();

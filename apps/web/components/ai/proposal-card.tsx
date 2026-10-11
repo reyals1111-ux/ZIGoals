@@ -78,5 +78,5 @@ function EditField({field, value}: {field: Field; value: string}) {
     : field.type === 'day' || field.type === 'date' ? <input id={id} name={field.key} type="date" defaultValue={value === 'today' || value === 'yesterday' ? '' : value} placeholder={field.type === 'day' ? 'today' : undefined}/>
     : field.multiline ? <textarea id={id} name={field.key} defaultValue={value} rows={2} maxLength={2000}/>
     : <input id={id} name={field.key} type="text" inputMode={field.type === 'text' ? undefined : field.type === 'integer' ? 'numeric' : 'decimal'} defaultValue={value} autoComplete="off" spellCheck={field.type === 'text'}/>;
-  return <label className="field" htmlFor={id}>{field.label}{field.optional && field.type !== 'day' ? <small> (optional)</small> : field.type === 'day' ? <small> (empty = today)</small> : null}{control}</label>;
+  return <label className="field" htmlFor={id}>{field.label}{field.note ? <small> ({field.note})</small> : field.optional && field.type !== 'day' ? <small> (optional)</small> : field.type === 'day' ? <small> (empty = today)</small> : null}{control}</label>;
 }

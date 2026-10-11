@@ -109,3 +109,73 @@ test('a failed answer becomes an AiError whose message never carries the key; a 
   const missingAddress = await collectReply(streamChat({...base('local', {key: null, localServer: 'ollama'})})).catch(e => e as AiError);
   expect((missingAddress as AiError).kind).toBe('local-unreachable');
 });
+
+// Session Z-Local Part 3 (ADR-020 L2, L3): prompt caching, the effort mapping and the cache usage fields on the Anthropic wire.
+const anthropicEvents = (usageStart: string, usageDelta: string) => [
+  'event: message_start', `data: {"type":"message_start","message":{"id":"msg_MOCK","type":"message","role":"assistant","content":[],"model":"mock-model","stop_reason":null,"usage":${usageStart}}}`, '',
+  'event: content_block_start', 'data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}', '',
+  'event: content_block_delta', 'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"cached ✓"}}', '',
+  'event: content_block_stop', 'data: {"type":"content_block_stop","index":0}', '',
+  'event: message_delta', `data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":${usageDelta}}`, '',
+  'event: message_stop', 'data: {"type":"message_stop"}', '',
+].join('\n') + '\n';
+const ANTHROPIC_CACHED = anthropicEvents('{"input_tokens":30,"cache_creation_input_tokens":4000,"cache_read_input_tokens":8000,"output_tokens":1}', '{"output_tokens":12}');
+test('Anthropic: the body carries the automatic cache marker and the effort of the quick reply; "Think deeper" asks for high', async () => {
+  const quick = answering({stream: ANTHROPIC_STREAM});
+  await collectReply(streamChat({...base('anthropic'), fetcher: quick.fetcher}));
+  expect(requestBody(quick.calls[0]!)).toMatchObject({cache_control: {type: 'ephemeral'}, output_config: {effort: 'low'}});
+  expect(requestBody(quick.calls[0]!)).not.toHaveProperty('thinking');
+  const deep = answering({stream: ANTHROPIC_STREAM});
+  await collectReply(streamChat({...base('anthropic', {think: true}), fetcher: deep.fetcher}));
+  expect(requestBody(deep.calls[0]!)).toMatchObject({output_config: {effort: 'high'}});
+});
+test('Anthropic: system blocks that concatenate to the prompt travel as text blocks with cache markers on the stable ones; blocks that do not match are ignored', async () => {
+  const system = 'STABLE part\n\nRECORDS part\n\nthe question';
+  const ok = answering({stream: ANTHROPIC_STREAM});
+  await collectReply(streamChat({...base('anthropic', {system, systemBlocks: [{text: 'STABLE part', cache: true}, {text: '\n\nRECORDS part', cache: true}, {text: '\n\nthe question'}]}), fetcher: ok.fetcher}));
+  expect(requestBody(ok.calls[0]!).system).toEqual([{type: 'text', text: 'STABLE part', cache_control: {type: 'ephemeral'}}, {type: 'text', text: '\n\nRECORDS part', cache_control: {type: 'ephemeral'}}, {type: 'text', text: '\n\nthe question'}]);
+  const off = answering({stream: ANTHROPIC_STREAM});
+  await collectReply(streamChat({...base('anthropic', {system, systemBlocks: [{text: 'STABLE part', cache: true}, {text: 'something else'}]}), fetcher: off.fetcher}));
+  expect(requestBody(off.calls[0]!).system).toBe(system);
+  // Every other wire sends the plain string (the blocks are Anthropic's only).
+  const openai = answering({stream: OPENAI_STREAM});
+  await collectReply(streamChat({...base('openai', {system, systemBlocks: [{text: 'STABLE part', cache: true}, {text: '\n\nRECORDS part\n\nthe question'}]}), fetcher: openai.fetcher}));
+  expect((requestBody(openai.calls[0]!).messages as {content: string}[])[0]!.content).toBe(system);
+});
+test('Anthropic: the cache counts are read beside input (message_start) and the cumulative output (message_delta)', async () => {
+  const ok = answering({stream: ANTHROPIC_CACHED});
+  const reply = await collectReply(streamChat({...base('anthropic'), fetcher: ok.fetcher}));
+  expect(reply).toEqual({text: 'cached ✓', usage: {input: 30, output: 12, cacheWrite: 4000, cacheRead: 8000}, reason: 'end_turn'});
+});
+test('Anthropic: a 400 that names output_config sends the same request once more without it; any other 400 is the error it was', async () => {
+  const calls: Call[] = [];
+  const fetcher: typeof fetch = async (input, init) => {
+    calls.push({url: String(input), init: init ?? {}});
+    const sent = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    if (sent.output_config) return new Response('{"type":"error","error":{"type":"invalid_request_error","message":"output_config: Extra inputs are not permitted"}}', {status: 400});
+    return new Response(body(ANTHROPIC_STREAM), {status: 200, headers: {'content-type': 'text/event-stream'}});
+  };
+  const reply = await collectReply(streamChat({...base('anthropic'), fetcher}));
+  expect(reply.text).toBe('MOCK reply from Anthropic ✓');
+  expect(calls).toHaveLength(2);
+  expect(requestBody(calls[0]!)).toHaveProperty('output_config'); expect(requestBody(calls[1]!)).not.toHaveProperty('output_config');
+  expect(requestBody(calls[1]!)).toMatchObject({cache_control: {type: 'ephemeral'}});
+  const other = answering({status: 400, body: '{"type":"error","error":{"type":"invalid_request_error","message":"messages: at least one message is required"}}'});
+  const error = await collectReply(streamChat({...base('anthropic'), fetcher: other.fetcher})).catch(e => e as AiError);
+  expect(error).toBeInstanceOf(AiError); expect(other.calls).toHaveLength(1);
+});
+test('OpenAI: the cached part of the prompt is read as cacheRead from prompt_tokens_details; absent, no cache field appears', async () => {
+  const cached = ['data: {"id":"chatcmpl-MOCK","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}', '',
+    'data: {"id":"chatcmpl-MOCK","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}', '',
+    'data: {"id":"chatcmpl-MOCK","object":"chat.completion.chunk","choices":[],"usage":{"prompt_tokens":1200,"completion_tokens":7,"total_tokens":1207,"prompt_tokens_details":{"cached_tokens":1024}}}', '', 'data: [DONE]', ''].join('\n') + '\n';
+  const ok = answering({stream: cached});
+  expect((await collectReply(streamChat({...base('openai'), fetcher: ok.fetcher}))).usage).toEqual({input: 1200, output: 7, cacheRead: 1024});
+  const plain = answering({stream: OPENAI_STREAM});
+  expect((await collectReply(streamChat({...base('openai'), fetcher: plain.fetcher}))).usage).toEqual({input: 120, output: 7});
+});
+test('Anthropic: cache: false (the measurement\'s "before") sends no marker and the plain system string', async () => {
+  const ok = answering({stream: ANTHROPIC_STREAM});
+  await collectReply(streamChat({...base('anthropic', {system: 'A\n\nB', systemBlocks: [{text: 'A', cache: true}, {text: '\n\nB'}], cache: false}), fetcher: ok.fetcher}));
+  const sent = requestBody(ok.calls[0]!);
+  expect(sent).not.toHaveProperty('cache_control'); expect(sent.system).toBe('A\n\nB'); expect(sent).toMatchObject({output_config: {effort: 'low'}});
+});

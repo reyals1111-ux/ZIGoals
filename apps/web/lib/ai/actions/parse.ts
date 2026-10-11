@@ -22,7 +22,11 @@ export type Rejected = {raw: string; reason: string};
  * Python's True/False/None, a bare value. Each repair is a plain rewrite outside strings; the result still has to
  * satisfy the whitelist schema, so a repair can never widen what a card may do. Returns null when nothing parses.
  */
+/** The most a proposal block is ever read for repair; a longer one is no card (SECURITY_REVIEW_Y F5: the repair is linear and bounded). */
+export const REPAIR_MAX_CHARS = 32_000;
+const WS = /\s*/y, WORD_AT = /[A-Za-z_][A-Za-z0-9_-]*/y, COLON_AT = /\s*:/y;
 export function repairJson(body: string): unknown {
+  if (body.length > REPAIR_MAX_CHARS) return null;
   const text = body.trim().replace(/^```[a-z-]*\s*/i, '').replace(/```\s*$/, '').replace(/^json\s*/i, '').trim();
   if (!text) return null;
   const attempt = (t: string): unknown => { try { return JSON.parse(t); } catch { return undefined; } };
@@ -30,7 +34,8 @@ export function repairJson(body: string): unknown {
   // One walk, outside strings: comments go, quotes become double, bare keys and Python literals are rewritten, a
   // trailing comma before } or ] goes. Inside a string nothing changes (a single-quoted string's inner " is escaped).
   let out = '', inString: '"' | "'" | null = null;
-  const lastSignificant = () => out.replace(/\s+$/, '').slice(-1);
+  // The last non-blank character written so far, read backwards (F5: never a copy of the whole output per call).
+  const lastSignificant = () => { for (let k = out.length - 1; k >= 0; k--) { const c = out[k]!; if (c !== ' ' && c !== '\n' && c !== '\t' && c !== '\r') return c; } return ''; };
   for (let i = 0; i < text.length; i++) {
     const ch = text[i]!;
     if (inString) {
@@ -44,13 +49,13 @@ export function repairJson(body: string): unknown {
     if (ch === ',') {
       // A trailing comma: nothing but whitespace and comments up to the closing brace or bracket.
       let j = i + 1;
-      for (;;) { const rest = text.slice(j); const ws = /^\s+/.exec(rest); if (ws) { j += ws[0].length; continue; } if (rest.startsWith('//')) { const e = text.indexOf('\n', j); j = e < 0 ? text.length : e + 1; continue; } if (rest.startsWith('/*')) { const e = text.indexOf('*/', j + 2); j = e < 0 ? text.length : e + 2; continue; } break; }
+      for (;;) { WS.lastIndex = j; const ws = WS.exec(text); if (ws && ws[0].length) { j += ws[0].length; continue; } if (text.startsWith('//', j)) { const e = text.indexOf('\n', j); j = e < 0 ? text.length : e; continue; } if (text.startsWith('/*', j)) { const e = text.indexOf('*/', j + 2); j = e < 0 ? text.length : e + 2; continue; } break; }
       if (text[j] === '}' || text[j] === ']') continue;
     }
     if (/[A-Za-z_]/.test(ch)) {
-      const word = /^[A-Za-z_][A-Za-z0-9_-]*/.exec(text.slice(i))![0], after = text.slice(i + word.length);
+      WORD_AT.lastIndex = i; const word = WORD_AT.exec(text)![0]; COLON_AT.lastIndex = i + word.length; const keyed = COLON_AT.test(text);
       i += word.length - 1;
-      if (/^\s*:/.test(after) && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
+      if (keyed && (lastSignificant() === '{' || lastSignificant() === ',' || out.trim() === '')) { out += `"${word}"`; continue; }
       // Phase 2 (seen on phi4-mini): a bare `unknown`, `none` or `nil` where a value should be is simply unknown.
       out += word === 'True' ? 'true' : word === 'False' ? 'false' : word === 'None' || word === 'undefined' || word === 'NaN' || /^(?:unknown|none|nil|null)$/i.test(word) ? 'null' : word; continue;
     }
@@ -67,15 +72,28 @@ export function repairJson(body: string): unknown {
   return null;
 }
 /** Fields the schema counts as numbers; a model that quotes them ("300") still means the number. */
+const UNIT_ALIASES: Readonly<Record<string, string>> = {uur: 'hours', uren: 'hours', hour: 'hours', h: 'hours', hr: 'hours', hrs: 'hours', u: 'hours', min: 'minutes', mins: 'minutes', minuut: 'minutes', minuten: 'minutes', minute: 'minutes', glas: 'glasses', glazen: 'glasses', glass: 'glasses', kilo: 'kg', kilogram: 'kg', kilos: 'kg', pond: 'lb', pounds: 'lb', pound: 'lb', stappen: 'steps', step: 'steps', liter: 'l', liters: 'l', litre: 'l', litres: 'l', gram: 'g', grams: 'g', milliliter: 'ml', millilitre: 'ml', milliliters: 'ml', millilitres: 'ml'};
 const NUMERIC_KEYS = new Set(['millilitres', 'glasses', 'value', 'steps', 'minutes', 'hours', 'quantity', 'target', 'targetHours', 'servings', 'count', 'weekday', 'quality', 'mood', 'days', 'serving_g', 'serving_ml', 'grams', 'kcal', 'protein_g', 'carbs_g', 'fat_g', 'balance']);
 const NUMBER = /^-?\d+(?:[.,]\d+)?$/;
 function coerceNumbers(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(coerceNumbers);
   if (!value || typeof value !== 'object') return value;
   const out: Record<string, unknown> = {};
+  // Session Z-Local Part 6 (L28): a check-in that repeats its minutes as the value ("minutes":28,"value":28, seen on Haiku and Sonnet) said one
+  // amount twice: the duplicate goes before validation. Two different amounts stay refused (the golden case x-reply-two-amounts).
+  const o = value as Record<string, unknown>;
+  if (o.kind === 'check-in' && typeof o.minutes === 'number' && o.value === o.minutes && o.quantity === undefined) delete o.value;
+  // Session Z-Local L53: a card that says "date" means "day" (gemma4 wrote {"date": "2026-10-04"} and the block was refused for the unknown key).
+  if (typeof o.date === 'string' && o.day === undefined) { o.day = o.date; delete o.date; }
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    // Session Z-Local L63: an empty string is an absent field (Sonnet wrote "wake": "" for a nap and the block was refused).
+    if (v === '') continue;
     // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
-    if (v === null && NUMERIC_KEYS.has(key)) continue;
+    // Session Z-Local Part 6 (ADR-020 L37): where the schema makes null a meaning (set-target's value clears the target; set-bells' intervalMin
+    // stops the bell), the null stays; Opus wrote `"value": null` to clear a calorie target and the block was refused as "received undefined".
+    if (v === null && NUMERIC_KEYS.has(key) && !((o.kind === 'set-target' && key === 'value') || (o.kind === 'set-bells' && key === 'intervalMin'))) continue;
+    // Session Z-Local Part 6 (ADR-020 L48): a unit written in Dutch ("uur", "glazen", "pond") is the schema's own unit word; the block is otherwise refused.
+    if (key === 'unit' && typeof v === 'string' && UNIT_ALIASES[v.trim().toLowerCase()]) { out[key] = UNIT_ALIASES[v.trim().toLowerCase()]; continue; }
     out[key] = typeof v === 'string' && NUMERIC_KEYS.has(key) && NUMBER.test(v.trim()) ? Number(v.trim().replace(',', '.')) : typeof v === 'object' ? coerceNumbers(v) : v;
   }
   return out;

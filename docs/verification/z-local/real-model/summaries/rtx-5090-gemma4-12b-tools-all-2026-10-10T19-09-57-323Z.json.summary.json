@@ -1,0 +1,97 @@
+{
+ "kind": "harness",
+ "file": "rtx-5090-gemma4-12b-tools-all-2026-10-10T19-09-57-323Z.json",
+ "stage": "fr-after",
+ "provider": "local",
+ "model": "gemma4:12b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "think": false,
+ "cache": null,
+ "pageContext": false,
+ "set": "typed",
+ "batch": false,
+ "cases": 595,
+ "repeat": 1,
+ "runs": 725,
+ "passed": 645,
+ "rate": 0.8896551724137931,
+ "byKind": {
+  "lookup": {
+   "passed": 93,
+   "total": 93
+  },
+  "propose": {
+   "passed": 215,
+   "total": 249
+  },
+  "chat": {
+   "passed": 35,
+   "total": 42
+  },
+  "brief": {
+   "passed": 24,
+   "total": 27
+  },
+  "unknown": {
+   "passed": 12,
+   "total": 14
+  },
+  "refuse": {
+   "passed": 49,
+   "total": 49
+  },
+  "advice": {
+   "passed": 10,
+   "total": 11
+  },
+  "multi": {
+   "passed": 137,
+   "total": 162
+  },
+  "followup": {
+   "passed": 38,
+   "total": 43
+  },
+  "privacy": {
+   "passed": 11,
+   "total": 12
+  },
+  "injection": {
+   "passed": 17,
+   "total": 19
+  },
+  "local-first": {
+   "passed": 4,
+   "total": 4
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 1252,
+  "firstTokenP90Ms": 1656,
+  "totalMedianMs": 1830,
+  "totalP90Ms": 4851
+ },
+ "tokens": {
+  "input": 8379475,
+  "output": 161506,
+  "cacheWrite": 0,
+  "cacheRead": 0
+ },
+ "requests": 767,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": {
+  "input": 12488.040238450074,
+  "cacheWrite": 0,
+  "cacheRead": 0,
+  "output": 240.69448584202684,
+  "usd": null
+ },
+ "costPer100Messages": null,
+ "repaired": 23,
+ "errors": 0,
+ "misses": "cards 63, fields 19, schema 15, contains 4, never 3",
+ "startedAt": "2026-10-10T19:09:57.323Z",
+ "finishedAt": "2026-10-10T19:34:37.177Z"
+}

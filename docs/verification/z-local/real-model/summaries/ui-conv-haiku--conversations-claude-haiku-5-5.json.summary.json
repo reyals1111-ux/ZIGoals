@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "conversations-claude-haiku-5-5.json",
+ "stage": "ui-conv-haiku",
+ "groups": {
+  "claude-haiku-5-5 on Anthropic API (desktop)": {
+   "runs": 15,
+   "passed": 15,
+   "rate": 1,
+   "medianMs": 3689,
+   "p90Ms": 4335,
+   "errors": 0,
+   "costUsd": 0.015960995
+  }
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "ui-claude-sonnet-5-5.json",
+ "stage": "ui-panel-sonnet",
+ "groups": {
+  "claude-sonnet-5-5 on Anthropic API (desktop)": {
+   "runs": 150,
+   "passed": 121,
+   "rate": 0.8066666666666666,
+   "medianMs": 2766,
+   "p90Ms": 4305,
+   "errors": 0,
+   "costUsd": 1.0269268999999999
+  }
+ }
+}

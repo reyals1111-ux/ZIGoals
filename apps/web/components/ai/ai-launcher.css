@@ -81,6 +81,7 @@ html[data-zigi-launcher="shown"] .habit-consistency-month{position:relative}
    16.25 font-sizes wide, the section's text 66 px narrower than the screen), 15.3 px at 320, the heading's 22.4 from 430.
    Gate C (CI, a11y-wcag-x 1.4.12): its size keeps it on one line, never nowrap, so a person's own text spacing wraps it
    instead of widening the page (with WCAG's spacing the role alone was 341 px at 390). */
+/* Session Z-Local (ADR-020 L54): 16.6 is the name's width in font-sizes in the design font; at 320 it gives 15.3 px, above the 14 px floor the Life readability check holds. L49's 18.5 (for a wrap in CI's WebKit) put it at 13.7 px; the wrap was the job's font and is fixed there. */
 @media (max-width:600px){.ai-settings .ai-settings-title{font-size:min(1.4rem,calc((100vw - 66px) / 16.6))}}
 /* Its eyebrow is one line too: on a phone only the tag stays (the name below says what the section is). */
 .ai-settings-eyebrow{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;white-space:nowrap;min-width:0}

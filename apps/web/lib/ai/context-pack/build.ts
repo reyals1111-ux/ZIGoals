@@ -78,7 +78,7 @@ export function buildContextPack({sources, gates, scope, madeAt = sources.now}: 
     included.push('Goals');
     const goals = (dataOf(run('list_goals')) ?? {goals: []}).goals as Record<string, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
     const contributions = dataOf(run('goal_contributions', {range}));
-    summary.push(`Goals: ${goals.length} goal${goals.length === 1 ? '' : 's'}${goals.length ? ` (${goals.slice(0, 4).map(g => `${g.name} ${g.progress}`).join(', ')}${goals.length > 4 ? ', …' : ''})` : ''}.`);
+    summary.push(`Goals: ${goals.length} goal${goals.length === 1 ? '' : 's'}${goals.length ? ` (${goals.slice(0, 4).map(g => `${cell(g.name)} ${g.progress}`).join(', ')}${goals.length > 4 ? ', …' : ''})` : ''}.`);
     md.push('## Goals', table(['Goal', 'Status', 'Progress', 'Now', 'Target', 'Remaining', 'Target date', 'Next planned date', 'Funding'], goals.map(g => [g.name, g.status, g.progress, g.now, g.target, g.remaining, g.targetDate, g.nextPlannedDate, g.funding])));
     const events = (contributions?.events ?? []) as Record<string, unknown>[], totals = contributions?.totalsPerAsset;
     md.push(`### Contributions, last ${scope.days} days (per currency, never converted)`, table(['Date', 'Goal', 'Kind', 'Amount', 'Asset'], events.map(e => [e.day, e.goal, e.kind, e.amount, e.asset])));
@@ -102,7 +102,7 @@ export function buildContextPack({sources, gates, scope, madeAt = sources.now}: 
       '### Fasts (a list; ZIGoals keeps no fasting totals or streaks)', table(['Day', 'Hours', 'Target hours', 'Stopped'], ((fasting?.fasts ?? []) as Record<string, unknown>[]).map(f => [f.day, f.hours, f.targetHours, f.stopped])),
       '### Exercise counters', table(['Counter', 'Total', 'Days with an entry'], ((counters?.counters ?? []) as Record<string, unknown>[]).map(c => [c.counter, c.total, c.daysWithEntry])));
     json.health = withoutHandles({nutrients, water, steps, weight, fasting, counters});
-  } else if (scope.health) omitted.push('Health (its gate is closed: Settings → ZIGi · your AI → Include Health, with Health on Today)');
+  } else if (scope.health) omitted.push('Health (its gate is closed: Settings → ZIGi · Your Personal AI Companion → Include Health, with Health on Today)');
   if (scope.wealth && env.areas.wealth) {
     included.push('Wealth');
     const totals = dataOf(run('totals_per_currency')), holdings = dataOf(run('holdings')), portfolios = sources.portfolio ? dataOf(run('portfolios')) : null;

@@ -25,7 +25,7 @@ export function consent(input: ConsentInput): Consent {
   if (!input.settings.enabled) return {page: false, health: false, reasons: ['ZIGi is not connected.']};
   if (!attachesContext(input.pathname)) return {page: false, health: false, reasons: ['Settings holds your account, sync and recovery controls: nothing from this page is attached.']};
   const page = input.settings.pageShare[input.area];
-  if (!page) reasons.push(`Sharing is off for ${input.area === 'today' ? 'Today' : input.area[0]!.toUpperCase() + input.area.slice(1)} in Settings → ZIGi · your AI.`);
+  if (!page) reasons.push(`Sharing is off for ${input.area === 'today' ? 'Today' : input.area[0]!.toUpperCase() + input.area.slice(1)} in Settings → ZIGi · Your Personal AI Companion.`);
   let health = page;
   if (health && !input.settings.pageShare.health) { health = false; reasons.push('Health: the Health page switch is off.'); }
   if (health && !input.settings.includeHealth) { health = false; reasons.push('Health: "Include Health" is off (its default).'); }

@@ -96,3 +96,12 @@ describe('the knock, offered once', () => {
     expect(offerDue({...base, record: {version: 1}, chatEnded: true, connected: false})).toBe(false);
   });
 });
+
+// Session Z-Local, the persona round: once means once; the day the offer was shown is kept.
+describe('the knock offer, once', () => {
+  it('an offer shown but not answered does not come back', () => {
+    const base = {connected: true, sensitive: false, chatEnded: true, today: '2026-10-11', connectedOn: '2026-10-10'};
+    expect(offerDue({record: {version: 1}, ...base})).toBe(true);
+    expect(offerDue({record: {version: 1, knock: {offeredOn: '2026-10-10'}}, ...base})).toBe(false);
+  });
+});

@@ -21,6 +21,15 @@ test('every kind has its fields, each field reads a key the schema knows, and no
     // Session X-Local Part 5a
     'stack-habit': {kind: 'stack-habit', habit: 'h2', after: 'h1'}, 'edit-habit': {kind: 'edit-habit', habit: 'h1', title: 'Evening pages'}, 'edit-goal': {kind: 'edit-goal', goal: 'g1', name: 'Lisbon in spring'},
     'log-mood': {kind: 'log-mood', mood: 4, note: 'Calm'}, 'add-link': {kind: 'add-link', label: 'Club', url: 'https://example.org/club'}, 'add-widget': {kind: 'add-widget', widget: 'habit', habit: 'h1', metric: 'streak'},
+    // Session Z-Local Part 5
+    'open-page': {kind: 'open-page', page: 'health', view: 'sleep'}, 'delete-record': {kind: 'delete-record', what: 'habit', habit: 'h1'}, 'set-habit-state': {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, vacation: {kind: 'vacation', from: '2026-09-22', to: '2026-09-24'},
+    unskip: {kind: 'unskip', habit: 'h1'}, 'remove-reminder': {kind: 'remove-reminder', for: 'water'}, 'close-goal': {kind: 'close-goal', goal: 'g1'}, 'reopen-goal': {kind: 'reopen-goal', goal: 'g1'},
+    'edit-diary-entry': {kind: 'edit-diary-entry', name: 'Oatmeal', quantity: 2}, 'log-meal-plan': {kind: 'log-meal-plan', meal: 'Dinner'}, 'grocery-notes': {kind: 'grocery-notes', notes: 'Oat milk'}, 'set-favorite': {kind: 'set-favorite', food: 'f1'},
+    'create-counter': {kind: 'create-counter', name: 'Burpees', icon: 'jump'}, 'edit-counter': {kind: 'edit-counter', counter: 'Burpees', name: 'Sets'}, 'set-target': {kind: 'set-target', target: 'kcal', value: 2100, unit: 'kcal'}, 'set-health-preference': {kind: 'set-health-preference', weightUnit: 'lb'},
+    'start-night': {kind: 'start-night', bedtime: '23:00'}, 'end-night': {kind: 'end-night', wake: '07:00'}, 'set-bells': {kind: 'set-bells', intervalMin: 5, sound: 'chime', volume: 50},
+    'set-today-preset': {kind: 'set-today-preset', preset: 'wealth'}, 'edit-link': {kind: 'edit-link', link: 'Running club', label: 'Run crew', url: 'https://example.org/run', icon: 'monogram'}, 'skip-review': {kind: 'skip-review'}, 'set-review-weekday': {kind: 'set-review-weekday', weekday: 'friday'},
+    'set-wrap-up': {kind: 'set-wrap-up', enabled: true, time: '21:00'}, 'set-page-visibility': {kind: 'set-page-visibility', page: 'chess', shown: true}, 'set-start-page': {kind: 'set-start-page', page: 'habits'}, 'set-zigi-look': {kind: 'set-zigi-look', skin: 'origami-nebula', animation: 'calm', side: 'left', size: 'l', greeting: 'quiet'},
+    'prefill-contribution': {kind: 'prefill-contribution', goal: 'g1', amount: '200', asset: 'EUR', note: 'October'}, 'prefill-account': {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings', currency: 'EUR', institution: 'Showcase Bank', balance: '1500', ratePercent: '2.5'},
   };
   for (const kind of ACTION_KINDS) {
     const a = action(samples[kind]!), fields = editableFields(a);
@@ -65,4 +74,12 @@ test('Session X-Local Part 5a: a project goal edits without a target, a widget e
   const mood = action({kind: 'log-mood', mood: 4});
   expect(applyEdits(mood, {mood: '6'})).toMatchObject({ok: false});
   expect(applyEdits(mood, {mood: '2', day: '2026-09-19'})).toEqual({ok: true, action: {kind: 'log-mood', mood: 2, day: '2026-09-19'}});
+});
+
+// Session Z-Local Part 7 (SECURITY_REVIEW_Y F7): thousands separators in the editor
+test('F7: "10,000" steps is ten thousand, "1,5" glasses is one and a half, "10.000,5" is ten thousand and a half', () => {
+  const steps = applyEdits(actionSchema.parse({kind: 'log-steps', steps: 1}), {steps: '10,000'}); expect(steps.ok && steps.action).toMatchObject({kind: 'log-steps', steps: 10000});
+  const glasses = applyEdits(actionSchema.parse({kind: 'log-water', glasses: 1}), {glasses: '1,5'}); expect(glasses.ok && glasses.action).toMatchObject({kind: 'log-water', glasses: 1.5});
+  const nl = applyEdits(actionSchema.parse({kind: 'log-steps', steps: 1}), {steps: '10.000'}); expect(nl.ok && nl.action).toMatchObject({kind: 'log-steps', steps: 10000});
+  const weight = applyEdits(actionSchema.parse({kind: 'log-weight', value: 70, unit: 'kg'}), {value: '72,5'}); expect(weight.ok && weight.action).toMatchObject({value: 72.5});
 });

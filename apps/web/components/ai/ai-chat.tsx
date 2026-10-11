@@ -384,6 +384,7 @@ function LocalTurn({turn, asked, session, context, connected, attach, isLast, ru
       </details>}
       {isLast && calls.length > 0 && <FollowupChips calls={calls} asked={question} onAsk={onAsk}/>}
       <SourceLine short={turn.source === 'on-device' ? 'Chrome’s on-device model' : 'On your device · no AI'} full={label}/>
+      {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
       <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`}>
         <TurnTime at={turn.at}/>
         <span className="ai-reply-icons">
@@ -454,6 +455,7 @@ function TurnView({turn, session, runner, providerName, usageUrl, isLast, onNavi
       {isLast && turn.tools && turn.tools.length > 0 && <FollowupChips calls={turn.tools} asked={asked} onAsk={onAsk}/>}
       {/* Panel polish round 2: the source as one short line; the full sentence for screen readers and in its tooltip. */}
       <SourceLine short={shortLabel} full={label} extra={turn.mode === 'deep' ? <span className="ai-turn-deep ai-sr-only">Thought deeper with {turn.model}</span> : null} deeper={turn.mode === 'deep'} time={<TurnTime at={turn.at}/>}/>
+      {turn.records && turn.records.length > 0 && <p className="ai-turn-records" title="Which records went with your question; never their values">Records sent: {turn.records.join(' · ')}</p>}
       <div className={`ai-reply-row${isLast ? ' ai-reply-row-latest' : ''}`} data-shown={shown ? '' : undefined}>
         <TurnTime at={turn.at}/>
         {turn.stopped && <span className="ai-turn-stopped" title={turn.stopped}>{turn.stopped}</span>}

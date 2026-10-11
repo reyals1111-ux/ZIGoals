@@ -1,7 +1,7 @@
 import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {expect, test, type Page} from '@playwright/test';
-import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, EVENING, HOST, lastReply, MODEL, offlineAppApi, openChat, panel, REAL, record, seedReal, shownReply, slug, type UiRun, usageOf} from './real-model';
 import {AI_OPTIONS_KEY} from '../lib/ai/store/keys';
 import {parseReply} from '../lib/ai/actions/parse';
 
@@ -89,6 +89,7 @@ for (const p of PHOTOS) {
       } else checks.push({name: 'a log-food card for the plate', pass: false, detail: run.cards.map(c => c.kind).join(', ') || 'no card'});
       run.score = {pass: checks.every(c => c.pass), checks, cards: run.cards.length, rejected: parsed.rejected.length, hint: null, refused: false, numbers: 0};
     } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 300) : String(error); }
+    run.usage = (await usageOf(page)) ?? undefined;
     record(info, file, run);
     info.annotations.push({type: 'photo', description: `${p.file}: recognised ${run.recognised.join(', ') || 'nothing'}; invented ${run.invented.join(', ') || 'nothing'}; ${run.foods.length} food card(s)`});
     if (run.error) throw new Error(run.error);

@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, slug, type UiRun} from './real-model';
+import {askAndWait, cardsOf, HOST, lastReply, MODEL, offlineAppApi, openChat, PAGE_PATHS, panel, REAL, record, seedReal, slug, type UiRun, usageOf} from './real-model';
 
 /**
  * Session X-Local Part 6c, multi-turn conversations with a real local model (owner addition 2: ≥50 across the matrix):
@@ -67,6 +67,7 @@ for (const c of CONVERSATIONS.slice(0, WANT)) {
         run.score = {pass: exact && restored, checks: [{name: 'card-of-kind', pass: true}, {name: 'correction-applied', pass: exact, detail}, {name: 'undo-exact', pass: restored}], cards: run.cards.length, rejected: 0, hint: null, refused: false, numbers: 0};
       }
     } catch (error) { run.error = error instanceof Error ? error.message.slice(0, 500) : String(error); }
+    run.usage = (await usageOf(page)) ?? undefined;
     record(info, file, run);
     if (run.error) throw new Error(run.error);
   });

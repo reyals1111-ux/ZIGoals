@@ -1,0 +1,65 @@
+{
+ "kind": "harness",
+ "file": "anthropic-api-claude-haiku-5-5-tools-page-spoken-all-2026-10-11T16-52-20-649Z.json",
+ "stage": "final-spoken-haiku",
+ "provider": "anthropic",
+ "model": "claude-haiku-5-5",
+ "host": "Anthropic API",
+ "mode": "tools",
+ "think": false,
+ "cache": true,
+ "pageContext": true,
+ "set": "spoken",
+ "batch": false,
+ "cases": 557,
+ "repeat": 1,
+ "runs": 557,
+ "passed": 523,
+ "rate": 0.9389587073608617,
+ "byKind": {
+  "propose": {
+   "passed": 420,
+   "total": 448
+  },
+  "lookup": {
+   "passed": 52,
+   "total": 52
+  },
+  "refuse": {
+   "passed": 25,
+   "total": 31
+  },
+  "local-first": {
+   "passed": 26,
+   "total": 26
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 1512,
+  "firstTokenP90Ms": 2573,
+  "totalMedianMs": 2043,
+  "totalP90Ms": 3432
+ },
+ "tokens": {
+  "input": 2372,
+  "output": 165294,
+  "cacheWrite": 596721,
+  "cacheRead": 9097482
+ },
+ "requests": 577,
+ "costUsd": 0.24844914500000026,
+ "pricesAsOf": "2026-10-10",
+ "perTurn": {
+  "input": 4.467043314500942,
+  "cacheWrite": 1123.768361581921,
+  "cacheRead": 17132.734463276836,
+  "output": 311.2881355932203,
+  "usd": 0.0004678891619585692
+ },
+ "costPer100Messages": 0.04678891619585692,
+ "repaired": 26,
+ "errors": 0,
+ "misses": "cards 31, fields 20, refusal 6",
+ "startedAt": "2026-10-11T16:52:20.649Z",
+ "finishedAt": "2026-10-11T17:13:18.010Z"
+}

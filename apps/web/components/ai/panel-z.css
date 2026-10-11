@@ -21,8 +21,13 @@
    whole name is 16.6 font-sizes wide (Inter 700, ZIGi at 750), 16.4 with this spacing, so 5.95cqi fits it with ~2% room.
    Never a second line, never an ellipsis on the name. Measured sizes (ADR-019 C45): computers ≥15 px; phones 430: 15.5,
    390: 13.1, 360: 11.3, 320: 8.9; the mini window 12.3.
-   Gate C: --zigi-title-fit (chat-header.tsx) scales it down where another font draws the name wider; 1 with Inter. */
+   Gate C: --zigi-title-fit (chat-header.tsx) scales it down where another font draws the name wider; 1 with Inter.
+   Session Z-Local (ADR-020 L49): from 360px up, never below 11px, the floor the one-line checks hold there: CI's WebKit drew the
+   name in a fallback wide enough for the fit to land at 10.9px; a hair of overflow is better than a name below the floor. Below
+   360 the fit rules alone, so the name still stops before the buttons. */
 .ai-chat .ai-chat-title{margin:0;display:block;white-space:nowrap;overflow:visible;text-overflow:clip;font-size:calc(min(18px,5.95cqi) * var(--zigi-title-fit,1));line-height:1.25;font-weight:700;letter-spacing:-.01em}
+@media (min-width:360px){.ai-chat .ai-chat-title{font-size:max(11px,calc(min(18px,5.95cqi) * var(--zigi-title-fit,1)));overflow:hidden;text-overflow:ellipsis}}
+/* Session Z-Local (ADR-020 L57): where the floor binds and a wide font still does not fit, the name ends in an ellipsis inside its box instead of running under the buttons (the fit reads the last word's own box, so hiding the overflow changes nothing it measures). */
 .ai-chat .ai-title-name{font-size:1.06em;font-weight:750}
 .ai-chat .ai-title-dot{white-space:pre;color:var(--text-strong,#f4f8ff)}
 .ai-chat .ai-title-role{font-size:1em;font-weight:700;display:inline-block}

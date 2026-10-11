@@ -1,5 +1,5 @@
 import {AiError, mapHttpError, mapNetworkError} from '../errors';
-import {ndjson} from '../sse';
+import {ndjson, fetchWithStall} from '../sse';
 import type {ChatEvent, ChatRequest} from '../types';
 
 /**
@@ -36,7 +36,7 @@ export async function* streamOllama(request: ChatRequest, base: string): AsyncGe
   if (request.key) headers.authorization = `Bearer ${request.key}`;
   let response: Response;
   try {
-    response = await fetcher(`${base}/api/chat`, {method: 'POST', headers, body: JSON.stringify(ollamaBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
+    response = await fetchWithStall(fetcher, `${base}/api/chat`, {method: 'POST', headers, body: JSON.stringify(ollamaBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
   } catch (error) { throw mapNetworkError(request.provider, error, {local: true, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   if (!response.ok) throw mapHttpError(request.provider, response.status, await response.text().catch(() => ''), response.headers);
   if (!response.body) throw new AiError('unreadable', 'The server sent an empty answer.', {provider: request.provider});

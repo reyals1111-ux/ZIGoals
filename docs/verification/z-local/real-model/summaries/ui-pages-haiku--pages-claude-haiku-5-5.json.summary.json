@@ -1,0 +1,16 @@
+{
+ "kind": "panel",
+ "file": "pages-claude-haiku-5-5.json",
+ "stage": "ui-pages-haiku",
+ "groups": {
+  "claude-haiku-5-5 on Anthropic API (desktop)": {
+   "runs": 170,
+   "passed": 168,
+   "rate": 0.9882352941176471,
+   "medianMs": 1999,
+   "p90Ms": 4118,
+   "errors": 0,
+   "costUsd": 0.07520135000000004
+  }
+ }
+}

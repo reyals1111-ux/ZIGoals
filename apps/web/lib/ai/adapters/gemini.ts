@@ -1,5 +1,5 @@
 import {AiError, mapHttpError, mapNetworkError} from '../errors';
-import {sseEvents, parseJson} from '../sse';
+import {sseEvents, parseJson, fetchWithStall} from '../sse';
 import type {ChatEvent, ChatRequest} from '../types';
 
 /**
@@ -44,7 +44,7 @@ export async function* streamGemini(request: ChatRequest, origin: string): Async
   const fetcher = request.fetcher ?? ((input: RequestInfo | URL, init?: RequestInit) => fetch(input, init));
   let response: Response;
   try {
-    response = await fetcher(`${origin}/v1beta/models/${encodeURIComponent(geminiModelId(request.model))}:streamGenerateContent?alt=sse`, {method: 'POST', headers: {'content-type': 'application/json', accept: 'text/event-stream', 'x-goog-api-key': request.key ?? ''}, body: JSON.stringify(geminiBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
+    response = await fetchWithStall(fetcher, `${origin}/v1beta/models/${encodeURIComponent(geminiModelId(request.model))}:streamGenerateContent?alt=sse`, {method: 'POST', headers: {'content-type': 'application/json', accept: 'text/event-stream', 'x-goog-api-key': request.key ?? ''}, body: JSON.stringify(geminiBody(request)), signal: request.signal, cache: 'no-store', credentials: 'omit', mode: 'cors'});
   } catch (error) { throw mapNetworkError(request.provider, error, {local: false, online: typeof navigator === 'undefined' ? undefined : navigator.onLine}); }
   if (!response.ok) throw mapHttpError(request.provider, response.status, await response.text().catch(() => ''), response.headers);
   if (!response.body) throw new AiError('unreadable', 'The provider sent an empty answer.', {provider: request.provider});

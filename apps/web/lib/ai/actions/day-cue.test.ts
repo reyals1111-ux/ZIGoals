@@ -3,17 +3,14 @@ import {applyDayCue, dayCue} from './day-cue';
 import {parseReply} from './parse';
 
 const TODAY = '2026-10-05'; // a Monday
-test('the day a message names for a log, in three languages; none, two, or a day to come give nothing', () => {
+test('the day a message names for a log, in English and Dutch; none, two, or a day to come give nothing', () => {
   expect(dayCue('Log a glass of water for yesterday', TODAY)).toBe('yesterday');
   expect(dayCue('Noteer twee glazen water voor gisteren', TODAY)).toBe('yesterday');
-  expect(dayCue("Hier j'ai bu trois verres d'eau", TODAY)).toBe('yesterday');
   expect(dayCue('Zet hier twee glazen water', TODAY)).toBeNull(); // Dutch "hier" is "here"
   expect(dayCue('I walked 6000 steps the day before yesterday', TODAY)).toBe('2026-10-03');
   expect(dayCue('Eergisteren 7000 stappen', TODAY)).toBe('2026-10-03');
-  expect(dayCue('Avant-hier, 9000 pas', TODAY)).toBe('2026-10-03');
   expect(dayCue('On Wednesday I had 10,200 steps', TODAY)).toBe('2026-09-30');
   expect(dayCue('Tick off my walk for last Monday', TODAY)).toBe('2026-09-28');
-  expect(dayCue('Vendredi dernier, 20 minutes de méditation', TODAY)).toBe('2026-10-02');
   expect(dayCue('Log a glass of water', TODAY)).toBeNull();
   expect(dayCue('Yesterday and on Friday I walked', TODAY)).toBeNull();
   expect(dayCue('Remind me tomorrow at 9', TODAY)).toBeNull();
@@ -25,5 +22,24 @@ test('a log card that said today, or named no day, takes the message\'s day; oth
   expect(out.map(p => [p.kind, p.day])).toEqual([['log-water', '2026-10-03'], ['log-steps', '2026-10-03'], ['create-reminder', undefined], ['log-weight', '2026-10-01']]);
   expect(applyDayCue(reply, 'Two glasses of water and 7000 steps', TODAY)).toBe(reply);
   const arr = '```zigoals-action\n[{"kind":"log-water","glasses":3,"day":"today"},{"kind":"check-in","habit":"h1"}]\n```';
-  expect(parseReply(applyDayCue(arr, "Hier j'ai bu trois verres d'eau et coché h1", TODAY)).proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday']);
+  // An array block gets the cue on every item (the French form of this assertion left with L7; the Dutch one stays).
+  expect(parseReply(applyDayCue(arr, 'Gisteren drie glazen water gedronken en h1 afgevinkt', TODAY)).proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday']);
+});
+
+test('L53: a skip for tomorrow takes tomorrow (and "overmorgen" the day after); a log for "tomorrow" is left as written', () => {
+  const skip = '```zigoals-action\n{"kind":"skip","habit":"h3","reason":"rest day","day":"today"}\n```';
+  expect(applyDayCue(skip, 'um skip my uh, my Walk, I mean skip my Walk tomorrow', '2026-10-05')).toContain('"day":"2026-10-06"');
+  expect(applyDayCue(skip, 'sla mijn wandeling overmorgen over', '2026-10-05')).toContain('"day":"2026-10-07"');
+  const water = '```zigoals-action\n{"kind":"log-water","glasses":2}\n```';
+  expect(applyDayCue(water, 'two glasses, and remind me tomorrow', '2026-10-05')).toBe(water);
+});
+
+test('L55: a reminder takes the one clock time the message names after the spoken normaliser; two clocks or a typed time leave it', () => {
+  const card = (time: string) => `\`\`\`zigoals-action\n{"kind":"create-reminder","for":"habit","habit":"h4","time":"${time}"}\n\`\`\``;
+  expect(applyDayCue(card('20:15'), "herinner me om kwart voor acht 's avonds aan mediteren", '2026-10-05')).toContain('"time":"19:45"');
+  expect(applyDayCue(card('19:45'), 'Remind me to meditate at quarter to eight in the evening', '2026-10-05')).toContain('"time":"19:45"');
+  expect(applyDayCue(card('20:15'), 'remind me at 20:15 to meditate', '2026-10-05')).toContain('"time":"20:15"');
+  expect(applyDayCue(card('07:00'), 'I slept from 23:30 to 07:00, remind me to stretch', '2026-10-05')).toContain('"time":"07:00"');
+  const water = '\`\`\`zigoals-action\n{"kind":"log-water","glasses":2}\n\`\`\`';
+  expect(applyDayCue(water, 'two glasses at quarter to eight', '2026-10-05')).toBe(water);
 });

@@ -51,7 +51,8 @@ export const aiOptionsSchema = z.looseObject({
   hostedConsent: z.looseObject({at: stamp, health: z.boolean()}).nullable().optional(),
   notificationNames: z.boolean().optional(),
   /** [TIER 3] Session X-Local Part 5b: auto-accept per card kind, a daily cap and the count per day; absent means off. */
-  autoAccept: z.looseObject({kinds: z.record(z.string().min(1).max(40), z.boolean()).refine(atMost(80)).optional(), dailyCap: z.number().int().min(1).max(100).optional(), days: z.record(day, z.number().int().min(0).max(100_000)).refine(atMost(400)).optional()}).optional(),
+  // SECURITY_REVIEW_Y F13: unknown keys are dropped on read (strict shape), never refused.
+  autoAccept: z.object({kinds: z.record(z.string().min(1).max(40), z.boolean()).refine(atMost(80)).optional(), dailyCap: z.number().int().min(1).max(100).optional(), days: z.record(day, z.number().int().min(0).max(100_000)).refine(atMost(400)).optional()}).optional(),
 });
 export type AiOptions = z.infer<typeof aiOptionsSchema>;
 export const AI_OPTIONS: DeviceRecordSpec<AiOptions> = {key: AI_OPTIONS_KEY, schema: aiOptionsSchema, empty};
@@ -61,7 +62,7 @@ export const MAX_USAGE_MONTHS = 13;
 export const aiUsageSchema = z.looseObject({
   version: z.literal(1),
   /** "2026-10" → route (a provider id, "hosted" or "on-device") → tokens the provider reported, the requests made, and how many came back without counts (Part 6). */
-  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000), unreported: z.number().int().min(0).max(1_000_000_000).optional()})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
+  months: z.record(month, z.record(z.string().min(1).max(40), z.looseObject({input: tokens, output: tokens, requests: z.number().int().min(0).max(1_000_000_000), unreported: z.number().int().min(0).max(1_000_000_000).optional(), cacheWrite: tokens.optional(), cacheRead: tokens.optional()})).refine(atMost(20))).refine(atMost(MAX_USAGE_MONTHS)).optional(),
   /** The person's own prices per million tokens; never fetched, never a ZIGoals price. */
   prices: z.partialRecord(provider, z.looseObject({input: decimal.optional(), output: decimal.optional(), currency})).optional(),
   softCap: z.looseObject({amount: decimal, currency}).nullable().optional(),
@@ -99,7 +100,7 @@ export const zigiSchema = z.looseObject({
   size: z.enum(ZIGI_SIZES).optional(),
   greeting: z.enum(ZIGI_GREETINGS).optional(),
   edgeTab: z.boolean().optional(),
-  knock: z.looseObject({enabled: z.boolean().optional(), offer: z.enum(['accepted', 'declined']).optional(), maxPerDay: z.number().int().min(1).max(10).optional(), quietFrom: clock.optional(), quietTo: clock.optional(), sound: z.boolean().optional()}).optional(),
+  knock: z.looseObject({enabled: z.boolean().optional(), offer: z.enum(['accepted', 'declined']).optional(), offeredOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), maxPerDay: z.number().int().min(1).max(10).optional(), quietFrom: clock.optional(), quietTo: clock.optional(), sound: z.boolean().optional()}).optional(),
   /** Tips and chips dismissed on one day; a new day starts empty. */
   dismissed: z.looseObject({day, ids: z.array(z.string().min(1).max(80)).max(50)}).optional(),
   greetedOn: day.optional(),
@@ -114,16 +115,16 @@ export type ZigiRecord = z.infer<typeof zigiSchema>;
 export const ZIGI: DeviceRecordSpec<ZigiRecord> = {key: ZIGI_KEY, schema: zigiSchema, empty};
 export type ZigiPrefs = {
   skin: string; animation: (typeof ZIGI_ANIMATIONS)[number]; side: (typeof ZIGI_SIDES)[number]; size: (typeof ZIGI_SIZES)[number]; greeting: (typeof ZIGI_GREETINGS)[number]; edgeTab: boolean;
-  knock: {enabled: boolean; offer: 'accepted' | 'declined' | null; maxPerDay: number; quietFrom: string; quietTo: string; sound: boolean};
+  knock: {enabled: boolean; offer: 'accepted' | 'declined' | null; offeredOn: string | null; maxPerDay: number; quietFrom: string; quietTo: string; sound: boolean};
 };
 /** The defaults (ADR-014 S5): the original skin, Calm animation, right side, size M, a friendly greeting, the edge tab on, knock off. */
-export const ZIGI_DEFAULTS: ZigiPrefs = {skin: 'origami-nebula', animation: 'calm', side: 'right', size: 'm', greeting: 'friendly', edgeTab: true, knock: {enabled: false, offer: null, maxPerDay: 3, quietFrom: '22:00', quietTo: '08:00', sound: false}};
+export const ZIGI_DEFAULTS: ZigiPrefs = {skin: 'origami-nebula', animation: 'calm', side: 'right', size: 'm', greeting: 'friendly', edgeTab: true, knock: {enabled: false, offer: null, offeredOn: null, maxPerDay: 3, quietFrom: '22:00', quietTo: '08:00', sound: false}};
 export function zigiPrefs(record: ZigiRecord): ZigiPrefs {
   const k = record.knock ?? {};
   return {
     skin: record.skin ?? ZIGI_DEFAULTS.skin, animation: record.animation ?? ZIGI_DEFAULTS.animation, side: record.side ?? ZIGI_DEFAULTS.side, size: record.size ?? ZIGI_DEFAULTS.size,
     greeting: record.greeting ?? ZIGI_DEFAULTS.greeting, edgeTab: record.edgeTab ?? ZIGI_DEFAULTS.edgeTab,
-    knock: {enabled: k.enabled ?? false, offer: k.offer ?? null, maxPerDay: k.maxPerDay ?? 3, quietFrom: k.quietFrom ?? '22:00', quietTo: k.quietTo ?? '08:00', sound: k.sound ?? false},
+    knock: {enabled: k.enabled ?? false, offer: k.offer ?? null, offeredOn: k.offeredOn ?? null, maxPerDay: k.maxPerDay ?? 3, quietFrom: k.quietFrom ?? '22:00', quietTo: k.quietTo ?? '08:00', sound: k.sound ?? false},
   };
 }
 
