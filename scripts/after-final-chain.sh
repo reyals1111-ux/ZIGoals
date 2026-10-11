@@ -29,7 +29,8 @@ mark START ui-pages-sonnet-2b; "$SC/ui-stage.sh" ui-pages-sonnet-2 claude-sonnet
 # 3. The ZIGi suites on the build: Chrome, then WebKit (both projects, 2 workers, one suite at a time).
 cd apps/web
 mark START suites-chrome; PLAYWRIGHT_BASE_URL=http://127.0.0.1:3103 pnpm exec playwright test tests/zigi-*.spec.ts --workers=2 --reporter=line 2>&1 | tail -6; RC=${PIPESTATUS[0]}; mark END suites-chrome "rc=$RC"
-mark START suites-webkit; PLAYWRIGHT_BASE_URL=http://127.0.0.1:3103 pnpm exec playwright test -c playwright.webkit.config.ts tests/zigi-*.spec.ts --workers=2 --reporter=line 2>&1 | tail -6; RC=${PIPESTATUS[0]}; mark END suites-webkit "rc=$RC"
+# The WebKit set as CI runs it (the ZIGi suites and the webkit-* specs: the freeze, the smoke, the phone set), traces kept on a failure by the config.
+mark START suites-webkit; PLAYWRIGHT_BASE_URL=http://127.0.0.1:3103 pnpm exec playwright test -c playwright.webkit.config.ts tests/zigi-*.spec.ts tests/webkit-*.spec.ts --workers=2 --reporter=line 2>&1 | tail -8; RC=${PIPESTATUS[0]}; mark END suites-webkit "rc=$RC"
 cd /Users/AIUSER/Documents/ZIGoals-Claude
 # 4. Summaries, both tables, the commit.
 node --no-warnings scripts/zigi/summarise.mjs $(ls "$RUNS"/real-model/*/*.json | /usr/bin/grep -vE "summary|rescored") --out "$SUMS" >/dev/null 2>&1
