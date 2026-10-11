@@ -331,7 +331,9 @@ Each difference it reports at Gate C is explained against this list (filled per 
   app's Motion Off, the jump at the bottom at once (C57, stricter). `webkit-smoke` waits for Settings' network before
   leaving it, as for every page (mechanics; its page-error assertion is unchanged). `small-features-y` ("−" beside "+")
   reads the stored count until the save lands (CI on `3d8a844` read 0 once: the card shows a check-in while its save
-  runs, by design; 21 of 21 locally on both builds; mechanics, the expected value unchanged).
+  runs, by design; 21 of 21 locally on both builds; mechanics, the expected value unchanged). `session-x-findings` (X-Cloud's
+  chunk patcher) also lets go of a route cut off as "Test ended" (CI on `f950c6d`, J201), the same case it already let go
+  as "disposed" (mechanics; every chunk the coin page loads is still read and patched).
 
 ## Rejected options
 None yet.

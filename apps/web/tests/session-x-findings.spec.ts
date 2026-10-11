@@ -94,7 +94,8 @@ test('a page that fails while drawing shows the app\'s error page in the app, ne
   let patched = 0;
   // A chunk the Showcase page was still loading when the test moves on is cut off by that navigation (CI run 38010192191:
   // "Response has been disposed"); only that case is let go, and every chunk the coin page loads is still read and patched.
-  const gone = (error: unknown) => /disposed|has been closed|Target page, context or browser has been closed/.test(String(error));
+  // Session Z-Cloud Gate C: the same cut-off once arrived as "route.fetch: Test ended" (CI run 38121211483, J201 below).
+  const gone = (error: unknown) => /disposed|has been closed|Target page, context or browser has been closed|Test ended/.test(String(error));
   await page.route('**/_next/static/chunks/*.js', async route => {
     const marker = '"Showcase: fixture prices and figures. These are not market data."';
     const fetched = await route.fetch().then(async response => ({response, body: await response.text()})).catch(error => { if (gone(error)) return null; throw error; });
