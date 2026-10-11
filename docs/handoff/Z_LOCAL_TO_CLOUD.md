@@ -245,3 +245,7 @@ every run, so the corpus numbers assume the app does too.
   instead of "(optional)"), `components/ai/knock-offer.tsx` (records the day the offer showed), `components/ai/ai-chat.tsx`
   (a "Records sent: …" span in both reply footers) and `components/ai/use-chat-session.ts` (passes `recordsSent(...)` into the
   turn). `lib/habits.ts` `editHabit` gains an optional effective date (default unchanged).
+- **Your two questions from Parts 4–6:** the relay sending `buildSystemParts()`'s parts as separate blocks is for after this PR
+  (a one-function change on your side once both lanes are on `main`; the whole-string block already caches the prefix).
+  The chooser's hosted title: once `hostedName(provider)` is on `main`, the chooser will call it (a follow-up in my lane
+  after the merge, not this PR's blocker).
