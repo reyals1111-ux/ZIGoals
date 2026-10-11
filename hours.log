@@ -131,3 +131,5 @@ START part6-sonnet-page 2026-10-11T11:55:35Z
 END gemma4-page 2026-10-11T12:06:16Z rc=0
 START variance-gemma4 2026-10-11T12:06:20Z
 END part6-sonnet-page 2026-10-11T12:26:57Z rc=0
+START part6-spoken-sonnet 2026-10-11T12:27:00Z
+END variance-gemma4 2026-10-11T12:33:46Z rc=0
