@@ -161,3 +161,8 @@ test('L53: a card that says "date" means "day"', () => {
   const r = parseReply('Logged.\n\n```zigoals-action\n{"kind":"log-steps","steps":12000,"date":"2026-10-04"}\n```');
   expect(r.proposals).toHaveLength(1); expect((r.proposals[0] as {day?: string}).day).toBe('2026-10-04');
 });
+
+test('L63: an empty-string field is absent (a nap with "wake": "" is a nap, not a refused block)', () => {
+  const r = parseReply('A nap.\n\n```zigoals-action\n{"kind":"log-sleep","wake":"","minutes":20,"nap":true}\n```');
+  expect(r.rejected).toHaveLength(0); expect(r.proposals).toHaveLength(1); expect('wake' in (r.proposals[0] as object)).toBe(false);
+});

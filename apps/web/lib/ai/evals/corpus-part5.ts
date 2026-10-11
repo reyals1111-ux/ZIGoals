@@ -54,7 +54,7 @@ function add(...cases: ModelCase[]) { PART5.push(...cases); }
     h.propose('p5-counter-create', 'Add a counter for burpees', {kinds: ['create-counter'], fields: [{kind: 'create-counter', name: 'Burpees'}]}, {important: true}),
     h.propose('p5-counter-create-nl', 'Maak een teller voor burpees', {kinds: ['create-counter']}, {lang: 'nl'}),
     h.propose('p5-counter-rename', 'Rename my Push-ups counter to Press-ups', {kinds: ['edit-counter'], fields: [{kind: 'edit-counter', name: 'Press-ups'}]}),
-    h.propose('p5-target-protein', 'Set my protein target to 120 grams a day', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'protein', value: 120}]}, {important: true}),
+    h.propose('p5-target-protein', 'Set my protein target to 120 grams a day', {kinds: []}, {important: true}), // Session Z-Local L63: the Showcase protein target is already 120 g a day, the L50 case: say so, no card
     h.propose('p5-target-steps-nl', 'Zet mijn stappendoel op 9000 stappen per dag', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'steps', value: 9000}]}, {lang: 'nl', important: true}),
     h.propose('p5-target-water', 'I want to drink 2.5 litres a day from now on, set that as my water target', {kinds: ['set-target'], fields: [{kind: 'set-target', target: 'water'}]}),
     h.propose('p5-target-sleep', 'My sleep goal is 8 hours a night', {kinds: []}), // Session Z-Local L52: the Showcase sleep goal is already 8 h a night, so this is the L50 case: say so, no card (the planner would refuse "already set so")

@@ -151,5 +151,5 @@ test('L48/L50: a water reminder "every two hours" with no times named is the sev
 
 test('L50: when the records show there is nothing to change (no fast to stop, a goal already active, a unit already set), the reply says so and sends no card; a second entry for a day still gets its card', () => {
   expect(ACTION_PROTOCOL).toContain('show there is nothing to change (no fast running to stop, the goal to reopen already active, the unit, target, bell or look asked for already set that way), say so in one line and send no card');
-  expect(ACTION_PROTOCOL).toContain('That is not the second entry above, which still gets its card.');
+  expect(ACTION_PROTOCOL).toContain('That is not the second entry above, which still gets its card; a check-in, a log or a skip is never "nothing to change"');
 });

@@ -86,6 +86,8 @@ function coerceNumbers(value: unknown): unknown {
   // Session Z-Local L53: a card that says "date" means "day" (gemma4 wrote {"date": "2026-10-04"} and the block was refused for the unknown key).
   if (typeof o.date === 'string' && o.day === undefined) { o.day = o.date; delete o.date; }
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    // Session Z-Local L63: an empty string is an absent field (Sonnet wrote "wake": "" for a nap and the block was refused).
+    if (v === '') continue;
     // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
     // Session Z-Local Part 6 (ADR-020 L37): where the schema makes null a meaning (set-target's value clears the target; set-bells' intervalMin
     // stops the bell), the null stays; Opus wrote `"value": null` to clear a calorie target and the block was refused as "received undefined".
