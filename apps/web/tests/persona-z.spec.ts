@@ -270,6 +270,9 @@ test('10b. phones: Habits\' hero actions take two rows from 360 px, and the firs
   for (const width of [360, 390, 430]) {
     await page.setViewportSize({width, height: 664});
     await page.goto('/app/habits');
+    // While the page settles, the server's hero and the phone's can both be there for a moment: measure the one that stays.
+    await expect(page.locator('.habit-hero-actions')).toHaveCount(1);
+    await expect(page.locator('.habit-hero-actions .habit-ask-zigi')).toBeVisible();
     const tops = (await page.locator('.habit-hero-actions').evaluate(a => [...a.querySelectorAll('button, a')].map(e => e.getBoundingClientRect().top))).sort((a, b) => a - b);
     expect(tops, `three actions at ${width}`).toHaveLength(3);
     expect(1 + tops.slice(1).filter((t, i) => t - tops[i]! > 10).length, `rows of actions at ${width}`).toBe(2);
