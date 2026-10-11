@@ -130,6 +130,9 @@ const profiles = [];
 for (const base of [tmpdir(), '/tmp', '/private/tmp']) {
   try {
     for (const name of readdirSync(base)) if (/^playwright/i.test(name)) {
+      // Playwright's transform cache holds compiled copies of the repository's own test files (main's allowlisted fake keys among
+      // them, pinned in scripts/secret-allowlist.json); the sources are swept where they live, so the cache is not walked.
+      if (/^playwright-transform-cache/i.test(name)) continue;
       const path = join(base, name); dirs.push(path);
       if (/profile/i.test(name)) { try { profiles.push({path, name, mtime: statSync(path).mtimeMs}); } catch { /* gone */ } }
     }
