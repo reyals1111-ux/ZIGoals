@@ -131,6 +131,6 @@ test('L42: "what do you know about me" calls about_me before answering, even wit
 });
 
 test('L45: the "turn yourself off" example no longer teaches a blanket refusal of ZIGi\'s settings: the switch is the person\'s, the look and the knock are a card', () => {
-  const ex = EXAMPLES.today.find(e => e.ask === 'Turn yourself off')!;
+  const ex = Object.values(EXAMPLES).flat().find(e => e.ask === 'Turn yourself off')!;
   expect(ex.reply).toContain('that switch is yours'); expect(ex.reply).toContain('I can set with a card'); expect(ex.reply).not.toContain('I cannot change settings myself');
 });
