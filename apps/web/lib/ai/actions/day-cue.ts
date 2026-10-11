@@ -17,6 +17,38 @@ const FUTURE = /\b(?:tomorrow|morgen|next week|volgende week)\b/i;
 // Session Z-Local L53: a skip is the one log that looks ahead; "skip my walk tomorrow" (gemma4 wrote "today" for every form) takes tomorrow, "overmorgen" the day after.
 const FUTURE_KINDS = new Set(['skip']);
 const TOMORROW = /\b(?:tomorrow|morgen)\b/i, TWO_AHEAD = /\b(?:the day after tomorrow|overmorgen)\b/i;
+/**
+ * Session Z-Local L55: the one clock time the message names, read on the device after the spoken normaliser ("kwart voor
+ * acht 's avonds" is 19:45), for a reminder card whose time the model misheard (gemma4 wrote 20:15 for it, three forms of
+ * six). A message with no clock or with two ("from 23:30 to 7:00") leaves the card as written; a time the person typed as
+ * digits is kept as they typed it.
+ */
+const CLOCK = /\b([01]?\d|2[0-3]):([0-5]\d)\b/g;
+const TIME_KINDS = new Set(['create-reminder']);
+export function timeCue(spoken: string): string | null {
+  const times = [...new Set([...normalizeSpoken(spoken).matchAll(CLOCK)].map(m => `${m[1]!.padStart(2, '0')}:${m[2]}`))];
+  return times.length === 1 ? times[0]! : null;
+}
+export function applyTimeCue(reply: string, message: string): string {
+  const cue = timeCue(message); if (!cue) return reply;
+  const typed = [...message.matchAll(CLOCK)].map(m => `${m[1]!.padStart(2, '0')}:${m[2]}`);
+  return reply.replace(FENCE, (block: string, fence: string, body: string) => {
+    let parsed: unknown;
+    try { parsed = repairJson(body); } catch { return block; }
+    if (parsed === null || typeof parsed !== 'object') return block;
+    let changed = false;
+    const fix = (item: unknown) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      const o = item as Record<string, unknown>;
+      if (typeof o.kind !== 'string' || !TIME_KINDS.has(o.kind) || typeof o.time !== 'string') return item;
+      const current = o.time.trim();
+      if (current === cue || typed.includes(current)) return item;
+      changed = true; return {...o, time: cue};
+    };
+    const next = Array.isArray(parsed) ? parsed.map(fix) : fix(parsed);
+    return changed ? `${fence}zigoals-action\n${JSON.stringify(next)}\n${fence}` : block;
+  });
+}
 /** The day ahead a skip names, or null. */
 export function aheadCue(spoken: string, today: string): string | null {
   const message = normalizeSpoken(spoken);
@@ -47,7 +79,7 @@ export function dayCue(spoken: string, today: string): string | null {
  * and the harness's one call read both cues.
  */
 export function applyDayCue(original: string, message: string, today: string): string {
-  const reply = applyQuantityCue(original, message);
+  const reply = applyTimeCue(applyQuantityCue(original, message), message);
   const past = dayCue(message, today), ahead = past ? null : aheadCue(message, today), day = past ?? ahead;
   if (!day) return reply;
   return reply.replace(FENCE, (block: string, fence: string, body: string) => {

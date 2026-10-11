@@ -33,3 +33,13 @@ test('L53: a skip for tomorrow takes tomorrow (and "overmorgen" the day after); 
   const water = '```zigoals-action\n{"kind":"log-water","glasses":2}\n```';
   expect(applyDayCue(water, 'two glasses, and remind me tomorrow', '2026-10-05')).toBe(water);
 });
+
+test('L55: a reminder takes the one clock time the message names after the spoken normaliser; two clocks or a typed time leave it', () => {
+  const card = (time: string) => `\`\`\`zigoals-action\n{"kind":"create-reminder","for":"habit","habit":"h4","time":"${time}"}\n\`\`\``;
+  expect(applyDayCue(card('20:15'), "herinner me om kwart voor acht 's avonds aan mediteren", '2026-10-05')).toContain('"time":"19:45"');
+  expect(applyDayCue(card('19:45'), 'Remind me to meditate at quarter to eight in the evening', '2026-10-05')).toContain('"time":"19:45"');
+  expect(applyDayCue(card('20:15'), 'remind me at 20:15 to meditate', '2026-10-05')).toContain('"time":"20:15"');
+  expect(applyDayCue(card('07:00'), 'I slept from 23:30 to 07:00, remind me to stretch', '2026-10-05')).toContain('"time":"07:00"');
+  const water = '\`\`\`zigoals-action\n{"kind":"log-water","glasses":2}\n\`\`\`';
+  expect(applyDayCue(water, 'two glasses at quarter to eight', '2026-10-05')).toBe(water);
+});

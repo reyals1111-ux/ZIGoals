@@ -95,3 +95,8 @@ test('"om acht uur nee half negen" keeps 8:30 and the stuttered "om om" collapse
 test('"tweeënzeventig en een halve kilo" reads 72.5 (the Dutch inflected half)', () => {
   expect(normalizeSpoken('Ik weeg tweeënzeventig en een halve kilo')).toBe('Ik weeg 72.5 kilo');
 });
+
+test('L55: "half twelve to seven" is a range, not twelve minutes to seven', () => {
+  expect(normalizeSpoken('I slept from half twelve to seven')).not.toContain('6:48');
+  expect(normalizeSpoken('ten to eight')).toBe('7:50');
+});

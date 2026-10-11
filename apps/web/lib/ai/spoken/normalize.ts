@@ -145,7 +145,8 @@ function clocks(text: string): string {
     .replace(/\b(\d{1,2})\s+to\s+(\d{1,2})\s*(?=o'?clock|am|pm|in the|tonight|$|[,.!?]|\s)/gi, (m0, mm: string, h: string, offset: number, s: string) => {
       // "ten to eight" is a time only when minutes fit and the phrase is not a range ("from 7 to 8", "3 to 5 glasses").
       const before = s.slice(0, offset);
-      if (+mm >= 60 || +mm === 0 || /\b(?:from|van|between|tussen)\s*$/i.test(before) || new RegExp(`^\\s*(?:${UNITS})(?![A-Za-z])`, 'i').test(s.slice(offset + m0.length))) return m0;
+      // Session Z-Local L55: "half twelve to seven" is a range from half twelve, not twelve minutes to seven.
+      if (+mm >= 60 || +mm === 0 || /\b(?:from|van|between|tussen|half)\s*$/i.test(before) || new RegExp(`^\\s*(?:${UNITS})(?![A-Za-z])`, 'i').test(s.slice(offset + m0.length))) return m0;
       return clock(shift((+h + 23) % 24, ctx), 60 - +mm);
     })
     .replace(/\b(\d{1,2})\s+o'?clock\b/gi, (_, h: string) => clock(shift(+h, ctx), 0))
