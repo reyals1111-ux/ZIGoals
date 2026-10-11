@@ -23,7 +23,10 @@ const harness = (model, set, filter, host) => () => {
   const c = all.filter(s => s.kind === 'harness' && String(s.model).startsWith(model) && (s.set ?? 'typed') === set && filterOf(s) === filter && (!host || String(s.host).includes(host)));
   const page = c.filter(s => s.pageContext); const s = (page.length ? page : c).at(-1);
   if (!s) return null; const f = locate(s), stage = s.stage ?? (f ? f.split('/').at(-2) : '?');
-  return {passed: s.passed, total: s.runs, where: `${stage}/${s.file}`, misses: s.misses, repeat: s.repeat, file: s.file, stage};
+  // A re-scored file beside the run (lib/ai/evals/rescore.test.ts) carries the pass count under the oracles as they are now; it wins over the count at run time.
+  let passed = s.passed, total = s.runs, note = '';
+  if (f && existsSync(`${f}.rescored.json`)) { try { const r = JSON.parse(readFileSync(`${f}.rescored.json`, 'utf8')); const inCorpus = r.runs.filter(x => x.rescored).length; if (inCorpus) { passed = r.summary.passed; total = inCorpus; note = ` (re-scored; ${s.passed}/${s.runs} at run time)`; } } catch { /* the run-time count stands */ } }
+  return {passed, total, where: `${stage}/${s.file}${note}`, misses: s.misses, repeat: s.repeat, file: s.file, stage};
 };
 /** A panel summary (UI runs) by stage folder; every group (project) summed. */
 const panel = stage => () => {

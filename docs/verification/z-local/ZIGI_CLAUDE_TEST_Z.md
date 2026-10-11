@@ -146,26 +146,26 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 35 summary file(s): 7
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
 | Sonnet · corpus (typed) ≥ 97 % | 687/725 · 94.8 % | not met, 2.2 pt short; misses: cards 30, fields 10, no-numbers 3, schema 3, never 2 | `part6-sonnet-page/anthropic-api-claude-sonnet-5-5-tools-page-all-2026-10-11T11-55-37-709Z.json` |
-| Sonnet · the spoken set ≥ 95 % | 492/557 · 88.3 % | not met, 6.7 pt short; misses: cards 36, fields 32, refusal 10, fact 4, schema 2 | `part6-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T12-27-03-053Z.json` |
+| Sonnet · the spoken set ≥ 95 % | 524/557 · 94.1 % | not met, 0.9 pt short; misses: cards 36, fields 32, refusal 10, fact 4, schema 2 | `part6-spoken-sonnet/anthropic-api-claude-sonnet-5-5-tools-page-spoken-all-2026-10-11T12-27-03-053Z.json (re-scored; 492/557 at run time)` |
 | Sonnet · UI panel 150 ≥ 95 % | 121/150 · 80.7 % | not met, 14.3 pt short | `ui-panel-sonnet/ui-claude-sonnet-5-5.json` |
 | Sonnet · 15 conversations ×3: 15/15 | 15/15 · 100.0 % | **met** | `ui-conv-sonnet/conversations-claude-sonnet-5-5.json` |
 | Sonnet · the day, desktop + phone: 36/36 | 36/36 · 100.0 % | **met** | `ui-day-sonnet/day-in-the-life-claude-sonnet-5-5.json` |
 | Sonnet · pages 17 × 10 ≥ 99 % | 330/340 · 97.1 % | not met, 1.9 pt short | `ui-pages-sonnet/pages-claude-sonnet-5-5.json` |
 | Sonnet · four photo plates ×3: 4/4 | — | not run yet | — |
 | Sonnet · WebKit subset (60 panel + 5 conversations), reported | 62/65 · 95.4 % | reported | `ui-webkit-conv-sonnet/conversations-claude-sonnet-5-5.json, ui-webkit-panel-sonnet/ui-claude-sonnet-5-5.json` |
-| Sonnet · important ×2 variance (spread between repeats) | 526/608 · 86.5 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json` |
+| Sonnet · important ×2 variance (spread between repeats) | 498/568 · 87.7 % · spread 0.0 pt (86.5 % / 86.5 %) | reported | `variance/anthropic-api-claude-sonnet-5-5-tools-important-2026-10-10T15-56-21-271Z.json (re-scored; 526/608 at run time)` |
 | Haiku · corpus ≥ 92 % | 668/725 · 92.1 % | **met** | `part6-haiku-after/anthropic-api-claude-haiku-5-5-tools-page-all-2026-10-11T11-26-49-396Z.json` |
 | Haiku · the spoken set ≥ 92 % | — | not run yet | — |
 | Haiku · UI panel 150 ≥ 92 % | 125/150 · 83.3 % | not met, 8.7 pt short | `ui-panel-haiku/ui-claude-haiku-5-5.json` |
 | Haiku · pages 17 × 10 (desktop) ≥ 92 % | 168/170 · 98.8 % | **met** | `ui-pages-haiku/pages-claude-haiku-5-5.json` |
-| Opus · corpus ≥ 97 % | 665/725 · 91.7 % | not met, 5.3 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json` |
+| Opus · corpus ≥ 97 % | 677/725 · 93.4 % | not met, 3.6 pt short; misses: cards 49, fields 8, refusal 7, never 4, schema 3 | `corpus/anthropic-api-claude-opus-5-5-tools-all-2026-10-10T18-20-43-132Z.json (re-scored; 665/725 at run time)` |
 | Opus · important set ≥ 97 % (the re-run after the fix rounds) | — | not run yet | — |
 | Opus · UI panel 60 ≥ 97 % | 57/60 · 95.0 % | not met, 2.0 pt short | `ui-panel-opus/ui-claude-opus-5-5.json` |
 | qwen3.8 (RTX 5090) ≥ 90 % | 631/725 · 87.0 % | not met, 3.0 pt short; misses: cards 78, fields 30, schema 9, refusal 6, no-numbers 4 | `qwen38-pc/rtx-5090-qwen3.8-27b-tools-page-all-2026-10-10T19-34-41-378Z.json` |
 | qwen3.6 (RTX 5090) ≥ 85 % | 616/725 · 85.0 % | not met, 0.0 pt short; misses: cards 93, fields 34, refusal 9, schema 6, no-numbers 3 | `qwen36-pc/rtx-5090-qwen3.6-35b-a3b-tools-page-all-2026-10-10T20-06-02-681Z.json` |
 | qwen3.6 (Mac M1 Max) ≥ 85 % | 578/725 · 79.7 % | not met, 5.3 pt short; misses: cards 114, fields 43, schema 31, refusal 8, tool 6 | `qwen36-mac/mac-m1-max-qwen3.6-35b-a3b-tools-all-2026-10-10T17-21-51-599Z.json` |
 | gemma4 (RTX 5090) ≥ 89 % | 647/725 · 89.2 % | **met** | `gemma4-page/rtx-5090-gemma4-12b-tools-page-all-2026-10-11T11-42-48-635Z.json` |
-| gemma4 · the spoken set, reported | 424/557 · 76.1 % | reported | `spoken-gemma4/rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T11-26-51-588Z.json` |
+| gemma4 · the spoken set, reported | 460/557 · 82.6 % | reported | `spoken-gemma4/rtx-5090-gemma4-12b-tools-page-spoken-all-2026-10-11T11-26-51-588Z.json (re-scored; 424/557 at run time)` |
 | phi4-mini (RTX 5090), reported (X-Local: 61 %) | 457/725 · 63.0 % | reported | `phi4-pc/rtx-5090-phi4-mini-3.8b-tools-page-all-2026-10-10T20-18-08-379Z.json` |
 | gemma4 · important ×3 variance (spread) | 752/852 · 88.3 % · spread 3.2 pt (89.8 % / 86.6 % / 88.4 %) | reported | `variance-gemma4/rtx-5090-gemma4-12b-tools-page-important-2026-10-11T12-06-22-223Z.json` |
 | qwen3.8 · important ×3 variance (spread) | — | not run yet | — |
