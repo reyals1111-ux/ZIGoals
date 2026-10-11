@@ -72,8 +72,9 @@ for (const setting of ['default', 'reduced', 'off'] as const) test(`"−" beside
   await expect(minus).toBeDisabled();
   await plus.click();
   await expect(card.locator('.habit-count strong')).toHaveText('1');
-  const entry = (await stored(page)).habits[0]!.entries.find(e => e.date === '2026-09-15')!;
-  expect(entry.count).toBe(1);
+  // Session Z-Cloud Gate C: the card shows a check-in while its save is still running (habit-card's queue), so the stored
+  // record is read until the save lands (CI once read 0 here; mechanics, the expected value unchanged).
+  await expect.poll(async () => (await stored(page)).habits[0]!.entries.find(e => e.date === '2026-09-15')?.count).toBe(1);
 });
 
 // A metal entered without a value has no valuation history (Wealth records a daily valuation only for a valued asset),

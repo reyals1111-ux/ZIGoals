@@ -219,6 +219,7 @@ the alpha on the phone (Safari, then the home-screen app) with the Showcase load
 | 16 | **The home-screen app:** rows 12 and 14 in the installed ZIGoals | either the same as in Safari, or one line: "This browser doesn't offer speech recognition here. Use your keyboard's dictation (the mic on the iPhone keyboard), or type." Note which: installed web apps on iOS may lack speech recognition |
 | 17 | **iPhone, ZIGi's button:** after opening the panel once, close it and **hold** ZIGi's button | either listening starts at once with the panel open, or the panel opens with the microphone lit and "Tap the mic to talk" (iOS may only start listening inside a tap). Note which. A hold never moves ZIGi, opens no menu and selects no text |
 | 18 | **Mac Chrome:** hold ZIGi's button, say a sentence, release; then **⌘ Shift Space**; then Settings → Voice → **Tap ZIGi to talk** on and tap ZIGi | each starts listening with the waves around ZIGi and the microphone; the first time Chrome asks for the microphone and the panel says Google may process the audio (or "on this device" where Chrome offers on-device recognition) |
+| 19 | **iPhone Safari, ZIGi's name:** open ZIGi's panel; then Settings → ZIGi · Your Personal AI Companion | in the panel the whole name "ZIGi · Your Personal AI Companion" is one line and stops before the buttons; in Settings it is one line too (it may wrap only with the phone's larger text sizes); note its size if it looks small |
 
 Rows 5, 9 and 12–13 changed on 2026-10-09 (Session Y-Cloud, ADR-018): the old list numbered two rows "12"; the
 keyboard-and-rotation check joined the panel row (5) and the lock check joined the idle row (9), so the two checks the
@@ -231,3 +232,5 @@ platform's decoder or its motion setting, not the data.
 
 Rows 12 and 14–18 changed or were added on 2026-10-10 (Session Z-Cloud Part 3, ADR-019): talking to ZIGi needs no setting
 any more, works without an AI, and in English or Dutch only. Rows 16 and 17 record what iOS allows (owner-reported).
+Row 19 was added at Gate C (ADR-019 C56): the name's size is measured for Inter, which the iPhone draws in its own system
+font; CI's runners draw it in DejaVu Sans, where the panel scales it to fit (9.8 px at 360) and Settings wraps it at 320.
