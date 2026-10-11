@@ -203,7 +203,9 @@ test('a font that draws the name wider: still one line, before the buttons, at e
     await openChat(page);
     const normal = (await measure(panel(page))).titleFont;
     await page.addStyleTag({content: '.ai-chat .ai-chat-title, .ai-chat .ai-chat-title * { letter-spacing: .1em !important; }'});
-    await expect.poll(async () => (await measure(panel(page))).titleFont, `the name scaled down at ${width}`).toBeLessThan(normal * 0.95);
+    // Session Z-Local L54: from 360 up the name never goes under 11 px (L49); where the unscaled name already sits within 5 % of the
+    // floor (CI's fonts at 360: 11.19 px), "scaled down" means down to the floor. Above that, the 5 % holds as before.
+    await expect.poll(async () => (await measure(panel(page))).titleFont, `the name scaled down at ${width}`).toBeLessThan(width >= 360 ? Math.max(normal * 0.95, 11.01) : normal * 0.95);
     const m = await measure(panel(page));
     oneLine(m, `with a wider font at ${width}`);
     expect(m.titleFont, `still a readable size at ${width}`).toBeGreaterThan(normal * 0.7);
