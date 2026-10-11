@@ -74,7 +74,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     }
     if (!changed.size) return;
     try { updateDeviceRecord(getAppStorage(), ZIGI_CARDS, record => keepCards(record, replyId, changed, Date.now())); } catch { /* kept in this panel only */ }
-  }, [items, replyId]);
+  }, [items, replyId, sigs]);
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
   const [autoTitles, setAutoTitles] = useState<string[] | null>(null), [capNote, setCapNote] = useState(''), autoRan = useRef(false);
   const live = undoGroup !== null && undoGroup.until > now;
