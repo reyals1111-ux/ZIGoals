@@ -249,6 +249,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright's WebKit (owner-approved download)
         run: pnpm --filter @zigoals/web exec playwright install --with-deps webkit
+      # Session Z-Local (owner decision, 2026-10-11, [TIER 3] (CI)): the same font package the Chrome shards get through
+      # chrome-deps.sh (fonts-liberation), so ZIGi's title and Settings' name are measured in the same font in both jobs
+      # (C56's two checks); the 11 px floor in those checks stays.
+      - name: The Chrome shards' font (fonts-liberation)
+        run: sudo apt-get install -y --no-install-recommends fonts-liberation
       - run: pnpm build
       - run: pnpm --filter @zigoals/web start > /tmp/zigoals-web.log 2>&1 &
       - name: WebKit suite
