@@ -7,10 +7,13 @@
  *   (lib/zigi-suggestions.ts). Personal: a device with any is not new.
  * - `zigoals:zigi-voice:v1`: how the person talks to ZIGi (show the microphone, language, send when they stop talking,
  *   read spoken replies aloud, tap ZIGi to talk, mute, the disclosure seen) (lib/zigi-voice.ts). A display preference.
+ * - `zigoals:zigi-cards:v1` (Gate C, the persona round): what became of each reply's cards (added, dismissed, undone…),
+ *   so a chat reopened from History never offers an added card again (lib/zigi-cards.ts). No words: ids and outcomes.
  */
 export const ZIGI_SUGGESTIONS_KEY = 'zigoals:zigi-suggestions:v1';
 export const ZIGI_VOICE_KEY = 'zigoals:zigi-voice:v1';
+export const ZIGI_CARDS_KEY = 'zigoals:zigi-cards:v1';
 /** The person's own records: a device with any of them is not new. */
 export const Z_PERSONAL_KEYS: readonly string[] = [ZIGI_SUGGESTIONS_KEY];
 /** Display preferences with nothing personal in them. */
-export const Z_DISPLAY_KEYS: readonly string[] = [ZIGI_VOICE_KEY];
+export const Z_DISPLAY_KEYS: readonly string[] = [ZIGI_VOICE_KEY, ZIGI_CARDS_KEY];
