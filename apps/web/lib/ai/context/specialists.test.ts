@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {PAGE_AREAS} from '../settings';
-import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, TOOLS_NOTE, buildSystemParts, buildSystemPrompt, escapeData} from './specialists';
+import {ACTION_FENCE, ACTION_PROTOCOL, ANSWER_LABEL, DATA_CLOSE, DATA_OPEN, HEALTH_CLOSED_NOTE, SAFETY_RULES, SPECIALISTS, TOOLS_NOTE, buildSystemParts, buildSystemPrompt, escapeData, EXAMPLES} from './specialists';
 import {AREA_LABELS, attachesContext, pageArea, wealthView} from './pages';
 
 // ADR-012, Part 4: six specialists, our own copy under ADR-011's tone rules, the guardrails every prompt carries.
@@ -128,4 +128,9 @@ test('L41: an open-page card comes only when the person asks to go somewhere, ne
 
 test('L42: "what do you know about me" calls about_me before answering, even with the page records attached', () => {
   expect(TOOLS_NOTE).toContain('call it before answering, even when the page');
+});
+
+test('L45: the "turn yourself off" example no longer teaches a blanket refusal of ZIGi\'s settings: the switch is the person\'s, the look and the knock are a card', () => {
+  const ex = EXAMPLES.today.find(e => e.ask === 'Turn yourself off')!;
+  expect(ex.reply).toContain('that switch is yours'); expect(ex.reply).toContain('I can set with a card'); expect(ex.reply).not.toContain('I cannot change settings myself');
 });
