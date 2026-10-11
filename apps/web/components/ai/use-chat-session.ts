@@ -17,7 +17,7 @@ import {zigiSignals} from '../zigi/bus';
 import {fenceStructured, needsRepair, REPAIR_NOTE, repairPrompt, structuredFormat} from '../../lib/ai/actions/repair';
 import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../../lib/ai/intent';
 import {localSignal} from '../../lib/ai/zigi-reactions';
-import {extractHint} from '../../lib/ai/emotion-hint';
+import {extractHint, stripHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
 import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
 import {toolEnv} from '../../lib/ai/tools/env';
@@ -180,7 +180,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     const healthNow = context.gates.health;
     if (options.extra && options.extra.health === undefined) options = {...options, extra: {...options.extra, health: healthNow}};
     if (!healthNow && (options.images?.length || options.extra?.health)) { const {images, extra, ...rest} = options; void images; options = {...rest, ...(extra && !extra.health ? {extra} : {})}; }
-    if (!hosted && (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription')) { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · your AI.']}); return; }
+    if (!hosted && (!settings.enabled || !settings.provider || !settings.model || settings.mode === 'subscription')) { setFailure({kind: 'not-connected', title: 'ZIGi is not connected to your AI yet.', steps: ['Connect an API key or a local model in Settings → ZIGi · Your Personal AI Companion.']}); return; }
     // ZIGoals hosted stands in for the person's provider: the relay chooses the model; the wire is OpenAI's.
     const providerId = hosted ? 'openai' as const : settings.provider!, account = hosted ? getAccountScope() : null;
     const before = !options.reuse && options.replace ? editTarget(chatRef.current, options.replace) ?? chatRef.current : chatRef.current;
@@ -219,7 +219,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     let key: string | null = null;
     if (!hosted) try { key = await readKey(scope, providerId); } catch { key = null; }
     if (hosted && !account) { setFailure({kind: 'blocked', title: 'Sign in again to use ZIGoals hosted.', steps: ['ZIGoals hosted works with your account; sign in under Settings → Account & sync.']}); return; }
-    if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · your AI. Keys stay on the device where you typed them; they are never synced.']}); return; }
+    if (!hosted && key === null && settings.provider !== 'local') { setFailure({kind: 'missing-key', title: 'Your key is not on this device.', steps: ['Enter it again in Settings → ZIGi · Your Personal AI Companion. Keys stay on the device where you typed them; they are never synced.']}); return; }
     const controller = new AbortController(); abort.current = controller;
     setStatus('pending'); setDraft(''); setLooking([]); pendingText.current = ''; zigiSignals.emit('assistant_thinking');
     let reply = '', usage: Usage | null = null, reason: string | null = null, first = false, requests = 0, limit: string | null = null, writing = false;
@@ -287,10 +287,12 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       const check = parseReply(reply), intent = detectIntent(text);
       if (!needsRepair(check, {askedForCard: wantsCard(intent, reply), refusedMayRepair: refusedBlocksMayRepair(intent, reply)})) return;
       const firstTry = reply, firstUsage = usage;
-      const again = [...messages, {role: 'assistant' as const, content: firstTry}, {role: 'user' as const, content: repairPrompt(check)}];
+      // Session Z-Cloud Gate B (Z-Local's F11): the first answer goes back without its emotion marker, and a Stop during the
+      // retry keeps that first answer (the marker stripped where every reply is), never the half-repaired one.
+      const again = [...messages, {role: 'assistant' as const, content: stripHint(firstTry)}, {role: 'user' as const, content: repairPrompt(check)}];
       reply = ''; pendingText.current = ''; writing = false; setDraft(''); setStatus('pending'); zigiSignals.emit('assistant_thinking');
       const structured = !hosted && settings.provider === 'local' && settings.localServer === 'ollama' ? {format: structuredFormat()} : {};
-      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) throw error; reply = ''; }
+      try { await run('attach', again, structured); } catch (error) { if (isAbortLike(error)) { reply = firstTry; usage = firstUsage; pendingText.current = firstTry; throw error; } reply = ''; }
       if (!reply.trim()) { reply = firstTry; usage = firstUsage; return; }
       reply = `${REPAIR_NOTE}\n\n${fenceStructured(reply)}`; pendingText.current = reply;
     };

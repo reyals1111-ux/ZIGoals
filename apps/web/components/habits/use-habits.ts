@@ -5,6 +5,7 @@ import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
 import {scheduleHabitEdit,scheduleHabitState,earliestHabitChange} from "../../lib/habit-actions";
+import { deletedHabitIds, withoutDeletedHabits, type DeletedHabit } from "../../lib/habit-delete";
 import { localDate } from "../../lib/local-date";
 
 /** The previous read's unchanged habit objects are kept (lib/habit-sharing.ts), so memoized cards and caches hold. */
@@ -41,7 +42,12 @@ export const habitCheckIn = {
 
 export function useHabits() {
   const store = usePrivateStore(HABITS_KEY, habitDataSchema, emptyHabitData);
-  const data = useSharedHabitData(store.data);
+  // Session Z-Cloud Part 4.6: habits deleted for good are shells kept for sync; nothing shows them. Every write below is a
+  // change of the latest whole record, shells included, so none is ever dropped.
+  const visible = useMemo(() => withoutDeletedHabits(store.data), [store.data]);
+  // Gate B: the shells' ids, for a Goal's supporting habit (never reuse one) and Activity (never name one).
+  const deletedIds = useMemo(() => deletedHabitIds(store.data), [store.data]);
+  const data = useSharedHabitData(visible);
   const [today, setToday] = useState(localDate);
   const timeZone=data.timeZone;
   // Session W Part 17: with no Habits zone, the journal zone decides the day; a change to it refreshes the day at once.
@@ -70,6 +76,10 @@ export function useHabits() {
     unplanSkip: (id: string, date: string) => update((data) => unplanHabitSkip(data, id, date)),
     setVacation: (range: VacationRange) => update((data) => setHabitVacation(data, range)),
     clearVacation: (range: VacationRange) => update((data) => clearHabitVacation(data, range)),
+    // Session Z-Cloud Part 4.6: "Delete for good" an archived habit, and its Undo while nothing changed since.
+    // The writes load on use (lib/habit-delete-write.ts), so a Habits page without a deletion carries none of them.
+    deleteForGood: async (id: string): Promise<DeletedHabit> => { const { deleteHabitForGood } = await import("../../lib/habit-delete-write"); let deleted: DeletedHabit | null = null; await update((data) => { const result = deleteHabitForGood(data, id); deleted = result.deleted; return result.data; }); return deleted!; },
+    undoDelete: async (deleted: DeletedHabit) => { const { undoDeleteHabit } = await import("../../lib/habit-delete-write"); return update((data) => undoDeleteHabit(data, deleted)); },
     toggle: (id: string, date: string) => update((data) => {
       const habit = data.habits.find((item) => item.id === id);
       if (!habit) throw new Error("Habit unavailable.");
@@ -84,7 +94,7 @@ export function useHabits() {
   const latest = useRef(data); latest.current = data;
   const journalData = useCallback(() => latest.current, []);
   const card = useMemo(() => ({ today, update, data: { timeZone, schemaVersion }, journalData, ...actions }), [today, update, timeZone, schemaVersion, journalData, actions]);
-  return { ...store, data, today, ...actions, card };
+  return { ...store, data, today, deletedIds, ...actions, card };
 }
 export type HabitsStore = ReturnType<typeof useHabits>;
 /** The part of the Habits store a card and its children use. A full HabitsStore also satisfies it. */

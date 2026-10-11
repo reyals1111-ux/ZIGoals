@@ -83,7 +83,9 @@ test("label basis, gram entry, water corrections and preferred weight units pres
   await page.getByRole("button", { name: "Weight", exact: true }).click();
   await page.getByLabel("Weight (lb)", { exact: true }).fill("150");
   await page.getByRole("button", { name: "Save weight", exact: true }).click();
-  await expect(page.getByRole("table", { name: "Weight history", exact: true })).toContainText("68.039 kg");
+  // Session Z-Cloud Part 4.7: the history reads in the chosen unit; the record keeps the grams the pounds convert to.
+  await expect(page.getByRole("table", { name: "Weight history", exact: true })).toContainText("150 lb");
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("zigoals:health:v1")!).weights.map((w: {grams: number}) => w.grams))).toContain(68_039);
   await page.getByRole("button", { name: "Activity", exact: true }).click();
   const activity = page.getByRole("form", { name: "Manual activity", exact: true });
   await activity.getByLabel("Activity name").fill("Fictional walk");

@@ -10,7 +10,8 @@ test('approved Today hierarchy, copy and rail coexist with saved widgets',async(
  await expect(page.locator('.today-hero-copy')).toContainText('Set goals. Build habits. Protect your health.');
  await expect(page.locator('.today-hero-copy')).toContainText('Make room for a brighter tomorrow.');
  await expect(page.locator('.play-medallion')).toBeVisible();
- await expect(page.locator('.hero-pillars')).toContainText('Give your ZIG a purpose.');
+ // Session Z-Cloud Part 4.3: the Showcase has no wallet, so the plain words show.
+ await expect(page.locator('.hero-pillars')).toContainText('Give your savings a purpose.');
  await expect(page.locator('.hero-pillars')).toContainText('Build habits. Live well.');
  await expect(page.locator('.hero-pillars')).toContainText('ZIGChain vision · Alpha simulation.');
  for(const selector of ['.life-wealth-orbit','.today-intelligence','.funding-agenda','.needs-attention','.today-goals','.progress-summary','.placed-module[data-module="habits"] .habits-today','.placed-module[data-module="health"] .health-today','.today-rail .account-panel','.today-rail .staking-card','.today-rail .destination-panel','.today-rail .recent-panel','.dashboard-widget-area','#how-it-works'])await expect(page.locator(selector)).toHaveCount(1);

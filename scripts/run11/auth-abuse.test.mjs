@@ -9,8 +9,9 @@ const script=async()=>(await build({entryPoints:[new URL('../../workers/auth-abu
 async function admission(extra={}){
  const code=await script(),persist=await mkdtemp(join(tmpdir(),'run11-auth-'));let mf;
  const start=(time,key='fixture-secret-00000000000000000000')=>{mf=new Miniflare({...convertV4MiniflareOptions({workers:[{name:'app',modules:true,script:'export default {fetch(r,e){return e.GATE.fetch(r)}}',serviceBindings:{GATE:{name:'gate',entrypoint:'AdmissionService'}}},{name:'gate',modules:true,script:code,compatibilityDate:'2026-09-13',durableObjects:{ADMISSION:{className:'AdmissionAuthority',useSQLite:true}},bindings:{AUTH_ADMISSION_KEY:key,ISOLATED_FIXTURE:'true',LOCAL_TEST_NOW:String(time),...extra},outboundService:()=>{throw Error('No network authorized');}}]}),resourcePersistencePath:persist});};
- const call=(action='send',email='fiction@example.invalid',ip='192.0.2.1')=>mf.dispatchFetch('https://gate.test/',{method:'POST',body:JSON.stringify({action,email,ip})}).then(r=>r.status);
- return {restart:async(time,key)=>{await mf?.dispose();start(time,key);},call,close:()=>mf?.dispose()};
+ const raw=(action='send',email='fiction@example.invalid',ip='192.0.2.1')=>mf.dispatchFetch('https://gate.test/',{method:'POST',body:JSON.stringify({action,email,ip})});
+ const call=(...args)=>raw(...args).then(r=>r.status);
+ return {restart:async(time,key)=>{await mf?.dispose();start(time,key);},call,raw,close:()=>mf?.dispose()};
 }
 
 test('durable auth admission binds email and IP, survives restart, expires safely and fails closed',async()=>{
@@ -29,7 +30,7 @@ test('durable auth admission binds email and IP, survives restart, expires safel
  }finally{await a.close();}
 },60000);
 
-test('one IP group can touch only a bounded number of distinct emails, and IPv6 groups by /64',async()=>{
+test('one IP group can touch only a bounded number of distinct emails, and IPv6 groups code requests by /48',async()=>{
  const a=await admission(),now=Date.now();
  try{
   await a.restart(now);
@@ -37,9 +38,12 @@ test('one IP group can touch only a bounded number of distinct emails, and IPv6 
   // Another address in the same /64 is the same group; the cap is per group.
   expect(await a.call('send','spray10@example.invalid','2001:db8:1:2:ffff:ffff:ffff:ffff')).toBe(429);
   expect(await a.call('send','spray10@example.invalid','2001:0db8:0001:0002::0abc')).toBe(429);
-  // A known email from that group still counts normally; a different /64 is independent.
+  // A known email from that group still counts normally. Session Z-Cloud Part 5 (A5): another /64 of the same /48 is the
+  // same group for code requests; a different /48 is independent.
   await a.restart(now+61000);expect(await a.call('send','spray0@example.invalid','2001:db8:1:2::99')).toBe(200);
-  expect(await a.call('send','spray10@example.invalid','2001:db8:1:3::1')).toBe(200);
+  expect(await a.call('send','spray10@example.invalid','2001:db8:1:3::1')).toBe(429);
+  expect(await a.call('send','spray10@example.invalid','2001:db8:1:ffff::1')).toBe(429);
+  expect(await a.call('send','spray10@example.invalid','2001:db8:2:3::1')).toBe(200);
   // IPv4-mapped IPv6 is the IPv4 address.
   for(let i=0;i<10;i++)expect(await a.call('send',`mapped${i}@example.invalid`,'192.0.2.50')).toBe(200);
   expect(await a.call('send','mapped10@example.invalid','::ffff:192.0.2.50')).toBe(429);
@@ -60,8 +64,10 @@ test('failed code verifications are capped per email per day on top of the 10-mi
 },60000);
 
 test('filling the admission table cannot stop sign-in for new users and keeps code-guessing limits',async()=>{
- // Tiny shards (fixture only) so the fill is fast: 32 shards per dimension, 3 records each.
- const a=await admission({LOCAL_SHARD_CAPACITY:'3'}),now=Date.now();
+ // Tiny shards (fixture only) so the fill is fast: 32 shards per dimension, 3 records each. Session Z-Cloud Part 5 (A5):
+ // the day's ceiling on code emails is lifted here (fixture only), so this test still measures the table alone; the
+ // ceiling has its own test above.
+ const a=await admission({LOCAL_SHARD_CAPACITY:'3',LOCAL_DAILY_SENDS:'1000000'}),now=Date.now();
  try{
   await a.restart(now);
   // Lock a victim's code attempts first.
@@ -76,3 +82,66 @@ test('filling the admission table cannot stop sign-in for new users and keeps co
   expect(await a.call('verify','victim@example.invalid','172.31.0.1')).toBe(429);
  }finally{await a.close();}
 },180000);
+
+// Session Z-Cloud Part 5 (A5, ADR-019): one ceiling on code emails per UTC day across every address and network.
+test('code requests stop at 60 a UTC day across addresses and networks, and only requests that passed their own limits count',async()=>{
+ const a=await admission(),midnight=Date.UTC(2026,9,11),now=midnight-3600000;
+ const raw=(email,ip)=>a.raw('send',email,ip);
+ try{
+  await a.restart(now);
+  // N+1 from distinct /64s inside one /48: the /48 is one group, so its distinct-email cap (10) applies, not the ceiling.
+  for(let i=0;i<10;i++)expect(await a.call('send',`home${i}@example.invalid`,`2001:db8:aa:${(i+1).toString(16)}::1`)).toBe(200);
+  const home=await raw('home10@example.invalid','2001:db8:aa:ff::1');expect(home.status).toBe(429);expect((await home.json()).error).toBe('TRY_LATER');
+  // Across /48s and IPv4 networks: 50 more fill the day's 60 exactly, so the request its own /48 refused above counted
+  // nothing towards the day (10 + 50 = 60; one more would have reached the limit a request early).
+  for(let i=0;i<50;i++)expect(await a.call('send',`spread${i}@example.invalid`,i%2?`2001:db8:${(0x100+i).toString(16)}::1`:`198.51.${i}.1`)).toBe(200);
+  const over=await raw('late@example.invalid','203.0.113.77');
+  expect(over.status).toBe(429);expect((await over.json()).error).toBe('DAILY_LIMIT');expect(over.headers.get('retry-after')).toBe('3600');
+  // While sending is paused the day's limit answers first, for that /48 too.
+  const homeAgain=await raw('home10@example.invalid','2001:db8:aa:ff::2');expect(homeAgain.status).toBe(429);expect((await homeAgain.json()).error).toBe('DAILY_LIMIT');
+  // Codes already sent can still be verified while sending is paused.
+  expect(await a.call('verify','home0@example.invalid','2001:db8:aa:1::1')).toBe(200);
+  // The ceiling holds across a restart and ends at the next UTC midnight.
+  await a.restart(midnight-1000);const late=await a.raw('send','later@example.invalid','192.0.2.99');expect(late.status).toBe(429);expect((await late.json()).error).toBe('DAILY_LIMIT');
+  // Gate B (the A5 security read): retrying while paused reserves nothing, so the address and its network are not used up
+  // for tomorrow (6 a day, 60 s apart, would have answered TRY_LATER from the second try and after midnight).
+  for(let i=0;i<7;i++){const again=await a.raw('send','later@example.invalid','192.0.2.99');expect(again.status).toBe(429);expect((await again.json()).error).toBe('DAILY_LIMIT');}
+  await a.restart(midnight+1);expect(await a.call('send','tomorrow@example.invalid','192.0.2.100')).toBe(200);
+  expect(await a.call('send','later@example.invalid','192.0.2.99')).toBe(200);
+ }finally{await a.close();}
+},120000);
+
+// Gate C (the security read, ADR-019 C54): made-up addresses from one network used up the 60 (30 an hour per IP, 10
+// distinct addresses each window: about an hour). A send the provider refused gives its place back, so only codes that
+// went out count; a refund never goes below zero, never touches the IP's or the address's own limits, and is send-only.
+test('a send the provider refused gives its place in the day back; made-up addresses no longer pause codes for everyone',async()=>{
+ const a=await admission({LOCAL_DAILY_SENDS:'3'}),midnight=Date.UTC(2026,9,11),now=midnight-3600000;
+ try{
+  await a.restart(now);
+  for(let i=0;i<3;i++){expect(await a.call('send',`made-up${i}@example.invalid`,'198.51.100.7')).toBe(200);expect(await a.call('send-refund',`made-up${i}@example.invalid`,'198.51.100.7')).toBe(200);}
+  // Three refused sends gave their places back: three real ones still fit, the fourth is over the day's ceiling.
+  for(let i=0;i<3;i++)expect(await a.call('send',`friend${i}@example.invalid`,`192.0.2.${10+i}`)).toBe(200);
+  const over=await a.raw('send','friend3@example.invalid','192.0.2.20');expect(over.status).toBe(429);expect((await over.json()).error).toBe('DAILY_LIMIT');
+  // A refund gives back one place only: one more send fits, then the ceiling holds again.
+  expect(await a.call('send-refund','friend0@example.invalid','192.0.2.10')).toBe(200);
+  expect(await a.call('send','friend4@example.invalid','192.0.2.21')).toBe(200);
+  expect((await (await a.raw('send','friend5@example.invalid','192.0.2.22')).json()).error).toBe('DAILY_LIMIT');
+  // Never below zero on a new day, and it gives nothing to the IP's own limits: 30 an hour still count every request.
+  await a.restart(midnight+1);
+  const none=await a.raw('send-refund','nobody@example.invalid','192.0.2.30');expect(none.status).toBe(200);expect(await none.json()).toEqual({refunded:false});
+  for(let i=0;i<10;i++){expect(await a.call('send',`net${i}@example.invalid`,'203.0.113.5')).toBe(200);expect(await a.call('send-refund',`net${i}@example.invalid`,'203.0.113.5')).toBe(200);}
+  const capped=await a.raw('send','net10@example.invalid','203.0.113.5');expect(capped.status).toBe(429);expect((await capped.json()).error).toBe('TRY_LATER');
+  // Only the day's ceiling takes a refund: anything else is refused as invalid.
+  expect(await a.call('send-refund','not-an-email','203.0.113.5')).toBe(400);
+ }finally{await a.close();}
+},120000);
+
+test('code verification keeps grouping IPv6 by /64',async()=>{
+ const a=await admission(),now=Date.now();
+ try{
+  await a.restart(now);
+  for(let i=0;i<20;i++)expect(await a.call('verify',`check${i}@example.invalid`,`2001:db8:9:1::${(i+1).toString(16)}`)).toBe(200);
+  expect(await a.call('verify','check20@example.invalid','2001:db8:9:1::ff')).toBe(429);
+  expect(await a.call('verify','check20@example.invalid','2001:db8:9:2::1')).toBe(200);
+ }finally{await a.close();}
+},60000);

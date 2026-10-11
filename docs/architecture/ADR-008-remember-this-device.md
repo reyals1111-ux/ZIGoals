@@ -143,7 +143,7 @@ Status: **Accepted.** Option 1 below, with the owner's decision M1 (2026-10-02, 
 ## Not done here (follow-ups)
 - ~~**Store the root as a non-extractable HKDF `CryptoKey`** instead of a sealed blob plus an unwrap-capable device key (FIX_PLAN B1, `Q-SYNC-01`; Session S corrected T2 above, the code change is a later `TIER 3 (auth/sync)` session).~~ Done in Session U Part 5: see the addendum below.
 - Option (2), a passkey (PRF) to protect a remembered device, after a device test on the owner's iPhone.
-- A time limit on remembering independent of the session. Today the session's own lifetime bounds it: a new sign-in needs the secret once.
+- ~~A time limit on remembering independent of the session.~~ Done in Session Z-Cloud Part 5: 30 days, see the addendum below.
 
 ## Addendum (Session U, 2026-10-05): version 2 records (B1) and Lock in every tab (B2)
 **B1, as built** (`apps/web/lib/vault/crypto.ts`, `device-unlock.ts`, `components/vault-sync-controls.tsx`):
@@ -161,4 +161,56 @@ Status: **Accepted.** Option 1 below, with the owner's decision M1 (2026-10-02, 
 **B2, as built** (`apps/web/lib/account-session.ts`): **Lock** locks the tab where it is clicked at once, as before, then every other tab of this browser: it sends a manual lock on the `zigoals:account-lock:v1` channel, then the plain `'lock'` that tabs of earlier builds understand. A tab of this build marks that lock as manual, so a remembered device does not reopen it; then the device is forgotten (the broadcast goes out even if forgetting fails). The panel says "Locking locks every tab of this browser and forgets this device."
 
 **Rollback:** a build before Session U (for example #27 or #28) treats a version 2 record as one it cannot use: it deletes it and asks for the recovery secret once. Rolling forward again needs the secret once too (the deleted record is gone); nothing else is lost.
+
+## Addendum (Session Z-Cloud, 2026-10-10): 30 days, and the secret asked again for what ends data or access (A6)
+Owner decision A6 option (a), ADR-019 C35. `[TIER 3] (auth/sync)`.
+- **30 days:** a remembered device opens without the secret for 30 days from the record's `createdAt` (the day it was
+  remembered; a version 1 record migrated to version 2 keeps its date). Then the open drops the record and asks for the
+  secret once, saying why; ticking Remember again starts a new 30 days. Records of every version are read as before; a
+  build before this one never expires them (a rollback restores today's behaviour).
+- **Step-up:** Delete cloud data, Delete account, Delete a section, Sign out all other devices (and revoking one other
+  session, the same power one at a time) and Rotate ask for the recovery secret on every device, a remembered one
+  included. The app checks it against the live manifest first (`unlockVault`), so a wrong secret never reaches the
+  network. Then a proof goes with the request: an HMAC keyed by an HKDF of the secret's 32 bytes over the account, vault
+  and epoch (`stepUpProof`). The root a remembered device holds cannot make it. Private sync keeps only the proof's
+  SHA-256, registered when a vault is created and whenever the secret is entered (the first for an epoch is kept), and
+  for the next epoch when a rotation begins (`workers/private-sync/step-up.mjs`).
+- **Server enforcement is the owner's switch** `STEP_UP_REQUIRED` on the private-sync Worker ("on" in the committed
+  config). With it on and a verifier registered for the live epoch, those requests need the proof; with it off, or for a
+  vault with no verifier (#32–#35 never register one), nothing changes. Unlock, sync, compaction, sessions and refresh
+  never ask. The proof travels in a header, so a Worker from before ignores it and #32–#35 never send it.
+- **Trust on first use, recorded:** the Worker cannot tell a genuine verifier from one made up by whoever registers
+  first. A stolen session on a vault that has no verifier yet could register its own; once the person's own device has
+  registered (any secret entry on this build), it cannot be replaced. The threat this closes: a remembered device or a
+  stolen session alone can no longer delete cloud data, the account or a section, rotate, or sign other devices out
+  through ZIGoals' five endpoints.
+- **Gate C security read (fixed, ADR-019 C53):** trust on first use let any valid session register first, so a stolen
+  older session could register its own verifier and from then on refuse the owner's "Sign out all other devices". The
+  first verifier of a vault without one (a register, or a rotation's staged next) is now kept only from a session whose
+  email-code sign-in began within the hour; an older session gets STEP_UP_SIGN_IN_AGAIN and the vault stays as #35 had
+  it until a fresh sign-in registers. A remembered device whose record is dated more than a day ahead counts as expired.
+- **What step-up guards (recorded, Gate C):** the five endpoints, not the data. A remembered device holds the vault's
+  root key, so it can still write ordinary encrypted changes through sync, deletion marks on records included; receivers
+  refuse to remove only the append-only evidence. Step-up stops a lost device or a stolen session from ending the vault,
+  the account, a section or other devices' access in one request; it does not make a remembered device read-only.
+- **Gate B security read (fixed):** after a first rotation the live verifier sat only in the record's `next`, and
+  staging a second rotation overwrote it, so the live epoch had none: the five actions passed without a proof, and a
+  session alone could register its own verifier and abort the rotation to keep it. Now the record is settled before
+  anything is written (the live epoch's verifier stays `current`; `next` only for an epoch to come), every begun
+  rotation resets `next` (an aborted rotation's verifier never carries over), and the app registers the new secret again
+  right after a rotation commits. Miniflare: two rotations, staged, aborted and committed (`scripts/run11/step-up.test.mjs`).
+- **Limits recorded (accepted):**
+  - The proof is fixed for an epoch, not a one-time answer to a server challenge: one captured proof (a header seen by
+    a proxy, an extension) works for the five actions until the next rotation. Nothing logs or stores it. A
+    challenge-response (a public key derived from the secret signing a server nonce and the action) would close it.
+  - Whoever holds the session's access token can still ask the email provider itself to end the other devices'
+    provider sessions (its "sign out others" needs only that token and the public key); the other devices then sign
+    out at their next refresh. ZIGoals' own "Sign out all other devices" (which also revokes them in private sync)
+    asks for the secret; the provider's endpoint cannot be gated from here.
+  - Aborting a staged rotation and reading its status do not ask (they end nothing the person keeps; #35's rotation
+    steps are never refused). A session alone can discard a staged rotation, which the person then begins again.
+  - A vault whose live epoch has no verifier (made by #32–#35, or rotated by an app before this one) is covered from the
+    person's next secret entry, not before (trust on first use, above).
+- **Rollback:** an app rollback to #35 keeps working for unlock and sync; for the five actions on a vault with a
+  verifier, the owner sets `STEP_UP_REQUIRED` to "off" (docs/deployment/FINAL_ACCTEST_REDEPLOY.md).
 

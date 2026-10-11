@@ -2,13 +2,16 @@ import {afterEach,expect,it,vi} from 'vitest';
 import {toBech32} from '@cosmjs/encoding';
 import {GET} from '../app/api/positions/route';
 const address=toBech32('zig',new Uint8Array(20).fill(3));
-afterEach(()=>vi.unstubAllGlobals());
+afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();});
+// Session Z-Cloud Part 5 (C38): a public build refuses mainnet (lib/server/positions-relay.test.ts); these tests read it as a
+// local demo build does, whatever CI's environment says (mechanics only, every assertion unchanged).
+const localDemo=()=>vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT','LOCAL_DEMO');
 it.each(['network=MAINNET_READ_ONLY&address=private-notes',`network=OTHER&address=${address}`,`network=MAINNET_READ_ONLY&address=${address}&url=https://attacker.invalid`,`network=MAINNET_READ_ONLY&address=${address}&address=${address}`])('rejects malformed, arbitrary or duplicate query fields before any upstream call: %s',async query=>{
  const calls:string[]=[];vi.stubGlobal('fetch',async(url:unknown)=>{calls.push(String(url));throw Error('must not fetch');});
  const response=await GET(new Request(`http://localhost/api/positions?${query}`));expect(response.status).toBe(400);expect(calls).toEqual([]);expect(response.headers.get('cache-control')).toContain('no-store');
 });
 it('relays public-only GETs to fixed endpoints at one proven height without forwarding credentials',async()=>{
- vi.stubGlobal('fetch',async(url:string,init:RequestInit)=>{
+ localDemo();vi.stubGlobal('fetch',async(url:string,init:RequestInit)=>{
   expect(url.startsWith('https://api.zigchain.com/')).toBe(true);expect(init.method).toBe('GET');expect(init.body).toBeUndefined();expect(init.credentials).toBe('omit');
   const headers=new Headers(init.headers);expect(headers.has('cookie')).toBe(false);expect(headers.has('authorization')).toBe(false);
   const path=new URL(url).pathname;
@@ -21,6 +24,7 @@ it('relays public-only GETs to fixed endpoints at one proven height without forw
  expect(response.headers.get('cache-control')).toContain('no-store');
 });
 it('returns no partial snapshot or upstream error detail when evidence fails',async()=>{
- vi.stubGlobal('fetch',async()=>{throw Error('sensitive upstream detail');});
- const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${address}`));expect(response.status).toBe(502);expect(await response.text()).not.toContain('sensitive');
+ localDemo();vi.stubGlobal('fetch',async()=>{throw Error('sensitive upstream detail');});
+ // Session Z-Cloud Part 5 (C4): another address than the test above, whose answer the relay keeps for 60 seconds.
+ const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${toBech32('zig',new Uint8Array(20).fill(4))}`));expect(response.status).toBe(502);expect(await response.text()).not.toContain('sensitive');
 });

@@ -1,4 +1,5 @@
 'use client';
+import {forgetZigiFace} from '../../lib/z-device-forget';
 import {ZigiPartBoundary} from '../zigi/part-boundary';
 import Link from 'next/link';
 import {Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode} from 'react';
@@ -12,7 +13,9 @@ import {PROVIDERS, SUBSCRIPTION_APPS} from '../../lib/ai/providers';
 import {currentAiScope} from '../../lib/ai/scope';
 import {CONTEXT_BUDGET, OUTPUT_CAP, PAGE_AREAS, type AiSettings as AiSettingsData, type PageArea} from '../../lib/ai/settings';
 import type {ModelInfo} from '../../lib/ai/types';
-import {browserSpeechDisclosure, detectBrowser, speechLanguage, TRANSCRIPTION_MODELS} from '../../lib/ai/voice';
+import {browserSpeechDisclosure, detectBrowser, recognitionConstructor, TRANSCRIPTION_MODELS} from '../../lib/ai/voice';
+import {deviceVoiceLanguage, isVoiceLanguage, VOICE_LANGUAGES} from '../../lib/zigi-voice-lang';
+import {VOICE_LANGUAGE_LABELS, voicePrefs, ZIGI_VOICE, type VoiceRecord} from '../../lib/zigi-voice';
 import {AREA_LABELS} from '../../lib/ai/context/pages';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings, visibleDomains} from '../../lib/dashboard-settings';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
@@ -34,6 +37,7 @@ import {onDeviceAvailability} from '../../lib/ai/on-device';
 import {modelContext} from '../../lib/ai/webmcp';
 import {entitlement as entitlementOf} from '../../lib/entitlements';
 import {useHosted} from './use-hosted';
+import {hostedName} from '../../lib/ai/hosted';
 const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
 
 /**
@@ -41,8 +45,10 @@ const ENTITLEMENT_LABEL = entitlementOf('hosted').label;
  * each page shares, Include Health, the key on this device, the output cap and context budget, voice, your own
  * instructions, the launcher, what your AI sees, and "Turn off ZIGi" with "Also delete all chats". Everything here is
  * a device setting; keys live in the encrypted key store and are never shown back. Session V Part 18 sorts it into
- * five groups: Connection, Privacy & data, ZIGi's look and feel, Reminders, Advanced.
+ * five groups: Connection, Privacy & data, ZIGi's look and feel (with Voice since Session Z-Cloud Part 3), Reminders, Advanced.
  */
+/** Panel polish round 2: a switch's name is one short line; a part in brackets becomes its description ("Food entries", "Typed or from a photo."). */
+const switchLabel = (text: string): [string, string | undefined] => { const m = /^(.+?) \((.+)\)$/.exec(text); return m ? [m[1]!, `${m[2]![0]!.toUpperCase()}${m[2]!.slice(1)}.`] : [text, undefined]; };
 const PAGE_NOTES: Record<PageArea, string> = {
   today: 'what is due today and what you did: open habits, today\'s water, steps and meals as counts, goals with their next dates',
   goals: 'each goal\'s name, target, progress and next planned date; never account, wallet or chain details',
@@ -133,7 +139,7 @@ function HostedCard() {
   const {open, setOpen, card} = useAnchoredCard(HOSTED_ANCHOR), {entitlement} = useHosted();
   if (!entitlement?.entitled) return null;
   return <details ref={card} id={HOSTED_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
-    <summary className="ai-pack-summary">ZIGoals hosted <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
+    <summary className="ai-pack-summary">{hostedName(entitlement.provider)} <span className="ai-chat-premium">{ENTITLEMENT_LABEL}</span></summary>
     <p className="ai-note">An AI that ZIGoals runs and pays for, for invited accounts: no key or app of your own needed. Read what passes through before you choose it.</p>
     {open && <ZigiPartBoundary label="The hosted assistant"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><HostedPanel entitlement={entitlement}/></Suspense></ZigiPartBoundary>}
   </details>;
@@ -200,6 +206,7 @@ export default function AiSettings() {
     // including one left by an earlier provider whose setup record was reset.
     try { await forgetAiKeys(scope); } catch { /* the store may be gone already */ }
     dropMemoryKeys();
+    forgetZigiFace();
     save(s => ({...s, enabled: false, mode: null, provider: null, model: null, localServer: null, baseUrl: null, subscriptionApp: null, connectedOn: undefined}), 'Disconnected. The key was removed from this device; your switches and instructions are kept.');
     setModels(null);
   };
@@ -211,6 +218,7 @@ export default function AiSettings() {
       try { await forgetChats(scope); chatsNote = ' All chats on this device were deleted.'; } catch { chatsNote = ' The chats could not be deleted; try again from here.'; }
       try { forgetChatAreas(getAppStorage()); } catch { /* History's page index goes with the chats when it can */ }
     }
+    forgetZigiFace();
     try { settings.turnOff(); setMessage({text: `ZIGi is off. Keys were removed from this device.${chatsNote}`}); } catch (error) { setMessage({text: `ZIGi could not be turned off on this device. ${error instanceof Error ? error.message : ''}`.trim(), failed: true}); }
     setTurningOff(false); setAlsoChats(false); setModels(null);
   };
@@ -227,7 +235,7 @@ export default function AiSettings() {
     try { holdKey(scope, data.provider, secret); if (data.rememberKey && !showcase) await rememberKey(scope, data.provider, secret); setKeyDraft(''); setMessage({text: data.rememberKey && !showcase ? 'The new key is sealed on this device.' : 'The new key is kept for this page.'}); }
     catch (error) { setMessage({text: error instanceof Error ? error.message : 'The key could not be stored.', failed: true}); }
   };
-  const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent), language = speechLanguage(data.voice.language, typeof navigator === 'undefined' ? undefined : navigator.language);
+  const browser = typeof navigator === 'undefined' ? 'other' : detectBrowser(navigator.userAgent);
   return <div className="ai-settings-body">
     {settings.unreadable && <p role="alert">This device&rsquo;s ZIGi settings could not be read; they count as off until you save a choice here.</p>}
     {callback.error && <p role="alert">{callback.error}</p>}
@@ -236,8 +244,9 @@ export default function AiSettings() {
       {data.enabled && <div className="ai-connection">
         <ZigiAvatar state="idle" size={44} decorative/>
         <div className="ai-connection-copy">
-          <strong>{data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`}</strong>
-          <small>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
+          {/* Panel polish round 2: the connection's name is one line (an ellipsis on a long model name; the whole name is its tooltip). */}
+          {(name => <strong className="ai-one-line" title={name}>{name}</strong>)(data.mode === 'subscription' ? `Subscription bridge · ${SUBSCRIPTION_APPS.find(a => a.id === data.subscriptionApp)?.name ?? 'your app'}` : `${provider?.name ?? 'Your AI'} · ${data.model}`)}
+          <small className={data.mode === 'local' ? 'ai-one-line' : undefined} title={data.mode === 'local' ? data.baseUrl ?? undefined : undefined}>{data.mode === 'local' ? `${data.localServer === 'ollama' ? 'Ollama' : 'OpenAI-compatible server'} at ${data.baseUrl}` : data.mode === 'subscription' ? 'ZIGi writes the prompt; you paste it into the app. Nothing is sent from here.' : remembered === null ? 'Checking the key on this device…' : remembered ? 'Key sealed on this device.' : showcase ? 'Key kept for this session (Showcase).' : 'Key kept in this page’s memory only (gone after a reload).'}{data.connectedOn ? ` · since ${data.connectedOn}` : ''}</small>
         </div>
         <div className="ai-card-actions">
           {connected && <button type="button" className="secondary" disabled={modelsBusy} onClick={() => models ? setModels(null) : void loadModels()}>{modelsBusy ? 'Loading models…' : models ? 'Hide models' : 'Change model'}</button>}
@@ -246,7 +255,7 @@ export default function AiSettings() {
       </div>}
       {models && <div className="ai-setup-form"><ModelPicker models={models} value={data.model} onChange={id => { save(s => ({...s, model: id}), `Model changed to ${id}.`); setModels(null); }}/></div>}
       {data.enabled && data.mode !== 'subscription' && data.provider && !showcase && <div className="ai-setup-form ai-key-replace">
-        <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key on this device" note="Encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
+        <Switch checked={data.rememberKey} onChange={next => void toggleRemember(next)} label="Remember the key" note="Kept on this device, encrypted at rest with a key that never leaves this browser. Protects against casual reading of the disk or a backup, not against malware on this device. Off: the key lives in this page’s memory and is forgotten on reload or when the tab closes."/>
         <label className="field">Replace the key<input type="password" value={keyDraft} onChange={e => setKeyDraft(e.target.value)} autoComplete="off" spellCheck={false} autoCapitalize="off" placeholder="Paste a new key"/></label>
         <div className="ai-card-actions"><button type="button" className="secondary" disabled={!keyDraft.trim()} onClick={() => void replaceKey()}>Use this key</button></div>
       </div>}
@@ -272,6 +281,8 @@ export default function AiSettings() {
         <Switch checked={!data.launcherHidden} onChange={next => save(s => ({...s, launcherHidden: !next}))} label="Show the ZIGi button" note="Bottom right on a computer, above the tabs on a phone. ⌘K / Ctrl+K opens the chat as well."/>
       </>}
       {settings.loaded && <LookCard/>}
+      {/* Session Z-Cloud Part 3: voice works with or without an AI connected, so its card is always here. */}
+      {settings.loaded && <VoiceCard data={data} save={save} browser={browser} providerName={provider?.name ?? null} providerTranscribes={!!(data.enabled && data.provider && PROVIDERS[data.provider].transcription)}/>}
     </Group>
     <Group id="zigi-reminders-group" title="Reminders">
       {settings.loaded && <RemindersCard/>}
@@ -279,9 +290,10 @@ export default function AiSettings() {
     {data.enabled && options.loaded && <Group id="zigi-auto-accept" title="Auto-accept">
       <p className="ai-note">Off by default. A kind you switch on is added by ZIGi without a tap when it proposes it: each addition shows for ten seconds with Undo, is listed under Activity &rarr; Actions by ZIGi, and counts toward a daily cap. Weight, fasting and anything about money are always confirmed by you.</p>
       {AUTO_ACCEPT_GROUPS.map(group => <div key={group.title} className="ai-auto-accept-group">
-        <h4>{group.title}{group.health ? ' (only while Health is shared with ZIGi)' : ''}</h4>
+        <h4>{group.title}</h4>
+        {group.health && healthOpen && <p className="ai-note">Only while Health is shared.</p>}
         {group.health && !healthOpen && <p className="ai-note" data-testid="auto-accept-health-closed">{AUTO_ACCEPT_REASONS['health-gate-closed']} Turn on &ldquo;Include Health&rdquo; under Privacy &amp; data first.</p>}
-        <div className="ai-switch-list">{group.kinds.map(kind => <Switch key={kind} checked={autoAcceptOn(options.data, kind)} disabled={!!group.health && !healthOpen} onChange={next => saveOptions(o => setAutoAcceptKind(o, kind, next))} label={AUTO_ACCEPT_LABELS[kind]}/>)}</div>
+        <div className="ai-switch-list">{group.kinds.map(kind => { const [label, detail] = switchLabel(AUTO_ACCEPT_LABELS[kind]); return <Switch key={kind} checked={autoAcceptOn(options.data, kind)} disabled={!!group.health && !healthOpen} onChange={next => saveOptions(o => setAutoAcceptKind(o, kind, next))} label={label} note={detail}/>; })}</div>
       </div>)}
       <label className="field">Daily cap<input type="number" min={AUTO_ACCEPT_CAP.min} max={AUTO_ACCEPT_CAP.max} step={1} value={autoAcceptCap(options.data)} onChange={e => { const v = Number(e.target.value); if (Number.isInteger(v) && v >= AUTO_ACCEPT_CAP.min && v <= AUTO_ACCEPT_CAP.max) saveOptions(o => setAutoAcceptCap(o, v)); }}/><small>{autoAcceptedOn(options.data, localDate())} of {autoAcceptCap(options.data)} added by ZIGi today. Past the cap, cards wait for your tap.</small></label>
     </Group>}
@@ -292,20 +304,49 @@ export default function AiSettings() {
         <label className="field">Output cap per reply (tokens)<input type="number" min={OUTPUT_CAP.min} max={OUTPUT_CAP.max} step={64} value={data.maxOutputTokens} onChange={e => { const v = Number(e.target.value); if (v >= OUTPUT_CAP.min && v <= OUTPUT_CAP.max) save(s => ({...s, maxOutputTokens: Math.round(v)})); }}/><small>Sent as the provider&rsquo;s maximum; a longer reply is cut off and says so. Default {OUTPUT_CAP.default}.</small></label>
         <label className="field">Context budget (tokens)<input type="number" min={CONTEXT_BUDGET.min} max={CONTEXT_BUDGET.max} step={500} value={data.contextBudgetTokens} onChange={e => { const v = Number(e.target.value); if (v >= CONTEXT_BUDGET.min && v <= CONTEXT_BUDGET.max) save(s => ({...s, contextBudgetTokens: Math.round(v)})); }}/><small>Page data plus the last messages, estimated at four characters a token; above it ZIGi asks before sending. Default {CONTEXT_BUDGET.default}.</small></label>
       </div>
-      <h4>Voice</h4>
-      <div className="ai-fields">
-        <label className="field">Speaking to ZIGi<select value={data.voice.transcription} onChange={e => save(s => ({...s, voice: {...s.voice, transcription: e.target.value as AiSettingsData['voice']['transcription'], transcriptionModel: e.target.value === 'provider' ? s.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0] : s.voice.transcriptionModel}}))}><option value="off">Off (type)</option><option value="browser">Browser speech recognition</option>{data.provider && PROVIDERS[data.provider].transcription && <option value="provider">Recorded, transcribed by {PROVIDERS[data.provider].name}</option>}</select><small>{data.voice.transcription === 'browser' ? browserSpeechDisclosure(browser, false) : data.voice.transcription === 'provider' ? `Recordings of up to a minute go from this browser to ${provider?.name ?? 'your provider'} with your key; nothing through ZIGoals.` : 'The microphone is not used.'}</small></label>
-        {data.voice.transcription === 'provider' && <label className="field">Transcription model<select value={data.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0]} onChange={e => save(s => ({...s, voice: {...s.voice, transcriptionModel: e.target.value}}))}>{TRANSCRIPTION_MODELS.map(m => <option key={m} value={m}>{m}</option>)}</select></label>}
-        <label className="field">Language<input value={data.voice.language ?? ''} onChange={e => save(s => ({...s, voice: {...s.voice, language: e.target.value.trim() || null}}))} placeholder={language} maxLength={35} autoComplete="off" spellCheck={false}/><small>A language tag such as en-US, de-DE or pt-BR; empty follows this device ({language}).</small></label>
-      </div>
-      <Switch checked={data.voice.readAloud} onChange={next => save(s => ({...s, voice: {...s.voice, readAloud: next}}))} label="Read replies aloud" note="Uses the browser's own voices on this device. Off by default; every reply also has its own Read aloud button."/>
       <h4>Your own instructions</h4>
-      <label className="field">Sent with every message (up to 2,000 characters)<textarea value={data.customInstructions} maxLength={2000} rows={3} onChange={e => save(s => ({...s, customInstructions: e.target.value}))} placeholder="For example: answer in Spanish; keep it under five sentences; I prefer kilograms."/></label>
+      <label className="field">Sent with every message<textarea value={data.customInstructions} maxLength={2000} rows={3} onChange={e => save(s => ({...s, customInstructions: e.target.value}))} placeholder="For example: answer in Spanish; keep it under five sentences; I prefer kilograms."/><small>Up to 2,000 characters.</small></label>
       <h4>Turn off</h4>
       {!turningOff ? <div className="ai-card-actions"><button type="button" className="secondary" onClick={() => setTurningOff(true)}>Turn off ZIGi</button><span className="ai-note">Removes the keys from this device and resets the switches. Chats stay unless you choose below.</span></div>
         : <div className="ai-confirm" role="group" aria-label="Turn off ZIGi"><p>ZIGi goes off on this device: the connection and its keys are removed, every switch goes back to the start.</p><label className="ai-check"><input type="checkbox" checked={alsoChats} onChange={e => setAlsoChats(e.target.checked)}/> Also delete all chats on this device</label><div className="ai-card-actions"><button type="button" className="primary" onClick={() => void turnOff()}>Turn off ZIGi</button><button type="button" className="text-link" onClick={() => { setTurningOff(false); setAlsoChats(false); }}>Keep it on</button></div></div>}
     </Group>}
     {message && <p role={message.failed ? 'alert' : 'status'}>{message.text}</p>}
     <p className="fine">Costs are between you and your provider; ZIGoals bills nothing. It counts the tokens your provider reports and, only with prices you enter, shows an estimate. Not for medical or financial advice. <Link className="text-link" href="/app/help#your-ai">How ZIGi works, in Help →</Link></p>
+  </div>;
+}
+/**
+ * Session Z-Cloud Part 3 (ADR-019): Settings → Voice. Talking to ZIGi works with or without an AI connected. English and
+ * Dutch only (en-GB, en-US, nl-BE, nl-NL, or this device's own language mapped onto them); the language is ZIGi's setting
+ * (`voice.language`), the rest is this device's `zigoals:zigi-voice:v1`. The disclosure for this browser says which service
+ * hears the audio.
+ */
+const VOICE_ANCHOR = 'zigi-voice';
+type VoiceProps = {data: AiSettingsData; save: (change: (s: AiSettingsData) => AiSettingsData, note?: string) => void; browser: ReturnType<typeof detectBrowser>; providerName: string | null; providerTranscribes: boolean};
+function VoiceCard(props: VoiceProps) {
+  const {open, setOpen, card} = useAnchoredCard(VOICE_ANCHOR);
+  return <details ref={card} id={VOICE_ANCHOR} className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Voice: talk to ZIGi</summary>
+    <p className="ai-note">The microphone, English or Dutch, sending when you stop talking, and reading replies aloud. These choices stay on this device; your browser&rsquo;s speech service hears what you say (below), and ZIGoals never stores audio.</p>
+    {open && <VoiceSettings {...props}/>}
+  </details>;
+}
+function VoiceSettings({data, save, browser, providerName, providerTranscribes}: {data: AiSettingsData; save: (change: (s: AiSettingsData) => AiSettingsData, note?: string) => void; browser: ReturnType<typeof detectBrowser>; providerName: string | null; providerTranscribes: boolean}) {
+  const voice = useDeviceRecord(ZIGI_VOICE), prefs = voicePrefs(voice.data);
+  const device = deviceVoiceLanguage(typeof navigator === 'undefined' ? undefined : navigator.language), chosen = isVoiceLanguage(data.voice.language) ? data.voice.language : '';
+  const set = (change: Partial<VoiceRecord>) => { try { voice.update(r => ({...r, ...change})); } catch { /* the switch stays as it was; nothing else depends on it */ } };
+  const supported = typeof window !== 'undefined' && !!recognitionConstructor(window as unknown as {SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown});
+  return <div className="ai-fields ai-voice-settings">
+    <Switch checked={prefs.micShown} onChange={next => set({micShown: next})} label="Show the microphone" note={supported ? 'Talk to ZIGi with the microphone by the message box: tap to start and tap again to stop, or hold and release. Works without an AI connected too: ZIGi answers questions in English from your records on this device.' : `${browser === 'firefox' ? 'Firefox has no speech recognition yet.' : 'This browser doesn’t offer speech recognition here.'} Use your keyboard’s dictation (the mic on the iPhone keyboard), or type.`}/>
+    <label className="field">Language<select value={chosen} onChange={e => save(s => ({...s, voice: {...s.voice, language: e.target.value || null}}))}>
+      <option value="">This device’s language ({VOICE_LANGUAGE_LABELS[device]})</option>
+      {VOICE_LANGUAGES.map(l => <option key={l} value={l}>{VOICE_LANGUAGE_LABELS[l]}</option>)}
+    </select><small>For listening and for reading replies aloud. English or Dutch.</small></label>
+    <Switch checked={prefs.sendOnStop} onChange={next => set({sendOnStop: next})} label="Send when I stop talking" note="On: your words go to ZIGi when you stop. Off: they stay in the message box for you to edit and send."/>
+    <Switch checked={prefs.readSpoken} onChange={next => set({readSpoken: next})} label="Read replies to spoken questions aloud" note="With this device’s own voices; never between 22:00 and 08:00; stops when you talk or tap. The panel’s mute button silences it."/>
+    <Switch checked={prefs.tapToTalk} onChange={next => set({tapToTalk: next})} label="Tap ZIGi to talk" note="Off: a tap on ZIGi’s button opens the panel, and holding it talks. On: a tap starts listening too. ⌘ or Ctrl + Shift + Space talks from any page."/>
+    <Switch checked={data.voice.readAloud} onChange={next => save(s => ({...s, voice: {...s.voice, readAloud: next}}))} label="Read every reply aloud" note="Uses the browser's own voices on this device. Off by default; every reply also has its own Read aloud button."/>
+    <p className="ai-note ai-voice-who" role="note">{browserSpeechDisclosure(browser, false)} ZIGoals never stores the audio; the microphone is released the moment you stop.</p>
+    {providerTranscribes && <label className="field">Speaking to ZIGi<select value={data.voice.transcription === 'provider' ? 'provider' : 'browser'} onChange={e => save(s => ({...s, voice: {...s.voice, transcription: e.target.value as AiSettingsData['voice']['transcription'], transcriptionModel: e.target.value === 'provider' ? s.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0] : s.voice.transcriptionModel}}))}><option value="browser">Your browser’s speech recognition</option><option value="provider">Recorded, transcribed by {providerName}</option></select><small>{data.voice.transcription === 'provider' ? `Recordings of up to a minute go from this browser to ${providerName ?? 'your provider'} with your key; nothing through ZIGoals.` : 'The browser’s own recognition, as described above.'}</small></label>}
+    {providerTranscribes && data.voice.transcription === 'provider' && <label className="field">Transcription model<select value={data.voice.transcriptionModel ?? TRANSCRIPTION_MODELS[0]} onChange={e => save(s => ({...s, voice: {...s.voice, transcriptionModel: e.target.value}}))}>{TRANSCRIPTION_MODELS.map(m => <option key={m} value={m}>{m}</option>)}</select></label>}
   </div>;
 }

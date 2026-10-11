@@ -75,7 +75,7 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 | F2 | Opening without the secret | **L-REMEMBER** (reload, a new tab on Today then Settings, 16 idle minutes with the browser clock, BR); RD-59 (reload, new tab, PW); VR-88, VR-100 (unit); CRY-DEV-11 (the remembered root opens the same records, unit) | Safari/WebKit keeping a non-extractable key in IndexedDB; closing and reopening the Home Screen app | **PROVEN-LOCAL** |
 | F3 | Lock now and Forget | **L-REMEMBER** (Forget keeps the tab open and the idle lock applies again; Lock now forgets, and a reload asks, BR); RD-59 (PW); VR-125, VR-131 (unit) | Physical devices | **PROVEN-LOCAL** |
 | F4 | Invalidation | **L-REMEMBER-INVALID** (rotation on the other device: the old record is deleted, the old secret is refused, the new one works once; sign-out; another account's sign-in, BR); VR-137 to VR-174 (a new sign-in, a revoked session, a stale device, a token expiry that keeps it, unit); CRY-DEV-20, CRY-DEV-33 (old material never opens a newer epoch, unit); DU-22 to DU-68 (unit) | Revoking the session from a real second device; WebKit | **PROVEN-LOCAL** |
-| F5 | Deletion without a download | ADO-20, ADO-29, ADO-38 (unit); AB (lines 124–127: the optional copy is prepared, downloaded and decrypted, then deletion, BR) | Files on a real phone | **PROVEN-LOCAL** |
+| F5 | Deletion without a download (and, since Session Z-Cloud, with the recovery secret) | ADO-20, ADO-29, ADO-38 (unit; the secret too since Z-Cloud); AB (lines 124–127: the optional copy is prepared, downloaded and decrypted, then deletion, BR) | Files on a real phone | **PROVEN-LOCAL** |
 
 ## C. Device and providers
 | Row | Check | Automated tests ([index](#test-index)) | Cannot prove | Verdict |
@@ -102,6 +102,20 @@ For every row of [STAGE8_ACCEPTANCE.md](STAGE8_ACCEPTANCE.md), this lists the au
 |---|---|---|---|---|
 | E1 | Account-wide quotas re-checked | None. `market-policy.test.mjs` only validates the figures the owner types in | Provider dashboards | **HUMAN-ONLY** |
 | E2 | Spend controls | None | Provider billing settings | **HUMAN-ONLY** |
+| E3 | Code email limits | None (the relay's own 60 a day is G7) | The email provider's settings; the owner's decision | **HUMAN-ONLY** |
+
+## G. Session Z-Cloud (2026-10-10)
+| Row | Check | Automated tests | Cannot prove | Verdict |
+|---|---|---|---|---|
+| G1 | The secret asked again | `scripts/run11/step-up.test.mjs` (MF: the five actions refused without the proof once registered, two rotations, the switch off); `lib/account-deletion-optional-copy.test.ts`, `lib/vault-ownership.test.ts` (unit); AB and RD-browser type the secret (BR) | A physical iPhone | **PROVEN-LOCAL** |
+| G2 | Remembered for 30 days | `lib/vault-remember.test.ts` (unit, the record's date) | Real elapsed time | **PROVEN-LOCAL** |
+| G3 | Health asked in every tab | `lib/vault/health-ask.test.ts`, `lib/vault-sync-rules-y.test.ts` (unit); `scripts/run11/stage8-rehearsal/health-ask-tabs-browser.test.mjs` (BR, two tabs of a remembered device) | Safari's BroadcastChannel | **PROVEN-LOCAL** |
+| G4 | Delete a habit for good, two devices | `scripts/run11/habit-delete-sync.test.mjs` (MF, two devices incl. a #35 reader); `lib/habit-delete.test.ts` (unit); `persona-z` 6 and 6b (PW) | Physical devices | **PROVEN-LOCAL** |
+| G5 | Talk to ZIGi (EN, NL) | `zigi-voice-z` (PW, mocked speech on Chromium and WebKit); `lib/ai/voice.test.ts` (unit) | Real speech recognition, a physical iPhone | **HUMAN-ONLY** |
+| G6 | ZIGoals AI · powered by Claude | `scripts/run11/zigi-relay-claude.test.mjs` (MF, MOCK Anthropic); `zigi-hosted` (PW, hosted build only); `lib/ai/hosted.test.ts` (unit) | Anthropic itself, the hosted relay | **HUMAN-ONLY** |
+| G7 | Codes paused | `scripts/run11/auth-abuse.test.mjs` (MF: 60 a day, retries on a paused day, midnight); `lib/server/private-account.test.ts` (unit) | Real email delivery | **PROVEN-LOCAL** |
+
+**Session Z-Cloud** adds section G (7 rows: 5 PROVEN-LOCAL, 2 HUMAN-ONLY) and row E3 (HUMAN-ONLY): 47 rows in all, as in STAGE8_ACCEPTANCE.md.
 
 ## Counts (36 rows)
 | Verdict | At `c189313` (before Part 2) | After Session L Part 2 |

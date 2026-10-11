@@ -108,6 +108,8 @@ export function useReadAloud(language: string) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 5000));
     utterance.lang = language;
+    // Session Z-Cloud Part 3: one of this device's own voices for the language (English or Dutch), when it has one.
+    try { const lc = language.toLowerCase(), voices = window.speechSynthesis.getVoices(); utterance.voice = voices.find(v => v.lang.replace('_', '-').toLowerCase() === lc) ?? voices.find(v => v.lang.toLowerCase().startsWith(lc.slice(0, 2))) ?? null; } catch { /* the default voice */ }
     utterance.onend = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     utterance.onerror = () => { setSpeaking(false); zigiSignals.emit('idle'); };
     setSpeaking(true); zigiSignals.emit('assistant_speaking');

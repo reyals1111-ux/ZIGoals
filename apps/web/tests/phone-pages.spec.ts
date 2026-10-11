@@ -37,7 +37,9 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  const items=(r:string)=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),r);
  expect(await items('habits:body')).toEqual(['habits:overview','habits:list','habits:consistency','habits:rhythm']);
  await open(page,'/app/wealth');
- expect((await items('wealth:body')).slice(0,5)).toEqual(['wealth:pulse','wealth:holdings','wealth:composition','wealth:mix','wealth:watchlist']);
+ // Session Z-Cloud Part 4.5 (deliberate): "What you have" follows the holdings on a phone (wealth-view.tsx PHONE_ORDER); it is a
+ // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
+ expect((await items('wealth:body')).slice(0,6)).toEqual(['wealth:pulse','wealth:holdings','wealth:have','wealth:composition','wealth:mix','wealth:watchlist']);
  expect((await items('wealth:body')).at(-1)).toBe('wealth:allocation');
  // An order saved on this device wins over the phone default.
  await page.evaluate(()=>sessionStorage.setItem('zigoals:layout:v1',JSON.stringify({version:1,pages:{habits:{body:{order:['habits:rhythm','habits:consistency','habits:overview','habits:list']}}}})));

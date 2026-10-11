@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 import {collectReply} from './chat';
 import {AiError} from './errors';
-import {HOSTED_DISCLOSURE, HOSTED_LABEL, HOSTED_PATH, hostedActive, hostedEntitlement, hostedHealth, streamHosted} from './hosted';
+import {CLAUDE_HOSTED_NAME, HOSTED_DISCLOSURE, HOSTED_LABEL, HOSTED_PATH, hostedActive, hostedAllowance, hostedEntitlement, hostedHealth, hostedName, streamHosted} from './hosted';
 import {CONNECT_SOURCES} from '../security-policy';
 import egress from '../egress-policy.json';
 
@@ -50,4 +50,30 @@ test('the browser never gains a relay origin: connect-src is unchanged, and the 
   expect(egress.serverOnly.zigiRelay).toMatch(/ZIGOALS_ZIGI_RELAY_ORIGIN/);
   expect(CONNECT_SOURCES.some(s => /relay|zigi/i.test(s))).toBe(false);
   expect(Object.values(egress.aiProviderOrigins)).toHaveLength(5);
+});
+
+// Session Z-Cloud Part 6 (ADR-019 C40): "ZIGoals AI · powered by Claude" for friends, with their own allowance.
+test('on the Claude relay: its name, its label, the allowance in messages and dollars, and "Think deeper" as the high effort', async () => {
+  expect(hostedName('Anthropic')).toBe('ZIGoals AI · powered by Claude'); expect(hostedName('OpenAI')).toBe('ZIGoals hosted');
+  expect(HOSTED_LABEL('Anthropic')).toBe(`Answer from ${CLAUDE_HOSTED_NAME}`); expect(HOSTED_LABEL('OpenAI')).toBe('Answer from OpenAI via ZIGoals hosted');
+  expect(HOSTED_DISCLOSURE('Anthropic', 'claude-sonnet-5-5')[0]).toContain('ZIGoals AI · powered by Claude: your messages');
+  expect(HOSTED_DISCLOSURE('Anthropic', 'claude-sonnet-5-5').join(' ')).toContain('messages, tokens and their cost per day and month');
+  // The entitlement carries the money and the month when the relay counts them; an older relay's answer still reads.
+  const claude = recording(() => Response.json({entitled: true, provider: 'Anthropic', model: 'claude-sonnet-5-5', remaining: {requests: 38, tokens: 1_400_000, usd: 0.957, month: {requests: 512, usd: 7.4049}}}));
+  const entitlement = await hostedEntitlement(ACCOUNT, {build: true, fetcher: claude.f});
+  expect(entitlement).toEqual({entitled: true, provider: 'Anthropic', model: 'claude-sonnet-5-5', remaining: {requests: 38, tokens: 1_400_000, usd: 0.957, month: {requests: 512, usd: 7.4049}}});
+  expect(hostedAllowance({requests: 38, tokens: 1_400_000, usd: 0.957, month: {requests: 512, usd: 7.4049}})).toBe('Left today: 38 messages, $0.95. Left this month: $7.40, 512 messages.');
+  expect(hostedAllowance({requests: 40, tokens: 150_000})).toBe('Left today: 40 messages, about 150,000 tokens.');
+  // "Think deeper" (request.think) asks the relay for the high effort; the quick reply sends no effort field.
+  const sse = 'data: {"choices":[{"delta":{"content":"ok"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n';
+  const deep = recording(() => new Response(sse, {headers: {'content-type': 'text/event-stream'}}));
+  await collectReply(streamHosted({model: 'hosted', system: 's', messages: [{role: 'user', content: 'x'}], maxOutputTokens: 10, think: true}, ACCOUNT, deep.f));
+  await collectReply(streamHosted({model: 'hosted', system: 's', messages: [{role: 'user', content: 'x'}], maxOutputTokens: 10}, ACCOUNT, deep.f));
+  expect(JSON.parse(String(deep.calls[0]!.init?.body))).toMatchObject({reasoning_effort: 'high', stream: true});
+  expect(JSON.parse(String(deep.calls[1]!.init?.body))).not.toHaveProperty('reasoning_effort');
+  for (const [code, words] of [['ACCOUNT_DAILY_USD', 'today\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_USD', 'this month\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_REQUESTS', 'this month\'s number of ZIGi messages'], ['GLOBAL_DAILY_USD', 'its own limit for today'], ['ACCOUNT_IN_FLIGHT', 'still answering your other questions']] as const) {
+    const refused = recording(() => Response.json({error: code}, {status: 429}));
+    const error = await collectReply(streamHosted({model: 'hosted', system: 's', messages: [{role: 'user', content: 'x'}], maxOutputTokens: 10}, ACCOUNT, refused.f)).catch((e: unknown) => e);
+    expect((error as AiError).kind, code).toBe('rate-limit'); expect((error as AiError).message).toContain(words);
+  }
 });

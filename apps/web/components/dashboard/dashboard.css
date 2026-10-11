@@ -81,3 +81,6 @@
 .dashboard-widget-heading:has(>.pill){flex-wrap:wrap}.dashboard-widget-heading:has(>.pill)::after{content:"";flex-basis:100%;order:2}.dashboard-widget-heading>.pill{order:3}
 :root[data-layout-editing] .today-page .placed-module[data-kind="widget"]{container:placed-widget/inline-size}
 @container placed-widget (max-width:280px){:root[data-layout-editing] .today-page .placed-module[data-kind="widget"]>.dashboard-widget{margin-top:62px!important}}
+/* Session Z-Cloud Part 4.1 (persona item 1): no rail modules (Habits + Health, Habits only): one centred column at a reading width. */
+.today-page[data-single]{max-width:760px;margin-inline:auto}
+.today-page[data-single] .today-layout{grid-template-columns:minmax(0,1fr)}

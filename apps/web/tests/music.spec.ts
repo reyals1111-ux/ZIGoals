@@ -1,4 +1,5 @@
 import {expect, test, type Page, type Route} from '@playwright/test';
+import {isPhone, openMore} from './phone-nav';
 
 // Session W Part 20: "Your soundtrack". The music button (hidden until shown; the Showcase shows it), the panel in the
 // NOVA look with Focus sounds, Spotify and Apple Music, the mini-bar, Settings → Music and the phone's More row. Spotify
@@ -40,12 +41,24 @@ async function mockSpotify(page: Page, origin: string, {play = 204}: {play?: num
   return seen;
 }
 const panel = (page: Page) => page.getByRole('dialog', {name: 'Your soundtrack'});
+/** Session Z-Cloud Part 4.12: on a phone ZIGi is the one floating button; the player opens from the More sheet's row. */
+async function openPlayer(page: Page) {
+  if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); }
+  else await page.getByRole('button', {name: 'Open the music player'}).click();
+}
+/** Where focus returns when the player closes: its button on a computer; on a phone ZIGi's launcher, or More without it. */
+async function opener(page: Page) {
+  if (!await isPhone(page)) return page.getByRole('button', {name: 'Open the music player'});
+  const zigi = page.getByTestId('ai-launcher').locator('.ai-launcher-button');
+  return await zigi.count() ? zigi : page.getByRole('button', {name: 'More', exact: true});
+}
 async function showPlayer(page: Page) {
   await page.goto('/app/settings');
   const card = page.getByRole('region', {name: 'Your soundtrack.'});
   await card.getByRole('button', {name: 'Show the music player'}).click();
   await expect(card.getByRole('status')).toHaveText('The music player shows again.');
-  await expect(page.getByRole('button', {name: 'Open the music player'})).toBeVisible();
+  if (await isPhone(page)) await expect(page.getByRole('button', {name: 'Open the music player'})).toHaveCount(0);
+  else await expect(page.getByRole('button', {name: 'Open the music player'})).toBeVisible();
 }
 
 test('hidden until shown (the approved default): Settings → Music shows it; the button sits opposite ZIGi and never covers it', async ({page}) => {
@@ -55,14 +68,20 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   await page.waitForTimeout(600);
   await expect(page.getByRole('button', {name: 'Open the music player'})).toHaveCount(0);
   await showPlayer(page);
-  // On Today, where ZIGi's launcher shows too: the music button sits on the other side and the two never overlap.
+  // On Today, where ZIGi's launcher shows too: the music button sits on the other side and the two never overlap. On a
+  // phone ZIGi is the one floating button and the More sheet holds the player's row (Session Z-Cloud Part 4.12).
   await page.goto('/app');
   const button = page.getByRole('button', {name: 'Open the music player'}), launcher = page.getByTestId('ai-launcher');
+  if (await isPhone(page)) {
+    await expect(launcher).toBeVisible(); await expect(button).toHaveCount(0);
+    const sheet = await openMore(page); await expect(sheet.getByRole('button', {name: /Your soundtrack/})).toBeVisible(); await page.keyboard.press('Escape');
+  } else {
   await expect(button).toBeVisible(); await expect(launcher).toBeVisible();
   const box = (await button.boundingBox())!, zigi = (await launcher.boundingBox())!, viewport = page.viewportSize()!;
   expect(box.x + box.width / 2).toBeLessThan(viewport.width / 2);
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
   expect(box.x + box.width <= zigi.x || zigi.x + zigi.width <= box.x || box.y + box.height <= zigi.y || zigi.y + zigi.height <= box.y).toBe(true);
+  }
   // The switch under Your pages & buttons is the same one, and hides it everywhere again.
   await page.goto('/app/settings');
   // Saved like every page switch (a click, then the stored choice re-renders it), as pages-visibility.spec does.
@@ -75,7 +94,7 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
 test('focus sounds in the panel: the NOVA look, previous and next step through the sounds, Play and Stop, Escape returns to the button', async ({page}) => {
   await start(page);
   await showPlayer(page);
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   const p = panel(page);
   await expect(p).toBeVisible();
   await expect(p.locator('.music-eyebrow')).toHaveText('Your soundtrack');
@@ -89,7 +108,7 @@ test('focus sounds in the panel: the NOVA look, previous and next step through t
   await p.getByRole('button', {name: 'Previous sound: Brown noise'}).click();
   await p.getByRole('button', {name: 'Play Brown noise'}).click();
   await expect(p.getByRole('status')).toHaveText('Playing · until you stop it');
-  await expect(page.locator('.music-launcher[data-playing]')).toHaveCount(1);
+  if (!await isPhone(page)) await expect(page.locator('.music-launcher[data-playing]')).toHaveCount(1);
   await p.getByRole('button', {name: 'Stop Brown noise'}).click();
   await expect(p.getByRole('status')).toHaveText('Made on this device · nothing is downloaded');
   await expect(p.getByRole('link', {name: 'Breathe in Meditation'})).toHaveAttribute('href', '/app/health?view=meditation');
@@ -99,7 +118,7 @@ test('focus sounds in the panel: the NOVA look, previous and next step through t
   await expect(p.getByRole('link', {name: 'Open Apple Music ↗'})).toHaveAttribute('rel', 'noopener noreferrer');
   await page.keyboard.press('Escape');
   await expect(p).toHaveCount(0);
-  await expect(page.getByRole('button', {name: 'Open the music player'})).toBeFocused();
+  await expect(await opener(page)).toBeFocused();
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('zigoals:music:v1') ?? 'null'))).toMatchObject({version: 1, source: 'apple', mini: false, ambient: {sound: 'brown'}});
 });
 
@@ -108,7 +127,7 @@ test('Spotify not set up on this site: an honest line and Open Spotify, no Conne
   const spotify: string[] = [];
   page.on('request', r => { if (/spotify|scdn/.test(new URL(r.url()).hostname)) spotify.push(r.url()); });
   await showPlayer(page);
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   await expect(panel(page)).toContainText('Spotify isn’t set up on this site yet');
   await expect(panel(page).getByRole('button', {name: 'Connect Spotify'})).toHaveCount(0);
@@ -122,7 +141,7 @@ test('Spotify, MOCKED: connect with PKCE, the sign-in sealed (never in storage),
   const seen = await mockSpotify(page, new URL(baseURL!).origin);
   await showPlayer(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   // Spotify's (mocked) consent page sends us back; the callback exchanges the code and returns to where we were.
   await Promise.all([page.waitForURL('**/app/music/spotify**'), panel(page).getByRole('button', {name: 'Connect Spotify'}).click()]);
@@ -131,7 +150,7 @@ test('Spotify, MOCKED: connect with PKCE, the sign-in sealed (never in storage),
   const storages = await page.evaluate(() => JSON.stringify({...localStorage, ...sessionStorage}));
   expect(storages).not.toContain('FAKE-ACCESS-1'); expect(storages).not.toContain('FAKE-REFRESH-1'); expect(storages).not.toContain('FAKE-CODE-1');
   expect(await page.evaluate(async () => (await indexedDB.databases()).map(d => d.name))).toContain('zigoals-link-tokens-v1');
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   const p = panel(page);
   await expect(p.getByRole('heading', {level: 2})).toHaveText('Fictional Track');
   await expect(p.getByRole('img', {name: 'Spotify'})).toBeVisible();
@@ -155,18 +174,18 @@ test('Spotify, MOCKED: without the owner\'s logo file no track is shown; a refus
   await start(page, {logo: false});
   await mockSpotify(page, new URL(baseURL!).origin, {play: 403});
   await showPlayer(page);
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   await Promise.all([page.waitForURL('**/app/music/spotify**'), panel(page).getByRole('button', {name: 'Connect Spotify'}).click()]);
   await page.waitForURL('**/app/settings');
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await expect(panel(page)).toContainText('this site lacks Spotify’s logo');
   await expect(panel(page)).not.toContainText('Fictional Track');
   // With the logo, a play Spotify refuses (403) says why, in words.
   await page.unroute('**/brand/spotify/logo.svg');
   await page.route('**/brand/spotify/logo.svg', route => route.fulfill({contentType: 'image/svg+xml', body: LOGO}));
   await page.reload();
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await expect(panel(page).getByRole('heading', {level: 2})).toHaveText('Fictional Track');
   await panel(page).getByRole('button', {name: 'Pause Spotify'}).click();
   await panel(page).getByRole('button', {name: 'Play on Spotify'}).click();
@@ -176,7 +195,7 @@ test('Spotify, MOCKED: without the owner\'s logo file no track is shown; a refus
 test('the mini-bar takes the button\'s place on this device; the phone\'s More sheet opens the player', async ({page, isMobile}) => {
   await start(page);
   await showPlayer(page);
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await panel(page).getByRole('button', {name: 'Mini-bar'}).click();
   await expect(panel(page).getByRole('button', {name: 'Mini-bar'})).toHaveAttribute('aria-pressed', 'true');
   await panel(page).getByRole('button', {name: 'Close the music player'}).click();
@@ -203,7 +222,7 @@ test('the Showcase shows the player and connects nothing: no Spotify request, no
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   showcase = true;
-  await page.getByRole('button', {name: 'Open the music player'}).click();
+  await openPlayer(page);
   await panel(page).getByRole('group', {name: 'Play from'}).getByRole('button', {name: 'Spotify'}).click();
   await expect(panel(page)).toContainText('The Showcase connects nothing.');
   await expect(panel(page).getByRole('button', {name: 'Connect Spotify'})).toHaveCount(0);

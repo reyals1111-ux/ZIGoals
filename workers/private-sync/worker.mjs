@@ -2,10 +2,11 @@ import {WorkerEntrypoint} from 'cloudflare:workers';
 import {rotationRequest} from './rotation.mjs';
 import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
 import {portfolioRequest} from './portfolio.mjs';
+import {STEP_UP_HEADER,STEP_UP_INTERNAL,STEP_UP_NEXT_HEADER,isStepUpValue,stepUpRequest} from './step-up.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DOMAINS=new Set(['finance','health','habits','settings']);
-/** @typedef {{VAULTS:DurableObjectNamespace,LIFECYCLE:Fetcher,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string}} SyncEnv */
+/** @typedef {{VAULTS:DurableObjectNamespace,LIFECYCLE:Fetcher,AUTH_ORIGIN?:string,AUTH_PUBLIC_KEY?:string,APP_ORIGIN?:string,ISOLATED_FIXTURE?:string,LOCAL_TEST_NOW?:string,LOCAL_SWEEP_MS?:string,STEP_UP_REQUIRED?:string}} SyncEnv */
 /** @param {unknown} value @param {number} [status] */
 const response=(value,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 /** @param {any} value @param {string[]} keys */
@@ -22,7 +23,7 @@ async function boundedJSON(request,max=1_000_000){
 }
 /** @type {ExportedHandler<SyncEnv>} */
 const privateSyncWorker={async fetch(request,env){
- const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
+ const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio','/v1/step-up'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.AUTH_ORIGIN??'')||!env.AUTH_PUBLIC_KEY||!env.APP_ORIGIN)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
  if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
  const token=request.headers.get('authorization');if(!token||!/^Bearer [A-Za-z0-9._-]{1,4096}$/.test(token))return response({error:'SIGN_IN_REQUIRED'},401);
@@ -32,10 +33,16 @@ const privateSyncWorker={async fetch(request,env){
  let family;try{const claims=JSON.parse(atob(/** @type {string} a malformed token throws inside this try */(token.slice(7).split('.')[1]).replace(/-/g,'+').replace(/_/g,'/')));if(claims.sub!==user.id||!UUID.test(claims.session_id??''))throw Error();family=claims.session_id;}catch{return response({error:'VERIFIED_SESSION_REQUIRED'},401);}
  if(request.headers.get('x-zigoals-account')?.toLowerCase()!==user.id.toLowerCase())return response({error:'ACCOUNT_CHANGED'},409);
  // Client-supplied account/vault identifiers never select another tenant's object.
- const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.delete('x-lifecycle-delete-authorized');headers.delete('x-domain-generations');headers.set('x-verified-account',user.id);headers.set('x-zigoals-session-family',family);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));
+ const stub=env.VAULTS.get(env.VAULTS.idFromName(user.id)),headers=new Headers(request.headers);headers.delete('x-lifecycle-delete-authorized');headers.delete('x-domain-generations');for(const name of [STEP_UP_HEADER,STEP_UP_NEXT_HEADER,STEP_UP_INTERNAL])headers.delete(name);headers.set('x-verified-account',user.id);headers.set('x-zigoals-session-family',family);headers.set('x-zigoals-token-hash',[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)))].map(v=>v.toString(16).padStart(2,'0')).join(''));
  if(!env.LIFECYCLE)return response({error:'LIFECYCLE_CONFIGURATION_REQUIRED'},503);
  const lifecycleCall=/** @param {unknown} [body] */async body=>{const result=await env.LIFECYCLE.fetch(new Request('https://lifecycle.internal/account',{method:body?'POST':'GET',headers:{'x-verified-account':user.id,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}));if(!result.ok)return {error:result};return {value:await boundedJSON(result,4096)};};
  let lifecycle=await lifecycleCall();if(lifecycle.error)return lifecycle.error;
+ // Session Z-Cloud Part 5 (A6, step-up.mjs): the vault checks the recovery secret's proof for the five actions that end
+ // data or access, before anything is decided; the owner's switch STEP_UP_REQUIRED turns the check off.
+ const internal=/** @param {unknown} body */body=>{const h=new Headers();for(const name of ['x-verified-account','x-zigoals-session-family','x-zigoals-token-hash'])h.set(name,/** @type {string} set above */(headers.get(name)));h.set(STEP_UP_INTERNAL,'1');h.set('content-type','application/json');return stub.fetch(new Request('https://vault.internal/v1/step-up',{method:'POST',headers:h,body:JSON.stringify(body)}));};
+ const stepUp=async()=>{if(env.STEP_UP_REQUIRED!=='on')return null;const proof=request.headers.get(STEP_UP_HEADER);const checked=await internal({action:'check',proof:isStepUpValue(proof)?proof:null});if(checked.ok){await checked.body?.cancel();return null;}return checked;};
+ /** @param {number} max */
+ const peek=async max=>{try{return await boundedJSON(request.clone(),max);}catch{return null;}};
  if(url.pathname==='/v1/account'){
   if(request.method==='GET'){
    // Account state is readable only by an active session. After deletion every session is
@@ -45,6 +52,7 @@ const privateSyncWorker={async fetch(request,env){
   }
   let action;try{action=await boundedJSON(request.clone(),256);}catch{return response({error:'INVALID_ACCOUNT_REQUEST'},400);}
   if(!exact(action,['action','confirm'])||!['delete-cloud-data','delete-account'].includes(action.action)||action.confirm!==(action.action==='delete-account'?'DELETE ACCOUNT':'DELETE CLOUD DATA'))return response({error:'INVALID_ACCOUNT_REQUEST'},400);
+  const refused=await stepUp();if(refused)return refused;
   if(!lifecycle.value.deleted){const allowed=await stub.fetch(new Request('https://vault.internal/v1/sessions',{headers}));if(!allowed.ok)return allowed;await allowed.body?.cancel();lifecycle=await lifecycleCall({action:'delete',confirm:'DELETE CLOUD DATA',generation:lifecycle.value.generation,family});if(lifecycle.error)return lifecycle.error;}
   headers.set('x-lifecycle-delete-authorized','1');headers.set('content-type','application/json');
   const erased=await stub.fetch(new Request('https://vault.internal/v1/account',{method:'POST',headers,body:'{"action":"delete-cloud-data","confirm":"DELETE CLOUD DATA"}'}));if(!erased.ok)return erased;await erased.body?.cancel();
@@ -60,8 +68,22 @@ const privateSyncWorker={async fetch(request,env){
   if(request.method!=='POST')return response({error:'METHOD_NOT_ALLOWED'},405);
   let body;try{body=await boundedJSON(request,512);}catch{return response({error:'INVALID_DOMAIN_REQUEST'},400);}
   if(!exact(body,['action','domain','confirm','operation','revision','generation'])||body.action!=='delete-domain'||!DOMAINS.has(body.domain)||body.confirm!=='DELETE CLOUD '+body.domain.toUpperCase()||!UUID.test(body.operation)||!Number.isSafeInteger(body.revision)||body.revision<0||!Number.isSafeInteger(body.generation)||body.generation<0)return response({error:'INVALID_DOMAIN_REQUEST'},400);
+  const refused=await stepUp();if(refused)return refused;
   headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
   return stub.fetch(new Request('https://vault.internal/v1/domain',{method:'POST',headers,body:JSON.stringify(body)}));
+ }
+ if(request.method==='POST'&&(url.pathname==='/v1/sessions'||url.pathname==='/v1/rotation')){
+  const body=await peek(url.pathname==='/v1/sessions'?8192:1_000_000);
+  // Revoking one other session is the same power one at a time, so it asks too.
+  if(url.pathname==='/v1/sessions'&&(body?.action==='revoke-others'||body?.action==='revoke')||url.pathname==='/v1/rotation'&&body?.action==='begin'){const refused=await stepUp();if(refused)return refused;}
+  if(url.pathname==='/v1/rotation'&&body?.action==='begin'){
+   // The new secret's verifier waits beside the old one and counts once the rotation publishes its epoch.
+   headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
+   const begun=await stub.fetch(new Request(request,{headers})),next=request.headers.get(STEP_UP_NEXT_HEADER);
+   // Every begun rotation sets it, to the new verifier or to none, so an aborted rotation's verifier never carries over.
+   if(begun.ok&&Number.isSafeInteger(body.manifest?.epoch)){const staged=await internal({action:'next',epoch:body.manifest.epoch,verifier:isStepUpValue(next)?next:null});await staged.body?.cancel();}
+   return begun;
+  }
  }
  headers.set('x-domain-generations',JSON.stringify(lifecycle.value.domainGenerations??{}));
  return stub.fetch(new Request(request,{headers}));
@@ -139,6 +161,8 @@ export class PrivateVault{
  async fetch(request){
   const path=new URL(request.url).pathname,sessionHash=request.headers.get('x-zigoals-token-hash');
   const authoritative=JSON.parse(request.headers.get('x-domain-generations')??'{}');
+  // Session Z-Cloud Part 5 (A6): the step-up record has its own path, outside the lifecycle's reconciliation and fences.
+  if(path==='/v1/step-up')return stepUpRequest(request,this.state,boundedJSON,()=>this.now());
   if(path!=='/v1/sessions'&&Object.keys(authoritative).length&&!await this.state.storage.get('domain-delete-intent')){
    const reconciled=await this.state.storage.transaction(async store=>{
     if(!await sessionAllowed(store,sessionHash))return response({error:'SESSION_REVOKED'},401);

@@ -4,6 +4,7 @@ import { toBech32 } from "@cosmjs/encoding";
 const reconnectHintKey = "zigoals:wallet-reconnect-hint:v1";
 const mockOwner = toBech32("zig", new Uint8Array(20).fill(9));
 const connectedLabel = `${mockOwner.slice(0, 8)}…${mockOwner.slice(-4)}`;
+import { walletArea as wallet } from "./phone-nav";
 
 test("mock Keplr reconnect stays explicit and tab scoped across reload", async ({
   context,
@@ -59,15 +60,15 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   await page.goto("/app");
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await expect(
-    page.getByRole("button", { name: "Connect Keplr", exact: true }),
+    (await wallet(page)).getByRole("button", { name: "Connect Keplr", exact: true }),
   ).toBeVisible();
   expect(mockCalls).toEqual([]);
 
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await (await wallet(page)).getByRole("button", { name: "Connect Keplr" }).click();
   await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   await expect.poll(() => mockCalls).toEqual(["suggest", "enable", "getKey"]);
   await expect(
-    page.getByRole("button", { name: connectedLabel, exact: true }),
+    (await wallet(page)).getByRole("button", { name: connectedLabel, exact: true }),
   ).toBeVisible();
   expect(
     await page.evaluate((key) => sessionStorage.getItem(key), reconnectHintKey),
@@ -79,7 +80,7 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
     "LOCAL SIMULATION",
   );
   await expect(
-    otherTab.getByRole("button", { name: "Connect Keplr", exact: true }),
+    (await wallet(otherTab)).getByRole("button", { name: "Connect Keplr", exact: true }),
   ).toBeVisible();
   expect(mockCalls).toEqual(["suggest", "enable", "getKey"]);
   await otherTab.close();
@@ -87,14 +88,14 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   await page.reload();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await expect(
-    page.getByRole("button", { name: "Reconnect Keplr", exact: true }),
+    (await wallet(page)).getByRole("button", { name: "Reconnect Keplr", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("status").filter({hasText:"Reloads intentionally start in Local demo"})).toContainText(
     "Reloads intentionally start in Local demo",
   );
   expect(mockCalls).toEqual(["suggest", "enable", "getKey"]);
 
-  await page.getByRole("button", { name: "Reconnect Keplr" }).click();
+  await (await wallet(page)).getByRole("button", { name: "Reconnect Keplr" }).click();
   await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
   await expect.poll(() => mockCalls).toEqual([
     "suggest",
@@ -105,16 +106,16 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
     "getKey",
   ]);
   await expect(
-    page.getByRole("button", { name: connectedLabel, exact: true }),
+    (await wallet(page)).getByRole("button", { name: connectedLabel, exact: true }),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Local demo" }).click();
+  await (await wallet(page)).getByRole("button", { name: "Local demo" }).click();
   expect(
     await page.evaluate((key) => sessionStorage.getItem(key), reconnectHintKey),
   ).toBeNull();
   await page.reload();
   await expect(
-    page.getByRole("button", { name: "Connect Keplr", exact: true }),
+    (await wallet(page)).getByRole("button", { name: "Connect Keplr", exact: true }),
   ).toBeVisible();
   expect(mockCalls).toEqual([
     "suggest",

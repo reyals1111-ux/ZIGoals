@@ -59,3 +59,25 @@ test("a thrown check becomes one bounded line; the status is PASS only with noth
   expect(hostedStatus({ ...clean, layouts: [{ pass: false }] })).toBe("COMPLETED_WITH_FINDINGS");
   expect(hostedStatus({ ...clean, consoleErrors: [{}], review: ["live prices: UNAVAILABLE"] })).toBe("NEEDS_OWNER_REVIEW");
 });
+
+// Session Z-Cloud Part 1: the owner's run on #34 (2026-10-10) reported FAIL at Connection diagnostics while the page showed
+// "Verified zig-test-2 · azig · 18 decimals · v5.1.2". Playwright's toContainText reads the panel's textContent, where the
+// REST row's last word runs straight into the next row's term, so the old `\b` found no boundary.
+test("the REST row is found in the panel's textContent, where the version runs into \"Goal Manager\"", async () => {
+  const { REVIEWED_TESTNET_VERSIONS, TESTNET } = await import("../packages/chain-config/src/index.ts");
+  const { reviewedRestPattern } = await import("./lib/hosted-alpha-review.mjs");
+  const pattern = reviewedRestPattern(REVIEWED_TESTNET_VERSIONS);
+  // The REST <div> and the Goal Manager <div> as textContent: <dt>, <dd> (address, <br>, detail), then the next <dt>.
+  const panelText = `RPC${TESTNET.rpcUrl}Verified zig-test-2REST${TESTNET.restUrl}Verified zig-test-2 · azig · 18 decimals · v5.1.2Goal ManagerNOT DEPLOYED`;
+  expect(panelText).toContain("Verified zig-test-2 · azig · 18 decimals · v5.1.2Goal Manager");
+  expect(new RegExp(`Verified zig-test-2 · azig · 18 decimals · (?:${REVIEWED_TESTNET_VERSIONS.map(v => v.replaceAll(".", "\\.")).join("|")})\\b`).test(panelText)).toBe(false); // the old pattern, for the record
+  expect(pattern.test(panelText)).toBe(true);
+  for (const version of REVIEWED_TESTNET_VERSIONS) {
+    expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${version}`)).toBe(true);
+    expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${version}\nGoal Manager`)).toBe(true);
+    expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${version}Goal Manager`)).toBe(true);
+  }
+  // A version that is not reviewed still fails: a longer patch number, a fourth part, another minor or a missing version.
+  for (const unreviewed of ["v5.1.20", "v5.1.2.1", "v5.1.3", "v5.10.0", "v5.1", ""]) expect(pattern.test(`Verified zig-test-2 · azig · 18 decimals · ${unreviewed}Goal Manager`)).toBe(false);
+  expect(pattern.test("Verified zig-test-2 · uzig · 6 decimals · v5.1.2")).toBe(false);
+});

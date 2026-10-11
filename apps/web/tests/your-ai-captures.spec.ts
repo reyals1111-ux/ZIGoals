@@ -122,9 +122,9 @@ for (const viewport of VIEWPORTS) {
       await shot(page, '18-reply-with-controls');
       const expand = panel(page).getByRole('button', {name: /Expand the chat/});
       if (await expand.count()) { await expand.click(); await shot(page, '19-expanded'); await panel(page).getByRole('button', {name: /Shrink the chat/}).click(); }
-      await panel(page).locator('summary', {hasText: 'What your AI sees'}).click();
+      await panel(page).getByLabel('What your AI sees').click();
       await shot(page, '20-what-your-ai-sees');
-      await panel(page).locator('summary', {hasText: 'What your AI sees'}).click();
+      await panel(page).getByLabel('What your AI sees').click();
       await panel(page).locator('summary', {hasText: 'Model'}).click();
       await expect(panel(page).getByRole('listbox', {name: 'Models'})).toBeVisible();
       await shot(page, '21-model-switcher');

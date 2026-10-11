@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {habitCalendarDay, habitDay, type HabitData} from '../../lib/habits';
 import {HEALTH_MEALS, type HealthData} from '../../lib/health';
 import {dailyData, healthDay, waterSummary} from '../../lib/health-daily';
-import {formatNumber} from '../../lib/visual-format';
+import {waterText} from '../../lib/health-units';
 import {MOOD_WORDS, moodOn, setMood} from '../../lib/wrap-up/engine';
 import {useHealth} from '../health/use-health';
 
@@ -20,7 +20,7 @@ export function WrapUpCard({habits, health, now, showHabits, showHealth, onWrap}
   const due = days.filter(s => s === 'complete' || s === 'partial' || s === 'due' || s === 'failed').length, done = days.filter(s => s === 'complete').length;
   const meals = showHealth ? HEALTH_MEALS.filter(m => health.diary.some(e => e.date === healthToday && e.meal === m)) : [];
   const water = showHealth ? waterSummary(health, healthToday).millilitres : 0;
-  const facts = [due > 0 && `Habits: ${done} of ${due} done today`, meals.length > 0 && `Meals logged: ${meals.join(', ')}`, water > 0 && `Water: ${formatNumber(Math.round(water))} mL`].filter((f): f is string => !!f);
+  const facts = [due > 0 && `Habits: ${done} of ${due} done today`, meals.length > 0 && `Meals logged: ${meals.join(', ')}`, water > 0 && `Water: ${waterText(Math.round(water), dailyData(health).preferences.waterUnit)}`].filter((f): f is string => !!f);
   const mood = showHealth && store.loaded && !store.error ? moodOn(store.data, healthToday) : undefined;
   async function feel(value: number) {
     setError('');

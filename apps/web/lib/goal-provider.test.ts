@@ -292,7 +292,8 @@ test("choosing Local demo clears the reconnect hint for later reloads", async ()
   window.sessionStorage.setItem(reconnectHintKey, "true");
   await remount();
 
-  await click("Local demo");
+  // Session Z-Cloud Part 4.3: before Keplr is connected, the same button reads "Demo records" (plain words).
+  await click("Demo records");
   expect(window.sessionStorage.getItem(reconnectHintKey)).toBeNull();
   await remount();
 

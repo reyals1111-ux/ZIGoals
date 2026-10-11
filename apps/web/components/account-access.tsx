@@ -20,6 +20,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
    // Two refusals carry their own words from a relay before Session U (it named invite-only and email sign-in off; the
    // current relay answers every code request the same way); every other message is this panel's.
    if(res.status===403&&data&&typeof data==='object'&&(data.error==='INVITE_ONLY'||data.error==='EMAIL_UNAVAILABLE')&&typeof data.message==='string'&&data.message.length<=300)throw Error(data.message);
+   if(res.status===429&&data&&typeof data==='object'&&data.error==='CODES_PAUSED_TODAY')throw Error('Sign-in codes are paused for today; try again tomorrow.');
    throw Error(res.status===429?'Please wait before requesting another code.':res.status===401?'Your session expired. Sign in again to continue.':'Account access was not confirmed. Check the code and try again.');}
   return data;}
  const checkSession=useCallback(async()=>{
@@ -31,7 +32,7 @@ export function AccountAccess({onAuthenticated,onSignout,onVerifying,onDenied}:P
     // Session Y Part 5, FIX_PLAN A7: a revoked session or a deleted account is named once, in this first answer; the vault
     // then forgets this browser's remembered unlock record (the records themselves stay). No refresh is spent on it.
     const first=await res.text().catch(()=>''),denied=deniedCode(first);
-    if(denied){if(controller.signal.aborted||generation!==getAccountGeneration())return;if(getAccountScope())lockAccount();await callbacks.current.onDenied?.(denied);setStatus('signed-out');setMessage(denied==='ACCOUNT_DELETED'?'This account was deleted. Sign in with an email code to use another account; your separate local records remain available.':'This browser was signed out on another device. Sign in with an email code to continue.');return;}
+    if(denied){if(controller.signal.aborted||generation!==getAccountGeneration())return;if(getAccountScope())lockAccount();await callbacks.current.onDenied?.(denied);setStatus('signed-out');setMessage(denied==='ACCOUNT_DELETED'?'Your cloud copy was deleted; this device keeps its records. Export everything in Settings still makes a copy of them. Sign in with an email code to use another account; your separate local records remain available.':'This browser was signed out on another device. Sign in with an email code to continue.');return;}
     res=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json'},body:'{"action":"refresh"}',cache:'no-store',signal:controller.signal});}
    const text=await res.text();
    if(controller.signal.aborted||generation!==getAccountGeneration())return;

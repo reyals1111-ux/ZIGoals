@@ -33,11 +33,20 @@ test('every unsafe change is named',()=>{
 test('the Anthropic template passes as a template; ZIGI_THINKING and the Anthropic address are checked',()=>{
  const anthropic=JSON.parse(stripComments(readFileSync(new URL('../../workers/zigi-relay/wrangler.anthropic.local.jsonc',import.meta.url),'utf8')));
  expect(relayConfigProblems(anthropic,{template:true})).toEqual([]);
- expect(anthropic.vars).toMatchObject({ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/messages',ZIGI_MODEL:'claude-haiku-5-5',ZIGI_THINKING:'off',ZIGI_KILL_SWITCH:'on'});
+ // Session Z-Cloud Part 6 (ADR-019 C40): the friends' template, Claude Sonnet 5.5 with money budgets; no thinking var.
+ expect(anthropic.vars).toMatchObject({ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/messages',ZIGI_MODEL:'claude-sonnet-5-5',ZIGI_KILL_SWITCH:'on',ZIGI_DAILY_USD:'1',ZIGI_MONTHLY_USD:'10',ZIGI_GLOBAL_DAILY_USD:'20',ZIGI_MONTHLY_REQUESTS:'600'});
+ expect(Object.hasOwn(anthropic.vars,'ZIGI_THINKING')).toBe(false);
  const deployableAnthropic={...anthropic,name:'zigoals-zigi-relay',vars:{...anthropic.vars,AUTH_ORIGIN:'https://abcdefgh.supabase.co',APP_ORIGIN:'https://alpha.zigoals.app'}};
  expect(relayConfigProblems(deployableAnthropic)).toEqual([]);
  expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_THINKING:'on'}})).toContain('ZIGI_THINKING must be "off" or "model-default".');
  expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_THINKING:'model-default'}})).toEqual([]);
+ // Only Sonnet 5.5 or Haiku 5.5 on Anthropic; the money budgets are amounts, a friend's day within their month and the relay's day.
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_MODEL:'claude-haiku-5-5'}})).toEqual([]);
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_MODEL:'claude-opus-5-5'}})).toContain('On Anthropic, ZIGI_MODEL must be one of claude-sonnet-5-5, claude-haiku-5-5.');
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_MONTHLY_USD:'ten'}})).toContain('ZIGI_MONTHLY_USD must be a positive amount in US dollars, such as "10" or "0.50".');
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_DAILY_USD:'11'}})).toContain('One account\'s daily money cannot be more than its monthly money.');
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_GLOBAL_DAILY_USD:'0.5'}})).toContain('One account\'s daily money cannot be more than the relay\'s own daily money.');
+ expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_MONTHLY_REQUESTS:'0'}})).toContain('ZIGI_MONTHLY_REQUESTS must be a positive whole number.');
  expect(relayConfigProblems({...deployableAnthropic,vars:{...deployableAnthropic.vars,ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/chat/completions'}})).toContain('On Anthropic, ZIGI_UPSTREAM_URL must be exactly https://api.anthropic.com/v1/messages (the relay translates to that API only).');
  // The OpenAI default template stays as it was: no thinking var, OpenAI's address.
  expect(Object.hasOwn(template.vars,'ZIGI_THINKING')).toBe(false);

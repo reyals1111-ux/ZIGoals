@@ -64,12 +64,15 @@ export async function readNativePositions(mode:ReadMode,account:string,fetcher:t
  const validatorIds=[...new Set([...delegations.map(d=>d.delegation.validator_address),...rewards.map(r=>r.validator_address),...unbondings.map(u=>u.validator_address)])];
  if(validatorIds.length>100)throw Error('Too many validators for one observation.');
  const validators=new Map<string,Position['validator']>();
- // Bounded sequential reads avoid flooding public infrastructure.
- for(const v of validatorIds){
-  const raw=await read(`/cosmos/staking/v1beta1/validators/${encodeURIComponent(v)}`);
-  const parsed=z.object({validator:z.object({operator_address:validatorAddress,description:z.object({moniker:z.string().max(200)}),status:z.string().max(100),tokens:units,commission:z.object({commission_rates:z.object({rate:z.string()})})})}).parse(raw).validator;
-  if(parsed.operator_address!==v)throw Error('Validator identity mismatch.');
-  validators.set(v,{address:v,name:parsed.description.moniker,status:parsed.status,votingTokens:parsed.tokens,commission:parsed.commission.commission_rates.rate});
+ // Session Z-Cloud Part 5 (C4): the chain's validator list, 100 a page at the same height, instead of one read per
+ // validator, so a request costs a fixed handful of upstream calls however many validators the address touches.
+ if(validatorIds.length){
+  const listed=await pages('/cosmos/staking/v1beta1/validators','validators',z.object({operator_address:validatorAddress,description:z.object({moniker:z.string().max(200)}),status:z.string().max(100),tokens:units,commission:z.object({commission_rates:z.object({rate:z.string()})})}));
+  const byAddress=new Map(listed.map(v=>[v.operator_address,v]));
+  for(const v of validatorIds){
+   const parsed=byAddress.get(v);if(!parsed)throw Error('Validator identity mismatch.');
+   validators.set(v,{address:v,name:parsed.description.moniker,status:parsed.status,votingTokens:parsed.tokens,commission:parsed.commission.commission_rates.rate});
+  }
  }
  for(const d of delegations){
   if(d.delegation.delegator_address!==account||d.balance.denom!==network.denom)throw Error('Delegation scope mismatch.');

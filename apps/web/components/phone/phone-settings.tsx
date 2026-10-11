@@ -45,7 +45,7 @@ const GROUPS: { title: string; rows: [label: string, note: string, target: strin
     ["Contract status", "Deployment status", "contract"],
   ] },
   { title: "ZIGi", rows: [
-    ["ZIGi · your AI", "Your own AI, page by page", "your-ai"],
+    ["ZIGi · Your Personal AI Companion", "Your own AI, page by page", "your-ai"],
   ] },
   { title: "Help & diagnostics", rows: [
     ["Diagnostics & support", "Connection checks for this alpha", "diagnostics"],

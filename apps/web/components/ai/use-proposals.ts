@@ -15,7 +15,8 @@ import {usePlatform} from '../platform/use-platform';
 import {useReminders} from '../reminders/use-reminders';
 import {useWeeklyReview} from '../weekly-review/use-weekly-review';
 import {useDeviceRecord} from './use-device-record';
-import {AI_MEMORY, forgetAction, recordAction, ZIGI_REMINDERS} from '../../lib/ai/store/records';
+import {AI_MEMORY, forgetAction, recordAction, ZIGI, ZIGI_REMINDERS} from '../../lib/ai/store/records';
+import {confirmHref, effectStatus, lookPatched, runnerEffect} from './runner-effects';
 import {AI_ACTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {usePrivateStore} from '../use-private-store';
@@ -49,6 +50,12 @@ export type ProposalRunner = {
   undo: (plans: readonly Plan[], after: readonly Stores[]) => Promise<string | null>;
   /** The money hand-off: stash the values, open Wealth's add-asset form. */
   openForm: (plan: Plan) => boolean;
+  /**
+   * Session Z-Cloud Gate B: a page to open, a record's own delete confirmation to open, or ZIGi's look to change
+   * (runner-effects.ts). Resolves with the card's status text and whether a page opens, or null when the plan carries none.
+   * Optional, so a runner made by hand (Z-Local's tests in lib/ai) still type-checks.
+   */
+  effect?: (plan: Plan) => {text: string; navigated: boolean} | null;
 };
 export function useProposals(): ProposalRunner {
   const health = useHealth(), habits = useHabits(), fasting = useFasting(), platform = usePlatform(), router = useRouter();
@@ -127,5 +134,15 @@ export function useProposals(): ProposalRunner {
     router.push(PREFILL_ROUTE);
     return stashed;
   }, [router]);
-  return {ready, stores, plan, apply, applyAll, undo, openForm};
+  const look = useDeviceRecord(ZIGI);
+  const effect = useCallback((p: Plan) => {
+    const e = runnerEffect(p);
+    if (!e) return null;
+    if (e.kind === 'device') { look.update(record => lookPatched(record, e.patch)); return {text: effectStatus(e), navigated: false}; }
+    const href = e.kind === 'confirm' ? confirmHref(e) : e.href, [path, hash] = href.split('#') as [string, string | undefined];
+    // A hash on the page already shown is set directly (a router push changes no hash event), as openForm does.
+    if (hash !== undefined && window.location.pathname + window.location.search === path) window.location.hash = hash; else router.push(href);
+    return {text: effectStatus(e), navigated: true};
+  }, [look, router]);
+  return {ready, stores, plan, apply, applyAll, undo, openForm, effect};
 }

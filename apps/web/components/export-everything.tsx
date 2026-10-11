@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
 import {getAppStorage, isShowcase} from '../lib/showcase-storage';
+import {deletedAccountRecords} from '../lib/deleted-account-records';
 import {localDate} from '../lib/local-date';
 import './export-everything.css';
 
@@ -9,6 +10,8 @@ import './export-everything.css';
  * of every stored record and a CSV per area. Nothing is uploaded, nothing is written to storage, and nobody needs it:
  * sync and the encrypted backup keep records safe. It is not a restore format.
  */
+/** Session Z-Cloud Part 5 (A7): the plain note on an export of a deleted account's records. */
+export const DELETED_EXPORT_NOTE = 'Your cloud copy was deleted; this export holds the records this device kept for that account. Nothing was changed or uploaded, and they stay locked in the app.';
 export function ExportEverything() {
   const [agreed, setAgreed] = useState(false), [busy, setBusy] = useState(false), [status, setStatus] = useState(''), [notes, setNotes] = useState<string[]>([]), [error, setError] = useState('');
   async function run() {
@@ -16,16 +19,19 @@ export function ExportEverything() {
     try {
       // The export code (every module's reader and the ZIP writer) loads with this tap, not with Settings (Session X Part 5).
       const {buildEverythingZip, collectEverything, readEverything} = await import('../lib/export/everything');
-      const storage = getAppStorage(), now = new Date();
+      // Session Z-Cloud Part 5 (A7): an account whose cloud copy was deleted is locked, and its records stay here; the
+      // export still copies them, read-only, and says so.
+      let storage: Storage, kept = false; const now = new Date();
+      try { storage = getAppStorage(); } catch (locked) { const records = deletedAccountRecords(); if (!records) throw locked; storage = records; kept = true; }
       const {texts, localSimulation} = await readEverything(storage);
       // ZIGi's conversations (ADR-012) ride along; its provider keys live in a key store the export never opens.
       // The chat store (IndexedDB, or the Showcase tab's storage) is imported only for the export itself; the page never ships it.
-      const aiChats = await import('../lib/ai/scope').then(({currentChatStore, exportChats}) => exportChats(currentChatStore())).catch(() => undefined);
+      const aiChats = kept ? undefined : await import('../lib/ai/scope').then(({currentChatStore, exportChats}) => exportChats(currentChatStore())).catch(() => undefined);
       const collected = collectEverything(texts, {now, version: process.env.NEXT_PUBLIC_APP_VERSION ?? '', commit: process.env.NEXT_PUBLIC_APP_COMMIT ?? '', localSimulation, aiChats});
       const {name, bytes} = buildEverythingZip(collected, {date: localDate(now), showcase: isShowcase(), now});
       const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], {type: 'application/zip'}));
       const link = document.createElement('a'); link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-      const lines = [...collected.warnings];
+      const lines = [...(kept ? [DELETED_EXPORT_NOTE] : []), ...collected.warnings];
       if (collected.unreadable.length) lines.push(`Some records on this device could not be read and were left out: ${collected.unreadable.join(', ')}. They were not changed.`);
       setNotes(lines); setStatus('Your export is ready and downloading. Keep it private.');
     } catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'The export could not be made. Nothing was changed.'); }

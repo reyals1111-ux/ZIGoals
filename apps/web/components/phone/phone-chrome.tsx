@@ -15,7 +15,6 @@ import Link from "next/link";
 import { navPrefetch } from "../nav-prefetch";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
-import { createPortal } from "react-dom";
 import { AppIcon } from "../app-icon";
 import { LEGACY_STAKING_PATH, NAV_ITEMS, isNavActive, navGroupOf, useFocusRescue, useVisibleNav } from "../app-nav";
 import { groupStarts, homeHref, isShown, phoneTabs } from "../../lib/pages/visibility";
@@ -103,32 +102,6 @@ function useTitleOnScroll(active: boolean, bar: RefObject<HTMLDivElement | null>
   }, [active, bar, path]);
 }
 
-/**
- * "Status details": lives inside the testnet banner, after its label, so reading order matches what is seen. Closed, the
- * long sentences are clamped; the labels themselves (testnet, Local simulation, Showcase) never are. Without it (no JS,
- * or the bars hidden by the user's own Today choice) nothing is clamped.
- */
-function PhoneStatusToggle() {
-  const [host, setHost] = useState<HTMLElement | null>(null), [open, setOpen] = useState(false);
-  useEffect(() => {
-    const find = () => setHost(document.querySelector<HTMLElement>(".app-topbar .network-banner"));
-    find();
-    const content = document.querySelector(".app-content");
-    if (!content) return;
-    const observer = new MutationObserver(find);
-    observer.observe(content, { childList: true });
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
-    const root = document.documentElement;
-    if (!host) return;
-    root.dataset.phoneStatus = open ? "open" : "closed";
-    return () => { delete root.dataset.phoneStatus; };
-  }, [host, open]);
-  if (!host) return null;
-  return createPortal(<button type="button" className="phone-status-toggle" aria-expanded={open} aria-label="Status details" onClick={() => setOpen(value => !value)}><AppIcon name="chevron" size={18} /></button>, host);
-}
-
 export function PhoneTopBar() {
   const show = usePhoneChrome(), active = usePhoneActive(), path = usePathname(), bar = useRef<HTMLDivElement>(null);
   useVisualViewportInsets(active);
@@ -151,7 +124,6 @@ export function PhoneTopBar() {
         <Link className="phone-settings" href="/app/settings" prefetch={navPrefetch("/app/settings")} aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>
       </div>
     </div>
-    {active && <PhoneStatusToggle />}
   </div>;
 }
 

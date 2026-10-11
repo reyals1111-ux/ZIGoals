@@ -24,6 +24,7 @@ const paths: Record<string, string> = {
   plus: "M12 5v14M5 12h14",
   more: "M5 12h.01M12 12h.01M19 12h.01M4 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0m7 0a1 1 0 1 0 2 0 1 1 0 0 0-2 0",
   back: "m15 5-7 7 7 7",
+  help: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4M12 17.2h.01",
 };
 export function AppIcon({ name, size = 20, luminous = false }: { name: string; size?: number; luminous?: boolean }) {
   const id = useId();

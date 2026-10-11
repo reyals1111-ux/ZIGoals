@@ -21,10 +21,12 @@ const chat=[
 ];
 const tools=[{type:'function',function:{name:'goals_progress',description:'A goal\'s progress',parameters:{type:'object',properties:{goal:{type:'string'}},required:['goal']}}},{type:'function',function:{name:'wealth_summary'}}];
 
-test('the Messages API request: one system text, the greeting before the first question left out, photos as base64, tool calls and results paired, tools as input schemas, thinking off',()=>{
+// Session Z-Cloud Part 6 (ADR-019 C40, Z-Local's body rules): no `thinking` field (the 5.5 models answer 400 to
+// "disabled"), the effort in `output_config`, the system text as one cached block and the top-level cache marker.
+test('the Messages API request: one cached system text, the greeting before the first question left out, photos as base64, tool calls and results paired, tools as input schemas, no thinking field, the effort',()=>{
  expect(ANTHROPIC_MESSAGES).toBe(ANTHROPIC);
  expect(anthropicBody(chat,tools,env,1000)).toEqual({
-  model:'claude-haiku-5-5',max_tokens:1000,stream:true,system:'You are ZIGi.',thinking:{type:'disabled'},
+  model:'claude-haiku-5-5',max_tokens:1000,stream:true,system:[{type:'text',text:'You are ZIGi.',cache_control:{type:'ephemeral'}}],cache_control:{type:'ephemeral'},output_config:{effort:'low'},
   messages:[
    {role:'user',content:[{type:'text',text:'What is in this photo, and how far is my trip goal?'},{type:'image',source:{type:'base64',media_type:'image/png',data:PHOTO}}]},
    {role:'assistant',content:[{type:'tool_use',id:'call_1',name:'goals_progress',input:{goal:'Trip'}},{type:'tool_use',id:'call_2',name:'wealth_summary',input:{}}]},
@@ -32,8 +34,9 @@ test('the Messages API request: one system text, the greeting before the first q
   ],
   tools:[{name:'goals_progress',description:'A goal\'s progress',input_schema:{type:'object',properties:{goal:{type:'string'}},required:['goal']}},{name:'wealth_summary',input_schema:{type:'object',properties:{}}}],
  });
- // The owner's choice for models that reject "disabled" (ZIGI_THINKING=model-default): no thinking parameter at all.
- expect(anthropicBody(chat,tools,{...env,ZIGI_THINKING:'model-default'},1000)).not.toHaveProperty('thinking');
+ // ZIGI_THINKING no longer changes the body: no thinking parameter either way; "Think deeper" is the high effort.
+ for(const ZIGI_THINKING of ['off','model-default'])expect(anthropicBody(chat,tools,{...env,ZIGI_THINKING},1000)).not.toHaveProperty('thinking');
+ expect(anthropicBody(chat,tools,env,1000,'high')).toMatchObject({output_config:{effort:'high'}});
 });
 
 test('a chat that cannot be expressed exactly is refused, never guessed: a photo by address, unreadable tool arguments, an odd tool id, no question',()=>{
@@ -109,8 +112,10 @@ test('Miniflare: the real Worker sends Anthropic its headers and request, and th
   const [sent]=r.upstream.requests;
   expect(sent.headers['x-api-key']).toBe(RELAY_KEY);expect(sent.headers['anthropic-version']).toBe('2023-06-01');
   expect(sent.headers.authorization).toBeUndefined();
-  // The relay's output cap wins over the app's 9000 (LIMITS.maxOutputTokens); thinking off; the tools as schemas.
-  expect(sent.body).toMatchObject({model:'claude-haiku-5-5',max_tokens:4096,stream:true,system:'You are ZIGi.',thinking:{type:'disabled'},messages:[{role:'user',content:[{type:'text',text:'How many minutes did I meditate this month?'}]}]});
+  // The relay's output cap wins over the app's 9000 (LIMITS.maxOutputTokens); no thinking field, the quick effort, the
+  // system text cached (Session Z-Cloud Part 6); the tools as schemas.
+  expect(sent.body).not.toHaveProperty('thinking');
+  expect(sent.body).toMatchObject({model:'claude-haiku-5-5',max_tokens:4096,stream:true,system:[{type:'text',text:'You are ZIGi.',cache_control:{type:'ephemeral'}}],cache_control:{type:'ephemeral'},output_config:{effort:'low'},messages:[{role:'user',content:[{type:'text',text:'How many minutes did I meditate this month?'}]}]});
   expect(sent.body.tools.map((/** @type {any} */t)=>t.name)).toEqual(['goals_progress','wealth_summary']);
   expect(sent.body).not.toHaveProperty('stream_options');expect(sent.body).not.toHaveProperty('max_completion_tokens');
  }finally{await r.dispose();}

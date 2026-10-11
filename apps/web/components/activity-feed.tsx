@@ -9,13 +9,14 @@ import {usePlatform} from "./platform/use-platform";
 import {goalTimeline} from "../lib/goal-intelligence";
 import { AppIcon } from "./app-icon";
 import { activityPresentation, activityDateHeading, activityTimeZone } from "../lib/life-intelligence";
-import { getWaterActivities } from "../lib/health-daily";
+import { dailyData, getWaterActivities } from "../lib/health-daily";
 import { useShowcase } from "./showcase-controls";
 import {shownAmount} from "./platform/common";
 import "./activity-product.css";
 import { formatTime } from "../lib/visual-format";
 import { activityKeys } from "./activity-keys";
 import { useZigiActions } from "./activity/use-zigi-actions";
+import { isDeletedHabitRef } from "../lib/habit-delete";
 export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true, onMore }: { limit?: number; category?: string; includeGoals?: boolean; onMore?: () => void }) {
   const showcase = useShowcase();
   const platform=usePlatform();
@@ -26,12 +27,13 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
     ...(includeGoals ? platform.data.goals.map(goal => ({ id: `created:${goal.id}`, category: "GOAL", title: "Goal created", detail: goal.name, at: goal.createdAt, href: `/app/goals/tracked/${goal.id}`, source: "Saved Goal creation date" })) : []),
     ...platform.data.assetEvents.map(e=>({id:e.id,category:"WEALTH",title:`${e.name} ${e.kind}`,detail:e.assetClass,assetType:(()=>{const ref=platform.data.positions.find(position=>position.id===e.positionId)?.marketRef;return ref?.kind==='rwa'?ref.assetType:undefined;})(),at:e.at,href:`/app/wealth/asset/${encodeURIComponent(e.positionId)}`,source:"Private asset record"})),
     ...(includeGoals && goals.mode === "local" ? goals.activity.map((event, index) => ({ id: `goal-${event.timestamp}-${index}`, category: "GOAL", title: event.action, detail: goals.metadata?.goals[event.goalId]?.name ?? `Goal #${event.goalId}`, at: event.timestamp, href: `/app/goals/${event.goalId}` })) : []),
-    ...getHabitActivities(habits.data), ...getHealthActivities(health.data), ...getWaterActivities(health.data),
+    ...getHabitActivities(habits.data), ...getHealthActivities(health.data, (() => { try { return dailyData(health.data).preferences.weightUnit; } catch { return "kg" as const; } })()), ...getWaterActivities(health.data),
   ];
   // Session V Part 7, "Actions by ZIGi": the entries made from ZIGi's cards, plus a line for each confirmed card whose
   // record has no entry of its own here (water, a recipe, a reminder…).
   const shownIds = new Set(base.map(event => event.id));
-  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
+  // Gate B: a note that names a habit deleted for good is left out (the habit's name went with it).
+  const zigiOnly = zigi.actions.filter(a => !shownIds.has(a.activityId) && !isDeletedHabitRef(a.activityId, habits.deletedIds)).map(a => { const how = a.auto ? "Added by ZIGi (auto-accept)" : "Confirmed from a ZIGi card"; return {id: `zigi:${a.activityId}`, category: a.category, title: a.title, detail: how, at: a.at, href: a.href, source: how}; });
   // Session X-Local Part 5b after the merge: a record ZIGi added under auto-accept says so on its own event too (before the merge
   // the feed listed such records only as ZIGi's entries; X-Cloud's feed now shows the record itself, marked by ZIGi).
   const autoById = new Map(zigi.actions.filter(a => a.auto).map(a => [a.activityId, true] as const));

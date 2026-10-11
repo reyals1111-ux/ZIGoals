@@ -5,7 +5,8 @@ import { AutoCheckInBadge } from "./auto-checkin-badge";
 import { PlanSkip } from "./plan-skip";
 import { useHabitHealthLinks } from "./use-habit-health-links";
 import { appliedCheckIn, markAutoCheckInUndone } from "../../lib/habit-health-links/store";
-import { memo, useRef, useState, type FormEvent } from "react";
+import { Suspense, lazy, memo, useEffect, useRef, useState, type FormEvent } from "react";
+import { takeConfirmDelete } from "../../lib/confirm-delete";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
 import {LinkedGoalReview} from './linked-goal-review';
@@ -28,6 +29,7 @@ import {CELEBRATIONS} from '../../lib/celebrations';
 import {allDoneNoteId, checkInFacts} from '../../lib/habits-v2/zigi-facts';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {zigiSignals} from '../zigi/bus';
+const HabitDeleteForm = lazy(() => import("./habit-delete-form"));
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -174,12 +176,19 @@ export type HabitStackNext = { id: string; title: string };
  * Memoized (Session G, Part 2): every prop is a primitive or keeps its identity while this habit is unchanged, so a
  * check-in re-renders only its own card. "History & reflection" mounts when first opened and then stays mounted.
  */
-export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,stackNext,onViewStack, onEdit, ...layout }: LayoutAttrs & { habit: Habit; store: HabitCardStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;stackNext?:readonly HabitStackNext[];onViewStack?:(id:string)=>void; onEdit: (id: string) => void }) {
+export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName, goalHref, stackName,privateGoal,stackNext,onViewStack, onEdit, onDeleteForGood, ...layout }: LayoutAttrs & { habit: Habit; store: HabitCardStore; scope: Omit<HabitGoalLink, "goalId">; goalName?: string; goalHref?: string; stackName?: string;privateGoal?:PrivateGoal;stackNext?:readonly HabitStackNext[];onViewStack?:(id:string)=>void; onEdit: (id: string) => void; onDeleteForGood?: (habit: Habit) => Promise<void> }) {
   const rule = habitRuleOn(habit,store.today)??habit.rules[0]!,planned=latestHabitRule(habit); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [historyOpen, setHistoryOpen] = useState(false);
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
+  // Session Z-Cloud Gate B (Z-Local's `plan.confirm`): a ZIGi card that asks to delete this habit opens the page with
+  // #confirm-delete=habit:<id>; the card is brought into view and its own confirmation opens. Nothing is deleted here.
+  const [asked, setAsked] = useState(false);
+  useEffect(() => {
+    const look = () => { if (!takeConfirmDelete("habit", habit.id)) return; setAsked(true); const card = document.getElementById(`habit-${habit.id}`); card?.scrollIntoView({ block: "center" }); card?.focus({ preventScroll: true }); };
+    look(); window.addEventListener("hashchange", look); return () => window.removeEventListener("hashchange", look);
+  }, [habit.id]);
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
   return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
-    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><button className="quiet ai-ask-link" onClick={() => askZigi(`About my habit "${habit.title}": `)} aria-label={`Ask ZIGi about ${habit.title}`}>Ask ZIGi</button>{rule.state!=='archived'&&<PinToToday label={habit.title} choices={[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]}/>}</div>
+    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><PinToToday label={habit.title} choices={rule.state!=='archived'?[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]:[]} extra={<button type="button" onClick={() => askZigi(`About my habit "${habit.title}": `)}>Ask ZIGi about this habit</button>}/></div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}<ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
     <HabitCompletion habit={habit} store={store} />
@@ -191,6 +200,16 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
     {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
     {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
-    <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management"><button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{error && <p role="alert">{error}</p>}
+    <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management"><button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{rule.state === "archived" && onDeleteForGood && <DeleteForGood habit={habit} onDelete={onDeleteForGood} asked={asked} />}{planned.state === "archived" && rule.state !== "archived" && <p className="fine">“Delete for good…” appears here once the archive starts ({planned.from}).</p>}{asked && planned.state !== "archived" && <p className="fine" role="status">To delete this habit for good, archive it first; then “Delete for good…” appears here.</p>}{error && <p role="alert">{error}</p>}
   </article>;
 });
+/**
+ * Session Z-Cloud Part 4.6 (persona item 6): "Delete for good" in an archived habit. The confirmation (its typed name and
+ * the warning) loads when the person opens it (habit-delete-form.tsx).
+ */
+function DeleteForGood({ habit, onDelete, asked }: { habit: Habit; onDelete: (habit: Habit) => Promise<void>; asked: boolean }) {
+  const [open, setOpen] = useState(asked);
+  useEffect(() => { if (asked) setOpen(true); }, [asked]);
+  if (!open) return <div className="habit-delete"><button type="button" className="quiet habit-delete-open" onClick={() => setOpen(true)}>Delete for good…</button></div>;
+  return <Suspense fallback={null}><HabitDeleteForm habit={habit} onDelete={onDelete} onCancel={() => setOpen(false)} /></Suspense>;
+}

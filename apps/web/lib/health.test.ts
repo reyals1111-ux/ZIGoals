@@ -115,6 +115,13 @@ test("manual activity adds steps and minutes without changing food nutrition", (
   expect(searchFoods(data.foods, "PAN oat").map(f => f.name)).toEqual(["Plain oats"]);
 });
 
+// Gate C (persona round): Activity's weight line follows the preferred unit (Part 4.7, display only); kg keeps its text.
+test("a recorded weight reads in pounds in Activity when lb is preferred", () => {
+  const data = saveWeight(createEmptyHealth(), { id: id(4), date: "2026-09-15", grams: 72_400 }, at);
+  expect(getHealthActivities(data)[0]!.detail).toBe("72.4 kg · 2026-09-15");
+  expect(getHealthActivities(data, "lb")[0]!.detail).toBe("159.6 lb · 2026-09-15");
+});
+
 describe("strict import boundary", () => {
   test.each([
     { schemaVersion: 5 } /* v2 is read since Session P, v3 since Session U Part 9 and v4 since Session W, read-support.test.ts */, { kind: "other" }, { extra: "unknown" }, { foods: [food, food] },

@@ -12,6 +12,7 @@ export const GLASS_ML = 250, FL_OZ_ML = 29.5735295625, LB_GRAMS = 453.59237, MIL
 export const LIMITS = {waterMl: 10_000, weightGrams: 1_000_000, steps: 1_000_000, minutes: 1440, count: 100_000, habit: 1_000_000_000};
 export const OUTSIDE = 'That number is outside what the journal keeps.', ABOVE_ZERO = 'Use a number above zero.', MINUTES_HINT = 'Add the minutes, for example ran 5k in 28 min';
 export const UNCLEAR_NUMBER = 'Type that number without a thousands separator, for example 1234.';
+export const WATER_UNIT_HINT = 'Name the unit, for example 2 glasses of water or 500 ml.';
 const LOCALES: Record<'en', QuickAddLocale> = {en};
 const ACTIVITY: Record<Exclude<VerbKind, 'water' | 'weight' | 'sleep'>, 'Run' | 'Walk' | 'Cycle' | 'Swim'> = {walk: 'Walk', run: 'Run', cycle: 'Cycle', swim: 'Swim'};
 type Num = {value: number; grouped: boolean; plus: boolean; thousands: boolean};
@@ -84,6 +85,9 @@ export function parse(text: string, localeName: 'en', context: QuickAddContext):
     const numberToken = unitToken ? numberNear(tokens, waterUnit) ?? firstNumber(tokens) : firstNumber(tokens);
     const value = decimal(numberToken);
     if (value === 'unclear') return needsMore(UNCLEAR_NUMBER);
+    // Gate C (persona round): a number followed by a word this line does not know ("2 bottles of water", "2 glazen water")
+    // names its own unit; it is never read as millilitres or fluid ounces. The person adds a unit this line knows.
+    if (!unitToken && numberToken) { const next = tokens[tokens.indexOf(numberToken) + 1]; if (next && !next.num && !next.unit && !next.verb && !locale.fillers.includes(next.word) && !locale.dayWords[next.word]) return needsMore(WATER_UNIT_HINT); }
     const kind: UnitKind = unitToken?.unit ?? (numberToken ? (context.waterUnit === 'ml' ? 'ml' : 'floz') : 'glass');
     const n = value ?? 1;
     if (!(n > 0)) return needsMore(ABOVE_ZERO);

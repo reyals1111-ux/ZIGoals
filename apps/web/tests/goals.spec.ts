@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { navLink, openFold } from "./phone-nav";
+import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 const ledgerKey = "zigoals:local-ledger:v1";
@@ -96,10 +96,12 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await expect(
     page.getByRole("alert").filter({ hasText: "Local demo data is damaged" }),
   ).toBeVisible();
+  // Session Z-Cloud Part 4.2: on a phone the wallet buttons are in the Status sheet.
   await expect(
-    page.getByRole("button", { name: "Connect Keplr" }),
+    (await walletArea(page)).getByRole("button", { name: "Connect Keplr" }),
   ).toBeEnabled();
   await expect(page.locator(".wallet-balance")).toContainText("0 ZIG");
+  if (await page.getByRole("dialog", { name: "Status" }).isVisible()) await page.keyboard.press("Escape");
   await (await navLink(page, "Settings")).click();
   await expect(
     page.getByRole("heading", { name: "Your data. Your control." }),
@@ -320,10 +322,11 @@ test("missing wallet is explicit and local mode remains available", async ({
   page,
 }) => {
   await page.goto("/app");
-  await page.getByRole("button", { name: "Connect Keplr" }).click();
+  await (await walletArea(page)).getByRole("button", { name: "Connect Keplr" }).click();
   await expect(
     page.getByRole("alert").filter({ hasText: "Install the Keplr" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Local demo" }).click();
+  // Session Z-Cloud Part 4.3: without a connected wallet the demo button says "Demo records".
+  await (await walletArea(page)).getByRole("button", { name: "Demo records" }).click();
   await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
 });

@@ -36,3 +36,6 @@
   .help-page { gap: 18px; }
   .help-page .keep-data .primary { width: 100%; white-space: normal; }
 }
+/* Gate C (persona round): a long command or address in an answer (OLLAMA_ORIGINS=…) breaks inside the answer instead of
+   widening the page at 320 px (it was 558 px wide with "How do I use a model on my own computer?" open). */
+.help-question code{overflow-wrap:anywhere}

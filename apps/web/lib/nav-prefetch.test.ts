@@ -8,7 +8,7 @@ test('the measured destinations skip prefetching; Today, Health, Staking, Activi
   expect(Object.fromEntries(NAV_ITEMS.map(([href]) => [href, navPrefetch(href)]))).toEqual({
     '/app': undefined, '/app/goals': false, '/app/habits': false, '/app/health': undefined, '/app/wealth': false,
     '/app/markets': false, '/app/staking': undefined, '/app/portfolio': false,
-    '/app/ecosystem': false, '/app/chess': undefined, '/app/activity': undefined, '/app/settings': false,
+    '/app/ecosystem': false, '/app/chess': undefined, '/app/activity': undefined, '/app/settings': false, '/app/help': undefined,
   });
   expect(navPrefetch('/app/settings#privacy')).toBe(false);
   expect(navPrefetch('/app/goals?contribute=1')).toBe(false);

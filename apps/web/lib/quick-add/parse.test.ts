@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {ABOVE_ZERO, MINUTES_HINT, OUTSIDE, parse} from './parse';
+import {ABOVE_ZERO, MINUTES_HINT, OUTSIDE, parse, WATER_UNIT_HINT} from './parse';
 import {describeQuickAdd} from './describe';
 import {en} from './locales/en';
 import type {QuickAddContext, QuickAddResult} from './types';
@@ -36,6 +36,11 @@ const rows: Row[] = [
   ['water 12', water(354.882, {amount: 12, unit: 'US fl oz'}), floz(context)],
   ['half a glass of water', water(125)],
   ['drank twenty glasses', water(5000)],
+  // Gate C (persona round): a number followed by a word this line does not know is never read as mL or fl oz.
+  ['drank 2 bottles of water', needsMore(WATER_UNIT_HINT)],
+  ['2 glazen water', needsMore(WATER_UNIT_HINT)],
+  ['2 glazen water', needsMore(WATER_UNIT_HINT), floz(context)],
+  ['water 400 yesterday', water(400, undefined, 'yesterday')],
   ['weight 78.4', weight(78_400, {amount: 78.4, unit: 'kg'})],
   ['78,4 kg', weight(78_400)],
   ['weighed 78.4kg', weight(78_400)],
@@ -118,8 +123,9 @@ describe('A2 quick-add grammar (en)', () => {
     const result = parse(phrase, 'en', ctx ?? context);
     if (typeof expected === 'function') expected(result); else expect(result).toMatchObject(expected);
   });
-  test('the table has 90 phrases and the unknown answer carries the three examples', () => {
-    expect(rows).toHaveLength(90);
+  // Gate C (persona round): four more phrases (a number before an unknown word, and one more day check).
+  test('the table has 94 phrases and the unknown answer carries the three examples', () => {
+    expect(rows).toHaveLength(94);
     const result = parse('hello', 'en', context);
     expect(result).toEqual({kind: 'unknown', examples: en.examples});
   });

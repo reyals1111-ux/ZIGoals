@@ -1,10 +1,12 @@
 /* Habits on a phone (Session E): today's check-ins first (default order set in habits-workspace.tsx), compact cards
    with every control still visible, one scrolling row of filters and phone-sized charts. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root .habits-workspace .habit-hero { min-height: 0; padding: 8px 0 4px; }
+  /* Session Z-Cloud Part 4 (item 10): one column on every phone width, as below 600 px, so the hero's buttons (with "Ask ZIGi
+     about my habits") wrap under the title instead of taking the title's column between 600 and 768 px. */
+  :root .habits-workspace .habit-hero { min-height: 0; padding: 8px 0 4px; display: block; }
   :root .habits-workspace .habit-hero h1 { font-size: clamp(28px, 8.4vw, 34px); max-width: none; margin: 8px 0 10px; }
   :root .habits-workspace .habit-hero p:not(.eyebrow) { max-width: none; }
-  :root .habits-workspace .habit-hero .habit-constellation { opacity: .5; width: 120px; height: 120px; top: 0; right: -24px; }
+  :root .habits-workspace .habit-hero .habit-constellation { position: absolute; opacity: .5; width: 120px; height: 120px; top: 0; right: -24px; }
   :root .habits-workspace .habit-hero .actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
 
   /* Today's rhythm: one compact strip. */

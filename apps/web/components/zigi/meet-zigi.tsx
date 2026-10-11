@@ -43,7 +43,7 @@ function StateCard({state, skin}: {state: ZigiState; skin: string}) {
 }
 export function MeetZigi() {
   return <div className="meet-zigi">
-    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · your AI" title="Meet ZIGi." lede="Every state ZIGi can be in, as drawn by the studio. Eleven states have their own clip; the others wear one of them for now, each with its own small move on top."/>
+    <PageHeader titleId="meet-zigi-title" eyebrow="ZIGi · Your Personal AI Companion" title="Meet ZIGi." lede="Every state ZIGi can be in, as drawn by the studio. Eleven states have their own clip; the others wear one of them for now, each with its own small move on top."/>
     <p className="help-back"><Link className="text-link" href="/app/settings#zigi-look">← Back to Settings</Link></p>
     <section className="panel meet-zigi-motion" aria-labelledby="meet-zigi-motion"><h2 id="meet-zigi-motion">How much ZIGi moves</h2><AnimationChoice/><p className="ai-note">Your device&rsquo;s reduced-motion setting and Motion Off in Settings always come first: then every figure here holds still.</p></section>
     {Object.entries(ZIGI_MANIFEST.skins).map(([id, skin]) => <section key={id} className="panel meet-zigi-skin" aria-labelledby={`meet-zigi-skin-${id}`}>

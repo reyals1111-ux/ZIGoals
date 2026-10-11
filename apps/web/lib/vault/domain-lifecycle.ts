@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import {refusedStepUp,STEP_UP_REFUSED,type StepUp} from './step-up';
 import {cloudSnapshot,type CloudTransport,type Domain,type Journal,type PrivateData} from './cloud-sync';
 import {type VaultManifest} from './crypto';
 import {encryptBackup} from './backup';
@@ -20,9 +21,11 @@ export async function acceptDomainRestore(review:DomainReview,local:PrivateData,
  const base={...state.base};if(remote.data[review.domain]===undefined)delete base[review.domain];
  await journal.write({...state,base,heldDomains:review.kind==='keep'?[...new Set([...(state.heldDomains??[]),review.domain])]:(state.heldDomains??[]).filter(d=>d!==review.domain),domainGenerations:{...state.domainGenerations,[review.domain]:review.generation}});fence();
 }
-export async function deleteCloudDomain(account:string,review:DomainReview,fence:()=>void){
+/** Session Z-Cloud Part 5 (A6): `stepUp` is the recovery secret's proof (lib/vault/step-up.ts); private sync may require it. */
+export async function deleteCloudDomain(account:string,review:DomainReview,fence:()=>void,stepUp?:StepUp){
  if(review.kind!=='delete')throw Error('Prepare a deletion review first.');fence();
- const result=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json','x-zigoals-account':account},cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({action:'domain',operation:{action:'delete-domain',domain:review.domain,confirm:'DELETE CLOUD '+review.domain.toUpperCase(),operation:review.operation,revision:review.revision,generation:review.generation}})});fence();
+ const result=await fetch('/api/private-account',{method:'POST',headers:{'content-type':'application/json','x-zigoals-account':account},cache:'no-store',signal:AbortSignal.timeout(20000),body:JSON.stringify({action:'domain',operation:{action:'delete-domain',domain:review.domain,confirm:'DELETE CLOUD '+review.domain.toUpperCase(),operation:review.operation,revision:review.revision,generation:review.generation},...(stepUp?{stepUp}:{})})});fence();
+ if(await refusedStepUp(result))throw Error(STEP_UP_REFUSED);
  if(!result.ok)throw Error(result.status===409?'Cloud records changed after review. Keep your recovery copy and prepare a new deletion review.':'Cloud section deletion was not confirmed. Keep your recovery copy; an accepted deletion may still finish safely. Retry to check its acknowledgement.');
  const raw=await result.text();if(raw.length>4096)throw Error('Deletion acknowledgement exceeds capacity.');
  z.object({deleted:z.literal(true)}).parse(JSON.parse(raw));
