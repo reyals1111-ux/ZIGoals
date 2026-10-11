@@ -1,0 +1,158 @@
+/* Session AA-Local Part 1: Habits best in class (H1–H6, H8), in the cosmic/nebula language. Headings are white on the
+   left with the nebula from the middle (NebulaFlow); text ≥ 14 px; targets ≥ 44 px; one-time motion only. */
+
+/* H1: time-of-day sections */
+.habit-sections { display: grid; gap: 14px; }
+.habit-section { border: 1px solid #bd9ffb22; border-radius: 22px; background: linear-gradient(120deg, #2a1f4433, #12101f99); overflow: clip; }
+.habit-section[open] { background: linear-gradient(120deg, #2f234d44, #130f2099); }
+.habit-section-summary { list-style: none; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto 28px; align-items: center; gap: 12px; min-height: 64px; padding: 10px 18px; cursor: pointer; }
+.habit-section-summary::-webkit-details-marker { display: none; }
+.habit-section-summary:focus-visible { outline: 2px solid #c9b4ff; outline-offset: -4px; border-radius: 22px; }
+.habit-section-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; font-size: 17px; color: #e8dcff; background: radial-gradient(circle at 35% 30%, #7d5fd466, #2a1f4477); box-shadow: inset 0 0 0 1px #c3a8f93a; }
+.habit-section-evening .habit-section-mark { color: #cfd9ff; } .habit-section-morning .habit-section-mark { color: #ffe3a1; } .habit-section-afternoon .habit-section-mark { color: #a7f0dc; }
+.habit-section-title { margin: 0; font-size: 22px; letter-spacing: -.02em; min-width: 0; overflow-wrap: anywhere; }
+.habit-section-count { font-size: 15px; font-weight: 600; color: #e9ddff; padding: 8px 14px; border-radius: 99px; background: #a184e21f; border: 1px solid #b89ee83a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.habit-section-chevron { font-size: 22px; color: #bfb0dd; transform: rotate(90deg); transition: transform 180ms ease; display: inline-block; text-align: center; }
+.habit-section[open] > .habit-section-summary .habit-section-chevron { transform: rotate(-90deg); }
+.habit-section > :not(summary) { padding: 4px 18px 18px; }
+.habit-section .habit-grid { margin: 0; }
+.habit-section-empty { margin: 0; padding: 4px 18px 18px; color: #d5cbe9; font-size: 15px; }
+.habit-section-empty .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.habit-sections-compact .habit-section-summary { min-height: 52px; padding: 6px 12px; grid-template-columns: 28px minmax(0, 1fr) auto 24px; }
+.habit-sections-compact .habit-section-title { font-size: 17px; }
+.habit-sections-compact .habit-section > :not(summary) { padding: 0 12px 10px; }
+.habit-sections-compact .habit-section-mark { width: 28px; height: 28px; font-size: 14px; }
+@media (max-width: 600px) { .habit-section-summary { padding: 8px 14px; gap: 10px; } .habit-section > :not(summary) { padding: 2px 10px 14px; } .habit-section-title { font-size: 19px; } }
+
+/* H6: areas */
+.habit-area-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.habit-area-bar .eyebrow { margin: 0 6px 0 0; font-size: 14px; }
+.habit-area-bar .quiet { min-height: 44px; padding: 8px 16px; border-radius: 99px; }
+.habit-area-bar .quiet[aria-pressed="true"] { background: #6fe6f61c; border-color: #6fe6f655; color: #e4fbff; }
+.habit-area-chip { min-height: 44px; font-size: 14px; color: #c6c4ff; }
+.habit-area-chip.habit-area-set { color: #a7f0dc; border-color: #86f0d644; }
+.habit-area-select { margin: 0; max-width: 260px; }
+.habit-area-select span { font-size: 14px; }
+
+/* H3: days since */
+.habit-quit { display: grid; gap: 16px; padding: 18px; margin: 4px 0 12px; border-radius: 20px; border: 1px solid #86f0d62a; background: radial-gradient(ellipse at top left, #1d4a4b55, #11141f99 65%); }
+.habit-quit-counter { display: grid; gap: 2px; }
+.habit-quit-days { font-size: clamp(48px, 7vw, 72px); line-height: 1; letter-spacing: -.05em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.habit-quit-counter small { font-size: 15px; color: #d2e8e4; }
+.habit-quit-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 0; }
+.habit-quit-facts div { display: grid; gap: 4px; }
+.habit-quit-facts dt { font-size: 14px; color: #bfd6d2; letter-spacing: .04em; text-transform: uppercase; }
+.habit-quit-facts dd { margin: 0; font-size: 19px; font-weight: 600; color: var(--text-strong); }
+.habit-quit-facts dd small { font-size: 14px; color: #b7cfca; font-weight: 500; margin-left: 4px; }
+.habit-quit-facts .text-link { font-size: 15px; min-height: 44px; display: inline-flex; align-items: center; }
+.habit-quit-cost summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 15px; color: #d6ece8; }
+.habit-quit-cost-form { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr) 110px; align-items: end; }
+.habit-quit-cost-form .actions, .habit-quit-cost-form .fine, .habit-quit-cost-form [role=alert] { grid-column: 1 / -1; margin: 0; }
+.habit-quit-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.habit-quit-grid small { text-align: center; color: #b7cfca; font-size: 14px; }
+.habit-quit-day { display: grid; place-items: center; aspect-ratio: 1; border-radius: 8px; font-size: 14px; color: #d8ece8; background: #86f0d614; border: 1px solid #86f0d622; }
+.habit-quit-slip { background: #d88aa03a; border-color: #d88aa088; color: #ffd9e3; }
+.habit-quit-before, .habit-quit-ahead { opacity: .35; }
+@media (max-width: 600px) { .habit-quit-cost-form { grid-template-columns: 1fr; } }
+
+/* H4: skip with a reason, note and mood */
+.habit-today-note { display: grid; gap: 10px; padding: 0 0 12px; }
+.habit-today-note-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.habit-today-note-actions .quiet { min-height: 44px; font-size: 14px; }
+.habit-skip-form, .habit-note-form { display: grid; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid #c3a8f93a; background: #1a142a99; }
+.habit-skip-lead { margin: 0; font-size: 16px; font-weight: 600; }
+.habit-reason-chips, .habit-mood-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.habit-reason-chips .quiet, .habit-mood-chips .quiet { min-height: 44px; border-radius: 99px; padding: 8px 14px; font-size: 15px; }
+.habit-reason-chips .quiet[aria-pressed="true"], .habit-mood-chips .quiet[aria-pressed="true"] { background: #a184e233; border-color: #c3a8f9aa; color: #f4edff; }
+.habit-reflections { border-top: 1px solid #aa90c21b; padding: 14px 0 4px; }
+.habit-reflections h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: #cfc2e0; }
+.habit-reflections ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.habit-reflections li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-size: 15px; }
+.habit-reflections time { color: #bfb3d6; font-variant-numeric: tabular-nums; }
+.habit-reflection-kind { font-size: 14px; padding: 2px 10px; border-radius: 99px; background: #a184e21f; color: #e5d9ff; }
+.habit-reflection-kind.habit-day-skipped { background: #6d647433; color: #e4ddf0; }
+.habit-reflection-kind.habit-day-failed { background: #b56a7a38; color: #ffd9e3; }
+.habit-reflections em { font-style: normal; color: #a7f0dc; }
+.habit-reflection-note { flex-basis: 100%; color: #e3dcf3; }
+
+/* H2: the timer chip and the bell */
+.habit-timer-chip { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 99px; border: 1px solid #6fe6f655; background: linear-gradient(90deg, #1adbe81c, #9e78ff1c); font-variant-numeric: tabular-nums; font-size: 15px; color: #e4fbff; }
+.habit-timer-chip strong { font-size: 17px; letter-spacing: .02em; }
+.habit-timer-chip .quiet { min-height: 32px; min-width: 44px; padding: 4px 12px; font-size: 14px; }
+.habit-timer-chip[data-running] strong::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #6fe6f6; box-shadow: 0 0 10px #6fe6f6; vertical-align: middle; }
+.habit-timer-bell { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: #cfc2e0; }
+.habit-timer-bell input { width: 20px; height: 20px; margin: 0; }
+
+/* H5: routines */
+.habit-routines { display: grid; gap: 14px; }
+.habit-routine-list, .habit-routine-templates ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.habit-routine-list li, .habit-routine-templates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 14px 16px; border-radius: 18px; border: 1px solid #c3a8f92a; background: linear-gradient(120deg, #2a1f4433, #12101f66); }
+.habit-routine-copy { display: grid; gap: 4px; min-width: 0; flex: 1 1 240px; }
+.habit-routine-copy strong { font-size: 17px; }
+.habit-routine-copy small { font-size: 14px; color: #cfc2e0; overflow-wrap: anywhere; }
+.habit-routine-steps { color: #b9abc8; }
+.habit-routine-progress { display: flex; gap: 5px; margin-top: 4px; }
+.habit-routine-progress i { width: 22px; height: 6px; border-radius: 99px; background: #a184e22a; }
+.habit-routine-progress i[data-done] { background: linear-gradient(90deg, #6fe6f6, #c790f6); box-shadow: 0 0 8px #9e78ff66; }
+.habit-routine-list .actions, .habit-routine-templates .secondary { margin: 0; }
+.habit-routine-list .actions > button { min-height: 44px; }
+.habit-routines .habit-section-heading .quiet { min-height: 44px; }
+
+.routine-player { position: relative; display: grid; gap: 18px; justify-items: center; text-align: center; padding: 28px 22px 26px; border-radius: 28px; border: 1px solid #c3a8f94a; background: radial-gradient(ellipse at 50% 0%, #4a2f8266, #0d1120e6 70%); }
+.routine-player-head { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.routine-player-head .eyebrow { margin: 0; text-align: left; }
+.routine-player-head .quiet { min-height: 44px; }
+.routine-player h2 { margin: 0; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.03em; max-width: 520px; overflow-wrap: anywhere; }
+.routine-step-desc { margin: 0; max-width: 420px; color: #e3dcf3; font-size: 16px; }
+.routine-dots { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+.routine-dots li { width: 28px; height: 8px; border-radius: 99px; background: #a184e22a; }
+.routine-dots li[data-status="done"] { background: linear-gradient(90deg, #6fe6f6, #c790f6); }
+.routine-dots li[data-status="skipped"] { background: #6d647466; }
+.routine-dots li[data-status="current"] { background: #f0e8ff; box-shadow: 0 0 12px #c790f6aa; }
+.routine-timer { display: grid; gap: 8px; justify-items: center; }
+.routine-ring { --ring-width: 10px; width: min(240px, 60vw); aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.routine-ring > * { grid-area: ring; }
+.routine-ring strong { font-size: clamp(34px, 6vw, 48px); font-variant-numeric: tabular-nums; letter-spacing: -.03em; margin-top: -18px; }
+.routine-ring small { font-size: 15px; color: #cfc2e0; margin-top: 48px; }
+.routine-step-tick { margin: 0; color: #d8d0ea; font-size: 16px; }
+.routine-actions { margin: 4px 0 0; justify-content: center; }
+.routine-actions > button { min-height: 48px; min-width: 140px; }
+.routine-finish { gap: 14px; }
+.routine-finish-line { margin: 0; font-size: 17px; color: #e3dcf3; }
+.routine-finish-steps { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 6px; text-align: left; min-width: min(320px, 100%); }
+.routine-finish-steps li { display: flex; gap: 10px; align-items: center; font-size: 15px; min-height: 28px; }
+.routine-finish-steps li[data-status="done"] span { color: #86f0d6; }
+.routine-finish-steps li[data-status="skipped"] { color: #b9abc8; }
+.routine-sheet { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: #060b19d9; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.routine-sheet .routine-player { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow: auto; }
+
+/* H8: the year view */
+.habit-year { display: grid; gap: 12px; }
+.habit-year-head { align-items: center; flex-wrap: wrap; }
+.habit-year-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.habit-year-pick { margin: 0; }
+.habit-year-pick select { min-height: 44px; min-width: 160px; }
+.habit-year-nav { display: flex; align-items: center; gap: 6px; }
+.habit-year-nav .quiet { min-width: 44px; min-height: 44px; }
+.habit-year-nav strong { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; font-size: 17px; }
+.habit-year-summary { margin: 0; font-size: 15px; color: #e3dcf3; }
+.habit-year-scroll { overflow-x: auto; padding-bottom: 6px; }
+.habit-year-grid { --cell: 12px; --gap: 3px; display: grid; gap: 6px; width: max-content; min-width: 100%; }
+.habit-year-months { display: grid; grid-template-columns: repeat(var(--weeks), var(--cell)); gap: var(--gap); font-size: 14px; color: #c2bad5; height: 18px; }
+.habit-year-months span { grid-row: 1; white-space: nowrap; }
+.habit-year-cells { display: grid; grid-template-columns: repeat(var(--weeks), var(--cell)); grid-template-rows: repeat(7, var(--cell)); gap: var(--gap); }
+.habit-year-cells i { display: block; width: var(--cell); height: var(--cell); border-radius: 3px; background: #a6c1fa14; border: 1px solid #cab4ef1a; }
+.habit-year-cells i[data-level="out"] { background: transparent; border-color: transparent; }
+.habit-year-cells i[data-level="full"], .habit-map-legend i.filled { background: linear-gradient(135deg, #6fe6f6, #9e78ff); border-color: transparent; box-shadow: 0 0 6px #9e78ff55; }
+.habit-year-cells i[data-level="part"], .habit-map-legend i[data-level="part"] { background: #9e78ff8a; border-color: #bb9bec88; }
+.habit-year-cells i[data-level="low"], .habit-map-legend i[data-level="low"] { background: #9e78ff40; }
+.habit-year-cells i[data-level="skip"], .habit-map-legend i[data-level="skip"] { background: #6d647455; border-color: #a79aaa55; }
+.habit-year-cells i[data-level="miss"], .habit-map-legend i[data-level="miss"] { background: #b56a7a44; border-color: #d88aa066; }
+.habit-year .habit-map-legend { margin: 4px 0 0; }
+@media (max-width: 600px) { .habit-year-grid { --cell: 10px; } .habit-year-controls { width: 100%; justify-content: space-between; } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) { .habit-section-chevron { transition: none; } }
+:root[data-app-motion=off] .habit-section-chevron { transition: none; }
+/* H7: the game card's place on the Habits page (empty until the layer is on). */
+.habit-progress-slot:empty { display: none; }

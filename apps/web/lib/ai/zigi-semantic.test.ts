@@ -145,7 +145,9 @@ describe('the studio\'s tests, on ZIGoals\' events', () => {
 });
 describe('ZIGoals\' own rules', () => {
   it('calm celebrations: meaningful validated moments celebrate or make ZIGi proud; ordinary successes stay small', () => {
-    expect([...CELEBRATIONS].sort()).toEqual(['all_habits_done', 'challenge_milestone', 'first_sleep_logged', 'goal_funded', 'goal_milestone_reached', 'meditation_finished', 'streak_milestone']);
+    // Session AA-Local (ADR-022, owner edit 4): a finished routine, a level reached and a badge earned join the list; each is validated-only and celebrated once.
+    expect([...CELEBRATIONS].sort()).toEqual(['achievement_unlocked', 'all_habits_done', 'challenge_milestone', 'first_sleep_logged', 'goal_funded', 'goal_milestone_reached', 'level_up', 'meditation_finished', 'routine_finished', 'streak_milestone']);
+    for (const type of ['routine_finished', 'level_up', 'achievement_unlocked'] as const) { expect(mk().dispatch({type}, T0).reason, type).toBe('needs_host_validation'); expect(mk().dispatchValidated({type}, T0).event).toBe('action-applied'); }
     for (const type of ['habit_completed', 'health_log_recorded', 'card_accepted'] as const) { const c = mk(); const r = c.dispatchValidated({type}, T0); expect(r.code, type).toBe('F012'); expect(r.event).toBe('success'); }
     expect(mk().dispatchValidated({type: 'streak_milestone'}, T0)).toMatchObject({code: 'F013', event: 'streak-milestone'});
     for (const type of ['all_habits_done', 'goal_funded', 'challenge_milestone', 'meditation_finished', 'first_sleep_logged'] as const) expect(mk().dispatchValidated({type}, T0), type).toMatchObject({code: 'F009', event: 'action-applied'});

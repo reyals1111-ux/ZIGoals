@@ -55,6 +55,10 @@ export function commitHabitTimer(data:HabitData,id:string,timerId:string,now=new
  const next=logHabitValue(data,id,t.date,p.value,{mode:'add'},now),updated=habitById(next,id);
  return replace(next,{...updated,timer:undefined,timerReceipts:[...(h.timerReceipts??[]),receipt(h,now,'logged')]});
 }
+/** Session AA-Local H2: Finish in one tap: a running timer is paused at `now` and logged at once (the review rules of commit apply unchanged). */
+export function finishHabitTimer(data:HabitData,id:string,timerId:string,now=new Date(),expected?:string):HabitData{
+ const h=habitById(data,id),t=timerFor(h,timerId);const paused=t.state==='running'?pauseHabitTimer(data,id,timerId,now,expected):data;return commitHabitTimer(paused,id,timerId,now,JSON.stringify(habitById(paused,id).timer));
+}
 export function discardHabitTimer(data:HabitData,id:string,timerId:string,now=new Date(),expected?:string):HabitData{
  const h=habitById(data,id);if(h.timerReceipts?.some(r=>(r.timerId??r.id)===timerId))return data;assertTimerReview(h,expected);timerFor(h,timerId);return replace(data,{...h,timer:undefined,timerReceipts:[...(h.timerReceipts??[]),receipt(h,now,'discarded')],updatedAt:now.toISOString()});
 }

@@ -60,3 +60,18 @@ re-export of your module. Please export from `areas.ts`: `DEFAULT_AREA_IDS`, `AR
 ### What I never change
 Your pages' order and layout, the shell, global CSS, shared components, `scripts/weight-budgets.json` (the second merger
 carries it), What's new and Help (the second merger carries both; my drafts come with Part 9's commit).
+
+## 2026-10-12 — Part 1 pushed (Habits H1–H6, H8) and Part 2 in progress
+- **Announced edits to shared files (one line each, additive):** `components/vault-sync-controls.tsx` calls
+  `forgetAaDeviceRecords()` beside `forgetZigiFace()` so the account's erase removes this lane's device keys;
+  `components/health/health-app.tsx` places `<GameRegistrar/><ProgressSlot page="health"/>` just above the view
+  tabs (your light top-of-page reorder can move that one line; it renders nothing while the game layer is off).
+- **One more ask (shell):** mount `<GameRegistrar/>` from `components/game/registrar.tsx` once in `components/shell.tsx`
+  (a client component that renders nothing; it registers the game cards in every page's progress slot and in
+  `today:game`). Until then the Habits, Health and Journey pages mount it themselves, so the cards show there.
+- **The slot mirror:** `components/game/slot-local.tsx` mirrors your `components/progress/slot.tsx` exactly (same names and
+  shapes); after the merge it becomes `export * from '../progress/slot'`.
+- **The habit time-of-day widget for `today:habit-time`** registers from `components/habits/habit-time-card.tsx` (Part 2
+  follow-up); Today's existing habits widget already groups the due habits by section (H1).
+- **Events you emit, which my renderer celebrates once a day per kind:** `goal_milestone_reached`, `goal_funded`
+  (ZIGi's bus carries the type only, so no id can cross). Nothing to render on your side.
