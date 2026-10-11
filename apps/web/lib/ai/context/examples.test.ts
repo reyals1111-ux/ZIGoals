@@ -13,7 +13,7 @@ describe('the specialists\' few-shot examples', () => {
       for (const example of examples) {
         const parsed = parseReply(example.reply);
         expect(parsed.rejected, `${area}: ${example.ask}`).toEqual([]);
-        for (const p of parsed.proposals) expect([...WRITING_KINDS, 'prefill-holding']).toContain(p.kind);
+        for (const p of parsed.proposals) expect([...WRITING_KINDS, 'prefill-holding', 'prefill-contribution']).toContain(p.kind); // the two money pre-fills (Part 5): the form is the person's
         expect(parsed.text.length).toBeGreaterThan(0);
       }
     }

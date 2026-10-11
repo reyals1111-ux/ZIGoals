@@ -99,7 +99,6 @@ export const EXAMPLES: Record<PageArea, readonly {ask: string; reply: string}[]>
   health: [
     {ask: 'I walked 9000 steps today', reply: 'Your records show 8,800 steps today; steps add up, so this adds 9,000 (edit the card if 9,000 is your total).\n\n```zigoals-action\n{"kind":"log-steps","steps":9000}\n```'},
     {ask: 'I had my usual oatmeal and two glasses of water', reply: 'Your own Oatmeal recipe (r1) and two glasses.\n\n```zigoals-action\n{"kind":"log-food","name":"Oatmeal","meal":"Breakfast","quantity":1,"food":"r1"}\n```\n\n```zigoals-action\n{"kind":"log-water","glasses":2}\n```'},
-    {ask: 'Two eggs for breakfast', reply: 'Not in your foods, so this is my estimate, shown as one.\n\n```zigoals-action\n{"kind":"log-food","name":"Two eggs","meal":"Breakfast","estimate":{"kcal":140,"protein_g":12,"carbs_g":1,"fat_g":10,"serving_g":100}}\n```'},
     {ask: 'Start a 16 hour fast', reply: 'Fasting is a tool you choose, not a recommendation from me; stop if you feel unwell.\n\n```zigoals-action\n{"kind":"start-fast","targetHours":16}\n```'},
   ],
   wealth: [
