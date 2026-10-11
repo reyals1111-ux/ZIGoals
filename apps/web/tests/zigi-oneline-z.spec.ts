@@ -63,11 +63,14 @@ async function measure(root: Locator) {
     const textLines = [title, ...el.querySelectorAll('.ai-chat-via-text, .ai-turn-source, .ai-share-scope, .ai-share-text, .ai-chip, .ai-jump-latest, .ai-reply-row .ai-turn-time, .ai-reply-row .ai-turn-stopped, .ai-setup-line-text, .ai-card-where, .ai-brief-label, .ai-history-open strong, .ai-history-open small')].filter((e): e is Element => !!e && shown(e)).map(textLine);
     const rows = [...el.querySelectorAll('.ai-reply-row, .ai-share-line, .ai-composer-modes, .ai-chat-tools, .ai-chat-via')].filter(shown).map(row);
     const titleBox = range.getBoundingClientRect(), toolsLeft = Math.min(...tools.map(t => rect(t).left));
+    // Session Z-Local L57: with the overflow hidden (the 11 px floor from 360 up, L49/L57) the painted name ends at its box, with an
+    // ellipsis; the text's own layout extent beyond it is not what the person sees. Visible overflow measures the text itself.
+    const titleClipped = getComputedStyle(title).overflowX === 'hidden' || getComputedStyle(title).overflow === 'hidden', titleRight = titleClipped ? Math.min(titleBox.right, rect(title).right) : titleBox.right;
     // A control past the panel's edge, unless a row that scrolls sideways holds it (the chips row may scroll, never wrap).
     const scrolled = (e: Element) => { for (let p = e.parentElement; p && p !== el; p = p.parentElement) if (/auto|scroll/.test(getComputedStyle(p).overflowX)) return true; return false; };
     const panelBox = rect(el), outside = [...el.querySelectorAll('.ai-chat-head *, .ai-reply-row, .ai-reply-row *, .ai-share-line, .ai-share-line *, .ai-composer *, .ai-card, .ai-card *, .ai-setup-line *, .ai-history-list *')].filter(shown).filter(e => !scrolled(e)).filter(e => { const r = rect(e); return r.right > panelBox.right + 1 || r.left < panelBox.left - 1; }).map(e => (e.className || e.tagName).toString().slice(0, 40));
     return {
-      titleText: title.textContent, titleFont: parseFloat(getComputedStyle(title).fontSize), titleRight: titleBox.right, toolsLeft, titleWrapped: titleBox.height > lineHeight(title) * 1.2,
+      titleText: title.textContent, titleFont: parseFloat(getComputedStyle(title).fontSize), titleRight, titleClipped, toolsLeft, titleWrapped: titleBox.height > lineHeight(title) * 1.2,
       tools: tools.map(t => t.getAttribute('aria-label')), toolMids: tools.map(t => { const r = rect(t); return (r.top + r.bottom) / 2; }),
       headOverlaps: overlaps(head), composerOverlaps: overlaps(composer), composerMids: composer.map(c => (c.r.top + c.r.bottom) / 2),
       textLines, rows, outside,
