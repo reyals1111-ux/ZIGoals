@@ -14,8 +14,8 @@
   "cases": 557,
   "repeat": 1,
   "runs": 557,
-  "passed": 465,
-  "rate": 0.8348294434470377,
+  "passed": 471,
+  "rate": 0.8456014362657092,
   "byKind": {
    "propose": {
     "passed": 359,
@@ -48,7 +48,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T14:09:59.500Z",
+  "rescoredAt": "2026-10-11T14:54:24.595Z",
   "unscorable": 0
  },
  "runs": [
@@ -11557,7 +11557,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -11576,7 +11576,7 @@
     },
     {
      "name": "fields:kind=log-steps,steps=12000,day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-steps\",\"steps\":12000,\"day\":\"2026-10-04\"}"
     }
    ],
@@ -17864,7 +17864,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -17883,7 +17883,7 @@
     },
     {
      "name": "fields:day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-water\",\"glasses\":3,\"day\":\"2026-10-04\"}"
     }
    ],
@@ -17931,7 +17931,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -17950,7 +17950,7 @@
     },
     {
      "name": "fields:day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-water\",\"glasses\":3,\"day\":\"2026-10-04\"}"
     }
    ],
@@ -22060,7 +22060,7 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -22079,7 +22079,7 @@
     },
     {
      "name": "fields:day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-water\",\"glasses\":3,\"day\":\"2026-10-04\"}"
     }
    ],
@@ -22194,7 +22194,7 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -22213,7 +22213,7 @@
     },
     {
      "name": "fields:day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-water\",\"glasses\":3,\"day\":\"2026-10-04\"}"
     }
    ],
@@ -27035,7 +27035,7 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -27054,7 +27054,7 @@
     },
     {
      "name": "fields:kind=log-steps,steps=12000,day=yesterday",
-     "pass": false,
+     "pass": true,
      "detail": "{\"kind\":\"log-steps\",\"steps\":12000,\"minutes\":40,\"day\":\"2026-10-04\"}"
     }
    ],
