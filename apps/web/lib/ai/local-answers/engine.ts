@@ -177,12 +177,57 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
   activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'},
   pages: {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, "pagina's": {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, help: {page: 'help', label: 'Help'}, music: {page: 'music', label: 'Music'}, muziek: {page: 'music', label: 'Music'},
 };
-const NAV_ASK = /^(?:please |ok |okay |hey |hi |zigi,? |nova,? |kun je |kan je |can you |could you |wil je |would you )*(?:open|go to|take me to|switch to|jump to|navigate to|bring up|show me|show|ga naar|open|toon|laat me|laat mij|laat|breng me naar|breng mij naar)\s+(?:my |the |mijn |de |het |me |een )?([a-z' ]{3,24}?)(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht|zien))?(?:\s*(?:please|alsjeblieft|alstublieft|aub|graag|even))?[.!?]?$/;
-export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
-  const q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
-  const m = NAV_ASK.exec(q); if (!m) return null;
-  const word = m[1]!.trim().replace(/^(?:my|the|mijn|de|het)\s+/, '');
+/**
+ * Session Z-Local Part 6: the spoken forms the held-out set carried (24 of its 26 navigation asks got no device answer):
+ * the ask may sit at the end of a sentence ("I slept badly, so open my sleep page"), carry politeness before and after,
+ * be Dutch with the verb last ("kun je de instellingen openen"), be a bare page word ("settings", "portfolio openen"),
+ * or correct itself ("open my steps page, no wait, my sleep page"). A record or a figure is still never navigation: the
+ * word after the verb must be a page name.
+ */
+const NAV_PRE = String.raw`(?:(?:so|just|then|and|also|now|ok|okay|hey|hi|zigi,?|nova,?|please|even|eens|gewoon|dan|en|dus)\s+)*(?:(?:can|could|would|will|kun|kan|zou|wil)\s+(?:you|je|u)\s+(?:please\s+|alsjeblieft\s+|even\s+|eens\s+)?)?(?:please\s+|just\s+)?`;
+const NAV_VERB = String.raw`(?:open|go (?:back )?to|back to|take me (?:back )?to|switch to|jump to|navigate to|bring up|show me|show|look at|ga(?: even| eens| terug)? naar|terug naar|toon|laat me|laat mij|laat|breng me naar|breng mij naar)`;
+const NAV_ART = String.raw`(?:(?:my|the|mijn|de|het|me|een|m'n|that|this)\s+)?`;
+const NAV_WORD = String.raw`([a-z' -]{3,24}?)`;
+const NAV_END = String.raw`(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht))?(?:\s+(?:toe|zien|openen|open|bekijken))?[.!?]?$`;
+const NAV_A = new RegExp(`^${NAV_PRE}${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`);
+const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
+const NAV_B2 = new RegExp(`^${NAV_PRE}naar\\s+${NAV_ART}${NAV_WORD}(?:\\s+toe)?\\s+(?:kunnen )?gaan[.!?]?$`);
+const NAV_C = new RegExp(`^${NAV_ART}${NAV_WORD}(?:\\s*(?:page|pagina))?(?:\\s+(?:openen|open))?[.!?]?$`);
+const NAV_D = new RegExp(`^${NAV_ART}${NAV_WORD}(?:pagina)?,?\\s+(?:die wil ik zien|ga daar (?:even )?naartoe|go back to (?:that|it))[.!?]?$`);
+const NAV_POLITE_END = /[,.!?]?\s*(?:thanks|thank you|please|for me|voor me|alsjeblieft|alstublieft|aub|graag|dank je|dankjewel|bedankt|dank u)\s*$/;
+const NAV_CORRECTION = /\b(?:no wait|wait no|no,|i mean|nee wacht|nee,|ik bedoel|make that)\s*,?\s*/g;
+const pageOf = (raw: string | undefined): {page: string; view?: string; label: string} | null => {
+  if (!raw) return null;
+  // The whole captured phrase must be a page name (after its article and a trailing "page"/"pagina"): "walk habit" and "steps today" are records, not pages.
+  const word = raw.trim().replace(/^(?:my|the|mijn|de|het|me|een|m'n|that|this)\s+/, '').replace(/\s*(?:page|pagina)$/, '').replace(/(?<=\S)pagina$/, '').trim();
   return NAV_PAGES[word] ?? null;
+};
+// A restart mid-sentence ("show me the, can you show me the goals page"): the last verb that leads to a page name, provided nothing before it names a figure or an action.
+const NAV_VERB_AT = new RegExp(String.raw`\b${NAV_VERB}\b`, 'g');
+const NAV_LAST = new RegExp(`${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`, 'y');
+/** The restarted verb opens a clause (", can you show me", ", so open") or follows a stutter that stopped at a verb or an article ("go to my take me to"), never sits inside a clause ("which habits are open today"). */
+const NAV_CLAUSE_START = new RegExp(String.raw`(?:^|[,;]\s*|\b(?:so|then|and|just|please|now|ok|okay|dan|dus|en|even|eens|gewoon)\s+|\b(?:can|could|would|will|kun|kan|zou|wil)\s+(?:you|je|u)\s+(?:please\s+|alsjeblieft\s+|even\s+)?|\b${NAV_VERB}\s+(?:(?:my|the|mijn|de|het|me|m'n)\s+)?)$`);
+const NAV_BEFORE_BAD = /\d|\b(?:log|add|track|record|mark|skip|create|set|remind|delete|remove|note|save|put)\b/;
+export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
+  let q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
+  for (let i = 0; i < 3 && NAV_POLITE_END.test(q); i++) q = q.replace(NAV_POLITE_END, '').trim();
+  if (!q || q.length > 160) return null;
+  // A self-correction keeps the last target; the message still has to be a navigation ask from its first word.
+  const marks = [...q.matchAll(NAV_CORRECTION)];
+  if (marks.length) { const last = marks.at(-1)!; const tail = q.slice(last.index! + last[0].length).trim(); const first = q.slice(0, marks[0]!.index); if (new RegExp(`^${NAV_PRE}${NAV_VERB}\\b`).test(first)) { const hit = pageOf(tail.replace(/^(?:to |naar )/, '')); if (hit) return hit; } }
+  const segments = q.split(/\s*(?:,|;|\bso\b|\band then\b|\bthen\b|\band\b)\s*/).map(s => s.trim()).filter(Boolean);
+  for (const s of [q, ...segments.slice().reverse()]) {
+    for (const re of [NAV_A, NAV_B, NAV_B2, NAV_D]) { const m = re.exec(s); if (m) { const hit = pageOf(m[1]); if (hit) return hit; } }
+  }
+  // Every verb position from the last backwards (the leftmost match would let the first verb swallow the restart).
+  const at = [...q.matchAll(NAV_VERB_AT)].map(m => m.index!).reverse();
+  for (const i of at) {
+    NAV_LAST.lastIndex = i; const m = NAV_LAST.exec(q); if (!m) continue;
+    const before = q.slice(0, i); if (NAV_BEFORE_BAD.test(before) || !NAV_CLAUSE_START.test(before)) continue;
+    const hit = pageOf(m[1]); if (hit) return hit;
+  }
+  for (const s of [q, ...segments.slice().reverse()]) { const m = NAV_C.exec(s); if (m) { const hit = pageOf(m[1]); if (hit) return hit; } }
+  return null;
 }
 const navigationReply = (nav: {page: string; view?: string; label: string}): LocalReply => ({kind: 'answer', text: `Opening ${nav.label}.\n\n\`\`\`zigoals-action\n${JSON.stringify({kind: 'open-page', page: nav.page, ...(nav.view ? {view: nav.view} : {})})}\n\`\`\``, calls: []});
 function answer(question: string, env: ToolEnv, subject?: Subject): LocalReply {

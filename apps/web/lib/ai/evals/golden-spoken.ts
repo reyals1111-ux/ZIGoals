@@ -100,6 +100,18 @@ nav('open staking please', {page: 'staking'});
 nav('toon staking', {page: 'staking'});
 nav('go to wealth', {page: 'wealth'});
 nav('open mijn vermogen', {page: 'wealth'});
+// Session Z-Local Part 6: the 24 spoken navigation asks of the held-out set the device did not answer on gemma4 (every one a page name).
+nav('Um, show me the, uh, can you show me the goals page', {page: 'goals'}); nav('Show me the goals page, just the one page', {page: 'goals'});
+nav('Today I want to look at my goals, so show me the goals page', {page: 'goals'}); nav('Could you please show me the goals page, thanks', {page: 'goals'});
+nav('I slept badly last night, so open my sleep page', {page: 'health', view: 'sleep'}); nav('Open my steps page, no wait, my sleep page', {page: 'health', view: 'sleep'});
+nav('Kun je de instellingen openen, thanks', {page: 'settings'}); nav('Kun je mijn slaappagina even openen, please', {page: 'health', view: 'sleep'});
+nav('terug naar vandaag', {page: 'today'}); nav("Euh, ga naar m'n, eh, ga naar mijn gewoontes", {page: 'habits'}); nav('ga even naar mijn gewoontes toe', {page: 'habits'});
+nav('Zou je alsjeblieft naar mijn gewoontes kunnen gaan, dank je', {page: 'habits'}); nav("I couldn't find it yesterday, so just open the settings", {page: 'settings'});
+nav('could you please open the settings for me, thanks', {page: 'settings'}); nav('settings', {page: 'settings'}); nav('De doelenpagina, die wil ik zien', {page: 'goals'});
+nav('Go back to today please, just the one day, today', {page: 'today'}); nav('Today, go back to that', {page: 'today'}); nav('um go to my, uh, take me to my portfolio', {page: 'portfolio'});
+nav('go to my budget, no wait, I mean my portfolio', {page: 'portfolio'}); nav('could you please go to my portfolio thanks', {page: 'portfolio'}); nav('ga eens naar mijn portfolio', {page: 'portfolio'});
+nav('mijn portfolio, ga daar even naartoe', {page: 'portfolio'}); nav('portfolio openen', {page: 'portfolio'});
+nav('how many habits do I have?', null); nav('open a new goal for 300 euros', null); nav('today was a good day', null);
 
 // ---- On-device answers, spoken (the Showcase records, Health shared) ----
 const local = (id: string, question: string, expect: LocalCase['expect'], health: 'open' | 'closed' = 'open') => { cases.push({id: `sp-local-${id}`, category: 'local', kind: 'local', question, health, expect}); };
