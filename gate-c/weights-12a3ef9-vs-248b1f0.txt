@@ -1,0 +1,30 @@
+== 3102
+Page weight (gzip level 6 of the scripts each page loads) at http://127.0.0.1:3102
+ok    /app                      510.6 kB  budget  515.0 kB  main  616.9 kB
+ok    /app/goals                429.5 kB  budget  434.0 kB  main  515.1 kB
+ok    /app/habits               456.0 kB  budget  458.0 kB  main  525.6 kB
+ok    /app/health               478.4 kB  budget  482.0 kB  main  550.8 kB
+ok    /app/wealth               462.2 kB  budget  465.0 kB  main  542.5 kB
+ok    /app/markets              428.5 kB  budget  432.0 kB  main  512.3 kB
+ok    /app/portfolio            449.9 kB  budget  454.0 kB  main  515.8 kB
+ok    /app/staking              437.7 kB  budget  442.0 kB  main  534.7 kB
+ok    /app/activity             408.7 kB  budget  415.0 kB  main  497.6 kB
+ok    /app/settings             480.4 kB  budget  482.0 kB  main  525.9 kB
+ok    /app/help                 406.1 kB  budget  409.0 kB  main  493.6 kB
+ok    /app/chess                412.8 kB  budget  417.0 kB  main         —
+ok    shell (on every page)     402.2 kB  budget  406.0 kB  main  491.6 kB
+== 3101
+Page weight (gzip level 6 of the scripts each page loads) at http://127.0.0.1:3101
+ok    /app                      514.8 kB  budget  515.0 kB  main  616.9 kB
+ok    /app/goals                432.6 kB  budget  434.0 kB  main  515.1 kB
+ok    /app/habits               456.6 kB  budget  458.0 kB  main  525.6 kB
+ok    /app/health               481.4 kB  budget  482.0 kB  main  550.8 kB
+ok    /app/wealth               464.6 kB  budget  465.0 kB  main  542.5 kB
+ok    /app/markets              431.6 kB  budget  432.0 kB  main  512.3 kB
+ok    /app/portfolio            452.8 kB  budget  454.0 kB  main  515.8 kB
+ok    /app/staking              441.1 kB  budget  442.0 kB  main  534.7 kB
+ok    /app/activity             411.6 kB  budget  415.0 kB  main  497.6 kB
+ok    /app/settings             477.8 kB  budget  482.0 kB  main  525.9 kB
+ok    /app/help                 408.9 kB  budget  409.0 kB  main  493.6 kB
+ok    /app/chess                415.6 kB  budget  417.0 kB  main         —
+ok    shell (on every page)     405.0 kB  budget  406.0 kB  main  491.6 kB

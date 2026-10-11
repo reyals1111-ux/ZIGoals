@@ -1,0 +1,124 @@
+[
+ {
+  "journey": "new-person-water",
+  "size": "computer 1440×900",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "zigi-without-ai",
+  "size": "computer 1440×900",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "habit-archive",
+  "size": "computer 1440×900",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "wealth-what-you-have",
+  "size": "computer 1440×900",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "settings-voice",
+  "size": "computer 1440×900",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "new-person-water",
+  "size": "tablet 820×1180",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "zigi-without-ai",
+  "size": "tablet 820×1180",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "habit-archive",
+  "size": "tablet 820×1180",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "wealth-what-you-have",
+  "size": "tablet 820×1180",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "settings-voice",
+  "size": "tablet 820×1180",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "new-person-water",
+  "size": "phone 390×844",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "zigi-without-ai",
+  "size": "phone 390×844",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "habit-archive",
+  "size": "phone 390×844",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "wealth-what-you-have",
+  "size": "phone 390×844",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ },
+ {
+  "journey": "settings-voice",
+  "size": "phone 390×844",
+  "ok": true,
+  "errors": [],
+  "outside": [],
+  "notes": []
+ }
+]
+
+15 journeys, 15 clean, 0 with a note

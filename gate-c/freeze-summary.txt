@@ -1,0 +1,112 @@
+Freeze check, Gate C: 12a3ef9's own build (:3102) vs this branch's final code 248b1f0 (:3101), 155 captures each.
+compared 155, same 0, different 155; page errors: baseline 0, candidate 0
+
+Accessibility snapshots after removing the shell-wide changes (sidebar Help, footer Send feedback, plain words, grouped amounts):
+identical: 96
+
+dialog-add-asset: 2 captures; sizes ["['1024x14243', '1024x15953']", "['820x14581', '820x16291']"]
+   36x +      - listitem:
+   10x +          - /url: "#accounts-title"
+    2x +  - region "What you have":
+    2x +    - paragraph: ACCOUNTS · ASSETS · DEBTS
+    2x +    - heading "What you have" [level=2]
+    2x +    - paragraph: Everything you track here, in one list. Portfolio is a separate tracker for coins, kept apart from Wealth.
+    2x +    - link "Open Portfolio →":
+    2x +      - /url: /app/portfolio
+    2x +    - group "Show":
+    2x +      - button "All 18" [pressed]
+    2x +      - button "Accounts 3"
+    2x +      - button "Assets 13"
+
+dialog-quick-add: 2 captures; sizes ["['1024x14072', '1024x14164']", "['820x13712', '820x13758']"]
+   12x +        - listitem:
+    6x -        - listitem:
+    2x -          - link "End a vacation early":
+    2x -            - /url: /app/help#help-y-vacation
+    2x -          - link "“−” beside “+” on measured habits":
+    2x -            - /url: /app/help#help-y-minus
+    2x -          - link "Change a metal’s weight unit":
+    2x -            - /url: /app/help#help-y-unit
+    2x -          - link "Sync explains an older or missing cloud copy":
+    2x -            - /url: /app/help#help-y-sync
+    2x +          - link "ZIGi’s cleaner panel and your own suggestions":
+    2x +            - /url: /app/help#help-z-panel
+
+habits: 12 captures; sizes ["['1024x2321', '1024x2408']", "['1024x8705', '1024x8793']", "['1180x2217', '1180x2319']", "['1180x5500', '1180x5527']"]
+   12x +    - button "Ask ZIGi about my habits"
+    6x -      - button "Ask ZIGi about Read": Ask ZIGi
+    6x -      - button "Ask ZIGi about Exercise": Ask ZIGi
+    6x -      - button "Ask ZIGi about Walk": Ask ZIGi
+    6x -      - button "Ask ZIGi about Meditate": Ask ZIGi
+    6x -      - button "Ask ZIGi about Contribute": Ask ZIGi
+    6x -      - button "Ask ZIGi about Drink water": Ask ZIGi
+
+help: 12 captures; sizes ["['1024x10174', '1024x10517']", "['1024x10313', '1024x10656']", "['1180x9835', '1180x10232']", "['1180x9953', '1180x10350']"]
+   12x -    - link "ZIGi · your AI":
+   12x +    - link "ZIGi · Your Personal AI Companion":
+   12x -    - paragraph: ZIGI · YOUR AI
+   12x +    - paragraph: ZIGi · Your Personal AI Companion
+   12x +    - group: What changed in ZIGi’s panel?
+   12x +    - group: Can I delete a habit for good?
+   12x +    - group: What is the line at the top of my phone?
+   12x +    - group: What is “What you have” in Wealth?
+   12x +    - group: Can I see my weight in pounds and water in fluid ounces?
+   12x +    - group: What else changed in this release?
+   12x +    - group: Why does ZIGoals ask for my recovery secret again?
+   12x -        - link "ZIGi · your AI":
+
+settings: 12 captures; sizes ["['1024x16738', '1024x16866']", "['1024x17231', '1024x17359']", "['1180x15479', '1180x15609']", "['1180x16018', '1180x16148']"]
+   12x -    - region "Your own AI, page by page.":
+   12x -      - paragraph: ZIGI · YOUR AI Premium · free during Alpha
+   12x -      - heading "Your own AI, page by page." [level=2]
+   12x +    - region "ZIGi · Your Personal AI Companion":
+   12x +      - paragraph: Your own AI, page by page Premium · free during Alpha
+   12x +      - heading "ZIGi · Your Personal AI Companion" [level=2]
+   12x +        - group: "Voice: talk to ZIGi"
+   12x -          - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20ver
+   12x +          - /url: mailto:contact@zigoals.app?subject=ZIGoals%20Alpha%20feedback&body=What%20happened%3A%0A%0AWhat%20you%20expected%3A%0A%0ADevice%20and%20browser%3A%0A%0AApp%20ver
+    6x -        - paragraph: "Sidebar: Today, Goals, Habits, Health, Wealth, Markets, Staking, Portfolio, Ecosystem, Activity, Settings. Phone tab bar: Today, Goals, Habits, Health, More;
+    6x +        - paragraph: "Sidebar: Today, Goals, Habits, Health, Wealth, Markets, Staking, Portfolio, Ecosystem, Activity, Settings, Help. Phone tab bar: Today, Goals, Habits, Health,
+    6x -        - paragraph: "Sidebar: Today, Goals, Habits, Health, Wealth, Markets, Staking, Portfolio, Ecosystem, Chess, Activity, Settings. Phone tab bar: Today, Goals, Habits, Health
+
+today: 6 captures; sizes ["['1024x14072', '1024x14164']", "['1180x13009', '1180x13055']", "['1280x12443', '1280x12489']", "['1440x11336', '1440x11382']"]
+   36x +        - listitem:
+   18x -        - listitem:
+    6x -          - link "End a vacation early":
+    6x -            - /url: /app/help#help-y-vacation
+    6x -          - link "“−” beside “+” on measured habits":
+    6x -            - /url: /app/help#help-y-minus
+    6x -          - link "Change a metal’s weight unit":
+    6x -            - /url: /app/help#help-y-unit
+    6x -          - link "Sync explains an older or missing cloud copy":
+    6x -            - /url: /app/help#help-y-sync
+    6x +          - link "ZIGi’s cleaner panel and your own suggestions":
+    6x +            - /url: /app/help#help-z-panel
+
+wealth: 12 captures; sizes ["['1024x14243', '1024x15953']", "['1024x4522', '1024x4998']", "['1180x13990', '1180x15700']", "['1180x4391', '1180x4867']"]
+  108x +      - listitem:
+   30x +          - /url: "#accounts-title"
+   12x +  - region "What you have":
+   12x +    - paragraph: ACCOUNTS · ASSETS · DEBTS
+   12x +    - heading "What you have" [level=2]
+   12x +    - paragraph: Everything you track here, in one list. Portfolio is a separate tracker for coins, kept apart from Wealth.
+   12x +    - link "Open Portfolio →":
+   12x +      - /url: /app/portfolio
+   12x +    - group "Show":
+    6x +      - button "All 0" [pressed]
+    6x +      - button "Accounts 0"
+    6x +      - button "Assets 0"
+
+zigi-launcher: 1 captures; sizes ["['1280x12443', '1280x12489']"]
+    6x +        - listitem:
+    3x -        - listitem:
+    1x -          - link "End a vacation early":
+    1x -            - /url: /app/help#help-y-vacation
+    1x -          - link "“−” beside “+” on measured habits":
+    1x -            - /url: /app/help#help-y-minus
+    1x -          - link "Change a metal’s weight unit":
+    1x -            - /url: /app/help#help-y-unit
+    1x -          - link "Sync explains an older or missing cloud copy":
+    1x -            - /url: /app/help#help-y-sync
+    1x +          - link "ZIGi’s cleaner panel and your own suggestions":
+    1x +            - /url: /app/help#help-z-panel

@@ -1,0 +1,19 @@
+Session Z-Cloud Gate C: WebKit (Playwright's WebKit build 2359, CI's build), local, production builds.
+
+C57 (a) zigi-accept-correct "in UTC create-goal", desktop WebKit, before the fix (branch at 3d8a844's code):
+  repeat 5:  branch 2 failed / 8 passed of 10 runs;  12a3ef9's build: 10 passed
+  repeat 12: 2 failed / 22 passed;  repeat 12 (events logged): 2 failed / 22 passed
+  failing runs: pointerdown on the Undo button, pointerup on the reply's time line (the log glided between them);
+  Playwright's own log: "element is not stable" (1 s), retry, scroll into view, click (main's build: the same retry).
+  after the fix (248b1f0's code): repeat 12 -> 24 passed, 0 failed.
+C57 (b) webkit-smoke under load (2 workers, repeat 4): branch 3 failed / 5 passed (Settings' /api/music-config,
+  /api/push, /api/private-account?action=status cut off by the seed's navigation); 12a3ef9's build 8 passed;
+  alone, both builds 5/5. After the fix: webkit-smoke both projects passed in the full run below.
+Full run after the fix, both projects: webkit-smoke + zigi-accept-correct 142 passed, 2 failed ("WebKit encountered an
+  internal error" on page.goto, both workers at once while typecheck and lint ran); that case alone 6/6.
+zigi-question-context:35 and zigi-robustness:159 (CI WebKit on 3d8a844, one failure each): branch 8/8 locally.
+
+C56: the panel drawn in DejaVu Sans (CI's runners have no Inter): --zigi-title-fit 0.872-0.873, no change in 3 s after
+  settling (WebKit and Chromium, 360/768/1280); font 9.765 px at 360 (CI WebKit reported 9.765378), 15.57 px at 768 in
+  WebKit. With 0.1 em letter spacing (the spec): the name stops before the buttons at 320/390/768/1440; without the fit it
+  runs 25-53 px into them.

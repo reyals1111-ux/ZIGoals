@@ -1,0 +1,13 @@
+$ vitest run
+
+ RUN  v5.0.2 /home/user/ZIGoals
+
+
+ Test Files  499 passed | 20 skipped (519)
+      Tests  4452 passed | 43 skipped (4495)
+   Start at  02:46:12
+   Duration  305.87s (tests 80%, import 13%, environment 4%, transform 3%)
+
+    Isolate  519 workers spawned · ~207ms startup each (spawn + environment, per file)
+             at least ~35.54s faster with isolate: false — reuses workers across files instead of one per file
+

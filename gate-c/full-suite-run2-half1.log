@@ -1,0 +1,1183 @@
+
+Running 1042 tests using 2 workers
+
+[1/1042] [desktop] › tests/a11y-consent-labels.spec.ts:32:5 › Health consent has an explicit label and says why it is unavailable before sign-in
+[2/1042] [desktop] › tests/a11y-field-errors.spec.ts:26:5 › habit editor: a target that does not read marks the target field, which takes the focus; fixing it clears the mark
+[3/1042] [desktop] › tests/a11y-consent-labels.spec.ts:39:5 › "Finishing sign-in…" describes the disabled Health consent, and focus continues there once it is enabled
+[4/1042] [desktop] › tests/a11y-field-errors.spec.ts:41:5 › habit editor: a title with nothing visible marks the title
+[5/1042] [desktop] › tests/a11y-field-errors.spec.ts:50:5 › Health: a number that does not read, or the ambiguous "1,234", is marked and takes the focus; the next save clears it
+[6/1042] [desktop] › tests/a11y-consent-labels.spec.ts:54:5 › enabling Health consent does not take focus the user placed elsewhere
+[7/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:9:5 › every Quick add dialog on Today is named by its own heading
+[8/1042] [desktop] › tests/a11y-field-errors.spec.ts:66:5 › accounts: a currency or a balance that does not read marks its own field and takes the focus
+[9/1042] [desktop] › tests/a11y-field-errors.spec.ts:90:5 › goal wizard: a missing name, then a target that does not read, each mark their field and take the focus
+[10/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:21:5 › after Quick add navigates away from Today, focus lands on the new page, not <body>
+[11/1042] [desktop] › tests/a11y-field-errors.spec.ts:110:5 › asset editor: a quantity that does not read marks the quantity, which takes the focus
+[12/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:30:5 › the brand film has an accessible name and a one-line summary that says it has no speech
+[13/1042] [desktop] › tests/a11y-wcag-x.spec.ts:46:7 › names, labels, structure and titles on every page (empty)
+[14/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:39:5 › forced colors: the navigation arrival sweep and pop are off
+[15/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:48:5 › reduced motion: the page settle animation is off by its own rule
+[16/1042] [desktop] › tests/a11y-motion-dialogs.spec.ts:56:5 › keyboard focus on the logo link is never covered by the intro clip
+[17/1042] [desktop] › tests/ambient.spec.ts:35:5 › a rain-like sound plays here, follows you around ZIGoals with a Stop button, and stops
+[18/1042] [desktop] › tests/ambient.spec.ts:69:7 › nl-BE › nl-BE: the timer's stop time is written in the region's clock
+[19/1042] [desktop] › tests/ambient.spec.ts:69:7 › en-GB › en-GB: the timer's stop time is written in the region's clock
+[20/1042] [desktop] › tests/ambient.spec.ts:81:5 › the timer says when it stops, and the volume is kept on this device
+[21/1042] [desktop] › tests/ambient.spec.ts:100:5 › "Stop when I leave ZIGoals": switching away stops the sound
+[22/1042] [desktop] › tests/amount-input.spec.ts:22:7 › a Goal target typed as "1200,50" is previewed and saved as 1200.50 USD
+[23/1042] [desktop] › tests/amount-input.spec.ts:22:7 › a Goal target typed as " 1000 " is previewed and saved as 1000 USD
+[24/1042] [desktop] › tests/amount-input.spec.ts:31:5 › an ambiguous "1,234" target is flagged in the preview and refused on save, with the same reason
+[25/1042] [desktop] › tests/amount-input.spec.ts:40:5 › a manual valuation accepts a decimal comma and surrounding spaces
+[26/1042] [desktop] › tests/a11y-wcag-x.spec.ts:46:7 › names, labels, structure and titles on every page (showcase)
+[27/1042] [desktop] › tests/auto-checkins.spec.ts:26:5 › Showcase: the Walk card says it was done automatically, and viewing writes nothing
+[28/1042] [desktop] › tests/auto-checkins.spec.ts:44:5 › Local Demo: a water link ticks the habit off once the day reaches the target; a tap and Undo always win
+[29/1042] [desktop] › tests/brand-assets.spec.ts:11:5 › every mark, word and figure answers 200 image/webp at 1x and at 2x, without a redirect
+[30/1042] [desktop] › tests/brand-nav-polish.spec.ts:9:5 › the Z logo leads the sidebar, loads the right density and is named ZIGoals
+[31/1042] [desktop] › tests/brand-nav-polish.spec.ts:51:5 › navigation keeps one order, glides its highlight and moves aria-current and focus at once
+[32/1042] [desktop] › tests/brand-nav-polish.spec.ts:103:5 › reduced motion and the Off preference switch the navigation glide and page entrance off
+[33/1042] [desktop] › tests/brand-nav-polish.spec.ts:137:5 › the hero star rises once per visit, never on re-render, and leaves only the untouched artwork
+[34/1042] [desktop] › tests/a11y-wcag-x.spec.ts:71:5 › keyboard: the skip link comes first and works; focus is always visible, never trapped and never hidden behind the bars
+[35/1042] [desktop] › tests/brand-nav-polish.spec.ts:151:5 › reduced motion and the Off preference never show the hero star
+[36/1042] [desktop] › tests/chess.spec.ts:67:5 › Settings → Chess saves the usernames; the page asks each site one request at a time, with the username only, and shows their numbers
+[37/1042] [desktop] › tests/chess.spec.ts:106:5 › a 429 pauses that site for a minute with nothing retried; the other site's numbers still show
+[38/1042] [desktop] › tests/chess.spec.ts:118:5 › after the minute, Refresh comes back by itself, and nothing was retried meanwhile
+[39/1042] [desktop] › tests/chess.spec.ts:133:5 › puzzles and TV load only on a tap, sandboxed with no referrer; the CSP names exactly these frames; Play opens a window of its own
+[40/1042] [desktop] › tests/chess.spec.ts:158:5 › the habit chess ticks off: once on a day a game ended, kept after an undo
+[41/1042] [desktop] › tests/chess.spec.ts:170:5 › Showcase: fictional ratings and games, and no request to either site
+[42/1042] [desktop] › tests/coherence.spec.ts:7:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+[43/1042] [desktop] › tests/coherence.spec.ts:19:5 › legacy overview keeps optional simulation recoverable and archives safely
+[44/1042] [desktop] › tests/coherence.spec.ts:22:5 › manual selector creates a cash Position and allocates its value on Goal creation
+[45/1042] [desktop] › tests/coherence.spec.ts:25:5 › deterministic smooth progress rings and responsive top-right wealth dashboard
+[46/1042] [desktop] › tests/copy-polish.spec.ts:15:5 › a habit with a target of 1 reads “1 time per day”, never “1 times” (QA-28)
+[47/1042] [desktop] › tests/copy-polish.spec.ts:25:5 › a Goal's next and latest contributions use one date format (QA-27)
+[48/1042] [desktop] › tests/copy-polish.spec.ts:35:5 › plaintext backups share one file-name pattern without spaces (QA-26)
+[49/1042] [desktop] › tests/copy-polish.spec.ts:49:5 › one unlock restores several modules: the preview stays, restored modules are marked, names are readable (QA-21)
+[50/1042] [desktop] › tests/a11y-wcag-x.spec.ts:121:5 › reflow at 320 px and at 200 % zoom (640 px), and text spacing (1.4.10, 1.4.4, 1.4.12): nothing scrolls sideways
+[51/1042] [desktop] › tests/counters-compact.spec.ts:28:5 › no visible subtitle under a counter name; "today" is still announced with it
+[52/1042] [desktop] › tests/counters-compact.spec.ts:42:6 › 320 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[53/1042] [desktop] › tests/counters-compact.spec.ts:42:6 › 360 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[54/1042] [desktop] › tests/counters-compact.spec.ts:42:6 › 390 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[55/1042] [desktop] › tests/counters-compact.spec.ts:42:6 › 430 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[56/1042] [desktop] › tests/dashboard-visual.spec.ts:4:5 › dashboard destinations, safety and layout work at desktop and 320px
+[57/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a Health v1 backup restores into this build, every record readable
+[58/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a Health v2 backup restores into this build, every record readable
+[59/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a Health v3 backup restores into this build, every record readable
+[60/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a settings v1 backup restores into this build, every record readable
+[61/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a settings v2 backup restores into this build, every record readable
+[62/1042] [desktop] › tests/data-safety-x.spec.ts:43:7 › a finance v4 backup restores into this build, every record readable
+[63/1042] [desktop] › tests/data-safety-x.spec.ts:69:7 › a Health v4 (sleep, meditation) backup comes back byte for byte
+[64/1042] [desktop] › tests/data-safety-x.spec.ts:69:7 › a settings v3 (links) backup comes back byte for byte
+[65/1042] [desktop] › tests/data-safety-x.spec.ts:86:5 › a wrong secret or another file is refused with a plain reason, and nothing changes
+[66/1042] [desktop] › tests/devices.spec.ts:34:5 › the honest list: Bluetooth here, linked accounts that need ZIGoals' setup, and the importer for the rest
+[67/1042] [desktop] › tests/devices.spec.ts:50:5 › without Web Bluetooth, or without Health's own policy, the page says so and offers a fresh Health
+[68/1042] [desktop] › tests/devices.spec.ts:62:5 › a heart-rate monitor: live readings; a meditation keeps lowest, average and highest only when ticked
+[69/1042] [desktop] › tests/devices.spec.ts:92:5 › a scale: each reading waits to be saved; saving again on the same day says it replaces
+[70/1042] [desktop] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+[71/1042] [desktop] › tests/a11y-wcag-x.spec.ts:177:5 › target size (2.5.8): every control is at least 24 × 24 px, or has room around it, or is a link in a sentence
+[72/1042] [desktop] › tests/diagnostics.spec.ts:25:5 › support preview is explicit and copying sends only the reviewed safe snapshot
+[73/1042] [desktop] › tests/display-locale.spec.ts:29:7 › en-US › en-US: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[74/1042] [desktop] › tests/display-locale.spec.ts:29:7 › de-DE › de-DE: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[75/1042] [desktop] › tests/display-locale.spec.ts:29:7 › nl-BE › nl-BE: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[76/1042] [desktop] › tests/a11y-wcag-x.spec.ts:193:5 › reduced motion and Motion Off: nothing keeps moving on any page (2.3.3, 2.2.2)
+[77/1042] [desktop] › tests/display-locale.spec.ts:29:7 › ja-JP › ja-JP: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[78/1042] [desktop] › tests/display-locale.spec.ts:52:7 › fr-BE › fr-BE: Wealth's total in the browser's own format, English weekday names, no hydration error
+[79/1042] [desktop] › tests/display-locale.spec.ts:52:7 › en-GB › en-GB: Wealth's total in the browser's own format, English weekday names, no hydration error
+[80/1042] [desktop] › tests/display-locale.spec.ts:52:7 › ar › ar: Wealth's total in the browser's own format, English weekday names, no hydration error
+[81/1042] [desktop] › tests/ecosystem-cards.spec.ts:12:5 › the eyebrow reads "ZIG Chain ecosystem"; every card header is a button that opens its record in place
+[82/1042] [desktop] › tests/ecosystem-cards.spec.ts:29:5 › keyboard: Enter and Space open and close a card, focus stays on its button, and several cards stay open
+[83/1042] [desktop] › tests/ecosystem-cards.spec.ts:59:5 › the open record never shows contract addresses, promises or partnership words, and every link is safe
+[84/1042] [desktop] › tests/ecosystem-cards.spec.ts:73:5 › a #project link opens its card and brings it into view; under reduced motion it opens without animation
+[85/1042] [desktop] › tests/ecosystem-cards.spec.ts:84:5 › with motion, opening plays one short reveal that ends, never a loop
+[86/1042] [desktop] › tests/ecosystem.spec.ts:4:5 › ecosystem research is readable without connecting a wallet
+[87/1042] [desktop] › tests/export-everything.spec.ts:32:5 › one ZIP with everything.json and nine CSVs; nothing written on view or by the export; no request
+[88/1042] [desktop] › tests/export-everything.spec.ts:70:5 › the consent checkbox sits beside its sentence, top-aligned, 22 px, with a 44 px row
+[89/1042] [desktop] › tests/export-everything.spec.ts:82:5 › Showcase: the file name says showcase-demo
+[90/1042] [desktop] › tests/export-roundtrip.spec.ts:11:5 › Local Demo export, wipe and import restores all four modules identically
+[91/1042] [desktop] › tests/fasting.spec.ts:37:5 › start, watch the clock, stop: the note is always visible, Today shows the line only while a fast runs
+[92/1042] [desktop] › tests/fasting.spec.ts:66:5 › a fast is stopped automatically at 24 hours, and the page never praises a long fast
+[93/1042] [desktop] › tests/fasting.spec.ts:90:5 › the automatic stop shows right after a reload, even when saving it fails
+[94/1042] [desktop] › tests/fasting.spec.ts:113:5 › a fast starts at the tap, even when its save waits its turn
+[95/1042] [desktop] › tests/fasting.spec.ts:134:5 › Showcase: the fictional fast is labelled and viewing writes nothing; reduced motion keeps the bar still
+[96/1042] [desktop] › tests/focus-return.spec.ts:15:5 › closing Add asset returns focus to the button that opened it (QA-19)
+[97/1042] [desktop] › tests/focus-return.spec.ts:29:5 › after creating a habit with the keyboard, focus is on the new habit; after Cancel, on + New habit (QA-20)
+[98/1042] [desktop] › tests/focus-return.spec.ts:48:5 › Today has no duplicate element ids (QA-30)
+[99/1042] [desktop] › tests/for-you.spec.ts:8:5 › Showcase: at most two cards are open and the rest fold behind Show more
+[100/1042] [desktop] › tests/for-you.spec.ts:35:5 › a brand-new device has no For you area
+[101/1042] [desktop] › tests/goal-choice-controls.spec.ts:6:5 › risk and liquidity tiles work by keyboard and touch and save the same values as before
+[102/1042] [desktop] › tests/goal-choice-controls.spec.ts:27:5 › wealth scope and cadence tiles keep one valid value and the saved plan reopens selected
+[103/1042] [desktop] › tests/goal-source-allocation.spec.ts:27:5 › a source fully allocated to another Goal cannot be included, and says why
+[104/1042] [desktop] › tests/goal-source-allocation.spec.ts:34:5 › a listed source with 0 units is refused by name before the Goal is created, never dropped silently
+[105/1042] [desktop] › tests/goals-v2.spec.ts:27:5 › milestones: a value reached by the recorded progress gets one calm note; add one with a value and a date; edit and remove
+[106/1042] [desktop] › tests/goals-v2.spec.ts:59:5 › "On track?": what is left, what the date would take with no growth, the recorded pace, and the person's own "what if"
+[107/1042] [desktop] › tests/goals-v2.spec.ts:74:5 › goal ideas fill the creator with a name, the kind of progress and steps; a weight goal points to Health goals
+[108/1042] [desktop] › tests/goals.spec.ts:32:5 › corrupt metadata recovery preserves the original bytes and restores the plan
+[109/1042] [desktop] › tests/goals.spec.ts:74:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds
+[110/1042] [desktop] › tests/goals.spec.ts:130:5 › invalid custom scenario preserves baseline funding health and progress
+[111/1042] [desktop] › tests/goals.spec.ts:166:5 › unsupported saved planning date reports a calculation error without crashing the goal
+[112/1042] [desktop] › tests/goals.spec.ts:197:5 › near-limit Unicode plans export a valid importable backup
+[113/1042] [desktop] › tests/goals.spec.ts:222:5 › local goal lifecycle, metadata recovery, exports and mobile layout
+[114/1042] [desktop] › tests/a11y-wcag-x.spec.ts:210:5 › consistent help (3.2.6): the help mechanisms repeated on every page keep their place
+[115/1042] [desktop] › tests/goals.spec.ts:321:5 › missing wallet is explicit and local mode remains available
+[116/1042] [desktop] › tests/guide.spec.ts:30:5 › off by default: no card, no request, and the switch in Settings says so
+[117/1042] [desktop] › tests/guide.spec.ts:46:5 › turning it on shows one labelled note; "Not today" hides that note until the next day; "Turn off the Guide" removes it and resets the switch
+[118/1042] [desktop] › tests/a11y-wcag-x.spec.ts:239:5 › contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and Settings
+[119/1042] [desktop] › tests/guide.spec.ts:82:5 › viewing writes nothing; keyboard reaches every control by name
+[120/1042] [desktop] › tests/guide.spec.ts:97:5 › the weekly review's last step shows the Guide's paragraph only while the Guide is on
+[121/1042] [desktop] › tests/habit-paint-first.spec.ts:41:5 › a check-in shows as done before it is written, and the write follows
+[122/1042] [desktop] › tests/habit-paint-first.spec.ts:54:5 › when storage refuses the save, the painted check-in is taken back and the coded reason is shown
+[123/1042] [desktop] › tests/guide.spec.ts:123:5 › Showcase: the Guide is on in the demo and its card says so; viewing writes nothing
+[124/1042] [desktop] › tests/habit-paint-first.spec.ts:83:5 › a second quick tap while the first check-in saves counts too, on screen and in storage
+[125/1042] [desktop] › tests/habit-paint-first.spec.ts:95:5 › when storage refuses the save, every quick tap it carried is taken back with the coded reason
+[126/1042] [desktop] › tests/habit-skips.spec.ts:19:5 › plan a skip for tomorrow, see it in the list and the calendar, then remove it
+[127/1042] [desktop] › tests/habits-decimal-comma.spec.ts:31:5 › a "1,5" liter target is saved as 1.5, never 15, and a "0,5" check-in as 0.5
+[128/1042] [desktop] › tests/habit-skips.spec.ts:42:5 › Showcase: the Exercise card lists the fictional planned skip and the Walk streak counts its logged days only
+[129/1042] [desktop] › tests/habits-decimal-comma.spec.ts:55:5 › an ambiguous "1,234" is refused with a reason and nothing is saved
+[130/1042] [desktop] › tests/habits-decimal-comma.spec.ts:74:5 › no Habits field is a number field: every value is a text field with a numeric or decimal keypad
+[131/1042] [desktop] › tests/habit-skips.spec.ts:56:5 › vacation days keep the streak and the reminders quiet, and clear exactly their own entries
+[132/1042] [desktop] › tests/habits-v2.spec.ts:33:5 › habit ideas: one tap adds a complete habit, or the same as a 30-day challenge; an idea already there says so
+[133/1042] [desktop] › tests/habits-v2.spec.ts:51:5 › your stacks, together; a chained reminder shows on Today once the habit before is done, and can wait for tomorrow
+[134/1042] [desktop] › tests/habits.spec.ts:18:5 › habit counts, edit, pause, archive, notes and reload stay local and durable
+[135/1042] [desktop] › tests/habits-v2.spec.ts:69:5 › a finished challenge: one calm note in your own numbers, once on this device; a new challenge from the card
+[136/1042] [desktop] › tests/habits.spec.ts:68:5 › historical dates, missed days and scoped link retention remain correct
+[137/1042] [desktop] › tests/habits-v2.spec.ts:90:5 › a habit's patterns: by weekday and by week over 12 weeks, and when check-ins are usually saved
+[138/1042] [desktop] › tests/habits.spec.ts:91:5 › corrupt Habit data is preserved and creation fails closed
+[139/1042] [desktop] › tests/habits.spec.ts:100:5 › private habit text never enters requests or overwrites existing Goal data
+[140/1042] [desktop] › tests/health-camera-navigation.spec.ts:23:5 › from Today, the Health link loads a fresh Health page whose camera starts with no reload link
+[141/1042] [desktop] › tests/health-camera-navigation.spec.ts:35:5 › a document loaded as Health keeps soft navigation: away and back into Health stays the same page
+[142/1042] [desktop] › tests/habits.spec.ts:116:5 › selected weekdays and keyboard completion expose only scheduled habits
+[143/1042] [desktop] › tests/health-daily.spec.ts:4:5 › saved meal, preview copy, water, planner and export work with fictional private records
+[144/1042] [desktop] › tests/habits.spec.ts:143:5 › templates, distinct habit types, measurement and reflection controls work together
+[145/1042] [desktop] › tests/habits.spec.ts:174:5 › frequency templates display the period that actually governs completion
+[146/1042] [desktop] › tests/health-decimal-comma.spec.ts:15:5 › with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water as 1.5 mL, never 725 kg or 15 mL
+[147/1042] [desktop] › tests/health-daily.spec.ts:57:5 › label basis, gram entry, water corrections and preferred weight units preserve recorded values
+[148/1042] [desktop] › tests/health-decimal-comma.spec.ts:40:5 › an ambiguous "1,234" is still refused with a message and nothing is saved
+[149/1042] [desktop] › tests/health-decimal-comma.spec.ts:55:5 › no Health form uses a number field: every amount is a text field with a numeric or decimal keypad
+[150/1042] [desktop] › tests/health-daily.spec.ts:101:5 › Health daily panels reflow at phone tablet and desktop widths
+[151/1042] [desktop] › tests/health-goals.spec.ts:18:5 › Showcase: the fictional goal is counted from the Showcase journal on Goals and Today, and viewing writes nothing
+[152/1042] [desktop] › tests/health-goals.spec.ts:38:5 › Local Demo: create, count from a water entry, close and reopen a health goal
+[153/1042] [desktop] › tests/health-midnight.spec.ts:12:5 › an open Health page moves to the new day at midnight and keeps a half-typed water entry
+[154/1042] [desktop] › tests/health-midnight.spec.ts:28:5 › a date the reader chose stays as chosen across midnight
+[155/1042] [desktop] › tests/health-today-journal-day.spec.ts:10:5 › Today's Health card shows the journal day's meals when the journal zone is ahead of the device
+[156/1042] [desktop] › tests/health.spec.ts:4:5 › rejected food validation keeps the draft and existing private records recoverable
+[157/1042] [desktop] › tests/help-page.spec.ts:16:5 › Help has one title and eleven topics, listed before them, each linking to its section
+[158/1042] [desktop] › tests/help-page.spec.ts:32:5 › What's new (Session P): eleven linkable questions; a hash opens its answer and writes nothing
+[159/1042] [desktop] › tests/health.spec.ts:37:5 › food diary create, correct, reload and remove keeps snapshot nutrition
+[160/1042] [desktop] › tests/help-page.spec.ts:50:5 › the wording follows the owner principle: sync once, backups optional, login is not recovery
+[161/1042] [desktop] › tests/help-page.spec.ts:69:5 › questions open and close from the keyboard
+[162/1042] [desktop] › tests/help-page.spec.ts:92:5 › feedback opens an email to the Alpha address with a short template, and security has its own address
+[163/1042] [desktop] › tests/help-page.spec.ts:101:5 › viewing Help asks no server and writes nothing
+[164/1042] [desktop] › tests/health.spec.ts:66:5 › recipe portions calculate from foods and preserve the logged result
+[165/1042] [desktop] › tests/help-page.spec.ts:123:5 › the title sweeps once, and stays still under reduced motion
+[166/1042] [desktop] › tests/health.spec.ts:91:5 › explicit targets, weight correction and manual activity persist without a wallet
+[167/1042] [desktop] › tests/help-page.spec.ts:132:37 › Help fits a 320 px phone, with links, buttons and questions at least 44 px tall
+[168/1042] [desktop] › tests/help-page.spec.ts:132:37 › Help fits a 390 px phone, with links, buttons and questions at least 44 px tall
+[169/1042] [desktop] › tests/help-page.spec.ts:142:5 › at phone width the top bar names Help and steps back to Settings
+[170/1042] [desktop] › tests/help-page.spec.ts:154:5 › New: your whole life: twenty linkable questions; a hash opens its answer and writes nothing
+[171/1042] [desktop] › tests/health.spec.ts:123:5 › damaged private data fails closed with no seeded health data
+[172/1042] [desktop] › tests/help-page.spec.ts:173:5 › Session Y: four linkable answers; a hash opens each and nothing is written
+[173/1042] [desktop] › tests/health.spec.ts:132:5 › historical diary dates and food edits remain usable at 320 pixels
+[174/1042] [desktop] › tests/help-page.spec.ts:195:5 › Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written
+[175/1042] [desktop] › tests/help-settings-link.spec.ts:6:5 › Settings links to Help exactly once, near the top, and back
+[176/1042] [desktop] › tests/holdings-import.spec.ts:27:5 › Portfolio: four rows, one unknown coin skipped, three transactions imported and undone
+[177/1042] [desktop] › tests/honesty-banners.spec.ts:29:6 › Today settings written by a newer build: the honesty banners stay on every main page and the read error shows where it belongs
+[178/1042] [desktop] › tests/holdings-import.spec.ts:79:5 › Wealth: two holdings become manual assets, one without a valuation; Undo removes both
+[179/1042] [desktop] › tests/hosted-alpha-goal-stage.spec.ts:12:5 › the verifier's fictional goal steps work on this build: create, fund, back up, diagnose, close
+[180/1042] [desktop] › tests/honesty-banners.spec.ts:29:6 › corrupt Today settings: the honesty banners stay on every main page and the read error shows where it belongs
+[181/1042] [desktop] › tests/hostile-files-x.spec.ts:26:5 › Switch to ZIGoals: a ZIP cut short and an export with a "billion laughs" entity are handled in words; nothing is written
+[182/1042] [desktop] › tests/hostile-files-x.spec.ts:46:5 › Switch to ZIGoals: a Loop export with a habit listed twice and impossible days imports cleanly and says what it did
+[183/1042] [desktop] › tests/hostile-files-x.spec.ts:58:5 › Import meals: formula-like names, an impossible date, a future date and words for numbers: refused rows say why, the rest imports
+[184/1042] [desktop] › tests/honesty-banners.spec.ts:29:6 › Health with a field this build does not know: the honesty banners stay on every main page and the read error shows where it belongs
+[185/1042] [desktop] › tests/hydration-zone.spec.ts:49:7 › a new device: every page hydrates without an error on either side of the date line
+[186/1042] [desktop] › tests/honesty-banners.spec.ts:29:6 › corrupt Health: the honesty banners stay on every main page and the read error shows where it belongs
+[187/1042] [desktop] › tests/honesty-banners.spec.ts:40:5 › a damaged account selection keeps the honesty banners and says so
+[188/1042] [desktop] › tests/honesty-banners.spec.ts:52:6 › while private stores are still loading › the honesty banners are already visible on every main page
+[189/1042] [desktop] › tests/honesty-banners.spec.ts:61:5 › a readable Health/Habits-only Today still hides the financial bars, as chosen
+[190/1042] [desktop] › tests/insights.spec.ts:23:5 › Showcase: two exact sentences, how they were counted, dismiss one and it stays away
+[191/1042] [desktop] › tests/insights.spec.ts:59:5 › a brand-new device has no card and no key
+[192/1042] [desktop] › tests/install-guide.spec.ts:13:5 › without Apple's flag or an installed display mode, the guide gives the general iPhone steps
+[193/1042] [desktop] › tests/install-guide.spec.ts:22:5 › an Apple browser is asked to add ZIGoals to the Home Screen
+[194/1042] [desktop] › tests/install-guide.spec.ts:31:17 › an installed app is recognised from Apple's standalone flag
+[195/1042] [desktop] › tests/install-guide.spec.ts:31:17 › an installed app is recognised from the standalone display mode
+[196/1042] [desktop] › tests/install-guide.spec.ts:50:5 › viewing Help only reads the state: nothing is asked and nothing is written
+[197/1042] [desktop] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (yes)
+[198/1042] [desktop] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (no)
+[199/1042] [desktop] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (throws)
+[200/1042] [desktop] › tests/install-guide.spec.ts:78:5 › a browser without the Storage API is told plainly, and the button is off
+[201/1042] [desktop] › tests/install-manifest.spec.ts:25:5 › the manifest describes the installed ZIGoals app
+[202/1042] [desktop] › tests/install-manifest.spec.ts:39:5 › the static manifest is byte-identical to the one 72ad872 served, at the same address
+[203/1042] [desktop] › tests/install-manifest.spec.ts:50:5 › every icon is an opaque PNG of its declared size, including the Home Screen icon
+[204/1042] [desktop] › tests/install-manifest.spec.ts:61:5 › pages link the manifest once, name the Home Screen app and keep the existing icons
+[205/1042] [desktop] › tests/install-manifest.spec.ts:72:5 › the security policy is unchanged; a same-origin manifest needs no new directive
+[206/1042] [desktop] › tests/invisible-names.spec.ts:16:5 › a habit titled only with zero-width characters is refused, and nothing is saved
+[207/1042] [desktop] › tests/invisible-names.spec.ts:25:5 › a Goal named only with zero-width characters is refused, and nothing is saved
+[208/1042] [desktop] › tests/invisible-names.spec.ts:35:5 › an asset named only with zero-width characters is refused, and nothing is saved
+[209/1042] [desktop] › tests/invisible-names.spec.ts:47:5 › a food named only with zero-width characters is refused with the name message, and nothing is saved
+[210/1042] [desktop] › tests/invite-only.spec.ts:13:5 › asking for a code reads the same for every address, and Help says what to do when none arrives
+[211/1042] [desktop] › tests/hydration-zone.spec.ts:49:7 › Showcase: every page hydrates without an error on either side of the date line
+[212/1042] [desktop] › tests/invite-only.spec.ts:40:5 › an older relay’s invite-only answer is still shown in its words, and nothing else changes
+[213/1042] [desktop] › tests/landing-v5-a11y.spec.ts:16:5 › one h1, and every h3 follows an h2 in reading order
+[214/1042] [desktop] › tests/landing-v5-a11y.spec.ts:36:5 › Tab reaches the invite first after the header, and every focused control shows a visible focus ring
+[215/1042] [desktop] › tests/landing-v5-a11y.spec.ts:67:5 › screen readers get the equation as text in order, and the fold stages stay out of the way
+[216/1042] [desktop] › tests/landing-v5-a11y.spec.ts:106:7 › the new copy is at least 4.5:1 against the navy
+[217/1042] [desktop] › tests/landing-v5-a11y.spec.ts:106:7 › the new copy is at least 4.5:1 against the navy under prefers-contrast: more
+[218/1042] [desktop] › tests/landing-v5-captures.spec.ts:140:5 › refresh the landing's product captures from the Showcase
+[219/1042] [desktop] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 1440×900
+[220/1042] [desktop] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 390×844
+[221/1042] [desktop] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 375×667
+[222/1042] [desktop] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 320×568
+[223/1042] [desktop] › tests/landing-v5-equation.spec.ts:61:5 › a fast scroll past several steps still shows the words one at a time, in order
+[224/1042] [desktop] › tests/landing-v5-equation.spec.ts:83:5 › the page is never held: scrolling always continues past the equation
+[225/1042] [desktop] › tests/landing-v5-equation.spec.ts:105:5 › reduced motion, ?motion=off and short screens show the whole equation at once, unpinned
+[226/1042] [desktop] › tests/landing-v5-equation.spec.ts:136:7 › without JavaScript › all four words and figures are visible
+[227/1042] [desktop] › tests/landing-v5-fold.spec.ts:39:7 › the fold maths and frame files › progress and pose stay in range, only ever move forward and settle exactly
+[228/1042] [desktop] › tests/hydration-zone.spec.ts:57:5 › the browser at 00:30 in Brussels on the day after the server: every page hydrates cleanly
+[229/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 320 px, moving and static
+[230/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 360 px, moving and static
+[231/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 375 px, moving and static
+[232/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 390 px, moving and static
+[233/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 414 px, moving and static
+[234/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 768 px, moving and static
+[235/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1024 px, moving and static
+[236/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1280 px, moving and static
+[237/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1440 px, moving and static
+[238/1042] [desktop] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1920 px, moving and static
+[239/1042] [desktop] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 320 px
+[240/1042] [desktop] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 390 px
+[241/1042] [desktop] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 1024 px
+[242/1042] [desktop] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 1440 px
+[243/1042] [desktop] › tests/landing-v5-layout.spec.ts:88:5 › nothing that pins sits inside a box that clips or scrolls
+[244/1042] [desktop] › tests/landing-v5-perf.spec.ts:79:5 › one full visit stays within the weight and layout-shift budget
+[desktop] › tests/landing-v5-perf.spec.ts:79:5 › one full visit stays within the weight and layout-shift budget
+landing-weight desktop {"firstView":240758,"firstViewFiles":16,"beforeScroll":341370,"beforeScrollFiles":18,"fullScroll":5699752,"files":155,"cls":0.0000500846622085048}
+
+[245/1042] [desktop] › tests/landing-v5-perf.spec.ts:90:5 › nothing animates forever and nothing keeps running when the page is idle
+[246/1042] [desktop] › tests/landing-v5-perf.spec.ts:113:5 › LCP and long tasks on a mid-range phone and on desktop (LANDING_PERF=1)
+[247/1042] [desktop] › tests/landing-v5-security.spec.ts:25:7 › files › the response headers and the upload allowlist are exactly their reviewed bytes
+[248/1042] [desktop] › tests/landing-v5-security.spec.ts:30:7 › files › every file the page refers to exists, and every file that ships is referred to
+[249/1042] [desktop] › tests/landing-v5-security.spec.ts:73:5 › under the real CSP a full scroll raises no violation and asks no other origin for anything
+[250/1042] [desktop] › tests/landing-v5-security.spec.ts:93:5 › links are https, page anchors or the invite e-mail, and the copy promises no earnings or partnerships
+[251/1042] [desktop] › tests/landing.spec.ts:58:5 › landing keeps its public contract visible without horizontal overflow
+[252/1042] [desktop] › tests/landing.spec.ts:111:5 › landing declares a loadable local icon and a real favicon file
+[253/1042] [desktop] › tests/landing.spec.ts:140:5 › the equation adds one word per step, each already in its final nebula look
+[254/1042] [desktop] › tests/landing.spec.ts:193:5 › reduced motion settles the equation on all four steps without scrolling
+[255/1042] [desktop] › tests/landing.spec.ts:219:5 › prefers-contrast: more strengthens quiet text and edges without moving anything
+[256/1042] [desktop] › tests/local-simulation-backup.spec.ts:7:5 › Local simulation Goals survive export, wipe and import through Settings
+[257/1042] [desktop] › tests/local-simulation-backup.spec.ts:32:5 › a damaged legacy ledger is left out with a visible warning and never blocks the backup
+[258/1042] [desktop] › tests/logo-fold.spec.ts:46:7 › reduced motion (this project's own size): no video is ever created or requested, and the static Z stays
+[259/1042] [desktop] › tests/logo-fold.spec.ts:46:7 › Motion Off (this project's own size): no video is ever created or requested, and the static Z stays
+[260/1042] [desktop] › tests/landing-v5-fold.spec.ts:67:7 › the fold maths and frame files › the paced film position covers every frame in order and the paper moves early
+[261/1042] [desktop] › tests/landing-v5-fold.spec.ts:90:7 › the fold maths and frame files › frame blending picks neighbouring loaded frames and starts and ends on whole frames
+[262/1042] [desktop] › tests/landing-v5-fold.spec.ts:113:7 › the fold maths and frame files › every frame a stage can ask for exists at the size of its still, and the sets hold nothing else
+[263/1042] [desktop] › tests/landing-v5-fold.spec.ts:169:5 › a stage pins, folds and settles as you scroll, from the right frame set, and never moves the page
+[264/1042] [desktop] › tests/logo-fold.spec.ts:46:7 › reduced motion (the narrow-tablet header): no video is ever created or requested, and the static Z stays
+[265/1042] [desktop] › tests/landing-v5-fold.spec.ts:207:5 › a stage gives its frames back once it is far away
+[266/1042] [desktop] › tests/landing-v5-fold.spec.ts:247:5 › reduced motion shows every settled figure and slogan in place, with nothing pinned or drawn
+[267/1042] [desktop] › tests/logo-fold.spec.ts:46:7 › Motion Off (the narrow-tablet header): no video is ever created or requested, and the static Z stays
+[268/1042] [desktop] › tests/landing-v5-fold.spec.ts:255:5 › ?motion=off and Save-Data keep the stages static too
+[269/1042] [desktop] › tests/logo-fold.spec.ts:63:6 › the fold plays once per browser session over the static Z (this project's own size) and settles exactly on it
+[270/1042] [desktop] › tests/landing-v5-fold.spec.ts:267:5 › a short screen (landscape phone, 200% zoom) keeps the stages static
+[271/1042] [desktop] › tests/logo-fold.spec.ts:63:6 › the fold plays once per browser session over the static Z (the narrow-tablet header) and settles exactly on it
+[272/1042] [desktop] › tests/landing-v5-fold.spec.ts:277:7 › without JavaScript › every settled figure and slogan is there, with nothing pinned
+[273/1042] [desktop] › tests/landing-v5-fold.spec.ts:285:5 › forced colours keep the slogans readable and drop the decoration
+[274/1042] [desktop] › tests/logo-quickadd-goals-header.spec.ts:10:5 › the Today hero Quick add is the primary action and opens the same Quick add options
+[275/1042] [desktop] › tests/logo-quickadd-goals-header.spec.ts:28:5 › the Goals header reads "Your Goals" and the cards follow one compact controls row
+[276/1042] [desktop] › tests/logo-fold.spec.ts:106:5 › clicking the Z while the fold plays navigates normally; the clip never takes pointer or keyboard focus
+[277/1042] [desktop] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus
+[278/1042] [desktop] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold fails to load (this project's own size)
+[279/1042] [desktop] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold fails to load (the narrow-tablet header)
+[280/1042] [desktop] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold is not ready in time (this project's own size)
+  1) [desktop] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus 
+
+    Error: locator.evaluate: NotSupportedError: The element has no supported sources.
+
+      69 |  expect(box.height).toBeLessThanOrEqual(viewport.height*.86);expect(box.width).toBeLessThanOrEqual(viewport.width);expect(Math.abs(box.width/box.height-1280/720)).toBeLessThan(.02);
+      70 |  // The viewer starts it.
+    > 71 |  await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
+         |              ^
+      72 |  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
+      73 |  // A closed dialog has no role, so read the element directly. The close event (pause + rewind) follows the dialog closing, so poll.
+      74 |  await expect.poll(()=>page.locator('dialog.intro-video-dialog video').evaluate(v=>({paused:(v as HTMLVideoElement).paused,time:(v as HTMLVideoElement).currentTime}))).toEqual({paused:true,time:0});
+        at /home/user/ZIGoals/apps/web/tests/logo-quickadd-goals-header.spec.ts:71:14
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[281/1042] [desktop] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold is not ready in time (the narrow-tablet header)
+[282/1042] [desktop] › tests/logo-fold.spec.ts:157:5 › keyboard focus on the phone top bar Z is never covered by the fold
+[283/1042] [desktop] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay
+[284/1042] [desktop] › tests/markets-table.spec.ts:30:5 › cards stay the default; the table shows each market's price, 1h/24h/7d, its 7-day line and market cap as observed
+[285/1042] [desktop] › tests/markets-table.spec.ts:49:5 › the table sorts by 24h change, market cap or name, with what is not known last
+[286/1042] [desktop] › tests/markets-table.spec.ts:63:5 › a favourite from the table is the same favourite on the cards
+[287/1042] [desktop] › tests/markets-table.spec.ts:74:5 › phone: the table keeps the market, price, 24h change and star; no sideways scroll; 44 px stars
+[288/1042] [desktop] › tests/meditation.spec.ts:54:5 › a one-minute sitting: its bell, a pause, the end, how you feel, saved to Health
+  2) [desktop] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay 
+
+    Error: locator.evaluate: NotSupportedError: The element has no supported sources.
+
+      87 |  await trigger.click();await expect(video).toBeVisible();await page.waitForTimeout(500);expect(await video.evaluate(v=>(v as HTMLVideoElement).paused)).toBe(true);
+      88 |  // Motion Off does not stop the viewer from playing it.
+    > 89 |  await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
+         |              ^
+      90 | });
+      91 |
+        at /home/user/ZIGoals/apps/web/tests/logo-quickadd-goals-header.spec.ts:89:14
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[289/1042] [desktop] › tests/mobile-safari-fit.spec.ts:4:5 › mobile text fields are at least 16px and settings disclosures are comfortable to tap
+[290/1042] [desktop] › tests/meditation.spec.ts:104:5 › a reload in the middle keeps the time; a session that ended while away asks to be saved, or let go
+[291/1042] [desktop] › tests/meditation.spec.ts:138:5 › breathing: the circle moves only while motion is allowed; reduced motion and Motion Off keep it still, with words and a count
+[292/1042] [desktop] › tests/meditation.spec.ts:181:5 › mindful minutes by hand: logged, corrected, deleted; your weekly goal; your bell
+[293/1042] [desktop] › tests/motion-arrival.spec.ts:18:5 › a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change
+[294/1042] [desktop] › tests/meditation.spec.ts:230:5 › a habit linked to mindful minutes ticks itself off
+[295/1042] [desktop] › tests/meditation.spec.ts:241:5 › Today: the Meditation widget, the reminder ("Not today") and the Health card
+[296/1042] [desktop] › tests/meditation.spec.ts:263:5 › Showcase: fictional sessions, and nothing asked of any other site
+[297/1042] [desktop] › tests/motion-arrival.spec.ts:57:6 › reduced motion: no arrival marks, no nav animation and no logo intro
+[298/1042] [desktop] › tests/meditation.spec.ts:277:5 › phones: the running session is the whole view; no sideways scroll; the controls are big enough
+[299/1042] [desktop] › tests/motion-polish.spec.ts:50:5 › charts draw their marks once and settle on the exact rendered values
+[300/1042] [desktop] › tests/motion-arrival.spec.ts:57:6 › Motion Off: no arrival marks, no nav animation and no logo intro
+[301/1042] [desktop] › tests/multitab.spec.ts:43:5 › two tabs cancel stale funds review and retain both sequential deposits
+[302/1042] [desktop] › tests/motion-polish.spec.ts:77:5 › market sparklines draw once and keep their exact text alternative
+[303/1042] [desktop] › tests/multitab.spec.ts:69:5 › another tab's recovered plan rejects a stale recovery save
+[304/1042] [desktop] › tests/motion-polish.spec.ts:88:5 › reduced motion and the Off preference leave charts complete and still
+[305/1042] [desktop] › tests/multitab.spec.ts:103:5 › mode selection stays in its own tab while local reviews stay local
+[306/1042] [desktop] › tests/motion-polish.spec.ts:104:5 › primary actions catch one sweep of light on hover, give on press and keep their focus ring
+[307/1042] [desktop] › tests/multitab.spec.ts:123:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[308/1042] [desktop] › tests/motion-polish.spec.ts:121:5 › reduced motion and the Off preference keep buttons still on every route
+[309/1042] [desktop] › tests/multitab.spec.ts:261:5 › simultaneous confirmations serialize and the losing tab must review again
+[310/1042] [desktop] › tests/music.spec.ts:64:5 › hidden until shown (the approved default): Settings → Music shows it; the button sits opposite ZIGi and never covers it
+[311/1042] [desktop] › tests/motion-polish.spec.ts:137:5 › progress fills grow in once when seen and glide to new values while their state updates at once
+[312/1042] [desktop] › tests/music.spec.ts:94:5 › focus sounds in the panel: the NOVA look, previous and next step through the sounds, Play and Stop, Escape returns to the button
+[313/1042] [desktop] › tests/music.spec.ts:125:5 › Spotify not set up on this site: an honest line and Open Spotify, no Connect button and no Spotify request
+[314/1042] [desktop] › tests/music.spec.ts:139:5 › Spotify, MOCKED: connect with PKCE, the sign-in sealed (never in storage), what plays with its logo and artwork, controls, Disconnect
+[315/1042] [desktop] › tests/motion-polish.spec.ts:170:5 › reduced motion and the Off preference keep progress complete and still
+[316/1042] [desktop] › tests/motion-polish.spec.ts:185:5 › the slogan cascades and carries one sweep of light from Habits & Health to Wealth, then rests
+[317/1042] [desktop] › tests/music.spec.ts:173:5 › Spotify, MOCKED: without the owner's logo file no track is shown; a refused play says Premium or the owner's list
+[318/1042] [desktop] › tests/motion-polish.spec.ts:199:5 › reduced motion and the Off preference keep the slogan exact and still
+[319/1042] [desktop] › tests/music.spec.ts:195:5 › the mini-bar takes the button's place on this device; the phone's More sheet opens the player
+[320/1042] [desktop] › tests/my-links.spec.ts:15:5 › add, edit, move and remove links in Settings; https only; the icon follows the address until chosen
+[321/1042] [desktop] › tests/music.spec.ts:216:5 › the Showcase shows the player and connects nothing: no Spotify request, no music configuration asked
+[322/1042] [desktop] › tests/my-links.spec.ts:56:5 › Today: one button per link, in order, opening in a new tab with no opener and no referrer, exactly as typed
+[323/1042] [desktop] › tests/nutrition-import.spec.ts:26:5 › fixture A: three entries on two days with an unknown serving measure, blank fat stays unknown, undo removes them
+[324/1042] [desktop] › tests/my-links.spec.ts:80:5 › hidden under Your pages & buttons, the Today card leaves; the links stay in Settings
+[325/1042] [desktop] › tests/nutrition-import.spec.ts:64:5 › fixture B: a serving size makes library foods, one per distinct food
+[326/1042] [desktop] › tests/my-links.spec.ts:95:5 › Showcase: four fictional links to example addresses on Settings and Today
+[327/1042] [desktop] › tests/nutrition-import.spec.ts:79:5 › Showcase: the fictional example import is listed and viewing writes nothing
+[328/1042] [desktop] › tests/onboarding.spec.ts:11:5 › a brand-new device sees the welcome on Today; Not now writes only the seen flag and it stays away
+[329/1042] [desktop] › tests/owner-polish.spec.ts:16:5 › one circular family, Today active count and a chosen Goal share exact USD valuation
+[330/1042] [desktop] › tests/onboarding.spec.ts:24:5 › never for someone with records or a chosen Today, and never in Showcase
+[331/1042] [desktop] › tests/owner-polish.spec.ts:31:5 › responsive collection, detail and Positions retain access without document overflow
+[332/1042] [desktop] › tests/onboarding.spec.ts:51:5 › the flow: ZIGi's hello, pillars, starters, the tour, install, ZIGi, the honest data step; nothing is saved until Finish saves it all
+[333/1042] [desktop] › tests/onboarding.spec.ts:101:5 › a first goal: a kind needs a name and a target; it is saved on Finish, once
+[334/1042] [desktop] › tests/owner-polish.spec.ts:35:5 › missing price is explicit and stale quote survives failed refresh and reload
+[335/1042] [desktop] › tests/onboarding.spec.ts:119:5 › choosing nothing anywhere: Finish writes only the seen flag and opens Today as it was
+[336/1042] [desktop] › tests/owner-polish.spec.ts:75:5 › Today reports private-store recovery errors while preserving legacy destinations
+[337/1042] [desktop] › tests/onboarding.spec.ts:131:5 › a re-run never adds a habit twice; "take me to encrypted sync" opens it after Finish
+[338/1042] [desktop] › tests/owner-polish.spec.ts:83:5 › Positions utilities expose wallet reader and APR calculator below wealth
+[339/1042] [desktop] › tests/owner-preview.spec.ts:5:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private
+[340/1042] [desktop] › tests/onboarding.spec.ts:149:5 › install: the browser's own install offer shows a button where it exists; an installed app is told so
+[341/1042] [desktop] › tests/onboarding.spec.ts:163:5 › Skip setup writes only the seen flag
+[342/1042] [desktop] › tests/owner-preview.spec.ts:29:5 › APR persistence, account isolation, utility order and navigation
+[343/1042] [desktop] › tests/onboarding.spec.ts:171:5 › reduced motion and Motion Off: steps change without animation
+[344/1042] [desktop] › tests/onboarding.spec.ts:181:5 › phones only: Settings offers “Show the welcome again”
+[345/1042] [desktop] › tests/page-marks.spec.ts:22:5 › each life page shows its own mark, every other page the Today swan; figure and words are decorative 1x/2x images
+[346/1042] [desktop] › tests/owner-preview.spec.ts:41:5 › responsive owner preview captures
+[347/1042] [desktop] › tests/owner-preview.spec.ts:56:5 › shared navigation keeps Health accessible without writing its store
+[348/1042] [desktop] › tests/page-titles.spec.ts:14:5 › every page has its own title
+[349/1042] [desktop] › tests/page-marks.spec.ts:53:5 › the Shape & Fold tagline text is gone from the sidebar, the More sheet and every other place in the app
+[350/1042] [desktop] › tests/page-titles.spec.ts:24:5 › the title follows a client-side navigation
+[351/1042] [desktop] › tests/pages-visibility.spec.ts:37:5 › hiding a page saves a stamped settings v3 choice; the navigation, preview and device mirror follow; showing it brings it back
+[352/1042] [desktop] › tests/pages-visibility.spec.ts:69:5 › every switch sits on its name's row, before the name, at its full size
+[353/1042] [desktop] › tests/page-marks.spec.ts:63:5 › changing pages crossfades the marks once with motion on, and swaps them at once under reduced motion and Motion Off
+[354/1042] [desktop] › tests/pages-visibility.spec.ts:83:5 › only Habits and Health: the navigation, the phone tab bar and More rebuild, and a bare /app opens Habits
+[355/1042] [desktop] › tests/pages-visibility.spec.ts:98:5 › Today hidden: a bare /app replaces itself with the first visible page, the home link follows, and a deliberate link to Today offers to show it again
+[356/1042] [desktop] › tests/pages-visibility.spec.ts:119:5 › every page hidden: ZIGoals opens on Settings; Settings and Help stay, and the phone keeps More
+[357/1042] [desktop] › tests/pages-visibility.spec.ts:130:5 › the start page: Health opens as a document load; choosing a page or "First visible page" saves a stamped choice
+[358/1042] [desktop] › tests/pages-visibility.spec.ts:149:5 › "Show everything again" asks first: Cancel changes nothing; confirming shows every page and button
+[359/1042] [desktop] › tests/page-marks.spec.ts:95:5 › figure and words never overlap the navigation, the horizon or the star, and nothing clips, at every desktop size
+[360/1042] [desktop] › tests/pages-visibility.spec.ts:169:5 › buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide everywhere; switching ZIGi on brings it back
+[361/1042] [desktop] › tests/pages-visibility.spec.ts:191:5 › Showcase shows every page and keeps a choice in the tab, never in this device's storage
+[362/1042] [desktop] › tests/pages-visibility.spec.ts:205:5 › a focused navigation entry that disappears hands focus to the page
+[363/1042] [desktop] › tests/pages-visibility.spec.ts:221:5 › while the settings are still opening, the device mirror already shapes the navigation
+[364/1042] [desktop] › tests/persona-x.spec.ts:19:5 › Complete, then Undo: today is Due again, not Failed, on Habits and on Today
+[365/1042] [desktop] › tests/persona-x.spec.ts:32:5 › Connect Keplr without the extension: the Local demo and its balance stay; only the reason is shown
+[366/1042] [desktop] › tests/persona-x.spec.ts:43:5 › the Habits + Health layout names both areas under Today's title
+[367/1042] [desktop] › tests/persona-x.spec.ts:49:5 › funding a EUR Goal: a new cash asset starts in euros with a matching name, and the preview opens
+[368/1042] [desktop] › tests/persona-x.spec.ts:70:5 › phone: the accounts heading keeps the width of the card; its button goes under it
+[369/1042] [desktop] › tests/persona-x.spec.ts:85:5 › Activity: water logged shows under Health
+[370/1042] [desktop] › tests/persona-x.spec.ts:93:5 › a new person is not asked to review a week with nothing in it; a week with a check-in is offered
+[371/1042] [desktop] › tests/persona-x.spec.ts:116:5 › the Goal wizard: each new step takes focus, so the keyboard and a screen reader start from it
+[372/1042] [desktop] › tests/persona-x.spec.ts:128:5 › the Showcase says that what is added there stays in the demo, and Exit returns to Today
+[373/1042] [desktop] › tests/persona-x.spec.ts:139:5 › a goal's "Ask ZIGi about this goal" keeps clear of its status badge (handed back by X-LOCAL, H10)
+[374/1042] [desktop] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[375/1042] [desktop] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[376/1042] [desktop] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[377/1042] [desktop] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[378/1042] [desktop] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[379/1042] [desktop] › tests/page-marks.spec.ts:134:5 › navigation groups: life areas, money tools, the rest; spaced not divided, and tab order follows what is seen
+[380/1042] [desktop] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[381/1042] [desktop] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[382/1042] [desktop] › tests/page-marks.spec.ts:172:5 › Staking: the renamed page keeps every Position reachable, and the old address redirects (307) to it
+[383/1042] [desktop] › tests/persona-z.spec.ts:205:5 › 7b. persona round: the water target is typed in US fl oz; the week reads fl oz and Activity reads lb
+[384/1042] [desktop] › tests/persona-z.spec.ts:226:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); the Edit form's input stays ungrouped
+[385/1042] [desktop] › tests/phone-folds.spec.ts:15:5 › phone: Today folds its secondary modules to rows that open in place, and focus stays on the row
+[386/1042] [desktop] › tests/phone-folds.spec.ts:39:5 › phone: Wealth folds its secondary modules, a link into one opens it, and amounts never split inside a number
+[387/1042] [desktop] › tests/phone-folds.spec.ts:55:5 › desktop: no module is folded and every one shows as before
+[388/1042] [desktop] › tests/phone-form-sheets.spec.ts:22:5 › phone: the habit editor is a bottom sheet; Escape and Close return focus, and Create closes it on the new habit
+[389/1042] [desktop] › tests/persona-z.spec.ts:247:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[390/1042] [desktop] › tests/phone-form-sheets.spec.ts:49:5 › phone: Log a meal opens from its button as a sheet and closes on a logged meal
+[391/1042] [desktop] › tests/phone-form-sheets.spec.ts:63:5 › phone: Staking opens the wallet reader and the reward scenario as sheets
+[392/1042] [desktop] › tests/phone-form-sheets.spec.ts:82:5 › desktop: the forms stay in the page, no sheet opens
+[393/1042] [desktop] › tests/persona-z.spec.ts:265:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[394/1042] [desktop] › tests/phone-pages.spec.ts:10:6 › 390x844: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[395/1042] [desktop] › tests/persona-z.spec.ts:278:5 › 10b. phones: Habits' hero actions take two rows from 360 px, and the first figure is on the first screen
+[396/1042] [desktop] › tests/persona-z.spec.ts:299:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[397/1042] [desktop] › tests/persona-z.spec.ts:319:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[398/1042] [desktop] › tests/persona-z.spec.ts:342:5 › persona round: Meet ZIGi and Help's local-model answer never scroll sideways at 320 and 360 px
+[399/1042] [desktop] › tests/persona-z.spec.ts:358:5 › persona round: an earlier on-device answer keeps its examples as words; the latest keeps them as buttons
+[400/1042] [desktop] › tests/phone-refinements.spec.ts:23:5 › Wealth on a phone: four holdings, then Show all 13 assets; every card stays in the page and desktop is unchanged
+[401/1042] [desktop] › tests/phone-pages.spec.ts:10:6 › 360x800: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[402/1042] [desktop] › tests/phone-refinements.spec.ts:59:5 › Today on a phone: shorter lists with Show all, and the week folded into its totals with the note in view
+[403/1042] [desktop] › tests/phone-refinements.spec.ts:87:5 › Habits calendar days are at least 44 px on a 360 px phone
+[404/1042] [desktop] › tests/phone-pages.spec.ts:10:6 › 320x568: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[405/1042] [desktop] › tests/phone-refinements.spec.ts:113:5 › phone sheets: dragging the grabber down closes the sheet as Escape does; a short drag or a drag elsewhere does not
+[406/1042] [desktop] › tests/phone-refinements.spec.ts:151:5 › phone sheets under reduced motion: the sheet does not follow the finger, and a full drag still closes it
+[407/1042] [desktop] › tests/phone-pages.spec.ts:20:5 › Wealth: the total follows the title, so the figure is on the first screen
+[408/1042] [desktop] › tests/phone-refinements.spec.ts:165:5 › desktop sheets are not draggable
+[409/1042] [desktop] › tests/phone-pages.spec.ts:30:5 › phone default orders: Health title, date, counters; Habits check-ins before charts; Wealth holdings after the total; a saved order still wins
+[410/1042] [desktop] › tests/phone-shell.spec.ts:29:6 › 390x844: honesty labels and the layout lock sit on the first screen of every page, clear of the bars
+[411/1042] [desktop] › tests/phone-pages.spec.ts:50:5 › Settings on a phone: a grouped list under the title goes to every section; desktop keeps its chips
+[412/1042] [desktop] › tests/phone-pages.spec.ts:72:5 › landscape phone: no sideways scroll and the title on the first screen on every page
+[413/1042] [desktop] › tests/phone-shell.spec.ts:29:6 › 360x800: honesty labels and the layout lock sit on the first screen of every page, clear of the bars
+[414/1042] [desktop] › tests/phone-touch-targets.spec.ts:40:5 › QA2-07: every standalone tap target on the main phone pages is at least 44 × 44 px
+[415/1042] [desktop] › tests/phone-touch-targets.spec.ts:52:5 › QA2-07: the title links reach 44 px without moving anything
+[416/1042] [desktop] › tests/platform-habits.spec.ts:6:5 › a linked contribution Habit records behavior but never adds financial progress
+[417/1042] [desktop] › tests/platform-habits.spec.ts:32:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+[418/1042] [desktop] › tests/platform-habits.spec.ts:44:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+[419/1042] [desktop] › tests/platform-habits.spec.ts:57:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[420/1042] [desktop] › tests/phone-shell.spec.ts:51:5 › Showcase: its label is on the first screen of every page and Exit stays one tap away
+[421/1042] [desktop] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion
+[422/1042] [desktop] › tests/platform.spec.ts:3:5 › private position allocation and plans survive reload without financial or Health side effects
+[423/1042] [desktop] › tests/phone-shell.spec.ts:61:5 › landscape phone: the strip folds into single rows and the title stays on the first screen
+[424/1042] [desktop] › tests/phone-shell.spec.ts:71:5 › tabs, the More sheet, Settings and back links navigate with real links, aria-current and focus return
+[425/1042] [desktop] › tests/platform.spec.ts:36:5 › watch-only invalid input never calls a wallet or chain endpoint
+[426/1042] [desktop] › tests/platform.spec.ts:46:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[427/1042] [desktop] › tests/platform.spec.ts:67:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[428/1042] [desktop] › tests/phone-shell.spec.ts:104:5 › the status line opens the Status sheet: every notice in full, the wallet buttons, and focus back on the line
+[429/1042] [desktop] › tests/portfolio-v2.spec.ts:51:5 › the header, holdings and allocation from your transactions and the market: exact figures, unknown never zero
+[430/1042] [desktop] › tests/phone-shell.spec.ts:127:5 › without JavaScript a phone still shows the tab bar, the top bar and the honesty labels
+[431/1042] [desktop] › tests/phone-shell.spec.ts:138:5 › desktop and tablet keep the sidebar and never render the phone chrome
+[432/1042] [desktop] › tests/portfolio-v2.spec.ts:84:5 › value over time: one history per coin, one after another, for the chosen range; exact values in the table
+[433/1042] [desktop] › tests/portfolio-v2.spec.ts:101:5 › a coin's page: price and changes, your position, market figures as observed, a transaction for this coin, favourites
+[434/1042] [desktop] › tests/phone-shell.spec.ts:151:5 › a stalled private read (Session D): the notice sits under the honesty strip with phone gutters, Retry within reach
+[435/1042] [desktop] › tests/portfolio-v2.spec.ts:131:5 › an older market service: 1h, 7d and the market figures read "Not provided", never zero
+[436/1042] [desktop] › tests/portfolio-v2.spec.ts:145:5 › find a coin you do not hold: its page, with nothing of yours yet
+[437/1042] [desktop] › tests/portfolio-v2.spec.ts:157:5 › Showcase: the whole page and a coin's page from labelled fixtures, and nothing asked of any market
+[438/1042] [desktop] › tests/phone-shell.spec.ts:172:5 › the names CI journeys click stay visible links on a phone: Today, Goals, Habits, Health, Wealth and Settings
+[439/1042] [desktop] › tests/portfolio-v2.spec.ts:176:5 › phone: the coin, its 24h change, value and result; allocation and transactions fold; no sideways scroll; 44 px targets
+[440/1042] [desktop] › tests/portfolio.spec.ts:16:5 › create a portfolio and record transactions; without prices values stay unknown, and Wealth is untouched
+[441/1042] [desktop] › tests/positions-layout.spec.ts:5:5 › wealth leads collapsed read-only utilities and APR stays account-scoped
+[442/1042] [desktop] › tests/portfolio.spec.ts:68:5 › Showcase shows a fictional portfolio with labelled fixture prices and requests no prices for it
+[443/1042] [desktop] › tests/portfolio.spec.ts:85:5 › unreadable saved data shows a calm notice and is never overwritten without a choice
+[444/1042] [desktop] › tests/private-read-delay.spec.ts:69:5 › Today settings that never finish opening: an honest notice, no page, no writes, and the late read renders normally
+[445/1042] [desktop] › tests/portfolio.spec.ts:97:5 › phone: fields are 16 px and every control is at least 44 px tall
+[446/1042] [desktop] › tests/product-data.spec.ts:50:5 › V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces
+[447/1042] [desktop] › tests/product-data.spec.ts:71:5 › damaged private exports retain exact bytes and explicit restore quarantines originals
+[448/1042] [desktop] › tests/product-data.spec.ts:91:5 › private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls
+[449/1042] [desktop] › tests/private-read-delay.spec.ts:95:5 › Retry starts a new open for a stalled one and the page renders
+[450/1042] [desktop] › tests/private-read-delay.spec.ts:110:5 › a page store that stalls keeps its own loading state, with the notice and a Settings pointer above it
+[451/1042] [desktop] › tests/private-read-delay.spec.ts:128:5 › another tab's blocked upgrade stalls the open; the page explains, keeps the banners, and recovers when it clears
+[452/1042] [desktop] › tests/product-shell.spec.ts:3:5 › unified shell exposes all eight destinations and preserves Alpha controls
+[453/1042] [desktop] › tests/product-visual.spec.ts:5:5 › populated product fits every required viewport with reduced motion and scoped links
+[454/1042] [desktop] › tests/progress-glass.spec.ts:59:7 › /app: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[455/1042] [desktop] › tests/progress-glass.spec.ts:59:7 › /app/goals: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[456/1042] [desktop] › tests/progress-glass.spec.ts:59:7 › /app/wealth: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[457/1042] [desktop] › tests/public-alpha.spec.ts:9:5 › Alpha declares an explicit same-origin icon that resolves
+[458/1042] [desktop] › tests/public-alpha.spec.ts:48:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[459/1042] [desktop] › tests/progress-glass.spec.ts:59:7 › /app/habits: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[460/1042] [desktop] › tests/public-alpha.spec.ts:62:5 › the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere
+[461/1042] [desktop] › tests/public-alpha.spec.ts:79:5 › strict production headers, fresh nonce, navigation and script rejection
+[462/1042] [desktop] › tests/public-alpha.spec.ts:172:5 › F15: on every app page and after opening ZIGi, every added script is the server's (nonced) or a runtime chunk, and nothing violates CSP
+[463/1042] [desktop] › tests/progress-glass.spec.ts:59:7 › /app/health: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[464/1042] [desktop] › tests/progress-glass.spec.ts:77:5 › a new value glides from the old one and never replays the entrance
+[465/1042] [desktop] › tests/progress-glass.spec.ts:99:7 › reduced motion: every bar and ring shows its final value at once, with nothing moving
+[466/1042] [desktop] › tests/progress-glass.spec.ts:99:7 › Motion Off: every bar and ring shows its final value at once, with nothing moving
+[467/1042] [desktop] › tests/push-reminders.spec.ts:100:5 › without the fixture the panel says the build has no push, offers no button, and the reminder field shows no offer
+[468/1042] [desktop] › tests/push-reminders.spec.ts:112:5 › signed out: off until an account is signed in; Showcase never offers it; nothing is written or sent on view
+[469/1042] [desktop] › tests/push-reminders.spec.ts:128:5 › turn on: permission, one worker at /push-sw.js, a subscribe call with times only; a reminder change re-sends the schedule; turn off deletes everything
+[470/1042] [desktop] › tests/push-reminders.spec.ts:180:5 › an iPhone browser tab is told to install first; a locked account is told to unlock
+[471/1042] [desktop] › tests/push-reminders.spec.ts:240:5 › reminder names: off by default; on, a push names the habit due now, composed on this device; off deletes the table
+[472/1042] [desktop] › tests/qa-decisions.spec.ts:8:5 › QA-23: offline, in-app links keep the page, which keeps saving; back online they work again
+[473/1042] [desktop] › tests/qa-decisions.spec.ts:29:5 › QA-23: right after reconnecting, a link opens even before the page has heard the browser is online
+[474/1042] [desktop] › tests/qa-decisions.spec.ts:48:5 › QA-38: a Goal with a source that has no value shows its progress as a lower bound, and says why
+[475/1042] [desktop] › tests/public-alpha.spec.ts:194:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[476/1042] [desktop] › tests/quick-add-line.spec.ts:28:5 › water: preview first, then Save writes one entry and the dialog stays open for the next line
+[477/1042] [desktop] › tests/quick-add-line.spec.ts:58:5 › a habit by its name: "meditated" logs one check-in on today
+[478/1042] [desktop] › tests/public-alpha.spec.ts:250:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+[479/1042] [desktop] › tests/quick-logging.spec.ts:29:5 › the day before in one tap: a meal, or the whole day; each only while there is nothing there yet
+[480/1042] [desktop] › tests/radio-shape.spec.ts:17:5 › every visible radio is a circle of 20 to 22 px in the Goal wizard, Settings and Health
+[481/1042] [desktop] › tests/quick-logging.spec.ts:46:5 › "Repeat yesterday" copies every meal at once
+[482/1042] [desktop] › tests/quick-logging.spec.ts:54:5 › one tap: what you usually have at a meal, and an item you pinned, on every meal
+[483/1042] [desktop] › tests/remember-device.spec.ts:35:5 › in a browser tab the choice is unticked, always shown with its warning, and an unticked unlock remembers nothing
+[484/1042] [desktop] › tests/remember-device.spec.ts:48:5 › in the installed app (display-mode standalone) the choice is ticked by default, with the same warning
+[485/1042] [desktop] › tests/quick-logging.spec.ts:77:5 › your own water buttons, in your unit; back to the usual two
+[486/1042] [desktop] › tests/remember-device.spec.ts:60:5 › a remembered device opens again without the secret after a reload and in a new tab, until it is locked or forgotten
+[487/1042] [desktop] › tests/quick-logging.spec.ts:97:5 › Quick add: "slept 7h30" asks when you woke up, then becomes a night in Sleep (no movement minutes)
+[488/1042] [desktop] › tests/reminders.spec.ts:26:5 › a habit reminder appears on Today once the device clock passes its time, and stays dismissed for today
+[489/1042] [desktop] › tests/remember-device.spec.ts:119:5 › B1: a new remember stores the root key itself, which this browser cannot export
+[490/1042] [desktop] › tests/reminders.spec.ts:48:5 › a done habit has no reminder card; the editor shows and clears the saved time
+[491/1042] [desktop] › tests/remember-device.spec.ts:130:5 › B1: a version 1 record from an earlier build opens once more, then is version 2 and nothing can unwrap the root
+[492/1042] [desktop] › tests/remember-device.spec.ts:168:5 › B2: Lock in one tab locks every tab of this browser, and none of them reopens
+[493/1042] [desktop] › tests/reminders.spec.ts:74:5 › water: a reminder set in the Water journal shows until water is logged
+[494/1042] [desktop] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 320px
+[495/1042] [desktop] › tests/reminders.spec.ts:101:5 › viewing pages writes no reminder data, and reminder times never reach a backup
+[496/1042] [desktop] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 390px
+[497/1042] [desktop] › tests/run10-barcode.spec.ts:3:5 › manual leading-zero lookup previews unknown values and logs only a confirmed private snapshot
+[498/1042] [desktop] › tests/run10-barcode.spec.ts:11:80 › OverconstrainedError: rear camera unavailable, not found and cooldown preserve manual workflows
+[499/1042] [desktop] › tests/run10-barcode.spec.ts:11:80 › NotFoundError: rear camera unavailable, not found and cooldown preserve manual workflows
+[500/1042] [desktop] › tests/run10-account-access.spec.ts:28:5 › unconfigured email access explains unavailable setup without attempting provider calls
+[501/1042] [desktop] › tests/run10-barcode.spec.ts:20:5 › unavailable camera API leaves typed barcode entry usable
+[502/1042] [desktop] › tests/run10-dashboard-placement.spec.ts:5:5 › widget insertion, rail placement and encrypted layout recovery keep one binding
+[503/1042] [desktop] › tests/run10-barcode.spec.ts:26:5 › camera is explicit and stops all tracks on cancel and navigation
+[504/1042] [desktop] › tests/run10-barcode.spec.ts:41:5 › closing the barcode panel stops its camera track
+[505/1042] [desktop] › tests/run10-barcode.spec.ts:53:5 › one unconfirmed camera reading does not fill the barcode
+[506/1042] [desktop] › tests/run10-barcode.spec.ts:67:5 › account selection change stops active barcode capture
+[507/1042] [desktop] › tests/run10-barcode.spec.ts:82:5 › a browser without native decoding can still start a local camera scan
+[508/1042] [desktop] › tests/run10-ecosystem.spec.ts:2:5 › ecosystem filters, clears, opens useful details and keeps external links private
+[509/1042] [desktop] › tests/run10-barcode.spec.ts:91:5 › the local decoder reads an EAN-8 label with leading zeros without uploading frames
+[510/1042] [desktop] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 320px
+[511/1042] [desktop] › tests/run10-barcode.spec.ts:105:54 › partial native barcode support falls back to local EAN-8 decoding
+[512/1042] [desktop] › tests/run10-barcode.spec.ts:105:54 › throws native barcode support falls back to local EAN-8 decoding
+[513/1042] [desktop] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 390px
+[514/1042] [desktop] › tests/run10-barcode.spec.ts:117:5 › camera request requires a rear camera rather than selecting a front camera
+[515/1042] [desktop] › tests/run10-barcode.spec.ts:128:5 › a stale camera failure cannot stop a newer scan
+[516/1042] [desktop] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 1440px
+[517/1042] [desktop] › tests/run10-barcode.spec.ts:142:5 › an older scan cannot attach its stopped stream after a newer scan starts
+[518/1042] [desktop] › tests/run10-barcode.spec.ts:159:5 › a lookup answered 429 is disabled for its retryAfter with a plain countdown, then announced as available
+[519/1042] [desktop] › tests/run10-financial-evidence.spec.ts:3:5 › manual portfolio evidence yields reviewed flow-boundary return and retains correction on reload
+[520/1042] [desktop] › tests/run10-barcode.spec.ts:169:5 › a refused camera offers a photo of the barcode, decoded on the device; nothing is sent until Look up
+[521/1042] [desktop] › tests/run10-financial-evidence.spec.ts:16:5 › manual dated FX review keeps original EUR and converted USD separate from current wealth
+[522/1042] [mobile] › tests/a11y-consent-labels.spec.ts:32:5 › Health consent has an explicit label and says why it is unavailable before sign-in
+[523/1042] [mobile] › tests/a11y-field-errors.spec.ts:26:5 › habit editor: a target that does not read marks the target field, which takes the focus; fixing it clears the mark
+[524/1042] [mobile] › tests/a11y-consent-labels.spec.ts:39:5 › "Finishing sign-in…" describes the disabled Health consent, and focus continues there once it is enabled
+[525/1042] [mobile] › tests/a11y-field-errors.spec.ts:41:5 › habit editor: a title with nothing visible marks the title
+[526/1042] [mobile] › tests/a11y-field-errors.spec.ts:50:5 › Health: a number that does not read, or the ambiguous "1,234", is marked and takes the focus; the next save clears it
+[527/1042] [mobile] › tests/a11y-consent-labels.spec.ts:54:5 › enabling Health consent does not take focus the user placed elsewhere
+[528/1042] [mobile] › tests/a11y-field-errors.spec.ts:66:5 › accounts: a currency or a balance that does not read marks its own field and takes the focus
+[529/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:9:5 › every Quick add dialog on Today is named by its own heading
+[530/1042] [mobile] › tests/a11y-field-errors.spec.ts:90:5 › goal wizard: a missing name, then a target that does not read, each mark their field and take the focus
+[531/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:21:5 › after Quick add navigates away from Today, focus lands on the new page, not <body>
+[532/1042] [mobile] › tests/a11y-field-errors.spec.ts:110:5 › asset editor: a quantity that does not read marks the quantity, which takes the focus
+[533/1042] [mobile] › tests/a11y-wcag-x.spec.ts:46:7 › names, labels, structure and titles on every page (empty)
+[534/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:30:5 › the brand film has an accessible name and a one-line summary that says it has no speech
+[535/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:39:5 › forced colors: the navigation arrival sweep and pop are off
+[536/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:48:5 › reduced motion: the page settle animation is off by its own rule
+[537/1042] [mobile] › tests/a11y-motion-dialogs.spec.ts:56:5 › keyboard focus on the logo link is never covered by the intro clip
+[538/1042] [mobile] › tests/ambient.spec.ts:35:5 › a rain-like sound plays here, follows you around ZIGoals with a Stop button, and stops
+[539/1042] [mobile] › tests/ambient.spec.ts:69:7 › nl-BE › nl-BE: the timer's stop time is written in the region's clock
+[540/1042] [mobile] › tests/ambient.spec.ts:69:7 › en-GB › en-GB: the timer's stop time is written in the region's clock
+[541/1042] [mobile] › tests/ambient.spec.ts:81:5 › the timer says when it stops, and the volume is kept on this device
+[542/1042] [mobile] › tests/ambient.spec.ts:100:5 › "Stop when I leave ZIGoals": switching away stops the sound
+[543/1042] [mobile] › tests/amount-input.spec.ts:22:7 › a Goal target typed as "1200,50" is previewed and saved as 1200.50 USD
+[544/1042] [mobile] › tests/amount-input.spec.ts:22:7 › a Goal target typed as " 1000 " is previewed and saved as 1000 USD
+[545/1042] [mobile] › tests/amount-input.spec.ts:31:5 › an ambiguous "1,234" target is flagged in the preview and refused on save, with the same reason
+[546/1042] [mobile] › tests/amount-input.spec.ts:40:5 › a manual valuation accepts a decimal comma and surrounding spaces
+[547/1042] [mobile] › tests/auto-checkins.spec.ts:26:5 › Showcase: the Walk card says it was done automatically, and viewing writes nothing
+[548/1042] [mobile] › tests/a11y-wcag-x.spec.ts:46:7 › names, labels, structure and titles on every page (showcase)
+[549/1042] [mobile] › tests/auto-checkins.spec.ts:44:5 › Local Demo: a water link ticks the habit off once the day reaches the target; a tap and Undo always win
+[550/1042] [mobile] › tests/brand-assets.spec.ts:11:5 › every mark, word and figure answers 200 image/webp at 1x and at 2x, without a redirect
+[551/1042] [mobile] › tests/brand-nav-polish.spec.ts:9:5 › the Z logo leads the sidebar, loads the right density and is named ZIGoals
+[552/1042] [mobile] › tests/brand-nav-polish.spec.ts:51:5 › navigation keeps one order, glides its highlight and moves aria-current and focus at once
+[553/1042] [mobile] › tests/brand-nav-polish.spec.ts:103:5 › reduced motion and the Off preference switch the navigation glide and page entrance off
+[554/1042] [mobile] › tests/brand-nav-polish.spec.ts:137:5 › the hero star rises once per visit, never on re-render, and leaves only the untouched artwork
+[555/1042] [mobile] › tests/brand-nav-polish.spec.ts:151:5 › reduced motion and the Off preference never show the hero star
+[556/1042] [mobile] › tests/a11y-wcag-x.spec.ts:71:5 › keyboard: the skip link comes first and works; focus is always visible, never trapped and never hidden behind the bars
+[557/1042] [mobile] › tests/chess.spec.ts:67:5 › Settings → Chess saves the usernames; the page asks each site one request at a time, with the username only, and shows their numbers
+[558/1042] [mobile] › tests/chess.spec.ts:106:5 › a 429 pauses that site for a minute with nothing retried; the other site's numbers still show
+[559/1042] [mobile] › tests/chess.spec.ts:118:5 › after the minute, Refresh comes back by itself, and nothing was retried meanwhile
+[560/1042] [mobile] › tests/chess.spec.ts:133:5 › puzzles and TV load only on a tap, sandboxed with no referrer; the CSP names exactly these frames; Play opens a window of its own
+[561/1042] [mobile] › tests/chess.spec.ts:158:5 › the habit chess ticks off: once on a day a game ended, kept after an undo
+[562/1042] [mobile] › tests/chess.spec.ts:170:5 › Showcase: fictional ratings and games, and no request to either site
+[563/1042] [mobile] › tests/coherence.spec.ts:7:5 › release, reallocate, pin, lock and delete preserve wealth and Habit history
+[564/1042] [mobile] › tests/coherence.spec.ts:19:5 › legacy overview keeps optional simulation recoverable and archives safely
+[565/1042] [mobile] › tests/coherence.spec.ts:22:5 › manual selector creates a cash Position and allocates its value on Goal creation
+[566/1042] [mobile] › tests/coherence.spec.ts:25:5 › deterministic smooth progress rings and responsive top-right wealth dashboard
+[567/1042] [mobile] › tests/copy-polish.spec.ts:15:5 › a habit with a target of 1 reads “1 time per day”, never “1 times” (QA-28)
+[568/1042] [mobile] › tests/copy-polish.spec.ts:25:5 › a Goal's next and latest contributions use one date format (QA-27)
+[569/1042] [mobile] › tests/copy-polish.spec.ts:35:5 › plaintext backups share one file-name pattern without spaces (QA-26)
+[570/1042] [mobile] › tests/a11y-wcag-x.spec.ts:121:5 › reflow at 320 px and at 200 % zoom (640 px), and text spacing (1.4.10, 1.4.4, 1.4.12): nothing scrolls sideways
+[571/1042] [mobile] › tests/copy-polish.spec.ts:49:5 › one unlock restores several modules: the preview stays, restored modules are marked, names are readable (QA-21)
+[572/1042] [mobile] › tests/counters-compact.spec.ts:28:5 › no visible subtitle under a counter name; "today" is still announced with it
+[573/1042] [mobile] › tests/counters-compact.spec.ts:42:6 › 320 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[574/1042] [mobile] › tests/counters-compact.spec.ts:42:6 › 360 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[575/1042] [mobile] › tests/counters-compact.spec.ts:42:6 › 390 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[576/1042] [mobile] › tests/counters-compact.spec.ts:42:6 › 430 px: six counters with ~20-character names keep every number and button whole, with 44 px targets
+[577/1042] [mobile] › tests/dashboard-visual.spec.ts:4:5 › dashboard destinations, safety and layout work at desktop and 320px
+[578/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a Health v1 backup restores into this build, every record readable
+[579/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a Health v2 backup restores into this build, every record readable
+[580/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a Health v3 backup restores into this build, every record readable
+[581/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a settings v1 backup restores into this build, every record readable
+[582/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a settings v2 backup restores into this build, every record readable
+[583/1042] [mobile] › tests/data-safety-x.spec.ts:43:7 › a finance v4 backup restores into this build, every record readable
+[584/1042] [mobile] › tests/data-safety-x.spec.ts:69:7 › a Health v4 (sleep, meditation) backup comes back byte for byte
+[585/1042] [mobile] › tests/data-safety-x.spec.ts:69:7 › a settings v3 (links) backup comes back byte for byte
+[586/1042] [mobile] › tests/data-safety-x.spec.ts:86:5 › a wrong secret or another file is refused with a plain reason, and nothing changes
+[587/1042] [mobile] › tests/devices.spec.ts:34:5 › the honest list: Bluetooth here, linked accounts that need ZIGoals' setup, and the importer for the rest
+[588/1042] [mobile] › tests/devices.spec.ts:50:5 › without Web Bluetooth, or without Health's own policy, the page says so and offers a fresh Health
+[589/1042] [mobile] › tests/devices.spec.ts:62:5 › a heart-rate monitor: live readings; a meditation keeps lowest, average and highest only when ticked
+[590/1042] [mobile] › tests/devices.spec.ts:92:5 › a scale: each reading waits to be saved; saving again on the same day says it replaces
+[591/1042] [mobile] › tests/diagnostics.spec.ts:2:5 › read-only diagnostics keep deployment disabled and display separate public endpoint evidence
+[592/1042] [mobile] › tests/diagnostics.spec.ts:25:5 › support preview is explicit and copying sends only the reviewed safe snapshot
+[593/1042] [mobile] › tests/display-locale.spec.ts:29:7 › en-US › en-US: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[594/1042] [mobile] › tests/a11y-wcag-x.spec.ts:177:5 › target size (2.5.8): every control is at least 24 × 24 px, or has room around it, or is a link in a sentence
+[595/1042] [mobile] › tests/display-locale.spec.ts:29:7 › de-DE › de-DE: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[596/1042] [mobile] › tests/display-locale.spec.ts:29:7 › nl-BE › nl-BE: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[597/1042] [mobile] › tests/display-locale.spec.ts:29:7 › ja-JP › ja-JP: Wealth, Health and Habits use the locale's numbers and English names, without hydration errors
+[598/1042] [mobile] › tests/a11y-wcag-x.spec.ts:193:5 › reduced motion and Motion Off: nothing keeps moving on any page (2.3.3, 2.2.2)
+[599/1042] [mobile] › tests/display-locale.spec.ts:52:7 › fr-BE › fr-BE: Wealth's total in the browser's own format, English weekday names, no hydration error
+[600/1042] [mobile] › tests/display-locale.spec.ts:52:7 › en-GB › en-GB: Wealth's total in the browser's own format, English weekday names, no hydration error
+[601/1042] [mobile] › tests/display-locale.spec.ts:52:7 › ar › ar: Wealth's total in the browser's own format, English weekday names, no hydration error
+[602/1042] [mobile] › tests/ecosystem-cards.spec.ts:12:5 › the eyebrow reads "ZIG Chain ecosystem"; every card header is a button that opens its record in place
+[603/1042] [mobile] › tests/ecosystem-cards.spec.ts:29:5 › keyboard: Enter and Space open and close a card, focus stays on its button, and several cards stay open
+[604/1042] [mobile] › tests/ecosystem-cards.spec.ts:59:5 › the open record never shows contract addresses, promises or partnership words, and every link is safe
+[605/1042] [mobile] › tests/ecosystem-cards.spec.ts:73:5 › a #project link opens its card and brings it into view; under reduced motion it opens without animation
+[606/1042] [mobile] › tests/ecosystem-cards.spec.ts:84:5 › with motion, opening plays one short reveal that ends, never a loop
+[607/1042] [mobile] › tests/ecosystem.spec.ts:4:5 › ecosystem research is readable without connecting a wallet
+[608/1042] [mobile] › tests/export-everything.spec.ts:32:5 › one ZIP with everything.json and nine CSVs; nothing written on view or by the export; no request
+[609/1042] [mobile] › tests/export-everything.spec.ts:70:5 › the consent checkbox sits beside its sentence, top-aligned, 22 px, with a 44 px row
+[610/1042] [mobile] › tests/export-everything.spec.ts:82:5 › Showcase: the file name says showcase-demo
+[611/1042] [mobile] › tests/export-roundtrip.spec.ts:11:5 › Local Demo export, wipe and import restores all four modules identically
+[612/1042] [mobile] › tests/fasting.spec.ts:37:5 › start, watch the clock, stop: the note is always visible, Today shows the line only while a fast runs
+[613/1042] [mobile] › tests/fasting.spec.ts:66:5 › a fast is stopped automatically at 24 hours, and the page never praises a long fast
+[614/1042] [mobile] › tests/fasting.spec.ts:90:5 › the automatic stop shows right after a reload, even when saving it fails
+[615/1042] [mobile] › tests/fasting.spec.ts:113:5 › a fast starts at the tap, even when its save waits its turn
+[616/1042] [mobile] › tests/fasting.spec.ts:134:5 › Showcase: the fictional fast is labelled and viewing writes nothing; reduced motion keeps the bar still
+[617/1042] [mobile] › tests/focus-return.spec.ts:15:5 › closing Add asset returns focus to the button that opened it (QA-19)
+[618/1042] [mobile] › tests/focus-return.spec.ts:29:5 › after creating a habit with the keyboard, focus is on the new habit; after Cancel, on + New habit (QA-20)
+[619/1042] [mobile] › tests/focus-return.spec.ts:48:5 › Today has no duplicate element ids (QA-30)
+[620/1042] [mobile] › tests/for-you.spec.ts:8:5 › Showcase: at most two cards are open and the rest fold behind Show more
+[621/1042] [mobile] › tests/for-you.spec.ts:35:5 › a brand-new device has no For you area
+[622/1042] [mobile] › tests/goal-choice-controls.spec.ts:6:5 › risk and liquidity tiles work by keyboard and touch and save the same values as before
+[623/1042] [mobile] › tests/goal-choice-controls.spec.ts:27:5 › wealth scope and cadence tiles keep one valid value and the saved plan reopens selected
+[624/1042] [mobile] › tests/goal-source-allocation.spec.ts:27:5 › a source fully allocated to another Goal cannot be included, and says why
+[625/1042] [mobile] › tests/goal-source-allocation.spec.ts:34:5 › a listed source with 0 units is refused by name before the Goal is created, never dropped silently
+[626/1042] [mobile] › tests/goals-v2.spec.ts:27:5 › milestones: a value reached by the recorded progress gets one calm note; add one with a value and a date; edit and remove
+[627/1042] [mobile] › tests/goals-v2.spec.ts:59:5 › "On track?": what is left, what the date would take with no growth, the recorded pace, and the person's own "what if"
+[628/1042] [mobile] › tests/goals-v2.spec.ts:74:5 › goal ideas fill the creator with a name, the kind of progress and steps; a weight goal points to Health goals
+[629/1042] [mobile] › tests/goals.spec.ts:32:5 › corrupt metadata recovery preserves the original bytes and restores the plan
+[630/1042] [mobile] › tests/goals.spec.ts:74:5 › damaged local funds keep the shell usable and block simulation instead of resetting funds
+[631/1042] [mobile] › tests/goals.spec.ts:130:5 › invalid custom scenario preserves baseline funding health and progress
+[632/1042] [mobile] › tests/goals.spec.ts:166:5 › unsupported saved planning date reports a calculation error without crashing the goal
+[633/1042] [mobile] › tests/goals.spec.ts:197:5 › near-limit Unicode plans export a valid importable backup
+[634/1042] [mobile] › tests/goals.spec.ts:222:5 › local goal lifecycle, metadata recovery, exports and mobile layout
+[635/1042] [mobile] › tests/a11y-wcag-x.spec.ts:210:5 › consistent help (3.2.6): the help mechanisms repeated on every page keep their place
+[636/1042] [mobile] › tests/goals.spec.ts:321:5 › missing wallet is explicit and local mode remains available
+[637/1042] [mobile] › tests/guide.spec.ts:30:5 › off by default: no card, no request, and the switch in Settings says so
+[638/1042] [mobile] › tests/guide.spec.ts:46:5 › turning it on shows one labelled note; "Not today" hides that note until the next day; "Turn off the Guide" removes it and resets the switch
+[639/1042] [mobile] › tests/a11y-wcag-x.spec.ts:239:5 › contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and Settings
+[640/1042] [mobile] › tests/guide.spec.ts:82:5 › viewing writes nothing; keyboard reaches every control by name
+[641/1042] [mobile] › tests/habit-paint-first.spec.ts:41:5 › a check-in shows as done before it is written, and the write follows
+[642/1042] [mobile] › tests/guide.spec.ts:97:5 › the weekly review's last step shows the Guide's paragraph only while the Guide is on
+[643/1042] [mobile] › tests/habit-paint-first.spec.ts:54:5 › when storage refuses the save, the painted check-in is taken back and the coded reason is shown
+[644/1042] [mobile] › tests/habit-paint-first.spec.ts:83:5 › a second quick tap while the first check-in saves counts too, on screen and in storage
+[645/1042] [mobile] › tests/habit-paint-first.spec.ts:95:5 › when storage refuses the save, every quick tap it carried is taken back with the coded reason
+[646/1042] [mobile] › tests/guide.spec.ts:123:5 › Showcase: the Guide is on in the demo and its card says so; viewing writes nothing
+[647/1042] [mobile] › tests/habit-skips.spec.ts:19:5 › plan a skip for tomorrow, see it in the list and the calendar, then remove it
+[648/1042] [mobile] › tests/habit-skips.spec.ts:42:5 › Showcase: the Exercise card lists the fictional planned skip and the Walk streak counts its logged days only
+[649/1042] [mobile] › tests/habits-decimal-comma.spec.ts:31:5 › a "1,5" liter target is saved as 1.5, never 15, and a "0,5" check-in as 0.5
+[650/1042] [mobile] › tests/habit-skips.spec.ts:56:5 › vacation days keep the streak and the reminders quiet, and clear exactly their own entries
+[651/1042] [mobile] › tests/habits-decimal-comma.spec.ts:55:5 › an ambiguous "1,234" is refused with a reason and nothing is saved
+[652/1042] [mobile] › tests/habits-decimal-comma.spec.ts:74:5 › no Habits field is a number field: every value is a text field with a numeric or decimal keypad
+[653/1042] [mobile] › tests/habits-v2.spec.ts:33:5 › habit ideas: one tap adds a complete habit, or the same as a 30-day challenge; an idea already there says so
+[654/1042] [mobile] › tests/habits.spec.ts:18:5 › habit counts, edit, pause, archive, notes and reload stay local and durable
+[655/1042] [mobile] › tests/habits-v2.spec.ts:51:5 › your stacks, together; a chained reminder shows on Today once the habit before is done, and can wait for tomorrow
+[656/1042] [mobile] › tests/habits.spec.ts:68:5 › historical dates, missed days and scoped link retention remain correct
+[657/1042] [mobile] › tests/habits-v2.spec.ts:69:5 › a finished challenge: one calm note in your own numbers, once on this device; a new challenge from the card
+[658/1042] [mobile] › tests/habits.spec.ts:91:5 › corrupt Habit data is preserved and creation fails closed
+[659/1042] [mobile] › tests/habits.spec.ts:100:5 › private habit text never enters requests or overwrites existing Goal data
+[660/1042] [mobile] › tests/habits-v2.spec.ts:90:5 › a habit's patterns: by weekday and by week over 12 weeks, and when check-ins are usually saved
+[661/1042] [mobile] › tests/habits.spec.ts:116:5 › selected weekdays and keyboard completion expose only scheduled habits
+[662/1042] [mobile] › tests/health-camera-navigation.spec.ts:23:5 › from Today, the Health link loads a fresh Health page whose camera starts with no reload link
+[663/1042] [mobile] › tests/health-camera-navigation.spec.ts:35:5 › a document loaded as Health keeps soft navigation: away and back into Health stays the same page
+[664/1042] [mobile] › tests/habits.spec.ts:143:5 › templates, distinct habit types, measurement and reflection controls work together
+[665/1042] [mobile] › tests/health-daily.spec.ts:4:5 › saved meal, preview copy, water, planner and export work with fictional private records
+[666/1042] [mobile] › tests/habits.spec.ts:174:5 › frequency templates display the period that actually governs completion
+[667/1042] [mobile] › tests/health-decimal-comma.spec.ts:15:5 › with an en-US browser, "72,5" kg is saved as 72.5 kg and "1,5" mL of water as 1.5 mL, never 725 kg or 15 mL
+[668/1042] [mobile] › tests/health-decimal-comma.spec.ts:40:5 › an ambiguous "1,234" is still refused with a message and nothing is saved
+[669/1042] [mobile] › tests/health-decimal-comma.spec.ts:55:5 › no Health form uses a number field: every amount is a text field with a numeric or decimal keypad
+[670/1042] [mobile] › tests/health-daily.spec.ts:57:5 › label basis, gram entry, water corrections and preferred weight units preserve recorded values
+[671/1042] [mobile] › tests/health-goals.spec.ts:18:5 › Showcase: the fictional goal is counted from the Showcase journal on Goals and Today, and viewing writes nothing
+[672/1042] [mobile] › tests/health-daily.spec.ts:101:5 › Health daily panels reflow at phone tablet and desktop widths
+[673/1042] [mobile] › tests/health-goals.spec.ts:38:5 › Local Demo: create, count from a water entry, close and reopen a health goal
+[674/1042] [mobile] › tests/health-midnight.spec.ts:12:5 › an open Health page moves to the new day at midnight and keeps a half-typed water entry
+[675/1042] [mobile] › tests/health-midnight.spec.ts:28:5 › a date the reader chose stays as chosen across midnight
+[676/1042] [mobile] › tests/health-today-journal-day.spec.ts:10:5 › Today's Health card shows the journal day's meals when the journal zone is ahead of the device
+[677/1042] [mobile] › tests/health.spec.ts:4:5 › rejected food validation keeps the draft and existing private records recoverable
+[678/1042] [mobile] › tests/health.spec.ts:37:5 › food diary create, correct, reload and remove keeps snapshot nutrition
+[679/1042] [mobile] › tests/health.spec.ts:66:5 › recipe portions calculate from foods and preserve the logged result
+[680/1042] [mobile] › tests/help-page.spec.ts:16:5 › Help has one title and eleven topics, listed before them, each linking to its section
+[681/1042] [mobile] › tests/health.spec.ts:91:5 › explicit targets, weight correction and manual activity persist without a wallet
+[682/1042] [mobile] › tests/help-page.spec.ts:32:5 › What's new (Session P): eleven linkable questions; a hash opens its answer and writes nothing
+[683/1042] [mobile] › tests/help-page.spec.ts:50:5 › the wording follows the owner principle: sync once, backups optional, login is not recovery
+[684/1042] [mobile] › tests/help-page.spec.ts:69:5 › questions open and close from the keyboard
+[685/1042] [mobile] › tests/health.spec.ts:123:5 › damaged private data fails closed with no seeded health data
+[686/1042] [mobile] › tests/help-page.spec.ts:92:5 › feedback opens an email to the Alpha address with a short template, and security has its own address
+[687/1042] [mobile] › tests/health.spec.ts:132:5 › historical diary dates and food edits remain usable at 320 pixels
+[688/1042] [mobile] › tests/help-page.spec.ts:101:5 › viewing Help asks no server and writes nothing
+[689/1042] [mobile] › tests/help-page.spec.ts:123:5 › the title sweeps once, and stays still under reduced motion
+[690/1042] [mobile] › tests/help-settings-link.spec.ts:6:5 › Settings links to Help exactly once, near the top, and back
+[691/1042] [mobile] › tests/help-page.spec.ts:132:37 › Help fits a 320 px phone, with links, buttons and questions at least 44 px tall
+[692/1042] [mobile] › tests/help-page.spec.ts:132:37 › Help fits a 390 px phone, with links, buttons and questions at least 44 px tall
+[693/1042] [mobile] › tests/help-page.spec.ts:142:5 › at phone width the top bar names Help and steps back to Settings
+[694/1042] [mobile] › tests/holdings-import.spec.ts:27:5 › Portfolio: four rows, one unknown coin skipped, three transactions imported and undone
+[695/1042] [mobile] › tests/help-page.spec.ts:154:5 › New: your whole life: twenty linkable questions; a hash opens its answer and writes nothing
+[696/1042] [mobile] › tests/holdings-import.spec.ts:79:5 › Wealth: two holdings become manual assets, one without a valuation; Undo removes both
+[697/1042] [mobile] › tests/help-page.spec.ts:173:5 › Session Y: four linkable answers; a hash opens each and nothing is written
+[698/1042] [mobile] › tests/help-page.spec.ts:195:5 › Session Z-Cloud: the new answers open from a hash, the voice answer follows Part 3, and nothing is written
+[699/1042] [mobile] › tests/honesty-banners.spec.ts:29:6 › Today settings written by a newer build: the honesty banners stay on every main page and the read error shows where it belongs
+[700/1042] [mobile] › tests/hosted-alpha-goal-stage.spec.ts:12:5 › the verifier's fictional goal steps work on this build: create, fund, back up, diagnose, close
+[701/1042] [mobile] › tests/hostile-files-x.spec.ts:26:5 › Switch to ZIGoals: a ZIP cut short and an export with a "billion laughs" entity are handled in words; nothing is written
+[702/1042] [mobile] › tests/hostile-files-x.spec.ts:46:5 › Switch to ZIGoals: a Loop export with a habit listed twice and impossible days imports cleanly and says what it did
+[703/1042] [mobile] › tests/hostile-files-x.spec.ts:58:5 › Import meals: formula-like names, an impossible date, a future date and words for numbers: refused rows say why, the rest imports
+[704/1042] [mobile] › tests/honesty-banners.spec.ts:29:6 › corrupt Today settings: the honesty banners stay on every main page and the read error shows where it belongs
+[705/1042] [mobile] › tests/hydration-zone.spec.ts:49:7 › a new device: every page hydrates without an error on either side of the date line
+[706/1042] [mobile] › tests/honesty-banners.spec.ts:29:6 › Health with a field this build does not know: the honesty banners stay on every main page and the read error shows where it belongs
+[707/1042] [mobile] › tests/honesty-banners.spec.ts:29:6 › corrupt Health: the honesty banners stay on every main page and the read error shows where it belongs
+[708/1042] [mobile] › tests/honesty-banners.spec.ts:40:5 › a damaged account selection keeps the honesty banners and says so
+[709/1042] [mobile] › tests/honesty-banners.spec.ts:52:6 › while private stores are still loading › the honesty banners are already visible on every main page
+[710/1042] [mobile] › tests/honesty-banners.spec.ts:61:5 › a readable Health/Habits-only Today still hides the financial bars, as chosen
+[711/1042] [mobile] › tests/insights.spec.ts:23:5 › Showcase: two exact sentences, how they were counted, dismiss one and it stays away
+[712/1042] [mobile] › tests/insights.spec.ts:59:5 › a brand-new device has no card and no key
+[713/1042] [mobile] › tests/install-guide.spec.ts:13:5 › without Apple's flag or an installed display mode, the guide gives the general iPhone steps
+[714/1042] [mobile] › tests/install-guide.spec.ts:22:5 › an Apple browser is asked to add ZIGoals to the Home Screen
+[715/1042] [mobile] › tests/install-guide.spec.ts:31:17 › an installed app is recognised from Apple's standalone flag
+[716/1042] [mobile] › tests/install-guide.spec.ts:31:17 › an installed app is recognised from the standalone display mode
+[717/1042] [mobile] › tests/install-guide.spec.ts:50:5 › viewing Help only reads the state: nothing is asked and nothing is written
+[718/1042] [mobile] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (yes)
+[719/1042] [mobile] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (no)
+[720/1042] [mobile] › tests/install-guide.spec.ts:71:17 › one tap asks once and shows the browser's answer (throws)
+[721/1042] [mobile] › tests/install-guide.spec.ts:78:5 › a browser without the Storage API is told plainly, and the button is off
+[722/1042] [mobile] › tests/hydration-zone.spec.ts:49:7 › Showcase: every page hydrates without an error on either side of the date line
+[723/1042] [mobile] › tests/install-manifest.spec.ts:25:5 › the manifest describes the installed ZIGoals app
+[724/1042] [mobile] › tests/install-manifest.spec.ts:39:5 › the static manifest is byte-identical to the one 72ad872 served, at the same address
+[725/1042] [mobile] › tests/install-manifest.spec.ts:50:5 › every icon is an opaque PNG of its declared size, including the Home Screen icon
+[726/1042] [mobile] › tests/install-manifest.spec.ts:61:5 › pages link the manifest once, name the Home Screen app and keep the existing icons
+[727/1042] [mobile] › tests/install-manifest.spec.ts:72:5 › the security policy is unchanged; a same-origin manifest needs no new directive
+[728/1042] [mobile] › tests/invisible-names.spec.ts:16:5 › a habit titled only with zero-width characters is refused, and nothing is saved
+[729/1042] [mobile] › tests/invisible-names.spec.ts:25:5 › a Goal named only with zero-width characters is refused, and nothing is saved
+[730/1042] [mobile] › tests/invisible-names.spec.ts:35:5 › an asset named only with zero-width characters is refused, and nothing is saved
+[731/1042] [mobile] › tests/invisible-names.spec.ts:47:5 › a food named only with zero-width characters is refused with the name message, and nothing is saved
+[732/1042] [mobile] › tests/invite-only.spec.ts:13:5 › asking for a code reads the same for every address, and Help says what to do when none arrives
+[733/1042] [mobile] › tests/invite-only.spec.ts:40:5 › an older relay’s invite-only answer is still shown in its words, and nothing else changes
+[734/1042] [mobile] › tests/landing-v5-a11y.spec.ts:16:5 › one h1, and every h3 follows an h2 in reading order
+[735/1042] [mobile] › tests/landing-v5-a11y.spec.ts:36:5 › Tab reaches the invite first after the header, and every focused control shows a visible focus ring
+[736/1042] [mobile] › tests/landing-v5-a11y.spec.ts:67:5 › screen readers get the equation as text in order, and the fold stages stay out of the way
+[737/1042] [mobile] › tests/landing-v5-a11y.spec.ts:106:7 › the new copy is at least 4.5:1 against the navy
+[738/1042] [mobile] › tests/landing-v5-a11y.spec.ts:106:7 › the new copy is at least 4.5:1 against the navy under prefers-contrast: more
+[739/1042] [mobile] › tests/landing-v5-captures.spec.ts:140:5 › refresh the landing's product captures from the Showcase
+[740/1042] [mobile] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 1440×900
+[741/1042] [mobile] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 390×844
+[742/1042] [mobile] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 375×667
+[743/1042] [mobile] › tests/landing-v5-equation.spec.ts:42:7 › each viewport of scrolling adds exactly one equation word at 320×568
+[744/1042] [mobile] › tests/landing-v5-equation.spec.ts:61:5 › a fast scroll past several steps still shows the words one at a time, in order
+[745/1042] [mobile] › tests/landing-v5-equation.spec.ts:83:5 › the page is never held: scrolling always continues past the equation
+[746/1042] [mobile] › tests/landing-v5-equation.spec.ts:105:5 › reduced motion, ?motion=off and short screens show the whole equation at once, unpinned
+[747/1042] [mobile] › tests/landing-v5-equation.spec.ts:136:7 › without JavaScript › all four words and figures are visible
+[748/1042] [mobile] › tests/landing-v5-fold.spec.ts:39:7 › the fold maths and frame files › progress and pose stay in range, only ever move forward and settle exactly
+[749/1042] [mobile] › tests/landing-v5-fold.spec.ts:67:7 › the fold maths and frame files › the paced film position covers every frame in order and the paper moves early
+[750/1042] [mobile] › tests/landing-v5-fold.spec.ts:90:7 › the fold maths and frame files › frame blending picks neighbouring loaded frames and starts and ends on whole frames
+[751/1042] [mobile] › tests/landing-v5-fold.spec.ts:113:7 › the fold maths and frame files › every frame a stage can ask for exists at the size of its still, and the sets hold nothing else
+[752/1042] [mobile] › tests/landing-v5-fold.spec.ts:169:5 › a stage pins, folds and settles as you scroll, from the right frame set, and never moves the page
+[753/1042] [mobile] › tests/landing-v5-fold.spec.ts:207:5 › a stage gives its frames back once it is far away
+[754/1042] [mobile] › tests/landing-v5-fold.spec.ts:247:5 › reduced motion shows every settled figure and slogan in place, with nothing pinned or drawn
+[755/1042] [mobile] › tests/landing-v5-fold.spec.ts:255:5 › ?motion=off and Save-Data keep the stages static too
+[756/1042] [mobile] › tests/landing-v5-fold.spec.ts:267:5 › a short screen (landscape phone, 200% zoom) keeps the stages static
+[757/1042] [mobile] › tests/hydration-zone.spec.ts:57:5 › the browser at 00:30 in Brussels on the day after the server: every page hydrates cleanly
+[758/1042] [mobile] › tests/landing-v5-fold.spec.ts:277:7 › without JavaScript › every settled figure and slogan is there, with nothing pinned
+[759/1042] [mobile] › tests/landing-v5-fold.spec.ts:285:5 › forced colours keep the slogans readable and drop the decoration
+[760/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 320 px, moving and static
+[761/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 360 px, moving and static
+[762/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 375 px, moving and static
+[763/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 390 px, moving and static
+[764/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 414 px, moving and static
+[765/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 768 px, moving and static
+[766/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1024 px, moving and static
+[767/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1280 px, moving and static
+[768/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1440 px, moving and static
+[769/1042] [mobile] › tests/landing-v5-layout.spec.ts:38:7 › no horizontal overflow at 1920 px, moving and static
+[770/1042] [mobile] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 320 px
+[771/1042] [mobile] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 390 px
+[772/1042] [mobile] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 1024 px
+[773/1042] [mobile] › tests/landing-v5-layout.spec.ts:78:7 › text is at least 14 px (15 px for body copy) and targets at least 44 px at 1440 px
+[774/1042] [mobile] › tests/landing-v5-layout.spec.ts:88:5 › nothing that pins sits inside a box that clips or scrolls
+[775/1042] [mobile] › tests/landing-v5-perf.spec.ts:79:5 › one full visit stays within the weight and layout-shift budget
+[776/1042] [mobile] › tests/landing-v5-security.spec.ts:25:7 › files › the response headers and the upload allowlist are exactly their reviewed bytes
+[777/1042] [mobile] › tests/landing-v5-security.spec.ts:30:7 › files › every file the page refers to exists, and every file that ships is referred to
+[778/1042] [mobile] › tests/landing-v5-security.spec.ts:73:5 › under the real CSP a full scroll raises no violation and asks no other origin for anything
+[779/1042] [mobile] › tests/landing-v5-security.spec.ts:93:5 › links are https, page anchors or the invite e-mail, and the copy promises no earnings or partnerships
+[780/1042] [mobile] › tests/landing.spec.ts:58:5 › landing keeps its public contract visible without horizontal overflow
+[mobile] › tests/landing-v5-perf.spec.ts:79:5 › one full visit stays within the weight and layout-shift budget
+landing-weight mobile {"firstView":240758,"firstViewFiles":16,"beforeScroll":341370,"beforeScrollFiles":18,"fullScroll":1572298,"files":106,"cls":0}
+
+[781/1042] [mobile] › tests/landing-v5-perf.spec.ts:90:5 › nothing animates forever and nothing keeps running when the page is idle
+[782/1042] [mobile] › tests/landing.spec.ts:111:5 › landing declares a loadable local icon and a real favicon file
+[783/1042] [mobile] › tests/landing.spec.ts:140:5 › the equation adds one word per step, each already in its final nebula look
+[784/1042] [mobile] › tests/landing.spec.ts:193:5 › reduced motion settles the equation on all four steps without scrolling
+[785/1042] [mobile] › tests/landing.spec.ts:219:5 › prefers-contrast: more strengthens quiet text and edges without moving anything
+[786/1042] [mobile] › tests/local-simulation-backup.spec.ts:7:5 › Local simulation Goals survive export, wipe and import through Settings
+[787/1042] [mobile] › tests/local-simulation-backup.spec.ts:32:5 › a damaged legacy ledger is left out with a visible warning and never blocks the backup
+[788/1042] [mobile] › tests/landing-v5-perf.spec.ts:113:5 › LCP and long tasks on a mid-range phone and on desktop (LANDING_PERF=1)
+[789/1042] [mobile] › tests/logo-fold.spec.ts:46:7 › reduced motion (this project's own size): no video is ever created or requested, and the static Z stays
+[790/1042] [mobile] › tests/logo-quickadd-goals-header.spec.ts:10:5 › the Today hero Quick add is the primary action and opens the same Quick add options
+[791/1042] [mobile] › tests/logo-fold.spec.ts:46:7 › Motion Off (this project's own size): no video is ever created or requested, and the static Z stays
+[792/1042] [mobile] › tests/logo-fold.spec.ts:46:7 › reduced motion (the narrow-tablet header): no video is ever created or requested, and the static Z stays
+[793/1042] [mobile] › tests/logo-quickadd-goals-header.spec.ts:28:5 › the Goals header reads "Your Goals" and the cards follow one compact controls row
+[794/1042] [mobile] › tests/logo-fold.spec.ts:46:7 › Motion Off (the narrow-tablet header): no video is ever created or requested, and the static Z stays
+[795/1042] [mobile] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus
+[796/1042] [mobile] › tests/logo-fold.spec.ts:63:6 › the fold plays once per browser session over the static Z (this project's own size) and settles exactly on it
+  3) [mobile] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus 
+
+    Error: locator.evaluate: NotSupportedError: The element has no supported sources.
+
+      69 |  expect(box.height).toBeLessThanOrEqual(viewport.height*.86);expect(box.width).toBeLessThanOrEqual(viewport.width);expect(Math.abs(box.width/box.height-1280/720)).toBeLessThan(.02);
+      70 |  // The viewer starts it.
+    > 71 |  await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
+         |              ^
+      72 |  await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
+      73 |  // A closed dialog has no role, so read the element directly. The close event (pause + rewind) follows the dialog closing, so poll.
+      74 |  await expect.poll(()=>page.locator('dialog.intro-video-dialog video').evaluate(v=>({paused:(v as HTMLVideoElement).paused,time:(v as HTMLVideoElement).currentTime}))).toEqual({paused:true,time:0});
+        at /home/user/ZIGoals/apps/web/tests/logo-quickadd-goals-header.spec.ts:71:14
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-418f5-by-itself-and-returns-focus-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[797/1042] [mobile] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay
+  4) [mobile] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay 
+
+    Error: locator.evaluate: NotSupportedError: The element has no supported sources.
+
+      87 |  await trigger.click();await expect(video).toBeVisible();await page.waitForTimeout(500);expect(await video.evaluate(v=>(v as HTMLVideoElement).paused)).toBe(true);
+      88 |  // Motion Off does not stop the viewer from playing it.
+    > 89 |  await video.evaluate(v=>(v as HTMLVideoElement).play());await expect.poll(()=>video.evaluate(v=>!(v as HTMLVideoElement).paused)).toBe(true);
+         |              ^
+      90 | });
+      91 |
+        at /home/user/ZIGoals/apps/web/tests/logo-quickadd-goals-header.spec.ts:89:14
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/logo-quickadd-goals-header-e7af6-oster-and-play-control-stay-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[798/1042] [mobile] › tests/logo-fold.spec.ts:63:6 › the fold plays once per browser session over the static Z (the narrow-tablet header) and settles exactly on it
+[799/1042] [mobile] › tests/markets-table.spec.ts:30:5 › cards stay the default; the table shows each market's price, 1h/24h/7d, its 7-day line and market cap as observed
+[800/1042] [mobile] › tests/markets-table.spec.ts:49:5 › the table sorts by 24h change, market cap or name, with what is not known last
+[801/1042] [mobile] › tests/markets-table.spec.ts:63:5 › a favourite from the table is the same favourite on the cards
+[802/1042] [mobile] › tests/markets-table.spec.ts:74:5 › phone: the table keeps the market, price, 24h change and star; no sideways scroll; 44 px stars
+[803/1042] [mobile] › tests/meditation.spec.ts:54:5 › a one-minute sitting: its bell, a pause, the end, how you feel, saved to Health
+[804/1042] [mobile] › tests/meditation.spec.ts:104:5 › a reload in the middle keeps the time; a session that ended while away asks to be saved, or let go
+[805/1042] [mobile] › tests/logo-fold.spec.ts:106:5 › clicking the Z while the fold plays navigates normally; the clip never takes pointer or keyboard focus
+[806/1042] [mobile] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold fails to load (this project's own size)
+[807/1042] [mobile] › tests/meditation.spec.ts:138:5 › breathing: the circle moves only while motion is allowed; reduced motion and Motion Off keep it still, with words and a count
+[808/1042] [mobile] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold fails to load (the narrow-tablet header)
+[809/1042] [mobile] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold is not ready in time (this project's own size)
+[810/1042] [mobile] › tests/meditation.spec.ts:181:5 › mindful minutes by hand: logged, corrected, deleted; your weekly goal; your bell
+[811/1042] [mobile] › tests/logo-fold.spec.ts:129:7 › the static Z stays when the fold is not ready in time (the narrow-tablet header)
+[812/1042] [mobile] › tests/logo-fold.spec.ts:157:5 › keyboard focus on the phone top bar Z is never covered by the fold
+[813/1042] [mobile] › tests/meditation.spec.ts:230:5 › a habit linked to mindful minutes ticks itself off
+[814/1042] [mobile] › tests/mobile-safari-fit.spec.ts:4:5 › mobile text fields are at least 16px and settings disclosures are comfortable to tap
+[815/1042] [mobile] › tests/meditation.spec.ts:241:5 › Today: the Meditation widget, the reminder ("Not today") and the Health card
+[816/1042] [mobile] › tests/meditation.spec.ts:263:5 › Showcase: fictional sessions, and nothing asked of any other site
+[817/1042] [mobile] › tests/meditation.spec.ts:277:5 › phones: the running session is the whole view; no sideways scroll; the controls are big enough
+[818/1042] [mobile] › tests/motion-arrival.spec.ts:18:5 › a newly selected page arrives once: nav pop and light sweep, title sweep, card settle, figure shine, and no layout change
+[819/1042] [mobile] › tests/motion-polish.spec.ts:50:5 › charts draw their marks once and settle on the exact rendered values
+[820/1042] [mobile] › tests/motion-arrival.spec.ts:57:6 › reduced motion: no arrival marks, no nav animation and no logo intro
+[821/1042] [mobile] › tests/motion-polish.spec.ts:77:5 › market sparklines draw once and keep their exact text alternative
+[822/1042] [mobile] › tests/motion-polish.spec.ts:88:5 › reduced motion and the Off preference leave charts complete and still
+[823/1042] [mobile] › tests/motion-arrival.spec.ts:57:6 › Motion Off: no arrival marks, no nav animation and no logo intro
+[824/1042] [mobile] › tests/motion-polish.spec.ts:104:5 › primary actions catch one sweep of light on hover, give on press and keep their focus ring
+[825/1042] [mobile] › tests/motion-polish.spec.ts:121:5 › reduced motion and the Off preference keep buttons still on every route
+[826/1042] [mobile] › tests/multitab.spec.ts:43:5 › two tabs cancel stale funds review and retain both sequential deposits
+[827/1042] [mobile] › tests/motion-polish.spec.ts:137:5 › progress fills grow in once when seen and glide to new values while their state updates at once
+[828/1042] [mobile] › tests/multitab.spec.ts:69:5 › another tab's recovered plan rejects a stale recovery save
+[829/1042] [mobile] › tests/multitab.spec.ts:103:5 › mode selection stays in its own tab while local reviews stay local
+[830/1042] [mobile] › tests/multitab.spec.ts:123:5 › two tabs share only the active wallet's journal notifications and retain future rows
+[831/1042] [mobile] › tests/multitab.spec.ts:261:5 › simultaneous confirmations serialize and the losing tab must review again
+  5) [mobile] › tests/motion-polish.spec.ts:137:5 › progress fills grow in once when seen and glide to new values while their state updates at once 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 78.1875
+    Received:   78.1875
+
+      163 |  await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
+      164 |  const end=await filled();
+    > 165 |  expect(gliding).toBeGreaterThanOrEqual(start);expect(gliding).toBeLessThan(end);
+          |                                                                ^
+      166 |  expect(end/(await overview.evaluate(el=>el.getBoundingClientRect().width))).toBeCloseTo(target,2);
+      167 |  await page.locator('.habit-overview').screenshot({path:info.outputPath('habit-overview-settled.png')});
+      168 | });
+        at /home/user/ZIGoals/apps/web/tests/motion-polish.spec.ts:165:64
+
+    Error Context: ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/motion-polish-progress-fil-8b2fc-their-state-updates-at-once-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/motion-polish-progress-fil-8b2fc-their-state-updates-at-once-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace ../../../../../tmp/claude-0/-home-user-ZIGoals/1bcc2b89-43e9-534c-9b9e-a0e284d0974b/scratchpad/gatec/pw-half1/motion-polish-progress-fil-8b2fc-their-state-updates-at-once-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[832/1042] [mobile] › tests/music.spec.ts:64:5 › hidden until shown (the approved default): Settings → Music shows it; the button sits opposite ZIGi and never covers it
+[833/1042] [mobile] › tests/motion-polish.spec.ts:170:5 › reduced motion and the Off preference keep progress complete and still
+[834/1042] [mobile] › tests/motion-polish.spec.ts:185:5 › the slogan cascades and carries one sweep of light from Habits & Health to Wealth, then rests
+[835/1042] [mobile] › tests/music.spec.ts:94:5 › focus sounds in the panel: the NOVA look, previous and next step through the sounds, Play and Stop, Escape returns to the button
+[836/1042] [mobile] › tests/music.spec.ts:125:5 › Spotify not set up on this site: an honest line and Open Spotify, no Connect button and no Spotify request
+[837/1042] [mobile] › tests/motion-polish.spec.ts:199:5 › reduced motion and the Off preference keep the slogan exact and still
+[838/1042] [mobile] › tests/music.spec.ts:139:5 › Spotify, MOCKED: connect with PKCE, the sign-in sealed (never in storage), what plays with its logo and artwork, controls, Disconnect
+[839/1042] [mobile] › tests/my-links.spec.ts:15:5 › add, edit, move and remove links in Settings; https only; the icon follows the address until chosen
+[840/1042] [mobile] › tests/my-links.spec.ts:56:5 › Today: one button per link, in order, opening in a new tab with no opener and no referrer, exactly as typed
+[841/1042] [mobile] › tests/music.spec.ts:173:5 › Spotify, MOCKED: without the owner's logo file no track is shown; a refused play says Premium or the owner's list
+[842/1042] [mobile] › tests/my-links.spec.ts:80:5 › hidden under Your pages & buttons, the Today card leaves; the links stay in Settings
+[843/1042] [mobile] › tests/my-links.spec.ts:95:5 › Showcase: four fictional links to example addresses on Settings and Today
+[844/1042] [mobile] › tests/music.spec.ts:195:5 › the mini-bar takes the button's place on this device; the phone's More sheet opens the player
+[845/1042] [mobile] › tests/nutrition-import.spec.ts:26:5 › fixture A: three entries on two days with an unknown serving measure, blank fat stays unknown, undo removes them
+[846/1042] [mobile] › tests/music.spec.ts:216:5 › the Showcase shows the player and connects nothing: no Spotify request, no music configuration asked
+[847/1042] [mobile] › tests/nutrition-import.spec.ts:64:5 › fixture B: a serving size makes library foods, one per distinct food
+[848/1042] [mobile] › tests/onboarding.spec.ts:11:5 › a brand-new device sees the welcome on Today; Not now writes only the seen flag and it stays away
+[849/1042] [mobile] › tests/nutrition-import.spec.ts:79:5 › Showcase: the fictional example import is listed and viewing writes nothing
+[850/1042] [mobile] › tests/onboarding.spec.ts:24:5 › never for someone with records or a chosen Today, and never in Showcase
+[851/1042] [mobile] › tests/owner-polish.spec.ts:16:5 › one circular family, Today active count and a chosen Goal share exact USD valuation
+[852/1042] [mobile] › tests/owner-polish.spec.ts:31:5 › responsive collection, detail and Positions retain access without document overflow
+[853/1042] [mobile] › tests/onboarding.spec.ts:51:5 › the flow: ZIGi's hello, pillars, starters, the tour, install, ZIGi, the honest data step; nothing is saved until Finish saves it all
+[854/1042] [mobile] › tests/onboarding.spec.ts:101:5 › a first goal: a kind needs a name and a target; it is saved on Finish, once
+[855/1042] [mobile] › tests/onboarding.spec.ts:119:5 › choosing nothing anywhere: Finish writes only the seen flag and opens Today as it was
+[856/1042] [mobile] › tests/owner-polish.spec.ts:35:5 › missing price is explicit and stale quote survives failed refresh and reload
+[857/1042] [mobile] › tests/onboarding.spec.ts:131:5 › a re-run never adds a habit twice; "take me to encrypted sync" opens it after Finish
+[858/1042] [mobile] › tests/owner-polish.spec.ts:75:5 › Today reports private-store recovery errors while preserving legacy destinations
+[859/1042] [mobile] › tests/onboarding.spec.ts:149:5 › install: the browser's own install offer shows a button where it exists; an installed app is told so
+[860/1042] [mobile] › tests/owner-polish.spec.ts:83:5 › Positions utilities expose wallet reader and APR calculator below wealth
+[861/1042] [mobile] › tests/onboarding.spec.ts:163:5 › Skip setup writes only the seen flag
+[862/1042] [mobile] › tests/onboarding.spec.ts:171:5 › reduced motion and Motion Off: steps change without animation
+[863/1042] [mobile] › tests/owner-preview.spec.ts:5:5 › owner setup: stake allocation, contribution plan and supporting Habit stay private
+[864/1042] [mobile] › tests/onboarding.spec.ts:181:5 › phones only: Settings offers “Show the welcome again”
+[865/1042] [mobile] › tests/page-marks.spec.ts:22:5 › each life page shows its own mark, every other page the Today swan; figure and words are decorative 1x/2x images
+[866/1042] [mobile] › tests/owner-preview.spec.ts:29:5 › APR persistence, account isolation, utility order and navigation
+[867/1042] [mobile] › tests/owner-preview.spec.ts:41:5 › responsive owner preview captures
+[868/1042] [mobile] › tests/page-marks.spec.ts:53:5 › the Shape & Fold tagline text is gone from the sidebar, the More sheet and every other place in the app
+[869/1042] [mobile] › tests/owner-preview.spec.ts:56:5 › shared navigation keeps Health accessible without writing its store
+[870/1042] [mobile] › tests/page-titles.spec.ts:14:5 › every page has its own title
+[871/1042] [mobile] › tests/page-marks.spec.ts:63:5 › changing pages crossfades the marks once with motion on, and swaps them at once under reduced motion and Motion Off
+[872/1042] [mobile] › tests/page-marks.spec.ts:95:5 › figure and words never overlap the navigation, the horizon or the star, and nothing clips, at every desktop size
+[873/1042] [mobile] › tests/page-marks.spec.ts:134:5 › navigation groups: life areas, money tools, the rest; spaced not divided, and tab order follows what is seen
+[874/1042] [mobile] › tests/page-marks.spec.ts:172:5 › Staking: the renamed page keeps every Position reachable, and the old address redirects (307) to it
+[875/1042] [mobile] › tests/pages-visibility.spec.ts:37:5 › hiding a page saves a stamped settings v3 choice; the navigation, preview and device mirror follow; showing it brings it back
+[876/1042] [mobile] › tests/page-titles.spec.ts:24:5 › the title follows a client-side navigation
+[877/1042] [mobile] › tests/persona-x.spec.ts:19:5 › Complete, then Undo: today is Due again, not Failed, on Habits and on Today
+[878/1042] [mobile] › tests/persona-x.spec.ts:32:5 › Connect Keplr without the extension: the Local demo and its balance stay; only the reason is shown
+[879/1042] [mobile] › tests/persona-x.spec.ts:43:5 › the Habits + Health layout names both areas under Today's title
+[880/1042] [mobile] › tests/pages-visibility.spec.ts:69:5 › every switch sits on its name's row, before the name, at its full size
+[881/1042] [mobile] › tests/pages-visibility.spec.ts:83:5 › only Habits and Health: the navigation, the phone tab bar and More rebuild, and a bare /app opens Habits
+[882/1042] [mobile] › tests/persona-x.spec.ts:49:5 › funding a EUR Goal: a new cash asset starts in euros with a matching name, and the preview opens
+[883/1042] [mobile] › tests/pages-visibility.spec.ts:98:5 › Today hidden: a bare /app replaces itself with the first visible page, the home link follows, and a deliberate link to Today offers to show it again
+[884/1042] [mobile] › tests/persona-x.spec.ts:70:5 › phone: the accounts heading keeps the width of the card; its button goes under it
+[885/1042] [mobile] › tests/pages-visibility.spec.ts:119:5 › every page hidden: ZIGoals opens on Settings; Settings and Help stay, and the phone keeps More
+[886/1042] [mobile] › tests/persona-x.spec.ts:85:5 › Activity: water logged shows under Health
+[887/1042] [mobile] › tests/persona-x.spec.ts:93:5 › a new person is not asked to review a week with nothing in it; a week with a check-in is offered
+[888/1042] [mobile] › tests/pages-visibility.spec.ts:130:5 › the start page: Health opens as a document load; choosing a page or "First visible page" saves a stamped choice
+[889/1042] [mobile] › tests/pages-visibility.spec.ts:149:5 › "Show everything again" asks first: Cancel changes nothing; confirming shows every page and button
+[890/1042] [mobile] › tests/persona-x.spec.ts:116:5 › the Goal wizard: each new step takes focus, so the keyboard and a screen reader start from it
+[891/1042] [mobile] › tests/persona-x.spec.ts:128:5 › the Showcase says that what is added there stays in the demo, and Exit returns to Today
+[892/1042] [mobile] › tests/pages-visibility.spec.ts:169:5 › buttons: Quick add, the ZIGi button and the phone Wealth shortcut hide everywhere; switching ZIGi on brings it back
+[893/1042] [mobile] › tests/persona-x.spec.ts:139:5 › a goal's "Ask ZIGi about this goal" keeps clear of its status badge (handed back by X-LOCAL, H10)
+[894/1042] [mobile] › tests/pages-visibility.spec.ts:191:5 › Showcase shows every page and keeps a choice in the tab, never in this device's storage
+[895/1042] [mobile] › tests/persona-z.spec.ts:24:5 › 1. Habits + Health and Habits only: Today is one centred column at a reading width; the financial layouts keep the rail
+[896/1042] [mobile] › tests/pages-visibility.spec.ts:205:5 › a focused navigation entry that disappears hands focus to the page
+[897/1042] [mobile] › tests/pages-visibility.spec.ts:221:5 › while the settings are still opening, the device mirror already shapes the navigation
+[898/1042] [mobile] › tests/phone-folds.spec.ts:15:5 › phone: Today folds its secondary modules to rows that open in place, and focus stays on the row
+[899/1042] [mobile] › tests/persona-z.spec.ts:43:5 › 2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full
+[900/1042] [mobile] › tests/phone-folds.spec.ts:39:5 › phone: Wealth folds its secondary modules, a link into one opens it, and amounts never split inside a number
+[901/1042] [mobile] › tests/persona-z.spec.ts:77:5 › 3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"
+[902/1042] [mobile] › tests/persona-z.spec.ts:90:5 › 5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked
+[903/1042] [mobile] › tests/phone-folds.spec.ts:55:5 › desktop: no module is folded and every one shows as before
+[904/1042] [mobile] › tests/phone-form-sheets.spec.ts:22:5 › phone: the habit editor is a bottom sheet; Escape and Close return focus, and Create closes it on the new habit
+[905/1042] [mobile] › tests/persona-z.spec.ts:113:5 › 6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds
+[906/1042] [mobile] › tests/phone-form-sheets.spec.ts:49:5 › phone: Log a meal opens from its button as a sheet and closes on a logged meal
+[907/1042] [mobile] › tests/phone-form-sheets.spec.ts:63:5 › phone: Staking opens the wallet reader and the reward scenario as sheets
+[908/1042] [mobile] › tests/phone-form-sheets.spec.ts:82:5 › desktop: the forms stay in the page, no sheet opens
+[909/1042] [mobile] › tests/phone-pages.spec.ts:10:6 › 390x844: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[910/1042] [mobile] › tests/persona-z.spec.ts:163:5 › 6b. a ZIGi "delete my habit" card opens that habit's own confirmation; an active habit says to archive it first
+[911/1042] [mobile] › tests/persona-z.spec.ts:184:5 › 7. lb and fl oz: weight history, the chart and Today read the chosen unit; the records stay in grams and millilitres
+[912/1042] [mobile] › tests/persona-z.spec.ts:205:5 › 7b. persona round: the water target is typed in US fl oz; the week reads fl oz and Activity reads lb
+[913/1042] [mobile] › tests/persona-z.spec.ts:226:5 › 8. asset quantities are grouped in the person's locale ("300,000 ZIG"); the Edit form's input stays ungrouped
+[914/1042] [mobile] › tests/phone-pages.spec.ts:10:6 › 360x800: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[915/1042] [mobile] › tests/persona-z.spec.ts:247:5 › 9. phones: a goal card is about a third of a screen; details open on the goal's page
+[916/1042] [mobile] › tests/persona-z.spec.ts:265:5 › 10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top
+[917/1042] [mobile] › tests/persona-z.spec.ts:278:5 › 10b. phones: Habits' hero actions take two rows from 360 px, and the first figure is on the first screen
+[918/1042] [mobile] › tests/phone-pages.spec.ts:10:6 › 320x568: no page scrolls sideways and every title starts on the first screen, above the tab bar
+[919/1042] [mobile] › tests/persona-z.spec.ts:299:5 › 11. Help is the last item of the sidebar and of More; the footer's "Send feedback" opens the feedback form
+[920/1042] [mobile] › tests/persona-z.spec.ts:319:5 › 12. phones: ZIGi is the one floating button; the music player opens from ZIGi's "⋯" menu and the More sheet
+[921/1042] [mobile] › tests/persona-z.spec.ts:342:5 › persona round: Meet ZIGi and Help's local-model answer never scroll sideways at 320 and 360 px
+[922/1042] [mobile] › tests/persona-z.spec.ts:358:5 › persona round: an earlier on-device answer keeps its examples as words; the latest keeps them as buttons
+[923/1042] [mobile] › tests/phone-pages.spec.ts:20:5 › Wealth: the total follows the title, so the figure is on the first screen
+[924/1042] [mobile] › tests/phone-refinements.spec.ts:23:5 › Wealth on a phone: four holdings, then Show all 13 assets; every card stays in the page and desktop is unchanged
+[925/1042] [mobile] › tests/phone-pages.spec.ts:30:5 › phone default orders: Health title, date, counters; Habits check-ins before charts; Wealth holdings after the total; a saved order still wins
+[926/1042] [mobile] › tests/phone-refinements.spec.ts:59:5 › Today on a phone: shorter lists with Show all, and the week folded into its totals with the note in view
+[927/1042] [mobile] › tests/phone-pages.spec.ts:50:5 › Settings on a phone: a grouped list under the title goes to every section; desktop keeps its chips
+[928/1042] [mobile] › tests/phone-refinements.spec.ts:87:5 › Habits calendar days are at least 44 px on a 360 px phone
+[929/1042] [mobile] › tests/phone-pages.spec.ts:72:5 › landscape phone: no sideways scroll and the title on the first screen on every page
+[930/1042] [mobile] › tests/phone-refinements.spec.ts:113:5 › phone sheets: dragging the grabber down closes the sheet as Escape does; a short drag or a drag elsewhere does not
+[931/1042] [mobile] › tests/phone-refinements.spec.ts:151:5 › phone sheets under reduced motion: the sheet does not follow the finger, and a full drag still closes it
+[932/1042] [mobile] › tests/phone-shell.spec.ts:29:6 › 390x844: honesty labels and the layout lock sit on the first screen of every page, clear of the bars
+[933/1042] [mobile] › tests/phone-refinements.spec.ts:165:5 › desktop sheets are not draggable
+[934/1042] [mobile] › tests/phone-touch-targets.spec.ts:40:5 › QA2-07: every standalone tap target on the main phone pages is at least 44 × 44 px
+[935/1042] [mobile] › tests/phone-shell.spec.ts:29:6 › 360x800: honesty labels and the layout lock sit on the first screen of every page, clear of the bars
+[936/1042] [mobile] › tests/phone-shell.spec.ts:51:5 › Showcase: its label is on the first screen of every page and Exit stays one tap away
+[937/1042] [mobile] › tests/phone-touch-targets.spec.ts:52:5 › QA2-07: the title links reach 44 px without moving anything
+[938/1042] [mobile] › tests/phone-shell.spec.ts:61:5 › landscape phone: the strip folds into single rows and the title stays on the first screen
+[939/1042] [mobile] › tests/platform-habits.spec.ts:6:5 › a linked contribution Habit records behavior but never adds financial progress
+[940/1042] [mobile] › tests/phone-shell.spec.ts:71:5 › tabs, the More sheet, Settings and back links navigate with real links, aria-current and focus return
+[941/1042] [mobile] › tests/platform-habits.spec.ts:32:5 › a stale cross-store reference never offers reconciliation or mutates an unrelated Habit
+[942/1042] [mobile] › tests/platform-habits.spec.ts:44:5 › a failed second-store creation reserves one ID and retries without duplicate habits
+[943/1042] [mobile] › tests/platform-habits.spec.ts:57:5 › a fractional-cent ZIG price assumption saves exactly without changing observed progress
+[944/1042] [mobile] › tests/phone-shell.spec.ts:104:5 › the status line opens the Status sheet: every notice in full, the wallet buttons, and focus back on the line
+[945/1042] [mobile] › tests/platform-visual.spec.ts:3:5 › Run 8 additions preserve responsive V2.1 layout and reduced motion
+[946/1042] [mobile] › tests/phone-shell.spec.ts:127:5 › without JavaScript a phone still shows the tab bar, the top bar and the honesty labels
+[947/1042] [mobile] › tests/phone-shell.spec.ts:138:5 › desktop and tablet keep the sidebar and never render the phone chrome
+[948/1042] [mobile] › tests/platform.spec.ts:3:5 › private position allocation and plans survive reload without financial or Health side effects
+[949/1042] [mobile] › tests/phone-shell.spec.ts:151:5 › a stalled private read (Session D): the notice sits under the honesty strip with phone gutters, Retry within reach
+[950/1042] [mobile] › tests/platform.spec.ts:36:5 › watch-only invalid input never calls a wallet or chain endpoint
+[951/1042] [mobile] › tests/platform.spec.ts:46:5 › mainnet watch-only displays exact six-decimal observations without wallet authority
+[952/1042] [mobile] › tests/phone-shell.spec.ts:172:5 › the names CI journeys click stay visible links on a phone: Today, Goals, Habits, Health, Wealth and Settings
+[953/1042] [mobile] › tests/platform.spec.ts:67:5 › editing an imported manual Position preserves its asset identity, allocations and historical scale
+[954/1042] [mobile] › tests/portfolio-v2.spec.ts:51:5 › the header, holdings and allocation from your transactions and the market: exact figures, unknown never zero
+[955/1042] [mobile] › tests/portfolio.spec.ts:16:5 › create a portfolio and record transactions; without prices values stay unknown, and Wealth is untouched
+[956/1042] [mobile] › tests/portfolio-v2.spec.ts:84:5 › value over time: one history per coin, one after another, for the chosen range; exact values in the table
+[957/1042] [mobile] › tests/portfolio-v2.spec.ts:101:5 › a coin's page: price and changes, your position, market figures as observed, a transaction for this coin, favourites
+[958/1042] [mobile] › tests/portfolio.spec.ts:68:5 › Showcase shows a fictional portfolio with labelled fixture prices and requests no prices for it
+[959/1042] [mobile] › tests/portfolio-v2.spec.ts:131:5 › an older market service: 1h, 7d and the market figures read "Not provided", never zero
+[960/1042] [mobile] › tests/portfolio-v2.spec.ts:145:5 › find a coin you do not hold: its page, with nothing of yours yet
+[961/1042] [mobile] › tests/portfolio.spec.ts:85:5 › unreadable saved data shows a calm notice and is never overwritten without a choice
+[962/1042] [mobile] › tests/portfolio.spec.ts:97:5 › phone: fields are 16 px and every control is at least 44 px tall
+[963/1042] [mobile] › tests/portfolio-v2.spec.ts:157:5 › Showcase: the whole page and a coin's page from labelled fixtures, and nothing asked of any market
+[964/1042] [mobile] › tests/positions-layout.spec.ts:5:5 › wealth leads collapsed read-only utilities and APR stays account-scoped
+[965/1042] [mobile] › tests/portfolio-v2.spec.ts:176:5 › phone: the coin, its 24h change, value and result; allocation and transactions fold; no sideways scroll; 44 px targets
+[966/1042] [mobile] › tests/private-read-delay.spec.ts:69:5 › Today settings that never finish opening: an honest notice, no page, no writes, and the late read renders normally
+[967/1042] [mobile] › tests/product-data.spec.ts:50:5 › V1 upgrade, explicit module restore and linked Goal reload preserve all prior namespaces
+[968/1042] [mobile] › tests/product-data.spec.ts:71:5 › damaged private exports retain exact bytes and explicit restore quarantines originals
+[969/1042] [mobile] › tests/product-data.spec.ts:91:5 › private Habit and Health sentinel values stay outside requests, headers, logs and wallet calls
+[970/1042] [mobile] › tests/private-read-delay.spec.ts:95:5 › Retry starts a new open for a stalled one and the page renders
+[971/1042] [mobile] › tests/private-read-delay.spec.ts:110:5 › a page store that stalls keeps its own loading state, with the notice and a Settings pointer above it
+[972/1042] [mobile] › tests/private-read-delay.spec.ts:128:5 › another tab's blocked upgrade stalls the open; the page explains, keeps the banners, and recovers when it clears
+[973/1042] [mobile] › tests/product-shell.spec.ts:3:5 › unified shell exposes all eight destinations and preserves Alpha controls
+[974/1042] [mobile] › tests/product-visual.spec.ts:5:5 › populated product fits every required viewport with reduced motion and scoped links
+[975/1042] [mobile] › tests/progress-glass.spec.ts:59:7 › /app: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[976/1042] [mobile] › tests/progress-glass.spec.ts:59:7 › /app/goals: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[977/1042] [mobile] › tests/progress-glass.spec.ts:59:7 › /app/wealth: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[978/1042] [mobile] › tests/public-alpha.spec.ts:9:5 › Alpha declares an explicit same-origin icon that resolves
+[979/1042] [mobile] › tests/public-alpha.spec.ts:48:5 › egress capture detects a sentinel carried only in an HttpOnly cookie
+[980/1042] [mobile] › tests/public-alpha.spec.ts:62:5 › the effective Permissions-Policy: the microphone on the app pages, the camera only on Health, everything denied elsewhere
+[981/1042] [mobile] › tests/public-alpha.spec.ts:79:5 › strict production headers, fresh nonce, navigation and script rejection
+[982/1042] [mobile] › tests/progress-glass.spec.ts:59:7 › /app/habits: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[983/1042] [mobile] › tests/public-alpha.spec.ts:172:5 › F15: on every app page and after opening ZIGi, every added script is the server's (nonced) or a runtime chunk, and nothing violates CSP
+[984/1042] [mobile] › tests/progress-glass.spec.ts:59:7 › /app/health: every bar and ring fills once and settles exactly on its value, without shifting layout or widening the page
+[985/1042] [mobile] › tests/progress-glass.spec.ts:77:5 › a new value glides from the old one and never replays the entrance
+[986/1042] [mobile] › tests/progress-glass.spec.ts:99:7 › reduced motion: every bar and ring shows its final value at once, with nothing moving
+[987/1042] [mobile] › tests/progress-glass.spec.ts:99:7 › Motion Off: every bar and ring shows its final value at once, with nothing moving
+[988/1042] [mobile] › tests/push-reminders.spec.ts:100:5 › without the fixture the panel says the build has no push, offers no button, and the reminder field shows no offer
+[989/1042] [mobile] › tests/push-reminders.spec.ts:112:5 › signed out: off until an account is signed in; Showcase never offers it; nothing is written or sent on view
+[990/1042] [mobile] › tests/push-reminders.spec.ts:128:5 › turn on: permission, one worker at /push-sw.js, a subscribe call with times only; a reminder change re-sends the schedule; turn off deletes everything
+[991/1042] [mobile] › tests/push-reminders.spec.ts:180:5 › an iPhone browser tab is told to install first; a locked account is told to unlock
+[992/1042] [mobile] › tests/push-reminders.spec.ts:240:5 › reminder names: off by default; on, a push names the habit due now, composed on this device; off deletes the table
+[993/1042] [mobile] › tests/qa-decisions.spec.ts:8:5 › QA-23: offline, in-app links keep the page, which keeps saving; back online they work again
+[994/1042] [mobile] › tests/qa-decisions.spec.ts:29:5 › QA-23: right after reconnecting, a link opens even before the page has heard the browser is online
+[995/1042] [mobile] › tests/public-alpha.spec.ts:194:5 › private lifecycle, backup, diagnostics and connection remain bounded under production CSP
+[996/1042] [mobile] › tests/qa-decisions.spec.ts:48:5 › QA-38: a Goal with a source that has no value shows its progress as a lower bound, and says why
+[997/1042] [mobile] › tests/quick-add-line.spec.ts:28:5 › water: preview first, then Save writes one entry and the dialog stays open for the next line
+[998/1042] [mobile] › tests/public-alpha.spec.ts:250:5 › public icon and robots bypass nonce work while lookalike HTML retains CSP
+[999/1042] [mobile] › tests/quick-logging.spec.ts:29:5 › the day before in one tap: a meal, or the whole day; each only while there is nothing there yet
+[1000/1042] [mobile] › tests/quick-add-line.spec.ts:58:5 › a habit by its name: "meditated" logs one check-in on today
+[1001/1042] [mobile] › tests/quick-logging.spec.ts:46:5 › "Repeat yesterday" copies every meal at once
+[1002/1042] [mobile] › tests/radio-shape.spec.ts:17:5 › every visible radio is a circle of 20 to 22 px in the Goal wizard, Settings and Health
+[1003/1042] [mobile] › tests/quick-logging.spec.ts:54:5 › one tap: what you usually have at a meal, and an item you pinned, on every meal
+[1004/1042] [mobile] › tests/remember-device.spec.ts:35:5 › in a browser tab the choice is unticked, always shown with its warning, and an unticked unlock remembers nothing
+[1005/1042] [mobile] › tests/quick-logging.spec.ts:77:5 › your own water buttons, in your unit; back to the usual two
+[1006/1042] [mobile] › tests/remember-device.spec.ts:48:5 › in the installed app (display-mode standalone) the choice is ticked by default, with the same warning
+[1007/1042] [mobile] › tests/remember-device.spec.ts:60:5 › a remembered device opens again without the secret after a reload and in a new tab, until it is locked or forgotten
+[1008/1042] [mobile] › tests/quick-logging.spec.ts:97:5 › Quick add: "slept 7h30" asks when you woke up, then becomes a night in Sleep (no movement minutes)
+[1009/1042] [mobile] › tests/reminders.spec.ts:26:5 › a habit reminder appears on Today once the device clock passes its time, and stays dismissed for today
+[1010/1042] [mobile] › tests/remember-device.spec.ts:119:5 › B1: a new remember stores the root key itself, which this browser cannot export
+[1011/1042] [mobile] › tests/reminders.spec.ts:48:5 › a done habit has no reminder card; the editor shows and clears the saved time
+[1012/1042] [mobile] › tests/remember-device.spec.ts:130:5 › B1: a version 1 record from an earlier build opens once more, then is version 2 and nothing can unwrap the root
+[1013/1042] [mobile] › tests/remember-device.spec.ts:168:5 › B2: Lock in one tab locks every tab of this browser, and none of them reopens
+[1014/1042] [mobile] › tests/reminders.spec.ts:74:5 › water: a reminder set in the Water journal shows until water is logged
+[1015/1042] [mobile] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 320px
+[1016/1042] [mobile] › tests/reminders.spec.ts:101:5 › viewing pages writes no reminder data, and reminder times never reach a backup
+[1017/1042] [mobile] › tests/run10-barcode.spec.ts:3:5 › manual leading-zero lookup previews unknown values and logs only a confirmed private snapshot
+[1018/1042] [mobile] › tests/run10-account-access.spec.ts:3:34 › fixture email access stays locked and preserves separate local Health at 390px
+[1019/1042] [mobile] › tests/run10-barcode.spec.ts:11:80 › OverconstrainedError: rear camera unavailable, not found and cooldown preserve manual workflows
+[1020/1042] [mobile] › tests/run10-barcode.spec.ts:11:80 › NotFoundError: rear camera unavailable, not found and cooldown preserve manual workflows
+[1021/1042] [mobile] › tests/run10-barcode.spec.ts:20:5 › unavailable camera API leaves typed barcode entry usable
+[1022/1042] [mobile] › tests/run10-barcode.spec.ts:26:5 › camera is explicit and stops all tracks on cancel and navigation
+[1023/1042] [mobile] › tests/run10-account-access.spec.ts:28:5 › unconfigured email access explains unavailable setup without attempting provider calls
+[1024/1042] [mobile] › tests/run10-dashboard-placement.spec.ts:5:5 › widget insertion, rail placement and encrypted layout recovery keep one binding
+[1025/1042] [mobile] › tests/run10-barcode.spec.ts:41:5 › closing the barcode panel stops its camera track
+[1026/1042] [mobile] › tests/run10-barcode.spec.ts:53:5 › one unconfirmed camera reading does not fill the barcode
+[1027/1042] [mobile] › tests/run10-barcode.spec.ts:67:5 › account selection change stops active barcode capture
+[1028/1042] [mobile] › tests/run10-barcode.spec.ts:82:5 › a browser without native decoding can still start a local camera scan
+[1029/1042] [mobile] › tests/run10-barcode.spec.ts:91:5 › the local decoder reads an EAN-8 label with leading zeros without uploading frames
+[1030/1042] [mobile] › tests/run10-barcode.spec.ts:105:54 › partial native barcode support falls back to local EAN-8 decoding
+[1031/1042] [mobile] › tests/run10-ecosystem.spec.ts:2:5 › ecosystem filters, clears, opens useful details and keeps external links private
+[1032/1042] [mobile] › tests/run10-barcode.spec.ts:105:54 › throws native barcode support falls back to local EAN-8 decoding
+[1033/1042] [mobile] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 320px
+[1034/1042] [mobile] › tests/run10-barcode.spec.ts:117:5 › camera request requires a rear camera rather than selecting a front camera
+[1035/1042] [mobile] › tests/run10-barcode.spec.ts:128:5 › a stale camera failure cannot stop a newer scan
+[1036/1042] [mobile] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 390px
+[1037/1042] [mobile] › tests/run10-barcode.spec.ts:142:5 › an older scan cannot attach its stopped stream after a newer scan starts
+[1038/1042] [mobile] › tests/run10-barcode.spec.ts:159:5 › a lookup answered 429 is disabled for its retryAfter with a plain countdown, then announced as available
+[1039/1042] [mobile] › tests/run10-ecosystem.spec.ts:10:39 › ecosystem directory reflows at 1440px
+[1040/1042] [mobile] › tests/run10-barcode.spec.ts:169:5 › a refused camera offers a photo of the barcode, decoded on the device; nothing is sent until Look up
+[1041/1042] [mobile] › tests/run10-financial-evidence.spec.ts:3:5 › manual portfolio evidence yields reviewed flow-boundary return and retains correction on reload
+[1042/1042] [mobile] › tests/run10-financial-evidence.spec.ts:16:5 › manual dated FX review keeps original EUR and converted USD separate from current wealth
+  Slow test file: [desktop] › tests/a11y-wcag-x.spec.ts (8.0m)
+  Slow test file: [mobile] › tests/a11y-wcag-x.spec.ts (7.6m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  5 failed
+    [desktop] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus 
+    [desktop] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay 
+    [mobile] › tests/logo-quickadd-goals-header.spec.ts:53:5 › "See how it works" opens the brand film, which loads nothing until opened, never plays by itself and returns focus 
+    [mobile] › tests/logo-quickadd-goals-header.spec.ts:79:5 › with reduced motion, Motion Off or neither, the film never starts by itself; the poster and play control stay 
+    [mobile] › tests/motion-polish.spec.ts:137:5 › progress fills grow in once when seen and glide to new values while their state updates at once 
+  68 skipped
+  969 passed (57.6m)
