@@ -131,6 +131,63 @@ test("strict production headers, fresh nonce, navigation and script rejection", 
   expect(errors).toEqual([]);
 });
 
+// Session Z-Cloud Part 7, F15 (SECURITY_REVIEW_Y; [TIER 3] (security tests)): the check above sees /app at rest and only
+// the scripts present at that moment. This one watches from before the first byte runs: a MutationObserver installed by
+// an init script records every <script> added anywhere (one that removes itself too), and every CSP violation is
+// recorded, on every app page and after opening ZIGi (its chunk loads on demand). Both halves of H8 option 1 hold on
+// each page: every <script in the server's HTML carries that response's nonce, and a script without one is a chunk of
+// this origin the runtime appended (not in the server's HTML). Any CSP violation fails the gate.
+// Every app page without a record id in its address (app/app/**/page.tsx); Music opens in a player, not a page.
+const APP_ROUTES = ["/app", "/app/goals", "/app/goals/new", "/app/goals/positions", "/app/goals/tracked", "/app/habits", "/app/health", "/app/wealth", "/app/markets", "/app/staking", "/app/portfolio", "/app/ecosystem", "/app/chess", "/app/activity", "/app/settings", "/app/help", "/app/welcome", "/app/zigi"];
+type SeenScript = {src: string; nonced: boolean};
+async function watchScripts(page: Page) {
+  await page.addInitScript(() => {
+    const seen: {src: string; nonced: boolean}[] = [], violations: string[] = [];
+    Reflect.set(window, "__gateScripts", seen); Reflect.set(window, "__gateViolations", violations);
+    new MutationObserver(records => { for (const record of records) for (const node of record.addedNodes) {
+      const scripts = node instanceof HTMLScriptElement ? [node] : node instanceof Element ? [...node.querySelectorAll("script")] : [];
+      for (const script of scripts) seen.push({src: script.src, nonced: !!script.nonce});
+    } }).observe(document, {childList: true, subtree: true});
+    document.addEventListener("securitypolicyviolation", event => { violations.push(`${event.violatedDirective} ${event.blockedURI}`); }, true);
+  });
+}
+async function checkPage(page: Page, route: string, response: Awaited<ReturnType<Page["goto"]>>) {
+  const csp = response!.headers()["content-security-policy"]!, nonce = /'nonce-([A-Za-z0-9+/]+=*)'/.exec(csp)?.[1];
+  expect(nonce, `${route}: the page has a nonce policy`).toBeTruthy();
+  const html = await response!.text(), serverScripts = [...html.matchAll(/<script\b[^>]*>/gi)].map(m => m[0]);
+  for (const tag of serverScripts) expect(tag, `${route}: a script the server sent carries the header's nonce`).toContain(`nonce="${nonce}"`);
+  const pageUrl = new URL(response!.url()), serverSrcs = new Set(serverScripts.map(t => /\bsrc="([^"]+)"/.exec(t)?.[1]).filter((v): v is string => !!v).map(v => new URL(v, pageUrl).href));
+  const chunk = new RegExp(`^${pageUrl.origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/_next/static/chunks/`);
+  const seen = await page.evaluate(() => Reflect.get(window, "__gateScripts") as {src: string; nonced: boolean}[]);
+  expect(seen.length, `${route}: the observer saw the page's scripts`).toBeGreaterThan(0);
+  for (const script of seen.filter((s: SeenScript) => !s.nonced)) {
+    expect(script.src, `${route}: a script without a nonce is a chunk of this origin the runtime appended`).toMatch(chunk);
+    expect(serverSrcs.has(script.src), `${route}: ${script.src} was not in the server's HTML`).toBe(false);
+  }
+  expect(await page.evaluate(() => Reflect.get(window, "__gateViolations") as string[]), `${route}: no CSP violation`).toEqual([]);
+}
+test("F15: on every app page and after opening ZIGi, every added script is the server's (nonced) or a runtime chunk, and nothing violates CSP", async ({page}) => {
+  test.setTimeout(180_000);
+  const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
+  await watchScripts(page);
+  for (const route of APP_ROUTES) {
+    const response = await page.goto(route);
+    expect(response!.status(), route).toBeLessThan(400);
+    await page.waitForLoadState("networkidle");
+    await checkPage(page, route, response);
+  }
+  // ZIGi's panel is a chunk loaded on demand: open it, then check again on the same page.
+  const response = await page.goto("/app/habits");
+  await page.waitForLoadState("networkidle");
+  const before = await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length);
+  await page.getByRole("button", {name: /^Open ZIGi/}).click();
+  await expect(page.locator("dialog.ai-chat[open]")).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  expect(await page.evaluate(() => (Reflect.get(window, "__gateScripts") as unknown[]).length), "opening ZIGi loaded its chunk").toBeGreaterThan(before);
+  await checkPage(page, "/app/habits + ZIGi", response);
+  expect(errors).toEqual([]);
+});
+
 test("private lifecycle, backup, diagnostics and connection remain bounded under production CSP", async ({page},info) => {
   await page.setViewportSize({width:320,height:568}); await page.emulateMedia({reducedMotion:"reduce"});
   const capture = captureRequestEgress(page);
