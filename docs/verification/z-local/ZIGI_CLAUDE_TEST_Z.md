@@ -180,7 +180,7 @@ _Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 40 summary file(s): 7
 | gemma4 · important ×3 variance (spread) | 748/852 · 87.8 % · spread 3.2 pt (89.8 % / 86.6 % / 88.4 %) | reported | `variance-gemma4/rtx-5090-gemma4-12b-tools-page-important-2026-10-11T12-06-22-223Z.json (re-scored; 752/852 at run time)` |
 | qwen3.8 · important ×3 variance (spread) | 729/852 · 85.6 % · spread 3.2 pt (87.3 % / 85.2 % / 84.2 %) | reported | `variance-qwen38/rtx-5090-qwen3.8-27b-tools-page-important-2026-10-11T12-33-51-318Z.json` |
 | Golden set (272, byte-identical) 100 % | 272/272 · 100.0 % | **met** | `vitest (CI: web checks)` |
-| Golden spoken set 100 % | 413/413 · 100.0 % | **met** | `vitest (CI: web checks)` |
+| Golden spoken set 100 % | 397/397 · 100.0 % | **met** | `vitest (CI: web checks)` |
 <!-- targets:end -->
 
 ## Recommendation per job
