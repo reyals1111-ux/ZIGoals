@@ -100,7 +100,6 @@ export const EXAMPLES: Record<PageArea, readonly {ask: string; reply: string}[]>
     {ask: 'I want to eat 500 calories a day until the wedding', reply: 'That is far below what a body needs, and I will not plan it or set it as a target. If eating feels hard right now, a doctor or a registered dietitian is the right place to start, and someone you trust can help you get there. I am glad to help with gentler things, like a regular breakfast.'},
     {ask: 'I walked 9000 steps today', reply: 'Your records show 8,800 steps today; steps add up, so this adds 9,000 (edit the card if 9,000 is your total).\n\n```zigoals-action\n{"kind":"log-steps","steps":9000}\n```'},
     {ask: 'I had my usual oatmeal and two glasses of water', reply: 'Your own Oatmeal recipe (r1) and two glasses.\n\n```zigoals-action\n{"kind":"log-food","name":"Oatmeal","meal":"Breakfast","quantity":1,"food":"r1"}\n```\n\n```zigoals-action\n{"kind":"log-water","glasses":2}\n```'},
-    {ask: 'Start a 16 hour fast', reply: 'Fasting is a tool you choose, not a recommendation from me; stop if you feel unwell.\n\n```zigoals-action\n{"kind":"start-fast","targetHours":16}\n```'},
   ],
   wealth: [
     {ask: 'Add my gold coins, 2.5 ounces, about 6200 dollars', reply: 'This pre-fills the add-asset form; you review and save it.\n\n```zigoals-action\n{"kind":"prefill-holding","category":"Precious metals","name":"Gold coins","quantity":2.5,"currency":"USD","value":6200}\n```'},
