@@ -79,7 +79,7 @@
   "costUsd": 11.3736378,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:43:54.773Z",
+  "rescoredAt": "2026-10-11T14:02:21.817Z",
   "unscorable": 0
  },
  "runs": [
@@ -29719,11 +29719,11 @@
    "area": "today",
    "lang": "en",
    "turn": 18,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [delete-record], got []"
     },
     {
@@ -29738,7 +29738,7 @@
     },
     {
      "name": "fields:kind=delete-record,what=fast",
-     "pass": false,
+     "pass": true,
      "detail": "no card"
     }
    ],
@@ -31911,7 +31911,7 @@
    "cards": 1,
    "rejected": 0,
    "hint": "insight",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 26278,
    "totalMs": 43434,
    "tokens": {
@@ -39817,12 +39817,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": true,
+   "pass": false,
    "checks": [
     {
      "name": "cards",
-     "pass": true,
-     "detail": "wanted [set-target], got [set-target]"
+     "pass": false,
+     "detail": "wanted [], got [set-target]"
     },
     {
      "name": "schema",
@@ -39833,11 +39833,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": true,
-     "detail": "{\"kind\":\"set-target\",\"target\":\"sleep\",\"value\":8,\"unit\":\"hours\"}"
     }
    ],
    "cards": 1,
@@ -40950,7 +40945,7 @@
    "cards": 1,
    "rejected": 0,
    "hint": "insight",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 2359,
    "totalMs": 4511,
    "tokens": {

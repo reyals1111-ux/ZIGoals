@@ -12,8 +12,8 @@
   "cases": 684,
   "repeat": 3,
   "runs": 2493,
-  "passed": 1941,
-  "rate": 0.8924137931034483,
+  "passed": 1945,
+  "rate": 0.8942528735632184,
   "byKind": {
    "lookup": {
     "passed": 352,
@@ -78,7 +78,7 @@
   "costUsd": 1.182902310000002,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:43:19.803Z",
+  "rescoredAt": "2026-10-11T14:01:47.522Z",
   "unscorable": 318
  },
  "runs": [
@@ -90429,11 +90429,11 @@
    "area": "today",
    "lang": "en",
    "turn": 18,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [delete-record], got []"
     },
     {
@@ -90448,7 +90448,7 @@
     },
     {
      "name": "fields:kind=delete-record,what=fast",
-     "pass": false,
+     "pass": true,
      "detail": "no card"
     }
    ],
@@ -96573,7 +96573,7 @@
    "cards": 0,
    "rejected": 0,
    "hint": "empathetic",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 4957,
    "totalMs": 12331,
    "tokens": {
@@ -109632,7 +109632,7 @@
    "cards": 0,
    "rejected": 0,
    "hint": "encouraging",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 712,
    "totalMs": 2186,
    "tokens": {
@@ -116837,7 +116837,7 @@
    "cards": 0,
    "rejected": 0,
    "hint": "empathetic",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 3011,
    "totalMs": 3908,
    "tokens": {
@@ -120837,12 +120837,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -120853,11 +120853,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -120893,12 +120888,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -120909,11 +120904,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "no card"
     }
    ],
    "cards": 0,
@@ -120949,12 +120939,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -120965,11 +120955,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "no card"
     }
    ],
    "cards": 0,

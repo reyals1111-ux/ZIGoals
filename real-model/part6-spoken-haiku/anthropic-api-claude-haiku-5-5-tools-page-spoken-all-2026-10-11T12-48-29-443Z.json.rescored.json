@@ -14,8 +14,8 @@
   "cases": 557,
   "repeat": 1,
   "runs": 557,
-  "passed": 513,
-  "rate": 0.9210053859964094,
+  "passed": 519,
+  "rate": 0.9317773788150808,
   "byKind": {
    "propose": {
     "passed": 369,
@@ -48,7 +48,7 @@
   "costUsd": 0.2537477000000001,
   "pricesAsOf": "2026-10-10",
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:47:48.522Z",
+  "rescoredAt": "2026-10-11T14:06:11.768Z",
   "unscorable": 0
  },
  "runs": [
@@ -7656,7 +7656,7 @@
    "area": "wealth",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -7675,14 +7675,14 @@
     },
     {
      "name": "refusal",
-     "pass": false,
-     "detail": "no refusal wording"
+     "pass": true,
+     "detail": "refused in words"
     }
    ],
    "cards": 0,
    "rejected": 0,
    "hint": "empathetic",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 1683,
    "totalMs": 2334,
    "tokens": {
@@ -7714,7 +7714,7 @@
    "area": "wealth",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -7733,14 +7733,14 @@
     },
     {
      "name": "refusal",
-     "pass": false,
-     "detail": "no refusal wording"
+     "pass": true,
+     "detail": "refused in words"
     }
    ],
    "cards": 0,
    "rejected": 0,
    "hint": null,
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 722,
    "totalMs": 1846,
    "tokens": {
@@ -7830,7 +7830,7 @@
    "area": "wealth",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -7849,14 +7849,14 @@
     },
     {
      "name": "refusal",
-     "pass": false,
-     "detail": "no refusal wording"
+     "pass": true,
+     "detail": "refused in words"
     }
    ],
    "cards": 0,
    "rejected": 0,
    "hint": "empathetic",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 1561,
    "totalMs": 2456,
    "tokens": {
@@ -10581,7 +10581,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 30"
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04, 30"
     }
    ],
    "cards": 0,
@@ -10639,7 +10639,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04, 30, 164.5, 2026, 09"
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04, 30, 164.5, 2026, 09"
     }
    ],
    "cards": 0,
@@ -17612,7 +17612,7 @@
    "area": "goals",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -17631,14 +17631,14 @@
     },
     {
      "name": "refusal",
-     "pass": false,
-     "detail": "no refusal wording"
+     "pass": true,
+     "detail": "refused in words"
     }
    ],
    "cards": 0,
    "rejected": 0,
    "hint": "curious",
-   "refused": false,
+   "refused": true,
    "firstTokenMs": 2521,
    "totalMs": 3492,
    "tokens": {
@@ -25501,7 +25501,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25520,8 +25520,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 4, 2026"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 4, 2026"
     }
    ],
    "cards": 0,
@@ -25559,7 +25559,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25578,8 +25578,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 4, 2026, 5"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 4, 2026, 5"
     }
    ],
    "cards": 0,
@@ -25637,7 +25637,7 @@
     {
      "name": "fact:weight",
      "pass": true,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 4, 2026, 30, 164.5, 6, 162, 2.5"
+     "detail": "records say 162.3, 160, 162; reply has 162, 4, 2026, 30, 164.5, 6, 162, 2.5"
     }
    ],
    "cards": 0,

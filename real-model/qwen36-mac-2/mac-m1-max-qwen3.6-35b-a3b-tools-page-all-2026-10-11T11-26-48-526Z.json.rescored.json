@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 600,
-  "rate": 0.8275862068965517,
+  "passed": 602,
+  "rate": 0.8303448275862069,
   "byKind": {
    "lookup": {
     "passed": 91,
@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:49:26.851Z",
+  "rescoredAt": "2026-10-11T14:07:48.799Z",
   "unscorable": 0
  },
  "runs": [
@@ -28967,11 +28967,11 @@
    "area": "today",
    "lang": "en",
    "turn": 18,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [delete-record], got []"
     },
     {
@@ -28986,7 +28986,7 @@
     },
     {
      "name": "fields:kind=delete-record,what=fast",
-     "pass": false,
+     "pass": true,
      "detail": "no card"
     }
    ],
@@ -38663,12 +38663,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -38679,11 +38679,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "no card"
     }
    ],
    "cards": 0,

@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:48:50.570Z",
+  "rescoredAt": "2026-10-11T14:07:12.705Z",
   "unscorable": 0
  },
  "runs": [
@@ -38616,7 +38616,7 @@
     {
      "name": "cards",
      "pass": false,
-     "detail": "wanted [set-target], got [log-sleep]"
+     "detail": "wanted [], got [log-sleep]"
     },
     {
      "name": "schema",
@@ -38627,11 +38627,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "{\"kind\":\"log-sleep\",\"wake\":\"07:10\",\"bedtime\":\"23:20\",\"quality\":4,\"nap\":false,\"day\":\"today\"}"
     }
    ],
    "cards": 1,

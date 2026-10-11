@@ -14,8 +14,8 @@
   "cases": 194,
   "repeat": 3,
   "runs": 852,
-  "passed": 727,
-  "rate": 0.8532863849765259,
+  "passed": 729,
+  "rate": 0.8556338028169014,
   "byKind": {
    "lookup": {
     "passed": 75,
@@ -76,7 +76,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:53:01.638Z",
+  "rescoredAt": "2026-10-11T14:11:19.276Z",
   "unscorable": 0
  },
  "runs": [
@@ -33381,11 +33381,11 @@
    "area": "today",
    "lang": "en",
    "turn": 18,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [delete-record], got []"
     },
     {
@@ -33400,7 +33400,7 @@
     },
     {
      "name": "fields:kind=delete-record,what=fast",
-     "pass": false,
+     "pass": true,
      "detail": "no card"
     }
    ],
@@ -36047,11 +36047,11 @@
    "area": "today",
    "lang": "en",
    "turn": 18,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
+     "pass": true,
      "detail": "wanted [delete-record], got []"
     },
     {
@@ -36066,7 +36066,7 @@
     },
     {
      "name": "fields:kind=delete-record,what=fast",
-     "pass": false,
+     "pass": true,
      "detail": "no card"
     }
    ],

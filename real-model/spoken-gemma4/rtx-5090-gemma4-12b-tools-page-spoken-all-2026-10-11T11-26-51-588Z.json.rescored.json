@@ -14,8 +14,8 @@
   "cases": 557,
   "repeat": 1,
   "runs": 557,
-  "passed": 460,
-  "rate": 0.8258527827648114,
+  "passed": 465,
+  "rate": 0.8348294434470377,
   "byKind": {
    "propose": {
     "passed": 359,
@@ -48,7 +48,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:51:38.846Z",
+  "rescoredAt": "2026-10-11T14:09:59.500Z",
   "unscorable": 0
  },
  "runs": [
@@ -10444,7 +10444,7 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -10463,8 +10463,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,
@@ -10502,7 +10502,7 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -10521,8 +10521,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,
@@ -25364,7 +25364,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25383,8 +25383,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,
@@ -25422,7 +25422,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25441,8 +25441,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,
@@ -25480,7 +25480,7 @@
    "area": "health",
    "lang": "nl",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
@@ -25499,8 +25499,8 @@
     },
     {
      "name": "fact:weight",
-     "pass": false,
-     "detail": "records say 30, 30, 164.5, 164.1, 163.8, 163.4; reply has 162, 2026, 10, 04"
+     "pass": true,
+     "detail": "records say 162.3, 160, 162; reply has 162, 2026, 10, 04"
     }
    ],
    "cards": 0,

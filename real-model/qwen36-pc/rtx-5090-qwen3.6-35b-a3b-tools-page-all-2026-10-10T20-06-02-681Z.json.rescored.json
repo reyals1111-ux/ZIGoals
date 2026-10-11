@@ -14,8 +14,8 @@
   "cases": 595,
   "repeat": 1,
   "runs": 725,
-  "passed": 611,
-  "rate": 0.8427586206896551,
+  "passed": 612,
+  "rate": 0.8441379310344828,
   "byKind": {
    "lookup": {
     "passed": 92,
@@ -80,7 +80,7 @@
   "costUsd": null,
   "pricesAsOf": null,
   "unreported": 0,
-  "rescoredAt": "2026-10-11T13:50:36.856Z",
+  "rescoredAt": "2026-10-11T14:08:59.247Z",
   "unscorable": 0
  },
  "runs": [
@@ -38711,12 +38711,12 @@
    "area": "health",
    "lang": "en",
    "turn": 0,
-   "pass": false,
+   "pass": true,
    "checks": [
     {
      "name": "cards",
-     "pass": false,
-     "detail": "wanted [set-target], got []"
+     "pass": true,
+     "detail": "wanted [], got []"
     },
     {
      "name": "schema",
@@ -38727,11 +38727,6 @@
      "name": "arguments",
      "pass": true,
      "detail": "every call accepted"
-    },
-    {
-     "name": "fields:kind=set-target,target=sleep,value=8",
-     "pass": false,
-     "detail": "no card"
     }
    ],
    "cards": 0,
