@@ -13,7 +13,15 @@ step() { echo "== $* $(date -u +%FT%TZ) =="; }
 step "waiting for END pc-chain3 in hours.log"
 until /usr/bin/grep -q '^END pc-chain3 ' "$RUNS/hours.log"; do sleep 120; done
 step "pc-chain3 ended"
+# A fresh production build with L50–L54 in (the protocol and the device cues live in the bundle), and the server on :3103 again.
+if [ -f "$SC/serve-3103.pid" ] && kill -0 "$(cat "$SC/serve-3103.pid")" 2>/dev/null; then kill "$(cat "$SC/serve-3103.pid")"; sleep 3; fi
+step build; echo "START build-3103-3 $(date -u +%FT%TZ)" >> "$RUNS/hours.log"
+NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build 2>&1 | tail -3
+RC=${PIPESTATUS[0]}; echo "END build-3103-3 $(date -u +%FT%TZ) rc=$RC" >> "$RUNS/hours.log"; [ $RC -eq 0 ] || exit $RC
+( cd apps/web && nohup pnpm exec next start --hostname 127.0.0.1 --port 3103 > "$SC/serve-3103.log" 2>&1 & echo $! > "$SC/serve-3103.pid" )
+for i in $(seq 1 30); do sleep 2; curl -s -m 3 -o /dev/null -w '%{http_code}' http://127.0.0.1:3103/app | /usr/bin/grep -qE '^(200|307|308)$' && break; done
 curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:3103/app | /usr/bin/grep -qE '^(200|307|308)$' || { step ":3103 is not serving"; exit 6; }
+/usr/bin/grep -rl -F "not a different card in its place" apps/web/.next/static >/dev/null 2>&1 && step "the build carries L50" || step "WARNING: the build does not carry the L50 protocol text"
 S=claude-sonnet-5-5; H=claude-haiku-5-5
 run() { local name="$1"; shift; echo "START $name $(date -u +%FT%TZ)" >> "$RUNS/hours.log"; "$@"; local rc=$?; echo "END $name $(date -u +%FT%TZ) rc=$rc" >> "$RUNS/hours.log"; return $rc; }
 run ui-panel-sonnet-2 "$SC/ui-stage.sh" ui-panel-sonnet-2 $S zigi-real-model.spec.ts desktop 3 ZIGI_UI_CASES=150 || step "ui-panel-sonnet-2 rc=$?"
