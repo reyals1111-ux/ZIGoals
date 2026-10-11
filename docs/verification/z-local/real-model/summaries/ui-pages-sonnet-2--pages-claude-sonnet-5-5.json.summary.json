@@ -1,0 +1,25 @@
+{
+ "kind": "panel",
+ "file": "pages-claude-sonnet-5-5.json",
+ "stage": "ui-pages-sonnet-2",
+ "groups": {
+  "claude-sonnet-5-5 on Anthropic API (mobile)": {
+   "runs": 170,
+   "passed": 169,
+   "rate": 0.9941176470588236,
+   "medianMs": 2763,
+   "p90Ms": 5410,
+   "errors": 1,
+   "costUsd": 1.3216462000000002
+  },
+  "claude-sonnet-5-5 on Anthropic API (desktop)": {
+   "runs": 170,
+   "passed": 169,
+   "rate": 0.9941176470588236,
+   "medianMs": 2552,
+   "p90Ms": 5341,
+   "errors": 1,
+   "costUsd": 1.045919
+  }
+ }
+}

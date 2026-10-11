@@ -60,7 +60,7 @@ apart on each). Over both halves (167 turns a model) the input cost fell by abou
 
 ## The runs
 <!-- tables:start -->
-_Rendered by `scripts/zigi/render-claude-doc.mjs` from 52 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
+_Rendered by `scripts/zigi/render-claude-doc.mjs` from 53 summary file(s) on 2026-10-11; the figures are the API's own usage fields at the dated price table._
 
 | Stage | Model | Mode | Cases · turns | Pass (then) | Pass re-scored now (turns still in the corpus) | By kind | Per turn: input + cache write + cache read → output tokens | Per turn | Total | First token / total median ms |
 |---|---|---|---:|---:|---:|---|---|---:|---:|---:|
@@ -153,6 +153,8 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 52 summary file(s) on 202
 | ui-pages-haiku | `claude-haiku-5-5` | Chrome · desktop | **168/170 · 98.8 %** | 1,999 | 0 | $0.08 |
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · desktop | **162/170 · 95.3 %** | 2,755 | 0 | $1.20 |
 | ui-pages-sonnet | `claude-sonnet-5-5` | Chrome · mobile | **168/170 · 98.8 %** | 2,781 | 0 | $1.13 |
+| ui-pages-sonnet-2 | `claude-sonnet-5-5` | Chrome · mobile | **169/170 · 99.4 %** | 2,763 | 1 | $1.32 |
+| ui-pages-sonnet-2 | `claude-sonnet-5-5` | Chrome · desktop | **169/170 · 99.4 %** | 2,552 | 1 | $1.05 |
 | ui-panel-haiku | `claude-haiku-5-5` | Chrome · desktop | **125/150 · 83.3 %** | 2,287 | 0 | $0.07 |
 | ui-panel-haiku-2 | `claude-haiku-5-5` | Chrome · desktop | **140/150 · 93.3 %** | 2,319 | 0 | $0.07 |
 | ui-panel-opus | `claude-opus-5-5` | Chrome · desktop | **57/60 · 95.0 %** | 4,063 | 0 | $0.97 |
@@ -172,7 +174,7 @@ summary is in.
 
 ## The targets (Part 6)
 <!-- targets:start -->
-_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 52 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
+_Rendered by `scripts/zigi/targets.mjs` on 2026-10-11 from 53 summary file(s): 8 met · 11 not met · 1 not run yet. A run with the page records (the app's own shape) is preferred over one without; the latest wins._
 
 | Target | Result | Verdict | Evidence |
 |---|---:|---|---|
