@@ -164,6 +164,9 @@ async function checkPage(page: Page, route: string, response: Awaited<ReturnType
     expect(script.src, `${route}: a script without a nonce is a chunk of this origin the runtime appended`).toMatch(chunk);
     expect(serverSrcs.has(script.src), `${route}: ${script.src} was not in the server's HTML`).toBe(false);
   }
+  // Gate C (the security read): under 'strict-dynamic' a trusted script could append a nonced script from elsewhere without
+  // any violation, so a nonced script with an address must also be the server's own or a chunk of this origin.
+  for (const script of seen.filter((s: SeenScript) => s.nonced && s.src)) expect(serverSrcs.has(script.src) || chunk.test(script.src), `${route}: ${script.src} (nonced) is the server's own or a chunk of this origin`).toBe(true);
   expect(await page.evaluate(() => Reflect.get(window, "__gateViolations") as string[]), `${route}: no CSP violation`).toEqual([]);
 }
 test("F15: on every app page and after opening ZIGi, every added script is the server's (nonced) or a runtime chunk, and nothing violates CSP", async ({page}) => {
