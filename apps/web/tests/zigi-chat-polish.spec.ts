@@ -182,6 +182,15 @@ test('with no AI: a local answer brings a stat card or a chart from the records 
   // The log scrolls smoothly (instantly under reduced motion): wait for it to arrive, and the button stays away meanwhile.
   await expect.poll(() => panel(page).locator('.ai-chat-log').evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
   await expect(jump).toHaveCount(0);
+  // Gate C (ADR-019 C57): only ZIGi's own move glides; the log does not animate a scroll something else asks for (a focus,
+  // a tool bringing a button into view), and under the app's Motion Off the jump arrives at once.
+  const log = panel(page).locator('.ai-chat-log');
+  expect(await log.evaluate(el => getComputedStyle(el).scrollBehavior)).toBe('auto');
+  await page.evaluate(() => { document.documentElement.dataset.appMotion = 'off'; });
+  await log.evaluate(el => { el.scrollTop = 0; el.dispatchEvent(new Event('scroll')); });
+  await expect(jump).toBeVisible();
+  await jump.click();
+  expect(await log.evaluate(el => el.scrollHeight - el.scrollTop - el.clientHeight)).toBeLessThan(2);
 });
 
 test('first-run tips until "Got it"; "?" opens the shortcuts sheet outside the message box, Escape closes only the sheet', async ({page}) => {

@@ -227,7 +227,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
     lastReplies.current = replies;
   }, [replies, data.voice.readAloud, open, reader, session.chat.turns, session.parsed, vprefs.muted, vprefs.readSpoken, zigiRec.data]);
   useEffect(() => { if (!open) reader.stop(); }, [open, reader]);
-  useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) el.scrollTop = el.scrollHeight; }, [session.chat.turns.length, session.draft]);
+  useEffect(() => { const el = log.current; if (!el) return; if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) toLatest(el); }, [session.chat.turns.length, session.draft]);
   const trapTab = useCallback((event: ReactKeyboardEvent<HTMLElement>) => {
     if ((event.target as Element).closest?.('.ai-shortcuts')) return;
     if (event.key === '?' && !(event.target as Element).closest?.('textarea, input, select, [contenteditable="true"]')) { event.preventDefault(); setShortcuts(true); return; }
@@ -294,7 +294,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         {session.failure && <div className="ai-failure" role="alert"><p className="ai-failure-title">{session.failure.title}</p>{session.failure.steps.length > 0 && <ul>{session.failure.steps.map((step, i) => <li key={i}>{step}</li>)}</ul>}<div className="ai-card-actions">{['bad-key', 'missing-key', 'not-connected', 'model-missing', 'local-unreachable', 'cors'].includes(session.failure.kind) && <Link className="secondary" href={SETTINGS_HREF} onClick={onClose}>Open Settings</Link>}{session.failure.kind === 'stalled' && <button type="button" className="secondary" onClick={() => { session.dismissFailure(); void session.send('Continue from where you stopped.'); }}>Ask ZIGi to continue</button>}<button type="button" className="text-link" onClick={session.dismissFailure}>Dismiss</button></div></div>}
         {session.saveNote && <p className="ai-note" role="status">{session.saveNote}</p>}
       </div>
-      {away && session.chat.turns.length > 0 && <div className="ai-jump-holder"><button type="button" className="ai-jump-latest" onClick={() => { const el = log.current; jumping.current = true; if (el) el.scrollTop = el.scrollHeight; setAway(false); composer.current?.focus({preventScroll: true}); }}>Jump to the latest message</button></div>}
+      {away && session.chat.turns.length > 0 && <div className="ai-jump-holder"><button type="button" className="ai-jump-latest" onClick={() => { const el = log.current; jumping.current = true; if (el) toLatest(el); setAway(false); composer.current?.focus({preventScroll: true}); }}>Jump to the latest message</button></div>}
       {!data.enabled && !hosted && <SetupLine onClose={onClose} onChooser={() => setView('chooser')}/>}
       {sheet && (connected || (localOnly && !sensitive)) && <SuggestionsSheet id={sheetId} healthShared={healthShared} onAsk={suggest} onClose={() => { setSheet(false); composer.current?.focus({preventScroll: true}); }}
         ideas={<>{connected ? (sensitive ? <div className="ai-chips" role="group" aria-label="Suggestions">{SPECIALISTS[context.area].chips.map(chip => <button key={chip} type="button" className="ai-chip" title={chip} onClick={() => suggest(chip)}>{chip}</button>)}</div> : <ProactiveChips context={context} connected onChip={suggest} onView={v => { setSheet(false); setView(v); }}/>) : <LocalExamples context={context} onAsk={suggest}/>}<FirstRunTips/></>}
@@ -735,4 +735,13 @@ function ModelSwitcher({settings, scope, status, full}: {settings: AiSettingsSto
       {models && !shown.length && !loading && <p className="ai-note">No chat model matches.</p>}
     </div>
   </details>;
+}
+/**
+ * Session Z-Cloud Gate C: the log glides only when ZIGi moves it (to the latest message), never under the device's reduced
+ * motion or the app's Motion Off. The log itself does not animate other scrolls (ai.css): a focus, find in page or a tool
+ * that brings a button into view moves it at once, so nothing slides away under a press (WebKit's Undo, ADR-019 C57).
+ */
+function toLatest(el: HTMLElement) {
+  const glide = document.documentElement.dataset.appMotion !== 'off' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  el.scrollTo({top: el.scrollHeight, behavior: glide ? 'smooth' : 'auto'});
 }
