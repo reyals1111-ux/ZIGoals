@@ -83,6 +83,8 @@ function coerceNumbers(value: unknown): unknown {
   // amount twice: the duplicate goes before validation. Two different amounts stay refused (the golden case x-reply-two-amounts).
   const o = value as Record<string, unknown>;
   if (o.kind === 'check-in' && typeof o.minutes === 'number' && o.value === o.minutes && o.quantity === undefined) delete o.value;
+  // Session Z-Local L53: a card that says "date" means "day" (gemma4 wrote {"date": "2026-10-04"} and the block was refused for the unknown key).
+  if (typeof o.date === 'string' && o.day === undefined) { o.day = o.date; delete o.date; }
   for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
     // A numeric field sent as null (Python's None) is simply absent; the schema's own defaults and refusals then apply.
     // Session Z-Local Part 6 (ADR-020 L37): where the schema makes null a meaning (set-target's value clears the target; set-bells' intervalMin

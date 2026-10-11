@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {digitsOf, score, factNumbers, saysUnrefused} from './score';
+import {digitsOf, score, factNumbers, sameDay, saysUnrefused} from './score';
 
 // Session X-Local Part 6d: the scorer's verdicts are exact, so a model's pass rate means what it says.
 const block = (json: string) => `\`\`\`zigoals-action\n${json}\n\`\`\``;
@@ -110,4 +110,13 @@ test('L52: a field check has nothing to check when the oracle allows no card and
   expect(wrong.pass).toBe(false);
   const right = score(expect0, {text: 'Here.\n\n```zigoals-action\n{"kind":"delete-record","what":"fast"}\n```', calls: []});
   expect(right.pass).toBe(true);
+});
+
+test('L53: a day field written as the date it names is that day ("yesterday" on 2026-10-05 is 2026-10-04); another date is not', () => {
+  const exp = {kinds: ['log-steps'], fields: [{kind: 'log-steps', steps: 12000, day: 'yesterday'}]};
+  const dated = score(exp, {text: '```zigoals-action\n{"kind":"log-steps","steps":12000,"day":"2026-10-04"}\n```', calls: [], today: '2026-10-05'});
+  expect(dated.pass).toBe(true);
+  const other = score(exp, {text: '```zigoals-action\n{"kind":"log-steps","steps":12000,"day":"2026-10-03"}\n```', calls: [], today: '2026-10-05'});
+  expect(other.pass).toBe(false);
+  expect(sameDay('today', 'today', '2026-10-05')).toBe(true); expect(sameDay(undefined, 'today', '2026-10-05')).toBe(true);
 });

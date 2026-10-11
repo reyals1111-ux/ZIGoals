@@ -1,7 +1,7 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {describe, expect, test} from 'vitest';
 import {toolEnv} from '../tools/env';
-import {gatesFor, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
+import {DAY, gatesFor, sentinelsIn, showcaseSources, withHandHealth, withPortfolios, withSentinels} from '../tools/fixtures';
 import {runTool} from '../tools/registry';
 import {localAnswer} from '../local-answers/engine';
 import {CORPUS, type ModelCase} from './corpus';
@@ -35,7 +35,7 @@ describe.skipIf(!FILES.length)('rescore (owner machines only)', () => {
         const localReply = spec.expect.localFirst ? localAnswer(spec.ask, local) : null;
         const observed = spec.expect.localFirst
           ? {text: localReply && localReply.kind !== 'none' ? localReply.text : '', calls: [] as Call[], local: {answered: !!localReply && localReply.kind !== 'none'}, sentinelsSeen: c.sentinels ? sentinelsIn(localReply && localReply.kind !== 'none' ? localReply.text : '') : undefined}
-          : {text: reply, calls, facts, local: {answered: localAnswer(spec.ask, local).kind !== 'none'}, sentinelsSeen: c.sentinels ? sentinelsIn(reply + JSON.stringify(calls)) : undefined};
+          : {text: reply, calls, facts, local: {answered: localAnswer(spec.ask, local).kind !== 'none'}, sentinelsSeen: c.sentinels ? sentinelsIn(reply + JSON.stringify(calls)) : undefined, today: DAY};
         const {tools: _t, toolsNot: _tn, ...withoutTools} = spec.expect; void _t; void _tn;
         const s = score(d.summary.mode === 'attach' ? withoutTools : spec.expect, observed);
         const pass = s.pass && !r.error;

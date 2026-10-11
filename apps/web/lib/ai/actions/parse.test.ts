@@ -156,3 +156,8 @@ test('L50: a short unit form is the schema\'s own unit word ("h" → hours, "min
   const m = parseReply('Set.\n\n```zigoals-action\n{"kind":"set-target","target":"meditation","value":15,"unit":"min"}\n```');
   expect(m.proposals).toHaveLength(1); expect((m.proposals[0] as {unit?: string}).unit).toBe('minutes');
 });
+
+test('L53: a card that says "date" means "day"', () => {
+  const r = parseReply('Logged.\n\n```zigoals-action\n{"kind":"log-steps","steps":12000,"date":"2026-10-04"}\n```');
+  expect(r.proposals).toHaveLength(1); expect((r.proposals[0] as {day?: string}).day).toBe('2026-10-04');
+});

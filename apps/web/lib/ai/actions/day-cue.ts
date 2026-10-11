@@ -14,6 +14,17 @@ const LOG_KINDS = new Set(['log-water', 'log-weight', 'log-steps', 'log-food', '
 const YESTERDAY = /\b(?:yesterday|gisteren|gister)\b/i;
 const TWO_DAYS = /\b(?:the day before yesterday|two days ago|eergisteren)\b/i;
 const FUTURE = /\b(?:tomorrow|morgen|next week|volgende week)\b/i;
+// Session Z-Local L53: a skip is the one log that looks ahead; "skip my walk tomorrow" (gemma4 wrote "today" for every form) takes tomorrow, "overmorgen" the day after.
+const FUTURE_KINDS = new Set(['skip']);
+const TOMORROW = /\b(?:tomorrow|morgen)\b/i, TWO_AHEAD = /\b(?:the day after tomorrow|overmorgen)\b/i;
+/** The day ahead a skip names, or null. */
+export function aheadCue(spoken: string, today: string): string | null {
+  const message = normalizeSpoken(spoken);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
+  if (TWO_AHEAD.test(message)) return dayAt(today, 2);
+  if (TOMORROW.test(message) && !/\b(?:next week|volgende week)\b/i.test(message)) return dayAt(today, 1);
+  return null;
+}
 const WEEKDAYS: [RegExp, number][] = [[/\b(?:sunday|zondag)\b/i, 0], [/\b(?:monday|maandag)\b/i, 1], [/\b(?:tuesday|dinsdag)\b/i, 2], [/\b(?:wednesday|woensdag)\b/i, 3], [/\b(?:thursday|donderdag)\b/i, 4], [/\b(?:friday|vrijdag)\b/i, 5], [/\b(?:saturday|zaterdag)\b/i, 6]];
 const dayAt = (today: string, offset: number) => { const d = new Date(`${today}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + offset); return d.toISOString().slice(0, 10); };
 /** The most recent such weekday strictly before today. */
@@ -37,7 +48,7 @@ export function dayCue(spoken: string, today: string): string | null {
  */
 export function applyDayCue(original: string, message: string, today: string): string {
   const reply = applyQuantityCue(original, message);
-  const day = dayCue(message, today);
+  const past = dayCue(message, today), ahead = past ? null : aheadCue(message, today), day = past ?? ahead;
   if (!day) return reply;
   return reply.replace(FENCE, (block: string, fence: string, body: string) => {
     // The parser's own fence pattern (every variant it reads); a rewritten block keeps the fence it came with.
@@ -49,6 +60,7 @@ export function applyDayCue(original: string, message: string, today: string): s
       if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
       const o = item as Record<string, unknown>;
       if (typeof o.kind !== 'string' || !LOG_KINDS.has(o.kind)) return item;
+      if (ahead && !FUTURE_KINDS.has(o.kind)) return item;
       const current = typeof o.day === 'string' ? o.day.trim().toLowerCase() : undefined;
       if (current !== undefined && current !== 'today' && current !== 'vandaag' && current !== "aujourd'hui") return item;
       changed = true; return {...o, day};

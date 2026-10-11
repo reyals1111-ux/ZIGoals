@@ -152,7 +152,7 @@ async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], source
   // Facts from the device's own tools, for the same question; the local-first answer from the lookup engine.
   const facts = (c.expect.facts ?? []).map(fact => { const result = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(result).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(result)}; });
   const localReply = localAnswer(ask, local), sentinelsSeen = c.sentinels ? sentinelsIn(system + JSON.stringify(messages) + reply + JSON.stringify(calls)) : undefined;
-  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, pageArea: PAGE ? c.page : undefined}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
+  return {observed: {text: reply, calls, facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, pageArea: PAGE ? c.page : undefined, today: DAY}, reply, repaired, firstTokenMs: first, totalMs, tokens, requests, error};
 }
 const BATCH_ORIGIN = 'https://api.anthropic.com';
 async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: string; wallMs: number}> {
@@ -209,7 +209,7 @@ async function runBatch(cases: ModelCase[]): Promise<{runs: CaseRun[]; batchId: 
     const facts = (p.c.expect.facts ?? []).map(fact => { const r = runTool(fact.tool, fact.args ?? {}, local); return {fact, numbers: factNumbers(r).slice(0, fact.pick === 'first' ? 1 : 6), text: JSON.stringify(r)}; });
     const localReply = localAnswer(p.ask, local), sentinelsSeen = p.c.sentinels ? sentinelsIn(p.system + p.ask + reply) : undefined;
     const {tools: _tools, toolsNot: _toolsNot, ...withoutTools} = p.c.expect; void _tools; void _toolsNot;
-    const s = score(withoutTools, {text: reply, calls: [], facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen});
+    const s = score(withoutTools, {text: reply, calls: [], facts, local: {answered: localReply.kind !== 'none'}, sentinelsSeen, today: DAY});
     const costUsd = estimateCost(MODEL, tokens, {batch: true});
     runs.push({id: p.c.id, repeat: 1, kind: p.c.kind, area: p.c.area, lang: p.c.lang, turn: 0, pass: s.pass && !error, checks: error ? [...s.checks, {name: 'error', pass: false, detail: error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: null, totalMs: wallMs, tokens, requests: 1, costUsd, calls: [], reply, repaired: false, error});
     console.info(`${s.pass && !error ? 'PASS' : 'FAIL'} ${p.c.id} batch $${(costUsd ?? 0).toFixed(4)}${error ? ` ERROR ${error}` : ''}`);

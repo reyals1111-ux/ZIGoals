@@ -25,3 +25,11 @@ test('a log card that said today, or named no day, takes the message\'s day; oth
   // An array block gets the cue on every item (the French form of this assertion left with L7; the Dutch one stays).
   expect(parseReply(applyDayCue(arr, 'Gisteren drie glazen water gedronken en h1 afgevinkt', TODAY)).proposals.map(p => (p as {day?: string}).day)).toEqual(['yesterday', 'yesterday']);
 });
+
+test('L53: a skip for tomorrow takes tomorrow (and "overmorgen" the day after); a log for "tomorrow" is left as written', () => {
+  const skip = '```zigoals-action\n{"kind":"skip","habit":"h3","reason":"rest day","day":"today"}\n```';
+  expect(applyDayCue(skip, 'um skip my uh, my Walk, I mean skip my Walk tomorrow', '2026-10-05')).toContain('"day":"2026-10-06"');
+  expect(applyDayCue(skip, 'sla mijn wandeling overmorgen over', '2026-10-05')).toContain('"day":"2026-10-07"');
+  const water = '```zigoals-action\n{"kind":"log-water","glasses":2}\n```';
+  expect(applyDayCue(water, 'two glasses, and remind me tomorrow', '2026-10-05')).toBe(water);
+});

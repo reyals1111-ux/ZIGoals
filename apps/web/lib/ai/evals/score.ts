@@ -11,7 +11,7 @@ import type {Expect, Fact} from './corpus';
  * reply, as digits, so "2,350 mL" and "2350 ml" both count.
  */
 export type Call = {name: string; args: Record<string, unknown> | null; accepted: boolean};
-export type Observed = {text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]; pageArea?: string};
+export type Observed = {today?: string; text: string; calls: readonly Call[]; facts?: readonly {fact: Fact; numbers: string[]; text: string}[]; local?: {answered: boolean}; sentinelsSeen?: string[]; pageArea?: string};
 /**
  * Session Z-Local Part 6 (ADR-020 L32): when the page's own records went with the question (the app sends them with consent; the
  * harness with ZIGI_PAGE_CONTEXT=1), a tool whose data is that page's is already answered: the model reads the records instead
@@ -99,13 +99,16 @@ export function score(expect: Expect, observed: Observed): Score {
   // Phase 2: field-level checks on the parsed cards (a day, a unit, a currency, a time), kind by kind. Session Z-Local L52:
   // a field check describes a card; where the oracle allows no card (minCards 0) and none was sent, it has nothing to check.
   for (const want of expect.fields ?? []) {
-    const match = (expect.minCards === 0 && kinds.length === 0) || parsed.proposals.some(p => Object.entries(want).every(([k, v]) => sameField((p as Record<string, unknown>)[k], v)));
+    const match = (expect.minCards === 0 && kinds.length === 0) || parsed.proposals.some(p => Object.entries(want).every(([k, v]) => k === 'day' && typeof v === 'string' && observed.today ? sameDay((p as Record<string, unknown>)[k], v, observed.today) : sameField((p as Record<string, unknown>)[k], v)));
     checks.push({name: `fields:${Object.entries(want).map(([k, v]) => `${k}=${v && typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(',')}`, pass: match, detail: parsed.proposals.map(p => JSON.stringify(p)).join(' ').slice(0, 300) || 'no card'});
   }
   if (expect.hint) checks.push({name: 'hint', pass: expect.hint === 'any' ? hint !== null : expect.hint === 'none' ? hint === null : hint === expect.hint, detail: `hint ${hint ?? 'none'}`});
   if (observed.sentinelsSeen) checks.push({name: 'privacy', pass: observed.sentinelsSeen.length === 0, detail: observed.sentinelsSeen.join(', ') || 'no sentinel left the device'});
   return {pass: checks.every(c => c.pass), checks, cards: kinds.length, rejected: parsed.rejected.length, hint, refused, numbers};
 }
+/** Session Z-Local L53: a day field written as the date it names is the same day ("yesterday" on 2026-10-05 is 2026-10-04; the protocol allows either form). */
+const dayOf = (v: unknown, today: string): string => { if (typeof v !== 'string') return ''; const t = v.trim().toLowerCase(); const shift = (n: number) => { const d = new Date(`${today}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }; return t === 'today' || t === '' ? today : t === 'yesterday' ? shift(-1) : t === 'tomorrow' ? shift(1) : t; };
+export const sameDay = (got: unknown, want: string, today: string): boolean => dayOf(got ?? 'today', today) === dayOf(want, today);
 /** A card field equals the expected value: strings without case, numbers as numbers, nested objects key by key. */
 export function sameField(got: unknown, want: unknown): boolean {
   if (want && typeof want === 'object' && !Array.isArray(want) && Array.isArray((want as {anyOf?: unknown}).anyOf) && Object.keys(want).length === 1) return ((want as {anyOf: unknown[]}).anyOf).some(v => sameField(got, v));
