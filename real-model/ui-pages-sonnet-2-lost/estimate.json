@@ -4,20 +4,20 @@
   "model": "claude-sonnet-5-5",
   "stage": "ui-pages-sonnet-2-lost",
   "estimate": true,
-  "note": "Session Z-Local L61: the first attempt of ui-pages-sonnet-2 (2026-10-11 15:49-15:51Z) ran 32 page cases of 34 whose results were lost when a two-worker write race tore the results file before record() could append them; the model calls had been made. The usage is estimated from the first pages run (ui-pages-sonnet: 362 requests), scaled to the 320 lost requests, so the ledger stays complete. Not a scored run."
+  "note": "Session Z-Local L61: the first attempt of ui-pages-sonnet-2 (2026-10-11 15:49-15:51Z) ran 32 page cases of 34 whose results were lost when a two-worker write race tore the results file before record() could append them; the model calls had been made. The usage is estimated from the first pages run (ui-pages-sonnet: 362 requests), scaled to the 340 requests of the whole attempt (the two kept cases' torn file is set aside, so nothing of it is counted twice), so the ledger stays complete. Not a scored run."
  },
  "runs": [
   {
-   "id": "estimate-320-lost-requests",
+   "id": "estimate-340-requests-of-the-torn-attempt",
    "pass": false,
    "checks": [],
    "tokens": {
-    "input": 1154,
-    "output": 77774,
-    "cacheWrite": 312893,
-    "cacheRead": 4920287
+    "input": 1227,
+    "output": 82635,
+    "cacheWrite": 332449,
+    "cacheRead": 5227805
    },
-   "requests": 320,
+   "requests": 340,
    "costUsd": null,
    "reply": "",
    "error": "estimate"
