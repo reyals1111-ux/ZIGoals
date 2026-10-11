@@ -1,0 +1,97 @@
+{
+ "kind": "harness",
+ "file": "rtx-5090-phi4-mini-3.8b-tools-page-all-2026-10-10T20-18-08-379Z.json",
+ "stage": "phi4-pc",
+ "provider": "local",
+ "model": "phi4-mini:3.8b",
+ "host": "RTX 5090",
+ "mode": "tools",
+ "think": false,
+ "cache": null,
+ "pageContext": true,
+ "set": "typed",
+ "batch": false,
+ "cases": 595,
+ "repeat": 1,
+ "runs": 725,
+ "passed": 457,
+ "rate": 0.6303448275862069,
+ "byKind": {
+  "lookup": {
+   "passed": 84,
+   "total": 93
+  },
+  "propose": {
+   "passed": 139,
+   "total": 249
+  },
+  "chat": {
+   "passed": 21,
+   "total": 43
+  },
+  "brief": {
+   "passed": 21,
+   "total": 27
+  },
+  "unknown": {
+   "passed": 12,
+   "total": 14
+  },
+  "refuse": {
+   "passed": 36,
+   "total": 48
+  },
+  "advice": {
+   "passed": 6,
+   "total": 11
+  },
+  "multi": {
+   "passed": 81,
+   "total": 162
+  },
+  "followup": {
+   "passed": 29,
+   "total": 43
+  },
+  "privacy": {
+   "passed": 9,
+   "total": 12
+  },
+  "injection": {
+   "passed": 15,
+   "total": 19
+  },
+  "local-first": {
+   "passed": 4,
+   "total": 4
+  }
+ },
+ "latency": {
+  "firstTokenMedianMs": 393,
+  "firstTokenP90Ms": 588,
+  "totalMedianMs": 591,
+  "totalP90Ms": 1083
+ },
+ "tokens": {
+  "input": 8168838,
+  "output": 54531,
+  "cacheWrite": 0,
+  "cacheRead": 0
+ },
+ "requests": 781,
+ "costUsd": null,
+ "pricesAsOf": null,
+ "perTurn": {
+  "input": 12174.12518628912,
+  "cacheWrite": 0,
+  "cacheRead": 0,
+  "output": 81.26825633383011,
+  "usd": null
+ },
+ "costPer100Messages": null,
+ "repaired": 110,
+ "errors": 0,
+ "misses": "cards 196, fields 82, schema 79, contains 18, refusal 13",
+ "startedAt": "2026-10-10T20:18:08.379Z",
+ "finishedAt": "2026-10-10T20:26:54.331Z"
+}
