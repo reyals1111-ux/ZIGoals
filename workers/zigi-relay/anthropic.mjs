@@ -1,4 +1,5 @@
 import {costMicros} from './pricing.mjs';
+import {LIMITS} from './limits.mjs';
 /**
  * The relay's Anthropic upstream (Session X Part 9, ADR-014 / ADR-016). Chosen only by the exact address
  * ANTHROPIC_MESSAGES. The app keeps speaking the OpenAI Chat Completions wire it already speaks to the relay; here the
@@ -150,4 +151,20 @@ export function anthropicStream(model){
   /** Whether the provider ended the reply with an error event. */
   failed(){return failed;},
  };
+}
+/**
+ * Session Z-Cloud Gate B (the relay's security read, ADR-019 C48): the most an Anthropic prompt can be billed as, for the
+ * reservation, the money and the long-prompt guard (the reply then settles from its own usage). Words at two characters a
+ * token (dense text, numbers and codes run well above the usual four) and every character outside ASCII as one; each
+ * photo at LIMITS.imageTokens whatever its base64 size (a tiny file can be a large, dear picture); the provider's own
+ * tool-use system prompt when tools go.
+ * @param {{messages:{content:Record<string,unknown>[]}[],system?:{text?:unknown}[],tools?:unknown[]}} body
+ * @returns {{tokens:number,images:number}}
+ */
+export function promptCeiling(body){
+ let images=0;
+ const turns=body.messages.map(t=>Array.isArray(t.content)?{...t,content:t.content.filter(b=>b?.type==='image'?(images++,false):true)}:t);
+ const text=JSON.stringify(turns)+JSON.stringify(body.tools??[])+(body.system??[]).map(b=>String(b.text??'')).join('\n');
+ let wide=0;for(let i=0;i<text.length;i++)if(text.charCodeAt(i)>127)wide++;
+ return {tokens:Math.ceil((text.length-wide)/2)+wide+images*LIMITS.imageTokens+(body.tools?.length?LIMITS.toolPromptTokens:0),images};
 }

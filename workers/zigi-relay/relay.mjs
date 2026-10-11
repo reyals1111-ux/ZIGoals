@@ -2,7 +2,7 @@ import {UUID,providerConfigured} from '../push-reminders/verify.mjs';
 import {positive} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
 import {ANTHROPIC_MODELS,anthropicBody,effortOf,isAnthropic} from './anthropic.mjs';
-import {micros} from './pricing.mjs';
+import {micros,priceFor} from './pricing.mjs';
 /**
  * The relay's pure parts (Session V Part 17, ADR-014), apart from worker.mjs so that its module exports only the
  * handler and the budget object: who may use it, the body the provider gets, and the metered stream.
@@ -23,7 +23,11 @@ export function configured(env){
   // and monthly budgets are optional, but a value that is set must be a positive amount or count.
   &&(!isAnthropicUrl(env)||ANTHROPIC_MODELS.includes(String(env.ZIGI_MODEL)))
   &&[env.ZIGI_DAILY_USD,env.ZIGI_MONTHLY_USD,env.ZIGI_GLOBAL_DAILY_USD].every(v=>v===undefined||micros(v)!==null)
-  &&(env.ZIGI_MONTHLY_REQUESTS===undefined||positive(env.ZIGI_MONTHLY_REQUESTS)!==null);
+  &&(env.ZIGI_MONTHLY_REQUESTS===undefined||positive(env.ZIGI_MONTHLY_REQUESTS)!==null)
+  // Gate B (the relay's security read, ADR-019 C48): Anthropic's host only at its Messages address (another path would
+  // skip the model list), and a money budget only for a model the price table knows (else it would reserve nothing).
+  &&(upstreamUrl(env)?.hostname!=='api.anthropic.com'||isAnthropicUrl(env))
+  &&([env.ZIGI_DAILY_USD,env.ZIGI_MONTHLY_USD,env.ZIGI_GLOBAL_DAILY_USD].every(v=>v===undefined)||priceFor(String(env.ZIGI_MODEL))!==null);
 }
 /** @param {RelayEnv} env */
 const isAnthropicUrl=env=>{const url=upstreamUrl(env);return !!url&&isAnthropic(url);};

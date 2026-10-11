@@ -118,8 +118,17 @@ the kill switch is `on`, the public Alpha's build has `NEXT_PUBLIC_ZIGI_HOSTED` 
   `ZIGI_GLOBAL_DAILY_USD` (dollars a day for the whole relay). Each reply reserves the most it could cost (its prompt at
   the cache-write price plus 4,096 output tokens) and is then settled from Anthropic's own usage counts (input, cache
   writes, cache reads, output) priced with the app's table (`pricing.mjs`, a copy of `apps/web/lib/ai/pricing.ts`; Sonnet
-  5.5: $2 / $10 per million input / output, cache writes $2.50, cache reads $0.10, as read on 2026-10-10). Read the
-  pricing page again on the day you activate; if a price changed, the table changes first, in a reviewed PR.
+  5.5: $2 / $10 per million input / output, cache writes $2.50, cache reads $0.10, as read on 2026-10-10 and again on
+  2026-10-11). Read the pricing page again on the day you activate; if a price changed, the table changes first, in a
+  reviewed PR.
+- **What a reservation counts (Gate B security read, ADR-019 C48):** the prompt at its ceiling: words at two characters
+  a token (dense text runs well above the usual four), each photo at 4,784 tokens (the most a Claude 5.5 model bills for
+  one, whatever its file size) with at most four a request, and Anthropic's own tool-use system prompt. At most two
+  replies per person at once ("ZIGi is still answering your other questions"), so a reservation that falls short can
+  miss a reply's real cost by two replies at most, never by a burst. A request Anthropic did not answer within 20 seconds
+  keeps its reservation (it may have been billed). The relay refuses to start if `ZIGI_UPSTREAM_URL` names
+  api.anthropic.com at any other path than `/v1/messages`, if a money budget is set for a model the price table does not
+  know, and it never runs its test clock on a real app origin.
 - **The template** (`wrangler.anthropic.local.jsonc`): 40 messages a day and 600 a month, $1 a day and $10 a month per
   friend, $20 a day for the whole relay; token budgets 1,500,000 / 15,000,000 a day as a second guard (a cached prompt is
   about 12,500 tokens, so tokens must not bind first). Choose your own numbers; the Console workspace's spend limit below

@@ -71,7 +71,7 @@ test('on the Claude relay: its name, its label, the allowance in messages and do
   await collectReply(streamHosted({model: 'hosted', system: 's', messages: [{role: 'user', content: 'x'}], maxOutputTokens: 10}, ACCOUNT, deep.f));
   expect(JSON.parse(String(deep.calls[0]!.init?.body))).toMatchObject({reasoning_effort: 'high', stream: true});
   expect(JSON.parse(String(deep.calls[1]!.init?.body))).not.toHaveProperty('reasoning_effort');
-  for (const [code, words] of [['ACCOUNT_DAILY_USD', 'today\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_USD', 'this month\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_REQUESTS', 'this month\'s number of ZIGi messages'], ['GLOBAL_DAILY_USD', 'its own limit for today']] as const) {
+  for (const [code, words] of [['ACCOUNT_DAILY_USD', 'today\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_USD', 'this month\'s ZIGi allowance'], ['ACCOUNT_MONTHLY_REQUESTS', 'this month\'s number of ZIGi messages'], ['GLOBAL_DAILY_USD', 'its own limit for today'], ['ACCOUNT_IN_FLIGHT', 'still answering your other questions']] as const) {
     const refused = recording(() => Response.json({error: code}, {status: 429}));
     const error = await collectReply(streamHosted({model: 'hosted', system: 's', messages: [{role: 'user', content: 'x'}], maxOutputTokens: 10}, ACCOUNT, refused.f)).catch((e: unknown) => e);
     expect((error as AiError).kind, code).toBe('rate-limit'); expect((error as AiError).message).toContain(words);

@@ -101,3 +101,54 @@ test('the kill switch is on unless it says "off", and only invited accounts are 
   expect((await r.call('/v1/chat',{account:INVITED,body:ask()})).status).toBe(200);
  }finally{await r.dispose();}
 },60_000);
+
+// Session Z-Cloud Gate B (the relay's independent security read, ADR-019 C48).
+const PNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC';
+const withPhotos=n=>({messages:[{role:'system',content:'You are ZIGi.'},{role:'user',content:[{type:'text',text:'What did I eat?'},...Array.from({length:n},()=>({type:'image_url',image_url:{url:PNG}}))]}],max_tokens:4096});
+test('a photo is reserved at the most a 5.5 model bills for one, whatever its file size; more than four photos are refused',async()=>{
+ const r=await relayRuntime({bindings:{...CLAUDE,ZIGI_DAILY_USD:'0.05',ZIGI_DAILY_REQUESTS:'10'}});try{
+  await r.clock(DAY);
+  // The words alone reserve about $0.041; one photo adds 4,784 tokens at the cache-write price ($0.012): over $0.05.
+  const photo=await r.call('/v1/chat',{body:withPhotos(1)});expect(photo.status).toBe(429);expect((await photo.json()).error).toBe('ACCOUNT_DAILY_USD');
+  const many=await r.call('/v1/chat',{body:withPhotos(5)});expect(many.status).toBe(413);expect(await many.json()).toEqual({error:'REQUEST_TOO_LARGE'});
+  expect(r.upstream.requests).toHaveLength(0);
+  r.upstream.reply=reply({input:40,cacheWrite:0,cacheRead:0,output:5});
+  expect((await r.call('/v1/chat',{body:ask()})).status).toBe(200);
+ }finally{await r.dispose();}
+},60_000);
+
+test('at most two replies of one account at once; another account is not held up',async()=>{
+ const r=await relayRuntime({bindings:CLAUDE});try{
+  r.upstream.reply=()=>new Response(new ReadableStream({start(){}}),{status:200,headers:{'content-type':'text/event-stream'}});
+  const held=[r.call('/v1/chat',{body:ask()}),r.call('/v1/chat',{body:ask()})];
+  await expect.poll(()=>r.upstream.requests.length).toBe(2);
+  const third=await r.call('/v1/chat',{body:ask()});expect(third.status).toBe(429);expect((await third.json()).error).toBe('ACCOUNT_IN_FLIGHT');
+  expect(r.upstream.requests).toHaveLength(2);
+  const other=r.call('/v1/chat',{account:OTHER,body:ask()});await expect.poll(()=>r.upstream.requests.length).toBe(3);
+  for(const pending of [...held,other])void pending.then(res=>res.body?.cancel()).catch(()=>{});
+ }finally{await r.dispose();}
+},60_000);
+
+test('Anthropic\'s host only at its Messages address, a money budget only for a priced model, the fixture clock never on a real origin',async()=>{
+ for(const bindings of [{...CLAUDE,ZIGI_UPSTREAM_URL:'https://api.anthropic.com/v1/chat/completions'},{ZIGI_MODEL:'gpt-6-luna',ZIGI_DAILY_USD:'1'}]){
+  const r=await relayRuntime({bindings});try{
+   expect((await r.call('/v1/chat',{body:ask()})).status).toBe(503);expect(r.upstream.requests).toHaveLength(0);
+  }finally{await r.dispose();}
+ }
+ const real=await relayRuntime({bindings:{...CLAUDE,APP_ORIGIN:'https://alpha.zigoals.app'}});try{
+  expect((await real.call('/v1/fixture',{body:{now:DAY}})).status).toBe(404);
+ }finally{await real.dispose();}
+ const r=await relayRuntime({bindings:CLAUDE});try{
+  // A clock beyond the last date JavaScript can write is ignored, never stored.
+  expect((await r.clock(8.64e15+1)).now).toBeLessThan(8.64e15);
+ }finally{await r.dispose();}
+},90_000);
+
+test('a request the provider never answered within the wait keeps its reservation (it may have been billed)',async()=>{
+ const r=await relayRuntime({bindings:{...CLAUDE,ZIGI_DAILY_USD:'0.5'}});try{
+  // The real clock here: the aborted wait restarts the budget object in Miniflare, which forgets a fixture clock.
+  r.upstream.reply=()=>new Promise(()=>{});
+  const res=await r.call('/v1/chat',{body:ask()});expect(res.status).toBe(502);expect(await res.json()).toEqual({error:'UPSTREAM_UNAVAILABLE'});
+  await expect.poll(async()=>(await remaining(r)).usd,{timeout:10_000}).toBeLessThan(0.5-0.04);
+ }finally{await r.dispose();}
+},90_000);

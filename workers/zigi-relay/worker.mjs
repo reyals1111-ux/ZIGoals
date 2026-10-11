@@ -1,8 +1,8 @@
 import {boundedJSON,response,verifySession} from '../push-reminders/verify.mjs';
-import {RelayBudget,inputEstimate} from './budget.mjs';
+import {RelayBudget,fixtureAllowed,inputEstimate} from './budget.mjs';
 import {LIMITS} from './limits.mjs';
 import {configured,invited,metered,paused,upstreamBody,upstreamUrl} from './relay.mjs';
-import {anthropicHeaders,anthropicStream,isAnthropic} from './anthropic.mjs';
+import {anthropicHeaders,anthropicStream,isAnthropic,promptCeiling} from './anthropic.mjs';
 import {costMicros} from './pricing.mjs';
 export {RelayBudget};
 /**
@@ -35,13 +35,19 @@ async function chat(request,env,ctx,account){
  let parsed;try{parsed=await boundedJSON(request,LIMITS.requestBytes);}catch(error){return error instanceof Error&&error.message==='size'?response({error:'REQUEST_TOO_LARGE'},413):response({error:'INVALID_CHAT_REQUEST'},400);}
  const url=/** @type {URL} */(upstreamUrl(env)),body=upstreamBody(parsed,env,url);if(!body)return response({error:'INVALID_CHAT_REQUEST'},400);
  const id=crypto.randomUUID(),budget=budgetOf(env),cap=Number(body.max_completion_tokens??body.max_tokens);
+ const anthropic=isAnthropic(url);
+ // Session Z-Cloud Gate B (ADR-019 C48): an Anthropic prompt counts at its ceiling (photos at the most they can cost, dense
+ // words at two characters a token, the provider's tool prompt); at most LIMITS.images photos. Other providers as before.
+ const ceiling=anthropic?promptCeiling(/** @type {any} */(body)):null;
+ if(ceiling&&ceiling.images>LIMITS.images)return response({error:'REQUEST_TOO_LARGE'},413);
  // Session Z-Cloud Part 6: the system prompt is a cached text block now; its text counts as before.
- const input=inputEstimate(JSON.stringify(body.messages)+JSON.stringify(body.tools??[])+(typeof body.system==='string'?body.system:Array.isArray(body.system)?body.system.map(/** @param {any} b */b=>String(b.text??'')).join('\n'):''));
+ const input=ceiling?ceiling.tokens:inputEstimate(JSON.stringify(body.messages)+JSON.stringify(body.tools??[])+(typeof body.system==='string'?body.system:Array.isArray(body.system)?body.system.map(/** @param {any} b */b=>String(b.text??'')).join('\n'):''));
  // Session X P2.7: an Anthropic prompt stays below the provider's long-context price (LIMITS.anthropicInputTokens).
- if(isAnthropic(url)&&input>LIMITS.anthropicInputTokens)return response({error:'REQUEST_TOO_LARGE'},413);
+ if(anthropic&&input>LIMITS.anthropicInputTokens)return response({error:'REQUEST_TOO_LARGE'},413);
  // Session Z-Cloud Part 6 (ADR-019 C40): money is reserved as the dearest the reply could be (the whole prompt written to
- // the cache, the whole output cap) and settled from the reply's own usage; a model without a price reserves none.
- const anthropic=isAnthropic(url),translator=anthropic?anthropicStream(String(env.ZIGI_MODEL)):undefined;
+ // the cache, the whole output cap) and settled from the reply's own usage; a model without a price reserves none
+ // (relay.mjs `configured` refuses a money budget for one).
+ const translator=anthropic?anthropicStream(String(env.ZIGI_MODEL)):undefined;
  const reserveMicros=costMicros(String(env.ZIGI_MODEL),{cacheWrite:input,output:cap})??0;
  const admitted=await budget.fetch(internal('/reserve',{account,id,tokens:input+cap,micros:reserveMicros}));
  if(!admitted.ok)return admitted;
@@ -57,7 +63,9 @@ async function chat(request,env,ctx,account){
   // once more without it. Only the error's words are read, to decide; they are never passed on.
   if(anthropic&&upstream.status===400&&body.output_config){const said=await upstream.text().catch(()=>'');if(/output_config/.test(said.slice(0,4096))){const {output_config:_dropped,...rest}=body;void _dropped;upstream=await send(rest);}else upstream=new Response(null,{status:400});}
  }
- catch{clearTimeout(waiting);settle(0,'failure');return response({error:'UPSTREAM_UNAVAILABLE'},502);}
+ // Gate B (ADR-019 C48): a request still unanswered when the wait ran out may have been taken and billed, so its
+ // reservation stands; a connection that failed outright cost nothing and is given back.
+ catch{clearTimeout(waiting);settle(controller.signal.aborted?null:0,'failure');return response({error:'UPSTREAM_UNAVAILABLE'},502);}
  clearTimeout(waiting);
  if(!upstream.ok||!upstream.body){
   // The provider's own error body is not passed on: it can quote the request back.
@@ -74,7 +82,7 @@ const relay={async fetch(request,env,ctx){
  if(!Object.hasOwn(ROUTES,url.pathname))return response({error:'NOT_FOUND'},404);
  if(request.method!==ROUTES[url.pathname])return response({error:'METHOD_NOT_ALLOWED'},405);
  if(url.pathname==='/health')return response({ok:true});
- if(url.pathname==='/v1/fixture'){if(env.ISOLATED_FIXTURE!=='true')return response({error:'NOT_FOUND'},404);return budgetOf(env).fetch(internal('/fixture',await boundedJSON(request,1024).catch(()=>({}))));}
+ if(url.pathname==='/v1/fixture'){if(!fixtureAllowed(env))return response({error:'NOT_FOUND'},404);return budgetOf(env).fetch(internal('/fixture',await boundedJSON(request,1024).catch(()=>({}))));}
  if(!configured(env))return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
  if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
  if(paused(env))return url.pathname==='/v1/entitlement'?response({entitled:false,reason:'paused'}):response({error:'HOSTED_PAUSED'},503);

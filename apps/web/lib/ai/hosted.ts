@@ -88,6 +88,8 @@ const MESSAGES: Record<string, [AiError['kind'], string]> = {
   ACCOUNT_DAILY_USD: ['rate-limit', 'You reached today\'s ZIGi allowance. It starts again tomorrow (UTC).'],
   ACCOUNT_MONTHLY_USD: ['rate-limit', 'You reached this month\'s ZIGi allowance. It starts again on the 1st (UTC).'],
   GLOBAL_DAILY_USD: ['rate-limit', 'ZIGi reached its own limit for today. It starts again tomorrow (UTC).'],
+  // Session Z-Cloud Gate B (ADR-019 C48): at most two replies of one account at once.
+  ACCOUNT_IN_FLIGHT: ['rate-limit', 'ZIGi is still answering your other questions. Ask again when one is done.'],
   UPSTREAM_PAUSED: ['overloaded', 'The AI behind ZIGoals hosted is not answering well; ZIGoals paused it for a moment. Try again shortly.'],
   UPSTREAM_BUSY: ['overloaded', 'The AI behind ZIGoals hosted is busy. Try again in a moment.'],
   REQUEST_TOO_LARGE: ['request', 'This message and its records are too long for ZIGoals hosted. Start a new chat or attach less.'],

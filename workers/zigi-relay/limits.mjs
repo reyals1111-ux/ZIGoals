@@ -13,6 +13,15 @@ export const LIMITS={
   *  100,000 input tokens at a higher rate (platform.claude.com pricing, read 2026-10-08); the activation guide's daily
   *  cost assumes every prompt stays below that. */
  anthropicInputTokens:90_000,
+ /** Session Z-Cloud Gate B (the relay's security read, ADR-019 C48): an Anthropic prompt is reserved at its ceiling
+  *  (anthropic.mjs `promptCeiling`): each photo at the most a Claude 5.5 model counts for one (4,784 visual tokens on the
+  *  high-resolution tier, platform.claude.com Vision, read 2026-10-11), at most four photos a request (the app sends one),
+  *  and the provider's own tool-use system prompt (286 tokens on the 5.5 models, Pricing, read 2026-10-11) rounded up. */
+ imageTokens:4784,
+ images:4,
+ toolPromptTokens:500,
+ /** One account's replies at once: a reservation is in flight until it settles or the reply's longest life is over. */
+ inFlight:2,
  messages:200,
  tools:64,
  /** The provider must start answering within this, and finish within the stream limit. */

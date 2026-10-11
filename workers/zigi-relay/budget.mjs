@@ -1,5 +1,6 @@
 import {boundedJSON,response} from '../push-reminders/verify.mjs';
 import {micros} from './pricing.mjs';
+import {LIMITS} from './limits.mjs';
 /**
  * The relay's budgets (Session V Part 17, ADR-014), in the market coordinator's style: a request is reserved before the
  * provider is called and settled after it. One SQLite Durable Object holds every count for the whole relay, so they are
@@ -21,8 +22,16 @@ import {micros} from './pricing.mjs';
  * @typedef {{threshold:number,windowMs:number,cooldownMs:number,maxCooldownMs:number}} BreakerPolicy
  * @typedef {{phase:'closed'|'open'|'half-open',failures:number[],retryAt:number,trips:number,probe:boolean}} Breaker
  * @typedef {'ok'|'failure'|'neutral'} Outcome
- * @typedef {{ZIGI_DAILY_REQUESTS?:string,ZIGI_DAILY_TOKENS?:string,ZIGI_GLOBAL_DAILY_TOKENS?:string,ZIGI_MONTHLY_REQUESTS?:string,ZIGI_DAILY_USD?:string,ZIGI_MONTHLY_USD?:string,ZIGI_GLOBAL_DAILY_USD?:string,ISOLATED_FIXTURE?:string}} BudgetEnv
+ * @typedef {{ZIGI_DAILY_REQUESTS?:string,ZIGI_DAILY_TOKENS?:string,ZIGI_GLOBAL_DAILY_TOKENS?:string,ZIGI_MONTHLY_REQUESTS?:string,ZIGI_DAILY_USD?:string,ZIGI_MONTHLY_USD?:string,ZIGI_GLOBAL_DAILY_USD?:string,ISOLATED_FIXTURE?:string,APP_ORIGIN?:string}} BudgetEnv
  */
+/**
+ * Session Z-Cloud Gate B (ADR-019 C48): the fixture clock only where it can never be a deployment: ISOLATED_FIXTURE
+ * "true" with an app origin on the reserved `.test` names or this machine. A real origin turns it off, whatever is set.
+ * @param {{ISOLATED_FIXTURE?:string,APP_ORIGIN?:string}} env
+ */
+export const fixtureAllowed=env=>env.ISOLATED_FIXTURE==='true'&&/^https?:\/\/(?:(?:[a-z0-9-]+\.)*test|localhost|127\.0\.0\.1)(?::\d{1,5})?$/.test(env.APP_ORIGIN??'');
+/** How long a reservation counts as in flight: the provider's wait plus the reply's longest stream, and a margin. */
+const IN_FLIGHT_MS=LIMITS.headerTimeoutMs+LIMITS.streamTimeoutMs+10_000;
 export const BREAKER=/** @type {BreakerPolicy} */({threshold:5,windowMs:60_000,cooldownMs:30_000,maxCooldownMs:600_000});
 /** The UTC day a count belongs to. @param {number} now */
 export const dayOf=now=>new Date(now).toISOString().slice(0,10);
@@ -118,7 +127,7 @@ export class RelayBudget{
   for(const statement of SCHEMA)this.sql.exec(statement);
   for(const [table,column,type]of COLUMNS)if(!this.sql.exec(`SELECT name FROM pragma_table_info('${table}') WHERE name = ?`,column).toArray().length)this.sql.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
  }
- now(){return this.env.ISOLATED_FIXTURE==='true'&&this.fixtureNow!==null?this.fixtureNow:Date.now();}
+ now(){return fixtureAllowed(this.env)&&this.fixtureNow!==null?this.fixtureNow:Date.now();}
  /** @returns {Breaker} */
  breaker(){const row=this.sql.exec('SELECT state FROM breaker WHERE id = 1').toArray()[0];try{const b=row?JSON.parse(String(row.state)):null;return validBreaker(b)?b:closedBreaker();}catch{return closedBreaker();}}
  /** @param {Breaker} b */
@@ -133,7 +142,7 @@ export class RelayBudget{
  async fetch(request){
   const path=new URL(request.url).pathname;
   let body;try{body=await boundedJSON(request,4096);}catch{return response({error:'INVALID_BUDGET_REQUEST'},400);}
-  if(path==='/fixture'){if(this.env.ISOLATED_FIXTURE!=='true')return response({error:'NOT_FOUND'},404);this.fixtureNow=Number.isSafeInteger(body?.now)?body.now:null;return response({now:this.now(),breaker:this.breaker()});}
+  if(path==='/fixture'){if(!fixtureAllowed(this.env))return response({error:'NOT_FOUND'},404);this.fixtureNow=Number.isSafeInteger(body?.now)&&body.now>=0&&body.now<=8.64e15?body.now:null;return response({now:this.now(),breaker:this.breaker()});}
   const policy=dailyPolicy(this.env);if(!policy)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
   const account=typeof body?.account==='string'&&ID.test(body.account)?body.account.toLowerCase():null;
   switch(path){
@@ -156,6 +165,10 @@ export class RelayBudget{
    if(!gate.ok)return response({error:'UPSTREAM_PAUSED',retryAfterSeconds:Math.max(1,Math.ceil((gate.breaker.retryAt-now)/1000))},503);
    const mine=this.account(day,account),all=this.total(day),thisMonth=this.month(month,account),reason=admitDaily(policy,mine,all,tokens,money,thisMonth);
    if(reason)return response({error:reason,remaining:remainingFor(policy,mine,all,thisMonth)},429);
+   // Gate B (ADR-019 C48): at most LIMITS.inFlight replies of one account at once, so a reservation that falls short of a
+   // reply's real cost can be off by that many replies at most, never by a burst of them.
+   const flying=Number(this.sql.exec('SELECT COUNT(*) AS n FROM reservations WHERE account = ? AND at > ?',account,now-IN_FLIGHT_MS).toArray()[0]?.n??0);
+   if(flying>=LIMITS.inFlight)return response({error:'ACCOUNT_IN_FLIGHT',remaining:remainingFor(policy,mine,all,thisMonth)},429);
    this.sql.exec('INSERT INTO accounts (day, account, requests, tokens, micros) VALUES (?, ?, 1, ?, ?) ON CONFLICT(day, account) DO UPDATE SET requests = requests + 1, tokens = tokens + excluded.tokens, micros = micros + excluded.micros',day,account,tokens,money);
    this.sql.exec('INSERT INTO totals (day, requests, tokens, micros) VALUES (?, 1, ?, ?) ON CONFLICT(day) DO UPDATE SET requests = requests + 1, tokens = tokens + excluded.tokens, micros = micros + excluded.micros',day,tokens,money);
    this.sql.exec('INSERT INTO months (month, account, requests, micros) VALUES (?, ?, 1, ?) ON CONFLICT(month, account) DO UPDATE SET requests = requests + 1, micros = micros + excluded.micros',month,account,money);
