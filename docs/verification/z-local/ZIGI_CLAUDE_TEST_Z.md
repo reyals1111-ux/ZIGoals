@@ -87,7 +87,7 @@ _Rendered by `scripts/zigi/render-claude-doc.mjs` from 35 summary file(s) on 202
 | Part 6 · local, gemma4-page | `gemma4:12b` | tools, page records | 595 · 725 | **647/725 · 89.2 %** | — | lookup 93/93 · propose 212/249 · chat 37/43 · brief 23/27 · unknown 13/14 · refuse 48/48 · advice 10/11 · multi 139/162 · followup 41/43 · privacy 11/12 · injection 16/19 · local-first 4/4 | 13,086 + 0 + 0 → 229 | — | — | 1,119 / 1,711 |
 | Part 2 · corpus ×1 | `claude-sonnet-5-5` | tools, page records | 595 · 725 | **687/725 · 94.8 %** | — | lookup 92/93 · propose 239/249 · chat 40/43 · brief 27/27 · unknown 13/14 · refuse 46/48 · advice 9/11 · multi 147/162 · followup 40/43 · privacy 12/12 · injection 18/19 · local-first 4/4 | 4 + 1,529 + 16,687 → 249 | $0.0080 | $5.36 | 796 / 2,327 |
 | Part 6 · local, variance-gemma4 | `gemma4:12b` | tools, page records | 194 · 852 | **752/852 · 88.3 %** | — | lookup 78/78 · propose 214/240 · brief 27/27 · unknown 0/3 · refuse 61/66 · multi 295/345 · advice 5/9 · privacy 20/24 · chat 24/27 · injection 22/27 · local-first 6/6 | 13,144 + 0 + 0 → 289 | — | — | 580 / 1,865 |
-| Part 6 · the spoken set, page records | `claude-sonnet-5-5` | tools, page records | 557 · 557 | **492/557 · 88.3 %** | — | propose 397/448 · lookup 48/52 · refuse 21/31 · local-first 26/26 | 4 + 1,183 + 15,775 → 182 | $0.0064 | $3.38 | 768 / 2,119 |
+| Part 6 · the spoken set, page records | `claude-sonnet-5-5` | tools, page records | 557 · 557 | **492/557 · 88.3 %** | 524/557 | propose 397/448 · lookup 48/52 · refuse 21/31 · local-first 26/26 | 4 + 1,183 + 15,775 → 182 | $0.0064 | $3.38 | 768 / 2,119 |
 
 ### Cost per 100 messages
 | Model | Stage | Cost per 100 messages (one request each, cached prefix, quick reply) |
