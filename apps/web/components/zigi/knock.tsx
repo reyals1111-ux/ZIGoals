@@ -1,10 +1,13 @@
 'use client';
 import {usePathname, useRouter} from 'next/navigation';
 import {Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
-import {knockFor, recordKnock, snooze, snoozeUntil, type KnockCandidate, type SnoozeChoice} from '../../lib/ai/knock/rules';
+import {knockFor, knockLines, recordKnock, snooze, snoozeUntil, SNOOZE_LABELS, type KnockCandidate, type SnoozeChoice} from '../../lib/ai/knock/rules';
 import {ZIGI, ZIGI_KNOCK, ZIGI_REMINDERS, zigiPrefs} from '../../lib/ai/store/records';
 import {localDate} from '../../lib/local-date';
 import type * as KnockCompute from '../../lib/ai/knock/compute';
+import {ZigiPartBoundary} from './part-boundary';
+import {isShowcase} from '../../lib/showcase-storage';
+import {ZigiAvatar} from './zigi-avatar';
 import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -26,8 +29,7 @@ import './knock.css';
  * with the panel open. It reads the device's records, sends nothing, and writes only the knock counts, a snooze or a
  * dismissal the person chose. Nothing moves under reduced motion, Motion Off or ZIGi's animation Off.
  */
-// Gate A (ADR-022 B41): the knock's visible part (avatar, copy, buttons, the check-in) is its own chunk, loaded only when a knock is due.
-const KnockView = lazy(() => import('./knock-view').then(m => ({default: m.KnockView})));
+const KnockCheckIn = lazy(() => import('./knock-check-in'));
 const TICK_MS = 30_000, REST_MS = 10 * 60_000, RIPPLE_MS = 1200;
 export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; side: 'right' | 'left'}) {
   const reminders = useReminders(), habits = useHabits(), health = useHealth(), platform = usePlatform(), legacy = useGoals();
@@ -104,5 +106,28 @@ export function ZigiKnock({away, phone, side}: {away: boolean; phone: boolean; s
     catch { setNote('The snooze could not be saved on this device.'); }
   };
   const choices = (['15m', '1h', 'tonight'] as const).filter(c => snoozeUntil(c, now ?? new Date(), prefs) !== null);
-  return <Suspense fallback={null}><KnockView current={current} phone={phone} side={side} titleId={titleId} mode={mode} note={note} choices={choices} onDoIt={doIt} onSnoozeMode={() => setMode('snooze')} onBack={() => setMode('ask')} onNotToday={notToday} onSnooze={snoozeFor} onDismiss={dismiss} onNavigate={close} /></Suspense>;
+  const lines = knockLines(current);
+  return <section className={`zigi-knock${phone ? ' zigi-knock-phone' : ''}`} data-side={side} aria-labelledby={titleId}>
+    <div className="zigi-knock-head">
+      <ZigiAvatar state="reminder" size={44} decorative/>
+      <div className="zigi-knock-copy">
+        {isShowcase() && <p className="zigi-knock-label">Showcase · fictional</p>}
+        <h2 id={titleId}>{lines.title}</h2>
+        <p>{lines.line}</p>
+      </div>
+      <button type="button" className="zigi-knock-close" aria-label="Close ZIGi's reminder" onClick={dismiss}>×</button>
+    </div>
+    <p className="zigi-knock-live" role="status">{`ZIGi: ${lines.title}. ${lines.line}.`}</p>
+    {mode === 'ask' && <div className="zigi-knock-actions">
+      <button type="button" className="primary" onClick={doIt}>{current.kind === 'habit' ? 'Do it now' : lines.action}</button>
+      <button type="button" className="secondary" onClick={() => setMode('snooze')}>Snooze</button>
+      <button type="button" className="quiet" onClick={notToday}>Not today</button>
+    </div>}
+    {mode === 'snooze' && <div className="zigi-knock-actions" role="group" aria-label="Snooze for">
+      {choices.map(choice => <button key={choice} type="button" className="secondary" onClick={() => snoozeFor(choice)}>{SNOOZE_LABELS[choice]}</button>)}
+      <button type="button" className="quiet" onClick={() => setMode('ask')}>Back</button>
+    </div>}
+    {mode === 'check-in' && <ZigiPartBoundary label="The check-in"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><KnockCheckIn habitId={current.id} title={current.title} onNavigate={close}/></Suspense></ZigiPartBoundary>}
+    {note && <p role="alert" className="zigi-knock-note">{note}</p>}
+  </section>;
 }

@@ -49,3 +49,9 @@ describe('N6 recipe URL import (SSRF-safe, TIER 3)', () => {
     expect(allow('client-z', t0 + 200)).toBe(false);
   });
 });
+
+test('Gate B: a trailing dot does not slip a private name through, and a page of endless script heads is refused fast', () => {
+  for (const u of ['https://localhost./x', 'https://printer.local./x', 'https://box.internal./x']) expect(checkRecipeUrl(u)).toEqual({code: 'PRIVATE_HOST'});
+  const t0 = performance.now(); const out = extractRecipe('<script'.repeat(140_000), 'evil.example');
+  expect(out).toEqual({code: 'NO_RECIPE'}); expect(performance.now() - t0).toBeLessThan(2_000);
+});

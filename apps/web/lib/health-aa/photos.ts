@@ -1,11 +1,14 @@
 import * as z from 'zod';
 import {PROGRESS_PHOTOS_KEY} from '../aa-device-keys';
-import type {DeviceRecordSpec} from '../device-record';
+import {readDeviceRecord, type DeviceRecordSpec} from '../device-record';
+import {getAccountScope} from '../account-session';
+import {getAppStorage, isShowcase} from '../showcase-storage';
 
 /**
  * N9: progress photos, device-only (ADR-022 B7): the index (id, day, note, size, the pose) in a device key; the bytes in
  * IndexedDB (`zigoals-progress-photos`, one store), compressed on the device to a WebP (or JPEG) no larger than 1280 px
- * and about 200 kB, never synced, included in Export everything as files, removed by the account's erase. At most 60.
+ * and about 200 kB, never synced, included in Export everything as files (`exportPhotoEntries`), removed by the account's
+ * erase together with the database. At most 60.
  */
 export const MAX_PHOTOS = 60, PHOTO_MAX_EDGE = 1280, PHOTO_QUALITY = 0.82;
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -39,4 +42,17 @@ export async function compressImage(file: Blob, maxEdge = PHOTO_MAX_EDGE, qualit
   if (webp && webp.type === 'image/webp') return {blob: webp, type: 'image/webp'};
   const jpeg = await encode('image/jpeg'); if (!jpeg) throw new Error('The photo could not be encoded.');
   return {blob: jpeg, type: 'image/jpeg'};
+}
+/** The scope the photos of this tab belong to: the account, the Showcase, or the local person (the same rule the Measurements view uses). */
+export function photoScope(): string { try { return isShowcase() ? 'showcase' : getAccountScope() ?? 'local'; } catch { return 'local'; } }
+/** The file name a photo gets in Export everything: its day, pose and id, with the image type's extension. */
+export const photoFileName = (p: {id: string; date: string; pose: string; type?: string}) => `photos/${p.date}-${p.pose}-${p.id.replace(/^photo_/, '')}.${p.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
+/** Every photo of this tab's scope as a zip entry (Gate B, F3's sibling: the doc promised files in Export everything). A photo whose bytes are missing is skipped, never invented. */
+export async function exportPhotoEntries(now = new Date()): Promise<{name: string; data: Uint8Array; modified: Date}[]> {
+  let index: ProgressPhotos; try { index = readDeviceRecord(getAppStorage(), PROGRESS_PHOTOS).data; } catch { return []; }
+  const scope = photoScope(), out: {name: string; data: Uint8Array; modified: Date}[] = [];
+  for (const p of index.photos ?? []) {
+    try { const blob = await getPhotoBlob(scope, p.id); if (!blob) continue; out.push({name: photoFileName({...p, type: blob.type}), data: new Uint8Array(await blob.arrayBuffer()), modified: now}); } catch { /* skipped: the index names it, the bytes are gone */ }
+  }
+  return out;
 }

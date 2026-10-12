@@ -97,3 +97,7 @@ carries it), What's new and Help (the second merger carries both; my drafts come
   its eleven AA entries from `AA_PERSONAL_KEYS`/`AA_DISPLAY_KEYS` (same names, same files in the zip);
   `components/vault-sync-controls.tsx` imports `forgetAaDeviceRecords` at run time inside the erase (the shell carries none
   of it). The weight gate: no budget raised; the shell is 1.2 kB below main's build (ADR-022 B41), so your merge has room.
+- **Gate B (security read), two more shared-file lines:** `components/export-everything.tsx` adds the progress photos as files to the
+  zip through one `await import('../lib/health-aa/photos')` line and a third, optional argument of `buildEverythingZip` (`lib/export/everything.ts`:
+  extra entries; default empty, so your call sites are unchanged). The erase in `vault-sync-controls.tsx` now also deletes the photo
+  database (inside the helper it already calls; the component's line only gained a `.catch`).

@@ -188,7 +188,8 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
 }
 
 /** The ZIP: everything.json first, then the CSVs in their table order; every entry dated `now`. */
-export function buildEverythingZip(collected: Collected, {date, showcase, now}: {date: string; showcase: boolean; now: Date}): {name: string; bytes: Uint8Array} {
-  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now}))];
+export function buildEverythingZip(collected: Collected, {date, showcase, now}: {date: string; showcase: boolean; now: Date}, extra: readonly {name: string; data: Uint8Array | string; modified: Date}[] = []): {name: string; bytes: Uint8Array} {
+  // Session AA-Local (ADR-022 B7, B43): `extra` carries files that are not records, the progress photos (lib/health-aa/photos.ts).
+  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now})), ...extra];
   return {name: exportFileName(`zigoals-export-${date}.zip`, showcase), bytes: buildStoredZip(entries)};
 }

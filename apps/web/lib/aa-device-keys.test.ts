@@ -43,3 +43,11 @@ describe('Session AA-Local device keys (ADR-022 B1): device-only, versioned, loo
     expect(m.has(HABITS_KEY)).toBe(true);
   });
 });
+
+test('Export everything names a photo by its day, pose and id, and the erase removes the photo database (Gate B, F3)', async () => {
+  const {photoFileName} = await import('./health-aa/photos');
+  expect(photoFileName({id: 'photo_abc12345', date: '2026-10-01', pose: 'front', type: 'image/jpeg'})).toBe('photos/2026-10-01-front-abc12345.jpg');
+  expect(photoFileName({id: 'photo_abc12345', date: '2026-10-01', pose: 'side'})).toBe('photos/2026-10-01-side-abc12345.webp');
+  const deleted: string[] = []; (globalThis as {indexedDB?: unknown}).indexedDB = {deleteDatabase: (n: string) => { deleted.push(n); }};
+  try { forgetAaDeviceRecords(memory().storage); expect(deleted).toEqual(['zigoals-progress-photos']); } finally { delete (globalThis as {indexedDB?: unknown}).indexedDB; }
+});

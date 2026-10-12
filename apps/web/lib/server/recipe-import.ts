@@ -16,7 +16,7 @@ export function checkRecipeUrl(raw: string): URL | RecipeRefusal {
   if (url.protocol !== 'https:') return {code: 'NOT_HTTPS'};
   if (url.username || url.password) return {code: 'INVALID_URL'};
   if (url.port && url.port !== '443') return {code: 'PRIVATE_HOST'};
-  const host = url.hostname.toLowerCase();
+  const host = url.hostname.toLowerCase().replace(/\.$/, ''); // a trailing dot names the same host (Gate B F2)
   if (!host.includes('.') || PRIVATE_HOST.test(host) || host.startsWith('[')) return {code: 'PRIVATE_HOST'};
   url.hash = '';
   return url;
@@ -53,7 +53,8 @@ function findRecipe(node: unknown, depth = 0): Record<string, unknown> | null {
 /** The recipe from a page's JSON-LD blocks: the first `Recipe` found, trimmed to plain strings. */
 export function extractRecipe(html: string, source: string): RecipeImport | RecipeRefusal {
   const blocks: string[] = [];
-  const re = /<script[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi; let m: RegExpExecArray | null;
+  // Gate B F1: the tag head is bounded (a page of endless `<script` without `>` made the unbounded form quadratic: 1 MB pinned a worker for minutes).
+  const re = /<script[^>]{0,2000}?type\s*=\s*["']application\/ld\+json["'][^>]{0,2000}?>([\s\S]*?)<\/script>/gi; let m: RegExpExecArray | null;
   while ((m = re.exec(html)) && blocks.length < 20) blocks.push(m[1]!);
   if (!blocks.length && html.trim().startsWith('{')) blocks.push(html);
   for (const block of blocks) {
