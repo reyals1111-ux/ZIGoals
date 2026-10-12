@@ -117,6 +117,9 @@ Filled per part; Gate C adds the measured counts.
   "Earlier updates"), checks that Z-Local's link is no longer on the card itself, reads the earlier list with Z-Local's
   four links first (Z-Cloud's from index 4, Y's "End a vacation early" at 11, X-Local's at 15) and still opens Z-Local's
   answer from there. `help-page.spec.ts` gains this release's nine answers (new test).
+- **CI fixes (as strict):** `weekly-review.spec.ts` "viewing writes nothing" compares the Showcase's records sorted by
+  key: Chromium's `sessionStorage` order can change when another key is added (the public market caches add theirs while
+  Today loads), so identical records were once read in another order (CI on `0fbf974`); every key and byte still counts.
 - **Part 1, For you on a phone (as strict):** `tests/for-you.spec.ts` expects exactly no open card on a phone (all behind
   the row; was "at most one, at least one"); computers and tablets keep "at most two, at least one".
 - **Part 1, cards that moved to "Updates and summaries" (mechanics, assertions unchanged):** `weekly-review.spec.ts`,
