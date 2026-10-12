@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {DASHBOARD_SETTINGS_KEY} from '../lib/dashboard-settings';
 
 /** Session AA-Cloud Part 8: the Showcase shows every feature of this session, and Today's cards kept on this device. */
 test.beforeEach(async ({page}) => {
@@ -27,8 +28,15 @@ test('Showcase Today: life balance, pace forecasts and the calculator as cards k
 
 test('arranging Today: the chooser turns a card off and on, kept on this device, never in the synced layout', async ({page}) => {
   await showcase(page);
-  const settingsBefore = await page.evaluate(() => Object.entries(sessionStorage).find(([k]) => k.endsWith('zigoals:dashboard:v1'))?.[1] ?? null);
-  await page.getByRole('button', {name: /Customize Today/}).first().click();
+  const synced = () => page.evaluate(key => Object.entries(sessionStorage).find(([k]) => k.endsWith(key))?.[1] ?? null, DASHBOARD_SETTINGS_KEY);
+  const settingsBefore = await synced();
+  expect(settingsBefore).not.toBeNull();
+  // Before: the Life review is offered in Updates and summaries.
+  const updates = page.getByRole('region', {name: 'Updates and summaries', exact: true});
+  const openUpdates = async () => { const fold = updates.getByRole('button', {name: /^Show more/}); if (await fold.isVisible()) await fold.click(); };
+  await openUpdates();
+  await expect(updates.locator('#for-you-life-review')).toHaveCount(1);
+  await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
   const chooser = page.getByRole('group', {name: 'Cards kept on this device'});
   const forecasts = chooser.getByRole('button', {name: /^Pace forecasts/});
   await expect(forecasts).toHaveAttribute('aria-pressed', 'true');
@@ -39,10 +47,12 @@ test('arranging Today: the chooser turns a card off and on, kept on this device,
   await expect(cards(page).locator('[data-card="review"]')).toHaveCount(1);
   const stored = await page.evaluate(() => JSON.parse(Object.entries(sessionStorage).find(([k]) => k.endsWith('zigoals:today-cards:v1'))![1]));
   expect(stored).toEqual({version: 1, cards: ['balance', 'calculator', 'review']});
-  expect(await page.evaluate(() => Object.entries(sessionStorage).find(([k]) => k.endsWith('zigoals:dashboard:v1'))?.[1] ?? null)).toBe(settingsBefore);
-  // The Life review now sits among the cards, not twice: Updates and summaries no longer carries it.
-  await page.getByRole('button', {name: /Customize Today|Done/}).first().click().catch(() => {});
-  await expect(page.locator('#for-you-life-review')).toHaveCount(0);
+  expect(await synced()).toBe(settingsBefore);
+  // After: the Life review sits among the cards, not twice; Updates and summaries no longer carries it.
+  await page.getByRole('button', {name: 'Finish customizing', exact: true}).click();
+  await openUpdates();
+  await expect(updates).toBeVisible();
+  await expect(updates.locator('#for-you-life-review')).toHaveCount(0);
 });
 
 test('a new device: no cards until chosen; the chooser offers all four', async ({page}) => {

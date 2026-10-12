@@ -54,8 +54,21 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
 
 test('Today: a person’s own arrangement shows as saved, without group headings', async ({page}) => {
   await showcase(page);
-  await page.getByRole('button', {name: /Customize Today/}).first().click();
+  const modules = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
+  await expect(page.locator('.today-group-heading').first()).toBeVisible();
+  const before = await modules();
+  expect(before.length).toBeGreaterThan(2);
+  await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
   // Arranging shows no group headings; every module stays movable.
+  await expect(page.locator('.today-group-heading')).toHaveCount(0);
+  // Gate C audit: arrange for real: the second module moves first, is saved, and survives a reload, without headings.
+  const second = page.locator(`.dashboard-layout-grid > .placed-module[data-module="${before[1]}"]`);
+  await second.locator('.dashboard-builtin-options .card-options-trigger').click();
+  await second.getByRole('button', {name: 'Move earlier'}).click();
+  await expect.poll(modules).toEqual([before[1], before[0], ...before.slice(2)]);
+  await page.getByRole('button', {name: 'Finish customizing', exact: true}).click();
+  await page.reload();
+  await expect.poll(modules).toEqual([before[1], before[0], ...before.slice(2)]);
   await expect(page.locator('.today-group-heading')).toHaveCount(0);
 });
 

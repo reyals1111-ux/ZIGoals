@@ -109,7 +109,8 @@ Filled per part; Gate C adds the measured counts.
   Showcase's two average goals are cards of the same collection; it was 5); `zigi-help-settings.spec.ts` opens Today's
   "Updates and summaries" fold on a phone before the What's new card (mechanics, every check unchanged).
 - **Part 8, the Showcase's earlier season (as strict):** `lib/export/everything.test.ts` keeps "24 water entries" for the
-  last 30 days and adds "20 in the earlier season" (it counted all 24); `lib/sleep/sleep-features.test.ts` (AA-Local's
+  Showcase's own water (the entries whose ids are not the earlier season's, as the test splits them) and adds exactly "20 in
+  the earlier season" (it counted all 24); `lib/sleep/sleep-features.test.ts` (AA-Local's
   folder, one assertion, named in the handoff) keeps "the Showcase sleep group is exactly `showcaseSleep(day)`" for every
   night but the earlier season's, and adds that there are exactly 29 of those, all ending 60 to 89 days back.
 - **What's new release `2026-10-session-aa-cloud` (as strict):** `zigi-help-settings.spec.ts` expects the new release
@@ -161,6 +162,19 @@ No high or medium finding; every Tier 3 commit OK. The revert of the data-health
 | 4 | A small file with huge dimensions can exhaust memory when decoded for a vision photo; two tabs can pass the 30 MB cap together | info | Owner item: only the person's own file picker reaches it; the output is always a re-encoded JPEG without EXIF |
 | 5 | The photo tidy-up on Goals deletes photos no `zigoals:goal-extras:v1` entry names; a future `v2` key read by this build after a rollback would look empty | info | Recorded for the finance-homes session (which moves extras into sync): bump the key only with a reader for both |
 | 6 | Commit scope: `338f1a5` also moved `GoalsAltView`'s figures; `5fb08f7` also removed the unused `undo-toast-view.tsx` | info | Recorded; both behaviour-preserving |
+
+## Gate C: audit of every changed test file (independent agent)
+22 modified and 27 new test files read in full. Every modified file's assertions matched this record and were as strict,
+except two places the audit found, now fixed: `tests/for-you.spec.ts` on a phone had lost "at least one card" (the row
+and at least one card behind it are asserted again, with retries), and `tests/whats-new.spec.ts` had dropped the check
+that Z-Local's Help answer opens (restored). Tests in this session's new files that could pass without checking were
+made to fail when they should: the arranging test reads the real synced settings key (it read a key that never exists)
+and proves the Life review leaves Updates and summaries; a client render test for the progress slot
+(`lib/progress-slot.client.test.ts`); the forecast's "a day's last value" uses a different value; the Life review clear
+is checked before Undo, and last week's focus coming back is checked; the tree ring check needs two boxes; the template
+filter waits; "7" no longer matches 17; the calculator proves "1,000,000" by its figure; ⌘K is pressed; Today's
+arrangement is moved, saved and reloaded; the repeated template proves the first wins; Your data's baseline is taken
+before it opens; Undo checks the place; two `.every()` checks need a non-empty list.
 
 ## Rejected options
 - Adding goal extras to `privateGoalSchema` or a fifth goal type to its enum (A3): older readers refuse the store.

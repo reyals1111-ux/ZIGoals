@@ -15,7 +15,7 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await showcase(page);
   await page.goto('/app/goals');
   const figures = page.getByRole('definition').filter({hasText: 'goals in motion'});
-  await expect(figures).toContainText('7');
+  await expect(figures).toHaveText(/^7(?!\d)/);
   // Gate C (persona round): the key figures count every goal in every view, as the cards do.
   const finished = page.getByRole('definition').filter({hasText: 'on the Hall of achievements'}), finishedCount = (await finished.textContent())!;
   expect(finishedCount).toMatch(/^[1-9]/);
@@ -38,7 +38,7 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await expect(finished).toHaveText(finishedCount);
   // A ring's number stays on one line (the row's text rule no longer reaches the ring).
   // Every piece of the ring's text (the number, the small "%") shares one line: their boxes overlap vertically.
-  const oneLine = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); const boxes = [...r.getClientRects()].filter(x => x.width > 0); return Math.max(...boxes.map(x => x.top)) < Math.min(...boxes.map(x => x.bottom)); });
+  const oneLine = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); const boxes = [...r.getClientRects()].filter(x => x.width > 0); return boxes.length >= 2 && Math.max(...boxes.map(x => x.top)) < Math.min(...boxes.map(x => x.bottom)); });
   expect(oneLine).toBe(true);
   // G2: the balance wheel with every area named in words.
   const balance = page.getByRole('region', {name: 'Life balance'});
@@ -88,6 +88,9 @@ test('a template fills in the goal wizard and offers its habits', async ({page})
   // A money template never names an amount.
   await page.goto('/app/goals/templates');
   await page.getByRole('button', {name: 'Wealth', exact: true}).click();
+  await expect(page.getByRole('button', {name: 'Wealth', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.template-card').first()).toBeVisible();
+  expect(await page.locator('.template-card').count()).toBeGreaterThan(0);
   for (const text of await page.locator('.template-card').allTextContents()) expect(text).not.toMatch(/[$€£]\s?\d|\d\s?(USD|EUR)/);
 });
 

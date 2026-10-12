@@ -46,8 +46,12 @@ test('one focus for the period, kept on this device, with Undo; last period\'s f
   await expect(page.getByRole('status').filter({hasText: 'Your focus is saved on this device.'})).toBeVisible();
   await page.reload();
   await expect(page.getByRole('region', {name: 'One focus'}).getByLabel('Your focus')).toHaveValue('Bed by 23:00 on weeknights');
+  // Last period's focus comes back (the Showcase's last week).
+  await expect(page.getByRole('region', {name: 'One focus'})).toContainText('Last week you chose: A short walk after lunch (Showcase)');
   await page.getByRole('region', {name: 'One focus'}).getByLabel('Your focus').fill('');
   await page.getByRole('region', {name: 'One focus'}).getByRole('button', {name: 'Save focus'}).click();
+  // The clear happened (Gate C audit): the stored focus for this period is gone before Undo puts it back.
+  await expect.poll(() => page.evaluate(() => { const raw = Object.entries(sessionStorage).find(([k]) => k.endsWith('zigoals:life-review:v1'))?.[1]; return raw ? Object.values(JSON.parse(raw).focus as Record<string, {text: string}>).some(f => f.text === 'Bed by 23:00 on weeknights') : false; })).toBe(false);
   await page.getByRole('button', {name: 'Undo'}).click();
   await expect(page.getByRole('status').filter({hasText: 'Focus put back.'})).toBeVisible();
   await page.reload();

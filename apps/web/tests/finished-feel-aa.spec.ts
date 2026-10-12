@@ -15,10 +15,12 @@ const undo = (page: Page) => page.getByRole('status').getByRole('button', {name:
 test('Settings → Your data: where each part lives, what this device holds, what ZIGi can see; it changes nothing', async ({page}) => {
   await showcase(page);
   await page.goto('/app/settings');
+  await expect(page.getByRole('link', {name: /^Your data/})).toBeVisible();
+  // Gate C audit: the baseline is taken before Your data opens, so a write on its mount would show.
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage).concat(Object.entries(localStorage)).sort()));
   await page.getByRole('link', {name: /^Your data/}).click();
   await expect(page).toHaveURL(/\/app\/settings\/data$/);
   await expect(page).toHaveTitle(/Your data/);
-  const before = await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage).concat(Object.entries(localStorage)).sort()));
   const synced = page.getByRole('region', {name: 'Synced records'});
   await expect(synced.getByRole('listitem')).toHaveCount(4);
   await expect(synced.getByRole('listitem').filter({hasText: 'Habits and check-ins'})).toContainText(/\d+(\.\d)? (B|kB|MB)/);
@@ -52,21 +54,27 @@ test('Undo: a removed favourite and a removed milestone come back in place', asy
   if (await fold.count()) await fold.click();
   const remove = page.getByRole('button', {name: /^Remove .+ favourite$/}).first();
   await expect(remove).toBeVisible();
+  const favourites = () => page.getByRole('button', {name: /^Remove .+ favourite$/}).evaluateAll(list => list.map(b => b.getAttribute('aria-label')));
+  const favouritesBefore = await favourites();
   const name = (await remove.getAttribute('aria-label'))!.replace(/^Remove | favourite$/g, '');
   await remove.click();
   await expect(page.getByRole('button', {name: `Remove ${name} favourite`})).toHaveCount(0);
   await undo(page).click();
   await expect(page.getByRole('button', {name: `Remove ${name} favourite`})).toBeVisible();
+  await expect.poll(favourites).toEqual(favouritesBefore);
   // A milestone.
   await page.goto('/app/goals/tracked/9205');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Launch my creative studio');
   await page.locator('summary').filter({hasText: /^Milestones/}).first().click();
   const edit = page.getByRole('button', {name: /^Edit milestone /}).first();
   await expect(edit).toBeVisible();
+  const milestones = () => page.getByRole('button', {name: /^Edit milestone /}).evaluateAll(list => list.map(b => b.getAttribute('aria-label')));
+  const milestonesBefore = await milestones();
   const title = (await edit.getAttribute('aria-label'))!.replace(/^Edit milestone /, '');
   await edit.click();
   await page.getByRole('button', {name: 'Remove milestone'}).click();
   await expect(page.getByRole('button', {name: `Edit milestone ${title}`})).toHaveCount(0);
   await undo(page).click();
   await expect(page.getByRole('button', {name: `Edit milestone ${title}`})).toBeVisible();
+  await expect.poll(milestones).toEqual(milestonesBefore);
 });

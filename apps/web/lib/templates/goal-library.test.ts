@@ -27,7 +27,9 @@ describe('G6 template library (Session AA-Cloud Part 2)', () => {
     expect(searchTemplates('sleep').map(t => t.id)).toContain('sleep-7h');
     expect(searchTemplates('emergency fund').map(t => t.id)).toEqual(['emergency-fund']);
     expect(searchTemplates('dutch').map(t => t.id)).toEqual(['language']);
-    expect(searchTemplates('', 'fun').every(t => t.area === 'fun')).toBe(true);
+    const fun = searchTemplates('', 'fun');
+    expect(fun.length).toBeGreaterThan(0);
+    expect(fun.every(t => t.area === 'fun')).toBe(true);
     expect(searchTemplates('nothing-matches-this')).toEqual([]);
   });
 });

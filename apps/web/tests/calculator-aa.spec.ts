@@ -47,6 +47,8 @@ test('Wealth opens the calculator; results follow every change, exactly, and alw
   await expect(results(page).getByRole('status').filter({hasText: 'from your last numbers that worked'})).toHaveCount(0);
   await page.getByLabel('Starting amount').fill('1,000,000');
   await expect(page.locator('.calc-error')).toHaveCount(0);
+  // Read as a million: 1,000,000 × 1.05^11 = 1,710,339.358… (Gate C audit: the figure proves the parse).
+  await expect(results(page).getByRole('definition').first()).toHaveText(/^\$1,710,339\.3[56]$/);
   // Inflation shows today's money and a column in the table.
   await page.getByLabel('Starting amount').fill('10000');
   await page.getByText('Rising contributions and inflation (optional)').click();

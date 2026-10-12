@@ -14,9 +14,10 @@ test('Showcase: at most two cards are open and the rest fold behind Show more', 
   const open = area.locator('> .for-you-slot');
   // Session AA-Cloud Part 1 (deliberate, as strict): on a phone Today's focus shows what is due at the top, and every
   // For you card waits behind the one row (exactly none open); elsewhere one or two stay open as before.
-  if (await isPhone(page)) expect(await open.count()).toBe(TODAY_FOR_YOU_OPEN.phone);
-  else { expect(await open.count()).toBeLessThanOrEqual(TODAY_FOR_YOU_OPEN.wide); expect(await open.count()).toBeGreaterThan(0); }
+  // Gate C audit: on a phone the cards are still there, every one behind the row (the row and at least one card behind it).
   const fold = area.getByRole('button', {name: /^Show more \(\d+\)$/});
+  if (await isPhone(page)) { await expect(fold).toHaveCount(1); expect(Number((await fold.textContent())!.match(/\((\d+)\)/)![1])).toBeGreaterThan(0); await expect(open).toHaveCount(TODAY_FOR_YOU_OPEN.phone); }
+  else { await expect(open.first()).toBeVisible(); expect(await open.count()).toBeLessThanOrEqual(TODAY_FOR_YOU_OPEN.wide); }
   if (await fold.count()) {
     const folded = Number((await fold.textContent())!.match(/\((\d+)\)/)![1]);
     const body = area.locator('.for-you-fold .phone-fold-body');

@@ -53,6 +53,7 @@ test('a repeated name opens the wizard with the first; the share page clears its
   await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('First idea');
   await page.goto('/app/goals/average/new?template=sleep-7h&template=steps-8000');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Keep an average');
+  await expect(page.getByLabel('Name')).toHaveValue('Sleep 7 hours a night');
   await page.goto(`/app/share?${new URLSearchParams({title: 'Private plan', text: 'Only for me'})}`);
   await expect(page.getByRole('region', {name: 'What would you like to do with it?'})).toContainText('Private plan');
   await expect(page).toHaveURL(/\/app\/share$/);

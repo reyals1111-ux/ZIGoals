@@ -28,10 +28,15 @@ test('the header button and "/" open search on every page; ⌘K is not taken; Es
   await expect(field(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(palette(page)).toHaveCount(0);
+  // ⌘K / Ctrl+K stays ZIGi's: it opens ZIGi's panel, never search (Gate C audit: the title's claim is now checked).
+  await page.locator('body').press('ControlOrMeta+k');
+  await expect(page.locator('dialog.ai-chat[open]')).toHaveCount(1);
+  await expect(palette(page)).toHaveCount(0);
+  await page.keyboard.press('Escape');
   // Typing "/" in a field types it.
   await page.goto('/app/goals/new');
   const name = page.getByLabel('Goal name', {exact: true});
-  await name.fill('A/B');
+  await name.pressSequentially('A/B');
   await expect(name).toHaveValue('A/B');
   await expect(palette(page)).toHaveCount(0);
   if (!isMobile) {

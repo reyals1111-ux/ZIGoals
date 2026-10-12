@@ -83,6 +83,7 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await expect(earlier.nth(15)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
   await card.getByRole('link', {name: 'ZIGi can do every ordinary task in the app'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-your-ai-act$/);
+  await expect(page.locator('#help-your-ai-act')).toHaveAttribute('open', '');
   await expect(page.locator('#help-your-ai-act')).toContainText('Every ordinary task in the app is a card now');
   await page.goto('/app');
   await revealUpdates(page);

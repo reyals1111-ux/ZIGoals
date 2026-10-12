@@ -21,6 +21,7 @@ describe('Life review (Session AA-Cloud Part 5)', () => {
   it('a new device: nothing recorded reads as not recorded, never zero', () => {
     const r = lifeReview({window: reviewPeriod('week', '2026-10-12'), habits: emptyHabitData(), health: createEmptyHealth(), platform: emptyPlatform(), goals: [], averages: [], extras: emptyGoalExtras(), history: [], today: '2026-10-12'});
     expect(r.highlights).toEqual([]);
+    expect(r.health).toHaveLength(4);
     expect(r.health.every(t => t.now === null && t.before === null)).toBe(true);
     expect(r.money).toEqual([]);
     expect(r.counts).toEqual({habitCheckIns: 0, healthDays: 0, contributions: 0});

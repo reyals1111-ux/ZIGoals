@@ -48,10 +48,13 @@ describe('G1 pace forecast (Session AA-Cloud Part 2)', () => {
     expect(forecastWords(f, d => d).detail).toMatch(/^From .* at the earliest\. An estimate from your pace so far, not a promise\.$/);
   });
   it('ignores days after today and older than the window; uses a day’s last value', () => {
-    const pts = [{day: addDays(today, -400), value: -1e9}, ...line([60, 30, 0], 10), {day: addDays(today, 5), value: 1e9}, {day: today, value: 600}];
-    const f = paceForecast(pts, 600, 1200, today);
+    // Gate C audit: today's later entry (900) replaces the earlier one (600), so the pace is steeper than the plain line's.
+    const pts = [{day: addDays(today, -400), value: -1e9}, ...line([60, 30, 0], 10), {day: addDays(today, 5), value: 1e9}, {day: today, value: 900}];
+    const f = paceForecast(pts, 900, 1200, today), plain = paceForecast(line([60, 30, 0], 10), 600, 1200, today);
     expect(f.points).toBe(3);
     expect(f.state).toBe('estimate');
+    expect(plain.perDay).toBeCloseTo(10, 6);
+    expect(f.perDay).toBeCloseTo(15, 6);
   });
   it('a far-off date (beyond 100 years) is no date', () => {
     expect(paceForecast(line([60, 30, 0], 0.0001), 0, 1e9, today).state).toBe('no-pace');

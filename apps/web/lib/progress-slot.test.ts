@@ -16,7 +16,7 @@ describe('progress slot (Session AA-Cloud Part 1)', () => {
     const offB = registerProgressCard('wealth', Other);
     expect(slotCards('wealth')).toEqual([Card, Other]);
     // The server snapshot is always empty, so a card registered in the browser never causes a hydration mismatch; the
-    // browser shows it right after hydration (useSyncExternalStore's client snapshot, checked in tests/page-order-aa.spec.ts).
+    // browser shows it right after hydration (useSyncExternalStore's client snapshot, checked in progress-slot.client.test.ts).
     expect(renderToStaticMarkup(createElement(ProgressSlot, {page: 'wealth'}))).toBe('');
     offA();
     offDuplicate();
