@@ -1,0 +1,819 @@
+{
+ "id": "msgbatch_01ERibWPa7m6ZCAfTs6W2dHj",
+ "createdAt": "2026-10-12T06:34:53.496841+00:00",
+ "model": "claude-opus-5-5",
+ "perSeed": 10,
+ "phenomena": [
+  "filler",
+  "number-words",
+  "clock-idiom",
+  "self-correction",
+  "run-on",
+  "politeness",
+  "preamble",
+  "inversion",
+  "code-switch",
+  "terse"
+ ],
+ "only": "aa-",
+ "seeds": [
+  {
+   "id": "aa-tod-en",
+   "concept": "a habit moves to the morning",
+   "lang": "en",
+   "typed": "Move my Read habit to the morning",
+   "expect": {
+    "kinds": [
+     "set-time-of-day"
+    ],
+    "fields": [
+     {
+      "kind": "set-time-of-day",
+      "timeOfDay": "morning"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-tod-nl",
+   "concept": "a habit moves to the morning",
+   "lang": "nl",
+   "typed": "Zet mijn leesgewoonte in de ochtend",
+   "expect": {
+    "kinds": [
+     "set-time-of-day"
+    ],
+    "fields": [
+     {
+      "kind": "set-time-of-day",
+      "timeOfDay": "morning"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-timer-start-en",
+   "concept": "start a habit timer",
+   "lang": "en",
+   "typed": "Start the timer on Exercise",
+   "expect": {
+    "kinds": [
+     "start-timer"
+    ],
+    "fields": [
+     {
+      "kind": "start-timer"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-timer-start-nl",
+   "concept": "start a habit timer",
+   "lang": "nl",
+   "typed": "Start de timer voor Exercise",
+   "expect": {
+    "kinds": [
+     "start-timer"
+    ],
+    "fields": [
+     {
+      "kind": "start-timer"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-timer-stop-en",
+   "concept": "stop a habit timer and log it",
+   "lang": "en",
+   "typed": "Stop the exercise timer and log it",
+   "expect": {
+    "kinds": [
+     "stop-timer"
+    ],
+    "fields": [
+     {
+      "kind": "stop-timer"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-timer-stop-nl",
+   "concept": "stop a habit timer and log it",
+   "lang": "nl",
+   "typed": "Stop de sporttimer en log het",
+   "expect": {
+    "kinds": [
+     "stop-timer"
+    ],
+    "fields": [
+     {
+      "kind": "stop-timer"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-skip-reason-en",
+   "concept": "skip today with a reason",
+   "lang": "en",
+   "typed": "Skip the walk today, I am travelling",
+   "expect": {
+    "kinds": [
+     "skip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-skip-reason-nl",
+   "concept": "skip today with a reason",
+   "lang": "nl",
+   "typed": "Sla de wandeling vandaag over, ik ben op reis",
+   "expect": {
+    "kinds": [
+     "skip"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-checkin-mood-en",
+   "concept": "a check-in with a mood",
+   "lang": "en",
+   "typed": "Done with my run, felt energized",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-checkin-mood-nl",
+   "concept": "a check-in with a mood",
+   "lang": "nl",
+   "typed": "Hardlopen gedaan, ik voelde me energiek",
+   "expect": {
+    "kinds": [
+     "check-in"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-routine-start-en",
+   "concept": "start a routine",
+   "lang": "en",
+   "typed": "Start my morning routine",
+   "expect": {
+    "kinds": [
+     "start-routine"
+    ],
+    "fields": [
+     {
+      "kind": "start-routine"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-routine-start-nl",
+   "concept": "start a routine",
+   "lang": "nl",
+   "typed": "Start mijn ochtendroutine",
+   "expect": {
+    "kinds": [
+     "start-routine"
+    ],
+    "fields": [
+     {
+      "kind": "start-routine"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-area-en",
+   "concept": "a habit under a life area",
+   "lang": "en",
+   "typed": "File my Walk habit under health",
+   "expect": {
+    "kinds": [
+     "set-habit-area"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-area",
+      "area": "health"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-area-nl",
+   "concept": "a habit under a life area",
+   "lang": "nl",
+   "typed": "Zet Wandelen onder gezondheid",
+   "expect": {
+    "kinds": [
+     "set-habit-area"
+    ],
+    "fields": [
+     {
+      "kind": "set-habit-area",
+      "area": "health"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-quit-cost-en",
+   "concept": "the cost per day of a quit habit",
+   "lang": "en",
+   "typed": "My late-night snacks cost me about three euros a day",
+   "expect": {
+    "kinds": [
+     "set-quit-cost"
+    ],
+    "fields": [
+     {
+      "kind": "set-quit-cost",
+      "perDay": 3
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-quit-cost-nl",
+   "concept": "the cost per day of a quit habit",
+   "lang": "nl",
+   "typed": "Snacken 's avonds laat kost me zo'n drie euro per dag",
+   "expect": {
+    "kinds": [
+     "set-quit-cost"
+    ],
+    "fields": [
+     {
+      "kind": "set-quit-cost",
+      "perDay": 3
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-freeze-en",
+   "concept": "a streak freeze on yesterday",
+   "lang": "en",
+   "typed": "Use a streak freeze on yesterday's walk",
+   "expect": {
+    "kinds": [
+     "use-freeze"
+    ],
+    "fields": [
+     {
+      "kind": "use-freeze",
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-freeze-nl",
+   "concept": "a streak freeze on yesterday",
+   "lang": "nl",
+   "typed": "Gebruik een streak freeze voor de wandeling van gisteren",
+   "expect": {
+    "kinds": [
+     "use-freeze"
+    ],
+    "fields": [
+     {
+      "kind": "use-freeze",
+      "day": "yesterday"
+     }
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-game-on-en",
+   "concept": "the game layer on",
+   "lang": "en",
+   "typed": "Turn the game layer on",
+   "expect": {
+    "kinds": [
+     "set-game-layer"
+    ],
+    "fields": [
+     {
+      "kind": "set-game-layer",
+      "enabled": true
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-game-on-nl",
+   "concept": "the game layer on",
+   "lang": "nl",
+   "typed": "Zet de spel-laag aan",
+   "expect": {
+    "kinds": [
+     "set-game-layer"
+    ],
+    "fields": [
+     {
+      "kind": "set-game-layer",
+      "enabled": true
+     }
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-micro-iron-en",
+   "concept": "an iron target",
+   "lang": "en",
+   "typed": "Set my iron target to twelve milligrams",
+   "expect": {
+    "kinds": [
+     "set-micro-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-micro-target",
+      "nutrient": "iron",
+      "value": 12
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-micro-iron-nl",
+   "concept": "an iron target",
+   "lang": "nl",
+   "typed": "Zet mijn ijzerdoel op twaalf milligram",
+   "expect": {
+    "kinds": [
+     "set-micro-target"
+    ],
+    "fields": [
+     {
+      "kind": "set-micro-target",
+      "nutrient": "iron",
+      "value": 12
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-macro-keto-en",
+   "concept": "the keto macro view",
+   "lang": "en",
+   "typed": "Show my macros in the keto view",
+   "expect": {
+    "kinds": [
+     "set-macro-mode"
+    ],
+    "fields": [
+     {
+      "kind": "set-macro-mode",
+      "mode": "keto"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-macro-keto-nl",
+   "concept": "the keto macro view",
+   "lang": "nl",
+   "typed": "Laat mijn macro's in de keto-weergave zien",
+   "expect": {
+    "kinds": [
+     "set-macro-mode"
+    ],
+    "fields": [
+     {
+      "kind": "set-macro-mode",
+      "mode": "keto"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-coach-keep-en",
+   "concept": "the coach: keep",
+   "lang": "en",
+   "typed": "Keep my calorie target this week",
+   "expect": {
+    "kinds": [
+     "coach-answer"
+    ],
+    "fields": [
+     {
+      "kind": "coach-answer",
+      "answer": "keep"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-coach-keep-nl",
+   "concept": "the coach: keep",
+   "lang": "nl",
+   "typed": "Houd mijn caloriedoel deze week zo",
+   "expect": {
+    "kinds": [
+     "coach-answer"
+    ],
+    "fields": [
+     {
+      "kind": "coach-answer",
+      "answer": "keep"
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-coach-adjust-en",
+   "concept": "the coach: adjust",
+   "lang": "en",
+   "typed": "Adjust my calorie target to 2100",
+   "expect": {
+    "kinds": [
+     "coach-answer"
+    ],
+    "fields": [
+     {
+      "kind": "coach-answer",
+      "answer": "adjust",
+      "kcal": 2100
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-coach-adjust-nl",
+   "concept": "the coach: adjust",
+   "lang": "nl",
+   "typed": "Pas mijn caloriedoel aan naar 2100",
+   "expect": {
+    "kinds": [
+     "coach-answer"
+    ],
+    "fields": [
+     {
+      "kind": "coach-answer",
+      "answer": "adjust",
+      "kcal": 2100
+     }
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose"
+  },
+  {
+   "id": "aa-recipe-text-en",
+   "concept": "a pasted recipe",
+   "lang": "en",
+   "typed": "Import this recipe: lentil soup, serves four, two hundred grams of red lentils, one onion",
+   "expect": {
+    "kinds": [
+     "import-recipe"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-recipe-text-nl",
+   "concept": "a pasted recipe",
+   "lang": "nl",
+   "typed": "Voeg dit recept toe: linzensoep, vier porties, tweehonderd gram rode linzen, een ui",
+   "expect": {
+    "kinds": [
+     "import-recipe"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "propose",
+   "important": true
+  },
+  {
+   "id": "aa-no-recipe-url-en",
+   "concept": "a recipe by web address",
+   "lang": "en",
+   "typed": "Import the recipe at example-recipes dot com slash lentil soup",
+   "expect": {
+    "refuse": true,
+    "kinds": [],
+    "mustContain": [
+     "Import"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "refuse"
+  },
+  {
+   "id": "aa-no-recipe-url-nl",
+   "concept": "a recipe by web address",
+   "lang": "nl",
+   "typed": "Importeer het recept op example-recipes punt com slash linzensoep",
+   "expect": {
+    "refuse": true,
+    "kinds": [],
+    "mustContain": [
+     "Import"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "refuse"
+  },
+  {
+   "id": "aa-nav-journey-en",
+   "concept": "the journey page",
+   "lang": "en",
+   "typed": "Open my journey",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Journey"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first",
+   "important": true
+  },
+  {
+   "id": "aa-nav-journey-nl",
+   "concept": "the journey page",
+   "lang": "nl",
+   "typed": "Ga naar mijn reis",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Journey"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first",
+   "important": true
+  },
+  {
+   "id": "aa-nav-year-en",
+   "concept": "the year view",
+   "lang": "en",
+   "typed": "Show me the year view",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Year view"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-year-nl",
+   "concept": "the year view",
+   "lang": "nl",
+   "typed": "Laat het jaaroverzicht zien",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Year view"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-routines-en",
+   "concept": "the routines",
+   "lang": "en",
+   "typed": "Open my routines",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Routines"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-routines-nl",
+   "concept": "the routines",
+   "lang": "nl",
+   "typed": "Open mijn routines",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Routines"
+    ]
+   },
+   "area": "habits",
+   "page": "habits",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-planner-en",
+   "concept": "the meal planner",
+   "lang": "en",
+   "typed": "Open the meal planner",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Planner"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-planner-nl",
+   "concept": "the meal planner",
+   "lang": "nl",
+   "typed": "Open de maaltijdplanner",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Planner"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-insights-en",
+   "concept": "the food insights",
+   "lang": "en",
+   "typed": "Show my food insights",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Insights"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-insights-nl",
+   "concept": "the food insights",
+   "lang": "nl",
+   "typed": "Laat mijn inzichten zien",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Insights"
+    ]
+   },
+   "area": "health",
+   "page": "health",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-reminders-en",
+   "concept": "the reminders plan",
+   "lang": "en",
+   "typed": "Open my reminders",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Reminders"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  },
+  {
+   "id": "aa-nav-reminders-nl",
+   "concept": "the reminders plan",
+   "lang": "nl",
+   "typed": "Open mijn herinneringen",
+   "expect": {
+    "localFirst": true,
+    "mustContain": [
+     "Reminders"
+    ]
+   },
+   "area": "today",
+   "page": "today",
+   "kind": "local-first"
+  }
+ ],
+ "forecast": {
+  "requests": 44,
+  "input": 26503,
+  "output": 39600,
+  "usd": 0.449006
+ }
+}
