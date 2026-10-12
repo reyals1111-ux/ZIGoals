@@ -1,1 +1,20 @@
 START session-aa-local 2026-10-11T21:48:31Z
+START s1-haiku-corpus 2026-10-12T08:25:24Z
+END s1-haiku-corpus 2026-10-12T08:59:30Z rc=0
+START s1-haiku-spoken 2026-10-12T08:59:30Z
+END s1-haiku-spoken 2026-10-12T09:26:27Z rc=0
+START s1-haiku-aa 2026-10-12T09:26:27Z
+END s1-haiku-aa 2026-10-12T09:28:09Z rc=0
+START s1-sonnet-aa 2026-10-12T09:28:09Z
+END s1-sonnet-aa 2026-10-12T09:29:52Z rc=0
+START s1-sonnet-spoken 2026-10-12T09:29:52Z
+START s2-haiku-aa 2026-10-12T09:34:51Z
+END s2-haiku-aa 2026-10-12T09:36:28Z rc=0
+START s2-sonnet-aa 2026-10-12T09:36:28Z
+END s2-sonnet-aa 2026-10-12T09:38:15Z rc=0
+END s1-sonnet-spoken 2026-10-12T09:58:19Z rc=0
+START s3-haiku-corpus 2026-10-12T09:58:30Z
+START s3-gemma4-corpus 2026-10-12T10:25:38Z
+START s3-ui-conv-1 2026-10-12T10:27:20Z
+START ui-s3/ui-conv-1 2026-10-12T10:27:20Z
+END ui-s3/ui-conv-1 2026-10-12T10:28:57Z rc=0
