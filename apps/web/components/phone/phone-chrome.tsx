@@ -24,6 +24,7 @@ import { LogoMark, Wordmark } from "../brand-mark";
 import { LogoIntro } from "../logo-intro";
 import { QuickAdd } from "../quick-add";
 import { SearchButton } from "../search/search-trigger";
+import { OfflinePill } from "../offline-notice";
 import { entranceAllowed } from "../use-entrance";
 import { usePhoneActive, usePhoneChrome } from "./use-phone-layout";
 import { useVisualViewportInsets } from "./use-visual-viewport";
@@ -121,6 +122,7 @@ export function PhoneTopBar() {
       <div className="phone-actions">
         {isShown(view, "quick-add") && <QuickAdd triggerClassName="phone-quick-add" />}
         <SearchButton className="phone-search" />
+        <OfflinePill />
         {/* Wealth and Settings are one tap away in the bar as well as in More (CI journeys open them by these names). */}
         {wealthShortcut && <Link className="phone-wealth" href="/app/wealth" prefetch={navPrefetch("/app/wealth")} aria-label="Wealth" aria-current={onWealth ? "page" : undefined}><AppIcon name="wallet" size={22} luminous={onWealth} /></Link>}
         <Link className="phone-settings" href="/app/settings" prefetch={navPrefetch("/app/settings")} aria-label="Settings" aria-current={onSettings ? "page" : undefined}><AppIcon name="settings" size={22} luminous={onSettings} /></Link>

@@ -32,3 +32,13 @@ export function OfflineNotice() {
   if (online) return null;
   return <p className="offline-notice" role="alert">You’re offline. This page keeps working and saves on this device; other pages open again when you’re back online.</p>;
 }
+
+/**
+ * Session AA-Cloud Part 6: a small "Offline" pill in the header (the phone top bar, the sidebar) for as long as the
+ * browser is offline, beside the notice above; it says the page keeps saving on this device. Online, nothing.
+ */
+export function OfflinePill() {
+  const online = useSyncExternalStore(subscribe, () => navigator.onLine, () => true);
+  if (online) return null;
+  return <span className="offline-pill" title="This page keeps working and saves on this device">Offline<span className="sr-only"> · this page keeps saving on this device</span></span>;
+}

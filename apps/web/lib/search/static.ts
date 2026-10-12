@@ -29,6 +29,7 @@ export const PAGES: readonly SearchItem[] = [
 
 export const SETTINGS: readonly SearchItem[] = [
   {id: 'setting:privacy', kind: 'setting', title: 'Keep a copy of your progress', subtitle: 'Data & privacy', href: '/app/settings#privacy', keywords: ['backup', 'export', 'private backups']},
+  {id: 'setting:your-data', kind: 'setting', title: 'Your data', subtitle: 'Data & privacy', href: '/app/settings/data', keywords: ['data health', 'storage', 'where', 'sync', 'device', 'privacy']},
   {id: 'setting:your-pages', kind: 'setting', title: 'Your pages & buttons', subtitle: 'Your app', href: '/app/settings#your-pages', keywords: ['hide page', 'quick add', 'navigation']},
   {id: 'setting:appearance', kind: 'setting', title: 'Motion', subtitle: 'Your app', href: '/app/settings#appearance', keywords: ['animations', 'reduced motion', 'appearance']},
   {id: 'setting:time-zone', kind: 'setting', title: 'Time zone', subtitle: 'Your app', href: '/app/settings#time-zone', keywords: ['journal zone', 'travel']},

@@ -1,0 +1,17 @@
+/* Session AA-Cloud Part 6: the Data health page. */
+:root .data-health { display: grid; gap: 20px; }
+:root .data-health .panel { margin: 0; min-width: 0; }
+:root .dh-list { display: grid; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+:root .dh-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: #0b172b99; font-size: 15px; }
+:root .dh-list li > span:first-child { display: grid; gap: 2px; min-width: 0; }
+:root .dh-list small { font-size: 14px; color: var(--text-secondary); }
+:root .dh-size { flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+:root .dh-more > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 650; }
+:root .dh-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+:root .dh-chips li { padding: 8px 14px; border-radius: 999px; border: 1px solid #6c9cc555; background: #0d1a2ecc; font-size: 15px; }
+:root .dh-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 0 0 10px; }
+:root .dh-facts > div { padding: 12px 14px; border-radius: 14px; border: 1px solid #6c9cc533; background: #0b172b99; }
+:root .dh-facts dt { font-size: 14px; color: var(--text-secondary); }
+:root .dh-facts dd { margin: 4px 0 0; font-size: 20px; font-weight: 700; }
+:root .dh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+:root .dh-actions .primary { min-height: 44px; }

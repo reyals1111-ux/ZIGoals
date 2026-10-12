@@ -89,3 +89,8 @@
 :root .sidebar-actions .quick-add-trigger { flex: 1; }
 @media (max-width: 900px) { :root .sidebar-search { display: none; } }
 :root .phone-search { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 14px; background: none; color: var(--text); cursor: pointer; }
+/* Session AA-Cloud Part 6: the door to Settings → Your data. */
+:root .data-health-door { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; margin: 0 0 16px; text-decoration: none; color: var(--text-strong); }
+:root .data-health-door > span:first-child { display: grid; gap: 4px; }
+:root .data-health-door small { font-size: 15px; color: var(--text-secondary); }
+:root .data-health-door:hover, :root .data-health-door:focus-visible { border-color: #8fe6f477; }

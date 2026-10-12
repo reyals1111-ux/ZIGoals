@@ -3,3 +3,7 @@
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   .offline-notice { top: calc(var(--phone-bar, 64px) + var(--safe-top, 0px) + 8px); }
 }
+/* Session AA-Cloud Part 6: the header pill while offline. */
+:root .offline-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: 999px; border: 1px solid #ffd98a88; background: #3a2e14cc; color: #ffe7b0; font-size: 14px; font-weight: 700; white-space: nowrap; }
+:root .offline-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #ffc27a; }
+:root .sidebar-search .offline-pill { margin-top: 8px; }

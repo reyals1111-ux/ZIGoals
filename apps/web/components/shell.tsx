@@ -32,7 +32,7 @@ import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
 import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
-import { OfflineNotice } from "./offline-notice";
+import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
 import { SearchButton, SearchHost } from "./search/search-trigger";
 import { AiLauncher } from "./ai/ai-launcher";
@@ -149,7 +149,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />
         {/* Session AA-Cloud Part 4: search, on computers right under the navigation (tablets carry it beside Quick add). */}
-        <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/></div>
+        <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/><OfflinePill/></div>
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
         <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}<SearchButton/></div>
         {/* Above the planet: this page's mark, or the wordmark (Session I). The "Shape & Fold" tagline now lives in the Today swan's artwork. */}

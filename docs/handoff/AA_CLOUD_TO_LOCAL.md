@@ -120,3 +120,21 @@ the page writes through `useDeviceRecord`):
 - **At merge (the second merger):** mount `<GameRegistrar/>` in `components/shell.tsx`; wrap goal steps with
   `useSwipeActions` once your Part 4 is on `main`; add `emitValidated('achievement_unlocked')` where a goal or an average goal
   is finished (`components/goals/average-goals.tsx`, the tracked goal's completion).
+
+## Parts 3–6 (2026-10-12): what reached your side
+- **`review:coach`** now renders on the Life review page (`/app/review`, `components/life-review/life-review-view.tsx`), after
+  the one-focus card and before the weekly reflection. Register your Health coach card there with
+  `registerSlotCard('review:coach', Card)`; nothing renders until you do.
+- **Search** (`components/search/**`) uses only ZIGi's public `askZigi(text)` (`components/ai/ask.ts`) for its last row
+  ("Ask ZIGi: …") and `launcherShown()` to say when ZIGi is off. ⌘K is untouched; "/" opens search only when the person
+  is not typing (ZIGi's composer is an input, so its slash commands are unaffected).
+- **Data health** (`/app/settings/data`) reads ZIGi's settings read-only (`readAiSettings`) to say what ZIGi may read
+  (on/off, model, the areas whose switch is on, Health only with its gate). It writes nothing.
+- **Today**: the cross-pillar insights card sits in For you (main) and a Life review door in Updates and summaries; both
+  load after Today. Today's focus water button is now named "Add 250 mL of water" (Health's own stays "Add 250 mL").
+- **New device keys** (all loose, versioned, device-only, in Export everything): `zigoals:calculator:v1`,
+  `zigoals:search-recent:v1`, `zigoals:life-review:v1`. If onboarding's `DEVICE_RECORD_KEYS` should treat them as "not a
+  new device", that list is yours (`lib/onboarding.ts`); I did not edit it.
+- **Celebrations (Part 2's promise):** finished tracked goals already signal through the existing contribution flow and
+  milestones (`components/platform/contribution-flow.tsx`, `goal-milestones.tsx`); a finished average goal emits
+  `zigiSignals.emitValidated('goal_funded')`. No new signal types were added; `achievement_unlocked` stays yours at merge.
