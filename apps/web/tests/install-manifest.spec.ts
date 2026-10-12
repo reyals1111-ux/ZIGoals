@@ -41,6 +41,8 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
     description: 'Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.',
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
     shortcuts: SHORTCUTS,
+    // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): a GET share target; files and images are not accepted.
+    share_target: {action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}},
   });
 });
 
@@ -55,7 +57,7 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   expect(response.status()).toBe(200);
   const body = await response.body(), text = body.toString('utf8'), prefix = text.slice(0, text.indexOf(',"shortcuts":'));
   expect(createHash('sha256').update(`${prefix}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
-  expect(createHash('sha256').update(body).digest('hex')).toBe('234454efd3fc46d61058fc6658a7a561cf4f56b132521207879b64fec32d5058');
+  expect(createHash('sha256').update(body).digest('hex')).toBe('29957d7933da2ad24469c5f4c73241ad03be34cecd361ed7565b6e0a1498e6c3');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');

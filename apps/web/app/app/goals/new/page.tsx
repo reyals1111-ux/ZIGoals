@@ -7,5 +7,5 @@ export default async function NewGoal({searchParams}:{searchParams:Promise<{posi
  const {position,template,...rest}=await searchParams;
  // Session AA-Cloud Part 3: "Turn this into a goal" from the calculator (checked again in the wizard).
  const calculator=rest.from==='calculator'?{name:rest.name,target:rest.target,currency:rest.currency,date:rest.date,contribution:rest.contribution,every:rest.every}:undefined;
- return <><div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="goal-new-eyebrow">A destination worth planning for</NebulaFlow></p><h1><NebulaFlow identity="goal-new-title">Create a goal.</NebulaFlow></h1></div></div><UnifiedGoalWizard positionId={position} templateId={template} calculator={calculator}/></>;
+ return <><div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="goal-new-eyebrow">A destination worth planning for</NebulaFlow></p><h1><NebulaFlow identity="goal-new-title">Create a goal.</NebulaFlow></h1></div></div><UnifiedGoalWizard positionId={position} templateId={template} calculator={calculator} sharedName={rest.from==='share'?rest.name?.slice(0,100):undefined}/></>;
 }

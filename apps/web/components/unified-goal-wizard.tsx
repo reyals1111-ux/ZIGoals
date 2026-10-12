@@ -44,14 +44,14 @@ function calculatorGoal(c:CalculatorPrefill|undefined){
  const every=(['weekly','monthly','yearly'] as const).find(e=>e===c.every);
  return {name:(c.name??'').trim().slice(0,100)||`Grow to ${c.target} ${c.currency}`,target:c.target!,currency:c.currency,date,contribution,every};
 }
-export function UnifiedGoalWizard({positionId,templateId,calculator}:{positionId?:string;templateId?:string;calculator?:CalculatorPrefill}){
+export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:{positionId?:string;templateId?:string;calculator?:CalculatorPrefill;sharedName?:string}){
  const store=usePlatform(),legacy=useGoals(),habits=useHabits(),router=useRouter();
  const [goalAssetPosition,setGoalAssetPosition]=useState(positionId??'');
  const source=store.data.positions.find(p=>p.id===goalAssetPosition);
  // Session X P2.1 (keyboard and screen reader): a new step takes focus, so it is announced and Tab starts from it; the
  // button that changed the step may no longer exist.
  const stepContent=useRef<HTMLDivElement>(null),shownStep=useRef(0);
- const [step,setStep]=useState(0),[name,setName]=useState(''),[type,setType]=useState<PrivateGoal['type']>('QUANTITY');
+ const [step,setStep]=useState(0),[name,setName]=useState(()=>(sharedName??'').replace(/\s+/g,' ').trim().slice(0,100)),[type,setType]=useState<PrivateGoal['type']>('QUANTITY');
  const [assetInput,setAsset]=useState(''),[networkInput,setNetwork]=useState(''),[target,setTarget]=useState(''),[date,setDate]=useState(''),[notes,setNotes]=useState(''),[milestones,setMilestones]=useState('');
  const [category,setCategory]=useState<GoalMetadata['category']>('Emergency Fund'),[funding,setFunding]=useState<Funding>('wealth');
  // Session AA-Cloud Part 2 (G2, G6): a library template fills the first step once; the life area and the template's

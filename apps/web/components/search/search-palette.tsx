@@ -26,9 +26,9 @@ import './search.css';
  */
 type Row = {id: string; label: string; detail?: string; kind: 'hit' | 'recent' | 'ask'; hit?: SearchHit; query?: string};
 
-export default function SearchPalette({onClose}: {onClose: () => void}) {
+export default function SearchPalette({initial = '', onClose}: {initial?: string; onClose: () => void}) {
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<Element | null>(null);
-  const router = useRouter(), base = useId(), [query, setQuery] = useState(''), [active, setActive] = useState(0);
+  const router = useRouter(), base = useId(), [query, setQuery] = useState(initial), [active, setActive] = useState(0);
   const recent = useDeviceRecord(SEARCH_RECENT);
   const goals = useUnifiedGoals(), habits = useHabits(), health = useHealth(), platform = usePlatform(), averages = useAverageGoals(), nav = useVisibleNav();
 
