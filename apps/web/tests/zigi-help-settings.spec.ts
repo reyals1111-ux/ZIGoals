@@ -64,6 +64,12 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session Z-Cloud bumped it once more (ADR-019, deliberate); Y's links lead "Earlier updates".
   expect(WHATS_NEW_RELEASE).toBe('2026-10-session-z-local');
   await page.goto('/app');
+  // Session AA-Cloud Part 1 (deliberate): the card sits in Today's "Updates and summaries"; on a phone that area waits
+  // behind its one row, so open it first. Nothing about the card changes.
+  const updates = page.getByRole('region', {name: 'Updates and summaries', exact: true});
+  await expect(updates).toBeVisible();
+  const fold = updates.getByRole('button', {name: /^Show more/});
+  if (await fold.count()) await fold.click();
   const card = page.getByRole('region', {name: 'A few new things.'});
   await expect(card).toBeVisible();
   await card.getByText('Earlier updates', {exact: true}).click();

@@ -60,7 +60,8 @@ test('forced colours: every main page renders and keyboard focus stays visible',
 });
 
 // The first card of each page moves. On a phone (Session E) Wealth starts with the pulse and your assets instead.
-for(const [path,region,desktopLabel,phoneLabel] of [['/app/health','health:body','Today’s nourishment','Today’s nourishment'],['/app/wealth','wealth:body','The shape of your wealth','Portfolio pulse']] as const)
+// Session AA-Cloud Part 1 (deliberate, as strict): Wealth starts with the pulse everywhere now, so its first card is the pulse.
+for(const [path,region,desktopLabel,phoneLabel] of [['/app/health','health:body','Today’s nourishment','Today’s nourishment'],['/app/wealth','wealth:body','Portfolio pulse','Portfolio pulse']] as const)
  test(`keyboard only: unlock, move, hear it, reset and lock the ${path.split('/').at(-1)} layout`,async({page})=>{
   await showcase(page);await open(page,path);
   const label=await isPhone(page)?phoneLabel:desktopLabel;

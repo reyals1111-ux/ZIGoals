@@ -23,7 +23,7 @@ utilities, Activity's feed after the favourites card.
 | | Before | After |
 |---|---|---|
 | Top | Hero → reminder cards → For you (What's new, the weekly review, the brief, the Guide, insights, the fasting line, Health goals, the journal zone, the wrap-up, folded after three) → "Make Today yours" (until a layout is chosen) | Hero with the progress slot (`today`) and the game place (`today:game`) → **Today's focus**: what is due now (reminder cards; habits due today with their count; the next goal step; a quick Health log: water and Quick add; fasting and last night's sleep), with the places for AA-Local's habit time-of-day widget (`today:habit-time`) and Health coach check-in (`today:coach`) |
-| Main | Whole-life overview → Attention agenda → Funding rhythm → Records needing attention → Watchlist → Your Goals → Financial progress → Daily Habits → Daily Health → Next Goal action → Widget summary → your widgets | Grouped under small headings: **Your day** (Daily Habits, Daily Health) → **Your goals** (Your Goals, Next Goal action, Attention agenda, Funding rhythm) → **Your money** (Records needing attention, Watchlist, Financial progress) → **Your widgets** (Widget summary, your widgets, then this session's device widgets: life balance, pace forecasts, the calculator teaser, the review) → **Your whole life** (Whole-life overview) |
+| Main | Whole-life overview → Attention agenda → Funding rhythm → Records needing attention → Watchlist → Your Goals → Financial progress → Daily Habits → Daily Health → Next Goal action → Widget summary → your widgets | Grouped under small headings: **Your whole life** (Whole-life overview, the key figures, first as Run10's approved hierarchy keeps it) → **Your day** (Daily Habits, Daily Health) → **Goals** (Attention agenda, Your Goals, Next Goal action, Funding rhythm: the agenda leads, as Run10 requires) → **Money** (Records needing attention, Watchlist, Financial progress) → **Your widgets** (Widget summary, your widgets, then this session's device widgets: life balance, pace forecasts, the calculator teaser, the review) |
 | Then | — | **For you** (the brief, the Guide, insights and cross-pillar insights, Health goals, the journal zone) |
 | Bottom | How it works → My links → Your week | "Make Today yours" (Showcase only; a new device keeps it on top as its first action) → **Updates and summaries**: What's new, the weekly review / Life review, the evening wrap-up → How it works → My links → Your week |
 | Rail (desktop) | Wallet → Staking → Next destination → Recent activity | unchanged |
@@ -37,16 +37,16 @@ arrangement is shown exactly as saved.
 |---|---|---|
 | Top | Header → Goals/Positions tabs → status filters | Header with key figures (active, on track, finished) and the progress slot → tabs and filters |
 | Main | Goal cards | Goal cards (unchanged) |
-| Then | Milestones ahead → Health goals | Health goals (they are goals too) → Life balance (Part 2) → Goal templates, a tool (Part 2) |
-| Bottom | — | Milestones ahead → Hall of achievements, the archive of finished goals (Part 2). Cards, Vision board and Tree are three views of the main items, switched at the top. |
+| Then | Milestones ahead → Health goals | Health goals (they are goals too) → Life balance (Part 2) → Goal templates, a tool (Part 2; the header keeps one action, Create a goal) |
+| Bottom | — | Hall of achievements, the archive of finished goals (Part 2) → Milestones ahead, the page's last section as on every main page. Cards, Vision board and Tree are three views of the main items, switched at the top. |
 
 ## Wealth (`/app/wealth`)
 | | Before | After |
 |---|---|---|
 | Top | Hero (total) | Hero (total) with the progress slot → Portfolio pulse (the compact tracker row) |
 | Main | The shape of your wealth → Favourite markets → Portfolio pulse → Your wealth, in perspective → What you have → Your assets | What you have → **Your assets** → Accounts, debts & net worth |
-| Then | — | The shape of your wealth → Your wealth, in perspective → Allocation and coverage → the compound interest calculator card (Part 3, opens `/app/wealth/calculator`) → Favourite markets |
-| Bottom | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets → Accounts, debts & net worth → Allocation and coverage | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets |
+| Then | — | The shape of your wealth → Your wealth, in perspective → the compound interest calculator card (Part 3, opens `/app/wealth/calculator`) → Favourite markets |
+| Bottom | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets → Accounts, debts & net worth → Allocation and coverage | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets → Allocation and coverage (Wealth's bottom section since the UI design pass, kept last) |
 
 Reason: holdings and accounts are the page's items; they were about 4,500 px down on a phone.
 

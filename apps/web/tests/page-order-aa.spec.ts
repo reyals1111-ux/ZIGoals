@@ -31,8 +31,12 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   await showcase(page);
   const today = page.locator('main');
   await expect(today.getByRole('heading', {name: 'Today’s focus'})).toBeVisible();
-  await expect(today.locator('.today-group-heading')).toHaveText(['Your day', 'Goals', 'Money', 'Your widgets', 'Your whole life']);
-  expect(await inOrder(page, ['#dashboard-title', '.today-focus', '.today-group-heading[data-group="day"]', '[data-module="habits"]', '[data-module="health"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', '[data-module="whole-life"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
+  await expect(today.locator('.today-group-heading')).toHaveText(['Your whole life', 'Your day', 'Goals', 'Money', 'Your widgets']);
+  // Each heading opens its group's first card (it is never a movable item of its own).
+  await expect(today.locator('[data-module="whole-life"] > .today-group-heading')).toHaveText('Your whole life');
+  await expect(today.locator('[data-module="habits"] > .today-group-heading')).toHaveText('Your day');
+  await expect(today.locator('[data-layout-item^="group:"]')).toHaveCount(0);
+  expect(await inOrder(page, ['#dashboard-title', '.today-focus', '[data-module="whole-life"]', '[data-module="habits"]', '[data-module="health"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
   // The four focus tiles: habits, the next goal step, water, and sleep or fasting.
   await expect(today.locator('.today-focus .focus-tile')).toHaveCount(4);
   // Every module 32cb9c5's Today showed with the Showcase is still there, once each (the rail's four included).
@@ -62,8 +66,8 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   await expect(page.locator('[data-layout-item="wealth:holdings"]')).toBeVisible();
   const order = only(await items(page), 'wealth:');
   expect(order).toEqual(isPhone(page)
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']
-    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']);
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation']
+    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {
@@ -71,8 +75,8 @@ test('Goals: the cards first, Health goals with them, the timeline after', async
   await page.goto('/app/goals');
   await expect(page.getByRole('heading', {name: 'Your Goals', level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Hall of achievements'})).toBeVisible();
-  // Every section is a layout item (it can be moved), in the default order: items, tools, then the timeline and the Hall.
-  expect(only(await items(page), 'goals:')).toEqual(['goals:collection', 'goals:health', 'goals:balance', 'goals:templates', 'goals:milestones', 'goals:hall']);
+  // Every section is a layout item (it can be moved), in the default order: items, tools, the Hall, then the timeline.
+  expect(only(await items(page), 'goals:')).toEqual(['goals:collection', 'goals:health', 'goals:balance', 'goals:templates', 'goals:hall', 'goals:milestones']);
   await expect(page.locator('article.average-goal-card[data-layout-item]')).toHaveCount(2);
 });
 

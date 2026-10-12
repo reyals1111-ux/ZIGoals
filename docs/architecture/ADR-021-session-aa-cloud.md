@@ -58,6 +58,10 @@ option that keeps the project's promises), and the owner's own decisions. A para
 | A20 | 2 | **G7's Hall** lists finished tracked goals (finish day from the goal's own "completed" step; an older record says "Finish day not recorded") and finished average goals; card titles are not headings (the goal's own card already is). Share images are drawn on a canvas and saved or handed to the device's share sheet; nothing is uploaded. | Honest dates; no duplicate headings; no egress. |
 | A21 | 2 | **The Showcase carries Part 2 without changing its synced records:** areas, gradients, three plans, a three-level tree ("Launch my creative studio" → "Create 2 hours a day" → "Sleep 7 hours a night"), two finished average goals, 30 days of creative-hour entries; the finance record (six goals, 13 positions) is untouched so every earlier Showcase check still reads the same numbers. | Rich Showcase (plan edit 4) without moving pinned figures. |
 | A22 | 2 | **"Export everything and its restore include them":** the export carries the extras, the average goals and the photos (`vision/<id>.jpg`). Export everything has no restore in this app (it is a readable copy); the restore of these three records is built with the data health page (Part 6). | No silent descoping (plan edit 1): the closest safe version now, the restore where the data page lives. |
+| A23 | 1 | **Today's order keeps Run10's approved hierarchy:** the whole-life overview (key figures) leads the widget area under "Your whole life", then "Your day", "Goals" (the attention agenda first), "Money", "Your widgets". The group headings open their group's first card (never movable items of their own); For you's parts render into three fixed places (portals), so the hero mounts once per visit. Wealth keeps "Allocation and coverage" last and Goals keeps "Milestones ahead" last (their bottom sections since the UI design pass). Found by Gate A's CI. |
+| A24 | 2 | **Goals' header keeps one action** ("+ Create a goal"); the key figures and the Cards / Vision board / Tree switch open the "Your goals" region under the controls row (the compact header of Z-Cloud stays); templates are reached from their section, the balance wheel's empty state and search. |
+| A25 | 3 | **The calculator:** exact decimal maths (decimal.js, already a runtime dependency) period by period; contributions and compounding at their own frequencies (each contribution period earns (1 + r/n)^(n/k) − 1); start/end timing; a yearly rise; inflation shown as today's money; what-ifs ±2 points, five more years and one return of the person's choice; milestones 10k / 100k / 1M in the plan's own currency. Results never stored: a scenario keeps inputs only (`zigoals:calculator:v1`, device-only, up to 12). "Turn this into a goal" opens the wizard with a Value goal (name, whole-unit target, currency, a date the plan's years from today, the contribution ready for a plan) and says the target is an estimate. Wording never advises. |
+| A26 | 3 | **Weights within budgets (never raised):** Goals' new sections, the Undo toast's view, Quick add's sheet body (loaded once the page is idle) and the average goals' Health readers load after the page; the calculator's Wealth card computes nothing. |
 
 ## Handoff applied (from AA_LOCAL_TO_CLOUD.md)
 Read at each gate on `origin/feature/session-aa-local`. **Gate A:** its head `682bf199` (Part 2, the game layer), read 2026-10-12.
@@ -78,9 +82,17 @@ Filled per part; Gate C adds the measured counts.
 
 ## Assertions changed (deliberate, listed)
 - **Part 1, Today's default order (as strict):** `lib/dashboard-settings.test.ts` expects the new default main order
-  (`habits, health, goals, next-action, attention, funding, needs-attention, watchlist, progress, summary`, the widgets,
-  then `whole-life`) and checks the widgets' slice and the total length, where it expected the old order and
-  `main.slice(11)`.
+  (`whole-life, habits, health, attention, goals, next-action, funding, needs-attention, watchlist, progress, summary`,
+  then the widgets at `main.slice(11)` as before). A first version put the whole-life overview after the widgets; Gate A's
+  CI showed it broke Run10's approved hierarchy (the life card before the attention agenda, the agenda before Your goals:
+  `run10-restored-today`, `run10-widgets`, `ui-design-pass` Part 2), so the overview leads Today again and those
+  assertions stand unchanged (A23).
+- **Gate A fixes (as strict):** `phone-pages.spec.ts` expects Wealth's new phone order for the first six
+  (`pulse, holdings, have, accounts, composition, mix`; it had `composition, mix, watchlist` after `have`), its last card
+  stays `wealth:allocation`; `ui-evidence.spec.ts` moves Wealth's first card, which is the pulse on every screen now (it
+  was "The shape of your wealth" on a computer); `ui-design-pass.spec.ts` Part 2 announces "position 3 of 7" (the
+  Showcase's two average goals are cards of the same collection; it was 5); `zigi-help-settings.spec.ts` opens Today's
+  "Updates and summaries" fold on a phone before the What's new card (mechanics, every check unchanged).
 - **Part 1, For you on a phone (as strict):** `tests/for-you.spec.ts` expects exactly no open card on a phone (all behind
   the row; was "at most one, at least one"); computers and tablets keep "at most two, at least one".
 - **Part 1, cards that moved to "Updates and summaries" (mechanics, assertions unchanged):** `weekly-review.spec.ts`,

@@ -13,9 +13,3 @@
 /* Narrow screens: the switch and count share the first row, the filters take the second. Overrides the header nav's full-width mobile rule. */
 @media(max-width:700px) { .goals-toolbar .platform-nav { order:0;width:auto; }.goals-toolbar .platform-nav a { flex:none; }.goals-toolbar .goals-count { order:1; }.goals-toolbar .goal-view-filters { order:2;width:auto; } }
 @media(max-width:360px) { .goals-toolbar .goal-view-filters button { padding-inline:10px; } }
-/* Session AA-Cloud Part 2: with two actions (+ Create a goal, Templates) a phone puts them on their own row under the
-   title, so "Your Goals" never breaks inside its word. */
-@media (max-width: 767.98px) {
-  :root .goals-page .page-header.goals-heading { grid-template-areas: "eyebrow tools" "title title" "actions actions" "lede lede"; }
-  :root .goals-page .goals-heading .page-header-actions { justify-content: flex-start; margin-top: 12px; }
-}

@@ -53,7 +53,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
     <SectionHeading id="today-focus-title" eyebrow="What is due now" title="Today’s focus" />
     {reminders}
     <div className="today-focus-tiles">
-      {showHabits && <article className="focus-tile" data-tone="habits" aria-label="Habits today">
+      {showHabits && <article className="focus-tile" data-tone="habits" aria-label="Focus: habits today">
         <span className="focus-label"><AppIcon name="habits" size={20} />Habits</span>
         {!habits.loaded ? <p role="status">Loading habits…</p> : habits.error ? <p role="alert">Habits need attention.</p> : due.length ? <>
           <strong>{due.length - done ? `${due.length - done} left today` : 'All done today'}</strong>
@@ -64,7 +64,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
           <div className="focus-actions"><Link className="text-link" href="/app/habits">{habits.data.habits.length ? 'See your habits →' : 'Build your rhythm →'}</Link></div>
         </>}
       </article>}
-      {financial && <article className="focus-tile" data-tone="goals" aria-label="Next goal step">
+      {financial && <article className="focus-tile" data-tone="goals" aria-label="Focus: next goal step">
         <span className="focus-label"><AppIcon name="goals" size={20} />Next step</span>
         {nextGoal ? <>
           <strong>{nextGoal.name}</strong>
@@ -75,7 +75,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
           <div className="focus-actions"><Link className="text-link" href="/app/goals/new">Plan a goal →</Link></div>
         </>}
       </article>}
-      {showHealth && <article className="focus-tile" data-tone="health" aria-label="Water today">
+      {showHealth && <article className="focus-tile" data-tone="health" aria-label="Focus: water today">
         <span className="focus-label"><AppIcon name="health" size={20} />Water</span>
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
           <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
@@ -83,7 +83,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
           <div className="focus-actions">{firstWater && <button type="button" className="secondary" onClick={() => void logWater()}>{firstWater.label}</button>}<Link className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}
-      {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Fasting' : 'Sleep'}>
+      {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Focus: fasting' : 'Focus: sleep'}>
         <span className="focus-label"><AppIcon name="health" size={20} />{fasting.running ? 'Fasting' : 'Sleep'}</span>
         {fasting.loaded && fasting.running ? (() => {
           const {ms} = elapsedMs(fasting.running, fasting.now), target = fasting.running.targetHours * 3_600_000;

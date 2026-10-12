@@ -14,9 +14,9 @@
 @media (max-width: 599px) { :root .aa-section-heading { flex-wrap: wrap; align-items: flex-start; } }
 
 /* Today's group headings: a small label row between groups while Today keeps its default order. */
-:root .today-group-heading { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; margin: 12px 0 -4px; font-size: 14px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: var(--text-meta); }
+:root .today-group-heading { display: flex; align-items: center; gap: 12px; margin: 10px 0 14px; font-size: 14px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: var(--text-meta); }
 :root .today-group-heading::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #7fb6e055, #a98bf233 60%, transparent); }
-:root .today-group-heading:first-child { margin-top: 0; }
+:root .dashboard-layout-grid > :first-child > .today-group-heading { margin-top: 0; }
 
 /* Today's focus. */
 :root .today-focus { display: grid; gap: 14px; margin: 0 0 24px; }
@@ -33,20 +33,19 @@
 :root .focus-tile[data-tone="health"] { background: linear-gradient(140deg, #0f2d33cc, #182a3dcc); }
 :root .focus-tile[data-tone="rest"] { background: linear-gradient(140deg, #1d1d43cc, #2a1d45cc); }
 :root .today-focus .aa-slot, :root .today-focus .reminder-cards { min-width: 0; }
-/* Phones: one row of compact tiles that scrolls sideways (the native-app pattern), so the focus adds about one row. */
+/* Phones: two columns of compact tiles, nothing wider than the screen (Run10's overflow rule). */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root .today-focus { gap: 10px; margin-bottom: 16px; }
-  :root .today-focus-tiles { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(212px, 62%); gap: 10px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -16px; padding: 2px 16px 6px; scroll-padding-inline: 16px; }
-  :root .today-focus-tiles::-webkit-scrollbar { display: none; }
-  :root .focus-tile { scroll-snap-align: start; padding: 12px 14px; gap: 2px; border-radius: 16px; }
-  :root .focus-tile > .focus-label { font-size: 14px; letter-spacing: .06em; }
-  :root .focus-tile > strong { font-size: 18px; line-height: 1.3; }
-  :root .focus-tile > p { font-size: 14px; line-height: 1.4; }
-  :root .focus-tile .focus-actions { margin-top: 2px; gap: 4px 12px; flex-wrap: nowrap; }
-  :root .focus-tile .focus-actions .secondary { padding-inline: 12px; }
+  :root .today-focus { gap: 8px; margin-bottom: 14px; }
+  :root .today-focus-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  :root .focus-tile { padding: 6px 12px; gap: 0; border-radius: 16px; }
+  :root .focus-tile > .focus-label { font-size: 14px; letter-spacing: .04em; }
+  :root .focus-tile > strong { font-size: 16px; line-height: 1.3; }
+  :root .focus-tile > p { font-size: 14px; line-height: 1.35; }
+  :root .focus-tile .focus-actions { margin-top: 0; gap: 0 10px; }
+  :root .focus-tile .focus-actions .secondary { padding-inline: 10px; }
   :root .focus-tile .focus-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
-  /* The heading absorbs the grid's own 20 px gap, so a group label costs one line. */
-  :root .today-group-heading { margin: 0 0 -16px; }
+  /* A group label costs one line on a phone. */
+  :root .today-group-heading { margin: 0 0 2px; line-height: 1.3; }
   :root .today-focus > .aa-section-heading .eyebrow { display: none; }
   :root .today-focus > .aa-section-heading h2 { font-size: 20px; }
 }
@@ -78,3 +77,4 @@
 /* Progress slots and named places render nothing until filled; once filled they sit in the page's flow. */
 :root .progress-slot, :root .aa-slot { display: grid; gap: 12px; min-width: 0; }
 :root .progress-slot { margin: 0 0 20px; }
+:root .for-you-place { display: contents; }

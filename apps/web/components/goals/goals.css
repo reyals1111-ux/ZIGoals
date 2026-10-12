@@ -187,3 +187,11 @@
 :root .wizard-template .wizard-template-habits input[type=checkbox] { flex: 0 0 22px; width: 22px; height: 22px; min-height: 0; margin: 2px 0 0; padding: 0; }
 :root .wizard-template .wizard-template-habits label > span { display: grid; gap: 2px; min-width: 0; }
 :root .wizard-template-habits small { font-size: 14px; color: var(--text-secondary); }
+/* Session AA-Cloud: the key figures open the "Your goals" region (its first, full-width row) under the controls. */
+:root .goal-grid > .goals-figures { grid-column: 1 / -1; margin: 0 0 4px; }
+:root .goals-figures.is-placeholder > div { min-height: 88px; background: #0f1d33aa; }
+/* An average goal's title link is a full tap target. */
+:root .average-goal-card h2 a { display: inline-flex; align-items: center; min-height: 44px; }
+:root .goals-view-row { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin: 0 0 4px; }
+:root .goals-view-row .goals-view-switch { margin: 0; }
+:root .goals-alt-view { display: grid; gap: 12px; min-width: 0; }
