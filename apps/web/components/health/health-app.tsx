@@ -5,6 +5,21 @@ import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
 import { ProgressSlot } from "../game/slot-local";
+import { WeightTrendCard } from "./weight-trend";
+import { EnergyCard } from "./energy-card";
+import { CoachCard } from "./coach-card";
+import { WaterRing } from "./water-ring";
+import { MicroPanel } from "./micro-panel";
+import { MacroModePanel } from "./macro-mode-panel";
+import { FastingTimeline } from "./fasting-timeline";
+import { fastingHistory } from "../../lib/fasting/engine";
+import "./health-aa.css";
+import { SwipeRow } from "../swipe/swipe-row";
+// Session AA-Local Part 3: the planner, the insights, the recipe import and the measurement charts load when their view opens.
+const PlannerView = lazy(() => import("./planner-view").then((m) => ({ default: m.PlannerView })));
+const InsightsView = lazy(() => import("./insights-view").then((m) => ({ default: m.InsightsView })));
+const RecipeImport = lazy(() => import("./recipe-import").then((m) => ({ default: m.RecipeImport })));
+const MeasurementsAa = lazy(() => import("./measurements-aa").then((m) => ({ default: m.MeasurementsAa })));
 import { GameRegistrar } from "../game/registrar";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
@@ -66,7 +81,9 @@ function importedFrom(id: string): string | null { const m = /^health_imp-([a-z]
 
 type Update = ReturnType<typeof useHealth>["update"];
 type Perform = (updater: (latest: HealthData) => HealthData, message: string, after?: () => void) => Promise<void>;
-const views = ["Diary", "Foods & recipes", "Meals & planning", "Weight", "Measurements", "Activity", "Targets", "Journal settings"] as const;
+const views = ["Diary", "Foods & recipes", "Meals & planning", "Planner", "Weight", "Measurements", "Activity", "Targets", "Insights", "Import", "Journal settings"] as const;
+/** Session AA-Local Part 5: a ZIGi open-page card names a tab by hash (#planner, #insights, #import); the page reads it once. */
+const HASH_VIEWS: Record<string, View> = {planner: "Planner", insights: "Insights", import: "Import", targets: "Targets", measurements: "Measurements"};
 type View = typeof views[number];
 const foodFields = [
   ["kcal", "Calories (kcal)", 1, 1_000_000], ["proteinMg", "Protein (g)", 1000, 1_000_000_000],
@@ -116,6 +133,7 @@ export function HealthApp() {
 
 function HealthWorkspace({ data, update }: { data: HealthData; update: Update }) {
   const [view, setView] = useState<View>("Diary");
+  useEffect(() => { const follow = () => { const v = HASH_VIEWS[window.location.hash.slice(1).toLowerCase()]; if (v) setView(v); }; follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow); }, []);
   const router = useRouter(), phone = usePhoneActive();
   // HE6: the fasting timer, this device's own record.
   const fasting = useFasting();
@@ -209,6 +227,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
+    {id: "health:aa-highlights", label: "Trend, energy and coach", node: <div className="health-aa-highlights"><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></div>},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
     <div className="health-progress-slot"><GameRegistrar /><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
@@ -218,20 +237,23 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
+      {view === "Diary" && <><WaterRing data={data} date={date} perform={perform} /><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
+      {view === "Planner" && <Suspense fallback={<p role="status">Opening the planner…</p>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense>}
+      {view === "Insights" && <Suspense fallback={<p role="status">Reading your diary…</p>}><InsightsView data={data} today={today} /></Suspense>}
+      {view === "Import" && <Suspense fallback={<p role="status">Opening the import…</p>}><RecipeImport data={data} perform={perform} /></Suspense>}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
-      {view === "Measurements" && <BodyMeasurements data={data} perform={perform}/>}
+      {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><Suspense fallback={null}><MeasurementsAa data={data} today={today} /></Suspense></>}
       {view === "Weight" && <WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
-      {view === "Targets" && <TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} />}
+      {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></>}
     </fieldset>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
-    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /></PhoneFold>},
+    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
@@ -285,10 +307,10 @@ function DiaryView({ data, date, today, choice, perform, invalid, onLibrary, pho
   return <div className="health-diary-layout"><div className="health-meals"><RepeatDay data={data} date={date} today={today} perform={perform} />{HEALTH_MEALS.map(mealName => {
     const entries = data.diary.filter(e => e.date === date && e.meal === mealName);
     const mealSummary=dailyHealthSummary({...data,diary:entries},date);
-    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{nutritionSummaryText(mealSummary,"kcal","kcal")}</span><PinToToday label={`${mealName} today`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]}/></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <div className="health-entry" id={`entry-${entry.id}`} key={entry.id}>
+    return <section className="panel health-meal" id={`diary-${mealName.toLowerCase()}`} aria-label={`${mealName} diary`} key={mealName}><div className="health-section-heading"><h2>{mealName}</h2><span>{nutritionSummaryText(mealSummary,"kcal","kcal")}</span><PinToToday label={`${mealName} today`} choices={[{kind:'meal',entity:mealName,metric:'kcal',label:`${mealName} today calories`},{kind:'meal',entity:mealName,metric:'macros',label:`${mealName} today macros`}]}/></div>{entries.length === 0 ? <p className="health-empty-inline">Nothing logged yet.</p> : entries.map(entry => <SwipeRow key={entry.id} className="health-entry" id={`entry-${entry.id}`} label={entry.snapshot.name} actions={[{label: "Edit", run: () => setEditing(editing === entry.id ? null : entry.id)}, {label: "Remove", danger: true, run: () => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}]}>
       <div className="health-entry-main"><strong>{entry.snapshot.name}</strong><small>{formatHealthGrams(entry.quantityMilli)}{` ${plural(entry.quantityMilli / 1000, "serving")} · `}{formatServingMeasure(entry.snapshot,entry.quantityMilli)}{entry.snapshot.recipeVersion?` · Recipe version ${entry.snapshot.recipeVersion}`:""}</small><NutrientLine nutrients={scaleNutrition(entry.snapshot.nutrients, entry.quantityMilli)} /></div><div className="health-row-actions" style={{marginLeft:"auto"}}><button className="quiet" aria-label={`Edit ${entry.snapshot.name}`} onClick={() => setEditing(editing === entry.id ? null : entry.id)}>Edit</button><button className="quiet" aria-label={`Remove ${entry.snapshot.name}`} onClick={() => void perform(latest => removeHealthItem(latest, "diary", entry.id), "Diary entry removed.")}>Remove</button><PinToToday label={`${entry.snapshot.name} diary entry`} choices={[{kind:'food-entry',entity:entry.id,metric:'kcal',label:`${entry.snapshot.name} calories`},{kind:'food-entry',entity:entry.id,metric:'macros',label:`${entry.snapshot.name} macros`}]}/></div>
       {editing === entry.id && <DiaryEditor entry={entry} perform={perform} invalid={invalid} close={() => setEditing(null)} />}
-    </div>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
+    </SwipeRow>)}{entries.length>0&&<AdditionalNutrition entries={entries} label={`${mealName} nutrient totals`}/>}<MealQuick data={data} date={date} today={today} meal={mealName} perform={perform} /></section>;
   })}</div><aside className="health-diary-side"><section className="panel" id="health-entry-action"><p className="eyebrow">A MOMENT TO CHECK IN</p><h2>Log a meal.</h2>{phone && sourceItems.length > 0 ? <><button type="button" className="primary phone-form-trigger" onClick={() => setLogging(true)}>Log a meal</button>{logging && <PhoneFormSheet title="Log a meal" onClose={() => setLogging(false)}>{mealForm}{error && <p className="health-error" role="alert" id="health-page-error">{error}</p>}{quickPicks}</PhoneFormSheet>}</> : logForm}</section><WaterJournal key={`${choice}:${dailyData(data).preferences.waterUnit}`} data={data} date={date} perform={perform} invalid={invalid} /></aside></div>;
 }
 

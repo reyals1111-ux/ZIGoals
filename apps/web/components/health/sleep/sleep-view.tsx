@@ -11,6 +11,7 @@ import {NightForm, SleepGoalForm} from './sleep-forms';
 import {SleepTonight} from './sleep-tonight';
 import {useSleep} from './use-sleep';
 import {WindDownSetting} from './wind-down';
+import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
 import {sourceName} from '../../../lib/health-sources';
 
@@ -57,6 +58,7 @@ export default function SleepView() {
         <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></div>
       </dl> : <p>No night logged in the last 7 days yet.</p>}
     </section>
+    <SleepScoreCard sleep={sleep} today={today}/>
     <section className="panel sleep-charts" aria-labelledby="sleep-charts-title">
       <div className="sleep-charts-head"><h2 id="sleep-charts-title">Over time</h2>
         <div className="sleep-range" role="group" aria-label="Range">{([7, 30] as const).map(r => <button key={r} type="button" className="secondary" aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}</div>

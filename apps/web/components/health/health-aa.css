@@ -1,0 +1,154 @@
+/* Session AA-Local Part 3: Health best in class (N1–N12) in the cosmic/nebula language. Text ≥ 14 px; targets ≥ 44 px;
+   every estimate says so; headings white→nebula through NebulaFlow. */
+.health-aa-highlights { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin: 18px 0 0; }
+.health-aa-card { display: grid; gap: 10px; align-content: start; padding: 22px; border-radius: 22px; border: 1px solid #8ab9ff2a; background: linear-gradient(135deg, #16213f80, #0d162999); }
+.health-aa-card h2, .health-aa-card h3 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+.health-aa-card .eyebrow { margin: 0; color: var(--health-mint); }
+.health-aa-card .fine { margin: 0; }
+.health-estimate-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #ffe3a1; padding: 4px 10px; border-radius: 99px; border: 1px solid #ffe3a144; background: #ffe3a112; width: max-content; }
+.health-big { font-size: clamp(30px, 4vw, 42px); font-weight: 700; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.health-big small { font-size: 15px; font-weight: 500; color: var(--text-meta); letter-spacing: 0; margin-left: 6px; }
+.health-aa-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 0; }
+.health-aa-facts div { display: grid; gap: 4px; }
+.health-aa-facts dt { font-size: 14px; color: var(--text-meta); letter-spacing: .05em; text-transform: uppercase; }
+.health-aa-facts dd { margin: 0; font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.health-aa-card .actions { margin: 4px 0 0; flex-wrap: wrap; }
+.health-aa-card .actions > button { min-height: 44px; }
+
+/* N2: the trend chart */
+.health-trend-chart { display: grid; gap: 8px; }
+.health-trend-chart svg { width: 100%; height: auto; overflow: visible; }
+.health-trend-key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--text-meta); }
+.health-trend-key i { display: inline-block; width: 18px; height: 3px; border-radius: 99px; vertical-align: middle; margin-right: 6px; }
+.health-trend-key .key-trend { background: linear-gradient(90deg, #6fe6f6, #c790f6); }
+.health-trend-key .key-reading { background: #8ab9ff; height: 8px; width: 8px; border-radius: 50%; }
+.health-trend-key .key-goal { background: #ffe3a1; height: 2px; }
+.health-trend-table summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 15px; }
+.health-trend-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.health-trend-table th, .health-trend-table td { text-align: left; padding: 6px 8px; border-top: 1px solid #a6c1fa1f; }
+
+/* N3: the coach */
+.health-coach-line { margin: 0; font-size: 18px; font-weight: 600; }
+.health-coach-answered { color: var(--accent-teal); font-size: 15px; }
+
+/* N4: micronutrients */
+.health-micro-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.health-micro-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.health-micro-list strong { font-size: 15px; }
+.health-micro-list small { font-size: 14px; color: var(--text-meta); }
+.health-micro-bar { grid-column: 1 / -1; height: 6px; border-radius: 99px; }
+.health-micro-unknown { color: #ffe3a1; }
+.health-micro-edit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.health-rich { display: grid; gap: 8px; }
+.health-rich-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.health-rich-row .quiet { min-height: 44px; border-radius: 99px; padding: 8px 14px; }
+.health-rich-row .quiet[aria-pressed="true"] { background: #78e6c71c; border-color: #78e6c766; color: #e6fff7; }
+.health-rich ol { margin: 0; padding-left: 20px; font-size: 15px; display: grid; gap: 4px; }
+
+/* N5: the planner week grid and the grocery list by aisle */
+.health-planner-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.health-planner-day { display: grid; gap: 6px; align-content: start; min-width: 0; padding: 10px; border-radius: 16px; border: 1px solid #8ab9ff22; background: #0d162980; }
+.health-planner-day[data-today] { border-color: #78e6c766; box-shadow: 0 0 0 1px #78e6c733 inset; }
+.health-planner-day h4 { margin: 0; font-size: 14px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-meta); display: flex; justify-content: space-between; }
+.health-planner-slot { display: grid; gap: 4px; min-height: 44px; padding: 6px 8px; border-radius: 10px; background: #8ab9ff0e; font-size: 14px; }
+.health-planner-slot small { color: var(--text-meta); }
+.health-planner-slot strong { font-size: 14px; overflow-wrap: anywhere; }
+.health-planner-slot .actions { margin: 0; gap: 4px; }
+.health-planner-slot .actions > button { min-height: 36px; min-width: 44px; padding: 4px 10px; font-size: 14px; }
+.health-planner-add { min-height: 44px; font-size: 14px; }
+.health-planner-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; }
+.health-grocery-aisles { display: grid; gap: 14px; }
+.health-grocery-aisle h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--health-mint); display: flex; justify-content: space-between; align-items: center; }
+.health-grocery-aisle ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.health-grocery-aisle li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; min-height: 44px; padding: 6px 10px; border-radius: 12px; background: #8ab9ff0a; }
+.health-grocery-aisle li[data-checked] { opacity: .55; }
+.health-grocery-aisle li[data-checked] strong { text-decoration: line-through; }
+.health-grocery-aisle label { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 200px; }
+.health-grocery-aisle input[type=checkbox] { width: 22px; height: 22px; margin: 0; }
+.health-grocery-aisle small { font-size: 14px; color: var(--text-meta); }
+.health-grocery-aisle select { min-height: 36px; font-size: 14px; }
+.health-grocery-progress { height: 8px; border-radius: 99px; }
+@media (max-width: 900px) { .health-planner-week { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .health-planner-week { grid-template-columns: 1fr; } }
+
+/* N6: recipe import */
+.health-import-tabs { display: flex; gap: 6px; }
+.health-import-tabs .quiet { min-height: 44px; border-radius: 99px; }
+.health-import-tabs .quiet[aria-pressed="true"] { background: #78e6c71c; border-color: #78e6c766; color: #e6fff7; }
+.health-import-form { display: grid; gap: 10px; }
+.health-import-form textarea { min-height: 160px; font: inherit; font-size: 15px; }
+.health-import-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.health-import-rows li { display: grid; grid-template-columns: minmax(0, 1.4fr) 90px 70px auto; gap: 8px; align-items: center; }
+.health-import-rows input, .health-import-rows select { min-height: 44px; font-size: 15px; width: 100%; }
+.health-import-rows .quiet { min-height: 44px; }
+@media (max-width: 600px) { .health-import-rows li { grid-template-columns: 1fr 1fr; } .health-import-rows li > input:first-child { grid-column: 1 / -1; } }
+
+/* N7: macro modes */
+.health-macro-modes { display: flex; flex-wrap: wrap; gap: 6px; }
+.health-macro-modes .quiet { min-height: 44px; border-radius: 99px; padding: 8px 14px; }
+.health-macro-modes .quiet[aria-pressed="true"] { background: #c2a8ff1f; border-color: #c2a8ff66; color: #f3ecff; }
+.health-macro-split { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.health-macro-split label { display: grid; gap: 4px; font-size: 14px; }
+.health-macro-split input { min-height: 44px; font-size: 16px; }
+
+/* N8: the fasting timeline */
+.fasting-timeline { display: grid; gap: 12px; }
+.fasting-timeline-track { position: relative; height: 14px; border-radius: 99px; background: #8ab9ff14; overflow: visible; }
+.fasting-timeline-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #6fe6f6, #9e78ff, #ed75df); box-shadow: 0 0 14px #9e78ff66; }
+.fasting-timeline-stops { list-style: none; margin: 0; padding: 0; position: relative; height: 54px; }
+.fasting-timeline-stops li { position: absolute; top: 0; transform: translateX(-50%); display: grid; justify-items: center; gap: 4px; font-size: 14px; color: var(--text-meta); white-space: nowrap; }
+.fasting-timeline-stops li i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #8ab9ff66; background: #0d1629; }
+.fasting-timeline-stops li[data-reached] i { background: linear-gradient(135deg, #6fe6f6, #9e78ff); border-color: transparent; box-shadow: 0 0 8px #9e78ff88; }
+.fasting-timeline-stops li[data-target] strong { color: var(--accent-teal); }
+.fasting-timeline-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 15px; }
+.fasting-timeline-lines li { display: flex; gap: 10px; align-items: baseline; }
+.fasting-timeline-lines li[data-reached] { color: var(--text-strong); }
+.fasting-timeline-lines li:not([data-reached]) { color: var(--text-meta); }
+
+/* N9: measurement charts and progress photos */
+.health-measure-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.health-measure-chart { display: grid; gap: 6px; padding: 14px; border-radius: 16px; border: 1px solid #8ab9ff22; background: #0d162980; }
+.health-measure-chart h3 { margin: 0; font-size: 16px; display: flex; justify-content: space-between; }
+.health-measure-chart svg { width: 100%; height: auto; }
+.health-measure-chart small { font-size: 14px; color: var(--text-meta); }
+.health-custom-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }
+.health-photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.health-photo { display: grid; gap: 4px; position: relative; }
+.health-photo img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 14px; border: 1px solid #8ab9ff33; background: #0d1629; }
+.health-photo small { font-size: 14px; color: var(--text-meta); }
+.health-photo .quiet { min-height: 44px; font-size: 14px; }
+.health-photo[data-picked] img { outline: 2px solid #78e6c7; outline-offset: 2px; }
+.health-photo-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.health-photo-compare figure { margin: 0; display: grid; gap: 6px; }
+.health-photo-compare img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 14px; }
+.health-photo-compare figcaption { font-size: 14px; color: var(--text-meta); }
+.health-photo-add { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }
+
+/* N10: the sleep score */
+.sleep-score { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.sleep-score-ring { --ring-width: 10px; width: 120px; aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.sleep-score-ring > * { grid-area: ring; }
+.sleep-score-ring strong { font-size: 34px; letter-spacing: -.03em; margin-top: -8px; }
+.sleep-score-ring small { font-size: 14px; color: var(--text-meta); margin-top: 36px; }
+.sleep-score-parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 15px; }
+.sleep-score-parts li { display: flex; justify-content: space-between; gap: 10px; }
+.sleep-score-parts b { font-variant-numeric: tabular-nums; }
+.sleep-score-formula { font-size: 14px; color: var(--text-meta); margin: 0; }
+@media (max-width: 480px) { .sleep-score { grid-template-columns: 1fr; justify-items: center; text-align: center; } }
+
+/* N11: the water ring and quick sizes */
+.water-ring-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.water-ring { --ring-width: 10px; width: 120px; aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.water-ring > * { grid-area: ring; }
+.water-ring strong { font-size: 24px; letter-spacing: -.03em; margin-top: -8px; font-variant-numeric: tabular-nums; }
+.water-ring small { font-size: 14px; color: var(--text-meta); margin-top: 38px; }
+.water-sizes { display: flex; flex-wrap: wrap; gap: 8px; }
+.water-sizes .secondary { min-height: 44px; min-width: 72px; border-radius: 99px; }
+@media (max-width: 480px) { .water-ring-card { grid-template-columns: 1fr; justify-items: center; text-align: center; } .water-sizes { justify-content: center; } }
+
+/* N12: insight cards */
+.health-insight-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.health-insight-cards ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--text-secondary); display: grid; gap: 2px; }
+
+/* The view tabs stay one row: a scrollable chip row on phones (owner edit 3). */
+@media (max-width: 767.98px) { .health-views { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; } .health-views::-webkit-scrollbar { display: none; } .health-views button { flex: 0 0 auto; white-space: nowrap; } }
