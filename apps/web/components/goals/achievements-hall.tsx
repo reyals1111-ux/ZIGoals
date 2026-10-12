@@ -1,4 +1,5 @@
 'use client';
+import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useState} from 'react';
 import {achievementsOf, durationWords, type Achievement} from '../../lib/achievements';
@@ -16,10 +17,10 @@ import './goals.css';
  * G7, the Hall of achievements: finished goals as a wall of cards (the day, how long it took, the area, the story), each
  * with a share image drawn on this device (nothing is uploaded).
  */
-export function AchievementsHall() {
+export function AchievementsHall(layout: LayoutAttrs) {
   const platform = usePlatform(), averages = useAverageGoals(), extras = useGoalExtras();
   const list = platform.loaded && averages.loaded && extras.loaded ? achievementsOf(platform.data.goals, averages.unreadable ? [] : averages.data.goals, extras.data) : null;
-  return <section className="achievements-hall" aria-labelledby="hall-title">
+  return <section className="achievements-hall" aria-labelledby="hall-title" {...layout}>
     <SectionHeading id="hall-title" eyebrow="Finished, with a story" title="Hall of achievements" lede="Every goal you finish keeps its place here." />
     {!list ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : list.length ? <ul className="hall-wall">
       {list.map(a => <AchievementCard key={a.key} a={a} color={a.area ? areasOf(extras.data).find(x => x.id === a.area)?.color : undefined} vision={extras.data.goals[a.key]?.vision} />)}

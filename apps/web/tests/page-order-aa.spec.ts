@@ -62,18 +62,18 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   await expect(page.locator('[data-layout-item="wealth:holdings"]')).toBeVisible();
   const order = only(await items(page), 'wealth:');
   expect(order).toEqual(isPhone(page)
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']
-    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']);
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']
+    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:allocation', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {
   await showcase(page);
   await page.goto('/app/goals');
   await expect(page.getByRole('heading', {name: 'Your Goals', level: 1})).toBeVisible();
-  const order = only(await items(page), 'goals:');
-  expect(order[0]).toBe('goals:collection');
-  expect(order).toContain('goals:milestones');
-  expect(order.indexOf('goals:milestones')).toBe(order.length - 1);
+  await expect(page.getByRole('region', {name: 'Hall of achievements'})).toBeVisible();
+  // Every section is a layout item (it can be moved), in the default order: items, tools, then the timeline and the Hall.
+  expect(only(await items(page), 'goals:')).toEqual(['goals:collection', 'goals:health', 'goals:balance', 'goals:templates', 'goals:milestones', 'goals:hall']);
+  await expect(page.locator('article.average-goal-card[data-layout-item]')).toHaveCount(2);
 });
 
 test('Staking: tracked positions first; on a phone the wallet and scenario tools follow them', async ({page}) => {

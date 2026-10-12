@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import {DEFAULT_INPUT, compound, milestoneWhen, periodRate, whatIfs, type CompoundInput} from './engine';
 
 const base: CompoundInput = {...DEFAULT_INPUT, start: '0', contribution: '0', increasePercent: 0, inflationPercent: 0};
-const cents = (n: number | string) => new Decimal(n).toFixed(2);
+const cents = (n: Decimal.Value) => new Decimal(n).toFixed(2);
 
 describe('compound interest (Session AA-Cloud Part 3), against closed-form values', () => {
   it('a lump sum, compounded yearly: 10,000 at 5 % for 10 years = 10,000 × 1.05^10', () => {

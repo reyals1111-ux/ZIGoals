@@ -1,4 +1,5 @@
 'use client';
+import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {useId, useMemo, useState} from 'react';
@@ -22,10 +23,10 @@ const value = (goal: Pick<AverageGoal, 'metric'>, v: number) => formatExactNumbe
 const verdict = (g: AverageGoal, p: ReturnType<typeof averageProgress>) => p.average === null ? 'No days recorded in this window yet' : `${value(g, p.average)} ${g.unit} on average · ${p.days} of ${p.windowDays} days recorded`;
 
 /** G8's card in the Goals collection: the rolling average against the target, with how many days it rests on. */
-export function AverageGoalCard({goal}: {goal: AverageGoal}) {
+export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageGoal}) {
   const health = useHealth(), today = useLocalToday();
   const p = averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today);
-  return <article className="panel average-goal-card" aria-label={goal.name}>
+  return <article className="panel average-goal-card" aria-label={goal.name} {...layout}>
     <p className="eyebrow">Keep an average · {goal.direction === 'at-least' ? 'at least' : 'at most'} {value(goal, goal.target)} {goal.unit}</p>
     <h2><Link href={`/app/goals/average/${goal.id}`}>{goal.name}</Link></h2>
     <div className="average-goal-figure">

@@ -8,7 +8,7 @@ import {formatGoalAmount} from '../../lib/goal-summary';
 import {ProgressRing} from '../platform/financial-ui';
 import './goals.css';
 
-export type GoalsView = 'cards' | 'board' | 'tree';
+export type {GoalsView} from './goals-view-switch';
 
 /** Goals' key figures under the header (Session AA-Cloud Part 2): active, finished, with a plan, sub-goals. */
 export function GoalsFigures({goals, averages, extras}: {goals: readonly GoalSummary[]; averages: readonly AverageGoal[]; extras: GoalExtras}) {
@@ -18,14 +18,6 @@ export function GoalsFigures({goals, averages, extras}: {goals: readonly GoalSum
   const areas = new Set(Object.values(extras.goals).map(e => e.area).filter(Boolean)).size;
   const figures: [string, number, string][] = [['Active', active, 'goals in motion'], ['Finished', finished, 'on the Hall of achievements'], ['With a plan', planned, 'why and if-then written'], ['Life areas', areas, 'with at least one goal']];
   return <dl className="goals-figures" aria-label="Your goals at a glance">{figures.map(([label, n, hint]) => <div key={label}><dt>{label}</dt><dd><strong>{n}</strong><small>{hint}</small></dd></div>)}</dl>;
-}
-
-/** Cards, a vision board or a tree: three ways to see the same goals. */
-export function GoalsViewSwitch({view, onChange}: {view: GoalsView; onChange: (v: GoalsView) => void}) {
-  const pick = (v: GoalsView) => { onChange(v); try { const url = new URL(window.location.href); if (v === 'cards') url.searchParams.delete('view'); else url.searchParams.set('view', v); window.history.replaceState(window.history.state, '', url); } catch { /* the view still changes */ } };
-  return <div className="goals-view-switch" role="group" aria-label="Show goals as">
-    {([['cards', 'Cards'], ['board', 'Vision board'], ['tree', 'Tree']] as const).map(([v, label]) => <button key={v} type="button" aria-pressed={view === v} onClick={() => pick(v)}>{label}</button>)}
-  </div>;
 }
 
 /** G5's tree: top goals with their sub-goals indented under them, each parent with its roll-up. */

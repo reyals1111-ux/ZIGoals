@@ -1,4 +1,5 @@
 'use client';
+import type {LayoutAttrs} from '../layout-edit';
 import Link from 'next/link';
 import {useState} from 'react';
 import {BUILT_IN_AREAS, type BuiltInArea} from '../../lib/goal-extras/store';
@@ -50,9 +51,9 @@ function TemplateCard({t}: {t: LibraryTemplate}) {
 }
 
 /** A teaser for the Goals page: three templates and the way in. */
-export function TemplateTeaser() {
+export function TemplateTeaser(layout: LayoutAttrs) {
   const picks = ['run-10k', 'emergency-fund', 'read-12'].map(id => searchTemplates('').find(t => t.id === id)!).filter(Boolean);
-  return <section className="panel template-teaser" aria-labelledby="template-teaser-title">
+  return <section className="panel template-teaser" aria-labelledby="template-teaser-title" {...layout}>
     <SectionHeading id="template-teaser-title" eyebrow="Start from something proven" title="Goal templates" lede="Forty-two ready goals across every life area." action={<Link className="secondary" href="/app/goals/templates">Browse all</Link>} />
     <ul className="template-teaser-list">{picks.map(t => <li key={t.id}><Link href={templateHref(t)}><strong>{t.title}</strong><small>{t.summary}</small></Link></li>)}</ul>
   </section>;
