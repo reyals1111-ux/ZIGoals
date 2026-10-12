@@ -183,6 +183,7 @@
 /* The wizard's template banner. */
 :root .wizard-template { display: grid; gap: 8px; padding: 16px; border-radius: 18px; border: 1px solid #8fe6f444; background: #0f2236cc; }
 :root .wizard-template-habits { border: 0; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
-:root .wizard-template-habits label { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; }
-:root .wizard-template-habits label > span { display: grid; gap: 2px; }
+:root .wizard-template .wizard-template-habits label { display: flex; flex-direction: row; gap: 12px; align-items: flex-start; min-height: 44px; margin: 0; }
+:root .wizard-template .wizard-template-habits input[type=checkbox] { flex: 0 0 22px; width: 22px; height: 22px; min-height: 0; margin: 2px 0 0; padding: 0; }
+:root .wizard-template .wizard-template-habits label > span { display: grid; gap: 2px; min-width: 0; }
 :root .wizard-template-habits small { font-size: 14px; color: var(--text-secondary); }
