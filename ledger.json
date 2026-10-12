@@ -1,0 +1,32 @@
+{
+ "pricesAsOf": "2026-10-10",
+ "cap": 50,
+ "total": 0.295256,
+ "byModel": {
+  "claude-opus-5-5": 0.295256
+ },
+ "rows": [
+  {
+   "stage": "spoken/gen",
+   "model": "claude-opus-5-5",
+   "batch": true,
+   "estimate": false,
+   "requests": 44,
+   "input": 31023,
+   "cacheWrite": 0,
+   "cacheRead": 0,
+   "output": 23321,
+   "usd": 0.295256,
+   "unreported": 0,
+   "files": 0
+  }
+ ],
+ "files": [
+  {
+   "file": "spoken/gen/usage-msgbatch_01ERibWPa7m6ZCAfTs6W2dHj.json",
+   "model": "claude-opus-5-5",
+   "turns": 44
+  }
+ ],
+ "rebuiltAt": "2026-10-12T06:37:47.009Z"
+}
