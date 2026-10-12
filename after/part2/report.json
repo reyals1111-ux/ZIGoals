@@ -1,0 +1,338 @@
+[
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 390,
+  "height": 7428,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 390,
+  "height": 6789,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 390,
+  "height": 6340,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "showcase",
+  "width": 390,
+  "height": 12116,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "showcase",
+  "width": 390,
+  "height": 14821,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "showcase",
+  "width": 390,
+  "height": 4472,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "showcase",
+  "width": 390,
+  "height": 3498,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 1024,
+  "height": 6463,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 1024,
+  "height": 5117,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 1024,
+  "height": 4497,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "showcase",
+  "width": 1024,
+  "height": 8421,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "showcase",
+  "width": 1024,
+  "height": 8243,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "showcase",
+  "width": 1024,
+  "height": 3647,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "showcase",
+  "width": 1024,
+  "height": 2996,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 1440,
+  "height": 5331,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 1440,
+  "height": 4334,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 1440,
+  "height": 4077,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "showcase",
+  "width": 1440,
+  "height": 7819,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "showcase",
+  "width": 1440,
+  "height": 5296,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "showcase",
+  "width": 1440,
+  "height": 3449,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "showcase",
+  "width": 1440,
+  "height": 2810,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 390,
+  "height": 4118,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 390,
+  "height": 4118,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 390,
+  "height": 4118,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "empty",
+  "width": 390,
+  "height": 1122,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "empty",
+  "width": 390,
+  "height": 14765,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "empty",
+  "width": 390,
+  "height": 1122,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "empty",
+  "width": 390,
+  "height": 3442,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 1024,
+  "height": 3201,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 1024,
+  "height": 3201,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 1024,
+  "height": 3201,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "empty",
+  "width": 1024,
+  "height": 1107,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "empty",
+  "width": 1024,
+  "height": 8104,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "empty",
+  "width": 1024,
+  "height": 1107,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "empty",
+  "width": 1024,
+  "height": 2857,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 1440,
+  "height": 3125,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 1440,
+  "height": 3125,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 1440,
+  "height": 3125,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goal",
+  "state": "empty",
+  "width": 1440,
+  "height": 1063,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "templates",
+  "state": "empty",
+  "width": 1440,
+  "height": 5192,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "average",
+  "state": "empty",
+  "width": 1440,
+  "height": 1063,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wizard",
+  "state": "empty",
+  "width": 1440,
+  "height": 2706,
+  "overflow": false,
+  "errors": []
+ }
+]

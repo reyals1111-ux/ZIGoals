@@ -1,0 +1,290 @@
+[
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 390,
+  "height": 5752,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 390,
+  "height": 3380,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 390,
+  "height": 3380,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 390,
+  "height": 3380,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "empty",
+  "width": 390,
+  "height": 3727,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 390,
+  "height": 4807,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 1024,
+  "height": 8229,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 1024,
+  "height": 2896,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 1024,
+  "height": 2896,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 1024,
+  "height": 2896,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "empty",
+  "width": 1024,
+  "height": 5309,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 1024,
+  "height": 3624,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 1440,
+  "height": 6867,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "empty",
+  "width": 1440,
+  "height": 2817,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "empty",
+  "width": 1440,
+  "height": 2817,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "empty",
+  "width": 1440,
+  "height": 2817,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "empty",
+  "width": 1440,
+  "height": 5105,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 1440,
+  "height": 3154,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 390,
+  "height": 7714,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 390,
+  "height": 7385,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 390,
+  "height": 6731,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 390,
+  "height": 6282,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "showcase",
+  "width": 390,
+  "height": 8828,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 390,
+  "height": 4863,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 1024,
+  "height": 15269,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 1024,
+  "height": 6479,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 1024,
+  "height": 5114,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 1024,
+  "height": 4494,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "showcase",
+  "width": 1024,
+  "height": 16265,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 1024,
+  "height": 3763,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 1440,
+  "height": 12353,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "goals",
+  "state": "showcase",
+  "width": 1440,
+  "height": 5402,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "board",
+  "state": "showcase",
+  "width": 1440,
+  "height": 4386,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "tree",
+  "state": "showcase",
+  "width": 1440,
+  "height": 4128,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "wealth",
+  "state": "showcase",
+  "width": 1440,
+  "height": 14436,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 1440,
+  "height": 3258,
+  "overflow": false,
+  "errors": []
+ }
+]

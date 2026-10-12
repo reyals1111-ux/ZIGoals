@@ -24,3 +24,21 @@ Self-reviewed against the design rules (no overlap, no wrap inside a word, no te
 | Every page | Section titles white → nebula; the system UI font (no Inter); 14 px phone tab labels; disabled controls readable (≥ 4.5:1). |
 | Markets, Ecosystem, Chess, Health | Order unchanged (already in order); the shared heading look; a progress slot under each hero (renders nothing until AA-Local fills it). |
 
+
+### after/part2 — Goals best in class (`8fe7f6c`), 42 captures, no page errors, no sideways overflow
+Captured before Gate A's fixes; the Goals page itself is superseded by `after/part3-gateA` (header and figures moved).
+| Page | What's better |
+|---|---|
+| Goals | Key figures (active, finished, with a plan, life areas); Cards, Vision board and Tree as three views; Life balance, Goal templates and the Hall of achievements as their own designed cards; average goals among the cards. |
+| A goal's page | The pace forecast with its dashed estimate and range ("an estimate", never a promise), the plan (area, why, obstacle, if-then), the vision picture, sub-goals with their roll-up. |
+| Templates | 42 templates in seven areas, searchable, each with its milestones and the habits that help. |
+| New goal (wizard) | A template fills the name, steps and habits; the life area is picked in the same step. |
+| Average goal | Its own page: the rolling average, the days it rests on, Health's days or your own entries. |
+
+### after/part3-gateA — the calculator and Gate A's fixes (`ecc505b`), 36 captures, no page errors, no sideways overflow
+| Page | What's better |
+|---|---|
+| Calculator (new) | Large fields with sliders, the figures and the stacked chart first (per-year tooltip, 10k/100k/1M markers, what-ifs as lines with a legend), milestones, the year-by-year table, saved scenarios; "an estimate; returns are not guaranteed" on every result. Phone: figures, chart, then inputs with a sticky result line. |
+| Today | The whole-life overview leads the widgets again (Run10's approved hierarchy), then Your day, Goals (the agenda first), Money, Your widgets; each heading opens its group's first card. Phone: Today's focus as two tiles a row, nothing wider than the screen; 3.83 screens on the seeded demo (ceiling 3.85). |
+| Goals | One header action; the key figures and the view switch open the "Your goals" region, so the cards still follow one compact controls row; Milestones ahead stays last. |
+| Wealth | The calculator's card after the perspective tools; Allocation and coverage stays the last section. |
