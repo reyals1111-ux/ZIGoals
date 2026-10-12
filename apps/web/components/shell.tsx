@@ -34,6 +34,7 @@ import { LAYOUT_LOCK_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
+import { SearchButton, SearchHost } from "./search/search-trigger";
 import { AiLauncher } from "./ai/ai-launcher";
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
@@ -147,8 +148,10 @@ export function Shell({ children }: { children: ReactNode }) {
         </Link>
         <p className="product-descriptor">Your Financial Orbit</p>
         <AppNav />
+        {/* Session AA-Cloud Part 4: search, on computers right under the navigation (tablets carry it beside Quick add). */}
+        <div className="sidebar-search"><SearchButton className="search-trigger is-wide" label/></div>
         {/* The tablet header shows Quick add below the navigation, so it follows it in tab order too (hidden on desktop). */}
-        <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}</div>
+        <div className="sidebar-actions">{showQuickAdd&&<QuickAdd/>}<SearchButton/></div>
         {/* Above the planet: this page's mark, or the wordmark (Session I). The "Shape & Fold" tagline now lives in the Today swan's artwork. */}
         <div className="sidebar-destination">
           <div className="sidebar-horizon" aria-hidden="true" />
@@ -262,7 +265,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
-        <UndoToastHost />
+        <SearchHost/><UndoToastHost />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>

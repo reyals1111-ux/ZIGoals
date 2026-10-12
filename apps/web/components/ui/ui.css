@@ -78,3 +78,14 @@
 :root .progress-slot, :root .aa-slot { display: grid; gap: 12px; min-width: 0; }
 :root .progress-slot { margin: 0 0 20px; }
 :root .for-you-place { display: contents; }
+
+/* Session AA-Cloud Part 4: the search button in every page's header (the palette's own styles load with it). */
+:root .search-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid #6c9cc555; background: #0d1a2ecc; color: var(--text-secondary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+:root .search-trigger:hover, :root .search-trigger:focus-visible { color: var(--text-strong); border-color: #8fe6f477; }
+:root .search-trigger.is-wide { width: 100%; justify-content: flex-start; padding: 0 12px; }
+:root .search-trigger.is-wide kbd { margin-left: auto; min-width: 22px; padding: 1px 6px; border-radius: 6px; border: 1px solid #6c9cc555; font: inherit; font-size: 14px; }
+:root .sidebar-search { padding: 14px 4px 4px; }
+:root .sidebar-actions { display: flex; gap: 8px; }
+:root .sidebar-actions .quick-add-trigger { flex: 1; }
+@media (max-width: 900px) { :root .sidebar-search { display: none; } }
+:root .phone-search { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 14px; background: none; color: var(--text); cursor: pointer; }
