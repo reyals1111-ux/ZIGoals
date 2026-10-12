@@ -14,4 +14,4 @@
 :root .dh-facts dt { font-size: 14px; color: var(--text-secondary); }
 :root .dh-facts dd { margin: 4px 0 0; font-size: 20px; font-weight: 700; }
 :root .dh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-:root .dh-actions .primary { min-height: 44px; }
+:root .dh-actions .primary { min-height: 44px; max-width: 100%; white-space: normal; text-align: center; overflow-wrap: anywhere; }

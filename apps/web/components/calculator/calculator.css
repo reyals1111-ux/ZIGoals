@@ -82,7 +82,8 @@
 :root .calc-field > span:first-child, :root .calc-field > label, :root .calc-field > legend { font-size: 15px; font-weight: 650; color: var(--text-secondary); padding: 0; }
 :root .calc-input { display: flex; align-items: center; border-radius: 14px; border: 1px solid #7aa7d066; background: #08142a; }
 :root .calc-input:focus-within { border-color: #8fe6f4; box-shadow: 0 0 0 3px #8fe6f455; }
-:root .calc-input input { flex: 1; min-width: 0; min-height: 56px; padding: 10px 14px; border: 0; background: none; color: var(--text-strong); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; outline: none; }
+:root .calc-input input { flex: 1; min-width: 0; min-height: 56px; padding: 10px 14px; border: 0; border-radius: 12px; background: none; color: var(--text-strong); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+:root .calc-input input:focus-visible { outline: 2px solid #8fe6f4; outline-offset: -2px; }
 :root .calc-input b { padding: 0 14px; font-size: 15px; color: var(--text-meta); }
 :root .calc-field small { font-size: 14px; color: var(--text-secondary); line-height: 1.45; }
 :root .calc-field .calc-error, :root .calc-slider .calc-error { color: #ffb4b4; }
