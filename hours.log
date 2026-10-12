@@ -48,3 +48,5 @@ START s4-haiku-aa 2026-10-12T12:05:23Z
 END s4-haiku-aa 2026-10-12T12:05:38Z rc=0
 START s5-sonnet-corpus 2026-10-12T12:05:43Z
 END s4-haiku-aa 2026-10-12T12:06:54Z rc=0
+START s4b-sonnet-spoken-retry 2026-10-12T12:23:08Z
+END s4b-sonnet-spoken-retry 2026-10-12T12:23:31Z rc=0

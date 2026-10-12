@@ -1,0 +1,375 @@
+{
+ "summary": {
+  "provider": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "host": "Anthropic API",
+  "mode": "tools",
+  "think": false,
+  "cache": true,
+  "base": "redacted",
+  "pageContext": false,
+  "set": "spoken",
+  "startedAt": "2026-10-12T12:23:10.670Z",
+  "finishedAt": "2026-10-12T12:23:31.623Z",
+  "cases": 6,
+  "repeat": 1,
+  "runs": 6,
+  "passed": 1,
+  "rate": 0.16666666666666666,
+  "byKind": {
+   "propose": {
+    "passed": 1,
+    "total": 6
+   }
+  },
+  "latency": {
+   "firstTokenMedianMs": 3213,
+   "totalMedianMs": 3227
+  },
+  "tokens": {
+   "input": 30,
+   "output": 1303,
+   "cacheWrite": 5649,
+   "cacheRead": 149197
+  },
+  "requests": 9,
+  "costUsd": 0.0421322,
+  "pricesAsOf": "2026-10-10",
+  "unreported": 0
+ },
+ "runs": [
+  {
+   "id": "sp-aa-tod-nl-filler",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [set-time-of-day], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=morning",
+     "pass": false,
+     "detail": "no card"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 5440,
+   "totalMs": 5445,
+   "tokens": {
+    "input": 6,
+    "output": 208,
+    "cacheWrite": 1217,
+    "cacheRead": 33087
+   },
+   "requests": 2,
+   "costUsd": 0.008443200000000001,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Je leesgewoonte Read (h1) staat al op ochtend. Er hoeft dus niets te veranderen, en ik stuur geen kaart.\n\nBedoelde je iets anders, bijvoorbeeld dat je vandaag inchecken wilt? Vandaag staat Read al op 30 minuten, dus volledig. ⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "sp-aa-tod-nl-number-words",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [set-time-of-day], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=morning",
+     "pass": false,
+     "detail": "no card"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 3213,
+   "totalMs": 3227,
+   "tokens": {
+    "input": 6,
+    "output": 169,
+    "cacheWrite": 1224,
+    "cacheRead": 33094
+   },
+   "requests": 2,
+   "costUsd": 0.0080714,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Je leesgewoonte (Read, h1) staat al op de ochtend. Er valt dus niets te wijzigen en ik stuur geen kaart.\n\nDit komt uit je lijst met gewoontes. Wil je dat een andere gewoonte naar de ochtend gaat, bijvoorbeeld Stretch morning (h8), die nu op \"altijd\" staat?\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "sp-aa-tod-nl-terse",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [set-time-of-day], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=morning",
+     "pass": false,
+     "detail": "no card"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 3036,
+   "totalMs": 3048,
+   "tokens": {
+    "input": 6,
+    "output": 144,
+    "cacheWrite": 1202,
+    "cacheRead": 33072
+   },
+   "requests": 2,
+   "costUsd": 0.007764200000000001,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Je habit \"Read\" (h1) staat al op ochtend. Er is dus niets te veranderen, en ik stuur geen kaart.\n\nBedoelde je een andere habit? Dan pas ik die aan. \"Stretch morning\" (h8) staat bijvoorbeeld nog op \"anytime\".\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "sp-aa-coach-keep-en-number-words",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [coach-answer], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=coach-answer,answer=keep",
+     "pass": false,
+     "detail": "no card"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": true,
+   "firstTokenMs": 706,
+   "totalMs": 2262,
+   "tokens": {
+    "input": 4,
+    "output": 166,
+    "cacheWrite": 827,
+    "cacheRead": 16648
+   },
+   "requests": 1,
+   "costUsd": 0.0054003,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "the last 7 days",
+      "nutrient": "kcal"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your calorie target is 2,200 kcal a day, and it stays that way. I can't see any change scheduled for it, so there is nothing to change and I'm sending no card.\n\nThe records for the last 7 days show 14,270 kcal in total. The first two days were at or above your target, and the last five were below it. That is only a description of your diary, not a judgement.\n\nIf the weekly coach check-in ever suggests a different figure, you can answer \"keep\" there and the target stays as it is.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "sp-aa-coach-keep-nl-run-on",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": false,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": false,
+     "detail": "wanted [coach-answer], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=coach-answer,answer=keep",
+     "pass": false,
+     "detail": "no card"
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 920,
+   "totalMs": 2230,
+   "tokens": {
+    "input": 4,
+    "output": 114,
+    "cacheWrite": 310,
+    "cacheRead": 16648
+   },
+   "requests": 1,
+   "costUsd": 0.0035878000000000004,
+   "calls": [],
+   "reply": "Prima, ik laat je caloriedoel zoals het is. Ik stel geen aanpassing voor, dus er verandert niets.\n\nAls je aan het eind van de week toch wilt kijken hoe het ging, kan ik je dagtotalen uit je dagboek erbij pakken.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "sp-water-yesterday-en-clock-idiom",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [log-water, check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:day=yesterday",
+     "pass": true,
+     "detail": "{\"kind\":\"check-in\",\"habit\":\"h1\",\"quantity\":3,\"unit\":\"glasses\",\"day\":\"yesterday\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 3302,
+   "totalMs": 4369,
+   "tokens": {
+    "input": 4,
+    "output": 502,
+    "cacheWrite": 869,
+    "cacheRead": 16648
+   },
+   "requests": 1,
+   "costUsd": 0.0088653,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Drink water",
+      "range": "yesterday",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "water",
+     "args": {
+      "range": "yesterday"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your Health water log for yesterday (2026-10-04) already holds 750 mL, which is three glasses, so that matches what you said. Your Drink water habit (h1) shows 8 glasses for the same day. I'm not adding water, because it would count twice. If you want the habit to say three, this card sets it.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"quantity\":3,\"unit\":\"glasses\",\"day\":\"yesterday\"}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  }
+ ]
+}
