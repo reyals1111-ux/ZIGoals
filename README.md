@@ -13,3 +13,9 @@
 - `write-probe.mjs`: logs every Storage call while Today loads after the Showcase (for CI's weekly-review order flake):
   only the public market caches write; nothing writes the Showcase's records. Evidence: local.
 - `seeded-heights.mjs`: the today-screens seeded state, part by part (A37). Evidence: local.
+
+## gate-c/
+- `revert-gate.txt`: every session commit reverted newest-first in a scratch worktree at `c7debcd`; at each part boundary
+  the tree equals that commit and typechecks; the end tree is identical to `32cb9c5`. Evidence: local.
+- `freeze-compare.json` / `freeze-summary.txt`: `scripts/desktop-freeze-check.mjs` against `32cb9c5`'s own production
+  build: 155 of 155 captures differ (by design; each cause in ADR-021 "Freeze check"), no page error. Evidence: local.

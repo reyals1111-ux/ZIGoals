@@ -1,0 +1,17 @@
+activity: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+dialog-add-asset: s1024:+312, s820:+309
+dialog-quick-add: s1024:+2651, s820:+2080
+ecosystem: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+goal-detail: s1440:+1829, s1280:+1883, s1024:+2067, s820:+2393, s820:+2393, s1180:+1922
+goals: s1440:+2176, e1440:+1030, s1280:+2177, e1280:+1030, s1024:+2466, e1024:+1049, s820:+2458, e820:+1040, s820:+2458, e820:+1040, s1180:+2223, e1180:+1055
+habits: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+health: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+help: s1440:+441, e1440:+441, s1280:+441, e1280:+441, s1024:+441, e1024:+441, s820:+441, e820:+441, s820:+441, e820:+441, s1180:+441, e1180:+441
+markets: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+portfolio: s1440:-2, e1440:same-size, s1280:-2, e1280:same-size, s1024:-1, e1024:same-size, s820:-1, e820:same-size, s820:-1, e820:same-size, s1180:-2, e1180:same-size
+settings: s1440:+128, e1440:+129, s1280:+129, e1280:+128, s1024:+129, e1024:+128, s820:+128, e820:+128, s820:+128, e820:+128, s1180:+128, e1180:+128
+staking: s1440:same-size, e1440:same-size, s1280:same-size, e1280:same-size, s1024:same-size, e1024:same-size, s820:same-size, e820:same-size, s820:same-size, e820:same-size, s1180:same-size, e1180:same-size
+today: s1440:+2080, e1440:+516, s1280:+2504, e1280:+660, s1024:+2651, e1024:+657, s820:+2080, e820:+520, s820:+2080, e820:+520, s1180:+2666, e1180:+686
+wealth: s1440:+314, e1440:+313, s1280:+314, e1280:+314, s1024:+312, e1024:+311, s820:+309, e820:+309, s820:+309, e820:+309, s1180:+314, e1180:+314
+zigi-launcher: s1280:+2504
+{'size': 77, 'aria-only': 78}

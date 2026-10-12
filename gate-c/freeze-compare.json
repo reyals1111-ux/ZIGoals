@@ -1,0 +1,3030 @@
+{
+ "compared": 155,
+ "same": 0,
+ "intended": [],
+ "different": [
+  {
+   "name": "1440x900__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x11351",
+    "1440x13431"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x3201",
+    "1440x5377"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x6051",
+    "1440x7880"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9440,
+   "box": [
+    1214,
+    30,
+    1413,
+    77
+   ]
+  },
+  {
+   "name": "1440x900__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 29011,
+   "box": [
+    814,
+    30,
+    1413,
+    4798
+   ]
+  },
+  {
+   "name": "1440x900__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x14122",
+    "1440x14436"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9456,
+   "box": [
+    1214,
+    30,
+    1413,
+    77
+   ]
+  },
+  {
+   "name": "1440x900__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 2097408,
+   "box": [
+    225,
+    30,
+    1413,
+    4353
+   ]
+  },
+  {
+   "name": "1440x900__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x3824",
+    "1440x3822"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 10069,
+   "box": [
+    1214,
+    30,
+    1413,
+    907
+   ]
+  },
+  {
+   "name": "1440x900__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 5513138,
+   "box": [
+    242,
+    30,
+    1413,
+    6944
+   ]
+  },
+  {
+   "name": "1440x900__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x15560",
+    "1440x15688"
+   ]
+  },
+  {
+   "name": "1440x900__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x10173",
+    "1440x10614"
+   ]
+  },
+  {
+   "name": "1440x900__empty__today",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x6351",
+    "1440x6867"
+   ]
+  },
+  {
+   "name": "1440x900__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x1787",
+    "1440x2817"
+   ]
+  },
+  {
+   "name": "1440x900__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1440x900__empty__health",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 23694,
+   "box": [
+    436,
+    372,
+    1382,
+    3501
+   ]
+  },
+  {
+   "name": "1440x900__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x4792",
+    "1440x5105"
+   ]
+  },
+  {
+   "name": "1440x900__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1440x900__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 610436,
+   "box": [
+    225,
+    1336,
+    1413,
+    2211
+   ]
+  },
+  {
+   "name": "1440x900__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 8464,
+   "box": [
+    273,
+    1184,
+    574,
+    1948
+   ]
+  },
+  {
+   "name": "1440x900__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 630,
+   "box": [
+    1289,
+    791,
+    1374,
+    803
+   ]
+  },
+  {
+   "name": "1440x900__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1440x900__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x15034",
+    "1440x15163"
+   ]
+  },
+  {
+   "name": "1440x900__empty__help",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1440x10069",
+    "1440x10510"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x12457",
+    "1280x14961"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x3368",
+    "1280x5545"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x6071",
+    "1280x7954"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9465,
+   "box": [
+    1054,
+    30,
+    1253,
+    77
+   ]
+  },
+  {
+   "name": "1280x800__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 26305,
+   "box": [
+    888,
+    30,
+    1253,
+    5164
+   ]
+  },
+  {
+   "name": "1280x800__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x14361",
+    "1280x14675"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9462,
+   "box": [
+    1054,
+    30,
+    1253,
+    77
+   ]
+  },
+  {
+   "name": "1280x800__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 1920329,
+   "box": [
+    225,
+    30,
+    1253,
+    4439
+   ]
+  },
+  {
+   "name": "1280x800__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x3806",
+    "1280x3804"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9938,
+   "box": [
+    1054,
+    30,
+    1253,
+    902
+   ]
+  },
+  {
+   "name": "1280x800__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 4883773,
+   "box": [
+    242,
+    30,
+    1253,
+    6940
+   ]
+  },
+  {
+   "name": "1280x800__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x15941",
+    "1280x16070"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x10141",
+    "1280x10582"
+   ]
+  },
+  {
+   "name": "1280x800__showcase__zigi-launcher",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x12457",
+    "1280x14961"
+   ]
+  },
+  {
+   "name": "1280x800__empty__today",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x6763",
+    "1280x7423"
+   ]
+  },
+  {
+   "name": "1280x800__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x1782",
+    "1280x2812"
+   ]
+  },
+  {
+   "name": "1280x800__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1280x800__empty__health",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 20750,
+   "box": [
+    545,
+    369,
+    1222,
+    3623
+   ]
+  },
+  {
+   "name": "1280x800__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x4818",
+    "1280x5132"
+   ]
+  },
+  {
+   "name": "1280x800__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1280x800__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 528636,
+   "box": [
+    225,
+    1301,
+    1253,
+    2175
+   ]
+  },
+  {
+   "name": "1280x800__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 8464,
+   "box": [
+    273,
+    1175,
+    574,
+    1940
+   ]
+  },
+  {
+   "name": "1280x800__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 630,
+   "box": [
+    1129,
+    786,
+    1214,
+    798
+   ]
+  },
+  {
+   "name": "1280x800__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1280x800__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x15416",
+    "1280x15544"
+   ]
+  },
+  {
+   "name": "1280x800__empty__help",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1280x10037",
+    "1280x10478"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x14101",
+    "1024x16752"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x4013",
+    "1024x6479"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x6436",
+    "1024x8503"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9495,
+   "box": [
+    804,
+    34,
+    1003,
+    81
+   ]
+  },
+  {
+   "name": "1024x768__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 23535,
+   "box": [
+    698,
+    34,
+    1003,
+    6043
+   ]
+  },
+  {
+   "name": "1024x768__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x15953",
+    "1024x16265"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9442,
+   "box": [
+    804,
+    34,
+    1003,
+    81
+   ]
+  },
+  {
+   "name": "1024x768__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 1542747,
+   "box": [
+    193,
+    34,
+    1003,
+    5253
+   ]
+  },
+  {
+   "name": "1024x768__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x4027",
+    "1024x4026"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 10131,
+   "box": [
+    804,
+    34,
+    1003,
+    932
+   ]
+  },
+  {
+   "name": "1024x768__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 2801004,
+   "box": [
+    210,
+    34,
+    1003,
+    7077
+   ]
+  },
+  {
+   "name": "1024x768__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x17359",
+    "1024x17488"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x10656",
+    "1024x11097"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__dialog-quick-add",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x14101",
+    "1024x16752"
+   ]
+  },
+  {
+   "name": "1024x768__showcase__dialog-add-asset",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x15953",
+    "1024x16265"
+   ]
+  },
+  {
+   "name": "1024x768__empty__today",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x7572",
+    "1024x8229"
+   ]
+  },
+  {
+   "name": "1024x768__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x1847",
+    "1024x2896"
+   ]
+  },
+  {
+   "name": "1024x768__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1024x768__empty__health",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 17990,
+   "box": [
+    404,
+    412,
+    972,
+    4322
+   ]
+  },
+  {
+   "name": "1024x768__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x4998",
+    "1024x5309"
+   ]
+  },
+  {
+   "name": "1024x768__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1024x768__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 434642,
+   "box": [
+    193,
+    1331,
+    1003,
+    2249
+   ]
+  },
+  {
+   "name": "1024x768__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 8312,
+   "box": [
+    241,
+    1203,
+    542,
+    1967
+   ]
+  },
+  {
+   "name": "1024x768__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 630,
+   "box": [
+    879,
+    781,
+    964,
+    793
+   ]
+  },
+  {
+   "name": "1024x768__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1024x768__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x16866",
+    "1024x16994"
+   ]
+  },
+  {
+   "name": "1024x768__empty__help",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1024x10517",
+    "1024x10958"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x13727",
+    "820x15807"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x4327",
+    "820x6785"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x7207",
+    "820x9600"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40238,
+   "box": [
+    22,
+    271,
+    799,
+    415
+   ]
+  },
+  {
+   "name": "820x1180__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 74109,
+   "box": [
+    22,
+    271,
+    799,
+    5736
+   ]
+  },
+  {
+   "name": "820x1180__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x16291",
+    "820x16600"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40132,
+   "box": [
+    22,
+    271,
+    799,
+    415
+   ]
+  },
+  {
+   "name": "820x1180__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 1529957,
+   "box": [
+    3,
+    271,
+    799,
+    5816
+   ]
+  },
+  {
+   "name": "820x1180__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x4633",
+    "820x4632"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40895,
+   "box": [
+    22,
+    271,
+    799,
+    1223
+   ]
+  },
+  {
+   "name": "820x1180__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 2684949,
+   "box": [
+    20,
+    271,
+    799,
+    7689
+   ]
+  },
+  {
+   "name": "820x1180__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x17520",
+    "820x17648"
+   ]
+  },
+  {
+   "name": "820x1180__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x10943",
+    "820x11384"
+   ]
+  },
+  {
+   "name": "820x1180__empty__today",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x7744",
+    "820x8264"
+   ]
+  },
+  {
+   "name": "820x1180__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x2154",
+    "820x3194"
+   ]
+  },
+  {
+   "name": "820x1180__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180__empty__health",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 69130,
+   "box": [
+    22,
+    271,
+    796,
+    4421
+   ]
+  },
+  {
+   "name": "820x1180__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x5304",
+    "820x5613"
+   ]
+  },
+  {
+   "name": "820x1180__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 447928,
+   "box": [
+    3,
+    271,
+    799,
+    2829
+   ]
+  },
+  {
+   "name": "820x1180__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 39226,
+   "box": [
+    22,
+    271,
+    796,
+    2285
+   ]
+  },
+  {
+   "name": "820x1180__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 31392,
+   "box": [
+    22,
+    271,
+    796,
+    1084
+   ]
+  },
+  {
+   "name": "820x1180__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x17027",
+    "820x17155"
+   ]
+  },
+  {
+   "name": "820x1180__empty__help",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x10804",
+    "820x11245"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x13727",
+    "820x15807"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x4327",
+    "820x6785"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x7207",
+    "820x9600"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40238,
+   "box": [
+    22,
+    271,
+    799,
+    415
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 74109,
+   "box": [
+    22,
+    271,
+    799,
+    5736
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x16291",
+    "820x16600"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40132,
+   "box": [
+    22,
+    271,
+    799,
+    415
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 1529957,
+   "box": [
+    3,
+    271,
+    799,
+    5816
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x4633",
+    "820x4632"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 40895,
+   "box": [
+    22,
+    271,
+    799,
+    1223
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": 2684949,
+   "box": [
+    20,
+    271,
+    799,
+    7689
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x17520",
+    "820x17648"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x10943",
+    "820x11384"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__dialog-quick-add",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x13727",
+    "820x15807"
+   ]
+  },
+  {
+   "name": "820x1180-touch__showcase__dialog-add-asset",
+   "status": "different",
+   "aria": [
+    "line 37: - - banner: | +   - button \"Search\"",
+    "line 38: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 39: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 40: -   - button \"Connect Keplr\" [disabled] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 41: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 42: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 43: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA",
+    "line 44: -   - button \"Exit Showcase\" | +   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30"
+   ],
+   "pixels": null,
+   "size": [
+    "820x16291",
+    "820x16600"
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__today",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x7744",
+    "820x8264"
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x2154",
+    "820x3194"
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__health",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 69130,
+   "box": [
+    22,
+    271,
+    796,
+    4421
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x5304",
+    "820x5613"
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 447928,
+   "box": [
+    3,
+    271,
+    799,
+    2829
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 39226,
+   "box": [
+    22,
+    271,
+    796,
+    2285
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 31392,
+   "box": [
+    22,
+    271,
+    796,
+    1084
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": 30762,
+   "box": [
+    22,
+    271,
+    796,
+    316
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x17027",
+    "820x17155"
+   ]
+  },
+  {
+   "name": "820x1180-touch__empty__help",
+   "status": "different",
+   "aria": [
+    "line 35: - - banner: | +   - button \"Search\"",
+    "line 36: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 37: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 38: -   - button \"Connect Keplr\" | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 39: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 40: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 41: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":",
+    "line 42: - - text: \"LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions 1000 ZIG demo balance\" | +   - /url: /app/settings#encrypted-sync"
+   ],
+   "pixels": null,
+   "size": [
+    "820x10804",
+    "820x11245"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__today",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x13038",
+    "1180x15704"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__goals",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x3612",
+    "1180x5835"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__goal-detail",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x6224",
+    "1180x8146"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__habits",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9470,
+   "box": [
+    954,
+    41,
+    1153,
+    88
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__health",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 26229,
+   "box": [
+    797,
+    41,
+    1153,
+    5347
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__wealth",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x15700",
+    "1180x16014"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__markets",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 9373,
+   "box": [
+    954,
+    41,
+    1153,
+    88
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__staking",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 1792311,
+   "box": [
+    225,
+    41,
+    1153,
+    4600
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__portfolio",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x3982",
+    "1180x3980"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 10106,
+   "box": [
+    954,
+    41,
+    1153,
+    918
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__activity",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": 3624552,
+   "box": [
+    242,
+    41,
+    1153,
+    6971
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__settings",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x16148",
+    "1180x16276"
+   ]
+  },
+  {
+   "name": "1180x820-touch__showcase__help",
+   "status": "different",
+   "aria": [
+    "line 34: - - banner: | +   - button \"Search\"",
+    "line 35: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 36: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 37: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 38: -   - button \"Connect Keplr\" [disabled] | +   - button \"Demo records\" [pressed]",
+    "line 39: - - complementary \"Showcase data\": | +   - button \"Connect Keplr\" [disabled]",
+    "line 40: -   - strong: SHOWCASE DATA | + - complementary \"Showcase data\":",
+    "line 41: -   - text: Fictional portfolio & history · anything you add here stays in the demo when you exit · 2026-09-30 | +   - strong: SHOWCASE DATA"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x10350",
+    "1180x10791"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__today",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x7109",
+    "1180x7795"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__goals",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x1796",
+    "1180x2851"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__habits",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__health",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 20336,
+   "box": [
+    495,
+    390,
+    1122,
+    3770
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__wealth",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x4867",
+    "1180x5181"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__markets",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__staking",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 478235,
+   "box": [
+    225,
+    1316,
+    1153,
+    2215
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__portfolio",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 8464,
+   "box": [
+    273,
+    1190,
+    574,
+    1954
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__ecosystem",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": 630,
+   "box": [
+    1029,
+    789,
+    1114,
+    801
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__activity",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__settings",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x15609",
+    "1180x15737"
+   ]
+  },
+  {
+   "name": "1180x820-touch__empty__help",
+   "status": "different",
+   "aria": [
+    "line 32: - - banner: | +   - button \"Search\"",
+    "line 33: -   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA | + - banner:",
+    "line 34: -   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures. | +   - strong: PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA",
+    "line 35: -   - button \"Demo records\" [pressed] | +   - text: Simulation + wallet connection only. No blockchain transactions or financial signatures.",
+    "line 36: -   - button \"Connect Keplr\" | +   - button \"Demo records\" [pressed]",
+    "line 37: - - status: This device only · account sync is off | +   - button \"Connect Keplr\"",
+    "line 38: - - link \"Storage & sync settings →\": | + - status: This device only · account sync is off",
+    "line 39: -   - /url: /app/settings#encrypted-sync | + - link \"Storage & sync settings →\":"
+   ],
+   "pixels": null,
+   "size": [
+    "1180x10232",
+    "1180x10673"
+   ]
+  }
+ ],
+ "pageErrors": {
+  "baseline": [],
+  "candidate": []
+ }
+}
+FREEZE CHECK FAILED: 155 of 155 captures differ.
+exit 1
