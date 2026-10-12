@@ -20,10 +20,10 @@ Owner decisions and the eight plan edits: ADR-022. Handoffs: `docs/handoff/AA_LO
 ### Model targets (Part 6) — filled at Gate C
 | Model | Set | Target | Result |
 |---|---|---|---|
-| Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus S3 736/770 = 95.6 % ($6.22; 738/770 = 95.8 % re-scored after the two `set-time-of-day` case updates; S5 second pass pending; target 97 not met: the misses are Sonnet describing a Fund card it then omits (3), extra reminder cards beside new habits, two-card answers where one was asked, and the pre-existing conversation misses) / spoken S1 647/681 = 95.0 % before the seed and engine fixes (S4 pending) / new features S2 43/45 = 95.6 % / 15/15, 15/15, 15/15 (S3, $0.90) |
-| Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / ≥95 % | corpus S3 724/770 = 94.0 % ($0.42) / spoken S3 635/681 = 93.2 % ($0.31; S1 569/624 = 91.2 %) / new features S2 43/45 = 95.6 % |
+| Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus S3 736/770 = 95.6 % ($6.22; 738/770 = 95.8 % re-scored after the two `set-time-of-day` case updates; S5 second pass 739/770 = 96.0 % ($6.01); target 97 not met over two passes (Z-Local closed at 96.4 %): the misses are Sonnet describing a Fund card it then omits (3), extra reminder cards beside new habits, two-card answers where one was asked, and the pre-existing conversation misses) / spoken S4 661/681 = 97.1 % ($3.19; S1 647/681 = 95.0 % before the seed and engine fixes) / new features S4 44/45 = 97.8 % ($0.21; S2 43/45) / 15/15, 15/15, 15/15 (S3, $0.90) |
+| Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / ≥95 % | corpus S3 724/770 = 94.0 % ($0.42) / spoken S3 635/681 = 93.2 % ($0.31; S1 569/624 = 91.2 %) / new features S4 45/45 = 100 % ($0.01; S2 43/45) |
 | gemma4 12B (RTX 5090) | corpus | ≥89 % | S3 676/770 = 87.8 % (88.4 % without the 45 new-features cases; Z-Local's final 88.8 %) — not met, free run |
-| qwen3.8 27B (RTX 5090) | corpus | ≥88 % | S3 649/770 = 84.3 % — not met, free run; the misses are wrong refusals ("I can't record this in kg"), answers without a card and over-eager extra cards, not harness defects; a second free pass follows |
+| qwen3.8 27B (RTX 5090) | corpus | ≥88 % | S3 649/770 = 84.3 % — not met, free run; the misses are wrong refusals ("I can't record this in kg"), answers without a card and over-eager extra cards, not harness defects; second pass S3b 664/770 = 86.2 % |
 Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up $0.30; …).
 
 ### Tier 2 / Tier 3 in plain words
@@ -46,5 +46,10 @@ See ADR-022 "Assertions changed" (each as strict; the list is copied here at Gat
 - Unit: 516 files / 4674 tests green (root); weights green, shell 1.2 kB below main.
 - Audits: the Gate B security read (B43, three findings fixed) and the Gate C test-file audit (B47, one swallowed assertion restored); key scans clean.
 
+### CI's full browser suite (Gate C finding)
+- The three browser-suite shards had never finished on this branch: every Milestone quality run since Part 2 was cancelled by the next push (one PR, pushes at every part), and the two that did finish (bd7572b2, f77b3e24) were red. The ZIGi/new/smoke selection I ran locally at Gates A–B does not cover the 850-test full suite, so 75 CI failures (63 unique tests in 25 spec files) surfaced only at Gate C, on f77b3e24.
+- All 65 were reproduced locally against the :3103 build, then fixed in five build-and-rerun rounds (ADR-022 B49–B51): sections open by default with the clock's section marked; the game card and year view out of the layout regions and Health's highlights inside the nourishment item (the pinned region orders of twelve specs keep); the timer's pre-existing control names; the full habit card static again and every lazy piece inside LoadBoundary; swipe rows without a wrapper and with no stacking context at rest; the Today timer chip's 44 px buttons; the welcome's setup record only when something was made; no sleep score on short nights; a five-letter stem for the local answerer's word match; Health's fasting item back in its region (lost on computers since B41). Spec updates, each listed in ADR-022 "Assertions changed": help topics 12, the onboarding and sleep flows pass the focuses step, the Showcase's seven habits / seven Today rows, habits-aa H1/H2, the Today Showcase ceiling 9.7 → 10.5 (owner item).
+- Not this branch's: phone-touch-targets' `Goal actions (39×44)` on /app/goals/tracked/9201 fails identically against main's build on this Mac (font metrics); CI on Linux decides it.
+
 ### Revert gate, CI, decisions B1…Bn, owner items
-… (filled at Gate C: typecheck per part boundary; CI run URL; B1–B43; owner items: vitamins beyond the seven nutrients, push delivery, the photo-plate test not built)
+… (filled at Gate C: typecheck per part boundary; CI run URL; B1–B51; owner items: Sonnet corpus 96.0 % and gemma4 87.8 % / qwen3.8 86.2 % below their targets, the Today Showcase ceiling 10.5, vitamins beyond the seven nutrients, push delivery, the photo-plate test not built)

@@ -48,10 +48,10 @@ async function throughToData(page:Page){
  await stepTo(page,'Meet ZIGi.');await flow.getByRole('button',{name:'Continue',exact:true}).click();
  await stepTo(page,'Your data, your control.');
 }
-test('the flow: ZIGi\'s hello, pillars, starters, the tour, install, ZIGi, the honest data step; nothing is saved until Finish saves it all',async({page})=>{
+test('the flow: ZIGi\'s hello, pillars, focuses, starters, the tour, install, ZIGi, the honest data step; nothing is saved until Finish saves it all',async({page})=>{
  await today(page);await card(page).getByRole('link',{name:'Start setup',exact:true}).click();await page.waitForURL('**/app/welcome');
  const flow=page.locator('main');
- await expect(flow.getByRole('heading',{level:1,name:'Welcome to ZIGoals.'})).toBeVisible();await expect(flow).toContainText('Step 1 of 7');
+ await expect(flow.getByRole('heading',{level:1,name:'Welcome to ZIGoals.'})).toBeVisible();await expect(flow).toContainText('Step 1 of 8');
  await expect(flow).toContainText('Hi, I’m ZIGi.');
  for(const text of ['Private by design.','No ads, no trackers.','No crypto needed.','nothing is saved until you finish'])await expect(flow).toContainText(text);
  for(const name of ['Skip setup','Explore the demo'])await expect(flow.getByRole('button',{name,exact:true})).toBeVisible();
@@ -61,6 +61,8 @@ test('the flow: ZIGi\'s hello, pillars, starters, the tour, install, ZIGi, the h
  await flow.getByRole('checkbox',{name:/^Habits/}).check();await flow.getByRole('checkbox',{name:/^Health & food/}).check();
  await expect(flow.locator('.onboarding-shown')).toHaveText('You’ll see: Today, Habits, Health, Activity, Settings.');
  await flow.getByRole('button',{name:'Continue',exact:true}).click();
+ // Session AA-Local S4 (deliberate): the focuses step sits between pillars and starters; this test skips it (flow-aa.spec.ts drives it).
+ await stepTo(page,'Two or three things to focus on.');await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
  await stepTo(page,'A few things to start with.');
  await expect(flow.getByRole('group',{name:'A first goal (optional)'})).toHaveCount(0);
  await flow.getByRole('checkbox',{name:/^Walk/}).check();await flow.getByRole('checkbox',{name:/^Drink water/}).check();
@@ -102,6 +104,7 @@ test('a first goal: a kind needs a name and a target; it is saved on Finish, onc
  await page.goto('/app/welcome');const flow=page.locator('main');
  await flow.getByRole('button',{name:'Let’s begin',exact:true}).click();
  await flow.getByRole('checkbox',{name:/^Goals & money/}).check();await flow.getByRole('button',{name:'Continue',exact:true}).click();
+ await stepTo(page,'Two or three things to focus on.');await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
  await stepTo(page,'A few things to start with.');
  await flow.getByRole('radio',{name:'A trip',exact:true}).check();
  await expect(flow.getByLabel('Goal name')).toHaveValue('');await expect(flow.getByLabel('Target amount')).toHaveValue('');
@@ -121,6 +124,7 @@ test('choosing nothing anywhere: Finish writes only the seen flag and opens Toda
  const before=await zigoalsKeys(page);
  await flow.getByRole('button',{name:'Let’s begin',exact:true}).click();
  await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
+ await stepTo(page,'Two or three things to focus on.');await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
  await stepTo(page,'A few things to start with.');await flow.getByRole('button',{name:'Continue',exact:true}).click();
  await throughToData(page);
  await expect(flow.getByRole('region',{name:'When you finish'})).toContainText('Nothing new is added; ZIGoals opens as it is.');
@@ -135,6 +139,7 @@ test('a re-run never adds a habit twice; "take me to encrypted sync" opens it af
  await page.goto('/app/welcome');const flow=page.locator('main');
  await flow.getByRole('button',{name:'Let’s begin',exact:true}).click();
  await flow.getByRole('checkbox',{name:/^Habits/}).check();await flow.getByRole('button',{name:'Continue',exact:true}).click();
+ await stepTo(page,'Two or three things to focus on.');await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
  const walk=flow.getByRole('checkbox',{name:/^Walk/});
  await expect(walk).toBeChecked();await expect(walk).toBeDisabled();await expect(flow.locator('.onboarding-choice').filter({hasText:'Walk'})).toContainText('Already in your Habits');
  await flow.getByRole('checkbox',{name:/^Read/}).check();await flow.getByRole('button',{name:'Continue',exact:true}).click();
@@ -150,6 +155,7 @@ test('install: the browser\'s own install offer shows a button where it exists; 
  await page.goto('/app/welcome');const flow=page.locator('main');
  await flow.getByRole('button',{name:'Let’s begin',exact:true}).click();
  await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
+ await stepTo(page,'Two or three things to focus on.');await flow.getByRole('button',{name:'Continue without choosing',exact:true}).click();
  await flow.getByRole('button',{name:'Continue',exact:true}).click();
  await flow.getByRole('button',{name:'Skip the tour',exact:true}).click();
  await stepTo(page,'Keep ZIGoals on your Home Screen.');

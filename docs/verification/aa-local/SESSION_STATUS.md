@@ -7,25 +7,26 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
 `/private/tmp/claude-502/-Users-AIUSER-Documents-ZIGoals-Claude/84136727-7ff5-4b5b-8f5a-39ab937fc67d/scratchpad`
 (chain scripts, `stage-logs/<stage>.log` and `.status`, `main-poll.log`).
 
-## Resume here (2026-10-12 ~11:05Z; the PR description carries the same block)
-1. Everything is committed and pushed; HEAD `582ed8e8` (the habit editor static again, ADR-022 B48: CI's offline
-   integration step creates a habit on a profile that never fetched the lazy editor chunk). Before it: Parts 0–5 and 7,
-   Gates A and B, fix round 1 (`6b64a842`), the test-file audit (`0ccdc4b7`), What's new + Help (`cb0511ae`,
-   `997a5252`). Weights on the `582ed8e8` build: Habits 448.7 of 458 kB, shell 403.6 of 406 kB; the Habits/flow/a11y specs
-   33/33 on it. CI on `582ed8e8` in progress (the `web integration` job is the one to read: its L78 offline step failed on
-   `997a5252`).
-2. Part 6 state: S0 ($0.30), S1, S2 done; S3: Haiku corpus 724/770 = 94.0 %, Haiku spoken 635/681 = 93.2 %, 15 UI
-   conversations 15/15 ×3, gemma4 676/770 = 87.8 % (target 89 not met, owner item); Sonnet corpus and qwen3.8 running
-   (chains in the scratchpad, logs `stage-logs/s3-*.log`). S4 queued behind `S3_DONE`: Sonnet spoken, Sonnet new
-   features, Haiku new features (ledger check $5.5 first). Ledger $7.12 of $50 after S3's Haiku rows (runs branch
-   `46026ef8`). Every stage: read `misses.mjs`, fix only case defects or model-agnostic engine/prompt issues, golden
-   sets byte-identical.
-3. Then Gate C on the final head: full unit suite, ZIGi + new + smoke specs in Chrome and WebKit (`TZ=UTC`, two
-   workers, one suite at a time), weights vs main's build on :3104, revert gate, CI green, AA-Cloud's handoff
-   (`git show origin/feature/session-aa-cloud:docs/handoff/AA_CLOUD_TO_LOCAL.md`; if it merged, merge `main` with a
-   merge commit and do the second-merger list in ADR-022 B40). Last commit: the docs/STATUS.md entry from
-   `STATUS_ENTRY_DRAFT.md` (model table, ledger, assertions changed, B1…B48, owner items). Then `gh pr ready 84`, verify
-   via the API, stop caffeinate/forwarder/poller/servers (by port), short owner report.
+## Resume here (2026-10-12 ~13:05Z; the PR description carries the same block)
+1. HEAD pushed = `f77b3e24`; local commits on top: `1d08a450` (status), `1ff7d805` (two corpus cases accept
+   `set-time-of-day`), and an uncommitted Gate C batch (ADR-022 B49–B51). CI on `f77b3e24`: web checks and integration
+   green, the three browser-suite shards red (75 failures) — the shards had never finished on this branch (every run
+   since Part 2 was cancelled by the next push), so the full-suite regressions from Parts 1–4 surfaced only now. All
+   65 reproduced locally (`/tmp/aa-ci-repro2.log`); causes and fixes in ADR-022 B49 (sections open by default, the
+   game card and year view out of the layout regions, Health highlights inside the nourishment item, timer control
+   names restored, LoadBoundary on every lazy piece, swipe row stacking/clip only while swiping, chip buttons 44 px,
+   setup record only when something was made), B50 (no sleep score on short nights), B51 (word match needs a real
+   stem), plus the listed spec updates (help topics 12, onboarding/sleep flows pass the focuses step, Showcase counts
+   7, habits-aa H1/H2). Verification chain running: `scratchpad/fix-chain.sh` → `/tmp/aa-fix-chain.log` (typecheck,
+   lint, build :3103, weights, the 37 failing lines on both projects + help/onboarding + the AA specs).
+2. Part 6 final: Sonnet corpus 736/770 → 738 re-scored (95.6/95.8 %) and a second pass 739/770 (96.0 %); Sonnet spoken
+   661/681 (97.1 %); Sonnet new features 44/45; 15 conversations 15/15 ×3; Haiku corpus 724/770 (94.0 %), spoken
+   635/681 (93.2 %), new features 45/45; gemma4 676/770 (87.8 %); qwen3.8 649/770 and 664/770 (84.3/86.2 %). Ledger
+   $26.14 of $50 (runs branch). Golden sets byte-identical since Part 5.
+3. Then: when the chain is green, commit + push the batch (key sweep first), CI on the new head (all shards must finish
+   green), the remaining Gate C items (full unit suite, WebKit pass, weights vs main on :3104, revert gate on the new
+   commits, today-screens ceiling decision), the docs/STATUS.md entry from `STATUS_ENTRY_DRAFT.md` as the last commit,
+   `gh pr ready 84`, API check, stop caffeinate/forwarder/poller/servers, the owner report.
 
 ## Done
 - Part 0; Part 1 (B12–B16); Part 2 (B17–B21); Parts 3–5 built (B22–B39), Gate A reading of AA-Cloud (B40).

@@ -78,7 +78,7 @@
 /* H2: the timer chip and the bell */
 .habit-timer-chip { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 14px; border-radius: 99px; border: 1px solid #6fe6f655; background: linear-gradient(90deg, #1adbe81c, #9e78ff1c); font-variant-numeric: tabular-nums; font-size: 15px; color: #e4fbff; }
 .habit-timer-chip strong { font-size: 17px; letter-spacing: .02em; }
-.habit-timer-chip .quiet { min-height: 32px; min-width: 44px; padding: 4px 12px; font-size: 14px; }
+.habit-timer-chip .quiet { min-height: 44px; min-width: 44px; padding: 4px 12px; font-size: 14px; }
 .habit-timer-chip[data-running] strong::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #6fe6f6; box-shadow: 0 0 10px #6fe6f6; vertical-align: middle; }
 .habit-timer-bell { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: #cfc2e0; }
 .habit-timer-bell input { width: 20px; height: 20px; margin: 0; }
@@ -156,3 +156,5 @@
 :root[data-app-motion=off] .habit-section-chevron { transition: none; }
 /* H7: the game card's place on the Habits page (empty until the layer is on). */
 .habit-progress-slot:empty { display: none; }
+/* B49: on a narrow phone the section keeps its cards wide enough for 44 px calendar days. */
+@media (max-width: 600px) { .habit-section > :not(summary) { padding: 4px 0 12px; } }

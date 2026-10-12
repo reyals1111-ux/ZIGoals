@@ -107,7 +107,8 @@ const MIN_UNITS = new Set(['minutes', 'minute', 'min', 'mins']);
 
 type HabitHit = {habit: Habit; strength: 'strong' | 'weak' | 'partial'};
 const words = (q: string) => normalise(q).split(' ').filter(Boolean);
-const close = (a: string, b: string) => a === b || (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)));
+// ADR-022 B51: a prefix match needs five letters on both sides (stems already fold inflections), so "lately" no longer names a "Late-night" habit.
+const close = (a: string, b: string) => a === b || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a)));
 /** How a habit's title appears in the question: the whole title in order ("strong"), every word apart ("weak"), some words ("partial"). */
 function habitHits(env: ToolEnv, q: string): HabitHit[] {
   const qStems = words(q).map(stem), hits: HabitHit[] = [];

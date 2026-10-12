@@ -36,13 +36,16 @@ const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localS
 const card = (page: Page, title: string) => page.getByRole('article', {name: title, exact: true});
 const section = (page: Page, name: string) => page.locator('details.habit-section').filter({has: page.locator('summary.habit-section-summary').filter({hasText: name})});
 /** Opens a folded time-of-day section (only the clock's section is open by default). */
-async function openSection(page: Page, name: string) { const s = section(page, name); if (!(await s.getAttribute('open'))) await s.locator('summary.habit-section-summary').click(); await expect(s).toHaveAttribute('open', ''); }
+async function openSection(page: Page, name: string) { const s = section(page, name); if ((await s.getAttribute('open')) === null) await s.locator('summary.habit-section-summary').click(); await expect(s).toHaveAttribute('open', ''); }
 
-test('H1: the clock\'s section opens first, the others are folded, a fold is remembered on this device', async ({page}) => {
+test('H1: every section is open, the clock\'s section is marked current, a fold is remembered on this device', async ({page}) => {
   await seed(page, '08:00'); // 10:00 in Brussels: morning
   await page.goto('/app/habits');
+  // ADR-022 B49 (deliberate): all four sections open; the clock's section carries data-now.
   await expect(section(page, 'Morning')).toHaveAttribute('open', '');
-  await expect(section(page, 'Afternoon')).not.toHaveAttribute('open', '');
+  await expect(section(page, 'Morning')).toHaveAttribute('data-now', 'true');
+  await expect(section(page, 'Afternoon')).toHaveAttribute('open', '');
+  await expect(section(page, 'Afternoon')).not.toHaveAttribute('data-now', 'true');
   await expect(section(page, 'Morning').getByRole('article', {name: 'Fictional stretch'})).toBeVisible();
   await expect(section(page, 'Morning').locator('.habit-section-count [aria-hidden]')).toHaveText('0 / 1'); // the visible figure; the hidden text reads "0 of 1 due habits complete"
   await expect(section(page, 'Morning').locator('.habit-section-count .sr-only')).toHaveText('0 of 1 due habits complete');
@@ -68,7 +71,7 @@ test('H2: Finish logs the timer into today\'s check-in; the timer survives a rel
   await page.clock.runFor(90_000);
   await page.reload();
   await expect(card(page, 'Fictional read').locator('.habit-timer-chip strong')).toHaveText(/^1:3\d$/);
-  await card(page, 'Fictional read').getByRole('button', {name: 'Finish · log it', exact: true}).click();
+  await card(page, 'Fictional read').getByRole('button', {name: 'Log reviewed duration', exact: true}).click();
   await expect(card(page, 'Fictional read').getByText('Complete', {exact: true})).toBeVisible();
   const data = await stored(page, HABITS_KEY) as HabitData;
   const habit = data.habits.find(h => h.id === ID.read)!;

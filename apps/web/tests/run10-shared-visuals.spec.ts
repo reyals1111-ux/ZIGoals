@@ -13,7 +13,7 @@ test('Quick add lives in the mobile header and the Today hero, and Escape return
 for(const width of [320,360,390,430,768,1440])test(`Habit labels and controls have distinct space at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await showcase(page);
  const habits=page.locator('.placed-module[data-module="habits"] .habits-today');
- const rows=habits.locator('.habit-today-list li');await expect(rows).toHaveCount(3);
+ const rows=habits.locator('.habit-today-list li');await expect(rows).toHaveCount(7); // Session AA-Local Part 7 (deliberate): the Showcase's six new habits are due daily, so Today lists seven (ADR-022 B42)
  const overlaps=await rows.evaluateAll(items=>items.flatMap(row=>{
   const title=row.firstElementChild!.getBoundingClientRect(),completion=row.querySelector('.habit-completion')!.getBoundingClientRect();
   return title.right>completion.left+1&&completion.right>title.left+1&&title.bottom>completion.top+1&&completion.bottom>title.top+1?[{title:title.toJSON(),completion:completion.toJSON()}]:[];

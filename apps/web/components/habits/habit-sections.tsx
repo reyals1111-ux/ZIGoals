@@ -15,11 +15,12 @@ export function HabitSections({sections, extras, hour, render, compact = false, 
   const [touched, setTouched] = useState<Partial<Record<TimeSection, boolean>>>({});
   useEffect(() => { setTouched({}); }, [first]);
   const folds = extras?.loaded && !extras.unreadable ? extras.data.folds ?? {} : {};
-  const isOpen = (id: TimeSection) => touched[id] ?? (folds[id] !== undefined ? !folds[id] : id === first);
+  // ADR-022 B49: every section is open until the person folds it (a fold is kept on this device); the clock's section is marked `data-now`, never the only one open.
+  const isOpen = (id: TimeSection) => touched[id] ?? (folds[id] !== undefined ? !folds[id] : true);
   return <div className={`habit-sections${compact ? ' habit-sections-compact' : ''}`}>
     {sections.map(section => {
       const open = isOpen(section.id), empty = section.habits.length === 0;
-      return <details key={section.id} className={`habit-section habit-section-${section.id}`} open={open} onToggle={e => { const next = e.currentTarget.open; setTouched(t => ({...t, [section.id]: next})); if (extras?.loaded && !extras.unreadable && !compact) { try { extras.update(r => setSectionFold(r, section.id, !next)); } catch { /* the fold is a convenience */ } } }}>
+      return <details key={section.id} className={`habit-section habit-section-${section.id}`} data-now={section.id === first || undefined} open={open} onToggle={e => { const next = e.currentTarget.open; setTouched(t => ({...t, [section.id]: next})); if (extras?.loaded && !extras.unreadable && !compact) { try { extras.update(r => setSectionFold(r, section.id, !next)); } catch { /* the fold is a convenience */ } } }}>
         <summary className="habit-section-summary"><span className="habit-section-mark" aria-hidden="true">{SECTION_SYMBOLS[section.id]}</span><h2 className="habit-section-title"><NebulaFlow identity={`habit-section:${section.id}${compact ? ':compact' : ''}`}>{section.label}</NebulaFlow></h2><span className="habit-section-count"><span aria-hidden="true">{section.due ? `${section.done} / ${section.due}` : empty ? 'empty' : 'none due'}</span><span className="sr-only">{section.due ? `${section.done} of ${section.due} due habits complete` : empty ? 'no habits here' : 'none due today'}</span></span><span className="habit-section-chevron" aria-hidden="true">›</span></summary>
         {empty ? <p className="habit-section-empty">{section.id === 'anytime' ? 'Nothing here yet.' : `No ${section.label.toLowerCase()} habit yet.`}{onNew && <> <button type="button" className="text-link" onClick={() => onNew(section.id)}>Add one</button></>}</p> : render(section)}
       </details>;

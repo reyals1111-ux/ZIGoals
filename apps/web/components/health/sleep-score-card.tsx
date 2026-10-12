@@ -2,12 +2,15 @@
 import {NebulaFlow} from '../nebula-flow';
 import {GlassRing} from '../progress/glass-progress';
 import {sleepScore} from '../../lib/health-aa/sleep-score';
+import {shortNights} from '../../lib/sleep/engine';
 import type {Sleep} from '../../lib/sleep/schema';
 import {formatMinutes} from '../../lib/zone-time';
 import './health-aa.css';
 
 /** N10: a transparent sleep score for the last seven nights, with the formula on the card. */
 export function SleepScoreCard({sleep, today}: {sleep: Sleep; today: string}) {
+  // ADR-022 B50: short nights get the Sleep view's gentle word, never a score (Session W's rule); the card stays away then.
+  if (shortNights(sleep, today)) return null;
   const s = sleepScore(sleep, today);
   return <section className="panel health-aa-card" aria-labelledby="sleep-score-title">
     <p className="eyebrow">Last seven nights</p><h2 id="sleep-score-title"><NebulaFlow identity="sleep-score-title">Sleep score</NebulaFlow></h2>

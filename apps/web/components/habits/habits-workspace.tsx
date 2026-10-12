@@ -11,7 +11,7 @@ import { holdInView } from "../settings/keep-jump";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
-import { HabitConsistency } from "./habit-consistency";
+const HabitConsistency = lazy(() => import("./habit-consistency").then((m) => ({ default: m.HabitConsistency }))); // Gate C (ADR-022 B49): its own chunk, for the Habits page budget; the wrapper below carries the layout attributes
 import { HabitEditor } from "./habit-editor"; // static on purpose: creating or editing a habit must work offline on a device that never opened the editor (CI's L78 offline step hit a chunk load, ADR-022 B48)
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
@@ -22,6 +22,7 @@ import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
 import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
 import { NebulaFlow } from "../nebula-flow";
+import { LoadBoundary } from "../load-boundary";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
 import { PhoneFormSheet } from "../phone/phone-form-sheet";
@@ -35,7 +36,7 @@ import { HealthLinkContext } from "./health-link-context";
 import { setHabitHealthLink } from "../../lib/habit-health-links/store";
 import { exerciseData } from "../../lib/health-counters";
 import { dailyData } from "../../lib/health-daily";
-import { HabitStacks } from "./habit-stacks";
+const HabitStacks = lazy(() => import("./habit-stacks").then((m) => ({ default: m.HabitStacks }))); // Gate C (ADR-022 B49): its own chunk, for the Habits page budget
 import { useHabitExtras } from "./use-habit-extras";
 import { HabitExtrasContext } from "./habit-extras-context";
 import { HabitSections } from "./habit-sections";
@@ -69,7 +70,7 @@ function useStackSuggestions(data: HabitData, today: string) {
 const PRIVATE_SCOPE = { chainId: "private", owner: "local" };
 type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening" | "Goal linked" | "Archived";
 /** On a phone, today's check-ins come first: Today's rhythm, your habits, then the charts. */
-const PHONE_ORDER = ["habits:progress", "habits:overview", "habits:list", "habits:consistency", "habits:rhythm", "habits:year"];
+const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"]; // ADR-022 B49: the game card and the year view are not layout items
 /** The filters whose habits are shown in the four time-of-day sections (H1); the others are flat lists. */
 const SECTIONED: readonly Filter[] = ["Today", "All", "Completed", "Goal linked"];
 export function HabitsWorkspace() {
@@ -93,9 +94,6 @@ export function HabitsWorkspace() {
   const [area, setArea] = useState<string>("all");
   const [routine, setRoutine] = useState<string | null>(null);
   const [yearOpen, setYearOpen] = useState(false);
-  // ADR-022 B48: warm the full card's chunk while online, so the first habit created offline on a page that showed no
-  // card yet still renders (the chunk is one shared promise; with cards on the page this costs nothing extra).
-  useEffect(() => { void import("./habit-card-full").catch(() => undefined); }, []);
   useEffect(() => {
     const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
@@ -199,27 +197,28 @@ export function HabitsWorkspace() {
     {deletedHabit && <p role="status" className="habit-deleted">“{deletedHabit.title}” was deleted for good. <button type="button" className="secondary" onClick={() => void undoDeleteForGood()}>Undo · {Math.max(0, Math.ceil((deletedHabit.until - clock) / 1000))} s</button></p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
-        {id: "habits:progress", label: "Your progress", node: <div className="habit-progress-slot"><GameRegistrar /><ProgressSlot page="habits" /></div>},
         {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p>{phone && <div className="actions habit-overview-actions"><button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></div>}</section>},
-        store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
+        store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <div className="habit-consistency-slot"><LoadBoundary quiet><Suspense fallback={null}><HabitConsistency habits={store.data.habits} today={store.today} /></Suspense></LoadBoundary></div>},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">
           {editor && (phone
             // On a phone the editor is a bottom sheet (Session I, Part 9); elsewhere it stays in the page.
             ? <PhoneFormSheet title={editingHabit ? "Edit habit" : "Create a habit"} onClose={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }}>{habitEditor}</PhoneFormSheet>
             : habitEditor)}
-          {vacation && (() => { const panel = <Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
-          {ideas && (() => { const panel = <Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {vacation && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
+          {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
-          <HabitStacks data={store.data} today={store.today} onView={viewStack} />
-          <Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setMessage(""); }} onView={viewStack} /></Suspense>
+          <LoadBoundary quiet><Suspense fallback={null}><HabitStacks data={store.data} today={store.today} onView={viewStack} /></Suspense></LoadBoundary>
+          <LoadBoundary quiet><Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setMessage(""); }} onView={viewStack} /></Suspense></LoadBoundary>
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {usedAreas.length > 0 && <div className="habit-area-bar" role="group" aria-label="Filter by area"><span className="eyebrow">Area</span><button className="quiet" aria-pressed={area === "all"} onClick={() => setArea("all")}>All areas</button>{usedAreas.map((a) => <button className="quiet" key={a.id} aria-pressed={area === a.id} onClick={() => setArea(a.id)}>{a.label}</button>)}</div>}
           {visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(visible, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={`cards:${section.id}`} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
           : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map(cardEntry)}/></section> : <section className="panel habit-empty"><span aria-hidden="true">✧</span><h2>{store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."}</h2><p>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</p>{filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}</section>}
+          {store.data.habits.length > 0 && <LoadBoundary quiet>{yearOpen ? <Suspense fallback={<section className="panel habit-year"><p role="status">Opening the year view…</p></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>}</LoadBoundary>}
         </div>},
         {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},
-        store.data.habits.length > 0 && {id: "habits:year", label: "Year view", node: yearOpen ? <Suspense fallback={<section className="panel habit-year"><p role="status">Opening the year view…</p></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>},
       ], PHONE_ORDER)}/>
+      {/* ADR-022 B49: the game card follows the page's own sections (not a layout item, so the pinned orders and the first headings keep their places). */}
+      <div className="habit-progress-slot"><GameRegistrar /><ProgressSlot page="habits" /></div>
       <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">

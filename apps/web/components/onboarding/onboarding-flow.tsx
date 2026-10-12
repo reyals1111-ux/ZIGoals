@@ -180,7 +180,8 @@ export function OnboardingFlow() {
       });
       // Session W Part 4: the sleep goal, in Health v4's sleep group (written only when one was chosen).
       if (showSleep && sleepGoal !== null) { const minutes = sleepGoal; await updateHealthGroup("sleep", current => setSleepGoal(current, {minutes, ...(current.goal?.bedFrom && current.goal.bedTo ? {bedFrom: current.goal.bedFrom, bedTo: current.goal.bedTo} : {})}, new Date())); }
-      try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ }
+      // Written only when the setup made something; choosing nothing anywhere leaves only the seen flag behind.
+      if (createdHabitIds.length || goal || createdWidgetIds.length) { try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ } }
       markOnboardingSeen(window.localStorage);
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
       let accountOpen: boolean;

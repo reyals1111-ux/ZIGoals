@@ -1,12 +1,11 @@
 "use client";
-import {Suspense, lazy, type ComponentProps} from 'react';
+import {HabitCard as Full} from './habit-card-full';
 export {HabitCompletion} from './habit-completion';
 export type {HabitStackNext} from './habit-card-full';
 /**
- * Session AA-Local Gate A (ADR-022 B41): the full habit card is its own chunk, loaded with the first card on the page;
- * the check-in control lives in habit-completion.tsx, so Today and the tracked goal import only that. Same props, same DOM.
+ * Session AA-Local Gate A (ADR-022 B41) made the full card a lazy chunk; Gate C (B49) makes it static again: a lazy
+ * component suspends on its first render even when its chunk is cached, so a newly created card appeared as a fallback
+ * for a frame and focus (`focus-return.spec.ts`) and the Guide's "Open habit" scroll landed on nothing. Today and the
+ * tracked goal import only `habit-completion.tsx`, so the shell is unchanged. Same props, same DOM.
  */
-const Full = lazy(() => import('./habit-card-full').then(m => ({default: m.HabitCard})));
-export function HabitCard(props: ComponentProps<typeof Full>) {
-  return <Suspense fallback={<article className="panel habit-card habit-card-loading" aria-busy="true" aria-label={props.habit.title} />}><Full {...props} /></Suspense>;
-}
+export const HabitCard = Full;

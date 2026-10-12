@@ -297,6 +297,9 @@ test('the first run: “Sleep & mind” offers a sleep goal, saved with Finish',
   await flow.getByRole('button', {name: 'Let’s begin', exact: true}).click();
   await flow.getByRole('checkbox', {name: /^Sleep & mind/}).check();
   await flow.getByRole('button', {name: 'Continue', exact: true}).click();
+  // Session AA-Local S4 (deliberate): the focuses step sits between pillars and starters; passed without choosing.
+  await expect(flow.getByRole('heading', {level: 1, name: 'Two or three things to focus on.'})).toBeFocused();
+  await flow.getByRole('button', {name: 'Continue without choosing', exact: true}).click();
   const goal = flow.getByRole('radiogroup', {name: 'Sleep goal'});
   await expect(goal.getByRole('radio', {name: 'No sleep goal', exact: true})).toBeChecked();
   await goal.getByRole('radio', {name: '7 h 30 min asleep', exact: true}).check();

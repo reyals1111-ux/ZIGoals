@@ -18,7 +18,8 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
  * dismissed (local production builds before and after, 2026-10-05). The ceilings come down to those numbers with a
  * small margin.
  */
-const CEILING = {showcase: 9.7, local: 4.2, localAfterWhatsNew: 3.85};
+// Session AA-Local (deliberate, ADR-022 B49): the Showcase's Today carries the game strip, the coach check-in and seven due habits in four sections, so its ceiling moves from 9.7 to 10.5 screens; the Local Demo ceilings are unchanged.
+const CEILING = {showcase: 10.5, local: 4.2, localAfterWhatsNew: 3.85};
 test.use({viewport: {width: 390, height: 844}, reducedMotion: 'reduce'});
 test('Today at 390×844 stays within its screen-count ceilings', async ({page}) => {
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));

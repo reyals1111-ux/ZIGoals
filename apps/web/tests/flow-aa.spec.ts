@@ -37,11 +37,11 @@ test('S5: on a phone, a swipe right completes the check-in; a swipe left only re
   const phone = await isPhone(page); test.skip(!phone, 'phones only');
   const card = page.getByRole('article', {name: 'Fictional stretch', exact: true});
   await expect(card).toHaveAttribute('data-swipe', 'rest');
-  await swipe(page, 'article[aria-label="Fictional stretch"] .swipe-surface', 220);
+  await swipe(page, 'article[aria-label="Fictional stretch"] > :not(.swipe-indicator):not(.swipe-actions)', 220);
   await expect(card.getByText('Complete', {exact: true}).first()).toBeVisible();
   await expect.poll(async () => (await stored(page, HABITS_KEY) as HabitData).habits.find(h => h.id === ID.stretch)!.entries.find(e => e.date === TODAY)?.count).toBe(1);
   const read = page.getByRole('article', {name: 'Fictional read', exact: true});
-  await swipe(page, 'article[aria-label="Fictional read"] .swipe-surface', -400, true);
+  await swipe(page, 'article[aria-label="Fictional read"] > :not(.swipe-indicator):not(.swipe-actions)', -400, true);
   await expect(read).toHaveAttribute('data-swipe', 'revealed');
   await expect(read.getByRole('group', {name: 'Actions for Fictional read'}).getByRole('button', {name: 'Archive'})).toBeVisible();
   const data = await stored(page, HABITS_KEY) as HabitData;
