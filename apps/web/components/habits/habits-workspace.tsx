@@ -43,6 +43,8 @@ import { RoutinesPanel } from "./routines-panel";
 import { groupByTimeOfDay } from "../../lib/habits-extras/sections";
 import { habitArea } from "../../lib/habits-extras/store";
 import "./habits-aa.css";
+import { ProgressSlot } from "../game/slot-local";
+import { GameRegistrar } from "../game/registrar";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
@@ -67,7 +69,7 @@ function useStackSuggestions(data: HabitData, today: string) {
 const PRIVATE_SCOPE = { chainId: "private", owner: "local" };
 type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening" | "Goal linked" | "Archived";
 /** On a phone, today's check-ins come first: Today's rhythm, your habits, then the charts. */
-const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm", "habits:year"];
+const PHONE_ORDER = ["habits:progress", "habits:overview", "habits:list", "habits:consistency", "habits:rhythm", "habits:year"];
 /** The filters whose habits are shown in the four time-of-day sections (H1); the others are flat lists. */
 const SECTIONED: readonly Filter[] = ["Today", "All", "Completed", "Goal linked"];
 export function HabitsWorkspace() {
@@ -194,6 +196,7 @@ export function HabitsWorkspace() {
     {deletedHabit && <p role="status" className="habit-deleted">“{deletedHabit.title}” was deleted for good. <button type="button" className="secondary" onClick={() => void undoDeleteForGood()}>Undo · {Math.max(0, Math.ceil((deletedHabit.until - clock) / 1000))} s</button></p>}
     {!store.loaded ? <p role="status">Loading your private habits…</p> : <>
       <LayoutRegion region="body" items={phoneOrder(phone, [
+        {id: "habits:progress", label: "Your progress", node: <div className="habit-progress-slot"><GameRegistrar /><ProgressSlot page="habits" /></div>},
         {id: "habits:overview", label: "Today’s rhythm", node: <section className="habit-overview" aria-label="Today’s habit progress"><div><span className="eyebrow">Today’s rhythm</span><strong>{completed.length}<span> / {due.length}</span></strong><small>scheduled habits complete</small></div><GlassBar identity="habit-overview" className="habit-overview-track" role="progressbar" aria-label="Habits completed today" aria-valuenow={completed.length} aria-valuemin={0} aria-valuemax={Math.max(1, due.length)} value={due.length ? completed.length / due.length : 0} /><p>{due.length === 0 ? "A little space for a new ritual." : completed.length === due.length ? "Today’s pattern is complete. Enjoy the space you made." : "There’s still time for a small step today."}</p>{phone && <div className="actions habit-overview-actions"><button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></div>}</section>},
         store.data.habits.length > 0 && {id: "habits:consistency", label: "Habit consistency", node: <HabitConsistency habits={store.data.habits} today={store.today} />},
         {id: "habits:list", label: "Your habits", node: <div className="habit-list-block">

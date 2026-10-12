@@ -4,6 +4,8 @@ import { useHealthToday } from "./use-health-today";
 import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
+import { ProgressSlot } from "../game/slot-local";
+import { GameRegistrar } from "../game/registrar";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -208,6 +210,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
+    <div className="health-progress-slot"><GameRegistrar /><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
     </div>
