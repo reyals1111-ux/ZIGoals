@@ -39,6 +39,6 @@ Captured before Gate A's fixes; the Goals page itself is superseded by `after/pa
 | Page | What's better |
 |---|---|
 | Calculator (new) | Large fields with sliders, the figures and the stacked chart first (per-year tooltip, 10k/100k/1M markers, what-ifs as lines with a legend), milestones, the year-by-year table, saved scenarios; "an estimate; returns are not guaranteed" on every result. Phone: figures, chart, then inputs with a sticky result line. |
-| Today | The whole-life overview leads the widgets again (Run10's approved hierarchy), then Your day, Goals (the agenda first), Money, Your widgets; each heading opens its group's first card. Phone: Today's focus as two tiles a row, nothing wider than the screen; 3.83 screens on the seeded demo (ceiling 3.85). |
+| Today | The whole-life overview leads the widgets again (Run10's approved hierarchy), then Your day, Goals (the agenda first), Money, Your widgets; each heading opens its group's first card. Phone: Today's focus as two tiles a row, nothing wider than the screen; the seeded demo stays within its 3.85-screen ceiling (today-screens spec, local). |
 | Goals | One header action; the key figures and the view switch open the "Your goals" region, so the cards still follow one compact controls row; Milestones ahead stays last. |
 | Wealth | The calculator's card after the perspective tools; Allocation and coverage stays the last section. |
