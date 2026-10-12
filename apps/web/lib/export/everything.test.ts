@@ -136,3 +136,16 @@ describe('Session AA-Cloud: goal extras, average goals and vision photos in Expo
     expect(new TextDecoder().decode(zip.bytes)).toContain('vision/img-00000000-0000-4000-8000-000000000001.jpg');
   });
 });
+
+describe('Gate C security read: the copy leaves out what the device keeps only for Undo', () => {
+  test('a deleted goal\'s dormant extras and a deleted habit\'s area are not exported; the rest is, unchanged', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), gone = habits.habits[0]!, live = habits.habits[1]!;
+    const archived = scheduleHabitState(habits, gone.id, 'archived', '2026-09-21', new Date('2026-09-20T12:00:00.000Z'));
+    const {data} = deleteHabitForGood(archived, gone.id, new Date('2026-09-22T12:00:00.000Z'));
+    const extras = {version: 1, areas: [], goals: {'private:1': {area: 'health', why: 'kept'}}, habitAreas: {[live.id]: 'health', [gone.id]: 'mind'}, dormant: {'private:9': {why: 'a deleted goal reason', dormantSince: '2026-10-01'}}};
+    const collected = collectEverything({[HABITS_KEY]: JSON.stringify(data), 'zigoals:goal-extras:v1': JSON.stringify(extras)}, APP);
+    expect(collected.json.device.goalExtras).toEqual({version: 1, areas: [], goals: {'private:1': {area: 'health', why: 'kept'}}, habitAreas: {[live.id]: 'health'}});
+    expect(JSON.stringify(collected.json)).not.toContain('a deleted goal reason');
+  });
+});

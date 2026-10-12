@@ -160,6 +160,15 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
     const rawHealth = json.modules.health as {habitLinks?: unknown} | undefined;
     if (rawHealth && typeof rawHealth === 'object' && rawHealth.habitLinks) json.modules.health = {...rawHealth, habitLinks: unlinked(rawHealth.habitLinks)};
   }
+  // Gate C security read: a deleted goal's extras wait 90 days on the device (`dormant`) so Undo or a restore finds them;
+  // the copy leaves them out, as it leaves out deleted habits, and a deleted habit's life area goes with it.
+  const extras = json.device.goalExtras;
+  if (extras && typeof extras === 'object' && !Array.isArray(extras)) {
+    const {dormant, ...rest} = extras as {dormant?: unknown; habitAreas?: unknown};
+    void dormant;
+    const areas = rest.habitAreas && typeof rest.habitAreas === 'object' && !Array.isArray(rest.habitAreas) ? Object.fromEntries(Object.entries(rest.habitAreas).filter(([id]) => !shells.has(id))) : rest.habitAreas;
+    json.device.goalExtras = {...rest, ...(areas === undefined ? {} : {habitAreas: areas})};
+  }
   const habits = parsedHabits && withoutDeletedHabits(parsedHabits);
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
