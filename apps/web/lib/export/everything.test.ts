@@ -117,3 +117,19 @@ describe('T4 export everything', () => {
     expect((collected.json.device.habitHealthLinks as typeof links).applied.map(l => l.habitId)).toEqual([other.id]);
   });
 });
+
+describe('Session AA-Cloud: goal extras, average goals and vision photos in Export everything', () => {
+  test('lists both device keys and writes each photo under vision/ by its id', async () => {
+    const {DEVICE_KEYS, EVERYTHING_KEYS, buildEverythingZip, collectEverything, visionFileName} = await import('./everything');
+    expect(DEVICE_KEYS.goalExtras).toBe('zigoals:goal-extras:v1');
+    expect(DEVICE_KEYS.averageGoals).toBe('zigoals:average-goals:v1');
+    expect(EVERYTHING_KEYS).toContain('zigoals:goal-extras:v1');
+    const extras = {version: 1, goals: {'private:1': {area: 'health', vision: {kind: 'photo', imageId: 'img-00000000-0000-4000-8000-000000000001'}}}, areas: []};
+    const collected = collectEverything({'zigoals:goal-extras:v1': JSON.stringify(extras)}, {now: new Date('2026-10-11T10:00:00Z'), version: 't', commit: 'c', localSimulation: {section: 'null'} as never});
+    expect(collected.json.device.goalExtras).toEqual(extras);
+    expect(visionFileName({id: 'img-00000000-0000-4000-8000-000000000001', type: 'image/jpeg'})).toBe('vision/img-00000000-0000-4000-8000-000000000001.jpg');
+    expect(visionFileName({id: '../evil/x', type: 'image/jpeg'})).toBe('vision/evilx.jpg');
+    const zip = buildEverythingZip(collected, {date: '2026-10-11', showcase: false, now: new Date('2026-10-11T10:00:00Z'), images: [{id: 'img-00000000-0000-4000-8000-000000000001', type: 'image/jpeg', bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xd9])}]});
+    expect(new TextDecoder().decode(zip.bytes)).toContain('vision/img-00000000-0000-4000-8000-000000000001.jpg');
+  });
+});
