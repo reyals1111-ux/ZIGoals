@@ -7,7 +7,7 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
 `/private/tmp/claude-502/-Users-AIUSER-Documents-ZIGoals-Claude/84136727-7ff5-4b5b-8f5a-39ab937fc67d/scratchpad`
 (chain scripts, `stage-logs/<stage>.log` and `.status`, `main-poll.log`).
 
-## Resume here (2026-10-12 ~08:30Z)
+## Resume here (2026-10-12 ~10:30Z; the PR description carries the same block)
 1. Parts 0–2 pushed (`af1882e5` storage, `004ecf7c` Habits, `682bf199` game layer; draft PR #84). Parts 3, 4 and 5 are
    built and green locally (typecheck, lint 0 errors, 584 focused unit tests, `health-aa`/`flow-aa` 16/16, the four new
    accept-correct rows) and are being committed in this order: `[TIER 3] (egress/security)` recipe route → Part 3 →
@@ -29,7 +29,11 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
    reruns on that build — the real cause was the game strip's nowrap quest line widening the page and Chrome's emulated
    layout viewport (B44, `game.css`; verified 390 wide and clickable on four pages). Gate B readers: the #37 worktree
    reader proof passed (1/1). S1: Haiku corpus 93.1 %, spoken ≈91 %, new features 37/45; Sonnet new features 40/45, spoken
-   running; the new-features misses were case defects, repaired in `corpus-aa.ts` (uncommitted until the pass ends). Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
+   done 95.0 %; the new-features misses were case defects, repaired in `corpus-aa.ts` (B46), S2 43/45 on both; eight
+   spoken navigation phrasings now answer on the device; the spoken coach seed expects the target change it asks for.
+   Gate A/B evidence on the final build (`6b64a842`): Chrome 449 + WebKit 447 ZIGi/new rows, the audit spec 14/14 on both
+   engines, unit 516 files, weights green, #37 reader 1/1, captures pushed (`review/session-aa-local-screens` `6ab2f418`).
+   S3 running (Haiku corpus/spoken, Sonnet corpus); local models next. Remaining: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
    unit suite (incl. the `auto-accept-once` standalone-parse question), golden 100 %, CI on PR #84, AA-Cloud's handoff
    (read at 07:40Z: its slot registry now has `settings:your-app` and `settings:reminders`, `registerNavExtra` for
    Journey, life areas in `zigoals:goal-extras:v1`; the mirror and the areas key follow it, B11/B40).

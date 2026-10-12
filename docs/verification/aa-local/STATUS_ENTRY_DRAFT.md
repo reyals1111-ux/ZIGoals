@@ -20,8 +20,8 @@ Owner decisions and the eight plan edits: ADR-022. Handoffs: `docs/handoff/AA_LO
 ### Model targets (Part 6) — filled at Gate C
 | Model | Set | Target | Result |
 |---|---|---|---|
-| Sonnet 5.5 | corpus / spoken / new features / 15 conversations | ≥97 % / ≥97 % / ≥95 % / 15/15 | … |
-| Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / … | … |
+| Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus: S3 pending / spoken S1 647/681 = 95.0 % before the seed and engine fixes (S4 pending) / new features S2 43/45 = 95.6 % / 15/15, 15/15, 15/15 (S3, $0.90) |
+| Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / ≥95 % | corpus S3 724/770 = 94.0 % ($0.42) / spoken S1 569/624 = 91.2 % (S3 pending) / new features S2 43/45 = 95.6 % |
 | gemma4 12B (RTX 5090) | corpus | ≥89 % | … |
 | qwen3.8 27B (RTX 5090) | corpus | ≥88 % | … |
 Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up $0.30; …).
