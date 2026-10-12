@@ -1,3 +1,66 @@
+# Session AA-Cloud — every page in order + Goals, the calculator, search and Life review (ADR-021) (2026-10-11/12, [PR #83](https://github.com/reyals1111-ux/ZIGoals/pull/83), not merged)
+**Evidence labels:** **local**: this cloud sandbox (Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`), production builds (`PUBLIC_ALPHA_UNDEPLOYED`) on :3101, `32cb9c5`'s own build on :3102, Playwright's Chromium standing in for Chrome (CLAUDE.md; the intro-film specs fail here by design and pass in CI). **CI**: Milestone quality and Canonical reproducibility on the PR (Actions API). **source**: the code at the named commit. Captures on `review/session-aa-cloud-screens`; raw run data on `review/session-aa-cloud-runs`.
+**Base:** `main` `32cb9c5` (Alpha #37). **Lane:** pages, shell, Goals, Wealth and the money pages, Settings, Help, Today's layout, search, Life review and insights, data health, the manifest; AA-Local (ADR-022) holds ZIGi, Habits, Health, the game layer, onboarding and reminders. **Second merger** carries the shared files (What's new, Help, budgets, STATUS) per the handoffs.
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| Setup | ADR-021, the handoff, the progress slot and AA-Local's named places | — | `be99d67` | local |
+| 0 | Records: Alpha #37 and the missing #36, Release identity, Z headings merged and deployed, Z-Local's draft wording noted | — | `0933798` | Actions API; owner-reported |
+| 1 | Every page in order (Today's focus, grouped widgets, For you, Updates and summaries; Goals, Wealth, Markets, Portfolio, Staking, Activity, Settings, Help), readability and the premium pass; nothing removed, a person's own order kept | 2 | `945f12a`, `ecc505b`, `506f8aa` | local; CI |
+| 2 | Goals G1–G8: pace forecast, life areas and the balance wheel, vision board (photos made smaller on the device), why/obstacle/if-then, sub-goals and tree, 42 templates, Hall of achievements with a share image, average goals | 2 + 3 | `567a0e1` `1b02833` `4ea0ae8` `a6bbc3a` `0418d74` `0565852` `e5d11be` `8fe7f6c` `bee6329` `338f1a5` | local; CI |
+| Gate A | Unit suite, focused specs both projects, AA-Local's handoff applied, CI fixes | — | `874fd15`, `ecc505b`, `506f8aa`, `c09d799` | local; CI |
+| 3 | Compound interest calculator (exact decimal maths, sliders, live chart with tooltip and milestones, what-ifs, year table, scenarios with Undo, "Turn this into a goal") and its Wealth card | 2 + 3 | `e95fe51` `c6f4e81` `d8ce9d3` | local (closed-form unit tests) |
+| 4 | Search: a button in every header and "/", device-only, grouped, recent searches, "Ask ZIGi" row, a phone sheet | 2 + 3 | `2c0c825` `4e1eaa5` `59192c5` | local |
+| 5 | Life review (week, month, focus with Undo, share image) and cross-pillar insights (14 days a side, never a cause) | 2 + 3 | `5fb08f7` `249bc33` | local |
+| 6 | Settings → Your data, an Offline pill, Undo on reversible actions, LoadBoundary for every on-demand part; the data-health record reverted (A30) | 2 + 3 | `cbef8d8` `f439bbf` `8a4e489` `8865d5d` | local |
+| 7 | Home Screen shortcuts and a GET share target answered by `/app/share` | 3 | `d8e3251` `157edd1` `0a97e47` | local |
+| Gate B | WCAG audit of the new pages; full browser suite run 1; frozen readers (`32cb9c5` reads every record and ignores the new keys); captures | — | `88dc1c2` `0fbf974` `3a43f8a` | local; CI |
+| 8 | Showcase for every feature (an earlier fictional season, two calculator scenarios, last week's and month's focus) and Today's cards kept on this device | 2 + 3 | `5ae3843` `afe4454` `d73faf7` `c7debcd` | local |
+| — | What's new `2026-10-session-aa-cloud` (Z-Local's links under "Earlier updates") and nine Help answers | 2 | `dc3b165` | local |
+| Gate C | Persona round, security read, test audit (each found things, each fixed or recorded); freeze check; revert gate; weights; full suite run 2 | — | `3395602` `3c854bf` `0916d3e` `100e2de` `450f143` `cf0cdf5` `5ffe63d` `be20ec6` | local; CI |
+| — | This entry, PR ready | — | this commit | — |
+## Tier 2, in plain words (owner visual OK)
+- **Pages in order:** each page opens with what matters most; Today shows your focus first, then your widgets in small groups, then For you, then Updates and summaries. A person's own arrangement is kept.
+- **Goals:** life areas and a balance wheel, a vision board, plans (why, obstacle, if-then), sub-goals as a tree, 42 templates, a Hall of achievements, goals that keep an average, and "At this pace" estimates labelled as estimates.
+- **New pages:** the compound interest calculator, the Life review, Settings → Your data, the share page; one search over everything.
+- **Today:** life balance, pace forecasts, the calculator and the Life review as cards a person chooses while arranging Today, kept on this device.
+## Tier 3, in plain words (risk → rollback)
+- **Storage (device-only, loose, versioned keys; never synced; #32–#37 never read them):** `567a0e1` goal extras, `1b02833` vision photos (IndexedDB), `4ea0ae8` average goals, `c6f4e81` calculator, `338f1a5` average goals' readers moved (behaviour-preserving), `2c0c825` recent searches, `5fb08f7` Life review, `5ae3843` Today's cards; `cbef8d8` reverted by `8a4e489`. Risk: a reader refusing a newer field → each schema is loose and refuses only its own version. Rollback: revert the commit and its reader; nothing synced changes.
+- **Data formats:** `0418d74`, `f439bbf`, `afe4454`, `0916d3e` (Export everything's device section; a deleted goal's dormant extras and deleted habits' areas left out). Risk: an older restore meeting new files → Export everything is not a restore format; #37 ignores them (frozen reader). Rollback: revert.
+- **PWA/manifest:** `d8e3251` shortcuts, `157edd1` share target (GET; files not accepted). Risk: an install picking up the changed manifest → id, start page, scope and icons unchanged; 72ad872's bytes still the file's prefix. Rollback: revert; saved Home Screen apps keep working.
+- No sync, auth, CSP, header, Worker, wallet, signing, key or chain-config change (security read: the diff over those is empty).
+## Weight (gzip -6 of the scripts each page loads, local production build of `5ffe63d`; budgets never raised)
+Today 513.8 of 515 kB · Goals 426.5 of 434 · Habits 445.0 of 458 · Health 470.8 of 482 · Wealth 458.1 of 465 · Markets 417.9 of 432 · Portfolio 439.1 of 454 · Staking 429.7 of 442 · Activity 397.3 of 415 · Settings 466.7 of 482 · Help 390.7 of 409 · Chess 401.1 of 417 · shell 386.8 of 406 kB. New features load after the page (A26, A35).
+## Tests (counts are not summed across overlapping runs)
+- **Unit:** 4,729 passed, 44 skipped (Gate C, local); later fixes add their own unit tests, run on their own and in CI's `web checks`.
+- **Full browser suite, run 1 (Gate B, `dc3b165`):** 2,027 passed, 557 skipped, 4 failed (the intro-film specs). Local.
+- **Full browser suite, run 2 (Gate C, `5ffe63d`):** 2,034 passed, 557 skipped, 5 failed: the 4 intro-film specs and `search-aa:16` on desktop (typed before hydration; fixed in `be20ec6`, then 27 of 27 over three repeats of the file). Local.
+- **Frozen readers:** `32cb9c5`'s own readers parse every synced record this branch writes and its Export everything reads what it knows, nothing unreadable, the six new keys left alone (2 of 2). Local.
+- **WCAG:** `a11y-wcag-x` over this session's pages (calculator, Life review, Your data, templates, a new average goal, the share page): passed after its fixes. Local; CI.
+## Assertions changed (none weakened)
+Every deliberate change is listed in ADR-021 "Assertions changed", each as strict; the independent test audit found two that were not (`for-you.spec` on a phone, `whats-new.spec`'s open check) and both are restored.
+## Freeze (local, desktop and tablet against `32cb9c5`'s own build)
+155 of 155 captures differ by design, no page error on either side; each difference named by page and cause in ADR-021 "Freeze check" (the Search button on every page; Today, Goals, Help, Wealth, Settings grow with this session's features; six pages keep their exact height).
+## Revert gate (local, scratch worktree)
+Every session commit reverted newest-first from `be20ec6` (the handoff note after it is documentation only): at each of the thirteen part boundaries the tree equals that commit and typechecks; the end tree is identical to `32cb9c5` (`gate-c/revert-gate-final.txt` on the runs branch).
+## CI
+Milestone quality on `5ffe63d`: web checks, integration (weights, Run11 package, the Alpha gate), contract and the three browser shards green; Canonical reproducibility green. WebKit (advisory, `continue-on-error`): see owner item 4.
+## Independent agents (one at a time)
+Persona round (6 personas, about 22 sessions): 16 findings, 15 fixed with tests, 1 for AA-Local. Security read of every Tier 3 commit: no high or medium; 2 low fixed, 1 info fixed, 3 info recorded. Test audit of 49 changed test files: 2 weakened assertions restored, 13 vacuous or fragile checks made strict. Each table in ADR-021.
+## Decisions made without the owner
+ADR-021 A1–A37 (closest safe versions named there: device-only Today cards instead of synced widget kinds A35; share target GET only A34; no backup age A30; an earlier fictional season for the Showcase's insights A36).
+## Owner items
+1. **Kept on this device for now:** goal extras (areas, plans, visions, sub-goals, stories), vision photos, average goals, calculator scenarios, the Life review focus, recent searches and Today's cards are device-only until the finance-homes session adds them to sync (Help says so; Export everything includes them).
+2. **Share target:** files and images are not accepted (receiving them needs a POST handled by a service worker; this app's worker is for push only); Safari on iPhone and iPad offers neither the shortcuts nor the share sheet entry.
+3. **Your data:** the last Export everything is "Not recorded" (recording it would make the export write, A30).
+4. **WebKit (advisory):** 2 or 3 ZIGi specs fail per run on this branch (`zigi-accept-correct` Undo cases, `zigi-auto-accept:42`, `zigi-chat-polish:234`, `zigi-proactive:133`'s brief race, `webkit-zigi-freeze:81`, `zigi-memory:54`), one different test per run on the base; twice the job reached its 45-minute limit. The chat dialog is gone when the test looks for it; no path from this diff was found and WebKit is not installed in this sandbox, so the traces in the runs' artifacts are the next step ([run 38206998066](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38206998066)). The smoke failure this branch caused (prefetches of Today's new links) is fixed in `0fbf974`.
+5. **At merge (AA-Local, the second merger):** `<GameRegistrar/>` in the shell, the Journey nav extra, goal-step swipes, `achievement_unlocked`/`level_up`, the six device keys in `lib/onboarding.ts`, the one filtered assertion in `lib/sleep/sleep-features.test.ts`, both sides' changes to `lib/export/everything.ts` (handoff, Gate C read).
+6. **Security read infos:** a small image file with huge dimensions can exhaust memory when decoded for a vision photo (only the person's own file picker reaches it); the photo tidy-up keys on `zigoals:goal-extras:v1`, so a future `v2` needs a reader for both.
+7. **Commit identity:** `3395602` and `3c854bf` carry `gate@localhost` (a scratch worktree's setting reached the shared git config; fixed for every later commit). They show as unverified on GitHub; not rewritten, since that needs a force-push.
+8. **Showcase insights:** "Sleep and habits" stays "still collecting" (4 and 23 days): passing it would need habit history from before the Showcase habits exist.
+
+---
+
 # Alpha deploy #37 — 2026-10-11 evening, `32cb9c5` live
 Recorded by Session AA-Cloud (2026-10-11).
 - **Source:** `32cb9c5addedf6dfcd2c68887c7ded6ecf81b730`, `main` after [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82) (Merge #82, Session Z-Local, "ZIGi's brain, flawless", ADR-020; it carries Z-Cloud's #81, which was #36).
