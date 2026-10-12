@@ -10,7 +10,7 @@ import { shareHabitData } from "./habit-sharing";
 const renders = vi.hoisted(() => new Map<string, number>());
 vi.mock("../components/pin-to-today", () => ({ PinToToday: ({ label }: { label: string }) => { renders.set(label, (renders.get(label) ?? 0) + 1); return null; } }));
 vi.mock("../components/habits/habit-timer", () => ({ HabitTimer: () => null }));
-const { HabitCard } = await import("../components/habits/habit-card");
+const { HabitCard } = await import("../components/habits/habit-card-full"); // Session AA-Local Gate A (ADR-022 B41): the full card; habit-card.tsx is its lazy facade
 import type { HabitCardStore } from "../components/habits/use-habits";
 
 const today = "2026-09-20", at = new Date(`${today}T10:00:00.000Z`);

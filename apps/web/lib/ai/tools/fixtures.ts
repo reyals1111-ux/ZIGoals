@@ -61,6 +61,8 @@ export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.inc
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
   // A person in UTC (the zones below), whatever zone the machine running the tests is in (Session Y Part 2).
   const {records} = buildShowcase(day, 'UTC');
+  // Session AA-Local Part 7: the Showcase now plans five dinners from its day (lib/health-aa/showcase.ts); this fixture's meal_plan assertions pin the two sentinel plans, so the Showcase's own are left out here.
+  { const h = JSON.parse(records['zigoals:health:v1']!); if (h.daily?.plans) h.daily.plans = h.daily.plans.filter((p: {id: string}) => !p.id.startsWith('health_plan-aa-')); records['zigoals:health:v1'] = JSON.stringify(h); }
   const habits = habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData;
   const health = healthSchema.parse(JSON.parse(records['zigoals:health:v1']!)) as HealthData;
   const platform = platformSchema.parse(JSON.parse(records['zigoals:platform:v1']!)) as Platform;

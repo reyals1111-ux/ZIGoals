@@ -12,11 +12,21 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
    built and green locally (typecheck, lint 0 errors, 584 focused unit tests, `health-aa`/`flow-aa` 16/16, the four new
    accept-correct rows) and are being committed in this order: `[TIER 3] (egress/security)` recipe route → Part 3 →
    Part 4 → Part 5; each pushed after a key sweep.
-2. Gate A (overdue) comes right after: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
+2. Gate A in progress (10:40Z): CI on `bd7572b2` failed twice — the alpha-tail sanitizer's API bucket list lacked
+   `/api/recipe-import` (added) and the weight gate found Today +7 kB, Habits +20 kB, Health +36 kB, Help +0.1 kB (B41: lazy
+   chunks, no budget raised; a build of main on :3104 showed the budgets sit 0.1–1.4 kB above main, so the shell had to
+   shrink: now every page under budget and the shell 1.2 kB below main). Chrome: 445/449 WebKit earlier (the "Today habits"
+   region restored, B12); Chrome on the final build: ZIGi suites + new specs 443 passed, the a11y `aria-prohibited-attr`
+   finds (a `span`/`p` with an aria-label in the sections, the routine dots, the timer chip) fixed with hidden text, then
+   46/46 on the affected specs; WebKit rerun in progress. Part 7 written (B42: `lib/{habits-extras,health-aa,game}/showcase.ts`,
+   `lib/showcase-aa.test.ts`): the pinned Showcase tests (insights, weekly review, inventory, the vault's size tests,
+   the planner's absent handle, ZIGi's tool fixture) are kept by trimming the additions (ADR-022 B42) and by three deliberate
+   as-strict updates listed under "Assertions changed"; full unit suite rerunning. Then commit + push, captures, Gate B.
+   Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
    unit suite (incl. the `auto-accept-once` standalone-parse question), golden 100 %, CI on PR #84, AA-Cloud's handoff
    (read at 07:40Z: its slot registry now has `settings:your-app` and `settings:reminders`, `registerNavExtra` for
    Journey, life areas in `zigoals:goal-extras:v1`; the mirror and the areas key follow it, B11/B40).
-3. Then S0 (Batch spoken top-up ≤ $3), Parts 6–7, Gates B–C, STATUS entry, PR ready. Ledger: $0.00 of $50.
+3. S0 done (batch `msgbatch_01ERibWPa7m6ZCAfTs6W2dHj`: 44 seeds → 440 spoken asks merged into the runs branch's train/hold-out, `corpus-spoken.ts` regenerated with 681 hold-out rows; $0.30). Then Parts 6–7, Gates B–C, STATUS entry, PR ready. Ledger: $0.30 of $50.
 4. Owner rules since 00:05Z: no preview pane, servers from Bash (`/tmp/aa-dev-3102.log`, `curl` health checks), every long
    command under `scratchpad/tmo.sh`, no ExitPlanMode or approval questions; anything that needs the owner is written
    here and in the handoff.

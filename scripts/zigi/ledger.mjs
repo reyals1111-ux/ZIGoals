@@ -17,6 +17,7 @@ import {PRICES_AS_OF, estimateCost} from '../../apps/web/lib/ai/pricing.ts';
 const args = process.argv.slice(2);
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : fallback; };
 const RUNS = opt('--runs', '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs'), CAP = Number(opt('--cap', '130')), CHECK = opt('--check', null);
+const TITLE = opt('--title', RUNS.endsWith('-aa-runs') ? 'Session AA-Local' : 'Session Z-Local'); // the session the runs folder belongs to
 const rows = new Map();
 const key = (stage, model, batch) => `${stage}\u0000${model}\u0000${batch ? 'batch' : 'api'}`;
 function addRow(stage, model, batch, usage, requests, cost, estimate = false) {
@@ -65,7 +66,7 @@ const total = list.reduce((s, r) => s + r.usd, 0);
 const byModel = {};
 for (const r of list) byModel[r.model] = (byModel[r.model] ?? 0) + r.usd;
 const n = v => v.toLocaleString('en-US');
-const md = [`# API ledger — Session Z-Local (owner cap $${CAP}; hard stop)`, '',
+const md = [`# API ledger — ${TITLE} (owner cap $${CAP}; hard stop)`, '',
   `Rebuilt by \`scripts/zigi/ledger.mjs\` from the run files on this branch (${read.length} files), each call priced at the published table in \`apps/web/lib/ai/pricing.ts\` (as of ${PRICES_AS_OF}: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.`, '',
   '| Stage | Model | Requests | Input | Cache write | Cache read | Output | USD |', '|---|---|---:|---:|---:|---:|---:|---:|',
   ...list.map(r => `| ${r.stage} | ${r.model}${r.batch ? ' (batch)' : ''}${r.estimate ? ' (estimate)' : ''} | ${n(r.requests)}${r.unreported ? ` (${r.unreported} unreported)` : ''} | ${n(r.input)} | ${n(r.cacheWrite)} | ${n(r.cacheRead)} | ${n(r.output)} | ${r.usd.toFixed(4)} |`),

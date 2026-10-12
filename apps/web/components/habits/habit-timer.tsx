@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import {habitRuleOn,type Habit,type HabitData} from '../../lib/habits';
-import {discardHabitTimer,finishHabitTimer,habitTimerPreview,pauseHabitTimer,resumeHabitTimer,startHabitTimer} from '../../lib/habit-actions';
+import {discardHabitTimer,finishHabitTimer,habitTimerPreview,pauseHabitTimer,resumeHabitTimer,startHabitTimer} from '../../lib/habit-timer-actions';
 import type {HabitCardStore} from './use-habits';
 import { formatDateTime, formatPlainDecimal } from '../../lib/visual-format';
 import {habitBell, setTimerBell} from '../../lib/habits-extras/store';
@@ -52,5 +52,5 @@ export function TimerChip({habit,store}:{habit:Habit;store:HabitCardStore}){
  if(!timer)return null;
  const preview=habitTimerPreview(habit,now),rule=habitRuleOn(habit,store.today),targetMinutes=rule&&rule.measurement.kind==='duration'?(rule.measurement.unit==='hours'?rule.target*60:rule.target):null,minutes=timer.unit==='hours'?preview.value*60:preview.value;
  async function change(action:(data:HabitData,at:Date)=>HabitData){setBusy(true);const at=new Date();try{await store.update(data=>action(data,at));}catch{/* the card shows the error */}finally{setBusy(false);}}
- return <p className="habit-timer-chip" data-running={timer.state==='running'||undefined} aria-label={`${habit.title} timer`}><strong>{mmss(minutes)}</strong><span>{targetMinutes!==null?`/ ${targetMinutes} min`:timer.unit}</span>{timer.state==='running'?<button type="button" className="quiet" disabled={busy} onClick={()=>void change((d,at)=>pauseHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Pause</button>:<button type="button" className="quiet" disabled={busy||!!preview.reviewReason} onClick={()=>void change((d,at)=>resumeHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Resume</button>}<button type="button" className="quiet" disabled={busy||!!preview.reviewReason||preview.value<=0} onClick={()=>void change((d,at)=>finishHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Finish</button></p>;
+ return <div className="habit-timer-chip" role="group" data-running={timer.state==='running'||undefined} aria-label={`${habit.title} timer`}><strong>{mmss(minutes)}</strong><span>{targetMinutes!==null?`/ ${targetMinutes} min`:timer.unit}</span>{timer.state==='running'?<button type="button" className="quiet" disabled={busy} onClick={()=>void change((d,at)=>pauseHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Pause</button>:<button type="button" className="quiet" disabled={busy||!!preview.reviewReason} onClick={()=>void change((d,at)=>resumeHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Resume</button>}<button type="button" className="quiet" disabled={busy||!!preview.reviewReason||preview.value<=0} onClick={()=>void change((d,at)=>finishHabitTimer(d,habit.id,timer.id,at,JSON.stringify(timer)))}>Finish</button></div>;
 }

@@ -28,7 +28,21 @@ import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
-import {planAaAction} from './plan-aa';
+import type {planAaAction as PlanAa} from './plan-aa';
+/**
+ * Session AA-Local Gate A (ADR-022 B41): the planner for this session's twelve kinds lives in its own chunk, loaded at run
+ * time the moment this module evaluates (the shell carries this module through the knock), so a page's first load never
+ * grows; tests and the harness `await loadAaPlanner()` once. Until it lands, an AA kind is refused with a retry line.
+ */
+let aaPlanner: typeof PlanAa | null = null;
+export function installAaPlanner(fn: typeof PlanAa) { aaPlanner = fn; }
+let aaLoading: Promise<void> | null = null;
+export function loadAaPlanner(): Promise<void> {
+  if (aaPlanner) return Promise.resolve();
+  aaLoading ??= import('./plan-aa').then(m => { installAaPlanner(m.planAaAction); });
+  return aaLoading;
+}
+void loadAaPlanner().catch(() => { aaLoading = null; });
 import {GLASS_ML, PLAN_AHEAD_DAYS, WEEKDAY_NAMES, type HOLDING_CATEGORIES, type Action, type ActionKind} from './schema';
 import {PRESETS, WIDGET_CATALOG, applyDashboardPreset, dashboardSettingsSchema, removeWidget, saveWidget, type DashboardSettings, type DashboardWidget} from '../../dashboard-settings';
 import {addLink, editLink, linkHost, linkInputIssue, linksOf, removeLink, suggestedIcon} from '../../links/engine';
@@ -730,7 +744,8 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     // Session AA-Local Part 5 (ADR-022 B37): this session's kinds live in plan-aa.ts.
     case 'set-time-of-day': case 'start-timer': case 'stop-timer': case 'start-routine': case 'set-habit-area': case 'set-quit-cost': case 'use-freeze': case 'set-micro-target': case 'set-macro-mode': case 'coach-answer': case 'import-recipe': case 'set-game-layer':
-      return planAaAction(action, env, {refuse, same, resolveDay, dayLabel, habitOf}) ?? refuse('That card is not one ZIGi can make.');
+      if (!aaPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
+      return aaPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
       const habit = found.habit, current = latestHabitRule(habit).state;

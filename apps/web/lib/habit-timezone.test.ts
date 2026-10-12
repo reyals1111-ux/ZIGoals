@@ -1,6 +1,7 @@
 import {test,expect} from 'vitest';
 import {createHabit,emptyHabitData,habitCalendarDay,saveHabitTimezone,logHabitValue,habitDataSchema} from './habits';
-import {scheduleHabitEdit,startHabitTimer,pauseHabitTimer,commitHabitTimer,habitTimerPreview} from './habit-actions';
+import {scheduleHabitEdit} from './habit-actions';
+import {startHabitTimer, pauseHabitTimer, commitHabitTimer, habitTimerPreview} from './habit-timer-actions';
 import {widgetMetric} from './dashboard-metrics';
 import {emptyPlatform} from './positions';
 import {createEmptyHealth} from './health';

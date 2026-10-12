@@ -1,4 +1,6 @@
-import {describe, expect, test} from 'vitest';
+import {beforeAll, describe, expect, test} from 'vitest';
+import {loadAaPlanner} from './plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {createHabit, emptyHabitData, logHabitValue, type HabitData, type HabitInput} from '../../habits';
 import {createEmptyHealth, healthSchema, type HealthData} from '../../health';
 import {emptyPlatform} from '../../positions';

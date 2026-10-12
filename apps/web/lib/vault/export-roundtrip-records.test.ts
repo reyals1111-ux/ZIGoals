@@ -9,7 +9,7 @@ import type {Domain} from './cloud-sync';
 import {emptyPlatform,platformSchema} from '../positions';
 import {appendFinancialEvidence,makeManualFx,voidFinancialEvent,type FinancialEvent} from '../financial-events';
 import {createHabit,emptyHabitData,habitDataSchema,HABITS_KEY} from '../habits';
-import {startHabitTimer,pauseHabitTimer,commitHabitTimer} from '../habit-actions';
+import {startHabitTimer, pauseHabitTimer, commitHabitTimer} from '../habit-timer-actions';
 import {createEmptyHealth,saveWeight,saveActivity,healthSchema} from '../health';
 import {addCounter,changeCount} from '../health-counters';
 import {saveMeasurement} from '../body-measurements';

@@ -1,4 +1,6 @@
-import {expect, test} from 'vitest';
+import {beforeAll, expect, test} from 'vitest';
+import {loadAaPlanner} from './plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {addLocalDays} from '../../local-date';
 import {buildShowcase} from '../../showcase-data';
 import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
@@ -196,7 +198,7 @@ test('the money kind only pre-fills the form: no write, no undo, not part of a b
 test('handles the context never gave, future days and days over a year back make no card, only a plain message', () => {
   expect(refusal({kind: 'check-in', habit: 'h99'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'check-in', habit: 'g1'})).toMatch(/not in this page's context/); // a goal handle is not a habit
-  expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f9'})).toMatch(/not in this page's context/);
+  expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f99'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'h1'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'add-goal-note', goal: 'g77', note: 'x'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'log-water', glasses: 1, day: '2026-09-21'})).toBe('That day has not come yet; ZIGi can only log up to today.');
@@ -254,7 +256,7 @@ test('cards name records by title, never by identifier, and every kind the parse
     {kind: 'grocery-notes', notes: 'Oat milk'}, {kind: 'create-counter', name: 'Burpees'}, {kind: 'set-target', target: 'kcal', value: 2100}, {kind: 'set-health-preference', weightUnit: 'lb'}, {kind: 'start-night', bedtime: '23:00'}, {kind: 'set-bells', volume: 40},
     {kind: 'set-today-preset', preset: 'wealth'}, {kind: 'skip-review'}, {kind: 'set-wrap-up', time: '21:30'}, {kind: 'set-page-visibility', page: 'markets', shown: false}, {kind: 'set-start-page', page: 'habits'}, {kind: 'set-zigi-look', animation: 'full'}, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings'},
     // Session AA-Local Part 5
-    {kind: 'set-time-of-day', habit: 'h1', timeOfDay: 'morning'}, {kind: 'start-routine', template: 'morning'}, {kind: 'set-habit-area', habit: 'h1', area: 'health'}, {kind: 'set-micro-target', nutrient: 'iron', value: 12, unit: 'mg'}, {kind: 'set-macro-mode', mode: 'net-carbs'}, {kind: 'import-recipe', text: 'Soup\n200 g lentils\n1 onion'}, {kind: 'set-game-layer', enabled: true}
+    {kind: 'set-time-of-day', habit: 'h1', timeOfDay: 'evening'}, {kind: 'start-routine', template: 'morning'}, {kind: 'set-habit-area', habit: 'h1', area: 'health'}, {kind: 'set-micro-target', nutrient: 'iron', value: 12, unit: 'mg'}, {kind: 'set-macro-mode', mode: 'net-carbs'}, {kind: 'import-recipe', text: 'Soup\n200 g lentils\n1 onion'}, {kind: 'set-game-layer', enabled: true}
   ];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).

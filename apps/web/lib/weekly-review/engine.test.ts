@@ -40,7 +40,7 @@ describe('weekSummary', () => {
     // Habits: every Showcase habit is daily; the ninth-day skips fall on different days per habit.
     const walk = summary.habits.find(h => h.title === 'Walk')!;
     expect(walk).toMatchObject({scheduled: 7, done: 6, skipped: 1, unit: 'days'});
-    expect(summary.habits.map(h => h.title)).toEqual(['Read', 'Exercise', 'Walk', 'Meditate', 'Contribute', 'Drink water']);
+    expect(summary.habits.map(h => h.title)).toEqual(['Read', 'Exercise', 'Walk', 'Meditate', 'Contribute', 'Drink water', 'Late-night snacks (Showcase)']); // the quit habit since Session AA-Local Part 7 (ADR-022 B42)
     expect(summary.habits.every(h => h.done + h.skipped <= h.scheduled)).toBe(true);
     // Health: meals every day, the seven Showcase walks, water days present, the latest weight in the week.
     expect(summary.health[0]).toBe('7 days with meals logged');

@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {createHabit,emptyHabitData,habitDataSchema,habitDay,habitRuleOn,habitStats,logHabitValue,type HabitInput} from './habits';
-import {scheduleHabitEdit,scheduleHabitState,habitEditFingerprint,startHabitTimer,pauseHabitTimer,resumeHabitTimer,habitTimerPreview,commitHabitTimer,discardHabitTimer} from './habit-actions';
+import {scheduleHabitEdit, scheduleHabitState, habitEditFingerprint} from './habit-actions';
+import {startHabitTimer, pauseHabitTimer, resumeHabitTimer, habitTimerPreview, commitHabitTimer, discardHabitTimer} from './habit-timer-actions';
 const id='59a35604-3696-4a78-b455-4015acb66885',timerId='ff829326-f352-4a26-80d0-eb8c31cde62e';
 const at=(date:string)=>new Date(`${date}T12:00:00`);
 const input:HabitInput={title:'Fictional reading',category:'Learning',description:'',notes:'',schedule:{kind:'daily'},measurement:{kind:'duration',unit:'minutes'},target:30};

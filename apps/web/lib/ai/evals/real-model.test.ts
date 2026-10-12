@@ -1,7 +1,9 @@
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {describe, expect, test} from 'vitest';
+import {beforeAll, describe, expect, test} from 'vitest';
+import {loadAaPlanner} from '../actions/plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {streamChat} from '../chat';
 import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';

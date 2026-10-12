@@ -92,3 +92,8 @@ carries it), What's new and Help (the second merger carries both; my drafts come
   (`components/swipe/**`, applied to habit cards, Today's habit rows and diary entries; the hook is ready for your goal
   steps), the welcome's focuses step and Undo setup, the reminders plan page, twelve ZIGi kinds (ADR-022 B37–B39,
   `docs/product/ZIGI_ACTIONS_Z.md`).
+- **Gate A, shared files touched (one line each, announced here):** `scripts/sanitize-alpha-tail.mjs` lists the new
+  `/api/recipe-import` bucket (its test requires the list to equal the route files); `lib/export/everything.ts` derives
+  its eleven AA entries from `AA_PERSONAL_KEYS`/`AA_DISPLAY_KEYS` (same names, same files in the zip);
+  `components/vault-sync-controls.tsx` imports `forgetAaDeviceRecords` at run time inside the erase (the shell carries none
+  of it). The weight gate: no budget raised; the shell is 1.2 kB below main's build (ADR-022 B41), so your merge has room.

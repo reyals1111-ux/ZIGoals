@@ -19,6 +19,10 @@ import {SYNC_WRITES} from './vault/sync-writes';
 import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
 import {withHealthGroup,withSettingsGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
+import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
+import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
+import {showcaseGame} from './game/showcase';
+import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
 import {ACCOUNTS_KEY,CHESS_CACHE_KEY} from './w-device-keys';
 import {showcaseAccounts} from './accounts/showcase';
 import {showcaseChess} from './skills/chess/showcase';
@@ -33,7 +37,7 @@ const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({prov
  * the fictional fast said "UTC", so a person in New York saw yesterday evening's fast on today; the fast now carries the
  * zone its times were made in, and tests build the UTC person they describe by passing 'UTC'.
  */
-export function buildShowcase(day:string,zone:string=deviceTimeZone()){
+export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{aa?:boolean}={}){
  const clock=Date.parse(day+'T12:00:00Z');if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(clock)||new Date(clock).toISOString().slice(0,10)!==day)throw Error('Use a real showcase date.');
  const date=(offset:number)=>new Date(clock+offset*86400000).toISOString().slice(0,10),wall=(offset:number,time:string)=>new Date(instantAt(date(offset),time,zone)).toISOString(),at=(offset:number)=>wall(offset,'00:00'),now=at(0),start=at(-90);
  const specs:{asset:string;name:string;class:Position['assetClass'];quantity:string;decimals:number;value?:string;currency?:string;ref?:MarketAssetRef}[]=[
@@ -109,6 +113,16 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone()){
  }else Object.assign(records,{[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview)});
  // Session W Part 4: fictional nights and a goal in Health v4's sleep group (lib/sleep/showcase.ts).
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
+ // Session AA-Local Part 7 (ADR-022, owner edit 6): one call per module. Habits best in class (sections, six weeks, a quit habit, a routine, a running timer),
+ // Health best in class (six weeks of weights, micronutrients, recipes, a planned week, measurements), and the device records beside them (habit extras,
+ // the game layer ON in the Showcase with one unseen celebration, the coach, micro targets, the macro view, custom measurements, the reminders plan).
+ if(options.aa!==false){ // the vault's size fixtures ask for the lean Showcase (lib/vault/power-user-fixture.ts)
+ records[HABITS_KEY]=JSON.stringify(showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day));
+ records[HEALTH_STORAGE_KEY]=JSON.stringify(showcaseHealthAa(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day));
+ {const aaHabits=habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),aaHealth=healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),dev=showcaseHealthAaDevice(day);
+  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
+  records[HEALTH_COACH_KEY]=JSON.stringify(dev.coach);records[MICRO_TARGETS_KEY]=JSON.stringify(dev.micro);records[MACRO_MODE_KEY]=JSON.stringify(dev.macro);records[MEASUREMENTS_CUSTOM_KEY]=JSON.stringify(dev.measurements);records[REMINDERS_PLAN_KEY]=JSON.stringify(dev.reminders);}
+ }
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.

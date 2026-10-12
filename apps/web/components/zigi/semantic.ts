@@ -39,9 +39,7 @@ export const SEMANTIC_EVENTS = Object.freeze([
 export type SemanticEventType = (typeof SEMANTIC_EVENTS)[number];
 export type SemanticEvent = {readonly type: SemanticEventType};
 /** Success events: they play only through `dispatchValidated` (the host validated the fact). */
-export const VALIDATED_ONLY: ReadonlySet<SemanticEventType> = new Set(['goal_milestone_reached', 'habit_completed', 'health_log_recorded', 'all_habits_done', 'streak_milestone', 'goal_funded', 'challenge_milestone', 'meditation_finished', 'first_sleep_logged', 'card_accepted', 'routine_finished', 'level_up', 'achievement_unlocked']);
 /** The meaningful validated moments that celebrate (D5); every other success is small. */
-export const CELEBRATIONS: ReadonlySet<SemanticEventType> = new Set(['all_habits_done', 'streak_milestone', 'goal_milestone_reached', 'goal_funded', 'challenge_milestone', 'meditation_finished', 'first_sleep_logged', 'routine_finished', 'level_up', 'achievement_unlocked']);
 /** Proactive nudges: the knock. One per session, none after a dismissal, none in quiet hours, none while typing. */
 export const NUDGES: ReadonlySet<SemanticEventType> = new Set(['reminder_due']);
 /** The conversation's own flow is never rate-limited; everything else is a reaction. Success belongs to the flow too
@@ -70,6 +68,9 @@ export const EVENT_TO_MACHINE: Readonly<Record<SemanticEventType, ZigiEvent | nu
   all_habits_done: 'action-applied', goal_milestone_reached: 'action-applied', goal_funded: 'action-applied', challenge_milestone: 'action-applied', meditation_finished: 'action-applied', first_sleep_logged: 'action-applied', routine_finished: 'action-applied', level_up: 'action-applied', achievement_unlocked: 'action-applied', streak_milestone: 'streak-milestone',
   hint_insight: 'reply-done', hint_curious: 'ambiguity', hint_encouraging: 'encourage', hint_empathetic: 'careful', hint_surprised: 'surprise', hint_confused: 'not-understood',
 };
+/** The validated-only events (D4): every celebration plus the three small successes. Derived from the machine table so each name is written once. */
+export const CELEBRATIONS: ReadonlySet<SemanticEventType> = new Set((Object.keys(EVENT_TO_MACHINE) as SemanticEventType[]).filter(e => EVENT_TO_MACHINE[e] === 'action-applied' || e === 'streak_milestone'));
+export const VALIDATED_ONLY: ReadonlySet<SemanticEventType> = new Set([...CELEBRATIONS, 'habit_completed', 'health_log_recorded', 'card_accepted']);
 /** The state a machine event leads to from idle (for the rules: priority, cooldown, sensitive screens). */
 const EVENT_STATE: Readonly<Record<ZigiEvent, string>> = {
   open: 'greeting', close: 'wave-goodbye', 'reply-pending': 'thinking', 'reply-streaming': 'speaking', 'reply-done': 'insight', 'reply-with-proposals': 'presenting', 'action-applied': 'celebrate', error: 'error', listening: 'listening', speaking: 'speaking', idle: 'idle', sleepy: 'sleepy',

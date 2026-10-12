@@ -113,7 +113,7 @@ test('a recipe: the person\'s own foods first (handle or exact name), new foods 
   // Two own foods with the same name are a question, never a guess; a food the context never gave is refused.
   const twins = {...stores, health: saveFood(stores.health, foodSchema.parse({...stores.health.foods[0]!, id: 'health_food-twin-0001'}))};
   expect(refusal({kind: 'create-recipe', name: 'x', ingredients: [{name: 'Berry overnight oats'}]}, env({stores: twins}))).toBe('You have 2 foods called "Berry overnight oats", so nothing was proposed. Ask again from Health, where ZIGi can tell them apart.');
-  expect(refusal({kind: 'create-recipe', name: 'x', ingredients: [{name: 'x', food: 'f9'}]})).toMatch(/^ZIGi named a food \(f9\) that is not in this page's context/);
+  expect(refusal({kind: 'create-recipe', name: 'x', ingredients: [{name: 'x', food: 'f99'}]})).toMatch(/^ZIGi named a food \(f99\) that is not in this page's context/);
 });
 
 test('a planned meal: from a recipe (a saved meal is made for it) or a saved meal; today to 62 days ahead; undo removes both', () => {

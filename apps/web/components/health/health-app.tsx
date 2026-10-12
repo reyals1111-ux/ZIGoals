@@ -5,13 +5,6 @@ import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
 import { ProgressSlot } from "../game/slot-local";
-import { WeightTrendCard } from "./weight-trend";
-import { EnergyCard } from "./energy-card";
-import { CoachCard } from "./coach-card";
-import { WaterRing } from "./water-ring";
-import { MicroPanel } from "./micro-panel";
-import { MacroModePanel } from "./macro-mode-panel";
-import { FastingTimeline } from "./fasting-timeline";
 import { fastingHistory } from "../../lib/fasting/engine";
 import "./health-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
@@ -20,6 +13,15 @@ const PlannerView = lazy(() => import("./planner-view").then((m) => ({ default: 
 const InsightsView = lazy(() => import("./insights-view").then((m) => ({ default: m.InsightsView })));
 const RecipeImport = lazy(() => import("./recipe-import").then((m) => ({ default: m.RecipeImport })));
 const MeasurementsAa = lazy(() => import("./measurements-aa").then((m) => ({ default: m.MeasurementsAa })));
+// Gate A (weight budgets never rise): the AA cards load as their own chunks after the page's first paint.
+const BarcodeFoodLookup = lazy(() => import("./barcode-food-lookup").then((m) => ({ default: m.BarcodeFoodLookup }))); // Gate A (B41): the barcode lookup loads when its fold opens
+const WaterRing = lazy(() => import("./water-ring").then((m) => ({ default: m.WaterRing })));
+const WeightTrendCard = lazy(() => import("./weight-trend").then((m) => ({ default: m.WeightTrendCard })));
+const EnergyCard = lazy(() => import("./energy-card").then((m) => ({ default: m.EnergyCard })));
+const CoachCard = lazy(() => import("./coach-card").then((m) => ({ default: m.CoachCard })));
+const MicroPanel = lazy(() => import("./micro-panel").then((m) => ({ default: m.MicroPanel })));
+const MacroModePanel = lazy(() => import("./macro-mode-panel").then((m) => ({ default: m.MacroModePanel })));
+const FastingTimeline = lazy(() => import("./fasting-timeline").then((m) => ({ default: m.FastingTimeline })));
 import { GameRegistrar } from "../game/registrar";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
@@ -39,7 +41,6 @@ import { useHabits } from "../habits/use-habits";
 import { useAutoCheckIns } from "../habits/use-auto-checkins";
 import { useFasting } from "./use-fasting";
 import { FastingTimer } from "./fasting-timer";
-import { BarcodeFoodLookup } from "./barcode-food-lookup";
 import { useImportUndo } from "../import/use-import-undo";
 import { ImportBanner } from "../import/csv-import-steps";
 import { NutritionImportPanel } from "../import/nutrition-import";
@@ -143,6 +144,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const meditationRunning = !!useDeviceRecord(MEDITATION_RUN).data.run;
   // I1: meals from a nutrition CSV (phone: a sheet; desktop: inside the Diary details), with this device's undo ledger.
   const [importingCsv, setImportingCsv] = useState(false), imports = useImportUndo();
+  const [barcodeOpen, setBarcodeOpen] = useState(false);
   const undoRecord = async (record: ImportRecord) => { await update(d => undoNutritionImport(d, record).data); imports.forget(record.id); };
   // On a phone, Log a meal is a bottom sheet (Session I, Part 9); a Quick Add for a meal opens it.
   const [logging, setLogging] = useState(false);
@@ -227,7 +229,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
-    {id: "health:aa-highlights", label: "Trend, energy and coach", node: <div className="health-aa-highlights"><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></div>},
+    {id: "health:aa-highlights", label: "Trend, energy and coach", node: <div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div>},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
     <div className="health-progress-slot"><GameRegistrar /><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
@@ -237,7 +239,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <ImportBanner imports={imports} kind="nutrition" onUndo={undoRecord} />
 
     <fieldset className="health-content" disabled={busy}>
-      {view === "Diary" && <><WaterRing data={data} date={date} perform={perform} /><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details><summary>Scan or look up a food barcode</summary><BarcodeFoodLookup date={date} update={update}/></details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
+      {view === "Diary" && <><Suspense fallback={null}><WaterRing data={data} date={date} perform={perform} /></Suspense><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details onToggle={(e) => setBarcodeOpen(e.currentTarget.open)}><summary>Scan or look up a food barcode</summary>{barcodeOpen && <Suspense fallback={null}><BarcodeFoodLookup date={date} update={update}/></Suspense>}</details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Planner" && <Suspense fallback={<p role="status">Opening the planner…</p>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense>}
       {view === "Insights" && <Suspense fallback={<p role="status">Reading your diary…</p>}><InsightsView data={data} today={today} /></Suspense>}
@@ -247,13 +249,13 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><Suspense fallback={null}><MeasurementsAa data={data} today={today} /></Suspense></>}
       {view === "Weight" && <WeightView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} onDate={chooseDate} />}
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
-      {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></>}
+      {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><Suspense fallback={null}><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></Suspense></>}
     </fieldset>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},
     {id: "health:roadmap", label: "Next on your Health journey", node: <section className="health-roadmap" aria-label="Planned Health features"><header><p className="eyebrow">A HEALTHIER ROUTINE, WITH LESS EFFORT</p><h2>Next on your Health journey</h2><p>Planned for Beta. Your working journal above is ready today.</p></header><div className="health-roadmap-grid"><article><span aria-hidden="true">▥</span><div><strong>Barcode scan</strong><p>Bring food labels into your diary faster.</p><b>Manual entry and on-device decoding · Provider activation pending</b></div></article><article><span aria-hidden="true">⌚</span><div><strong>Your devices</strong><p>A Bluetooth heart-rate monitor or scale, and exports from Apple Health, Fitbit, Samsung Health and Oura. <a className="text-link" href="/app/health?view=devices">Open Devices</a>{/* eslint-disable-line @next/next/no-html-link-for-pages -- a full load: Health's camera and Bluetooth policy applies to its own document */}</p><b>Available · Linked accounts need setup</b></div></article><article><span aria-hidden="true">◎</span><div><strong>A photo, a food entry</strong><p>Food recognition is on the roadmap.</p><b>Coming soon · Not available yet</b></div></article></div></section>},
-    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></PhoneFold>},
+    {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><FastingTimer fasting={fasting} health={data} /><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></PhoneFold>},
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>

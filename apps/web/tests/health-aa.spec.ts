@@ -81,7 +81,7 @@ test('N5: a recipe planned into the week grid, its grocery list by aisle with ch
   const form = planner.getByRole('form', {name: 'Plan Dinner on Wed 7'});
   await form.locator('select').nth(1).selectOption('health_recipe-0001'); // the second select: the recipe (the first picks recipe or food)
   await form.getByRole('button', {name: 'Plan', exact: true}).click();
-  await expect(planner.getByText('Fictional lentil soup')).toBeVisible();
+  await expect(planner.locator('strong', {hasText: 'Fictional lentil soup'})).toBeVisible(); // the planned row's title, not the chooser's option
   const grocery = page.getByRole('region', {name: 'Grocery list'});
   await expect(grocery.getByRole('heading', {name: /Pantry/})).toBeVisible();
   await grocery.getByRole('checkbox', {name: 'Bought Fictional lentils'}).click(); // the box follows the saved record (a controlled input), so the tick lands after the write

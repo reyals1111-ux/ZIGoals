@@ -44,7 +44,8 @@ test('H1: the clock\'s section opens first, the others are folded, a fold is rem
   await expect(section(page, 'Morning')).toHaveAttribute('open', '');
   await expect(section(page, 'Afternoon')).not.toHaveAttribute('open', '');
   await expect(section(page, 'Morning').getByRole('article', {name: 'Fictional stretch'})).toBeVisible();
-  await expect(section(page, 'Morning').locator('.habit-section-count')).toHaveText('0 / 1');
+  await expect(section(page, 'Morning').locator('.habit-section-count [aria-hidden]')).toHaveText('0 / 1'); // the visible figure; the hidden text reads "0 of 1 due habits complete"
+  await expect(section(page, 'Morning').locator('.habit-section-count .sr-only')).toHaveText('0 of 1 due habits complete');
   await section(page, 'Morning').locator('summary.habit-section-summary').click();
   await expect(section(page, 'Morning')).not.toHaveAttribute('open', '');
   await expect.poll(() => stored(page, HABIT_EXTRAS_KEY)).toMatchObject({version: 1, folds: {morning: true}});

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 import {estimateCost} from '../../apps/web/lib/ai/pricing.ts';
@@ -23,6 +23,10 @@ import {estimateCost} from '../../apps/web/lib/ai/pricing.ts';
 const args = process.argv.slice(2), cmd = args[0] ?? 'seeds';
 const opt = (name, fallback) => { const i = args.indexOf(name); return i >= 0 && args[i + 1] !== undefined ? args[i + 1] : fallback; };
 const RUNS = '/Users/AIUSER/Documents/ZIGoals-Claude-z-runs', OUT = opt('--out', join(RUNS, 'spoken')), MAX_USD = Number(opt('--max-usd', '15'));
+// Session AA-Local Part 5 (S0): `--only <prefix>` submits the seeds whose id starts with the prefix (a top-up for new kinds) and, at fetch,
+// merges their asks into the train/hold-out files already in --out (rows of the same seed prefix are replaced, every other row kept).
+const ONLY = opt('--only', '');
+const chosen = () => ONLY ? seeds.filter(s => s.id.startsWith(ONLY)) : seeds;
 const REPO = new URL('../../', import.meta.url).pathname.replace(/\/$/, '');
 const MODEL = 'claude-opus-5-5', API = 'https://api.anthropic.com', VERSION = '2023-06-01', PER_SEED = 10;
 const PHENOMENA = [
@@ -154,14 +158,40 @@ seed('no-sell', 'sell a holding', {en: 'Sell half of my ether', nl: 'Verkoop de 
 seed('no-predict', 'a price prediction', {en: 'What will bitcoin cost tomorrow?', nl: 'Wat gaat bitcoin morgen kosten?'}, REFUSE, R('markets', 'wealth'));
 seed('no-milestone-tick', 'tick a milestone', {en: 'Mark the milestone flights booked as reached on the Japan goal', nl: 'Markeer de mijlpaal vluchten geboekt als behaald op het Japan-doel'}, REFUSE, R('goals', 'goals'));
 
+// ---- Session AA-Local Part 5 (S0 top-up, ids aa-…): the new kinds and pages; expectations as corpus-aa.ts ----
+const ST = {area: 'settings', page: 'settings', kind: 'propose'};
+seed('aa-tod', 'a habit moves to the morning', {en: 'Move my Read habit to the morning', nl: 'Zet mijn leesgewoonte in de ochtend'}, P('set-time-of-day', {timeOfDay: 'morning'}), {...HB, important: true});
+seed('aa-timer-start', 'start a habit timer', {en: 'Start the timer on Exercise', nl: 'Start de timer voor Exercise'}, P('start-timer'), {...HB, important: true});
+seed('aa-timer-stop', 'stop a habit timer and log it', {en: 'Stop the exercise timer and log it', nl: 'Stop de sporttimer en log het'}, P('stop-timer'), HB);
+seed('aa-skip-reason', 'skip today with a reason', {en: 'Skip the walk today, I am travelling', nl: 'Sla de wandeling vandaag over, ik ben op reis'}, {kinds: ['skip']}, {...HB, important: true});
+seed('aa-checkin-mood', 'a check-in with a mood', {en: 'Done with my run, felt energized', nl: 'Hardlopen gedaan, ik voelde me energiek'}, {kinds: ['check-in']}, HB);
+seed('aa-routine-start', 'start a routine', {en: 'Start my morning routine', nl: 'Start mijn ochtendroutine'}, P('start-routine'), {...HB, important: true});
+seed('aa-area', 'a habit under a life area', {en: 'File my Walk habit under health', nl: 'Zet Wandelen onder gezondheid'}, P('set-habit-area', {area: 'health'}), HB);
+seed('aa-quit-cost', 'the cost per day of a quit habit', {en: 'My late-night snacks cost me about three euros a day', nl: 'Snacken \'s avonds laat kost me zo\'n drie euro per dag'}, P('set-quit-cost', {perDay: 3}), HB);
+seed('aa-freeze', 'a streak freeze on yesterday', {en: 'Use a streak freeze on yesterday\'s walk', nl: 'Gebruik een streak freeze voor de wandeling van gisteren'}, P('use-freeze', {day: 'yesterday'}), HB);
+seed('aa-game-on', 'the game layer on', {en: 'Turn the game layer on', nl: 'Zet de spel-laag aan'}, P('set-game-layer', {enabled: true}), {...T, important: true});
+seed('aa-micro-iron', 'an iron target', {en: 'Set my iron target to twelve milligrams', nl: 'Zet mijn ijzerdoel op twaalf milligram'}, P('set-micro-target', {nutrient: 'iron', value: 12}), {...H, important: true});
+seed('aa-macro-keto', 'the keto macro view', {en: 'Show my macros in the keto view', nl: 'Laat mijn macro\'s in de keto-weergave zien'}, P('set-macro-mode', {mode: 'keto'}), H);
+seed('aa-coach-keep', 'the coach: keep', {en: 'Keep my calorie target this week', nl: 'Houd mijn caloriedoel deze week zo'}, P('coach-answer', {answer: 'keep'}), {...H, important: true});
+seed('aa-coach-adjust', 'the coach: adjust', {en: 'Adjust my calorie target to 2100', nl: 'Pas mijn caloriedoel aan naar 2100'}, P('coach-answer', {answer: 'adjust', kcal: 2100}), H);
+seed('aa-recipe-text', 'a pasted recipe', {en: 'Import this recipe: lentil soup, serves four, two hundred grams of red lentils, one onion', nl: 'Voeg dit recept toe: linzensoep, vier porties, tweehonderd gram rode linzen, een ui'}, {kinds: ['import-recipe']}, {...H, important: true});
+seed('aa-no-recipe-url', 'a recipe by web address', {en: 'Import the recipe at example-recipes dot com slash lentil soup', nl: 'Importeer het recept op example-recipes punt com slash linzensoep'}, {refuse: true, kinds: [], mustContain: ['Import']}, R('health', 'health'));
+seed('aa-nav-journey', 'the journey page', {en: 'Open my journey', nl: 'Ga naar mijn reis'}, {localFirst: true, mustContain: ['Journey']}, {...N('today', 'today'), important: true});
+seed('aa-nav-year', 'the year view', {en: 'Show me the year view', nl: 'Laat het jaaroverzicht zien'}, {localFirst: true, mustContain: ['Year view']}, N('habits', 'habits'));
+seed('aa-nav-routines', 'the routines', {en: 'Open my routines', nl: 'Open mijn routines'}, {localFirst: true, mustContain: ['Routines']}, N('habits', 'habits'));
+seed('aa-nav-planner', 'the meal planner', {en: 'Open the meal planner', nl: 'Open de maaltijdplanner'}, {localFirst: true, mustContain: ['Planner']}, N('health', 'health'));
+seed('aa-nav-insights', 'the food insights', {en: 'Show my food insights', nl: 'Laat mijn inzichten zien'}, {localFirst: true, mustContain: ['Insights']}, N('health', 'health'));
+seed('aa-nav-reminders', 'the reminders plan', {en: 'Open my reminders', nl: 'Open mijn herinneringen'}, {localFirst: true, mustContain: ['Reminders']}, N('today', 'today'));
+void ST;
+
 // ---- Requests ----
 const SYSTEM = `You write what a real person would SAY OUT LOUD to a voice assistant inside a habits, health, goals and money app, as a speech recogniser would transcribe it. You are given one typed request and its language. Return a JSON array of exactly ${PER_SEED} strings, one per listed phenomenon, in the listed order. Rules: keep EVERY fact exactly (names of habits, goals, foods and pages; numbers, units, times, dates, days; the thing asked for); never add, drop or change a fact; a self-correction must END on the given facts; stay in the given language (a code-switch item may borrow one or two words from the other language, English or Dutch, nothing else); vary the wording between items; plain text only, no quotes around numbers, no emoji, no explanations; output the JSON array and nothing else.`;
 const prompt = s => `Language: ${s.lang === 'nl' ? 'Dutch (Nederlands)' : 'English'}\nTyped request: ${JSON.stringify(s.typed)}\nPhenomena, one utterance each, in this order:\n${PHENOMENA.map(([name, how], i) => `${i + 1}. ${name}: ${how}`).join('\n')}`;
 const request = s => ({custom_id: s.id, params: {model: MODEL, max_tokens: 1200, output_config: {effort: 'medium'}, system: SYSTEM, messages: [{role: 'user', content: prompt(s)}]}});
 const tokensOf = text => Math.ceil(text.length / 3.5);
 const forecast = () => {
-  const input = seeds.reduce((sum, s) => sum + tokensOf(SYSTEM) + tokensOf(prompt(s)) + 40, 0), output = seeds.length * 900;
-  return {requests: seeds.length, input, output, usd: estimateCost(MODEL, {input, output, cacheWrite: 0, cacheRead: 0}, {batch: true})};
+  const list = chosen(), input = list.reduce((sum, s) => sum + tokensOf(SYSTEM) + tokensOf(prompt(s)) + 40, 0), output = list.length * 900;
+  return {requests: list.length, input, output, usd: estimateCost(MODEL, {input, output, cacheWrite: 0, cacheRead: 0}, {batch: true})};
 };
 const headers = () => {
   const key = process.env.ANTHROPIC_TEST_KEY; if (!key) { console.error('ANTHROPIC_TEST_KEY is not in the environment (source the env file in a subshell).'); process.exit(2); }
@@ -177,16 +207,16 @@ async function api(path, init = {}) {
 const hash = s => createHash('sha256').update(s).digest('hex');
 
 if (cmd === 'seeds') {
-  const by = {}; for (const s of seeds) { const k = `${s.lang}/${s.kind}`; by[k] = (by[k] ?? 0) + 1; }
-  console.log(JSON.stringify({seeds: seeds.length, utterances: seeds.length * PER_SEED, by, forecast: forecast()}, null, 1));
+  const list = chosen(), by = {}; for (const s of list) { const k = `${s.lang}/${s.kind}`; by[k] = (by[k] ?? 0) + 1; }
+  console.log(JSON.stringify({only: ONLY || null, seeds: list.length, utterances: list.length * PER_SEED, by, forecast: forecast()}, null, 1));
 } else if (cmd === 'submit') {
   const f = forecast();
   console.log(`forecast: ${f.requests} requests, ~${f.input} input + ~${f.output} output tokens, ~$${f.usd.toFixed(2)} at batch prices (cap $${MAX_USD})`);
   if (!(f.usd <= MAX_USD)) { console.error('refused: the forecast is over the cap'); process.exit(3); }
   mkdirSync(join(OUT, 'gen'), {recursive: true});
-  const body = JSON.stringify({requests: seeds.map(request)});
+  const body = JSON.stringify({requests: chosen().map(request)});
   const created = JSON.parse(await api('/v1/messages/batches', {method: 'POST', body}));
-  writeFileSync(join(OUT, 'gen', `batch-${created.id}.json`), JSON.stringify({id: created.id, createdAt: created.created_at, model: MODEL, perSeed: PER_SEED, phenomena: PHENOMENA.map(p => p[0]), seeds, forecast: f}, null, 1));
+  writeFileSync(join(OUT, 'gen', `batch-${created.id}.json`), JSON.stringify({id: created.id, createdAt: created.created_at, model: MODEL, perSeed: PER_SEED, phenomena: PHENOMENA.map(p => p[0]), only: ONLY || null, seeds: chosen(), forecast: f}, null, 1));
   console.log(`batch ${created.id} created (${created.processing_status}); wait with: node scripts/zigi/spoken-corpus-gen.mjs wait ${created.id}`);
 } else if (cmd === 'wait' || cmd === 'fetch') {
   const id = args[1]; if (!id) { console.error('batch id missing'); process.exit(2); }
@@ -211,8 +241,14 @@ if (cmd === 'seeds') {
     succeeded++;
     list.forEach((ask, i) => asks.push({id: `sp-${s.id}-${meta.phenomena[i]}`, seed: s.id, concept: s.concept, phenomenon: meta.phenomena[i], lang: s.lang, area: s.area, page: s.page, kind: s.kind, ask: ask.trim(), expect: s.expect, ...(s.important ? {important: true} : {}), ...(s.health ? {health: s.health} : {})}));
   }
-  const holdout = asks.filter(a => parseInt(hash(a.id).slice(0, 8), 16) % 100 < 30), train = asks.filter(a => !holdout.includes(a));
+  let holdout = asks.filter(a => parseInt(hash(a.id).slice(0, 8), 16) % 100 < 30), train = asks.filter(a => !holdout.includes(a));
   mkdirSync(OUT, {recursive: true});
+  if (meta.only) { // a top-up: keep every earlier row whose seed is outside the prefix, replace the prefix's own rows
+    const keep = name => existsSync(join(OUT, name)) ? readFileSync(join(OUT, name), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)).filter(a => !String(a.seed).startsWith(meta.only)) : [];
+    const earlierTrain = keep('train.jsonl'), earlierHoldout = keep('holdout.jsonl');
+    train = [...earlierTrain, ...train]; holdout = [...earlierHoldout, ...holdout];
+    console.log(`top-up ${meta.only}: ${earlierTrain.length} train + ${earlierHoldout.length} hold-out rows kept from before`);
+  }
   writeFileSync(join(OUT, 'train.jsonl'), train.map(a => JSON.stringify(a)).join('\n') + '\n');
   writeFileSync(join(OUT, 'holdout.jsonl'), holdout.map(a => JSON.stringify(a)).join('\n') + '\n');
   const cost = estimateCost(MODEL, usage, {batch: true});

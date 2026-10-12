@@ -38,7 +38,7 @@ test('fixture is deterministic, schema-valid, bounded and satisfies full invento
  expect(p.positions).toHaveLength(13);expect(p.positions.map(x=>x.asset)).toEqual(expect.arrayContaining(['BTC','ETH','ZIG','USDC','AAPL','NVDA','GOLD','SILVER','VOO','USD','EUR','HOME','CUSTOM']));
  expect(p.goals).toHaveLength(6);expect(new Set(p.goals.map(g=>g.type))).toEqual(new Set(['VALUE','QUANTITY','PROJECT','REWARD']));
  expect(p.watchlist.length).toBeGreaterThanOrEqual(7);expect(p.watchlist.some(f=>!p.positions.some(p=>p.marketRef?.id===f.ref.id))).toBe(true);
- expect(h.habits).toHaveLength(6);expect(h.habits.every(h=>h.entries.length>=30)).toBe(true);expect(new Set(health.diary.filter(x=>x.date===fixture.day).map(x=>x.meal)).size).toBe(4);
+ expect(h.habits).toHaveLength(7);/* six plus the quit habit, Session AA-Local Part 7 (ADR-022 B42) */expect(h.habits.every(h=>h.entries.length>=30)).toBe(true);expect(new Set(health.diary.filter(x=>x.date===fixture.day).map(x=>x.meal)).size).toBe(4);
  for(const raw of Object.values(fixture.records))expect(new TextEncoder().encode(raw).length).toBeLessThan(2_000_000);
  expect(p.valuationSnapshots.length).toBeGreaterThan(100);expect(p.goalHistory.length).toBeGreaterThan(60);expect(p.contributions.some(e=>e.reversesId)).toBe(true);
  const now=Date.parse(fixture.day+'T23:59:00Z');expect(new Set(p.goals.filter(g=>g.type!=='PROJECT').map(g=>fundingHealth(p,g.id,now).status))).toEqual(new Set(['AHEAD','ON_TRACK','BEHIND','COMPLETED','REVIEW']));

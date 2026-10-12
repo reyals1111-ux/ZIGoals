@@ -1,5 +1,5 @@
 import {habitDataSchema, habitRuleOn, latestHabitRule, logHabitValue, type Habit, type HabitData} from '../../habits';
-import {finishHabitTimer, startHabitTimer, discardHabitTimer, habitTimerPreview} from '../../habit-actions';
+import {finishHabitTimer, startHabitTimer, discardHabitTimer, habitTimerPreview} from '../../habit-timer-actions';
 import {HABIT_EXTRAS} from '../../habits-extras/schema';
 import {DEFAULT_AREA_IDS} from '../../habits-extras/areas-mirror';
 import {applyFreeze, freezesAvailable, repairableDays} from '../../game/freeze';

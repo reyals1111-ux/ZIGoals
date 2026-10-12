@@ -27,7 +27,7 @@ function prefixed(base:Store,prefix:string):Storage{
 beforeEach(()=>{vi.stubGlobal('navigator',{locks:{request:async(_key:string,work:()=>unknown)=>work()}});});
 
 // Real module data (the Showcase generator), scaled to large backups with distinct record identities.
-const showcase=buildShowcase('2026-10-01').records,baseHabits=JSON.parse(showcase[HABITS_KEY]!) as HabitData,baseHealth=JSON.parse(showcase[HEALTH_STORAGE_KEY]!) as HealthData;
+const showcase=buildShowcase('2026-10-01',undefined,{aa:false}).records,/* the lean Showcase: this test's quota arithmetic is Session F's; Session AA-Local's additions (ADR-022 B42) are measured by lib/showcase-aa.test.ts */baseHabits=JSON.parse(showcase[HABITS_KEY]!) as HabitData,baseHealth=JSON.parse(showcase[HEALTH_STORAGE_KEY]!) as HealthData;
 const habitsBackup=(count:number)=>JSON.stringify(habitDataSchema.parse({...baseHabits,habits:Array.from({length:count},(_,n)=>({...baseHabits.habits[n%baseHabits.habits.length]!,id:`92000000-0000-4000-8000-${String(n+1).padStart(12,'0')}`}))}));
 const healthBackup=(copies:number)=>JSON.stringify(healthSchema.parse({...baseHealth,diary:Array.from({length:copies},(_,k)=>baseHealth.diary.map(row=>({...row,id:`${row.id}-${k}`}))).flat()}));
 const A=habitsBackup(190),B=habitsBackup(180),H1=healthBackup(20),H2=healthBackup(19);

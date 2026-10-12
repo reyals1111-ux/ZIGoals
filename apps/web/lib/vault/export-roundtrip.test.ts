@@ -74,7 +74,7 @@ test('rich data in all four domains round-trips byte-identically, durable and le
  const finance=JSON.parse(data.finance!),habits=JSON.parse(data.habits!),health=JSON.parse(data.health!);
  expect(finance.positions.some((p:{archivedAt?:string})=>p.archivedAt)).toBe(true);expect(finance.goals.some((g:{status:string})=>g.status==='closed')).toBe(true);
  expect(habits.habits.length).toBeGreaterThan(150);expect(habits.habits.some((h:{rules:{state:string}[]})=>h.rules.at(-1)!.state==='archived')).toBe(true);
- expect(health.recipes.length).toBe(1);expect(health.foods.some((f:{id:string})=>f.id==='health_custom-food-1')).toBe(true);
+ expect(health.recipes.length).toBe(3); // the fixture's one plus the Showcase's two (Session AA-Local Part 7, ADR-022 B42)expect(health.foods.some((f:{id:string})=>f.id==='health_custom-food-1')).toBe(true);
  await expectIdentical(data);
 },60000);
 
