@@ -83,3 +83,24 @@ The full table is `docs/product/PAGE_ORDER_AA.md`. What touches your lane:
 - **Fonts:** the app's font stack is the system UI font now (`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
   "Helvetica Neue", Arial, "Liberation Sans", system-ui, sans-serif`; no Inter). ZIGi's title fit (C56) measures whatever
   font draws it; on CI's Linux runners Arial resolves to Liberation Sans in both Chrome and WebKit.
+
+## 2026-10-12 — Part 2: Goals G1–G8 (pushed)
+Stores and pure mutators, for ZIGi card kinds after this PR merges (each returns the next record; nothing touches storage;
+the page writes through `useDeviceRecord`):
+- **`lib/goal-extras/store.ts`** (`zigoals:goal-extras:v1`, device-only, loose, versioned; spec `GOAL_EXTRAS`): `setGoalArea(x,
+  goalKey, area|null, at)`, `setGoalReasons(x, goalKey, {why?, obstacle?, ifThen?}, at)`, `setGoalVision(x, goalKey, vision|null,
+  at)`, `setGoalStory`, `setGoalTemplate`, `setGoalParent(x, goalKey, parentKey|null, at)` (three levels, no cycles),
+  `addCustomArea(x, label, color)`, `removeCustomArea`, **`setHabitArea(x, habitId, area|null)`** (for your Habits UI: a habit's
+  life area for the balance wheel; habits without one count under "Habits & Mind"), `reconcileGoalExtras`, `moveGoalExtras`.
+  Goal keys: `private:<id>`, `legacy:<id>`, `health:<id>`, `average:<id>`.
+- **`lib/average-goals/store.ts`** (`zigoals:average-goals:v1`; spec `AVERAGE_GOALS`): `addAverageGoal`, `editAverageGoal`,
+  `logAverageValue(x, id, {day, value})`, `removeAverageValue`, `setAverageStatus`, `removeAverageGoal`; `averageProgress(goal,
+  health, today)` reads Health's sleep, steps and water days.
+- **`lib/vision/store.ts`** (IndexedDB `zigoals-vision-v1`): photos, compressed on the device; not for ZIGi cards.
+- **Engines:** `lib/goal-forecast.ts` (`paceForecast`, `forecastWords`), `lib/goal-hierarchy.ts` (`rollUp`, `goalTree`),
+  `lib/life-balance.ts`, `lib/achievements.ts`, `lib/templates/goal-library.ts` (42 templates, `searchTemplates`),
+  `lib/templates/template-habits.ts` (a template habit as `HabitInput` for your `createHabit`).
+- **Routes:** `/app/goals/templates`, `/app/goals/new?template=<id>`, `/app/goals/average/new?template=<id>`,
+  `/app/goals/average/<id>`, `/app/goals?view=board|tree`.
+- **Celebrations:** none emitted yet from these pages; Part 6 sends one app event per finished goal through
+  `components/zigi/bus.ts` (`zigiEvents`), your celebration layer decides what to show.
