@@ -1,0 +1,23 @@
+/*
+ * Session AA-Cloud Part 1, the premium pass: one look for every page's section titles. A section title is white on its
+ * left and takes the nebula colour from its middle to its end (the design system's --nebula-flow-mid, as the page titles
+ * already do), so Goals, Wealth, Markets, Portfolio, Staking, Activity, Settings, Help, Ecosystem and Chess read as one
+ * app. Habits keeps its own accepted look (its headings use .habit-section-heading, not listed here). Titles that already
+ * hold a NebulaFlow span are left to it (design-system.css). Forced colours fall back to the system's text colour.
+ */
+:root :is(.section-heading, .wealth-section-heading, .positions-section-heading, .chess-head, .portfolio-panel-head, .market-explorer > header, .settings-group > header, .help-section) > :is(h2, div > h2):not(:has(.nebula-flow)),
+:root .settings-page section.panel > h2:not(:has(.nebula-flow)) {
+  background-image: var(--nebula-flow-mid);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--text-strong);
+}
+@media (forced-colors: active) {
+  :root :is(.section-heading, .wealth-section-heading, .positions-section-heading, .chess-head, .portfolio-panel-head, .market-explorer > header, .settings-group > header, .help-section) > :is(h2, div > h2),
+  :root .settings-page section.panel > h2 { -webkit-text-fill-color: CanvasText; background: none; }
+}
+/* Eyebrows above section titles read at 14 px in the meta colour everywhere (some pages set 12–13 px letter-spaced caps). */
+:root :is(.section-heading, .wealth-section-heading, .positions-section-heading) .eyebrow { font-size: 14px; color: var(--text-meta); }

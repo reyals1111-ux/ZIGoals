@@ -52,17 +52,23 @@ const widgetSchema=z.object(widgetFields(z.enum(WIDGET_KINDS_V1))).strict().supe
 const widgetV3Schema=z.object(widgetFields(z.enum([...WIDGET_KINDS_V1,...WIDGET_KINDS_V3_ONLY]))).strict().superRefine(widgetRules);
 export type DashboardWidget=z.infer<typeof widgetV3Schema>;
 export const isV3WidgetKind=(kind:WidgetKind)=>(WIDGET_KINDS_V3_ONLY as readonly string[]).includes(kind);
+/**
+ * Today's built-in cards in their default order (Session AA-Cloud Part 1, docs/product/PAGE_ORDER_AA.md): the whole-life
+ * overview first, as Run10's approved hierarchy keeps it (key figures), then the day's own items (Habits, Health), then
+ * Goals with the attention agenda leading them, then money, then the widget summary and the person's widgets. Only the default changes: a stored placement keeps its own order, and the ids
+ * and the stored shape are exactly as before, so every earlier build reads a placement saved here.
+ */
 export const DASHBOARD_BUILTINS=[
  {id:'whole-life',label:'Whole-life overview',region:'main',hideable:false,financial:false},
+ {id:'habits',label:'Daily Habits',region:'main',hideable:true,financial:false},
+ {id:'health',label:'Daily Health',region:'main',hideable:true,financial:false},
  {id:'attention',label:'Attention agenda',region:'main',hideable:false,financial:false},
+ {id:'goals',label:'Your Goals',region:'main',hideable:true,financial:true},
+ {id:'next-action',label:'Next Goal action',region:'main',hideable:true,financial:true},
  {id:'funding',label:'Funding rhythm',region:'main',hideable:true,financial:true},
  {id:'needs-attention',label:'Records needing attention',region:'main',hideable:false,financial:false},
  {id:'watchlist',label:'Watchlist',region:'main',hideable:true,financial:true},
- {id:'goals',label:'Your Goals',region:'main',hideable:true,financial:true},
  {id:'progress',label:'Financial progress',region:'main',hideable:true,financial:true},
- {id:'habits',label:'Daily Habits',region:'main',hideable:true,financial:false},
- {id:'health',label:'Daily Health',region:'main',hideable:true,financial:false},
- {id:'next-action',label:'Next Goal action',region:'main',hideable:true,financial:true},
  {id:'summary',label:'Widget summary',region:'main',hideable:false,financial:false},
  {id:'wallet',label:'Wallet',region:'rail',hideable:true,financial:true},
  {id:'staking',label:'Staking',region:'rail',hideable:true,financial:true},
@@ -70,7 +76,12 @@ export const DASHBOARD_BUILTINS=[
  {id:'activity',label:'Recent activity',region:'rail',hideable:true,financial:true},
 ] as const;
 export type DashboardBuiltinId=typeof DASHBOARD_BUILTINS[number]['id'];
-const builtinIdSchema=z.enum(DASHBOARD_BUILTINS.map(b=>b.id));
+/**
+ * The stored format's own list of built-in ids, in the order settings v1–v3 have always declared it (Session AA-Cloud:
+ * the display order above changed, the format did not; lib/vault/schema-snapshot.test.ts pins its digest).
+ */
+const BUILTIN_IDS_V1=['whole-life','attention','funding','needs-attention','watchlist','goals','progress','habits','health','next-action','summary','wallet','staking','destination','activity'] as const satisfies readonly DashboardBuiltinId[];
+const builtinIdSchema=z.enum(BUILTIN_IDS_V1);
 const itemRefSchema=z.discriminatedUnion('kind',[
  z.object({kind:z.literal('builtin'),id:builtinIdSchema}).strict(),
  z.object({kind:z.literal('widget'),id:z.string().min(1).max(100)}).strict(),
@@ -162,9 +173,16 @@ export function removeWidget(s:DashboardSettings,id:string):DashboardSettings{
  const p=s.placement?reconcileDashboardPlacement(s):undefined,keep=(r:DashboardItemRef)=>r.kind!=='widget'||r.id!==id;
  return dashboardSettingsSchema.parse({...s,widgets:s.widgets.filter(w=>w.id!==id),...(p?{placement:{...p,revision:p.revision+1,main:p.main.filter(keep),rail:p.rail.filter(keep)}}:{})});
 }
+/** Built-ins that follow the person's widgets in the default order (none since the whole-life overview leads Today again). */
+export const DEFAULT_MAIN_TAIL:readonly DashboardBuiltinId[]=[];
+/** Today's groups in the default order (Session AA-Cloud Part 1); widgets belong to "Your widgets". */
+export const TODAY_GROUPS=[{id:'life',label:'Your whole life'},{id:'day',label:'Your day'},{id:'goals',label:'Goals'},{id:'money',label:'Money'},{id:'widgets',label:'Your widgets'}] as const;
+export type TodayGroup=typeof TODAY_GROUPS[number]['id'];
+const BUILTIN_GROUP:Record<string,TodayGroup>={habits:'day',health:'day',goals:'goals','next-action':'goals',attention:'goals',funding:'goals','needs-attention':'money',watchlist:'money',progress:'money',summary:'widgets','whole-life':'life'};
+export const todayGroup=(ref:DashboardItemRef):TodayGroup=>ref.kind==='widget'?'widgets':BUILTIN_GROUP[ref.id]??'widgets';
 function defaultPlacement(s:DashboardSettings):DashboardPlacement{
- const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth');
- return {version:1,revision:1,main:[...DASHBOARD_BUILTINS.filter(b=>b.region==='main').map(b=>({kind:'builtin' as const,id:b.id})),...s.widgets.map(w=>({kind:'widget' as const,id:w.id}))],rail:DASHBOARD_BUILTINS.filter(b=>b.region==='rail').map(b=>({kind:'builtin' as const,id:b.id})),hiddenBuiltins:DASHBOARD_BUILTINS.filter(b=>b.hideable&&b.financial&&!financial).map(b=>b.id)};
+ const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth'),builtin=(b:{id:DashboardBuiltinId})=>({kind:'builtin' as const,id:b.id}),main=DASHBOARD_BUILTINS.filter(b=>b.region==='main');
+ return {version:1,revision:1,main:[...main.filter(b=>!DEFAULT_MAIN_TAIL.includes(b.id)).map(builtin),...s.widgets.map(w=>({kind:'widget' as const,id:w.id})),...main.filter(b=>DEFAULT_MAIN_TAIL.includes(b.id)).map(builtin)],rail:DASHBOARD_BUILTINS.filter(b=>b.region==='rail').map(b=>({kind:'builtin' as const,id:b.id})),hiddenBuiltins:DASHBOARD_BUILTINS.filter(b=>b.hideable&&b.financial&&!financial).map(b=>b.id)};
 }
 /** Read-only legacy reconciliation: incomplete known layouts fill deterministically; invalid backups throw. */
 export function reconcileDashboardPlacement(s:DashboardSettings):DashboardPlacement{

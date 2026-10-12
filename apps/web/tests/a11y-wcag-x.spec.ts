@@ -12,6 +12,9 @@ const PAGES: [path: string, title: string][] = [
   ['/app/wealth', 'Wealth'], ['/app/portfolio', 'Portfolio'], ['/app/markets', 'Markets'], ['/app/staking', 'Staking'],
   ['/app/ecosystem', 'Ecosystem'], ['/app/activity', 'Activity'], ['/app/chess', 'Chess'], ['/app/settings', 'Settings'],
   ['/app/help', 'Help'], ['/app/welcome', 'Welcome'],
+  // Session AA-Cloud: the pages this session added.
+  ['/app/wealth/calculator', 'Compound interest calculator'], ['/app/review', 'Life review'], ['/app/settings/data', 'Your data'],
+  ['/app/goals/templates', 'Goal templates'], ['/app/goals/average/new', 'Keep an average'], ['/app/share?text=A%20shared%20note', 'Shared with ZIGoals'],
 ];
 // Health's own views load on demand after a placeholder; each is checked once its heading is there. Same page title.
 const SLEEP: [path: string, heading: string] = ['/app/health?view=sleep', 'Your sleep, your rhythm.'];

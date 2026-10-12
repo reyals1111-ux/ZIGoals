@@ -86,3 +86,6 @@
 .staking-placeholder p{margin:0;color:#c4d3e6;font-size:.9375rem;line-height:1.6}
 .staking-placeholder .text-link{justify-self:start;min-height:44px;display:inline-flex;align-items:center}
 .staking-placeholder-more{padding-top:.55rem;border-top:1px solid #8fb1dc24}
+/* Session AA-Cloud Part 1: on a phone the wallet and scenario tools are rendered after the positions (a direct child of
+   the page); they keep that place in the page's flow. */
+.positions-workspace > .positions-rail { grid-row: auto; margin-top: 24px; }

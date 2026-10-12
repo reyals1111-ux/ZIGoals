@@ -24,7 +24,9 @@ const stored = async (page: Page): Promise<WeeklyReview | null> => {
   if (!SYNC_WRITES) return JSON.parse(first ?? 'null') as WeeklyReview | null;
   return weeklyReviewIn(first ? JSON.parse(first) : emptyDashboardSettings(), second ? JSON.parse(second) : createEmptyHealth());
 };
-const homeEntries = (page: Page) => page.evaluate(keys => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => keys.some(key => k.includes(key)))), HOMES);
+// Sorted (Session AA-Cloud CI fix): Chromium's storage order can change when another key is added (the public market
+// caches write theirs while Today loads), so the same records were read in another order; every key and byte still counts.
+const homeEntries = (page: Page) => page.evaluate(keys => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => keys.some(key => k.includes(key))).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)), HOMES);
 async function seed(page: Page) {
   let habits = createHabit(emptyHabitData(), {title: 'Stretch', category: 'Health', description: '', notes: '', schedule: {kind: 'daily'}, target: 1, measurement: {kind: 'count', unit: 'times'}}, new Date('2026-09-01T08:00:00.000Z'), '11111111-1111-4111-8111-111111111111');
   habits = logHabitCount(habits, '11111111-1111-4111-8111-111111111111', '2026-09-14', 1, '', new Date('2026-09-14T08:00:00.000Z'));
@@ -38,10 +40,13 @@ async function nextToLastStep(dialog: Locator) {
   while (await next.count()) { const before = await step.textContent(); await next.click(); await expect(step).not.toHaveText(before!); }
 }
 const card = (page: Page) => page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
-/** On a phone one "For you" card is open; the review may wait behind Show more. */
+/**
+ * The review sits in Today's "Updates and summaries" (Session AA-Cloud Part 1; it was in "For you"), under the same fold
+ * rules: on a phone its cards wait behind Show more.
+ */
 async function reveal(page: Page) {
-  await expect(page.getByRole('region', {name: 'For you', exact: true})).toBeVisible();
-  if (!(await card(page).isVisible().catch(() => false))) { const fold = page.getByRole('region', {name: 'For you', exact: true}).getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
+  await expect(page.getByRole('region', {name: 'Updates and summaries', exact: true})).toBeVisible();
+  if (!(await card(page).isVisible().catch(() => false))) { const fold = page.getByRole('region', {name: 'Updates and summaries', exact: true}).getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
 }
 
 test('on the review day: six steps with the week\'s own numbers, an intention, finish; the card leaves and stays away', async ({page}) => {

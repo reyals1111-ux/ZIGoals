@@ -8,6 +8,16 @@ const ICONS = [
   {src: '/icons/zigoals-512.png', sizes: '512x512', type: 'image/png', purpose: 'any'},
   {src: '/icons/zigoals-maskable-1024.png', sizes: '1024x1024', type: 'image/png', purpose: 'maskable'},
 ];
+// Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): four Home Screen shortcuts, each with a 96 px icon.
+const shortcut = (name: string, short_name: string, description: string, url: string, icon: string) => ({name, short_name, description, url, icons: [{src: `/icons/shortcut-${icon}-96.png`, sizes: '96x96', type: 'image/png'}]});
+const SHORTCUTS = [
+  shortcut('Quick add', 'Quick add', 'Add a goal, an asset, a habit or a Health entry', '/app?shortcut=quick-add', 'quick-add'),
+  shortcut('Log water', 'Water', 'Today\'s one-tap water, ready to log', '/app?shortcut=water', 'water'),
+  shortcut('Check in a habit', 'Habits', 'Today\'s habits, ready to check in', '/app/habits', 'habit'),
+  shortcut('Ask ZIGi', 'ZIGi', 'Open ZIGi with an empty question', '/app?shortcut=ask', 'ask'),
+];
+/** The exact bytes main 72ad872's metadata route served (Session X Part 5a); every later manifest begins with them. */
+const MANIFEST_72AD872_SHA256 = '0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92';
 
 /** Width, height and whether a PNG can hold transparency (an alpha channel or a tRNS chunk). */
 function png(bytes: Buffer) {
@@ -30,17 +40,24 @@ test('the manifest describes the installed ZIGoals app', async ({request}) => {
     id: '/app', name: 'ZIGoals', short_name: 'ZIGoals',
     description: 'Plan, fund and track goals in a clearly labelled local demo or ZIGChain Testnet. Independent, unaudited alpha.',
     start_url: '/app', scope: '/', display: 'standalone', background_color: '#020918', theme_color: '#020918', icons: ICONS,
+    shortcuts: SHORTCUTS,
+    // Session AA-Cloud Part 7 ([TIER 3] (PWA/manifest), deliberate): a GET share target; files and images are not accepted.
+    share_target: {action: '/app/share', method: 'GET', params: {title: 'title', text: 'text', url: 'url'}},
   });
 });
 
 // Session X Part 5a: the manifest became a static file at the same address. Its bytes are exactly what main 72ad872's
 // metadata route served (sha256 below, captured from that build), so apps already saved to a Home Screen keep the same
 // id, start page, scope and icons. As a public file it bypasses middleware: no page policy, no no-store.
-test('the static manifest is byte-identical to the one 72ad872 served, at the same address', async ({request}) => {
+// Session AA-Cloud Part 7 (deliberate, as strict): the file grows by its new fields only. Everything 72ad872 served comes
+// first, byte for byte (its bytes without the closing brace hash to the pin above once the brace is put back), and the
+// whole file is pinned by its own hash.
+test('the static manifest keeps 72ad872\'s bytes first, at the same address, and is pinned as a whole', async ({request}) => {
   const response = await request.get('/manifest.webmanifest');
   expect(response.status()).toBe(200);
-  const body = await response.body();
-  expect(createHash('sha256').update(body).digest('hex')).toBe('0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92');
+  const body = await response.body(), text = body.toString('utf8'), prefix = text.slice(0, text.indexOf(',"shortcuts":'));
+  expect(createHash('sha256').update(`${prefix}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
+  expect(createHash('sha256').update(body).digest('hex')).toBe('29957d7933da2ad24469c5f4c73241ad03be34cecd361ed7565b6e0a1498e6c3');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');
@@ -48,7 +65,7 @@ test('the static manifest is byte-identical to the one 72ad872 served, at the sa
 });
 
 test('every icon is an opaque PNG of its declared size, including the Home Screen icon', async ({request}) => {
-  for (const {src, sizes} of [...ICONS, {src: '/apple-touch-icon.png', sizes: '180x180'}]) {
+  for (const {src, sizes} of [...ICONS, {src: '/apple-touch-icon.png', sizes: '180x180'}, ...SHORTCUTS.map(s => s.icons[0]!)]) {
     const response = await request.get(src);
     expect(response.status(), src).toBe(200);
     expect(response.headers()['content-type'], src).toContain('image/png');

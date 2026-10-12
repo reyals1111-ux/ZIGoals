@@ -1,0 +1,30 @@
+/* Session AA-Cloud Part 4: the search palette. A centred panel on wide screens, a full-screen sheet on a phone; no
+   motion of its own. Text 14 px or larger, the field 17 px, rows 48 px tall. */
+:root .search-palette { width: min(680px, calc(100vw - 32px)); max-height: min(78vh, 720px); margin: 10vh auto auto; padding: 0; border: 1px solid #8fe6f455; border-radius: 22px; background: linear-gradient(160deg, #0d1a2ef7, #141838f7); color: var(--text-strong); box-shadow: 0 30px 80px #000c; overflow: hidden; }
+:root .search-palette::backdrop { background: #02060fcc; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+:root .search-box { display: flex; flex-direction: column; max-height: inherit; }
+:root .search-field { display: flex; align-items: center; gap: 10px; padding: 12px 14px 12px 18px; border-bottom: 1px solid #6c9cc533; color: var(--text-secondary); }
+:root .search-field input { flex: 1; min-width: 0; min-height: 48px; border: 0; background: none; color: var(--text-strong); font: inherit; font-size: 17px; outline: none; }
+:root .search-field input::-webkit-search-cancel-button { display: none; }
+:root .search-close { min-height: 44px; }
+:root .search-results { flex: 1; overflow-y: auto; margin: 0; padding: 8px; list-style: none; overscroll-behavior: contain; }
+:root .search-results ul { margin: 0; padding: 0; list-style: none; }
+:root .search-group + .search-group, :root .search-group + .is-ask { margin-top: 6px; }
+:root .search-group-label { display: block; padding: 10px 12px 4px; font-size: 14px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--text-meta); }
+:root .search-row { display: grid; gap: 2px; min-height: 48px; padding: 8px 12px; border-radius: 12px; cursor: pointer; align-content: center; }
+:root .search-row[aria-selected=true] { background: linear-gradient(120deg, #1f4a63cc, #3a2f6ecc); box-shadow: inset 0 0 0 1px #8fe6f466; }
+:root .search-row-title { font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+:root .search-row-detail { font-size: 14px; color: var(--text-secondary); overflow-wrap: anywhere; }
+:root .search-row.is-ask { margin-top: 6px; border-top: 1px solid #6c9cc526; border-radius: 0 0 12px 12px; }
+:root .search-row.is-ask .search-row-title { background: var(--nebula-flow-mid, linear-gradient(90deg, #9fe9f7, #d9a4ff)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+:root .search-row[aria-disabled=true] { cursor: default; opacity: .8; }
+:root .search-empty { padding: 14px 12px; font-size: 15px; color: var(--text-secondary); }
+:root .search-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 18px 14px; border-top: 1px solid #6c9cc526; font-size: 14px; color: var(--text-secondary); }
+:root .search-foot p { margin: 0; }
+:root .search-foot .text-link { min-height: 44px; }
+:root .search-keys kbd { display: inline-block; min-width: 22px; padding: 1px 6px; margin-right: 2px; border-radius: 6px; border: 1px solid #6c9cc555; font: inherit; font-size: 14px; text-align: center; }
+@media (max-width: 767.98px) {
+  :root .search-palette { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+  :root .search-field { padding: calc(env(safe-area-inset-top, 0px) + 8px) 10px 8px 16px; }
+  :root .search-keys { display: none; }
+}

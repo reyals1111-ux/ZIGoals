@@ -1,0 +1,7 @@
+/* Session AA-Cloud Part 7: the share inbox. */
+:root .share-inbox { display: grid; gap: 16px; max-width: 760px; }
+:root .share-card { margin: 0; padding: 16px 18px; border-radius: 16px; border-left: 4px solid #8fa6ff; background: #0b172bcc; display: grid; gap: 8px; }
+:root .share-card strong { font-size: 18px; }
+:root .share-card p { margin: 0; font-size: 16px; line-height: 1.55; overflow-wrap: anywhere; }
+:root .share-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+:root .share-actions > * { min-height: 44px; }

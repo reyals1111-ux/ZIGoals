@@ -99,7 +99,8 @@ test('the weekly review\'s last step shows the Guide\'s paragraph only while the
   const review = page.getByRole('region', {name: /^(A short look back at your week\.|Continue your review\.)$/});
   const openReview = async () => {
     await page.goto('/app'); await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-    const area = page.getByRole('region', {name: 'For you', exact: true});
+    // The review sits in "Updates and summaries" (Session AA-Cloud Part 1); on a phone it waits behind Show more there.
+    const area = page.getByRole('region', {name: 'Updates and summaries', exact: true});
     if (!(await review.isVisible().catch(() => false))) { const fold = area.getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
     await review.getByRole('button', {name: /^(Start review|Continue)$/}).click();
     const dialog = page.getByRole('dialog', {name: 'Your week'}); await expect(dialog).toBeVisible();

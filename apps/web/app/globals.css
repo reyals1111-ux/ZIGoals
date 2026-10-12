@@ -3,7 +3,7 @@
   --bg: #060b19;
   --panel: #0d1629;
   --text: #f0f5ff;
-  --muted: #a1afc8;
+  --muted: var(--text-muted);
   --line: #25334f;
   --cyan: #45d8ef;
   --violet: #a698ff;
@@ -23,12 +23,18 @@ body {
   background:
     radial-gradient(ellipse at 15% 0, #10234380, transparent 45%), var(--bg);
   color: var(--text);
+  /* Session AA-Cloud Part 1: the system's own UI font, named explicitly (no web-font download). Apple devices draw San
+     Francisco, Windows Segoe UI, Android Roboto; Linux (CI's runners) reaches Liberation Sans through Arial, the same
+     face in Chrome and WebKit, so pixel checks measure one font everywhere (ADR-021 A5). */
   font-family:
-    Inter,
-    ui-sans-serif,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Liberation Sans",
+    system-ui,
     sans-serif;
   font-size: 15px;
   line-height: 1.65;
@@ -61,8 +67,9 @@ summary:focus-visible {
 button {
   cursor: pointer;
 }
+/* Session AA-Cloud Part 1: a disabled control still reads (≥ 4.5:1 measured on real pixels, ADR-021 A6). */
 button:disabled {
-  opacity: 0.48;
+  opacity: 0.66;
   cursor: not-allowed;
 }
 .skip {

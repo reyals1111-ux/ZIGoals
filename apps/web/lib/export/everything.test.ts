@@ -44,7 +44,7 @@ describe('T4 export everything', () => {
     expect(withAuto.length).toBe(12);
     for (const a of marked) expect(checkIns.some(l => l.startsWith(`"${a.habitId}"`) && l.includes(`"${a.date}"`) && l.endsWith(`"${a.appliedAt}"`)), `${a.habitId} ${a.date}`).toBe(true);
     const health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
-    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.length).toBe(24);
+    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(24); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
     expect(collected.csv['health-diary.csv']).toBe(exportHealthCsv(health, '1900-01-01', '2199-12-31'));
     expect(lines(collected.csv['weights.csv']).length).toBe(health.weights.length + (health.measurements ?? []).filter(m => m.kind === 'weight').length + 1);
     expect(lines(collected.csv['habits.csv']).length).toBe(habits.habits.length + 1);
@@ -115,5 +115,37 @@ describe('T4 export everything', () => {
     expect(JSON.stringify(collected.json.device.aiActions)).not.toContain(target.title);
     expect((collected.json.device.habitHealthLinks as typeof links).links.map(l => l.habitId)).toEqual([other.id]);
     expect((collected.json.device.habitHealthLinks as typeof links).applied.map(l => l.habitId)).toEqual([other.id]);
+  });
+});
+
+describe('Session AA-Cloud: goal extras, average goals and vision photos in Export everything', () => {
+  test('lists both device keys and writes each photo under vision/ by its id', async () => {
+    const {DEVICE_KEYS, EVERYTHING_KEYS, buildEverythingZip, collectEverything, visionFileName} = await import('./everything');
+    expect(DEVICE_KEYS.goalExtras).toBe('zigoals:goal-extras:v1');
+    expect(DEVICE_KEYS.averageGoals).toBe('zigoals:average-goals:v1');
+    expect([DEVICE_KEYS.calculator, DEVICE_KEYS.searchRecent, DEVICE_KEYS.lifeReview]).toEqual(['zigoals:calculator:v1', 'zigoals:search-recent:v1', 'zigoals:life-review:v1']);
+    expect(DEVICE_KEYS.todayCards).toBe('zigoals:today-cards:v1');
+    for (const key of ['zigoals:calculator:v1', 'zigoals:search-recent:v1', 'zigoals:life-review:v1', 'zigoals:today-cards:v1']) expect(EVERYTHING_KEYS).toContain(key);
+    expect(EVERYTHING_KEYS).toContain('zigoals:goal-extras:v1');
+    const extras = {version: 1, goals: {'private:1': {area: 'health', vision: {kind: 'photo', imageId: 'img-00000000-0000-4000-8000-000000000001'}}}, areas: []};
+    const collected = collectEverything({'zigoals:goal-extras:v1': JSON.stringify(extras)}, {now: new Date('2026-10-11T10:00:00Z'), version: 't', commit: 'c', localSimulation: {section: 'null'} as never});
+    expect(collected.json.device.goalExtras).toEqual(extras);
+    expect(visionFileName({id: 'img-00000000-0000-4000-8000-000000000001', type: 'image/jpeg'})).toBe('vision/img-00000000-0000-4000-8000-000000000001.jpg');
+    expect(visionFileName({id: '../evil/x', type: 'image/jpeg'})).toBe('vision/evilx.jpg');
+    const zip = buildEverythingZip(collected, {date: '2026-10-11', showcase: false, now: new Date('2026-10-11T10:00:00Z'), images: [{id: 'img-00000000-0000-4000-8000-000000000001', type: 'image/jpeg', bytes: new Uint8Array([0xff, 0xd8, 0xff, 0xd9])}]});
+    expect(new TextDecoder().decode(zip.bytes)).toContain('vision/img-00000000-0000-4000-8000-000000000001.jpg');
+  });
+});
+
+describe('Gate C security read: the copy leaves out what the device keeps only for Undo', () => {
+  test('a deleted goal\'s dormant extras and a deleted habit\'s area are not exported; the rest is, unchanged', () => {
+    const {records} = buildShowcase('2026-09-20');
+    const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), gone = habits.habits[0]!, live = habits.habits[1]!;
+    const archived = scheduleHabitState(habits, gone.id, 'archived', '2026-09-21', new Date('2026-09-20T12:00:00.000Z'));
+    const {data} = deleteHabitForGood(archived, gone.id, new Date('2026-09-22T12:00:00.000Z'));
+    const extras = {version: 1, areas: [], goals: {'private:1': {area: 'health', why: 'kept'}}, habitAreas: {[live.id]: 'health', [gone.id]: 'mind'}, dormant: {'private:9': {why: 'a deleted goal reason', dormantSince: '2026-10-01'}}};
+    const collected = collectEverything({[HABITS_KEY]: JSON.stringify(data), 'zigoals:goal-extras:v1': JSON.stringify(extras)}, APP);
+    expect(collected.json.device.goalExtras).toEqual({version: 1, areas: [], goals: {'private:1': {area: 'health', why: 'kept'}}, habitAreas: {[live.id]: 'health'}});
+    expect(JSON.stringify(collected.json)).not.toContain('a deleted goal reason');
   });
 });

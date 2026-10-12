@@ -82,8 +82,9 @@ test('Today offers to write the time zone down once: "Not now" hides it on this 
   await seed(page, {[HABITS]: habits, [SETTINGS]: onboarded, [WHATS_NEW_KEY]: {version: 1, dismissed: [WHATS_NEW_RELEASE]}});
   await page.goto('/app');
   const card = page.locator('.journal-zone-card');
-  // On a phone one For-you card is open; the time zone card has the lowest priority, so it may wait behind "Show more".
-  const more = async () => { await expect(page.getByRole('heading', {level: 1})).toBeVisible(); const fold = page.locator('.for-you-fold .phone-fold-toggle'); if (await fold.count() && await card.count() === 0) await fold.click(); };
+  // On a phone For you's cards wait behind "Show more" (Session AA-Cloud Part 1: Today also has "Updates and summaries",
+  // so the fold is the one in For you).
+  const more = async () => { await expect(page.getByRole('heading', {level: 1})).toBeVisible(); const fold = page.getByRole('region', {name: 'For you', exact: true}).locator('.for-you-fold .phone-fold-toggle'); if (await fold.count() && await card.count() === 0) await fold.click(); };
   await more();
   await expect(card).toContainText('Your days follow this device for now.');
   await card.getByRole('button', {name: 'Not now', exact: true}).click();

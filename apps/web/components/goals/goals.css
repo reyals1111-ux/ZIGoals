@@ -1,0 +1,212 @@
+/* Session AA-Cloud Part 2: Goals best-in-class, in the cosmic/nebula language. Text ≥ 14 px, targets ≥ 44 px, no motion
+   beyond the shared one-time entrances (none here move on their own). */
+
+/* Key figures under the header. */
+:root .goals-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 20px; }
+:root .goals-figures > div { min-width: 0; padding: 14px 16px; border-radius: 18px; border: 1px solid #6c9cc533; background: linear-gradient(140deg, #12233acc, #1b1a3acc); }
+:root .goals-figures dt { font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-meta); }
+:root .goals-figures dd { margin: 4px 0 0; display: grid; gap: 2px; }
+:root .goals-figures strong { font-size: 30px; line-height: 1.1; background: var(--nebula-flow-mid); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+:root .goals-figures small { font-size: 14px; color: var(--text-secondary); }
+@media (max-width: 767.98px) { :root .goals-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } :root .goals-figures strong { font-size: 24px; } }
+
+/* View switch. */
+:root .goals-view-switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; border: 1px solid #6c9cc540; background: #0d1a2ecc; margin-left: auto; }
+:root .goals-view-switch button { min-height: 44px; padding: 8px 14px; border: 0; border-radius: 10px; background: none; color: var(--text-secondary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+:root .goals-view-switch button[aria-pressed=true] { background: linear-gradient(120deg, #1f4a63, #3a2f6e); color: var(--text-strong); box-shadow: inset 0 0 0 1px #8fe6f455; }
+@media (max-width: 767.98px) { :root .goals-view-switch { margin: 8px 0 0; width: 100%; } :root .goals-view-switch button { flex: 1; padding-inline: 6px; } }
+
+/* Vision art. */
+:root .vision-art { position: relative; overflow: hidden; display: grid; place-items: center; border-radius: 18px; min-height: 120px; background-size: cover; isolation: isolate; }
+:root .vision-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, #ffffff22, transparent 45%); pointer-events: none; }
+:root .vision-art > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+:root .vision-emoji { position: relative; z-index: 1; font-size: 52px; filter: drop-shadow(0 6px 18px #0008); }
+:root .vision-missing { position: relative; z-index: 1; padding: 6px 10px; border-radius: 10px; background: #0009; font-size: 14px; }
+
+/* Vision board: a masonry grid. */
+:root .vision-board { list-style: none; margin: 0; padding: 0; columns: 3 260px; column-gap: 16px; }
+:root .vision-tile { break-inside: avoid; margin: 0 0 16px; }
+:root .vision-tile-link { display: grid; border-radius: 22px; overflow: hidden; border: 1px solid #7aa7d040; background: #0e1a2fcc; color: inherit; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease; }
+:root .vision-tile-art { min-height: 170px; border-radius: 0; }
+:root .vision-tile[data-tall] .vision-tile-art { min-height: 260px; }
+:root .vision-tile-body { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+:root .vision-tile-body > span:last-child { display: grid; gap: 2px; min-width: 0; }
+:root .vision-tile-body strong { font-size: 17px; line-height: 1.3; }
+:root .vision-tile-body small { font-size: 14px; color: var(--text-secondary); }
+@media (hover: hover) { :root .vision-tile-link:hover { transform: translateY(-2px); box-shadow: 0 14px 40px #4d7cff22; } }
+@media (prefers-reduced-motion: reduce) { :root .vision-tile-link { transition: none; } :root .vision-tile-link:hover { transform: none; } }
+:root[data-app-motion=off] .vision-tile-link { transition: none; }
+@media (max-width: 599px) { :root .vision-board { columns: 2 150px; column-gap: 10px; } :root .vision-tile { margin-bottom: 10px; } :root .vision-tile-art { min-height: 120px; } :root .vision-tile[data-tall] .vision-tile-art { min-height: 180px; } :root .vision-tile-body { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; } }
+
+/* Tree. */
+:root .goal-tree { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+:root .goal-tree ul { list-style: none; margin: 8px 0 0 22px; padding: 0 0 0 16px; border-left: 1px solid #7aa7d044; display: grid; gap: 8px; }
+:root .goal-tree li { min-width: 0; }
+:root .goal-tree > li > a, :root .goal-tree ul > li > a { color: inherit; }
+:root .goal-tree-meta { margin-left: 10px; font-size: 14px; color: var(--text-meta); }
+:root .goal-tree.is-page .goal-tree-row { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 10px 14px; border-radius: 16px; border: 1px solid #6c9cc533; background: #0f1d33cc; color: inherit; text-decoration: none; }
+:root .goal-tree-row > .goal-tree-text { display: grid; gap: 2px; min-width: 0; }
+:root .goal-tree-text strong { font-size: 16px; }
+:root .goal-tree-text small { font-size: 14px; color: var(--text-secondary); }
+
+/* Average goals. */
+:root .average-goal-card { display: grid; gap: 10px; align-content: start; }
+:root .average-goal-card h2 { margin: 0; font-size: 22px; }
+:root .average-goal-card h2 a { color: inherit; text-decoration: none; }
+:root .average-goal-figure { display: flex; align-items: center; gap: 16px; }
+:root .average-goal-figure > div { display: grid; gap: 2px; min-width: 0; }
+:root .average-goal-figure strong { font-size: 28px; line-height: 1.15; }
+:root .average-goal-figure.is-large strong { font-size: 40px; }
+:root .average-goal-figure span { font-size: 15px; color: var(--text-secondary); }
+:root .average-goal-figure small { font-size: 14px; color: var(--text-meta); }
+:root .average-goal-state { margin: 0; font-size: 15px; color: var(--text-secondary); }
+:root .average-goal-state.is-met { color: var(--accent-teal); }
+:root .average-goal-form, :root .average-goal-page { display: grid; gap: 18px; max-width: 920px; }
+:root .average-goal-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+:root .average-windows { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+:root .average-windows legend { font-size: 15px; margin-bottom: 6px; }
+:root .average-windows label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #6c9cc540; }
+:root .average-days { list-style: none; margin: 16px 0 6px; padding: 0; display: flex; align-items: flex-end; gap: 4px; height: 96px; }
+:root .average-days li { flex: 1; height: 100%; display: flex; align-items: flex-end; border-radius: 6px; background: #ffffff08; }
+:root .average-days li[data-empty] { background: repeating-linear-gradient(135deg, #ffffff08 0 4px, transparent 4px 8px); }
+:root .average-day-bar { display: block; width: 100%; border-radius: 6px; background: linear-gradient(180deg, #8fa6ff, #4c7cf0); }
+:root .average-days li[data-met] .average-day-bar { background: linear-gradient(180deg, #86f0d6, #2cb3a0); }
+:root .average-entries { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+:root .average-entries li { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+:root .average-entries li > span { flex: 1; color: var(--text-secondary); }
+@media (max-width: 599px) { :root .average-goal-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* The goal page's plan. */
+:root .goal-plan { margin: 24px 0; }
+:root .goal-plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+:root .goal-plan-card { display: grid; gap: 14px; align-content: start; min-width: 0; }
+:root .goal-plan-card h3 { margin: 0; font-size: 19px; }
+:root .area-chips { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+:root .area-chips legend { font-size: 15px; margin-bottom: 6px; color: var(--text-secondary); }
+:root .area-chip { position: relative; }
+:root .area-chip input { position: absolute; opacity: 0; inset: 0; }
+:root .area-chip span { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--area) 45%, transparent); background: color-mix(in srgb, var(--area) 10%, #0d1a2e); font-size: 15px; cursor: pointer; }
+:root .area-chip span::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--area); }
+:root .area-chip input:checked + span { background: color-mix(in srgb, var(--area) 28%, #0d1a2e); border-color: var(--area); color: var(--text-strong); font-weight: 700; }
+:root .area-chip input:focus-visible + span { outline: 3px solid #69d9e9; outline-offset: 3px; }
+:root .area-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; width: 100%; }
+:root .vision-picker { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; align-items: start; }
+:root .vision-preview { min-height: 160px; }
+:root .vision-picker fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; min-width: 0; }
+:root .vision-picker legend { font-size: 15px; color: var(--text-secondary); margin-bottom: 4px; }
+:root .gradient-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+:root .gradient-swatch { width: 44px; height: 44px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; }
+:root .gradient-swatch[aria-pressed=true] { border-color: #f4f8ff; box-shadow: 0 0 0 3px #6fe6f655; }
+:root .vision-photo-button { position: relative; cursor: pointer; justify-self: start; }
+:root .goal-reasons { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
+:root .goal-reasons textarea { min-height: 72px; }
+:root .goal-rollup { margin: 0; font-size: 16px; }
+@media (max-width: 899px) { :root .goal-plan-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 599px) { :root .vision-picker { grid-template-columns: minmax(0, 1fr); } :root .vision-preview { min-height: 140px; } }
+
+/* Pace forecast. */
+:root .goal-forecast { display: grid; gap: 8px; margin: 20px 0; }
+:root .goal-forecast h2 { margin: 0; font-size: clamp(22px, 1.4vw + 14px, 30px); background: var(--nebula-flow-mid); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+:root .goal-forecast-detail { margin: 0; font-size: 15px; color: var(--text-secondary); }
+:root .goal-forecast-chart { margin: 8px 0 0; }
+:root .goal-forecast-chart { min-width: 0; }
+:root .goal-forecast-chart svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+:root .goal-forecast-target { stroke: #f4f8ff44; stroke-dasharray: 2 6; }
+:root .goal-forecast-band { fill: #8fa6ff22; }
+:root .goal-forecast-recorded { fill: none; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
+:root .goal-forecast-projection { stroke: #f08bd6; stroke-width: 2.5; stroke-dasharray: 7 6; }
+:root .goal-forecast-today { fill: #6fe6f6; stroke: #0b1428; stroke-width: 2; }
+:root .goal-forecast-date { fill: #f08bd6; stroke: #0b1428; stroke-width: 2; }
+:root .goal-forecast-axis { fill: #c2d0e5; font-size: 14px; }
+:root .goal-forecast-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 14px; color: var(--text-secondary); }
+:root .goal-forecast-legend span { display: inline-flex; align-items: center; gap: 8px; }
+:root .goal-forecast-legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+:root .goal-forecast-legend .is-recorded { background: linear-gradient(90deg, #6fe6f6, #8fa6ff); }
+:root .goal-forecast-legend .is-projection { background: repeating-linear-gradient(90deg, #f08bd6 0 6px, transparent 6px 10px); }
+:root .goal-forecast-legend .is-band { height: 10px; background: #8fa6ff44; }
+:root .goal-forecast-numbers { margin-top: 10px; font-size: 15px; }
+:root .goal-forecast-numbers table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+:root .goal-forecast-numbers :is(th, td) { text-align: left; padding: 6px 4px; border-bottom: 1px solid #ffffff14; }
+:root .goal-forecast-numbers caption { text-align: left; color: var(--text-meta); }
+
+/* Life balance. */
+:root .life-balance-card { display: grid; gap: 14px; background: radial-gradient(at 85% 15%, #6c4aaa33, transparent 55%), linear-gradient(140deg, #0f2236e6, #1b1a3ae6); }
+:root .life-balance-body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; }
+:root .balance-wheel { display: block; max-width: 100%; height: auto; }
+:root .balance-track { opacity: .16; }
+:root .balance-fill { opacity: .92; }
+:root .balance-core-value { fill: #f4f8ff; font-size: 26px; font-weight: 800; }
+:root .balance-core-label { fill: #c2d0e5; font-size: 14px; }
+:root .balance-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+:root .balance-legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; grid-template-areas: "dot name value" ". activity activity"; column-gap: 10px; align-items: center; min-height: 32px; }
+:root .balance-dot { grid-area: dot; width: 12px; height: 12px; border-radius: 50%; }
+:root .balance-name { grid-area: name; font-size: 15px; font-weight: 600; }
+:root .balance-value { grid-area: value; font-size: 15px; font-weight: 700; color: var(--text-strong); }
+:root .balance-activity { grid-area: activity; font-size: 14px; color: var(--text-meta); }
+@media (min-width: 600px) {
+  :root .life-balance-card.is-compact .life-balance-body { grid-template-columns: auto minmax(0, 1fr); gap: 20px; }
+  /* Today's card (Part 8) has the whole row: the legend in columns beside the wheel. */
+  :root .life-balance-card.is-compact .balance-legend { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); column-gap: 18px; }
+}
+@media (max-width: 599px) { :root .life-balance-body { grid-template-columns: minmax(0, 1fr); justify-items: center; } :root .balance-legend { width: 100%; } }
+
+/* Hall of achievements. */
+:root .achievements-hall { margin: 8px 0; }
+:root .hall-wall { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+:root .hall-card { display: grid; border-radius: 22px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 40%, transparent); background: linear-gradient(160deg, #13223acc, #1d1a3ccc); }
+:root .hall-art { min-height: 120px; border-radius: 0; }
+:root .hall-body { display: grid; gap: 8px; padding: 16px 18px 18px; }
+:root .hall-area { justify-self: start; padding: 4px 10px; border-radius: 10px; background: color-mix(in srgb, var(--area, #8fa6ff) 22%, transparent); font-size: 14px; font-weight: 700; }
+:root .hall-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-strong); }
+:root .hall-when { margin: 0; font-size: 15px; color: var(--text-secondary); }
+:root .hall-body blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--area, #8fa6ff); font-size: 15px; color: var(--text-secondary); font-style: italic; }
+:root .hall-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+
+/* Template library. */
+:root .template-library { display: grid; gap: 18px; }
+:root .template-controls { display: grid; gap: 12px; }
+:root .template-search input { min-height: 48px; font-size: 16px; }
+:root .area-filter { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+:root .area-filter button { flex: 0 0 auto; min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 40%, transparent); background: #0d1a2ecc; color: var(--text-secondary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+:root .area-filter button[aria-pressed=true] { background: color-mix(in srgb, var(--area, #8fa6ff) 30%, #0d1a2e); color: var(--text-strong); border-color: var(--area, #8fa6ff); }
+:root .template-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+:root .template-card { display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--area) 35%, transparent); background: radial-gradient(at 100% 0%, color-mix(in srgb, var(--area) 18%, transparent), transparent 60%), #0e1a2fe6; }
+:root .template-card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+:root .template-area { font-size: 14px; font-weight: 700; color: var(--area); letter-spacing: .04em; }
+:root .template-kind { font-size: 14px; color: var(--text-meta); }
+:root .template-card h2 { margin: 0; font-size: 21px; }
+:root .template-card p { margin: 0; font-size: 15px; color: var(--text-secondary); }
+:root .template-steps { margin: 0; padding-left: 20px; font-size: 15px; color: var(--text-secondary); display: grid; gap: 2px; }
+:root .template-detail { font-size: 14px !important; }
+:root .template-use { justify-self: start; margin-top: 4px; }
+:root .template-teaser-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+:root .template-teaser-list a { display: grid; gap: 4px; min-height: 44px; padding: 14px 16px; border-radius: 16px; border: 1px solid #6c9cc533; background: #0f1d33cc; color: inherit; text-decoration: none; }
+:root .template-teaser-list small { font-size: 14px; color: var(--text-secondary); }
+@media (max-width: 767.98px) { :root .template-teaser-list { grid-template-columns: minmax(0, 1fr); } }
+
+/* The wizard's template banner. */
+:root .wizard-template { display: grid; gap: 8px; padding: 16px; border-radius: 18px; border: 1px solid #8fe6f444; background: #0f2236cc; }
+:root .wizard-template-habits { border: 0; padding: 0; margin: 6px 0 0; display: grid; gap: 8px; }
+:root .wizard-template .wizard-template-habits label { display: flex; flex-direction: row; gap: 12px; align-items: flex-start; min-height: 44px; margin: 0; }
+:root .wizard-template .wizard-template-habits input[type=checkbox] { flex: 0 0 22px; width: 22px; height: 22px; min-height: 0; margin: 2px 0 0; padding: 0; }
+:root .wizard-template .wizard-template-habits label > span { display: grid; gap: 2px; min-width: 0; }
+:root .wizard-template-habits small { font-size: 14px; color: var(--text-secondary); }
+/* Session AA-Cloud: the key figures open the "Your goals" region (its first, full-width row) under the controls. */
+:root .goal-grid > .goals-figures { grid-column: 1 / -1; margin: 0 0 4px; }
+:root .goals-figures.is-placeholder > div { min-height: 88px; background: #0f1d33aa; }
+/* An average goal's title link is a full tap target. */
+:root .average-goal-card h2 a { display: inline-flex; align-items: center; min-height: 44px; }
+:root .goals-view-row { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin: 0 0 4px; }
+:root .goals-view-row .goals-view-switch { margin: 0; }
+:root .goals-alt-view { display: grid; gap: 12px; min-width: 0; }
+
+/* Session AA-Cloud Part 8: Today's pace forecasts. */
+:root .pace-forecasts .pace-list { display: grid; gap: 8px; margin: 0 0 10px; padding: 0; list-style: none; }
+:root .pace-forecasts .pace-list li { display: grid; gap: 2px; padding: 10px 14px; border-radius: 14px; border: 1px solid #6c9cc533; background: #0b172b99; }
+:root .pace-forecasts .pace-list a { font-weight: 600; color: var(--text-primary, #f3f8ff); min-height: 24px; }
+:root .pace-forecasts .pace-list strong { font-size: 16px; font-weight: 500; }
+:root .pace-forecasts .pace-list li[data-state='not-enough'] strong, :root .pace-forecasts .pace-list li[data-state='no-pace'] strong { color: var(--text-secondary); }
+:root .pace-forecasts .pace-list small { font-size: 14px; color: var(--text-secondary); }
+/* Gate C: the tree's small rings keep their number on one line, sized for the ring (phones draw the ring larger). */
+:root .goal-tree-row .flow-ring > span { white-space: nowrap; }
+@media (min-width: 600px) { :root .goal-tree-row .flow-ring > span { font-size: 14px; } :root .goal-tree-row .flow-ring > span small { font-size: 10px; } }

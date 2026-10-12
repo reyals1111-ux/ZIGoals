@@ -66,6 +66,8 @@
   :root .wealth-product .composition-donut { width: 150px; height: 150px; margin-inline: auto; }
   :root .wealth-product .composition-donut > span { width: 112px; height: 112px; font-size: 14px; }
   :root .wealth-product .composition-legend > div { min-height: 0; padding: 7px 0; font-size: 15px; }
+  /* Session AA-Cloud premium pass: a class name breaks only between words ("Stablecoins", never "Stablecoin s"). */
+  :root .wealth-product .composition-legend dt { overflow-wrap: normal; word-break: normal; min-width: min-content; }
   :root .wealth-product .composition-details { gap: 14px; margin-top: 12px; }
   :root .wealth-product .composition-top-holdings li { padding: 6px 0; }
 

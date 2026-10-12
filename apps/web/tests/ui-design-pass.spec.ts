@@ -228,7 +228,8 @@ test.describe('Part 2: personal layouts',()=>{
   await page.mouse.up();
   await expect(page.locator('.layout-ghost')).toHaveCount(0);
   await expect.poll(()=>order(page,'goals:cards')).toEqual([before[1],before[2],before[0],...before.slice(3)]);
-  await expect(page.locator('[data-layout-announcer]')).toHaveText(/^Moved .+ to position 3 of 5\.$/);
+  // Session AA-Cloud Part 2 (deliberate, as strict): the Showcase's two average goals are cards in the same collection, so 7.
+  await expect(page.locator('[data-layout-announcer]')).toHaveText(/^Moved .+ to position 3 of 7\.$/);
  });
  test('Motion Off: moves are instant, with no glide animations',async({page})=>{
   await page.addInitScript(()=>localStorage.setItem('zigoals:motion:v1','off'));

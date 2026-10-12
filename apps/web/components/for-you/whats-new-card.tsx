@@ -3,14 +3,25 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session Z-Local (release `2026-10-session-z-local`, ADR-020): ZIGi's brain, spoken and complete; each link opens its Help answer. */
+/** Session AA-Cloud (release `2026-10-session-aa-cloud`, ADR-021): pages in order, Goals, the calculator, search and the Life review; each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-aa-order', label: 'Every page starts with what matters most'},
+  {href: '/app/help#help-aa-goals', label: 'Life areas, a balance wheel, a vision board and sub-goals'},
+  {href: '/app/help#help-aa-forecast', label: '“At this pace”: an estimated date for each goal'},
+  {href: '/app/help#help-aa-calculator', label: 'A compound interest calculator'},
+  {href: '/app/help#help-aa-search', label: 'Search everything, with “/”'},
+  {href: '/app/help#help-aa-review', label: 'A Life review of your week or month'},
+  {href: '/app/help#help-aa-data', label: 'Your data: what is kept, and where'},
+  {href: '/app/help#help-aa-home-screen', label: 'Home Screen shortcuts and sharing to ZIGoals'},
+];
+/** Session Z-Local (release `2026-10-session-z-local`, ADR-020): ZIGi's brain, spoken and complete, folded under "Earlier updates" first. */
+const SESSION_Z_LOCAL_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-your-ai-voice', label: 'Say it the way you say it: numbers, times, “no wait, three”'},
   {href: '/app/help#help-your-ai-act', label: 'ZIGi can do every ordinary task in the app'},
   {href: '/app/help#help-your-ai-writes', label: 'ZIGi says when there is nothing to change, and which records it saw'},
   {href: '/app/help#help-your-ai-cost', label: 'On Claude, cached prompts cost about four fifths less'},
 ];
-/** Session Z-Cloud (release `2026-10-session-z-cloud`, ADR-019): ZIGi's new face, voice and the persona decisions, folded under "Earlier updates" first. */
+/** Session Z-Cloud (release `2026-10-session-z-cloud`, ADR-019): ZIGi's new face, voice and the persona decisions, under "Earlier updates" after Z-Local's. */
 const SESSION_Z_CLOUD_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-z-panel', label: 'ZIGi’s cleaner panel and your own suggestions'},
   {href: '/app/help#help-your-ai-voice', label: 'Talk to ZIGi in English or Dutch'},
@@ -47,8 +58,9 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-w-chess', label: 'Chess: chess.com, Lichess'},
   {href: '/app/help#help-w-links', label: 'My links on Today'},
 ];
-/** The earlier releases' links (Session Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
+/** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_Z_LOCAL_LINKS,
   ...SESSION_Z_CLOUD_LINKS,
   ...SESSION_Y_LINKS,
   ...SESSION_X_LOCAL_LINKS,
@@ -76,8 +88,8 @@ export function WhatsNewCard({links = WHATS_NEW_LINKS, earlier = EARLIER_LINKS, 
   return <section className="panel for-you-card whats-new-card" aria-labelledby="whats-new-title">
     <p className="eyebrow">What’s new</p><h2 id="whats-new-title">A few new things.</h2>
     <p className="fine">Each one is optional, and nothing changes until you use it.</p>
-    <ul className="whats-new-links">{links.map(link => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul>
-    {earlier.length > 0 && <details className="whats-new-earlier"><summary>Earlier updates</summary><ul className="whats-new-links">{earlier.map(link => <li key={link.href}><Link href={link.href}>{link.label}</Link></li>)}</ul></details>}
+    <ul className="whats-new-links">{links.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul>
+    {earlier.length > 0 && <details className="whats-new-earlier"><summary>Earlier updates</summary><ul className="whats-new-links">{earlier.map((link, i) => <li key={`${i}:${link.href}`}><Link href={link.href}>{link.label}</Link></li>)}</ul></details>}
     <button type="button" className="primary" onClick={() => { if (!onDismiss()) setError('This card could not be hidden on this device; it may show once more.'); }}>Got it</button>
     {error && <p role="alert">{error}</p>}
   </section>;

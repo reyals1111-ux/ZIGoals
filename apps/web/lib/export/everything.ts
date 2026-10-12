@@ -1,3 +1,9 @@
+import {CALCULATOR_KEY} from '../compound/store';
+import {SEARCH_RECENT_KEY} from '../search/recent';
+import {LIFE_REVIEW_KEY} from '../life-review/store';
+import {TODAY_CARDS_KEY} from '../today-cards/store';
+import {GOAL_EXTRAS_KEY} from '../goal-extras/store';
+import {AVERAGE_GOALS_KEY} from '../average-goals/store';
 import {csvSafeCell} from './csv-safe';
 import {PLATFORM_KEY, platformSchema, type Platform} from '../positions';
 import {HABITS_KEY, habitDataSchema, latestHabitRule, type HabitData} from '../habits';
@@ -47,7 +53,13 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   accounts: ACCOUNTS_KEY, milestoneDates: MILESTONE_DATES_KEY, importBatches: IMPORT_BATCHES_KEY, wReminders: W_REMINDERS_KEY, chessCache: CHESS_CACHE_KEY, celebrations: CELEBRATIONS_KEY, meditationRun: MEDITATION_RUN_KEY, music: MUSIC_KEY, pagesView: PAGES_VIEW_KEY,
   // Session Z-Cloud: ZIGi's suggestions from the person's own questions, the voice choices and what became of ZIGi's cards
   // (lib/z-device-keys.ts).
-  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY} as const;
+  zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY,
+  // Session AA-Cloud: goal extras (areas, visions, plans, sub-goals, stories) and average goals, kept on this device.
+  goalExtras: GOAL_EXTRAS_KEY, averageGoals: AVERAGE_GOALS_KEY,
+  // Session AA-Cloud Parts 3–5: calculator scenarios, recent searches and the Life review's focus.
+  calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
+  // Session AA-Cloud Part 8: the cards kept on Today on this device.
+  todayCards: TODAY_CARDS_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
@@ -148,6 +160,15 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
     const rawHealth = json.modules.health as {habitLinks?: unknown} | undefined;
     if (rawHealth && typeof rawHealth === 'object' && rawHealth.habitLinks) json.modules.health = {...rawHealth, habitLinks: unlinked(rawHealth.habitLinks)};
   }
+  // Gate C security read: a deleted goal's extras wait 90 days on the device (`dormant`) so Undo or a restore finds them;
+  // the copy leaves them out, as it leaves out deleted habits, and a deleted habit's life area goes with it.
+  const extras = json.device.goalExtras;
+  if (extras && typeof extras === 'object' && !Array.isArray(extras)) {
+    const {dormant, ...rest} = extras as {dormant?: unknown; habitAreas?: unknown};
+    void dormant;
+    const areas = rest.habitAreas && typeof rest.habitAreas === 'object' && !Array.isArray(rest.habitAreas) ? Object.fromEntries(Object.entries(rest.habitAreas).filter(([id]) => !shells.has(id))) : rest.habitAreas;
+    json.device.goalExtras = {...rest, ...(areas === undefined ? {} : {habitAreas: areas})};
+  }
   const habits = parsedHabits && withoutDeletedHabits(parsedHabits);
   const health = typed<HealthData>('health', json.modules.health, v => healthSchema.safeParse(v));
   const links = json.device.habitHealthLinks === undefined ? null : habitHealthLinksSchema.safeParse(json.device.habitHealthLinks);
@@ -185,7 +206,13 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
 }
 
 /** The ZIP: everything.json first, then the CSVs in their table order; every entry dated `now`. */
-export function buildEverythingZip(collected: Collected, {date, showcase, now}: {date: string; showcase: boolean; now: Date}): {name: string; bytes: Uint8Array} {
-  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now}))];
+/**
+ * Session AA-Cloud: the goals' vision photos ride along as `vision/<id>.jpg` (the bytes this device keeps, already
+ * compressed), named by the id the goal extras point at. Older builds never read the ZIP, so nothing else changes.
+ */
+export type ExportImage = {id: string; type: string; bytes: Uint8Array};
+export const visionFileName = (image: Pick<ExportImage, 'id' | 'type'>) => `vision/${image.id.replace(/[^A-Za-z0-9-]/g, '')}.${image.type === 'image/png' ? 'png' : image.type === 'image/webp' ? 'webp' : 'jpg'}`;
+export function buildEverythingZip(collected: Collected, {date, showcase, now, images = []}: {date: string; showcase: boolean; now: Date; images?: readonly ExportImage[]}): {name: string; bytes: Uint8Array} {
+  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now})), ...images.map(image => ({name: visionFileName(image), data: image.bytes, modified: now}))];
   return {name: exportFileName(`zigoals-export-${date}.zip`, showcase), bytes: buildStoredZip(entries)};
 }

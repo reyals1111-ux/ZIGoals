@@ -39,3 +39,12 @@
 /* Gate C (persona round): a long command or address in an answer (OLLAMA_ORIGINS=…) breaks inside the answer instead of
    widening the page at 320 px (it was 558 px wide with "How do I use a model on my own computer?" open). */
 .help-question code{overflow-wrap:anywhere}
+/* Session AA-Cloud Part 1: on a phone the topic index is two even columns (no three-line chips), and the section
+   eyebrows keep one line at ≥ 14 px with tighter tracking. */
+@media (max-width: 767.98px) {
+  .help-page > nav.help-topics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .help-topics a { justify-content: flex-start; text-align: left; padding: 8px 14px; line-height: 1.3; }
+  .help-section > .eyebrow { letter-spacing: .06em; }
+  /* ZIGi's own name, written as ZIGi writes it, fits one phone line (in capitals it needed two at any readable size). */
+  #your-ai > .eyebrow { text-transform: none; letter-spacing: .02em; font-size: 15px; }
+}
