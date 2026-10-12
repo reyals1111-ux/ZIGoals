@@ -66,7 +66,7 @@ const formatWealth = (s: {currency: string; value: bigint}) => wealthMoney(s.val
  * after the widgets, and What's new, the weekly review and the wrap-up with the summaries at the end. */
 export type ForYouParts = {focus: ReactNode; main: ReactNode; end: ReactNode};
 const END_CARDS = new Set(['whats-new', 'weekly-review', 'wrap-up', 'life-review']), FOCUS_CARDS = new Set(['fasting']);
-export function TodayForYou({habits, health, platform, localGoals, metadata, quotes, now, today, financial, showcase, render}: {habits: HabitData; health: HealthData; platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[]; now: number; today: string; financial: boolean; showcase: boolean; render?: (parts: ForYouParts) => ReactNode}) {
+export function TodayForYou({habits, health, platform, localGoals, metadata, quotes, now, today, financial, showcase, render, reviewOnToday = false}: {reviewOnToday?: boolean; habits: HabitData; health: HealthData; platform: Platform; localGoals: readonly LocalGoal[]; metadata: Record<string, GoalMetadata>; quotes: readonly MarketQuote[]; now: number; today: string; financial: boolean; showcase: boolean; render?: (parts: ForYouParts) => ReactNode}) {
   const fasting = useFasting(), review = useWeeklyReview(), healthGoals = useHealthGoals(), links = useHabitHealthLinks(), guide = useGuide(), reminders = useReminders();
   const settings = usePrivateStore(DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings), zonePrompt = useDeviceRecord(W_REMINDERS);
   const insights = useInsightCards({habits, health, links: links.loaded && !links.unreadable ? links.data : undefined});
@@ -115,7 +115,8 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   if (settings.loaded && !settings.error && clock && wrapUpDue(settings.data, today, localClock(clock)))
     cards.push({id: 'wrap-up', priority: 9, node: <WrapUpCard habits={habits} health={health} now={clock.getTime()} showHabits={isShown(pagesView, 'habits')} showHealth={isShown(pagesView, 'health')} onWrap={intention => settings.update(current => wrapUpDay(current, today, intention, new Date().toISOString())).then(() => true, () => false)} />});
   // Session AA-Cloud Part 5: the Life review's door, with the summaries at the end, once there is something to review.
-  if (habits.habits.length || health.activity.length || health.diary.length || platform.goals.length) cards.push({id: 'life-review', priority: 10, node: <LoadBoundary quiet><Suspense fallback={null}><LifeReviewTeaser habits={habits} health={health} platform={platform} goals={unifiedGoalSummaries(localGoals, metadata, platform, quotes, now)} today={today} /></Suspense></LoadBoundary>});
+  // Not when the person keeps the Life review among Today's cards on this device (Part 8): it shows there instead.
+  if (!reviewOnToday && (habits.habits.length || health.activity.length || health.diary.length || platform.goals.length)) cards.push({id: 'life-review', priority: 10, node: <LoadBoundary quiet><Suspense fallback={null}><LifeReviewTeaser habits={habits} health={health} platform={platform} goals={unifiedGoalSummaries(localGoals, metadata, platform, quotes, now)} today={today} /></Suspense></LoadBoundary>});
   const intention = settings.loaded && !settings.error ? intentionFrom(settings.data, addLocalDays(today, -1)) : null;
   const probe = zigiOn && <LoadBoundary quiet><Suspense fallback={null}><BriefProbe onBrief={setBrief} /></Suspense></LoadBoundary>;
   const note = intention ? <p className="for-you-intention"><span>Your intention for today</span> {intention}</p> : null;

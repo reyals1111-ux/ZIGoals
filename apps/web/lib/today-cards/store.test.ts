@@ -1,4 +1,5 @@
 import {describe, expect, test} from 'vitest';
+import {buildShowcase, showcaseChoices} from '../showcase-data';
 import {emptyTodayCards, shownCards, TODAY_CARDS_KEY, todayCardsSchema, toggleCard} from './store';
 
 describe('Today cards kept on this device (Session AA-Cloud Part 8)', () => {
@@ -20,5 +21,9 @@ describe('Today cards kept on this device (Session AA-Cloud Part 8)', () => {
   test('refuses another version and odd names', () => {
     expect(todayCardsSchema.safeParse({version: 2, cards: []}).success).toBe(false);
     expect(todayCardsSchema.safeParse({version: 1, cards: ['<script>']}).success).toBe(false);
+  });
+  test('the Showcase chooses three cards when its tab loads; its records (seeded as a person\'s own data in tests) carry none', () => {
+    expect(JSON.parse(showcaseChoices()[TODAY_CARDS_KEY]!)).toEqual({version: 1, cards: ['balance', 'forecasts', 'calculator']});
+    expect(buildShowcase('2026-10-12').records[TODAY_CARDS_KEY]).toBeUndefined();
   });
 });

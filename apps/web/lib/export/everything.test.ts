@@ -44,7 +44,7 @@ describe('T4 export everything', () => {
     expect(withAuto.length).toBe(12);
     for (const a of marked) expect(checkIns.some(l => l.startsWith(`"${a.habitId}"`) && l.includes(`"${a.date}"`) && l.endsWith(`"${a.appliedAt}"`)), `${a.habitId} ${a.date}`).toBe(true);
     const health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
-    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.length).toBe(24);
+    expect(lines(collected.csv['water.csv']).length).toBe((health.daily?.water.length ?? 0) + 1); expect(health.daily?.water.filter(w => !w.id.includes('earlier')).length).toBe(24); expect(health.daily?.water.filter(w => w.id.includes('earlier')).length).toBe(20); // Part 8's earlier season, 60–89 days back
     expect(collected.csv['health-diary.csv']).toBe(exportHealthCsv(health, '1900-01-01', '2199-12-31'));
     expect(lines(collected.csv['weights.csv']).length).toBe(health.weights.length + (health.measurements ?? []).filter(m => m.kind === 'weight').length + 1);
     expect(lines(collected.csv['habits.csv']).length).toBe(habits.habits.length + 1);

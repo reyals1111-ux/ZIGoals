@@ -38,6 +38,7 @@
 :root .cross-insights .cross-list p { margin: 4px 0; font-size: 16px; line-height: 1.5; }
 :root .cross-insights .cross-list small { font-size: 14px; color: var(--text-secondary); }
 :root .cross-insights .cross-empty { margin: 0 0 10px; font-size: 15px; color: var(--text-secondary); }
+:root .cross-insights .cross-more { margin: 0 0 10px; font-size: 15px; color: var(--text-secondary); }
 :root .cross-pending > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 650; }
 :root .cross-pending ul { display: grid; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
 :root .cross-pending li { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; color: var(--text-secondary); }

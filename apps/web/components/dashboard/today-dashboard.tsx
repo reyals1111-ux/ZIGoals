@@ -5,8 +5,11 @@ import {Suspense,cloneElement,isValidElement,lazy,useEffect,useMemo,useRef,useSt
 import {createPortal} from 'react-dom';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CHESS_CACHE} from '../../lib/skills/chess/schema';
+import {TODAY_CARDS,shownCards,toggleCard} from '../../lib/today-cards/store';
 /** Session W Part 14: what asks chess.com and Lichess again, loaded only while a Chess widget is on Today. */
 const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
+// Session AA-Cloud Part 8: the cards kept on this device load after the page (weights).
+const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
 import {OrbitSlogan} from '../orbit-slogan';
 import {NebulaFlow} from '../nebula-flow';
 import {JourneyBanner} from '../journey-banner';
@@ -108,6 +111,7 @@ export function TodayDashboard(){
  const market=useMarketQuotes(settings.loaded&&financial?wealthMarketRequests(platform.data):false),now=useEvidenceNow(platform.data,market.now);
  const goals=unifiedGoalSummaries(legacy.goals,legacy.metadata?.goals??{},platform.data,market.quotes,now,legacy.mode==='local'?'Local simulation':'Future Goal Manager').filter(g=>!g.key.startsWith('legacy:')||!platform.data.legacyGoalUi?.[`${legacy.chain}:${legacy.owner}:${g.id}`]?.archived);
  const chessCache=useDeviceRecord(CHESS_CACHE);
+ const todayCards=useDeviceRecord(TODAY_CARDS),deviceCards=todayCards.loaded&&!todayCards.unreadable?shownCards(todayCards.data):[];
  const sources:DashboardSources={platform:platform.data,goals,habits:habits.data,health:health.data,quotes:market.quotes,now,today,healthDate:healthDay(dailyData(health.data).preferences.timezone),...(chessCache.loaded&&!chessCache.unreadable?{chess:chessCache.data}:{})};
  const placement=reconcileDashboardPlacement(settings.data);
  const [customize,setCustomize]=useState(false),[editor,setEditor]=useState<DashboardWidget|'new'|null>(null),[preset,setPreset]=useState<DashboardPreset|null>(null),[status,setStatus]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
@@ -241,6 +245,7 @@ export function TodayDashboard(){
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}
     <div className="dashboard-layout-grid"><LayoutRegion region="main" items={regionItems('main')} onMove={(id,to,order)=>placeAt('main',id,to,order)}/></div>
    </section>
+   {platform.loaded&&habits.loaded&&health.loaded&&(deviceCards.length>0||customize&&todayCards.loaded&&!todayCards.unreadable)&&<LoadBoundary quiet><Suspense fallback={null}><TodayDeviceCards shown={deviceCards} customize={customize} onToggle={id=>{try{todayCards.update(c=>toggleCard(c,id));}catch{setError('This device refused to save that card choice.');}}} platform={platform.data} quotes={market.quotes} now={now} today={today} habits={habits.data} health={health.data} goals={goals}/></Suspense></LoadBoundary>}
    {parts.main}<div className="for-you-place" ref={setMainPlace}/>
    {showcase&&makeToday&&<PhoneFold label="Make Today yours">{makeToday}</PhoneFold>}
   </div>{!single&&<aside className="today-rail" aria-label="Your next chapter"><LayoutRegion region="rail" items={railItems} onMove={(id,to,order)=>placeAt('rail',id,to,order)}/></aside>}</div>
@@ -253,6 +258,6 @@ export function TodayDashboard(){
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}
-  {forYouOn&&<TodayForYou habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/>}
+  {forYouOn&&<TodayForYou reviewOnToday={deviceCards.includes('review')} habits={habits.data} health={health.data} platform={platform.data} localGoals={legacy.goals} metadata={legacy.metadata?.goals??{}} quotes={market.quotes} now={now} today={today} financial={financial} showcase={showcase} render={parts=><>{focusPlace&&createPortal(parts.focus,focusPlace)}{mainPlace&&createPortal(parts.main,mainPlace)}{endPlace&&createPortal(parts.end,endPlace)}</>}/>}
  </LayoutPage></HealthLinkContext.Provider>;
 }

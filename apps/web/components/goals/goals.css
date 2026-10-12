@@ -195,3 +195,11 @@
 :root .goals-view-row { grid-column: 1 / -1; display: flex; justify-content: flex-end; margin: 0 0 4px; }
 :root .goals-view-row .goals-view-switch { margin: 0; }
 :root .goals-alt-view { display: grid; gap: 12px; min-width: 0; }
+
+/* Session AA-Cloud Part 8: Today's pace forecasts. */
+:root .pace-forecasts .pace-list { display: grid; gap: 8px; margin: 0 0 10px; padding: 0; list-style: none; }
+:root .pace-forecasts .pace-list li { display: grid; gap: 2px; padding: 10px 14px; border-radius: 14px; border: 1px solid #6c9cc533; background: #0b172b99; }
+:root .pace-forecasts .pace-list a { font-weight: 600; color: var(--text-primary, #f3f8ff); min-height: 24px; }
+:root .pace-forecasts .pace-list strong { font-size: 16px; font-weight: 500; }
+:root .pace-forecasts .pace-list li[data-state='not-enough'] strong, :root .pace-forecasts .pace-list li[data-state='no-pace'] strong { color: var(--text-secondary); }
+:root .pace-forecasts .pace-list small { font-size: 14px; color: var(--text-secondary); }

@@ -59,5 +59,7 @@ export function crossPillarInsights({habits, health, today, max = 3}: {habits: H
     (a, b) => `On days you walked at least ${formatNumber(steps.value)} steps, you slept ${hoursMinutes(a.value)} that night on average; on other days, ${hoursMinutes(b.value)}.`);
   pair('water-habits', 'Water and habits', list.flatMap(d => { const share = habitShare(habits, d, today); return share === null ? [] : [{a: waterSummary(health, d).entries > 0, value: share}]; }), '%',
     (a, b) => `On days you logged water, you completed ${pct(a.value)} of your scheduled habits; on days without, ${pct(b.value)}.`);
+  pair('water-sleep', 'Water and sleep', list.flatMap(d => { const night = sleepEnding.get(addLocalDays(d, 1)); return night === undefined ? [] : [{a: waterSummary(health, d).entries > 0, value: night}]; }), 'min',
+    (a, b) => `On days you logged water, you slept ${hoursMinutes(a.value)} that night on average; on days without, ${hoursMinutes(b.value)}.`);
   return {ready: ready.sort((x, y) => y.contrast - x.contrast).slice(0, max), pending};
 }

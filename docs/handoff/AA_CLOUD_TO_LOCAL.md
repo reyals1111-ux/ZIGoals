@@ -138,3 +138,16 @@ the page writes through `useDeviceRecord`):
 - **Celebrations (Part 2's promise):** finished tracked goals already signal through the existing contribution flow and
   milestones (`components/platform/contribution-flow.tsx`, `goal-milestones.tsx`); a finished average goal emits
   `zigiSignals.emitValidated('goal_funded')`. No new signal types were added; `achievement_unlocked` stays yours at merge.
+
+## Part 8 (Showcase and Today's cards)
+- **One assertion in your folder:** `lib/sleep/sleep-features.test.ts` ("the same day always gives the same nights…").
+  The Showcase now adds an earlier fictional season (29 nights ending 60 to 89 days back, ids `health_sleep-earlier-*`,
+  from `lib/insights/showcase.ts`), so the test compares the sleep group without those nights to `showcaseSleep(day)`
+  (unchanged) and checks the 29 separately. `lib/sleep/showcase.ts` is untouched. If you change that test, keep the
+  filter; whoever merges second resolves it.
+- **Today's cards kept on this device** (`zigoals:today-cards:v1`): life balance, pace forecasts, the calculator, the
+  Life review. Not synced widgets (A35). Your habit time-of-day widget and Health coach card keep their own places.
+- **New device key for `DEVICE_RECORD_KEYS`** (onboarding, yours): `zigoals:today-cards:v1`, a display choice, not
+  personal data (`NON_PERSONAL_KEYS` if you list it).
+- **Cross-pillar insights** gain "water and sleep" (`lib/insights/cross-pillar.ts`), same rule and words.
+

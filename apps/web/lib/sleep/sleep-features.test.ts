@@ -100,7 +100,12 @@ describe('the Showcase nights', () => {
     expect(showcaseSleep(DAY)).toEqual(showcaseSleep(DAY));
     const health = healthSchema.parse(JSON.parse(buildShowcase(DAY).records[HEALTH_STORAGE_KEY]!));
     expect(health.schemaVersion).toBe(4);
-    expect(healthGroupIn(health, 'sleep')).toEqual(showcaseSleep(DAY));
+    // Session AA-Cloud Part 8: the Showcase adds an earlier season of 29 nights, all ending 60 to 89 days back
+    // (lib/insights/showcase.ts); without them the group is exactly showcaseSleep's (as strict).
+    const group = healthGroupIn(health, 'sleep')!, earlier = group.nights.filter(n => n.id.startsWith('health_sleep-earlier-'));
+    expect({...group, nights: group.nights.filter(n => !earlier.includes(n))}).toEqual(showcaseSleep(DAY));
+    expect(earlier).toHaveLength(29);
+    expect(earlier.every(n => n.end! >= `${addDays(DAY, -89)}T00` && n.end! < `${addDays(DAY, -59)}T00`)).toBe(true);
   });
 });
 

@@ -94,3 +94,16 @@
 :root .data-health-door > span:first-child { display: grid; gap: 4px; }
 :root .data-health-door small { font-size: 15px; color: var(--text-secondary); }
 :root .data-health-door:hover, :root .data-health-door:focus-visible { border-color: #8fe6f477; }
+
+/* Session AA-Cloud Part 8: Today's cards kept on this device and their chooser (arranging Today). */
+:root .today-device-cards { display: grid; gap: 16px; margin: 16px 0 0; }
+:root .today-device-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; }
+:root .today-device-card > * { margin: 0; }
+:root .today-device-chooser { padding: 16px; border-radius: 18px; border: 1px dashed #6c9cc566; background: #0b172b80; }
+:root .today-device-chooser h3 { margin: 0 0 4px; font-size: 17px; }
+:root .today-device-chooser p { margin: 0 0 12px; font-size: 15px; color: var(--text-secondary); }
+:root .today-device-options { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+:root .today-device-option { display: grid; gap: 2px; min-height: 44px; padding: 10px 14px; text-align: left; border-radius: 14px; border: 1px solid #6c9cc544; background: #0e1d3599; color: inherit; cursor: pointer; }
+:root .today-device-option small { font-size: 14px; color: var(--text-secondary); }
+:root .today-device-option[aria-pressed='true'] { border-color: #8fe6f4; background: #12345299; box-shadow: inset 0 0 0 1px #8fe6f455; }
+:root .today-device-option[aria-pressed='true'] strong::after { content: ' · on'; color: #8fe6f4; font-weight: 500; }

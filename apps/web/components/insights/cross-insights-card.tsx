@@ -10,18 +10,20 @@ import '../life-review/life-review.css';
 /**
  * Cross-pillar insights (Session AA-Cloud Part 5, S3): what happened together on the same days, from the person's own
  * records. Ready pairings say it in counts; the others say how many days they have so far ("not enough data yet").
- * The card always says it is a pairing, not a cause. On Today (For you) and in the Life review.
+ * The card always says it is a pairing, not a cause. On Today (For you: the strongest one, the rest in the Life review)
+ * and in the Life review.
  */
 export function CrossInsightsCard({habits, health, today, compact = false}: {habits: HabitData; health: HealthData; today: string; compact?: boolean}) {
   const {ready, pending} = useMemo(() => crossPillarInsights({habits, health, today}), [habits, health, today]);
   return <section className={`panel cross-insights${compact ? ' is-compact' : ''}`} aria-labelledby={compact ? 'cross-insights-today' : 'cross-insights-title'}>
     <SectionHeading id={compact ? 'cross-insights-today' : 'cross-insights-title'} eyebrow="Across your life · last 90 days" title="On the same days" level={compact ? 3 : 2} action={compact ? <Link className="text-link" href="/app/review#cross-insights-title">Life review →</Link> : undefined} />
-    {ready.length ? <ul className="cross-list">{ready.map(i => <li key={i.id}>
+    {ready.length ? <ul className="cross-list">{(compact ? ready.slice(0, 1) : ready).map(i => <li key={i.id}>
       <strong>{i.title}</strong>
       <p>{i.sentence}</p>
       <small>{i.withA.days} and {i.withoutA.days} days compared.</small>
     </li>)}</ul> : <p className="cross-empty">Not enough data yet. A pairing shows once each side has {CROSS_MIN_PER_SIDE} days of your own records.</p>}
-    {pending.length > 0 && <details className="cross-pending" open={!ready.length && !compact ? true : undefined}>
+    {compact && ready.length > 1 && <p className="cross-more">{ready.length - 1} more {ready.length === 2 ? 'pairing' : 'pairings'} in your Life review.</p>}
+    {pending.length > 0 && (!compact || !ready.length) && <details className="cross-pending" open={!ready.length && !compact ? true : undefined}>
       <summary>{ready.length ? 'Still collecting' : 'What each pairing has so far'}</summary>
       <ul>{pending.map(p => <li key={p.id}><span>{p.title}</span><span>{Math.min(p.withA, p.need)} of {p.need} days with · {Math.min(p.withoutA, p.need)} of {p.need} without</span></li>)}</ul>
     </details>}
