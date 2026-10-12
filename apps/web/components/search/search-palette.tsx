@@ -12,7 +12,9 @@ import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
 import {useAverageGoals} from '../goals/use-average-goals';
-import {useVisibleNav} from '../app-nav';
+import {NAV_ITEMS, useVisibleNav} from '../app-nav';
+
+const NAV_HREFS = new Set<string>(NAV_ITEMS.map(([href]) => href));
 import './search.css';
 
 /**
@@ -40,7 +42,8 @@ export default function SearchPalette({onClose}: {onClose: () => void}) {
 
   const items = useMemo<SearchItem[]>(() => {
     const shown = new Set<string>(nav.items.map(([href]) => href));
-    const pageShown = (href: string) => { const root = href.split(/[?#]/)[0]!.split('/').slice(0, 3).join('/'); return !PAGES.some(p => p.href === root) || shown.has(root) || root === '/app'; };
+    // A page under a navigation entry the person hid stays out of the results with it; other pages are always found.
+    const pageShown = (href: string) => { const root = href.split(/[?#]/)[0]!.split('/').slice(0, 3).join('/'); return !NAV_HREFS.has(root) || shown.has(root) || root === '/app'; };
     const out: SearchItem[] = [...PAGES.filter(p => pageShown(p.href)), ...nav.items.filter(([href]) => !PAGES.some(p => p.href === href)).map(([href, label]): SearchItem => ({id: `page:${href}`, kind: 'page', title: label, href})), ...SETTINGS, ...HELP_ITEMS];
     if (goals.loaded) for (const g of goals.goals) out.push({id: `goal:${g.key}`, kind: 'goal', title: g.name, subtitle: `${g.type} · ${g.status}`, href: g.href});
     if (averages.loaded && !averages.unreadable) for (const g of averages.data.goals) out.push({id: `goal:average:${g.id}`, kind: 'goal', title: g.name, subtitle: `Keep an average · ${g.status}`, href: `/app/goals/average/${g.id}`});

@@ -10,6 +10,7 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:goals', kind: 'page', title: 'Goals', href: '/app/goals', keywords: ['targets', 'vision board', 'tree', 'life balance']},
   {id: 'page:goals-templates', kind: 'page', title: 'Goal templates', href: '/app/goals/templates', keywords: ['ideas', 'library']},
   {id: 'page:goals-new', kind: 'page', title: 'Create a goal', href: '/app/goals/new', keywords: ['new goal', 'add goal']},
+  {id: 'page:review', kind: 'page', title: 'Life review', href: '/app/review', keywords: ['week', 'month', 'summary', 'insights', 'reflection', 'weekly review']},
   {id: 'page:habits', kind: 'page', title: 'Habits', href: '/app/habits', keywords: ['routine', 'streaks', 'check in']},
   {id: 'page:health', kind: 'page', title: 'Health', href: '/app/health', keywords: ['food', 'meals', 'water', 'steps', 'weight']},
   {id: 'page:sleep', kind: 'page', title: 'Sleep', subtitle: 'Health', href: '/app/health?view=sleep', keywords: ['nights', 'bedtime']},
