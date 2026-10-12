@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 50,
- "total": 20.0934573,
+ "total": 26.140946099999994,
  "byModel": {
   "claude-haiku-5-5": 1.5329932000000002,
-  "claude-sonnet-5-5": 18.265208100000002,
+  "claude-sonnet-5-5": 24.312696899999995,
   "claude-opus-5-5": 0.295256
  },
  "rows": [
@@ -233,6 +233,34 @@
    "files": 0
   },
   {
+   "stage": "real-model/s4b/sonnet-spoken-retry",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "estimate": false,
+   "requests": 9,
+   "input": 30,
+   "cacheWrite": 5649,
+   "cacheRead": 149197,
+   "output": 1303,
+   "usd": 0.0421322,
+   "unreported": 0,
+   "files": 0
+  },
+  {
+   "stage": "real-model/s5/sonnet-corpus",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "estimate": false,
+   "requests": 835,
+   "input": 3144,
+   "cacheWrite": 1164476,
+   "cacheRead": 13496386,
+   "output": 173824,
+   "usd": 6.005356599999993,
+   "unreported": 0,
+   "files": 0
+  },
+  {
    "stage": "spoken/gen",
    "model": "claude-opus-5-5",
    "batch": true,
@@ -339,10 +367,20 @@
    "turns": 624
   },
   {
+   "file": "real-model/s4b/sonnet-spoken-retry/anthropic-api-claude-sonnet-5-5-tools-spoken-subset-2026-10-12T12-23-10-670Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 6
+  },
+  {
+   "file": "real-model/s5/sonnet-corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-12T12-05-45-361Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 710
+  },
+  {
    "file": "spoken/gen/usage-msgbatch_01ERibWPa7m6ZCAfTs6W2dHj.json",
    "model": "claude-opus-5-5",
    "turns": 44
   }
  ],
- "rebuiltAt": "2026-10-12T12:20:51.676Z"
+ "rebuiltAt": "2026-10-12T19:51:44.762Z"
 }
