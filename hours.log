@@ -26,3 +26,10 @@ END s3-ui-conv-2 2026-10-12T10:30:37Z rc=0
 START s3-ui-conv-3 2026-10-12T10:30:37Z
 START ui-s3/ui-conv-3 2026-10-12T10:30:37Z
 END ui-s3/ui-conv-3 2026-10-12T10:32:07Z rc=0
+END s3-ui-conv-3 2026-10-12T10:32:09Z rc=0
+END s3-haiku-corpus 2026-10-12T10:32:17Z rc=0
+START s3-haiku-spoken 2026-10-12T10:32:17Z
+END s3-gemma4-corpus 2026-10-12T10:48:52Z rc=0
+START s3-qwen38-corpus 2026-10-12T10:48:52Z
+END s3-haiku-spoken 2026-10-12T10:58:21Z rc=0
+START s3-sonnet-corpus 2026-10-12T10:58:21Z
