@@ -15,7 +15,8 @@ const PAGE_QUEST: Record<ProgressPage, string[]> = {today: ['today', 'habits', '
  * The celebration host rides with it, so a celebration can show on every page that has a slot.
  */
 export function ProgressCard({page}: {page: ProgressPage}) {
-  const game = useGame(), phone = usePhoneActive(), [open, setOpen] = useState(false);
+  // ADR-022 B53: in a page's progress slot the card is the slim strip on every width (it expands on tap); the full view is Journey's. A 350 px card in the highlight area pushed pinned content out of view (run9-2-life, CI).
+  const game = useGame(), phone = usePhoneActive() || true, [open, setOpen] = useState(false);
   if (!game.enabled || !game.derived) return null;
   const {xp, quests} = game.derived;
   const mine = quests.find(q => PAGE_QUEST[page].includes(q.page)) ?? quests[0];
