@@ -37,8 +37,9 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await expect(studio.locator('> a')).toContainText('0 of 1 sub-goal done');
   await expect(finished).toHaveText(finishedCount);
   // A ring's number stays on one line (the row's text rule no longer reaches the ring).
-  const ringLines = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.bottom))).size; });
-  expect(ringLines).toBe(1);
+  // Every piece of the ring's text (the number, the small "%") shares one line: their boxes overlap vertically.
+  const oneLine = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); const boxes = [...r.getClientRects()].filter(x => x.width > 0); return Math.max(...boxes.map(x => x.top)) < Math.min(...boxes.map(x => x.bottom)); });
+  expect(oneLine).toBe(true);
   // G2: the balance wheel with every area named in words.
   const balance = page.getByRole('region', {name: 'Life balance'});
   await expect(balance.getByRole('img')).toHaveAccessibleName(/Health: \d+%; Habits & Mind: \d+%; Wealth: \d+%; Relationships: no data yet/);
