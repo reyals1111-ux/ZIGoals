@@ -99,6 +99,8 @@
 :root .today-device-cards { display: grid; gap: 16px; margin: 16px 0 0; }
 :root .today-device-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; }
 :root .today-device-card > * { margin: 0; }
+/* Life balance needs the whole row for its wheel beside the legend; the other cards pair up below it. */
+:root .today-device-card[data-card='balance'] { grid-column: 1 / -1; }
 :root .today-device-chooser { padding: 16px; border-radius: 18px; border: 1px dashed #6c9cc566; background: #0b172b80; }
 :root .today-device-chooser h3 { margin: 0 0 4px; font-size: 17px; }
 :root .today-device-chooser p { margin: 0 0 12px; font-size: 15px; color: var(--text-secondary); }

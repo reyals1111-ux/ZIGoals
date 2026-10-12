@@ -24,7 +24,7 @@ export function PaceForecastsCard({platform, quotes, now, today}: {platform: Pla
     return [{id: goal.id, name: goal.name, href: summary.href, forecast, words: forecastWords(forecast, formatDay)}];
   }).sort((a, b) => ORDER[a.forecast.state] - ORDER[b.forecast.state] || (a.forecast.date ?? '').localeCompare(b.forecast.date ?? '')).slice(0, 4), [platform, quotes, now, today]);
   return <section className="panel pace-forecasts" aria-labelledby="pace-forecasts-title">
-    <SectionHeading id="pace-forecasts-title" eyebrow="Goals · estimates from your own pace" title="Pace forecasts" level={3} action={<Link className="text-link" href="/app/goals">All goals →</Link>} />
+    <SectionHeading id="pace-forecasts-title" eyebrow="Goals · estimates" title="Pace forecasts" level={3} action={<Link className="text-link" href="/app/goals">All goals →</Link>} />
     {rows.length ? <ul className="pace-list">{rows.map(r => <li key={r.id} data-state={r.forecast.state}>
       <Link href={r.href}>{r.name}</Link>
       <strong>{r.words.headline}</strong>

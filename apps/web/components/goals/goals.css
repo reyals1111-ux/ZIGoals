@@ -143,7 +143,11 @@
 :root .balance-name { grid-area: name; font-size: 15px; font-weight: 600; }
 :root .balance-value { grid-area: value; font-size: 15px; font-weight: 700; color: var(--text-strong); }
 :root .balance-activity { grid-area: activity; font-size: 14px; color: var(--text-meta); }
-:root .life-balance-card.is-compact .life-balance-body { grid-template-columns: auto minmax(0, 1fr); gap: 16px; }
+@media (min-width: 600px) {
+  :root .life-balance-card.is-compact .life-balance-body { grid-template-columns: auto minmax(0, 1fr); gap: 20px; }
+  /* Today's card (Part 8) has the whole row: the legend in columns beside the wheel. */
+  :root .life-balance-card.is-compact .balance-legend { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); column-gap: 18px; }
+}
 @media (max-width: 599px) { :root .life-balance-body { grid-template-columns: minmax(0, 1fr); justify-items: center; } :root .balance-legend { width: 100%; } }
 
 /* Hall of achievements. */
