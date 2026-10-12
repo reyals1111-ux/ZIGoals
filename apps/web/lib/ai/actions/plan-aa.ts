@@ -14,6 +14,10 @@ import {newHealthId, saveFood, saveRecipe, setHealthTargets} from '../../health'
 import {GAME} from '../../game/schema';
 import {additionalNutrients} from '../../health';
 import type {Action} from './schema';
+import {GOAL_EXTRAS_KEY} from '../../goal-extras/store';
+import {AVERAGE_GOALS_KEY, AVERAGE_METRICS} from '../../average-goals/store';
+import {CALCULATOR_KEY} from '../../compound/store';
+import {LIFE_REVIEW_KEY} from '../../life-review/store';
 import type {Env, PlanResult, Stores} from './plan';
 
 /**
@@ -22,7 +26,7 @@ import type {Env, PlanResult, Stores} from './plan';
  * device-record changes travel as `device: {key, patch, label}` for the runner (`lib/ai/actions/device-writes.ts`),
  * with no Undo (the card says where to change it back); a routine is a navigation effect to the player.
  */
-export type AaHelpers = {refuse: (message: string) => PlanResult; same: (a: unknown, b: unknown) => boolean; resolveDay: (day: string, base: string, today: string, allowFuture?: boolean) => {ok: true; day: string} | {ok: false; message: string}; dayLabel: (day: string, today: string) => string; habitOf: (env: Env, named: string) => {ok: true; habit: Habit} | {ok: false; message: string}};
+export type AaHelpers = {goalOf: (env: Env, named: string) => {ok: true; found: {handle: string; id: string; label: string}} | {ok: false; message: string}; refuse: (message: string) => PlanResult; same: (a: unknown, b: unknown) => boolean; resolveDay: (day: string, base: string, today: string, allowFuture?: boolean) => {ok: true; day: string} | {ok: false; message: string}; dayLabel: (day: string, today: string) => string; habitOf: (env: Env, named: string) => {ok: true; habit: Habit} | {ok: false; message: string}};
 const MICRO_KEY: Record<string, MicroKey> = {fiber: 'fiberMg', sugar: 'sugarMg', 'saturated-fat': 'saturatedFatMg', sodium: 'sodiumMg', potassium: 'potassiumMg', calcium: 'calciumMg', iron: 'ironMg'};
 const replaceHabit = (data: HabitData, id: string, next: Habit): HabitData => habitDataSchema.parse({...data, habits: data.habits.map(h => h.id === id ? next : h)});
 export function planAaAction(action: Action, env: Env, h: AaHelpers): PlanResult | null {
@@ -136,6 +140,51 @@ export function planAaAction(action: Action, env: Env, h: AaHelpers): PlanResult
     }
     case 'set-game-layer': {
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: action.enabled ? 'Turn the game layer on' : 'Turn the game layer off', lines: [action.enabled ? 'Levels, quests and badges from your own records, on Journey' : 'Journey and the cards step aside; nothing of yours is lost', 'On this device; the switch is under Your pages & buttons'], where: 'Settings · Your pages & buttons', day: null, estimate: false}, write: () => ({}), undo: null, device: {key: GAME.key, patch: {enabled: action.enabled}, label: action.enabled ? 'Game layer on' : 'Game layer off'}}};
+    }
+    // ---- Session AA-Local, merged second (ADR-022 B53): AA-Cloud's goal extras, average goals, the calculator, search and the Life review ----
+    case 'set-goal-area': {
+      const named = h.goalOf(env, action.goal); if (!named.ok) return h.refuse(named.message);
+      const area = action.area; if (area !== null && !(DEFAULT_AREA_IDS as readonly string[]).includes(area)) return h.refuse(`Areas are ${DEFAULT_AREA_IDS.join(', ')} (or a custom area made in Goals).`);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: area ? `${named.found.label} → ${area}` : `Remove ${named.found.label}'s area`, lines: ['The life area the goal is filed under, on this device (the balance wheel reads it)', 'Change it back on the goal\'s page'], where: 'Goals', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: GOAL_EXTRAS_KEY, patch: {area: {goalKey: named.found.id, areaId: area, at}}, label: 'Goal area'}, activity: {id: `goal-area:${named.found.id}:${area ?? 'none'}:${at}`, title: `${named.found.label}: ${area ?? 'no area'}`}}};
+    }
+    case 'set-goal-plan': {
+      const named = h.goalOf(env, action.goal); if (!named.ok) return h.refuse(named.message);
+      const parts = [action.why !== undefined && `Why: ${action.why}`, action.obstacle !== undefined && `Obstacle: ${action.obstacle}`, action.ifThen !== undefined && `If-then: ${action.ifThen}`].filter((x): x is string => !!x);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${named.found.label}: the plan`, lines: [...parts, 'Your own words, kept on this device; edit them on the goal\'s page'], where: 'Goals', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: GOAL_EXTRAS_KEY, patch: {reasons: {goalKey: named.found.id, ...(action.why !== undefined ? {why: action.why} : {}), ...(action.obstacle !== undefined ? {obstacle: action.obstacle} : {}), ...(action.ifThen !== undefined ? {ifThen: action.ifThen} : {}), at}}, label: 'Goal plan'}, activity: {id: `goal-plan:${named.found.id}:${at}`, title: `${named.found.label}: plan noted`}}};
+    }
+    case 'set-sub-goal': {
+      const named = h.goalOf(env, action.goal); if (!named.ok) return h.refuse(named.message);
+      const parent = action.parent === null ? null : h.goalOf(env, action.parent); if (parent && !parent.ok) return h.refuse(parent.message);
+      if (parent && parent.ok && parent.found.id === named.found.id) return h.refuse('A goal cannot be its own parent.');
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: parent && parent.ok ? `${named.found.label} under ${parent.found.label}` : `${named.found.label} on its own`, lines: [parent && parent.ok ? 'A sub-goal in the goal tree, on this device' : 'Leaves the goal tree; nothing else changes', 'Change it on the goal\'s page'], where: 'Goals', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: GOAL_EXTRAS_KEY, patch: {parent: {goalKey: named.found.id, parentKey: parent && parent.ok ? parent.found.id : null, at}}, label: 'Sub-goal'}, activity: {id: `sub-goal:${named.found.id}:${at}`, title: `${named.found.label}: ${parent && parent.ok ? `under ${parent.found.label}` : 'on its own'}`}}};
+    }
+    case 'create-average-goal': {
+      const metric = AVERAGE_METRICS[action.metric], unit = action.unit ?? metric.unit, id = crypto.randomUUID();
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Average goal: ${action.name}`, lines: [`${action.direction === 'at-most' ? 'At most' : 'At least'} ${action.target} ${unit} on average over ${action.windowDays} days`, metric.source === 'health' ? 'Read from your Health journal; kept on this device' : 'You log the values; kept on this device', 'Finish or remove it on Goals'], where: 'Goals', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: AVERAGE_GOALS_KEY, patch: {add: {id, name: action.name, metric: action.metric, unit, target: action.target, direction: action.direction, windowDays: action.windowDays, createdAt: at}}, label: 'Average goal'}, activity: {id: `average-goal:${id}`, title: `Average goal: ${action.name}`}}};
+    }
+    case 'log-average': {
+      const day = h.resolveDay(action.day, env.healthDay, env.healthDay); if (!day.ok) return h.refuse(day.message);
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `${action.goal}: ${action.value} on ${h.dayLabel(day.day, env.healthDay)}`, lines: ['A value for an average goal you log yourself, on this device', 'Remove it on the goal\'s page'], where: 'Goals', day: day.day, estimate: false},
+        write: () => ({}), undo: null, device: {key: AVERAGE_GOALS_KEY, patch: {log: {goal: action.goal, day: day.day, value: action.value}}, label: 'Average value'}, activity: {id: `average-log:${action.goal}:${day.day}`, title: `${action.goal}: ${action.value}`}}};
+    }
+    case 'calculator-scenario': {
+      const {kind, ...input} = action; void kind;
+      const said = [input.start !== undefined && `start ${input.start}`, input.contribution !== undefined && `${input.contribution} ${input.frequency ?? 'monthly'}`, input.ratePercent !== undefined && `${input.ratePercent} % a year`, input.years !== undefined && `${input.years} years`].filter((x): x is string => !!x).join(' · ');
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: 'Open the calculator with these figures', lines: [said || 'The calculator\'s last figures', 'Every result is an estimate, never a promise; nothing is saved until you save a scenario there'], where: 'Wealth → Compound interest calculator', day: null, estimate: true},
+        write: () => ({}), undo: null, device: {key: CALCULATOR_KEY, patch: {input}, label: 'Calculator figures'}, navigate: {href: '/app/wealth/calculator', label: 'Wealth → Compound interest calculator'}}};
+    }
+    case 'open-search': {
+      const query = action.query.trim(); if (!query) return h.refuse('Say what to search for.');
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Search: ${query}`, lines: ['Opens search with your words; nothing is written'], where: 'Search', day: null, estimate: false},
+        write: () => ({}), undo: null, navigate: {href: `/app?search=${encodeURIComponent(query)}`, label: 'Search'}}};
+    }
+    case 'open-review': {
+      return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open the Life review: ${action.period === 'week' ? 'this week' : 'this month'}`, lines: ['Opens /app/review on that period', 'The period is a choice kept on this device'], where: 'Life review', day: null, estimate: false},
+        write: () => ({}), undo: null, device: {key: LIFE_REVIEW_KEY, patch: {period: action.period}, label: 'Life review period'}, navigate: {href: '/app/review', label: 'Life review'}}};
     }
     default: return null;
   }

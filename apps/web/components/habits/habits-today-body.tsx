@@ -4,7 +4,7 @@ import {useId, lazy, Suspense} from 'react';
 import { visualTone } from "../visual-tone";
 import { goalLinkMatches, habitDay, habitRuleOn, habitStats } from "../../lib/habits";
 import { useGoals } from "../goal-provider";
-import { HabitCompletion } from "./habit-card";
+import { HabitCompletion } from "./habit-completion";
 const TimerChip = lazy(() => import("./habit-timer").then((m) => ({ default: m.TimerChip }))); // Gate A: the timer chunk loads only while a timer runs
 import { useHabits } from "./use-habits";
 import { HabitSections } from "./habit-sections";

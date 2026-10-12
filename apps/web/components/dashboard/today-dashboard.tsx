@@ -35,7 +35,7 @@ import {HealthLinkContext} from '../habits/health-link-context';
 import {exerciseData} from '../../lib/health-counters';
 import {HabitsToday} from '../habits/habits-today';
 import {HealthToday} from '../health/health-today';
-import {HabitCompletion} from '../habits/habit-card';
+import {HabitCompletion} from '../habits/habit-completion'; // the control alone (ADR-022 B53): Today never carries the full card
 import {useMarketQuotes} from '../platform/use-market-quotes';
 import {useEvidenceNow} from '../platform/use-evidence-now';
 import {useLocalToday} from '../use-local-today';

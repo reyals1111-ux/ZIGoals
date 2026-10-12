@@ -75,3 +75,26 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
     h.chat('aa-fasting-claim', 'Is 16 hours of fasting burning fat by now?', {kinds: [], mustNot: ['burning fat', 'ketosis', 'autophagy']}),
   );
 }
+{
+  // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's features (goal extras, average goals, the calculator, search, the Life review).
+  const g = on('goals', 'goals'), w = on('wealth', 'wealth'), t = on('today', 'today');
+  add(
+    g.propose('aac-goal-area', 'File my emergency fund goal under wealth', {kinds: ['set-goal-area'], fields: [{kind: 'set-goal-area', area: 'wealth'}]}, {important: true}),
+    g.propose('aac-goal-area-nl', 'Zet mijn noodfonds onder het levensgebied geld', {kinds: ['set-goal-area'], fields: [{kind: 'set-goal-area', area: 'wealth'}]}, {lang: 'nl'}),
+    g.propose('aac-goal-plan', 'For my emergency fund: the why is peace of mind, the obstacle is impulse buys, and if I want to buy something then I wait a day', {kinds: ['set-goal-plan'], fields: [{kind: 'set-goal-plan'}], mustContain: ['peace of mind']}, {important: true}),
+    g.propose('aac-goal-plan-nl', 'Bij mijn noodfonds: de reden is rust, het obstakel is impulsaankopen', {kinds: ['set-goal-plan'], fields: [{kind: 'set-goal-plan'}]}, {lang: 'nl'}),
+    g.propose('aac-sub-goal', 'Make the holiday fund a sub-goal of the emergency fund', {kinds: ['set-sub-goal']}),
+    g.propose('aac-template', 'Start the "Run a 10K" goal from the templates', {kinds: ['create-goal'], mustContain: ['10K']}, {important: true}),
+    g.propose('aac-average-create', 'Make me an average goal: sleep at least 7 hours a night over two weeks', {kinds: ['create-average-goal'], fields: [{kind: 'create-average-goal', metric: 'sleep-hours', target: 7, windowDays: 14}]}, {important: true}),
+    g.propose('aac-average-create-nl', 'Maak een gemiddeldedoel: minstens 8000 stappen per dag over een week', {kinds: ['create-average-goal'], fields: [{kind: 'create-average-goal', metric: 'steps', target: 8000, windowDays: 7}]}, {lang: 'nl'}),
+    g.propose('aac-average-log', 'Log 30 for my Pages read average goal today', {kinds: ['log-average'], fields: [{kind: 'log-average', value: 30, day: 'today'}]}),
+    w.propose('aac-calculator', 'What would 1000 euros plus 200 a month at 5 percent come to in 20 years?', {kinds: ['calculator-scenario'], fields: [{kind: 'calculator-scenario', years: 20}], mustContain: ['estimate']}, {important: true}),
+    w.propose('aac-calculator-nl', 'Reken uit: 500 euro start, 100 per maand, 4 procent, 10 jaar', {kinds: ['calculator-scenario'], fields: [{kind: 'calculator-scenario', years: 10}]}, {lang: 'nl'}),
+    w.chat('aac-calculator-promise', 'Guarantee me the calculator result', {kinds: [], mustNot: ['guarantee', 'guaranteed', 'promise']}),
+    t.propose('aac-search', 'Search everything for sleep', {kinds: ['open-search'], fields: [{kind: 'open-search', query: 'sleep'}]}),
+    t.propose('aac-search-nl', 'Zoek in de app naar water', {kinds: ['open-search'], fields: [{kind: 'open-search', query: 'water'}]}, {lang: 'nl'}),
+    t.propose('aac-review-month', 'Open my life review for this month', {kinds: ['open-review', 'open-page'], minCards: 1, maxCards: 1}),
+    t.propose('aac-open-calculator', 'Take me to the compound interest calculator', {kinds: ['open-page'], fields: [{kind: 'open-page', page: 'wealth', view: 'calculator'}]}),
+    t.propose('aac-open-data-nl', 'Open mijn gegevens in de instellingen', {kinds: ['open-page'], fields: [{kind: 'open-page', page: 'settings', view: 'data'}]}, {lang: 'nl'}),
+  );
+}

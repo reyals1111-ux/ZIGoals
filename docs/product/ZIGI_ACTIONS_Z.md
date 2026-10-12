@@ -73,6 +73,20 @@ the reason in the reply; **form** = a pre-filled form the person submits; **effe
 | Use an earned streak freeze (AA-Local H7) | AA (a "Streak freeze" skipped entry) | `use-freeze` | yes | plan-aa.test |
 | The year view, the routines list | nav | `open-page` page=habits view=year/routines | — | golden-spoken |
 
+## Goals, Wealth, search and the Life review (AA-Cloud's features, wired by AA-Local at the merge)
+| Action | ZIGi path | Kind | Auto-accept | Test |
+|---|---|---|---|---|
+| A goal's life area (AA-Cloud G1, the balance wheel) | AA (device record `zigoals:goal-extras:v1`) | `set-goal-area` | yes | plan-aa-cloud.test, zigi-aa |
+| A goal's why, obstacle and if-then plan (AA-Cloud G2) | AA (device record) | `set-goal-plan` | yes | plan-aa-cloud.test |
+| A sub-goal in the goal tree (AA-Cloud G5) | AA (device record) | `set-sub-goal` | yes | plan-aa-cloud.test |
+| A goal from the template library (AA-Cloud G7) | composite: becomes `create-goal` or `create-average-goal`; a weight template opens Health | `goal-from-template` | as the card it becomes | golden |
+| An average goal; a logged value (AA-Cloud G8) | AA (device record `zigoals:average-goals:v1`) | `create-average-goal`, `log-average` | yes | plan-aa-cloud.test, zigi-aa |
+| The compound interest calculator with figures (AA-Cloud Part 3) | AA (device record `zigoals:calculator:v1`, then the page; results labelled an estimate) | `calculator-scenario` | never | plan-aa-cloud.test |
+| Search with a query (AA-Cloud Part 4) | nav (`/app?search=…` opens the palette) | `open-search` | never | plan-aa-cloud.test |
+| The Life review on a week or a month (AA-Cloud Part 5) | AA (device record `zigoals:life-review:v1`, then the page) | `open-review`; `open-page` page=review view=week/month | never | plan-aa-cloud.test |
+| The calculator, templates, Your data, Share pages | nav | `open-page` page=wealth view=calculator; page=goals view=templates; page=settings view=data; page=share | — | golden |
+
+
 ## Health
 | Action | ZIGi path | Kind | Auto-accept | Test |
 |---|---|---|---|---|

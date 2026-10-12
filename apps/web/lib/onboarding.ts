@@ -18,6 +18,9 @@ import {ZIGI_DISPLAY_KEYS, ZIGI_PERSONAL_KEYS} from './ai/store/keys';
 import {Z_DISPLAY_KEYS, Z_PERSONAL_KEYS} from './z-device-keys';
 import {W_DISPLAY_KEYS, W_PERSONAL_KEYS} from './w-device-keys';
 import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from './aa-device-keys';
+// AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
+// each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
+const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
 export const ONBOARDING_KEY = 'zigoals:onboarding:v1';
 export type OnboardingFlag = { version: 1; seen: true };
 type Read = Pick<Storage, 'getItem'>;
@@ -43,13 +46,15 @@ export function markOnboardingSeen(storage: Write | null | undefined): boolean {
  * Session W adds its own (lib/w-device-keys.ts): its personal records here, its two display preferences below; Session
  * Z-Cloud its own (lib/z-device-keys.ts): ZIGi's suggestions here, the voice choices below.
  */
-export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HEALTH_GOALS_KEY, WEEKLY_REVIEW_KEY, FASTING_KEY, INSIGHTS_KEY, IMPORT_UNDO_KEY, PUSH_KEY, GUIDE_KEY, AI_SETTINGS_KEY, ...ZIGI_PERSONAL_KEYS, ...W_PERSONAL_KEYS, ...Z_PERSONAL_KEYS, ...AA_PERSONAL_KEYS];
+export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HEALTH_GOALS_KEY, WEEKLY_REVIEW_KEY, FASTING_KEY, INSIGHTS_KEY, IMPORT_UNDO_KEY, PUSH_KEY, GUIDE_KEY, AI_SETTINGS_KEY, ...ZIGI_PERSONAL_KEYS, ...W_PERSONAL_KEYS, ...Z_PERSONAL_KEYS, ...AA_PERSONAL_KEYS,
+  // Session AA-Cloud's five personal device keys (ADR-021; listed here by the second merger, ADR-022 B52).
+  GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
  * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
  */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are

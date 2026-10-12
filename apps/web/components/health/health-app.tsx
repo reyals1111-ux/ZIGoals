@@ -22,7 +22,6 @@ const CoachCard = lazy(() => import("./coach-card").then((m) => ({ default: m.Co
 const MicroPanel = lazy(() => import("./micro-panel").then((m) => ({ default: m.MicroPanel })));
 const MacroModePanel = lazy(() => import("./macro-mode-panel").then((m) => ({ default: m.MacroModePanel })));
 const FastingTimeline = lazy(() => import("./fasting-timeline").then((m) => ({ default: m.FastingTimeline })));
-import { GameRegistrar } from "../game/registrar";
 import { LayoutLockButton, LayoutPage, LayoutRegion, type LayoutAttrs } from "../layout-edit";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -234,7 +233,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
     {/* ADR-022 B49: the weight trend, energy and coach cards open the journal block (no new layout item, and the summary and the nutrition dashboard stay adjacent). */}
     <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
-    <div className="health-progress-slot"><GameRegistrar /><ProgressSlot page="health" /></div>
+    <div className="health-progress-slot"><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
     </div>

@@ -29,7 +29,7 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
   useEffect(() => {
     if (!enabled || !seenReady) return;
     return zigiSignals.on(signal => {
-      if (!signal.validated || (signal.type !== 'goal_milestone_reached' && signal.type !== 'goal_funded')) return;
+      if (!signal.validated || (signal.type !== 'goal_milestone_reached' && signal.type !== 'goal_funded' && signal.type !== 'achievement_unlocked')) return; // achievement_unlocked: a finished goal (AA-Cloud's lane emits it at the merge, ADR-022 B52)
       const c = goalCelebration(signal.type, celebrations.data.seen, today);
       if (c && !shown.current.has(c.id)) { shown.current.add(c.id); setQueue(q => [...q, c]); }
     });

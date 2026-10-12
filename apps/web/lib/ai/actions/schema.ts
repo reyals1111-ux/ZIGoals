@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import {GOAL_LIBRARY, searchTemplates} from '../../templates/goal-library';
 import {MAX_CUSTOM_HOURS} from '../../fasting/schema';
 import {MAX_NOTE_CHARS, MEMORY_CATEGORIES} from '../store/records';
 import {LINK_ICONS} from '../../links/schema';
@@ -78,8 +79,8 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
-export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey'] as const;
-export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders'] as const;
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share'] as const; // review, share: AA-Cloud's pages (ADR-022 B53)
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 // Session AA-Local Part 5: the new actions' vocabularies (habits' time of day and moods, the game layer, the Health coach, macro modes, the seven micronutrients the format holds).
@@ -185,6 +186,16 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('coach-answer'), answer: z.enum(['keep', 'adjust']), kcal: z.number().int().min(500).max(10_000).optional()}),
   z.strictObject({kind: z.literal('import-recipe'), text: z.string().trim().min(1).max(20_000), name: z.string().trim().max(80).optional(), servings: z.number().finite().positive().max(100).optional()}),
   z.strictObject({kind: z.literal('set-game-layer'), enabled: z.boolean()}),
+  // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's features, each through its store's own function (device records) or a navigation.
+  z.strictObject({kind: z.literal('set-goal-area'), goal: goalName, area: z.string().trim().toLowerCase().max(60).nullable()}),
+  z.strictObject({kind: z.literal('set-goal-plan'), goal: goalName, why: text(300).optional(), obstacle: text(300).optional(), ifThen: text(300).optional()}).refine(a => a.why !== undefined || a.obstacle !== undefined || a.ifThen !== undefined, 'Say the why, the obstacle or the if-then plan.'),
+  z.strictObject({kind: z.literal('set-sub-goal'), goal: goalName, parent: goalName.nullable()}),
+  z.strictObject({kind: z.literal('create-average-goal'), name: text(100), metric: z.enum(['sleep-hours', 'steps', 'water-ml', 'custom']), target: positive.max(1_000_000), direction: z.enum(['at-least', 'at-most']).default('at-least'), windowDays: z.union([z.literal(7), z.literal(14), z.literal(30)]).default(7), unit: text(30).optional()}),
+  z.strictObject({kind: z.literal('log-average'), goal: text(100), value: z.number().finite().min(0).max(1_000_000), day: daySchema}),
+  z.strictObject({kind: z.literal('calculator-scenario'), start: z.number().finite().min(0).max(1e12).optional(), contribution: z.number().finite().min(0).max(1e12).optional(), frequency: z.enum(['weekly', 'monthly', 'yearly']).optional(), ratePercent: z.number().finite().min(-50).max(100).optional(), years: z.number().int().min(1).max(60).optional(), compounding: z.enum(['yearly', 'quarterly', 'monthly', 'daily']).optional(), currency: z.enum(['USD', 'EUR']).optional()})
+    .refine(a => Object.keys(a).length > 1, 'Say at least one figure: the start amount, the contribution, the rate or the years.'),
+  z.strictObject({kind: z.literal('open-search'), query: text(120)}),
+  z.strictObject({kind: z.literal('open-review'), period: z.enum(['week', 'month'])}),
   z.strictObject({kind: z.literal('vacation'), from: isoDay, to: isoDay, clear: z.boolean().default(false), habits: z.array(habitName).max(20).optional()}).refine(a => a.from <= a.to, 'The vacation ends before it starts.'),
   z.strictObject({kind: z.literal('unskip'), habit: habitName, day: daySchema}),
   z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
@@ -228,7 +239,8 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells',
   'set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look', 'prefill-contribution', 'prefill-account',
-  'set-time-of-day', 'start-timer', 'stop-timer', 'start-routine', 'set-habit-area', 'set-quit-cost', 'use-freeze', 'set-micro-target', 'set-macro-mode', 'coach-answer', 'import-recipe', 'set-game-layer'] as const satisfies readonly ActionKind[];
+  'set-time-of-day', 'start-timer', 'stop-timer', 'start-routine', 'set-habit-area', 'set-quit-cost', 'use-freeze', 'set-micro-target', 'set-macro-mode', 'coach-answer', 'import-recipe', 'set-game-layer',
+  'set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average', 'calculator-scenario', 'open-search', 'open-review'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -237,14 +249,23 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
 export const compositeSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('plan-goal'), ...goalFields, milestones: z.array(text(100)).max(10).default([]), habits: z.array(z.strictObject(habitFields)).max(3).default([])}).superRefine(goalRules),
   z.strictObject({kind: z.literal('build-habit'), ...habitFields, reminder: clock.optional()}),
+  // Session AA-Local, merged second (ADR-022 B53): a goal from AA-Cloud's template library becomes the goal card its kind asks for.
+  z.strictObject({kind: z.literal('goal-from-template'), template: text(80)}),
 ]);
 export type Composite = z.infer<typeof compositeSchema>;
-export const COMPOSITE_KINDS = ['plan-goal', 'build-habit'] as const;
+export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template'] as const;
 /** The cards a composite request becomes; `next` numbers the new habits of the reply (new1, new2, …). */
 export function expandComposite(composite: Composite, next: () => string): Record<string, unknown>[] {
   if (composite.kind === 'plan-goal') {
     const {kind, habits, milestones, ...goal} = composite; void kind;
     return [{kind: 'create-goal', ...goal, ...(milestones.length ? {milestones} : {})}, ...habits.map(h => ({kind: 'create-habit', ...h}))];
+  }
+  if (composite.kind === 'goal-from-template') {
+    const q = composite.template.trim().toLowerCase(), t = GOAL_LIBRARY.find(x => x.id === q) ?? GOAL_LIBRARY.find(x => x.title.toLowerCase() === q) ?? searchTemplates(composite.template)[0];
+    if (!t) return [{kind: 'goal-from-template', template: composite.template, missing: true}]; // stays unknown to the validator: the parser reports it
+    if (t.kind === 'average' && t.average) return [{kind: 'create-average-goal', name: t.title, metric: t.average.metric, target: t.average.target, direction: t.average.direction, windowDays: t.average.windowDays, unit: t.average.unit}];
+    if (t.kind === 'health-weight') return [{kind: 'open-page', page: 'health'}]; // a weight goal is set in Health → Health goals; the card opens Health
+    return [{kind: 'create-goal', name: t.title, type: t.kind === 'project' ? 'PROJECT' : 'VALUE', ...(t.milestones?.length ? {milestones: [...t.milestones]} : {}), notes: t.summary}];
   }
   const {kind, reminder, ...habit} = composite; void kind;
   if (!reminder) return [{kind: 'create-habit', ...habit}];
@@ -262,6 +283,8 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   'set_time_of_day': 'set-time-of-day', 'time-of-day': 'set-time-of-day', 'habit-time': 'set-time-of-day', 'start_timer': 'start-timer', 'timer-start': 'start-timer', 'stop_timer': 'stop-timer', 'timer-stop': 'stop-timer', 'finish-timer': 'stop-timer', 'end-timer': 'stop-timer',
   'start_routine': 'start-routine', 'play-routine': 'start-routine', 'run-routine': 'start-routine', 'set_habit_area': 'set-habit-area', 'habit-area': 'set-habit-area', 'set-area': 'set-habit-area', 'set_quit_cost': 'set-quit-cost', 'quit-cost': 'set-quit-cost', 'money-saved': 'set-quit-cost',
   'use_freeze': 'use-freeze', 'streak-freeze': 'use-freeze', 'repair-streak': 'use-freeze', 'set_micro_target': 'set-micro-target', 'micro-target': 'set-micro-target', 'nutrient-target': 'set-micro-target', 'set_macro_mode': 'set-macro-mode', 'macro-mode': 'set-macro-mode', 'net-carbs': 'set-macro-mode',
+  'set_goal_area': 'set-goal-area', 'goal-area': 'set-goal-area', 'set_goal_plan': 'set-goal-plan', 'goal-plan': 'set-goal-plan', 'goal-why': 'set-goal-plan', 'if-then': 'set-goal-plan', 'set_sub_goal': 'set-sub-goal', 'sub-goal': 'set-sub-goal', 'subgoal': 'set-sub-goal', 'goal_from_template': 'goal-from-template', 'template-goal': 'goal-from-template', 'use-template': 'goal-from-template',
+  'create_average_goal': 'create-average-goal', 'average-goal': 'create-average-goal', 'log_average': 'log-average', 'average-log': 'log-average', 'calculator_scenario': 'calculator-scenario', 'calculator': 'calculator-scenario', 'compound-scenario': 'calculator-scenario', 'open_search': 'open-search', search: 'open-search', 'open_review': 'open-review', 'life-review': 'open-review', review: 'open-review',
   'coach_answer': 'coach-answer', 'coach': 'coach-answer', 'weekly-coach': 'coach-answer', 'import_recipe': 'import-recipe', 'recipe-import': 'import-recipe', 'paste-recipe': 'import-recipe', 'set_game_layer': 'set-game-layer', 'game-layer': 'set-game-layer', 'game': 'set-game-layer',
   // Session Z-Local Part 5: the new kinds' plain names; no alias for a delete-* name (an unknown kind stays refused, golden `unknown-kind`).
   navigate: 'open-page', 'go-to': 'open-page', 'open_page': 'open-page', 'show-page': 'open-page', 'delete_record': 'delete-record', 'set_habit_state': 'set-habit-state', 'habit-state': 'set-habit-state',

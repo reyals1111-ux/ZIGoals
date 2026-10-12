@@ -44,7 +44,6 @@ import { groupByTimeOfDay } from "../../lib/habits-extras/sections";
 import { habitArea } from "../../lib/habits-extras/store";
 import "./habits-aa.css";
 import { ProgressSlot } from "../game/slot-local";
-import { GameRegistrar } from "../game/registrar";
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
@@ -218,7 +217,7 @@ export function HabitsWorkspace() {
         {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},
       ], PHONE_ORDER)}/>
       {/* ADR-022 B49: the game card follows the page's own sections (not a layout item, so the pinned orders and the first headings keep their places). */}
-      <div className="habit-progress-slot"><GameRegistrar /><ProgressSlot page="habits" /></div>
+      <div className="habit-progress-slot"><ProgressSlot page="habits" /></div>
       <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">

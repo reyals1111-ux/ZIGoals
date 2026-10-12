@@ -28,6 +28,7 @@ import type {AiMemory, ZigiReminders} from '../store/records';
 import {minutesOf} from '../tools/habits';
 import type {Handle} from '../context/types';
 import {STALE_HANDLE} from '../handles';
+import {LIFE_REVIEW_KEY} from '../../life-review/store';
 import type {planAaAction as PlanAa} from './plan-aa';
 /**
  * Session AA-Local Gate A (ADR-022 B41): the planner for this session's twelve kinds lives in its own chunk, loaded at run
@@ -720,9 +721,9 @@ export function planAction(action: Action, env: Env): PlanResult {
     case 'open-page': {
       // A page the person hid in "Your pages & buttons" is not opened behind their back.
       const view = viewOf(settingsGroupIn(stores.settings, 'pages'));
-      const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' || action.page === 'journey' ? null : action.page;
+      const pageId = action.page === 'settings' || action.page === 'help' || action.page === 'music' || action.page === 'journey' || action.page === 'review' || action.page === 'share' ? null : action.page;
       if (pageId && !isShown(view, pageId)) return refuse(`${PAGE_LABEL[pageId]} is hidden in Settings → Your pages & buttons; show it there first.`);
-      let href = action.page === 'today' ? '/app' : action.page === 'music' ? '/app/music/spotify' : `/app/${action.page}`, label = action.page === 'settings' ? 'Settings' : action.page === 'help' ? 'Help' : action.page === 'music' ? 'Music' : action.page === 'journey' ? 'Journey' : PAGE_LABEL[pageId!];
+      let href = action.page === 'today' ? '/app' : action.page === 'music' ? '/app/music/spotify' : `/app/${action.page}`, label = action.page === 'review' ? 'Life review' : action.page === 'share' ? 'Share to ZIGoals' : action.page === 'settings' ? 'Settings' : action.page === 'help' ? 'Help' : action.page === 'music' ? 'Music' : action.page === 'journey' ? 'Journey' : PAGE_LABEL[pageId!];
       if (action.view) {
         const v = action.view;
         if (['sleep', 'meditation', 'devices', 'imports'].includes(v)) { if (action.page !== 'health') return refuse(`The ${v} view is on Health.`); href = `/app/health?view=${v}`; label = `Health → ${v[0]!.toUpperCase()}${v.slice(1)}`; }
@@ -732,10 +733,16 @@ export function planAction(action: Action, env: Env): PlanResult {
         else if (v === 'reminders') { if (action.page !== 'settings') return refuse('Reminders are on Settings.'); href = '/app/settings/reminders'; label = 'Settings → Reminders'; }
         else if (v === 'zigi' || v === 'pages') { if (action.page !== 'settings') return refuse(`That section is on Settings.`); href = v === 'zigi' ? '/app/settings#your-ai' : '/app/settings#pages'; label = v === 'zigi' ? 'Settings → ZIGi · Your Personal AI Companion' : 'Settings → Your pages & buttons'; }
         else if (v === 'new-goal') { if (action.page !== 'goals') return refuse('A new goal is made on Goals.'); href = '/app/goals/new'; label = 'Goals → New goal'; }
+        // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's calculator, template library, Data health page and the Life review's period.
+        else if (v === 'calculator') { if (action.page !== 'wealth') return refuse('The compound interest calculator is on Wealth.'); href = '/app/wealth/calculator'; label = 'Wealth → Compound interest calculator'; }
+        else if (v === 'templates') { if (action.page !== 'goals') return refuse('The template library is on Goals.'); href = '/app/goals/templates'; label = 'Goals → Templates'; }
+        else if (v === 'data') { if (action.page !== 'settings') return refuse('Your data is on Settings.'); href = '/app/settings/data'; label = 'Settings → Your data'; }
+        else if (v === 'week' || v === 'month') { if (action.page !== 'review') return refuse('A week or a month is a Life review period.'); href = '/app/review'; label = `Life review → ${v === 'week' ? 'This week' : 'This month'}`; }
       }
       if (action.habit) { const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message); href = `/app/habits#habit-${found.habit.id}`; label = `Habits → ${found.habit.title}`; }
       if (action.goal) { const named = goalOf(env, action.goal); if (!named.ok) return refuse(named.message); const id = named.found.id.startsWith('private:') ? named.found.id.slice('private:'.length) : null; if (!id) return refuse('That goal has no page of its own.'); href = `/app/goals/${id}`; label = `Goals → ${named.found.label}`; }
       if (action.asset) { const key = action.asset.trim().toLowerCase(), hits = stores.platform.positions.filter(p => p.asset.toLowerCase() === key || p.denom.toLowerCase() === key); if (hits.length !== 1) return refuse(hits.length ? 'More than one holding matches; name it exactly.' : 'No holding by that name is on this device.'); href = `/app/wealth/asset/${encodeURIComponent(hits[0]!.denom)}`; label = `Wealth → ${hits[0]!.asset}`; }
+      if (action.page === 'review' && (action.view === 'week' || action.view === 'month')) return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href} on ${action.view === 'week' ? 'this week' : 'this month'}`, 'The period is a choice kept on this device'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, device: {key: LIFE_REVIEW_KEY, patch: {period: action.view}, label: 'Life review period'}, navigate: {href, label}}};
       return {ok: true, plan: {target: 'form', card: {kind: action.kind, title: `Open ${label}`, lines: [`Opens ${href}`, 'Nothing is written'], where: 'Navigation', day: null, estimate: false}, write: () => ({}), undo: null, navigate: {href, label}}};
     }
     case 'delete-record': {
@@ -744,8 +751,9 @@ export function planAction(action: Action, env: Env): PlanResult {
     }
     // Session AA-Local Part 5 (ADR-022 B37): this session's kinds live in plan-aa.ts.
     case 'set-time-of-day': case 'start-timer': case 'stop-timer': case 'start-routine': case 'set-habit-area': case 'set-quit-cost': case 'use-freeze': case 'set-micro-target': case 'set-macro-mode': case 'coach-answer': case 'import-recipe': case 'set-game-layer':
+    case 'set-goal-area': case 'set-goal-plan': case 'set-sub-goal': case 'create-average-goal': case 'log-average': case 'calculator-scenario': case 'open-search': case 'open-review':
       if (!aaPlanner) { void loadAaPlanner(); return refuse('ZIGi is still loading that kind of card; send it once more in a moment.'); }
-      return aaPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf}) ?? refuse('That card is not one ZIGi can make.');
+      return aaPlanner(action, env, {refuse, same, resolveDay, dayLabel, habitOf, goalOf}) ?? refuse('That card is not one ZIGi can make.');
     case 'set-habit-state': {
       const found = habitOf(env, action.habit); if (!found.ok) return refuse(found.message);
       const habit = found.habit, current = latestHabitRule(habit).state;

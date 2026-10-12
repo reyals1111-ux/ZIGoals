@@ -1,8 +1,25 @@
 'use client';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
+import {registerNavExtra} from '../nav-extras';
+// Two literals instead of their modules (the shell's weight): `zigoals:game:v1` is GAME_KEY in lib/aa-device-keys.ts, `zigoals:zigi-store` is ZIGI_STORE_EVENT in lib/ai/store/keys.ts; lib/game/game.test.ts keeps them equal.
+const GAME_KEY = 'zigoals:game:v1', ZIGI_STORE_EVENT = 'zigoals:zigi-store';
 /**
- * Registers the game cards in the progress slots once the page is on the client (AA-Cloud's shell mounts this after the
- * merge, so every page's slot fills; until then the Habits, Health and Journey pages mount it). Renders nothing. The game
- * module is imported here at run time, never in a page's first load: the weight budgets (Gate A) never rise.
+ * Registers the game cards in the progress slots once the page is on the client (AA-Cloud's shell mounts this once since
+ * the merge, ADR-022 B52, so every page's slot fills), and keeps Journey in the navigation (sidebar, the phone's More
+ * sheet, search) while the game layer is on. Renders nothing. The game module is imported here at run time, never in a
+ * page's first load, and the on/off flag is read from the record's bytes without its schema: the shell carries none of
+ * the game layer, so the weight budgets never rise.
  */
-export function GameRegistrar() { useEffect(() => { let on = true; void import('./register').then(m => { if (on) m.registerGameCards(); }); return () => { on = false; }; }, []); return null; }
+function gameOn(): boolean { try { const raw = window.localStorage.getItem(GAME_KEY); if (!raw) return false; const v = JSON.parse(raw) as {enabled?: unknown}; return v?.enabled === true; } catch { return false; } }
+export function GameRegistrar() {
+  useEffect(() => { let on = true; void import('./register').then(m => { if (on) m.registerGameCards(); }); return () => { on = false; }; }, []);
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const read = () => setEnabled(gameOn()); read();
+    const onStore = (e: Event) => { if (!(e instanceof CustomEvent) || e.detail === GAME_KEY) read(); };
+    window.addEventListener('storage', read); window.addEventListener(ZIGI_STORE_EVENT, onStore);
+    return () => { window.removeEventListener('storage', read); window.removeEventListener(ZIGI_STORE_EVENT, onStore); };
+  }, []);
+  useEffect(() => { if (!enabled) return; return registerNavExtra(['/app/journey', 'Journey', 'journey']); }, [enabled]);
+  return null;
+}

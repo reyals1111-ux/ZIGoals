@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
 import {buildShowcase} from './showcase-data';
+import {migratePlatform} from './positions';
 import {habitDataSchema} from './habits';
 import {healthSchema} from './health';
 import {gameSchema} from './game/schema';
@@ -38,7 +39,8 @@ test('the Showcase fills Habits, Health, the game layer and the device records o
   expect(runningSession(fastingSchema.parse(JSON.parse(records[FASTING_KEY] ?? JSON.stringify({version: 1, sessions: []}))))).toBeUndefined();
   // The game layer: on, level 7 or above from the records alone, nothing pending on load (B42).
   const game = gameSchema.parse(JSON.parse(records[GAME_KEY]!));
-  const xp = xpSummary({habits, health}, DAY);
+  // Since the merge (ADR-022 B53) the platform record counts too (AA-Cloud's Showcase has more goal history), exactly as the Showcase's own game record is derived.
+  const xp = xpSummary({habits, health, platform: migratePlatform(JSON.parse(records['zigoals:platform:v1']!))}, DAY);
   expect(game.enabled).toBe(true); expect(xp.level.level).toBeGreaterThanOrEqual(7); expect(game.levelSeen).toBe(xp.level.level);
   // The coach is due this week; the other device records parse and carry their values.
   expect(coachCheckIn(health, healthCoachSchema.parse(JSON.parse(records[HEALTH_COACH_KEY]!)), DAY).answered).toBeNull();

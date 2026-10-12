@@ -109,3 +109,11 @@ describe('quests, challenges, badges, freezes', () => {
     m.set(GAME.key, 'nope'); expect(readDeviceRecord(st, GAME)).toEqual({data: emptyGame(), unreadable: true});
   });
 });
+
+// Session AA-Local, merged second (ADR-022 B53): the shell-side registrar names two keys as literals; they must stay the real ones.
+test('the registrar\'s literals equal GAME_KEY and ZIGI_STORE_EVENT', async () => {
+  const {readFileSync} = await import('node:fs'); const src = readFileSync(new URL('../../components/game/registrar.tsx', import.meta.url), 'utf8');
+  const {GAME_KEY} = await import('../aa-device-keys'); const {ZIGI_STORE_EVENT} = await import('../ai/store/keys');
+  expect(src).toContain(`const GAME_KEY = '${GAME_KEY}', ZIGI_STORE_EVENT = '${ZIGI_STORE_EVENT}';`);
+});
+

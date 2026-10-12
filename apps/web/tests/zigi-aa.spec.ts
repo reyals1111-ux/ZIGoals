@@ -60,3 +60,22 @@ test('set-game-layer: Add writes only the game device record, the card shows at 
   await expect(page.getByRole('region', {name: 'Your progress'})).toHaveCount(0);
   expect(await stored(page, HABITS_KEY)).toBe(habitsBefore);
 });
+
+// Session AA-Local, merged second (ADR-022 B53): one of AA-Cloud's device records through the real panel.
+test('create-average-goal: Apply writes only the average-goals device record; the goal shows on Goals; the platform record is untouched', async ({page}) => {
+  await server(page, [block({kind: 'create-average-goal', name: 'Fictional pages', metric: 'custom', target: 30, direction: 'at-least', windowDays: 7, unit: 'pages'})]);
+  await seed(page);
+  await page.goto('/app/goals');
+  const platformBefore = await stored(page, 'zigoals:platform:v1');
+  await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible();
+  await send(page, 'Make an average goal: 30 pages a day');
+  const card = panel(page).locator('.ai-card').last();
+  await expect(card).toContainText('Average goal: Fictional pages');
+  await card.getByRole('button', {name: 'Apply', exact: true}).click();
+  await expect(card).toHaveClass(/ai-card-opened/);
+  // AA-Cloud's Showcase already keeps four average goals; the card adds one.
+  await expect.poll(async () => JSON.parse((await stored(page, 'zigoals:average-goals:v1')) ?? '{"goals":[]}').goals.map((g: {name: string}) => g.name)).toContain('Fictional pages');
+  expect(await stored(page, 'zigoals:platform:v1'), 'the synced platform record is untouched by a device write').toBe(platformBefore);
+  await expect(page.getByText('Fictional pages').first()).toBeVisible();
+});
+

@@ -138,6 +138,8 @@ export function useProposals(): ProposalRunner {
   }, [router]);
   const look = useDeviceRecord(ZIGI);
   const effect = useCallback((p: Plan) => {
+    // Session AA-Local, merged second (ADR-022 B53): a card that changes a device record AND opens a page (the calculator's figures, the Life review's period) applies the record first, then navigates.
+    if (p.device && p.navigate) { const pre = runnerEffect({device: p.device}); if (pre?.kind === 'record') { const spec = deviceWriteSpec(pre.key); if (spec) { updateDeviceRecord(getAppStorage(), spec, r => applyDeviceWrite(pre.key, r, pre.patch)); try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: pre.key})); } catch { /* no window */ } } } }
     const e = runnerEffect(p);
     if (!e) return null;
     if (e.kind === 'device') { look.update(record => lookPatched(record, e.patch)); return {text: effectStatus(e), navigated: false}; }

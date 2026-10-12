@@ -1,37 +1,6 @@
 'use client';
-import {Fragment, useSyncExternalStore, type ComponentType} from 'react';
-
 /**
- * Session AA-Local's local mirror of AA-Cloud's `components/progress/slot.tsx` (ADR-022 B4): the same names, shapes and
- * DOM (`origin/feature/session-aa-cloud`, read at Gate A), so that after AA-Cloud's merge this file becomes one line,
- * `export * from '../progress/slot'`, and nothing else moves. A place renders nothing at all while no card is registered.
+ * Session AA-Local's mirror of AA-Cloud's slot registry (ADR-022 B4, B40) became this one line at the merge (B52):
+ * one registry, AA-Cloud's `components/progress/slot.tsx`; every AA-Local import of `../game/slot-local` keeps working.
  */
-export const PROGRESS_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'markets', 'portfolio', 'activity'] as const;
-export type ProgressPage = (typeof PROGRESS_PAGES)[number];
-export const SLOT_NAMES = ['today:habit-time', 'today:game', 'today:coach', 'review:coach', 'settings:your-app', 'settings:reminders'] as const;
-export type SlotName = ProgressPage | (typeof SLOT_NAMES)[number];
-
-const registry = new Map<SlotName, readonly ComponentType[]>();
-const listeners = new Set<() => void>();
-const NONE: readonly ComponentType[] = [];
-function emit() { for (const listener of listeners) listener(); }
-/** Adds a card to a page's progress slot (or another named place). Returns a function that removes it again. */
-export function registerSlotCard(place: SlotName, Card: ComponentType): () => void {
-  const current = registry.get(place) ?? NONE;
-  if (!current.includes(Card)) { registry.set(place, [...current, Card]); emit(); }
-  return () => { const now = registry.get(place) ?? NONE; if (!now.includes(Card)) return; const next = now.filter(c => c !== Card); if (next.length) registry.set(place, next); else registry.delete(place); emit(); };
-}
-/** The progress slot's own name for `registerSlotCard` on a page. */
-export const registerProgressCard = (page: ProgressPage, Card: ComponentType) => registerSlotCard(page, Card);
-/** The cards registered for a place, for tests and for callers that lay them out themselves. */
-export function slotCards(place: SlotName): readonly ComponentType[] { return registry.get(place) ?? NONE; }
-function subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; }
-function useSlotCards(place: SlotName) { return useSyncExternalStore(subscribe, () => slotCards(place), () => NONE); }
-/** Renders a named place's cards, or nothing at all while none is registered. */
-export function Slot({place, className}: {place: SlotName; className?: string}) {
-  const cards = useSlotCards(place);
-  if (!cards.length) return null;
-  return <div className={className ?? 'aa-slot'} data-slot={place}>{cards.map((Card, i) => <Fragment key={i}><Card /></Fragment>)}</div>;
-}
-/** A page's progress slot, placed in its highlight area. */
-export function ProgressSlot({page}: {page: ProgressPage}) { return <Slot place={page} className="progress-slot" />; }
+export * from '../progress/slot';

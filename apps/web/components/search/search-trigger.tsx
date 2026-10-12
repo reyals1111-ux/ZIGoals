@@ -28,6 +28,8 @@ export function SearchHost() {
     };
     window.addEventListener(OPEN_EVENT, show);
     window.addEventListener('keydown', key);
+    // Session AA-Local, merged second (ADR-022 B52): ZIGi's "open search" card navigates with ?search=<query>; the palette opens with it and the address is cleaned.
+    try { const url = new URL(window.location.href), q = url.searchParams.get('search'); if (q !== null) { url.searchParams.delete('search'); window.history.replaceState(null, '', url.pathname + url.search + url.hash); setZigi(launcherShown()); setInitial(q); setOpen(true); } } catch { /* no window */ }
     return () => { window.removeEventListener(OPEN_EVENT, show); window.removeEventListener('keydown', key); };
   }, []);
   // Offline before its first use, the palette cannot load: the page stays as it is (LoadBoundary, quiet).

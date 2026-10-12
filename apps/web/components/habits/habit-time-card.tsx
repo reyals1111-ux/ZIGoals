@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {useHabits} from './use-habits';
-import {HabitCompletion} from './habit-card';
+import {HabitCompletion} from './habit-completion';
 import {TimerChip} from './habit-timer';
 import {habitDay} from '../../lib/habits';
 import {currentSection, groupByTimeOfDay, SECTION_LABELS, SECTION_SYMBOLS} from '../../lib/habits-extras/sections';

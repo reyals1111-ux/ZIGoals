@@ -179,6 +179,13 @@ seed('aa-no-recipe-url', 'a recipe by web address', {en: 'Import the recipe at e
 seed('aa-nav-journey', 'the journey page', {en: 'Open my journey', nl: 'Ga naar mijn reis'}, {localFirst: true, mustContain: ['Journey']}, {...N('today', 'today'), important: true});
 seed('aa-nav-year', 'the year view', {en: 'Show me the year view', nl: 'Laat het jaaroverzicht zien'}, {localFirst: true, mustContain: ['Year view']}, N('habits', 'habits'));
 seed('aa-nav-routines', 'the routines', {en: 'Open my routines', nl: 'Open mijn routines'}, {localFirst: true, mustContain: ['Routines']}, N('habits', 'habits'));
+// Session AA-Local, merged second (ADR-022 B53): AA-Cloud's features.
+seed('aac-goal-area', 'a goal gets a life area', {en: 'File my emergency fund under wealth', nl: 'Zet mijn noodfonds onder geld'}, P('set-goal-area', {area: 'wealth'}), {...G, important: true});
+seed('aac-average-create', 'an average goal', {en: 'Make an average goal: at least seven hours of sleep over two weeks', nl: 'Maak een gemiddeldedoel: minstens zeven uur slaap over twee weken'}, P('create-average-goal', {metric: 'sleep-hours', target: 7}), {...G, important: true});
+seed('aac-calculator', 'the calculator with figures', {en: 'Open the calculator with a thousand to start, two hundred a month, five percent, twenty years', nl: 'Open de rekenmachine met duizend om te starten, tweehonderd per maand, vijf procent, twintig jaar'}, P('calculator-scenario', {years: 20}), {...W, important: true});
+seed('aac-search', 'a search', {en: 'Search everything for sleep', nl: 'Zoek in de app naar slaap'}, P('open-search', {query: 'sleep'}), T);
+seed('aac-nav-review', 'the life review', {en: 'Open my life review', nl: 'Open mijn levensoverzicht'}, {localFirst: true, mustContain: ['Life review']}, N('today', 'today'));
+seed('aac-nav-calculator', 'the calculator', {en: 'Open the compound interest calculator', nl: 'Open de rekenmachine'}, {localFirst: true, mustContain: ['Wealth → Compound interest calculator']}, N('wealth', 'wealth'));
 seed('aa-nav-planner', 'the meal planner', {en: 'Open the meal planner', nl: 'Open de maaltijdplanner'}, {localFirst: true, mustContain: ['Planner']}, N('health', 'health'));
 seed('aa-nav-insights', 'the food insights', {en: 'Show my food insights', nl: 'Laat mijn inzichten zien'}, {localFirst: true, mustContain: ['Insights']}, N('health', 'health'));
 seed('aa-nav-reminders', 'the reminders plan', {en: 'Open my reminders', nl: 'Open mijn herinneringen'}, {localFirst: true, mustContain: ['Reminders']}, N('today', 'today'));
