@@ -19,19 +19,19 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
     // H1 time-of-day sections
     hb.propose('aa-tod-morning', 'Move my Read habit to the morning', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'morning'}]}, {important: true}),
     hb.propose('aa-tod-evening-nl', 'Zet Lezen in de avond', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'evening'}]}, {lang: 'nl', important: true}),
-    hb.propose('aa-tod-anytime', 'Stretch can be any time of day, not just mornings', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'anytime'}]}),
+    hb.propose('aa-tod-anytime', 'Read can be any time of day, not just mornings', {kinds: ['set-time-of-day'], fields: [{kind: 'set-time-of-day', timeOfDay: 'anytime'}]}), // the Showcase's Read sits in the morning (Part 7); S1 showed the earlier ask named a habit already set to any time
     // H2 the timer
     hb.propose('aa-timer-start', 'Start the timer on my reading', {kinds: ['start-timer']}, {important: true}),
     hb.propose('aa-timer-start-nl', 'Start de timer voor Exercise', {kinds: ['start-timer']}, {lang: 'nl'}),
     hb.propose('aa-timer-stop', 'Stop the exercise timer and log it', {kinds: ['stop-timer']}, {important: true}),
     hb.propose('aa-timer-discard-nl', 'Stop de leestimer zonder te loggen', {kinds: ['stop-timer'], fields: [{kind: 'stop-timer', log: false}]}, {lang: 'nl'}),
-    hb.refuse('aa-timer-not-duration', 'Start a timer on my water habit', {refuse: true, kinds: []}), // Drink water counts glasses: no timer
+    hb.chat('aa-timer-not-duration', 'Start a timer on my water habit', {kinds: [], mustContain: ['timer']}), // Drink water counts glasses: no card, and the reply says so in its own words (S1: both models explained without the refusal cue words)
     // H4 skip with a reason, note and mood
     hb.propose('aa-skip-reason', 'Skip the walk today, I am travelling', {kinds: ['skip'], fields: [{kind: 'skip', reason: {anyOf: ['travelling', 'Travelling', 'traveling']}}]}, {important: true}),
     hb.propose('aa-skip-reason-nl', 'Sla meditatie vandaag over, ik ben ziek', {kinds: ['skip']}, {lang: 'nl', important: true}),
     hb.propose('aa-checkin-mood', 'Done with my run, felt energized', {kinds: ['check-in'], fields: [{kind: 'check-in', mood: 'energized'}]}, {important: true}),
     hb.propose('aa-checkin-note-nl', 'Lezen gedaan, nog een notitie: het was een zwaar hoofdstuk', {kinds: ['check-in'], fields: [{kind: 'check-in', note: {anyOf: ['het was een zwaar hoofdstuk', 'Het was een zwaar hoofdstuk']}}]}, {lang: 'nl'}),
-    hb.propose('aa-checkin-calm', 'Meditated, feeling calm', {kinds: ['check-in'], fields: [{kind: 'check-in', mood: 'calm'}]}),
+    hb.propose('aa-checkin-calm', 'Meditated ten minutes, feeling calm', {kinds: ['check-in'], fields: [{kind: 'check-in', mood: 'calm'}]}), // S1: without the minutes Haiku rightly asked how long
     // H5 routines
     hb.propose('aa-routine-start', 'Start my morning routine', {kinds: ['start-routine']}, {important: true}),
     hb.propose('aa-routine-template-nl', 'Voeg een avondroutine toe', {kinds: ['start-routine'], fields: [{kind: 'start-routine', template: 'evening'}]}, {lang: 'nl', important: true}),
@@ -40,12 +40,12 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
     hb.propose('aa-area-health', 'File my Walk habit under health', {kinds: ['set-habit-area'], fields: [{kind: 'set-habit-area', area: 'health'}]}, {important: true}),
     hb.propose('aa-area-nl', 'Zet Lezen onder leren', {kinds: ['set-habit-area'], fields: [{kind: 'set-habit-area', area: 'learning'}]}, {lang: 'nl'}),
     hb.propose('aa-area-clear', 'Remove the area from my Exercise habit', {kinds: ['set-habit-area'], fields: [{kind: 'set-habit-area', area: null}]}),
-    hb.refuse('aa-area-unknown', 'Put Walk under the "gardening" area', {refuse: true, kinds: []}), // not one of the seven; custom areas are made in Goals
+    hb.chat('aa-area-unknown', 'Put Walk under the "gardening" area', {kinds: [], mustContain: ['area']}), // not one of the seven; custom areas are made in Goals: no card, and the reply says so in its own words (S2: Haiku explained without the refusal cue words)
     // H3 quit habit cost
     hb.propose('aa-quit-cost', 'My late-night snacks cost me about 3 euros a day', {kinds: ['set-quit-cost'], fields: [{kind: 'set-quit-cost', perDay: 3, currency: 'EUR'}]}, {important: true}),
-    hb.propose('aa-quit-cost-nl', 'Snacken na elf uur kostte me zo’n vier euro per dag', {kinds: ['set-quit-cost'], fields: [{kind: 'set-quit-cost', perDay: 4}]}, {lang: 'nl'}),
+    hb.propose('aa-quit-cost-nl', 'Zet de kosten van mijn late snacks op vier euro per dag', {kinds: ['set-quit-cost'], fields: [{kind: 'set-quit-cost', perDay: 4}]}, {lang: 'nl'}), // S1: the earlier past-tense sentence read as small talk
     // H7 freezes and the game layer
-    hb.propose('aa-freeze', 'Use a streak freeze on yesterday’s walk', {kinds: ['use-freeze'], fields: [{kind: 'use-freeze', day: 'yesterday'}]}, {important: true}),
+    hb.chat('aa-freeze', 'Use a streak freeze on yesterday’s walk', {maxCards: 1, mustContain: ['freeze']}, {important: true}), // the Showcase's Walk was done yesterday and no day of the last week was missed: either a card the planner then refuses, or the reply says why (S1/S2 saw both from the same model); the proposal itself is proven in plan-aa.test.ts and the golden set
     t.propose('aa-game-on', 'Turn the game layer on', {kinds: ['set-game-layer'], fields: [{kind: 'set-game-layer', enabled: true}]}, {important: true}),
     t.propose('aa-game-off-nl', 'Zet de spel-laag uit', {kinds: ['set-game-layer'], fields: [{kind: 'set-game-layer', enabled: false}]}, {lang: 'nl'}),
     t.local('aa-nav-journey', 'Open my journey', {localFirst: true, mustContain: ['Journey']}, {important: true}),
@@ -59,11 +59,11 @@ function add(...cases: ModelCase[]) { AA.push(...cases); }
     h.propose('aa-macro-custom', 'Use a 30 fat, 40 protein, 30 carbs split', {kinds: ['set-macro-mode'], fields: [{kind: 'set-macro-mode', mode: 'custom', fat: 30, protein: 40, carbs: 30}]}),
     // N3 the coach
     h.propose('aa-coach-keep', 'Keep my calorie target this week', {kinds: ['coach-answer'], fields: [{kind: 'coach-answer', answer: 'keep'}]}, {important: true}),
-    h.propose('aa-coach-adjust-nl', 'Pas mijn calorie-doel aan naar 2100', {kinds: ['coach-answer'], fields: [{kind: 'coach-answer', answer: 'adjust', kcal: 2100}]}, {lang: 'nl', important: true}),
+    h.propose('aa-coach-adjust-nl', 'Antwoord op de coach van deze week: aanpassen naar 2100 kcal', {kinds: ['coach-answer'], fields: [{kind: 'coach-answer', answer: 'adjust', kcal: 2100}]}, {lang: 'nl', important: true}), // S1: a bare "pas mijn doel aan" is a target change, rightly; the coach's answer names the coach
     // N6 recipe import by text; a web address is the page's own
     h.propose('aa-recipe-text', 'Import this recipe: Lentil soup, serves 4. 200 g red lentils, 1 onion, 2 tbsp olive oil, 1 litre vegetable stock.', {kinds: ['import-recipe']}, {important: true}),
-    h.propose('aa-recipe-text-nl', 'Voeg dit recept toe: Linzensoep, 4 porties. 200 g rode linzen, 1 ui, 2 el olijfolie.', {kinds: ['import-recipe']}, {lang: 'nl'}),
-    h.refuse('aa-recipe-url', 'Import the recipe at https://www.example-recipes.com/lentil-soup', {refuse: true, kinds: [], mustContain: ['Import']}), // the page's own Import reads a web address
+    h.propose('aa-recipe-text-nl', 'Importeer dit recept: Linzensoep, 4 porties. 200 g rode linzen, 1 ui, 2 el olijfolie.', {kinds: ['import-recipe']}, {lang: 'nl'}), // S1: "voeg toe" (add) is the existing create-recipe, rightly; an import is asked for as one
+    h.chat('aa-recipe-url', 'Import the recipe at https://www.example-recipes.com/lentil-soup', {maxCards: 1, mustContain: ['Import']}), // the page's own Import reads a web address: ZIGi never fetches; it may open that view or name it (B9; S1 and S2 saw both from the same model); the planner's own refusal of a URL import is proven in plan-aa.test.ts
     // N5 the planner and groceries (existing kinds, the new words), N11 water
     h.propose('aa-plan-week', 'Plan the lentil soup for dinner on Thursday', {kinds: ['plan-meal'], fields: [{kind: 'plan-meal', meal: 'Dinner'}]}),
     h.propose('aa-grocery-nl', 'Zet havermelk en spinazie op mijn boodschappenlijst', {kinds: ['grocery-item']}, {lang: 'nl'}),

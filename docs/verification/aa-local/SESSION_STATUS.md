@@ -26,7 +26,10 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
    script-tag regex, trailing-dot hosts, photo database erased; photos now exported as files). S1 (Part 6) runs in the
    background (Haiku corpus 93.1 %, spoken ≈93 % first pass). The phone rows' "game strip intercepts" failures were the
    keyboard detector misreading Chrome's emulation under the fake clock (B44, `c2c6d4f5`); the full Chrome + WebKit pass
-   reruns on that build. Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
+   reruns on that build — the real cause was the game strip's nowrap quest line widening the page and Chrome's emulated
+   layout viewport (B44, `game.css`; verified 390 wide and clickable on four pages). Gate B readers: the #37 worktree
+   reader proof passed (1/1). S1: Haiku corpus 93.1 %, spoken ≈91 %, new features 37/45; Sonnet new features 40/45, spoken
+   running; the new-features misses were case defects, repaired in `corpus-aa.ts` (uncommitted until the pass ends). Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
    unit suite (incl. the `auto-accept-once` standalone-parse question), golden 100 %, CI on PR #84, AA-Cloud's handoff
    (read at 07:40Z: its slot registry now has `settings:your-app` and `settings:reminders`, `registerNavExtra` for
    Journey, life areas in `zigoals:goal-extras:v1`; the mirror and the areas key follow it, B11/B40).

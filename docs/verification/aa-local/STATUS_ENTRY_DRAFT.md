@@ -27,7 +27,7 @@ Owner decisions and the eight plan edits: ADR-022. Handoffs: `docs/handoff/AA_LO
 Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up $0.30; …).
 
 ### Tier 2 / Tier 3 in plain words
-- Storage (Tier 3): eleven new device-only keys; no field entered habits v3, health v4 or settings v3; the test proves the three synced records are byte-identical beside them; #37's reader (main's build in a worktree) reads them unchanged and ignores the new keys.
+- Storage (Tier 3): eleven new device-only keys; no field entered habits v3, health v4 or settings v3; `lib/aa-device-keys.test.ts` proves the three synced records are byte-identical beside them; the #37 reader proof ran at Gate B (2026-10-12 09:33Z): main's checkout at `32cb9c5a` in `~/Documents/ZIGoals-Claude-main` parsed the AA-Local Showcase's habits, health and settings records with its own strict schemas and holds none of the eleven keys in any list (one vitest file run in that worktree, 1/1; the file was not committed anywhere).
 - Egress (Tier 3): one new server route, `/api/recipe-import`, which fetches one https page on 443 the person pasted and returns the schema.org Recipe fields; see THREAT_MODEL "Session AA-Local changes".
 - Nothing in wallet, signing, keys or chain configuration changed.
 

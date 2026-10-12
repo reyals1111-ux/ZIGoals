@@ -51,7 +51,7 @@ export const ACTION_PROTOCOL = `When the person asks you to record, add or creat
 - {"kind":"set-habit-state","habit":"h2","state":"paused"|"active"|"archived"} (pause, resume, archive or unarchive a habit; its history stays)
 - {"kind":"set-time-of-day","habit":"h2","timeOfDay":"morning"|"afternoon"|"evening"|"anytime"} (moves a habit into that section of the Habits page and Today)
 - {"kind":"start-timer","habit":"h2"} and {"kind":"stop-timer","habit":"h2"} (the saved timer of a duration habit: start it; stop it and log the time into today's check-in; "log":false stops without logging)
-- {"kind":"check-in","habit":"h2","note":"Felt easy today","mood":"energized"|"good"|"neutral"|"difficult"|"calm"} (a note or a mood on a check-in, only when the person says how it went)
+- {"kind":"check-in","habit":"h2","note":"Felt easy today","mood":"energized"|"good"|"neutral"|"difficult"|"calm"} (a note or a mood on a check-in, only when the person says how it went; the note keeps their own words, never a paraphrase)
 - {"kind":"skip","habit":"h2","reason":"travelling"} (a skip with its reason: a rest, never a miss; the streak keeps its place)
 - {"kind":"start-routine","habit":"h1"} or {"kind":"start-routine","template":"morning"|"evening"|"workout"|"focus"} (opens the routine player on that stack, or adds the template's habits first)
 - {"kind":"set-habit-area","habit":"h2","area":"health"|"mind"|"wealth"|"relationships"|"career"|"learning"|"fun"|null} (the habit's life area, the same ids as Goals; null removes it)
