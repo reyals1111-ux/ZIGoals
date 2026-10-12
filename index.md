@@ -42,3 +42,15 @@ Captured before Gate A's fixes; the Goals page itself is superseded by `after/pa
 | Today | The whole-life overview leads the widgets again (Run10's approved hierarchy), then Your day, Goals (the agenda first), Money, Your widgets; each heading opens its group's first card. Phone: Today's focus as two tiles a row, nothing wider than the screen; the seeded demo stays within its 3.85-screen ceiling (today-screens spec, local). |
 | Goals | One header action; the key figures and the view switch open the "Your goals" region, so the cards still follow one compact controls row; Milestones ahead stays last. |
 | Wealth | The calculator's card after the perspective tools; Allocation and coverage stays the last section. |
+
+### after/part4-8 — search, the Life review, Your data, the share page, Help and Today's cards (`c7debcd`), 36 captures and 12 close-ups, no page errors, no sideways overflow
+| Page | What's better |
+|---|---|
+| Today (Showcase) | Life balance, pace forecasts and the calculator as cards kept on this device (chosen while arranging Today); life balance takes the whole row with its legend in columns; pace forecasts list the nearest estimated dates first, each "not a promise". Phone: each card is one folded row until opened. |
+| Today: the chooser (`closeups/today-card-chooser-*`) | "Cards kept on this device": four on/off tiles, each saying what it shows; nothing synced changes. |
+| Life review (new) | A week or a month beside the period before: highlights, wins, streaks, goals moved, trends ("never counted as zero"), net worth per currency; "On the same days" now shows two pairings with their day counts; last week's focus comes back. |
+| Your data (new) | Where each part of your records lives, what this device holds and how much, what is never stored, copies, what ZIGi can see; read-only. |
+| Share (new) | What another app shared waits on its own page with three choices (a goal, ask ZIGi, search); only http(s) links shown, never opened. |
+| Search (`closeups/search-palette-*`) | One box, grouped results (pages, goals, templates, Help), the "Ask ZIGi" row says when ZIGi is off. |
+| Help | Nine new answers, including "kept on this device for now" and what Safari on iPhone does not offer. |
+| Calculator | Unchanged since part3; the Showcase now opens with its two saved scenarios. |

@@ -1,0 +1,290 @@
+[
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 390,
+  "height": 5752,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "empty",
+  "width": 390,
+  "height": 4021,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "empty",
+  "width": 390,
+  "height": 3203,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "empty",
+  "width": 390,
+  "height": 1214,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "empty",
+  "width": 390,
+  "height": 14409,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 390,
+  "height": 4807,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 1024,
+  "height": 8229,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "empty",
+  "width": 1024,
+  "height": 3176,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "empty",
+  "width": 1024,
+  "height": 2691,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "empty",
+  "width": 1024,
+  "height": 1133,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "empty",
+  "width": 1024,
+  "height": 10958,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 1024,
+  "height": 3624,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "empty",
+  "width": 1440,
+  "height": 6867,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "empty",
+  "width": 1440,
+  "height": 2943,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "empty",
+  "width": 1440,
+  "height": 2567,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "empty",
+  "width": 1440,
+  "height": 1089,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "empty",
+  "width": 1440,
+  "height": 10510,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "empty",
+  "width": 1440,
+  "height": 3154,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 390,
+  "height": 7946,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "showcase",
+  "width": 390,
+  "height": 5283,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "showcase",
+  "width": 390,
+  "height": 4060,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "showcase",
+  "width": 390,
+  "height": 1270,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "showcase",
+  "width": 390,
+  "height": 14465,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 390,
+  "height": 5365,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 1024,
+  "height": 16805,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "showcase",
+  "width": 1024,
+  "height": 4045,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "showcase",
+  "width": 1024,
+  "height": 3557,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "showcase",
+  "width": 1024,
+  "height": 1272,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "showcase",
+  "width": 1024,
+  "height": 11097,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 1024,
+  "height": 3869,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "today",
+  "state": "showcase",
+  "width": 1440,
+  "height": 13553,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "review",
+  "state": "showcase",
+  "width": 1440,
+  "height": 3650,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "data",
+  "state": "showcase",
+  "width": 1440,
+  "height": 3398,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "share",
+  "state": "showcase",
+  "width": 1440,
+  "height": 1193,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "help",
+  "state": "showcase",
+  "width": 1440,
+  "height": 10614,
+  "overflow": false,
+  "errors": []
+ },
+ {
+  "name": "calculator",
+  "state": "showcase",
+  "width": 1440,
+  "height": 3309,
+  "overflow": false,
+  "errors": []
+ }
+]
