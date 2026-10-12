@@ -37,15 +37,15 @@ arrangement is shown exactly as saved.
 |---|---|---|
 | Top | Header → Goals/Positions tabs → status filters | Header with key figures (active, on track, finished) and the progress slot → tabs and filters |
 | Main | Goal cards | Goal cards (unchanged) |
-| Then | Milestones ahead → Health goals | Health goals (they are goals too) → the balance wheel and the vision board entry (Part 2) |
-| Bottom | — | Milestones ahead → Hall of achievements → the template library link (Part 2) |
+| Then | Milestones ahead → Health goals | Health goals (they are goals too) → Life balance (Part 2) → Goal templates, a tool (Part 2) |
+| Bottom | — | Milestones ahead → Hall of achievements, the archive of finished goals (Part 2). Cards, Vision board and Tree are three views of the main items, switched at the top. |
 
 ## Wealth (`/app/wealth`)
 | | Before | After |
 |---|---|---|
 | Top | Hero (total) | Hero (total) with the progress slot → Portfolio pulse (the compact tracker row) |
 | Main | The shape of your wealth → Favourite markets → Portfolio pulse → Your wealth, in perspective → What you have → Your assets | What you have → **Your assets** → Accounts, debts & net worth |
-| Then | — | The compound interest calculator card (Part 3) → The shape of your wealth → Your wealth, in perspective → Allocation and coverage → Favourite markets |
+| Then | — | The shape of your wealth → Your wealth, in perspective → Allocation and coverage → the compound interest calculator card (Part 3, opens `/app/wealth/calculator`) → Favourite markets |
 | Bottom | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets → Accounts, debts & net worth → Allocation and coverage | Your wealth over time → Explain recorded change → Evidence & returns → Archived assets |
 
 Reason: holdings and accounts are the page's items; they were about 4,500 px down on a phone.

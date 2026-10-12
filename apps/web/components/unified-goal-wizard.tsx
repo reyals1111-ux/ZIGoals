@@ -36,7 +36,15 @@ import {localDate} from '../lib/local-date';
 type Funding='wealth'|'future'|'local'|'project';
 /** Session Y Part 9: a refusal about one field of the Purpose step, so that field can be marked and focused. */
 class FieldError extends Error{constructor(message:string,readonly field:string){super(message);}}
-export function UnifiedGoalWizard({positionId,templateId}:{positionId?:string;templateId?:string}){
+/** "Turn this into a goal" from the calculator (Session AA-Cloud Part 3): only well-formed values are used. */
+export type CalculatorPrefill={name?:string;target?:string;currency?:string;date?:string;contribution?:string;every?:string};
+function calculatorGoal(c:CalculatorPrefill|undefined){
+ if(!c||!/^\d{1,13}$/.test(c.target??'')||(c.currency!=='USD'&&c.currency!=='EUR'))return undefined;
+ const date=/^\d{4}-\d{2}-\d{2}$/.test(c.date??'')&&c.date!>localDate()?c.date:undefined,contribution=/^\d{1,13}(\.\d{1,2})?$/.test(c.contribution??'')&&Number(c.contribution)>0?c.contribution:undefined;
+ const every=(['weekly','monthly','yearly'] as const).find(e=>e===c.every);
+ return {name:(c.name??'').trim().slice(0,100)||`Grow to ${c.target} ${c.currency}`,target:c.target!,currency:c.currency,date,contribution,every};
+}
+export function UnifiedGoalWizard({positionId,templateId,calculator}:{positionId?:string;templateId?:string;calculator?:CalculatorPrefill}){
  const store=usePlatform(),legacy=useGoals(),habits=useHabits(),router=useRouter();
  const [goalAssetPosition,setGoalAssetPosition]=useState(positionId??'');
  const source=store.data.positions.find(p=>p.id===goalAssetPosition);
@@ -50,7 +58,7 @@ export function UnifiedGoalWizard({positionId,templateId}:{positionId?:string;te
  // habits are kept with the goal on this device (lib/goal-extras/store.ts), its habits made through Habits' own createHabit.
  const libraryTemplate=templateId?templateById(templateId):undefined,extras=useGoalExtras();
  const [area,setArea]=useState<string>(libraryTemplate?.area??''),[templateHabits,setTemplateHabits]=useState<string[]>([]);
- const templateApplied=useRef(false);
+ const templateApplied=useRef(false),fromCalculator=calculatorGoal(calculator);
  const [pickerVersion,setPickerVersion]=useState(0),[sourceBusy,setSourceBusy]=useState(false);
  const [included,setIncluded]=useState<Record<string,string>>({});
  const [allocation,setAllocation]=useState<'none'|'stake'|'position'>('none'),[selectedInput,setSelected]=useState(''),[quantity,setQuantity]=useState('');
@@ -68,6 +76,7 @@ export function UnifiedGoalWizard({positionId,templateId}:{positionId?:string;te
  const setError=(text:string,field='')=>{setErrorText(text);setErrorField(text?field:'');focusField.current=!!(text&&field);};
  useEffect(()=>{if(!focusField.current||!error||!errorField)return;focusField.current=false;document.getElementById(fieldBase+errorField)?.focus();},[error,errorField,fieldBase]);
  useEffect(()=>{if(templateApplied.current||!libraryTemplate||libraryTemplate.kind==='average'||libraryTemplate.kind==='health-weight')return;templateApplied.current=true;const t=libraryTemplate;const next=t.kind==='value'?'VALUE':'PROJECT';queueMicrotask(()=>{changeType(next);setName(t.title);setCategory(TEMPLATE_CATEGORY[t.id]??'Custom');if(t.milestones)setMilestones(t.milestones.join('\n'));});},[libraryTemplate]);// eslint-disable-line react-hooks/exhaustive-deps -- once, on arrival
+ useEffect(()=>{if(templateApplied.current||!fromCalculator)return;templateApplied.current=true;const c=fromCalculator;queueMicrotask(()=>{changeType('VALUE');setName(c.name);setTarget(c.target);setAsset(c.currency);if(c.date)setDate(c.date);if(c.contribution&&c.every){setPlanAmount(c.contribution);setPlanAsset(c.currency);setCadence(c.every);}});},[]);// eslint-disable-line react-hooks/exhaustive-deps -- once, on arrival
  const fieldProps=(field:string)=>({id:fieldBase+field,...(error&&errorField===field?{'aria-invalid':true as const,'aria-describedby':errorId}:{})});
  const [busy,setBusy]=useState(false);const [savedId,setSavedId]=useState(''),[savedOffline,setSavedOffline]=useState(false);const habitId=useRef('');
  useEffect(()=>{if(shownStep.current===step)return;shownStep.current=step;stepContent.current?.focus();},[step]);
@@ -153,6 +162,7 @@ export function UnifiedGoalWizard({positionId,templateId}:{positionId?:string;te
  <div className="wizard-content" ref={stepContent} tabIndex={-1}><p className="eyebrow">Step {step+1} of 4</p>
  {step===0&&<><h2>What are you working toward?</h2><div className="form-grid">
  <fieldset className="goal-ideas span-two"><legend>Start from an idea (optional)</legend><div className="goal-ideas-list">{GOAL_IDEAS.map(idea=><button type="button" key={idea.id} className="quiet goal-idea" aria-label={`Start from the idea: ${idea.label}`} onClick={()=>{if(type!==idea.type)changeType(idea.type);setName(idea.name);setCategory(idea.category);if(idea.milestones)setMilestones(idea.milestones.join('\n'));setError('');}}><strong>{idea.label}</strong><small>{idea.note}</small></button>)}<Link className="quiet goal-idea" href="/app/goals#goals-health"><strong>A weight goal</strong><small>Lives with your Health goals: a weight you choose, from your Health journal.</small></Link></div></fieldset>
+ {fromCalculator&&<section className="wizard-template span-two" aria-label="From the calculator"><p className="eyebrow">From the compound interest calculator</p><strong>{fromCalculator.name}</strong><p className="fine">The target is the calculator’s estimate, not a promise: returns are not guaranteed. The name, target{fromCalculator.date?', date':''} and currency are filled in{fromCalculator.contribution?', and the contribution is ready if you add a plan':''}; change anything you like.</p></section>}
  {libraryTemplate&&<section className="wizard-template span-two" aria-label="From the template library"><p className="eyebrow">From the template library</p><strong>{libraryTemplate.title}</strong><p className="fine">{libraryTemplate.summary} The name and steps are filled in; change anything you like.</p>{!!libraryTemplate.habits?.length&&<fieldset className="wizard-template-habits"><legend>Habits that help (made in Habits when you save)</legend>{libraryTemplate.habits.map(h=><label key={h.title}><input type="checkbox" checked={templateHabits.includes(h.title)} onChange={e=>setTemplateHabits(list=>e.target.checked?[...list,h.title]:list.filter(x=>x!==h.title))}/><span><strong>{h.title}</strong><small>{h.why}</small></span></label>)}</fieldset>}</section>}
  <label className="span-two">Life area (optional)<select value={area} onChange={e=>setArea(e.target.value)}><option value="">No area yet</option>{areasOf(extras.data).map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select><small className="fine">For your balance wheel; kept on this device for now.</small></label>
  <label className="span-two">Goal name<input value={name} onChange={e=>setName(e.target.value)} maxLength={80} required {...fieldProps('name')}/></label>
