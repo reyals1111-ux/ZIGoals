@@ -22,7 +22,7 @@ Owner decisions and the eight plan edits: ADR-022. Handoffs: `docs/handoff/AA_LO
 |---|---|---|---|
 | Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus: S3 pending / spoken S1 647/681 = 95.0 % before the seed and engine fixes (S4 pending) / new features S2 43/45 = 95.6 % / 15/15, 15/15, 15/15 (S3, $0.90) |
 | Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / ≥95 % | corpus S3 724/770 = 94.0 % ($0.42) / spoken S1 569/624 = 91.2 % (S3 pending) / new features S2 43/45 = 95.6 % |
-| gemma4 12B (RTX 5090) | corpus | ≥89 % | … |
+| gemma4 12B (RTX 5090) | corpus | ≥89 % | S3 676/770 = 87.8 % (88.4 % without the 45 new-features cases; Z-Local's final 88.8 %) — not met, free run |
 | qwen3.8 27B (RTX 5090) | corpus | ≥88 % | … |
 Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up $0.30; …).
 
@@ -39,6 +39,12 @@ Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up 
 
 ### Assertions changed
 See ADR-022 "Assertions changed" (each as strict; the list is copied here at Gate C).
+
+### Gate C evidence (2026-10-12)
+- Revert gate: typecheck green at every part commit (12/12: fe645374 af1882e5 004ecf7c 682bf199 59296b84 37dc787a 7401556e 8f70aecd bd7572b2 7d18aa4f bb9289b6 6b64a842) in a throwaway worktree.
+- Browser, final build on :3103, TZ=UTC: Chrome ZIGi + new specs 449/449 rows (two audit rows fixed and rerun 14/14 with the local-answers spec), Chrome smoke + phone 6/6, WebKit (webkit-*, zigi-*, the new specs, the audit) 459 passed + the one Health import row that timed out beside two extra specs, 10/10 alone; What's new + Help specs 14/14.
+- Unit: 516 files / 4674 tests green (root); weights green, shell 1.2 kB below main.
+- Audits: the Gate B security read (B43, three findings fixed) and the Gate C test-file audit (B47, one swallowed assertion restored); key scans clean.
 
 ### Revert gate, CI, decisions B1…Bn, owner items
 … (filled at Gate C: typecheck per part boundary; CI run URL; B1–B43; owner items: vitamins beyond the seven nutrients, push delivery, the photo-plate test not built)
