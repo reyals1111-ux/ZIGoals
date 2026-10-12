@@ -1,10 +1,10 @@
 {
  "pricesAsOf": "2026-10-10",
  "cap": 50,
- "total": 7.1207941199999985,
+ "total": 13.341445219999999,
  "byModel": {
   "claude-haiku-5-5": 1.4975154200000003,
-  "claude-sonnet-5-5": 5.328022699999998,
+  "claude-sonnet-5-5": 11.5486738,
   "claude-opus-5-5": 0.295256
  },
  "rows": [
@@ -135,6 +135,20 @@
    "files": 0
   },
   {
+   "stage": "real-model/s3/sonnet-corpus",
+   "model": "claude-sonnet-5-5",
+   "batch": false,
+   "estimate": false,
+   "requests": 823,
+   "input": 3120,
+   "cacheWrite": 1249642,
+   "cacheRead": 13220961,
+   "output": 176821,
+   "usd": 6.2206511,
+   "unreported": 0,
+   "files": 0
+  },
+  {
    "stage": "real-model/s3/ui-conv-1",
    "model": "claude-sonnet-5-5",
    "batch": false,
@@ -238,6 +252,11 @@
    "turns": 624
   },
   {
+   "file": "real-model/s3/sonnet-corpus/anthropic-api-claude-sonnet-5-5-tools-all-2026-10-12T10-58-23-463Z.json",
+   "model": "claude-sonnet-5-5",
+   "turns": 710
+  },
+  {
    "file": "real-model/s3/ui-conv-1/conversations-claude-sonnet-5-5.json",
    "model": "panel",
    "turns": 15
@@ -258,5 +277,5 @@
    "turns": 44
   }
  ],
- "rebuiltAt": "2026-10-12T10:59:47.570Z"
+ "rebuiltAt": "2026-10-12T11:35:59.386Z"
 }

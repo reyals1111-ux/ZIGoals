@@ -34,3 +34,7 @@ START s3-qwen38-corpus 2026-10-12T10:48:52Z
 END s3-haiku-spoken 2026-10-12T10:58:21Z rc=0
 START s3-sonnet-corpus 2026-10-12T10:58:21Z
 END s3-qwen38-corpus 2026-10-12T11:16:03Z rc=0
+START s3b-qwen38-corpus 2026-10-12T11:26:20Z
+END s3-sonnet-corpus 2026-10-12T11:35:45Z rc=0
+START s4-sonnet-spoken 2026-10-12T11:35:58Z
+START s4-sonnet-spoken 2026-10-12T11:35:59Z
