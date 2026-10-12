@@ -89,7 +89,18 @@ Read at each gate on `origin/feature/session-aa-local`. **Gate A:** its head `68
 | Shell: mount `<GameRegistrar/>` once | **At merge:** the component exists only on AA-Local's branch; the second merger adds one line to `components/shell.tsx`. Until then AA-Local mounts it on its own pages (as it says). | owner item at merge |
 
 ## Freeze check: differences expected
-Filled per part; Gate C adds the measured counts.
+Gate C, `scripts/desktop-freeze-check.mjs` (desktop and tablet sizes, Showcase and empty) against `32cb9c5`'s own
+production build on this machine: 155 of 155 captures differ, none intended in the script's list (this session changes
+every page by design), no page error on either side. Every difference has its cause:
+- **Every page:** the Search button under the navigation (and in the tablet header), so every accessibility snapshot
+  shifts; Activity, Ecosystem, Habits, Health, Markets and Staking keep their exact height (order and the button only).
+- **Today:** +516 to +686 px empty, +2,080 to +2,666 px Showcase: Today's focus, group headings, Updates and summaries,
+  the cards kept on this device (Part 1, Part 8).
+- **Goals:** +1,030 to +1,055 px empty, +2,176 to +2,466 px Showcase (figures, life balance, templates, the Hall, average
+  goals); a goal's page +1,829 to +2,393 px (pace forecast, the plan, sub-goals).
+- **Help** +441 px (nine answers), **Wealth** +309 to +314 px (the calculator's card), **Settings** +128 px (Your data),
+  **Portfolio** −1 to −2 px (the readability pass's rounding); the dialog captures follow their page.
+Raw comparison on `review/session-aa-cloud-runs` (`gate-c/freeze-*`).
 
 ## Assertions changed (deliberate, listed)
 - **Part 1, Today's default order (as strict):** `lib/dashboard-settings.test.ts` expects the new default main order
