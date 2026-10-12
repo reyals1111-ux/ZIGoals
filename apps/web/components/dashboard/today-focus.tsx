@@ -80,7 +80,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
           <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
           <p>{water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
-          <div className="focus-actions">{firstWater && <button type="button" className="secondary" onClick={() => void logWater()}>{firstWater.label}</button>}<Link className="text-link" href="/app/health?add=entry">Log food →</Link></div>
+          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={() => void logWater()}>{firstWater.label}</button>}<Link className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}
       {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Focus: fasting' : 'Focus: sleep'}>
