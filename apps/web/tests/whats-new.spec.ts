@@ -60,14 +60,15 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
   await expect(card).not.toContainText('stays on this device');
-  // Session Z-Local (ADR-020, deliberate, the second merger): this release's links are the card's own; Z-Cloud's, Y's,
-  // X-Local's, W's and V's wait under "Earlier updates", Z-Cloud's first.
-  await card.getByRole('link', {name: 'ZIGi can do every ordinary task in the app'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-your-ai-act$/);
-  await expect(page.locator('#help-your-ai-act')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-your-ai-act')).toContainText('Every ordinary task in the app is a card now');
+  // Session AA-Cloud (ADR-021, deliberate): this release's links are the card's own; Z-Local's, Z-Cloud's, Y's,
+  // X-Local's, W's and V's wait under "Earlier updates", Z-Local's first.
+  await card.getByRole('link', {name: 'A compound interest calculator'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-aa-calculator$/);
+  await expect(page.locator('#help-aa-calculator')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-aa-calculator')).toContainText('Every result is an estimate: returns are not guaranteed.');
   await page.goto('/app');
   await revealUpdates(page);
+  await expect(card.getByRole('link', {name: 'ZIGi can do every ordinary task in the app'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'Delete an archived habit for good'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'End a vacation early'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'ZIGi comes alive: the real art, idle, emotions'})).toHaveCount(0);
@@ -76,9 +77,16 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await card.getByText('Earlier updates', {exact: true}).click();
   const earlier = card.locator('.whats-new-earlier').getByRole('link');
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
-  await expect(earlier.first()).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(7)).toHaveText('End a vacation early');
-  await expect(earlier.nth(11)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  await expect(earlier.first()).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(4)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(11)).toHaveText('End a vacation early');
+  await expect(earlier.nth(15)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  await card.getByRole('link', {name: 'ZIGi can do every ordinary task in the app'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-your-ai-act$/);
+  await expect(page.locator('#help-your-ai-act')).toContainText('Every ordinary task in the app is a card now');
+  await page.goto('/app');
+  await revealUpdates(page);
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'End a vacation early'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-y-vacation$/);
   await expect(page.locator('#help-y-vacation')).toHaveAttribute('open', '');

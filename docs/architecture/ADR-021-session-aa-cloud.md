@@ -112,6 +112,11 @@ Filled per part; Gate C adds the measured counts.
   last 30 days and adds "20 in the earlier season" (it counted all 24); `lib/sleep/sleep-features.test.ts` (AA-Local's
   folder, one assertion, named in the handoff) keeps "the Showcase sleep group is exactly `showcaseSleep(day)`" for every
   night but the earlier season's, and adds that there are exactly 29 of those, all ending 60 to 89 days back.
+- **What's new release `2026-10-session-aa-cloud` (as strict):** `zigi-help-settings.spec.ts` expects the new release
+  id; `whats-new.spec.ts` clicks this release's calculator link from the card (it clicked Z-Local's, which now waits under
+  "Earlier updates"), checks that Z-Local's link is no longer on the card itself, reads the earlier list with Z-Local's
+  four links first (Z-Cloud's from index 4, Y's "End a vacation early" at 11, X-Local's at 15) and still opens Z-Local's
+  answer from there. `help-page.spec.ts` gains this release's nine answers (new test).
 - **Part 1, For you on a phone (as strict):** `tests/for-you.spec.ts` expects exactly no open card on a phone (all behind
   the row; was "at most one, at least one"); computers and tablets keep "at most two, at least one".
 - **Part 1, cards that moved to "Updates and summaries" (mechanics, assertions unchanged):** `weekly-review.spec.ts`,
