@@ -30,3 +30,21 @@ export function openSection(sections: readonly HabitSection[], hour: number): Ti
   if (sections.find(s => s.id === now)?.habits.length) return now;
   return sections.find(s => s.due > 0)?.id ?? sections.find(s => s.habits.length)?.id ?? 'anytime';
 }
+
+/** Today's widget shows at most this many due habits; the rest are one tap away on Habits. */
+export const TODAY_FOCUS_CAP = 5;
+/**
+ * ADR-022 B49: Today lists the due habits of the clock's section first, then the following sections in day order (wrapping
+ * past Anytime to Morning), up to `cap` habits; `hidden` counts the rest. Empty sections are left out. Pure.
+ */
+export function todayFocus(sections: readonly HabitSection[], hour: number, cap = TODAY_FOCUS_CAP): {sections: HabitSection[]; hidden: number} {
+  const order: TimeSection[] = ['morning', 'afternoon', 'evening', 'anytime'], start = order.indexOf(currentSection(hour));
+  const ordered = [...order.slice(start), ...order.slice(0, start)].map(id => sections.find(s => s.id === id)).filter((s): s is HabitSection => !!s && s.habits.length > 0);
+  let left = cap, hidden = 0; const out: HabitSection[] = [];
+  for (const s of ordered) {
+    if (left <= 0) { hidden += s.habits.length; continue; }
+    const habits = s.habits.slice(0, left); hidden += s.habits.length - habits.length; left -= habits.length;
+    out.push({...s, habits});
+  }
+  return {sections: out, hidden};
+}

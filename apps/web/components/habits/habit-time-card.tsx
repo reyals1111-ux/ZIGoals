@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {useEffect, useState} from 'react';
 import {useHabits} from './use-habits';
 import {HabitCompletion} from './habit-card';
 import {TimerChip} from './habit-timer';
@@ -16,7 +17,11 @@ import './habits-aa.css';
  */
 export function HabitTimeCard() {
   const store = useHabits();
-  if (!store.loaded || store.error) return null;
+  // ADR-022 B49: when Today's own habits widget is on the page (it groups the due habits by section itself), this card
+  // would list the same check-ins twice; it stands down and shows only on a Today without the widget.
+  const [widget, setWidget] = useState(false);
+  useEffect(() => { setWidget(!!document.querySelector('.placed-module[data-module="habits"] .habits-today')); }, [store.data]);
+  if (!store.loaded || store.error || widget) return null;
   const due = store.data.habits.filter(h => habitDay(h, store.today, store.today).scheduled);
   const sections = groupByTimeOfDay(due, store.today), now = currentSection(new Date().getHours());
   const pick = sections.find(s => s.id === now && s.habits.length) ?? sections.find(s => s.due > s.done) ?? null;

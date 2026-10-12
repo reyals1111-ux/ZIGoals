@@ -227,10 +227,11 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {phone && <div className="health-date-strip">{dateControl}</div>}
     {phone && <ExerciseCounters data={data} update={update} />}
     <LayoutRegion region="body" items={[
-    // ADR-022 B49: the weight trend, energy and coach cards ride inside the nourishment item (no new layout item: the pinned orders and counts keep).
-    {id: "health:summary", label: "Today’s nourishment", node: <div className="health-summary-block"><HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} /><LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary></div>},
+    {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
+    {/* ADR-022 B49: the weight trend, energy and coach cards open the journal block (no new layout item, and the summary and the nutrition dashboard stay adjacent). */}
+    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
     <div className="health-progress-slot"><GameRegistrar /><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}

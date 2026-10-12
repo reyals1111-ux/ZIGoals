@@ -158,3 +158,12 @@
 .habit-progress-slot:empty { display: none; }
 /* B49: on a narrow phone the section keeps its cards wide enough for 44 px calendar days. */
 @media (max-width: 600px) { .habit-section > :not(summary) { padding: 4px 0 12px; } }
+/* B49: Today's widget groups its rows under slim labels instead of folding panels. */
+.habit-section-compact { border: 0; border-radius: 0; background: none; overflow: visible; }
+.habit-section-compact > :not(.habit-section-label) { padding: 0; }
+.habit-section-label { display: flex; align-items: center; gap: 8px; margin: 14px 0 0; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-soft, #b9aee0); }
+.habit-section-label h3 { margin: 0; font: inherit; }
+.habit-section-label .habit-section-mark { width: 22px; height: 22px; font-size: 12px; }
+.habit-section-label .habit-section-count { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.habit-section-compact[data-now] .habit-section-label { color: var(--text-strong, #f3eeff); }
+.habit-section-compact .habit-today-list { margin: 6px 0 0; }
