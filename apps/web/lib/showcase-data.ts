@@ -117,7 +117,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  // Health best in class (six weeks of weights, micronutrients, recipes, a planned week, measurements), and the device records beside them (habit extras,
  // the game layer ON in the Showcase with one unseen celebration, the coach, micro targets, the macro view, custom measurements, the reminders plan).
  if(options.aa!==false){ // the vault's size fixtures ask for the lean Showcase (lib/vault/power-user-fixture.ts)
- records[HABITS_KEY]=JSON.stringify(showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day));
+ records[HABITS_KEY]=JSON.stringify(showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day,zone));
  records[HEALTH_STORAGE_KEY]=JSON.stringify(showcaseHealthAa(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day));
  {const aaHabits=habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),aaHealth=healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),dev=showcaseHealthAaDevice(day);
   records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));

@@ -2,6 +2,7 @@ import {createHabit, habitDataSchema, type HabitData} from '../habits';
 import {pauseHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {habitExtrasSchema, type HabitExtras} from './schema';
 import {addLocalDays} from '../local-date';
+import {instantAt} from '../zone-time';
 
 /**
  * Session AA-Local Part 7 (ADR-022): what the Showcase shows of Habits best in class, all fictional and labelled. The six
@@ -15,8 +16,10 @@ import {addLocalDays} from '../local-date';
 export const SHOWCASE_QUIT_ID = '92000000-0000-4000-8000-000000000007';
 const TIME_OF_DAY = {Read: 'morning', Exercise: 'morning', Walk: 'afternoon', Meditate: 'evening', Contribute: 'anytime', 'Drink water': 'anytime'} as const;
 const MOODS = ['energized', 'good', 'calm', 'neutral'] as const;
-export function showcaseHabitsAa(habits: HabitData, day: string): HabitData {
-  const date = (offset: number) => addLocalDays(day, offset), at = (offset: number) => `${date(offset)}T19:00:00.000Z`;
+export function showcaseHabitsAa(habits: HabitData, day: string, zone: string): HabitData {
+  // The same instants the builder uses: midnight of the day in the Showcase's zone, so the quit habit starts on its first
+  // entry's day in every zone CI runs (Chatham, New York, UTC), never the day after.
+  const date = (offset: number) => addLocalDays(day, offset), at = (offset: number) => new Date(instantAt(date(offset), '00:00', zone)).toISOString();
   let data = habitDataSchema.parse(habits);
   // Time of day, six weeks of history, a skip with its reason, notes and moods.
   data = {...data, habits: data.habits.map((h, i) => {
@@ -39,7 +42,7 @@ export function showcaseHabitsAa(habits: HabitData, day: string): HabitData {
   }
   data = habitDataSchema.parse(data);
   // A timer on Read, paused at 25:00 this morning (the chip on the card and on Today; Resume and Finish work).
-  try { const read = data.habits.find(h => h.title === 'Read')!; if (!read.timer) { data = startHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(`${day}T06:00:00.000Z`), 'Europe/Brussels'); data = pauseHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(`${day}T06:25:00.000Z`)); } } catch { /* the Showcase still shows without a timer */ }
+  try { const read = data.habits.find(h => h.title === 'Read')!; if (!read.timer) { data = startHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '06:00', zone)), zone); data = pauseHabitTimer(data, read.id, '92000000-0000-4000-8000-0000000000e1', new Date(instantAt(day, '06:25', zone))); } } catch { /* the Showcase still shows without a timer */ }
   return habitDataSchema.parse(data);
 }
 /** The device record beside the habits: life areas (AA-Cloud's ids), the quit habit's cost, the end bell on Exercise. */
