@@ -127,4 +127,11 @@ local('nl-whole-none', 'euh, hoeveel stappen heb ik gisteren gezet?', {reply: 'n
 local('log-not', 'um, log two glasses of water', {reply: 'none'});
 local('plan-not', 'hey zigi, add a habit called stretching', {reply: 'none'});
 
+// ---- Session AA-Local Part 5: the Journey page, the Habits and Health views of this session and the Reminders page ----
+nav('open my journey', {page: 'journey'}); nav('ga naar mijn reis', {page: 'journey'}); nav('show me my badges', {page: 'journey'}); nav('take me to the quests please', {page: 'journey'});
+nav('open the year view', {page: 'habits', view: 'year'}); nav('laat het jaaroverzicht zien', {page: 'habits', view: 'year'}); nav('open my routines', {page: 'habits', view: 'routines'});
+nav('open the meal planner', {page: 'health', view: 'planner'}); nav('open de maaltijdplanner', {page: 'health', view: 'planner'}); nav('show my grocery list', {page: 'health', view: 'planner'}); nav('open de boodschappenlijst', {page: 'health', view: 'planner'});
+nav('show me my food insights', {page: 'health', view: 'insights'}); nav('open mijn inzichten', {page: 'health', view: 'insights'}); nav('open the recipe import', {page: 'health', view: 'import'});
+nav('open my reminders', {page: 'settings', view: 'reminders'}); nav('ga naar herinneringen', {page: 'settings', view: 'reminders'});
+nav('what is my journey so far', null); nav('log my morning routine', null); // a question or a log is never navigation
 export const GOLDEN_SPOKEN: readonly SpokenCase[] = cases;

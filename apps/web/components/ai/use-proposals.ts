@@ -17,6 +17,8 @@ import {useWeeklyReview} from '../weekly-review/use-weekly-review';
 import {useDeviceRecord} from './use-device-record';
 import {AI_MEMORY, forgetAction, recordAction, ZIGI, ZIGI_REMINDERS} from '../../lib/ai/store/records';
 import {confirmHref, effectStatus, lookPatched, runnerEffect} from './runner-effects';
+import {applyDeviceWrite, deviceWriteSpec} from '../../lib/ai/actions/device-writes';
+import {updateDeviceRecord} from '../../lib/device-record';
 import {AI_ACTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {usePrivateStore} from '../use-private-store';
@@ -139,6 +141,7 @@ export function useProposals(): ProposalRunner {
     const e = runnerEffect(p);
     if (!e) return null;
     if (e.kind === 'device') { look.update(record => lookPatched(record, e.patch)); return {text: effectStatus(e), navigated: false}; }
+    if (e.kind === 'record') { const spec = deviceWriteSpec(e.key); if (!spec) return null; updateDeviceRecord(getAppStorage(), spec, r => applyDeviceWrite(e.key, r, e.patch)); try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: e.key})); } catch { /* no window */ } return {text: effectStatus(e), navigated: false}; }
     const href = e.kind === 'confirm' ? confirmHref(e) : e.href, [path, hash] = href.split('#') as [string, string | undefined];
     // A hash on the page already shown is set directly (a router push changes no hash event), as openForm does.
     if (hash !== undefined && window.location.pathname + window.location.search === path) window.location.hash = hash; else router.push(href);

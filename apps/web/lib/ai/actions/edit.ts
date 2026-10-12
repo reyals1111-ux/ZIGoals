@@ -25,6 +25,12 @@ const DAY: Field = {key: 'day', label: 'Day', type: 'day', optional: true};
 const lines = (key: string, label: string, optional = false): Field => ({key, label, type: 'lines', optional, multiline: true});
 const ESTIMATE = [num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true)];
 const FIELDS: Record<ActionKind, readonly Field[]> = {
+  // ---- Session AA-Local Part 5 ----
+  'set-time-of-day': [select('timeOfDay', 'Time of day', ['morning', 'afternoon', 'evening', 'anytime'], false)],
+  'start-timer': [], 'stop-timer': [], 'start-routine': [], 'set-habit-area': [], 'use-freeze': [DAY],
+  'set-quit-cost': [num('perDay', 'Cost per day', true), select('currency', 'Currency', ['EUR', 'USD'], true)],
+  'set-micro-target': [num('value', 'Target', true)], 'set-macro-mode': [int('fat', 'Fat %', true), int('protein', 'Protein %', true), int('carbs', 'Carbs %', true)],
+  'coach-answer': [int('kcal', 'kcal a day', true)], 'import-recipe': [text('name', 'Recipe name', true), num('servings', 'Servings', true)], 'set-game-layer': [],
   // ---- Session Z-Local Part 5 ----
   'open-page': [],
   'delete-record': [DAY],

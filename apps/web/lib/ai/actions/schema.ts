@@ -78,10 +78,16 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
-export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music'] as const;
-export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal'] as const;
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey'] as const;
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders'] as const;
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
+// Session AA-Local Part 5: the new actions' vocabularies (habits' time of day and moods, the game layer, the Health coach, macro modes, the seven micronutrients the format holds).
+export const TIME_OF_DAY = ['morning', 'afternoon', 'evening', 'anytime'] as const;
+export const HABIT_MOODS = ['energized', 'good', 'neutral', 'difficult', 'calm'] as const;
+export const MACRO_MODE_IDS = ['standard', 'net-carbs', 'keto', 'custom'] as const;
+export const MICRO_NUTRIENTS = ['fiber', 'sugar', 'saturated-fat', 'sodium', 'potassium', 'calcium', 'iron'] as const;
+export const ROUTINE_TEMPLATE_IDS = ['morning', 'evening', 'workout', 'focus'] as const;
 /** What a person can set a target for in Health (the targets record, the water target, the sleep goal, the weekly mindful minutes). */
 export const HEALTH_TARGETS = ['kcal', 'protein', 'carbs', 'fat', 'weight', 'steps', 'water', 'sleep', 'meditation'] as const;
 /** Today's presets, as `PRESETS` in dashboard-settings names them (a test keeps the two equal). */
@@ -110,7 +116,7 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('check-in'), habit: habitName, value: z.number().finite().min(0).max(1_000_000_000).optional(),
     /** Session V Part 7: the amount in minutes or in a unit; converted to the habit's own measure, or refused. */
     minutes: z.number().finite().positive().max(10_080).optional(), quantity: z.number().finite().min(0).max(1_000_000_000).optional(), unit: z.string().trim().min(1).max(24).optional(),
-    note: z.string().trim().max(500).optional(), day: daySchema}).refine(a => [a.value, a.minutes, a.quantity].filter(v => v !== undefined).length <= 1, 'Give one amount: a value, minutes or a quantity.'),
+    note: z.string().trim().max(500).optional(), mood: z.enum(HABIT_MOODS).optional(), day: daySchema}).refine(a => [a.value, a.minutes, a.quantity].filter(v => v !== undefined).length <= 1, 'Give one amount: a value, minutes or a quantity.'),
   z.strictObject({kind: z.literal('skip'), habit: habitName, reason: z.string().trim().max(500).optional(), day: daySchema}),
   z.strictObject({kind: z.literal('create-habit'), ...habitFields, ref: refSchema.optional()}),
   z.strictObject({kind: z.literal('start-fast'), targetHours: z.number().int().min(1).max(MAX_CUSTOM_HOURS)}),
@@ -166,6 +172,19 @@ export const actionSchema = z.discriminatedUnion('kind', [
       if (['food', 'recipe', 'counter', 'link', 'widget', 'note', 'diary-entry'].includes(a.what) && !a.name) ctx.addIssue({code: 'custom', path: ['name'], message: 'Name the record to delete (its exact title, or the handle).'});
     }),
   z.strictObject({kind: z.literal('set-habit-state'), habit: habitName, state: z.enum(HABIT_STATES)}),
+  // Session AA-Local Part 5 (ADR-022 B37): this session's actions, each through the page's own mutator or a device record's own store function.
+  z.strictObject({kind: z.literal('set-time-of-day'), habit: habitName, timeOfDay: z.enum(TIME_OF_DAY)}),
+  z.strictObject({kind: z.literal('start-timer'), habit: habitName}),
+  z.strictObject({kind: z.literal('stop-timer'), habit: habitName, log: z.boolean().optional()}),
+  z.strictObject({kind: z.literal('start-routine'), habit: habitName.optional(), template: z.enum(ROUTINE_TEMPLATE_IDS).optional()}).refine(a => !!a.habit !== !!a.template, 'Name the stack\'s first habit, or a template.'),
+  z.strictObject({kind: z.literal('set-habit-area'), habit: habitName, area: z.string().trim().toLowerCase().max(60).nullable()}),
+  z.strictObject({kind: z.literal('set-quit-cost'), habit: habitName, perDay: z.number().finite().min(0).max(100_000).nullable(), currency: z.enum(['EUR', 'USD']).optional()}),
+  z.strictObject({kind: z.literal('use-freeze'), habit: habitName, day: daySchema}),
+  z.strictObject({kind: z.literal('set-micro-target'), nutrient: z.enum(MICRO_NUTRIENTS), value: z.number().finite().positive().max(1_000_000).nullable(), unit: z.enum(['g', 'mg']).optional()}),
+  z.strictObject({kind: z.literal('set-macro-mode'), mode: z.enum(MACRO_MODE_IDS), fat: z.number().int().min(0).max(100).optional(), protein: z.number().int().min(0).max(100).optional(), carbs: z.number().int().min(0).max(100).optional()}),
+  z.strictObject({kind: z.literal('coach-answer'), answer: z.enum(['keep', 'adjust']), kcal: z.number().int().min(500).max(10_000).optional()}),
+  z.strictObject({kind: z.literal('import-recipe'), text: z.string().trim().min(1).max(20_000), name: z.string().trim().max(80).optional(), servings: z.number().finite().positive().max(100).optional()}),
+  z.strictObject({kind: z.literal('set-game-layer'), enabled: z.boolean()}),
   z.strictObject({kind: z.literal('vacation'), from: isoDay, to: isoDay, clear: z.boolean().default(false), habits: z.array(habitName).max(20).optional()}).refine(a => a.from <= a.to, 'The vacation ends before it starts.'),
   z.strictObject({kind: z.literal('unskip'), habit: habitName, day: daySchema}),
   z.strictObject({kind: z.literal('remove-reminder'), for: z.enum(['habit', 'water']), habit: habitName.optional()}).superRefine((a, ctx) => { if (a.for === 'habit' && !a.habit) ctx.addIssue({code: 'custom', path: ['habit'], message: 'Name the habit (h1, or its exact title).'}); }),
@@ -208,7 +227,8 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'stack-habit', 'edit-habit', 'edit-goal', 'log-mood', 'add-link', 'add-widget',
   'open-page', 'delete-record', 'set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells',
-  'set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look', 'prefill-contribution', 'prefill-account'] as const satisfies readonly ActionKind[];
+  'set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look', 'prefill-contribution', 'prefill-account',
+  'set-time-of-day', 'start-timer', 'stop-timer', 'start-routine', 'set-habit-area', 'set-quit-cost', 'use-freeze', 'set-micro-target', 'set-macro-mode', 'coach-answer', 'import-recipe', 'set-game-layer'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -238,6 +258,11 @@ export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PR
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
   'create_food': 'create-food', 'create_recipe': 'create-recipe', recipe: 'create-recipe', 'plan_meal': 'plan-meal', 'meal-plan': 'plan-meal', 'grocery': 'grocery-item', 'grocery_item': 'grocery-item', groceries: 'grocery-item', 'counter-increment': 'counter', 'create_reminder': 'create-reminder', reminder: 'create-reminder', 'review_intention': 'review-intention', intention: 'review-intention', 'plan_goal': 'plan-goal', 'build_habit': 'build-habit',
   'remember-this': 'remember', 'remember_this': 'remember', memory: 'remember',
+  // Session AA-Local Part 5: the plain names of this session's kinds.
+  'set_time_of_day': 'set-time-of-day', 'time-of-day': 'set-time-of-day', 'habit-time': 'set-time-of-day', 'start_timer': 'start-timer', 'timer-start': 'start-timer', 'stop_timer': 'stop-timer', 'timer-stop': 'stop-timer', 'finish-timer': 'stop-timer', 'end-timer': 'stop-timer',
+  'start_routine': 'start-routine', 'play-routine': 'start-routine', 'run-routine': 'start-routine', 'set_habit_area': 'set-habit-area', 'habit-area': 'set-habit-area', 'set-area': 'set-habit-area', 'set_quit_cost': 'set-quit-cost', 'quit-cost': 'set-quit-cost', 'money-saved': 'set-quit-cost',
+  'use_freeze': 'use-freeze', 'streak-freeze': 'use-freeze', 'repair-streak': 'use-freeze', 'set_micro_target': 'set-micro-target', 'micro-target': 'set-micro-target', 'nutrient-target': 'set-micro-target', 'set_macro_mode': 'set-macro-mode', 'macro-mode': 'set-macro-mode', 'net-carbs': 'set-macro-mode',
+  'coach_answer': 'coach-answer', 'coach': 'coach-answer', 'weekly-coach': 'coach-answer', 'import_recipe': 'import-recipe', 'recipe-import': 'import-recipe', 'paste-recipe': 'import-recipe', 'set_game_layer': 'set-game-layer', 'game-layer': 'set-game-layer', 'game': 'set-game-layer',
   // Session Z-Local Part 5: the new kinds' plain names; no alias for a delete-* name (an unknown kind stays refused, golden `unknown-kind`).
   navigate: 'open-page', 'go-to': 'open-page', 'open_page': 'open-page', 'show-page': 'open-page', 'delete_record': 'delete-record', 'set_habit_state': 'set-habit-state', 'habit-state': 'set-habit-state',
   'vacation-days': 'vacation', 'set-vacation': 'vacation', 'mark-vacation': 'vacation', 'unplan-skip': 'unskip', 'un-skip': 'unskip', 'undo-skip': 'unskip', 'remove_reminder': 'remove-reminder', 'delete-reminder': 'remove-reminder', 'close_goal': 'close-goal', 'reopen_goal': 'reopen-goal',

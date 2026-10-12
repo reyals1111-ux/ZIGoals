@@ -10,7 +10,7 @@ perform (open a page, open a delete confirmation, write ZIGi's own device record
 shows the route to take. Evidence labels as docs/STATUS.md; the tests named are unit (`lib/ai/actions/*.test.ts`) and
 browser (`tests/zigi-accept-correct.spec.ts`, `tests/zigi-act.spec.ts`).
 
-Legend: **existing** = a kind from Sessions V–Y; **new** = added in Part 5; **nav** = `open-page`; **no** = refused with
+Legend: **existing** = a kind from Sessions V–Y; **new** = added in Part 5; **AA** = added in Session AA-Local Part 5 (ADR-022 B37–B39; device-record kinds have no Undo card, the page's own control sets the value back); **nav** = `open-page`; **no** = refused with
 the reason in the reply; **form** = a pre-filled form the person submits; **effect** = needs the runner (Z-Cloud).
 
 
@@ -61,9 +61,17 @@ the reason in the reply; **form** = a pre-filled form the person submits; **effe
 | Delete a habit | new (effect: Habits' own confirmation) | `delete-record` what=habit | never | plan.test |
 | Vacation days (mark, clear) | new | `vacation` | yes | accept-correct |
 | A reminder; turn a reminder off | existing; new | `create-reminder`, `remove-reminder` | yes | accept-correct |
-| The habit timer (a duration habit's stopwatch) | nav: ZIGi opens the habit; the timer is the page's own | `open-page` page=habits record=h2 | — | plan.test |
+| The habit timer: start; finish and log today's check-in (Session AA-Local H2) | AA | `start-timer`, `stop-timer` | yes (a finish logs what the clock measured) | accept-correct |
 | Link a habit to a goal or a Health figure | no: the editor's own form (the link changes how check-ins are counted) | — | — | — |
 | End a challenge early | no: a challenge ends by its date; "keep going" is the card the page offers | — | — | — |
+
+| Move a habit to the morning, afternoon, evening or any time (AA-Local H1) | AA | `set-time-of-day` | yes | accept-correct |
+| Skip today with a reason; a note and mood on a check-in (AA-Local H4) | existing kinds, new fields | `skip` reason, `check-in` note/mood | yes | accept-correct |
+| Start a routine (AA-Local H5) | AA (effect: opens the routine player) | `start-routine` | never | plan-aa.test |
+| A habit's life area (AA-Local H6, AA-Cloud's one list) | AA (device record `zigoals:habit-extras:v1`) | `set-habit-area` | yes | plan-aa.test |
+| The cost per day of a quit habit (money saved, AA-Local H3) | AA (device record) | `set-quit-cost` | never | plan-aa.test |
+| Use an earned streak freeze (AA-Local H7) | AA (a "Streak freeze" skipped entry) | `use-freeze` | yes | plan-aa.test |
+| The year view, the routines list | nav | `open-page` page=habits view=year/routines | — | golden-spoken |
 
 ## Health
 | Action | ZIGi path | Kind | Auto-accept | Test |
@@ -91,6 +99,13 @@ the reason in the reply; **form** = a pre-filled form the person submits; **effe
 | Delete a session | new (effect) | `delete-record` what=session | never | plan.test |
 | Devices, imports, Open Food Facts barcode, CSV export | no: files, Bluetooth and downloads are the page's own | nav `open-page` view=devices/imports | — | — |
 
+| A micronutrient target (fiber, sugar, saturated fat, sodium, potassium, calcium, iron; AA-Local N4) | AA (device record `zigoals:micro-targets:v1`) | `set-micro-target` | Health gate | plan-aa.test |
+| The macro view: net carbs, keto, a custom split (AA-Local N7; display only) | AA (device record `zigoals:macro-mode:v1`) | `set-macro-mode` | Health gate | plan-aa.test |
+| The weekly coach check-in: keep or adjust (AA-Local N3) | AA (device record `zigoals:health-coach:v1`; "adjust" writes `targets.kcal` through the existing mutator) | `coach-answer` | Health gate | plan-aa.test |
+| Import a pasted recipe (AA-Local N6) | AA (the paste parser → a recipe and its unknown-nutrition foods) | `import-recipe` | never | accept-correct |
+| Import a recipe from a web address | no: the Health page's own Import view (the server reads the page; ZIGi never fetches) | nav `open-page` page=health view=import | — | — |
+| The meal planner, the insight cards, the Import view | nav | `open-page` page=health view=planner/insights/import | — | golden-spoken |
+
 ## Wealth, Portfolio, Markets, Staking (forms only)
 | Action | ZIGi path | Kind | Auto-accept | Test |
 |---|---|---|---|---|
@@ -111,10 +126,18 @@ the reason in the reply; **form** = a pre-filled form the person submits; **effe
 | Account, sync, keys, provider, model, Health sharing, export, import, delete | no: security and consent controls stay the person's own taps | — | — | — |
 | Time zone, chess settings, Load Showcase | no | — | — | — |
 
+## The game layer and the pages that came with it (Session AA-Local)
+| Action | ZIGi path | Kind | Auto-accept | Test |
+|---|---|---|---|---|
+| Turn the game layer on or off (ADR-022 B2) | AA (device record `zigoals:game:v1`) | `set-game-layer` | yes | zigi-aa.spec |
+| The Journey page (level, quests, badges, the path) | nav | `open-page` page=journey | — | golden-spoken |
+| The reminders plan (every type, quiet hours) | nav | `open-page` page=settings view=reminders | — | golden-spoken |
+| XP, a level, a quest or a badge by hand | no: XP is derived from the journals, never stored (B17); a quest is proven from the records | — | — | — |
+
 ## Navigation (`open-page`, device-side and from the model)
 "Open my sleep page", "show my portfolio", "ga naar mijn gewoontes": the lookup engine recognises the page, the Health view
 (sleep, meditation, devices, imports), the Wealth pages (portfolio, markets, staking), Settings' ZIGi section, Help, Layout
-edit, and a habit, goal or asset by its handle; the card's Add opens it (effect). Without the effect, the card shows the
+edit, and a habit, goal or asset by its handle; since Session AA-Local also the Journey page, Habits' year view and routines, Health's planner, insights and Import views and Settings' reminders plan, in English and Dutch; the card's Add opens it (effect). Without the effect, the card shows the
 route in words. Pages the person hid in "Your pages & buttons" are refused with the reason.
 
 ## What stays a "no", in one list

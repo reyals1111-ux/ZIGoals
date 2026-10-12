@@ -94,7 +94,7 @@ export function HabitsWorkspace() {
   const [routine, setRoutine] = useState<string | null>(null);
   const [yearOpen, setYearOpen] = useState(false);
   useEffect(() => {
-    const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } };
+    const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
   }, []);
   // Where keyboard focus goes once the editor closes (QA-20): the new or edited habit's card, or back to "+ New habit".
