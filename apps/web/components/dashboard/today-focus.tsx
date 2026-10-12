@@ -27,7 +27,8 @@ const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.
  * were directly under the hero, the habits still to check in, the next goal step, one-tap water with Undo, and the
  * fasting clock or last night's sleep. Every figure is read from the same stores the rest of Today reads; nothing is
  * stored here. Session AA-Local fills two named places: its habit time-of-day widget (`today:habit-time`) and the
- * Health coach check-in (`today:coach`).
+ * Health coach check-in (`today:coach`). Links to a view of a page (`?add=`, `?view=`) are not prefetched: WebKit
+ * reports a prefetch cancelled by leaving Today as a page error (ADR-017 S64), and a tap loads them quickly anyway.
  */
 export function TodayFocus({reminders, nextGoal, financial, showHabits, showHealth, healthDate}: {reminders?: ReactNode; nextGoal?: GoalSummary; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string}) {
   const habits = useHabits(), health = useHealth(), fasting = useFasting();
@@ -80,7 +81,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         {!healthReady || !water || !daily ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : <>
           <strong>{waterText(water.millilitres, daily.preferences.waterUnit)}</strong>
           <p>{water.targetMl ? `of ${waterText(water.targetMl, daily.preferences.waterUnit)} today` : `${water.entries} ${water.entries === 1 ? 'entry' : 'entries'} today`}</p>
-          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={() => void logWater()}>{firstWater.label}</button>}<Link className="text-link" href="/app/health?add=entry">Log food →</Link></div>
+          <div className="focus-actions">{firstWater && <button type="button" className="secondary" aria-label={`${firstWater.label} of water`} onClick={() => void logWater()}>{firstWater.label}</button>}<Link prefetch={false} className="text-link" href="/app/health?add=entry">Log food →</Link></div>
         </>}
       </article>}
       {showHealth && <article className="focus-tile" data-tone="rest" aria-label={fasting.running ? 'Focus: fasting' : 'Focus: sleep'}>
@@ -91,10 +92,10 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         })() : !healthReady ? <p role="status">{health.error ? 'Health needs attention.' : 'Loading Health…'}</p> : slept ? <>
           <strong>{hours(slept.minutes)}</strong>
           <p>asleep last night{slept.estimated ? ' (estimated from the times you logged)' : ''}</p>
-          <div className="focus-actions"><Link className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
+          <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Open sleep →</Link></div>
         </> : <>
           <strong>No night logged</strong>
-          <div className="focus-actions"><Link className="text-link" href="/app/health?view=sleep">Log last night →</Link></div>
+          <div className="focus-actions"><Link prefetch={false} className="text-link" href="/app/health?view=sleep">Log last night →</Link></div>
         </>}
       </article>}
     </div>
