@@ -7,47 +7,25 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
 `/private/tmp/claude-502/-Users-AIUSER-Documents-ZIGoals-Claude/84136727-7ff5-4b5b-8f5a-39ab937fc67d/scratchpad`
 (chain scripts, `stage-logs/<stage>.log` and `.status`, `main-poll.log`).
 
-## Resume here (2026-10-12 ~10:30Z; the PR description carries the same block)
-1. Parts 0–2 pushed (`af1882e5` storage, `004ecf7c` Habits, `682bf199` game layer; draft PR #84). Parts 3, 4 and 5 are
-   built and green locally (typecheck, lint 0 errors, 584 focused unit tests, `health-aa`/`flow-aa` 16/16, the four new
-   accept-correct rows) and are being committed in this order: `[TIER 3] (egress/security)` recipe route → Part 3 →
-   Part 4 → Part 5; each pushed after a key sweep.
-2. Gate A in progress (10:40Z): CI on `bd7572b2` failed twice — the alpha-tail sanitizer's API bucket list lacked
-   `/api/recipe-import` (added) and the weight gate found Today +7 kB, Habits +20 kB, Health +36 kB, Help +0.1 kB (B41: lazy
-   chunks, no budget raised; a build of main on :3104 showed the budgets sit 0.1–1.4 kB above main, so the shell had to
-   shrink: now every page under budget and the shell 1.2 kB below main). Chrome: 445/449 WebKit earlier (the "Today habits"
-   region restored, B12); Chrome on the final build: ZIGi suites + new specs 443 passed, the a11y `aria-prohibited-attr`
-   finds (a `span`/`p` with an aria-label in the sections, the routine dots, the timer chip) fixed with hidden text, then
-   46/46 on the affected specs; WebKit rerun in progress. Part 7 written (B42: `lib/{habits-extras,health-aa,game}/showcase.ts`,
-   `lib/showcase-aa.test.ts`): the pinned Showcase tests (insights, weekly review, inventory, the vault's size tests,
-   the planner's absent handle, ZIGi's tool fixture) are kept by trimming the additions (ADR-022 B42) and by three deliberate
-   as-strict updates listed under "Assertions changed"; full unit suite rerunning. Then commit + push, captures, Gate B.
-   Gate B's security read (one read-only agent) returned three findings, all fixed and tested in `bb9289b6` (B43: bounded
-   script-tag regex, trailing-dot hosts, photo database erased; photos now exported as files). S1 (Part 6) runs in the
-   background (Haiku corpus 93.1 %, spoken ≈93 % first pass). The phone rows' "game strip intercepts" failures were the
-   keyboard detector misreading Chrome's emulation under the fake clock (B44, `c2c6d4f5`); the full Chrome + WebKit pass
-   reruns on that build — the real cause was the game strip's nowrap quest line widening the page and Chrome's emulated
-   layout viewport (B44, `game.css`; verified 390 wide and clickable on four pages). Gate B readers: the #37 worktree
-   reader proof passed (1/1). S1: Haiku corpus 93.1 %, spoken ≈91 %, new features 37/45; Sonnet new features 40/45, spoken
-   done 95.0 %; the new-features misses were case defects, repaired in `corpus-aa.ts` (B46), S2 43/45 on both; eight
-   spoken navigation phrasings now answer on the device; the spoken coach seed expects the target change it asks for.
-   Gate A/B evidence on the final build (`6b64a842`): Chrome 449 + WebKit 447 ZIGi/new rows, the audit spec 14/14 on both
-   engines, unit 516 files, weights green, #37 reader 1/1, captures pushed (`review/session-aa-local-screens` `6ab2f418`).
-   S3 running (Haiku corpus/spoken, Sonnet corpus); local models next. Remaining: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
-   unit suite (incl. the `auto-accept-once` standalone-parse question), golden 100 %, CI on PR #84, AA-Cloud's handoff
-   (read at 07:40Z: its slot registry now has `settings:your-app` and `settings:reminders`, `registerNavExtra` for
-   Journey, life areas in `zigoals:goal-extras:v1`; the mirror and the areas key follow it, B11/B40).
-3. S0 done (batch `msgbatch_01ERibWPa7m6ZCAfTs6W2dHj`: 44 seeds → 440 spoken asks merged into the runs branch's train/hold-out, `corpus-spoken.ts` regenerated with 681 hold-out rows; $0.30). Then Parts 6–7, Gates B–C, STATUS entry, PR ready. Ledger: $0.30 of $50.
-4. Owner rules since 00:05Z: no preview pane, servers from Bash (`/tmp/aa-dev-3102.log`, `curl` health checks), every long
-   command under `scratchpad/tmo.sh`, no ExitPlanMode or approval questions; anything that needs the owner is written
-   here and in the handoff.
-5. At the merge with `main` after AA-Cloud (I am the second merger): `components/game/slot-local.tsx` →
-   `export * from '../progress/slot'`; `lib/habits-extras/areas-mirror.ts` → a re-export of `lib/goal-extras/areas.ts`;
-   mount `<GameRegistrar/>` in `components/shell.tsx`; `registerNavExtra(['/app/journey', 'Journey', <icon>])` while the
-   game layer is on; wrap goal steps with `useSwipeActions`; `emitValidated('achievement_unlocked')` where a goal or
-   an average goal finishes; add `zigoals:calculator:v1`, `zigoals:search-recent:v1`, `zigoals:life-review:v1`,
-   `zigoals:today-cards:v1` to `lib/onboarding.ts`'s lists; keep the filter in `lib/sleep/sleep-features.test.ts`;
-   ZIGi kinds for AA-Cloud's goal-extras and average goals; carry What's new, Help, weight budgets and STATUS.
+## Resume here (2026-10-12 ~11:05Z; the PR description carries the same block)
+1. Everything is committed and pushed; HEAD `582ed8e8` (the habit editor static again, ADR-022 B48: CI's offline
+   integration step creates a habit on a profile that never fetched the lazy editor chunk). Before it: Parts 0–5 and 7,
+   Gates A and B, fix round 1 (`6b64a842`), the test-file audit (`0ccdc4b7`), What's new + Help (`cb0511ae`,
+   `997a5252`). Weights on the `582ed8e8` build: Habits 448.7 of 458 kB, shell 403.6 of 406 kB; the Habits/flow/a11y specs
+   33/33 on it. CI on `582ed8e8` in progress (the `web integration` job is the one to read: its L78 offline step failed on
+   `997a5252`).
+2. Part 6 state: S0 ($0.30), S1, S2 done; S3: Haiku corpus 724/770 = 94.0 %, Haiku spoken 635/681 = 93.2 %, 15 UI
+   conversations 15/15 ×3, gemma4 676/770 = 87.8 % (target 89 not met, owner item); Sonnet corpus and qwen3.8 running
+   (chains in the scratchpad, logs `stage-logs/s3-*.log`). S4 queued behind `S3_DONE`: Sonnet spoken, Sonnet new
+   features, Haiku new features (ledger check $5.5 first). Ledger $7.12 of $50 after S3's Haiku rows (runs branch
+   `46026ef8`). Every stage: read `misses.mjs`, fix only case defects or model-agnostic engine/prompt issues, golden
+   sets byte-identical.
+3. Then Gate C on the final head: full unit suite, ZIGi + new + smoke specs in Chrome and WebKit (`TZ=UTC`, two
+   workers, one suite at a time), weights vs main's build on :3104, revert gate, CI green, AA-Cloud's handoff
+   (`git show origin/feature/session-aa-cloud:docs/handoff/AA_CLOUD_TO_LOCAL.md`; if it merged, merge `main` with a
+   merge commit and do the second-merger list in ADR-022 B40). Last commit: the docs/STATUS.md entry from
+   `STATUS_ENTRY_DRAFT.md` (model table, ledger, assertions changed, B1…B48, owner items). Then `gh pr ready 84`, verify
+   via the API, stop caffeinate/forwarder/poller/servers (by port), short owner report.
 
 ## Done
 - Part 0; Part 1 (B12–B16); Part 2 (B17–B21); Parts 3–5 built (B22–B39), Gate A reading of AA-Cloud (B40).
