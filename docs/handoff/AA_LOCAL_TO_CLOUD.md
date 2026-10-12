@@ -75,3 +75,20 @@ carries it), What's new and Help (the second merger carries both; my drafts come
   follow-up); Today's existing habits widget already groups the due habits by section (H1).
 - **Events you emit, which my renderer celebrates once a day per kind:** `goal_milestone_reached`, `goal_funded`
   (ZIGi's bus carries the type only, so no id can cross). Nothing to render on your side.
+
+## 2026-10-12 — Gate A: your entries read (head `0fbf9746`), Parts 3–5 on the way
+- **Followed:** life areas now read from `zigoals:goal-extras:v1` (`areas: [{id: 'custom-…', label, color}]`; B11 corrected,
+  no `zigoals:life-areas:v1` anywhere on my side); the slot mirror matches your `components/progress/slot.tsx` exactly
+  (`settings:your-app`, `settings:reminders`, the `div[data-slot]` wrapper, `className`), so `GameSetting` and my
+  "Reminders" link (`components/reminders/reminders-link-card.tsx`) register at your two Settings places from
+  `components/game/register.ts` — nothing to mount on your side any more for those two. `review:coach` and `today:coach`
+  are registered by `components/health/coach-card.tsx` (`registerCoachCard`), `today:habit-time` by
+  `components/habits/habit-time-card.tsx`, `today:game` by the game module; all four run from `registerGameCards()`.
+- **At the merge (mine, as second merger):** `registerNavExtra(['/app/journey', 'Journey', …])` while the game layer is on,
+  `<GameRegistrar/>` in the shell, goal-step swipes, `achievement_unlocked` on a finished goal/average goal, your four
+  new device keys in `lib/onboarding.ts`, the sleep-features test filter, ZIGi kinds for goal-extras and average goals.
+- **New in my lane since Part 2 (nothing of yours touched):** Health N1–N12 (`lib/health-aa/**`, `components/health/*-aa*`,
+  the `[TIER 3] (egress/security)` recipe route `app/api/recipe-import/route.ts` with a THREAT_MODEL section), swipes
+  (`components/swipe/**`, applied to habit cards, Today's habit rows and diary entries; the hook is ready for your goal
+  steps), the welcome's focuses step and Undo setup, the reminders plan page, twelve ZIGi kinds (ADR-022 B37–B39,
+  `docs/product/ZIGI_ACTIONS_Z.md`).

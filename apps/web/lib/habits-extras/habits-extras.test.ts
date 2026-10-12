@@ -43,9 +43,9 @@ describe('life areas mirror (AA-Cloud\'s ids, read-only)', () => {
   test('the seven default ids, the person\'s custom areas joined, unreadable bytes read as the defaults', () => {
     const s = memory();
     expect(readLifeAreas(s).map(a => a.id)).toEqual([...DEFAULT_AREA_IDS]);
-    s.setItem('zigoals:life-areas:v1', JSON.stringify({version: 1, custom: [{id: 'garden', label: 'Garden'}, {id: 'health', label: 'dup'}]}));
-    const areas = readLifeAreas(s); expect(areas.at(-1)).toEqual({id: 'garden', label: 'Garden', custom: true}); expect(areas.filter(a => a.id === 'health')).toHaveLength(1);
-    s.setItem('zigoals:life-areas:v1', '{'); expect(readLifeAreas(s)).toHaveLength(7);
+    s.setItem('zigoals:goal-extras:v1', JSON.stringify({version: 1, goals: {}, areas: [{id: 'custom-garden', label: 'Garden', color: '#aabbcc'}, {id: 'health', label: 'dup', color: '#000000'}]}));
+    const areas = readLifeAreas(s); expect(areas.at(-1)).toEqual({id: 'custom-garden', label: 'Garden', color: '#aabbcc', custom: true}); expect(areas.filter(a => a.id === 'health')).toHaveLength(1);
+    s.setItem('zigoals:goal-extras:v1', '{'); expect(readLifeAreas(s)).toHaveLength(7);
     expect(readLifeAreas(null)).toHaveLength(7);
   });
 });

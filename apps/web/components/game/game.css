@@ -103,3 +103,6 @@
 .celebration-backdrop[data-still] .celebration-symbol { box-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .celebration-particles { display: none; } }
 :root[data-app-motion=off] .celebration-particles { display: none; }
+
+/* AA-Cloud's slot wrappers: a place whose cards all render nothing (the game layer off) takes no room. */
+.aa-slot:empty, .progress-slot:empty { display: none; }
