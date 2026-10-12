@@ -231,8 +231,6 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
-    {/* ADR-022 B49: the weight trend, energy and coach cards open the journal block (no new layout item, and the summary and the nutrition dashboard stay adjacent). */}
-    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
     <div className="health-progress-slot"><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
@@ -253,6 +251,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
       {view === "Activity" && <ActivityView data={data} date={date} choice={dateChoice} perform={perform} invalid={invalid} />}
       {view === "Targets" && <><TargetsView key={JSON.stringify(data.targets)} targets={data.targets} perform={perform} invalid={invalid} /><LoadBoundary quiet><Suspense fallback={null}><MacroModePanel data={data} date={date} /><MicroPanel data={data} date={date} /></Suspense></LoadBoundary></>}
     </fieldset>
+    {/* ADR-022 B49: the weight trend, energy and coach cards close the journal block (no new layout item; the summary and the nutrition dashboard stay adjacent; the diary form keeps its place after a Quick Add, run9-2-life). */}
+    <LoadBoundary quiet><div className="health-aa-highlights"><Suspense fallback={null}><WeightTrendCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} /><EnergyCard data={data} today={today} unit={dailyData(data).preferences.weightUnit} perform={perform} /><CoachCard data={data} today={today} perform={perform} /></Suspense></div></LoadBoundary>
     </div>},
     {id: "health:sleep", label: "Sleep", node: <PhoneFold label="Sleep" expanded={sleepRunning}><SleepCard /></PhoneFold>},
     {id: "health:meditation", label: "Meditation", node: <PhoneFold label="Meditation" expanded={meditationRunning}><MeditationCard /></PhoneFold>},

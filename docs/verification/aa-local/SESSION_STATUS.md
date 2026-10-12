@@ -11,8 +11,7 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
 Done. `origin/main` `e3fa408d` (Alpha #38) merged as `ab79ba89` (eight conflicts, both sides kept, ADR-022 B52); the whole
 second-merger list in `1f8324e5` (B53); this entry is the last commit. Final gate on `1f8324e5`: unit 541 / 4,788,
 Chrome 766 (+2 environmental rows that fail on main's own build), WebKit 421, weights green (Today 504 of 515 kB),
-revert gate green at the merge commit and the head, frozen readers #37 and #38 1/1, ledger $26.22 of $50. One push
-follows; CI on the final head must finish completely (all three shards); its run is named in the PR description.
+revert gate green at the merge commit and the head, frozen readers #37 and #38 1/1, ledger $26.22 of $50. CI's first run on the merged head found three more (the milestone row's duplicate name, the Goals slot card, Health's highlights above the diary form), fixed in the next commit; CI on the final head must finish completely (all three shards); its run is named in the PR description.
 Owner items: Sonnet corpus 96.0 % and the two local models below target; the Today ceilings 11.5 / 5.8 / 5.8; the
 Today-focus/habits-widget overlap (my card stands down beside the widget); CI's WebKit 45-minute cap; the two Mac-only rows.
 
