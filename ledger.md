@@ -1,6 +1,6 @@
 # API ledger — Session AA-Local (owner cap $50; hard stop)
 
-Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (10 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
+Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (11 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
 
 | Stage | Model | Requests | Input | Cache write | Cache read | Output | USD |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -13,8 +13,9 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (10 files
 | real-model/s2/sonnet-aa | claude-sonnet-5-5 | 44 | 166 | 79,824 | 678,199 | 6,248 | 0.3302 |
 | real-model/s3/ui-conv-1 | claude-sonnet-5-5 | 30 | 120 | 86,396 | 447,470 | 3,807 | 0.2990 |
 | real-model/s3/ui-conv-2 | claude-sonnet-5-5 | 30 | 120 | 6,832 | 527,076 | 3,757 | 0.1076 |
+| real-model/s3/ui-conv-3 | claude-sonnet-5-5 | 30 | 120 | 6,374 | 527,506 | 3,546 | 0.1044 |
 | spoken/gen | claude-opus-5-5 (batch) | 44 | 31,023 | 0 | 0 | 23,321 | 0.2953 |
 
-**Per model:** claude-haiku-5-5 $0.77 · claude-sonnet-5-5 $5.22 · claude-opus-5-5 $0.30
+**Per model:** claude-haiku-5-5 $0.77 · claude-sonnet-5-5 $5.33 · claude-opus-5-5 $0.30
 
-**Total: $6.29 of $50.**
+**Total: $6.40 of $50.**
