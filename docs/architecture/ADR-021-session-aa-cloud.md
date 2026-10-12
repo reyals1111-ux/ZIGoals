@@ -151,6 +151,17 @@ No page errors on any app page. Findings and what became of them:
 | 15 | Tree text 41 % beside a 42 % ring | nit | Fixed: the ring's rounding |
 | 16 | ZIGi's launcher image breaks offline | nit | Not this lane (ZIGi, AA-Local): named in the handoff |
 
+## Gate C: security read of every Tier 3 commit (independent agent, code only)
+No high or medium finding; every Tier 3 commit OK. The revert of the data-health record (`8a4e489`) is complete.
+| # | Finding | Severity | Outcome |
+|---|---|---|---|
+| 1 | A repeated `name` (or `template`) parameter reached the wizard as a list and the page failed to render | low | Fixed: every parameter of the new-goal and average-goal pages reads its first value; pwa-aa test |
+| 2 | Export everything copied a deleted goal's dormant extras (kept 90 days for Undo and restore) and deleted habits' areas | low | Fixed in its own `[TIER 3] (data formats)` commit: the copy leaves both out, as it leaves out deleted habits; unit test |
+| 3 | The share target's words stay in the address and browser history (GET) | info | Fixed: the share page clears its address once shown; test. The request itself carries them by design of GET (A34; `no-referrer`, `no-store`, no Worker logs) |
+| 4 | A small file with huge dimensions can exhaust memory when decoded for a vision photo; two tabs can pass the 30 MB cap together | info | Owner item: only the person's own file picker reaches it; the output is always a re-encoded JPEG without EXIF |
+| 5 | The photo tidy-up on Goals deletes photos no `zigoals:goal-extras:v1` entry names; a future `v2` key read by this build after a rollback would look empty | info | Recorded for the finance-homes session (which moves extras into sync): bump the key only with a reader for both |
+| 6 | Commit scope: `338f1a5` also moved `GoalsAltView`'s figures; `5fb08f7` also removed the unused `undo-toast-view.tsx` | info | Recorded; both behaviour-preserving |
+
 ## Rejected options
 - Adding goal extras to `privateGoalSchema` or a fifth goal type to its enum (A3): older readers refuse the store.
 

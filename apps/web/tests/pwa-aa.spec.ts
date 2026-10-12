@@ -45,3 +45,15 @@ test('the share target: what another app shared waits on its own page, nothing s
   await page.getByRole('button', {name: 'Search ZIGoals for it'}).click();
   await expect(page.getByRole('dialog', {name: 'Search'}).getByRole('combobox')).toHaveValue('Emergency');
 });
+
+// Gate C (security read): a crafted address with a repeated parameter opens the page with the first value, never an error;
+// once shown, the shared words leave the address bar.
+test('a repeated name opens the wizard with the first; the share page clears its address once shown', async ({page}) => {
+  await page.goto('/app/goals/new?from=share&name=First%20idea&name=Second');
+  await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('First idea');
+  await page.goto('/app/goals/average/new?template=sleep-7h&template=steps-8000');
+  await expect(page.getByRole('heading', {level: 1})).toHaveText('Keep an average');
+  await page.goto(`/app/share?${new URLSearchParams({title: 'Private plan', text: 'Only for me'})}`);
+  await expect(page.getByRole('region', {name: 'What would you like to do with it?'})).toContainText('Private plan');
+  await expect(page).toHaveURL(/\/app\/share$/);
+});
