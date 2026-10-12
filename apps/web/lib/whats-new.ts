@@ -10,7 +10,7 @@ export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
  * Session Y bumped it for its visible changes (ADR-018 Y40), and Session Z-Cloud bumps it for ZIGi's new face, voice and
  * the persona decisions (ADR-019). Same key and schema: an earlier build reads the id as one more dismissed string.
  */
-export const WHATS_NEW_RELEASE = '2026-10-session-z-local';
+export const WHATS_NEW_RELEASE = '2026-10-session-aa-local'; // Session AA-Local (ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;
