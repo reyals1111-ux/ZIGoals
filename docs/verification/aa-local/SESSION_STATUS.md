@@ -22,7 +22,9 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-aa-local
    `lib/showcase-aa.test.ts`): the pinned Showcase tests (insights, weekly review, inventory, the vault's size tests,
    the planner's absent handle, ZIGi's tool fixture) are kept by trimming the additions (ADR-022 B42) and by three deliberate
    as-strict updates listed under "Assertions changed"; full unit suite rerunning. Then commit + push, captures, Gate B.
-   Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
+   Gate B's security read (one read-only agent) returned three findings, all fixed and tested in `bb9289b6` (B43: bounded
+   script-tag regex, trailing-dot hosts, photo database erased; photos now exported as files). S1 (Part 6) runs in the
+   background (Haiku corpus ≈93 % first pass). Remaining Gate A items: production build on :3103, ZIGi suites + the new specs in Chrome and WebKit, the
    unit suite (incl. the `auto-accept-once` standalone-parse question), golden 100 %, CI on PR #84, AA-Cloud's handoff
    (read at 07:40Z: its slot registry now has `settings:your-app` and `settings:reminders`, `registerNavExtra` for
    Journey, life areas in `zigoals:goal-extras:v1`; the mirror and the areas key follow it, B11/B40).

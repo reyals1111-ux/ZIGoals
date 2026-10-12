@@ -101,3 +101,8 @@ carries it), What's new and Help (the second merger carries both; my drafts come
   zip through one `await import('../lib/health-aa/photos')` line and a third, optional argument of `buildEverythingZip` (`lib/export/everything.ts`:
   extra entries; default empty, so your call sites are unchanged). The erase in `vault-sync-controls.tsx` now also deletes the photo
   database (inside the helper it already calls; the component's line only gained a `.catch`).
+- **Gate A, one condition in your phone module (announced):** `components/phone/use-visual-viewport.ts` marks
+  `data-keyboard=open` only while a text field has focus (`textFieldFocused()`; `focusin`/`focusout` re-evaluate). Chrome's
+  mobile emulation under Playwright's fake clock reports a layout viewport taller than the visual one for a moment on load,
+  which the detector took for a keyboard and hid the ZIGi launcher for the whole page (every ZIGi phone spec on a page
+  with the game card). Nothing changes for a person: a keyboard always comes with a focused field (ADR-022 B44).
