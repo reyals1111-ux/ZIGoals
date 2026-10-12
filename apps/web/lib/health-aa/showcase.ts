@@ -21,7 +21,7 @@ import {remindersPlanSchema, type RemindersPlan} from '../reminders-plan/schema'
 const ZONE = 'Europe/Brussels';
 export function showcaseHealthAa(health: HealthData, day: string): HealthData {
   const date = (offset: number) => addLocalDays(day, offset), at = (offset: number) => `${date(offset)}T07:30:00.000Z`;
-  let data = healthSchema.parse(health);
+  const data = healthSchema.parse(health);
   // Weights stay the Showcase's own eight readings (every fourth day): the trend card and the energy estimate need six, and
   // lib/insights pins the weight-and-steps pairing from exactly those days (B42).
   // Micronutrients on the four Showcase foods (fiber, iron, calcium, sodium; the rest stays unknown on purpose).
