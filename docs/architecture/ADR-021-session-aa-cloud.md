@@ -60,7 +60,18 @@ option that keeps the project's promises), and the owner's own decisions. A para
 | A22 | 2 | **"Export everything and its restore include them":** the export carries the extras, the average goals and the photos (`vision/<id>.jpg`). Export everything has no restore in this app (it is a readable copy); the restore of these three records is built with the data health page (Part 6). | No silent descoping (plan edit 1): the closest safe version now, the restore where the data page lives. |
 
 ## Handoff applied (from AA_LOCAL_TO_CLOUD.md)
-Read at each gate on `origin/feature/session-aa-local`.
+Read at each gate on `origin/feature/session-aa-local`. **Gate A:** its head `682bf199` (Part 2, the game layer), read 2026-10-12.
+| Ask (AA-Local's entry) | State here | Where |
+|---|---|---|
+| 1. Mount `<GameSetting/>` in Settings → Your pages & buttons | **A named place instead of an import:** `Slot place="settings:your-app"` under Your pages & buttons; AA-Local registers its switch there (`registerSlotCard`). Importing a file that exists only on its branch would not compile here. | `app/app/settings/page.tsx`, `components/progress/slot.tsx` |
+| 2. A "Journey" entry in the sidebar, More and search, only while the game layer is on | **Applied as a registry:** `components/nav-extras.ts` `registerNavExtra(['/app/journey','Journey',icon])` puts it before Settings in the sidebar and More (and the search palette, Part 4); AA-Local registers it while its layer is on and removes it when off. | `components/app-nav.tsx` |
+| 3. A "Reminders" link to `/app/settings/reminders` beside the push settings | **A named place:** `Slot place="settings:reminders"` right under the push reminders panel; AA-Local registers its link there (the route exists only on its branch until it merges). | `app/app/settings/page.tsx` |
+| 4. Today's slots | Nothing to do (the places exist since Setup). | — |
+| 5. Swipes on goal steps | **After AA-Local's Part 4 merges** (the hook is not on `main`); owner item at merge for the second merger. | — |
+| 6. Emit, never render celebrations | **Applied:** a finished average goal emits `goal_funded` (the funding flow and milestones already emit theirs); `achievement_unlocked` and `level_up` exist only on AA-Local's branch, so they wait for its merge (the second merger adds the call in `AverageGoalDetail` and the Hall). | `components/goals/average-goals.tsx` |
+| Life areas: `lib/goal-extras/areas.ts` with `DEFAULT_AREA_IDS`, `AREAS`, `readLifeAreas`, the key | **Applied:** the module exists; **the key differs from the plan's draft:** custom areas live in `zigoals:goal-extras:v1` (`areas`), not `zigoals:life-areas:v1` (A15). Told in the handoff so the mirror reads the right key. | `lib/goal-extras/areas.ts` |
+| Habit areas in `zigoals:habit-extras:v1` | **Read, never written:** the balance wheel takes a habit's area from that record first (`habitAreasFrom`), then the Showcase's own field, else Habits & Mind. | `lib/goal-extras/areas.ts`, `lib/life-balance.ts` |
+| Shell: mount `<GameRegistrar/>` once | **At merge:** the component exists only on AA-Local's branch; the second merger adds one line to `components/shell.tsx`. Until then AA-Local mounts it on its own pages (as it says). | owner item at merge |
 
 ## Freeze check: differences expected
 Filled per part; Gate C adds the measured counts.

@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {useMemo} from 'react';
+import {habitAreasFrom} from '../../lib/goal-extras/areas';
+import {getAppStorage} from '../../lib/showcase-storage';
 import {averageItem, balanceOf, goalItem, habitItem, healthItems} from '../../lib/life-balance';
 import {useUnifiedGoals} from '../use-unified-goals';
 import {usePlatform} from '../platform/use-platform';
@@ -20,9 +22,11 @@ export function useLifeBalance() {
   const ready = unified.loaded && habits.loaded && health.loaded && healthGoals.loaded && averages.loaded && extras.loaded;
   const result = useMemo(() => {
     if (!ready) return null;
+    let habitAreas: Record<string, string> = {};
+    try { habitAreas = habitAreasFrom(getAppStorage()); } catch { /* locked: habits count under Habits & Mind */ }
     const x = extras.data, items = [
       ...unified.goals.filter(g => g.status === 'active').map(g => goalItem(g, x, platform.data.contributions ?? [], today)),
-      ...(habits.error ? [] : habits.data.habits.filter(h => h.rules.at(-1)?.state === 'active').map(h => habitItem(h, x, today))),
+      ...(habits.error ? [] : habits.data.habits.filter(h => h.rules.at(-1)?.state === 'active').map(h => habitItem(h, x, today, habitAreas))),
       ...(health.error || healthGoals.unreadable ? [] : healthItems(healthGoals.data.goals, health.data, x, today)),
       ...(averages.unreadable ? [] : averages.data.goals.filter(g => g.status === 'active').map(g => averageItem(g, health.error ? undefined : health.data, x, today))),
     ];

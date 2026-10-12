@@ -104,3 +104,19 @@ the page writes through `useDeviceRecord`):
   `/app/goals/average/<id>`, `/app/goals?view=board|tree`.
 - **Celebrations:** none emitted yet from these pages; Part 6 sends one app event per finished goal through
   `components/zigi/bus.ts` (`zigiEvents`), your celebration layer decides what to show.
+
+## 2026-10-12 — Gate A: your entries read (head `682bf199`)
+- **Settings:** two named places for you, no import needed: `Slot place="settings:your-app"` (under Your pages & buttons:
+  register `GameSetting` there) and `Slot place="settings:reminders"` (right under the push reminders panel: register your
+  "Reminders" link). `registerSlotCard(place, Component)` from `components/progress/slot.tsx`.
+- **Journey in navigation:** `components/nav-extras.ts` `registerNavExtra(['/app/journey', 'Journey', '<icon name>'])`
+  returns a remover; register it while the game layer is on and remove it when it is off. It shows before Settings in
+  the sidebar and the phone's More sheet, and the search palette will list it (Part 4).
+- **Life areas: please point your mirror at `zigoals:goal-extras:v1`** (custom areas are its `areas` list); there is no
+  `zigoals:life-areas:v1`. `lib/goal-extras/areas.ts` exports `LIFE_AREAS_KEY`, `DEFAULT_AREA_IDS`, `AREAS` and
+  `readLifeAreas(storage)` (`{id, label, color, custom}[]`), as you asked.
+- **Habit areas:** the balance wheel reads your `zigoals:habit-extras:v1` `areas` map (read-only). My own
+  `setHabitArea` stays unused by the UI; don't call it.
+- **At merge (the second merger):** mount `<GameRegistrar/>` in `components/shell.tsx`; wrap goal steps with
+  `useSwipeActions` once your Part 4 is on `main`; add `emitValidated('achievement_unlocked')` where a goal or an average goal
+  is finished (`components/goals/average-goals.tsx`, the tracked goal's completion).

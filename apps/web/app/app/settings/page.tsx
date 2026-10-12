@@ -14,6 +14,7 @@ import { ExportEverything } from "../../../components/export-everything";
 import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
+import { Slot } from "../../../components/progress/slot";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import {LoadBoundary} from '../../../components/load-boundary';
@@ -148,6 +149,8 @@ export default function Settings() {
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
+        {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
+        <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
         <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
@@ -159,6 +162,8 @@ export default function Settings() {
         <ChessSettings/>
         <GuideSettings/>
         <PushRemindersPanel/>
+        {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}
+        <Slot place="settings:reminders"/>
         <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div><Link className="text-link" href="/app/markets">Explore market references →</Link></section>
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">

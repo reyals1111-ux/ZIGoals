@@ -1,4 +1,5 @@
 'use client';
+import { useNavExtras } from "./nav-extras";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
@@ -38,14 +39,17 @@ export const NAV_ITEMS = NAV_GROUPS.flat();
 /** The group a destination opens (2 or 3), for the space before it; the first group needs none. */
 export const NAV_GROUP_START: ReadonlyMap<string, number> = new Map(NAV_GROUPS.slice(1).map((group, index) => [group[0][0], index + 2]));
 /** The group (1-3) a destination belongs to. */
-export const navGroupOf = (href: string) => NAV_GROUPS.findIndex(group => group.some(([h]) => h === href)) + 1;
+export const navGroupOf = (href: string) => (NAV_GROUPS.findIndex(group => group.some(([h]) => h === href)) + 1) || NAV_GROUPS.length;
 /**
  * The destinations that show (Session W Part 2, "Your pages & buttons"), in the same order, and the space before each
  * group's first visible one; with nothing hidden this is exactly NAV_ITEMS and NAV_GROUP_START.
  */
 export function useVisibleNav() {
-  const view = usePagesView();
-  const items = NAV_ITEMS.filter(([href]) => hrefShown(view, href));
+  const view = usePagesView(), extras = useNavExtras();
+  // Session AA-Cloud: entries another lane registers (components/nav-extras.ts) sit before Settings, in its group.
+  const shown = NAV_ITEMS.filter(([href]) => hrefShown(view, href)) as readonly (readonly [string, string, string])[];
+  const at = shown.findIndex(([href]) => href === '/app/settings');
+  const items = (extras.length ? [...shown.slice(0, at < 0 ? shown.length : at), ...extras.filter(([href]) => !shown.some(([h]) => h === href)), ...shown.slice(at < 0 ? shown.length : at)] : shown) as typeof NAV_ITEMS;
   return { items, starts: groupStarts(items, navGroupOf), view };
 }
 /** The Staking page's former address (until Session I it sat under Goals); it now redirects to /app/staking. */

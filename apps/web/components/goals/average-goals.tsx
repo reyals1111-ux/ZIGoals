@@ -12,6 +12,7 @@ import {ProgressRing} from '../platform/financial-ui';
 import {showToast} from '../ui/undo-toast';
 import {SectionHeading} from '../ui/section-heading';
 import {useAverageGoals, useGoalExtras} from './use-goal-extras';
+import {zigiSignals} from '../zigi/bus';
 import {formatDay} from './format';
 import {GoalPlan} from './goal-plan';
 import {useUnifiedGoals} from '../use-unified-goals';
@@ -107,7 +108,7 @@ export function AverageGoalDetail({id}: {id: string}) {
     <section className="panel average-goal-settings" aria-labelledby="average-settings-title">
       <h2 id="average-settings-title">Goal status</h2>
       <div className="dashboard-actions">
-        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString()))}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
+        {goal.status !== 'completed' ? <button type="button" className="secondary" onClick={() => { run(s => setAverageStatus(s, goal.id, 'completed', new Date().toISOString()), 'Marked as finished. It is on the Hall of achievements.', s => setAverageStatus(s, goal.id, goal.status, new Date().toISOString())); zigiSignals.emitValidated('goal_funded'); }}>Mark as finished</button> : <button type="button" className="secondary" onClick={() => run(s => setAverageStatus(s, goal.id, 'active', new Date().toISOString()), 'Active again.')}>Make active again</button>}
         <label className="field average-window-edit"><span>Window</span><select value={goal.windowDays} onChange={e => run(s => editAverageGoal(s, goal.id, {windowDays: Number(e.target.value) as 7 | 14 | 30}), 'Window changed.', s => editAverageGoal(s, goal.id, {windowDays: goal.windowDays}))}>{WINDOWS.map(w => <option key={w} value={w}>{w} days</option>)}</select></label>
         <button type="button" className="quiet" onClick={() => { const kept = goal; run(s => removeAverageGoal(s, goal.id), `${goal.name} removed.`, s => ({...s, goals: [...s.goals, kept]})); router.push('/app/goals'); }}>Remove this goal</button>
       </div>

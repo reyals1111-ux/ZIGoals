@@ -7,12 +7,13 @@ import {Fragment, useSyncExternalStore, type ComponentType} from 'react';
  * and the card appears there. Nothing renders until something is registered, so an empty slot costs no layout.
  *
  * The same registry backs the other named places this session leaves for Session AA-Local (`SLOT_NAMES` below): Today's
- * habit time-of-day widget, the game card, Health's coach check-in on Today and in the Life review. Each place renders its
+ * habit time-of-day widget, the game card, Health's coach check-in on Today and in the Life review, the game switch in
+ * Settings → Your app and the reminders link beside the push settings. Each place renders its
  * cards in registration order; registering the same component twice in one place is ignored.
  */
 export const PROGRESS_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'markets', 'portfolio', 'activity'] as const;
 export type ProgressPage = (typeof PROGRESS_PAGES)[number];
-export const SLOT_NAMES = ['today:habit-time', 'today:game', 'today:coach', 'review:coach'] as const;
+export const SLOT_NAMES = ['today:habit-time', 'today:game', 'today:coach', 'review:coach', 'settings:your-app', 'settings:reminders'] as const;
 export type SlotName = ProgressPage | (typeof SLOT_NAMES)[number];
 
 const registry = new Map<SlotName, readonly ComponentType[]>();

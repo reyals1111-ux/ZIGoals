@@ -44,8 +44,9 @@ export function goalItem(goal: GoalSummary, extras: GoalExtras, contributions: r
   const activity = id ? contributions.filter(c => c.goalScope === 'private' && c.goalId === id && inMonth(c.occurredAt.slice(0, 10), today)).length : 0;
   return {area, share: Number.isFinite(share as number) ? share : null, activity};
 }
-/** A habit's item: done days over scheduled days this month (up to today), and this month's logged entries. */
-export function habitItem(habit: Habit, extras: GoalExtras, today: string): BalanceItem {
+/** A habit's item: done days over scheduled days this month (up to today), and this month's logged entries. Its area
+ * comes from Session AA-Local's habit record when it has one (`areas`, lib/goal-extras/areas.ts `habitAreasFrom`). */
+export function habitItem(habit: Habit, extras: GoalExtras, today: string, areas: Readonly<Record<string, string>> = {}): BalanceItem {
   let scheduled = 0, done = 0;
   const first = `${monthOf(today)}-01`;
   for (let d = first; d <= today; d = new Date(Date.parse(`${d}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10)) {
@@ -55,7 +56,7 @@ export function habitItem(habit: Habit, extras: GoalExtras, today: string): Bala
     if (day.status === 'complete') done++;
   }
   const activity = habit.entries.filter(e => inMonth(e.date, today) && e.disposition === 'logged' && e.count > 0).length;
-  return {area: extras.habitAreas?.[habit.id] ?? 'mind', share: scheduled ? done / scheduled : null, activity};
+  return {area: areas[habit.id] ?? extras.habitAreas?.[habit.id] ?? 'mind', share: scheduled ? done / scheduled : null, activity};
 }
 /** Health's items: each active Health goal (its percent when known) and the month's Health entries counted once. */
 export function healthItems(goals: readonly HealthGoal[], health: HealthData, extras: GoalExtras, today: string): BalanceItem[] {
