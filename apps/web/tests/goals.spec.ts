@@ -148,7 +148,8 @@ test("invalid custom scenario preserves baseline funding health and progress", a
     name: "Funding Wealth · 0% future return",
   });
   await expect(health).toBeVisible();
-  await page.getByRole("combobox").selectOption("custom");
+  // Session AA-Cloud Part 2: the page also has "Part of a bigger goal" now; this is the scenario's own choice.
+  await page.getByRole("combobox", {name: /Assumed annual return/}).selectOption("custom");
   await page.getByLabel("Custom annual return (%)").fill("");
   await expect(
     page

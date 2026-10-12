@@ -8,9 +8,10 @@ export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
 /**
  * Session X-Local bumped the release so the card showed once more (ZIGi comes alive; docs/handoff/X_LOCAL_TO_CLOUD.md);
  * Session Y bumped it for its visible changes (ADR-018 Y40), and Session Z-Cloud bumps it for ZIGi's new face, voice and
- * the persona decisions (ADR-019). Same key and schema: an earlier build reads the id as one more dismissed string.
+ * the persona decisions (ADR-019). Session AA-Cloud bumps it for pages in order, Goals, the calculator, search and the
+ * Life review (ADR-021). Same key and schema: an earlier build reads the id as one more dismissed string.
  */
-export const WHATS_NEW_RELEASE = '2026-10-session-aa-local'; // Session AA-Local (ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere
+export const WHATS_NEW_RELEASE = '2026-10-session-aa-local'; // Session AA-Local (ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere — on top of AA-Cloud's '2026-10-session-aa-cloud' (ADR-021), which leads "Earlier updates"
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;

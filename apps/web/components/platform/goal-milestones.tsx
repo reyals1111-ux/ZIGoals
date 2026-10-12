@@ -8,6 +8,7 @@ import {milestoneDateOf, milestoneMarks, milestoneNoteId, milestoneState, setMil
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CELEBRATIONS} from '../../lib/celebrations';
 import {zigiSignals} from '../zigi/bus';
+import {showToast} from '../ui/undo-toast';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {GlassBar} from '../progress/glass-progress';
 import {amount} from './common';
@@ -53,7 +54,9 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         <label className="field">Milestone<input name="title" defaultValue={m.title} maxLength={100} required /></label>
         {!project && <label className="field">Value ({goal.asset}, optional)<input name="target" inputMode="decimal" defaultValue={m.target ? amount(m.target, goal.decimals) : ''} /></label>}
         <label className="field">Target date (optional, this device)<input name="date" type="date" defaultValue={date ?? ''} /></label>
-        <div className="actions"><button className="secondary" type="submit">Save milestone</button><button className="quiet" type="button" onClick={() => setEditing(null)}>Cancel</button><button className="quiet" type="button" onClick={() => void run(async () => { await update(s => withMilestones(s, goal.id, list => list.filter(x => x.id !== m.id))); try { dates.update(d => setMilestoneDate(d, goal.id, m.id, null)); } catch { /* a stale date is harmless: nothing reads a removed milestone's date */ } setEditing(null); })}>Remove milestone</button></div>
+        <div className="actions"><button className="secondary" type="submit">Save milestone</button><button className="quiet" type="button" onClick={() => setEditing(null)}>Cancel</button><button className="quiet" type="button" onClick={() => void run(async () => { const at = (goal.milestones ?? []).findIndex(x => x.id === m.id), before = date ?? null; await update(s => withMilestones(s, goal.id, list => list.filter(x => x.id !== m.id))); try { dates.update(d => setMilestoneDate(d, goal.id, m.id, null)); } catch { /* a stale date is harmless: nothing reads a removed milestone's date */ } setEditing(null);
+          // Session AA-Cloud Part 6: Undo puts the milestone back in its place, with its date.
+          showToast({message: `“${m.title}” removed.`, undo: async () => { await update(s => withMilestones(s, goal.id, list => list.some(x => x.id === m.id) ? list : [...list.slice(0, Math.max(0, at)), m, ...list.slice(Math.max(0, at))])); if (before) { try { dates.update(d => setMilestoneDate(d, goal.id, m.id, before)); } catch { /* the milestone is back; its date can be set again */ } } }, undone: `“${m.title}” is back.`}); })}>Remove milestone</button></div>
       </form> : <div className="goal-milestone-row">
         <label className="checkbox"><input type="checkbox" checked={m.done} disabled={closed} onChange={e => { const done = e.target.checked; void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x)))); }} />{m.title}</label>
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${date}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : ''].filter(Boolean).join(' · ')}</small>

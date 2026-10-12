@@ -14,6 +14,7 @@ import { ExportEverything } from "../../../components/export-everything";
 import { SwitchImport } from "../../../components/import/switch-import";
 import { WeeklyReviewDay } from "../../../components/weekly-review/weekly-review-day";
 import { PushRemindersPanel } from "../../../components/push/push-reminders-panel";
+import { Slot } from "../../../components/progress/slot";
 import { GuideSettings } from "../../../components/coach/guide-settings";
 import { AiSettingsSection } from "../../../components/ai/ai-settings-section";
 import {LoadBoundary} from '../../../components/load-boundary';
@@ -77,6 +78,8 @@ export default function Settings() {
       <section className="settings-safety-summary" aria-label="How your data is stored"><div><strong>Private by default</strong><p>Personal Goals, Habits, Health and portfolio records stay in this browser.</p></div><div><strong>Back up what matters</strong><p>Export a copy before clearing site data or moving to another device.</p></div><div><strong>A separate space to explore</strong><p>Showcase uses fictional records in this tab. Your usual saved records remain separate.</p></div></section>
       <SettingsGroup id="settings-data" title="Data & privacy">
         <section className="privacy-intro" id="privacy"><p className="eyebrow">YOUR RECORDS</p><h2>Keep a copy of your progress.</h2><p>Private plans, habits and health logs stay in this browser. Account sync requires separate email setup and vault unlock below. No analytics or health data onchain. Browser storage is not encrypted: anyone using this browser profile may read it.</p><p className="fine">Separate versioned backups preserve the existing Goal recovery format. Clearing site data removes local records. Wallet credentials and secrets are never included.</p></section>
+        {/* Session AA-Cloud Part 6: the Data health page (where each part lives, what this device holds, what ZIGi sees). */}
+        <Link className="panel data-health-door" href="/app/settings/data"><span><strong>Your data</strong><small>Where each part lives, what this device holds and what ZIGi can see.</small></span><span aria-hidden="true">→</span></Link>
         <PrivateVaultTools/>
         <PrivateBackups/>
         <ExportEverything/>
@@ -148,6 +151,8 @@ export default function Settings() {
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
+        {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
+        <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
         <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
@@ -159,6 +164,8 @@ export default function Settings() {
         <ChessSettings/>
         <GuideSettings/>
         <PushRemindersPanel/>
+        {/* Session AA-Cloud: a named place for Session AA-Local's reminders plan link. */}
+        <Slot place="settings:reminders"/>
         <section className="panel settings-market-data" id="market-data"><p className="eyebrow">MARKET DATA</p><h2>Know where each value comes from.</h2><p>Supported automatic market prices come from CoinGecko. Public asset identifiers and your quote currency are used to request market data; private holdings, quantities, Goals and Health records are not sent.</p><div className="settings-data-types"><div><strong>Automatic references</strong><p>Supported assets show price source and freshness. Missing or stale quotes remain labelled.</p></div><div><strong>Your manual values</strong><p>Cash, property, custom assets and unsupported markets use values you enter. Manual values are never presented as live quotes.</p></div></div><Link className="text-link" href="/app/markets">Explore market references →</Link></section>
       </SettingsGroup>
       <SettingsGroup id="settings-account" title="Account & devices">

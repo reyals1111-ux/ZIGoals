@@ -1,4 +1,7 @@
 /** Fictional, deterministic example records. Never written into a normal private or market store. */
+import {GOAL_EXTRAS_KEY} from './goal-extras/store';
+import {AVERAGE_GOALS_KEY} from './average-goals/store';
+import {showcaseGoalExtras} from './goal-extras/showcase';
 import {emptyPlatform,platformSchema,PLATFORM_KEY,type Platform,type Position,type PrivateGoal,type ContributionEvent} from './positions';
 import {contributionTotals} from './goal-intelligence';
 import {emptyHabitData,createHabit,habitDataSchema,HABITS_KEY,type HabitInput} from './habits';
@@ -23,6 +26,12 @@ import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
 import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
 import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
+import {withEarlierSeason} from './insights/showcase';
+import {CALCULATOR_KEY} from './compound/store';
+import {showcaseCalculator} from './compound/showcase';
+import {LIFE_REVIEW_KEY} from './life-review/store';
+import {showcaseLifeReview} from './life-review/showcase';
+import {TODAY_CARDS_KEY,todayCardsSchema} from './today-cards/store';
 import {ACCOUNTS_KEY,CHESS_CACHE_KEY} from './w-device-keys';
 import {showcaseAccounts} from './accounts/showcase';
 import {showcaseChess} from './skills/chess/showcase';
@@ -113,6 +122,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  }else Object.assign(records,{[HABIT_HEALTH_LINKS_KEY]:JSON.stringify(habitHealthLinks),[HEALTH_GOALS_KEY]:JSON.stringify(healthGoals),[FASTING_KEY]:JSON.stringify(fasting),[WEEKLY_REVIEW_KEY]:JSON.stringify(weeklyReview)});
  // Session W Part 4: fictional nights and a goal in Health v4's sleep group (lib/sleep/showcase.ts).
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
+ // Session AA-Cloud Part 8: an earlier fictional season (60 to 89 days back) so the cross-pillar pairings have counts.
+ records[HEALTH_STORAGE_KEY]=JSON.stringify(withEarlierSeason(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day));
  // Session AA-Local Part 7 (ADR-022, owner edit 6): one call per module. Habits best in class (sections, six weeks, a quit habit, a routine, a running timer),
  // Health best in class (six weeks of weights, micronutrients, recipes, a planned week, measurements), and the device records beside them (habit extras,
  // the game layer ON in the Showcase with one unseen celebration, the coach, micro targets, the macro view, custom measurements, the reminders plan).
@@ -128,5 +139,18 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.
  records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]!)),'links',showcaseLinks(day),false)));
+ // Session AA-Cloud Part 2: goal extras (areas, visions as gradients, plans, a three-level tree) and average goals.
+ {const goals=showcaseGoalExtras(day);records[GOAL_EXTRAS_KEY]=JSON.stringify(goals.extras);records[AVERAGE_GOALS_KEY]=JSON.stringify(goals.averages);}
+ // Session AA-Cloud Part 8: two calculator scenarios and last week's and last month's Life review focus (device-only keys).
+ records[CALCULATOR_KEY]=JSON.stringify(showcaseCalculator(day));records[LIFE_REVIEW_KEY]=JSON.stringify(showcaseLifeReview(day));
  return {day,records};
+}
+/**
+ * Session AA-Cloud Part 8: the Showcase person's display choices, apart from their records. Today's cards kept on this
+ * device (life balance, pace forecasts and the calculator; the Life review stays in Updates) are a choice, not data, so
+ * they join the Showcase tab when it loads (lib/showcase.ts) and stay out of `records`, which tests also seed as a
+ * person's own data: a person with these records who never chose a card sees none.
+ */
+export function showcaseChoices():Record<string,string>{
+ return {[TODAY_CARDS_KEY]:JSON.stringify(todayCardsSchema.parse({version:1,cards:['balance','forecasts','calculator']}))};
 }

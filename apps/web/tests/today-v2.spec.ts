@@ -32,10 +32,13 @@ async function seed(page: Page, records: Record<string, unknown>, time: string) 
 }
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 const wrapUpCard = (page: Page) => page.getByRole('article', {name: 'Your evening wrap-up'});
-/** On a phone For you keeps one card open; the wrap-up, at the lowest priority, waits behind "Show more" when another is open. */
+/**
+ * The wrap-up sits in Today's "Updates and summaries" (Session AA-Cloud Part 1; it was in "For you"); on a phone that
+ * area's cards wait behind "Show more".
+ */
 async function revealForYou(page: Page) {
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  const more = page.getByRole('region', {name: 'For you'}).getByRole('button', {name: /^Show more/});
+  const more = page.getByRole('region', {name: 'Updates and summaries'}).getByRole('button', {name: /^Show more/});
   if (await more.count()) await more.click();
 }
 

@@ -22,6 +22,7 @@ import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {PhoneFold} from '../phone/phone-fold';
 import {useImportUndo} from '../import/use-import-undo';
 import {ImportBanner} from '../import/csv-import-steps';
+import {ProgressSlot} from '../progress/slot';
 import {TransactionImportPanel} from '../import/transaction-import';
 import {UndoRefused, undoImport} from '../../lib/import/holdings';
 import type {ImportRecord} from '../../lib/import/undo-schema';
@@ -69,6 +70,7 @@ export function PortfolioView() {
     </section>
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}
+    <ProgressSlot page="portfolio" />
     <ImportBanner imports={imports} kind="portfolio" onUndo={undoRecord} />
     {!store.loaded ? <p role="status">Loading your portfolios…</p>
       : store.unreadable ? <Unreadable onStartOver={() => run(() => ({version: 1, portfolios: []}), 'Started over. The unreadable portfolios were replaced.', 'Could not start over.', {replaceUnreadable: true})} />
@@ -138,9 +140,10 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {port
     {removing && <div className="portfolio-confirm" role="alertdialog" aria-label="Delete portfolio"><p>Delete “{portfolio.name}” and its {portfolio.transactions.length} transactions from this device? Export it first to keep a copy.</p><div className="actions"><button type="button" className="secondary" onClick={() => run(data => deletePortfolio(data, portfolio.id), 'Portfolio deleted.', 'The portfolio was not deleted.')}>Delete portfolio</button><button type="button" className="quiet" onClick={() => setRemoving(false)}>Keep it</button></div></div>}
     <PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} />
     {rows.length > 0 && <>
+      {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures, then the chart. */}
+      <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} />
       {/* On a phone, allocation and the transaction list fold away under their names; elsewhere they stay open. */}
       <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <PhoneFold label="Allocation"><AllocationDonut portfolio={portfolio} rows={rows} /></PhoneFold>}</div>
-      <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} />
       {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
       {showcase && <p className="fine portfolio-attribution">Showcase fixture prices, not market data.</p>}
       <PhoneFold label="Transactions"><AllTransactions portfolio={portfolio} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} /></PhoneFold>

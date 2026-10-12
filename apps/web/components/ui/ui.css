@@ -1,0 +1,111 @@
+/*
+ * Session AA-Cloud: shared pieces every page uses (section and group headings, focus tiles, empty states, skeletons, the
+ * Undo toast). Colours come from the design system's tokens; motion is one short fade, off under reduced motion and
+ * Motion Off. Liquid-glass hover follows components/liquid-glass.css (intent after ~70 ms, no pointer tracking).
+ */
+
+/* Section heading: eyebrow, then a white title whose nebula colour starts in the middle (the design system's flow). */
+:root .aa-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 0 0 16px; min-width: 0; }
+:root .aa-section-heading > div { min-width: 0; }
+:root .aa-section-heading .eyebrow { margin: 0 0 4px; }
+:root .aa-section-heading h2 { margin: 0; font-size: clamp(22px, 1.2vw + 14px, 28px); line-height: 1.2; letter-spacing: -0.01em; }
+:root .aa-section-heading p.aa-lede { margin: 6px 0 0; color: var(--text-secondary); font-size: 15px; line-height: 1.55; }
+:root .aa-section-heading > :last-child:not(:first-child) { flex: 0 0 auto; }
+@media (max-width: 599px) { :root .aa-section-heading { flex-wrap: wrap; align-items: flex-start; } }
+
+/* Today's group headings: a small label row between groups while Today keeps its default order. */
+:root .today-group-heading { display: flex; align-items: center; gap: 12px; margin: 10px 0 14px; font-size: 14px; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; color: var(--text-meta); }
+:root .today-group-heading::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, #7fb6e055, #a98bf233 60%, transparent); }
+:root .dashboard-layout-grid > :first-child > .today-group-heading { margin-top: 0; }
+
+/* Today's focus. */
+:root .today-focus { display: grid; gap: 14px; margin: 0 0 24px; }
+:root .today-focus > .aa-section-heading { margin-bottom: 2px; }
+:root .today-focus-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; }
+:root .focus-tile { position: relative; display: grid; align-content: start; gap: 6px; min-width: 0; padding: 16px 18px; border-radius: 18px; border: 1px solid #6c9cc540; background: linear-gradient(140deg, #13253ccc, #1c1a3acc); color: var(--text-strong); }
+:root .focus-tile > .focus-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-meta); }
+:root .focus-tile > strong { font-size: 22px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere; }
+:root .focus-tile > p { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.5; }
+:root .focus-tile .focus-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 4px; }
+:root .focus-tile .focus-actions .secondary { min-height: 44px; }
+:root .focus-tile[data-tone="habits"] { background: linear-gradient(140deg, #10303acc, #16233dcc); }
+:root .focus-tile[data-tone="goals"] { background: linear-gradient(140deg, #182447cc, #26204acc); }
+:root .focus-tile[data-tone="health"] { background: linear-gradient(140deg, #0f2d33cc, #182a3dcc); }
+:root .focus-tile[data-tone="rest"] { background: linear-gradient(140deg, #1d1d43cc, #2a1d45cc); }
+:root .today-focus .aa-slot, :root .today-focus .reminder-cards { min-width: 0; }
+/* Phones: two columns of compact tiles, nothing wider than the screen (Run10's overflow rule). */
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  :root .today-focus { gap: 8px; margin-bottom: 14px; }
+  :root .today-focus-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  :root .focus-tile { padding: 6px 12px; gap: 0; border-radius: 16px; }
+  :root .focus-tile > .focus-label { font-size: 14px; letter-spacing: .04em; }
+  :root .focus-tile > strong { font-size: 16px; line-height: 1.3; }
+  :root .focus-tile > p { font-size: 14px; line-height: 1.35; }
+  :root .focus-tile .focus-actions { margin-top: 0; gap: 0 10px; }
+  :root .focus-tile .focus-actions .secondary { padding-inline: 10px; }
+  :root .focus-tile .focus-actions .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+  /* A group label costs one line on a phone. */
+  :root .today-group-heading { margin: 0 0 2px; line-height: 1.3; }
+  :root .today-focus > .aa-section-heading .eyebrow { display: none; }
+  :root .today-focus > .aa-section-heading h2 { font-size: 20px; }
+}
+
+/* Empty states with one clear first action. */
+:root .aa-empty { display: grid; justify-items: start; gap: 10px; padding: 24px; border-radius: 20px; border: 1px dashed #7aa7d055; background: radial-gradient(at 90% 10%, #6c4aaa30, transparent 60%), #0d1a2ecc; }
+:root .aa-empty h3 { margin: 0; font-size: 20px; }
+:root .aa-empty p { margin: 0; color: var(--text-secondary); font-size: 15px; }
+
+/* Skeletons: calm placeholders while a part loads (no shimmer under reduced motion or Motion Off). */
+:root .aa-skeleton { display: grid; gap: 10px; padding: 18px; border-radius: 18px; background: #0f1d33aa; border: 1px solid #6c9cc526; }
+:root .aa-skeleton > i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+:root .aa-skeleton > i:nth-child(2) { width: 82%; } :root .aa-skeleton > i:nth-child(3) { width: 64%; }
+@keyframes aa-skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > i { animation: none; } }
+:root[data-app-motion=off] .aa-skeleton > i { animation: none; }
+
+/* The Undo toast: above the phone's tab bar, bottom-centre on computers. */
+:root .aa-toast-region { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; width: min(560px, calc(100vw - 32px)); pointer-events: none; }
+:root .aa-toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 16px; border: 1px solid #7fc6e655; background: linear-gradient(135deg, #0e2036f5, #1d1a3cf5); box-shadow: 0 12px 40px #0009; color: var(--text-strong); font-size: 15px; animation: aa-toast-in 180ms ease-out; }
+:root .aa-toast > span { flex: 1; min-width: 0; }
+:root .aa-toast-undo { min-height: 44px; padding: 8px 16px; border-radius: 12px; border: 1px solid #8fe6f466; background: #12314aa0; color: #b9f1fb; font: inherit; font-weight: 700; cursor: pointer; }
+:root .aa-toast-close { min-width: 44px; min-height: 44px; border: 0; border-radius: 12px; background: none; color: var(--text-meta); font-size: 22px; cursor: pointer; }
+@keyframes aa-toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-toast { animation: none; } }
+:root[data-app-motion=off] .aa-toast { animation: none; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) { :root .aa-toast-region { bottom: calc(var(--phone-tabs, 60px) + env(safe-area-inset-bottom, 0px) + 16px); } }
+
+/* Progress slots and named places render nothing until filled; once filled they sit in the page's flow. */
+:root .progress-slot, :root .aa-slot { display: grid; gap: 12px; min-width: 0; }
+:root .progress-slot { margin: 0 0 20px; }
+:root .for-you-place { display: contents; }
+
+/* Session AA-Cloud Part 4: the search button in every page's header (the palette's own styles load with it). */
+:root .search-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid #6c9cc555; background: #0d1a2ecc; color: var(--text-secondary); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+:root .search-trigger:hover, :root .search-trigger:focus-visible { color: var(--text-strong); border-color: #8fe6f477; }
+:root .search-trigger.is-wide { width: 100%; justify-content: flex-start; padding: 0 12px; }
+:root .search-trigger.is-wide kbd { margin-left: auto; min-width: 22px; padding: 1px 6px; border-radius: 6px; border: 1px solid #6c9cc555; font: inherit; font-size: 14px; }
+:root .sidebar-search { padding: 14px 4px 4px; }
+:root .sidebar-actions { display: flex; gap: 8px; }
+:root .sidebar-actions .quick-add-trigger { flex: 1; }
+@media (max-width: 900px) { :root .sidebar-search { display: none; } }
+:root .phone-search { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 14px; background: none; color: var(--text); cursor: pointer; }
+/* Session AA-Cloud Part 6: the door to Settings → Your data. */
+:root .data-health-door { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; margin: 0 0 16px; text-decoration: none; color: var(--text-strong); }
+:root .data-health-door > span:first-child { display: grid; gap: 4px; }
+:root .data-health-door small { font-size: 15px; color: var(--text-secondary); }
+:root .data-health-door:hover, :root .data-health-door:focus-visible { border-color: #8fe6f477; }
+
+/* Session AA-Cloud Part 8: Today's cards kept on this device and their chooser (arranging Today). */
+:root .today-device-cards { display: grid; gap: 16px; margin: 16px 0 0; }
+:root .today-device-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; }
+:root .today-device-card > * { margin: 0; }
+/* Life balance needs the whole row for its wheel beside the legend; the other cards pair up below it. */
+:root .today-device-card[data-card='balance'] { grid-column: 1 / -1; }
+:root .today-device-chooser { padding: 16px; border-radius: 18px; border: 1px dashed #6c9cc566; background: #0b172b80; }
+:root .today-device-chooser h3 { margin: 0 0 4px; font-size: 17px; }
+:root .today-device-chooser p { margin: 0 0 12px; font-size: 15px; color: var(--text-secondary); }
+:root .today-device-options { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+:root .today-device-option { display: grid; gap: 2px; min-height: 44px; padding: 10px 14px; text-align: left; border-radius: 14px; border: 1px solid #6c9cc544; background: #0e1d3599; color: inherit; cursor: pointer; }
+:root .today-device-option small { font-size: 14px; color: var(--text-secondary); }
+:root .today-device-option[aria-pressed='true'] { border-color: #8fe6f4; background: #12345299; box-shadow: inset 0 0 0 1px #8fe6f455; }
+:root .today-device-option[aria-pressed='true'] strong::after { content: ' · on'; color: #8fe6f4; font-weight: 500; }

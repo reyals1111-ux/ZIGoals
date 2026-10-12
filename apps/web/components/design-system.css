@@ -8,6 +8,8 @@
   --text-strong: #f4f8ff;
   --text-secondary: #dde7f7;
   --text-meta: #c2d0e5;
+  /* Session AA-Cloud Part 1: the one muted text colour (was --muted #a1afc8); ≥ 4.5:1 on every panel tone, measured. */
+  --text-muted: #bccadf;
   --text-secondary-size: 15px;
   --text-meta-size: 15px;
   --accent-teal: #86f0d6;

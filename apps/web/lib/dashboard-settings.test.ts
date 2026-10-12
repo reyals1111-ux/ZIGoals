@@ -48,7 +48,8 @@ test('legacy settings keep their original shape while placement resolves determi
  const old=emptyDashboardSettings(),raw=JSON.stringify(old),parsed=dashboardSettingsSchema.parse(JSON.parse(raw));
  expect(JSON.stringify(parsed)).toBe(raw);expect(parsed.placement).toBeUndefined();
  const placement=reconcileDashboardPlacement(parsed);
- expect(placement.version).toBe(1);expect(placement.main.slice(0,11).map(r=>r.id)).toEqual(['whole-life','attention','funding','needs-attention','watchlist','goals','progress','habits','health','next-action','summary']);
+ expect(placement.version).toBe(1);// Session AA-Cloud Part 1 (deliberate, as strict): the whole-life overview first, then the day's items, Goals led by the attention agenda, money, the summary.
+ expect(placement.main.slice(0,11).map(r=>r.id)).toEqual(['whole-life','habits','health','attention','goals','next-action','funding','needs-attention','watchlist','progress','summary']);
  expect(placement.rail.map(r=>r.id)).toEqual(['wallet','staking','destination','activity']);
  expect(placement.main.slice(11)).toEqual(old.widgets.map(w=>widget(w.id)));
  expect(reconcileDashboardPlacement(parsed)).toEqual(placement);expect(JSON.stringify(old)).toBe(raw);

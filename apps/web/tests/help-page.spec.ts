@@ -218,3 +218,30 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
   await expect(page.locator('#help-your-ai-voice')).not.toContainText(/French|Fran[cç]ais/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
+
+// Session AA-Cloud (ADR-021): this release's answers, each linkable from What's new; the goal extras say they are kept on
+// this device for now, the Home Screen answer says what Safari on iPhone does not offer, and nothing is written on view.
+test('Session AA-Cloud: the new answers open from a hash, say what stays on this device, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true});
+  const answers: [string, string][] = [
+    ['aa-order', 'If you arranged a page yourself, your own order is kept'],
+    ['aa-goals', 'kept on this device for now'],
+    ['aa-forecast', 'It needs at least 3 recorded steps over 14 days or more'],
+    ['aa-calculator', 'Every result is an estimate: returns are not guaranteed.'],
+    ['aa-search', 'Your last 8 searches are kept on this device'],
+    ['aa-review', 'a pairing is not a cause'],
+    ['aa-data', 'Looking changes nothing.'],
+    ['aa-home-screen', 'Safari on iPhone and iPad offers neither the shortcuts nor the share sheet entry for web apps'],
+    ['aa-more', 'kept on this device'],
+  ];
+  for (const [id] of answers) await expect(questions.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, text] of answers) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(text);
+  }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});

@@ -15,7 +15,7 @@ export const NUDGES: readonly NudgeCopy[] = [
   {kind: 'habits-open', priority: 2, heading: '{n} of your habits {are} still open today: {titles}.', body: 'A small step counts.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
   {kind: 'streak-notice', priority: 3, heading: '{title}: {n} days in a row today.', body: 'Worth noticing.', action: {label: 'Open habit', href: '/app/habits#habit-{habitId}'}, hideDays: 28},
   {kind: 'goal-next-date', priority: 4, heading: '{goal}: your plan’s next date is {when}.', body: 'Nothing moves by itself; this is just the date you chose.', action: {label: 'Open goal', href: '{href}'}, hideDays: 1},
-  {kind: 'insight-ready', priority: 5, heading: 'A pattern from your own records is below.', body: 'It is a count, not a cause.', action: null, hideDays: 28},
+  {kind: 'insight-ready', priority: 5, heading: 'A pattern from your own records is waiting in For you.', body: 'It is a count, not a cause.', action: null, hideDays: 28},
   {kind: 'quiet-day', priority: 6, heading: 'Nothing is due today.', body: 'Rest is part of the plan.', action: null, hideDays: 7},
   {kind: 'first-time', priority: 7, heading: 'I read nothing but what you record here, on this device.', body: 'Add a habit or a goal and I will keep an eye on the dates.', action: {label: 'Open habits', href: '/app/habits'}, hideDays: 1},
 ];

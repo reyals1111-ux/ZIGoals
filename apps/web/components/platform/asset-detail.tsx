@@ -11,7 +11,8 @@ import {FEATURED_MARKETS,marketCategory,referenceQuote,referencePriceLabel} from
 import {useMarketInsights} from './use-market-insights';
 import {MarketMovement} from './market-movement';
 import {useShowcase} from '../showcase-controls';
-import {addFavourite,removeFavourite,archiveAsset} from '../../lib/asset-management';
+import {addFavourite,removeFavourite,archiveAsset,restoreAsset} from '../../lib/asset-management';
+import {showToast} from '../ui/undo-toast';
 import {quoteIsStale} from '../../lib/market-quotes';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {amount,shownAmount} from './common';
@@ -27,7 +28,10 @@ export function AssetDetail({id}:{id:string}){const store=usePlatform(),[editing
  const row=p?wealthOverview(store.data,now,market.quotes).rows.find(r=>r.position.id===p.id):undefined,name=p?.providerId??fav!.name,symbol=p?.asset??fav!.symbol,currency=p?.quoteCurrency??'USD';const q=ref?referenceQuote(ref,currency,market.quotes,now):undefined;
  const owners=p?store.data.allocations.filter(a=>a.positionId===p.id):[],isFavourite=ref&&store.data.watchlist.some(a=>marketRefKey(a.ref)===marketRefKey(ref));
  const localPoints=p?store.data.valuationSnapshots.filter(v=>v.positionId===p.id&&v.currency===currency&&v.source==='COINGECKO'&&v.price!==undefined&&v.priceDecimals!==undefined).map(v=>({at:v.capturedAt,value:v.price!,decimals:v.priceDecimals!})):[];
- async function archive(){try{await store.update(s=>{if(JSON.stringify(s.positions.find(x=>x.id===p!.id))!==JSON.stringify(p)||JSON.stringify(s.allocations.filter(a=>a.positionId===p!.id))!==JSON.stringify(owners))throw Error('Asset allocations changed. Close and reopen this confirmation.');return archiveAsset(s,p!.id,owners.length>0);});setRemoving(false);}catch(e){setError(e instanceof Error?e.message:'Could not archive.');}}
+ async function archive(){try{await store.update(s=>{if(JSON.stringify(s.positions.find(x=>x.id===p!.id))!==JSON.stringify(p)||JSON.stringify(s.allocations.filter(a=>a.positionId===p!.id))!==JSON.stringify(owners))throw Error('Asset allocations changed. Close and reopen this confirmation.');return archiveAsset(s,p!.id,owners.length>0);});setRemoving(false);
+  // Session AA-Cloud Part 6: Undo when nothing else changed with it; an asset that released Goal allocations comes back
+  // from Archived assets on Wealth (its allocations are not recreated), so the message says so instead.
+  const id=p!.id,name=p!.providerId;showToast(owners.length?{message:`${name} archived. Restore it any time from Archived assets on Wealth; its Goal allocations are not recreated.`}:{message:`${name} archived.`,undo:()=>store.update(s=>restoreAsset(s,id)),undone:`${name} is back in your wealth.`});}catch(e){setError(e instanceof Error?e.message:'Could not archive.');}}
  return <div className="dashboard asset-detail"><Link className="text-link" href="/app/wealth">← Your wealth</Link><section className="asset-detail-hero"><div><p className="eyebrow">{fav?'YOUR MARKET WATCH':'YOUR ASSET'}</p><div className="asset-detail-heading"><AssetIcon symbol={symbol} kind={ref?marketCategory(ref,symbol):p?.assetClass} logoUrl={ref?insights.results[marketRequestKey({marketRef:ref,currency})]?.insight?.logoUrl:null}/><div><h1>{name}</h1><p>{symbol.toUpperCase()} · {p?.assetClass??(ref?.kind==='rwa'?ref.assetType:'Crypto')}</p></div></div></div><div><p className="fine">{ref?'Current reference price':'Holding value'}</p><strong className="asset-detail-price">{ref?q?referencePriceLabel(q):'Unavailable':row?.value!==undefined?money(row.value,row.currency!):'Unavailable'}</strong><p><FreshnessBadge state={ref?q?quoteIsStale(q,market.now)?'stale':'fresh':'missing':row?.valuationState??'manual'}/></p></div></section>
  {ref&&<MarketMovement result={insights.results[marketRequestKey({marketRef:ref,currency})]}/>}
  {showcase&&<p className="notice">SHOWCASE DATA · this holding and its recorded history are fictional. The CoinGecko reference price and provider chart below are real public market evidence.</p>}

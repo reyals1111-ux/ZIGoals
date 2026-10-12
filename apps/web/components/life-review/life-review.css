@@ -1,0 +1,50 @@
+/* Session AA-Cloud Part 5: the Life review and the cross-pillar insights card. Text 14 px or larger; targets 44 px. */
+:root .life-review { display: grid; gap: 20px; }
+:root .life-review .panel { margin: 0; min-width: 0; }
+:root .life-review-period { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+:root .life-review-period button { min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid #6c9cc555; background: #0d1a2ecc; color: var(--text-secondary); font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; }
+:root .life-review-period button[aria-pressed=true] { color: var(--text-strong); background: linear-gradient(120deg, #1f4a63, #3a2f6e); border-color: #8fe6f477; }
+:root .life-review-period p { margin: 0; font-size: 15px; color: var(--text-secondary); }
+:root .life-review-hero { background: radial-gradient(110% 120% at 100% 0%, #6a46b04d, transparent 55%), radial-gradient(80% 90% at 0% 100%, #1f7aa04a, transparent 60%), linear-gradient(150deg, #0f1e36f2, #171a3cf2); }
+:root .life-highlights { display: grid; gap: 10px; margin: 0 0 16px; padding: 0; list-style: none; }
+:root .life-highlights li { position: relative; padding: 12px 16px 12px 40px; border-radius: 14px; background: #0b172bb3; border: 1px solid #6c9cc533; font-size: 17px; font-weight: 650; }
+:root .life-highlights li::before { content: ""; position: absolute; left: 16px; top: 50%; width: 10px; height: 10px; margin-top: -5px; border-radius: 50%; background: linear-gradient(135deg, #6fe6f6, #f08bd6); }
+:root .life-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+:root .life-counts > div { padding: 12px 14px; border-radius: 14px; border: 1px solid #6c9cc533; background: #0b172b99; }
+:root .life-counts dt { font-size: 14px; color: var(--text-secondary); }
+:root .life-counts dd { margin: 4px 0 0; font-size: 24px; font-weight: 750; font-variant-numeric: tabular-nums; }
+:root .life-review-grid { columns: 2 340px; column-gap: 20px; }
+:root .life-review-grid > .panel { break-inside: avoid; margin: 0 0 20px; display: block; }
+:root .life-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+:root .life-list li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 10px 12px; border-radius: 12px; background: #0b172b99; font-size: 15px; }
+:root .life-list li span { color: var(--text-secondary); }
+:root .life-list a { min-height: 24px; font-weight: 650; }
+:root .life-none { margin: 0; color: var(--text-secondary); font-size: 15px; }
+:root .life-plans { margin-top: 14px; display: grid; gap: 6px; font-size: 15px; }
+:root .life-plans p { margin: 0; }
+:root .life-trends { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
+:root .life-trends th, :root .life-trends td { padding: 10px 8px; text-align: right; border-bottom: 1px solid #6c9cc51f; vertical-align: top; }
+:root .life-trends th[scope=row], :root .life-trends thead th:first-child { text-align: left; }
+:root .life-trends th[scope=row] small { display: block; font-weight: 400; font-size: 14px; color: var(--text-secondary); }
+:root .life-trends thead th { font-size: 14px; color: var(--text-meta); }
+:root .life-focus form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+:root .life-focus .field { flex: 1 1 280px; display: grid; gap: 6px; font-size: 15px; }
+:root .life-focus input { min-height: 48px; font-size: 16px; }
+:root .life-focus .primary { min-height: 48px; }
+:root .life-reflection { min-width: 0; }
+:root .cross-insights .cross-list { display: grid; gap: 10px; margin: 0 0 10px; padding: 0; list-style: none; }
+:root .cross-insights .cross-list li { padding: 12px 14px; border-radius: 14px; border: 1px solid #6c9cc533; background: #0b172b99; }
+:root .cross-insights .cross-list strong { display: block; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-meta); }
+:root .cross-insights .cross-list p { margin: 4px 0; font-size: 16px; line-height: 1.5; }
+:root .cross-insights .cross-list small { font-size: 14px; color: var(--text-secondary); }
+:root .cross-insights .cross-empty { margin: 0 0 10px; font-size: 15px; color: var(--text-secondary); }
+:root .cross-insights .cross-more { margin: 0 0 10px; font-size: 15px; color: var(--text-secondary); }
+:root .cross-pending > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: 15px; font-weight: 650; }
+:root .cross-pending ul { display: grid; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; }
+:root .cross-pending li { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; color: var(--text-secondary); }
+@media (max-width: 599px) {
+  :root .life-counts { grid-template-columns: 1fr; }
+  :root .life-counts > div { display: flex; justify-content: space-between; align-items: baseline; }
+  :root .life-counts dd { margin: 0; font-size: 20px; }
+  :root .life-review-grid { columns: 1; }
+}
