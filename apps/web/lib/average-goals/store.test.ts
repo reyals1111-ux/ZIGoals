@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEmptyHealth} from '../health';
-import {AVERAGE_GOALS, addAverageGoal, averageProgress, emptyAverageGoals, logAverageValue, removeAverageValue, setAverageStatus} from './store';
+import {AVERAGE_GOALS, addAverageGoal, emptyAverageGoals, logAverageValue, removeAverageValue, setAverageStatus} from './store';
+import {averageProgress} from './progress';
 import {readDeviceRecord} from '../device-record';
 import type {HealthData} from '../health';
 

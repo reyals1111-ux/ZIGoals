@@ -5,7 +5,8 @@ import {habitDay} from './habits';
 import type {HealthData} from './health';
 import type {HealthGoal} from './health-goals/schema';
 import {healthGoalProgress} from './health-goals/progress';
-import {averageKey, averageProgress, type AverageGoal} from './average-goals/store';
+import {averageKey, type AverageGoal} from './average-goals/store';
+import {averageProgress} from './average-goals/progress';
 import {areasOf, type GoalExtras} from './goal-extras/store';
 import {dailyData} from './health-daily';
 
