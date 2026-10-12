@@ -197,7 +197,7 @@ const NAV_ART = String.raw`(?:(?:my|the|mijn|de|het|me|een|m'n|that|this)\s+)?`;
 const NAV_WORD = String.raw`([a-z' -]{3,24}?)`;
 const NAV_END = String.raw`(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht))?(?:\s+(?:toe|zien|openen|open|bekijken))?[.!?]?$`;
 const NAV_A = new RegExp(`^${NAV_PRE}${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`);
-const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
+const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:(?:kunnen )?openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
 const NAV_B2 = new RegExp(`^${NAV_PRE}naar\\s+${NAV_ART}${NAV_WORD}(?:\\s+toe)?\\s+(?:kunnen )?gaan[.!?]?$`);
 const NAV_C = new RegExp(`^${NAV_WORD}(?:\\s*(?:page|pagina))?(?:\\s+(?:openen|open))?[.!]?$`); // a bare page word ("settings", "portfolio openen"): no article, no question mark ("my habits?" is a question)
 const NAV_D = new RegExp(`^${NAV_ART}${NAV_WORD}(?:pagina)?,?\\s+(?:die wil ik zien|ga daar (?:even )?naartoe|go back to (?:that|it))[.!?]?$`);
@@ -215,7 +215,29 @@ const NAV_LAST = new RegExp(`${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`, 'y
 /** The restarted verb opens a clause (", can you show me", ", so open") or follows a stutter that stopped at a verb or an article ("go to my take me to"), never sits inside a clause ("which habits are open today"). */
 const NAV_CLAUSE_START = new RegExp(String.raw`(?:^|[,;]\s*|\b(?:so|then|and|just|please|now|ok|okay|dan|dus|en|even|eens|gewoon)\s+|\b(?:can|could|would|will|kun|kan|zou|wil)\s+(?:you|je|u)\s+(?:please\s+|alsjeblieft\s+|even\s+)?|\b${NAV_VERB}\s+(?:(?:my|the|mijn|de|het|me|m'n)\s+)?)$`);
 const NAV_BEFORE_BAD = /\d|\b(?:log|add|track|record|mark|skip|create|set|remind|delete|remove|note|save|put)\b/;
+/**
+ * Session AA-Local Part 6 (ADR-022 B46): what speech adds around a navigation ask and what a recogniser writes, taken off
+ * before the patterns look: a leading clause that ends in ", dus" / ", so" / "and"; a trailing reason ("want ik wil even
+ * kijken", "because I want to see it"); a closing thank-you; and the small words people put anywhere ("even", "eens",
+ * "maar", "gewoon", "vandaag", "nu", "voor me", "alsjeblieft", "real quick", "right now", "please", "for me"). Only the
+ * navigation patterns see the trimmed text; nothing else in the engine changes.
+ */
+function spokenTrim(question: string): string {
+  return question
+    .replace(/^.{12,}?[,.;]\s+(?:dus|so|and then|and|en)\s+/i, '')
+    .replace(/\s*,?\s*(?:dankjewel|dank je wel|bedankt|thanks|thank you|cheers)[.!]*$/i, '')
+    .replace(/\s+(?:i|ik) (?:want|wil|would like) to see it[.!]*$/i, '')
+    .replace(/[,;]?\s+(?:want (?=ik |je |we |hij |ze |dat |het |er |de |die )|omdat|because|since|cause)\b.*$/i, '') // Dutch "want" is "because" only before a pronoun; the English verb stays
+    .replace(/\s+(?:real quick|right now|quickly|just|nu|even|eens|maar|gewoon|vandaag|voor me|for me|alsjeblieft|please)(?=[\s,.!?]|$)/gi, '')
+    .replace(/^(hey|hi|hallo|hoi),\s+/i, '$1 ')
+    .trim();
+}
 export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
+  const trimmed = spokenTrim(question);
+  if (trimmed !== question) { const direct = navigationIntentOf(trimmed); if (direct) return direct; }
+  return navigationIntentOf(question);
+}
+function navigationIntentOf(question: string): {page: string; view?: string; label: string} | null {
   let q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   for (let i = 0; i < 3 && NAV_POLITE_END.test(q); i++) q = q.replace(NAV_POLITE_END, '').trim();
   if (!q || q.length > 160) return null;

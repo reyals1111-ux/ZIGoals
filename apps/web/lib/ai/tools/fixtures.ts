@@ -58,9 +58,13 @@ export const SENTINEL = {
 export const SENTINEL_TEXTS = [SENTINEL.food, SENTINEL.recipe, SENTINEL.counter, SENTINEL.activity, SENTINEL.grocery, SENTINEL.note, String(SENTINEL.kcal), String(SENTINEL.steps), String(SENTINEL.waterMl), String(SENTINEL.habitValue), SENTINEL.sleepTag, SENTINEL.sleepNote, SENTINEL.meditationNote, String(SENTINEL.importSteps), String(SENTINEL.importKcal), SENTINEL.linkedWorkout, SENTINEL.moodNote];
 export const sentinelsIn = (text: string) => SENTINEL_TEXTS.filter(s => text.includes(s));
 
+// The Showcase's records for a day, built once per process: the lookup tests call this per phrase, and Session AA-Local's
+// additions doubled the build (76 ms); the records are strings, so sharing them is safe.
+const showcaseCache = new Map<string, {day: string; records: Record<string, string>}>();
+function showcaseRecords(day: string) { let hit = showcaseCache.get(day); if (!hit) { hit = buildShowcase(day, 'UTC'); showcaseCache.set(day, hit); } return hit; }
 export function showcaseSources(day = DAY, overrides: Partial<ToolSources> = {}): ToolSources {
   // A person in UTC (the zones below), whatever zone the machine running the tests is in (Session Y Part 2).
-  const {records} = buildShowcase(day, 'UTC');
+  const {records} = showcaseRecords(day);
   // Session AA-Local Part 7: the Showcase now plans five dinners from its day (lib/health-aa/showcase.ts); this fixture's meal_plan assertions pin the two sentinel plans, so the Showcase's own are left out here.
   { const h = JSON.parse(records['zigoals:health:v1']!); if (h.daily?.plans) h.daily.plans = h.daily.plans.filter((p: {id: string}) => !p.id.startsWith('health_plan-aa-')); records['zigoals:health:v1'] = JSON.stringify(h); }
   const habits = habitDataSchema.parse(JSON.parse(records['zigoals:habits:v1']!)) as HabitData;

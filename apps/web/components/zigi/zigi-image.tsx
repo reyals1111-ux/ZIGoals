@@ -28,7 +28,7 @@ export function ZigiImage({poster, animated = null, width, height, alt, decorati
   }, [animated]);
   const playing = ready !== null && ready === animated;
   // A static figure from /public, like the brand mark: no optimizer, no loader, nothing fetched beyond the file.
-  // eslint-disable-next-line @next/next/no-img-element
   if (broken === poster.src) return <span className="zigi-image-fallback" role={decorative ? undefined : 'img'} aria-label={decorative ? undefined : alt} aria-hidden={decorative || undefined} style={{width, height}} />;
+  // eslint-disable-next-line @next/next/no-img-element
   return <img src={playing ? ready : poster.src} srcSet={playing ? undefined : poster.srcSet} width={width} height={height} alt={decorative ? '' : alt} aria-hidden={decorative || undefined} draggable={false} decoding="async" data-playing={playing ? '' : undefined} onError={() => { if (!playing) setBroken(poster.src); }}/>;
 }

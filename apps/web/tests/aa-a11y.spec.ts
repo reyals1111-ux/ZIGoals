@@ -23,7 +23,7 @@ async function clean(page: Page, label: string) {
 }
 test('Habits: sections, cards, routines and the year view', async ({page}) => {
   await seed(page);
-  await page.goto('/app/habits'); await page.getByRole('region', {name: 'Today habits'}).waitFor(); await clean(page, 'Habits');
+  await page.goto('/app/habits'); await page.getByRole('region', {name: 'Today habits'}).waitFor(); await expect(page.locator('#habits-title')).toHaveCount(1); /* WebKit shows the hero twice for a moment at hydration (the phone and the desktop hero, until the layout is known); the audit waits for the one that stays */ await clean(page, 'Habits');
   await page.goto('/app/habits#year'); await page.getByRole('img', {name: /^Year view/}).first().waitFor({timeout: 15_000}).catch(() => undefined); await clean(page, 'Habits year view');
   await page.goto('/app/habits#routines'); await clean(page, 'Habits routines');
 });

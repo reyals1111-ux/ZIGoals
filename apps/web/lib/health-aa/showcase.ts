@@ -1,4 +1,4 @@
-import {healthSchema, saveFood, saveRecipe, type HealthData} from '../health';
+import {createEmptyHealth, healthSchema, saveFood, saveRecipe, type HealthData} from '../health';
 import {saveMealFromRecipe, saveMealPlan} from '../health-daily';
 import {saveMeasurement} from '../body-measurements';
 import {addLocalDays} from '../local-date';
@@ -31,20 +31,24 @@ export function showcaseHealthAa(health: HealthData, day: string): HealthData {
     'health_food-0002': {fiberMg: 4_000, ironMg: 1, calciumMg: 60_000, sodiumMg: 620_000},
     'health_food-0003': {calciumMg: 260_000, ironMg: 1},
   };
-  for (const f of data.foods) if (micro[f.id]) data = saveFood(data, {...f, nutrients: {...f.nutrients, ...micro[f.id]}});
-  // Two pantry foods, a pea soup recipe, and a recipe imported from pasted text (its foods carry no nutrition).
+  const foods = data.foods.map(f => micro[f.id] ? {...f, nutrients: {...f.nutrients, ...micro[f.id]}} : f);
+  // The additions are made by the journal's own writers on a small record (each writer parses the whole record it is given;
+  // on the full Showcase that was twenty parses and doubled the build, which every lookup test pays per phrase), then merged.
   const stamp = at(-9);
-  data = saveFood(data, {id: 'health_food-aa-peas', name: 'Showcase split peas', brand: 'Showcase kitchen', servingGrams: 100, nutrients: {kcal: 350, proteinMg: 25_000, carbsMg: 60_000, fatMg: 1_500, fiberMg: 11_000, ironMg: 7}, createdAt: stamp, updatedAt: stamp});
-  data = saveFood(data, {id: 'health_food-aa-leek', name: 'Showcase leek', brand: 'Showcase kitchen', servingGrams: 100, nutrients: {kcal: 40, proteinMg: 1_100, carbsMg: 9_000, fatMg: 100, fiberMg: 1_700}, createdAt: stamp, updatedAt: stamp});
-  data = saveRecipe(data, {id: 'health_recipe-aa-soup', name: 'Showcase pea soup', portionsMilli: 4_000, yield: {quantityMilli: 1_600_000, unit: 'ml'}, items: [{foodId: 'health_food-aa-peas', quantityMilli: 2_000}, {foodId: 'health_food-aa-leek', quantityMilli: 1_500}, {foodId: 'health_food-0003', quantityMilli: 500}]}, stamp);
-  for (const [id, name] of [['health_food-aa-imp-chickpeas', 'Chickpeas, tinned'], ['health_food-aa-imp-tahini', 'Tahini']] as const) data = saveFood(data, {id, name, brand: 'Imported recipe', servingGrams: 100, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}, createdAt: at(-2), updatedAt: at(-2)});
-  data = saveRecipe(data, {id: 'health_recipe-aa-hummus', name: 'Showcase hummus (imported from pasted text)', portionsMilli: 6_000, items: [{foodId: 'health_food-aa-imp-chickpeas', quantityMilli: 4_000}, {foodId: 'health_food-aa-imp-tahini', quantityMilli: 600}]}, at(-2));
+  let mini: HealthData = healthSchema.parse({...createEmptyHealth(), foods: foods.filter(f => f.id === 'health_food-0003')});
+  mini = saveFood(mini, {id: 'health_food-aa-peas', name: 'Showcase split peas', brand: 'Showcase kitchen', servingGrams: 100, nutrients: {kcal: 350, proteinMg: 25_000, carbsMg: 60_000, fatMg: 1_500, fiberMg: 11_000, ironMg: 7}, createdAt: stamp, updatedAt: stamp});
+  mini = saveFood(mini, {id: 'health_food-aa-leek', name: 'Showcase leek', brand: 'Showcase kitchen', servingGrams: 100, nutrients: {kcal: 40, proteinMg: 1_100, carbsMg: 9_000, fatMg: 100, fiberMg: 1_700}, createdAt: stamp, updatedAt: stamp});
+  mini = saveRecipe(mini, {id: 'health_recipe-aa-soup', name: 'Showcase pea soup', portionsMilli: 4_000, yield: {quantityMilli: 1_600_000, unit: 'ml'}, items: [{foodId: 'health_food-aa-peas', quantityMilli: 2_000}, {foodId: 'health_food-aa-leek', quantityMilli: 1_500}, {foodId: 'health_food-0003', quantityMilli: 500}]}, stamp);
+  for (const [id, name] of [['health_food-aa-imp-chickpeas', 'Chickpeas, tinned'], ['health_food-aa-imp-tahini', 'Tahini']] as const) mini = saveFood(mini, {id, name, brand: 'Imported recipe', servingGrams: 100, nutrients: {kcal: null, proteinMg: null, carbsMg: null, fatMg: null}, createdAt: at(-2), updatedAt: at(-2)});
+  mini = saveRecipe(mini, {id: 'health_recipe-aa-hummus', name: 'Showcase hummus (imported from pasted text)', portionsMilli: 6_000, items: [{foodId: 'health_food-aa-imp-chickpeas', quantityMilli: 4_000}, {foodId: 'health_food-aa-imp-tahini', quantityMilli: 600}]}, at(-2));
   // The soup saved as a meal and planned for five dinners from today; nothing logged yet, so the list has things to buy.
-  data = saveMealFromRecipe(data, 'health_meal-aa-soup', 'health_recipe-aa-soup', 1_000, stamp);
-  for (let n = 0; n < 5; n++) data = saveMealPlan(data, {id: `health_plan-aa-${n}`, savedMealId: 'health_meal-aa-soup', date: date(n), meal: 'Dinner'}, stamp);
+  mini = saveMealFromRecipe(mini, 'health_meal-aa-soup', 'health_recipe-aa-soup', 1_000, stamp);
+  for (let n = 0; n < 5; n++) mini = saveMealPlan(mini, {id: `health_plan-aa-${n}`, savedMealId: 'health_meal-aa-soup', date: date(n), meal: 'Dinner'}, stamp);
   // Waist readings once a week for six weeks, slowly down.
-  for (let n = 0; n < 6; n++) { const d = date(-35 + n * 7); data = saveMeasurement(data, {id: `health_measure-aa-waist-${n}`, kind: 'waist', quantityMilli: 86_000 - n * 400, unit: 'cm', observedAt: `${d}T07:45:00+02:00`, timezone: ZONE, sourceLabel: 'SHOWCASE DATA · fictional tape measure'}, `${d}T07:46:00.000Z`); }
-  return healthSchema.parse(data);
+  for (let n = 0; n < 6; n++) { const d = date(-35 + n * 7); mini = saveMeasurement(mini, {id: `health_measure-aa-waist-${n}`, kind: 'waist', quantityMilli: 86_000 - n * 400, unit: 'cm', observedAt: `${d}T07:45:00+02:00`, timezone: ZONE, sourceLabel: 'SHOWCASE DATA · fictional tape measure'}, `${d}T07:46:00.000Z`); }
+  const have = new Set(foods.map(f => f.id)), daily = data.daily!, miniDaily = mini.daily!;
+  return healthSchema.parse({...data, foods: [...foods, ...mini.foods.filter(f => !have.has(f.id))], recipes: [...data.recipes, ...mini.recipes], measurements: [...(data.measurements ?? []), ...(mini.measurements ?? [])],
+    daily: {...daily, savedMeals: [...daily.savedMeals, ...miniDaily.savedMeals], plans: [...daily.plans, ...miniDaily.plans]}});
 }
 /** The device records of Health best in class for the Showcase, each parsed by its own schema. */
 export function showcaseHealthAaDevice(day: string): {coach: HealthCoach; micro: MicroTargets; macro: MacroModeRecord; measurements: MeasurementsCustom; reminders: RemindersPlan} {
