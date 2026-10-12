@@ -114,6 +114,7 @@ captures on `review/session-aa-local-screens`.
 - **Gate A, `lib/habits-extras/habits-extras.test.ts`:** the life-areas test seeds AA-Cloud's real key and shape (`zigoals:goal-extras:v1`, `areas: [{id, label, color}]`) instead of the never-existing `zigoals:life-areas:v1`; the same four assertions, plus the colour (stricter).
 - **Part 3, `tests/health-aa.spec.ts` (N5):** the grocery check-off uses `click()` followed by `toBeChecked()` instead of `check()`: the box is controlled by the saved record, so the tick is asserted after the write (as strict; the old call asserted a synchronous flip the component never promised).
 - **Part 1 (B19), `lib/ai/zigi-semantic.test.ts`:** the pinned `CELEBRATIONS` list gains `routine_finished`, `level_up` and `achievement_unlocked` (ten entries, was seven); the same test now also asserts each of the three is refused unvalidated and plays as `action-applied` when validated (stricter).
+- `corpus-phase2.ts` `p2-edit-time` and `p2-long-three-edits` (S3 Sonnet corpus): "move meditation to the evening" now comes back as `set-time-of-day`, the kind Part 5 made for exactly that; the cases accept either `edit-habit` or `set-time-of-day` for that move. `p2-edit-time` keeps its field check (`timeOfDay: evening`) and gains an explicit one-card bound (the allowed-kinds form needs bounds); `p2-long-three-edits` keeps its two-to-three-card bound. As strict on what matters (one move, the right section), not weaker.
 
 ## Rejected options
 None yet.

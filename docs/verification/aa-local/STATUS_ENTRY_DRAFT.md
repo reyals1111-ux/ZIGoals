@@ -20,10 +20,10 @@ Owner decisions and the eight plan edits: ADR-022. Handoffs: `docs/handoff/AA_LO
 ### Model targets (Part 6) — filled at Gate C
 | Model | Set | Target | Result |
 |---|---|---|---|
-| Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus: S3 pending / spoken S1 647/681 = 95.0 % before the seed and engine fixes (S4 pending) / new features S2 43/45 = 95.6 % / 15/15, 15/15, 15/15 (S3, $0.90) |
+| Sonnet 5.5 | corpus / spoken / new features / 15 conversations ×3 | ≥97 % / ≥97 % / ≥95 % / 15/15 | corpus S3 736/770 = 95.6 % ($6.22; 738/770 = 95.8 % re-scored after the two `set-time-of-day` case updates; S5 second pass pending; target 97 not met: the misses are Sonnet describing a Fund card it then omits (3), extra reminder cards beside new habits, two-card answers where one was asked, and the pre-existing conversation misses) / spoken S1 647/681 = 95.0 % before the seed and engine fixes (S4 pending) / new features S2 43/45 = 95.6 % / 15/15, 15/15, 15/15 (S3, $0.90) |
 | Haiku 5.5 | corpus / spoken / new features | ≥94 % / ≥90 % / ≥95 % | corpus S3 724/770 = 94.0 % ($0.42) / spoken S3 635/681 = 93.2 % ($0.31; S1 569/624 = 91.2 %) / new features S2 43/45 = 95.6 % |
 | gemma4 12B (RTX 5090) | corpus | ≥89 % | S3 676/770 = 87.8 % (88.4 % without the 45 new-features cases; Z-Local's final 88.8 %) — not met, free run |
-| qwen3.8 27B (RTX 5090) | corpus | ≥88 % | … |
+| qwen3.8 27B (RTX 5090) | corpus | ≥88 % | S3 649/770 = 84.3 % — not met, free run; the misses are wrong refusals ("I can't record this in kg"), answers without a card and over-eager extra cards, not harness defects; a second free pass follows |
 Ledger: $… of $50 (`review/session-aa-local-runs/ledger.md`; S0 spoken top-up $0.30; …).
 
 ### Tier 2 / Tier 3 in plain words
