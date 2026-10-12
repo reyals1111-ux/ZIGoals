@@ -141,6 +141,8 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   expect(response.headers.get('cache-control')??'').not.toContain('no-store');
   expect(response.headers.get('x-content-type-options')).toBe('nosniff');
   expect(response.headers.get('x-frame-options')).toBe('DENY');
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92');
+  // Session AA-Cloud Part 7 (deliberate, as strict): the manifest gained its shortcuts; tests/install-manifest.spec.ts checks
+  // that 72ad872's bytes still come first. The packaged asset is pinned as a whole.
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('234454efd3fc46d61058fc6658a7a561cf4f56b132521207879b64fec32d5058');
  }finally{await mf.dispose();}
 },60000);

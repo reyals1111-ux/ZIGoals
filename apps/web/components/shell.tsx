@@ -35,6 +35,7 @@ import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
 import { SearchButton, SearchHost } from "./search/search-trigger";
+import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
@@ -265,7 +266,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><UndoToastHost />
+        <SearchHost/><ShortcutHost/><UndoToastHost />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>
