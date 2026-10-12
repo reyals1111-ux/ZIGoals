@@ -38,6 +38,15 @@ test('Wealth opens the calculator; results follow every change, exactly, and alw
   await page.getByLabel('Starting amount').fill('12.345');
   await expect(page.getByRole('alert').filter({hasText: 'up to two decimals'})).toBeVisible();
   await expect(results(page).getByRole('definition').first()).toHaveText('$17,103.39');
+  // Gate C: the kept figures say they are from the last numbers that worked.
+  await expect(results(page).getByRole('status').filter({hasText: 'from your last numbers that worked'})).toBeVisible();
+  // A comma reads as the rest of the app reads it: a decimal comma, thousands only when unambiguous, "1,500" asks.
+  await page.getByLabel('Starting amount').fill('1,500');
+  await expect(page.getByRole('alert').filter({hasText: 'could mean 1500 or 1.500'})).toBeVisible();
+  await page.getByLabel('Starting amount').fill('10000,50');
+  await expect(results(page).getByRole('status').filter({hasText: 'from your last numbers that worked'})).toHaveCount(0);
+  await page.getByLabel('Starting amount').fill('1,000,000');
+  await expect(page.locator('.calc-error')).toHaveCount(0);
   // Inflation shows today's money and a column in the table.
   await page.getByLabel('Starting amount').fill('10000');
   await page.getByText('Rising contributions and inflation (optional)').click();
@@ -108,4 +117,17 @@ test('Phones: the result figures, then the chart, then the inputs; nothing wider
   expect(chartTop!.y).toBeLessThan(inputsTop!.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(await page.getByLabel('Starting amount').evaluate(e => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
+});
+
+// Gate C (persona round): opening the calculator writes nothing; a result too large to read reliably says so.
+test('opening the calculator writes nothing; a result past a quadrillion is not shown as exact digits', async ({page}) => {
+  await page.goto('/app');
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
+  await page.goto('/app/wealth/calculator');
+  await expect(results(page)).toBeVisible();
+  await page.waitForTimeout(1200);
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
+  await plan(page, {start: '1000000000000', contribution: '0', rate: '100', years: '60'});
+  await expect(page.getByRole('status').filter({hasText: 'Too large to estimate here.'})).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('−Unavailable');
 });

@@ -1,6 +1,8 @@
 'use client';
 import Link from 'next/link';
 import {useDeferredValue, useEffect, useMemo, useState, type ReactNode} from 'react';
+import Decimal from 'decimal.js';
+import {normalizeDecimalInput} from '../../lib/decimal-input';
 import {COMPOUNDING, DEFAULT_INPUT, FREQUENCY, LIMITS, compound, compoundInputSchema, milestoneWhen, whatIfs, type CompoundInput, type CompoundResult} from '../../lib/compound/engine';
 import {CALCULATOR, MAX_SCENARIOS, removeScenario, rememberInput, restoreScenario, saveScenario, type Scenario} from '../../lib/compound/store';
 import {formatMoney, formatSignedMoney} from '../../lib/visual-format';
@@ -23,7 +25,20 @@ const TONES = {higher: {tone: '#6fe6f6', dash: ''}, lower: {tone: '#ffc27a', das
 type Draft = {start: string; contribution: string; frequency: CompoundInput['frequency']; ratePercent: string; years: string; compounding: CompoundInput['compounding']; timing: CompoundInput['timing']; increasePercent: string; inflationPercent: string; currency: CompoundInput['currency']};
 type Compare = {higher: boolean; lower: boolean; earlier: boolean; custom: string};
 const toDraft = (i: CompoundInput): Draft => ({start: i.start, contribution: i.contribution, frequency: i.frequency, compounding: i.compounding, timing: i.timing, currency: i.currency, ratePercent: String(i.ratePercent), years: String(i.years), increasePercent: String(i.increasePercent), inflationPercent: String(i.inflationPercent)});
-const plain = (s: string) => s.replace(/[\s,]/g, '');
+/**
+ * An amount as typed, read as the rest of the app reads one (Gate C): a decimal comma ("99,50"), thousands written with
+ * commas when they cannot be anything else ("1,000,000" or "2,000.50"), and "1,500" refused with the reason, because it
+ * could mean 1500 or 1.5.
+ */
+const AMOUNT_HINT = 'An amount with up to two decimals, such as 250 or 99.50.';
+function amountText(raw: string): {value?: string; error?: string} {
+  const v = raw.replace(/\s/g, '');
+  if (/^\d{1,3}(,\d{3})+\.\d{1,2}$/.test(v) || /^\d{1,3}(,\d{3}){2,}$/.test(v)) return {value: v.replace(/,/g, '')};
+  try { const n = normalizeDecimalInput(v); return AMOUNT.test(n) ? {value: n} : {error: AMOUNT_HINT}; } catch (e) { return {error: e instanceof Error ? e.message : AMOUNT_HINT}; }
+}
+/** Results past this are shown as too large to read reliably, never as long rows of exact-looking digits. */
+const SHOWN_LIMIT = new Decimal('1e15');
+const tooLarge = (v: string) => new Decimal(v).abs().gt(SHOWN_LIMIT);
 
 function parseDraft(d: Draft): {input?: CompoundInput; errors: Partial<Record<keyof Draft, string>>} {
   const errors: Partial<Record<keyof Draft, string>> = {};
@@ -32,11 +47,12 @@ function parseDraft(d: Draft): {input?: CompoundInput; errors: Partial<Record<ke
     if (v.trim() === '' || !Number.isFinite(n) || n < min || n > max || (int && !Number.isInteger(n))) { errors[key] = int ? `Whole years from ${min} to ${max}.` : `A number from ${min} to ${max}.`; return 0; }
     return Math.round(n * 100) / 100;
   };
-  for (const key of ['start', 'contribution'] as const) if (!AMOUNT.test(plain(d[key]))) errors[key] = 'An amount with up to two decimals, such as 250 or 99.50.';
+  const amounts = {start: amountText(d.start), contribution: amountText(d.contribution)};
+  for (const key of ['start', 'contribution'] as const) if (amounts[key].error) errors[key] = amounts[key].error;
   const ratePercent = num('ratePercent', d.ratePercent, -50, LIMITS.ratePercent), years = num('years', d.years, 1, LIMITS.years, true);
   const increasePercent = num('increasePercent', d.increasePercent, 0, LIMITS.increasePercent), inflationPercent = num('inflationPercent', d.inflationPercent, 0, LIMITS.inflationPercent);
   if (Object.keys(errors).length) return {errors};
-  const parsed = compoundInputSchema.safeParse({...d, start: plain(d.start), contribution: plain(d.contribution), ratePercent, years, increasePercent, inflationPercent});
+  const parsed = compoundInputSchema.safeParse({...d, start: amounts.start.value, contribution: amounts.contribution.value, ratePercent, years, increasePercent, inflationPercent});
   return parsed.success ? {input: parsed.data, errors} : {errors: {start: 'These numbers cannot be calculated.'}};
 }
 function safeCompound(input: CompoundInput): CompoundResult | null {
@@ -46,7 +62,7 @@ const addYears = (day: string, years: number) => `${Number(day.slice(0, 4)) + ye
 
 export function Calculator() {
   const record = useDeviceRecord(CALCULATOR), today = useLocalToday();
-  const [draft, setDraft] = useState<Draft>(() => toDraft(DEFAULT_INPUT)), [restored, setRestored] = useState(false);
+  const [draft, setDraft] = useState<Draft>(() => toDraft(DEFAULT_INPUT)), [restored, setRestored] = useState(false), [touched, setTouched] = useState(false);
   const [compare, setCompare] = useState<Compare>({higher: true, lower: true, earlier: false, custom: ''});
   const [name, setName] = useState(''), [allRows, setAllRows] = useState(false);
   // The page opens on the inputs it showed last on this device.
@@ -65,23 +81,23 @@ export function Calculator() {
     for (const w of whatIfs(input)) {
       if (!compare[w.id as 'higher' | 'lower' | 'earlier']) continue;
       const r = safeCompound(w.input);
-      if (r) out.push({id: w.id, label: w.label, ...TONES[w.id as 'higher' | 'lower' | 'earlier'], offset: w.id === 'earlier' ? -5 : 0, result: r});
+      if (r && !tooLarge(r.final)) out.push({id: w.id, label: w.label, ...TONES[w.id as 'higher' | 'lower' | 'earlier'], offset: w.id === 'earlier' ? -5 : 0, result: r});
     }
     const custom = Number(compare.custom.replace(',', '.'));
     if (compare.custom.trim() && Number.isFinite(custom) && custom >= -50 && custom <= LIMITS.ratePercent && custom !== input.ratePercent) {
       const r = safeCompound({...input, ratePercent: Math.round(custom * 100) / 100});
-      if (r) out.push({id: 'custom', label: `${Math.round(custom * 100) / 100} % return`, ...TONES.custom, offset: 0, result: r});
+      if (r && !tooLarge(r.final)) out.push({id: 'custom', label: `${Math.round(custom * 100) / 100} % return`, ...TONES.custom, offset: 0, result: r});
     }
     return out;
   }, [input, compare]);
-  // Remembered on this device a moment after the last change (never while a field is wrong).
+  // Remembered on this device a moment after the person's last change (never while a field is wrong, never just for opening the page).
   useEffect(() => {
-    if (!restored || !parsed.input || !record.loaded || record.unreadable) return;
+    if (!restored || !touched || !parsed.input || !record.loaded || record.unreadable) return;
     const t = window.setTimeout(() => { try { record.update(s => rememberInput(s, parsed.input!)); } catch { /* the page still works */ } }, 600);
     return () => window.clearTimeout(t);
-  }, [parsed.input, restored, record]);
+  }, [parsed.input, restored, touched, record]);
 
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft(d => ({...d, [key]: value}));
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => { setTouched(true); setDraft(d => ({...d, [key]: value})); };
   const money = (v: string) => formatMoney(v, input.currency);
   const scenarios = record.loaded && !record.unreadable ? record.data.scenarios : [];
   const save = () => {
@@ -105,9 +121,10 @@ export function Calculator() {
   const busy = parsed.input !== undefined && input !== parsed.input;
 
   return <div className="calc">
-    {!result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : <>
-      <section className="calc-results panel" aria-labelledby="calc-results-title" aria-busy={busy}>
+    {!result ? <section className="panel calc-results" role="status"><h2>These numbers cannot be calculated.</h2><p>Check the return: a loss of 50 % or more in a single period is outside what this calculator models.</p></section> : tooLarge(result.final) || tooLarge(result.growth) ? <section className="panel calc-results" role="status"><h2>Too large to estimate here.</h2><p>With these numbers the result passes {formatMoney(SHOWN_LIMIT.toFixed(0), input.currency)}, beyond what this calculator shows reliably. Lower the return, the years or the amounts.</p></section> : <>
+      <section className={`calc-results panel${parsed.input ? '' : ' is-stale'}`} aria-labelledby="calc-results-title" aria-busy={busy}>
         <SectionHeading id="calc-results-title" eyebrow={`After ${input.years} ${input.years === 1 ? 'year' : 'years'} · an estimate`} title="What it could grow to" />
+        {!parsed.input && <p className="calc-stale" role="status">These figures are from your last numbers that worked. Correct the marked field to update them.</p>}
         <dl className="calc-figures" aria-live="polite">
           <div className="calc-final"><dt>Estimated final value</dt><dd>{money(result.final)}</dd></div>
           <div><dt>You put in</dt><dd>{money(result.contributed)}</dd></div>
@@ -122,7 +139,7 @@ export function Calculator() {
           <label className="calc-chip calc-chip-input"><span><i style={{background: TONES.custom.tone}} />Another return</span><input inputMode="decimal" aria-label="Another yearly return to compare, in percent" placeholder="%" value={compare.custom} onChange={e => setCompare(c => ({...c, custom: e.target.value}))} /></label>
         </fieldset>
         {lines.length > 0 && <ul className="calc-whatifs">
-          {lines.map(l => { const diff = (Number(l.result.final) - Number(result.final)).toFixed(2); return <li key={l.id}><i style={{background: l.tone}} /><span>{l.label}</span><strong>{money(l.result.final)}</strong><small>{Number(diff) === 0 ? 'the same' : `${formatSignedMoney(diff, input.currency)} compared with your plan`}</small></li>; })}
+          {lines.map(l => { const diff = new Decimal(l.result.final).minus(result.final).toFixed(2); return <li key={l.id}><i style={{background: l.tone}} /><span>{l.label}</span><strong>{money(l.result.final)}</strong><small>{Number(diff) === 0 ? 'the same' : `${formatSignedMoney(diff, input.currency)} compared with your plan`}</small></li>; })}
         </ul>}
         <div className="calc-actions">
           <Link className="primary" href={goalHref}>Turn this into a goal</Link>
@@ -185,7 +202,7 @@ export function Calculator() {
       {record.unreadable && <p className="notice" role="status">Saved scenarios on this device could not be read, so nothing is changed there.</p>}
       {scenarios.length ? <ul className="calc-scenarios">{scenarios.map(s => { const r = safeCompound(s.input); return <li key={s.id}>
         <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {s.input.years} {s.input.years === 1 ? 'year' : 'years'}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
-        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
+        <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
       </li>; })}</ul> : <p className="calc-empty">No saved scenarios yet. Save one to compare plans later.</p>}
     </section>
   </div>;

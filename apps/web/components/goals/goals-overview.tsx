@@ -6,6 +6,7 @@ import type {GoalExtras} from '../../lib/goal-extras/store';
 import {goalTree, rollUp, rollUpWords, type TreeNode} from '../../lib/goal-hierarchy';
 import {formatGoalAmount} from '../../lib/goal-summary';
 import {ProgressRing} from '../platform/financial-ui';
+import {progressPresentation} from '../../lib/visual-format';
 import './goals.css';
 
 export type {GoalsView} from './goals-view-switch';
@@ -30,7 +31,7 @@ export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; ex
     return <li key={node.key} data-depth={depth}>
       <Link href={g.href} className="goal-tree-row">
         <ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={48} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`tree-${g.key}`} bound={g.progressBound} />
-        <span><strong>{g.name}</strong><small>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${Math.floor(Number(g.progressPct))}% of the way`}</small></span>
+        <span className="goal-tree-text"><strong>{g.name}</strong><small>{r ? rollUpWords(r, (v, c) => formatGoalAmount(v, c)) : g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${progressPresentation(g.progressPct)?.label ?? Math.floor(Number(g.progressPct))}% of the way`}</small></span>
       </Link>
       {node.children.length > 0 && <ul>{node.children.map(c => row(c, depth + 1))}</ul>}
     </li>;

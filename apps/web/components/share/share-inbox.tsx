@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import {askZigi, launcherShown} from '../ai/ask';
+import {askZigi} from '../ai/ask';
+import {useLauncherShown} from '../zigi-door';
 import {openSearch} from '../search/search-trigger';
 import {SectionHeading} from '../ui/section-heading';
 import './share.css';
@@ -15,7 +16,7 @@ const clip = (s: string | undefined, n: number) => (s ?? '').replace(/\s+/g, ' '
 export function ShareInbox({title, text, url}: {title?: string; text?: string; url?: string}) {
   const t = clip(title, 200), body = clip(text, 2000), link = /^https?:\/\/\S+$/i.test(url?.trim() ?? '') ? url!.trim().slice(0, 2000) : '';
   const words = [t, body, link].filter(Boolean).join(' · '), name = (t || body || link).slice(0, 100);
-  const zigi = typeof document !== 'undefined' && launcherShown();
+  const zigi = useLauncherShown();
   if (!words) return <section className="panel share-inbox aa-empty"><h2>Nothing was shared.</h2><p>Share a title, some text or a link from another app to bring it here.</p><Link className="primary" href="/app">Go to Today</Link></section>;
   return <section className="panel share-inbox" aria-labelledby="share-title">
     <SectionHeading id="share-title" eyebrow="Shared with ZIGoals" title="What would you like to do with it?" lede="It stays on this page: nothing is saved or opened until you choose." />

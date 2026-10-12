@@ -151,3 +151,7 @@ the page writes through `useDeviceRecord`):
   personal data (`NON_PERSONAL_KEYS` if you list it).
 - **Cross-pillar insights** gain "water and sleep" (`lib/insights/cross-pillar.ts`), same rule and words.
 
+## Gate C (persona round) notes for AA-Local
+- **ZIGi's launcher image offline:** with the network off on /app/wealth, the launcher showed a broken-image icon (persona 5, phone, reduced motion). Yours to look at; nothing changed here.
+- **`components/zigi-door.ts`** (this lane): `useLauncherShown()` follows `data-zigi-launcher`, and `askZigiWhenShown(text)` waits until the launcher is back (it steps aside while another dialog is open) before calling `askZigi`. If the ask API changes, this is the one place on this side to update.
+

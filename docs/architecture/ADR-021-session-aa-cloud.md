@@ -130,6 +130,27 @@ Filled per part; Gate C adds the measured counts.
   return"), because a goal's page now also has "Part of a bigger goal"; `lib/goal-forecast.test.ts` (new) pins the steady
   pace's own sentence.
 
+## Gate C: persona round (independent agent, 6 personas, about 22 sessions, local production build)
+No page errors on any app page. Findings and what became of them:
+| # | Finding | Severity | Outcome |
+|---|---|---|---|
+| 1 | Search's "Ask ZIGi" row always read "ZIGi is off": ZIGi steps aside while any other dialog (the palette) is open | major | Fixed: the palette reads the launcher as it opens and hands the words over once ZIGi is back (`components/zigi-door.ts`, ZIGi's public ask only); search-aa test |
+| 2 | Share page's "Ask ZIGi about it" always disabled (read once, before the launcher mounts) | major | Fixed: follows the launcher (`useLauncherShown`); pwa-aa test |
+| 3 | "Finished" read 0 in the Vision board and Tree views (they counted the filtered goals) | major | Fixed: the figures count every goal in every view; goals-best-aa test |
+| 4 | Tree rings' numbers wrapped (the row's text rule reached the ring) | major | Fixed: the text has its own class; small rings keep one line; test |
+| 5 | Focus lost after "Customize Today" (Today's groups re-render) | major | Fixed: focus stays on the same control; test |
+| 6 | A goal's page missed "keep an average" sub-goals the tree shows | minor | Fixed: average goals join the list; test |
+| 7 | Calculator read "1,500" as 1500 without a word | minor | Fixed: the app's own comma rule (`normalizeDecimalInput`): a decimal comma, unambiguous thousands, "1,500" asks; test |
+| 8 | Results kept the last figures while a field was wrong, unmarked | minor | Fixed: dimmed, with "from your last numbers that worked"; test |
+| 9 | Huge inputs: clipped figures, cents beyond any precision, "−Unavailable" | minor | Fixed: past 10^15 the page says "Too large to estimate here"; comparisons computed exactly; test |
+| 10 | Template wizard review said "None requested" with a template habit ticked | minor | Fixed: lists the habits made on save |
+| 11 | Today's life balance legend hid empty areas; the centre label overflowed | minor | Fixed: every area named; the centre scales with the wheel; test |
+| 12 | The Guide said a pattern "is below" while it waits behind For you's fold | minor | Fixed: "is waiting in For you" |
+| 13 | Opening the calculator wrote its defaults to storage | minor | Fixed: remembered only after the person changes something; test |
+| 14 | "Ahead" beside a forecast later than the target date, unexplained | minor | Fixed: the forecast says it follows recorded progress while the status compares contributions with the plan |
+| 15 | Tree text 41 % beside a 42 % ring | nit | Fixed: the ring's rounding |
+| 16 | ZIGi's launcher image breaks offline | nit | Not this lane (ZIGi, AA-Local): named in the handoff |
+
 ## Rejected options
 - Adding goal extras to `privateGoalSchema` or a fifth goal type to its enum (A3): older readers refuse the store.
 

@@ -73,3 +73,19 @@ test('Showcase insights, scenarios and last period\'s focus: the pairings have t
   await expect(saved).toContainText('Retirement pot, 30 years (Showcase)');
   await expect(page.getByLabel('Starting amount')).toHaveValue('15000');
 });
+
+// Gate C (persona round): starting and ending arranging keeps keyboard focus on the same control; Today's life balance
+// names every area, those with nothing yet included.
+test('"Customize Today" keeps focus; Today\'s life balance names every area', async ({page, isMobile}) => {
+  await showcase(page);
+  const customize = page.getByRole('button', {name: 'Customize Today', exact: true});
+  await customize.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', {name: 'Finish customizing', exact: true})).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', {name: 'Customize Today', exact: true})).toBeFocused();
+  if (isMobile) await cards(page).getByRole('button', {name: /^Life balance/}).click();
+  const balance = cards(page).getByRole('region', {name: 'Life balance'});
+  await expect(balance).toContainText('Relationships');
+  await expect(balance).toContainText('Career');
+});

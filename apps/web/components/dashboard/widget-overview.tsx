@@ -16,7 +16,7 @@ export function WidgetOverview({widgets,sources,loaded,error,ready,domainError,o
 }){
  const visible=widgets.filter(widget=>!widget.hidden);
  return <section className="dashboard-summary panel" aria-label="Your selected widgets">
-  <div className="section-heading"><div><p className="eyebrow">YOUR DAILY SPACE, AT A GLANCE</p><h2>Your snapshot, your way.</h2><p>Each card follows the record you chose; currencies and units stay separate.</p></div><button type="button" className="secondary" onClick={onCustomize} disabled={!loaded||!!error}>{customizing?'Finish customizing':'Customize Today'}</button></div>
+  <div className="section-heading"><div><p className="eyebrow">YOUR DAILY SPACE, AT A GLANCE</p><h2>Your snapshot, your way.</h2><p>Each card follows the record you chose; currencies and units stay separate.</p></div><button type="button" className="secondary" data-customize-today="" onClick={onCustomize} disabled={!loaded||!!error}>{customizing?'Finish customizing':'Customize Today'}</button></div>
   {!loaded?<p role="status">Loading your layout…</p>:error?<p role="alert">Your saved layout needs recovery in Settings.</p>:visible.length?<div className="dashboard-summary-grid">{visible.map(widget=>{
    const domain=WIDGET_CATALOG[widget.kind].domain;
    const metric=widgetMetric(widget,sources);

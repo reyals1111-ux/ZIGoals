@@ -44,7 +44,7 @@ export function LifeBalanceCard({compact = false, ...layout}: LayoutAttrs & {com
     {!ready || !result ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : !result.areas.some(a => a.items || a.activity) ? <div className="aa-empty"><h3>Your wheel fills as you go.</h3><p>Each goal, habit and Health record adds to its life area: Health, Habits &amp; Mind, Wealth, Relationships, Career, Learning and Fun.</p><Link className="primary" href="/app/goals/templates">Start from a template</Link></div> : <>
       <div className="life-balance-body">
         <BalanceWheel areas={result.areas} size={compact ? 168 : 232} />
-        <BalanceLegend areas={compact ? result.areas.filter(a => a.items || a.activity) : result.areas} />
+        <BalanceLegend areas={result.areas} />
       </div>
       {result.unassigned > 0 && <p className="fine">{result.unassigned} {result.unassigned === 1 ? 'goal has' : 'goals have'} no life area yet. Choose one on the goal’s page.</p>}
       <p className="fine">Progress is the average of what is known; an area with nothing known says so and is never counted as zero.</p>

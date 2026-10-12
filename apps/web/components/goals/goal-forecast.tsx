@@ -9,12 +9,13 @@ import {formatDay} from './format';
  * small chart: the recorded progress, a dashed line from today to the estimated day, and a soft band from the earliest
  * to the latest day. The numbers behind the chart are in a table under "Show the numbers". Static (no motion).
  */
-export function GoalForecastCard({forecast, points, current, target, today, unit}: {forecast: Forecast; points: readonly ForecastPoint[]; current: number; target: number; today: string; unit: (value: number) => string}) {
+export function GoalForecastCard({forecast, points, current, target, today, unit, note}: {forecast: Forecast; points: readonly ForecastPoint[]; current: number; target: number; today: string; unit: (value: number) => string; note?: string}) {
   const words = forecastWords(forecast, formatDay);
   return <section className="panel goal-forecast" aria-labelledby="goal-forecast-title" data-state={forecast.state}>
     <p className="eyebrow">Pace forecast · an estimate</p>
     <h2 id="goal-forecast-title">{words.headline}</h2>
     <p className="goal-forecast-detail">{words.detail}</p>
+    {note && <p className="fine">{note}</p>}
     {points.length >= 2 && target > 0 && <ForecastChart forecast={forecast} points={points} current={current} target={target} today={today} unit={unit} />}
     {forecast.state === 'estimate' && forecast.perDay !== undefined && <p className="fine">Your recorded pace: about {unit(forecast.perDay * 30)} every 30 days, from {forecast.points} records over {forecast.spanDays} days. Growth is not assumed.</p>}
   </section>;

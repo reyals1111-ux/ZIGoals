@@ -1,5 +1,6 @@
 'use client';
 import {Suspense, lazy, useEffect, useState} from 'react';
+import {launcherShown} from '../ai/ask';
 import {LoadBoundary} from '../load-boundary';
 
 /**
@@ -15,12 +16,13 @@ const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isConte
 
 /** Listens for "/" once per page; the triggers only send the open event. Mounted once by the shell. */
 export function SearchHost() {
-  const [open, setOpen] = useState(false), [initial, setInitial] = useState('');
+  const [open, setOpen] = useState(false), [initial, setInitial] = useState(''), [zigi, setZigi] = useState(false);
   useEffect(() => {
-    const show = (e: Event) => { setInitial(e instanceof CustomEvent && typeof e.detail?.query === 'string' ? e.detail.query : ''); setOpen(true); };
+    const show = (e: Event) => { setZigi(launcherShown()); setInitial(e instanceof CustomEvent && typeof e.detail?.query === 'string' ? e.detail.query : ''); setOpen(true); };
     const key = (e: KeyboardEvent) => {
       if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented || typing(e.target) || document.querySelector('dialog[open]')) return;
       e.preventDefault();
+      setZigi(launcherShown());
       setInitial('');
       setOpen(true);
     };
@@ -29,7 +31,7 @@ export function SearchHost() {
     return () => { window.removeEventListener(OPEN_EVENT, show); window.removeEventListener('keydown', key); };
   }, []);
   // Offline before its first use, the palette cannot load: the page stays as it is (LoadBoundary, quiet).
-  return open ? <LoadBoundary quiet><Suspense fallback={null}><SearchPalette initial={initial} onClose={() => setOpen(false)} /></Suspense></LoadBoundary> : null;
+  return open ? <LoadBoundary quiet><Suspense fallback={null}><SearchPalette initial={initial} zigi={zigi} onClose={() => setOpen(false)} /></Suspense></LoadBoundary> : null;
 }
 
 export function SearchButton({className = 'search-trigger', label = false}: {className?: string; label?: boolean}) {

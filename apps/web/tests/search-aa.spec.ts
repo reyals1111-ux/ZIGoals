@@ -98,3 +98,19 @@ test('on a phone, search is a full-screen sheet from the top bar', async ({page,
   expect(box.height).toBeGreaterThanOrEqual(viewport.height - 1);
   expect(parseFloat(await field(page).evaluate(e => getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
 });
+
+// Gate C (persona round): ZIGi steps aside while the palette is open, so the row reads the launcher as the palette opens
+// and hands the words over once ZIGi is back; nothing is sent.
+test('"Ask ZIGi" in search works while ZIGi shows: the words wait in ZIGi\'s message box, unsent', async ({page}) => {
+  await page.goto('/app');
+  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  await page.locator('body').press('/');
+  await field(page).fill('how is my sleep');
+  const ask = palette(page).getByRole('option', {name: /Ask ZIGi: “how is my sleep”/});
+  await expect(ask).not.toHaveAttribute('aria-disabled', 'true');
+  await expect(ask).toContainText('nothing is sent until you send it');
+  await ask.click();
+  await expect(palette(page)).toHaveCount(0);
+  await expect(page.locator('dialog.ai-chat[open] textarea')).toHaveValue('how is my sleep');
+  await expect(page.locator('dialog.ai-chat[open] .ai-turn-user')).toHaveCount(0);
+});

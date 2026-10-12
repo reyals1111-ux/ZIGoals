@@ -8,7 +8,10 @@ import {formatGoalAmount, type GoalSummary} from '../../lib/goal-summary';
 import {useShowcase} from '../showcase-controls';
 import {showToast} from '../ui/undo-toast';
 import {SectionHeading} from '../ui/section-heading';
-import {useGoalExtras, visionScope} from './use-goal-extras';
+import {useAverageGoals, useGoalExtras, visionScope} from './use-goal-extras';
+import {averageSummary} from './average-summary';
+import {useHealth} from '../health/use-health';
+import {useLocalToday} from '../use-local-today';
 import {GRADIENT_CSS, VisionArt} from './vision-art';
 import './goals.css';
 
@@ -20,8 +23,10 @@ const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2
  * the way and the if-then plan (G4), where the goal sits among others (G5), and for a finished goal its story (G7). Kept
  * on this device (Help: "kept on this device for now"). Every change offers Undo.
  */
-export function GoalPlan({goalKey, name, summary, goals, finished}: {goalKey: string; name: string; summary?: GoalSummary; goals: readonly GoalSummary[]; finished: boolean}) {
-  const extras = useGoalExtras();
+export function GoalPlan({goalKey, name, summary, goals: tracked, finished}: {goalKey: string; name: string; summary?: GoalSummary; goals: readonly GoalSummary[]; finished: boolean}) {
+  const extras = useGoalExtras(), averages = useAverageGoals(), health = useHealth(), today = useLocalToday();
+  // Average goals sit in the same tree (G5, G8): a sub-goal that keeps an average is listed here too.
+  const goals = [...tracked, ...(averages.unreadable ? [] : averages.data.goals.map(g => averageSummary(g, health.loaded && !health.error ? health.data : undefined, today)))];
   const extra = extras.data.goals[goalKey];
   return <section className="goal-plan" aria-labelledby="goal-plan-title">
     <SectionHeading id="goal-plan-title" eyebrow="Your plan · kept on this device for now" title="Why, and how you get there" />

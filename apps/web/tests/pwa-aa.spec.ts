@@ -31,6 +31,9 @@ test('the share target: what another app shared waits on its own page, nothing s
   await expect(card).toContainText('Weekend in Lisbon');
   await expect(card.getByRole('link', {name: 'https://example.com/lisbon'})).toHaveAttribute('rel', /noopener/);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
+  // Gate C: the share arrives as a fresh page, before ZIGi's launcher; the button follows it once it shows.
+  await expect(page.getByRole('button', {name: /Open ZIGi/})).toBeVisible();
+  await expect(card.getByRole('button', {name: 'Ask ZIGi about it'})).toBeEnabled();
   await card.getByRole('link', {name: 'Make it a goal'}).click();
   await expect(page).toHaveURL(/\/app\/goals\/new\?from=share/);
   await expect(page.getByLabel('Goal name', {exact: true})).toHaveValue('Weekend in Lisbon');

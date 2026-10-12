@@ -16,6 +16,9 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await page.goto('/app/goals');
   const figures = page.getByRole('definition').filter({hasText: 'goals in motion'});
   await expect(figures).toContainText('7');
+  // Gate C (persona round): the key figures count every goal in every view, as the cards do.
+  const finished = page.getByRole('definition').filter({hasText: 'on the Hall of achievements'}), finishedCount = (await finished.textContent())!;
+  expect(finishedCount).toMatch(/^[1-9]/);
   // G8: the two active average goals sit among the cards.
   await expect(page.getByRole('article', {name: 'Create 2 hours a day'})).toBeVisible();
   await expect(page.getByRole('article', {name: 'Sleep 7 hours a night'})).toContainText(/h a night on average · \d+ of 14 days recorded/);
@@ -25,12 +28,17 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   const tiles = page.getByRole('list', {name: 'Vision board'}).getByRole('listitem');
   await expect(tiles).toHaveCount(7);
   await expect(tiles.first().getByRole('img').first()).toHaveAttribute('aria-label', /picture for|photo for/);
+  await expect(finished).toHaveText(finishedCount);
   // G5: the tree, three levels deep.
   await page.getByRole('group', {name: 'Show goals as'}).getByRole('button', {name: 'Tree'}).click();
   const studio = page.locator('.goals-tree li[data-depth="0"]').filter({hasText: 'Launch my creative studio'});
   await expect(studio.locator('li[data-depth="1"]').filter({hasText: 'Create 2 hours a day'})).toBeVisible();
   await expect(studio.locator('li[data-depth="2"]').filter({hasText: 'Sleep 7 hours a night'})).toBeVisible();
   await expect(studio.locator('> a')).toContainText('0 of 1 sub-goal done');
+  await expect(finished).toHaveText(finishedCount);
+  // A ring's number stays on one line (the row's text rule no longer reaches the ring).
+  const ringLines = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); return new Set([...r.getClientRects()].map(x => Math.round(x.bottom))).size; });
+  expect(ringLines).toBe(1);
   // G2: the balance wheel with every area named in words.
   const balance = page.getByRole('region', {name: 'Life balance'});
   await expect(balance.getByRole('img')).toHaveAccessibleName(/Health: \d+%; Habits & Mind: \d+%; Wealth: \d+%; Relationships: no data yet/);
@@ -39,6 +47,9 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   const hall = page.getByRole('region', {name: 'Hall of achievements'});
   await expect(hall.locator('.hall-title')).toHaveText(['Drink 2 litres a day', '8,000 steps a day, all summer', 'My first 0.1 BTC']);
   await expect(hall).toContainText('Finish day not recorded');
+  // A goal's page lists its sub-goals of every kind, an average goal included, as the tree does.
+  await page.goto('/app/goals/tracked/9205');
+  await expect(page.getByRole('list', {name: 'Sub-goals'})).toContainText('Create 2 hours a day');
 });
 
 test('a goal’s pace forecast is labelled an estimate; its plan saves with Undo', async ({page}) => {

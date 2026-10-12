@@ -25,8 +25,8 @@ export function BalanceWheel({areas, size = 220}: {areas: readonly AreaBalance[]
       {a.progress !== null && a.progress > 0 && <path d={wedge(i, r0 + (r1 - r0) * Math.max(0.06, a.progress))} className="balance-fill" style={{fill: a.color}} />}
     </g>)}
     <circle cx={c} cy={c} r={r0 - 4} fill={`url(#${id}-core)`} className="balance-core" />
-    <text x={c} y={c - 2} textAnchor="middle" className="balance-core-value">{average === null ? '—' : `${Math.round(average * 100)}%`}</text>
-    <text x={c} y={c + 16} textAnchor="middle" className="balance-core-label">balance</text>
+    <text x={c} y={c - size * 0.01} textAnchor="middle" className="balance-core-value" style={{fontSize: Math.min(26, Math.round(r0 * 0.62))}}>{average === null ? '—' : `${Math.round(average * 100)}%`}</text>
+    <text x={c} y={c + Math.min(16, r0 * 0.42)} textAnchor="middle" className="balance-core-label" style={{fontSize: Math.min(14, Math.max(11, Math.round(r0 * 0.33)))}}>balance</text>
   </svg>;
 }
 

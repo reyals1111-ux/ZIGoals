@@ -5,7 +5,7 @@ import {KIND_LABEL, search, type SearchHit, type SearchItem} from '../../lib/sea
 import {HELP_ITEMS, PAGES, SETTINGS} from '../../lib/search/static';
 import {SEARCH_RECENT, clearRecent, rememberQuery} from '../../lib/search/recent';
 import {GOAL_LIBRARY} from '../../lib/templates/goal-library';
-import {askZigi, launcherShown} from '../ai/ask';
+import {askZigiWhenShown} from '../zigi-door';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useUnifiedGoals} from '../use-unified-goals';
 import {useHabits} from '../habits/use-habits';
@@ -26,7 +26,8 @@ import './search.css';
  */
 type Row = {id: string; label: string; detail?: string; kind: 'hit' | 'recent' | 'ask'; hit?: SearchHit; query?: string};
 
-export default function SearchPalette({initial = '', onClose}: {initial?: string; onClose: () => void}) {
+/** `zigi`: whether ZIGi's launcher showed when the palette opened (it steps aside while the palette is open). */
+export default function SearchPalette({initial = '', zigi = false, onClose}: {initial?: string; zigi?: boolean; onClose: () => void}) {
   const dialog = useRef<HTMLDialogElement>(null), input = useRef<HTMLInputElement>(null), returnTo = useRef<Element | null>(null);
   const router = useRouter(), base = useId(), [query, setQuery] = useState(initial), [active, setActive] = useState(0);
   const recent = useDeviceRecord(SEARCH_RECENT);
@@ -58,7 +59,6 @@ export default function SearchPalette({initial = '', onClose}: {initial?: string
   }, [goals.loaded, goals.goals, averages.loaded, averages.unreadable, averages.data, habits.loaded, habits.error, habits.data, health.loaded, health.error, health.data, platform.loaded, platform.error, platform.data, nav.items]);
 
   const trimmed = query.trim(), hits = useMemo(() => trimmed ? search(items, trimmed) : [], [items, trimmed]);
-  const zigi = typeof document !== 'undefined' && launcherShown();
   const rows: Row[] = trimmed
     ? [...hits.map((hit): Row => ({id: hit.id, label: hit.title, detail: hit.subtitle, kind: 'hit', hit})), {id: 'ask', label: `Ask ZIGi: “${trimmed}”`, detail: zigi ? 'Opens ZIGi with these words; nothing is sent until you send it.' : 'ZIGi is off or hidden. Turn it on in Settings → ZIGi.', kind: 'ask', query: trimmed}]
     : (recent.loaded && !recent.unreadable ? recent.data.queries : []).map((q, i): Row => ({id: `recent-${i}`, label: q, detail: 'Recent search', kind: 'recent', query: q}));
@@ -68,7 +68,7 @@ export default function SearchPalette({initial = '', onClose}: {initial?: string
   const remember = (q: string) => { try { recent.update(s => rememberQuery(s, q)); } catch { /* search still works */ } };
   function choose(row: Row) {
     if (row.kind === 'recent') { setQuery(row.query!); setActive(0); input.current?.focus(); return; }
-    if (row.kind === 'ask') { if (!zigi) return; remember(row.query!); close(); askZigi(row.query!); return; }
+    if (row.kind === 'ask') { if (!zigi) return; remember(row.query!); close(); void askZigiWhenShown(row.query!); return; }
     remember(trimmed);
     close();
     router.push(row.hit!.href);

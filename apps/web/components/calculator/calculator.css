@@ -145,3 +145,8 @@
   :root .calc-sticky strong { font-size: 18px; color: var(--text-strong); font-variant-numeric: tabular-nums; }
   :root .calc-card-curve { width: 160px; height: 80px; }
 }
+
+/* Gate C: while a field is wrong, the last figures that worked stay, visibly out of date. */
+:root .calc-results.is-stale .calc-figures, :root .calc-results.is-stale .calc-chart, :root .calc-results.is-stale .calc-whatifs { opacity: .45; }
+:root .calc-stale { margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; border: 1px solid #ffc27a66; background: #2a1d0f99; font-size: 15px; }
+:root .calc-figures dd { overflow-wrap: anywhere; }
