@@ -33,7 +33,8 @@ test('arranging Today: the chooser turns a card off and on, kept on this device,
   expect(settingsBefore).not.toBeNull();
   // Before: the Life review is offered in Updates and summaries.
   const updates = page.getByRole('region', {name: 'Updates and summaries', exact: true});
-  const openUpdates = async () => { const fold = updates.getByRole('button', {name: /^Show more/}); if (await fold.isVisible()) await fold.click(); };
+  // The region's cards render after the page: wait for its first card before deciding whether it has a fold to open.
+  const openUpdates = async () => { await expect(updates.locator('.for-you-slot, .for-you-fold').first()).toBeAttached(); const fold = updates.getByRole('button', {name: /^Show more/}); if (await fold.isVisible()) await fold.click(); };
   await openUpdates();
   await expect(updates.locator('#for-you-life-review')).toHaveCount(1);
   await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
