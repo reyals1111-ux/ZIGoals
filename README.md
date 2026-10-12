@@ -19,3 +19,7 @@
   the tree equals that commit and typechecks; the end tree is identical to `32cb9c5`. Evidence: local.
 - `freeze-compare.json` / `freeze-summary.txt`: `scripts/desktop-freeze-check.mjs` against `32cb9c5`'s own production
   build: 155 of 155 captures differ (by design; each cause in ADR-021 "Freeze check"), no page error. Evidence: local.
+- `full-suite-run2.log`: the full browser suite, run 2 of 2 (Gate C), both projects, 2 workers, local production build of
+  `5ffe63d`: 2,034 passed, 557 skipped, 5 failed: the 4 intro-film specs this Chromium cannot play (they pass in CI) and
+  `search-aa.spec.ts:16` on desktop (the test typed before the wizard hydrated; fixed in `be20ec6`, then 27 of 27 in three
+  repeats of the file). Evidence: local.
