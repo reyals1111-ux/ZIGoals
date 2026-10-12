@@ -124,7 +124,8 @@ describe('Session AA-Cloud: goal extras, average goals and vision photos in Expo
     expect(DEVICE_KEYS.goalExtras).toBe('zigoals:goal-extras:v1');
     expect(DEVICE_KEYS.averageGoals).toBe('zigoals:average-goals:v1');
     expect([DEVICE_KEYS.calculator, DEVICE_KEYS.searchRecent, DEVICE_KEYS.lifeReview]).toEqual(['zigoals:calculator:v1', 'zigoals:search-recent:v1', 'zigoals:life-review:v1']);
-    for (const key of ['zigoals:calculator:v1', 'zigoals:search-recent:v1', 'zigoals:life-review:v1']) expect(EVERYTHING_KEYS).toContain(key);
+    expect(DEVICE_KEYS.todayCards).toBe('zigoals:today-cards:v1');
+    for (const key of ['zigoals:calculator:v1', 'zigoals:search-recent:v1', 'zigoals:life-review:v1', 'zigoals:today-cards:v1']) expect(EVERYTHING_KEYS).toContain(key);
     expect(EVERYTHING_KEYS).toContain('zigoals:goal-extras:v1');
     const extras = {version: 1, goals: {'private:1': {area: 'health', vision: {kind: 'photo', imageId: 'img-00000000-0000-4000-8000-000000000001'}}}, areas: []};
     const collected = collectEverything({'zigoals:goal-extras:v1': JSON.stringify(extras)}, {now: new Date('2026-10-11T10:00:00Z'), version: 't', commit: 'c', localSimulation: {section: 'null'} as never});
