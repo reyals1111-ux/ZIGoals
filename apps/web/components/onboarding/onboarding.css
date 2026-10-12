@@ -79,3 +79,4 @@
   .onboarding-choice > span, .onboarding-currency span, .onboarding-points li { border: 1px solid CanvasText; }
   .onboarding-choice input:checked + span, .onboarding-currency input:checked + span { outline: 3px solid Highlight; }
 }
+.onboarding-undo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 14px; margin: 0 0 16px; border-radius: 16px; border: 1px solid #ffe3a144; background: #ffe3a112; } .onboarding-undo p { margin: 0; font-size: 15px; } .onboarding-undo .secondary { min-height: 44px; }

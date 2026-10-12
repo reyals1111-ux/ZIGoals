@@ -34,6 +34,7 @@ import {Reflections, TodayNote} from './today-note';
 import {HabitAreaField} from './habit-area-field';
 import {useHabitExtrasContext} from './habit-extras-context';
 import './habits-aa.css';
+import {SwipeRow} from '../swipe/swipe-row';
 const HabitDeleteForm = lazy(() => import("./habit-delete-form"));
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
@@ -195,7 +196,10 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
     look(); window.addEventListener("hashchange", look); return () => window.removeEventListener("hashchange", look);
   }, [habit.id]);
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
-  return <article {...layout} id={`habit-${habit.id}`} tabIndex={-1} className={`panel habit-card habit-state-${rule.state}`} aria-label={habit.title} data-tone={visualTone(habit.id)}>
+  // Session AA-Local S5: on phones a swipe right completes today's check-in (never a quit or limit habit: their tap is a statement, not a tick); a swipe left reveals Edit, Skip and Archive; nothing deletes.
+  const today = habitDay(habit, store.today, store.today);
+  const canSwipeComplete = rule.state === "active" && rule.type === "build" && today.scheduled && today.status !== "complete";
+  return <SwipeRow as="article" attrs={{...layout, tabIndex: -1, "data-tone": visualTone(habit.id)}} id={`habit-${habit.id}`} className={`panel habit-card habit-state-${rule.state}`} label={habit.title} completeLabel="Complete" onComplete={canSwipeComplete ? () => void store.smartDone(habit.id, store.today) : undefined} actions={rule.state === "active" ? [{label: "Edit", run: () => onEdit(habit.id)}, ...(today.scheduled && today.status !== "complete" && today.status !== "skipped" ? [{label: "Skip", run: () => void store.markDay(habit.id, store.today, "skipped", "Skipped · swipe")}] : []), {label: "Archive", danger: true, confirm: "Archive?", run: () => void state("archived")}] : []}>
     <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><PinToToday label={habit.title} choices={rule.state!=='archived'?[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]:[]} extra={<button type="button" onClick={() => askZigi(`About my habit "${habit.title}": `)}>Ask ZIGi about this habit</button>}/></div>
     {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}<ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
@@ -211,7 +215,7 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
     {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
     <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management">{extras && <HabitAreaField habitId={habit.id} title={habit.title} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} />}<button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{rule.state === "archived" && onDeleteForGood && <DeleteForGood habit={habit} onDelete={onDeleteForGood} asked={asked} />}{planned.state === "archived" && rule.state !== "archived" && <p className="fine">“Delete for good…” appears here once the archive starts ({planned.from}).</p>}{asked && planned.state !== "archived" && <p className="fine" role="status">To delete this habit for good, archive it first; then “Delete for good…” appears here.</p>}{error && <p role="alert">{error}</p>}
-  </article>;
+  </SwipeRow>;
 });
 /**
  * Session Z-Cloud Part 4.6 (persona item 6): "Delete for good" in an archived habit. The confirmation (its typed name and

@@ -15,6 +15,11 @@ import {dismissWindDown, windDownDue} from '../../lib/reminders/wind-down';
 import {dismissMeditationTime, meditationDue} from '../../lib/reminders/meditation-time';
 import {chainedDue, dismissChained} from '../../lib/habits-v2/stacks';
 import {contributionDue, dismissContribution} from '../../lib/reminders/contribution-due';
+import {REMINDERS_PLAN, dismissPlan} from '../../lib/reminders-plan/schema';
+import {planDue} from '../../lib/reminders-plan/due';
+import {runningSession} from '../../lib/fasting/engine';
+import {useFasting} from '../health/use-fasting';
+import {useWeeklyReview} from '../weekly-review/use-weekly-review';
 import {usePlatform} from '../platform/use-platform';
 import {habitCalendarDay} from '../../lib/habits';
 import {MEDITATION_RUN} from '../../lib/meditation/schema';
@@ -44,6 +49,7 @@ function useHasZigiReminders(): boolean {
   return has;
 }
 export function ReminderCards({habits, health}: {habits?: HabitData; health?: HealthData}) {
+  const plan = useDeviceRecord(REMINDERS_PLAN), fasting = useFasting(), weekly = useWeeklyReview();
   const platform = usePlatform(), reminders = useReminders(), [now, setNow] = useState<Date | null>(null), [error, setError] = useState(''), zigi = useHasZigiReminders(), wReminders = useDeviceRecord(W_REMINDERS), meditationRun = useDeviceRecord(MEDITATION_RUN);
   useEffect(() => {
     const tick = () => setNow(new Date());
@@ -67,12 +73,16 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   // Session W Part 12: a contribution plan's reminder on a day an amount is due.
   let contributions: ReturnType<typeof contributionDue> = [];
   try { contributions = platform.loaded && wReminders.loaded && !wReminders.unreadable ? contributionDue(wReminders.data, platform.data, now) : []; } catch { contributions = []; }
-  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !zigi && !error) return null;
+  // Session AA-Local S7: the reminders plan (bedtime, the weekly review, a fast's end, a goal check-in), quiet hours kept.
+  let planned: ReturnType<typeof planDue> = [];
+  try { const fast = fasting.loaded ? runningSession(fasting.data) : undefined; const fastDone = !!fast && (now.getTime() - Date.parse(fast.startedAt)) >= fast.targetHours * 3_600_000; planned = plan.loaded && !plan.unreadable ? planDue(plan.data, now, localDate(now), {weekday: now.getDay(), reviewWeekday: weekly.data.weekday, fastDone}) : []; } catch { planned = []; }
+  if (!due.length && !windDown && !meditation && !chained.length && !contributions.length && !planned.length && !zigi && !error) return null;
   const dismiss = (reminder: DueReminder) => {
     try { reminders.update(reminder.day, current => dismissForToday(current, reminder.id, reminder.day)); setError(''); }
     catch (error) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(error)}`); }
   };
   return <section className="reminder-cards" aria-label="Reminders on this device">
+    {planned.map(r => <article key={`plan:${r.id}`} className="panel reminder-card" aria-label={`Reminder: ${r.title}`}><p className="eyebrow">Reminder</p><h2>{r.title}</h2><p>{r.line}</p><div className="actions"><Link className="primary" href={r.href}>Open</Link><button type="button" className="quiet" onClick={() => { try { plan.update(c => dismissPlan(c, r.id, localDate(now))); } catch (e) { setError(`This reminder was not dismissed on this device. ${deviceSettingFailureMessage(e)}`); } }}>Dismiss for today</button></div></article>)}
     {due.map(reminder => <article key={reminder.id} className="panel reminder-card" aria-label={`Reminder: ${reminder.title}`}>
       <p className="eyebrow">Reminder · {reminder.time} · on this device</p>
       <h2>{reminder.kind === 'water' ? 'Time for some water' : reminder.title}</h2>

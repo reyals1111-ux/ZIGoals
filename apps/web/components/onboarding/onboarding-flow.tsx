@@ -23,6 +23,11 @@ import { createAllocatedGoal } from "../../lib/wealth";
 import { localDate } from "../../lib/local-date";
 import { loadShowcase } from "../../lib/showcase";
 import { markOnboardingSeen } from "../../lib/onboarding";
+import { FOCUSES, ONBOARDING_SETUP, setupUndoable, suggestionsFor, type FocusId } from "../../lib/onboarding-setup";
+import { setHabitState } from "../../lib/habits";
+import { readDeviceRecord, updateDeviceRecord } from "../../lib/device-record";
+import { WIDGET_CATALOG, removeWidget, saveWidget, type WidgetKind } from "../../lib/dashboard-settings";
+import { deletePrivateGoal } from "../../lib/positions";
 import { formatNumber } from "../../lib/visual-format";
 import { createHabit } from "../../lib/habits";
 import { setHealthTargets } from "../../lib/health";
@@ -49,11 +54,12 @@ import { GlassBar } from "../progress/glass-progress";
  * is kept. Every choice stays in this page until Finish, which saves them together through the same stores and schemas
  * as the rest of the app; Skip setup writes only the device-only "seen" flag. Re-running it never adds a habit twice.
  */
-const STEPS = ["welcome", "pillars", "starters", "tour", "install", "zigi", "data"] as const;
+const STEPS = ["welcome", "pillars", "focuses", "starters", "tour", "install", "zigi", "data"] as const;
 type Step = typeof STEPS[number];
 const TITLES: Record<Step, string> = {
   welcome: "Welcome to ZIGoals.",
   pillars: "What do you want to improve?",
+  focuses: "Two or three things to focus on.",
   starters: "A few things to start with.",
   tour: "A quick look around.",
   install: "Keep ZIGoals on your Home Screen.",
@@ -84,6 +90,8 @@ export function OnboardingFlow() {
   const install = useInstallPrompt();
   const [step, setStep] = useState<Step>("welcome"), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [pillars, setPillars] = useState<Pillar[]>([]), [habitIds, setHabitIds] = useState<string[]>([]);
+  // Session AA-Local S4: two or three focuses, which pre-select starters, a goal and Today's widgets; the setup is recorded for a day so it can be undone.
+  const [focuses, setFocuses] = useState<FocusId[]>([]), [setupDone, setSetupDone] = useState(() => { try { return readDeviceRecord(getAppStorage(), ONBOARDING_SETUP).data; } catch { return null; } }), [undoBusy, setUndoBusy] = useState(false);
   const [draft, setDraft] = useState<GoalDraft>(NO_GOAL), [goal, setGoal] = useState<PrivateGoal | null>(null);
   const [steps, setSteps] = useState<number | null>(null), [water, setWater] = useState<number | null>(null), [sleepGoal, setSleepGoalChoice] = useState<number | null>(null);
   const [tour, setTour] = useState<number | null>(null), [syncNext, setSyncNext] = useState(false), [installed, setInstalled] = useState(false);
@@ -98,12 +106,34 @@ export function OnboardingFlow() {
   const currentPages = ready && !settings.error ? settingsGroupIn(settings.data, "pages") : undefined;
   const existingTitles = habits.data.habits.map(h => h.title);
   const starters = starterHabits(pillars), preset = presetForPillars(pillars);
+  const focusPillars = new Set(pillars.flatMap(p => p === "goals-money" ? ["goals", "wealth"] : p === "habits" ? ["habits"] : p === "health-food" ? ["health"] : p === "sleep-mind" ? ["health", "habits"] : []));
+  const focusChoices = FOCUSES.filter(f => focusPillars.size === 0 || focusPillars.has(f.pillar));
+  const suggested = suggestionsFor(focuses);
+  /** Starters the focuses ask for that no template carries: created as plain daily habits. */
+  const extraHabits = suggested.habits.filter(title => !starters.some(t => t.title.toLowerCase() === title.toLowerCase()) && !existingTitles.some(e => e.trim().toLowerCase() === title.toLowerCase()));
   // Only the starters on screen, in their order: a pick hidden by a later change of pillars is not saved.
   const pickedHabits = starters.filter(t => habitIds.includes(t.id) && !hasHabitLike(existingTitles, t));
   const shown = pagesShownFor(pillars, currentPages);
   const pagesChange = pagesForPillars(pillars, new Date(0).toISOString(), currentPages) !== null;
   const showGoal = !pillars.length || pillars.includes("goals-money"), showHealth = !pillars.length || pillars.includes("health-food") || pillars.includes("sleep-mind"), showSleep = !pillars.length || pillars.includes("sleep-mind");
   function go(next: Step) { setError(""); setStep(next); }
+  function leaveFocuses() {
+    const wanted = starters.filter(t => suggested.habits.some(h => h.toLowerCase() === t.title.toLowerCase())).map(t => t.id);
+    setHabitIds(list => [...new Set([...list, ...wanted])]);
+    if (suggested.goal && !draft.category && showGoal) setDraft(d => ({...d, category: suggested.goal!.category, name: suggested.goal!.name}));
+    go("starters");
+  }
+  async function undoSetup() {
+    if (!setupDone) return; setUndoBusy(true); setError("");
+    try {
+      const done = setupDone;
+      // Delete for good needs the archive in effect (Session Z-Cloud's guard), so each habit is archived from today first; both go through the journal's own writers.
+      if (done.habitIds.length) { const { deleteHabitForGood } = await import("../../lib/habit-delete-write"); const now = new Date(); await habits.update(data => done.habitIds.reduce((acc, id) => acc.habits.some(h => h.id === id) ? deleteHabitForGood(setHabitState(acc, id, "archived", now), id, now).data : acc, data)); }
+      if (done.goalId) { const goalId = done.goalId; await platform.update(data => data.goals.some(g => g.id === goalId) ? deletePrivateGoal(data, goalId) : data); }
+      if (done.widgetIds.length) { await updateSettings(getAppStorage(), latest => done.widgetIds.reduce((acc, id) => acc.widgets.some(w => w.id === id) ? removeWidget(acc, id) : acc, latest)); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
+      const next = updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, r => ({...r, undone: true})); setSetupDone(next);
+    } catch (e) { setError(e instanceof Error ? e.message : "The setup was not undone."); } finally { setUndoBusy(false); }
+  }
   function skip() { markOnboardingSeen(window.localStorage); router.push("/app"); }
   const toggle = <T,>(list: T[], value: T) => list.includes(value) ? list.filter(v => v !== value) : [...list, value];
 
@@ -138,7 +168,9 @@ export function OnboardingFlow() {
         });
         announceModuleChange([DASHBOARD_SETTINGS_KEY]);
       }
-      if (pickedHabits.length) await habits.update(data => pickedHabits.reduce((acc, t) => hasHabitLike(acc.habits.map(h => h.title), t) ? acc : createHabit(acc, habitTemplateInputOf(t)), data));
+      const createdHabitIds: string[] = [], createdWidgetIds: string[] = [];
+      if (pickedHabits.length || extraHabits.length) await habits.update(data => { let acc = data; for (const t of pickedHabits) { if (hasHabitLike(acc.habits.map(h => h.title), t)) continue; const id = crypto.randomUUID(); acc = createHabit(acc, habitTemplateInputOf(t), new Date(), id); createdHabitIds.push(id); } for (const title of extraHabits) { if (acc.habits.some(h => h.title.toLowerCase() === title.toLowerCase())) continue; const id = crypto.randomUUID(); acc = createHabit(acc, {title, category: "Wellbeing", description: "", notes: "", type: "build", measurement: {kind: "boolean"}, schedule: {kind: "daily"}, target: 1, targetPeriod: "day", timeOfDay: "anytime", endCondition: {kind: "none"}}, new Date(), id); createdHabitIds.push(id); } return acc; });
+      if (suggested.widgets.length) { await updateSettings(getAppStorage(), latest => { let acc = latest; for (const kind of suggested.widgets) { if (acc.widgets.some(w => w.kind === kind && !w.hidden)) continue; const id = crypto.randomUUID(); const metric = (WIDGET_CATALOG[kind as WidgetKind].metrics as readonly string[])[0]!; try { acc = saveWidget(acc, {id, kind: kind as WidgetKind, metric, title: "", size: "compact", hidden: false, revision: 1}); createdWidgetIds.push(id); } catch { /* a widget that needs a record waits for Today */ } } return acc; }); announceModuleChange([DASHBOARD_SETTINGS_KEY]); }
       if (goal) { const saved = goal; await platform.update(data => data.goals.some(g => g.id === saved.id) ? data : createAllocatedGoal(data, saved, [])); }
       if (showHealth && (steps !== null || water !== null)) await health.update(data => {
         let next = data;
@@ -148,6 +180,7 @@ export function OnboardingFlow() {
       });
       // Session W Part 4: the sleep goal, in Health v4's sleep group (written only when one was chosen).
       if (showSleep && sleepGoal !== null) { const minutes = sleepGoal; await updateHealthGroup("sleep", current => setSleepGoal(current, {minutes, ...(current.goal?.bedFrom && current.goal.bedTo ? {bedFrom: current.goal.bedFrom, bedTo: current.goal.bedTo} : {})}, new Date())); }
+      try { updateDeviceRecord(getAppStorage(), ONBOARDING_SETUP, () => ({version: 1, at, habitIds: createdHabitIds, ...(goal ? {goalId: goal.id} : {}), widgetIds: createdWidgetIds, focuses})); } catch { /* the undo is a convenience */ }
       markOnboardingSeen(window.localStorage);
       const target = syncNext ? "/app/settings#encrypted-sync" : startHref(viewOf(pagesAfter));
       let accountOpen: boolean;
@@ -169,7 +202,10 @@ export function OnboardingFlow() {
   </div>;
   const back = (to: Step) => <button type="button" className="secondary" onClick={() => go(to)}>Back</button>;
   const summary = [
+    focuses.length > 0 && `Your focuses: ${focuses.map(f => FOCUSES.find(x => x.id === f)!.title).join(", ")}.`,
     preset && `Today starts with ${PRESETS.find(p => p.id === preset)?.label ?? preset}.`,
+    extraHabits.length > 0 && `${extraHabits.length === 1 ? "A habit from your focus" : `${extraHabits.length} habits from your focuses`}: ${extraHabits.join(", ")}.`,
+    suggested.widgets.length > 0 && `Widgets on Today: ${suggested.widgets.join(", ")}.`,
     pagesChange && `Your pages: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.`,
     pickedHabits.length > 0 && `${pickedHabits.length === 1 ? "A habit" : `${pickedHabits.length} habits`}: ${pickedHabits.map(t => t.title).join(", ")}.`,
     goal && `Your goal “${goal.name}”.`,
@@ -178,7 +214,9 @@ export function OnboardingFlow() {
     showSleep && sleepGoal !== null && `A sleep goal of ${formatMinutes(sleepGoal)}.`,
   ].filter((line): line is string => typeof line === "string");
 
+  const undoable = setupDone && setupUndoable(setupDone, new Date());
   return <section className="onboarding panel" aria-labelledby={`${id}-title`} data-step={step}>
+    {undoable && <section className="onboarding-undo" aria-label="Undo the last setup"><p><strong>Your last setup is still fresh.</strong> {setupDone.habitIds.length} {setupDone.habitIds.length === 1 ? "habit" : "habits"}{setupDone.goalId ? ", a goal" : ""}{setupDone.widgetIds.length ? ` and ${setupDone.widgetIds.length} widgets` : ""} can be taken back for a day.</p><button type="button" className="secondary" disabled={undoBusy} onClick={() => void undoSetup()}>{undoBusy ? "Undoing…" : "Undo setup"}</button></section>}
     <div className="onboarding-progress">
       <p className="eyebrow">Step {index + 1} of {STEPS.length}</p>
       <GlassBar identity="onboarding-steps" className="onboarding-track" aria-hidden="true" value={(index + 1) / STEPS.length} />
@@ -204,12 +242,22 @@ export function OnboardingFlow() {
           {PILLARS.map(p => <Choice key={p} name="onboarding-pillar" checked={pillars.includes(p)} onChange={() => setPillars(list => toggle(list, p))} label={PILLAR_TEXT[p].label} note={PILLAR_TEXT[p].note} />)}
         </fieldset>
         <p className="fine onboarding-shown" aria-live="polite">{pagesChange ? `You’ll see: ${[...shown.map(p => PAGE_LABEL[p]), "Settings"].join(", ")}.` : "Every page stays as it is."}</p>
-        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("starters")}>{pillars.length ? "Continue" : "Continue without choosing"}</button>{back("welcome")}</div>
+        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => go("focuses")}>{pillars.length ? "Continue" : "Continue without choosing"}</button>{back("welcome")}</div>
+      </>}
+
+      {step === "focuses" && <>
+        <p className="onboarding-lede">Pick two or three. Each one suggests a habit, a goal or a widget for Today; nothing is saved until Finish.</p>
+        <fieldset className="onboarding-choices"><legend className="sr-only">Your focuses</legend>
+          {focusChoices.map(f => <Choice key={f.id} name="onboarding-focus" checked={focuses.includes(f.id)} disabled={!focuses.includes(f.id) && focuses.length >= 3} onChange={() => setFocuses(list => toggle(list, f.id))} label={f.title} note={f.blurb} />)}
+        </fieldset>
+        <p className="fine onboarding-shown" aria-live="polite">{focuses.length ? `Suggested: ${[...suggested.habits, ...(suggested.goal ? [`the goal “${suggested.goal.name}”`] : [])].join(", ") || "widgets on Today"}.` : "Skip this and choose by hand on the next step."}</p>
+        <div className="onboarding-actions"><button type="button" className="primary" onClick={leaveFocuses}>{focuses.length ? "Continue" : "Continue without choosing"}</button>{back("pillars")}</div>
       </>}
 
       {step === "starters" && <>
         <p className="onboarding-lede">Tick what you’d like to begin with. You can change targets and schedules later, or skip this.</p>
         <fieldset className="onboarding-choices"><legend>Habits</legend>
+          {extraHabits.map(title => <Choice key={`focus-${title}`} name="onboarding-habit" checked disabled onChange={() => undefined} label={title} note="From your focus · daily" />)}
           {starters.map(t => { const exists = hasHabitLike(existingTitles, t); return <Choice key={t.id} name="onboarding-habit" checked={exists || habitIds.includes(t.id)} disabled={exists} onChange={() => setHabitIds(list => toggle(list, t.id))} label={t.title} note={exists ? "Already in your Habits" : `${t.note} · ${HABIT_GROUP_LABEL[t.group]}`} />; })}
         </fieldset>
         {showGoal && <fieldset className="onboarding-goal"><legend>A first goal (optional)</legend>
@@ -245,7 +293,7 @@ export function OnboardingFlow() {
           <p className="fine">Your own aim for Health → Sleep, where you can add a bedtime window. Not advice.</p>
         </fieldset>}
         {error && <p role="alert">{error}</p>}
-        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => { if (checkGoal()) go("tour"); }}>Continue</button>{back("pillars")}</div>
+        <div className="onboarding-actions"><button type="button" className="primary" onClick={() => { if (checkGoal()) go("tour"); }}>Continue</button>{back("focuses")}</div>
       </>}
 
       {step === "tour" && (tour === null ? <>
