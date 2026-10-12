@@ -1,4 +1,7 @@
 /** Fictional, deterministic example records. Never written into a normal private or market store. */
+import {GOAL_EXTRAS_KEY} from './goal-extras/store';
+import {AVERAGE_GOALS_KEY} from './average-goals/store';
+import {showcaseGoalExtras} from './goal-extras/showcase';
 import {emptyPlatform,platformSchema,PLATFORM_KEY,type Platform,type Position,type PrivateGoal,type ContributionEvent} from './positions';
 import {contributionTotals} from './goal-intelligence';
 import {emptyHabitData,createHabit,habitDataSchema,HABITS_KEY,type HabitInput} from './habits';
@@ -115,5 +118,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone()){
  {const chess=showcaseChess(day);records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]??JSON.stringify(emptyDashboardSettings()))),'chess',chess.settings,false)));records[CHESS_CACHE_KEY]=JSON.stringify(chess.cache);}
  // Session W Part 19: four fictional links to reserved example addresses in settings v3 `links`.
  records[DASHBOARD_SETTINGS_KEY]=JSON.stringify(dashboardSettingsSchema.parse(withSettingsGroup(dashboardSettingsSchema.parse(JSON.parse(records[DASHBOARD_SETTINGS_KEY]!)),'links',showcaseLinks(day),false)));
+ // Session AA-Cloud Part 2: goal extras (areas, visions as gradients, plans, a three-level tree) and average goals.
+ {const goals=showcaseGoalExtras(day);records[GOAL_EXTRAS_KEY]=JSON.stringify(goals.extras);records[AVERAGE_GOALS_KEY]=JSON.stringify(goals.averages);}
  return {day,records};
 }

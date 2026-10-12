@@ -1,4 +1,7 @@
 "use client";
+import {GoalPlan} from '../../../../components/goals/goal-plan';
+import {useUnifiedGoals} from '../../../../components/use-unified-goals';
+import type {GoalSummary} from '../../../../lib/goal-summary';
 import {GoalModule} from "../../../../components/platform/tracked-detail";
 import {usePlatform} from "../../../../components/platform/use-platform";
 import {useRouter} from "next/navigation";
@@ -110,6 +113,8 @@ export default function GoalDetail({
  <dl className="goal-detail-facts"><div><dt>Remaining</dt><dd>{summary.heldAsset?'Unknown':summary.remaining?displayAmount(summary.remaining,summary.currency):'Review plan'}</dd></div><div><dt>Funding Wealth</dt><dd>{summary.fundingHealth}</dd></div><div><dt>Target date</dt><dd>{summary.targetDate??'Your own pace'}</dd></div></dl>
  <p className="fine">{s.mode==='local'?'Simulation only — no real funds.':'Legacy Goal Manager record.'} Your Goal organizes your plan. New Goals can use wealth where it already exists.</p>
  </section>
+ {/* Session AA-Cloud Part 2: the goal's plan, area, vision and sub-goals (G2–G5); a simulation goal has no recorded pace. */}
+ <LegacyGoalPlan goalKey={`legacy:${id}`} name={summary.name} summary={summary}/>
  {baselineError&&<p role="alert">{baselineError}</p>}
  {ui.locked&&<p className="notice">Editing locked. Unlock from Goal actions to make changes.</p>}
  {remove&&<section role="alertdialog" aria-label="Remove legacy Goal" className="panel"><h2>Remove Goal from ZIGoals?</h2><p>This archives its card. The ledger, private plan and Habit history remain recoverable at this Goal’s address.</p><button className="primary" disabled={!!ui.locked} onClick={()=>void preference({archived:true}).then(()=>router.push('/app/goals'))}>Confirm removal</button><button className="secondary" onClick={()=>setRemove(false)}>Cancel</button></section>}
@@ -344,4 +349,8 @@ export default function GoalDetail({
         )}
       </details>
 </div>;
+}
+function LegacyGoalPlan({goalKey, name, summary}: {goalKey: string; name: string; summary: GoalSummary}) {
+  const unified = useUnifiedGoals();
+  return <GoalPlan goalKey={goalKey} name={name} summary={summary} goals={unified.goals} finished={summary.status === 'completed'} />;
 }

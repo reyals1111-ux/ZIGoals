@@ -100,7 +100,7 @@ export function forecastWords(f: Forecast, format: (day: string) => string): {he
     case 'no-pace': return {headline: 'No forecast at this pace', detail: 'Your recorded progress has not moved forward lately, so no date follows from it.'};
     case 'estimate': return {
       headline: `At this pace: about ${format(f.date!)}`,
-      detail: f.latest ? `Between ${format(f.earliest!)} and ${format(f.latest)}. An estimate from your pace so far, not a promise.` : `From ${format(f.earliest!)} at the earliest. An estimate from your pace so far, not a promise.`,
+      detail: f.latest === null ? `From ${format(f.earliest!)} at the earliest. An estimate from your pace so far, not a promise.` : f.earliest === f.latest ? 'Your pace has been steady. An estimate from your pace so far, not a promise.' : `Between ${format(f.earliest!)} and ${format(f.latest!)}. An estimate from your pace so far, not a promise.`,
     };
   }
 }

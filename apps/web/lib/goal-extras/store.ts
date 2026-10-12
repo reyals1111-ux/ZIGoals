@@ -155,7 +155,7 @@ export function addCustomArea(extras: GoalExtras, label: string, color: string):
 }
 /** Removes a custom area; its goals keep no area (nothing else changes). */
 export function removeCustomArea(extras: GoalExtras, id: string): GoalExtras {
-  const goals = Object.fromEntries(Object.entries(extras.goals).map(([k, e]) => [k, e.area === id ? (({area: _a, ...rest}) => rest)(e) : e]));
+  const goals = Object.fromEntries(Object.entries(extras.goals).map(([k, e]) => { if (e.area !== id) return [k, e]; const rest = {...e}; delete rest.area; return [k, rest]; }));
   return goalExtrasSchema.parse({...extras, goals, areas: extras.areas.filter(a => a.id !== id)});
 }
 /** How long the extras of a goal this device no longer shows are kept, so a restored goal finds them again. */

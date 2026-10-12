@@ -1,4 +1,7 @@
 'use client';
+import {GoalPlan} from '../goals/goal-plan';
+import {GoalForecastPanel} from '../goals/goal-forecast-panel';
+import {useUnifiedGoals} from '../use-unified-goals';
 import '../goal-creator.css';
 import {askZigi} from '../ai/ask';
 import {CADENCES,cadenceLabel} from './cadence';
@@ -53,6 +56,7 @@ export function TrackedDetail({id}:{id:string}){
  const [editingPosition,setEditingPosition]=useState('');
  const [habitEffectiveFrom,setHabitEffectiveFrom]=useState('');
  const [confirm,setConfirm]=useState<'delete'|'close'|string>('');
+ const unifiedGoals=useUnifiedGoals();
  const store=usePlatform(),habits=useHabits(),market=useMarketQuotes(goalMarketRequests(store.data,id));const [apr,setApr]=useState('');const [error,setError]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
  const evidenceNow=useEvidenceNow(store.data,market.now);
  // Session W Part 17 (T1-B): a new plan's zone defaults to the journal zone, else UTC (lib/plan-revisions.ts).
@@ -143,6 +147,9 @@ export function TrackedDetail({id}:{id:string}){
   {progress.requiresReview&&<p className="fine">Review your wealth sources for stale observations, allocation deficits or unavailable valuations.</p>}
   <a className="primary" href={nextAction.href}>{nextAction.label} →</a>
  </section>
+ {/* Session AA-Cloud Part 2: the pace forecast (G1) and the goal's plan, area, vision and sub-goals (G2–G5, G7). */}
+ {goal.type!=='PROJECT'&&goal.status==='active'&&summary.progressBound!=='unavailable'&&summary.target&&<GoalForecastPanel goal={goal} events={store.data.contributions??[]} current={Number(summary.current)} target={Number(summary.target)} currency={summary.currency}/>}
+ <GoalPlan goalKey={`private:${id}`} name={goal.name} summary={summary} goals={unifiedGoals.goals} finished={goal.status==='completed'}/>
  {goal.type==='VALUE'&&!!summary.assetMix?.length&&<section className="panel asset-mix" aria-label="Asset mix"><h2>Asset mix</h2><p className="fine">Share of your Goal target · current allocated wealth</p><div className="asset-mix-grid">{summary.assetMix.map(m=><div key={m.assetClass}><span className="asset-swatch" style={{background:m.color}}/><strong>{m.assetClass}</strong><span>{formatGoalAmount(amount(m.value,goal.decimals),goal.asset)} · {formatPlainDecimal(m.percent.toFixed(2))}%</span></div>)}<div><span className="asset-swatch asset-remaining"/><strong>Remaining</strong><span>{formatGoalAmount(summary.remaining!,goal.asset)} · {formatPlainDecimal(Math.max(0,100-Number(summary.progressPct)).toFixed(2))}%</span></div></div>{progress.missingValuation&&<p className="fine">Valuation incomplete. Unvalued sources do not count toward progress.</p>}</section>}
  <div id="funding-wealth"/><GoalIntelligence data={store.data} goal={goal} quotes={market.quotes} now={evidenceNow} update={store.update} disabled={!!store.error}/>
  {goal.locked&&<p className="notice">Editing locked. Unlock from Goal actions to make changes.</p>}

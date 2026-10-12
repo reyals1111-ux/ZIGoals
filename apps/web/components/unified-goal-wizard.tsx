@@ -26,11 +26,17 @@ import {availableNativeStake,quickAllocateStake,watchScope} from '../lib/owner-p
 import {contributionTemplate} from '../lib/contribution-habit';
 import {createHabit} from '../lib/habits';
 import {GOAL_IDEAS} from '../lib/templates/goals';
+import {templateById} from '../lib/templates/goal-library';
+import {templateHabitInput} from '../lib/templates/template-habits';
+import {areasOf, setGoalArea, setGoalTemplate} from '../lib/goal-extras/store';
+import {useGoalExtras} from './goals/use-goal-extras';
+/** The money templates' categories (the rest are "Custom"). */
+const TEMPLATE_CATEGORY: Record<string, GoalMetadata['category']> = {'emergency-fund': 'Emergency Fund', 'house-deposit': 'First Home', 'holiday-fund': 'Travel', 'online-course': 'Education', 'certification': 'Education', 'invest-monthly': 'Financial Freedom'};
 import {localDate} from '../lib/local-date';
 type Funding='wealth'|'future'|'local'|'project';
 /** Session Y Part 9: a refusal about one field of the Purpose step, so that field can be marked and focused. */
 class FieldError extends Error{constructor(message:string,readonly field:string){super(message);}}
-export function UnifiedGoalWizard({positionId}:{positionId?:string}){
+export function UnifiedGoalWizard({positionId,templateId}:{positionId?:string;templateId?:string}){
  const store=usePlatform(),legacy=useGoals(),habits=useHabits(),router=useRouter();
  const [goalAssetPosition,setGoalAssetPosition]=useState(positionId??'');
  const source=store.data.positions.find(p=>p.id===goalAssetPosition);
@@ -40,6 +46,11 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  const [step,setStep]=useState(0),[name,setName]=useState(''),[type,setType]=useState<PrivateGoal['type']>('QUANTITY');
  const [assetInput,setAsset]=useState(''),[networkInput,setNetwork]=useState(''),[target,setTarget]=useState(''),[date,setDate]=useState(''),[notes,setNotes]=useState(''),[milestones,setMilestones]=useState('');
  const [category,setCategory]=useState<GoalMetadata['category']>('Emergency Fund'),[funding,setFunding]=useState<Funding>('wealth');
+ // Session AA-Cloud Part 2 (G2, G6): a library template fills the first step once; the life area and the template's
+ // habits are kept with the goal on this device (lib/goal-extras/store.ts), its habits made through Habits' own createHabit.
+ const libraryTemplate=templateId?templateById(templateId):undefined,extras=useGoalExtras();
+ const [area,setArea]=useState<string>(libraryTemplate?.area??''),[templateHabits,setTemplateHabits]=useState<string[]>([]);
+ const templateApplied=useRef(false);
  const [pickerVersion,setPickerVersion]=useState(0),[sourceBusy,setSourceBusy]=useState(false);
  const [included,setIncluded]=useState<Record<string,string>>({});
  const [allocation,setAllocation]=useState<'none'|'stake'|'position'>('none'),[selectedInput,setSelected]=useState(''),[quantity,setQuantity]=useState('');
@@ -56,6 +67,7 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  const [error,setErrorText]=useState(''),[errorField,setErrorField]=useState(''),focusField=useRef(false),fieldBase=useId(),errorId=fieldBase+'error';
  const setError=(text:string,field='')=>{setErrorText(text);setErrorField(text?field:'');focusField.current=!!(text&&field);};
  useEffect(()=>{if(!focusField.current||!error||!errorField)return;focusField.current=false;document.getElementById(fieldBase+errorField)?.focus();},[error,errorField,fieldBase]);
+ useEffect(()=>{if(templateApplied.current||!libraryTemplate||libraryTemplate.kind==='average'||libraryTemplate.kind==='health-weight')return;templateApplied.current=true;const t=libraryTemplate;const next=t.kind==='value'?'VALUE':'PROJECT';queueMicrotask(()=>{changeType(next);setName(t.title);setCategory(TEMPLATE_CATEGORY[t.id]??'Custom');if(t.milestones)setMilestones(t.milestones.join('\n'));});},[libraryTemplate]);// eslint-disable-line react-hooks/exhaustive-deps -- once, on arrival
  const fieldProps=(field:string)=>({id:fieldBase+field,...(error&&errorField===field?{'aria-invalid':true as const,'aria-describedby':errorId}:{})});
  const [busy,setBusy]=useState(false);const [savedId,setSavedId]=useState(''),[savedOffline,setSavedOffline]=useState(false);const habitId=useRef('');
  useEffect(()=>{if(shownStep.current===step)return;shownStep.current=step;stepContent.current?.focus();},[step]);
@@ -124,6 +136,9 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
   if(withHabit&&template){habitId.current ||= crypto.randomUUID();goal={...goal,plan:{...goal.plan!,habitId:habitId.current}};}
   await store.update(data=>data.goals.some(g=>g.id===id)?data:preparePrivate(data,goal));setSavedId(id);committedId=id;
   if(withHabit&&template)await habits.update(data=>data.habits.some(h=>h.id===habitId.current)?data:createHabit(data,template,new Date(),habitId.current));
+  if(area||libraryTemplate)try{const at=new Date().toISOString(),key=`private:${id}`;if(extras.writable)extras.update(x=>{let next=area?setGoalArea(x,key,area,at):x;if(libraryTemplate)next=setGoalTemplate(next,key,libraryTemplate.id,at);return next;});}catch{/* the goal is saved; its area can be chosen on its page */}
+  const chosen=(libraryTemplate?.habits??[]).filter(h=>templateHabits.includes(h.title));
+  if(chosen.length&&libraryTemplate)await habits.update(data=>chosen.reduce((d,h)=>d.habits.some(x=>x.title===h.title&&x.rules.at(-1)?.state==='active')?d:createHabit(d,templateHabitInput(h,libraryTemplate.area),new Date()),data));
   releaseDraft();
   // Session X Part 14 (J055): offline, the Goal's own page cannot load (the offline notice promises other pages open
   // again when the person is back online), so the wizard stays and says where the saved Goal is.
@@ -138,6 +153,8 @@ export function UnifiedGoalWizard({positionId}:{positionId?:string}){
  <div className="wizard-content" ref={stepContent} tabIndex={-1}><p className="eyebrow">Step {step+1} of 4</p>
  {step===0&&<><h2>What are you working toward?</h2><div className="form-grid">
  <fieldset className="goal-ideas span-two"><legend>Start from an idea (optional)</legend><div className="goal-ideas-list">{GOAL_IDEAS.map(idea=><button type="button" key={idea.id} className="quiet goal-idea" aria-label={`Start from the idea: ${idea.label}`} onClick={()=>{if(type!==idea.type)changeType(idea.type);setName(idea.name);setCategory(idea.category);if(idea.milestones)setMilestones(idea.milestones.join('\n'));setError('');}}><strong>{idea.label}</strong><small>{idea.note}</small></button>)}<Link className="quiet goal-idea" href="/app/goals#goals-health"><strong>A weight goal</strong><small>Lives with your Health goals: a weight you choose, from your Health journal.</small></Link></div></fieldset>
+ {libraryTemplate&&<section className="wizard-template span-two" aria-label="From the template library"><p className="eyebrow">From the template library</p><strong>{libraryTemplate.title}</strong><p className="fine">{libraryTemplate.summary} The name and steps are filled in; change anything you like.</p>{!!libraryTemplate.habits?.length&&<fieldset className="wizard-template-habits"><legend>Habits that help (made in Habits when you save)</legend>{libraryTemplate.habits.map(h=><label key={h.title}><input type="checkbox" checked={templateHabits.includes(h.title)} onChange={e=>setTemplateHabits(list=>e.target.checked?[...list,h.title]:list.filter(x=>x!==h.title))}/><span><strong>{h.title}</strong><small>{h.why}</small></span></label>)}</fieldset>}</section>}
+ <label className="span-two">Life area (optional)<select value={area} onChange={e=>setArea(e.target.value)}><option value="">No area yet</option>{areasOf(extras.data).map(a=><option key={a.id} value={a.id}>{a.label}</option>)}</select><small className="fine">For your balance wheel; kept on this device for now.</small></label>
  <label className="span-two">Goal name<input value={name} onChange={e=>setName(e.target.value)} maxLength={80} required {...fieldProps('name')}/></label>
  <fieldset className="goal-type-cards span-two"><legend>What kind of progress matters?</legend>{([
  ['QUANTITY','Quantity','Build a quantity of an asset you choose.'],['VALUE','Value','Track allocated wealth toward a currency target.'],['REWARD','Reward','Track rewards that remain unclaimed.'],['PROJECT','Project','Move forward through meaningful milestones.']

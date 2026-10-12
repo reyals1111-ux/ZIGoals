@@ -60,7 +60,7 @@ describe('G1 pace forecast (Session AA-Cloud Part 2)', () => {
     const f = paceForecast(line([60, 45, 30, 15, 0], 100), 6000, 9000, today);
     const w = forecastWords(f, d => `on ${d}`);
     expect(w.headline).toBe(`At this pace: about on ${addDays(today, 30)}`);
-    expect(w.detail).toContain('An estimate from your pace so far, not a promise.');
+    expect(w.detail).toBe('Your pace has been steady. An estimate from your pace so far, not a promise.');
     expect(forecastWords({state: 'not-enough', points: 1, spanDays: 0}, d => d).headline).toBe('Not enough history yet');
   });
   it('a private goal’s points follow its own contributions, shifted to the counted value; reward income and other units are left out', () => {
