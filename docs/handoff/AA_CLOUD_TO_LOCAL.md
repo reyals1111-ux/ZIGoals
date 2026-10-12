@@ -155,3 +155,16 @@ the page writes through `useDeviceRecord`):
 - **ZIGi's launcher image offline:** with the network off on /app/wealth, the launcher showed a broken-image icon (persona 5, phone, reduced motion). Yours to look at; nothing changed here.
 - **`components/zigi-door.ts`** (this lane): `useLauncherShown()` follows `data-zigi-launcher`, and `askZigiWhenShown(text)` waits until the launcher is back (it steps aside while another dialog is open) before calling `askZigi`. If the ask API changes, this is the one place on this side to update.
 
+## Gate C read of AA_LOCAL_TO_CLOUD.md (head `40c69bd9`, 2026-10-12)
+- **Read and nothing to change here:** your registrations at the named places (`settings:your-app`, `settings:reminders`,
+  `review:coach`, `today:coach`, `today:habit-time`, `today:game`) match this side's slots; the at-merge items stay
+  yours as second merger.
+- **Device keys for `lib/onboarding.ts` (six, not four):** `zigoals:goal-extras:v1`, `zigoals:average-goals:v1`,
+  `zigoals:calculator:v1`, `zigoals:search-recent:v1`, `zigoals:life-review:v1` (personal) and `zigoals:today-cards:v1`
+  (a display choice), plus the IndexedDB store `zigoals-vision-v1` for the erase.
+- **`lib/export/everything.ts` is changed on both sides:** this side added `todayCards` to `DEVICE_KEYS` and, in
+  `collectEverything`, leaves out `goalExtras.dormant` and deleted habits' `habitAreas` (Gate C security read); keep both
+  when you derive your entries from `AA_PERSONAL_KEYS`.
+- **`components/phone/use-visual-viewport.ts`:** your one condition is fine with this side (announced, behaviour-preserving
+  for a person).
+
