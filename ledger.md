@@ -1,6 +1,6 @@
-# API ledger — Session Z-Local (owner cap $50; hard stop)
+# API ledger — Session AA-Local (owner cap $50; hard stop)
 
-Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (14 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
+Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (18 files), each call priced at the published table in `apps/web/lib/ai/pricing.ts` (as of 2026-10-10: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 per MTok; cache writes 1.25×; cache hits 0.05× on Opus and Sonnet, 0.1× on Haiku; the Batch API 0.5×). Thinking tokens are output tokens; tool rounds and the repair round are counted. "Unreported" requests answered without counts (priced at zero, listed so nothing hides). Never typed by hand.
 
 | Stage | Model | Requests | Input | Cache write | Cache read | Output | USD |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -17,8 +17,11 @@ Rebuilt by `scripts/zigi/ledger.mjs` from the run files on this branch (14 files
 | real-model/s3/ui-conv-1 | claude-sonnet-5-5 | 30 | 120 | 86,396 | 447,470 | 3,807 | 0.2990 |
 | real-model/s3/ui-conv-2 | claude-sonnet-5-5 | 30 | 120 | 6,832 | 527,076 | 3,757 | 0.1076 |
 | real-model/s3/ui-conv-3 | claude-sonnet-5-5 | 30 | 120 | 6,374 | 527,506 | 3,546 | 0.1044 |
+| real-model/s4/haiku-aa | claude-haiku-5-5 | 45 | 168 | 79,641 | 695,789 | 10,726 | 0.0223 |
+| real-model/s4/sonnet-aa | claude-sonnet-5-5 | 43 | 164 | 30,342 | 710,215 | 6,171 | 0.2089 |
+| real-model/s4/sonnet-spoken | claude-sonnet-5-5 | 1,422 | 5,550 | 727,920 | 23,870,298 | 228,969 | 6.5076 |
 | spoken/gen | claude-opus-5-5 (batch) | 44 | 31,023 | 0 | 0 | 23,321 | 0.2953 |
 
-**Per model:** claude-haiku-5-5 $1.50 · claude-sonnet-5-5 $11.55 · claude-opus-5-5 $0.30
+**Per model:** claude-haiku-5-5 $1.52 · claude-sonnet-5-5 $18.27 · claude-opus-5-5 $0.30
 
-**Total: $13.34 of $50.**
+**Total: $20.08 of $50.**

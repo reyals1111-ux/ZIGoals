@@ -38,3 +38,13 @@ START s3b-qwen38-corpus 2026-10-12T11:26:20Z
 END s3-sonnet-corpus 2026-10-12T11:35:45Z rc=0
 START s4-sonnet-spoken 2026-10-12T11:35:58Z
 START s4-sonnet-spoken 2026-10-12T11:35:59Z
+END s3b-qwen38-corpus 2026-10-12T11:53:30Z rc=0
+END s4-sonnet-spoken 2026-10-12T12:03:47Z rc=0
+START s4-sonnet-aa 2026-10-12T12:03:47Z
+END s4-sonnet-spoken 2026-10-12T12:04:01Z rc=0
+START s4-haiku-aa 2026-10-12T12:04:01Z
+END s4-sonnet-aa 2026-10-12T12:05:23Z rc=0
+START s4-haiku-aa 2026-10-12T12:05:23Z
+END s4-haiku-aa 2026-10-12T12:05:38Z rc=0
+START s5-sonnet-corpus 2026-10-12T12:05:43Z
+END s4-haiku-aa 2026-10-12T12:06:54Z rc=0

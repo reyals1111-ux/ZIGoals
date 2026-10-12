@@ -1,0 +1,2526 @@
+{
+ "summary": {
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "host": "Anthropic API",
+  "mode": "tools",
+  "think": false,
+  "cache": true,
+  "base": "redacted",
+  "pageContext": false,
+  "set": "typed",
+  "startedAt": "2026-10-12T12:05:25.281Z",
+  "finishedAt": "2026-10-12T12:06:54.843Z",
+  "cases": 45,
+  "repeat": 1,
+  "runs": 45,
+  "passed": 45,
+  "rate": 1,
+  "byKind": {
+   "propose": {
+    "passed": 33,
+    "total": 33
+   },
+   "chat": {
+    "passed": 6,
+    "total": 6
+   },
+   "local-first": {
+    "passed": 6,
+    "total": 6
+   }
+  },
+  "latency": {
+   "firstTokenMedianMs": 1603,
+   "totalMedianMs": 2008
+  },
+  "tokens": {
+   "input": 168,
+   "output": 10546,
+   "cacheWrite": 1255,
+   "cacheRead": 773829
+  },
+  "requests": 45,
+  "costUsd": 0.013184964999999998,
+  "pricesAsOf": "2026-10-10",
+  "unreported": 0
+ },
+ "runs": [
+  {
+   "id": "aa-tod-morning",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-time-of-day], got [set-time-of-day]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=morning",
+     "pass": true,
+     "detail": "{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"morning\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1534,
+   "totalMs": 1775,
+   "tokens": {
+    "input": 4,
+    "output": 152,
+    "cacheWrite": 0,
+    "cacheRead": 17057
+   },
+   "requests": 1,
+   "costUsd": 0.00024697,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"morning\"}\n```\n\nThis moves Read (h1) into the morning section of Habits and Today. Confirm the card to make the change.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-tod-evening-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-time-of-day], got [set-time-of-day]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=evening",
+     "pass": true,
+     "detail": "{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"evening\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1657,
+   "totalMs": 1995,
+   "tokens": {
+    "input": 4,
+    "output": 247,
+    "cacheWrite": 0,
+    "cacheRead": 17057
+   },
+   "requests": 1,
+   "costUsd": 0.00029447,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik heb \"Read\" (h1) gekoppeld aan \"Lezen\" en zet het op de avond. Bevestig de kaart om het te verplaatsen.\n\n```zigoals-action\n{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"evening\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-tod-anytime",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-time-of-day], got [set-time-of-day]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-time-of-day,timeOfDay=anytime",
+     "pass": true,
+     "detail": "{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"anytime\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1479,
+   "totalMs": 2008,
+   "tokens": {
+    "input": 4,
+    "output": 200,
+    "cacheWrite": 0,
+    "cacheRead": 20005
+   },
+   "requests": 1,
+   "costUsd": 0.00030045000000000007,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "habit_checkins",
+     "args": {
+      "habit": "Read",
+      "range": "the last 14 days"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_checkins",
+     "args": {
+      "habit": "Exercise",
+      "range": "the last 14 days"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_checkins",
+     "args": {
+      "habit": "Walk",
+      "range": "the last 14 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"set-time-of-day\",\"habit\":\"h1\",\"timeOfDay\":\"anytime\"}\n```\n\nRead is currently in your morning section. This card moves it to \"anytime,\" so it shows up with the habits that have no set time. Its 26-day streak and check-ins stay as they are.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-timer-start",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [start-timer], got [start-timer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1352,
+   "totalMs": 1665,
+   "tokens": {
+    "input": 4,
+    "output": 151,
+    "cacheWrite": 0,
+    "cacheRead": 17055
+   },
+   "requests": 1,
+   "costUsd": 0.00024645,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"start-timer\",\"habit\":\"h1\"}\n```\n\nHere is the timer for Read, ready to start. It will log its time into today's check-in when you stop it.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-timer-start-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [start-timer], got [start-timer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1187,
+   "totalMs": 1542,
+   "tokens": {
+    "input": 4,
+    "output": 161,
+    "cacheWrite": 0,
+    "cacheRead": 17065
+   },
+   "requests": 1,
+   "costUsd": 0.00025155,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik zet een proposal klaar voor de timer van Exercise. Je bevestigt hem zelf.\n\n```zigoals-action\n{\"kind\":\"start-timer\",\"habit\":\"h1\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-timer-stop",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [stop-timer], got [stop-timer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1478,
+   "totalMs": 1790,
+   "tokens": {
+    "input": 4,
+    "output": 217,
+    "cacheWrite": 0,
+    "cacheRead": 17066
+   },
+   "requests": 1,
+   "costUsd": 0.00027956,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"stop-timer\",\"habit\":\"h1\"}\n```\n\nThis stops the Exercise timer and logs the time into today's check-in. Confirm the card to save it.\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-timer-discard-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [stop-timer], got [stop-timer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=stop-timer,log=false",
+     "pass": true,
+     "detail": "{\"kind\":\"stop-timer\",\"habit\":\"h1\",\"log\":false}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 3391,
+   "totalMs": 3501,
+   "tokens": {
+    "input": 6,
+    "output": 295,
+    "cacheWrite": 0,
+    "cacheRead": 34276
+   },
+   "requests": 2,
+   "costUsd": 0.00049086,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "Ik stop de timer van Lezen zonder de tijd te loggen.\n\n```zigoals-action\n{\"kind\":\"stop-timer\",\"habit\":\"h1\",\"log\":false}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-timer-not-duration",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "contains:timer",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 1756,
+   "totalMs": 2312,
+   "tokens": {
+    "input": 4,
+    "output": 317,
+    "cacheWrite": 0,
+    "cacheRead": 17366
+   },
+   "requests": 1,
+   "costUsd": 0.00033256000000000003,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Drink water",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "water",
+     "args": {
+      "range": "the last 7 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your water habit, Drink water (h1), is measured in glasses, not minutes, so it has no timer to start. I can log glasses for you instead. For example, say \"two glasses\" and I'll propose the check-in.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-skip-reason",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [skip], got [skip]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=skip,reason={\"anyOf\":[\"travelling\",\"Travelling\",\"traveling\"]}",
+     "pass": true,
+     "detail": "{\"kind\":\"skip\",\"habit\":\"h1\",\"reason\":\"travelling\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1774,
+   "totalMs": 2289,
+   "tokens": {
+    "input": 4,
+    "output": 293,
+    "cacheWrite": 0,
+    "cacheRead": 17055
+   },
+   "requests": 1,
+   "costUsd": 0.00031745000000000005,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "today",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "The records show Walk already checked in today at 8000 steps, complete. If you still want today marked as a rest day for travel, confirm the skip below. It will replace that check-in, and the streak keeps its place.\n\n```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h1\",\"reason\":\"travelling\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-skip-reason-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [skip], got [skip]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": false,
+   "firstTokenMs": 1714,
+   "totalMs": 2241,
+   "tokens": {
+    "input": 4,
+    "output": 292,
+    "cacheWrite": 0,
+    "cacheRead": 17063
+   },
+   "requests": 1,
+   "costUsd": 0.00031703,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "vandaag",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik zet meditatie vandaag op rust, met als reden ziek. Een overgeslagen dag breekt je reeks van 26 dagen niet.\n\n```zigoals-action\n{\"kind\":\"skip\",\"habit\":\"h1\",\"reason\":\"ziek\"}\n```\n\nBeterschap. Je kunt het later altijd weer oppakken.\n\n⟦zigi: empathetic⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-checkin-mood",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=check-in,mood=energized",
+     "pass": true,
+     "detail": "{\"kind\":\"check-in\",\"habit\":\"h2\",\"mood\":\"energized\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 3314,
+   "totalMs": 3636,
+   "tokens": {
+    "input": 6,
+    "output": 424,
+    "cacheWrite": 904,
+    "cacheRead": 33362
+   },
+   "requests": 2,
+   "costUsd": 0.0006592200000000001,
+   "calls": [
+    {
+     "name": "list_habits",
+     "args": {},
+     "accepted": true
+    }
+   ],
+   "reply": "You've got 15 of 30 minutes on Exercise today, so I'll match your run to that habit and mark it done with your energized mood.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h2\",\"mood\":\"energized\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-checkin-note-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=check-in,note={\"anyOf\":[\"het was een zwaar hoofdstuk\",\"Het was een zwaar hoofdstuk\"]}",
+     "pass": true,
+     "detail": "{\"kind\":\"check-in\",\"habit\":\"h1\",\"value\":30,\"note\":\"Het was een zwaar hoofdstuk\",\"mood\":\"difficult\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "empathetic",
+   "refused": false,
+   "firstTokenMs": 3623,
+   "totalMs": 4271,
+   "tokens": {
+    "input": 4,
+    "output": 797,
+    "cacheWrite": 0,
+    "cacheRead": 17076
+   },
+   "requests": 1,
+   "costUsd": 0.0005696599999999999,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik zet een notitie bij je leescheck-in van vandaag. Die staat al op 30 minuten, dat blijft zo.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"value\":30,\"note\":\"Het was een zwaar hoofdstuk\",\"mood\":\"difficult\"}\n```\n\nJe streak voor Lezen staat op 26 dagen. ⟦zigi: empathetic⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-checkin-calm",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [check-in], got [check-in]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=check-in,mood=calm",
+     "pass": true,
+     "detail": "{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":10,\"mood\":\"calm\",\"day\":\"today\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1863,
+   "totalMs": 2273,
+   "tokens": {
+    "input": 4,
+    "output": 308,
+    "cacheWrite": 0,
+    "cacheRead": 17067
+   },
+   "requests": 1,
+   "costUsd": 0.00032507000000000006,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Meditate",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your Meditate habit shows 5 minutes logged today, so this will set today's value to 10 minutes and mark the mood as calm.\n\n```zigoals-action\n{\"kind\":\"check-in\",\"habit\":\"h1\",\"minutes\":10,\"mood\":\"calm\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-routine-start",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [start-routine], got [start-routine]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1206,
+   "totalMs": 1509,
+   "tokens": {
+    "input": 4,
+    "output": 151,
+    "cacheWrite": 0,
+    "cacheRead": 17023
+   },
+   "requests": 1,
+   "costUsd": 0.00024613,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Stretch morning",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"start-routine\",\"template\":\"morning\"}\n```\n\nThis opens your morning routine in the routine player. If you have no morning habits yet, it adds the template's habits first.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-routine-template-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [start-routine], got [start-routine]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=start-routine,template=evening",
+     "pass": true,
+     "detail": "{\"kind\":\"start-routine\",\"template\":\"evening\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1143,
+   "totalMs": 1498,
+   "tokens": {
+    "input": 4,
+    "output": 174,
+    "cacheWrite": 0,
+    "cacheRead": 16683
+   },
+   "requests": 1,
+   "costUsd": 0.00025423000000000004,
+   "calls": [],
+   "reply": "Ik zet de avondroutine klaar. Bevestig de kaart om de habits van het avondsjabloon toe te voegen.\n\n```zigoals-action\n{\"kind\":\"start-routine\",\"template\":\"evening\"}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-routine-workout",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [start-routine], got [start-routine]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=start-routine,template=workout",
+     "pass": true,
+     "detail": "{\"kind\":\"start-routine\",\"template\":\"workout\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1334,
+   "totalMs": 1881,
+   "tokens": {
+    "input": 4,
+    "output": 207,
+    "cacheWrite": 0,
+    "cacheRead": 16681
+   },
+   "requests": 1,
+   "costUsd": 0.00027071,
+   "calls": [],
+   "reply": "I can set up a workout routine from the workout template. It adds its habits to your Habits page once you confirm.\n\n```zigoals-action\n{\"kind\":\"start-routine\",\"template\":\"workout\"}\n```\n\nIf you'd rather build it yourself, tell me which activities you want and on which days.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-area-health",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-habit-area], got [set-habit-area]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-habit-area,area=health",
+     "pass": true,
+     "detail": "{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":\"health\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1508,
+   "totalMs": 1522,
+   "tokens": {
+    "input": 4,
+    "output": 122,
+    "cacheWrite": 0,
+    "cacheRead": 17063
+   },
+   "requests": 1,
+   "costUsd": 0.00023203,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":\"health\"}\n```\n\nThis moves Walk (h1) into the Health area. Its streak and history stay as they are.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-area-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-habit-area], got [set-habit-area]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-habit-area,area=learning",
+     "pass": true,
+     "detail": "{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":\"learning\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1330,
+   "totalMs": 1524,
+   "tokens": {
+    "input": 4,
+    "output": 168,
+    "cacheWrite": 0,
+    "cacheRead": 17057
+   },
+   "requests": 1,
+   "costUsd": 0.00025497,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Read",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik zet Lezen (h1) onder het gebied leren.\n\n```zigoals-action\n{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":\"learning\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-area-clear",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-habit-area], got [set-habit-area]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-habit-area,area=null",
+     "pass": true,
+     "detail": "{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":null}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1875,
+   "totalMs": 1877,
+   "tokens": {
+    "input": 4,
+    "output": 195,
+    "cacheWrite": 0,
+    "cacheRead": 17067
+   },
+   "requests": 1,
+   "costUsd": 0.00026857000000000004,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Exercise",
+      "range": "this month",
+      "metric": "minutes"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"set-habit-area\",\"habit\":\"h1\",\"area\":null}\n```\n\nThis removes the life area from Exercise (h1). Confirm the card to apply it.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-area-unknown",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "contains:area",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1490,
+   "totalMs": 1904,
+   "tokens": {
+    "input": 4,
+    "output": 202,
+    "cacheWrite": 0,
+    "cacheRead": 17067
+   },
+   "requests": 1,
+   "costUsd": 0.00027207000000000007,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Gardening isn't one of the life areas ZIGoals offers for habits. The options are Health, Mind, Wealth, Relationships, Career, Learning and Fun. Which one should Walk go under? Health would fit a walk well, but it's your choice.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-quit-cost",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-quit-cost], got [set-quit-cost]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-quit-cost,perDay=3,currency=EUR",
+     "pass": true,
+     "detail": "{\"kind\":\"set-quit-cost\",\"habit\":\"h1\",\"perDay\":3,\"currency\":\"EUR\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 2720,
+   "totalMs": 3258,
+   "tokens": {
+    "input": 4,
+    "output": 507,
+    "cacheWrite": 0,
+    "cacheRead": 19184
+   },
+   "requests": 1,
+   "costUsd": 0.00044574,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Late-night snacks (Showcase)",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    },
+    {
+     "name": "sleep_summary",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "sleep_nights",
+     "args": {
+      "range": "the last 14 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "You told me late-night snacks cost you about 3 euros a day. I can save that as the daily cost of this habit, so ZIGoals can estimate what it adds up to. The habit's records show 0 check-ins logged this month, with a current streak of 3 days.\n\n```zigoals-action\n{\"kind\":\"set-quit-cost\",\"habit\":\"h1\",\"perDay\":3,\"currency\":\"EUR\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-quit-cost-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "habits",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-quit-cost], got [set-quit-cost]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-quit-cost,perDay=4",
+     "pass": true,
+     "detail": "{\"kind\":\"set-quit-cost\",\"habit\":\"h1\",\"perDay\":4,\"currency\":\"EUR\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1271,
+   "totalMs": 1723,
+   "tokens": {
+    "input": 4,
+    "output": 244,
+    "cacheWrite": 0,
+    "cacheRead": 17459
+   },
+   "requests": 1,
+   "costUsd": 0.00029699,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Late-night snacks (Showcase)",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    },
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "today"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Ik zet de kosten van je late snacks op €4 per dag. Dat is een voorstel. Je bevestigt het met één tik.\n\n```zigoals-action\n{\"kind\":\"set-quit-cost\",\"habit\":\"h1\",\"perDay\":4,\"currency\":\"EUR\"}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-freeze",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "got 0"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "contains:freeze",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "insight",
+   "refused": false,
+   "firstTokenMs": 5086,
+   "totalMs": 5430,
+   "tokens": {
+    "input": 8,
+    "output": 686,
+    "cacheWrite": 351,
+    "cacheRead": 51345
+   },
+   "requests": 3,
+   "costUsd": 0.000901125,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Walk",
+      "metric": "streak"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_checkins",
+     "args": {
+      "habit": "h1",
+      "range": "yesterday"
+     },
+     "accepted": true
+    },
+    {
+     "name": "habit_checkins",
+     "args": {
+      "habit": "Walk",
+      "range": "yesterday"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Yesterday's walk isn't a missed day. Your records show a complete check-in for Walk on 2026-10-04 (8,000 steps), so there is nothing for a streak freeze to cover. A freeze only applies to a missed day from the last week, and your streak is already intact at 27 days.\n\nIf you meant a different day that was missed, tell me which one and I can check it.\n\n⟦zigi: insight⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-game-on",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-game-layer], got [set-game-layer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=set-game-layer,enabled=true",
+     "pass": true,
+     "detail": "{\"kind\":\"set-game-layer\",\"enabled\":true}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1210,
+   "totalMs": 1449,
+   "tokens": {
+    "input": 4,
+    "output": 156,
+    "cacheWrite": 0,
+    "cacheRead": 16433
+   },
+   "requests": 1,
+   "costUsd": 0.00024273000000000003,
+   "calls": [],
+   "reply": "Turning the game layer on will show levels, quests and badges on Journey, built from your own records. Confirm the card below to apply it.\n\n```zigoals-action\n{\"kind\":\"set-game-layer\",\"enabled\":true}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-game-off-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "today",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-game-layer], got [set-game-layer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=set-game-layer,enabled=false",
+     "pass": true,
+     "detail": "{\"kind\":\"set-game-layer\",\"enabled\":false}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1031,
+   "totalMs": 1172,
+   "tokens": {
+    "input": 4,
+    "output": 120,
+    "cacheWrite": 0,
+    "cacheRead": 16436
+   },
+   "requests": 1,
+   "costUsd": 0.00022476,
+   "calls": [],
+   "reply": "Ik zet de spel-laag op Journey uit. Bevestig de kaart hieronder.\n\n```zigoals-action\n{\"kind\":\"set-game-layer\",\"enabled\":false}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-nav-journey",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "today",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Journey",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Journey.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-nav-journey-nl",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "today",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Journey",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Journey.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"journey\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-nav-year",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "habits",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Year view",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Habits → Year view.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"habits\",\"view\":\"year\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-micro-iron",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-micro-target], got [set-micro-target]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-micro-target,nutrient=iron,value=12",
+     "pass": true,
+     "detail": "{\"kind\":\"set-micro-target\",\"nutrient\":\"iron\",\"value\":12,\"unit\":\"mg\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1193,
+   "totalMs": 1478,
+   "tokens": {
+    "input": 4,
+    "output": 196,
+    "cacheWrite": 0,
+    "cacheRead": 17439
+   },
+   "requests": 1,
+   "costUsd": 0.00027279,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "the last 7 days",
+      "nutrient": "iron"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "```zigoals-action\n{\"kind\":\"set-micro-target\",\"nutrient\":\"iron\",\"value\":12,\"unit\":\"mg\"}\n```\n\nYour records show no iron target set yet, so this would set it to 12 mg a day. Confirm the card to save it.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-micro-fiber-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-micro-target], got [set-micro-target]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=set-micro-target,nutrient=fiber,value=35",
+     "pass": true,
+     "detail": "{\"kind\":\"set-micro-target\",\"nutrient\":\"fiber\",\"value\":35,\"unit\":\"g\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 1949,
+   "totalMs": 2251,
+   "tokens": {
+    "input": 4,
+    "output": 302,
+    "cacheWrite": 0,
+    "cacheRead": 16953
+   },
+   "requests": 1,
+   "costUsd": 0.00032093000000000003,
+   "calls": [],
+   "reply": "Ik zet je vezeltarget op 35 gram per dag. Je past het zelf aan, dus dit is je eigen instelling.\n\n```zigoals-action\n{\"kind\":\"set-micro-target\",\"nutrient\":\"fiber\",\"value\":35,\"unit\":\"g\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-macro-keto",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-macro-mode], got [set-macro-mode]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-macro-mode,mode=keto",
+     "pass": true,
+     "detail": "{\"kind\":\"set-macro-mode\",\"mode\":\"keto\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1821,
+   "totalMs": 2181,
+   "tokens": {
+    "input": 4,
+    "output": 245,
+    "cacheWrite": 0,
+    "cacheRead": 17308
+   },
+   "requests": 1,
+   "costUsd": 0.00029598,
+   "calls": [
+    {
+     "name": "habit_stats",
+     "args": {
+      "habit": "Late-night snacks (Showcase)",
+      "range": "this month",
+      "metric": "quantity"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Keto view changes how your macros are shown. Your targets stay the same.\n\n```zigoals-action\n{\"kind\":\"set-macro-mode\",\"mode\":\"keto\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-macro-net-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-macro-mode], got [set-macro-mode]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "fields:kind=set-macro-mode,mode=net-carbs",
+     "pass": true,
+     "detail": "{\"kind\":\"set-macro-mode\",\"mode\":\"net-carbs\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1846,
+   "totalMs": 2308,
+   "tokens": {
+    "input": 4,
+    "output": 234,
+    "cacheWrite": 0,
+    "cacheRead": 16945
+   },
+   "requests": 1,
+   "costUsd": 0.00028685,
+   "calls": [],
+   "reply": "Ik zet de weergave op netto koolhydraten. Bevestig de kaart hieronder, dan past de app de macro's aan. Je doelen veranderen niet.\n\n```zigoals-action\n{\"kind\":\"set-macro-mode\",\"mode\":\"net-carbs\"}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-macro-custom",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [set-macro-mode], got [set-macro-mode]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=set-macro-mode,mode=custom,fat=30,protein=40,carbs=30",
+     "pass": true,
+     "detail": "{\"kind\":\"set-macro-mode\",\"mode\":\"custom\",\"fat\":30,\"protein\":40,\"carbs\":30}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1323,
+   "totalMs": 1633,
+   "tokens": {
+    "input": 4,
+    "output": 171,
+    "cacheWrite": 0,
+    "cacheRead": 17459
+   },
+   "requests": 1,
+   "costUsd": 0.00026049,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "the last 7 days",
+      "nutrient": "protein"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your macro display will use a custom split of 30% fat, 40% protein and 30% carbs. Your targets stay the same.\n\n```zigoals-action\n{\"kind\":\"set-macro-mode\",\"mode\":\"custom\",\"fat\":30,\"protein\":40,\"carbs\":30}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-coach-keep",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [coach-answer], got [coach-answer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=coach-answer,answer=keep",
+     "pass": true,
+     "detail": "{\"kind\":\"coach-answer\",\"answer\":\"keep\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1901,
+   "totalMs": 2208,
+   "tokens": {
+    "input": 4,
+    "output": 264,
+    "cacheWrite": 0,
+    "cacheRead": 17167
+   },
+   "requests": 1,
+   "costUsd": 0.00030407000000000003,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "this week",
+      "nutrient": "kcal"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your records show a target of 2,200 kcal a day. Here is the card to keep it for this week's coach check-in.\n\n```zigoals-action\n{\"kind\":\"coach-answer\",\"answer\":\"keep\"}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-coach-adjust-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [coach-answer], got [coach-answer]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=coach-answer,answer=adjust,kcal=2100",
+     "pass": true,
+     "detail": "{\"kind\":\"coach-answer\",\"answer\":\"adjust\",\"kcal\":2100}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": false,
+   "firstTokenMs": 1531,
+   "totalMs": 2088,
+   "tokens": {
+    "input": 4,
+    "output": 275,
+    "cacheWrite": 0,
+    "cacheRead": 17186
+   },
+   "requests": 1,
+   "costUsd": 0.00030976,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "deze week",
+      "nutrient": "kcal"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Je wilt het calorie-doel aanpassen naar 2100 kcal per dag. Je huidige doel staat nu op 2200 kcal. Bevestig de kaart hieronder om het te wijzigen.\n\n```zigoals-action\n{\"kind\":\"coach-answer\",\"answer\":\"adjust\",\"kcal\":2100}\n```\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-recipe-text",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [import-recipe], got [import-recipe]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1603,
+   "totalMs": 2042,
+   "tokens": {
+    "input": 4,
+    "output": 252,
+    "cacheWrite": 0,
+    "cacheRead": 17332
+   },
+   "requests": 1,
+   "costUsd": 0.00029972,
+   "calls": [
+    {
+     "name": "devices",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "steps",
+     "args": {
+      "range": "this week"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I've prepared the recipe for you to review. Nothing is saved until you confirm the card.\n\n```zigoals-action\n{\"kind\":\"import-recipe\",\"text\":\"Lentil soup\\nServes 4\\n200 g red lentils\\n1 onion\\n2 tbsp olive oil\\n1 litre vegetable stock\",\"name\":\"Lentil soup\",\"servings\":4}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-recipe-text-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [import-recipe], got [import-recipe]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 1685,
+   "totalMs": 2151,
+   "tokens": {
+    "input": 4,
+    "output": 268,
+    "cacheWrite": 0,
+    "cacheRead": 16980
+   },
+   "requests": 1,
+   "costUsd": 0.0003042,
+   "calls": [],
+   "reply": "Ik zet het recept klaar om te controleren. Je bevestigt het daarna zelf.\n\n```zigoals-action\n{\"kind\":\"import-recipe\",\"text\":\"Linzensoep\\nPortie: 4\\n200 g rode linzen\\n1 ui\\n2 el olijfolie\",\"name\":\"Linzensoep\",\"servings\":4}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-recipe-url",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "got 0"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "contains:Import",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": true,
+   "firstTokenMs": 1409,
+   "totalMs": 1941,
+   "tokens": {
+    "input": 4,
+    "output": 201,
+    "cacheWrite": 0,
+    "cacheRead": 17299
+   },
+   "requests": 1,
+   "costUsd": 0.00027389,
+   "calls": [
+    {
+     "name": "devices",
+     "args": {},
+     "accepted": true
+    },
+    {
+     "name": "steps",
+     "args": {
+      "range": "this week"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I can't open web addresses. The Health page has its own Import for recipe links, so you can paste the address there.\n\nIf you copy the recipe text and paste it here, I can read it into a recipe card for you to confirm. It will include the title, the number of servings and the ingredients.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-plan-week",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [plan-meal], got [plan-meal]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "fields:kind=plan-meal,meal=Dinner",
+     "pass": true,
+     "detail": "{\"kind\":\"plan-meal\",\"recipe\":\"r1\",\"servings\":1,\"meal\":\"Dinner\",\"day\":\"2026-10-08\"}"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": "encouraging",
+   "refused": false,
+   "firstTokenMs": 2853,
+   "totalMs": 3300,
+   "tokens": {
+    "input": 6,
+    "output": 452,
+    "cacheWrite": 0,
+    "cacheRead": 35066
+   },
+   "requests": 2,
+   "costUsd": 0.00057726,
+   "calls": [
+    {
+     "name": "diary_entries",
+     "args": {
+      "range": "on thursday"
+     },
+     "accepted": true
+    },
+    {
+     "name": "list_recipes",
+     "args": {
+      "query": "lentil"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your closest recipe is \"Big lentil pot\" (r1), the only lentil recipe in your library, so I used it for Thursday's dinner. Thursday is 2026-10-08.\n\n```zigoals-action\n{\"kind\":\"plan-meal\",\"recipe\":\"r1\",\"servings\":1,\"meal\":\"Dinner\",\"day\":\"2026-10-08\"}\n```\n\n⟦zigi: encouraging⟧",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-grocery-nl",
+   "repeat": 1,
+   "kind": "propose",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [grocery-item], got [grocery-item]"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 939,
+   "totalMs": 1354,
+   "tokens": {
+    "input": 4,
+    "output": 67,
+    "cacheWrite": 0,
+    "cacheRead": 16956
+   },
+   "requests": 1,
+   "costUsd": 0.00020346,
+   "calls": [],
+   "reply": "Ik zet oat milk en spinazie op je boodschappenlijst.\n\n```zigoals-action\n{\"kind\":\"grocery-item\",\"items\":[\"Havermelk\",\"Spinazie\"]}\n```",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-nav-planner",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Planner",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Health → Planner.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\",\"view\":\"planner\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-nav-insights-nl",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "health",
+   "lang": "nl",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Insights",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Health → Insights.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"health\",\"view\":\"insights\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-nav-reminders",
+   "repeat": 1,
+   "kind": "local-first",
+   "area": "settings",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "local-first",
+     "pass": true,
+     "detail": "the device answered"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "contains:Reminders",
+     "pass": true
+    }
+   ],
+   "cards": 1,
+   "rejected": 0,
+   "hint": null,
+   "refused": false,
+   "firstTokenMs": 0,
+   "totalMs": 0,
+   "tokens": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0
+   },
+   "requests": 0,
+   "costUsd": 0,
+   "calls": [],
+   "reply": "Opening Settings → Reminders.\n\n```zigoals-action\n{\"kind\":\"open-page\",\"page\":\"settings\",\"view\":\"reminders\"}\n```",
+   "error": null
+  },
+  {
+   "id": "aa-energy-ask",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "contains:estimate",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": null,
+   "refused": true,
+   "firstTokenMs": 2862,
+   "totalMs": 3485,
+   "tokens": {
+    "input": 6,
+    "output": 362,
+    "cacheWrite": 0,
+    "cacheRead": 34511
+   },
+   "requests": 2,
+   "costUsd": 0.00052671,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "today",
+      "nutrient": "kcal"
+     },
+     "accepted": true
+    },
+    {
+     "name": "vitals",
+     "args": {
+      "range": "the last 7 days"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "Your records have no energy expenditure estimate. The Health journal holds no active or resting energy values for the last 7 days, so I can't give you one without guessing.\n\nThose values arrive with an import or a linked device. You can add them through Settings → Imports, using a file export from Apple Health, Google Fit or a watch. Once they're in, I can show your active and resting energy by day.",
+   "repaired": false,
+   "error": null
+  },
+  {
+   "id": "aa-fasting-claim",
+   "repeat": 1,
+   "kind": "chat",
+   "area": "health",
+   "lang": "en",
+   "turn": 0,
+   "pass": true,
+   "checks": [
+    {
+     "name": "cards",
+     "pass": true,
+     "detail": "wanted [], got []"
+    },
+    {
+     "name": "schema",
+     "pass": true,
+     "detail": "every block valid"
+    },
+    {
+     "name": "arguments",
+     "pass": true,
+     "detail": "every call accepted"
+    },
+    {
+     "name": "never:burning fat",
+     "pass": true
+    },
+    {
+     "name": "never:ketosis",
+     "pass": true
+    },
+    {
+     "name": "never:autophagy",
+     "pass": true
+    }
+   ],
+   "cards": 0,
+   "rejected": 0,
+   "hint": "curious",
+   "refused": true,
+   "firstTokenMs": 2403,
+   "totalMs": 3184,
+   "tokens": {
+    "input": 4,
+    "output": 471,
+    "cacheWrite": 0,
+    "cacheRead": 17160
+   },
+   "requests": 1,
+   "costUsd": 0.0004075,
+   "calls": [
+    {
+     "name": "nutrient_totals",
+     "args": {
+      "range": "today",
+      "nutrient": "fat"
+     },
+     "accepted": true
+    }
+   ],
+   "reply": "I can't tell from your records whether your body is burning fat right now. ZIGoals times the fast and keeps the hours, but it doesn't measure what your body is using for energy.\n\nIf you're fasting for 16 hours, the app's fasting timer is within its 12 to 18 hour range. Fasting isn't for everyone. If you're pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor before you fast. Stop if you feel unwell.\n\nI can show you your recent fasts with the fasting list if that helps.\n\n⟦zigi: curious⟧",
+   "repaired": false,
+   "error": null
+  }
+ ]
+}
