@@ -35,7 +35,10 @@ test('the header button and "/" open search on every page; ⌘K is not taken; Es
   await page.keyboard.press('Escape');
   // Typing "/" in a field types it.
   await page.goto('/app/goals/new');
+  // Typed key by key (the "/" key itself), once the wizard is live: keys pressed before hydration are reset by React.
+  await page.waitForLoadState('networkidle');
   const name = page.getByLabel('Goal name', {exact: true});
+  await name.click();
   await name.pressSequentially('A/B');
   await expect(name).toHaveValue('A/B');
   await expect(palette(page)).toHaveCount(0);
