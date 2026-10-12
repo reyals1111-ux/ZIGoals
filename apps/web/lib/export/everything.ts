@@ -1,3 +1,6 @@
+import {CALCULATOR_KEY} from '../compound/store';
+import {SEARCH_RECENT_KEY} from '../search/recent';
+import {LIFE_REVIEW_KEY} from '../life-review/store';
 import {GOAL_EXTRAS_KEY} from '../goal-extras/store';
 import {AVERAGE_GOALS_KEY} from '../average-goals/store';
 import {csvSafeCell} from './csv-safe';
@@ -51,7 +54,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // (lib/z-device-keys.ts).
   zigiSuggestions: ZIGI_SUGGESTIONS_KEY, zigiVoice: ZIGI_VOICE_KEY, zigiCards: ZIGI_CARDS_KEY,
   // Session AA-Cloud: goal extras (areas, visions, plans, sub-goals, stories) and average goals, kept on this device.
-  goalExtras: GOAL_EXTRAS_KEY, averageGoals: AVERAGE_GOALS_KEY} as const;
+  goalExtras: GOAL_EXTRAS_KEY, averageGoals: AVERAGE_GOALS_KEY,
+  // Session AA-Cloud Parts 3–5: calculator scenarios, recent searches and the Life review's focus.
+  calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
