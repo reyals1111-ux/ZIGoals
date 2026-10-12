@@ -93,6 +93,9 @@ export function HabitsWorkspace() {
   const [area, setArea] = useState<string>("all");
   const [routine, setRoutine] = useState<string | null>(null);
   const [yearOpen, setYearOpen] = useState(false);
+  // ADR-022 B48: warm the full card's chunk while online, so the first habit created offline on a page that showed no
+  // card yet still renders (the chunk is one shared promise; with cards on the page this costs nothing extra).
+  useEffect(() => { void import("./habit-card-full").catch(() => undefined); }, []);
   useEffect(() => {
     const follow = () => { const match = /#routine=([^&]+)/.exec(window.location.hash); if (match) { setRoutine(decodeURIComponent(match[1]!)); history.replaceState(null, "", window.location.pathname + window.location.search); } if (window.location.hash === "#year") { setYearOpen(true); requestAnimationFrame(() => document.getElementById("habit-year-title")?.scrollIntoView({block: "start"})); } if (window.location.hash === "#routines") requestAnimationFrame(() => document.getElementById("habit-routines-title")?.scrollIntoView({block: "start"})); };
     follow(); window.addEventListener("hashchange", follow); return () => window.removeEventListener("hashchange", follow);
