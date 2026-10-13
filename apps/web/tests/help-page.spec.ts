@@ -219,14 +219,14 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 
-// Session AA-Cloud (ADR-021): this release's answers, each linkable from What's new; the goal extras say they are kept on
-// this device for now, the Home Screen answer says what Safari on iPhone does not offer, and nothing is written on view.
+// Session AA-Cloud (ADR-021): this release's answers, each linkable from What's new; the goal extras say they travel in
+// encrypted sync (Session AB-Cloud Part 2, ADR-023 C12), the Home Screen answer says what Safari on iPhone does not offer, and nothing is written on view.
 test('Session AA-Cloud: the new answers open from a hash, say what stays on this device, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
   const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true});
   const answers: [string, string][] = [
     ['aa-order', 'If you arranged a page yourself, your own order is kept'],
-    ['aa-goals', 'kept on this device for now'],
+    ['aa-goals', 'travel in your encrypted sync'],
     ['aa-forecast', 'It needs at least 3 recorded steps over 14 days or more'],
     ['aa-calculator', 'Every result is an estimate: returns are not guaranteed.'],
     ['aa-search', 'Your last 8 searches are kept on this device'],

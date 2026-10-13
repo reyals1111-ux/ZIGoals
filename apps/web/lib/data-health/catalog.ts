@@ -31,10 +31,15 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
  * reads them there) and their synced copy lives in the home named here: accounts and milestone dates inside finance v5
- * (Part 1, C6).
+ * (Part 1, C6), the AA records in the encrypted extras sections (Part 2, C1; `lib/vault/extras-sections.ts`).
  */
 export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string}>> = {
   accounts: {home: 'sync', area: 'Goals & Wealth'}, milestoneDates: {home: 'sync', area: 'Goals & Wealth'},
+  // Part 2 (C1, C4): the encrypted extras sections, on unless turned off in Settings → Sync; Health's only with its consent.
+  goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'},
+  calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
+  habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
+  healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'},
 };
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [

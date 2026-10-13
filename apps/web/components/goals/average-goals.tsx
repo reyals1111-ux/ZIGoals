@@ -70,7 +70,7 @@ export function AverageGoalForm({templateId}: {templateId?: string}) {
     </div>
     <fieldset className="average-windows"><legend>Over the last</legend>{WINDOWS.map(w => <label key={w}><input type="radio" name={`${id}-window`} checked={windowDays === w} onChange={() => setWindow(w)} /><span>{w} days</span></label>)}</fieldset>
     {error && <p role="alert">{error}</p>}
-    <p className="fine">Kept on this device for now. A day without a value is left out of the average, never counted as zero.</p>
+    <p className="fine">Kept on this device and, with an account, in your encrypted sync. A day without a value is left out of the average, never counted as zero.</p>
     <div className="dashboard-actions"><Link className="secondary" href="/app/goals">Cancel</Link><button className="primary" disabled={!store.loaded || store.unreadable}>Save goal</button></div>
   </form>;
 }
@@ -87,7 +87,7 @@ export function AverageGoalDetail({id}: {id: string}) {
   const before = goal.entries.find(e => e.day === day);
   return <div className="average-goal-page">
     <section className="panel goal-detail-overview average-goal-overview" aria-labelledby="average-title">
-      <p className="eyebrow">Keep an average · over {goal.windowDays} days · kept on this device for now</p>
+      <p className="eyebrow">Keep an average · over {goal.windowDays} days</p>
       <h1 id="average-title">{goal.name}</h1>
       <div className="average-goal-figure is-large">
         <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={128} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-detail-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />

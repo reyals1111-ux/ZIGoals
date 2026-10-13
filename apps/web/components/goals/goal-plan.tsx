@@ -21,7 +21,7 @@ const AREA_COLORS = ['#7fd8c9', '#a3b5ff', '#f5c97a', '#f39ccf', '#8fdcf4', '#d2
 /**
  * The goal page's plan (Session AA-Cloud Part 2): the life area and the vision (G2, G3), why it matters, what could get in
  * the way and the if-then plan (G4), where the goal sits among others (G5), and for a finished goal its story (G7). Kept
- * on this device (Help: "kept on this device for now"). Every change offers Undo.
+ * on this device and, with an account, in the encrypted extras (Session AB-Cloud, ADR-023 C1). Every change offers Undo.
  */
 export function GoalPlan({goalKey, name, summary, goals: tracked, finished}: {goalKey: string; name: string; summary?: GoalSummary; goals: readonly GoalSummary[]; finished: boolean}) {
   const extras = useGoalExtras(), averages = useAverageGoals(), health = useHealth(), today = useLocalToday();
@@ -29,7 +29,7 @@ export function GoalPlan({goalKey, name, summary, goals: tracked, finished}: {go
   const goals = [...tracked, ...(averages.unreadable ? [] : averages.data.goals.map(g => averageSummary(g, health.loaded && !health.error ? health.data : undefined, today)))];
   const extra = extras.data.goals[goalKey];
   return <section className="goal-plan" aria-labelledby="goal-plan-title">
-    <SectionHeading id="goal-plan-title" eyebrow="Your plan · kept on this device for now" title="Why, and how you get there" />
+    <SectionHeading id="goal-plan-title" eyebrow="Your plan" title="Why, and how you get there" />
     {extras.unreadable && <p role="alert" className="notice">Your goal details on this device could not be read. Nothing here can change until they can.</p>}
     <div className="goal-plan-grid">
       <AreaAndVision goalKey={goalKey} name={name} extras={extras} />
