@@ -1,6 +1,7 @@
 import {zigiSchema, type ZigiRecord} from '../../lib/ai/store/records';
 import {ZIGI_KEY} from '../../lib/ai/store/keys';
 import {confirmDeleteHash} from '../../lib/confirm-delete';
+import {DEVICE_WRITE_KEYS} from '../../lib/ai/actions/device-writes';
 
 /**
  * Session Z-Cloud Gate B (Z-Local's handoff, Part 5 entries; ADR-019 "Handoff applied"): the three effects a plan from
@@ -17,7 +18,9 @@ import {confirmDeleteHash} from '../../lib/confirm-delete';
 export type RunnerEffect =
   | {kind: 'navigate'; href: string; label: string}
   | {kind: 'confirm'; href: string; what: string; id: string; label: string}
-  | {kind: 'device'; patch: Partial<Pick<ZigiRecord, 'skin' | 'animation' | 'side' | 'size' | 'greeting' | 'edgeTab'>> & {knock?: {enabled: boolean}}};
+  | {kind: 'device'; patch: Partial<Pick<ZigiRecord, 'skin' | 'animation' | 'side' | 'size' | 'greeting' | 'edgeTab'>> & {knock?: {enabled: boolean}}}
+  // Session AA-Local Part 5 (ADR-022 B37): one of this session's device records, applied through its own store function (lib/ai/actions/device-writes.ts).
+  | {kind: 'record'; key: string; patch: Record<string, unknown>; label: string};
 /** The records a card may ask to delete (Z-Local's `DELETE_TARGETS`). */
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 /** An app page, with an optional query and hash: never another origin, a protocol or a path outside /app. */
@@ -32,6 +35,7 @@ export function runnerEffect(plan: unknown): RunnerEffect | null {
   if (object(navigate) && text(navigate.href, 200) && APP_HREF.test(navigate.href) && text(navigate.label, 120)) return {kind: 'navigate', href: navigate.href, label: navigate.label};
   if (object(confirm) && text(confirm.href, 200) && APP_HREF.test(confirm.href) && !confirm.href.includes('#') && text(confirm.what, 20) && (DELETE_TARGETS as readonly string[]).includes(confirm.what)
     && text(confirm.id, 80) && /^[A-Za-z0-9_-]+$/.test(confirm.id) && text(confirm.label, 120)) return {kind: 'confirm', href: confirm.href, what: confirm.what, id: confirm.id, label: confirm.label};
+  if (object(device) && typeof device.key === 'string' && DEVICE_WRITE_KEYS.includes(device.key) && object(device.patch)) return {kind: 'record', key: device.key, patch: device.patch, label: text(device.label, 120) ? device.label : 'Changed on this device'};
   if (object(device) && device.key === ZIGI_KEY && object(device.patch)) {
     const patch: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(device.patch)) {
@@ -53,5 +57,5 @@ export function lookPatched(record: ZigiRecord, patch: Extract<RunnerEffect, {ki
   return {...record, ...rest, ...(knock ? {knock: {...(record.knock ?? {}), ...knock}} : {})};
 }
 export function effectStatus(effect: RunnerEffect): string {
-  return effect.kind === 'navigate' ? `Opened: ${effect.label}` : effect.kind === 'confirm' ? `Opened the confirmation on ${effect.label}` : 'ZIGi’s look changed';
+  return effect.kind === 'navigate' ? `Opened: ${effect.label}` : effect.kind === 'confirm' ? `Opened the confirmation on ${effect.label}` : effect.kind === 'record' ? effect.label : 'ZIGi’s look changed';
 }

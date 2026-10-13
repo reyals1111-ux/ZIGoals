@@ -23,7 +23,7 @@ import { usePlatform } from './use-platform';
 import {amount,Freshness,PlatformNav,shownAmount} from './common';
 import { deletePrivateGoal, allocate, positionSync, allocatedNativePrincipal, scenarioHorizon, stakingProjection, assetMatches, allocationBalance, closeGoal, contributionSchema, privateGoalSchema, goalProgress, planScenario } from '../../lib/positions';
 import { useHabits } from '../habits/use-habits';
-import { HabitCompletion } from '../habits/habit-card';
+import { HabitCompletion } from '../habits/habit-completion'; // the control alone (ADR-022 B53: the card facade is the full card)
 import { latestHabitRule, goalLinkMatches, habitStats } from '../../lib/habits';
 import { GoalProgressRing, unvaluedNote } from '../goal-card';
 import { SceneArt } from '../scene-art';

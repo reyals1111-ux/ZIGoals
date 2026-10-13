@@ -2,6 +2,7 @@ import type {EmotionHint} from '../emotion-hint';
 import type {PageArea} from '../settings';
 import {PHASE2} from './corpus-phase2';
 import {PART5} from './corpus-part5';
+import {AA} from './corpus-aa';
 
 /**
  * The model-scored corpus (Session X-Local Part 6b, owner addition 7): realistic asks across every page, area and tool,
@@ -397,6 +398,7 @@ function add(...cases: ModelCase[]) { (CORPUS as ModelCase[]).push(...cases); }
 add(...PHASE2);
 // Session Z-Local Part 5: the new kinds (navigation, deletions, habit states, vacations, reminders, a goal's lifecycle).
 add(...PART5);
+add(...AA); // Session AA-Local Part 5: the new-features set (ZIGI_SET=aa scores it alone)
 // The important set: the marked ones (Phase 1's hundred plus Phase 2's), topped up in order until at least a hundred (the variance set, repeated 3× per model).
 const marked = CORPUS.filter(c => c.important);
 for (const c of CORPUS) { if (marked.length >= 100) break; if (!c.important && (c.kind === 'refuse' || c.kind === 'privacy' || c.kind === 'injection' || c.kind === 'multi')) { c.important = true; marked.push(c); } }

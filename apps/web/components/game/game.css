@@ -1,0 +1,108 @@
+/* Session AA-Local Part 2: the game layer (H7) and celebrations (S10) in the cosmic/nebula language. */
+.game-setting { display: grid; gap: 8px; }
+.game-setting-row { display: flex; align-items: flex-start; gap: 14px; min-height: 44px; cursor: pointer; }
+.game-setting-row input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; }
+.game-setting-row span { display: grid; gap: 4px; }
+.game-setting-row strong { font-size: 16px; }
+.game-setting-row small { font-size: 15px; color: var(--text-meta); line-height: 1.5; }
+.game-setting .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+
+/* The compact card */
+.game-card { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; max-width: 100%; gap: 12px; border-color: #9e78ff33; background: linear-gradient(130deg, #2a1f4a66, #0f172b99); } /* minmax(0, 1fr): a nowrap quest line must never set the card's (and the page's) minimum width; on a phone that width inflated Chrome's layout viewport and pushed the ZIGi launcher off screen (ADR-022 B44) */
+.game-card .eyebrow { margin: 0; }
+.game-card-body { display: grid; gap: 10px; }
+.game-card-level { display: flex; align-items: center; gap: 12px; }
+.game-card-level > div { display: grid; gap: 2px; min-width: 0; }
+.game-card-level strong { font-size: 18px; }
+.game-card-level small { font-size: 14px; color: var(--text-meta); }
+.game-level-pill { display: inline-grid; place-items: center; min-width: 48px; height: 32px; padding: 0 10px; border-radius: 99px; font-size: 14px; font-weight: 700; letter-spacing: .04em; color: #0b1020; background: linear-gradient(90deg, #6fe6f6, #c790f6); white-space: nowrap; }
+.game-card-bar { height: 8px; border-radius: 99px; }
+.game-card-quest { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 15px; }
+.game-card-quest small { margin-left: auto; font-size: 14px; color: var(--text-meta); font-variant-numeric: tabular-nums; }
+.game-quest-mark { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid #c3a8f94a; color: #d8ccf5; font-size: 14px; flex: 0 0 auto; }
+.game-quest-mark.game-quest-done { background: linear-gradient(135deg, #6fe6f6, #9e78ff); color: #0b1020; border-color: transparent; box-shadow: 0 0 10px #9e78ff66; }
+.game-card .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+.game-card-strip { padding: 0; gap: 0; }
+.game-strip-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; min-height: 56px; padding: 8px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: inherit; }
+.game-strip-text { flex: 1 1 auto; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-strip-xp { font-size: 14px; color: var(--accent-cyan); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.game-card-strip[data-open] .game-strip-toggle .habit-section-chevron { transform: rotate(-90deg); }
+.game-card-strip .game-card-body { padding: 0 14px 14px; }
+.game-strip-toggle:focus-visible { outline: 2px solid #c9b4ff; outline-offset: -3px; }
+
+/* Journey */
+.journey-page { display: grid; gap: 22px; }
+.journey-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px; padding: 18px 0 4px; }
+.journey-hero h1 { font-size: clamp(2.2rem, 4vw, 3.8rem); letter-spacing: -.05em; line-height: 1.08; margin: 10px 0 16px; max-width: 760px; }
+.journey-off { display: grid; gap: 12px; }
+.journey-off h2 { margin: 0; font-size: 26px; }
+.journey-level { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 28px; padding: 28px; border-radius: 26px; background: radial-gradient(ellipse at 20% 50%, #4a2f8255, #0f172b99 60%); }
+.journey-ring { --ring-width: 12px; width: min(200px, 46vw); aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.journey-ring > * { grid-area: ring; }
+.journey-ring strong { font-size: clamp(44px, 8vw, 64px); line-height: 1; letter-spacing: -.04em; margin-top: -14px; }
+.journey-ring small { font-size: 15px; color: var(--text-meta); margin-top: 56px; letter-spacing: .08em; text-transform: uppercase; }
+.journey-level-copy { display: grid; gap: 6px; min-width: 0; }
+.journey-level-copy h2 { margin: 0; font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -.03em; }
+.journey-level-line { margin: 0; font-size: 16px; color: var(--text-secondary); }
+.journey-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin: 8px 0 0; }
+.journey-stats div { display: grid; gap: 4px; }
+.journey-stats dt { font-size: 14px; color: var(--text-meta); letter-spacing: .06em; text-transform: uppercase; }
+.journey-stats dd { margin: 0; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.journey-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.journey-quests, .journey-challenges, .journey-badges, .journey-path-panel, .journey-freeze { display: grid; gap: 12px; align-content: start; }
+.journey-page .panel h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+.journey-page .panel .eyebrow { margin: 0; }
+.journey-quest-list, .journey-challenge-list, .journey-repair-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.journey-quest-list li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px 12px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px solid #c3a8f92a; background: #1a142a80; }
+.journey-quest-list li[data-done] { border-color: #86f0d644; background: linear-gradient(120deg, #1d4a4b44, #1a142a80); }
+.journey-quest-list li > div { display: grid; gap: 2px; min-width: 0; }
+.journey-quest-list strong { font-size: 16px; }
+.journey-quest-list small, .journey-challenge-list small { font-size: 14px; color: var(--text-meta); }
+.journey-quest-bar { grid-column: 2; height: 6px; border-radius: 99px; }
+.journey-challenge-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 16px; border: 1px solid #c3a8f92a; background: #1a142a80; }
+.journey-challenge-list li > div { display: grid; gap: 2px; min-width: 0; }
+.journey-challenge-list strong { font-size: 16px; }
+.journey-challenge-mark { min-width: 56px; min-height: 36px; display: inline-grid; place-items: center; padding: 0 12px; border-radius: 99px; border: 1px solid #c3a8f94a; font-size: 15px; font-variant-numeric: tabular-nums; }
+.journey-challenge-mark.game-quest-done { background: linear-gradient(135deg, #6fe6f6, #9e78ff); color: #0b1020; border-color: transparent; }
+.journey-badge-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.journey-badge-grid li { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 16px 12px; border-radius: 18px; border: 1px solid #c3a8f92a; background: #1a142a66; opacity: .55; }
+.journey-badge-grid li[data-earned] { opacity: 1; border-color: #9e78ff66; background: radial-gradient(ellipse at top, #4a2f8266, #1a142a99 70%); box-shadow: 0 0 24px #9e78ff22; }
+.journey-badge-symbol { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; font-size: 24px; color: #e8dcff; background: radial-gradient(circle at 35% 30%, #7d5fd466, #2a1f4477); box-shadow: inset 0 0 0 1px #c3a8f93a; }
+.journey-badge-grid li[data-earned] .journey-badge-symbol { background: linear-gradient(135deg, #6fe6f6, #c790f6); color: #0b1020; box-shadow: 0 0 18px #9e78ff66; }
+.journey-badge-grid strong { font-size: 15px; }
+.journey-badge-grid small { font-size: 14px; color: var(--text-meta); }
+.journey-path { list-style: none; margin: 8px 0 0; padding: 0 0 0 8px; display: grid; gap: 0; position: relative; }
+.journey-path::before { content: ""; position: absolute; left: 25px; top: 18px; bottom: 18px; width: 3px; border-radius: 99px; background: linear-gradient(180deg, #6fe6f6, #9e78ff, #ed75df, #a184e233); }
+.journey-path li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; align-items: center; padding: 10px 0; position: relative; }
+.journey-path li > div { display: grid; gap: 2px; padding: 10px 14px; border-radius: 14px; border: 1px solid transparent; }
+.journey-path li[data-current] > div { border-color: #9e78ff66; background: #1a142a99; }
+.journey-path-node { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; font-size: 14px; font-weight: 700; color: #d8ccf5; background: #1a142a; border: 2px solid #a184e244; position: relative; z-index: 1; }
+.journey-path li[data-reached] .journey-path-node { background: linear-gradient(135deg, #6fe6f6, #9e78ff); color: #0b1020; border-color: transparent; box-shadow: 0 0 12px #9e78ff66; }
+.journey-path li[data-current] .journey-path-node { box-shadow: 0 0 0 4px #9e78ff33, 0 0 16px #9e78ff88; }
+.journey-path strong { font-size: 16px; }
+.journey-path small { font-size: 14px; color: var(--text-meta); }
+.journey-path-badge { color: var(--accent-teal); }
+.journey-next { display: grid; gap: 4px; margin: 8px 0 0; padding: 14px; border-radius: 16px; border: 1px solid #86f0d633; background: #1d4a4b33; }
+.journey-next strong { font-size: 16px; }
+.journey-repair-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; font-size: 15px; }
+.journey-repair-list .secondary { min-height: 44px; }
+.journey-empty { margin: 0; font-size: 15px; color: var(--text-secondary); }
+@media (max-width: 900px) { .journey-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .journey-level { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 22px 16px; } .journey-level-copy { justify-items: center; } .journey-stats { width: 100%; } .journey-path::before { left: 25px; } }
+
+/* Celebrations: one-time, tasteful; a still card under reduced motion and Motion Off */
+.celebration-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: #060b19cc; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.celebration-card { position: relative; width: min(440px, 100%); display: grid; gap: 10px; justify-items: center; text-align: center; padding: 34px 26px 26px; border-radius: 28px; border: 1px solid #c3a8f966; background: radial-gradient(ellipse at 50% 0%, #4a2f82aa, #0d1120f2 70%); box-shadow: 0 30px 80px #0008, 0 0 60px #9e78ff33; overflow: clip; }
+.celebration-symbol { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font-size: 40px; color: #0b1020; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); box-shadow: 0 0 40px #c790f688; }
+.celebration-card h2 { margin: 0; font-size: clamp(24px, 4vw, 32px); letter-spacing: -.03em; }
+.celebration-line { margin: 0; font-size: 16px; color: var(--text-secondary); max-width: 340px; }
+.celebration-card .primary { margin-top: 8px; min-height: 48px; min-width: 140px; }
+.celebration-particles { position: absolute; inset: 0; pointer-events: none; }
+.celebration-particles i { position: absolute; left: 50%; top: 34%; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #6fe6f6, #c790f6, #f08bd6); opacity: 0; transform: translate(-50%, -50%); animation: celebration-burst var(--t) cubic-bezier(.2, .7, .3, 1) forwards; animation-delay: calc(var(--i) * 18ms); }
+@keyframes celebration-burst { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(.3); } }
+.celebration-backdrop[data-still] .celebration-symbol { box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .celebration-particles { display: none; } }
+:root[data-app-motion=off] .celebration-particles { display: none; }
+
+/* AA-Cloud's slot wrappers: a place whose cards all render nothing (the game layer off) takes no room. */
+.aa-slot:empty, .progress-slot:empty { display: none; }

@@ -1,7 +1,9 @@
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {describe, expect, test} from 'vitest';
+import {beforeAll, describe, expect, test} from 'vitest';
+import {loadAaPlanner} from '../actions/plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {streamChat} from '../chat';
 import {parseReply} from '../actions/parse';
 import {fenceStructured, needsRepair, repairPrompt, structuredFormat} from '../actions/repair';
@@ -28,6 +30,7 @@ import {runTool} from '../tools/registry';
 import type {ChatEvent, ChatMessage, ChatRequest} from '../types';
 import {SPOKEN} from './corpus-spoken';
 import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
+import {AA} from './corpus-aa';
 import {goldenSources} from './run';
 import {factNumbers, score, type Call, type Observed, type Score} from './score';
 
@@ -76,9 +79,9 @@ function pageFor(c: ModelCase, sources: ToolSources, health: boolean): PageConte
 /** The key for the real-Claude mode, read once from this process's environment; never printed, never stored. */
 const KEY = PROVIDER === 'anthropic' ? env.ANTHROPIC_TEST_KEY ?? null : null;
 /** Session Z-Local Part 4: `ZIGI_SET=spoken` runs the held-out spoken corpus instead of the typed one (same scorer, same harness). */
-const SET: readonly ModelCase[] = env.ZIGI_SET === 'spoken' ? SPOKEN : CORPUS;
+const SET: readonly ModelCase[] = env.ZIGI_SET === 'spoken' ? SPOKEN : env.ZIGI_SET === 'aa' ? AA : CORPUS; // Session AA-Local Part 5: ZIGI_SET=aa is the new-features set
 const selected = (): ModelCase[] => {
-  const all = FILTER === 'all' ? [...SET] : FILTER === 'important' ? [...(env.ZIGI_SET === 'spoken' ? SPOKEN.filter(c => c.important) : IMPORTANT)] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => SET.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : SET.filter(c => new RegExp(FILTER).test(c.id));
+  const all = FILTER === 'all' ? [...SET] : FILTER === 'important' ? [...(env.ZIGI_SET === 'spoken' ? SPOKEN.filter(c => c.important) : env.ZIGI_SET === 'aa' ? AA.filter(c => c.important) : IMPORTANT)] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => SET.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : SET.filter(c => new RegExp(FILTER).test(c.id));
   return LIMIT > 0 ? all.slice(0, LIMIT) : all;
 };
 export type Tokens = {input: number | null; output: number | null; cacheWrite: number | null; cacheRead: number | null};

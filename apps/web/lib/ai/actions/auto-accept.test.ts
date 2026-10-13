@@ -9,7 +9,9 @@ const DAY = '2026-10-08', off: AiOptions = {version: 1};
 const on = (...kinds: string[]): AiOptions => ({version: 1, autoAccept: {kinds: Object.fromEntries(kinds.map(k => [k, true]))}});
 test('the never list is exactly weight, fasting and the two money pre-fills; every other writing kind is eligible', () => {
   // Session Z-Local Part 5 (owner rule): deletions, page openings and two more money forms join weight, fasting and the money pre-fills.
-  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['delete-record', 'log-weight', 'open-page', 'prefill-account', 'prefill-contribution', 'prefill-holding', 'start-fast', 'stop-fast', 'update-account-balance']);
+  // Session AA-Local Part 5 (ADR-022 B37): a routine (a page opening), a quit cost (money-adjacent) and a recipe import (several foods at once) join the list.
+  // Session AA-Local, merged second (ADR-022 B53): calculator-scenario, open-search and open-review are navigations too.
+  expect([...AUTO_ACCEPT_NEVER].sort()).toEqual(['calculator-scenario', 'delete-record', 'import-recipe', 'log-weight', 'open-page', 'open-review', 'open-search', 'prefill-account', 'prefill-contribution', 'prefill-holding', 'set-quit-cost', 'start-fast', 'start-routine', 'stop-fast', 'update-account-balance']);
   for (const kind of PREFILL_KINDS) expect(AUTO_ACCEPT_NEVER).toContain(kind);
   expect([...AUTO_ACCEPT_KINDS].sort()).toEqual(WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k)).sort());
   for (const kind of AUTO_ACCEPT_NEVER) expect(autoAcceptVerdict(on(kind), kind, DAY, true)).toEqual({ok: false, reason: 'never'});

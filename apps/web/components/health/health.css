@@ -257,3 +257,4 @@
 .health-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .health-chip small { opacity: .8; }
 .health-water-buttons { margin-top: 8px; }
+.health-progress-slot:empty { display: none; } .health-progress-slot { margin: 0 0 16px; }

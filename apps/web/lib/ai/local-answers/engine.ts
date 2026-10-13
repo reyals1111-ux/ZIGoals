@@ -107,7 +107,8 @@ const MIN_UNITS = new Set(['minutes', 'minute', 'min', 'mins']);
 
 type HabitHit = {habit: Habit; strength: 'strong' | 'weak' | 'partial'};
 const words = (q: string) => normalise(q).split(' ').filter(Boolean);
-const close = (a: string, b: string) => a === b || (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)));
+// ADR-022 B51: a prefix match needs five letters on both sides (stems already fold inflections), so "lately" no longer names a "Late-night" habit.
+const close = (a: string, b: string) => a === b || (a.length >= 5 && b.length >= 5 && (a.startsWith(b) || b.startsWith(a)));
 /** How a habit's title appears in the question: the whole title in order ("strong"), every word apart ("weak"), some words ("partial"). */
 function habitHits(env: ToolEnv, q: string): HabitHit[] {
   const qStems = words(q).map(stem), hits: HabitHit[] = [];
@@ -176,6 +177,19 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
   staking: {page: 'staking', label: 'Staking'}, ecosystem: {page: 'ecosystem', label: 'Ecosystem'}, ecosysteem: {page: 'ecosystem', label: 'Ecosystem'}, chess: {page: 'chess', label: 'Chess'}, schaken: {page: 'chess', label: 'Chess'}, schaak: {page: 'chess', label: 'Chess'},
   activity: {page: 'activity', label: 'Activity'}, activiteit: {page: 'activity', label: 'Activity'}, settings: {page: 'settings', label: 'Settings'}, instellingen: {page: 'settings', label: 'Settings'}, zigi: {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'}, 'zigi settings': {page: 'settings', view: 'zigi', label: 'Settings → ZIGi · Your Personal AI Companion'},
   pages: {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, "pagina's": {page: 'settings', view: 'pages', label: 'Settings → Your pages & buttons'}, help: {page: 'help', label: 'Help'}, music: {page: 'music', label: 'Music'}, muziek: {page: 'music', label: 'Music'},
+  // Session AA-Local Part 5: the Journey page, the Habits and Health views of this session and the Reminders page.
+  journey: {page: 'journey', label: 'Journey'}, reis: {page: 'journey', label: 'Journey'}, 'my journey': {page: 'journey', label: 'Journey'}, 'mijn reis': {page: 'journey', label: 'Journey'}, quests: {page: 'journey', label: 'Journey'}, badges: {page: 'journey', label: 'Journey'},
+  'year view': {page: 'habits', view: 'year', label: 'Habits → Year view'}, year: {page: 'habits', view: 'year', label: 'Habits → Year view'}, jaaroverzicht: {page: 'habits', view: 'year', label: 'Habits → Year view'}, jaar: {page: 'habits', view: 'year', label: 'Habits → Year view'}, // the suffixes "view" and "overzicht" are stripped before the lookup
+  routines: {page: 'habits', view: 'routines', label: 'Habits → Routines'}, routine: {page: 'habits', view: 'routines', label: 'Habits → Routines'},
+  // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's pages and views.
+  calculator: {page: 'wealth', view: 'calculator', label: 'Wealth → Compound interest calculator'}, 'compound interest calculator': {page: 'wealth', view: 'calculator', label: 'Wealth → Compound interest calculator'}, 'interest calculator': {page: 'wealth', view: 'calculator', label: 'Wealth → Compound interest calculator'}, rekenmachine: {page: 'wealth', view: 'calculator', label: 'Wealth → Compound interest calculator'}, 'rente calculator': {page: 'wealth', view: 'calculator', label: 'Wealth → Compound interest calculator'},
+  'life review': {page: 'review', label: 'Life review'}, 'my week': {page: 'review', view: 'week', label: 'Life review → This week'}, 'my month': {page: 'review', view: 'month', label: 'Life review → This month'}, week: {page: 'review', view: 'week', label: 'Life review → This week'}, maand: {page: 'review', view: 'month', label: 'Life review → This month'}, 'mijn week': {page: 'review', view: 'week', label: 'Life review → This week'}, 'mijn maand': {page: 'review', view: 'month', label: 'Life review → This month'}, review: {page: 'review', label: 'Life review'}, 'weekly review': {page: 'review', view: 'week', label: 'Life review → This week'}, 'monthly review': {page: 'review', view: 'month', label: 'Life review → This month'}, 'levensoverzicht': {page: 'review', label: 'Life review'}, 'weekoverzicht': {page: 'review', view: 'week', label: 'Life review → This week'}, 'maandoverzicht': {page: 'review', view: 'month', label: 'Life review → This month'},
+  templates: {page: 'goals', view: 'templates', label: 'Goals → Templates'}, 'goal templates': {page: 'goals', view: 'templates', label: 'Goals → Templates'}, 'template library': {page: 'goals', view: 'templates', label: 'Goals → Templates'}, sjablonen: {page: 'goals', view: 'templates', label: 'Goals → Templates'}, 'doelsjablonen': {page: 'goals', view: 'templates', label: 'Goals → Templates'},
+  data: {page: 'settings', view: 'data', label: 'Settings → Your data'}, gegevens: {page: 'settings', view: 'data', label: 'Settings → Your data'}, 'my data': {page: 'settings', view: 'data', label: 'Settings → Your data'}, 'your data': {page: 'settings', view: 'data', label: 'Settings → Your data'}, 'data health': {page: 'settings', view: 'data', label: 'Settings → Your data'}, 'mijn gegevens': {page: 'settings', view: 'data', label: 'Settings → Your data'}, 'mijn data': {page: 'settings', view: 'data', label: 'Settings → Your data'},
+  share: {page: 'share', label: 'Share to ZIGoals'}, 'share to zigoals': {page: 'share', label: 'Share to ZIGoals'}, delen: {page: 'share', label: 'Share to ZIGoals'},
+  planner: {page: 'health', view: 'planner', label: 'Health → Planner'}, 'meal planner': {page: 'health', view: 'planner', label: 'Health → Planner'}, maaltijdplanner: {page: 'health', view: 'planner', label: 'Health → Planner'}, 'grocery list': {page: 'health', view: 'planner', label: 'Health → Planner'}, boodschappenlijst: {page: 'health', view: 'planner', label: 'Health → Planner'},
+  insights: {page: 'health', view: 'insights', label: 'Health → Insights'}, 'food insights': {page: 'health', view: 'insights', label: 'Health → Insights'}, inzichten: {page: 'health', view: 'insights', label: 'Health → Insights'}, 'recipe import': {page: 'health', view: 'import', label: 'Health → Import'}, 'import a recipe': {page: 'health', view: 'import', label: 'Health → Import'},
+  reminders: {page: 'settings', view: 'reminders', label: 'Settings → Reminders'}, herinneringen: {page: 'settings', view: 'reminders', label: 'Settings → Reminders'},
 };
 /**
  * Session Z-Local Part 6: the spoken forms the held-out set carried (24 of its 26 navigation asks got no device answer):
@@ -187,10 +201,10 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
 const NAV_PRE = String.raw`(?:(?:so|just|then|and|also|now|ok|okay|hey|hi|zigi,?|nova,?|please|even|eens|gewoon|dan|en|dus)\s+)*(?:(?:can|could|would|will|kun|kan|zou|wil)\s+(?:you|je|u)\s+(?:please\s+|alsjeblieft\s+|even\s+|eens\s+)?)?(?:please\s+|just\s+)?`;
 const NAV_VERB = String.raw`(?:open|go (?:back )?to|back to|take me (?:back )?to|switch to|jump to|navigate to|bring up|show me|show|look at|ga(?: even| eens| terug)? naar|terug naar|toon|laat me|laat mij|laat|breng me naar|breng mij naar)`;
 const NAV_ART = String.raw`(?:(?:my|the|mijn|de|het|me|een|m'n|that|this)\s+)?`;
-const NAV_WORD = String.raw`([a-z' -]{3,24}?)`;
-const NAV_END = String.raw`(?:\s*(?:page|pagina|tab|screen|scherm|view|section|overzicht))?(?:\s+(?:toe|zien|openen|open|bekijken))?[.!?]?$`;
+const NAV_WORD = String.raw`([a-z' -]{3,32}?)`; // 32 since the merge (ADR-022 B53): "compound interest calculator"
+const NAV_END = String.raw`(?:\s+(?:page|pagina|tab|screen|scherm|view|section|overzicht))?(?:\s+(?:toe|zien|openen|open|bekijken))?[.!?]?$`;
 const NAV_A = new RegExp(`^${NAV_PRE}${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`);
-const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
+const NAV_B = new RegExp(`^${NAV_PRE}${NAV_ART}${NAV_WORD}(?:\\s*pagina)?(?:\\s+(?:even|eens))?\\s+(?:(?:kunnen )?openen|open doen|zien|bekijken|laten zien|(?:kunnen )?gaan)[.!?]?$`);
 const NAV_B2 = new RegExp(`^${NAV_PRE}naar\\s+${NAV_ART}${NAV_WORD}(?:\\s+toe)?\\s+(?:kunnen )?gaan[.!?]?$`);
 const NAV_C = new RegExp(`^${NAV_WORD}(?:\\s*(?:page|pagina))?(?:\\s+(?:openen|open))?[.!]?$`); // a bare page word ("settings", "portfolio openen"): no article, no question mark ("my habits?" is a question)
 const NAV_D = new RegExp(`^${NAV_ART}${NAV_WORD}(?:pagina)?,?\\s+(?:die wil ik zien|ga daar (?:even )?naartoe|go back to (?:that|it))[.!?]?$`);
@@ -208,7 +222,29 @@ const NAV_LAST = new RegExp(`${NAV_VERB}\\s+${NAV_ART}${NAV_WORD}${NAV_END}`, 'y
 /** The restarted verb opens a clause (", can you show me", ", so open") or follows a stutter that stopped at a verb or an article ("go to my take me to"), never sits inside a clause ("which habits are open today"). */
 const NAV_CLAUSE_START = new RegExp(String.raw`(?:^|[,;]\s*|\b(?:so|then|and|just|please|now|ok|okay|dan|dus|en|even|eens|gewoon)\s+|\b(?:can|could|would|will|kun|kan|zou|wil)\s+(?:you|je|u)\s+(?:please\s+|alsjeblieft\s+|even\s+)?|\b${NAV_VERB}\s+(?:(?:my|the|mijn|de|het|me|m'n)\s+)?)$`);
 const NAV_BEFORE_BAD = /\d|\b(?:log|add|track|record|mark|skip|create|set|remind|delete|remove|note|save|put)\b/;
+/**
+ * Session AA-Local Part 6 (ADR-022 B46): what speech adds around a navigation ask and what a recogniser writes, taken off
+ * before the patterns look: a leading clause that ends in ", dus" / ", so" / "and"; a trailing reason ("want ik wil even
+ * kijken", "because I want to see it"); a closing thank-you; and the small words people put anywhere ("even", "eens",
+ * "maar", "gewoon", "vandaag", "nu", "voor me", "alsjeblieft", "real quick", "right now", "please", "for me"). Only the
+ * navigation patterns see the trimmed text; nothing else in the engine changes.
+ */
+function spokenTrim(question: string): string {
+  return question
+    .replace(/^.{12,}?[,.;]\s+(?:dus|so|and then|and|en)\s+/i, '')
+    .replace(/\s*,?\s*(?:dankjewel|dank je wel|bedankt|thanks|thank you|cheers)[.!]*$/i, '')
+    .replace(/\s+(?:i|ik) (?:want|wil|would like) to see it[.!]*$/i, '')
+    .replace(/[,;]?\s+(?:want (?=ik |je |we |hij |ze |dat |het |er |de |die )|omdat|because|since|cause)\b.*$/i, '') // Dutch "want" is "because" only before a pronoun; the English verb stays
+    .replace(/\s+(?:real quick|right now|quickly|just|nu|even|eens|maar|gewoon|vandaag|voor me|for me|alsjeblieft|please)(?=[\s,.!?]|$)/gi, '')
+    .replace(/^(hey|hi|hallo|hoi),\s+/i, '$1 ')
+    .trim();
+}
 export function navigationIntent(question: string): {page: string; view?: string; label: string} | null {
+  const trimmed = spokenTrim(question);
+  if (trimmed !== question) { const direct = navigationIntentOf(trimmed); if (direct) return direct; }
+  return navigationIntentOf(question);
+}
+function navigationIntentOf(question: string): {page: string; view?: string; label: string} | null {
   let q = normalizeSpoken(question).toLowerCase().replace(/[’`]/g, '\'').replace(/\s+/g, ' ').trim();
   for (let i = 0; i < 3 && NAV_POLITE_END.test(q); i++) q = q.replace(NAV_POLITE_END, '').trim();
   if (!q || q.length > 160) return null;

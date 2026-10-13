@@ -26,13 +26,17 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   goalExtras: ['Goal plans, life areas, visions and sub-goals', 'Goals'], averageGoals: ['Average goals', 'Goals'],
   calculator: ['Calculator scenarios', 'Wealth'], searchRecent: ['Recent searches', 'Search'], lifeReview: ['Life review focus', 'Life review'],
   todayCards: ['Today\'s cards kept on this device', 'Today'],
+  // Session AA-Local (ADR-022 B1, merged second): the eleven device-only keys of lib/aa-device-keys.ts.
+  habitExtras: ['Habit extras: areas, quit costs, bells, folds', 'Habits'], routineRun: ['A routine in progress', 'Habits'], game: ['The game layer: XP, quests, badges, freezes', 'Journey'],
+  healthCoach: ['The weekly coach\'s answers', 'Health'], microTargets: ['Micronutrient targets', 'Health'], macroMode: ['How macros are shown', 'Health'], aisles: ['Grocery aisles', 'Health'],
+  measurementsCustom: ['Custom measurement kinds', 'Health'], progressPhotos: ['Progress photo index', 'Health'], remindersPlan: ['The reminders plan and quiet hours', 'Today'], onboardingSetup: ['The welcome\'s setup (for Undo)', 'Today'],
 };
 export const DEVICE_ONLY: readonly CatalogEntry[] = [
   ...(Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
-export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)'] as const;
+export const DEVICE_STORES = ['Vision photos (IndexedDB, compressed on this device)', 'Progress photos (IndexedDB, compressed on this device)', 'ZIGi\'s conversations (IndexedDB)'] as const;
 /** Worked out each time from the records above, never stored. */
 export const NEVER_STORED = ['Calculator results', 'Life review figures', 'Insights and pairings', 'Search results', 'Pace forecasts', 'The life balance wheel'] as const;
 export const HOME_LABEL: Record<Home, string> = {sync: 'Encrypted sync with an account', 'sync-consent': 'Encrypted sync after this device\'s consent', device: 'This device only'};

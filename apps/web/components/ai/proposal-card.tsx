@@ -35,6 +35,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     {status === 'proposed' && <div className="ai-card-actions"><button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button></div>}
   </article>;
   const {card} = plan, fields = editableFields(action), form = plan.target === 'form';
+  const applies = form && !!plan.device && !plan.navigate && !plan.confirm; // Session AA-Local B37: a device-record write applies in place; no form opens
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget), values: Record<string, string> = {};
@@ -64,7 +65,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     </form> : <div className="ai-card-actions">
       {status === 'proposed' ? <>
         {/* Session V Part 16: each button keeps its short name and is described by the card's title, so a list of buttons still says which card. */}
-        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
+        <button type="button" className="primary" onClick={onAdd} aria-describedby={titleId}>{applies ? 'Apply' : form ? 'Open the form' : card.kind === 'remember' ? 'Remember' : 'Add'}</button>
         {fields.length > 0 && <button type="button" className="secondary" onClick={() => setEditing(true)} aria-describedby={titleId}>Edit</button>}
         <button type="button" className="text-link" onClick={onDismiss} aria-describedby={titleId}>Dismiss</button>
       </> : <span className="ai-card-status">{statusText(status, card.kind, opened)}</span>}

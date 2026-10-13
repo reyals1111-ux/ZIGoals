@@ -55,10 +55,13 @@ const snapshot = (page: Page): Promise<Snap> => page.evaluate(keys => Object.fro
  * raised, the "Actions by ZIGi" ledger and the reminder records left present and empty, and the platform's own audit
  * ledgers (`goalHistory`, a goal's `lifecycle` and `planRevisions`), which record the edit and its undo, and an automatic check-in the
  * habit-health link applied from a logged activity (kept, with its marker, after the activity is undone: the link's own
- * rule). Everything else must be byte-identical after Undo.
+ * rule), and a habit timer's own receipt ledger: Undo of a started timer discards it through the page's own path, which
+ * keeps a `discarded` receipt of zero elapsed time, as a manual discard does (Session AA-Local Part 5). Everything else
+ * must be byte-identical after Undo.
  */
 function normalise(snap: Snap): Snap {
   const out = JSON.parse(JSON.stringify(snap, (key, value: unknown) => key === 'updatedAt' || key === 'waterOperations' ? undefined : value)) as Snap;
+  for (const h of out[HABITS_KEY]?.habits ?? []) if (Array.isArray(h.timerReceipts)) { h.timerReceipts = h.timerReceipts.filter((r: any) => r.status !== 'discarded'); if (!h.timerReceipts.length) delete h.timerReceipts; }
   const health = out[HEALTH_KEY], settings = out[DASHBOARD_SETTINGS_KEY];
   if (health) { for (const [group, list] of [['sleep', 'nights'], ['meditation', 'sessions']] as const) if (health[group] && !health[group][list].length && !health[group].goal) delete health[group]; if (health.moods && !Object.keys(health.moods.days).length) delete health.moods; delete health.schemaVersion; }
   if (settings) { if (settings.links && !settings.links.items.length) delete settings.links; if (settings.weeklyReview && !settings.weeklyReview.reviews?.length) delete settings.weeklyReview; delete settings.schemaVersion; }
@@ -205,6 +208,15 @@ const CASES: readonly Case[] = [
   // "streak" in the ask would be answered on the device by the lookup engine (local first), so the ask avoids the word.
   {kind: 'add-widget', page: '/app/habits', ask: 'Add a Today widget for my Meditate habit', reply: body => block({kind: 'add-widget', widget: 'habit', habit: handle(body, 'h', 'Meditate'), metric: 'streak', title: 'Meditation streak'}), visible: {page: '/app', text: 'Meditation streak'},
     check: (after, before) => { const widgets = after[DASHBOARD_SETTINGS_KEY].widgets; expect(widgets.length).toBe(before[DASHBOARD_SETTINGS_KEY].widgets.length + 1); expect(widgets.at(-1)).toMatchObject({kind: 'habit', metric: 'streak', entity: habitOf(after, 'Meditate').id, title: 'Meditation streak', size: 'compact', hidden: false, revision: 1}); }},
+  // ---- Session AA-Local Part 5 (ADR-022 B37): the journal-writing kinds of this session; the device-record kinds have no Undo by design and are proven in plan-aa.test.ts and zigi-aa.spec.ts ----
+  {kind: 'set-time-of-day', page: '/app/habits', ask: 'Move Read to the evening', reply: body => block({kind: 'set-time-of-day', habit: handle(body, 'h', 'Read'), timeOfDay: 'evening'}), // the Showcase's Read sits in the morning (Part 7)
+    check: (after, before) => { expect(habitOf(before, 'Read').timeOfDay).toBe('morning'); expect(habitOf(after, 'Read').timeOfDay).toBe('evening'); }},
+  {kind: 'start-timer', page: '/app/habits', ask: 'Start the timer on Exercise', reply: body => block({kind: 'start-timer', habit: handle(body, 'h', 'Exercise')}),
+    check: (after, before) => { expect(habitOf(before, 'Exercise').timer).toBeUndefined(); const t = habitOf(after, 'Exercise').timer; expect(t).toMatchObject({state: 'running', unit: 'minutes'}); near(t.startedAt); }},
+  {kind: 'stop-timer', page: '/app/habits', ask: 'Stop the Exercise timer and log it', setup: [{ask: 'Start the timer on Exercise', reply: body => block({kind: 'start-timer', habit: handle(body, 'h', 'Exercise')})}], reply: body => block({kind: 'stop-timer', habit: handle(body, 'h', 'Exercise')}), daySensitive: true,
+    check: (after, before, {today}) => { expect(habitOf(before, 'Exercise').timer).toMatchObject({state: 'running'}); const h = habitOf(after, 'Exercise'); expect(h.timer).toBeUndefined(); expect(h.timerReceipts.at(-1)).toMatchObject({status: 'logged', date: today}); expect(h.entries.find((e: any) => e.date === today)).toBeTruthy(); }},
+  {kind: 'import-recipe', page: '/app/health', ask: 'Import this recipe: Fictional soup, serves 4. 200 g red lentils, 1 onion.', reply: () => block({kind: 'import-recipe', text: 'Fictional soup\nServes 4\n200 g red lentils\n1 onion', name: 'Fictional soup', servings: 4}), visible: {page: '/app/health', text: 'Fictional soup'},
+    check: (after, before) => { expect(after[HEALTH_KEY].recipes.length).toBe(before[HEALTH_KEY].recipes.length + 1); const r = after[HEALTH_KEY].recipes.at(-1); expect(r).toMatchObject({name: 'Fictional soup', portionsMilli: 4000}); expect(r.ingredients).toHaveLength(2); const was = new Set(before[HEALTH_KEY].foods.map((f: any) => f.id)); expect(after[HEALTH_KEY].foods.filter((f: any) => !was.has(f.id)).map((f: any) => [f.name, f.brand])).toEqual([['red lentils', 'Imported recipe'], ['onion', 'Imported recipe']]); /* the foods this card created (the Showcase carries two imported foods of its own since Part 7) */ expect(after[HEALTH_KEY].foods.find((f: any) => f.name === 'red lentils').nutrients.kcal).toBeNull(); }},
 ];
 const FIRST_FOOD = JSON.parse(buildShowcase(DAY).records['zigoals:health:v1']!).foods[0].name as string;
 const ZONES = ['UTC', 'Europe/Brussels', 'Asia/Tokyo'] as const;

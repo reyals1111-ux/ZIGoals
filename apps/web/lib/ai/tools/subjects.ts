@@ -16,6 +16,8 @@ export function stem(word: string): string {
   for (const suffix of ['ations', 'ation', 'ings', 'ing', 'ions', 'ion', 'ies', 'ied', 'ed', 'es', 'e', 's']) {
     if (w.length - suffix.length >= 4 && w.endsWith(suffix)) { w = w.slice(0, -suffix.length); break; }
   }
+  // Session AA-Local (ADR-022 B51): a doubled final consonant left by a stripped ending folds (swimming → swimm → swim, running → run).
+  if (w.length >= 5 && w.at(-1) === w.at(-2) && !/[aeiou]/.test(w.at(-1)!)) w = w.slice(0, -1);
   return w;
 }
 export const tokens = (value: string): string[] => normalise(value).split(' ').filter(t => t && !STOP.has(t));

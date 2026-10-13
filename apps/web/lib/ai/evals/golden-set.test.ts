@@ -1,4 +1,6 @@
-import {expect, test} from 'vitest';
+import {beforeAll, expect, test} from 'vitest';
+import {loadAaPlanner} from '../actions/plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {toolEnv} from '../tools/env';
 import {gatesFor, showcaseSources, withHandHealth, withPortfolios} from '../tools/fixtures';
 import {GOLDEN_CATEGORIES, GOLDEN_SET} from './golden-set';

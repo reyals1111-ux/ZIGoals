@@ -25,6 +25,14 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:activity', kind: 'page', title: 'Activity', href: '/app/activity', keywords: ['history', 'timeline', 'log']},
   {id: 'page:settings', kind: 'page', title: 'Settings', href: '/app/settings', keywords: ['preferences', 'options']},
   {id: 'page:help', kind: 'page', title: 'Help', href: '/app/help', keywords: ['questions', 'faq', 'support']},
+  // Session AA-Local's pages and views (merged second, ADR-022 B52).
+  {id: 'page:journey', kind: 'page', title: 'Journey', href: '/app/journey', keywords: ['game', 'level', 'quests', 'badges', 'xp', 'freeze']},
+  {id: 'page:reminders', kind: 'page', title: 'Reminders', subtitle: 'Settings', href: '/app/settings/reminders', keywords: ['quiet hours', 'bedtime', 'water', 'weekly review', 'fasting']},
+  {id: 'page:habits-routines', kind: 'page', title: 'Routines', subtitle: 'Habits', href: '/app/habits#routines', keywords: ['morning routine', 'stack', 'player']},
+  {id: 'page:habits-year', kind: 'page', title: 'Year view', subtitle: 'Habits', href: '/app/habits#year', keywords: ['calendar', 'year', 'heatmap']},
+  {id: 'page:health-planner', kind: 'page', title: 'Meal planner', subtitle: 'Health', href: '/app/health#planner', keywords: ['plan', 'week', 'grocery list', 'aisles']},
+  {id: 'page:health-insights', kind: 'page', title: 'Food insights', subtitle: 'Health', href: '/app/health#insights', keywords: ['protein', 'evening', 'patterns']},
+  {id: 'page:health-import', kind: 'page', title: 'Import a recipe', subtitle: 'Health', href: '/app/health#import', keywords: ['recipe', 'paste', 'url', 'ingredients']},
 ];
 
 export const SETTINGS: readonly SearchItem[] = [
@@ -57,8 +65,11 @@ export const HELP_TOPICS: readonly [string, string][] = [
   ["your-ai", "ZIGi · Your Personal AI Companion"],
   ["questions", "Questions"],
   ["whole-life", "New: your whole life"],
+  ["aa", "New: habits, health and the game layer"],
+  ["whats-new-alpha", "What's new"],
   ["known-limitations", "Known limitations"],
-  ["feedback", "Send feedback"],];
+  ["feedback", "Send feedback"],
+];
 
 /** [question id, question] as components/help/help-page.tsx's HelpQuestion elements. */
 export const HELP_QUESTIONS: readonly [string, string][] = [
@@ -126,6 +137,13 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["z-step-up", "Why does ZIGoals ask for my recovery secret again?"],
   ["w-newer-section", "What does “saved by a newer ZIGoals” mean?"],
   ["w-web-limits", "What can’t a web app do?"],
+  ["aa-habits", "How do the time-of-day sections, the timer’s Finish, days since, skips, notes and routines work?"],
+  ["aa-journey", "What is the game layer, and is it on?"],
+  ["aa-health", "What are the weight trend, the energy estimate, the coach, micronutrients, the planner and recipe import?"],
+  ["aa-swipes", "Why does a swipe not delete?"],
+  ["aa-welcome", "What does the new welcome set up, and can I undo it?"],
+  ["aa-reminders", "Where are my reminders?"],
+  ["aa-zigi", "What can ZIGi do with all this?"],
   ["auto-checkins", "Can a habit tick itself off from my Health journal?"],
   ["health-goals", "What is a health goal, and where does its progress come from?"],
   ["skips", "I’m away for a week. Will my streak break?"],

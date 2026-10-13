@@ -7,7 +7,8 @@ import {prepareConflictReview,confirmConflictReview,resolveConflicts} from '../.
 import {validateData} from '../../apps/web/lib/vault/account-data';
 import {decryptBackup} from '../../apps/web/lib/vault/backup';
 import {createHabit,emptyHabitData,habitDataSchema,habitRuleOn} from '../../apps/web/lib/habits';
-import {scheduleHabitEdit,habitEditFingerprint,startHabitTimer,pauseHabitTimer,commitHabitTimer} from '../../apps/web/lib/habit-actions';
+import {scheduleHabitEdit,habitEditFingerprint} from '../../apps/web/lib/habit-actions';
+import {startHabitTimer,pauseHabitTimer,commitHabitTimer} from '../../apps/web/lib/habit-timer-actions';
 const now=new Date('2026-09-26T12:00:00Z'),id='59a35604-3696-4a78-b455-4015acb66885',timer='ff829326-f352-4a26-80d0-eb8c31cde62e';
 const input={title:'Fictional reading',category:'Personal',description:'',notes:'',schedule:{kind:'daily'},target:30,measurement:{kind:'duration',unit:'minutes'}};
 for(const kind of ['rules','timer','timer-commit','timer-divergent-commit'])test(`real encrypted two-client ${kind} conflict retains both reviewed copies and does not silently overwrite`,async()=>{

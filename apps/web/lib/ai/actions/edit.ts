@@ -25,6 +25,16 @@ const DAY: Field = {key: 'day', label: 'Day', type: 'day', optional: true};
 const lines = (key: string, label: string, optional = false): Field => ({key, label, type: 'lines', optional, multiline: true});
 const ESTIMATE = [num('estimate.kcal', 'kcal per serving', true), num('estimate.protein_g', 'Protein (g)', true), num('estimate.carbs_g', 'Carbs (g)', true), num('estimate.fat_g', 'Fat (g)', true)];
 const FIELDS: Record<ActionKind, readonly Field[]> = {
+  // ---- Session AA-Local Part 5 ----
+  'set-time-of-day': [select('timeOfDay', 'Time of day', ['morning', 'afternoon', 'evening', 'anytime'], false)],
+  'start-timer': [], 'stop-timer': [], 'start-routine': [], 'set-habit-area': [], 'use-freeze': [DAY],
+  'set-quit-cost': [num('perDay', 'Cost per day', true), select('currency', 'Currency', ['EUR', 'USD'], true)],
+  'set-micro-target': [num('value', 'Target', true)], 'set-macro-mode': [int('fat', 'Fat %', true), int('protein', 'Protein %', true), int('carbs', 'Carbs %', true)],
+  'coach-answer': [int('kcal', 'kcal a day', true)], 'import-recipe': [text('name', 'Recipe name', true), num('servings', 'Servings', true)], 'set-game-layer': [],
+  // Session AA-Local, merged second (ADR-022 B53)
+  'set-goal-area': [], 'set-goal-plan': [text('why', 'Why', true, true), text('obstacle', 'Obstacle', true, true), text('ifThen', 'If-then plan', true, true)], 'set-sub-goal': [],
+  'create-average-goal': [text('name', 'Name'), num('target', 'Target'), select('direction', 'Direction', ['at-least', 'at-most']), int('windowDays', 'Window: 7, 14 or 30 days'), text('unit', 'Unit', true)], 'log-average': [num('value', 'Value'), DAY],
+  'calculator-scenario': [num('start', 'Start amount', true), num('contribution', 'Contribution', true), select('frequency', 'Frequency', ['weekly', 'monthly', 'yearly'], true), num('ratePercent', 'Rate (% a year)', true), int('years', 'Years', true)], 'open-search': [text('query', 'Search for')], 'open-review': [select('period', 'Period', ['week', 'month'])],
   // ---- Session Z-Local Part 5 ----
   'open-page': [],
   'delete-record': [DAY],

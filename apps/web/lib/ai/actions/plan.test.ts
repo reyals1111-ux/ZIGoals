@@ -1,4 +1,6 @@
-import {expect, test} from 'vitest';
+import {beforeAll, expect, test} from 'vitest';
+import {loadAaPlanner} from './plan';
+beforeAll(() => loadAaPlanner()); // Gate A (B41): the AA planner is a lazy chunk
 import {addLocalDays} from '../../local-date';
 import {buildShowcase} from '../../showcase-data';
 import {habitDataSchema, latestHabitRule, type HabitData} from '../../habits';
@@ -196,7 +198,7 @@ test('the money kind only pre-fills the form: no write, no undo, not part of a b
 test('handles the context never gave, future days and days over a year back make no card, only a plain message', () => {
   expect(refusal({kind: 'check-in', habit: 'h99'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'check-in', habit: 'g1'})).toMatch(/not in this page's context/); // a goal handle is not a habit
-  expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f9'})).toMatch(/not in this page's context/);
+  expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'f99'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'log-food', name: 'x', meal: 'Lunch', food: 'h1'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'add-goal-note', goal: 'g77', note: 'x'})).toMatch(/not in this page's context/);
   expect(refusal({kind: 'log-water', glasses: 1, day: '2026-09-21'})).toBe('That day has not come yet; ZIGi can only log up to today.');
@@ -252,7 +254,10 @@ test('cards name records by title, never by identifier, and every kind the parse
     // Session Z-Local Part 5
     {kind: 'open-page', page: 'health', view: 'sleep'}, {kind: 'delete-record', what: 'habit', habit: 'h1'}, {kind: 'set-habit-state', habit: 'h1', state: 'paused'}, {kind: 'vacation', from: '2026-09-22', to: '2026-09-23'}, {kind: 'close-goal', goal: 'g1'},
     {kind: 'grocery-notes', notes: 'Oat milk'}, {kind: 'create-counter', name: 'Burpees'}, {kind: 'set-target', target: 'kcal', value: 2100}, {kind: 'set-health-preference', weightUnit: 'lb'}, {kind: 'start-night', bedtime: '23:00'}, {kind: 'set-bells', volume: 40},
-    {kind: 'set-today-preset', preset: 'wealth'}, {kind: 'skip-review'}, {kind: 'set-wrap-up', time: '21:30'}, {kind: 'set-page-visibility', page: 'markets', shown: false}, {kind: 'set-start-page', page: 'habits'}, {kind: 'set-zigi-look', animation: 'full'}, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings'}];
+    {kind: 'set-today-preset', preset: 'wealth'}, {kind: 'skip-review'}, {kind: 'set-wrap-up', time: '21:30'}, {kind: 'set-page-visibility', page: 'markets', shown: false}, {kind: 'set-start-page', page: 'habits'}, {kind: 'set-zigi-look', animation: 'full'}, {kind: 'prefill-account', name: 'Rainy day', accountKind: 'savings'},
+    // Session AA-Local Part 5
+    {kind: 'set-time-of-day', habit: 'h1', timeOfDay: 'evening'}, {kind: 'start-routine', template: 'morning'}, {kind: 'set-habit-area', habit: 'h1', area: 'health'}, {kind: 'set-goal-area', goal: 'g1', area: 'wealth'}, {kind: 'set-goal-plan', goal: 'g1', why: 'x'}, {kind: 'set-sub-goal', goal: 'g1', parent: null}, {kind: 'create-average-goal', name: 'x', metric: 'steps', target: 8000}, {kind: 'log-average', goal: 'x', value: 1}, {kind: 'calculator-scenario', years: 10}, {kind: 'open-search', query: 'x'}, {kind: 'open-review', period: 'week'}, /* Session AA-Local, merged second (ADR-022 B53) */ {kind: 'set-micro-target', nutrient: 'iron', value: 12, unit: 'mg'}, {kind: 'set-macro-mode', mode: 'net-carbs'}, {kind: 'import-recipe', text: 'Soup\n200 g lentils\n1 onion'}, {kind: 'set-game-layer', enabled: true}
+  ];
   const kinds = new Set<string>();
   // The Showcase has no recipe, so the meal-plan sample gets one (Session V Part 7).
   const recipeId = 'health_recipe-sample-0001', withRecipe = {...stores, health: saveRecipe(stores.health, {id: recipeId, name: 'Sample soup', portionsMilli: 2000, items: [{foodId: stores.health.foods[0]!.id, quantityMilli: 1000}]}, now.toISOString())};
@@ -264,7 +269,8 @@ test('cards name records by title, never by identifier, and every kind the parse
     expect(p.card.title.length, p.card.kind).toBeGreaterThan(3); expect(p.card.where.length, p.card.kind).toBeGreaterThan(3);
   }
   kinds.add('stop-fast'); // needs a running fast; covered above
-  for (const k of ['unskip', 'remove-reminder', 'reopen-goal', 'edit-diary-entry', 'log-meal-plan', 'set-favorite', 'edit-counter', 'end-night', 'edit-link', 'set-review-weekday', 'prefill-contribution']) kinds.add(k); // need a planned skip, a reminder, a closed goal, a diary name, a plan, a food, a counter, a running night, a link, a weekday other than the Showcase's, an active goal; covered in plan-z.test.ts
+  for (const k of ['unskip', 'remove-reminder', 'reopen-goal', 'edit-diary-entry', 'log-meal-plan', 'set-favorite', 'edit-counter', 'end-night', 'edit-link', 'set-review-weekday', 'prefill-contribution']) kinds.add(k);
+  for (const k of ['start-timer', 'stop-timer', 'use-freeze', 'coach-answer', 'set-quit-cost']) kinds.add(k); // Session AA-Local Part 5: a duration habit with a timer, a seven-day streak with a miss and a week of weights live in plan-aa.test.ts // need a planned skip, a reminder, a closed goal, a diary name, a plan, a food, a counter, a running night, a link, a weekday other than the Showcase's, an active goal; covered in plan-z.test.ts
   expect([...kinds].sort()).toEqual([...ACTION_KINDS].sort());
 });
 test('end to end: a reply with an injected instruction yields one whitelisted card and nothing else is touched', () => {

@@ -11,9 +11,13 @@ import {WRITING_KINDS, type ActionKind} from './schema';
  * `zigoals:ai-options:v1` → `autoAccept`: `{kinds: {<kind>: true}, dailyCap, days: {<day>: n}}`; older builds ignore it.
  */
 // Session Z-Local Part 5: a deletion (the card opens the app's own confirmation) and a page opening are never automatic either.
-export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'prefill-holding', 'update-account-balance', 'delete-record', 'open-page', 'prefill-contribution', 'prefill-account'] as const satisfies readonly ActionKind[];
+export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'prefill-holding', 'update-account-balance', 'delete-record', 'open-page', 'prefill-contribution', 'prefill-account',
+  // Session AA-Local Part 5: a routine opens a page, a quit cost is money-adjacent, a recipe import makes several foods at once.
+  'start-routine', 'set-quit-cost', 'import-recipe',
+  // Session AA-Local, merged second (ADR-022 B53): three navigations (a scenario opens the calculator, a query opens search, a period opens the Life review).
+  'calculator-scenario', 'open-search', 'open-review'] as const satisfies readonly ActionKind[];
 // Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
-export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement',
+export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement', 'set-micro-target', 'set-macro-mode', 'coach-answer',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
 export const AUTO_ACCEPT_KINDS: readonly ActionKind[] = WRITING_KINDS.filter(k => !(AUTO_ACCEPT_NEVER as readonly string[]).includes(k));
 export const AUTO_ACCEPT_CAP = {default: 20, min: 1, max: 100} as const;
@@ -68,12 +72,18 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
   // Session Z-Local Part 5: the new eligible kinds (deletions and page openings are never automatic and have no switch).
   {title: 'Habits and goals (more)', kinds: ['set-habit-state', 'vacation', 'unskip', 'remove-reminder', 'close-goal', 'reopen-goal']},
   {title: 'Today, the week and Settings', kinds: ['set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look']},
+  // Session AA-Local Part 5: sections, timers, areas, freezes and the game switch; the Health ones join the Health group below (gated). A quit cost (money-adjacent), a routine (a page opening) and a recipe import (a bundle of new foods) are never automatic.
+  {title: 'Habits (sections, timers, areas, freezes)', kinds: ['set-time-of-day', 'start-timer', 'stop-timer', 'set-habit-area', 'use-freeze', 'set-game-layer']},
+  // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's goal extras and average goals (device records; no money).
+  {title: 'Goals (areas, plans, sub-goals, average goals)', kinds: ['set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average']},
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
   'edit-diary-entry': 'Changes to a diary entry', 'log-meal-plan': 'Logging a planned meal', 'grocery-notes': 'Grocery notes', 'set-favorite': 'Favourite foods and recipes', 'create-counter': 'New counters', 'edit-counter': 'Changes to a counter', 'set-target': 'Health targets', 'set-health-preference': 'Health units', 'start-night': 'Starting a night', 'end-night': 'Ending a night', 'set-bells': 'The meditation bell',
   'set-today-preset': 'Today presets', 'edit-link': 'Changes to a link', 'skip-review': 'Skipping a weekly review', 'set-review-weekday': 'The weekly review\'s day', 'set-wrap-up': 'The evening wrap-up', 'set-page-visibility': 'Showing or hiding pages and buttons', 'set-start-page': 'The start page', 'set-zigi-look': 'ZIGi\'s look and feel',
   'prefill-contribution': 'Contribution forms (never automatic)', 'prefill-account': 'Account forms (never automatic)',
+  'set-goal-area': 'A goal\'s life area', 'set-goal-plan': 'A goal\'s why, obstacle and plan', 'set-sub-goal': 'Placing a goal in the goal tree', 'create-average-goal': 'Creating an average goal', 'log-average': 'Logging a value for an average goal', 'calculator-scenario': 'Opening the calculator with figures', 'open-search': 'Opening search', 'open-review': 'Opening the Life review',
+  'set-time-of-day': 'Moving a habit between sections', 'start-timer': 'Starting a habit timer', 'stop-timer': 'Stopping a habit timer', 'start-routine': 'Starting a routine (never automatic)', 'set-habit-area': 'A habit\'s life area', 'set-quit-cost': 'A quit habit\'s cost per day (never automatic)', 'use-freeze': 'Streak freezes', 'set-micro-target': 'Micronutrient targets', 'set-macro-mode': 'The macro mode', 'coach-answer': 'The weekly coach answer', 'import-recipe': 'Recipe imports (never automatic)', 'set-game-layer': 'The game layer switch',
   'check-in': 'Habit check-ins', skip: 'Habit skips', 'create-habit': 'New habits', 'stack-habit': 'Habit stacks', 'edit-habit': 'Changes to a habit', 'start-challenge': 'Challenges',
   'create-goal': 'New goal drafts', 'add-goal-note': 'Goal notes', 'add-milestone': 'Milestones', 'edit-goal': 'Changes to a goal',
   'log-food': 'Food entries (typed or from a photo)', 'create-food': 'New foods', 'create-recipe': 'New recipes', 'plan-meal': 'Planned meals', 'grocery-item': 'Grocery items', 'log-water': 'Water', counter: 'Exercise counters',

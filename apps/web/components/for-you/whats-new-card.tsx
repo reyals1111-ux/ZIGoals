@@ -3,8 +3,18 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AA-Cloud (release `2026-10-session-aa-cloud`, ADR-021): pages in order, Goals, the calculator, search and the Life review; each link opens its Help answer. */
+/** Session AA-Local (release `2026-10-session-aa-local`, ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-aa-habits', label: 'Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines'},
+  {href: '/app/help#help-aa-journey', label: 'The game layer: levels, quests, badges and a Journey page, off until you switch it on'},
+  {href: '/app/help#help-aa-health', label: 'Health: your weight trend and energy estimate, a weekly coach, a meal planner with a grocery list, recipe import'},
+  {href: '/app/help#help-aa-swipes', label: 'Swipe a habit or a diary entry on a phone; delete still asks'},
+  {href: '/app/help#help-aa-welcome', label: 'A welcome that sets up your first habits from what you choose, with Undo setup'},
+  {href: '/app/help#help-aa-reminders', label: 'One reminders page: every type, quiet hours'},
+  {href: '/app/help#help-aa-zigi', label: 'ZIGi learned every new action, in English and Dutch, typed or spoken'},
+];
+/** Session AA-Cloud (release `2026-10-session-aa-cloud`, ADR-021): pages in order, Goals, the calculator, search and the Life review; AA-Local merged second, so these lead "Earlier updates". */
+const SESSION_AA_CLOUD_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-aa-order', label: 'Every page starts with what matters most'},
   {href: '/app/help#help-aa-goals', label: 'Life areas, a balance wheel, a vision board and sub-goals'},
   {href: '/app/help#help-aa-forecast', label: '“At this pace”: an estimated date for each goal'},
@@ -14,7 +24,7 @@ export const WHATS_NEW_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-aa-data', label: 'Your data: what is kept, and where'},
   {href: '/app/help#help-aa-home-screen', label: 'Home Screen shortcuts and sharing to ZIGoals'},
 ];
-/** Session Z-Local (release `2026-10-session-z-local`, ADR-020): ZIGi's brain, spoken and complete, folded under "Earlier updates" first. */
+/** Session Z-Local (release `2026-10-session-z-local`, ADR-020): ZIGi's brain, spoken and complete; folded under "Earlier updates" after AA-Cloud's. */
 const SESSION_Z_LOCAL_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-your-ai-voice', label: 'Say it the way you say it: numbers, times, “no wait, three”'},
   {href: '/app/help#help-your-ai-act', label: 'ZIGi can do every ordinary task in the app'},
@@ -60,6 +70,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AA_CLOUD_LINKS,
   ...SESSION_Z_LOCAL_LINKS,
   ...SESSION_Z_CLOUD_LINKS,
   ...SESSION_Y_LINKS,

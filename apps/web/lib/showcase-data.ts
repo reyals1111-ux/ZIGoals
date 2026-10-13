@@ -22,6 +22,10 @@ import {SYNC_WRITES} from './vault/sync-writes';
 import {withFasting,withHabitLinks,withHealthGoals,withWeeklyReview} from './vault/sync-homes';
 import {withHealthGroup,withSettingsGroup} from './vault/w-homes';
 import {showcaseSleep} from './sleep/showcase';
+import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
+import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
+import {showcaseGame} from './game/showcase';
+import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
 import {withEarlierSeason} from './insights/showcase';
 import {CALCULATOR_KEY} from './compound/store';
 import {showcaseCalculator} from './compound/showcase';
@@ -42,7 +46,7 @@ const rwa=(id:string,assetType:'stock'|'etf'|'commodity'):MarketAssetRef=>({prov
  * the fictional fast said "UTC", so a person in New York saw yesterday evening's fast on today; the fast now carries the
  * zone its times were made in, and tests build the UTC person they describe by passing 'UTC'.
  */
-export function buildShowcase(day:string,zone:string=deviceTimeZone()){
+export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{aa?:boolean}={}){
  const clock=Date.parse(day+'T12:00:00Z');if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(clock)||new Date(clock).toISOString().slice(0,10)!==day)throw Error('Use a real showcase date.');
  const date=(offset:number)=>new Date(clock+offset*86400000).toISOString().slice(0,10),wall=(offset:number,time:string)=>new Date(instantAt(date(offset),time,zone)).toISOString(),at=(offset:number)=>wall(offset,'00:00'),now=at(0),start=at(-90);
  const specs:{asset:string;name:string;class:Position['assetClass'];quantity:string;decimals:number;value?:string;currency?:string;ref?:MarketAssetRef}[]=[
@@ -78,7 +82,7 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone()){
  platform.goalHistory.push({id:'example-plan-change',goalId:'9202',kind:'plan',capturedAt:at(-14),label:'Monthly contribution plan reviewed · Showcase',provenance:'LOCAL_EDIT'},{id:'example-milestone',goalId:'9205',kind:'milestone',capturedAt:at(-1),label:'Portfolio completed · Showcase',provenance:'LOCAL_EDIT'});
  platform=platformSchema.parse(platform);
  let habits=emptyHabitData();const titles=['Read','Exercise','Walk','Meditate','Contribute','Drink water'],targets=[30,30,8000,10,1,8],units=['minutes','minutes','steps','minutes','times','glasses'];
- titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:'A small daily step toward tomorrow.',notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:at(-29+n)}));if(i===1)h.entries.push({date:date(3),count:0,disposition:'skipped',note:'Planned skip · SHOWCASE DATA · fictional travel day',updatedAt:now});h.updatedAt=now;});habits=habitDataSchema.parse(habits);
+ titles.forEach((title,i)=>{const id=`92000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`;const input:HabitInput={title,category:i===4?'Wealth':i===0?'Learning':'Wellbeing',description:'A small daily step toward tomorrow.',notes:'SHOWCASE DATA · fictional 30-day history',schedule:{kind:'daily'},target:targets[i]!,measurement:units[i]==='minutes'?{kind:'duration',unit:'minutes'}:{kind:'count',unit:units[i]!}};habits=createHabit(habits,input,new Date(at(-29)),id);const h=habits.habits.at(-1)!;h.entries=Array.from({length:30},(_,n)=>({date:date(-29+n),count:n===29?(i%2===0?targets[i]!:Math.floor(targets[i]!/2)):(n+i)%9===0?0:targets[i]!,disposition:(n+i)%9===0&&n!==29?'skipped' as const:'logged' as const,note:'Showcase example',updatedAt:at(-29+n)}));if(i===1)h.entries.push({date:date(3),count:0,disposition:'skipped',note:'Planned skip · SHOWCASE DATA · fictional travel day',updatedAt:now});h.updatedAt=now;});habits=habitDataSchema.parse(habits);
  const health=createEmptyHealth();health.targets={kcal:2200,proteinMg:120000,carbsMg:260000,fatMg:73000,weightGrams:72000,steps:8000};
  const meals=[['Berry overnight oats',420,22000,59000,12000],['Chicken and quinoa bowl',620,44000,70000,18000],['Salmon, rice and greens',690,48000,69000,25000],['Yogurt and almonds',240,17000,19000,10000]] as const;
  meals.forEach(([name,kcal,proteinMg,carbsMg,fatMg],i)=>health.foods.push({id:`health_food-000${i}`,name,brand:'Showcase kitchen',servingGrams:300,nutrients:{kcal,proteinMg,carbsMg,fatMg},createdAt:start,updatedAt:start}));
@@ -120,6 +124,15 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone()){
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
  // Session AA-Cloud Part 8: an earlier fictional season (60 to 89 days back) so the cross-pillar pairings have counts.
  records[HEALTH_STORAGE_KEY]=JSON.stringify(withEarlierSeason(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day));
+ // Session AA-Local Part 7 (ADR-022, owner edit 6): one call per module. Habits best in class (sections, six weeks, a quit habit, a routine, a running timer),
+ // Health best in class (six weeks of weights, micronutrients, recipes, a planned week, measurements), and the device records beside them (habit extras,
+ // the game layer ON in the Showcase with one unseen celebration, the coach, micro targets, the macro view, custom measurements, the reminders plan).
+ if(options.aa!==false){ // the vault's size fixtures ask for the lean Showcase (lib/vault/power-user-fixture.ts)
+ {const aaHabits=showcaseHabitsAa(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day,zone),aaHealth=showcaseHealthAa(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day),dev=showcaseHealthAaDevice(day);
+  records[HABITS_KEY]=JSON.stringify(aaHabits);records[HEALTH_STORAGE_KEY]=JSON.stringify(aaHealth);
+  records[HABIT_EXTRAS_KEY]=JSON.stringify(showcaseHabitExtras(aaHabits));records[GAME_KEY]=JSON.stringify(showcaseGame({habits:aaHabits,health:aaHealth,platform},day));
+  records[HEALTH_COACH_KEY]=JSON.stringify(dev.coach);records[MICRO_TARGETS_KEY]=JSON.stringify(dev.micro);records[MACRO_MODE_KEY]=JSON.stringify(dev.macro);records[MEASUREMENTS_CUSTOM_KEY]=JSON.stringify(dev.measurements);records[REMINDERS_PLAN_KEY]=JSON.stringify(dev.reminders);}
+ }
  // Session W Part 12: fictional accounts and debts on this tab's Showcase device (lib/accounts/showcase.ts).
  records[ACCOUNTS_KEY]=JSON.stringify(showcaseAccounts(day));
  // Session W Part 14: fictional chess (usernames never sent; the Showcase asks no site) in settings v3 and its device cache.

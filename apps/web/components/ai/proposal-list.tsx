@@ -97,7 +97,9 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
     const before = runner.stores.habits;
-    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after}); setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
+    try { const after = await runner.apply(plan); patch(item.id, {status: 'added', after});
+      // Session AA-Local Part 5: a journal card may also carry a device-record change (the coach's weekly answer beside its target); it follows the write.
+      if (plan.device) { try { runner.effect?.(plan); } catch { /* the journal write stands; the record can be changed on its page */ } } setUndoGroup({ids: [item.id], until: Date.now() + UNDO_WINDOW_MS}); zigiSignals.emitValidated(proud(plan, before, after.habits) ? 'streak_milestone' : 'card_accepted'); announce(`Added: ${plan.card.title}. Undo is available for ten seconds.`); }
     catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be written.'}); }
   }, [announce, onNavigate, patch, runner]);
   const addAll = useCallback(async () => {

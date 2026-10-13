@@ -1,0 +1,22 @@
+/* S7: the Reminders page in the nebula language. */
+.reminders-plan { display: grid; gap: 20px; }
+.reminders-push { border-color: #ffe3a133; background: linear-gradient(135deg, #3a2f1a44, #0d162999); }
+.reminders-push p { margin: 0 0 6px; font-size: 16px; }
+.reminders-group { display: grid; gap: 12px; }
+.reminders-group h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+.reminders-group .eyebrow { margin: 0; }
+.reminders-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }
+.reminders-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.reminders-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px solid #c3a8f92a; background: #1a142a66; }
+.reminders-item[data-on] { border-color: #86f0d644; background: linear-gradient(120deg, #1d4a4b33, #1a142a80); }
+.reminders-switch { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; min-width: 0; }
+.reminders-switch input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+.reminders-switch span { display: grid; gap: 2px; min-width: 0; }
+.reminders-switch strong { font-size: 16px; }
+.reminders-switch small { font-size: 14px; color: var(--text-meta); }
+.reminders-when { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.reminders-when .field { margin: 0; }
+.reminders-when .field span { font-size: 14px; }
+.reminders-when input, .reminders-when select { min-height: 44px; font-size: 16px; }
+.reminders-when .quiet { min-height: 44px; }
+@media (max-width: 600px) { .reminders-item { grid-template-columns: 1fr; } }

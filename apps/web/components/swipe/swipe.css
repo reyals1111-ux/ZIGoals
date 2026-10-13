@@ -1,0 +1,21 @@
+/* S5: swipe actions on phones. The card slides with the finger; the right-swipe shows a nebula indicator that fills
+   toward the complete threshold; the left-swipe reveals the action row underneath. Reduced motion and Motion Off keep
+   the slide but drop every transition. Pointer-driven only on touch screens; buttons stay for everyone else. */
+.swipe-host { position: relative; touch-action: pan-y; }
+/* Only while a swipe is under way: at rest the row makes no stacking context and clips nothing, so a row's own menu can open over the rows below it. */
+.swipe-host:not([data-swipe="rest"]) { overflow: clip; }
+/* The row's own children slide together; the indicator and the action row are the two absolute siblings after them. */
+.swipe-host:not([data-swipe="rest"]) > :not(.swipe-indicator):not(.swipe-actions) { position: relative; z-index: 1; transform: translateX(var(--swipe-x, 0px)); transition: transform 180ms cubic-bezier(.2, .7, .3, 1); will-change: transform; }
+.swipe-host[data-swipe="dragging"] > :not(.swipe-indicator):not(.swipe-actions) { transition: none; }
+.swipe-host[data-swipe="completing"] > :not(.swipe-indicator):not(.swipe-actions) { transition: transform 240ms cubic-bezier(.2, .7, .3, 1), opacity 240ms ease; opacity: .35; }
+.swipe-host:not([data-swipe="dragging"]):not([data-swipe="completing"]) .swipe-indicator { visibility: hidden; } /* a revealed row shows its actions, never the indicator over them */
+.swipe-indicator { position: absolute; inset: 0 auto 0 0; width: 100%; display: flex; align-items: center; padding-left: 20px; gap: 10px; font-size: 15px; font-weight: 600; color: #0b1020; background: linear-gradient(90deg, #6fe6f6, #9e78ff 50%, #ed75df); opacity: var(--swipe-share, 0); border-radius: inherit; }
+.swipe-indicator i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #0b102033; font-style: normal; }
+.swipe-actions { position: absolute; inset: 0 0 0 auto; width: 168px; display: flex; align-items: stretch; justify-content: flex-end; gap: 4px; padding: 6px; background: #14102466; border-radius: inherit; }
+.swipe-actions button { flex: 1 1 0; min-width: 44px; min-height: 44px; border-radius: 12px; border: 1px solid #c3a8f93a; background: #1a142a; color: var(--text-strong); font: inherit; font-size: 14px; }
+.swipe-actions button.swipe-delete { color: #ffd9e3; border-color: #d88aa066; }
+.swipe-host:not([data-swipe="revealed"]):not([data-swipe="dragging"]) .swipe-actions { visibility: hidden; }
+.swipe-host[data-swipe="dragging"] .swipe-actions { visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .swipe-host > :not(.swipe-indicator):not(.swipe-actions) { transition: none !important; } }
+:root[data-app-motion=off] .swipe-host > :not(.swipe-indicator):not(.swipe-actions) { transition: none !important; }
+@media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) { .swipe-actions, .swipe-indicator { display: none; } .swipe-host > :not(.swipe-indicator):not(.swipe-actions) { transform: none !important; } }

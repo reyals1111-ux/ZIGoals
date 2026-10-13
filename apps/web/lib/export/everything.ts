@@ -25,6 +25,7 @@ import {TODAY_FOLDS_KEY} from '../today-folds';
 import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, ZIGI_KNOCK_KEY, ZIGI_REMINDERS_KEY} from '../ai/store/keys';
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
+import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from '../aa-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -59,7 +60,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AA-Cloud Parts 3–5: calculator scenarios, recent searches and the Life review's focus.
   calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
-  todayCards: TODAY_CARDS_KEY} as const;
+  todayCards: TODAY_CARDS_KEY,
+  // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
+  ...Object.fromEntries([...AA_PERSONAL_KEYS, ...AA_DISPLAY_KEYS].map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'habitExtras' | 'routineRun' | 'game' | 'healthCoach' | 'microTargets' | 'macroMode' | 'aisles' | 'measurementsCustom' | 'progressPhotos' | 'remindersPlan' | 'onboardingSetup', string>} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
@@ -212,7 +215,8 @@ export function collectEverything(texts: EverythingTexts, {now, version, commit,
  */
 export type ExportImage = {id: string; type: string; bytes: Uint8Array};
 export const visionFileName = (image: Pick<ExportImage, 'id' | 'type'>) => `vision/${image.id.replace(/[^A-Za-z0-9-]/g, '')}.${image.type === 'image/png' ? 'png' : image.type === 'image/webp' ? 'webp' : 'jpg'}`;
-export function buildEverythingZip(collected: Collected, {date, showcase, now, images = []}: {date: string; showcase: boolean; now: Date; images?: readonly ExportImage[]}): {name: string; bytes: Uint8Array} {
-  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now})), ...images.map(image => ({name: visionFileName(image), data: image.bytes, modified: now}))];
+export function buildEverythingZip(collected: Collected, {date, showcase, now, images = []}: {date: string; showcase: boolean; now: Date; images?: readonly ExportImage[]}, extra: readonly {name: string; data: Uint8Array | string; modified: Date}[] = []): {name: string; bytes: Uint8Array} {
+  // Session AA-Local (ADR-022 B7, B43): `extra` carries files that are not records, the progress photos (lib/health-aa/photos.ts); beside AA-Cloud's vision images.
+  const entries = [{name: 'everything.json', data: JSON.stringify(collected.json, null, 2), modified: now}, ...CSV_FILES.map(name => ({name, data: collected.csv[name], modified: now})), ...images.map(image => ({name: visionFileName(image), data: image.bytes, modified: now})), ...extra];
   return {name: exportFileName(`zigoals-export-${date}.zip`, showcase), bytes: buildStoredZip(entries)};
 }

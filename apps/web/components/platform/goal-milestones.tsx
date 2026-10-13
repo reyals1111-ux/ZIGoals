@@ -4,6 +4,10 @@ import type {Platform, PrivateGoal} from '../../lib/positions';
 import {parseAmountInput} from '../../lib/amount-input';
 import {visibleName} from '../../lib/visible-text';
 import {formatGoalAmount} from '../../lib/goal-summary';
+import {Suspense, lazy} from 'react';
+import {usePhoneActive} from '../phone/use-phone-layout';
+// Session AA-Local S5, wired here by the second merger (ADR-022 B53): on a phone a swipe right completes a milestone (a swipe never deletes); the swipe row is its own chunk, fetched on phones only, so Today's budget holds.
+const SwipeRow = lazy(() => import('../swipe/swipe-row').then(m => ({default: m.SwipeRow})));
 import {milestoneDateOf, milestoneMarks, milestoneNoteId, milestoneState, setMilestoneDate, type Milestone} from '../../lib/goals/milestones';
 import {MILESTONE_DATES} from '../../lib/goals/milestone-dates';
 import {CELEBRATIONS} from '../../lib/celebrations';
@@ -27,6 +31,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
   const states = goal.milestones.map(m => ({m, state: milestoneState(m, current), date: dates.loaded ? milestoneDateOf(dates.data, goal.id, m.id) : undefined}));
   const fresh = notes.loaded && !notes.unreadable ? states.filter(s => s.state !== 'open' && !notes.data.seen[milestoneNoteId(goal.id, s.m.id)]) : [];
   // Session X-Local Part 4: a milestone newly reached or done is a validated fact for ZIGi, signalled once per milestone.
+  const phone = usePhoneActive();
   const signalled = useRef(new Set<string>()), freshKey = fresh.map(s => milestoneNoteId(goal.id, s.m.id)).sort().join('|');
   useEffect(() => { for (const id of freshKey ? freshKey.split('|') : []) if (!signalled.current.has(id)) { signalled.current.add(id); zigiSignals.emitValidated('goal_milestone_reached'); } }, [freshKey]);
   const marks = milestoneMarks(goal), share = project ? (goal.milestones.length ? goal.milestones.filter(m => m.done).length / goal.milestones.length : 0) : Number(current * 10_000n / (BigInt(goal.target) || 1n)) / 10_000;
@@ -49,7 +54,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
       {project ? goal.milestones.map((m, i) => <i key={m.id} className="goal-milestone-mark" style={{left: `${((i + 1) / goal.milestones.length) * 100}%`}} data-done={m.done || undefined} />)
         : marks.map(k => <i key={k.id} className="goal-milestone-mark" style={{left: `${k.at * 100}%`}} data-done={current >= BigInt(goal.milestones.find(m => m.id === k.id)!.target!) || undefined} title={k.title} />)}
     </div>}
-    {states.length ? <ul className="goal-milestone-list">{states.map(({m, state, date}) => <li key={m.id}>
+    {states.length ? <ul className="goal-milestone-list">{states.map(({m, state, date}) => { const row = <>
       {editing === m.id ? <form className="platform-form goal-milestone-edit" aria-label={`Edit milestone ${m.title}`} onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')); const date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {id: x.id, title, done: x.done, ...(target ? {target} : {})} : x))); saveDate(m.id, date); setEditing(null); }); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the milestone.'); } }}>
         <label className="field">Milestone<input name="title" defaultValue={m.title} maxLength={100} required /></label>
         {!project && <label className="field">Value ({goal.asset}, optional)<input name="target" inputMode="decimal" defaultValue={m.target ? amount(m.target, goal.decimals) : ''} /></label>}
@@ -62,7 +67,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
         <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${date}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : ''].filter(Boolean).join(' · ')}</small>
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}
       </div>}
-    </li>)}</ul> : <p>No milestones yet.</p>}
+    </>; const done = () => void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done: true} : x)))); return phone ? <Suspense key={m.id} fallback={<li>{row}</li>}><SwipeRow as="li" label={m.title} nameRow={false} completeLabel="Done" onComplete={!closed && !m.done ? done : undefined}>{row}</SwipeRow></Suspense> : <li key={m.id}>{row}</li>; })}</ul> : <p>No milestones yet.</p>}
     {!closed && <form className="platform-form goal-milestone-add" aria-label="Add a milestone" onSubmit={e => { e.preventDefault(); const form = e.currentTarget, f = new FormData(form); try { const title = visibleName(String(f.get('title')).trim(), 'Name the milestone with at least one visible character.'), target = parseTarget(String(f.get('target') ?? '')), id = crypto.randomUUID(), date = String(f.get('date') ?? ''); void run(async () => { await update(s => withMilestones(s, goal.id, list => [...list, {id, title, done: false, ...(target ? {target} : {})}])); if (date) saveDate(id, date); form.reset(); }); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Check the milestone.'); } }}>
       <label className="field">New milestone<input name="title" maxLength={100} required /></label>
       {!project && <label className="field">Value ({goal.asset}, optional)<input name="target" inputMode="decimal" /></label>}

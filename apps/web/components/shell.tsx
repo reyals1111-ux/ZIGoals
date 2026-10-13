@@ -37,6 +37,7 @@ import { UndoToastHost } from "./ui/undo-toast";
 import { SearchButton, SearchHost } from "./search/search-trigger";
 import { ShortcutHost } from "./shortcut-host";
 import { AiLauncher } from "./ai/ai-launcher";
+import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged second (ADR-022 B52): the game cards and Journey's nav entry, once for every page
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
@@ -266,7 +267,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </section>
         )}
         <OfflineNotice />
-        <SearchHost/><ShortcutHost/><UndoToastHost />
+        <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
         <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
         <footer>
