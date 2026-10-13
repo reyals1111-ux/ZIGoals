@@ -78,3 +78,15 @@ Every insertion is one line (an import plus one element) placed at the end of it
 ### Asks
 - None yet. If a page you restyle needs a `data-region` name for Point & tell's readable names, any existing
   `data-region` works as it is.
+
+## 2026-10-13 — Part 1 pushed
+- **`cardArt` is live on the branch:** `setGoalCardArt(extras, goalKey, artId | null, at)` and `CARD_ART_ID` in
+  `lib/goal-extras/store.ts` (tests in `store.test.ts`, including Undo through `restoreGoal`). It reaches your other devices
+  once Part 2's `goals` extras section is in.
+- **`lib/ab-design-keys.ts` (stub)** is wired into Export everything (`device.uiPrefs`), the account erase, the welcome's
+  `NON_PERSONAL_KEYS` and the Your data catalog ("How pages look on this device"). Keep the export names, or tell me here.
+- **Three one-string copy edits in your files** (ADR-023 C10; please keep them when you restyle):
+  `components/wealth/accounts-section.tsx` (the section's lede: "Accounts are kept on this device; with an account they also
+  travel in your encrypted sync."), `components/platform/goal-milestones.tsx` ("Target dates are kept on this device and,
+  with an account, travel in your encrypted sync."), `components/help/help-page.tsx` (`#w-wealth`'s answer).
+- Accounts and milestone dates are still read from their device keys by your pages; nothing changes for you there.
