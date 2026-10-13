@@ -1,0 +1,80 @@
+# Handoff: Session AB-Cloud → Session AB-Design
+
+**AB-Cloud's branch:** `feature/session-ab-cloud` (base `main` `6c1052b2`, Alpha #39), in a cloud sandbox. Decisions:
+ADR-023. AB-Cloud never restyles a page; requests to AB-Design go here, and AB-Cloud reads
+`docs/handoff/AB_DESIGN_TO_CLOUD.md` on `origin/feature/session-ab-design` at every gate (A, B, C). Dated entries, newest
+last. Evidence labels as docs/STATUS.md.
+
+## Paths AB-Cloud owns (please don't edit; ask here)
+- **Sync and storage:** `apps/web/lib/vault/**`, the sync schemas, `apps/web/lib/goal-extras/**` (schema + mutators; the
+  visuals that read them are yours), `apps/web/lib/export/**`, every lib store this session moves into sync (the device
+  records listed in ADR-023 C4), the new `apps/web/lib/restore/**`, `apps/web/lib/point-tell/**`,
+  `apps/web/lib/showcase-copy.ts`, `apps/web/lib/image-header.ts`, `apps/web/lib/health-vitamins/**`.
+- **Workers, CI, scripts, docs:** `workers/**`, `.github/workflows/**`, `scripts/**`, `docs/**` (except your ADR-024, your
+  handoff and your verification folder).
+- **Settings → Sync** (`components/vault-sync-controls.tsx`, `components/vault-sync-panel.tsx`, the new
+  `components/sync/**`) and **Settings → Your data** (`app/app/settings/data/**`, `components/data-health/**`,
+  `lib/data-health/**`), the new **Restore** flow (`components/restore/**`) and the new **Point & tell** mode
+  (`components/point-tell/**`). You may restyle Restore and Point & tell later; please tell me here first.
+- **Records:** ADR-023, `docs/verification/ab-cloud/**`, this file, AB-Cloud's STATUS entry.
+
+## Shared files (whichever PR merges second carries both sides)
+docs/STATUS.md, What's new (`lib/whats-new*`, release id), Help (`components/help/help-page.tsx`), the search index
+(`lib/search/static.ts`), `scripts/weight-budgets.json`, the Your data catalog (`lib/data-health/catalog.ts`), the
+welcome's key lists (`lib/onboarding.ts`), Export everything's key lists (`lib/export/everything.ts`).
+
+## 2026-10-13 — opened (Part 0, within the first hour)
+
+### The early contract (Part 1; I announce here when it is pushed)
+1. **`cardArt` on a goal.** The goal-extras record (`zigoals:goal-extras:v1`, `lib/goal-extras/store.ts`) gains an
+   optional `cardArt` on each goal entry: an art id string, `/^[a-z0-9][a-z0-9-]{0,59}$/`. Loose and versioned like the
+   rest of the record: an id your renderer does not know is ignored (fall back to the default card), and a new version of
+   an art is a new id (for example `nebula-2`). The pure mutator:
+   ```ts
+   import {setGoalCardArt} from '../lib/goal-extras/store';
+   // extras: GoalExtras, goalKey: 'private:<id>' | 'legacy:<id>' | 'health:<id>' | 'average:<id>', at: ISO time
+   const next = setGoalCardArt(extras, goalKey, 'nebula-1', new Date().toISOString()); // null clears it
+   ```
+   Undo: call it through `components/goals/use-goal-extras.ts` → `change(goalKey, next, message)`, which already keeps
+   the entry as it was and restores it from the toast. `cardArt` syncs in the encrypted `goals` extras section (Part 2),
+   so a choice made on one device shows on the other.
+2. **Your device keys, never synced.** I wire `lib/ab-design-keys.ts` into Export everything, the account erase, the
+   welcome's key lists (`NON_PERSONAL_KEYS`) and the Your data catalog. Until your file is on `main` I keep a stub with
+   exactly this export (please keep these names, or tell me the new ones here):
+   ```ts
+   export const UI_PREFS_KEY = 'zigoals:ui-prefs:v1';
+   /** Display preferences with nothing personal in them: exported, erased with the account, never synced. */
+   export const AB_DESIGN_DISPLAY_KEYS: readonly string[] = [UI_PREFS_KEY];
+   ```
+   The second merger keeps your version of the file and drops my stub.
+3. **The Showcase's words** (owner edit 2): `lib/showcase-copy.ts` exports `SHOWCASE_CHIP` (a few words for the chip) and
+   `SHOWCASE_SHEET` (the longer explanation for the first-visit notice and the chip's sheet), both plain strings, plus
+   `SHOWCASE_FOOTER` (one line for the footer disclaimer). They say what the Showcase does exactly: fictional examples,
+   Load or Reset starts them fresh for today and clears anything added in the demo, Exit returns to your own data.
+   Pushed with Part 8; the exact strings will be here.
+
+### What will appear in your areas (each a new file + a one-line insertion; please keep both sides at merge)
+| Part | New component | One-line insertion in |
+|---|---|---|
+| 2 | `components/sync/extras-sync-choice.tsx` (the extras switch, the one-time note, "Remove from the cloud") | `components/vault-sync-panel.tsx` (mine) |
+| 4 | `components/health/vitamin-fields.tsx` (vitamin inputs on the food form) | `components/health/health-app.tsx` (food form) |
+| 4 | `components/health/vitamin-rows.tsx` (vitamin rows after the seven, with editable targets) | `components/health/micro-panel.tsx` |
+| 4 | vitamin totals in a recipe | `components/health/health-app.tsx` (recipe section) |
+| 5 | `components/restore/restore-backup.tsx` (Restore from a backup) | `components/data-health/data-health-view.tsx` (mine) |
+| 6 | `components/point-tell/*` (the pin button, the pins, the list panel) | `components/shell.tsx` (one lazy mount) and `app/app/settings/page.tsx` (the switch) |
+| 8 | the History Delete Undo | `components/ai/history-view.tsx` |
+Every insertion is one line (an import plus one element) placed at the end of its block, so a restyle around it keeps it.
+
+### Data shapes you may want for visuals
+- **Vitamins (Part 4)** — device key `zigoals:health-vitamins:v1`, synced in the `health` extras section (Health
+  consent): `{version: 1, foods?: {[foodId]: Vitamins}, entries?: {[diaryEntryId]: Vitamins}, targets?: Partial<Vitamins>}`
+  where `Vitamins = {aUg?, cMg?, dUg?, eMg?, kUg?, b12Ug?, folateUg?}` — integers in micro-units: `Ug` keys are
+  micrograms × 1000 (nanograms), `Mg` keys are milligrams × 1000 (micrograms). This keeps 2.4 µg of B12 an integer. Unknown
+  values are absent, never 0. The view helpers will be `vitaminDay(...)` (today's totals: total, known count, entries,
+  target, direction) like `microDay`.
+- **Extras sync state (Part 2)** for any status visual: `useExtrasSync()` → `{on, lastSyncedAt, sections: {goals|life|
+  habits|health: 'synced'|'pending'|'off'|'consent'}}`.
+
+### Asks
+- None yet. If a page you restyle needs a `data-region` name for Point & tell's readable names, any existing
+  `data-region` works as it is.
