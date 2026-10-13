@@ -7,6 +7,7 @@ import {MICRO_TARGETS, microDay, richIn, setMicroTarget, type MicroKey} from '..
 import {additionalNutrients, formatNutrient, type HealthData} from '../../lib/health';
 import {readFormNumber} from '../../lib/decimal-input';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
+import {VitaminRows} from './vitamin-rows';
 import './health-aa.css';
 
 /**
@@ -32,6 +33,7 @@ export function MicroPanel({data, date}: {data: HealthData; date: string}) {
     </li>; })}</ul>
     {error && <p role="alert">{error}</p>}
     <p className="fine">Default reference values, yours to edit; an entry without a value stays unknown, never zero. Not medical advice.</p>
+    <VitaminRows data={data} date={date} />
     <div className="health-rich"><h3>Which of my foods are high in…</h3><div className="health-rich-row" role="group" aria-label="Nutrient">{additionalNutrients.map(([key, label]) => <button type="button" key={key} className="quiet" aria-pressed={pick === key} onClick={() => setPick(key)}>{label}</button>)}</div>
       {rich.length ? <ol>{rich.map(f => <li key={f.id}>{f.name} <small>· {formatNutrient(f.mgPerServing / scaleOf(pick))} {additionalNutrients.find(([k]) => k === pick)![2]} {f.serving === 'per serving' ? 'per serving' : `per ${f.serving}`}{f.kind === 'recipe' ? ' · recipe' : ''}</small></li>)}</ol> : <p className="health-empty-inline">None of your foods carries a value for this yet. Add it on the food’s label.</p>}</div>
   </section>;

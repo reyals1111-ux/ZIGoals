@@ -19,6 +19,7 @@ import {Z_DISPLAY_KEYS, Z_PERSONAL_KEYS} from './z-device-keys';
 import {W_DISPLAY_KEYS, W_PERSONAL_KEYS} from './w-device-keys';
 import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from './aa-device-keys';
 import {AB_DESIGN_DISPLAY_KEYS} from './ab-design-keys';
+import {AB_CLOUD_PERSONAL_KEYS} from './ab-cloud-device-keys';
 // AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
 // each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
 const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
@@ -49,7 +50,9 @@ export function markOnboardingSeen(storage: Write | null | undefined): boolean {
  */
 export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HEALTH_GOALS_KEY, WEEKLY_REVIEW_KEY, FASTING_KEY, INSIGHTS_KEY, IMPORT_UNDO_KEY, PUSH_KEY, GUIDE_KEY, AI_SETTINGS_KEY, ...ZIGI_PERSONAL_KEYS, ...W_PERSONAL_KEYS, ...Z_PERSONAL_KEYS, ...AA_PERSONAL_KEYS,
   // Session AA-Cloud's five personal device keys (ADR-021; listed here by the second merger, ADR-022 B52).
-  GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY];
+  GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY,
+  // Session AB-Cloud's own (lib/ab-cloud-device-keys.ts): vitamins, Point & tell's notes.
+  ...AB_CLOUD_PERSONAL_KEYS];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as

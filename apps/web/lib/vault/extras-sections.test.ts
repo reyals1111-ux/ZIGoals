@@ -15,7 +15,7 @@ describe('extras sections', () => {
   });
   test('the four sections, in order, and only Health under the Health consent', () => {
     expect(EXTRAS_SECTIONS.map(s => [s.name, s.consent])).toEqual([['goals', 'account'], ['life', 'account'], ['habits', 'account'], ['health', 'health']]);
-    expect(EXTRAS_SECTIONS.find(s => s.name === 'health')!.records.map(r => r.spec.key)).toEqual(['zigoals:health-coach:v1', 'zigoals:micro-targets:v1', 'zigoals:macro-mode:v1', 'zigoals:aisles:v1', 'zigoals:measurements-custom:v1']);
+    expect(EXTRAS_SECTIONS.find(s => s.name === 'health')!.records.map(r => r.spec.key)).toEqual(['zigoals:health-coach:v1', 'zigoals:micro-targets:v1', 'zigoals:macro-mode:v1', 'zigoals:aisles:v1', 'zigoals:measurements-custom:v1', 'zigoals:health-vitamins:v1']);
   });
   test('never a synced module, the Portfolio, a photo, recent searches, the welcome\'s setup or AB-Design\'s display preferences', () => {
     for (const key of [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, PROGRESS_PHOTOS_KEY, SEARCH_RECENT_KEY, ONBOARDING_SETUP_KEY, UI_PREFS_KEY]) expect(EXTRAS_KEYS).not.toContain(key);

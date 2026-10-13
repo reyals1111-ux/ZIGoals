@@ -13,6 +13,7 @@ import {MICRO_TARGETS} from '../health-aa/micro';
 import {MACRO_MODE} from '../health-aa/macro-mode';
 import {AISLES_RECORD} from '../health-aa/aisles';
 import {MEASUREMENTS_CUSTOM} from '../health-aa/measurements-custom';
+import {HEALTH_VITAMINS} from '../health-vitamins/schema';
 
 /**
  * Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C4): what each encrypted extras section carries. Every record is a
@@ -33,7 +34,7 @@ export const EXTRAS_SECTIONS: readonly ExtrasSection[] = [
   {name: 'life', consent: 'account', records: [record(CALCULATOR), record(LIFE_REVIEW), record(TODAY_CARDS), record(REMINDERS_PLAN)]},
   {name: 'habits', consent: 'account', records: [record(HABIT_EXTRAS, ['folds']), record(ROUTINE_RUN), record(GAME)]},
   // Health-describing records travel only under the Health consent (SYNC_HOMES rule), never pre-ticked.
-  {name: 'health', consent: 'health', records: [record(HEALTH_COACH), record(MICRO_TARGETS), record(MACRO_MODE), record(AISLES_RECORD), record(MEASUREMENTS_CUSTOM)]},
+  {name: 'health', consent: 'health', records: [record(HEALTH_COACH), record(MICRO_TARGETS), record(MACRO_MODE), record(AISLES_RECORD), record(MEASUREMENTS_CUSTOM), record(HEALTH_VITAMINS)]},
 ];
 /** Every device key the extras carry: an edit to one schedules a sync, like a module edit. */
 export const EXTRAS_KEYS: readonly string[] = EXTRAS_SECTIONS.flatMap(s => s.records.map(r => r.spec.key));

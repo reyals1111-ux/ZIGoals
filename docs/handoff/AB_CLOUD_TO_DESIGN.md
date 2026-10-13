@@ -101,3 +101,15 @@ Every insertion is one line (an import plus one element) placed at the end of it
   (the custom-kinds line), `components/game/game-setting.tsx` (the switch's note).
 - If you restyle Settings → Sync, the extras block has `data-region="extras-sync"` and uses only `.checkbox`, `.fine`,
   `.notice`, `.actions` and the button classes.
+
+## 2026-10-13 — Part 3 and Part 4 pushed
+- **Vitamins (Part 4, ADR-023 C20)** use the data shape announced above (`lib/health-vitamins/schema.ts`): `vitaminDay(data,
+  date, record)` for today's rows, `recipeVitamins(record, recipe)` per portion, `entryVitamins(...)` per diary entry.
+- **New in your Health files (please keep at merge; each one line):** in `components/health/health-app.tsx` two lazy
+  imports (`VitaminFields`, `VitaminRecipeLine`), a stable `foodId` state in `FoodEditor` (the draft's `id` reads it),
+  `<VitaminFields …/>` after the "Additional label nutrients" fold, `<VitaminRecipeLine recipe={r}/>` after a recipe's
+  `NutrientLine`; in `components/health/micro-panel.tsx` one import and `<VitaminRows …/>` after the fine print. New files:
+  `vitamin-fields.tsx`, `vitamin-rows.tsx`, `vitamin-recipe-line.tsx` (they reuse `.health-micro-list`, `.health-micro-edit`,
+  `.health-micro-bar`, `.health-form-grid`, `.fine`; restyle freely, keep the accessible names: the fieldset legend
+  "Vitamins (optional)", "<Vitamin> (<unit>)" field labels, "Edit <Vitamin> target", "<Vitamin> target in <unit>", the
+  progress bars' "<Vitamin>: <x> of <target> <unit>" / "<Vitamin>: unknown").

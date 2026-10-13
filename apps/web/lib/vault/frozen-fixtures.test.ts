@@ -24,6 +24,7 @@ const FROZEN_READERS: Record<string, {module: string; spec: string}> = {
   'zigoals:health-coach:v1': {module: './health-aa/coach-schema', spec: 'HEALTH_COACH'}, 'zigoals:micro-targets:v1': {module: './health-aa/micro', spec: 'MICRO_TARGETS'},
   'zigoals:macro-mode:v1': {module: './health-aa/macro-mode', spec: 'MACRO_MODE'}, 'zigoals:aisles:v1': {module: './health-aa/aisles', spec: 'AISLES_RECORD'},
   'zigoals:measurements-custom:v1': {module: './health-aa/measurements-custom', spec: 'MEASUREMENTS_CUSTOM'},
+  'zigoals:health-vitamins:v1': {module: './health-vitamins/schema', spec: 'HEALTH_VITAMINS'},
 };
 export function frozenFixture() {
   const v4 = platformSchema.parse({...financeV4(), goals: financeV4().goals.map(g => ({...g, milestones: [{id: 'm1', title: 'Flights booked', done: false, target: '150000'}]}))});

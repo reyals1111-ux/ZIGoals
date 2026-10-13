@@ -27,6 +27,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   measurementsCustom: ['Custom measurement kinds', 'Health'], progressPhotos: ['Progress photo index', 'Health'], remindersPlan: ['The reminders plan and quiet hours', 'Today'], onboardingSetup: ['The welcome\'s setup (for Undo)', 'Today'],
   // Session AB-Design's display preferences (ADR-023 C8).
   uiPrefs: ['How pages look on this device', 'Settings'],
+  // Session AB-Cloud's own (lib/ab-cloud-device-keys.ts).
+  healthVitamins: ['Vitamins of your foods and their targets', 'Health'], pointTell: ['Point & tell notes', 'Settings'],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
@@ -39,7 +41,7 @@ export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home
   goalExtras: {home: 'sync', area: 'Goals'}, averageGoals: {home: 'sync', area: 'Goals'},
   calculator: {home: 'sync', area: 'Wealth'}, lifeReview: {home: 'sync', area: 'Life review'}, todayCards: {home: 'sync', area: 'Today'}, remindersPlan: {home: 'sync', area: 'Today'},
   habitExtras: {home: 'sync', area: 'Habits'}, routineRun: {home: 'sync', area: 'Habits'}, game: {home: 'sync', area: 'Journey'},
-  healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'},
+  healthCoach: {home: 'sync-consent', area: 'Health'}, microTargets: {home: 'sync-consent', area: 'Health'}, macroMode: {home: 'sync-consent', area: 'Health'}, aisles: {home: 'sync-consent', area: 'Health'}, measurementsCustom: {home: 'sync-consent', area: 'Health'}, healthVitamins: {home: 'sync-consent', area: 'Health'},
 };
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [
