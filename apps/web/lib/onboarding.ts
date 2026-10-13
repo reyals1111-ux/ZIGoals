@@ -14,6 +14,7 @@ import {PUSH_KEY} from './push/client';
 import {GUIDE_KEY} from './coach/schema';
 import {AI_SETTINGS_KEY} from './ai/launcher-record';
 import {TODAY_FOLDS_KEY} from './today-folds';
+import {AB_DISPLAY_KEYS} from './ab-design-keys';
 import {ZIGI_DISPLAY_KEYS, ZIGI_PERSONAL_KEYS} from './ai/store/keys';
 import {Z_DISPLAY_KEYS, Z_PERSONAL_KEYS} from './z-device-keys';
 import {W_DISPLAY_KEYS, W_PERSONAL_KEYS} from './w-device-keys';
@@ -54,7 +55,7 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
  * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
  */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DISPLAY_KEYS];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are

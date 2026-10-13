@@ -26,6 +26,7 @@ import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, Z
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
 import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from '../aa-device-keys';
+import {UI_PREFS_KEY} from '../ab-design-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -61,6 +62,8 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
+  // Session AB-Design (ADR-024 D4): the UI upgrade's display preferences (lib/ab-design-keys.ts).
+  uiPrefs: UI_PREFS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
   ...Object.fromEntries([...AA_PERSONAL_KEYS, ...AA_DISPLAY_KEYS].map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'habitExtras' | 'routineRun' | 'game' | 'healthCoach' | 'microTargets' | 'macroMode' | 'aisles' | 'measurementsCustom' | 'progressPhotos' | 'remindersPlan' | 'onboardingSetup', string>} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
