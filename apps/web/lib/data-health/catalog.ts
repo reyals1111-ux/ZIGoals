@@ -28,15 +28,24 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AB-Design's display preferences (ADR-023 C8).
   uiPrefs: ['How pages look on this device', 'Settings'],
 };
+/**
+ * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
+ * reads them there) and their synced copy lives in the home named here: accounts and milestone dates inside finance v5
+ * (Part 1, C6).
+ */
+export const DEVICE_SYNCED: Partial<Record<keyof typeof DEVICE_KEYS, {home: Home; area: string}>> = {
+  accounts: {home: 'sync', area: 'Goals & Wealth'}, milestoneDates: {home: 'sync', area: 'Goals & Wealth'},
+};
 const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
 export const SYNCED: readonly CatalogEntry[] = [
   {key: MODULE_KEYS.finance, label: 'Goals, Wealth and contributions', home: 'sync', area: 'Goals & Wealth'},
   {key: MODULE_KEYS.habits, label: 'Habits and check-ins', home: 'sync', area: 'Habits'},
   {key: MODULE_KEYS.settings, label: 'Today\'s layout, widgets and settings', home: 'sync', area: 'Today'},
   {key: MODULE_KEYS.health, label: 'Health journal (food, water, activity, sleep, weight)', home: 'sync-consent', area: 'Health'},
+  ...DEVICE_NAMES.filter(name => DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: DEVICE_SYNCED[name]!.home, area: DEVICE_SYNCED[name]!.area})),
 ];
 export const DEVICE_ONLY: readonly CatalogEntry[] = [
-  ...DEVICE_NAMES.map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
+  ...DEVICE_NAMES.filter(name => !DEVICE_SYNCED[name]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */

@@ -42,8 +42,8 @@ Every genuinely new record type lives in its own versioned key through `getAppSt
 
 | Key | Written by | Personal | Synced home |
 |---|---|---|---|
-| `zigoals:accounts:v1` | Wealth → accounts and debts (Part 12) | yes | finance v5 `accounts` (read support only; a later switch PR moves it) |
-| `zigoals:milestone-dates:v1` | Goals → milestone target dates (Part 11) | yes | finance v5 milestone `targetDate` (same) |
+| `zigoals:accounts:v1` | Wealth → accounts and debts (Part 12) | yes | finance v5 `accounts`: written since Session AB-Cloud Part 1 (the finance-homes switch, ADR-023 C6), the device key kept in step both ways and still what Wealth reads |
+| `zigoals:milestone-dates:v1` | Goals → milestone target dates (Part 11) | yes | finance v5 milestone `targetDate` (same switch) |
 | `zigoals:import-batches:v1` | Settings → Import (Part 7): what each import created, for "Undo this import" | yes | stays device-only (an undo ledger, like `import-undo`) |
 | `zigoals:w-reminders:v1` | wind-down, meditation, chained and plan reminders (Parts 4, 5, 10, 12) | yes | stays device-only (like reminders) |
 | `zigoals:chess-cache:v1` | Chess (Part 14): rating snapshots, recent games, ETags | yes (the person's username's public data) | stays device-only (a cache) |

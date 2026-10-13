@@ -28,6 +28,8 @@ import { formatTime } from '../lib/visual-format';
 import type {PortfolioStatus} from './portfolio-sync-choice';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
 import {choosePortfolioSync,deletePortfolioCopy,portfolioSyncChosen,portfolioTransport,syncPortfolio} from '../lib/vault/portfolio-sync';
+import {reconcileFinanceHomesNow,FINANCE_HOMES_DEVICE_KEYS} from '../lib/finance-homes-store';
+import {ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
 type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|null};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
@@ -196,6 +198,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');if(selected.health!==healthPermission)throw Error('Health permission changed. Sync paused; local records were preserved.');};
   await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{
    fence();setMessage('Syncing encrypted account records…');const storage=getAppStorage(),domains:Domain[]=['finance','habits','settings',...(selected.health?['health' as const]:[])];
+   // Session AB-Cloud Part 1 (ADR-023 C6): accounts and milestone dates into their finance v5 homes before the capture;
+   // a failure leaves them on this device for the next sync and never stops the sync itself.
+   await reconcileFinanceHomesNow(storage).catch(()=>{});fence();
    const capturedPending=(await localDatabase.pending(`account:${selected.account}`)).filter(p=>domains.some(d=>modules[d].key===p.domain));
    const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);
    fence();try{await applyData(storage,local,result.data,fence);}catch(error){
@@ -203,6 +208,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
     // conflict, so automatic sync stays on and one follow-up uploads the newer edit.
     if(!(error instanceof LocalRecordsChangedDuringSync))throw error;fence();followUp.current=true;auto.current=true;setMessage('Newer local edits found. Syncing them next…');return;}
    await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(formatTime(new Date()));setMessage('Account records synced and acknowledged.');auto.current=true;
+   // …and what another device synced into finance back into this device's keys (ADR-023 C6).
+   await reconcileFinanceHomesNow(storage).catch(()=>{});fence();
    // Session U Part 9 (ADR-013): the opt-in Portfolio copy, after the four sections and under the same lock. Its own
    // outcome is shown beside its choice; a Portfolio failure never undoes or pauses the account sync above.
    if(SYNC_WRITES&&portfolioSyncChosen(storage))await runPortfolio(selected,fence);
@@ -363,6 +370,8 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
   const edited=()=>{if(syncing.current&&!isSyncedChangeEvent()){followUp.current=true;return;}schedule();};
+  // A device record with a synced home changed (accounts, milestone dates; ADR-023 C6): sync it like a module edit.
+  const homeEdited=(event:Event)=>{const key=(event as CustomEvent<string>).detail;if(!(FINANCE_HOMES_DEVICE_KEYS as readonly string[]).includes(key))return;if(syncing.current){followUp.current=true;return;}schedule();};
   const activity=()=>{idle.current=Date.now();};
   // After 15 minutes without interaction the vault locks, except on a remembered device whose record is still stored (M1 c).
   let idleCheck=false;
@@ -372,11 +381,11 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    return;
   }schedule();},30000);
   const focused=()=>{void reopenRef.current('focus');},shown=()=>{if(!document.hidden)void reopenRef.current('focus');};
-  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',edited);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
+  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',edited);window.addEventListener(ZIGI_STORE_EVENT,homeEdited);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
   window.addEventListener('focus',focused);document.addEventListener('visibilitychange',shown);
   if(!isShowcase())void readDevices().then(records=>{if(records.length)setRemembered(true);},()=>{});
   void reopenRef.current('load');
-  return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
+  return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener(ZIGI_STORE_EVENT,homeEdited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
  },[]);
  return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud}}>{children}</Context.Provider>;
 }

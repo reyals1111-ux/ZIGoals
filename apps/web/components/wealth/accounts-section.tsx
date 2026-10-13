@@ -18,7 +18,7 @@ import './accounts.css';
  * entered on a date, per account in its own currency; net worth is assets plus Wealth's valued holdings minus debts,
  * per currency, never converted; an account without a balance or a holding without a value is counted, never zero.
  * A debt's payoff date appears only with the person's own rate and a monthly payment. Nothing here links a bank or
- * moves money. Kept on this device (`zigoals:accounts:v1`) until account sync carries it.
+ * moves money. Kept on this device (`zigoals:accounts:v1`); with an account, its synced copy is finance v5 `accounts` (Session AB-Cloud, ADR-023 C6).
  */
 export const KIND_LABEL: Record<AccountKind, string> = {cash: 'Cash', savings: 'Savings', investment: 'Investment', pension: 'Pension', property: 'Property', vehicle: 'Vehicle', 'other-asset': 'Other asset', loan: 'Loan', mortgage: 'Mortgage', 'credit-card': 'Credit card', 'other-debt': 'Other debt'};
 const show = (m: Money, currency: string) => formatGoalAmount(moneyText(m), currency);
@@ -53,7 +53,7 @@ export function AccountsSection(layout: LayoutAttrs) {
   const items = accounts.data.items, worth = netWorth(accounts.data, today, platform.data.positions), history = netWorthHistory(accounts.data, today);
   const active = items.filter(a => !a.archivedAt), archived = items.filter(a => a.archivedAt);
   return <section {...layout} className="panel accounts-section" aria-labelledby="accounts-title">
-    <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts stay on this device until account sync carries them.</p></div>
+    <header className="wealth-section-heading"><div><p className="eyebrow">EVERYTHING YOU OWN AND OWE</p><h2 id="accounts-title">Accounts, debts &amp; net worth</h2><p>Balances you enter, per account in its own currency. Accounts are kept on this device; with an account they also travel in your encrypted sync.</p></div>
       <button type="button" className="secondary" aria-expanded={adding} onClick={() => { setAdding(o => !o); setMessage(''); setError(''); }}>{adding ? 'Close' : 'Add an account or debt'}</button></header>
     {adding && <AddAccount onAdd={(input, words) => { if (change(g => addAccount(g, input, new Date().toISOString()), words)) setAdding(false); }} today={today} />}
     {worth.rows.length > 0 && <div className="accounts-worth" role="group" aria-label="Net worth by currency">

@@ -1,3 +1,4 @@
+import {mergeFinanceTexts} from './finance-homes';
 import {HEALTH_V4_GROUPS,healthSchema} from '../health';
 import {SETTINGS_V3_GROUPS} from '../dashboard-settings';
 import {dailyData} from '../health-daily';
@@ -180,7 +181,11 @@ function reconcileStamped(base:unknown,local:unknown,remote:unknown,groups:reado
 export function mergePrivateData(base:PrivateData,local:PrivateData,remote:PrivateData):PrivateData{
  const result:PrivateData={};for(const domain of DOMAINS){if(local[domain]===undefined){if(remote[domain]!==undefined)result[domain]=remote[domain];continue;}
   const b=base[domain],l=local[domain],r=remote[domain];if(r===undefined){result[domain]=l;continue;}if(b===undefined){if(l!==r)throw Error('Unlinked local and cloud records differ. Export both before choosing what to keep.');result[domain]=r;continue;}
-  if(domain==='finance'){if(l!==b&&r!==b&&l!==r)throw Error('Conflicting financial changes. Local and cloud evidence remain separate; export both before reconciling.');result[domain]=l===b?r:l;}
+  if(domain==='finance'){if(l!==b&&r!==b&&l!==r){
+   // Session AB-Cloud Part 1 (ADR-023 C6): finance v5's homes (accounts, milestone dates) settle on their own, like Session W's
+   // stamped groups; any other both-sides change is refused exactly as before.
+   const merged=mergeFinanceTexts(b,l,r);if(merged===null)throw Error('Conflicting financial changes. Local and cloud evidence remain separate; export both before reconciling.');result[domain]=merged;}
+  else result[domain]=l===b?r:l;}
   else {const parsed=[b,l,r].map(v=>JSON.parse(v));reconcileVersions(parsed[0],parsed[1],parsed[2]);if(domain==='health'){reconcileHealthReceipts(parsed[0],parsed[1],parsed[2]);reconcileAutoCheckIns(parsed[0],parsed[1],parsed[2]);}if(domain==='settings'){reconcileWeeklyReviews(parsed[0],parsed[1],parsed[2]);reconcileChessMarkers(parsed[0],parsed[1],parsed[2]);}reconcileStamped(parsed[0],parsed[1],parsed[2],STAMPED_GROUPS[domain]??[]);result[domain]=JSON.stringify(mergeValue(parsed[0],parsed[1],parsed[2],domain));}
  }return result;
 }

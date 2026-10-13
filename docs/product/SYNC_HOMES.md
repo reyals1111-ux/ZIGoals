@@ -241,3 +241,29 @@ preferences — `zigoals:music:v1`, `zigoals:pages-view:v1`. Sign-in tokens of l
 Tests: `lib/vault/w-formats.test.ts` (new reads new, old refuses new in storage, backups and sync, lazy raises, never
 down, the merge rules, the sync recovery copy), `lib/vault/schema-snapshot.test.ts` (no frozen format edited in place;
 the six frozen digests equal main `1063765`), `lib/w-device-records.test.ts`, `lib/export/w-export.test.ts`.
+
+## The finance-homes switch (Session AB-Cloud Part 1, 2026-10-13; ADR-023 C6, `[TIER 3] (data formats / sync)`)
+Session W's "later switch PR". Seven days after the W deploy (#32, 2026-10-07) have passed and the Alpha's rollback target
+is #38 (after W), so finance v5 is now written:
+- **Where:** accounts and debts in finance v5 `accounts`; a milestone's target date in its `targetDate`
+  (`lib/vault/finance-homes.ts`). Finance becomes v5 only when it first holds an account or a date (lazy, like Session W's
+  groups); it never goes back down, and the replaced v4 record is kept as a recovery copy.
+- **The device keys stay what the pages read and write.** Unlike Session P's homes, `zigoals:accounts:v1` and
+  `zigoals:milestone-dates:v1` are still Wealth's and a Goal's own records; account sync keeps them and finance in step
+  in both directions (`lib/finance-homes-store.ts`, before each capture and after each apply) by a three-way reconcile
+  against the state both last held (the marker `zigoals:finance-homes:v1`, on this device): only one side changed → it
+  wins; both changed → an account settles by its later `updatedAt` (equal: a fixed order of the two texts), a date by the
+  later date, and an account edited on one side and removed on the other is kept. A device key edited while a reconcile
+  runs is never overwritten (its bytes are compared before the write; the next run reconciles it). A milestone date whose
+  milestone finance does not hold stays on the device.
+- **Two devices that both changed finance:** account sync settles the two homes on their own (Session W S4's stamped-group
+  rule, now also for finance v5's groups), so two phones editing accounts never stop sync; any other change on both sides
+  is still refused with "Conflicting financial changes", exactly as before (`mergeFinanceTexts`).
+- **Rollback (owner-approved, 2026-10-13):** the floor becomes **#32**, the first build that reads finance v5. #32–#39 read
+  v5 and keep it at v5 with its accounts and dates (frozen readers against #37, #38 and #39:
+  `docs/verification/ab-cloud/frozen-readers-part1.txt`); they show accounts and dates from the device keys, which stay
+  current, and what they edit there is carried into finance by the next reconcile after the roll-forward. Builds #29–#31
+  refuse finance v5 (Goals, Wealth, Staking and Activity unreadable there until the roll-forward; bytes and recovery copies
+  kept), so the Alpha must never be rolled back below #32 from now on.
+- **Local Demo and Showcase:** the reconcile runs only inside account sync, so a space that never syncs keeps finance as it
+  was (no v5 raise in the Showcase or the Local Demo).
