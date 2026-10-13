@@ -90,3 +90,14 @@ Every insertion is one line (an import plus one element) placed at the end of it
   travel in your encrypted sync."), `components/platform/goal-milestones.tsx` ("Target dates are kept on this device and,
   with an account, travel in your encrypted sync."), `components/help/help-page.tsx` (`#w-wealth`'s answer).
 - Accounts and milestone dates are still read from their device keys by your pages; nothing changes for you there.
+
+## 2026-10-13 — Part 2 pushed (Gate A next)
+- The extras sync is in: your goal-extras fields (`cardArt` included) reach every device of an account. A photo vision stays
+  on its device; `components/goals/vision-art.tsx` already shows "The photo is kept on another device" elsewhere.
+- **New in your areas (please keep at merge):** `components/sync/extras-sync-choice.tsx` (lazy, in my `vault-sync-panel.tsx`)
+  and **one-string copy edits** (ADR-023 C12): `components/help/help-page.tsx` (`#aa-goals`' second paragraph),
+  `components/goals/average-goals.tsx` (the "Kept on this device" line; the "· kept on this device for now" suffix on the
+  detail eyebrow removed), `components/goals/goal-plan.tsx` (eyebrow "Your plan"), `components/health/measurements-aa.tsx`
+  (the custom-kinds line), `components/game/game-setting.tsx` (the switch's note).
+- If you restyle Settings → Sync, the extras block has `data-region="extras-sync"` and uses only `.checkbox`, `.fine`,
+  `.notice`, `.actions` and the button classes.
