@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {readDeviceRecord} from '../device-record';
-import {GOAL_EXTRAS, GOAL_EXTRAS_KEY, addCustomArea, ancestorsOf, areasOf, childrenOf, emptyGoalExtras, goalExtrasSchema, liveParent, moveGoalExtras, reconcileGoalExtras, removeCustomArea, setGoalArea, setGoalParent, setGoalReasons, setGoalStory, setGoalVision} from './store';
+import {GOAL_EXTRAS, GOAL_EXTRAS_KEY, addCustomArea, ancestorsOf, areasOf, childrenOf, emptyGoalExtras, goalExtrasSchema, liveParent, moveGoalExtras, reconcileGoalExtras, removeCustomArea, setGoalArea, setGoalParent, setGoalReasons, setGoalStory, setGoalVision, setGoalCardArt} from './store';
 
 const at = '2026-10-11T12:00:00.000Z';
 const mem = (raw: string | null) => ({getItem: (k: string) => (k === GOAL_EXTRAS_KEY ? raw : null)});
@@ -93,5 +93,29 @@ describe('goal extras (Session AA-Cloud Part 2, device-only)', () => {
   it('the stored bytes parse under the schema (round trip)', () => {
     const x = setGoalArea(emptyGoalExtras(), 'average:sleep', 'health', at);
     expect(goalExtrasSchema.parse(JSON.parse(JSON.stringify(x)))).toEqual(x);
+  });
+});
+
+describe('cardArt (Session AB-Cloud, ADR-023 C7: AB-Design\'s contract)', () => {
+  const at = '2026-10-13T08:00:00.000Z', later = '2026-10-13T09:00:00.000Z';
+  it('sets and clears an art id; other fields stay; a malformed id is refused with nothing changed', () => {
+    const base = setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'Sea'}, at);
+    const set = setGoalCardArt(base, 'private:1', 'nebula-1', later);
+    expect(set.goals['private:1']).toEqual({why: 'Sea', cardArt: 'nebula-1', updatedAt: later});
+    expect(setGoalCardArt(set, 'private:1', null, later).goals['private:1']).toEqual({why: 'Sea', updatedAt: later});
+    for (const bad of ['Nebula', 'nebula 1', '-x', 'a'.repeat(61), '']) expect(() => setGoalCardArt(set, 'private:1', bad, later)).toThrow('That card art is not available.');
+    // Clearing the only field removes the entry, as every other field does.
+    expect(setGoalCardArt(setGoalCardArt(emptyGoalExtras(), 'private:2', 'aurora-2', at), 'private:2', null, later).goals['private:2']).toBeUndefined();
+  });
+  it('an id this build does not know is kept and read (readers ignore it); a record without cardArt reads as before', () => {
+    const raw = {version: 1, areas: [], goals: {'private:1': {cardArt: 'future-art-9', area: 'fun'}}};
+    expect(goalExtrasSchema.parse(raw).goals['private:1']!.cardArt).toBe('future-art-9');
+    expect(goalExtrasSchema.parse({version: 1, areas: [], goals: {'private:1': {area: 'fun'}}}).goals['private:1']!.cardArt).toBeUndefined();
+  });
+  it('Undo restores the entry exactly as it was (the hook\'s restoreGoal)', async () => {
+    const {restoreGoal} = await import('../../components/goals/use-goal-extras');
+    const before = setGoalCardArt(emptyGoalExtras(), 'private:1', 'nebula-1', at), after = setGoalCardArt(before, 'private:1', 'ember-2', later);
+    expect(restoreGoal(after, 'private:1', before.goals['private:1'])).toEqual(before);
+    expect(restoreGoal(setGoalCardArt(emptyGoalExtras(), 'private:3', 'x', at), 'private:3', undefined).goals['private:3']).toBeUndefined();
   });
 });
