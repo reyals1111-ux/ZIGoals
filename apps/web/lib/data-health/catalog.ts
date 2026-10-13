@@ -9,12 +9,7 @@ import {PORTFOLIO_KEY} from '../portfolio/schema';
  */
 export type Home = 'sync' | 'sync-consent' | 'device';
 export type CatalogEntry = {key: string; label: string; home: Home; area: string};
-export const SYNCED: readonly CatalogEntry[] = [
-  {key: MODULE_KEYS.finance, label: 'Goals, Wealth and contributions', home: 'sync', area: 'Goals & Wealth'},
-  {key: MODULE_KEYS.habits, label: 'Habits and check-ins', home: 'sync', area: 'Habits'},
-  {key: MODULE_KEYS.settings, label: 'Today\'s layout, widgets and settings', home: 'sync', area: 'Today'},
-  {key: MODULE_KEYS.health, label: 'Health journal (food, water, activity, sleep, weight)', home: 'sync-consent', area: 'Health'},
-];
+
 const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: string]> = {
   reminders: ['Reminders', 'Today'], habitHealthLinks: ['Habits counted from Health', 'Habits'], healthGoals: ['Health goals', 'Health'], weeklyReview: ['Weekly reflections (your words)', 'Life review'],
   fasting: ['Fasting', 'Health'], insights: ['Insights you dismissed', 'Today'], importUndo: ['Import undo history', 'Wealth'], push: ['Push reminder choices', 'Today'], guide: ['The Guide\'s choices', 'Today'],
@@ -30,9 +25,18 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   habitExtras: ['Habit extras: areas, quit costs, bells, folds', 'Habits'], routineRun: ['A routine in progress', 'Habits'], game: ['The game layer: XP, quests, badges, freezes', 'Journey'],
   healthCoach: ['The weekly coach\'s answers', 'Health'], microTargets: ['Micronutrient targets', 'Health'], macroMode: ['How macros are shown', 'Health'], aisles: ['Grocery aisles', 'Health'],
   measurementsCustom: ['Custom measurement kinds', 'Health'], progressPhotos: ['Progress photo index', 'Health'], remindersPlan: ['The reminders plan and quiet hours', 'Today'], onboardingSetup: ['The welcome\'s setup (for Undo)', 'Today'],
+  // Session AB-Design's display preferences (ADR-023 C8).
+  uiPrefs: ['How pages look on this device', 'Settings'],
 };
+const DEVICE_NAMES = Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[];
+export const SYNCED: readonly CatalogEntry[] = [
+  {key: MODULE_KEYS.finance, label: 'Goals, Wealth and contributions', home: 'sync', area: 'Goals & Wealth'},
+  {key: MODULE_KEYS.habits, label: 'Habits and check-ins', home: 'sync', area: 'Habits'},
+  {key: MODULE_KEYS.settings, label: 'Today\'s layout, widgets and settings', home: 'sync', area: 'Today'},
+  {key: MODULE_KEYS.health, label: 'Health journal (food, water, activity, sleep, weight)', home: 'sync-consent', area: 'Health'},
+];
 export const DEVICE_ONLY: readonly CatalogEntry[] = [
-  ...(Object.keys(DEVICE_KEYS) as (keyof typeof DEVICE_KEYS)[]).map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
+  ...DEVICE_NAMES.map((name): CatalogEntry => ({key: DEVICE_KEYS[name], label: DEVICE_LABELS[name][0], home: 'device', area: DEVICE_LABELS[name][1]})),
   {key: PORTFOLIO_KEY, label: 'Portfolio records', home: 'device', area: 'Portfolio'},
 ];
 /** Kept on the device outside the key list: vision photos (IndexedDB) and ZIGi's conversations. */
