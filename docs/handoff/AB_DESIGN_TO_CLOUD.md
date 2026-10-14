@@ -48,3 +48,42 @@ one line, announce it here, and the second merger keeps both sides.
 - `lib/export/everything.ts` `DEVICE_KEYS` and `lib/data-health/catalog.ts` `DEVICE_LABELS`: `uiPrefs` / "Display preferences".
 - `lib/whats-new.ts`, Help answers, `scripts/weight-budgets.json` (never raised), `lib/search/static.ts`: carried by whichever
   PR merges second, with a merge commit.
+
+## 2026-10-14 — Part 1 (the shell)
+- Done on my side: the compact Alpha notice, the Showcase chip (landmark still "Showcase data"), the footer banner with the
+  disclaimer line (`.site-footer .alpha-disclaimer`; the `.network-banner` and `.mode-strip` spans keep your verifier's
+  selectors and sentences), five phone tabs with More in the top bar; Settings has no icon of its own in the phone top
+  bar (owner decision D2, kept by the owner's follow-up).
+- **Please retarget (your lane, scripts/**):** on phones (390 px) your journeys open Settings as a visible link —
+  `scripts/run10/account-browser.test.mjs` (lines 81, 88, 98, …: `getByRole('link',{name:'Settings',exact:true}).first()`),
+  `scripts/run11/account-switch-browser.test.mjs`, `scripts/run11/packaged-runtime.test.mjs`,
+  `scripts/run11/packaged-consumer-journey.mjs`, and `scripts/verify-hosted-alpha.mjs` where it does the same. Settings is now
+  a row of the More sheet: open More first (`page.getByRole('button',{name:'More',exact:true})`, then the link inside
+  `getByRole('dialog',{name:'More'})`), or go to `/app/settings` directly. The desktop sidebar is unchanged. Until you
+  retarget, those phone steps would fail against my branch's build; the second merger carries whichever lands last.
+- Shared one-liners applied (please keep at the merge): `lib/onboarding.ts` NON_PERSONAL_KEYS, `lib/export/everything.ts`
+  DEVICE_KEYS (`uiPrefs`), `lib/data-health/catalog.ts` DEVICE_LABELS.
+- Still open from you: items 1 (card art), 2 (Showcase wording), 4 (base currency), 5 (vitamins).
+
+## 2026-10-14 — Parts 2–3 (Today, Goals)
+- Card art (item 1): built on my side as a read-only mirror (`lib/card-art/mirror.ts` reads `goals[key].cardArt` from
+  `zigoals:goal-extras:v1`'s bytes; the catalogue is `lib/card-art/catalog.ts`, fifteen ids). The picker's Save is
+  "Soon" until your `setGoalCardArt(goalKey, artId | null)` lands; the one-line switch is in `lib/card-art/save.ts`.
+  Please define `cardArt` as an optional string on `goalExtraSchema` (any string is fine; I validate against the catalogue).
+- The Showcase's card arts and vision pictures are keyed by goal id outside the extras record (`lib/showcase/card-art.ts`,
+  `lib/showcase/vision-art.ts`), so your `showcaseGoalExtras` needs no change.
+- Shared one-liners: `lib/search/static.ts` (two Help entries: `z-status` reworded, `z-alpha` new).
+
+## 2026-10-14 — Parts 4–6 (Habits, Health, Wealth)
+- Base currency (item 4): `useBaseCurrency()` in `components/platform/wealth-total.tsx` reads ui-prefs' `baseCurrency` and
+  falls back to USD; when your `defaultCurrency()` lands, the fallback becomes it (one line there).
+- `lib/wealth.ts`: `WealthHistory.points[].classes` (derived per asset class) feeds the new chart; nothing stored changes.
+- `lib/wealth-total.ts`: `splitWealthTotals(subtotals, base?)` gained the optional base; callers without it behave as before.
+
+## 2026-10-14 — Part 7 (identity, Journey, polish)
+- Nothing new is asked of you. Shared one-liners this part: none. `lib/routines/templates.ts` renames the "Stretch"
+  template to "Morning stretch" (a template title, not a stored record); `components/platform/asset-quantity.ts` only
+  renders a metal's quantity as "2 troy ounces of Gold" — the stored asset name and denom are untouched.
+- Still open from you: items 1 (card art), 2 (Showcase wording — my chip now reads "Fictional records for <date>. Exit
+  returns to your own data; Load again resets the Showcase."), 4 (base currency), 5 (vitamins — request 33 was not built
+  this run, so no reader is needed yet).
