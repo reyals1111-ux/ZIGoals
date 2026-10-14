@@ -11,3 +11,5 @@
 .health-water,.health-weight-overview,.health-activity-overview{position:relative}.health-water>.pin-to-today,.health-weight-overview>.pin-to-today,.health-activity-overview>.pin-to-today{position:absolute;top:1rem;right:1rem}
 .wealth-hero-total{position:relative}.wealth-hero-total>.pin-to-today{position:absolute;top:.3rem;right:.3rem}
 .nutrition-trend,.wealth-history{position:relative}.nutrition-trend>.pin-to-today,.wealth-history>.pin-to-today{position:absolute;top:1rem;right:1rem}.nutrition-trend>header,.wealth-history>.wealth-section-heading{padding-right:3rem}
+/* Session AB-Design Phase 2: an open menu rises above every other card's ⋯ (each .card-options is its own stacking context). */
+.card-options:has(> .card-options-panel){z-index:40}

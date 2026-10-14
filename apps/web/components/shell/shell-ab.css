@@ -11,7 +11,7 @@
 .showcase-chip-button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 11px 0 9px; border-radius: 999px; border: 1px solid #f0a7ff55; background: linear-gradient(120deg, #2a1545d9, #140d2ed9); color: #f3c9ff; font-size: 13px; font-weight: 650; letter-spacing: .04em; cursor: pointer; }
 .showcase-chip-button:hover, .showcase-chip-button:focus-visible, .showcase-chip-button[aria-expanded="true"] { border-color: #f0a7ffaa; color: #fff; }
 .showcase-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand-magenta, #f06dff); box-shadow: 0 0 8px #f06dffaa; }
-.showcase-chip-panel { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: min(340px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 16px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30f8, #1b1535f8); box-shadow: 0 24px 60px -20px #000c; font-size: 14px; line-height: 1.5; }
+.showcase-chip-panel { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: min(340px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 16px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30, #1b1535); box-shadow: 0 24px 60px -20px #000c, 0 0 0 1px #ffffff08 inset; font-size: 14px; line-height: 1.5; }
 .showcase-chip-panel p { margin: 0 0 12px; color: var(--text-secondary, #dde7f7); }
 .showcase-chip-panel strong { display: block; color: #f3c9ff; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
 .showcase-chip-actions { display: flex; gap: 8px; }
@@ -68,3 +68,9 @@
 
 /* Gate C critique: on wide screens the notice's More link keeps the close button's company instead of dangling on a second line. */
 @media (min-width: 900px) { .alpha-notice { padding-right: 112px; } .alpha-notice .text-link { position: absolute; right: 52px; top: 50%; translate: 0 -50%; margin: 0; } }
+
+/* Session AB-Design Phase 2, Part 1 (owner correction, 2026-10-14): the music button and ZIGi float on top of the page;
+   cards keep their full width and position on every page and width. The one allowance: extra scroll room at the very end
+   of a page, so its last lines (the footer's disclaimer) can be scrolled above the two buttons. */
+:root .site-footer-inner { padding-bottom: calc(40px + 150px); }
+@media (max-width: 767.98px) { :root .site-footer-inner { padding-bottom: calc(40px + 96px); } }

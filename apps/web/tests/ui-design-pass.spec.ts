@@ -468,14 +468,17 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   const footer=page.locator('.site-footer');await footer.scrollIntoViewIfNeeded();await expect(footer).toBeVisible();
   await expect(page.getByRole('contentinfo',{name:'About ZIGoals'})).toBeVisible();
   await expect(footer.locator('.site-footer-slogan')).toHaveText('Goals, Habits & Health = Wealth');
-  await expect(page.getByRole('list',{name:'How ZIGoals works'}).locator('strong')).toHaveText(['Goals','Habits & Health','= Wealth']);
+  // Session AB-Design Phase 2 (deliberate, the owner's footer brief b; ADR-024 "Phase 2 — assertions changed"): the steps are 01 Goals,
+  // 02 Habits, 03 Health; "= Wealth" is the slogan's result, which the path flows up into. As strict: the exact three, in order.
+  await expect(page.getByRole('list',{name:'How ZIGoals works'}).locator('strong')).toHaveText(['Goals','Habits','Health']);
+  await expect(footer.locator('.site-footer-slogan .site-footer-wealth')).toHaveText('Wealth');
   // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled.
   await expect(footer).toContainText('Financial execution is disabled on this Alpha.');
   await expect(footer).toContainText('Browser storage is not a backup.');
-  await expect(footer.getByRole('link',{name:'Make a backup in Settings →'})).toHaveAttribute('href','/app/settings');
+  await expect(footer.getByRole('link',{name:'Make a backup in Settings',exact:true})).toHaveAttribute('href','/app/settings'); // Phase 2: the brief's link text, no arrow
   // The footer keeps the wordmark and its line.
   await expect(footer.locator('.site-footer-tagline')).toContainText('Same you. A brighter tomorrow.');
-  await expect(footer.locator('.brand-wordmark')).toHaveText('ZIGoals');
+  await expect(footer.getByRole('img',{name:'ZIGoals',exact:true})).toHaveCount(1); // Phase 2: the logo acts as the Z of the wordmark (one image, named ZIGoals)
   // The planet is drawn once: one art layer, no second horizon layer anywhere on the page.
   await expect(page.locator('.site-footer-art')).toHaveCount(1);
   expect(await page.evaluate(()=>[document.querySelector('.app-content'),document.querySelector('.workspace')].filter(Boolean).map(e=>getComputedStyle(e!,'::after').backgroundImage).filter(v=>v.includes('horizon')).length)).toBe(0);
