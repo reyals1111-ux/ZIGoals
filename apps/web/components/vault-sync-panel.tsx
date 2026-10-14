@@ -17,7 +17,9 @@ const LocalAccountAttach=lazy(()=>import('./local-account-attach').then(m=>({def
 const AccountDevices=lazy(()=>import('./account-devices').then(m=>({default:m.AccountDevices})));
 const PortfolioSyncChoice=lazy(()=>import('./portfolio-sync-choice').then(m=>({default:m.PortfolioSyncChoice})));
 // Session AB-Cloud Part 2 (ADR-023 C1): the extras' switch, its one-time note and "Remove from the cloud".
-const ExtrasSyncChoice=lazy(()=>import('./sync/extras-sync-choice').then(m=>({default:m.ExtrasSyncChoice})));
+// Session AB-Cloud (ADR-023 C21): rendered with the panel, not lazily: a late switch right above "Sync now" moved the button
+// while it was being pressed (a layout shift people and the rehearsals both hit). It reads no sync code (≈1 kB).
+import {ExtrasSyncChoice} from './sync/extras-sync-choice';
 import {ACCOUNT_CHANGE,getAccountScope,isAccountLocked} from '../lib/account-session';
 import {currentInstallContext} from '../lib/install/platform';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
@@ -48,7 +50,7 @@ export function VaultSyncControls(){
  {!c.account&&(finishing?<p className="fine" id={id+'finishing'}>Finishing sign-in…</p>:<span className="sr-only" id={id+'signin'}>Available after you sign in.</span>)}
  {c.healthAsk&&<p className="notice" id={id+'health-ask'}>{HEALTH_RESTORE_ASK}</p>}
  {SYNC_WRITES&&c.account&&<Suspense fallback={null}><PortfolioSyncChoice key={c.account} opened={c.opened} busy={c.busy} status={c.portfolio} onSync={c.syncPortfolioNow} onDelete={c.deletePortfolioCloud}/></Suspense>}
- {SYNC_WRITES&&c.account&&<Suspense fallback={null}><ExtrasSyncChoice key={c.account+'-extras'} opened={c.opened} busy={c.busy} health={c.health} status={c.extras} onEnable={c.setExtrasEnabled} onRemove={c.removeExtrasCloud}/></Suspense>}
+ {SYNC_WRITES&&c.account&&<ExtrasSyncChoice key={c.account+'-extras'} opened={c.opened} busy={c.busy} health={c.health} status={c.extras} onEnable={c.setExtrasEnabled} onRemove={c.removeExtrasCloud}/>}
  {/* Session Y Part 5 (B6, B3): the cloud's vault is gone or older; only the person's explicit choice starts over. */}
  {c.account&&c.vaultGone&&<div className="notice" role="group" aria-labelledby={id+'gone'}><p id={id+'gone'}>{c.vaultGone==='missing'?VAULT_MISSING:VAULT_OLDER}</p><label className="checkbox" htmlFor={id+'gone-confirm'}><input id={id+'gone-confirm'} type="checkbox" checked={startConfirmed} onChange={e=>setStartConfirmed(e.target.checked)}/>{c.vaultGone==='missing'?'I understand that this starts a new encrypted vault for my account.':'I understand that this device will sync with the vault now in the cloud.'}</label><button className="secondary" disabled={!startConfirmed||c.busy} onClick={()=>{setStartConfirmed(false);void c.startOver();}}>{c.vaultGone==='missing'?'Start a new encrypted vault':'Re-link this device'}</button><p className="fine">This device’s earlier sync record is kept in its recovery archive; your records on this device are not changed.</p></div>}
  {c.account&&c.manifest===null&&!c.generated&&<button className="primary" disabled={c.busy} onClick={()=>{setSaved(false);void c.prepare();}}>Create encrypted account vault</button>}
