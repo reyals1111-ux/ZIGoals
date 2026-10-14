@@ -30,7 +30,7 @@ test('accounts and debts: net worth per currency with Wealth\'s valued holding a
   await page.goto('/app/wealth');
   await openFold(page, 'Accounts, debts & net worth');
   const section = page.getByRole('region', {name: 'Accounts, debts & net worth'});
-  await expect(section).toContainText('Accounts stay on this device until account sync carries them.');
+  await expect(section).toContainText('Accounts are kept on this device; with an account they also travel in your encrypted sync.');
   const add = async (kind: string, name: string, currency: string, balance: string, rate = '') => {
     await section.getByRole('button', {name: 'Add an account or debt', exact: true}).click();
     const form = section.getByRole('form', {name: 'Add an account or debt'});

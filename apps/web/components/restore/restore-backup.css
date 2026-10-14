@@ -1,0 +1,15 @@
+/* Session AB-Cloud Part 5 (ADR-023 C22): Restore from a backup, in the Data health page's own tokens (AB-Design restyles). */
+:root .restore-backup { display: grid; gap: 12px; min-width: 0; }
+:root .rb-file { display: grid; gap: 6px; font-weight: 650; }
+:root .rb-file input { min-height: 44px; max-width: 100%; }
+:root .rb-preview { display: grid; gap: 12px; min-width: 0; }
+:root .rb-group { display: grid; gap: 8px; margin: 0; padding: 12px; min-width: 0; border: 1px solid #6c9cc533; border-radius: 14px; }
+:root .rb-group legend { padding: 0 6px; font-weight: 700; }
+:root .rb-rows { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+:root .rb-rows li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 12px; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: #0b172b99; }
+:root .rb-what { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; }
+:root .rb-what small { font-size: 14px; color: var(--text-secondary); }
+:root .rb-mode select { min-height: 44px; max-width: 100%; }
+:root .rb-problem { flex: 1 1 200px; font-size: 14px; color: var(--text-secondary); }
+:root .rb-failed { margin: 0; padding-left: 20px; }
+:root .restore-backup .checkbox { min-height: 44px; }

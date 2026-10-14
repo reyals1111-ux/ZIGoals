@@ -1,0 +1,16 @@
+Fixture written by 9435afe (with working-tree changes if any).
+#37 32cb9c5: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 667ms
+  ABSENT zigoals:goal-extras:v1: no reader in this release (the key is ignored)
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #37 32cb9c5 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 2ms
+  Tests  2 passed (2)
+#38 e3fa408: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 645ms
+  READ zigoals:goal-extras:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #38 e3fa408 > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 38ms
+  Tests  2 passed (2)
+#39 6c1052b: PASS
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > finance: the record this build wrote is read, kept at v5 with its accounts and dates, and written back unchanged 550ms
+  READ zigoals:goal-extras:v1
+  ✓ apps/web/lib/frozen-reader.test.ts > frozen readers at #39 6c1052b > zigoals:goal-extras:v1: read by ./goal-extras/store (GOAL_EXTRAS) or ignored 41ms
+  Tests  2 passed (2)

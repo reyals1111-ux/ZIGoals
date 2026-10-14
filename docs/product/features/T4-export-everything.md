@@ -33,7 +33,7 @@ buildEverythingZip(collected, {date, showcase}) → {name: string, bytes: Uint8A
 ```
 {
   format: "zigoals-everything", version: 1, exportedAt: ISO instant, app: {version, commit},
-  note: "Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.",
+  note: "Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.", (Session AB-Cloud, ADR-023 C22; before: "It is not a restore format; use Settings → Keep a protected copy for that.")
   modules: {finance?, habits?, health?, settings?: the stored JSON, parsed with JSON.parse only (no schema transform, no migration, so the bytes are faithful)},
   portfolio?: the stored JSON,
   device: {reminders?, habitHealthLinks?, healthGoals?, weeklyReview?, fasting?, insights?, importUndo?: the stored JSON},
@@ -59,7 +59,7 @@ Edge cases: an empty device → a JSON with no modules and nine header-only CSVs
 
 ## UI
 ### Settings, section `export-everything` (after `PrivateBackups`, `app/app/settings/page.tsx:66`)
-Eyebrow `OPTIONAL`, heading "Everything you've saved, in one file.", text "You never need this: sync and the encrypted backup keep your records. If you'd like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth)." Checkbox (44 px label) "I understand this file is readable and holds my personal records, including Health." Button "Export everything" (primary, disabled until ticked; `disabled` while any store is still loading). Status (`role="status"`): "Your export is ready and downloading. Keep it private." Warnings as `notice` lines (unreadable keys, damaged local simulation). Fine print: "Made on this device. Nothing is uploaded. This is not a restore format."
+Eyebrow `OPTIONAL`, heading "Everything you've saved, in one file.", text "You never need this: sync and the encrypted backup keep your records. If you'd like a readable copy for yourself, this makes one ZIP with a JSON file of everything and a CSV per area (goals, contributions, habits, check-ins, Health diary, weights, water, activity, wealth)." Checkbox (44 px label) "I understand this file is readable and holds my personal records, including Health." Button "Export everything" (primary, disabled until ticked; `disabled` while any store is still loading). Status (`role="status"`): "Your export is ready and downloading. Keep it private." Warnings as `notice` lines (unreadable keys, damaged local simulation). Fine print: "Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back." (Session AB-Cloud; before: "This is not a restore format.")
 Phone settings row (`components/phone/phone-settings.tsx`, group "Data & backups"): ["Export everything", "Optional: one readable ZIP of all your records", "export-everything"].
 ### Phone, desktop, tablet
 Phone first: the section is a normal panel; the row in the list. Authorized desktop differences: the section (README item 5).
@@ -70,7 +70,7 @@ None new; the download is a programmatic anchor click as the module backups do (
 No fixture of its own: in Showcase the export holds the Showcase records of every feature (each already labelled) and the file name says `showcase-demo`.
 
 ## Help entry (`help-export-everything`)
-**Can I get all my data out?** Yes, any time: Settings → "Export everything" makes one ZIP on your device with a JSON file of every record and a CSV per area that opens in a spreadsheet. You never need it: sync and the encrypted backup keep your records. It is readable, so keep it private, and it is not a restore format.
+**Can I get all my data out?** Yes, any time: Settings → "Export everything" makes one ZIP on your device with a JSON file of every record and a CSV per area that opens in a spreadsheet. You never need it: sync and the encrypted backup keep your records. It is readable, so keep it private. Settings → Your data → "Restore from a backup" reads it back: you see what it holds, choose per part to merge or replace, and can undo. (Session AB-Cloud.)
 
 ## Tests
 Unit (`lib/export/zip.test.ts`, `lib/export/everything.test.ts`):

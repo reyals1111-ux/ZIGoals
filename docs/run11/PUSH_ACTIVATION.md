@@ -2,6 +2,12 @@
 
 **Status (2026-10-08, Session X Part 8):** written with Session P's PR 4 (2026-10-04) and rewritten as one command per step, each mutation between read-only checks. Nothing here has run against a Cloudflare account, a real iPhone or a real push service: the Worker, the key tool, the app route and the checker are proven by local tests only ([STAGE8_COVERAGE.md](STAGE8_COVERAGE.md), row C5), and since Session X by an end-to-end rehearsal in Miniflare: the app's real route, private sync's session registry and the push Worker's real alarm, encrypted delivery, unsubscribe, delete-all, account deletion and retention (`scripts/run11/push-rehearsal.test.mjs`). Lines marked **UNVERIFIED** were read from code or inferred, not observed.
 
+**Current for Alpha #39 and later (checked 2026-10-14, Session AB-Cloud Part 10):** the push Worker
+(`workers/push-reminders/`) and the app's `/api/push` route have not changed since this guide's rewrite; Session Y's
+reminder-name fix (`7bb09ec`, a reminder just before midnight keeps its name) lives in the app's service worker and needs
+no step here. Sessions AA-Cloud, AA-Local and AB-Cloud changed nothing push-related, so the steps stand for #39 and this
+PR's build. Push stays off on the live Alpha until you activate it.
+
 ## What this is, and what stays off
 - A person who is signed in can turn on, for one device, a notification when a reminder time passes while ZIGoals is closed. By default it is always the same: title "ZIGoals", body "A reminder from ZIGoals". Since Session V Part 13 a person may opt in, on that device, to "Show what a reminder is for in notifications": the device then keeps a table of its reminder names and the service worker composes "Reminder: Stretch" on the device; the server never sees a name. The in-app reminder cards keep working without any of it.
 - **Off by default.** Until you set two secrets on the app Worker (step 5), every build answers 503 `PUSH_UNAVAILABLE` at `/api/push`, Settings → "Reminders when closed" shows "Not available in this build.", and the offer line under a reminder time is hidden. The friends Alpha ships like this.

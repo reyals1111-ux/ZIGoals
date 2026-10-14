@@ -74,7 +74,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
       <label className="field">Target date (optional, this device)<input name="date" type="date" /></label>
       <button className="secondary">Add milestone</button>
     </form>}
-    <p className="fine">A milestone’s value sits on your Goal’s track and reads “reached” once your recorded progress passes it; “done” is your own tick. Target dates stay on this device for now.</p>
+    <p className="fine">A milestone’s value sits on your Goal’s track and reads “reached” once your recorded progress passes it; “done” is your own tick. Target dates are kept on this device and, with an account, travel in your encrypted sync.</p>
     {error && <p role="alert">{error}</p>}
   </>;
 }

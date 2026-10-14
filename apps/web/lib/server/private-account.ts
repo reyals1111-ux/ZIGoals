@@ -21,6 +21,8 @@ const actionSchema=z.discriminatedUnion('action',[
  z.object({action:z.literal('step-up'),operation:z.object({action:z.literal('register'),epoch:z.number().int().positive().max(Number.MAX_SAFE_INTEGER),verifier:hex64}).strict()}).strict(),
  // Session U Part 9 (ADR-013): the opt-in Portfolio copy; private sync checks the operation itself (portfolio.mjs).
  z.object({action:z.literal('portfolio'),operation:z.unknown()}).strict(),
+ // Session AB-Cloud Part 2 (ADR-023 C1): the encrypted extras sections; private sync checks the operation itself (extras.mjs).
+ z.object({action:z.literal('extras'),operation:z.unknown()}).strict(),
  z.object({action:z.literal('delete'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('delete-cloud-data'),confirm:z.literal('DELETE CLOUD DATA')}).strict(),z.object({action:z.literal('delete-account'),confirm:z.literal('DELETE ACCOUNT')}).strict()]),stepUp:stepUpSchema}).strict(),
  z.object({action:z.literal('session'),operation:z.discriminatedUnion('action',[z.object({action:z.literal('revoke'),id:z.uuid()}).strict(),z.object({action:z.literal('revoke-others')}).strict()]),stepUp:stepUpSchema}).strict(),
 ]);
@@ -119,6 +121,7 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
    if(new URL(request.url).searchParams.get('action')==='rotation'){const remote=await upstream(`${cfg.syncOrigin}/v1/rotation`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,32768);}
+   if(new URL(request.url).searchParams.get('action')==='extras'){const section=new URL(request.url).searchParams.get('section');if(section!==null&&!['goals','life','habits','health'].includes(section))return reply({error:'INVALID_EXTRAS_REQUEST'},400);const remote=await upstream(`${cfg.syncOrigin}/v1/extras${section?'?section='+section:''}`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,1_100_000);}
    if(new URL(request.url).searchParams.get('action')==='portfolio'){const remote=await upstream(`${cfg.syncOrigin}/v1/portfolio`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,1_100_000);}
    if(new URL(request.url).searchParams.get('action')==='sessions'){const remote=await upstream(`${cfg.syncOrigin}/v1/sessions`,{headers:{origin,authorization:`Bearer ${token}`,'x-zigoals-account':accountFence}});return relayed(cfg,remote,1_000_000);}
    const query=new URL(request.url).searchParams,cursor=query.get('cursor'),ids=query.has('ids')?query.get('ids')!.split(','):null;if(cursor&&!/^record:[0-9a-f-]{36}$/i.test(cursor))return reply({error:'INVALID_CURSOR'},400);if(ids&&(cursor||ids.length>100||!ids.length||new Set(ids).size!==ids.length||ids.some(id=>!z.uuid().safeParse(id).success)))return reply({error:'INVALID_RECORD_SELECTION'},400);
@@ -139,11 +142,11 @@ export async function privateAccountRequest(request:Request,config:AccountConfig
    if(remote.ok&&action.operation.action==='revoke-others'){data.providerSignedOut=await endProviderSession(cfg,token,'others');return reply(data,remote.status);}
    if(remote.ok&&data.currentRevoked===true||remote.status===401&&data?.error==='SESSION_REVOKED')await endProviderSession(cfg,token,'local');
    return reply(data,remote.status,data.currentRevoked?{'Set-Cookie':cookie('',0)}:{});}
-  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'||action.action==='portfolio'||action.action==='step-up'){
+  if(action.action==='sync'||action.action==='rotation'||action.action==='delete'||action.action==='domain'||action.action==='portfolio'||action.action==='extras'||action.action==='step-up'){
    if(!token)return reply({error:'SIGN_IN_REQUIRED'},401);
    const accountFence=z.uuid().parse(request.headers.get('x-zigoals-account')).toLowerCase();
    const stepUp='stepUp' in action?stepUpHeaders(action.stepUp):{};
-   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':action.action==='portfolio'?'portfolio':action.action==='step-up'?'step-up':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json',...stepUp},body:JSON.stringify(action.operation)});
+   const remote=await upstream(`${cfg.syncOrigin}/v1/${action.action==='rotation'?'rotation':action.action==='delete'?'account':action.action==='domain'?'domain':action.action==='portfolio'?'portfolio':action.action==='extras'?'extras':action.action==='step-up'?'step-up':'vault'}`,{method:'POST',headers:{authorization:`Bearer ${token}`,origin,'x-zigoals-account':accountFence,'content-type':'application/json',...stepUp},body:JSON.stringify(action.operation)});
    return relayed(cfg,remote,action.action==='rotation'?1_000_000:32768);
   }
   // Session U Part 5 (FIX_PLAN A1, FINDINGS Q-AUTH-01): a code request never asks the provider to create a user, so an

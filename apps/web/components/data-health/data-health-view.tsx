@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
+import {Suspense, lazy, useEffect, useState} from 'react';
 import {DEVICE_ONLY, DEVICE_STORES, HOME_LABEL, NEVER_STORED, SYNCED, storedBytes, type CatalogEntry} from '../../lib/data-health/catalog';
 import {getAccountScope} from '../../lib/account-session';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
@@ -11,11 +11,14 @@ import {visionScope} from '../goals/use-goal-extras';
 import {StorageHealth} from '../storage-health';
 import {SectionHeading} from '../ui/section-heading';
 import './data-health.css';
+// Session AB-Cloud Part 5 (ADR-023 C22): Restore from a backup, loaded with the page's section, its code with the file.
+const RestoreBackup = lazy(() => import('../restore/restore-backup').then(m => ({default: m.RestoreBackup})));
 
 /**
  * Data health (Session AA-Cloud Part 6, Settings → Your data): where each part of the person's data lives, how much
  * this device holds, the copies they can make, the browser's storage and what ZIGi may read. Read-only: it changes
- * nothing, sends nothing and asks for no permission. Export everything writes nothing on the device by design, so the
+ * nothing, sends nothing and asks for no permission — except "Restore from a backup" (Session AB-Cloud Part 5), which
+ * changes only what the person chose, after their confirmation. Export everything writes nothing on the device by design, so the
  * age of a copy is not recorded here; the browser's own downloads list shows it.
  */
 type Read = {sizes: Record<string, number | null>; account: boolean; showcase: boolean; photos: {count: number; bytes: number} | null; ai: AiSettings | null};
@@ -68,8 +71,12 @@ export function DataHealthView() {
         <div><dt>Records on this device</dt><dd>{kb(total)}</dd></div>
         <div><dt>Last Export everything</dt><dd>Not recorded</dd></div>
       </dl>
-      <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported.</p>
+      <p className="fine">Export everything writes nothing on this device, by design, so it keeps no date; your browser&apos;s downloads list shows when you last exported. Restore from a backup, below, reads that ZIP back.</p>
       <div className="dh-actions"><Link className="primary" href="/app/settings#privacy">Export everything or keep a protected copy</Link></div>
+    </section>
+    <section className="panel" aria-labelledby="dh-restore" id="restore">
+      <SectionHeading id="dh-restore" eyebrow="From Export everything" title="Restore from a backup" lede="Bring back records from an Export everything ZIP: see what it holds, choose per part, confirm, and undo if you change your mind." level={3} />
+      <Suspense fallback={null}><RestoreBackup showcase={read.showcase} /></Suspense>
     </section>
     <section className="panel" aria-labelledby="dh-storage">
       <SectionHeading id="dh-storage" eyebrow="This browser" title="Storage used" level={3} />

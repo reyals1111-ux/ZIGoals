@@ -1,0 +1,25 @@
+Session AB-Cloud Gate A — scripts/run11/sync-lost-ack-browser.test.mjs ("same page"), timelines from a debug copy (not committed)
+that logged every /api/private-account request, the sync panel's status/alert/button every 20 ms, and Playwright's actions.
+Times are ms since the test's first page opened. Local: this sandbox, production builds on :3100, Playwright Chromium as Chrome.
+
+main 6c1052b (its own build, /root/wt-main): 4 runs, 4 failed (0 of 4 passed), every run the same sequence:
+  CREATED2 7018 · ARMED 7174 · "Sync now" click requested
+  pw:api: element is not stable (×3) … <a href="#settings-areas"> from <nav class="settings-sections"> intercepts pointer events (retried)
+  8086 automatic sync starts (1 s after the Goal edit) · 8155 head write POST · 8173 ERR_CONNECTION_RESET (dropped) · 8184 alert "Failed to fetch"
+  8389 the queued click's sync starts · replays the head write · succeeds · alert cleared → the rehearsal's alert wait times out
+  Geometry: "Sync now" at y≈11,478 of a 17,156–17,439 px Settings page whose height was still changing while the click was retried.
+
+feature/session-ab-cloud f381c1e (extras switch lazily loaded just above "Sync now"): 4 runs, 2 failed, same sequence.
+feature/session-ab-cloud + C21b (extras switch rendered with the panel): 4 runs, 2 failed, 2 passed, same sequence when failing.
+
+CI (Linux runner, real Chrome): main green on this file (CI #905); f381c1e red on this file only (run 38490907596, job 115615593074,
+17 of 18 integration files green). Verdict for C21b: CI on the next push.
+
+Root cause (C21c, found from Playwright's action trace, DEBUG=pw:api):
+  attempting click action · element is not stable (×3) · scrolling into view if needed · done scrolling
+  <a href="#settings-areas">Your areas</a> from <nav class="settings-sections"> subtree intercepts pointer events · retrying
+  element is not enabled (the automatic sync has started) · … · performing click action (after that sync failed)
+  The button was scrolled to the top edge, under Settings' sticky index (position: sticky; top: 0 from 768 px).
+Fix: html:has(.settings-page .settings-sections) { scroll-padding-top: 128px } (app/product-v2.css).
+After the fix, this sandbox: sync-lost-ack-browser 3 runs × 3 variants = 9 of 9 passed; the click lands before the
+automatic sync (CREATED2 6855 · SETTINGS 7010 · CLICKED 7530 · DROPPED 7654, no intercept in the trace).

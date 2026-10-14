@@ -8,7 +8,10 @@ permissions:
   contents: read
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Session AB-Cloud Part 7 ([TIER 3] (CI), ADR-023 C29, owner-approved): a pull request's run is never cancelled by a later
+  # push (a docs commit used to cancel a run 40 minutes in); later pushes queue and GitHub keeps only the newest pending
+  # one, so the final head always gets one full run. Pushes to main keep today's rule.
+  cancel-in-progress: ${{ github.event_name != 'pull_request' }}
 jobs:
   # The web gate is split into independent jobs that run in parallel. Every
   # step of the former single web job still runs, unchanged, in one of them.
@@ -225,7 +228,13 @@ jobs:
     # phone set (tests/webkit-phone.spec.ts), two workers. Evidence label "WebKit", never "Safari on an iPhone".
     # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
     # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
-    name: web WebKit (smoke, ZIGi, phone set)
+    # Session AB-Cloud Part 7 ([TIER 3] (CI), ADR-023 C29): the set outgrew one runner (474 tests, cancelled at the cap on
+    # every run since Session Z); two shards of about half each, each with its own 45 minutes and its own traces.
+    name: web WebKit (smoke, ZIGi, phone set) (shard ${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     # Until it is promoted (two green runs in a row, ADR-018 Y4) it runs on pull requests only and cannot fail the
     # workflow: pushes to main (whose Milestone quality gates a deploy) and the release candidate's call skip it.
     if: github.event_name == 'pull_request'
@@ -286,12 +295,12 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --reporter=line --output=/tmp/zigoals-webkit-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test -c playwright.webkit.config.ts --workers=2 --shard=${{ matrix.shard }}/2 --reporter=line --output=/tmp/zigoals-webkit-results
       - name: Retain the WebKit traces (failures and timeouts only)
         if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: web-webkit-${{ github.sha }}
+          name: web-webkit-${{ github.sha }}-shard-${{ matrix.shard }}
           path: /tmp/zigoals-webkit-results/
           if-no-files-found: warn
           retention-days: 7

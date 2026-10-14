@@ -57,7 +57,7 @@ test('one ZIP with everything.json and nine CSVs; nothing written on view or by 
   expect(await zigoalsKeys(page)).toBe(before);
   for (const r of requests) expect(new URL(r.url).hostname).toBe('127.0.0.1');
   expect(requests.filter(r => r.method !== 'GET' || r.body)).toEqual([]);
-  await expect(section).toContainText('Made on this device. Nothing is uploaded. This is not a restore format.');
+  await expect(section).toContainText('Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back.');
   if (await page.getByRole('link', {name: /^Export everything/}).count()) {
     const row = page.getByRole('link', {name: /^Export everything/}).first();
     expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);

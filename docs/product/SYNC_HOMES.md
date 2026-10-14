@@ -241,3 +241,53 @@ preferences — `zigoals:music:v1`, `zigoals:pages-view:v1`. Sign-in tokens of l
 Tests: `lib/vault/w-formats.test.ts` (new reads new, old refuses new in storage, backups and sync, lazy raises, never
 down, the merge rules, the sync recovery copy), `lib/vault/schema-snapshot.test.ts` (no frozen format edited in place;
 the six frozen digests equal main `1063765`), `lib/w-device-records.test.ts`, `lib/export/w-export.test.ts`.
+
+## The finance-homes switch (Session AB-Cloud Part 1, 2026-10-13; ADR-023 C6, `[TIER 3] (data formats / sync)`)
+Session W's "later switch PR". Seven days after the W deploy (#32, 2026-10-07) have passed and the Alpha's rollback target
+is #38 (after W), so finance v5 is now written:
+- **Where:** accounts and debts in finance v5 `accounts`; a milestone's target date in its `targetDate`
+  (`lib/vault/finance-homes.ts`). Finance becomes v5 only when it first holds an account or a date (lazy, like Session W's
+  groups); it never goes back down, and the replaced v4 record is kept as a recovery copy.
+- **The device keys stay what the pages read and write.** Unlike Session P's homes, `zigoals:accounts:v1` and
+  `zigoals:milestone-dates:v1` are still Wealth's and a Goal's own records; account sync keeps them and finance in step
+  in both directions (`lib/finance-homes-store.ts`, before each capture and after each apply) by a three-way reconcile
+  against the state both last held (the marker `zigoals:finance-homes:v1`, on this device): only one side changed → it
+  wins; both changed → an account settles by its later `updatedAt` (equal: a fixed order of the two texts), a date by the
+  later date, and an account edited on one side and removed on the other is kept. A device key edited while a reconcile
+  runs is never overwritten (its bytes are compared before the write; the next run reconciles it). A milestone date whose
+  milestone finance does not hold stays on the device.
+- **Two devices that both changed finance:** account sync settles the two homes on their own (Session W S4's stamped-group
+  rule, now also for finance v5's groups), so two phones editing accounts never stop sync; any other change on both sides
+  is still refused with "Conflicting financial changes", exactly as before (`mergeFinanceTexts`).
+- **Rollback (owner-approved, 2026-10-13):** the floor becomes **#32**, the first build that reads finance v5. #32–#39 read
+  v5 and keep it at v5 with its accounts and dates (frozen readers against #37, #38 and #39:
+  `docs/verification/ab-cloud/frozen-readers-part1.txt`); they show accounts and dates from the device keys, which stay
+  current, and what they edit there is carried into finance by the next reconcile after the roll-forward. Builds #29–#31
+  refuse finance v5 (Goals, Wealth, Staking and Activity unreadable there until the roll-forward; bytes and recovery copies
+  kept), so the Alpha must never be rolled back below #32 from now on.
+- **Local Demo and Showcase:** the reconcile runs only inside account sync, so a space that never syncs keeps finance as it
+  was (no v5 raise in the Showcase or the Local Demo).
+
+## The encrypted extras sections (Session AB-Cloud Part 2, 2026-10-13; ADR-023 C1–C5, C11–C14, `[TIER 3] (sync)`)
+AA-Cloud's and AA-Local's device records travel in four sections of their own, never in the four synced modules (whose
+strict readers in #32–#39 would refuse a new field) and never as a fifth journal domain (whose strict row schema would make
+#32–#39 refuse the whole pull):
+
+| Section | Device keys it carries | Consent |
+|---|---|---|
+| `goals` | `zigoals:goal-extras:v1` (areas, why/obstacle/if-then, sub-goals, stories, templates, custom areas, habit areas, `cardArt`, the vision's gradient/emoji or photo reference; not `dormant`), `zigoals:average-goals:v1` | account sync |
+| `life` | `zigoals:calculator:v1`, `zigoals:life-review:v1`, `zigoals:today-cards:v1`, `zigoals:reminders-plan:v1` | account sync |
+| `habits` | `zigoals:habit-extras:v1` (not `folds`), `zigoals:routine-run:v1`, `zigoals:game:v1` (XP stays derived) | account sync |
+| `health` | `zigoals:health-coach:v1`, `zigoals:micro-targets:v1`, `zigoals:macro-mode:v1`, `zigoals:aisles:v1`, `zigoals:measurements-custom:v1` (and Part 4's vitamins) | **Health's own consent**, and not while Health is held after a cloud deletion |
+
+- **Where:** each section is one sealed snapshot in its own keyspace of the account's vault object
+  (`workers/private-sync/extras.mjs`, `/v1/extras`), like the Portfolio's copy. A Health deletion removes the `health`
+  section with it. The account erase removes them all.
+- **The device keys stay the records** every page reads and writes; sync merges the cloud's copy back into them
+  (`lib/vault/extras-sync.ts`, three-way per record against this device's base, `lib/vault/extras-merge.ts`). A rollback
+  to #37–#39 reads them exactly as before (frozen readers: `docs/verification/ab-cloud/frozen-readers-part2.txt`).
+- **On by default** for an account that syncs (owner decision 2026-10-13), with a one-time note in Settings → Sync, the
+  switch "Also sync my extras" (off stops transfers on this device, the copy stays) and "Remove from the cloud" (every
+  device stops and keeps its own records).
+- **Never synced:** recent searches, the welcome's setup, vision photos and progress photos with their index (owner
+  decision), AB-Design's display preferences, and the two per-device fields above.

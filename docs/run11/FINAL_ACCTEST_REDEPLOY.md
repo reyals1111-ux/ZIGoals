@@ -342,6 +342,34 @@ and count again when the var is back to "on". Auth admission rolls back on its o
    the day's ceiling was reached.
 4. **Mainnet** (C4): on the public Alpha the wallet reader says mainnet addresses are not read there; testnet reads work.
 
+## Session AB-Cloud changes (Session AB-Cloud PR, 2026-10-13/14)
+One Worker of this stack changed besides the app, with **no new class, no migration, no new secret and no new var**.
+Re-run step 2 at your release SHA.
+
+| Worker | What changed | Must redeploy |
+|---|---|---|
+| private sync | The encrypted extras sections (ADR-023 C1): a new path `/v1/extras` in the existing `PrivateVault` object (four named sections `goals`, `life`, `habits`, `health`; heads, sealed parts, receipts; compare-and-swap; refused during a key rotation, before enrolment and at a retired key epoch); a Health deletion removes the Health section in the same transaction (C28). The vault's own records, compaction and rotation are unchanged. | **yes, before the app** |
+| app | Sessions AB-Cloud Parts 1–9: finance v5 accounts and milestone dates, the extras sync, vitamins, Restore from a backup, Point & tell, the owner items (grouped amounts, default currency, ZIGi History Undo, Showcase words, image caps), ZIGi without a model; the relay's `action: 'extras'` (allowlisted sections) | yes (the app) |
+| auth admission, lifecycle, market coordinator, food lookup, push, ZIGoals hosted relay | nothing | no |
+
+**Order:** private sync first (step 4's checks), then the app (step 5). An app without the new Worker shows the extras
+switch with "Extras sync was not confirmed" and keeps every record on the device; older apps never call `/v1/extras`.
+
+**Rollback (Tier 3 risk → rollback):** the app rolls back to #39 (or any build since #32, the floor for finance v5) on
+its own: the extras stay in their own keyspace, unread; finance v5 is read by #32 and later. The private-sync Worker
+can stay on the new version under an older app (nothing calls the new path); rolling it back too leaves the extras keys
+in the object, unread, and "Delete cloud data" still removes them.
+
+**What to check after the redeploy (plain words):**
+1. **Extras travel** (C1–C5): on Desktop A, Settings → Sync shows "Also sync my extras" ticked with its one-time note;
+   add a goal's "why" on Desktop A, sync, then sync Phone B: the same "why" shows on the goal there.
+2. **Health extras follow Health** (C16): with Health unticked on Phone B, a vitamin target set on Desktop A does not
+   reach Phone B; tick Health on Phone B and sync: it does.
+3. **Remove from the cloud** (C1): "Remove the extras from the cloud…" on Desktop A, then sync Phone B: Phone B says
+   the copy was deleted on another device and turns extras sync off there; the records stay on both devices.
+4. **Restore** (C22): Settings → Your data → Restore from a backup with a fresh Export everything ZIP: the preview lists
+   the parts; nothing changes until "Restore the chosen parts"; Undo puts everything back.
+
 ## Push activation (optional; Session X Part 8, 2026-10-08)
 Push reminders (ADR-010) can be switched on during this redeploy, on the acceptance stack only. **The public Alpha stays
 off:** it has no accounts (no `PRIVATE_SYNC` binding), so `/api/push` answers 503 `PUSH_UNAVAILABLE` there whatever you do.

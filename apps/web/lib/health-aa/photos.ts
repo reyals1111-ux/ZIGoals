@@ -3,6 +3,7 @@ import {PROGRESS_PHOTOS_KEY} from '../aa-device-keys';
 import {readDeviceRecord, type DeviceRecordSpec} from '../device-record';
 import {getAccountScope} from '../account-session';
 import {getAppStorage, isShowcase} from '../showcase-storage';
+import {checkImageHeader} from '../image-header';
 
 /**
  * N9: progress photos, device-only (ADR-022 B7): the index (id, day, note, size, the pose) in a device key; the bytes in
@@ -10,7 +11,7 @@ import {getAppStorage, isShowcase} from '../showcase-storage';
  * and about 200 kB, never synced, included in Export everything as files (`exportPhotoEntries`), removed by the account's
  * erase together with the database. At most 60.
  */
-export const MAX_PHOTOS = 60, PHOTO_MAX_EDGE = 1280, PHOTO_QUALITY = 0.82;
+export const MAX_PHOTOS = 60, PHOTO_MAX_EDGE = 1280, PHOTO_QUALITY = 0.82, PHOTO_INPUT_BYTES = 25_000_000;
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const photoEntrySchema = z.looseObject({id: z.string().regex(/^photo_[a-z0-9-]{8,80}$/), date: day, pose: z.enum(['front', 'side', 'back', 'other']), note: z.string().max(200).optional(), bytes: z.number().int().min(1).max(2_000_000), type: z.enum(['image/webp', 'image/jpeg']), at: z.iso.datetime()});
 export type PhotoEntry = z.infer<typeof photoEntrySchema>;
@@ -32,7 +33,12 @@ export async function deletePhotoBlob(scope: string, id: string): Promise<void> 
 export async function deleteAllPhotoBlobs(scope: string): Promise<void> { const db = await openDb(); const keys = await tx<IDBValidKey[]>(db, 'readonly', s => s.getAllKeys()); const db2 = await openDb(); await new Promise<void>((resolve, reject) => { const t = db2.transaction(PHOTO_STORE, 'readwrite'), s = t.objectStore(PHOTO_STORE); for (const k of keys) if (String(k).startsWith(`${scope}:`)) s.delete(k); t.oncomplete = () => { db2.close(); resolve(); }; t.onerror = () => reject(t.error ?? new Error('Photos not removed.')); }); }
 /** Shrinks an image on the device: the long edge at most 1280 px, WebP where the browser encodes it, JPEG otherwise. */
 export async function compressImage(file: Blob, maxEdge = PHOTO_MAX_EDGE, quality = PHOTO_QUALITY): Promise<{blob: Blob; type: 'image/webp' | 'image/jpeg'}> {
-  const bitmap = await createImageBitmap(file);
+  // Session AB-Cloud Part 8 (ADR-023 C27): the vision path's checks — a photo type, at most 25 MB, a header size under the
+  // caps — before the browser decodes anything; a decode it cannot do is said plainly.
+  if (file.type && !/^image\/(jpeg|png|webp|gif|heic|heif|avif)$/.test(file.type)) throw new Error('Choose a photo (JPEG, PNG, WebP, GIF, HEIC or AVIF).');
+  if (file.size > PHOTO_INPUT_BYTES) throw new Error('This file is over 25 MB. Choose a smaller photo.');
+  await checkImageHeader(file);
+  const bitmap = await createImageBitmap(file).catch(() => { throw new Error('This browser could not read that photo.'); });
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
   const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('This browser cannot resize the photo.');

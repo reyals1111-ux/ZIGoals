@@ -63,7 +63,8 @@ test('What\'s new: the new release shows the card again, its last link opens "As
   // Session Y bumped it again (ADR-018 Y40); X-Local's links now wait under "Earlier updates" with this one.
   // Session Z-Cloud bumped it once more (ADR-019, deliberate); Y's links lead "Earlier updates".
   // Session AA-Cloud bumped it (ADR-021) and Session AA-Local again (ADR-022, deliberate; the second merger): AA-Cloud's links lead "Earlier updates".
-  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-aa-local');
+  // Session AB-Cloud bumped it once more (ADR-023, deliberate); AA-Local's links lead "Earlier updates".
+  expect(WHATS_NEW_RELEASE).toBe('2026-10-session-ab-cloud');
   await page.goto('/app');
   // Session AA-Cloud Part 1 (deliberate): the card sits in Today's "Updates and summaries"; on a phone that area waits
   // behind its one row, so open it first. Nothing about the card changes.

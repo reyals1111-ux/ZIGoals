@@ -1,0 +1,29 @@
+Revert gate at e57ab538, 2026-10-14T03:19:05Z
+e57ab538 typecheck green  Session AB-Cloud Gate C — frozen readers record: 17/17 at #37 32cb9c5, #38 e3fa408 and #
+1f8f1cb8 typecheck green  Session AB-Cloud Gate C — the test audit acted on: ADR C3 corrected, the frozen-reader f
+f86985cb typecheck green  Session AB-Cloud Part 10 — readiness: the hosted verifier opens AA's pages and checks th
+fe784693 typecheck green  Session AB-Cloud Part 9 — ZIGi without a model: a Dutch question is introduced in Dutch 
+ac973b74 typecheck green  [TIER 3] (CI) Session AB-Cloud Part 7 — WebKit in two shards with their own traces, and 
+e3ac5003 typecheck green  Session AB-Cloud Gate B — what focus or a scroll brings into view on Settings stops belo
+2c3fd6db typecheck green  Session AB-Cloud Part 8 — owner logic items: the Showcase's words as data that say what 
+02677e45 typecheck green  [TIER 3] (data formats) Session AB-Cloud Gate B — Restore's Undo leaves a part changed s
+b586c963 typecheck green  [TIER 3] (workers / sync) Session AB-Cloud Gate B — the security read's extras findings:
+97e14af1 typecheck green  Session AB-Cloud Part 6 — Point & tell: a device-only feedback mode that pins numbered n
+097f19e1 typecheck green  Session AB-Cloud Gate A recorded — CI on ccefd69 and f381c1e, the lost-ack race, AB-Desi
+ce750e0b typecheck green  [TIER 3] (data formats) Session AB-Cloud Part 5 — Restore from a backup: Settings → Yo
+fe589e42 typecheck green  [TIER 3] (sync) Session AB-Cloud Gate A — the extras switch renders with the sync panel 
+f381c1e9 typecheck green  [TIER 3] (sync) Session AB-Cloud Gate A — the extras keep the account sync's rhythm: one
+ccefd69d typecheck green  [TIER 3] (data formats / Health) Session AB-Cloud Part 4 — vitamins A, C, D, E, K, B12 a
+5d91c083 typecheck green  [TIER 3] (sync) Session AB-Cloud Part 3 — FIX_PLAN B3–B7 for the extras sections, each
+05ad2bb3 typecheck green  Session AB-Cloud Gate A — Your data's spec follows the catalog: the synced list's exact 
+e587ca16 typecheck green  Session AB-Cloud Part 2 — records: ADR-023 C11–C14 and the two assertion notes, SYNC_H
+0e26879a typecheck green  [TIER 3] (sync) Session AB-Cloud Part 2 — the extras run with every account sync (on unl
+69edf6d2 typecheck green  [TIER 3] (sync) Session AB-Cloud Part 2 — the extras sync: four sections carrying AA-Clo
+aed011b3 typecheck green  [TIER 3] (workers / sync) Session AB-Cloud Part 2 — the extras keyspace in the private-s
+516cba9e typecheck green  Session AB-Cloud Part 1 — the frozen-reader proof as a script (scripts/frozen-readers.mj
+c633814c typecheck green  [TIER 3] (data formats / sync) Session AB-Cloud Part 1 — the finance-homes switch: accou
+ed33e2d5 typecheck green  [TIER 3] (storage) Session AB-Cloud Part 1 — AB-Design's device keys (lib/ab-design-keys
+bdb4b5b7 typecheck green  [TIER 3] (storage) Session AB-Cloud Part 1 — cardArt on a goal-extras entry (AB-Design's
+9435afec typecheck green  Session AB-Cloud Part 0 — records: Alpha #39 (6c1052b, run 38365446959) and #38 in Relea
+Every commit reverted newest-first applies cleanly; the end tree equals origin/main 6c1052b2
+DONE

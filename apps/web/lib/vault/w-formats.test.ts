@@ -19,7 +19,7 @@ import {SETTINGS_V3_GROUPS} from '../dashboard-settings';
 import {FIXTURE_AT,HABIT_HEALTH_LINK,HABIT_ID,MEDITATION_SESSION,PERSONAL_LINK,SLEEP_HABIT_LINK,SLEEP_NIGHT,W_FORMAT_PAIRS,WEEKLY_REVIEW,FASTING_SESSION,financeV4,financeV5,healthV1,healthV3,healthV4,settingsV1,settingsV2,settingsV3} from './format-fixtures';
 
 // Session W ([TIER 3] (data formats/storage keys), 2026-10-06): Health v4 and settings v3 are written by this build, lazily;
-// finance v5 is read here and written by nothing. The proofs, as in read-support.test.ts for R1: new reads new (the new
+// finance v5 is read here (and written since Session AB-Cloud Part 1, ADR-023 C6). The proofs, as in read-support.test.ts for R1: new reads new (the new
 // records parse here and round-trip byte-identical), old reads new (builds #29–#31 refuse them by version, keep the bytes,
 // say so plainly: local storage, a module backup, sync, the export's modules), writers never lower a version and raise one
 // only when a new group gets content, sync settles Session W's stamped values without stopping, and a version raised by
@@ -124,7 +124,7 @@ describe('the writers: lazy raises, never down',()=>{
   expect(raised.schemaVersion).toBe(3);expect(dashboardSettingsR2Schema.safeParse(raised).success).toBe(false);
   expect(saveWidget(raised,{id:'w-3',kind:'streak',metric:'best',title:'',size:'compact',hidden:false,revision:1}).schemaVersion).toBe(3);
  });
- test('finance: v5 is kept at v5 by every writer\'s version rule; nothing here produces it',()=>{
+ test('finance: v5 is kept at v5 by every writer\'s version rule (written since Session AB-Cloud\'s finance-homes switch, lib/vault/finance-homes.test.ts)',()=>{
   const v5=platformSchema.parse(financeV5());
   expect(financeVersion(v5)).toBe(5);
   expect(financeVersion(platformSchema.parse(financeV4()))).toBe(4);

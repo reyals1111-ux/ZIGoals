@@ -3,8 +3,17 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AA-Local (release `2026-10-session-aa-local`, ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere. Each link opens its Help answer. */
+/** Session AB-Cloud (release `2026-10-session-ab-cloud`, ADR-023): your extras sync, Restore, Point & tell, vitamins, grouped amounts. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ab-sync', label: 'Your goal plans, habit extras, routines and more now sync, encrypted'},
+  {href: '/app/help#help-ab-restore', label: 'Restore from a backup: see what it holds, merge or replace, Undo'},
+  {href: '/app/help#help-ab-point-tell', label: 'Point & tell: pin a note on any part of a page'},
+  {href: '/app/help#help-ab-vitamins', label: 'Vitamins A, C, D, E, K, B12 and folate in Health'},
+  {href: '/app/help#help-ab-amounts', label: 'Type 3,250.50 or 3.250,50; a new goal starts in your currency'},
+  {href: '/app/help#help-ab-photos', label: 'Photos stay on your device, on purpose'},
+];
+/** Session AA-Local (release `2026-10-session-aa-local`, ADR-022): Habits, Health and the game layer, best in class; ZIGi everywhere; AB-Cloud merged after it, so these lead "Earlier updates". */
+const SESSION_AA_LOCAL_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-aa-habits', label: 'Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines'},
   {href: '/app/help#help-aa-journey', label: 'The game layer: levels, quests, badges and a Journey page, off until you switch it on'},
   {href: '/app/help#help-aa-health', label: 'Health: your weight trend and energy estimate, a weekly coach, a meal planner with a grocery list, recipe import'},
@@ -70,6 +79,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AA_LOCAL_LINKS,
   ...SESSION_AA_CLOUD_LINKS,
   ...SESSION_Z_LOCAL_LINKS,
   ...SESSION_Z_CLOUD_LINKS,

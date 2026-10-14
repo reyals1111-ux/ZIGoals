@@ -1,4 +1,61 @@
-# Session AA-Local — "Habits, Health and the game layer, best in class + ZIGi everywhere" (ADR-022) (2026-10-11/12, [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84), not merged)
+# Session AB-Cloud — "Everything left over + private sync for every feature" (ADR-023) (2026-10-13/14, [PR #85](https://github.com/reyals1111-ux/ZIGoals/pull/85), ready for review, not merged)
+**Evidence labels:** local = the cloud sandbox, production build on :3100 with `TZ=UTC`, Playwright Chromium as Chrome (2 workers, nothing in parallel); Miniflare = the private-sync Worker in `scripts/run11/`; CI = Milestone quality on GitHub.
+**Base:** `main` `6c1052b` (Alpha #39, recorded below). **Lane:** data, sync, Workers, CI, scripts, docs, Settings → Sync / Your data, Restore, Point & tell; AB-Design (ADR-024) owns the visuals and was not on origin at any gate. **Finish:** lean, per the owner's note (stretch items skipped).
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: Alpha #39, ADR-023, handoff, session status | — | `9435afec` | Actions API |
+| 1 | Finance v5 written (accounts, milestone dates; floor #32), `cardArt`, AB-Design's device keys, `scripts/frozen-readers.mjs` | 3 | `bdb4b5b7` `ed33e2d5` `c633814c` `516cba9e` | unit; frozen readers |
+| 2 | Extras sync: `/v1/extras` (four sealed sections, CAS, generation, receipts), the client and three-way merge, on with every account sync (Health's section only with its consent) | 3 | `aed011b3` `69edf6d2` `0e26879a` `e587ca16` | unit; Miniflare 4/4 + 5/5 |
+| Gate A | One status line; the extras switch renders with the panel | 3 | `05ad2bb3` `f381c1e9` `fe589e42` `097f19e1` | CI |
+| 3 | FIX_PLAN B3–B7 for the extras | 3 | `5d91c083` | unit |
+| 4 | Vitamins beside the nutrition format | 3 | `ccefd69d` | unit; browser |
+| 5 | Restore from a backup; image sizes from the header | 3 | `ce750e0b` | unit; browser round trip |
+| 6 | Point & tell | 2 | `97e14af1` | unit; browser; WCAG |
+| Gate B | Security read (6 findings fixed, C28); the lost-ack race's root cause (C21c) | 3 | `b586c963` `02677e45` `e3ac5003` | unit; Miniflare; CI integration green |
+| 8 | Showcase words as data, grouped amounts, default currency, History Undo, photo caps | 2 | `2c3fd6db` | unit; browser |
+| 7 | WebKit in two shards; PR runs queue | 3 | `ac973b74` | CI (both shards finish in cap) |
+| 9 | ZIGi without a model (Dutch intro; create-food, log-meal-plan, plan-goal steps) | 2 | `fe784693` | unit; browser; golden unchanged |
+| 10 | Readiness: verifier stages, redeploy and runsheet rows, guides, What's new + 7 Help answers | 1 | `f86985cb` | browser |
+| Gate C | Test audit acted on; frozen readers 17/17; revert gate 26/26; CI's browser failures fixed (banner wrap, Point & tell target, Known limitations count); records | — | `1f8f1cb8` `e57ab538` `732a2055` `a27e5560` `870c3929` `567e120e` | local; CI |
+| — | This entry | — | this commit | — |
+## Tier 3, in plain words (risk → rollback)
+- **Finance v5** (`c633814c`): the rollback floor rises from #29 to #32 (approved) → revert; finance stays v5, read by every build since #32.
+- **`/v1/extras`** (`aed011b3`, `b586c963`): a new keyspace in the account's object, never touched by older clients, compaction, deletion or rotation; **needs a private-sync Worker redeploy before the app** → revert and redeploy; stored keys stay unread, the erase removes them.
+- **Extras sync** (`69edf6d2`, `0e26879a`, `f381c1e9`, `fe589e42`, `5d91c083`): a merge could write a wrong value into a device key (schema-checked, never over a concurrent edit) → revert; the device keys hold every record as last merged.
+- **Vitamins, Restore, cardArt, AB-Design keys** (`ccefd69d`, `ce750e0b`, `02677e45`, `bdb4b5b7`, `ed33e2d5`): new loose device data and a restore that changes only what the person chose (Undo restores exact bytes) → revert; records stay, unread or as written.
+- **CI** (`ac973b74`): more CI minutes → revert the lines.
+## Checks
+- Unit 4,888 passed, 44 skipped (555 files). Typecheck and lint clean (7 old warnings). Key scan passed.
+- Frozen readers: #37 `32cb9c5`, #38 `e3fa408`, #39 `6c1052b` read every record this build writes, 17/17 each (`docs/verification/ab-cloud/frozen-readers-gate-c.txt`).
+- Revert gate: typecheck green at all 26 commits; reverting them newest-first ends at `6c1052b`'s tree (`revert-gate-gate-c.txt`).
+- Browser, local (lean): 1,482 of 2,688 run before the lean-finish note; 9 failed, each explained in SESSION_STATUS (2 brand-film local-only, 2 fixed with 10/10 and 30/30 after, 5 pass alone and in CI).
+- CI: Milestone quality on `870c392` ([run 38510173374](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38510173374)) green: `web`, three browser shards, checks, integration (weights), contract; Canonical reproducibility green. WebKit (advisory) red on the known classes (C29). The final head's run is named in the PR description.
+## Assertions changed
+Each is listed in ADR-023 ("Assertions changed"): export-everything, amount-input, persona-x, apply.test, help-page, whats-new, zigi-help-settings, finished-feel-aa (pinned 21), send-feedback (13 limitations). New texts and counts, the same or stricter checks; none removed or loosened.
+## Owner items
+1. PRIVACY.md E2 sentence with the extras clause: still "DRAFT — owner wording" (`docs/PRIVACY.md:9`); wording in the PR.
+2. Private-sync Worker redeploy (`/v1/extras`) before the app deploy (runsheet rows 15h–15j).
+3. Rollback floor #32; extras sync on by default (Health's section with its consent); CI minutes (queueing, WebKit shards).
+4. WebKit stays advisory with three known classes (C29); the Showcase banner sentence (data, AB-Design's chip replaces it).
+## Known CI intermittents (this session)
+- `persona-z:278` (phone) once on shard 2; `coherence:7` (phone) once on `e3ac500` (6/6 locally, green on the next run). One re-run each; a second failure means investigate.
+
+---
+
+# Alpha deploy #39 — 2026-10-13 morning, `6c1052b` live
+Recorded by Session AB-Cloud (2026-10-13).
+- **Source:** `6c1052b291812982f65875b86ea65001026125b5`, `main` after [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84) (Merge #84, Session AA-Local, "Habits, Health and the game layer, best in class + ZIGi everywhere", ADR-022; the second merger, carrying AA-Cloud's #83, which was #38).
+- **CI:** Milestone quality #905 ([run 38353178089](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38353178089)) on `6c1052b` (push to `main`): success on attempt 2. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 41 ([run 38365446959](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38365446959)), dispatched 2026-10-13 07:52:12 UTC from `main`, exact source `6c1052b`, finished 08:03:21 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route after 4 reads; live prices `VERIFIED`; the price policy period ends 2026-10-31T16:00Z (18 days left at the deploy). Verified: the deploy job's CI log (job 115192483492, "Manual Alpha deployment" summary).
+- **Alpha Worker `zigoals-alpha`:** live version `3bcf2886-4cc6-4ab4-be2b-3518b59f2b72`; rollback `1ee22205-29a1-42d0-a3e7-cc8ceee24817` (#38). Verified: CI log ("New version ID", "Rollback version ID"); owner-reported values identical. Evidence artifact `alpha-deployment-38365446959-1`.
+- **What went live:** Session AA-Local (ADR-022) on top of AA-Cloud (ADR-021).
+- **Record note:** the workflow's run number runs two ahead of the Alpha count (run 39 was #37, run 40 #38, run 41 #39), as in the earlier records. Alpha #38 (`e3fa408`, Milestone quality #900 [run 38284544764](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38284544764) success on attempt 1, Manual Alpha deployment run number 40 [run 38291049727](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38291049727) success on attempt 1, version `1ee22205-29a1-42d0-a3e7-cc8ceee24817`, rollback `4a563125-41eb-4c5f-980d-d477371f27f3` = #37) was recorded in AA-Local's entry; it joins Release identity below.
+
+---
+
+# Session AA-Local — "Habits, Health and the game layer, best in class + ZIGi everywhere" (ADR-022) (2026-10-11/12, [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84), merged into `main` as `6c1052b` and deployed as Alpha #39)
 **Evidence labels:** as Z-Local's (local = this Mac, production builds on :3103 with `TZ=UTC`; Claude = the owner's test key, usage in the ledger; PC = the RTX 5090 through the loopback forwarder; Chrome / WebKit = Playwright's Chrome and WebKit on this Mac; CI = Milestone quality and Canonical reproducibility on the PR).
 **Base:** `main` `32cb9c5a` (Alpha #37). **Alpha #38 recorded:** AA-Cloud's PR #83 merged into `main` as `e3fa408db9dee4fc6c255d574c52e2baa7b5458e` and deployed as Alpha #38 (Worker `zigoals-alpha`, version `1ee22205-29a1-42d0-a3e7-cc8ceee24817`, rollback `4a563125-41eb-4c5f-980d-d477371f27f3` = #37, run 38291049727, verified after three reads, live prices verified). This lane merged second: `origin/main` `e3fa408d` merged in as `ab79ba89` (eight conflicts, each resolved by keeping both sides, ADR-022 B52) and the whole second-merger list done (B53). Owner decisions and the eight plan edits: ADR-022 B1–B51 (41 rows; some numbers were amended in place). Handoffs: `docs/handoff/AA_LOCAL_TO_CLOUD.md` (mine, read by AA-Cloud at its gates), `AA_CLOUD_TO_LOCAL.md` (read at every gate; unchanged since Gate B).
 **Time:** branch created 2026-10-11 (local); this entry 2026-10-12 15:39 UTC.
@@ -86,7 +143,7 @@ Golden sets byte-identical since Part 5 (typed 100 %, spoken 100 %). Model-agnos
 
 # Session Z-Local — "ZIGi's brain, flawless" (ADR-020) (2026-10-10/11, [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82), not merged)
 
-# Session AA-Cloud — every page in order + Goals, the calculator, search and Life review (ADR-021) (2026-10-11/12, [PR #83](https://github.com/reyals1111-ux/ZIGoals/pull/83), not merged)
+# Session AA-Cloud — every page in order + Goals, the calculator, search and Life review (ADR-021) (2026-10-11/12, [PR #83](https://github.com/reyals1111-ux/ZIGoals/pull/83), merged into `main` as `e3fa408` and deployed as Alpha #38)
 **Evidence labels:** **local**: this cloud sandbox (Node 24.19.0, pnpm 11.19.0, `pnpm install --frozen-lockfile --ignore-scripts`), production builds (`PUBLIC_ALPHA_UNDEPLOYED`) on :3101, `32cb9c5`'s own build on :3102, Playwright's Chromium standing in for Chrome (CLAUDE.md; the intro-film specs fail here by design and pass in CI). **CI**: Milestone quality and Canonical reproducibility on the PR (Actions API). **source**: the code at the named commit. Captures on `review/session-aa-cloud-screens`; raw run data on `review/session-aa-cloud-runs`.
 **Base:** `main` `32cb9c5` (Alpha #37). **Lane:** pages, shell, Goals, Wealth and the money pages, Settings, Help, Today's layout, search, Life review and insights, data health, the manifest; AA-Local (ADR-022) holds ZIGi, Habits, Health, the game layer, onboarding and reminders. **Second merger** carries the shared files (What's new, Help, budgets, STATUS) per the handoffs.
 ## Parts
@@ -5982,7 +6039,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-11 for the [Alpha deploy #37](#alpha-deploy-37--2026-10-11-evening-32cb9c5-live) record at the top of this file (recorded by Session AA-Cloud).
+Updated 2026-10-13 for the [Alpha deploy #39](#alpha-deploy-39--2026-10-13-morning-6c1052b-live) record at the top of this file (recorded by Session AB-Cloud).
+- Deployed source `6c1052b291812982f65875b86ea65001026125b5`, `main` after [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84) (Merge #84, Session AA-Local). Verified: Actions API.
+- CI: Milestone quality #905 ([run 38353178089](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38353178089)) on `6c1052b`: success (attempt 2). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 41 ([run 38365446959](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38365446959)), exact source `6c1052b`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API and the deploy job's CI log.
+- Alpha Worker `zigoals-alpha`: live version `3bcf2886-4cc6-4ab4-be2b-3518b59f2b72`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z, 18 days left); rollback `1ee22205-29a1-42d0-a3e7-cc8ceee24817` (#38). Verified: CI log; owner-reported values identical.
+
+Previous release identity (#38, 2026-10-12 evening, recorded by Session AA-Local's entry and here by Session AB-Cloud):
+- Deployed source `e3fa408db9dee4fc6c255d574c52e2baa7b5458e`, `main` after [PR #83](https://github.com/reyals1111-ux/ZIGoals/pull/83) (Merge #83, Session AA-Cloud). Verified: Actions API.
+- CI: Milestone quality #900 ([run 38284544764](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38284544764)) on `e3fa408`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 40 ([run 38291049727](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38291049727)), exact source `e3fa408`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: version `1ee22205-29a1-42d0-a3e7-cc8ceee24817`; rollback `4a563125-41eb-4c5f-980d-d477371f27f3` (#37). Owner-reported.
+
+Previous release identity (#37, 2026-10-11 evening, recorded by Session AA-Cloud):
 - Deployed source `32cb9c5addedf6dfcd2c68887c7ded6ecf81b730`, `main` after [PR #82](https://github.com/reyals1111-ux/ZIGoals/pull/82) (Merge #82, Session Z-Local). Verified: Actions API.
 - CI: Milestone quality #861 ([run 38170851435](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38170851435)) on `32cb9c5`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 39 ([run 38173412593](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38173412593)), exact source `32cb9c5`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.

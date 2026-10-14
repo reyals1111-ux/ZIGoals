@@ -33,6 +33,7 @@ import {useGoalExtras} from './goals/use-goal-extras';
 /** The money templates' categories (the rest are "Custom"). */
 const TEMPLATE_CATEGORY: Record<string, GoalMetadata['category']> = {'emergency-fund': 'Emergency Fund', 'house-deposit': 'First Home', 'holiday-fund': 'Travel', 'online-course': 'Education', 'certification': 'Education', 'invest-monthly': 'Financial Freedom'};
 import {localDate} from '../lib/local-date';
+import {useDefaultCurrency} from '../lib/default-currency';
 type Funding='wealth'|'future'|'local'|'project';
 /** Session Y Part 9: a refusal about one field of the Purpose step, so that field can be marked and focused. */
 class FieldError extends Error{constructor(message:string,readonly field:string){super(message);}}
@@ -81,7 +82,9 @@ export function UnifiedGoalWizard({positionId,templateId,calculator,sharedName}:
  const [busy,setBusy]=useState(false);const [savedId,setSavedId]=useState(''),[savedOffline,setSavedOffline]=useState(false);const habitId=useRef('');
  useEffect(()=>{if(shownStep.current===step)return;shownStep.current=step;stepContent.current?.focus();},[step]);
  const releaseDraft=useUnsavedChanges(!savedId&&!!(name||target||notes||date||milestones||assetInput||withPlan||planAmount||Object.keys(included).length||type!=='QUANTITY'||category!=='Emergency Fund'));
- const asset=assetInput||(type==='VALUE'?'USD':source?.asset??'ZIG');
+ // Session AB-Cloud Part 8 (ADR-023 C25): a value Goal starts in the device's currency (euro in the euro area) until one is chosen.
+ const preferredCurrency=useDefaultCurrency();
+ const asset=assetInput||(type==='VALUE'?preferredCurrency:source?.asset??'ZIG');
  const network=(networkInput||(source?.network==='zig-test-2'?'zig-test-2':'zigchain-1')) as PrivateGoal['network'];
  const market=useMarketQuotes(type==='VALUE'&&funding==='wealth'?wealthMarketRequests(store.data):false);
  const precision=type==='VALUE'?2:type==='PROJECT'?0:source&&source.asset===asset?source.decimals:18;

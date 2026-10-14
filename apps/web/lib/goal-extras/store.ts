@@ -38,6 +38,8 @@ const visionSchema = z.discriminatedUnion('kind', [
   z.looseObject({kind: z.literal('emoji'), emoji: z.string().min(1).max(16), gradient: z.enum(GRADIENTS).optional()}),
   z.looseObject({kind: z.literal('photo'), imageId: z.string().regex(/^[A-Za-z0-9-]{8,64}$/), alt: z.string().max(200).optional()}),
 ]);
+/** An art id: lower-case letters, digits and dashes, at most 60 characters (`nebula-1`). */
+export const CARD_ART_ID = /^[a-z0-9][a-z0-9-]{0,59}$/;
 export const goalExtraSchema = z.looseObject({
   area: z.string().regex(/^[a-z0-9-]{1,40}$/).optional(),
   why: text.optional(), obstacle: text.optional(), ifThen: text.optional(),
@@ -45,6 +47,11 @@ export const goalExtraSchema = z.looseObject({
   vision: visionSchema.optional(),
   story: z.string().max(2000).optional(),
   template: z.string().regex(/^[a-z0-9-]{1,60}$/).optional(),
+  /**
+   * Session AB-Cloud (ADR-023 C7, AB-Design's contract): the art a goal's card wears, by id. Readers ignore an id they
+   * do not know (the card's default then); a new version of an art is a new id. Synced in the `goals` extras section.
+   */
+  cardArt: z.string().regex(CARD_ART_ID).optional(),
   updatedAt: z.iso.datetime().optional(),
 });
 export const customAreaSchema = z.looseObject({id: z.string().regex(/^custom-[a-z0-9-]{1,30}$/), label: z.string().trim().min(1).max(30), color: z.string().regex(/^#[0-9a-f]{6}$/i)});
@@ -112,6 +119,12 @@ export function setGoalVision(extras: GoalExtras, goalKey: string, vision: Visio
 export function setGoalStory(extras: GoalExtras, goalKey: string, story: string, at: string): GoalExtras {
   const current = extras.goals[goalKey] ?? {};
   return put(extras, goalKey, {...current, story}, at);
+}
+/** AB-Design's card art (ADR-023 C7): an art id, or null for the default card. An id that is not well formed is refused. */
+export function setGoalCardArt(extras: GoalExtras, goalKey: string, artId: string | null, at: string): GoalExtras {
+  if (artId !== null && !CARD_ART_ID.test(artId)) throw Error('That card art is not available.');
+  const current = extras.goals[goalKey] ?? {};
+  return put(extras, goalKey, {...current, cardArt: artId ?? undefined}, at);
 }
 /** G6: the template a goal started from. */
 export function setGoalTemplate(extras: GoalExtras, goalKey: string, template: string | null, at: string): GoalExtras {
