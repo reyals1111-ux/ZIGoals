@@ -50,7 +50,8 @@ export function DataHealthView() {
     <section className="panel" aria-labelledby="dh-synced">
       <SectionHeading id="dh-synced" eyebrow={read.account ? 'Your account syncs these, encrypted' : 'No account on this device'} title="Synced records" lede={read.account ? 'Encrypted on this device before they leave it; Health only after you agree on each device.' : 'Without an account these stay on this device. An account syncs them, encrypted, when you choose.'} level={3} />
       <ul className="dh-list">{SYNCED.map(row)}</ul>
-      <p className="fine">{SYNCED.map(e => `${e.area}: ${HOME_LABEL[e.home].toLowerCase()}`).join(' · ')}.</p>
+      {/* Phase 2 closing pass (design critique): one line per area (the same pair had repeated once per record type). */}
+      <p className="fine">{[...SYNCED.reduce((m, e) => m.set(e.area, new Set([...(m.get(e.area) ?? []), HOME_LABEL[e.home].toLowerCase()])), new Map<string, Set<string>>())].map(([area, homes]) => `${area}: ${[...homes].join(' or ')}`).join(' · ')}.</p>
     </section>
     <section className="panel" aria-labelledby="dh-device">
       <SectionHeading id="dh-device" eyebrow={HOME_LABEL.device} title="Kept on this device" lede="Never synced or uploaded. Export everything includes them; another device does not see them." level={3} />

@@ -46,3 +46,12 @@
    consistency cards' swipe row (a scroll container whose content had set the track to 341 px). */
 :root .habits-workspace { grid-template-columns: minmax(0, 1fr); }
 :root .habits-workspace > * { min-width: 0; }
+/* Session AB-Design Phase 2 closing pass (design critique): the card's heading is a grid — the eyebrow shares its row with
+   Edit and ⋯, while the title and the schedule line take the card's whole width ("30 minutes per / day" had wrapped in
+   the narrow column left beside the two buttons). */
+:root .habit-card-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 6px; align-items: start; }
+:root .habit-card-heading > div:first-child { display: contents; }
+:root .habit-card-heading > div:first-child > .eyebrow { grid-column: 1; grid-row: 1; align-self: center; }
+:root .habit-card-heading > div:first-child > :not(.eyebrow) { grid-column: 1 / -1; }
+:root .habit-card-heading > button { grid-column: 2; grid-row: 1; }
+:root .habit-card-heading > .pin-to-today { grid-column: 3; grid-row: 1; }

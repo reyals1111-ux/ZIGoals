@@ -163,3 +163,8 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 :root[data-app-motion=off] .data-coin-chevron { transition: none; }
 /* The Showcase's fixture-price note stays (fictional must never look real) but as one quiet line, not a box (Session AB-Design, owner request 8). */
 .portfolio-hero .portfolio-note { max-width: none; margin: 8px 0 0; padding: 0; border: 0; background: none; font-size: 14px; color: var(--text-meta, #c2d0e5); }
+/* Session AB-Design Phase 2 closing pass (design critique): the holdings table fits its card. At 1440 px it ran 68 px past
+   it ("Unkno…"): cells take less padding. On phones the four asserted columns stay (coin, 24h, value, result) in the
+   table's own sideways scroll; the coin column is narrower so more of them show at once. */
+@media (min-width: 768px) { .portfolio-holdings-section .data-table :is(th, td) { padding-inline: 8px; } }
+@media (max-width: 767.98px) { .portfolio-holdings-section .data-table th:first-child, .portfolio-holdings-section .data-table td:first-child { min-width: 128px; } }

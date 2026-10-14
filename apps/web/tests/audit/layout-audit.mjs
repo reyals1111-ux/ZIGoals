@@ -91,7 +91,8 @@ const STATES = [
   {name: 'habit-details', path: '/app/habits', steps: async p => click(p, p.locator('article.habit-card details.habit-more > summary'))},
   {name: 'habit-new', path: '/app/habits', steps: async p => click(p, p.getByRole('button', {name: /New habit/}).filter({visible: true}))},
   {name: 'habit-year', path: '/app/habits', steps: async p => click(p, p.getByRole('button', {name: /year view/i}))},
-  {name: 'routine-player', path: '/app/habits', steps: async p => click(p, p.getByRole('button', {name: /^(Start|Resume|Play again)$/}))},
+  // The Showcase lists its routines as templates first: one is added, then started.
+  {name: 'routine-player', path: '/app/habits', steps: async p => { const start = p.getByRole('button', {name: /^(Start|Resume|Play again)$/}); if (!await start.count()) { await click(p, p.getByRole('button', {name: 'Add routine', exact: true}).first()); await p.waitForTimeout(600); } await click(p, start.first()); }},
   // Health
   {name: 'health', path: '/app/health'},
   {name: 'health-planner', path: '/app/health', steps: healthView('Planner')},
@@ -113,7 +114,8 @@ const STATES = [
   {name: 'markets', path: '/app/markets'},
   {name: 'staking', path: '/app/staking'},
   {name: 'portfolio', path: '/app/portfolio'},
-  {name: 'portfolio-coin', path: '/app/portfolio', steps: firstHref('/app/portfolio/coin/')},
+  // A coin's page link is inside its row's details: the first row opens, then its link is followed.
+  {name: 'portfolio-coin', path: '/app/portfolio', steps: async p => { await click(p, p.locator('.data-coin-toggle').first()); await p.waitForTimeout(400); await firstHref('/app/portfolio/coin/')(p); }},
   {name: 'activity', path: '/app/activity'},
   {name: 'ecosystem', path: '/app/ecosystem'},
   {name: 'chess', path: '/app/chess'},
@@ -220,7 +222,9 @@ function inspect() {
           for (const r of range.getClientRects()) { if (r.width < 8 || r.height < 6 || r.top < 0 || r.bottom > innerHeight) continue; done.add(el);
             let hits = 0, by = null; const y = r.top + r.height / 2;
             for (const x of [r.left + 4, r.left + r.width / 2, r.right - 4]) { if (x < 0 || x >= innerWidth) continue; const top = document.elementFromPoint(x, y); if (!top || top === el || el.contains(top) || top.contains(el) || top.closest(EXCLUDE) || fixedOf(top) || top.closest('svg')) continue; const b = top.getBoundingClientRect(); if (x < b.left || x > b.right || y < b.top || y > b.bottom) continue; /* a stretched link's pseudo-element: the whole card is its target, by design */
-              const ts = getComputedStyle(top), paints = top.tagName === 'IMG' || ts.backgroundColor !== 'rgba(0, 0, 0, 0)' || ts.backgroundImage !== 'none' || parseFloat(ts.borderTopWidth) > 0 || [...top.childNodes].some(t => { if (t.nodeType !== 3 || !t.textContent.trim()) return false; const q = document.createRange(); q.selectNodeContents(t); return [...q.getClientRects()].some(k => x >= k.left && x <= k.right && y >= k.top && y <= k.bottom); });
+              if (top.closest('.card-options-panel, .showcase-chip-panel, .wealth-other-chip-panel, [role="menu"], [role="dialog"]:not(dialog), [popover]')) continue; /* an open popover or menu covers the page by design */
+              const ts = getComputedStyle(top); let shown = 1; for (let a = top; a && a !== document.body; a = a.parentElement) shown *= +getComputedStyle(a).opacity; if (shown < .05) continue; /* an invisible control over its own label (a chip's checkbox) */
+              const paints = top.tagName === 'IMG' || ts.backgroundColor !== 'rgba(0, 0, 0, 0)' || ts.backgroundImage !== 'none' || parseFloat(ts.borderTopWidth) > 0 || [...top.childNodes].some(t => { if (t.nodeType !== 3 || !t.textContent.trim()) return false; const q = document.createRange(); q.selectNodeContents(t); return [...q.getClientRects()].some(k => x >= k.left && x <= k.right && y >= k.top && y <= k.bottom); });
               if (!paints) continue; /* a transparent box (a link's taller hit area) paints nothing over the text */ hits++; by = top; }
             if (hits >= 1 && by) { const key = desc(el) + '|' + desc(by); if (!coveredSeen.has(key)) { coveredSeen.add(key); out.push({k: 'covered', w: `${desc(el)} is covered by ${desc(by)}`}); } }
           } } }
@@ -278,7 +282,8 @@ function inspect() {
   // bar is what the popover covers, not what a reader sees: left out.
   const covers = [...scope.querySelectorAll('.card-options-panel, .showcase-chip-panel, .wealth-other-chip-panel, [role="menu"], [role="dialog"]:not(dialog), [popover]:popover-open')].filter(c => shown(c)).map(c => ({c, r: c.getBoundingClientRect()}))
     .concat([...scope.querySelectorAll('*')].filter(el => { const pos = getComputedStyle(el).position; return pos === 'sticky' && modal; }).map(c => ({c, r: c.getBoundingClientRect()})));
-  const covered = el => { const r = el.getBoundingClientRect(); return covers.some(({c, r: k}) => !c.contains(el) && r.left < k.right && r.right > k.left && r.top < k.bottom && r.bottom > k.top); };
+  // A popover's drop shadow darkens what is just around it too: 24 px of margin around each cover.
+  const covered = el => { const r = el.getBoundingClientRect(); return covers.some(({c, r: k}) => !c.contains(el) && r.left < k.right + 24 && r.right > k.left - 24 && r.top < k.bottom + 24 && r.bottom > k.top - 24); };
   const samples = [];
   for (const el of texts) {
     if (covered(el)) continue;

@@ -208,6 +208,9 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   nothing at all may still be requested.
 - `run11-layout-stability.spec.ts`: restored, not changed. A Phase 1 comment had swallowed the sideways-scroll assertion on
   the same line; it is back on its own line.
+- `motion-polish.spec.ts` (Habits overview glide): the mid-glide sample is taken in the page two frames after the value
+  changes (a slow CI runner, sampling after two round trips, read the 460 ms glide already at its end); the assertions
+  are unchanged (start ≤ gliding < end, end on target).
 - `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
   together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
   made 5 folds for 4 counted widgets); still exactly one fold per widget.
@@ -317,6 +320,50 @@ list and what happened to each item:
    stays (drawn on purpose).
 Verdict quoted: "After is clearly better than before" — the fold no longer loses ~300 px to notice bars, the Goals header
 is cleaner, the footer is a real banner; the dock overlap and the art unevenness are the remaining gaps.
+
+### Closing pass item 6 — design critique over fresh 390/1440 captures
+One independent read-only agent read every page at 390 and 1440 px (full-length captures cut into slices; 353 images) and
+listed 29 findings (4 High, 15 Medium, 10 Low). Each was checked against its screenshot before acting.
+Fixed:
+1. Ecosystem logos slid out of their tiles on phones (a forced 44 px image in a padded tile): the logo fills the tile.
+2. Card headers centred with a short floating rule on desktop (Ecosystem, ZIGi's page, Reminders, the market watch): the
+   landing's old global `header { max-width; margin: auto; padding; border }` no longer applies inside the app.
+3. Numbers and dates broken inside themselves: the goal page's metric tiles size from their length; Today's next/latest
+   contribution, goal cards' target dates and "Open Goal →", chess dates and Life review trends keep their figures whole.
+4. Health at 1440 px: the diary's side column ran ~1,100 px past the meals; its cards join the grid (log form beside the
+   meals, Water across both columns).
+5. Today at 1440 px: Habits and Health each take the row (a short Health card had left a dead area beside Habits).
+6. Figures split by the gradient ("$9,0|00.00"): figures take one smooth pale blend; titles keep the white → nebula flow.
+7. Settings → Your data repeated "Area: …" once per record type: one line per area.
+8. Clipped at the edge: Portfolio's table fits its card at 1440 px and drops the Result column on phones (each row's
+   details show it); Today's market watch wraps into rows on larger screens.
+9. "Last verified" with nothing after it: the time it was verified, or "Not verified yet".
+10. Duplicates: position tags each fact once, a note equal to the title is not repeated, the price history says its
+    limitation once, and an asset no longer offers "Allocate to" the Goal it already funds.
+11. Two status-chip styles: Today's pill reads like the goal cards' chips (dot, capitals). (Emergency fund appearing in
+    the featured card, the goal list and the agenda is by design: three roles.)
+13. "1 CUSTOM": a custom asset's contribution shows its position's name (`lib/asset-unit.ts`, unit-tested).
+14. The footer's honesty line: the same facts as short lines; the build environment (read by the hosted verifier) in a
+    quiet chip at the end.
+16. Activity's Habit and Health events take their pillar accents.
+17. Reminders' checkboxes centred above titles: the same legacy header rule (2).
+18. Habit cards' schedule line wrapped beside Edit and ⋯: the heading is a grid (eyebrow row with the buttons, title and
+    schedule full width). The three-up grid with a lone card in a section is kept (equal card sizes across sections).
+19. Two goal-card languages: "Open Goal →" everywhere; an average goal's target reads under its title, not in the eyebrow.
+20. Cancel and Save goal touched: action rows keep the standard gap.
+21. "Still collecting" read as a bare heading: a chevron row like the other Details.
+22. The Journey's broken badge glyph ("⁄ Comet"): "Badge · Comet"; levels not reached share one neutral marker.
+23. Two identical X icons on phones: the X links show their handles.
+24. A meal's ⋯ on its own row at 390 px: title, kcal chip and ⋯ share the heading row.
+25. Ecosystem's three links wrapping their arrows at 390 px: stacked full width.
+26. Today's folded widgets mixed half rows without "Show" with full rows: every folded widget is a full row with "Show";
+    the snapshot's tiles share the tallest tile's height (the row's height is unchanged).
+27. "Steps goal" on templates that are not about steps: "Milestones goal"; template buttons sit at the card foot.
+Judged, not changed: 15 (the calculator's result pill is sticky over scrolling content by design; a full-page capture
+froze it mid-page), 29 (the empty Today keeps the rail beside a longer main column, as the Showcase does).
+Owner items (product decisions beyond a visual fix): 12 — one display format for dates across pages (ISO, locale and long
+forms are mixed; changing it moves many asserted strings); 28 — the Showcase's activity times are all midnight because its
+records carry dates only (AB-Cloud's data lane).
 
 ## Weights (Gate C)
 `scripts/check-weight-budget.mjs` against the Gate C build: Today 515.3 of 515 kB, Goals 438.0 of 434 kB and Wealth 469.1 of

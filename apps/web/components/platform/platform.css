@@ -66,3 +66,5 @@
 .unified-wizard .checkbox input { width:auto; flex-shrink:0; }
 .unified-wizard .setup-next,.unified-wizard dd { overflow-wrap:anywhere; }
 .allocation-owners .platform-position-row { display:grid; gap:.4rem; }
+/* Session AB-Design Phase 2 closing pass (design critique): "Edit <position>" and its ⋯ menu keep the standard gap. */
+.position-card > .pin-to-today { margin-inline-start: 10px; }

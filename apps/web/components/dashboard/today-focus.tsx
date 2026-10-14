@@ -70,7 +70,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         {nextGoal ? <>
           <strong>{nextGoal.name}</strong>
           <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${nextGoal.nextContributionDate}` : ''}</p>
-          <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open goal →</Link></div>
+          <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open Goal →</Link></div>
         </> : <>
           <strong>No active goal yet</strong>
           <div className="focus-actions"><Link className="text-link" href="/app/goals/new">Plan a goal →</Link></div>

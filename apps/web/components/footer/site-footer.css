@@ -152,3 +152,18 @@
 @media (max-width: 359px) { .site-footer-logo.logo-wordmark { font-size: 44px; } .site-footer-slogan { font-size: 21px; } .site-footer-social a, .site-footer-top { padding: 0 11px; } }
 @media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer-sweep, .site-footer::before { display: none; } }
 .site-footer-result { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique): the honesty facts read as short lines, not one run-on of a
+   dozen dot-joined clauses — every fact kept, word for word; the network label leads as a small heading, and the build
+   environment (the hosted verifier reads it) sits last in a quiet chip instead of trailing the text. */
+.site-footer-disclaimer { display: grid; justify-items: center; gap: 2px; }
+.site-footer-disclaimer > span + span::before { content: none; }
+.site-footer-disclaimer .network-banner strong { display: block; margin-bottom: 2px; }
+.site-footer-disclaimer .site-footer-build { margin-top: 8px; }
+.site-footer-env { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 1px solid #8fa6c840; border-radius: 999px; font-size: 14px; letter-spacing: .04em; color: #b6c6dd; }
+/* Session AB-Design Phase 2 closing pass (design critique): two identical X icons could not be told apart on a phone, so
+   the X links show their handles there (the website stays an icon); the row wraps when they need the room. */
+@media (max-width: 767.98px) {
+  .site-footer-social, .site-footer-social-links { flex-wrap: wrap; }
+  .site-footer-social-links > a[href*="x.com"] { width: auto; padding: 0 14px; }
+  .site-footer-social-links > a[href*="x.com"] > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+}

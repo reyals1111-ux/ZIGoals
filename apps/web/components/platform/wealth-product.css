@@ -45,3 +45,6 @@
 /* The ring's figure stays on one line inside the inner circle: sized from its own length against the ring (a size container). */
 :root .composition-donut { container-type: size; }
 :root .composition-donut > span > strong { white-space: nowrap; font-size: clamp(13px, min(1.35em, calc(66cqi / (var(--chars, 12) * .6))), 26px); }
+/* Session AB-Design Phase 2 closing pass (design critique, 1440 px): on larger screens Today's market watch wraps into rows
+   instead of a sideways row whose fourth card was cut at the edge mid-word; phones keep their swipe row. */
+@media (min-width: 768px) { :root .market-watch.compact-watch .watchlist-grid { grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); grid-auto-columns: auto; overflow-x: visible; } }

@@ -151,3 +151,6 @@
 .game-card:not(.game-card-strip) .game-card-quest { grid-area: quest; padding: 10px 14px; border-radius: 14px; background: #ffffff08; border: 1px solid #c790f62e; }
 .game-card:not(.game-card-strip) .text-link { grid-area: link; justify-self: end; }
 @media (max-width: 900px) { .game-card:not(.game-card-strip) .game-card-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "level" "bar" "quest" "link"; } .game-card:not(.game-card-strip) .text-link { justify-self: start; } }
+/* Session AB-Design Phase 2 closing pass (design critique): a level not reached yet is the one neutral "locked" marker —
+   desaturating each planet's own hue had turned levels 9 and 10 a muddy olive outside the palette. */
+.journey-path li:not([data-reached]) .journey-path-node { filter: none; background: #1a142a; border: 2px solid #a184e255; color: #d8ccf5; box-shadow: none; }

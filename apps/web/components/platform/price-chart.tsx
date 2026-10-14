@@ -83,7 +83,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
   </>:<div className="price-chart-empty"><span aria-hidden="true">◌</span><h4>{loading?'Loading observed prices':'Your price history starts here'}</h4><p>{loading?'Checking available market history.':'Prices will appear as verified observations become available. Earlier performance is not assumed.'}</p></div>}
   <figcaption>
    {points.length>1&&<span>Connecting lines are illustrative; gaps longer than seven days remain open. The vertical scale fits observed prices, not a zero baseline. This is market context, not your portfolio return.</span>}
-   {offline?'Showcase fixture prices, not market data.':marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':'Saved local price observations. Market history is currently unavailable.'}
+   {offline?'Showcase fixture prices, not market data.':marketRef.kind==='rwa'?RWA_HISTORY_UNAVAILABLE:history?'Dated market observations. Lines connect observed prices; values between them are not recorded prices.':result?.error&&marketRef.kind==='coin'?null:'Saved local price observations. Market history is currently unavailable.'}
    {history&&<span>Fetched <time dateTime={history.fetchedAt}>{formatDateTime(history.fetchedAt)}</time> · {currency} per asset unit.</span>}
    {result?.error&&marketRef.kind==='coin'&&<span className="price-chart-limitation" role="status">{result.error}</span>}
   </figcaption>

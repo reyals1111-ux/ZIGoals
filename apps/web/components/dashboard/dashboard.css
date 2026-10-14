@@ -103,3 +103,7 @@
 /* The overview's figures, the same way (1920 px: "US$501,800.00" in a 165 px column). */
 .dashboard-summary-copy{container-type:inline-size;flex:1 1 0;min-width:0}
 .dashboard-summary-copy>strong.is-figure{white-space:nowrap;font-size:clamp(.95rem,min(1.6vw,calc(100cqi / (var(--chars,10) * .6))),1.45rem)}
+/* Session AB-Design Phase 2 closing pass (design critique, 1440 px): Today's Habits list runs far longer than the Health
+   card beside it, which left a dead area under Health; the two daily cards each take the row. */
+@media (min-width:768px){.dashboard-layout-grid>.placed-module:is([data-module="habits"],[data-module="health"]){grid-column:1/-1}}
+.widget-library-tile span{min-width:0;overflow-wrap:anywhere}.widget-library-tile small{white-space:normal}

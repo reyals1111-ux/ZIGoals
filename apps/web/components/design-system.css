@@ -17,6 +17,8 @@
   --accent-violet: #cbbfff;
   --accent-magenta: #f3b0e6;
   --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 60%, #8fa6ff 74%, #c790f6 87%, #f08bd6 100%);
+  /* Figures (Phase 2 closing pass, design critique): one continuous pale blend, no hard edge mid-number. */
+  --nebula-figure: linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b8ecfb 55%, #b9c6ff 78%, #dcb8fb 100%);
   --page-lede-size: clamp(17px, 1.05vw + 5px, 20px);
 }
 
@@ -156,3 +158,8 @@
 }
 /* Gate C critique: no orphan word on a page title. */
 :root .page-header > h1, :root .habit-hero h1, :root .wealth-hero h1, :root .journey-hero h1 { text-wrap: balance; }
+
+/* Session AB-Design Phase 2 closing pass (design critique): figures read in one smooth blend (the white → nebula flow had
+   put a colour edge inside "$9,0|00.00"). Same contrast family: every stop is a pale tint on the dark cards. */
+:root .nebula-flow.is-figure, :root .nebula-number { background-image: var(--nebula-figure); }
+:root .nebula-flow.is-figure[data-entrance=once] { background-image: linear-gradient(100deg, transparent 40%, #ffffffb0 50%, transparent 60%), var(--nebula-figure); }

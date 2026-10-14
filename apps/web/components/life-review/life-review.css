@@ -70,3 +70,11 @@
 @media (forced-colors: active) { :root .life-chapter::before { -webkit-text-stroke: 0; color: CanvasText; } :root .life-cover-kicker { -webkit-text-fill-color: CanvasText; } }
 /* Phase 2 closing pass (layout audit): each goal in "Goals that moved" is a full-size link. */
 :root .life-list a { display: inline-flex; align-items: center; min-height: 44px; }
+/* Session AB-Design Phase 2 closing pass (design critique): "Still collecting" opens a list, so it reads as one — the
+   chevron and a 44 px row of the app's other Details, never a bare heading with nothing under it. */
+:root .cross-pending > summary { display: flex; align-items: center; gap: 10px; min-height: 44px; list-style: none; cursor: pointer; font-weight: 650; }
+:root .cross-pending > summary::-webkit-details-marker { display: none; }
+:root .cross-pending > summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--cyan, #6fd3ff); border-bottom: 2px solid var(--cyan, #6fd3ff); transform: rotate(-45deg); transition: transform 160ms; }
+:root .cross-pending[open] > summary::before { transform: rotate(45deg); }
+@media (prefers-reduced-motion: reduce) { :root .cross-pending > summary::before { transition: none; } }
+:root[data-app-motion=off] .cross-pending > summary::before { transition: none; }

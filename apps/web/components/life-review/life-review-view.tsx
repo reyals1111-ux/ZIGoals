@@ -106,7 +106,7 @@ export function LifeReviewView() {
         <section className="panel life-chapter" data-pillar="health" data-chapter="3" aria-labelledby="life-review-health">
           <SectionHeading id="life-review-health" pillar="health" eyebrow="Chapter 3 · Health" title="Trends" level={3} />
           <table className="life-trends"><thead><tr><th scope="col">Measure</th><th scope="col">This {period}</th><th scope="col">Before</th></tr></thead>
-            <tbody>{review.health.map(t => <tr key={t.label}><th scope="row">{t.label}<small>{t.detail}</small></th><td>{t.now ?? 'Not recorded'}</td><td>{t.before ?? 'Not recorded'}</td></tr>)}</tbody></table>
+            <tbody>{review.health.map(t => <tr key={t.label}><th scope="row">{t.label}<small>{t.detail}</small></th><td className={t.now ? 'nowrap' : undefined}>{t.now ?? 'Not recorded'}</td><td className={t.before ? 'nowrap' : undefined}>{t.before ?? 'Not recorded'}</td></tr>)}</tbody></table>
           <p className="fine">Averages of the days you recorded; a day without a record is left out, never counted as zero. Not advice.</p>
         </section>
         {financial && <section className="panel life-chapter" data-pillar="wealth" data-chapter="4" aria-labelledby="life-review-money">

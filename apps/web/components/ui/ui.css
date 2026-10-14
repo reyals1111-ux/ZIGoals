@@ -150,3 +150,17 @@ html[data-zigi-launcher="shown"] .zigi-explain-corner { align-items: center; min
 :root .extras-sync-choice .checkbox { min-height: 44px; }
 /* Session AB-Design Phase 2 closing pass (layout audit): Today's goal pulse keeps "of <amount>" and "Target <date>" whole. */
 :root .today-goal-pulse :is(.pulse-of, .pulse-date) { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique): the landing's old global `header { max-width: 1380px; margin:
+   auto }` (globals.css) centred every card header inside the app that sets no margin of its own (Ecosystem, ZIGi's page,
+   Reminders), so titles started at a different x from the text under them. Inside the app a header starts at its card's
+   start, without the landing bar's padding and rule; component rules that set their own still win. */
+main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
+/* Session AB-Design Phase 2 closing pass (design critique): a date, an amount or a duration never breaks inside itself
+   ("2026-10- / 16", "Oct / 12, 2026", "6 h 44 / min"); the words around it wrap instead. */
+:root .nowrap, :root .goal-target time, :root .unified-goal-card .card-footer .text-link { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique): a form's action row always keeps the standard gap (Cancel and
+   Save goal had touched). */
+:root .dashboard-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280 px): a focus tile's action link is a 28 px target on the
+   pointer layout too (23 px with ZIGi's panel beside it failed the spacing rule). */
+@media (min-width: 768px) { :root .focus-tile .focus-actions .text-link { display: inline-flex; align-items: center; min-height: 28px; } }

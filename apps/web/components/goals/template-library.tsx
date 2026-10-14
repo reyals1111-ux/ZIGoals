@@ -7,7 +7,7 @@ import {searchTemplates, type LibraryTemplate} from '../../lib/templates/goal-li
 import {SectionHeading} from '../ui/section-heading';
 import './goals.css';
 
-const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Steps goal', average: 'Keep an average', 'health-weight': 'Health goal'};
+const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', average: 'Keep an average', 'health-weight': 'Health goal'};
 /** Where a template opens: the goal wizard, the average form, or Health goals for a weight. */
 export const templateHref = (t: LibraryTemplate) => t.kind === 'average' ? `/app/goals/average/new?template=${t.id}` : t.kind === 'health-weight' ? '/app/goals#goals-health' : `/app/goals/new?template=${t.id}`;
 

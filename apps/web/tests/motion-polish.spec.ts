@@ -163,9 +163,13 @@ test('progress fills grow in once when seen and glide to new values while their 
  // The visible fill runs from the track's start to the fill's (translated) end.
  const filled=()=>overview.evaluate(el=>el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left);
  const before=Number(await overview.getAttribute('aria-valuenow')),start=await filled();
+ // Session AB-Design Phase 2 (ADR-024): the mid-glide sample is taken in the page, two frames after the value changes —
+ // sampled from the test after two round trips, a slow runner read the 460 ms glide already at its end. Same assertions.
+ await overview.evaluate(el=>{const w=window as unknown as {__glide?:number};delete w.__glide;new MutationObserver((_,o)=>{o.disconnect();requestAnimationFrame(()=>requestAnimationFrame(()=>{w.__glide=el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left;}));}).observe(el,{attributes:true,attributeFilter:['aria-valuenow']});});
  await page.locator('.habits-workspace').getByRole('button',{name:/^Complete /}).first().click();
  await expect(overview).toHaveAttribute('aria-valuenow',String(before+1));
- const gliding=await filled(),target=await overview.evaluate(el=>Number((el as HTMLElement).style.getPropertyValue('--glass-value')));
+ await expect.poll(()=>page.evaluate(()=>typeof (window as unknown as {__glide?:number}).__glide)).toBe('number');
+ const gliding=await page.evaluate(()=>(window as unknown as {__glide:number}).__glide),target=await overview.evaluate(el=>Number((el as HTMLElement).style.getPropertyValue('--glass-value')));
  await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
  const end=await filled();
  expect(gliding).toBeGreaterThanOrEqual(start);expect(gliding).toBeLessThan(end);

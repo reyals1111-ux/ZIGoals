@@ -28,14 +28,17 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
   const health = useHealth(), today = useLocalToday();
   const p = averageProgress(goal, health.loaded && !health.error ? health.data : undefined, today);
   return <article className="panel average-goal-card" aria-label={goal.name} {...layout}>
-    <p className="eyebrow">Keep an average · {goal.direction === 'at-least' ? 'at least' : 'at most'} {value(goal, goal.target)} {goal.unit}</p>
+    {/* Phase 2 closing pass (design critique): the target reads as a sentence under the title, not inside the capitals
+        eyebrow, where the letter spacing broke its unit apart ("2 / H A DAY"). */}
+    <p className="eyebrow">Keep an average</p>
     <h2><Link href={`/app/goals/average/${goal.id}`}>{goal.name}</Link></h2>
+    <p className="average-goal-target">{goal.direction === 'at-least' ? 'At least' : 'At most'} <span className="nowrap">{value(goal, goal.target)} {goal.unit}</span></p>
     <div className="average-goal-figure">
       <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={84} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />
       <div><strong>{p.average === null ? 'No data yet' : `${value(goal, p.average)}`}</strong><span>{p.average === null ? '' : goal.unit}</span><small>{verdict(goal, p)}</small></div>
     </div>
     <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>
-    <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open goal →</Link>
+    <Link className="text-link" href={`/app/goals/average/${goal.id}`}>Open Goal →</Link>
   </article>;
 }
 

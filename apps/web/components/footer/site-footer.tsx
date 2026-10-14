@@ -70,7 +70,7 @@ export function SiteFooter() {
         <span>Browser storage is not a backup.</span>
         <span>Independent project · Unaudited alpha · Idle strategy only.</span>
         <span>Never share secrets, private backups or wallet details.</span>
-        <span className="site-footer-build">Your goals. Onchain. · {APP_ENVIRONMENT}</span>
+        <span className="site-footer-build">Your goals. Onchain. <span className="site-footer-env" title="Build environment">{APP_ENVIRONMENT}</span></span>
       </p>
     </div>
   </footer>;

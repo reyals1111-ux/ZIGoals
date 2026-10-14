@@ -32,3 +32,7 @@
 /* The pillar mark at the start of an eyebrow (SectionHeading's `pillar`). */
 :root .aa-eyebrow-mark { display: flex; align-items: center; gap: 8px; }
 :root .aa-eyebrow-mark > .pillar-mark .pillar-mark-disc { width: 24px; height: 24px; }
+/* Phase 2 closing pass (design critique, 390 px): a meal's heading keeps its title, kcal chip and ⋯ on one row — the
+   shared 14rem title basis had pushed the ⋯ onto a row of its own. */
+:root .health-section-heading:has(> :is(.card-options, .pin-to-today)):not(:has(> :is(p, h2, h3, h4):not(:first-child))) { flex-wrap: nowrap; align-items: center; }
+:root .health-section-heading:has(> :is(.card-options, .pin-to-today)):not(:has(> :is(p, h2, h3, h4):not(:first-child))) > :first-child { flex: 1 1 0; }

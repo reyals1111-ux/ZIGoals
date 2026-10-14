@@ -266,3 +266,13 @@
 nav[aria-label="Measurement history pages"] button { min-height: 44px; }
 /* Phase 2 closing pass: weights in the history table keep their unit beside the number. */
 :root .health-page table td { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique, 1440 px): the side column (the log form, then Water) ran about
+   1,100 px past the meals, leaving the left column empty beside Water. On two-column widths the side's cards join the
+   diary grid: the log form beside the meals, Water across both columns under them. */
+@media (min-width: 841px) {
+  .health-diary-layout > .health-diary-side { display: contents; }
+  .health-diary-layout > .health-diary-side > .health-water { grid-column: 1 / -1; }
+}
+/* Session AB-Design Phase 2 closing pass (layout audit, 320 px): the last line before the footer sits over the edge of its
+   planet glow; it takes the secondary text colour so it keeps 4.5:1 there too. */
+:root .health-private-note { color: var(--text-secondary, #c9d6ea); }
