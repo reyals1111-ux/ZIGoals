@@ -218,6 +218,12 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   rule webkit-smoke uses (ADR-017 S64); every other page error still fails it.
 - `scripts/worker-types.test.mjs` and `goals-best-aa.spec.ts` "share image": made deterministic (see "CI: the Alpha
   gate in its own job").
+- `scripts/run11/zigi-relay-runtime.test.mjs` (size caps): the oversized request now declares 1.1 MB in its
+  `content-length` and sends only its first kilobyte (a stream that never ends), so the 413 `REQUEST_TOO_LARGE` with no
+  upstream request proves the relay refused on the declared size without reading the body (`workers/zigi-relay/worker.mjs`
+  line 34, the same check the old 1.1 MB string body reached). Sending the whole body raced that early refusal: the
+  client was still writing when the relay closed the connection (`terminated`, EPIPE) in a loaded unit run. The fixture's
+  `call` passes a stream body through with `duplex: 'half'`. The reply-size half of the test is unchanged.
 - `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
   together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
   made 5 folds for 4 counted widgets); still exactly one fold per widget.

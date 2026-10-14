@@ -70,7 +70,7 @@ export async function relayRuntime({bindings={},omit=[]}={}){
   * @param {string} path
   * @param {{account?:string,token?:string|null,body?:unknown,method?:string,headers?:Record<string,string>}} [options]
   */
- const call=(path,{account=INVITED,token='fixture',body,method,headers={}}={})=>mf.dispatchFetch('https://relay.test'+path,{method:method??(body===undefined?'GET':'POST'),headers:{origin:APP_ORIGIN,...(token===null?{}:{authorization:'Bearer '+fixtureToken(token,account)}),'x-zigoals-account':account,'content-type':'application/json',...headers},...(body===undefined?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});
+ const call=(path,{account=INVITED,token='fixture',body,method,headers={}}={})=>mf.dispatchFetch('https://relay.test'+path,{method:method??(body===undefined?'GET':'POST'),headers:{origin:APP_ORIGIN,...(token===null?{}:{authorization:'Bearer '+fixtureToken(token,account)}),'x-zigoals-account':account,'content-type':'application/json',...headers},...(body===undefined?{}:body instanceof ReadableStream?{body,duplex:'half'}:{body:typeof body==='string'?body:JSON.stringify(body)})});
  /** The fixture clock of the budget object. @param {number} now */
  const clock=async now=>(await call('/v1/fixture',{body:{now}})).json();
  const probe=async()=>{const worker=await mf.getWorker('log-probe');await (await worker.fetch('https://probe.test/')).text();};

@@ -136,7 +136,12 @@ test('the circuit breaker: five provider failures open it; the provider is not c
 
 test('size caps: a request over 1 MiB is refused unread; a reply over 2 MiB ends with an error event',async()=>{
  const r=await relayRuntime({bindings:{ZIGI_DAILY_TOKENS:'10000000',ZIGI_GLOBAL_DAILY_TOKENS:'10000000'}});try{
-  const big=await r.call('/v1/chat',{body:ask('x'.repeat(1_100_000))});
+  // Session AB-Design Phase 2 (ADR-024): the relay refuses on the declared size without reading the body, so the test
+  // declares 1.1 MB and sends only its first kilobyte; the 413 then proves the body was never read. Sending all 1.1 MB
+  // raced the early refusal: the client was still writing when the connection closed ("terminated", EPIPE).
+  const first=new TextEncoder().encode(JSON.stringify(ask('x'.repeat(1024))).slice(0,-3));
+  const rest=new ReadableStream({start(controller){controller.enqueue(first);}}); // the other ~1.1 MB never arrives
+  const big=await r.call('/v1/chat',{body:rest,headers:{'content-length':String(1_100_000)}});
   expect(big.status).toBe(413);expect(await big.json()).toEqual({error:'REQUEST_TOO_LARGE'});
   expect(r.upstream.requests).toHaveLength(0);
   const words='y'.repeat(60_000);
