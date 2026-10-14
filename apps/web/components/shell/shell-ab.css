@@ -80,3 +80,10 @@
 /* Phase 2, Part 12: the chip's "· fictional" (SHOWCASE_CHIP) on wider screens; phones keep the one word beside the lock. */
 .showcase-chip-more { font-weight: 500; opacity: .85; }
 @media (max-width: 767.98px) { .showcase-chip-more { display: none; } }
+/* Session AB-Design Phase 2 closing pass (layout audit, 320–374 px): the chip, the balance, Gamify and the lock need about
+   31 px more than the row has, and the rocket was drawn over "1000 ZIG / demo balance". There the balance takes its own
+   line under the controls, whole and still labelled "demo balance" (an honesty label: never shortened). */
+@media (max-width: 374px) {
+  :root .workspace > .status-row:has(.wallet-balance) { flex-wrap: wrap; row-gap: 2px; }
+  :root .status-row .wallet-balance { order: 9; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0 6px; padding-left: 4px; }
+}

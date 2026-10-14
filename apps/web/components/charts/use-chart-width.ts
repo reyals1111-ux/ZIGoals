@@ -13,9 +13,13 @@ export function useChartWidth(initial = 320, min = 260): [React.RefObject<HTMLDi
     const measure = () => setWidth(Math.max(min, Math.round(el.getBoundingClientRect().width)));
     measure();
     if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
+    // Session AB-Design Phase 2 closing pass (WebKit: "ResizeObserver loop completed with undelivered notifications"): a
+    // resize is measured on the next frame, never inside the observer's own delivery, where the re-drawn chart could
+    // resize what is being observed.
+    let frame = 0;
+    const observer = new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
   }, [min]);
   return [ref, width];
 }

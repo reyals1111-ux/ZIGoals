@@ -12,6 +12,7 @@
 //             on the pointer layout, or a smaller one whose 24 px circle meets no other target (WCAG 2.5.8's spacing
 //             exception); inline links inside a sentence are not standalone targets; the pointer layout's passing controls
 //             under 44 px are listed as advisory-target, which does not count as a finding;
+//   covered   a line of text with another box painted over it (hit-tested at three points);
 //   contrast  text below 4.5:1 (3:1 for large text) against the pixels actually behind it (one screenshot per state).
 // ZIGi's launcher, the music button and Point & tell float over content by the owner's decision and are left out.
 // Usage (from apps/web, a production build running):
@@ -206,6 +207,27 @@ function inspect() {
     if (t.right > c.right + 2 || t.left < c.left - 2) out.push({k: 'spill', w: `${desc(el)} runs ${Math.round(Math.max(t.right - c.right, c.left - t.left))}px past ${desc(card).split(' ')[0]}`});
     void r;
   }
+  // covered: a control or an image painted over a line of text (the empty state's ZIGi over its title, a button over its
+  // row's label). Hit-testing at three points of each line: the text's own element (or its descendants and ancestors) must
+  // be on top. Not counted: SVG art (transparent where text sits), layers that take no pointer (images always count), and a stretched link's
+  // pseudo-element (the hit lies outside the link's own box: the whole card is its target by design).
+  { const force = document.createElement('style'); force.textContent = 'html { scroll-behavior: auto !important; } img { pointer-events: auto !important; }'; document.head.append(force);
+    const coveredSeen = new Set(), done = new Set(), start = scrollY, H = document.documentElement.scrollHeight;
+    for (let y0 = 0; ; y0 += innerHeight - 60) {
+      if (!modal) scrollTo(0, y0);
+      for (const el of texts) { if (done.has(el) || el.closest(EXCLUDE) || getComputedStyle(el).textOverflow === 'ellipsis') continue;
+        for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; const range = document.createRange(); range.selectNodeContents(n);
+          for (const r of range.getClientRects()) { if (r.width < 8 || r.height < 6 || r.top < 0 || r.bottom > innerHeight) continue; done.add(el);
+            let hits = 0, by = null; const y = r.top + r.height / 2;
+            for (const x of [r.left + 4, r.left + r.width / 2, r.right - 4]) { if (x < 0 || x >= innerWidth) continue; const top = document.elementFromPoint(x, y); if (!top || top === el || el.contains(top) || top.contains(el) || top.closest(EXCLUDE) || fixedOf(top) || top.closest('svg')) continue; const b = top.getBoundingClientRect(); if (x < b.left || x > b.right || y < b.top || y > b.bottom) continue; /* a stretched link's pseudo-element: the whole card is its target, by design */
+              const ts = getComputedStyle(top), paints = top.tagName === 'IMG' || ts.backgroundColor !== 'rgba(0, 0, 0, 0)' || ts.backgroundImage !== 'none' || parseFloat(ts.borderTopWidth) > 0 || [...top.childNodes].some(t => { if (t.nodeType !== 3 || !t.textContent.trim()) return false; const q = document.createRange(); q.selectNodeContents(t); return [...q.getClientRects()].some(k => x >= k.left && x <= k.right && y >= k.top && y <= k.bottom); });
+              if (!paints) continue; /* a transparent box (a link's taller hit area) paints nothing over the text */ hits++; by = top; }
+            if (hits >= 1 && by) { const key = desc(el) + '|' + desc(by); if (!coveredSeen.has(key)) { coveredSeen.add(key); out.push({k: 'covered', w: `${desc(el)} is covered by ${desc(by)}`}); } }
+          } } }
+      if (modal || scrollY + innerHeight >= H - 1) break;
+    }
+    if (!modal) scrollTo(0, start);
+    force.remove(); }
   // overlap: text runs against text or icons inside one card
   const boxes = [];
   for (const el of texts) { if (getComputedStyle(el).textOverflow === 'ellipsis') continue; /* reported as clip; its range runs past the cut */ const range = document.createRange(); for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) boxes.push({el, r, card: el.closest(CARD) ?? document.body}); } }

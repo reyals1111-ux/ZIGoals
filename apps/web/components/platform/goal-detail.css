@@ -23,9 +23,11 @@
 .goal-what-if-fields { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .goal-what-if-fields .field { flex: 1 1 180px; }
 /* Phase 2 closing pass (layout audit, 320 px): an amount never breaks onto two lines — figures keep together and scale
-   down a step on the narrowest phones; a fact row can stack instead. */
-.goal-detail-workspace :is(dd, strong, .goal-detail-current) { white-space: nowrap; }
-@media (max-width: 374px) { .goal-detail-workspace dd { font-size: .92em; } .goal-detail-workspace .goal-detail-current { font-size: clamp(28px, 10vw, 36px); } .goal-detail-workspace dl { grid-template-columns: minmax(0, 1fr) !important; } }
+   down a step on the narrowest phones; a fact row can stack instead.
+   Scoped to the overview's figures and facts: the timeline's long receipts and notes keep wrapping (a nowrap there ran
+   into the next row and took its clicks — the packaged goal journey on CI). */
+.goal-detail-overview :is(.goal-detail-facts dd, .goal-detail-current) { white-space: nowrap; }
+@media (max-width: 374px) { .goal-detail-overview .goal-detail-facts dd { font-size: .92em; } .goal-detail-workspace .goal-detail-current { font-size: clamp(28px, 10vw, 36px); } .goal-detail-overview .goal-detail-facts { grid-template-columns: minmax(0, 1fr) !important; } }
 
 /* Session AB-Design Phase 2 closing pass (layout audit, 320 px and the stress amounts): on phones the amount's column is a
    size container and the amount scales from its own length (--chars, set beside it), so 'US$9,000.00' and

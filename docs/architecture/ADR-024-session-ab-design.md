@@ -248,7 +248,13 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
    date kept whole, a soft scrim under the hero's three pillars, Health's summary at 320 (its stack rule lost on
    specificity), the goal page's and the calculator's big figures sized from their own length (`--chars` with a size
    container: one line for US$1,234,567,890.12), ZIGi's page cards following their column, the composition ring kept
-   square. Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
+   square. Third pass (a new "covered" check: hit-testing each line of text for a painted box on top): the empty states'
+   ZIGi image drawn at its intrinsic size over the title (now fits its box), Markets' "+ Find a market" over "Your
+   favourites" at 320 px (own row), the Gamify rocket over the demo balance at 320–374 px (the balance takes its own line,
+   "demo balance" kept whole), the goal page's metric tiles at 320 px (dates ran out of a 88 px tile; they stack). The goal
+   page's nowrap rule is scoped to its overview figures (in the timeline it ran into the next row and took its clicks on
+   CI), and the charts measure their width on the next frame (WebKit's ResizeObserver loop error).
+   Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
    (a small unit beside a big figure is one line); contrast is read inside each of the text's own line boxes on a second capture where
    every glyph is transparent (edge pixels had caught the neighbouring line's letters, a wrapped run's box its neighbour's
    figures, a swatch's glow), and only where the text's own scroller shows it; touch contexts (phones, `--touch`) are

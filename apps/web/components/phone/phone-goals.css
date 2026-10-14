@@ -77,3 +77,9 @@
   :root[data-keyboard] .unified-wizard .wizard-actions { bottom: var(--keyboard-inset, 0px); }
   :root .unified-wizard .wizard-actions > * { flex: 1; min-height: 48px; }
 }
+/* Session AB-Design Phase 2 closing pass (layout audit, 320–374 px): two metric tiles side by side leave 88 px for a date,
+   which ran past its tile ("2026-10-1…"); there the tiles stack, so every date and amount stays whole on one line. */
+@media (max-width: 374px) {
+  :root .goal-intelligence :is(.intelligence-metrics, .funding-preview-metrics) { grid-template-columns: minmax(0, 1fr); }
+  :root .goal-intelligence .financial-metric > strong { white-space: nowrap; overflow-wrap: normal; }
+}
