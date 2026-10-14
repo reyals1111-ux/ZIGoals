@@ -4,7 +4,7 @@ import {RevisionConflict} from './cloud-sync';
 import {canonical, mergeExtras, same} from './extras-merge';
 import {EXTRAS_SECTIONS, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
 import {EXTRAS_CHOICE_KEY} from './extras-keys';
-import {ZIGI_STORE_EVENT} from '../ai/store/keys';
+import {announceSyncedDeviceChanges} from './account-data';
 
 /**
  * Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C1–C5, C11): the encrypted extras sections. Each section is one
@@ -123,7 +123,7 @@ export function applySection(storage: Pick<Storage, 'getItem' | 'setItem' | 'rem
   }
   if (writes.some(w => storage.getItem(w.key) !== collected.raw[w.key])) throw new ExtrasChangedDuringSync();
   for (const w of writes) { if (w.text === null) storage.removeItem(w.key); else storage.setItem(w.key, w.text); }
-  if (typeof window !== 'undefined') for (const w of writes) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: w.key}));
+  announceSyncedDeviceChanges(writes.map(w => w.key));
   return writes.map(w => w.key);
 }
 export class ExtrasChangedDuringSync extends Error { constructor() { super('Your extras changed during sync. Nothing was overwritten; they sync again next.'); this.name = 'ExtrasChangedDuringSync'; } }

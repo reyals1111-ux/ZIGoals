@@ -65,3 +65,13 @@ export function announceSyncedChanges(keys:readonly string[]){
  try{for(const key of keys){window.dispatchEvent(new CustomEvent('zigoals:private-change',{detail:key}));if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('zigoals:private-updates:v1');c.postMessage(key);c.close();}}}
  finally{announcingSynced=false;}
 }
+/**
+ * Session AB-Cloud (ADR-023 C6, C1): device records that account sync itself wrote (the finance homes, the extras), told
+ * to their open views through ZIGi's store event inside the same window, so the sync never reads them as local edits.
+ */
+export function announceSyncedDeviceChanges(keys:readonly string[]){
+ if(typeof window==='undefined')return;
+ announcingSynced=true;
+ try{for(const key of keys)window.dispatchEvent(new CustomEvent('zigoals:zigi-store',{detail:key}));}
+ finally{announcingSynced=false;}
+}

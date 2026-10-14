@@ -33,7 +33,6 @@ import {ACCOUNTS_KEY,MILESTONE_DATES_KEY} from '../lib/w-device-keys';
 const financeHomes=()=>import('../lib/finance-homes-store');
 const FINANCE_HOMES_DEVICE_KEYS:readonly string[]=[ACCOUNTS_KEY,MILESTONE_DATES_KEY];
 const extrasModule=()=>import('../lib/vault/extras-sync');
-import {EXTRAS_DEVICE_KEYS} from '../lib/vault/extras-keys';
 import type {ExtrasOutcome} from '../lib/vault/extras-sync';
 /** Session AB-Cloud Part 2 (ADR-023 C1–C5): what the extras' last run said, for Settings → Sync. */
 export type ExtrasStatus={state:'off'}|{state:'synced';outcomes:ExtrasOutcome[];at:string}|{state:'error';message:string}|{state:'removed'}|{state:'deleted-elsewhere'};
@@ -408,8 +407,10 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
   const edited=()=>{if(syncing.current&&!isSyncedChangeEvent()){followUp.current=true;return;}schedule();};
-  // A device record with a synced home changed (accounts, milestone dates, ADR-023 C6; the extras, C1): sync it like a module edit.
-  const homeEdited=(event:Event)=>{const key=(event as CustomEvent<string>).detail;if(!FINANCE_HOMES_DEVICE_KEYS.includes(key)&&!EXTRAS_DEVICE_KEYS.includes(key))return;if(syncing.current){followUp.current=true;return;}schedule();};
+  // A device record with a synced home changed (accounts, milestone dates; ADR-023 C6): sync it like a module edit. The
+  // extras (C1) travel with the next sync instead (every module edit, and the 30-second check below): some pages write
+  // their device records on view (a habit section's fold), which must never start a sync by itself (ADR-023 C21).
+  const homeEdited=(event:Event)=>{if(isSyncedChangeEvent())return;const key=(event as CustomEvent<string>).detail;if(!FINANCE_HOMES_DEVICE_KEYS.includes(key))return;if(syncing.current){followUp.current=true;return;}schedule();};
   const activity=()=>{idle.current=Date.now();};
   // After 15 minutes without interaction the vault locks, except on a remembered device whose record is still stored (M1 c).
   let idleCheck=false;

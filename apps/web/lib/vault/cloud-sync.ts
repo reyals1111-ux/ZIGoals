@@ -1,4 +1,4 @@
-import {mergeFinanceTexts} from './finance-homes';
+import {mergeFinanceTexts} from './finance-homes-core';
 import {HEALTH_V4_GROUPS,healthSchema} from '../health';
 import {SETTINGS_V3_GROUPS} from '../dashboard-settings';
 import {dailyData} from '../health-daily';

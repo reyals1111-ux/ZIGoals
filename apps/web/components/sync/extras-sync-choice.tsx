@@ -51,7 +51,8 @@ export function ExtrasSyncChoice({opened, busy, health, status, onEnable, onRemo
       <p id={id + 'extras-new'}><strong>New:</strong> {EXTRAS_EXPLAINED}</p>
       <div className="actions"><button type="button" className="secondary" onClick={() => void understood()}>Got it</button></div>
     </div>}
-    {said && <p className="fine" role="status">{said}</p>}
+    {/* A polite live line, not a second role="status": the panel's own status line stays the one status of Encrypted account sync. */}
+    {said && <p className="fine" aria-live="polite">{said}</p>}
     {opened && choice.enabled && (confirming ? <div className="actions"><p className="fine">Every device then stops syncing its extras, and each keeps its own.</p><button type="button" className="secondary" disabled={busy} onClick={() => { setConfirming(false); void onRemove(); }}>Remove the extras from the cloud</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div>
       : <button type="button" className="quiet" disabled={busy} onClick={() => setConfirming(true)}>Remove the extras from the cloud…</button>)}
     {note && <p role="alert">{note}</p>}

@@ -7,8 +7,7 @@ import {isDurableMarker, readDurableStore, updateDurableStore} from './vault/loc
 import {readDeviceRecord} from './device-record';
 import {ACCOUNTS, ACCOUNTS_KEY} from './accounts/schema';
 import {MILESTONE_DATES, MILESTONE_DATES_KEY} from './goals/milestone-dates';
-import {ZIGI_STORE_EVENT} from './ai/store/keys';
-import {announceModuleChange} from './sync-homes-store';
+import {announceSyncedChanges, announceSyncedDeviceChanges} from './vault/account-data';
 import {FINANCE_HOMES_KEY, emptyFinanceHomesMarker, financeHomesMarkerSchema, reconcileFinanceHomes, type FinanceHomesMarker, type Reconciled} from './vault/finance-homes';
 
 /**
@@ -50,14 +49,15 @@ export async function reconcileFinanceHomesNow(storage: Storage = getAppStorage(
     await updateFinance(storage, latest => { result = reconcileFinanceHomes(latest, device, marker); return result.platform; });
     const done = result!, keys: string[] = [];
     if ([ACCOUNTS_KEY, MILESTONE_DATES_KEY, FINANCE_HOMES_KEY].some((key, i) => storage.getItem(key) !== before[i])) {
-      if (done.changed) announceModuleChange([PLATFORM_KEY]);
+      if (done.changed && typeof window !== 'undefined') announceSyncedChanges([PLATFORM_KEY]);
       return {platform: done.changed, keys};
     }
     if (done.accounts) { storage.setItem(ACCOUNTS_KEY, JSON.stringify(done.accounts)); keys.push(ACCOUNTS_KEY); }
     if (done.dates) { storage.setItem(MILESTONE_DATES_KEY, JSON.stringify(done.dates)); keys.push(MILESTONE_DATES_KEY); }
     storage.setItem(FINANCE_HOMES_KEY, JSON.stringify(financeHomesMarkerSchema.parse(done.marker)));
-    if (typeof window !== 'undefined') for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key}));
-    if (done.changed) announceModuleChange([PLATFORM_KEY]);
+    // Told to open views as sync's own writes (account sync runs this reconcile), never as local edits to sync again.
+    announceSyncedDeviceChanges(keys);
+    if (done.changed && typeof window !== 'undefined') announceSyncedChanges([PLATFORM_KEY]);
     return {platform: done.changed, keys};
   });
 }
