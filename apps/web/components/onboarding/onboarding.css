@@ -80,3 +80,14 @@
   .onboarding-choice input:checked + span, .onboarding-currency input:checked + span { outline: 3px solid Highlight; }
 }
 .onboarding-undo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 14px; margin: 0 0 16px; border-radius: 16px; border: 1px solid #ffe3a144; background: #ffe3a112; } .onboarding-undo p { margin: 0; font-size: 15px; } .onboarding-undo .secondary { min-height: 44px; }
+/* Phase 2, Part 10 (owner request 36): the welcome's four illustrated pillars, each with its fold mark in a glowing disc. */
+.onboarding-pillars { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 4px 0 18px; padding: 0; list-style: none; }
+.onboarding-pillars > li { --pillar: var(--brand-violet, #9273ff); display: grid; justify-items: center; gap: 4px; padding: 14px 8px 12px; border-radius: 18px; text-align: center; border: 1px solid color-mix(in srgb, var(--pillar) 30%, transparent); background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--pillar) 20%, transparent), transparent 70%), #0a1430a6; }
+.onboarding-pillars > li[data-pillar=goals] { --pillar: var(--pillar-goals, #9273ff); }
+.onboarding-pillars > li[data-pillar=habits] { --pillar: var(--pillar-habits, #23eaff); }
+.onboarding-pillars > li[data-pillar=health] { --pillar: var(--pillar-health, #ff74be); }
+.onboarding-pillars > li[data-pillar=wealth] { --pillar: var(--pillar-wealth, #ffd27a); }
+.onboarding-pillar-art { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; color: var(--pillar); background: color-mix(in srgb, var(--pillar) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar) 45%, transparent), 0 0 22px -6px var(--pillar); }
+.onboarding-pillars strong { font-size: 16px; }
+.onboarding-pillars small { font-size: 14px; color: var(--text-secondary, #c9d6ea); line-height: 1.35; }
+@media (max-width: 520px) { .onboarding-pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

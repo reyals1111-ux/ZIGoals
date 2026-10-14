@@ -21,6 +21,7 @@ import { groupStarts, homeHref, isShown, phoneTabs } from "../../lib/pages/visib
 import { AiMoreRow } from "../ai/ai-more-row";
 import { MusicMoreRow } from "../music/music-more-row";
 import { ThemeSwitch } from "../shell/theme-switch";
+import { useGameEnabled } from "../game/use-game-enabled";
 import { setMoreOpen, useMoreOpen } from "./phone-more-event";
 import { PHONE_STATUS_EVENT } from "./phone-status-event";
 import { LogoMark, Wordmark } from "../brand-mark";
@@ -156,7 +157,10 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), open = useMoreOpen(), setOpen = setMoreOpen;
-  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items), moreStarts = groupStarts(MORE, navGroupOf);
+  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  // Phase 2, Part 10 (owner request 10): the pages first, then the Journey (while Gamify is on), ZIGi and the soundtrack
+  // when they are tucked away, Status & wallet — and Settings and Help always last.
+  const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href)), moreLast = MORE.filter(([href]) => LAST.includes(href));
   useTabArrival(tabs, path);
   useFocusRescue(tabs, TABS.map(([href]) => href).join(" "));
   useSheetDrag(show);
@@ -184,7 +188,7 @@ export function PhoneTabBar() {
         <div className="phone-grabber" aria-hidden="true" />
         <div className="phone-sheet-head"><h2 id={titleId}>More</h2><button type="button" className="phone-sheet-close" aria-label="Close More" onClick={() => setOpen(false)}>×</button></div>
         <ul className="phone-more-list">
-          {MORE.map(([href, label, icon]) => {
+          {morePages.map(([href, label, icon]) => {
             const current = isNavActive(path, href);
             // The one-line note is drawn by CSS, so the link's text and name stay exactly the destination's label.
             // The same groups as the sidebar (Session I): Wealth, then the money tools, then the rest, separated by space.
@@ -194,6 +198,11 @@ export function PhoneTabBar() {
               <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
             </Link></li>;
           })}
+          {gameOn && <li data-group-start="journey"><Link href="/app/journey" prefetch={false} className="phone-more-row" aria-label="Journey" aria-current={isNavActive(path, "/app/journey") ? "page" : undefined} onClick={() => setOpen(false)}>
+            <span className="icon-medallion"><AppIcon name="star" size={22} luminous /></span>
+            <span className="phone-more-copy" data-note="Your level, quests and badges"><strong>Journey</strong></span>
+            <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
+          </Link></li>}
           <AiMoreRow onNavigate={() => setOpen(false)} />
           <MusicMoreRow onNavigate={() => setOpen(false)} />
           {/* Session AB-Design: the notices in full and the wallet buttons (the Status & wallet sheet), then the theme switch. */}
@@ -202,6 +211,16 @@ export function PhoneTabBar() {
             <span className="phone-more-copy" data-note="The Alpha's facts, the mode and your wallet"><strong>Status &amp; wallet</strong></span>
             <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
           </button></li>
+          {moreLast.map(([href, label, icon]) => {
+            const current = isNavActive(path, href);
+            // The one-line note is drawn by CSS, so the link's text and name stay exactly the destination's label.
+            // The same groups as the sidebar (Session I): Wealth, then the money tools, then the rest, separated by space.
+            return <li key={href} data-group-start={href === moreLast[0]?.[0] ? "last" : undefined}><Link href={href} prefetch={navPrefetch(href)} className="phone-more-row" aria-label={label} aria-current={current ? "page" : undefined} onClick={() => setOpen(false)}>
+              <span className="icon-medallion"><AppIcon name={icon} size={22} luminous /></span>
+              <span className="phone-more-copy" data-note={MORE_NOTES[href]}><strong>{label}</strong></span>
+              <span className="phone-more-chevron" aria-hidden="true"><AppIcon name="back" size={18} /></span>
+            </Link></li>;
+          })}
         </ul>
         <ThemeSwitch compact />
         <div className="phone-more-signature">

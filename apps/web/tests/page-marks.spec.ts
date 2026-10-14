@@ -140,7 +140,9 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
   // since Session W Part 14), Activity, Settings, Help (last since Session Z-Cloud Part 4.11).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']); // five tabs (Session AB-Design)
   const sheet=await openMore(page),rows=sheet.locator('.phone-more-list > li');
-  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
+  // Phase 2, Part 10 (deliberate, owner request 10; ADR-024 "Phase 2 — assertions changed"): with Gamify on (the Showcase),
+  // the Journey follows the pages, and Settings and Help stay last. As strict: the exact list.
+  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Journey','Settings','Help']);
   const gaps=await rows.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
   const gap=(i:number)=>gaps[i]!;
   // Session AB-Design: Wealth is a tab, so More opens with the money group (Markets, Staking, Portfolio); the one group gap is before Ecosystem (3).
