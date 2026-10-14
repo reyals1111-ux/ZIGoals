@@ -138,16 +138,19 @@ test('reduced motion and the Off preference keep buttons still on every route',a
 });
 
 test('progress fills grow in once when seen and glide to new values while their state updates at once',async({page},info)=>{
- await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-fill-y':{property:'transform',within:'.nutrition-gauge'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge'}});
+ await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge, .life-ring[data-pillar="health"]'}});
  await showcase(page);
  const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
  // A bar slides in from wholly before its start and settles exactly where its value says.
  const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
  const grow=await settled(page,'glass-fill-x'),paceShare=await share(pace);
  expect(translate(grow.start).x).toBeLessThan(translate(grow.mid!).x);expect(translate(grow.mid!).x).toBeLessThan(translate(grow.end).x);expect(translate(grow.end).x).toBeCloseTo((paceShare.value-1)*paceShare.width,0);
- const gaugeGlass=page.locator('.nutrition-gauge').first();await gaugeGlass.scrollIntoViewIfNeeded();
- const glass=await settled(page,'glass-fill-y'),glassShare=await share(gaugeGlass);
- expect(translate(glass.start).y).toBeGreaterThan(translate(glass.mid!).y);expect(translate(glass.mid!).y).toBeGreaterThan(translate(glass.end).y);expect(translate(glass.end).y).toBeCloseTo((1-glassShare.value)*(glassShare.height-2),0);
+ // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): Today's vertical calorie gauge became the
+ // Life overview's Health ring (owner request 28: four pillar rings), so this step follows the ring that replaced it — it
+ // draws in once when seen and settles exactly on its value. As strict as the gauge's start → mid → end check.
+ const lifeRing=page.locator('.life-ring[data-pillar="health"] .flow-ring').first();await lifeRing.scrollIntoViewIfNeeded();
+ const draw=await settled(page,'glass-ring-draw');expect(parseFloat(draw.start)).toBeGreaterThan(parseFloat(draw.mid!));expect(parseFloat(draw.mid!)).toBeGreaterThan(parseFloat(draw.end));
+ expect(parseFloat(draw.end)).toBeCloseTo(parseFloat((await lifeRing.locator('.glass-ring-arc').first().getAttribute('style'))!.replace(/[^0-9.]/g,'')),3);
  await page.goto('/app/health');
  const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));

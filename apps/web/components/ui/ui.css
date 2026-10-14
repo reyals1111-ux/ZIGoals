@@ -138,5 +138,10 @@
 }
 /* Phase 2 closing pass (layout audit): ZIGi's corner "Ask ZIGi" link sits in a card's top-right corner; the card's first
    eyebrow keeps clear of it, and the link is a full-size target. */
-:root .panel:has(> .zigi-explain-corner) > .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > :first-child .eyebrow:first-of-type { padding-right: 92px; white-space: normal; }
+:root .panel:has(> .zigi-explain-corner) > .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > :first-child .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > header .eyebrow:first-of-type { padding-right: 92px; white-space: normal; }
 html[data-zigi-launcher="shown"] .zigi-explain-corner { align-items: center; min-height: 44px; min-width: 44px; padding: 0 10px; top: 4px; right: 4px; }
+
+/* Session AB-Design Phase 2, Part 12 (second merger): AB-Cloud's extras-sync choice in Settings, framed as an inner card
+   inside the sync panel like the other grouped choices. */
+:root .extras-sync-choice { display: grid; gap: 10px; margin-top: 12px; padding: 14px 16px; border: 1px solid #8ab9ff1f; border-radius: 16px; background: #8ab9ff07; min-width: 0; overflow-wrap: anywhere; }
+:root .extras-sync-choice .checkbox { min-height: 44px; }

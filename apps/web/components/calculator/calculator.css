@@ -148,3 +148,6 @@
 :root .calc-figures dd { overflow-wrap: anywhere; }
 /* Phase 2 closing pass (layout audit): the calculator's number fields are full-size targets. */
 :root .calc-inputs input, :root .calculator input:not([type=range]) { min-height: 44px; }
+/* Session AB-Design Phase 2 closing pass (layout audit): the "another return" chip's input is a full 44 px target. */
+:root .calc-chip-input input { min-height: 44px; }
+:root .calc-chip.calc-chip-input { min-height: 44px; align-items: center; }

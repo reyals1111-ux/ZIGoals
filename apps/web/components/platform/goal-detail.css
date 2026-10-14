@@ -26,3 +26,16 @@
    down a step on the narrowest phones; a fact row can stack instead. */
 .goal-detail-workspace :is(dd, strong, .goal-detail-current) { white-space: nowrap; }
 @media (max-width: 374px) { .goal-detail-workspace dd { font-size: .92em; } .goal-detail-workspace .goal-detail-current { font-size: clamp(28px, 10vw, 36px); } .goal-detail-workspace dl { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Session AB-Design Phase 2 closing pass (layout audit, 320 px and the stress amounts): on phones the amount's column is a
+   size container and the amount scales from its own length (--chars, set beside it), so 'US$9,000.00' and
+   'US$1,234,567,890.12' both stay on one line; below 375 px the ring stands above the figures. */
+@media (max-width: 600px) {
+  .goal-detail-progress > div { container-type: inline-size; flex: 1 1 0; min-width: 0; }
+  .goal-detail-workspace .goal-detail-current { display: block; font-size: clamp(20px, calc(100cqi / (var(--chars, 11) * .62)), 36px); }
+}
+@media (max-width: 374px) {
+  .goal-detail-progress { flex-direction: column; align-items: flex-start; }
+  .goal-detail-progress > div { width: 100%; flex: none; }
+  .goal-detail-workspace .goal-detail-current { font-size: clamp(20px, calc(100cqi / (var(--chars, 11) * .62)), 36px); }
+}

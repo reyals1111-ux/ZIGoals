@@ -186,6 +186,8 @@ function inspect() {
   // spill: text past its card
   const CARD = '.panel, article, dialog, [role="dialog"], .aa-empty, .glass-card';
   for (const el of texts) {
+    // A form control's text is drawn (and clipped) inside the control itself; its raw text node is never laid out.
+    if (el.matches('textarea, select, option')) continue;
     const card = el.closest(CARD); if (!card) continue;
     let scroller = el.parentElement; while (scroller && scroller !== card) { const ox = getComputedStyle(scroller).overflowX; if (ox !== 'visible') break; scroller = scroller.parentElement; }
     if (scroller && scroller !== card) continue; // inside its own scroller (a swipeable row): fine

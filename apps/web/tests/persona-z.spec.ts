@@ -291,6 +291,7 @@ test('10b. phones: Habits\' hero actions take at most two rows from 360 px, and 
     await page.goto('/app/habits');
     // While the page settles, the server's hero and the phone's can both be there for a moment: measure the one that stays.
     await expect(page.locator('.habit-hero-actions')).toHaveCount(1);
+    await expect(page.locator('.habit-hero .page-ask-zigi')).toHaveCount(1); // the same settle as the actions above
     await expect(page.locator('.habit-hero .page-ask-zigi')).toBeVisible(); // Session AB-Design (owner request 21): the shared Ask ZIGi action
     const tops = (await page.locator('.habit-hero-actions').evaluate(a => [...a.querySelectorAll('button, a')].map(e => e.getBoundingClientRect().top))).sort((a, b) => a - b);
     expect(tops, `three actions at ${width}`).toHaveLength(3);

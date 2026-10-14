@@ -196,6 +196,22 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
 - `help-page.spec.ts` (fourteen topics, the new "abd" section in its place), `zigi-help-settings.spec.ts` and
   `whats-new.spec.ts` (the release id; the card's own link now opens `#help-abd-footer`; AB-Cloud's six links lead "Earlier
   updates", so every pinned position moves by six).
+- `brand-nav-polish.spec.ts` 59 and `pages-visibility.spec.ts` (`expectNav`, the two Showcase calls): the same Journey row in
+  the phone More list while Gamify is on; the exact list is still asserted, and without Gamify it is still absent.
+- `motion-polish.spec.ts` (Today): the vertical calorie gauge (`.nutrition-gauge`, `glass-fill-y`) left Today when the Life
+  overview became four pillar rings (owner request 28, P7). The step follows the Health ring that replaced it: it draws once
+  when seen (start → mid → end, strictly decreasing offset) and settles exactly on its value; the horizontal pace bar and
+  Health's own gauge keep their checks.
+- `persona-z.spec.ts` 10b and `send-feedback.spec.ts`: settles only. 10b waits for one Ask ZIGi action, as it already waited
+  for one actions row (the server's and the phone's header can overlap for a moment). send-feedback waits for network idle
+  before its quiet window, so Help's own guide-link prefetches (Goals, Habits, the welcome) finish first; inside the window
+  nothing at all may still be requested.
+- `run11-layout-stability.spec.ts`: restored, not changed. A Phase 1 comment had swallowed the sideways-scroll assertion on
+  the same line; it is back on its own line.
+- Integration scripts (AB-Cloud's lane, retargeted as second merger per the handoff): `scripts/run10/account-browser.test.mjs`,
+  `scripts/run11/packaged-consumer-journey.mjs` (+ `packaged-runtime.test.mjs`) and the stage-8 rehearsal harness `go()` open
+  Settings through the top-bar More sheet on a 390 px phone (owner decision D2), and through the sidebar link on larger
+  screens. `scripts/verify-hosted-alpha.mjs` needs no change: its Settings step runs after its layout loop ends at 1280 px.
 
 ### Closing pass (owner follow-up, 2026-10-14: "the whole app finished, one premium 4-in-1 app, nothing forgotten")
 1. **Rings at the source.** Every progress ring is a size container: band 8.5 % of the ring's real size (4–10 px), the figure

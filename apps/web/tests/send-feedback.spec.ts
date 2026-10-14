@@ -20,6 +20,9 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   expect(plain).toContain('Device and browser:\n\nApp version: ');
   expect(plain).not.toContain('Browser:');
   await expect(section.getByRole('textbox')).toHaveCount(0);
+  // Session AB-Design Phase 2 (ADR-024): the page's own route prefetches (its guide links to Goals, Habits and the welcome)
+  // finish first, so the window below starts quiet; nothing at all may still be requested inside it.
+  await page.waitForLoadState('networkidle');
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
 

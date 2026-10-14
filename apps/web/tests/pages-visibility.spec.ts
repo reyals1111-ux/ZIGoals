@@ -23,14 +23,16 @@ async function seed(page: Page, records: Record<string, unknown>) {
 const stored = (page: Page, key: string) => page.evaluate(k => JSON.parse(localStorage.getItem(k) ?? 'null'), key);
 const navLabels = (page: Page) => mainNav(page).getByRole('link').allTextContents();
 /** The sidebar on a larger screen; on a phone the tabs, then (opened) the More sheet's links after them. */
-async function expectNav(page: Page, visible: string[]) {
+async function expectNav(page: Page, visible: string[], journey = false) {
   // Help is always shown, last (Session Z-Cloud Part 4.11).
   if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...visible, 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
   // Five tabs since Session AB-Design (owner request 10); More, from the top bar, holds the rest, then Settings and Help.
   await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 5));
   await openMore(page);
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), 'Settings', 'Help']);
+  // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
+  // Journey is a row of More after the pages, since it is no longer a tab.
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -194,12 +196,12 @@ test('Showcase shows every page and keeps a choice in the tab, never in this dev
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
-  await expectNav(page, EVERY);
+  await expectNav(page, EVERY, true);
   await page.goto('/app/settings');
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()));
   await section(page).getByRole('switch', {name: 'Activity', exact: true}).click();
   await expect(section(page)).toContainText('In Showcase these choices last for this tab only.');
-  await expectNav(page, EVERY.filter(label => label !== 'Activity'));
+  await expectNav(page, EVERY.filter(label => label !== 'Activity'), true);
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage).sort()))).toBe(before);
 });
 

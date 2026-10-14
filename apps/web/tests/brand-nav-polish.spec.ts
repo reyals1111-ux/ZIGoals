@@ -56,7 +56,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   // same order (the Showcase shows Chess since Session W Part 14).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']);
   await openMore(page);
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Journey','Settings','Help']); // Session AB-Design Phase 2 (deliberate, ADR-024): the Journey row while Gamify is on
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
