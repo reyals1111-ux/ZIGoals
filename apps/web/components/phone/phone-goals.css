@@ -28,7 +28,19 @@
   /* Session Z-Cloud Part 4.9 (persona item 9, J053): about 240 px per card: the name, the ring with what is funded and
      what remains, the next step and the source; the value, the asset mix, the facts and the art band open on the goal's
      own page. Desktop and tablet keep the accepted card. */
-  :root .unified-goal-card:not(.compact-goal) :is(.goal-card-art, .goal-value, .goal-mix-legend, .valuation-state, .card-bottom) { display: none; }
+  :root .unified-goal-card:not(.compact-goal) :is(.goal-card-art, .goal-mix-legend, .valuation-state, .card-bottom) { display: none; }
+  /* Phase 2, Part 7 (owner request 18): the first view on a phone shows the amount too — one 18 px line under the name —
+     and the ring's "Of your goal funded" line stays for screen readers only (the amount and the ring now say it), so the
+     card stays about a third of a screen. */
+  /* The 29 px card figure in the beta stylesheet is !important, so the phone line must be too. */
+  :root .unified-goal-card:not(.compact-goal) .goal-value { min-height: 0; margin: 0 0 4px; font-size: 18px !important; line-height: 1.3; }
+  :root .unified-goal-card:not(.compact-goal) .goal-value > span { display: inline; font-size: 15px !important; }
+  :root .unified-goal-card:not(.compact-goal) .goal-progress-caption > strong:first-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  /* …and while Details is closed, "Details" and "Open Goal →" share one row (the source and status line, repeated inside
+     Details and in the badge, waits there). */
+  :root .unified-goal-card:not(.compact-goal) .goal-card-more:not([open]) > summary > small { display: none; }
+  :root .unified-goal-card:not(.compact-goal) .goal-card-more:not([open]) + .card-footer { margin-top: -44px; justify-content: flex-end; pointer-events: none; }
+  :root .unified-goal-card:not(.compact-goal) .goal-card-more:not([open]) + .card-footer > * { pointer-events: auto; }
   :root .unified-goal-card:not(.compact-goal) { padding: 10px 14px 10px; }
   :root .unified-goal-card:not(.compact-goal) .card-top { margin-bottom: 2px; }
   :root .unified-goal-card:not(.compact-goal) h2 { margin-bottom: 2px; }

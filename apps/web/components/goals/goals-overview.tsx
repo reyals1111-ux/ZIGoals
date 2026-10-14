@@ -53,7 +53,12 @@ export function GoalTreeView({goals, extras}: {goals: readonly GoalSummary[]; ex
       <button type="button" className="quiet" aria-pressed={zoom === 1} onClick={() => setZoom(1)}>Fit</button>
       <button type="button" className="quiet" aria-label="Larger" onClick={() => setZoom(z => Math.min(1.6, Math.round((z + .1) * 10) / 10))}>+</button>
     </div>
-    <div className="goal-tree-canvas"><ul className="goal-tree is-page" style={{'--tree-zoom': zoom} as React.CSSProperties}>{tree.map(n => row(n, 0))}</ul></div>
+    {/* Phase 2, Part 7 (owner request 16): the tree grows from one root — "Your goals" — down a trunk, each goal on a
+        curved branch, sub-goals on their own branches below; the rows keep their links, rings and area colours. */}
+    <div className="goal-tree-canvas" style={{'--tree-zoom': zoom} as React.CSSProperties}>
+      <p className="goal-tree-root"><span className="goal-tree-root-mark" aria-hidden="true">✦</span><strong>Your goals</strong><small>{tree.length} {tree.length === 1 ? 'destination' : 'destinations'}{goals.length > tree.length ? ` · ${goals.length - tree.length} sub-goals` : ''}</small></p>
+      <ul className="goal-tree is-page">{tree.map(n => row(n, 0))}</ul>
+    </div>
     {tree.every(n => !n.children.length) && <p className="fine">No sub-goals yet. On a goal’s page, choose a bigger goal under “Part of a bigger goal” (three levels at most: year, quarter, month).</p>}
   </section>;
 }
