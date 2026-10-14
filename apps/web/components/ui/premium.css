@@ -21,6 +21,12 @@
 }
 /* Eyebrows above section titles read at 14 px in the meta colour everywhere (some pages set 12–13 px letter-spaced caps). */
 :root :is(.section-heading, .wealth-section-heading, .positions-section-heading) .eyebrow { font-size: 14px; color: var(--text-meta); }
-/* Session AB-Design (owner requests 18, 40): a ring's figure scales with the ring, so the % never leaves a small circle (tree 44–56 px, board 52 px, phone cards). */
-:root .flow-ring > span { font-size: min(25px, calc(var(--ring-size, 112px) * .3)); }
-:root .flow-ring small { font-size: min(14px, calc(var(--ring-size, 112px) * .2)); }
+/* Phase 2 closing pass (owner, item 1): every progress ring is a size container, so its band and its figure follow the
+   ring's real size however a page sets it. The band is 8.5 % of the ring (4–10 px); the figure is a third of the inner
+   circle's diameter (11–30 px), so 1–3 digits and "100 %" always sit inside with room; the "%" is half the figure's size on
+   its baseline. Pages no longer size the figure themselves. */
+:root .flow-ring { container-type: size; }
+:root .flow-ring > .glass-ring-art { --ring-width: clamp(4px, 8.5cqi, 10px); }
+:root .flow-ring > span { display: flex; flex-wrap: wrap; align-content: center; align-items: baseline; justify-content: center; gap: 0; padding: 0; white-space: nowrap; letter-spacing: -.03em; line-height: 1; font-size: clamp(11px, calc((100cqi - 2 * clamp(4px, 8.5cqi, 10px)) * .34), 30px); }
+:root .flow-ring > span > small { font-size: .5em; margin-left: .08em; letter-spacing: 0; font-weight: 700; opacity: .9; }
+:root .flow-ring > span > .ring-at-least { font-size: .6em; margin: 0 .06em 0 0; }

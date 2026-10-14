@@ -201,4 +201,3 @@
 :root .pace-forecasts .pace-list small { font-size: 14px; color: var(--text-secondary); }
 /* Gate C: the tree's small rings keep their number on one line, sized for the ring (phones draw the ring larger). */
 :root .goal-tree-row .flow-ring > span { white-space: nowrap; }
-@media (min-width: 600px) { :root .goal-tree-row .flow-ring > span { font-size: 14px; } :root .goal-tree-row .flow-ring > span small { font-size: 10px; } }

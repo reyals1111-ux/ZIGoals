@@ -57,7 +57,7 @@
 @media (max-width: 767.98px) {
   :root .today-page .life-rings > .life-ring { padding: 12px 8px 14px; border-radius: 16px; background: #0a1430a6; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar) 22%, transparent); }
   :root .today-page .life-rings > .life-ring::before { display: none; }
-  :root .today-page .life-rings .life-ring-pillar { justify-content: center; font-size: 12px; letter-spacing: .1em; }
+  :root .today-page .life-rings .life-ring-pillar { justify-content: center; font-size: 14px; letter-spacing: .06em; }
   :root .today-page .life-rings .life-ring-pillar .pillar-mark-disc { width: 20px; height: 20px; }
   /* The tile's line stays for screen readers; the tile shows the ring, the pillar and its one figure. */
   :root .today-page .life-rings h3 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -66,8 +66,6 @@
   :root .today-page .life-rings .life-short { display: inline; }
   :root .today-page .life-rings > .life-ring > span > small { display: none; }
   :root .today-page .life-rings .flow-ring { --ring-size: 60px !important; }
-  :root .today-page .life-rings .flow-ring > span { font-size: 17px; letter-spacing: -.02em; }
-  :root .today-page .life-rings .flow-ring > span small { font-size: 10px; margin-left: 1px; }
   :root .today-page .life-rings > .life-ring { padding: 10px 8px 12px; gap: 6px; }
 }
 /* The active-goal count keeps its old hook (`.life-goal-number`) inside the Goals row's line, set as plain text there. */

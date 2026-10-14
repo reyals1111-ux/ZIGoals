@@ -1,7 +1,7 @@
 /* Session AB-Design (owner request 16): the goal tree on nebula connectors, with life-area colours and Fit / − / +. */
 :root .goals-tree { display: grid; gap: 12px; }
 :root .goal-tree-tools { display: flex; justify-content: flex-end; gap: 6px; }
-:root .goal-tree-tools .quiet { min-width: 44px; min-height: 40px; padding: 0 12px; border: 1px solid #8fb6ff33; border-radius: 10px; background: #ffffff08; font-weight: 600; }
+:root .goal-tree-tools .quiet { min-width: 44px; min-height: 44px; padding: 0 12px; border: 1px solid #8fb6ff33; border-radius: 10px; background: #ffffff08; font-weight: 600; }
 :root .goal-tree-tools .quiet[aria-pressed=true] { border-color: #9fd6ff99; color: var(--text-strong); }
 :root .goal-tree-canvas { overflow: auto; padding: 4px 0 8px; }
 :root .goal-tree.is-page { --area-color: var(--brand-violet, #9273ff); list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; transform: scale(var(--tree-zoom, 1)); transform-origin: 0 0; width: calc(100% / var(--tree-zoom, 1)); }
@@ -41,7 +41,5 @@
   :root .goal-tree.is-page, :root .goal-tree.is-page ul { --branch: 18px; margin-left: 12px; }
   :root .goal-tree-node > .flow-ring { --ring-size: 52px !important; width: 52px !important; height: 52px !important; flex: 0 0 52px !important; }
   :root .goal-tree.is-page ul .goal-tree-node > .flow-ring { --ring-size: 44px !important; width: 44px !important; height: 44px !important; flex: 0 0 44px !important; }
-  :root .goal-tree-node > .flow-ring > span { font-size: 14px; }
-  :root .goal-tree-node > .flow-ring > span small { font-size: 10px; }
 }
 @media (forced-colors: active) { :root .goal-tree.is-page li::before, :root .goal-tree.is-page li::after { border-color: CanvasText; background: CanvasText; } }
