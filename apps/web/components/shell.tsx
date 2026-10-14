@@ -27,10 +27,10 @@ import "./pillar-hero.css";
 import "./ui/card-header.css";
 import "./charts/charts.css";
 import { ThemeSwitch } from "./shell/theme-switch";
-import { SiteFooter } from "./footer/site-footer";
+import { FooterFacts } from "./footer/footer-islands";
 import { GamifyButton } from "./game/gamify-button";
 import { PHONE_STATUS_EVENT } from "./phone/phone-status-event";
-import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
+import {useWorkspaceSelection} from './workspace-status';
 import {usePrivateStore} from './use-private-store';
 import {retryPrivateReads,usePrivateReadDelay} from './private-read-delay';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
@@ -72,7 +72,7 @@ function RouteFocusFallback() {
   }, [pathname]);
   return null;
 }
-export function Shell({ children }: { children: ReactNode }) {
+export function Shell({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
   // Session AB-Design: the root says when the shell has hydrated (`<html data-app-hydrated>`). A tap before hydration is replayed by React after it, which toggles a <details> shut again; the specs wait for this mark before opening card details.
   useEffect(() => { document.documentElement.dataset.appHydrated = ""; return () => { delete document.documentElement.dataset.appHydrated; }; }, []);
   // Number, money and date formats follow the browser locale; this remounts the page content once after hydration
@@ -275,7 +275,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
-      <SiteFooter network={{label: networkLabel, sentence: networkSentence}} mode={modeText} financial={banners} status={<WorkspaceStatus/>}/>
+      {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout; the shell
+          hands it the honesty values it already knows (footer-islands.tsx). */}
+      <FooterFacts value={{network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners}}>{footer}</FooterFacts>
       </div>
       {s.pending && (
         <dialog
