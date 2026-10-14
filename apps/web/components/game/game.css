@@ -106,3 +106,21 @@
 
 /* AA-Cloud's slot wrappers: a place whose cards all render nothing (the game layer off) takes no room. */
 .aa-slot:empty, .progress-slot:empty { display: none; }
+
+/* Session AB-Design (owner request 31): the level orb, the XP bar, planets on the path, illustrated badges. */
+.journey-level { position: relative; overflow: hidden; isolation: isolate; }
+.journey-orb { position: absolute; inset: auto auto -40% -10%; width: 70%; aspect-ratio: 1; border-radius: 50%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 30% 30%, #9e78ff55, #3b57e622 45%, transparent 70%); filter: blur(10px); }
+.journey-ring { position: relative; }
+.journey-ring::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #2a2f6a, #0b0f2a 70%); box-shadow: inset -14px -10px 30px #06081a, inset 10px 8px 26px #5b6cff33, 0 0 40px -8px #7f8dff88; z-index: -1; }
+.journey-xp-bar { height: 10px; border-radius: 99px; margin-top: 6px; }
+.journey-path { position: relative; }
+.journey-path::before { content: ""; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: linear-gradient(180deg, #6fe6f6, #9e78ff 55%, #c3a8f94a); border-radius: 2px; opacity: .7; }
+.journey-path li { position: relative; }
+.journey-path-node { position: relative; width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; background: radial-gradient(circle at 32% 30%, hsl(var(--planet-hue, 250deg) 80% 78%), hsl(var(--planet-hue, 250deg) 70% 45%) 55%, hsl(var(--planet-hue, 250deg) 60% 22%) 100%); box-shadow: inset -6px -4px 10px #0007, 0 0 14px -4px hsl(var(--planet-hue, 250deg) 90% 70% / .8); text-shadow: 0 1px 2px #0008; }
+.journey-path li:not([data-reached]) .journey-path-node { filter: saturate(.4) brightness(.75); }
+.journey-path li[data-current] .journey-path-node::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1px solid #ffffff66; }
+.journey-badge-symbol { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; font-size: 26px; background: radial-gradient(circle at 35% 30%, #3b3f7a, #14172e 70%); box-shadow: inset -6px -4px 14px #0006, inset 4px 3px 12px #8fa0ff33, 0 0 18px -6px #9e78ff88; }
+.journey-badge-grid li[data-earned] { opacity: 1; border-color: #c3a8f955; background: linear-gradient(160deg, #2a1f4a99, #1a142a66); }
+.journey-badge-grid li[data-earned] .journey-badge-symbol { box-shadow: inset -6px -4px 14px #0006, inset 4px 3px 12px #ffffff33, 0 0 24px -4px #ffd27a99; background: radial-gradient(circle at 35% 30%, #6a5bd0, #2a1f5a 70%); }
+.journey-quest-pillar { margin-right: 8px; vertical-align: -3px; }
+.journey-quest-pillar .pillar-mark-disc { width: 22px; height: 22px; }

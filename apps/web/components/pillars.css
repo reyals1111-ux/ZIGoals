@@ -1,0 +1,9 @@
+/* Session AB-Design (owner request 28): one accent colour and one fold mark per pillar, everywhere. */
+.pillar-mark { display: inline-flex; align-items: center; gap: 8px; --pillar: var(--brand-violet); color: var(--pillar); }
+.pillar-mark[data-pillar="goals"] { --pillar: var(--pillar-goals); } .pillar-mark[data-pillar="habits"] { --pillar: var(--pillar-habits); } .pillar-mark[data-pillar="health"] { --pillar: var(--pillar-health); } .pillar-mark[data-pillar="wealth"] { --pillar: var(--pillar-wealth); }
+.pillar-mark-disc { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--pillar) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar) 45%, transparent), 0 0 12px -4px var(--pillar); color: var(--pillar); }
+.pillar-mark-disc svg { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pillar) 60%, transparent)); }
+.pillar-mark-word { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary, #dde7f7); }
+/* The page header's pillar: the eyebrow glyph and an accent line under the title. */
+.page-header[data-pillar] .page-eyebrow { display: inline-flex; align-items: center; gap: 10px; }
+.page-header[data-pillar="goals"] { --pillar: var(--pillar-goals); } .page-header[data-pillar="habits"] { --pillar: var(--pillar-habits); } .page-header[data-pillar="health"] { --pillar: var(--pillar-health); } .page-header[data-pillar="wealth"] { --pillar: var(--pillar-wealth); }

@@ -28,3 +28,8 @@
   :root .search-field { padding: calc(env(safe-area-inset-top, 0px) + 8px) 10px 8px 16px; }
   :root .search-keys { display: none; }
 }
+
+/* Session AB-Design (owner request 28): the pillar's fold mark leads each result that belongs to a pillar. */
+:root .search-row:has(> .pillar-mark) { grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; }
+:root .search-row > .pillar-mark { grid-row: 1 / span 2; align-self: center; }
+:root .search-row > .pillar-mark .pillar-mark-disc { width: 26px; height: 26px; }

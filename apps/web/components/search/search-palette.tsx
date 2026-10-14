@@ -2,6 +2,7 @@
 import {useEffect, useId, useMemo, useRef, useState, type KeyboardEvent} from 'react';
 import {useRouter} from 'next/navigation';
 import {KIND_LABEL, search, type SearchHit, type SearchItem} from '../../lib/search/engine';
+import {PillarMark, pillarOf, pillarOfHref} from '../pillars';
 import {HELP_ITEMS, PAGES, SETTINGS} from '../../lib/search/static';
 import {SEARCH_RECENT, clearRecent, rememberQuery} from '../../lib/search/recent';
 import {GOAL_LIBRARY} from '../../lib/templates/goal-library';
@@ -24,6 +25,8 @@ import './search.css';
  * is sent until the person sends it. Everything searched is this device's own; nothing leaves it. A phone shows it as a
  * full-screen sheet.
  */
+/** Session AB-Design (owner request 28): a hit's pillar — by record kind, or by the page's path. */
+const rowPillar = (row: Row) => row.hit ? (row.hit.kind === 'page' ? pillarOfHref(row.hit.href) : pillarOf(row.hit.kind)) : null;
 type Row = {id: string; label: string; detail?: string; kind: 'hit' | 'recent' | 'ask'; hit?: SearchHit; query?: string};
 
 /** `zigi`: whether ZIGi's launcher showed when the palette opened (it steps aside while the palette is open). */
@@ -85,7 +88,7 @@ export default function SearchPalette({initial = '', zigi = false, onClose}: {in
   const groups = trimmed ? [...new Set(hits.map(h => h.kind))] : [];
   // Rows are already in display order (search() groups by kind), so a row's index is its place in the list.
   const option = (row: Row) => { const i = rows.indexOf(row); return <li key={row.id} id={`${base}-row-${i}`} role="option" aria-selected={i === current} aria-disabled={row.kind === 'ask' && !zigi ? true : undefined} className={`search-row is-${row.kind}`} onPointerMove={() => setActive(i)} onClick={() => choose(row)}>
-    <span className="search-row-title">{row.label}</span>{row.detail && <span className="search-row-detail">{row.detail}</span>}
+    {rowPillar(row) && <PillarMark pillar={rowPillar(row)!} size={14}/>}<span className="search-row-title">{row.label}</span>{row.detail && <span className="search-row-detail">{row.detail}</span>}
   </li>; };
 
   return <dialog ref={dialog} className="search-palette" aria-label="Search" onCancel={e => { e.preventDefault(); close(); }} onClick={e => { if (e.target === dialog.current) close(); }}>

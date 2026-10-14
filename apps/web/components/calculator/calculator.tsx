@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {CountUp} from './count-up';
 import {useDeferredValue, useEffect, useMemo, useState, type ReactNode} from 'react';
 import Decimal from 'decimal.js';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
@@ -126,7 +127,7 @@ export function Calculator() {
         <SectionHeading id="calc-results-title" eyebrow={`After ${input.years} ${input.years === 1 ? 'year' : 'years'} · an estimate`} title="What it could grow to" />
         {!parsed.input && <p className="calc-stale" role="status">These figures are from your last numbers that worked. Correct the marked field to update them.</p>}
         <dl className="calc-figures" aria-live="polite">
-          <div className="calc-final"><dt>Estimated final value</dt><dd>{money(result.final)}</dd></div>
+          <div className="calc-final"><dt>Estimated final value</dt><dd><CountUp text={money(result.final)}/></dd></div>
           <div><dt>You put in</dt><dd>{money(result.contributed)}</dd></div>
           <div><dt>Growth</dt><dd>{formatSignedMoney(result.growth, input.currency)}</dd></div>
           {result.realFinal && <div><dt>In today’s money</dt><dd>{money(result.realFinal)}</dd></div>}
