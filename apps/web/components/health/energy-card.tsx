@@ -15,7 +15,7 @@ import './health-aa.css';
 export function EnergyCard({data, today, unit, perform}: {data: HealthData; today: string; unit: WeightUnit; perform: HealthPerform}) {
   const e = energyEstimate(data, today), [pace, setPace] = useState<'-0.5' | '-0.25' | '0' | '0.25'>('0'), [confirm, setConfirm] = useState(false);
   const kcal = suggestedTarget(e, Number(pace));
-  return <section className="panel health-aa-card" aria-labelledby="energy-title">
+  return <section id="health-energy" className="panel health-aa-card" aria-labelledby="energy-title">
     <p className="eyebrow">Adaptive</p><h2 id="energy-title"><NebulaFlow identity="energy-title">Energy estimate</NebulaFlow></h2>
     {!e.ready ? <><p className="health-empty-inline">Needs about two weeks of logs: {e.loggedDays} of {ENERGY_MIN_LOGGED_DAYS} logged days and {e.weights} of {ENERGY_MIN_WEIGHTS} weight readings in the last {e.windowDays} days so far.</p><span className="health-estimate-tag">an estimate, not medical advice</span></> : <>
       <p className="health-big">{e.expenditure}<small>kcal a day, about {e.low}–{e.high}</small></p>

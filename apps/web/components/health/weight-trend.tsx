@@ -26,7 +26,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
   const line = t.points.map((p, i) => p.trend === null ? null : `${i === 0 || t.points[i - 1]!.trend === null ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.trend).toFixed(1)}`).filter(Boolean).join(' ');
   const rate = t.weeklyRate === null ? null : weightChangeText(tenths(t.weeklyRate), unit);
   const summary = t.latestTrend === null ? 'No readings in the last six weeks.' : `Trend ${weightText(tenths(t.latestTrend), unit)}${rate ? `, ${rate} a week` : ''}${goal !== null ? `, goal ${weightText(goal, unit)}` : ''}; ${t.readings} readings in 42 days.`;
-  return <section className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
+  return <section id="health-weight-trend" className="panel health-aa-card health-trend-card" aria-labelledby="weight-trend-title">
     <p className="eyebrow">Six weeks</p><h2 id="weight-trend-title"><NebulaFlow identity="weight-trend-title">Weight trend</NebulaFlow></h2>
     {t.latestTrend === null ? <p className="health-empty-inline">Two or three readings a week draw the line; the first one starts it. <span className="health-estimate-tag">an estimate</span></p> : <>
       <p className="health-big">{weightText(tenths(t.latestTrend), unit)}<small>trend today{rate ? ` · ${rate}/week` : ''}</small></p>

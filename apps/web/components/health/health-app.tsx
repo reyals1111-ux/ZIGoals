@@ -23,6 +23,7 @@ const WaterRing = lazy(() => import("./water-ring").then((m) => ({ default: m.Wa
 const WeightTrendCard = lazy(() => import("./weight-trend").then((m) => ({ default: m.WeightTrendCard })));
 const EnergyCard = lazy(() => import("./energy-card").then((m) => ({ default: m.EnergyCard })));
 const CoachCard = lazy(() => import("./coach-card").then((m) => ({ default: m.CoachCard })));
+const HealthHighlights = lazy(() => import("./health-highlights"));
 const MicroPanel = lazy(() => import("./micro-panel").then((m) => ({ default: m.MicroPanel })));
 const MacroModePanel = lazy(() => import("./macro-mode-panel").then((m) => ({ default: m.MacroModePanel })));
 const FastingTimeline = lazy(() => import("./fasting-timeline").then((m) => ({ default: m.FastingTimeline })));
@@ -231,6 +232,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
     {phone && <ExerciseCounters data={data} update={update} />}
+    {/* Phase 2, Part 5 (owner request 33): the highlight tiles — the figures of the trend, energy and coach cards below. */}
+    <LoadBoundary quiet><Suspense fallback={null}><HealthHighlights data={data} today={today} unit={dailyData(data).preferences.weightUnit} /></Suspense></LoadBoundary>
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},

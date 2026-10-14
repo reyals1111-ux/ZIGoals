@@ -25,7 +25,7 @@ export function CoachCard({data, today, perform, compact = false}: {data: Health
     const record = () => { try { coach.update(r => answerCoach(r, c.weekStart, what, new Date().toISOString(), kcal)); } catch (e) { void perform(l => l, `Answer not kept on this device. ${deviceSettingFailureMessage(e)}`); } };
     if (what === 'adjust' && kcal) void perform(latest => setHealthTargets(latest, {...latest.targets, kcal}), `Calorie target adjusted to ${kcal} kcal a day.`, record); else record();
   };
-  return <section className={`panel health-aa-card health-coach${compact ? ' health-coach-compact' : ''}`} aria-labelledby="coach-title">
+  return <section id={compact ? undefined : 'health-coach'} className={`panel health-aa-card health-coach${compact ? ' health-coach-compact' : ''}`} aria-labelledby="coach-title">
     <p className="eyebrow">Weekly check-in</p><h2 id="coach-title"><NebulaFlow identity={`coach-title${compact ? '-compact' : ''}`}>Your coach</NebulaFlow></h2>
     <p className="health-coach-line">{c.sentence}</p>
     {c.rateGrams !== null && (c.answered ? <p className="health-coach-answered">{c.answered === 'keep' ? 'You kept your target this week.' : 'You adjusted your target this week.'} Back next week.</p> : <div className="actions"><button type="button" className="primary" onClick={() => answer('keep')}>Keep my target</button><button type="button" className="secondary" onClick={() => answer('adjust')} disabled={!c.suggestion}>{c.suggestion ? `Adjust to ${c.suggestion.kcal} kcal` : 'Adjust (needs the estimate)'}</button></div>)}
