@@ -114,6 +114,9 @@ Evidence: `docs/verification/ab-cloud/`; "Resume here": `docs/verification/ab-cl
   `2026-10-session-ab-cloud`; the card's first link checked is now Restore's (its Help answer opens); AA-Local's links lead
   "Earlier updates", so every pinned position moves by seven, and AA-Local's habits answer is checked from there (as
   strict: the same texts, one more release's links).
+- **Gate C, `tests/send-feedback.spec.ts:75` (Help's Known limitations):** the list's exact count is 13 (was 10) after
+  Part 10's three limitations; each of the three is asserted by its full sentence and the new "Do my photos sync?" link
+  by its target, beside every earlier check (CI on `e57ab538` caught the count; as strict, three more members named).
 - **Gate C test audit** (one independent agent over the 34 changed and new test files; every finding acted on or recorded):
   - C3 corrected (no tombstones or recovery copy for the extras; the base is what tells a removal); the finished-feel count
     pinned as 21 (above).
