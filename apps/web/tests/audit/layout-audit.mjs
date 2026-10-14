@@ -9,8 +9,9 @@
 //   wrap      a number (amount, %, count) broken onto two lines;
 //   ring      a progress ring's label outside its inner circle;
 //   target    a control smaller than 44 × 44 px on the touch layout (< 768 px), or than the WCAG 2.5.8 minimum of 24 × 24 px
-//             on the pointer layout (inline links inside a sentence are not standalone targets); 24–44 px pointer-layout
-//             controls are listed as advisory-target, which does not count as a finding;
+//             on the pointer layout, or a smaller one whose 24 px circle meets no other target (WCAG 2.5.8's spacing
+//             exception); inline links inside a sentence are not standalone targets; the pointer layout's passing controls
+//             under 44 px are listed as advisory-target, which does not count as a finding;
 //   contrast  text below 4.5:1 (3:1 for large text) against the pixels actually behind it (one screenshot per state).
 // ZIGi's launcher, the music button and Point & tell float over content by the owner's decision and are left out.
 // Usage (from apps/web, a production build running):
@@ -27,8 +28,6 @@ const stress = flags.includes('--stress');
 // --touch (owner, 2026-10-14): tablets are touch devices. The same states at 768 and 1024 px with touch emulation (a coarse
 // primary pointer), where every target must be 44 × 44 px, as on phones.
 const touch = flags.includes('--touch');
-// Contrast is left to the ordinary pass in --touch mode: a full-page capture drops the touch emulation while it runs, so the
-// page re-lays out for a fine pointer mid-capture and the pixels no longer line up with the boxes (colours do not change).
 const WIDTHS = (flag('widths') ?? (touch ? '768,1024' : engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
@@ -234,13 +233,18 @@ function inspect() {
     if (worst > 0) out.push({k: 'ring', w: `${desc(g)} label reaches ${Math.round(worst * 10) / 10}px into the band (ring ${Math.round(R.width)}px)`});
   }
   // target
-  for (const el of scope.querySelectorAll('a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option]')) {
+  const TARGETS = 'a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option]';
+  const targetBoxes = [...scope.querySelectorAll(TARGETS)].filter(shown).map(e => ({e, r: e.getBoundingClientRect()}));
+  // WCAG 2.5.8's spacing exception: an undersized target passes when a 24 px circle centred on it meets no other target.
+  const spaced = (el, r) => { const cx = r.left + r.width / 2, cy = r.top + r.height / 2; return targetBoxes.every(({e, r: o}) => e === el || e.contains(el) || el.contains(e) || Math.hypot(Math.max(o.left - cx, 0, cx - o.right), Math.max(o.top - cy, 0, cy - o.bottom)) >= 12); };
+  for (const el of scope.querySelectorAll(TARGETS)) {
     if (!shown(el)) continue; const r = el.getBoundingClientRect();
     // A coarse primary pointer (phones, tablets, any width) or the phone layout: 44 × 44 (owner, 2026-10-14). A fine pointer
     // (mouse, trackpad) on the larger layout: the WCAG 2.5.8 minimum of 24 × 24, its 24–44 px controls listed as advisory.
     const min = innerWidth < 768 || matchMedia('(pointer: coarse)').matches ? 44 : 24;
     if (r.width >= 44 && r.height >= 44) continue;
     if (min === 24 && r.width >= 24 && r.height >= 24) { out.push({k: 'advisory-target', w: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)} (pointer layout)`}); continue; }
+    if (min === 24 && spaced(el, r)) { out.push({k: 'advisory-target', w: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)} (pointer layout, spaced: WCAG 2.5.8 spacing exception)`}); continue; }
     const s = getComputedStyle(el);
     if (el.matches('input[type=checkbox], input[type=radio]') && el.closest('label') && el.closest('label').getBoundingClientRect().height >= min) continue;
     if (el.matches('input[type=checkbox], input[type=radio]') && (s.opacity === '0' || r.width <= 1)) continue;
@@ -316,15 +320,22 @@ for (const width of WIDTHS) {
         await p.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 700) { scrollTo(0, y); await new Promise(r => setTimeout(r, 90)); } scrollTo(0, 0); });
         if (st.steps) await st.steps(p);
         await p.waitForTimeout(500);
+        // A touch context (phones in Chrome, --touch): Chromium's full-page capture drops touch emulation for good (hover and
+        // pointer media flip, hover-revealed controls vanish), so such pages are captured in viewport-sized chunks instead.
+        // A scroll through the page first mounts what loads on sight, so the boxes measured next still hold during the chunks.
+        const chunked = (phone || touch) && engine === 'chrome';
+        if (chunked) { await p.evaluate(async () => { const h = document.documentElement.scrollHeight; for (let y = 0; y < h; y += innerHeight) { scrollTo(0, y); await new Promise(r => setTimeout(r, 60)); } scrollTo(0, 0); }); await p.waitForTimeout(400); }
         const {out: found, samples, modal} = await p.evaluate(inspect);
         // The background capture: every glyph transparent (and gradient text's own fill removed), so what is read behind a text
         // is only what it sits on — never a neighbouring line's letters.
         const shotOpts = {type: 'png', animations: 'disabled', caret: 'hide', style: '[data-audit-fixed] { visibility: hidden !important; } *, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; text-decoration-color: transparent !important; } [data-audit-text-clip] { background: none !important; }'};
         const pngs = [];
-        if (touch) { /* no pixels needed: see --touch */ }
-        else if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
+        if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
+        else if (chunked) { const {h, vh} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, vh: innerHeight})); const start = await p.evaluate(() => scrollY);
+          for (let top = 0; ; top += vh - 120) { const at = await p.evaluate(t => { scrollTo(0, t); return scrollY; }, top); await p.waitForTimeout(80); pngs.push({top: at, png: readPng(await p.screenshot(shotOpts))}); if (at + vh >= h) break; }
+          await p.evaluate(t => scrollTo(0, t), start); }
         else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
-        const every = [...found, ...(touch ? [] : contrast(pngs, samples))], all = every.filter(f => f.k !== 'advisory-target');
+        const every = [...found, ...contrast(pngs, samples)], all = every.filter(f => f.k !== 'advisory-target');
         report.states[key] = all; report.advisory[key] = every.filter(f => f.k === 'advisory-target').map(f => f.w);
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
         writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});

@@ -251,14 +251,19 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
    square. Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
    (a small unit beside a big figure is one line); contrast is read inside each of the text's own line boxes on a second capture where
    every glyph is transparent (edge pixels had caught the neighbouring line's letters, a wrapped run's box its neighbour's
-   figures, a swatch's glow), and only where the text's own scroller shows it; a textarea's raw text node is not
+   figures, a swatch's glow), and only where the text's own scroller shows it; touch contexts (phones, `--touch`) are
+   captured in viewport-sized chunks, because Chromium's full-page capture drops touch emulation for the rest of the page's
+   life (hover-revealed controls such as the vision board's "Open goal" vanished from the picture); a textarea's raw text node is not
    laid out.
    **Targets (owner, 2026-10-14: "don't decide the 44 px rule by width alone").** 44 × 44 px wherever the primary pointer is
    coarse, at every width: under 768 px through the phone layout's own rules, from 768 px (tablets, landscape phones) through
    `components/ui/touch-targets.css` (`@media (pointer: coarse) and (min-width: 768px)`: controls, summaries, fields and
    standalone links get a 44 px floor; a link inside a sentence grows its hit area with block padding, which moves no
-   line). A fine pointer (mouse, trackpad) keeps the compact desktop baseline, held to the WCAG 2.5.8 minimum of 24 px
-   (standalone text links reach it with 2 px of block padding); its 24–44 px controls are listed in the report as advisory.
+   line). A fine pointer (mouse, trackpad) keeps the compact desktop baseline, held to WCAG 2.5.8: 24 px, or a
+   smaller control whose 24 px circle meets no other target (its spacing exception); those passing controls under 44 px are
+   listed in the report as advisory. (A first try padded desktop text links and summaries to 24 px; it moved block-level
+   links and summaries, overlapping the goal timeline's rows and outgrowing Settings' reserved ZIGi section on CI, so it
+   was reverted in favour of the spacing rule WCAG states.)
    The audit decides the minimum the same way (44 px under 768 px or with a coarse pointer, else 24 px) and runs once more
    with touch emulation at 768 and 1024 px (`--touch`).
 3. **Stress states** — the audit's `--stress` mode rewrites the Showcase's own records to 40+ character names,

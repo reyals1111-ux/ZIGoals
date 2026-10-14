@@ -25,5 +25,5 @@
 :root[data-app-motion=off] .wealth-history-chart[data-entrance=once] .wealth-history-line, :root[data-app-motion=off] .wealth-history-chart[data-entrance=once] .wealth-history-area { animation: none; stroke-dashoffset: 0; }
 @media (max-width: 600px) { .wealth-history-readout strong { font-size: 22px; } .wealth-history-tools .quiet { padding: 0 10px; } }
 /* Session AB-Design Phase 2 closing pass (owner, 2026-10-14: 44 px wherever the pointer is coarse): on a touch screen each
-   point's hit strip is 44 wide, centred on its point; a mouse keeps 28 so the nearest of two close points still wins. */
-@media (pointer: coarse) { .wealth-history-hit { width: 44px; transform: translateX(-8px); } }
+   point's hit strip is 48 wide (44 px or more after the chart scales), centred on its point; a mouse keeps 28 so the nearest of two close points still wins. */
+@media (pointer: coarse) { .wealth-history-hit { width: 48px; transform: translateX(-10px); } }
