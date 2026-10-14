@@ -124,3 +124,30 @@
 .journey-badge-grid li[data-earned] .journey-badge-symbol { box-shadow: inset -6px -4px 14px #0006, inset 4px 3px 12px #ffffff33, 0 0 24px -4px #ffd27a99; background: radial-gradient(circle at 35% 30%, #6a5bd0, #2a1f5a 70%); }
 .journey-quest-pillar { margin-right: 8px; vertical-align: -3px; }
 .journey-quest-pillar .pillar-mark-disc { width: 22px; height: 22px; }
+/* Phase 2, Part 8: the Journey widgets on Today and their switches in the "Add a widget" dialog. */
+.today-game-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; margin: 18px 0; }
+.today-game-card { display: grid; gap: 10px; align-content: start; }
+.today-game-xp { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; }
+.today-game-xp h2, .today-game-quests h2 { margin: 0; font-size: clamp(19px, .3vw + 16px, 22px); }
+.today-game-ring { --ring-width: 9px; width: 96px; aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.today-game-ring > * { grid-area: ring; }
+.today-game-ring strong { font-size: 30px; margin-top: -12px; }
+.today-game-ring small { font-size: 13px; color: var(--text-secondary, #c9d6ea); margin-top: 30px; }
+.today-game-bar { height: 8px; border-radius: 99px; margin: 6px 0 2px; }
+.today-game-card .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.game-widget-choices { display: grid; gap: 8px; margin: 0 0 16px; padding: 14px; border-radius: 16px; border: 1px solid #c790f644; background: linear-gradient(140deg, #2a1f4433, #0d1a30aa); }
+.game-widget-choices h3 { margin: 0; font-size: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.game-widget-choices h3 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, #c9d6ea); }
+.game-widget-choices [role=group] { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.game-widget-choice { display: grid; gap: 2px; text-align: left; min-height: 56px; }
+.game-widget-choice small { font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+@media (max-width: 480px) { .today-game-xp { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+/* Phase 2, Part 8 (owner request 31): the compact Journey card at a page's bottom on computers and tablets — the level and
+   its XP bar on the left, the page's quest and the Journey link on the right. */
+.game-card:not(.game-card-strip) { padding: 18px 22px; }
+.game-card:not(.game-card-strip) .game-card-body { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "level quest" "bar link"; align-items: center; column-gap: 32px; row-gap: 8px; }
+.game-card:not(.game-card-strip) .game-card-level { grid-area: level; }
+.game-card:not(.game-card-strip) .game-card-bar { grid-area: bar; }
+.game-card:not(.game-card-strip) .game-card-quest { grid-area: quest; padding: 10px 14px; border-radius: 14px; background: #ffffff08; border: 1px solid #c790f62e; }
+.game-card:not(.game-card-strip) .text-link { grid-area: link; justify-self: end; }
+@media (max-width: 900px) { .game-card:not(.game-card-strip) .game-card-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "level" "bar" "quest" "link"; } .game-card:not(.game-card-strip) .text-link { justify-self: start; } }

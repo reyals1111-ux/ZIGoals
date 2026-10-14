@@ -11,6 +11,8 @@
 .today-hero-strip .eyebrow { margin: 0; flex: 1 1 auto; min-width: 0; }
 .today-hero-strip .hero-actions { margin: 0; }
 .today-hero-strip .hero-fold { top: 50%; translate: 0 -50%; }
-@media (max-width: 540px) { .today-hero-folded { margin: 0 0 10px; } .today-hero-strip { padding-right: 48px; gap: 10px; } .today-hero-strip .eyebrow { font-size: 13px; } }
+/* Phase 2, Part 8 (owner request 7): on phones the folded strip is two tidy rows — the eyebrow on one line (14 px, never
+   wrapped), then the actions — instead of an eyebrow squeezed onto two lines beside Quick add. */
+@media (max-width: 540px) { .today-hero-folded { margin: 0 0 10px; } .today-hero-strip { flex-wrap: wrap; row-gap: 6px; padding: 8px 48px 8px 4px; gap: 10px; } .today-hero-strip .eyebrow { flex: 1 1 100%; font-size: 14px; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
 @media (prefers-reduced-motion: reduce) { .hero-fold svg { transition: none; } }
 :root[data-app-motion=off] .hero-fold svg { transition: none; }
