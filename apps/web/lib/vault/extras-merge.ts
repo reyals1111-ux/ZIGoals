@@ -18,6 +18,8 @@
  * which merges the two devices' records key by key and item by item.
  */
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+/** An own property even for a key like `__proto__` (decrypted JSON can hold one): never an object's prototype (Gate B, info). */
+export function setOwn(target: Record<string, unknown>, key: string, value: unknown) { Object.defineProperty(target, key, {value, enumerable: true, writable: true, configurable: true}); }
 export const same = (a: unknown, b: unknown) => a === b || canonical(a) === canonical(b);
 /** JSON with object keys sorted, so two devices that wrote the same value in another key order agree. */
 export function canonical(value: unknown): string {
@@ -54,7 +56,7 @@ export function mergeExtras(base: unknown, local: unknown, remote: unknown): unk
     for (const key of new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)])) {
       const b = base[key], l = local[key], r = remote[key];
       const value = same(l, r) ? l : same(l, b) ? r : same(r, b) ? l : later[key];
-      if (value !== undefined) out[key] = value;
+      if (value !== undefined) setOwn(out, key, value);
     }
     return out;
   }
@@ -62,7 +64,7 @@ export function mergeExtras(base: unknown, local: unknown, remote: unknown): unk
     const b = isObject(base) ? base : {}, out: Record<string, unknown> = {};
     for (const key of new Set([...Object.keys(local), ...Object.keys(remote)])) {
       const merged = mergeExtras(base === undefined ? undefined : b[key], local[key], remote[key]);
-      if (merged !== undefined) out[key] = merged;
+      if (merged !== undefined) setOwn(out, key, merged);
     }
     return out;
   }

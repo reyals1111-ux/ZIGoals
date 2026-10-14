@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, test} from 'vitest';
 import {createVault} from './crypto';
-import {sealSection, sectionText, syncExtras, type ExtrasBase, type ExtrasTransport} from './extras-sync';
+import {HEALTH_HELD_NOTE, releaseHealthHold, sealSection, sectionText, syncExtras, type ExtrasBase, type ExtrasTransport} from './extras-sync';
 import {setGoalReasons, emptyGoalExtras} from '../goal-extras/store';
 
 // Session AB-Cloud Part 3 ([TIER 3] (sync), ADR-023 C15–C19): Session Q's FIX_PLAN B3–B7, already enforced for the four
@@ -112,5 +112,66 @@ describe('FIX_PLAN B7 for the extras: one spelling per sealed value', () => {
     d.cloud.sections.goals = {revision: 1, generation: 0, epoch: d.vault.manifest.epoch, parts};
     expect(byState(await d.sync()).goals).toBe('pulled');
     expect(JSON.parse(d.storage.getItem(GOALS)!).goals['private:1'].why).toBe('From the cloud' + pad);
+  });
+});
+
+// Gate B (the independent security read of every Tier 3 commit, ADR-023 C28): its three extras findings, each reproduced
+// first (the reviewer's proofs of concept) and now refused.
+describe('Gate B: replays, a key change and a Health deletion', () => {
+  test('finding 1: heads that claim a newer revision while serving an older copy are refused; nothing is written', async () => {
+    const d = await device();
+    d.storage.setItem(GOALS, JSON.stringify(setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'OLD'}, at)));
+    await d.sync();
+    const oldCopy = structuredClone(d.cloud.sections.goals!);
+    d.storage.setItem(GOALS, JSON.stringify(setGoalReasons(JSON.parse(d.storage.getItem(GOALS)!), 'private:1', {why: 'NEW'}, '2026-10-13T09:00:00.000Z')));
+    await d.sync();
+    const before = new Map(d.storage.m), real = d.cloud.transport.read;
+    // The heads say revision 3; the read serves the genuine revision-1 parts.
+    d.cloud.sections.goals = {...d.cloud.sections.goals!, revision: 3};
+    d.cloud.transport.read = async section => section === 'goals' ? {protocol: 1, section, revision: oldCopy.revision, generation: oldCopy.generation, epoch: oldCopy.epoch, parts: oldCopy.parts} : real(section);
+    const out = await d.sync();
+    expect(byState(out).goals).toBe('error');
+    expect(out.find(o => o.section === 'goals')!.message).toMatch(/older or altered encrypted copy/);
+    expect(d.storage.m).toEqual(before);
+    // A faked deletion (a new generation with a lower revision) is refused the same way.
+    d.cloud.transport.read = real;
+    d.cloud.sections.goals = {revision: 1, generation: 1, epoch: null, parts: []};
+    expect(byState(await d.sync()).goals).toBe('error');
+    expect(d.storage.m).toEqual(before);
+  });
+  test('finding 2: after a key change, only the device that synced the copy last re-uploads it; another device waits and loses nothing', async () => {
+    const a = await device();
+    const b = {storage: memoryStorage(), bases: memoryBases()};
+    let vault = a.vault;
+    const sync = (d: {storage: Storage; bases: unknown}) => syncExtras({transport: a.cloud.transport, key: vault.key, manifest: vault.manifest, storage: d.storage, bases: d.bases as never, fence: () => {}, health: false});
+    a.storage.setItem(GOALS, JSON.stringify(setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'A-original'}, at)));
+    await sync(a); await sync(b);
+    b.storage.setItem(GOALS, JSON.stringify(setGoalReasons(JSON.parse(b.storage.getItem(GOALS)!), 'private:1', {why: 'B-edit'}, '2026-10-13T09:00:00.000Z')));
+    await sync(b);
+    vault = await createVault(vault.manifest.vault, vault.manifest.epoch + 1);
+    const out = await sync(a);
+    expect(byState(out).goals).toBe('waiting');
+    expect(out.find(o => o.section === 'goals')!.message).toMatch(/wait for the device that synced them last/);
+    expect(a.storage.getItem(GOALS)).toContain('A-original');
+    expect(byState(await sync(b)).goals).toBe('pushed');
+    await sync(b);
+    expect(b.storage.getItem(GOALS)).toContain('B-edit');
+    // A now reads B's copy under the new key and takes the edit.
+    expect(byState(await sync(a)).goals).toBe('pulled');
+    expect(a.storage.getItem(GOALS)).toContain('B-edit');
+  });
+  test('finding 6: after a Health deletion the Health extras are held here until Health sync is turned on again', async () => {
+    const d = await device();
+    d.storage.setItem(MICRO, JSON.stringify({version: 1, targets: {}}));
+    await d.sync();
+    const h = d.cloud.sections.health!;
+    d.cloud.sections.health = {revision: h.revision + 1, generation: h.generation + 1, epoch: null, parts: []};
+    expect(byState(await d.sync()).health).toBe('deleted');
+    d.cloud.calls.length = 0;
+    const held = await d.sync();
+    expect(held.find(o => o.section === 'health')).toEqual({section: 'health', state: 'skipped', message: HEALTH_HELD_NOTE});
+    expect(d.cloud.calls.filter(c => c.endsWith(':health'))).toEqual([]);
+    await releaseHealthHold(d.bases as never);
+    expect(byState(await d.sync()).health).toBe('pushed');
   });
 });

@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import {openRecord, sealRecord, type EncryptedEnvelope, type VaultManifest} from './crypto';
 import {RevisionConflict} from './cloud-sync';
-import {canonical, mergeExtras, same} from './extras-merge';
+import {canonical, mergeExtras, same, setOwn} from './extras-merge';
 import {EXTRAS_SECTIONS, type ExtrasSection, type ExtrasSectionName} from './extras-sections';
 import {EXTRAS_CHOICE_KEY} from './extras-keys';
 import {announceSyncedDeviceChanges} from './account-data';
@@ -37,7 +37,9 @@ type Records = Record<string, unknown>;
 const sha = z.string().regex(/^[0-9a-f]{64}$/);
 export const extrasBaseSchema = z.object({version: z.literal(1), vault: z.uuid(), revision: z.number().int().min(0), generation: z.number().int().min(0), digest: sha.nullable(), text: z.string().nullable(),
   /** An upload whose answer has not arrived: recognised on the next sync by its digest. */
-  pending: z.object({digest: sha, text: z.string()}).strict().optional()}).strict();
+  pending: z.object({digest: sha, text: z.string()}).strict().optional(),
+  /** Gate B (security read, finding 6): the Health section was deleted from the cloud; nothing is sent again until the person turns Health sync on again here. */
+  held: z.literal(true).optional()}).strict();
 export type ExtrasBase = z.infer<typeof extrasBaseSchema>;
 export class ExtrasTooLarge extends Error { constructor(section: string) { super(`Your ${SECTION_LABEL[section as ExtrasSectionName] ?? section} are larger than their encrypted copy can hold (about 1 MB). They stay on this device; nothing was uploaded.`); } }
 export const SECTION_LABEL: Record<ExtrasSectionName, string> = {goals: 'goal extras', life: 'calculator, Life review and Today extras', habits: 'habit extras', health: 'Health extras'};
@@ -100,7 +102,7 @@ export function mergeSection(section: ExtrasSection, base: Records | undefined, 
   const known = new Set(section.records.map(r => r.spec.key)), out: Records = {};
   for (const key of new Set([...Object.keys(base ?? {}), ...Object.keys(local), ...Object.keys(remote)])) {
     const value = known.has(key) ? mergeExtras(base === undefined ? undefined : base[key], local[key], remote[key]) : remote[key];
-    if (value !== undefined) out[key] = value;
+    if (value !== undefined) setOwn(out, key, value);
   }
   return out;
 }
@@ -126,9 +128,18 @@ export function applySection(storage: Pick<Storage, 'getItem' | 'setItem' | 'rem
   announceSyncedDeviceChanges(writes.map(w => w.key));
   return writes.map(w => w.key);
 }
+const older = (name: ExtrasSectionName) => `An older or altered encrypted copy of your ${SECTION_LABEL[name]} was refused. Nothing was changed.`;
+export const HEALTH_HELD_NOTE = 'Health was deleted from the cloud, so your Health extras stay on this device until you turn Health sync on again here.';
+/** The person turned Health sync on again on this device: the Health extras may travel again (finding 6). */
+export async function releaseHealthHold(bases: ExtrasBases): Promise<void> {
+  const base = await bases.get('health');
+  if (!base?.held) return;
+  const {held, ...rest} = base; void held;
+  await bases.put('health', extrasBaseSchema.parse(rest));
+}
 export class ExtrasChangedDuringSync extends Error { constructor() { super('Your extras changed during sync. Nothing was overwritten; they sync again next.'); this.name = 'ExtrasChangedDuringSync'; } }
 
-export type ExtrasOutcome = {section: ExtrasSectionName; state: 'unchanged' | 'pushed' | 'pulled' | 'merged' | 'deleted' | 'skipped' | 'unreadable' | 'error'; message?: string};
+export type ExtrasOutcome = {section: ExtrasSectionName; state: 'unchanged' | 'pushed' | 'pulled' | 'merged' | 'deleted' | 'skipped' | 'waiting' | 'unreadable' | 'error'; message?: string};
 type SyncInput = {transport: ExtrasTransport; key: CryptoKey; manifest: VaultManifest; storage: Storage; bases: ExtrasBases; fence: () => void};
 
 /** One section's sync against the head the cloud reported. */
@@ -136,27 +147,37 @@ export async function syncSection(input: SyncInput, section: ExtrasSection, head
   const {transport, key, manifest, storage, bases, fence} = input, name = section.name;
   const stored = await bases.get(name), base = stored && stored.vault === manifest.vault ? stored : null;
   fence();
-  // An older copy than this device already synced (a lower generation, or a lower revision in the same one): refused
-  // before anything is read or sent (FIX_PLAN B3 for the extras).
-  if (base && (head.generation < base.generation || head.generation === base.generation && head.revision < base.revision)) throw Error(`An older or altered encrypted copy of your ${SECTION_LABEL[name]} was refused. Nothing was changed.`);
+  // An older copy than this device already synced (a lower generation, or a lower revision — the Worker's revision only
+  // ever rises, deletions included, so a lower one in any generation is a replay): refused before anything is read or sent
+  // (FIX_PLAN B3 for the extras; Gate B security read, finding 1).
+  if (base && (head.generation < base.generation || head.revision < base.revision)) throw Error(older(name));
+  // Health deleted from the cloud: held until the person turns Health sync on again on this device (finding 6).
+  if (base?.held) return {section: name, state: 'skipped', message: HEALTH_HELD_NOTE};
   const collected = collectSection(storage, section);
   if (collected.unreadable.length) return {section: name, state: 'unreadable', message: `Some of your ${SECTION_LABEL[name]} on this device could not be read, so they were not synced. They were not changed.`};
   const localText = sectionText(collected.records), localDigest = await digestOf(localText);
   const record = (next: Omit<ExtrasBase, 'version' | 'vault'>) => bases.put(name, extrasBaseSchema.parse({version: 1, vault: manifest.vault, ...next}));
   // The cloud copy was removed since this device last synced.
   if (base && head.generation !== base.generation) {
-    await record({revision: head.revision, generation: head.generation, digest: null, text: null});
+    await record({revision: head.revision, generation: head.generation, digest: null, text: null, ...(name === 'health' ? {held: true as const} : {})});
     return {section: name, state: 'deleted'};
   }
   // Unchanged in the cloud since this device's last sync: upload this device's change, if any.
   let remoteText: string | null | undefined, remoteRevision = head.revision;
   const stale = head.parts > 0 && head.epoch !== manifest.epoch;
+  // A copy sealed before a key rotation cannot be read here. Only a device whose base is that very copy may upload its
+  // merge again; any other device would replace edits it never saw (Gate B security read, finding 2), so it waits.
+  if (stale && !(base && head.revision === base.revision)) return {section: name, state: 'waiting', message: `Your ${SECTION_LABEL[name]} wait for the device that synced them last since the key change to send them again. Nothing was changed here.`};
   if (base && head.revision === base.revision && !stale) {
     if (localDigest === base.digest) return {section: name, state: 'unchanged'};
     remoteText = base.text;
   } else if (!stale) {
     const cloud = extrasSectionCloudSchema.parse(await transport.read(name)); fence();
     if (cloud.section !== name || cloud.generation !== head.generation) throw new RevisionConflict();
+    // The copy read must be the one the heads named, and never behind this device's base (finding 1): a newer one means
+    // another device wrote in between (retried once); an older one is a replay and is refused.
+    if (cloud.revision > head.revision) throw new RevisionConflict();
+    if (cloud.revision !== head.revision || base && cloud.revision < base.revision) throw Error(older(name));
     remoteText = await openSection(key, manifest, cloud); remoteRevision = cloud.revision; fence();
   }
   // A lost answer: the cloud holds exactly what this device sent last time.

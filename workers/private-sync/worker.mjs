@@ -2,7 +2,7 @@ import {WorkerEntrypoint} from 'cloudflare:workers';
 import {rotationRequest} from './rotation.mjs';
 import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
 import {portfolioRequest} from './portfolio.mjs';
-import {extrasRequest} from './extras.mjs';
+import {extrasRequest,settleHealthExtras} from './extras.mjs';
 import {STEP_UP_HEADER,STEP_UP_INTERNAL,STEP_UP_NEXT_HEADER,isStepUpValue,stepUpRequest} from './step-up.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -142,7 +142,7 @@ export class PrivateVault{
    if((next[intent.domain]??0)<=intent.generation)return response({error:'DOMAIN_DELETION_PENDING'},503);
    let bytes=await store.get('bytes')??0,cursor;for(;;){const rows=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!rows.size)break;cursor=[...rows.keys()].at(-1);for(const [id,row]of rows)if((next[row.domain]??0)>(applied[row.domain]??0)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
    for(;;){const rows=await store.list({prefix:'rotation-row:',limit:128});if(!rows.size)break;await store.delete([...rows.keys()]);}
-   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
+   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});if(intent.domain==='health')await settleHealthExtras(store);await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
   });
  }
  /** @param {Request} request @param {string|null} sessionHash */
@@ -173,7 +173,7 @@ export class PrivateVault{
     for(;;){const page=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [id,row]of page)if(changed.includes(row.domain)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
     // A staged rotation must never re-publish rows removed by the lifecycle authority.
     for(;;){const staged=await store.list({prefix:'rotation-row:',limit:128});if(!staged.size)break;await store.delete([...staged.keys()]);}await store.delete('rotation');
-    await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});return null;
+    await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});if(changed.includes('health'))await settleHealthExtras(store);return null;
    });if(reconciled)return reconciled;
   }
   if(path==='/v1/domain')return this.prepareDomainDeletion(request,sessionHash);

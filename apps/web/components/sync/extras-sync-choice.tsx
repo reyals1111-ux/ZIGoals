@@ -21,7 +21,9 @@ function line(status: ExtrasStatus | null, health: boolean): string | null {
   if (problems.length) return problems.map(o => o.message).join(' ');
   const skipped = status.outcomes.some(o => o.state === 'skipped');
   const pulled = status.outcomes.filter(o => o.state === 'pulled' || o.state === 'merged').map(o => SECTION_DONE[o.section]);
-  return `Extras synced at ${status.at}.${pulled.length ? ` Updated from your other devices: ${pulled.join(', ')}.` : ''}${skipped && !health ? ' Health extras stay on this device until Health sync is on.' : ''}`;
+  // Gate B (security read, findings 2 and 6): a section waiting after a key change, or Health held after a cloud deletion, says so.
+  const notes = status.outcomes.filter(o => (o.state === 'waiting' || o.state === 'skipped') && o.message).map(o => o.message);
+  return `Extras synced at ${status.at}.${pulled.length ? ` Updated from your other devices: ${pulled.join(', ')}.` : ''}${skipped && !health ? ' Health extras stay on this device until Health sync is on.' : ''}${notes.length ? ` ${notes.join(' ')}` : ''}`;
 }
 
 /**

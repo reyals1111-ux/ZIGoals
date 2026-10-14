@@ -1,4 +1,7 @@
 import {test,expect} from 'vitest';
+import {readdir} from 'node:fs/promises';
+import {join} from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
 import {privateRuntime} from './private-runtime.mjs';
 import {createVault} from '../../apps/web/lib/vault/crypto';
 import {cloudSnapshot,synchronize} from '../../apps/web/lib/vault/cloud-sync';
@@ -19,6 +22,12 @@ async function setup(){
  return {r,vault,json,put};
 }
 const EMPTY={revision:0,generation:0,epoch:null,parts:0};
+/** The vault object's own stored keys with a prefix, read from Miniflare's persisted SQLite file (no request, so no lazy step runs). */
+async function storedKeys(persist,prefix){
+ const dir=join(persist,'do','run11-private-sync-PrivateVault'),keys=[];
+ for(const file of (await readdir(dir)).filter(f=>f.endsWith('.sqlite')&&f!=='metadata.sqlite')){const db=new DatabaseSync(join(dir,file),{readOnly:true});try{keys.push(...db.prepare('SELECT key FROM _cf_KV WHERE key LIKE ?').all(`${prefix}%`).map(row=>row.key));}finally{db.close();}}
+ return keys.sort();
+}
 test('each section is written by compare-and-swap, replayed by its operation id, listed by its head and read back sealed',async()=>{
  const {r,vault,json,put}=await setup();
  try{
@@ -76,6 +85,9 @@ test('writes wait for a staged rotation; a deletion counts a generation; a Healt
   expect((await put('health',0)).status).toBe(200);
   const vaultHead=await (await r.call('/v1/vault')).json();
   expect((await r.call('/v1/domain',{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:vaultHead.revision,generation:0})).status).toBe(200);
+  // Gate B (security read, finding 3): gone in the deletion's own transaction, before any extras request.
+  expect(await storedKeys(r.persist,'extras-part:health:')).toEqual([]);
+  expect(await storedKeys(r.persist,'extras-part:goals:')).toEqual(['extras-part:goals:0']);
   expect((await json('/v1/extras')).body.sections.health).toEqual({revision:2,generation:1,epoch:null,parts:0});
   expect((await json('/v1/extras?section=health')).body.parts).toEqual([]);
   // A new upload under the new Health generation is kept (the person turned Health sync on again).

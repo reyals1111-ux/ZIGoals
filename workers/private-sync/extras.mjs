@@ -45,6 +45,14 @@ async function head(store, section) {
 }
 
 /**
+ * Session AB-Cloud Gate B (security read, finding 3): called inside the transaction that applies a Health domain deletion
+ * (the person's own, or one the lifecycle authority reconciles), so the sealed Health extras go with it at once instead of
+ * waiting for the next extras request. The same rule as `head`: written under an earlier Health generation → removed.
+ * @param {RecordTransaction} store
+ */
+export async function settleHealthExtras(store) { await head(store, 'health'); }
+
+/**
  * GET `?section=<name>`: that section's head and sealed parts. GET without a section: every section's head (no parts), so a
  * device fetches parts only for a section that changed. POST {protocol:1, action:'put', vault, operation, section, base,
  * generation, epoch, parts} replaces a section's snapshot; {protocol:1, action:'delete', vault, operation, section, base,
