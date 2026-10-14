@@ -13,3 +13,14 @@
 /* Narrow screens: the switch and count share the first row, the filters take the second. Overrides the header nav's full-width mobile rule. */
 @media(max-width:700px) { .goals-toolbar .platform-nav { order:0;width:auto; }.goals-toolbar .platform-nav a { flex:none; }.goals-toolbar .goals-count { order:1; }.goals-toolbar .goal-view-filters { order:2;width:auto; } }
 @media(max-width:360px) { .goals-toolbar .goal-view-filters button { padding-inline:10px; } }
+/* Session AB-Design (owner requests 14–15): the filters left, the view switch and the page menu at the right end; the summary block after the cards. */
+.goals-toolbar .goals-toolbar-end { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.goals-toolbar .goals-toolbar-end .goals-view-switch { margin: 0; }
+.goals-toolbar .goals-toolbar-end .card-options { position: relative; }
+.goals-summary-item { margin: 4px 0 8px; }
+.goals-summary-item .goals-figures { margin: 0; }
+@media (max-width: 700px) { .goals-toolbar .goals-toolbar-end { width: 100%; margin-left: 0; } .goals-toolbar .goals-toolbar-end .goals-view-switch { flex: 1; margin: 0; } }
+@media (max-width: 700px) { .goals-toolbar .goals-toolbar-end { display: grid; grid-template-columns: minmax(0, 1fr) auto; } .goals-toolbar .goals-view-switch button { padding-inline: 4px; font-size: 14px; white-space: nowrap; } }
+
+/* Session AB-Design (owner request 39): wide screens show four goal cards per row. */
+@media (min-width: 1600px) { :root .goal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } :root .goal-grid > .goals-figures { grid-column: 1 / -1; } }
