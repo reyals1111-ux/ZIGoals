@@ -116,6 +116,10 @@ test('an average goal from a template: no data yet, then a day, its average and 
 
 test('the Hall’s share image is made on the device (a download, nothing uploaded)', async ({page}) => {
   test.skip((page.viewportSize()?.width ?? 1280) < 600, 'A phone hands the image to its share sheet instead.');
+  // Session AB-Design Phase 2 (ADR-024): a desktop browser that can share files (this Chrome can) would open its share
+  // sheet, which a headless run never settles. The browser is told it cannot share files, so the device-side save path —
+  // what this test is about — runs deterministically everywhere.
+  await page.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'canShare', {configurable: true, value: () => false}); });
   await showcase(page);
   await page.goto('/app/goals');
   const requests: string[] = [];

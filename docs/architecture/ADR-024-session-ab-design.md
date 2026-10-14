@@ -365,6 +365,20 @@ Owner items (product decisions beyond a visual fix): 12 — one display format f
 forms are mixed; changing it moves many asserted strings); 28 — the Showcase's activity times are all midnight because its
 records carry dates only (AB-Cloud's data lane).
 
+### CI: the Alpha gate in its own job ([TIER 3] (CI), owner, 2026-10-14)
+Milestone quality's `web-integration` had grown to 12.7 min on an ordinary runner and reached its 15-minute limit on a slow
+one (run 38619597472), cancelling the Public Alpha Workers security gate after every other step had passed. The Alpha
+artifact build and checks, the two packaged contracts, the Run11 package topology and the security gate now run in a new
+job, `web-alpha-gate`, with the same steps, commands, specs and trace upload; nothing was dropped or loosened. The `web`
+aggregate check needs it as well, so "web" passes only when all four web jobs pass. `web-integration` keeps the unit
+time-zone sweep, the browser account and market integration and the page weights (about 9 min). No new action, no new
+dependency. Risk: a step that relied on state from web-integration (none found: the Alpha build is its own OpenNext build,
+the packaged tests read their own dry-run bundles, the gate serves its own preview). Rollback: revert the commit.
+Two tests made deterministic in the same pass (not loosened): `scripts/worker-types.test.mjs` gets a 65 s test budget to
+match its own 60 s spawn limit (vitest's default 5 s had ended a wrangler run under load); `goals-best-aa` "share image"
+tells the browser it cannot share files, so the device-side save path it tests runs everywhere (a Chrome that can share
+files opened a share sheet a headless run never settles).
+
 ## Weights (Gate C)
 `scripts/check-weight-budget.mjs` against the Gate C build: Today 515.3 of 515 kB, Goals 438.0 of 434 kB and Wealth 469.1 of
 465 kB were over (no budget is ever raised). Made lighter: the ten extra card scenes are a lazy chunk fetched the first

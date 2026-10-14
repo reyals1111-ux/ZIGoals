@@ -167,3 +167,11 @@
   .site-footer-social-links > a[href*="x.com"] { width: auto; padding: 0 14px; }
   .site-footer-social-links > a[href*="x.com"] > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
 }
+/* On phones the facts flow as one readable paragraph again (each on its own line had made Today taller than its asserted
+   screen-count ceiling); the network label still leads and the environment chip still closes it. */
+@media (max-width: 767.98px) {
+  .site-footer-disclaimer { display: block; }
+  .site-footer-disclaimer > span + span::before { content: ' · '; color: #8fa6c8; }
+  .site-footer-disclaimer > .site-footer-build::before { content: none; }
+  .site-footer-disclaimer .site-footer-build { display: block; margin-top: 6px; }
+}
