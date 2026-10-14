@@ -1,0 +1,85 @@
+/* Session AB-Design Part 1 (owner request 2, ADR-024 D6): the one full-width footer banner. Layered depth over the single
+   planet horizon, the constellation line that draws itself once, the wordmark and slogan as the centrepiece. */
+.site-footer { position: relative; isolation: isolate; display: block; margin: 64px 0 0; padding: 0; border: 0; color: var(--text); font-size: 15px; overflow: hidden; }
+.site-footer-art { position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background: linear-gradient(180deg, #02091800 0, #02091866 55%, #020918b3 100%), var(--cosmic-destination) center 38% / cover no-repeat;
+  mask-image: linear-gradient(180deg, transparent, black 18%); }
+/* Depth: a magenta rim glow where the planet's edge lights up, a cyan haze at the left, and two thin orbit lines. */
+.site-footer::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 36% 26% at 78% 58%, #f06dff2e, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 14% 70%, #23eaff1f, transparent 70%),
+    radial-gradient(ellipse 58% 34% at 50% 102%, transparent 96.4%, #a98bff33 97.2%, transparent 98.2%),
+    radial-gradient(ellipse 74% 44% at 50% 104%, transparent 97%, #7fd8f02a 97.7%, transparent 98.6%); }
+.site-footer-inner { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 84px 26px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 44px; justify-items: center; }
+/* The floating ZIGi and music buttons sit at the right edge: the band keeps clear of them on computers. */
+@media (min-width: 901px) { .site-footer-inner { padding-right: 150px; padding-left: 150px; } }
+.site-footer-brand { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.site-footer-brand .brand-wordmark { font-size: 40px; letter-spacing: -1.8px; }
+.site-footer-slogan { margin: 4px 0 0; font-size: clamp(24px, 3vw, 44px); font-weight: 750; letter-spacing: -.03em; line-height: 1.15; color: var(--text-strong, #f4f8ff); }
+.site-footer-slogan .site-footer-equals { color: #9fe6ff; font-weight: 500; margin: 0 .08em; }
+.site-footer-slogan .site-footer-wealth { background-image: var(--nebula-headline); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+.site-footer-tagline { margin: 4px 0 0; font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: #a6d6f5; }
+
+/* The three steps on one constellation line. */
+.site-footer-steps { position: relative; list-style: none; width: 100%; max-width: 1160px; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site-footer-line { position: absolute; left: 0; right: 0; top: 0; height: 80px; width: 100%; pointer-events: none; filter: drop-shadow(0 0 6px #9273ff88); }
+.site-footer-path { stroke-dasharray: none; stroke-dashoffset: 0; }
+.site-footer-steps li { position: relative; display: grid; justify-items: center; align-content: start; gap: 10px; padding: 0 8px; text-align: center; }
+.site-footer-node { position: relative; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; border: 1px solid #9fd6ff66;
+  background: radial-gradient(120% 120% at 30% 20%, #1b2f5ae6, #0a1130f2 70%); box-shadow: 0 0 0 7px #020918b3, 0 0 40px -4px #8f7bffbb, inset 0 1px 0 #ffffff22, inset 0 -8px 18px #7b5cff2e; }
+.site-footer-glyph { display: inline-flex; align-items: center; justify-content: center; gap: 2px; color: #dff3ff; filter: drop-shadow(0 0 8px #23eaff88); }
+.site-footer-glyph svg { width: 34px; height: 34px; }
+.site-footer-glyph .site-footer-glyph-heart { width: 24px; height: 24px; }
+.site-footer-glyph-heart { margin-left: -2px; }
+.site-footer-n { position: absolute; right: -6px; bottom: -4px; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 6px; border-radius: 999px; font-size: 13px; font-weight: 750; letter-spacing: .04em; color: #0a1428;
+  background: linear-gradient(135deg, #6fe6f6, #a3a0ff 60%, #f08bd6); box-shadow: 0 0 0 3px #020918; }
+.site-footer-steps strong { margin-top: 6px; font-size: 19px; letter-spacing: -.01em; color: var(--text-strong, #f4f8ff); }
+.site-footer-steps p { margin: 0; max-width: 300px; font-size: 15px; line-height: 1.55; color: var(--text-secondary, #dde7f7); }
+
+/* The line draws once when first seen and each node lights up as the line reaches it; static under reduced motion / Motion Off. */
+.site-footer-steps[data-entrance=once] .site-footer-path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: site-footer-draw 1500ms var(--motion-glide, ease) 150ms forwards; }
+.site-footer-steps[data-entrance=once] .site-footer-node { animation: site-footer-node 560ms var(--motion-glide, ease) backwards; }
+.site-footer-steps[data-entrance=once] li:nth-child(2) .site-footer-node { animation-delay: 150ms; }
+.site-footer-steps[data-entrance=once] li:nth-child(3) .site-footer-node { animation-delay: 780ms; }
+.site-footer-steps[data-entrance=once] li:nth-child(4) .site-footer-node { animation-delay: 1420ms; }
+@keyframes site-footer-draw { to { stroke-dashoffset: 0; } }
+@keyframes site-footer-node { from { box-shadow: 0 0 0 6px #02091899, 0 0 0 -6px #8f7bff00, inset 0 1px 0 #ffffff1c; transform: scale(.86); } 60% { box-shadow: 0 0 0 6px #02091899, 0 0 48px -2px #8f7bffcc, inset 0 1px 0 #ffffff1c; transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .site-footer-steps[data-entrance=once] .site-footer-path, .site-footer-steps[data-entrance=once] .site-footer-node { animation: none; stroke-dashoffset: 0; } }
+:root[data-app-motion=off] .site-footer-steps[data-entrance=once] .site-footer-path, :root[data-app-motion=off] .site-footer-steps[data-entrance=once] .site-footer-node { animation: none; stroke-dashoffset: 0; }
+
+/* Links and the disclaimer. */
+.site-footer-links { order: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 10px; } /* order: a phone rule sends page navs last; the links stay above the disclaimer */
+.site-footer-links > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 15px; font-weight: 550; color: #cfe6ff; }
+.site-footer-links > a:hover, .site-footer-links > a:focus-visible { color: #fff; background: #ffffff0f; }
+.site-footer-social svg { color: #e9f3ff; }
+.site-footer-disclaimer { max-width: 1100px; margin: 0; font-size: 14px; line-height: 1.7; text-align: center; color: var(--text-meta, #c2d0e5); }
+.site-footer-disclaimer > span + span::before { content: ' · '; color: #7f99bf; }
+.site-footer-disclaimer .network-banner strong { color: var(--brand-cyan, #23eaff); letter-spacing: .06em; font-size: 13px; }
+.site-footer-disclaimer .site-footer-build { overflow-wrap: anywhere; }
+
+@media (max-width: 1100px) { .site-footer-inner { padding-top: 60px; gap: 34px; } }
+@media (max-width: 760px) {
+  .site-footer { margin-top: 44px; }
+  .site-footer-inner { padding: 52px var(--phone-gutter, 16px) calc(28px + 70px); gap: 30px; } /* room above the floating ZIGi button */
+  .site-footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 6px; width: 100%; }
+  .site-footer-links > a { justify-content: center; padding: 0 8px; font-size: 15px; text-align: center; }
+  .site-footer-brand .brand-wordmark { font-size: 30px; }
+  .site-footer-line { display: none; }
+  .site-footer-steps { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-left: 0; }
+  .site-footer-steps::before { content: ''; position: absolute; left: 31px; top: 24px; bottom: 24px; width: 2px; border-radius: 2px; background: linear-gradient(180deg, #23eaff, #9273ff 50%, #f06dff); box-shadow: 0 0 8px #9273ff88; }
+  .site-footer-steps li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 14px; justify-items: start; text-align: left; padding: 0; }
+  .site-footer-node { width: 64px; height: 64px; grid-row: span 2; }
+  .site-footer-n { min-width: 26px; height: 26px; font-size: 12px; }
+  .site-footer-steps strong { margin-top: 10px; font-size: 18px; }
+  .site-footer-steps p { max-width: none; font-size: 15px; }
+  .site-footer-art { background-size: cover; background-position: center 30%; }
+  .site-footer-disclaimer { font-size: 14px; }
+}
+@media (max-width: 359px) { .site-footer-slogan { font-size: 21px; } }
+@media (forced-colors: active) { .site-footer-node, .site-footer-links > a { border: 1px solid CanvasText; } .site-footer-art, .site-footer::before { display: none; } }
+/* The disclaimer's spans carry the verifier's class names; the old banner and strip styles must not reach them. */
+.site-footer-disclaimer :is(.network-banner, .mode-strip) { display: inline; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; gap: 0; letter-spacing: 0; font-size: inherit; line-height: inherit; color: inherit; max-width: none; }
+.site-footer-disclaimer .network-banner strong::before { content: none; }
+.site-footer .workspace-status { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: -22px 0 0; font-size: 14px; color: var(--text-meta, #c2d0e5); }
+.site-footer .workspace-status a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; color: #9fe6ff; }

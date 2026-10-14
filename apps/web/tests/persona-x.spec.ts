@@ -43,7 +43,10 @@ test('Connect Keplr without the extension: the Local demo and its balance stay; 
 test('the Habits + Health layout names both areas under Today\'s title', async ({page}) => {
   await seed(page, {});
   await page.goto('/app');
-  await expect(page.locator('.hero-truth')).toHaveText('Private daily tracking · Habits and Health');
+  // Session AB-Design (owner request 8): the hero carries no notice line any more; the pillars say what the setup is.
+  await expect(page.locator('.hero-truth')).toHaveCount(0);
+  await expect(page.locator('.hero-pillars')).toContainText('Your rhythm');
+  await expect(page.locator('.hero-pillars')).toContainText('Your wellbeing');
 });
 
 test('funding a EUR Goal: a new cash asset starts in euros with a matching name, and the preview opens', async ({page}) => {
@@ -131,8 +134,12 @@ test('the Showcase says that what is added there stays in the demo, and Exit ret
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
+  // Session AB-Design (owner request 8, persona #5): the tiny chip opens the honest wording (Load again resets; Exit returns to your data) with Exit Showcase / Load again.
   const banner = page.getByRole('complementary', {name: 'Showcase data'});
-  await expect(banner).toContainText('anything you add here stays in the demo when you exit');
+  await expect(banner).toContainText('Showcase');
+  await banner.getByRole('button', {name: 'Showcase', exact: true}).click();
+  await expect(banner).toContainText('Fictional records');await expect(banner).toContainText('Exit returns to your own data; Load again resets the Showcase.');
+  await expect(banner.getByRole('button', {name: 'Load again', exact: true})).toBeVisible();
   await banner.getByRole('button', {name: 'Exit Showcase', exact: true}).click();
   await page.waitForURL(url => url.pathname === '/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toHaveCount(0);

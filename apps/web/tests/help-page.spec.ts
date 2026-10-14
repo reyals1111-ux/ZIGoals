@@ -199,7 +199,8 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
   const questions = page.getByRole('region', {name: 'Good to know about the Alpha', exact: true}), ai = page.getByRole('region', {name: 'Your own AI, page by page', exact: true});
   const answers: [string, string][] = [
     ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
-    ['z-status', 'Demo · no real money'],
+    ['z-status', 'Status & wallet'], // Session AB-Design: the answer follows the notice and the sheet
+    ['z-alpha', 'Practice money (no real value) · Public Alpha:'],
     ['z-have', 'with All, Accounts, Assets and Debts'],
     ['z-units', 'your records stay in kilograms and millilitres'],
     ['z-more', 'Today is one centred column when nothing sits beside it'],

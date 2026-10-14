@@ -1,0 +1,65 @@
+/* Session AB-Design Part 1 (ADR-024 D7): the compact Alpha notice, the Showcase chip and the status row's utilities. */
+.alpha-notice { position: relative; display: flex; align-items: flex-start; gap: 10px; margin: 14px 26px 0; padding: 9px 44px 9px 14px; border: 1px solid #70cfff2e; border-radius: 14px; background: linear-gradient(100deg, #061a2ccc, #0a0f2ac9 50%, #1a1340c4); box-shadow: inset 0 1px 0 #67bbff1a; font-size: 14px; line-height: 1.5; }
+.alpha-notice p { margin: 0; min-width: 0; color: var(--text-secondary, #dde7f7); }
+.alpha-notice strong { color: var(--brand-cyan, #23eaff); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-right: 6px; }
+.alpha-notice .text-link { display: inline-flex; align-items: center; min-height: 44px; margin-left: 6px; padding: 0 6px; white-space: nowrap; }
+.alpha-notice-dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--brand-cyan, #23eaff); box-shadow: 0 0 10px #23eaff99; }
+.alpha-notice-close { position: absolute; top: 50%; right: 4px; translate: 0 -50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #cfe3ff; font-size: 22px; line-height: 1; cursor: pointer; }
+.alpha-notice-close:hover, .alpha-notice-close:focus-visible { background: #ffffff14; color: #fff; }
+
+.showcase-chip { position: relative; display: inline-flex; flex: none; }
+.showcase-chip-button { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 11px 0 9px; border-radius: 999px; border: 1px solid #f0a7ff55; background: linear-gradient(120deg, #2a1545d9, #140d2ed9); color: #f3c9ff; font-size: 13px; font-weight: 650; letter-spacing: .04em; cursor: pointer; }
+.showcase-chip-button:hover, .showcase-chip-button:focus-visible, .showcase-chip-button[aria-expanded="true"] { border-color: #f0a7ffaa; color: #fff; }
+.showcase-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand-magenta, #f06dff); box-shadow: 0 0 8px #f06dffaa; }
+.showcase-chip-panel { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; width: min(340px, calc(100vw - 32px)); padding: 14px 16px; border-radius: 16px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30f8, #1b1535f8); box-shadow: 0 24px 60px -20px #000c; font-size: 14px; line-height: 1.5; }
+.showcase-chip-panel p { margin: 0 0 12px; color: var(--text-secondary, #dde7f7); }
+.showcase-chip-panel strong { display: block; color: #f3c9ff; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+.showcase-chip-actions { display: flex; gap: 8px; }
+.showcase-chip-actions button { flex: 1; min-height: 40px; font-size: 14px; }
+
+/* The status row: one thin utility row (the Showcase chip and demo balance left; wallet, the page's tools, Gamify and the lock right). */
+.status-row { position: relative; z-index: 31; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 0 2px; }
+.status-row .wallet-balance { font-size: 14px; color: var(--text-meta, #c2d0e5); letter-spacing: .02em; white-space: nowrap; }
+.status-row .status-wallet { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.status-row .status-wallet button { font-size: 14px; min-height: 40px; }
+.status-row .status-wallet .wallet-connect { gap: 10px; min-width: 0; padding-inline: 12px; }
+.status-row .status-wallet .wallet-identity small { display: none; }
+.status-row .status-wallet + .page-tools-slot, .status-row .status-wallet + .gamify, .status-row .status-wallet + .layout-lock-slot { margin-left: 0; }
+.page-tools-slot { display: flex; flex: none; gap: 8px; }
+.page-tools-slot:empty { display: none; }
+.layout-lock-slot { margin-left: auto; }
+.status-row:has(.status-wallet) .layout-lock-slot, .status-row:has(.gamify) .layout-lock-slot { margin-left: 0; }
+.status-row:has(.status-wallet) .gamify:first-of-type { margin-left: 0; }
+.status-row > .gamify { margin-left: auto; }
+.status-row:has(.status-wallet) > .gamify, .status-row:has(.page-tools-slot:not(:empty)) > .gamify { margin-left: 0; }
+.status-row:has(.layout-lock) { margin-bottom: 8px; }
+@media (max-width: 767.98px) {
+  /* Phones: one line — the label and More; the sentence lives in Help and the footer. */
+  .alpha-notice { margin: 8px var(--phone-gutter, 16px) 0; min-height: 44px; padding: 5px 46px 5px 12px; align-items: center; }
+  .alpha-notice p { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .alpha-notice p > span { display: none; }
+  .alpha-notice strong { margin: 0; font-size: 12px; line-height: 1.35; }
+  .alpha-notice .text-link { margin: 0; }
+  .alpha-notice-dot { margin-top: 0; }
+  :root .workspace > .status-row { flex-wrap: nowrap; gap: 8px; padding: 6px 0 2px; margin: 0; }
+  :root .workspace > .status-row::before { display: none; }
+  .status-row .status-wallet { display: none; } /* phones reach the wallet buttons through More → Status & wallet */
+  .status-row .wallet-balance { flex: 1 1 auto; min-width: 0; font-size: 12px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status-row .showcase-chip, .status-row .gamify, .status-row .layout-lock-slot { flex: none; }
+  .status-row .showcase-chip-button { padding: 0 9px 0 8px; font-size: 12px; }
+}
+@media (max-width: 359.98px) { .alpha-notice strong { font-size: 11px; } }
+@media (forced-colors: active) { .alpha-notice, .showcase-chip-button, .showcase-chip-panel { border-color: CanvasText; } }
+
+/* Session AB-Design (owner request 9): a page's game card place, at the very bottom; nothing is reserved while it is empty. */
+.page-game-slot { margin-top: 22px; }
+.page-game-slot:empty { display: none; }
+.today-game-place { display: grid; }
+
+/* The page tools, the rocket and the lock always hug the row's right edge, with or without the demo balance. */
+.status-row > .page-tools-slot { margin-left: auto; }
+
+/* Phones: every ⋯ options trigger is a 44 px target (a tracked goal's 'Goal actions' measured 39 px). */
+@media (max-width: 767.98px) { .card-options-trigger { min-width: 44px; } }
+/* Phones: a tracked goal's "Goal actions" ⋯ summary is a 44 px target too. */
+@media (max-width: 767.98px) { .goal-actions > summary { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; box-sizing: border-box; } }

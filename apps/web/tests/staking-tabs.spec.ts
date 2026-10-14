@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {goalsPositionsLink} from './ab-shell';
 
 // Session M, Part A3 (QA2-06): Staking no longer shows the Goal workspace tabs ("Goals · Positions") under its title.
 // Since #57 "Positions" pointed to /app/staking#positions, the page itself, and neither tab ever showed as current there.
@@ -19,12 +20,12 @@ for (const showcase of [true, false]) {
   });
 }
 
-test('Goals and a Goal\'s page keep the Goal workspace tabs, and "Positions" still lands on Staking\'s Positions', async ({page}) => {
+test('Goals keeps Positions in its ⋯ menu, a Goal\'s page keeps the Goal workspace tabs, and "Positions" still lands on Staking\'s Positions', async ({page}) => {
   await start(page, true);
   await page.goto('/app/goals');
-  const tabs = page.getByRole('navigation', {name: 'Goal workspace'});
-  await expect(tabs.getByRole('link', {name: 'Positions', exact: true})).toHaveAttribute('href', '/app/staking#positions');
-  await tabs.getByRole('link', {name: 'Positions', exact: true}).click();
+  // Session AB-Design (owner request 15): the tabs left the Goals filter row; Positions is the page menu's link (never removed).
+  await expect(page.locator('nav[aria-label="Goal workspace"]')).toHaveCount(0);
+  await (await goalsPositionsLink(page)).click();
   await expect(page).toHaveURL(/\/app\/staking#positions$/);
   await expect(page.locator('#positions')).toBeVisible();
   await page.goto('/app/goals');

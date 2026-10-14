@@ -12,9 +12,9 @@ test("unified shell exposes all eight destinations and preserves Alpha controls"
   // Session Z-Cloud Part 4.2 (mechanics): on a phone the wallet button and the notice are in the Status sheet.
   const status = await walletArea(page);
   await expect(status.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
-  // On a computer the sentence stays the network banner's own (Gate C, the test audit: as strict as before).
+  // Session AB-Design: the sentence is the footer's disclaimer line on every width (the sheet repeats it on a phone).
   const phone = await page.getByRole("dialog", { name: "Status" }).isVisible();
-  await expect(phone ? status : page.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures.");
+  await expect(phone ? status : page.locator(".site-footer .network-banner")).toContainText("No blockchain transactions or financial signatures.");
   if (phone) await page.keyboard.press("Escape");
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 800 });
