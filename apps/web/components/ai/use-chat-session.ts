@@ -19,7 +19,8 @@ import {detectIntent, refusedBlocksMayRepair, wantsCard} from '../../lib/ai/inte
 import {localSignal} from '../../lib/ai/zigi-reactions';
 import {extractHint, stripHint} from '../../lib/ai/emotion-hint';
 import type {AiContextState} from './use-ai-context';
-import {examplesReply, localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
+import {localAnswer, type LocalChoice, type LocalReply, type ToolCallRecord} from '../../lib/ai/local-answers/engine';
+import {examplesIn, noModelReply, questionLanguage} from '../../lib/ai/local-answers/no-model';
 import {toolEnv} from '../../lib/ai/tools/env';
 import {runTool} from '../../lib/ai/tools/registry';
 import {recordsForAi} from '../../lib/ai/local-answers/more';
@@ -397,7 +398,7 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
       answerLocally(text, text, {kind: 'answer', text: answer, calls: []}, {replace, source: 'on-device'});
     } catch {
       if (signal.aborted) return;
-      const examples = examplesReply(env);
+      const examples = examplesIn(env, questionLanguage(text));
       answerLocally(text, text, examples.kind === 'examples' ? {...examples, text: `${failed} ${examples.text}`} : examples, {replace});
     } finally {
       if (abort.current === controller) abort.current = null;
@@ -412,13 +413,14 @@ export function useChatSession({settings, scope, context, hosted = null}: {setti
     try { if (env) reply = localAnswer(text, env); } catch { reply = {kind: 'none'}; }
     if (reply.kind === 'none' && connected) return send(text, options);
     if (reply.kind === 'none' && onDeviceOn()) return askOnDevice(text, env, options.replace);
-    answerLocally(text, text, reply.kind === 'none' ? examplesReply(env) : reply, {replace: options.replace, results: resultsFor(reply, env)});
+    // Session AB-Cloud Part 9 (ADR-023 C30): without a model, the steps for a "create/plan" ask, or the examples in the question's language.
+    answerLocally(text, text, reply.kind === 'none' ? noModelReply(text, env) : reply, {replace: options.replace, results: resultsFor(reply, env)});
   }, [answerLocally, askOnDevice, connected, localEnv, send]);
   const choose = useCallback((question: string, choice: LocalChoice) => {
     const env = localEnv(); if (!env || abort.current) return;
     let reply: LocalReply = {kind: 'none'};
     try { reply = localAnswer(question, env, choice.subject); } catch { reply = {kind: 'none'}; }
-    answerLocally(choice.label, question, reply.kind === 'none' ? examplesReply(env) : reply, {results: resultsFor(reply, env)});
+    answerLocally(choice.label, question, reply.kind === 'none' ? examplesIn(env, questionLanguage(question)) : reply, {results: resultsFor(reply, env)});
   }, [answerLocally, localEnv]);
   /** The records a local answer used, recomputed now for the person's AI (its gate: switches, Health, sensitive screens). */
   const moreText = useCallback((calls: readonly ToolCallRecord[]): ExtraData | null => {
