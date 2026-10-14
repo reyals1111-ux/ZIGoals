@@ -60,14 +60,15 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
   await expect(card).not.toContainText('stays on this device');
-  // Session AA-Local (ADR-022, deliberate, the second merger): this release's links are the card's own; AA-Cloud's,
-  // Z-Local's, Z-Cloud's, Y's, X-Local's, W's and V's wait under "Earlier updates", AA-Cloud's first.
-  await card.getByRole('link', {name: 'Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
-  await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');
+  // Session AB-Cloud (ADR-023, deliberate): this release's links are the card's own; AA-Local's, AA-Cloud's, Z-Local's,
+  // Z-Cloud's, Y's, X-Local's, W's and V's wait under "Earlier updates", AA-Local's first.
+  await card.getByRole('link', {name: 'Restore from a backup: see what it holds, merge or replace, Undo'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-ab-restore$/);
+  await expect(page.locator('#help-ab-restore')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-ab-restore')).toContainText('nothing changes until you confirm');
   await page.goto('/app');
   await revealUpdates(page);
+  await expect(card.getByRole('link', {name: 'Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'A compound interest calculator'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'ZIGi can do every ordinary task in the app'})).toHaveCount(0);
   await expect(card.getByRole('link', {name: 'Delete an archived habit for good'})).toHaveCount(0);
@@ -78,13 +79,22 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await card.getByText('Earlier updates', {exact: true}).click();
   const earlier = card.locator('.whats-new-earlier').getByRole('link');
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
-  // The second merger (ADR-022, deliberate): AA-Cloud's eight links lead, so every pinned position moves by eight.
-  await expect(earlier.first()).toHaveText('Every page starts with what matters most');
-  await expect(earlier.nth(8)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
-  await expect(earlier.nth(12)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(19)).toHaveText('End a vacation early');
-  await expect(earlier.nth(23)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
-  // AA-Cloud's release leads "Earlier updates" (its own assertions, kept): the calculator answer, then Z-Local's ZIGi answer.
+  // Session AB-Cloud (ADR-023, deliberate): AA-Local's seven links now lead, so every pinned position moves by seven.
+  await expect(earlier.first()).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
+  await expect(earlier.nth(7)).toHaveText('Every page starts with what matters most');
+  await expect(earlier.nth(15)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(19)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(26)).toHaveText('End a vacation early');
+  await expect(earlier.nth(30)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  // AA-Local's release leads "Earlier updates" (its own assertions, kept): the habits answer.
+  await earlier.first().click();
+  await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
+  await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');
+  await page.goto('/app');
+  await revealUpdates(page);
+  await card.getByText('Earlier updates', {exact: true}).click();
+  // AA-Cloud's release follows it (its own assertions, kept): the calculator answer, then Z-Local's ZIGi answer.
   await card.getByRole('link', {name: 'A compound interest calculator'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-aa-calculator$/);
   await expect(page.locator('#help-aa-calculator')).toHaveAttribute('open', '');

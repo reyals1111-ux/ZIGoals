@@ -103,10 +103,11 @@ export type HealthGoal=z.infer<typeof healthGoalSchema>;
  */
 const platformV4=platformBase.extend({schemaVersion:z.literal(4),healthGoals:z.array(healthGoalSchema).max(200).optional()});
 /**
- * Finance v5 (Session W, read support only; docs/product/SYNC_HOMES.md): v4 plus the synced homes of two device-only
- * records of this release, written by a later switch PR and by nothing here: a milestone's own `targetDate`
- * (`zigoals:milestone-dates:v1`) and `accounts`, the person's accounts and debts (`zigoals:accounts:v1`). Builds #27–#31
- * refuse v5 and keep its bytes; this build reads it, keeps it at v5 and never writes it down to v4.
+ * Finance v5 (Session W read support; written since Session AB-Cloud Part 1, the finance-homes switch, ADR-023 C6;
+ * docs/product/SYNC_HOMES.md): v4 plus the synced homes of two device records: a milestone's own `targetDate`
+ * (`zigoals:milestone-dates:v1`) and `accounts`, the person's accounts and debts (`zigoals:accounts:v1`), kept in step with
+ * those keys by lib/vault/finance-homes.ts. Builds #27–#31 refuse v5 and keep its bytes (the rollback floor is #32);
+ * this build reads it, keeps it at v5 and never writes it down to v4.
  */
 export const milestoneV5Schema=z.object({id,title:z.string().min(1).max(100),done:z.boolean(),target:units.optional(),targetDate:date.optional()}).strict();
 export const privateGoalV5Schema=privateGoalSchema.extend({milestones:z.array(milestoneV5Schema).max(100)});

@@ -45,6 +45,17 @@ Everything else in Stage 8 is already rehearsed by automation. [STAGE8_COVERAGE.
 - **A revoked session forgets the remembered device (Y, A7):** row 14b.
 - **The cloud's vault missing or older (Y, B6, B3):** a device shows a message and offers a fresh start or a re-link only behind a confirmation; you should not see this on Stage 8: only a restore of the sync service from an earlier copy causes it ("Delete cloud data" ends the account's cloud for good). Row 15f says why it is not run by hand.
 
+### Session AB-Cloud changes (what you will notice)
+- **A private-sync Worker redeploy comes first** (FINAL_ACCTEST_REDEPLOY.md, "Session AB-Cloud changes"): the extras
+  sections live behind its new `/v1/extras` path.
+- **More of your records sync, encrypted** (ADR-023 C1–C5): goal plans and areas, average goals, calculator scenarios,
+  the Life review focus, Today's cards, the reminders plan, habit extras, routines and the game; the Health extras
+  (coach answers, micronutrient and vitamin targets, macro mode, aisles, custom measurements) only with Health ticked.
+  Photos, recent searches and the welcome's setup stay on each device. Rows 15h–15j check it.
+- **Accounts, debts and milestone dates now sync** inside the finance section (C6): row 15h covers them.
+- **Restore from a backup** (C22) in Settings → Your data; **Point & tell** (C23) in Settings → Help & diagnostics.
+- **The rollback floor is #32** (owner-approved): finance v5 is read from #32 on.
+
 ## Before Stage 8 — owner hardening · about 75 min
 Session U (owner review change 11). Do these once, before Stage 8, in this order. Every click path is from the vendor's
 own documentation, read 2026-10-05 (linked); if a screen differs, follow the vendor's page. Keep every recovery code
@@ -203,6 +214,18 @@ and backup code in Bitwarden, as its own item, never in a note, a screenshot or 
 - **Pass:** "Account records synced and acknowledged", and the card is gone.
 - **Record:** pass. Never the secret.
 - **Then:** create a fictional Goal, a Habit and one Today widget, and add 250 mL of water in Health.
+
+**8b. Extras and finance homes (Session AB-Cloud, rows 15h–15j).**
+- **15h Do:** on Desktop A add an account with one balance (Wealth → Accounts and debts) and a goal's "why" (a goal's
+  plan); sync. On Phone B (Part 4), sync.
+  **Pass:** the account, its balance and the "why" show on Phone B; Phone B's Settings → Sync says "Extras synced at …".
+- **15i Do:** with Health **unticked** on Phone B, set a vitamin C target on Desktop A (Health → Targets) and sync both.
+  **Pass:** Phone B still shows the default target; tick Health on Phone B, sync: the new target shows.
+- **15j Do:** on Desktop A, Settings → Your data → Restore from a backup with a fresh Export everything ZIP; choose
+  Merge for "Goal plans, areas and visions", tick the confirmation and restore; then "Undo this restore".
+  **Pass:** the preview listed the parts with counts; nothing changed before the confirmation; Undo said the restore is
+  undone.
+- **Record:** pass or the first sentence that differed.
 
 ## Part 4: your iPhone (Phone B) · about 35 min
 **9. Install to the Home Screen.**

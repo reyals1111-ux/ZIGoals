@@ -26,6 +26,7 @@ import {TransactionImportPanel} from '../import/transaction-import';
 import {UndoRefused, undoImport} from '../../lib/import/holdings';
 import type {ImportRecord} from '../../lib/import/undo-schema';
 import './portfolio.css';
+import {useDefaultCurrency} from '../../lib/default-currency';
 
 const NO_COINS: PortfolioCoin[] = [];
 /** Messages a reader can act on; storage refusals keep their Part 5 code. */
@@ -111,7 +112,8 @@ function Unreadable({onStartOver}: {onStartOver: () => void}) {
 }
 
 function CreatePortfolio({onCreate}: {onCreate: (input: {name: string; kind: Portfolio['kind']; currency: PortfolioCurrency}) => void}) {
-  const [name, setName] = useState(''), [kind, setKind] = useState<Portfolio['kind']>('real'), [currency, setCurrency] = useState<PortfolioCurrency>('USD');
+  // Session AB-Cloud Part 8 (ADR-023 C25): the device's currency until the person picks one.
+  const preferred = useDefaultCurrency(), [name, setName] = useState(''), [kind, setKind] = useState<Portfolio['kind']>('real'), [picked, setCurrency] = useState<PortfolioCurrency | null>(null), currency = picked ?? preferred;
   return <form className="panel portfolio-form" aria-label="New portfolio" onSubmit={event => { event.preventDefault(); if (name.trim()) onCreate({name, kind, currency}); }}>
     <h2>New portfolio</h2>
     <label className="field"><span>Portfolio name</span><input required maxLength={80} value={name} onChange={event => setName(event.target.value)} placeholder="For example: long-term coins" /></label>

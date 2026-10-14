@@ -76,12 +76,16 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await page.goto('/app/help');
   const section = page.getByRole('region', {name: 'What the Alpha can’t do yet', exact: true});
   const items = section.getByRole('listitem');
-  await expect(items).toHaveCount(10);
+  // Session AB-Cloud Part 10 (ADR-023 C31): three more, each checked by its words below (was 10).
+  await expect(items).toHaveCount(13);
   await expect(section).toContainText('Goals count in US dollars or euros.');
   await expect(items.first()).toContainText('Accounts and sync aren’t open yet on alpha.zigoals.app.');
   await expect(section).toContainText('No real money moves.');
   await expect(section).toContainText('never zero');
-  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · Your Personal AI Companion', '#your-ai'], ['tell us', '#feedback']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
+  await expect(section).toContainText('Photos stay on the device where you added them; another device shows the goal’s colours.');
+  await expect(section).toContainText('After a new vault key, your extras wait until the device that synced them last syncs once; nothing is lost meanwhile.');
+  await expect(section).toContainText('Restore from a backup brings back your records and photos, not ZIGi’s chats or settings, notifications or a timer in progress.');
+  for (const [name, href] of [['install ZIGoals', '#install'], ['Export everything', '/app/settings#export-everything'], ['ZIGi · Your Personal AI Companion', '#your-ai'], ['tell us', '#feedback'], ['Do my photos sync?', '#help-ab-photos']] as const) await expect(section.getByRole('link', {name, exact: true})).toHaveAttribute('href', href);
   await section.getByRole('link', {name: 'tell us', exact: true}).click();
   await expect(page).toHaveURL(/#feedback$/);
 });

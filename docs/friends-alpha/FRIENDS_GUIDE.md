@@ -28,6 +28,7 @@ Thank you for trying ZIGoals with us! ZIGoals is one calm place for your Goals, 
 - **Invite-only for now.** ZIGoals answers every code request the same way, so it never tells anyone which addresses are invited. If no code arrives: wait a minute, check your spam folder, check that you typed the address your invite went to, and try again later. Still nothing? Ask the person who invited you, or write to contact@zigoals.app. If ZIGoals says **"Sign-in codes are paused for today"**, the day's codes have all gone out: try again tomorrow. You stay signed in on devices you already use.
 - **Turn on encrypted sync on your first device before you start using a second one.** Then the second device starts from your synced records instead of keeping its own separate ones.
 - **Health is your choice.** It syncs only if you tick "Also sync my Health records".
+- **What syncs:** your Goals and Wealth (with accounts, debts and milestone dates), Habits, Today's choices, and your extras: goal plans and areas, routines, the game, calculator scenarios and more. Health's extras (vitamins, targets, the coach) only with Health ticked. **Photos stay on the device** where you added them, on purpose.
 - **Your data is encrypted on your device before it leaves.** The server can't read your plans, habits or health entries. It does see your account and some technical details, such as sizes and times.
 
 ## 3. The one thing to keep safe: your recovery secret
@@ -94,6 +95,15 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **Help is last** in the menu, and **Send feedback** is at the bottom of every page.
 - **ZIGoals AI · powered by Claude** (invited friends, when we switch it on): ZIGi without your own AI. Each person has their own allowance (messages and dollars a day and a month), shown in Settings. Your messages and the records ZIGi attaches pass through our server to Anthropic, which writes the answer; nothing is stored or logged, and Health only goes if you allow it. Until we switch it on, you won't see it.
 
+## 8b. New in this release: everything travels, and nothing is lost
+
+- **More of your records sync, encrypted:** goal plans and areas, sub-goals and stories, average goals, calculator scenarios, the Life review focus, Today's cards, habit extras, routines and the game; accounts and debts too. Settings → Sync → "Also sync my extras" turns them off on a device.
+- **Restore from a backup:** Settings → Your data → choose a ZIP made by "Export everything". You see what it holds, choose per part to merge or replace, confirm, and can undo.
+- **Point & tell:** Settings → Help & diagnostics → "Show the Point & tell button". Tap the pin, then the part of a page you mean, and write what you think; copy, download or email your notes.
+- **Vitamins** A, C, D, E, K, B12 and folate in Health, from a food's label; unknown stays unknown.
+- **Amounts your way:** type "3,250.50" or "3.250,50"; a new goal starts in euros if your phone is set to a euro country.
+- **ZIGi without an AI** answers a Dutch question with a Dutch introduction, and "create a food" or "plan a goal" with the steps and a button to the right page.
+
 ## 9. What the Alpha can't do yet
 
 - **Accounts and sync aren't open yet.** Until they are, everything stays in the browser or installed app you use.
@@ -101,6 +111,7 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **No real money moves**, and the test network's tokens have no value.
 - **Oura, Withings, Polar and Strava** say "Needs setup by ZIGoals" until we register with them. **Fitbit's** web access is turned off on 30 October 2026: use Google Takeout and Switch to ZIGoals.
 - **Spotify** needs Premium, and only accounts we list can connect while Spotify keeps ZIGoals in development mode.
+- **Photos stay on the device** where you added them; a backup carries them.
 - **English only** for the app's words for now; ZIGi understands you spoken in English and Dutch.
 
 The full list, kept up to date, is in **Help → Known limitations**.

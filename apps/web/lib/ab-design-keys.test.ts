@@ -19,12 +19,15 @@ describe('Session AB-Design device key (ADR-024 D4): device-only, versioned, loo
     expect(DEVICE_KEYS.uiPrefs).toBe(UI_PREFS_KEY);
     expect(UI_PREFS.key).toBe(UI_PREFS_KEY);
   });
-  test('a device holding only the display preference is still new; the erase keeps it', () => {
+  // Phase 2, Part 12 (the second merger; deliberate, ADR-024 "Phase 2 — assertions changed"): AB-Cloud wired this key into
+  // the account erase (ADR-023 C8, "exported, erased with the account, never synced"), so the erase now removes it. As
+  // strict: the device is still new with only this key, and after the erase the key is gone.
+  test('a device holding only the display preference is still new; the account erase removes it with the rest', () => {
     const {m, storage} = memory();
     storage.setItem(UI_PREFS_KEY, JSON.stringify({version: 1, heroCollapsed: true}));
     expect(noExistingData(storage)).toBe(true);
     forgetAaDeviceRecords(storage);
-    expect(m.has(UI_PREFS_KEY)).toBe(true);
+    expect(m.has(UI_PREFS_KEY)).toBe(false);
   });
   test('frozen reader: the stored shape is read as it is, unknown fields survive a write, garbage reads as the defaults and is never rewritten', () => {
     const {m, storage} = memory();

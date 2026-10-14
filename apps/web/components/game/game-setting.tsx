@@ -14,7 +14,7 @@ export function GameSetting() {
   const game = useDeviceRecord(GAME), [error, setError] = useState('');
   const on = game.loaded && !game.unreadable && game.data.enabled;
   return <div className="game-setting">
-    <label className="game-setting-row"><input type="checkbox" role="switch" aria-checked={on} checked={on} disabled={!game.loaded || game.unreadable} onChange={e => { try { game.update(g => { const next = setGameEnabled(g, e.target.checked); return next.enabled && next.levelSeen === undefined ? next : next; }); setError(''); } catch (cause) { setError(`Not saved on this device. ${deviceSettingFailureMessage(cause)}`); } }} /><span><strong>Game layer</strong><small>Levels, daily quests and badges from the check-ins and logs you already make. Optional, calm, never a punishment; on this device only.</small></span></label>
+    <label className="game-setting-row"><input type="checkbox" role="switch" aria-checked={on} checked={on} disabled={!game.loaded || game.unreadable} onChange={e => { try { game.update(g => { const next = setGameEnabled(g, e.target.checked); return next.enabled && next.levelSeen === undefined ? next : next; }); setError(''); } catch (cause) { setError(`Not saved on this device. ${deviceSettingFailureMessage(cause)}`); } }} /><span><strong>Game layer</strong><small>Levels, daily quests and badges from the check-ins and logs you already make. Optional, calm, never a punishment; kept on this device and, with an account, in your encrypted extras.</small></span></label>
     {on && <p className="fine"><Link className="text-link" href="/app/journey">Open your Journey →</Link></p>}
     {error && <p role="alert">{error}</p>}
   </div>;

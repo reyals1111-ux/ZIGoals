@@ -28,12 +28,21 @@ import { formatTime } from '../lib/visual-format';
 import type {PortfolioStatus} from './portfolio-sync-choice';
 import {SYNC_WRITES} from '../lib/vault/sync-writes';
 import {choosePortfolioSync,deletePortfolioCopy,portfolioSyncChosen,portfolioTransport,syncPortfolio} from '../lib/vault/portfolio-sync';
+import {ACCOUNTS_KEY,MILESTONE_DATES_KEY} from '../lib/w-device-keys';
+// Session AB-Cloud (ADR-023): the finance homes and the extras sections load with the first sync, never with the page.
+const financeHomes=()=>import('../lib/finance-homes-store');
+const FINANCE_HOMES_DEVICE_KEYS:readonly string[]=[ACCOUNTS_KEY,MILESTONE_DATES_KEY];
+const extrasModule=()=>import('../lib/vault/extras-sync');
+import type {ExtrasOutcome} from '../lib/vault/extras-sync';
+/** Session AB-Cloud Part 2 (ADR-023 C1–C5): what the extras' last run said, for Settings → Sync. */
+export type ExtrasStatus={state:'off'}|{state:'synced';outcomes:ExtrasOutcome[];at:string}|{state:'error';message:string}|{state:'removed'}|{state:'deleted-elsewhere'};
+import {ZIGI_STORE_EVENT} from '../lib/ai/store/keys';
 type Session={account:string;generation:number;key:CryptoKey;manifest:VaultManifest;health:boolean;device:DeviceBinding|null};
 type Sealed={key:CryptoKey;sealed:SealedRoot;deviceKey:CryptoKey;forgets:number|null};
 type Generated=Awaited<ReturnType<typeof createVault>>&{operation:string};
 type AttachPreview={plan:AttachPlan;generation:number};
 type RotationKeys=Awaited<ReturnType<typeof createVault>>;
-type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:(secret?:string)=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean,secret:string)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:(secret:string)=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;stepUp:(secret:string)=>Promise<StepUp|undefined>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;healthAsk:boolean;vaultGone:'missing'|'older'|null;startOver:()=>Promise<void>;accessDenied:(code:AccountDenial['denied'])=>Promise<void>;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string;portfolio:PortfolioStatus|null;syncPortfolioNow:(choice?:'keep-device'|'keep-cloud')=>Promise<void>;deletePortfolioCloud:()=>Promise<void>};
+type Controls={conflictReview:ConflictReview|null;prepareConflict:()=>Promise<void>;confirmConflict:(choices:Choices)=>Promise<void>;cancelConflict:()=>void;forwardReview:ForwardReview|null;prepareForward:()=>Promise<void>;confirmForward:()=>Promise<void>;cancelForward:()=>void;domainReview:DomainReview|null;prepareDomain:(kind:DomainReview['kind'],domain:Domain)=>Promise<void>;confirmDomain:(secret?:string)=>Promise<void>;cancelDomain:()=>void;eraseAccount:(identity:boolean,secret:string)=>Promise<{deleted:boolean;providerDeleted?:boolean;providerPending?:boolean}|null>;rotationKeys:RotationKeys|null;stagedRotation:VaultManifest|null;prepareRotation:()=>Promise<void>;resumeRotation:(secret:string)=>Promise<void>;finishRotation:(secret:string)=>Promise<void>;abortRotation:()=>Promise<void>;cancelRotation:()=>void;attachPreview:AttachPreview|null;prepareAttach:(domains:Domain[])=>Promise<void>;confirmAttach:()=>Promise<void>;cancelAttach:()=>void;authenticated:(id:string)=>Promise<void>;forget:()=>void;prepare:()=>Promise<void>;enroll:(remember?:boolean)=>Promise<void>;unlock:(secret:string,remember?:boolean)=>Promise<void>;stepUp:(secret:string)=>Promise<StepUp|undefined>;remembered:boolean;deviceNote:string;forgetDevice:()=>Promise<void>;lockNow:()=>void;registerAccess:()=>()=>void;accessEpoch:number;sync:()=>Promise<void>;preparePendingRecovery:()=>Promise<void>;pendingRecovery:{file:string;recovery:string}|null;clearPendingRecovery:()=>void;setHealth:(value:boolean)=>void;health:boolean;healthAsk:boolean;vaultGone:'missing'|'older'|null;startOver:()=>Promise<void>;accessDenied:(code:AccountDenial['denied'])=>Promise<void>;account:string|null;manifest:VaultManifest|null|undefined;generated:Generated|null;cancel:()=>void;busy:boolean;opened:boolean;message:string;error:string;last:string;portfolio:PortfolioStatus|null;syncPortfolioNow:(choice?:'keep-device'|'keep-cloud')=>Promise<void>;deletePortfolioCloud:()=>Promise<void>;extras:ExtrasStatus|null;setExtrasEnabled:(on:boolean)=>Promise<void>;removeExtrasCloud:()=>Promise<void>};
 const Context=createContext<Controls|null>(null);
 /** The provider's controls, for the Settings panel (components/vault-sync-panel.tsx, Session X Part 5b). */
 export function useVaultControls(){return useContext(Context);}
@@ -66,6 +75,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const [pendingRecovery,setPendingRecovery]=useState<{file:string;recovery:string}|null>(null);
  const [rotationKeys,setRotationKeys]=useState<RotationKeys|null>(null),[stagedRotation,setStagedRotation]=useState<VaultManifest|null>(null);
  const [portfolio,setPortfolio]=useState<PortfolioStatus|null>(null);
+ const [extras,setExtras]=useState<ExtrasStatus|null>(null);
  const session=useRef<Session|null>(null),running=useRef<symbol|null>(null),auto=useRef(false),idle=useRef(0),syncRef=useRef<()=>Promise<void>>(async()=>{});
  // Remember this device (ADR-008). Lock now blocks reopening in this tab until the next unlock with the secret; one reopen
  // runs at a time, a failed one waits 30 s before a focus tries again; `access` counts the AccountAccess panels shown (Settings),
@@ -76,7 +86,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  const syncing=useRef(false),followUp=useRef(false),scheduleRef=useRef<()=>void>(()=>{});
  // The automatic sync that is running now (if any), and whether a person's action is waiting for it to end.
  const automaticRun=useRef<Promise<void>|null>(null),waiting=useRef(false);
- function forget(){setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setError('');
+ function forget(){setHealthAsk(false);setVaultGone(null);running.current=null;followUp.current=false;setBusy(false);setPortfolio(null);setExtras(null);setConflictReview(null);setForwardReview(null);setDomainReview(null);setRotationKeys(null);setStagedRotation(null);setAttachPreview(null);setPendingRecovery(null);session.current=null;auto.current=false;setOpened(false);setGenerated(null);setManifest(undefined);setAccount(null);setHealthState(false);setMessage('Account sync is locked.');setLast('');setError('');
   // Sign-out forgets every remembered device on this browser; its server session is revoked too, so nothing it held can open again.
   verified.current=null;setRemembered(false);setDeviceNote('');void forgetDevices().catch(()=>setDeviceNote(NOT_FORGOTTEN));}
  function selectionFence(id:string,generation:number){if(isShowcase()||getAccountScope()!==id||getAccountGeneration()!==generation)throw Error('Account selection changed. No result was applied.');}
@@ -190,12 +200,43 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  async function deletePortfolioCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage();
   try{await deletePortfolioCopy({transport:portfolioTransport(selected.account,fence),manifest:selected.manifest,storage,fence});fence();choosePortfolioSync(storage,false);setPortfolio({state:'removed'});}
   catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'The Portfolio copy was not deleted.'});}});});}
+ /**
+  * Session AB-Cloud Part 2 ([TIER 3] (sync), ADR-023 C1–C5): the encrypted extras sections, after the account's sections and
+  * the Portfolio, under the same lock. On unless the person turned them off on this device (owner decision); the Health
+  * section only with this tab's Health consent and while Health is not held after a cloud deletion. Its outcome is shown
+  * beside its switch; a failure never undoes or pauses the account sync above.
+  */
+ async function runExtras(selected:Session,fence:()=>void){
+  const storage=getAppStorage(),m=await extrasModule();fence();
+  if(!m.readExtrasChoice(storage).enabled){setExtras({state:'off'});return;}
+  try{
+   const held=(await new SyncJournal(selected.account).read().catch(()=>null))?.heldDomains??[];fence();
+   const bases=m.indexedDbBases(selected.account);
+   const outcomes=await m.syncExtras({transport:m.extrasTransport(selected.account,fence),key:selected.key,manifest:selected.manifest,storage,bases,fence,health:selected.health&&!held.includes('health')});fence();
+   // Removed from the cloud on another device ("Remove from the cloud"): this device stops too and keeps its records.
+   if(outcomes.some(o=>o.state==='deleted'&&o.section!=='health')){m.writeExtrasChoice(storage,{...m.readExtrasChoice(storage),enabled:false});await bases.clear();setExtras({state:'deleted-elsewhere'});return;}
+   setExtras({state:'synced',outcomes,at:formatTime(new Date())});
+  }catch(error){fence();if(error instanceof m.ExtrasChangedDuringSync){followUp.current=true;return;}setExtras({state:'error',message:error instanceof Error?error.message:'Extras sync was not confirmed. Your records on this device were preserved.'});}
+ }
+ async function setExtrasEnabled(on:boolean){
+  const storage=getAppStorage(),m=await extrasModule();
+  m.writeExtrasChoice(storage,{enabled:on,explained:true});
+  if(!on){setExtras({state:'off'});return;}
+  if(!session.current)return;
+  await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();await runExtras(selected,fence);});});
+ }
+ async function removeExtrasCloud(){await guarded(async()=>{const {selected,fence}=portfolioSession();await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{fence();const storage=getAppStorage(),m=await extrasModule();
+  try{await m.deleteExtrasCopies({transport:m.extrasTransport(selected.account,fence),manifest:selected.manifest,storage,bases:m.indexedDbBases(selected.account),fence});fence();setExtras({state:'removed'});}
+  catch(error){fence();setExtras({state:'error',message:error instanceof Error?error.message:'The extras’ encrypted copy was not deleted.'});}});});}
  async function sync(automatic=false){await guarded(async()=>{
   const selected=session.current;if(!selected)throw Error('Unlock your vault before syncing.');const healthPermission=selected.health;
   syncing.current=true;followUp.current=false;try{
   const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Vault locked. Sync result was not applied.');if(selected.health!==healthPermission)throw Error('Health permission changed. Sync paused; local records were preserved.');};
   await withStorageLock(`zigoals:account-sync:${selected.account}`,async()=>{
    fence();setMessage('Syncing encrypted account records…');const storage=getAppStorage(),domains:Domain[]=['finance','habits','settings',...(selected.health?['health' as const]:[])];
+   // Session AB-Cloud Part 1 (ADR-023 C6): accounts and milestone dates into their finance v5 homes before the capture;
+   // a failure leaves them on this device for the next sync and never stops the sync itself.
+   await financeHomes().then(m=>m.reconcileFinanceHomesNow(storage)).catch(()=>{});fence();
    const capturedPending=(await localDatabase.pending(`account:${selected.account}`)).filter(p=>domains.some(d=>modules[d].key===p.domain));
    const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);
    fence();try{await applyData(storage,local,result.data,fence);}catch(error){
@@ -203,9 +244,12 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
     // conflict, so automatic sync stays on and one follow-up uploads the newer edit.
     if(!(error instanceof LocalRecordsChangedDuringSync))throw error;fence();followUp.current=true;auto.current=true;setMessage('Newer local edits found. Syncing them next…');return;}
    await result.commit();fence();for(const pending of capturedPending){fence();await localDatabase.acknowledge(`account:${selected.account}`,pending.operation);}fence();setLast(formatTime(new Date()));setMessage('Account records synced and acknowledged.');auto.current=true;
+   // …and what another device synced into finance back into this device's keys (ADR-023 C6).
+   await financeHomes().then(m=>m.reconcileFinanceHomesNow(storage)).catch(()=>{});fence();
    // Session U Part 9 (ADR-013): the opt-in Portfolio copy, after the four sections and under the same lock. Its own
    // outcome is shown beside its choice; a Portfolio failure never undoes or pauses the account sync above.
    if(SYNC_WRITES&&portfolioSyncChosen(storage))await runPortfolio(selected,fence);
+   if(SYNC_WRITES)await runExtras(selected,fence);
   });
   }finally{syncing.current=false;}
  },true,automatic);if(followUp.current){followUp.current=false;scheduleRef.current();}}
@@ -231,7 +275,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    // this account with 410 from then on, so nothing is enrolled on it again.
    if(!identity){const journal=new SyncJournal(selected.account),state=await journal.read().catch(()=>null);if(state&&hadVault(state))await journal.recover(crypto.randomUUID(),state,freshJournal(),()=>{}).catch(()=>undefined);}
    // Gate C (the security read): ZIGi's suggestions go only once the deletion is confirmed; a refused one keeps them.
-   void noteCloudDeleted(selected.account);forgetZigiFace();await import('../lib/aa-device-forget').then(m=>m.forgetAaDeviceRecords()).catch(()=>undefined);await forgetHere(selected,'');lockAccount();});});return result;}
+   void noteCloudDeleted(selected.account);forgetZigiFace();await import('../lib/aa-device-forget').then(m=>m.forgetAaDeviceRecords()).catch(()=>undefined);await extrasModule().then(m=>m.forgetExtrasBases()).catch(()=>undefined);await forgetHere(selected,'');lockAccount();});});return result;}
  function rotationSession(){const selected=session.current;if(!selected)throw Error('Unlock the vault before rotation.');const fence=()=>{selectionFence(selected.account,selected.generation);if(session.current!==selected||isAccountLocked())throw Error('Account changed. Rotation paused.');};return {selected,fence};}
  async function prepareRotation(){await guarded(async()=>{const {rotationTransport}=await import('../lib/vault/rotation-transport');const {selected,fence}=rotationSession();auto.current=false;const status=z.object({rotation:z.object({manifest:manifestSchema}).nullable()}).parse(await rotationTransport(selected.account,fence).request());fence();if(status.rotation){setStagedRotation(status.rotation.manifest);return;}const next=await createVault(selected.manifest.vault,selected.manifest.epoch+1);fence();setRotationKeys(next);});}
  async function resumeRotation(secret:string){await guarded(async()=>{const {selected,fence}=rotationSession();if(!stagedRotation)throw Error('Read staged rotation first.');await forgetHere(selected,'');fence();const key=await unlockVault(stagedRotation,secret);fence();setRotationKeys({key,manifest:stagedRotation,recovery:secret});});}
@@ -284,7 +328,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   });
  });if(copied)await sync();}
  function cancelAttach(){setAttachPreview(null);auto.current=!!session.current;setMessage('Local copy review closed. Original local records were not changed.');}
- async function setHealth(value:boolean){const answered=healthAsk;setHealthAsk(false);setConflictReview(null);setForwardReview(null);setDomainReview(null);setAttachPreview(null);if(!value){auto.current=false;setHealthState(false);if(session.current){session.current.health=false;healthRemembered(session.current,false);}return;}const selected=session.current;if(selected){try{const state=await new SyncJournal(selected.account).read();if(session.current!==selected)return;if(state.heldDomains?.includes('health')){setError(HEALTH_HELD_REFUSAL);return;}}catch{setError(HEALTH_UNVERIFIED_REFUSAL);return;}}setHealthState(true);if(selected){selected.health=true;healthRemembered(selected,true);
+ async function setHealth(value:boolean){const answered=healthAsk;setHealthAsk(false);setConflictReview(null);setForwardReview(null);setDomainReview(null);setAttachPreview(null);if(!value){auto.current=false;setHealthState(false);if(session.current){session.current.health=false;healthRemembered(session.current,false);}return;}const selected=session.current;if(selected){try{const state=await new SyncJournal(selected.account).read();if(session.current!==selected)return;if(state.heldDomains?.includes('health')){setError(HEALTH_HELD_REFUSAL);return;}}catch{setError(HEALTH_UNVERIFIED_REFUSAL);return;}}setHealthState(true);if(selected){selected.health=true;healthRemembered(selected,true);void extrasModule().then(m=>m.releaseHealthHold(m.indexedDbBases(selected.account))).catch(()=>{});
   // Session Y Part 5 (B4): the tick that answers a Health restore's question starts the sync the restore used to start.
   if(answered)await sync();}}
  /** A remembered device remembers the Health choice with it (M1 e). If turning it off cannot be stored, the device is forgotten instead. */
@@ -363,6 +407,10 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
   const schedule=()=>{clearTimeout(debounce);if(document.hidden||running.current||!auto.current||!session.current)return;debounce=setTimeout(()=>{if(!document.hidden&&auto.current&&session.current)void syncRef.current();},1000);};
   scheduleRef.current=schedule;
   const edited=()=>{if(syncing.current&&!isSyncedChangeEvent()){followUp.current=true;return;}schedule();};
+  // A device record with a synced home changed (accounts, milestone dates; ADR-023 C6): sync it like a module edit. The
+  // extras (C1) travel with the next sync instead (every module edit, and the 30-second check below): some pages write
+  // their device records on view (a habit section's fold), which must never start a sync by itself (ADR-023 C21).
+  const homeEdited=(event:Event)=>{if(isSyncedChangeEvent())return;const key=(event as CustomEvent<string>).detail;if(!FINANCE_HOMES_DEVICE_KEYS.includes(key))return;if(syncing.current){followUp.current=true;return;}schedule();};
   const activity=()=>{idle.current=Date.now();};
   // After 15 minutes without interaction the vault locks, except on a remembered device whose record is still stored (M1 c).
   let idleCheck=false;
@@ -372,13 +420,13 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    return;
   }schedule();},30000);
   const focused=()=>{void reopenRef.current('focus');},shown=()=>{if(!document.hidden)void reopenRef.current('focus');};
-  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',edited);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
+  window.addEventListener(ACCOUNT_CHANGE,change);window.addEventListener('zigoals:private-change',edited);window.addEventListener(ZIGI_STORE_EVENT,homeEdited);window.addEventListener('focus',schedule);window.addEventListener('online',schedule);document.addEventListener('visibilitychange',schedule);window.addEventListener('pointerdown',activity);window.addEventListener('keydown',activity);
   window.addEventListener('focus',focused);document.addEventListener('visibilitychange',shown);
   if(!isShowcase())void readDevices().then(records=>{if(records.length)setRemembered(true);},()=>{});
   void reopenRef.current('load');
-  return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
+  return()=>{running.current=null;session.current=null;clearTimeout(debounce);clearInterval(interval);window.removeEventListener(ACCOUNT_CHANGE,change);window.removeEventListener('zigoals:private-change',edited);window.removeEventListener(ZIGI_STORE_EVENT,homeEdited);window.removeEventListener('focus',schedule);window.removeEventListener('online',schedule);document.removeEventListener('visibilitychange',schedule);window.removeEventListener('pointerdown',activity);window.removeEventListener('keydown',activity);window.removeEventListener('focus',focused);document.removeEventListener('visibilitychange',shown);};
  },[]);
- return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud}}>{children}</Context.Provider>;
+ return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud,extras,setExtrasEnabled,removeExtrasCloud}}>{children}</Context.Provider>;
 }
 /** Public status only; keys, recovery material and private records never leave the provider. */
 export function useVaultStatus(){const c=useContext(Context);return {opened:c?.opened??false,busy:c?.busy??false,message:c?.message??'',error:c?.error??'',last:c?.last??'',account:c?.account??null};}

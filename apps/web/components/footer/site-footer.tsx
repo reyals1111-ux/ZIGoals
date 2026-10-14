@@ -5,6 +5,8 @@ import {APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED} from '../../lib/app-enviro
 import {enabledSocialLinks} from '../../lib/social-links';
 import {ButterflyGlyph, HeartGlyph, LotusGlyph} from './pillar-glyphs';
 import {LogoWordmark} from '../brand/logo-wordmark';
+import {useShowcase} from '../showcase-controls';
+import {SHOWCASE_FOOTER} from '../../lib/showcase-copy';
 import './site-footer.css';
 
 /**
@@ -37,7 +39,7 @@ const FooterPath = lazy(() => import('./footer-path'));
  * class names the hosted-Alpha verifier reads (`network-banner`, `mode-strip`).
  */
 export function SiteFooter({network, mode, financial, status}: {network: {label: string; sentence: string}; mode: string; financial: boolean; status?: ReactNode}) {
-  const social = enabledSocialLinks(), root = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null), [near, setNear] = useState(false);
+  const showcase = useShowcase(), social = enabledSocialLinks(), root = useRef<HTMLElement>(null), stage = useRef<HTMLDivElement>(null), [near, setNear] = useState(false);
   useEffect(() => {
     const el = root.current; if (!el) return;
     if (typeof IntersectionObserver === 'undefined') { queueMicrotask(() => setNear(true)); return; }
@@ -73,7 +75,7 @@ export function SiteFooter({network, mode, financial, status}: {network: {label:
       <nav className="site-footer-links" aria-label="ZIGoals links">
         {GROUPS.map(g => <div key={g.title} className="site-footer-group"><p className="site-footer-group-title">{g.title}</p><ul>{g.links.map(l => <li key={l.label}>{l.external ? <a href={l.href}>{l.label}</a> : <Link href={l.href} prefetch={false}>{l.label}</Link>}</li>)}</ul></div>)}
       </nav>
-      <div className="site-footer-status">{status}</div>
+      <div className="site-footer-status">{showcase ? SHOWCASE_FOOTER : status}</div>
       <p className="site-footer-disclaimer alpha-disclaimer">
         {financial && <><span className="network-banner"><strong>{network.label}</strong> {network.sentence}</span> <span className="mode-strip">{mode}</span> </>}
         {!FINANCIAL_EXECUTION_ALLOWED && <span>Financial execution is disabled on this Alpha.</span>}

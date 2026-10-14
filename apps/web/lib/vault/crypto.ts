@@ -4,8 +4,9 @@ const MAX_BYTES=262_144;
 const uuid=z.uuid();
 export const epochSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 // Session U Part 5 (item 8): `portfolio` labels the records of the opt-in Portfolio sync (Session U Part 9, ADR-013). One
-// enum entry: every existing record's context, and so its key and additional data, is unchanged.
-export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings','portfolio']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
+// enum entry: every existing record's context, and so its key and additional data, is unchanged. Session AB-Cloud Part 2
+// (ADR-023 C1): `extras` labels the parts of the encrypted extras sections, the same way.
+export const recordContextSchema=z.object({vault:uuid,domain:z.enum(['finance','habits','health','settings','portfolio','extras']),object:uuid,revision:z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),epoch:epochSchema}).strict();
 export type RecordContext=z.infer<typeof recordContextSchema>;
 /**
  * Session Y Part 5, FIX_PLAN B7 (Q-SYNC-12): every nonce, iv and ciphertext is canonical base64url (no padding, the

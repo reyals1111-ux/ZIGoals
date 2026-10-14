@@ -9,7 +9,7 @@ import './export-everything.css';
 /**
  * T4 (Session P, PR 3): "Export everything (optional)". One tap makes one readable ZIP on this device with a JSON file
  * of every stored record and a CSV per area. Nothing is uploaded, nothing is written to storage, and nobody needs it:
- * sync and the encrypted backup keep records safe. It is not a restore format.
+ * sync and the encrypted backup keep records safe. Settings → Your data → Restore from a backup reads it back (Session AB-Cloud).
  */
 /** Session Z-Cloud Part 5 (A7): the plain note on an export of a deleted account's records. */
 export const DELETED_EXPORT_NOTE = 'Your cloud copy was deleted; this export holds the records this device kept for that account. Nothing was changed or uploaded, and they stay locked in the app.';
@@ -50,6 +50,6 @@ export function ExportEverything() {
     {status && <p role="status">{status}</p>}
     {notes.map(note => <p key={note} className="notice">{note}</p>)}
     {error && <p role="alert">{error}</p>}
-    <p className="fine">Made on this device. Nothing is uploaded. This is not a restore format.</p>
+    <p className="fine">Made on this device. Nothing is uploaded. Settings → Your data → Restore from a backup reads it back.</p>
   </section>;
 }

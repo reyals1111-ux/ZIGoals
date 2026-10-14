@@ -1,7 +1,7 @@
 'use client';
 import {ProgressSlot} from '../progress/slot';
 import {WealthAllocationSection} from '../bottom-sections';
-import {WealthTotal} from './wealth-total';
+import {WealthTotal,BaseCurrencySwitch} from './wealth-total';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import {SplitMoney} from './wealth-total';
 // Gate C weights: the chart is its own chunk (Wealth sat 4 kB over its budget with it inline; budgets are never raised).
@@ -77,7 +77,7 @@ export function WealthView(){
  return <LayoutPage page="wealth"><div className="dashboard wealth-workspace wealth-product"><ActionIntent value="asset" onAction={()=>setAdding(true)}/>
  {/* Session AB-Design Phase 2 (ADR-024 P5; critique 8): the shared pillar header, unboxed like the other three; the totals follow in their own card with the holdings' two tools ("Manage assets", "Refresh prices"), moved from the header, never removed. */}
  <PillarHero pillar="wealth" titleId="wealth-title" className="wealth-heading" eyebrow="Your financial orbit" title="Wealth, with every source in view." lede="Everything you own. Everything you’re working toward. One clear view." about="wealth" buttons={<button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button>}/>
- <section className="wealth-hero wealth-summary panel" aria-label="Your wealth in one view"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/>{total}<div className="wealth-summary-side"><dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl><div className="wealth-summary-tools"><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button></div><p className="fine">Private tracking · no funds move.</p></div></section>
+ <section className="wealth-hero wealth-summary panel" aria-label="Your wealth in one view"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/>{total}<div className="wealth-summary-side"><dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl><div className="wealth-summary-tools"><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button><BaseCurrencySwitch/></div><p className="fine">Private tracking · no funds move.</p></div></section>
  {market.error&&<p className="notice" role="status">Price refresh is unavailable. Last-good values stay visible with their timestamps.</p>}
  <ImportBanner imports={imports} kind="wealth" onUndo={undoRecord}/>
  <LayoutRegion region="body" items={phoneOrder(phone,[

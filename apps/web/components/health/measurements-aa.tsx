@@ -45,7 +45,7 @@ export function MeasurementsAa({data, today}: {data: HealthData; today: string})
       <form className="health-custom-form" aria-label="Add a measurement kind" onSubmit={e => { e.preventDefault(); keep(() => { custom.update(r => addCustomKind(r, label, unit)); setLabel(''); }); }}><label className="field"><span>Add any measurement</span><input type="text" maxLength={40} value={label} onChange={e => setLabel(e.target.value)} placeholder="Neck, calf, shoulders…" /></label><label className="field"><span>Unit</span><select value={unit} onChange={e => setUnit(e.target.value as 'cm' | 'in')}><option value="cm">cm</option><option value="in">in</option></select></label><div className="actions"><button type="submit" className="secondary" disabled={!label.trim()}>Add</button>{customKinds.length > 0 && <button type="button" className="quiet" onClick={() => keep(() => { const id = kind || customKinds[customKinds.length - 1]!.id; custom.update(r => removeCustomKind(r, id)); setKind(''); })}>Remove the chosen one</button>}</div></form>
       {customKinds.length > 0 && kind && customHistory(custom.data, kind).length > 0 && <p className="fine">Last reading: <button type="button" className="text-link" onClick={() => keep(() => custom.update(r => removeCustomReading(r, customHistory(r, kind).at(-1)!.id)))}>remove it</button></p>}
       {error && <p role="alert">{error}</p>}
-      <p className="fine">Waist, hips, chest, arm and thigh travel with your Health records; your own kinds stay on this device.</p>
+      <p className="fine">Waist, hips, chest, arm and thigh travel with your Health records; your own kinds travel in your encrypted extras while Health sync is on.</p>
     </section>
     <ProgressPhotos photos={photos} today={today} />
   </div>;

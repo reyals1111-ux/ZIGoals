@@ -6,12 +6,26 @@ import {amount} from './common';
 import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {baseCurrencyOf} from '../../lib/ui-prefs/schema';
+import {useDefaultCurrency} from '../../lib/default-currency';
 import './wealth-total.css';
 /** A whole-currency amount as Wealth shows it (Today's Life overview reads it too). */
 export const wealthMoney=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
 const money=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
-/** The person's base currency for Wealth's figures (owner request 24; AB-Cloud's defaultCurrency() once it lands, ADR-024 owner edit 5). */
-export function useBaseCurrency(){const prefs=useUiPrefs();return baseCurrencyOf(prefs.data);}
+/** The person's base currency for Wealth's figures (owner request 24): their choice, else the device's default currency
+ * (AB-Cloud's useDefaultCurrency(): euro in the euro area, US dollars otherwise; USD during hydration). */
+export function useBaseCurrency(){const prefs=useUiPrefs(),fallback=useDefaultCurrency();return baseCurrencyOf(prefs.data,fallback);}
+/**
+ * Owner request 24 (finished at the second merger, Phase 2 Part 12): the person picks the currency Wealth's headline and
+ * rows are shown in — US dollars or euro, the two the app keeps. Until they pick, the device's default applies. Nothing is
+ * converted: the other currency stays in its chip.
+ */
+export function BaseCurrencySwitch(){
+ const prefs=useUiPrefs(),base=useBaseCurrency();
+ return <div className="wealth-base-switch" role="group" aria-label="Show totals in">
+  <span aria-hidden="true">Totals in</span>
+  {(['USD','EUR'] as const).map(c=><button key={c} type="button" className="quiet" aria-pressed={base===c} disabled={!prefs.loaded||prefs.unreadable} onClick={()=>{try{prefs.update(p=>({...p,baseCurrency:c}));}catch{/* the device record reports its own failure */}}}>{c}</button>)}
+ </div>;
+}
 /**
  * Session AB-Design (owner request 24): other currencies as one small chip — "+ €8,000 held in EUR" — that opens the
  * details (each currency's total, never converted, no FX assumed); nothing shows when every other total is zero.

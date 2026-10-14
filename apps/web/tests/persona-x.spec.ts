@@ -130,7 +130,7 @@ test('the Goal wizard: each new step takes focus, so the keyboard and a screen r
   await expect(page.locator('.wizard-content')).toContainText('Step 2 of 4');
 });
 
-test('the Showcase says that what is added there stays in the demo, and Exit returns to Today', async ({page}) => {
+test('the Showcase says that Load or Reset starts its examples fresh (what is added there is cleared then), and Exit returns to Today', async ({page}) => {
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
@@ -138,7 +138,9 @@ test('the Showcase says that what is added there stays in the demo, and Exit ret
   const banner = page.getByRole('complementary', {name: 'Showcase data'});
   await expect(banner).toContainText('Showcase');
   await banner.getByRole('button', {name: 'Showcase', exact: true}).click();
-  await expect(banner).toContainText('Fictional records');await expect(banner).toContainText('Exit returns to your own data; Load again resets the Showcase.');
+  // Session AB-Cloud Part 8 (ADR-023 C24) + AB-Design Phase 2, Part 12 (the second merger): the chip's sheet reads
+  // lib/showcase-copy.ts SHOWCASE_SHEET — what Load and Reset do — with Exit Showcase / Load again beside it.
+  await expect(banner).toContainText('Loading or resetting the Showcase starts these examples fresh, so anything you add here is cleared then; your own records are never touched.');
   await expect(banner.getByRole('button', {name: 'Load again', exact: true})).toBeVisible();
   await banner.getByRole('button', {name: 'Exit Showcase', exact: true}).click();
   await page.waitForURL(url => url.pathname === '/app');

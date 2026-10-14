@@ -31,8 +31,9 @@ export const emptyUiPrefs = (): UiPrefs => ({version: 1});
 export const UI_PREFS: DeviceRecordSpec<UiPrefs> = {key: UI_PREFS_KEY, schema: uiPrefsSchema, empty: emptyUiPrefs};
 /** The theme in effect: dark is the only one that exists; Light and Customize say "Soon" and never store themselves. */
 export const themeModeOf = (prefs: UiPrefs): 'dark' => (prefs.themeMode === 'dark' || prefs.themeMode === undefined ? 'dark' : 'dark');
-/** The currency Wealth's totals are shown in: the person's choice, else USD (AB-Cloud's defaultCurrency() once it lands, ADR-024 owner edit 5). */
-export const baseCurrencyOf = (prefs: UiPrefs): 'USD' | 'EUR' => prefs.baseCurrency ?? 'USD';
+/** The currency Wealth's totals are shown in: the person's choice, else the device's default (AB-Cloud's defaultCurrency(),
+ * passed in by the hook; USD where none is given) — ADR-024 owner edit 5, wired at the second merger (Phase 2 Part 12). */
+export const baseCurrencyOf = (prefs: UiPrefs, fallback: 'USD' | 'EUR' = 'USD'): 'USD' | 'EUR' => prefs.baseCurrency ?? fallback;
 /** Today's Life overview shows unless the person hid it on this device. */
 export const lifeOverviewShown = (prefs: UiPrefs): boolean => prefs.today?.lifeOverview !== false;
 /** The game widgets this build knows, in the order the person added them (unknown ids from a newer build are skipped). */

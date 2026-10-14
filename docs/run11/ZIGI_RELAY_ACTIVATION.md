@@ -4,6 +4,11 @@
 
 **Session X (2026-10-08):** the relay can also speak Anthropic's own Messages API (section [Anthropic](#anthropic-session-x-optional) below; ADR-016). Still never deployed and never run against Anthropic: proven by Miniflare tests with a MOCK Anthropic stream (`scripts/run11/zigi-relay-anthropic.test.mjs`). The OpenAI template and steps 1–6 are unchanged.
 
+**Current for Alpha #39 and later (checked 2026-10-14, Session AB-Cloud Part 10):** the relay Worker last changed with
+Session Z-Cloud's Gate B (`4cfc2b1`, the reserved Anthropic prompt; in `main` and so in #39); Sessions AA-Cloud, AA-Local
+and AB-Cloud changed neither `workers/zigi-relay/` nor the app's `/api/zigi` route, so every step below stands as written
+for #39 and for this PR's build. The three switches are still off; nothing here has run against Cloudflare or Anthropic.
+
 ## What this is, and what stays off
 - **ZIGoals hosted** is an AI that ZIGoals runs and pays for, for **invited accounts only**: a person who has no key, local model or subscription can still ask ZIGi. Replies say "Answer from <provider> via ZIGoals hosted".
 - **Three switches, all off today:**

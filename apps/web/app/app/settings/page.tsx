@@ -1,6 +1,7 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
 import { SendFeedback } from "../../../components/help/send-feedback";
+import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
 import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
 import {getAppStorage,isShowcase} from "../../../lib/showcase-storage";
@@ -205,6 +206,8 @@ export default function Settings() {
           <h2 id="send-feedback-title">Tell us what you think</h2>
           <SendFeedback />
         </section>
+        {/* Session AB-Cloud Part 6 (ADR-023 C23): the Point & tell switch. */}
+        <section className="panel" id="point-tell" aria-labelledby="point-tell-title"><p className="eyebrow">POINT &amp; TELL</p><h2 id="point-tell-title">Point at it, say what you think</h2><PointTellSetting /></section>
         <section className="panel">
           <h2>About this alpha</h2>
           <dl className="metrics">

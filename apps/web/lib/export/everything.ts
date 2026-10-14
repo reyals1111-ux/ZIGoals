@@ -26,7 +26,8 @@ import {AI_ACTIONS_KEY, AI_MEMORY_KEY, AI_OPTIONS_KEY, AI_USAGE_KEY, ZIGI_KEY, Z
 import {ACCOUNTS_KEY, CELEBRATIONS_KEY, CHESS_CACHE_KEY, IMPORT_BATCHES_KEY, MEDITATION_RUN_KEY, MILESTONE_DATES_KEY, MUSIC_KEY, PAGES_VIEW_KEY, W_REMINDERS_KEY} from '../w-device-keys';
 import {ZIGI_CARDS_KEY, ZIGI_SUGGESTIONS_KEY, ZIGI_VOICE_KEY} from '../z-device-keys';
 import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from '../aa-device-keys';
-import {UI_PREFS_KEY} from '../ab-design-keys';
+import {AB_DESIGN_DISPLAY_KEYS} from '../ab-design-keys';
+import {AB_CLOUD_PERSONAL_KEYS} from '../ab-cloud-device-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -41,7 +42,8 @@ import {buildStoredZip} from './zip';
  * "Export everything" (Session P, PR 3, T4; docs/product/features/T4-export-everything.md): one readable ZIP with a
  * JSON file of every stored record (parsed with JSON.parse only, so the bytes are faithful) and a CSV per area. The
  * export copies stored records as they are and computes nothing new; unknown values are empty cells, never 0. It reads
- * and writes nothing in storage. Not a restore format: the encrypted backup and the module backups remain those.
+ * and writes nothing in storage. Session AB-Cloud Part 5 reads it back (lib/restore/, Settings → Your data → Restore from a
+ * backup); the encrypted backup and the module backups stay as they are.
  */
 export const MODULE_KEYS = {finance: PLATFORM_KEY, habits: HABITS_KEY, health: HEALTH_STORAGE_KEY, settings: DASHBOARD_SETTINGS_KEY} as const;
 // ZIGi (ADR-012): its settings key is exported like every device key; its conversations arrive through `aiChats` (they
@@ -62,12 +64,14 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   calculator: CALCULATOR_KEY, searchRecent: SEARCH_RECENT_KEY, lifeReview: LIFE_REVIEW_KEY,
   // Session AA-Cloud Part 8: the cards kept on Today on this device.
   todayCards: TODAY_CARDS_KEY,
-  // Session AB-Design (ADR-024 D4): the UI upgrade's display preferences (lib/ab-design-keys.ts).
-  uiPrefs: UI_PREFS_KEY,
   // Session AA-Local (ADR-022 B1): habit extras, a routine run, the game layer, the Health coach, micronutrient targets, the macro mode, aisles, custom measurements, the progress-photo index, the reminders plan, the onboarding setup (lib/aa-device-keys.ts).
-  ...Object.fromEntries([...AA_PERSONAL_KEYS, ...AA_DISPLAY_KEYS].map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'habitExtras' | 'routineRun' | 'game' | 'healthCoach' | 'microTargets' | 'macroMode' | 'aisles' | 'measurementsCustom' | 'progressPhotos' | 'remindersPlan' | 'onboardingSetup', string>} as const;
+  ...Object.fromEntries([...AA_PERSONAL_KEYS, ...AA_DISPLAY_KEYS].map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'habitExtras' | 'routineRun' | 'game' | 'healthCoach' | 'microTargets' | 'macroMode' | 'aisles' | 'measurementsCustom' | 'progressPhotos' | 'remindersPlan' | 'onboardingSetup', string>,
+  // Session AB-Design's display preferences (lib/ab-design-keys.ts; wired by Session AB-Cloud, ADR-023 C8): exported, never synced.
+  ...Object.fromEntries(AB_DESIGN_DISPLAY_KEYS.map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'uiPrefs', string>,
+  // Session AB-Cloud (lib/ab-cloud-device-keys.ts): vitamins (Part 4) and Point & tell's pins (Part 6).
+  ...Object.fromEntries(AB_CLOUD_PERSONAL_KEYS.map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'healthVitamins' | 'pointTell', string>} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
-export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
+export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
   // Session W: one per new area, each a plain copy of its stored records.
   'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv'] as const;

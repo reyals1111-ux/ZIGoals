@@ -104,6 +104,23 @@ test('the Portfolio copy (Session U Part 9, ADR-013): GET and POST go to /v1/por
  const read=await privateAccountRequest(new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':id}}),config,async()=>new Response(big,{headers:{'content-type':'application/json'}}));
  expect(read.status).toBe(200);expect((await read.text()).length).toBe(big.length);
 });
+test('the extras sections (Session AB-Cloud Part 2, ADR-023 C1): GET (heads or one section) and POST go to /v1/extras for the signed-in account only; an unknown section is refused before any call',async()=>{
+ const id='10000000-0000-4000-8000-000000000001',cookie='__Host-zigoals_session=fixture-token';
+ for(const [method,query,target] of [['GET','?action=extras','/v1/extras'],['GET','?action=extras&section=health','/v1/extras?section=health'],['POST','','/v1/extras']] as const){
+  const operation={protocol:1,action:'delete',vault:crypto.randomUUID(),operation:crypto.randomUUID(),section:'goals',base:1,generation:0};
+  const req=(headers:Record<string,string>)=>new Request(`https://app.test/api/private-account${query}`,{method,headers:{origin:'https://app.test','content-type':'application/json',...headers},...(method==='POST'?{body:JSON.stringify({action:'extras',operation})}:{})});
+  const calls:[string,RequestInit|undefined][]=[];
+  const result=await privateAccountRequest(req({cookie,'x-zigoals-account':id}),config,async(url,init)=>{calls.push([String(url),init]);return Response.json({revision:2,generation:1});});
+  expect(result.status).toBe(200);expect(calls.map(([url])=>url)).toEqual([config.syncOrigin+target]);
+  const sent=new Headers(calls[0]![1]?.headers);expect(sent.get('x-zigoals-account')).toBe(id);expect(sent.get('authorization')).toBe('Bearer fixture-token');
+  if(method==='POST')expect(JSON.parse(calls[0]![1]?.body as string)).toEqual(operation);
+  const fetcher=vi.fn();expect((await privateAccountRequest(req({'x-zigoals-account':id}),config,fetcher)).status).toBe(401);expect(fetcher).not.toHaveBeenCalled();
+ }
+ for(const bad of ['portfolio','../vault','Health','']){
+  const fetcher=vi.fn();const res=await privateAccountRequest(new Request(`https://app.test/api/private-account?action=extras&section=${encodeURIComponent(bad)}`,{headers:{cookie,'x-zigoals-account':id}}),config,fetcher);
+  expect(res.status,bad).toBe(400);expect(fetcher).not.toHaveBeenCalled();
+ }
+});
 test('refresh rotates durable session access before exposing new cookies and never sends refresh material to the browser body',async()=>{
  const id='10000000-0000-4000-8000-000000000001';
  const req=()=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie:'__Host-zigoals_session=old-token; __Host-zigoals_refresh=refresh-secret'},body:'{"action":"refresh"}'});
@@ -274,7 +291,8 @@ test('a revoked session is signed out at the provider the first time it reaches 
   new Request('https://app.test/api/private-account?action=sessions',{headers:{cookie,'x-zigoals-account':account}}),
   new Request('https://app.test/api/private-account?action=rotation',{headers:{cookie,'x-zigoals-account':account}}),
   new Request('https://app.test/api/private-account?action=portfolio',{headers:{cookie,'x-zigoals-account':account}}),
-  ...['sync','rotation','delete','domain','portfolio'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
+  new Request('https://app.test/api/private-account?action=extras',{headers:{cookie,'x-zigoals-account':account}}),
+  ...['sync','rotation','delete','domain','portfolio','extras'].map(action=>new Request('https://app.test/api/private-account',{method:'POST',headers:{origin:'https://app.test','content-type':'application/json',cookie,'x-zigoals-account':account},body:JSON.stringify({action,operation:action==='delete'?{action:'delete-cloud-data',confirm:'DELETE CLOUD DATA'}:action==='domain'?{action:'delete-domain',domain:'health',confirm:'DELETE CLOUD HEALTH',operation:crypto.randomUUID(),revision:1,generation:0}:{}})})),
  ];
  for(const request of requests){
   const calls:[string,RequestInit|undefined][]=[];

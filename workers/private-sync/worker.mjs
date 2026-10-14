@@ -2,6 +2,7 @@ import {WorkerEntrypoint} from 'cloudflare:workers';
 import {rotationRequest} from './rotation.mjs';
 import {armSweep,sessionAllowed,sessionsRequest,sweepRevokedSessions} from './sessions.mjs';
 import {portfolioRequest} from './portfolio.mjs';
+import {extrasRequest,settleHealthExtras} from './extras.mjs';
 import {STEP_UP_HEADER,STEP_UP_INTERNAL,STEP_UP_NEXT_HEADER,isStepUpValue,stepUpRequest} from './step-up.mjs';
 /** Isolated nonproduction encrypted sync worker. No bindings added to Alpha. */
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -23,7 +24,7 @@ async function boundedJSON(request,max=1_000_000){
 }
 /** @type {ExportedHandler<SyncEnv>} */
 const privateSyncWorker={async fetch(request,env){
- const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio','/v1/step-up'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
+ const url=new URL(request.url);if(!['/v1/vault','/v1/sessions','/v1/account','/v1/rotation','/v1/domain','/v1/portfolio','/v1/extras','/v1/step-up'].includes(url.pathname)||!['GET','POST'].includes(request.method))return response({error:'NOT_FOUND'},404);
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(env.AUTH_ORIGIN??'')||!env.AUTH_PUBLIC_KEY||!env.APP_ORIGIN)return response({error:'HOSTED_CONFIGURATION_REQUIRED'},503);
  if(request.headers.get('origin')!==env.APP_ORIGIN)return response({error:'ORIGIN_DENIED'},403);
  const token=request.headers.get('authorization');if(!token||!/^Bearer [A-Za-z0-9._-]{1,4096}$/.test(token))return response({error:'SIGN_IN_REQUIRED'},401);
@@ -141,7 +142,7 @@ export class PrivateVault{
    if((next[intent.domain]??0)<=intent.generation)return response({error:'DOMAIN_DELETION_PENDING'},503);
    let bytes=await store.get('bytes')??0,cursor;for(;;){const rows=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!rows.size)break;cursor=[...rows.keys()].at(-1);for(const [id,row]of rows)if((next[row.domain]??0)>(applied[row.domain]??0)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
    for(;;){const rows=await store.list({prefix:'rotation-row:',limit:128});if(!rows.size)break;await store.delete([...rows.keys()]);}
-   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
+   await store.put({'domain-generations':next,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1,['domain-delete-receipt:'+intent.operation]:intent});if(intent.domain==='health')await settleHealthExtras(store);await store.delete(['domain-delete-intent','rotation']);await armSweep(store,due=>this.alarmAt(due));return response({deleted:true,domainGenerations:next});
   });
  }
  /** @param {Request} request @param {string|null} sessionHash */
@@ -172,7 +173,7 @@ export class PrivateVault{
     for(;;){const page=await store.list({prefix:'record:',startAfter:/** @type {string|undefined} */(cursor),limit:128});if(!page.size)break;cursor=[...page.keys()].at(-1);for(const [id,row]of page)if(changed.includes(row.domain)&&row.id!=='00000000-0000-4000-8000-000000000001'){bytes-=JSON.stringify(row).length;await store.delete(id);}}
     // A staged rotation must never re-publish rows removed by the lifecycle authority.
     for(;;){const staged=await store.list({prefix:'rotation-row:',limit:128});if(!staged.size)break;await store.delete([...staged.keys()]);}await store.delete('rotation');
-    await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});return null;
+    await store.put({'domain-generations':authoritative,bytes:Math.max(0,bytes),revision:(await store.get('revision')??0)+1});if(changed.includes('health'))await settleHealthExtras(store);return null;
    });if(reconciled)return reconciled;
   }
   if(path==='/v1/domain')return this.prepareDomainDeletion(request,sessionHash);
@@ -194,6 +195,8 @@ export class PrivateVault{
   if(await this.state.storage.get('account-deleted'))return response({error:'ACCOUNT_DELETED'},410);
   // Session U Part 9 (ADR-013): the opt-in Portfolio copy, in its own keyspace (portfolio.mjs).
   if(path==='/v1/portfolio')return portfolioRequest(request,this.state,boundedJSON,envelope,sessionHash);
+  // Session AB-Cloud Part 2 (ADR-023 C1): the encrypted extras sections, in their own keyspace (extras.mjs).
+  if(path==='/v1/extras')return extrasRequest(request,this.state,boundedJSON,envelope,sessionHash);
   if(new URL(request.url).pathname==='/v1/sessions')return sessionsRequest(request,this.state,boundedJSON,()=>this.now(),due=>this.alarmAt(due));
   if(request.method==='GET'){
    const url=new URL(request.url),cursor=url.searchParams.get('cursor')??'',ids=url.searchParams.has('ids')?/** @type {string} */(url.searchParams.get('ids')).split(','):null;
