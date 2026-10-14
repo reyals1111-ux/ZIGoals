@@ -48,3 +48,23 @@
   :root .life-counts dd { margin: 0; font-size: 20px; }
   :root .life-review-grid { columns: 1; }
 }
+/* Phase 2, Part 9 (owner request 35): the review reads like a small magazine — a cover with a big kicker line, the
+   highlights as pull quotes and the counts as large figures; then one chapter per pillar, each with its number set large
+   in the pillar's accent and a thin accent rule. Texts, figures and region names are the review's own. */
+:root .life-review-cover { position: relative; overflow: hidden; padding: clamp(24px, 4vw, 44px); }
+:root .life-cover-kicker { margin: 0 0 6px; max-width: 18ch; font-size: clamp(34px, 4.6vw, 60px); font-weight: 850; line-height: 1.02; letter-spacing: -.045em; background: linear-gradient(100deg, #f4f8ff 0%, #f4f8ff 40%, #8fa6ff 62%, #f08bd6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+:root .life-review-cover .life-highlights li { font-size: clamp(17px, 1.3vw, 20px); font-weight: 650; padding: 14px 18px 14px 44px; background: #0b172b80; }
+:root .life-review-cover .life-counts dd { font-size: clamp(28px, 3vw, 40px); letter-spacing: -.03em; }
+:root .life-chapters { columns: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; align-items: start; margin-bottom: 20px; }
+:root .life-chapters > .panel { margin: 0; }
+:root .life-chapters > .life-wins { grid-column: 1 / -1; }
+:root .life-chapter { --pillar: var(--brand-violet, #9273ff); position: relative; padding-top: 28px; border-top: 3px solid color-mix(in srgb, var(--pillar) 70%, transparent); }
+:root .life-chapter[data-pillar=goals] { --pillar: var(--pillar-goals, #9273ff); }
+:root .life-chapter[data-pillar=habits] { --pillar: var(--pillar-habits, #23eaff); }
+:root .life-chapter[data-pillar=health] { --pillar: var(--pillar-health, #ff74be); }
+:root .life-chapter[data-pillar=wealth] { --pillar: var(--pillar-wealth, #ffd27a); }
+:root .life-chapter::before { content: attr(data-chapter); position: absolute; top: 10px; right: 18px; font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: -.06em; color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--pillar) 70%, transparent); opacity: .7; pointer-events: none; }
+:root .life-chapter .aa-section-heading { padding-right: 64px; }
+:root .life-wins { background: radial-gradient(90% 120% at 0% 0%, #ffd27a1f, transparent 60%), linear-gradient(150deg, #0f1e36f2, #171a3cf2); }
+:root .life-wins .life-list li { font-size: 16px; }
+@media (forced-colors: active) { :root .life-chapter::before { -webkit-text-stroke: 0; color: CanvasText; } :root .life-cover-kicker { -webkit-text-fill-color: CanvasText; } }
