@@ -4,7 +4,7 @@ import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboardin
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {forgetAaDeviceRecords} from './aa-device-forget';
 import {readDeviceRecord, updateDeviceRecord} from './device-record';
-import {UI_PREFS, baseCurrencyOf, emptyUiPrefs, themeModeOf, uiPrefsSchema} from './ui-prefs/schema';
+import {UI_PREFS, baseCurrencyOf, emptyUiPrefs, gameWidgetsOf, lifeOverviewShown, themeModeOf, uiPrefsSchema} from './ui-prefs/schema';
 import {habitDataSchema, emptyHabitData, HABITS_KEY} from './habits';
 import {healthSchema, createEmptyHealth, HEALTH_STORAGE_KEY} from './health';
 import {dashboardSettingsSchema, emptyDashboardSettings, DASHBOARD_SETTINGS_KEY} from './dashboard-settings';
@@ -46,6 +46,24 @@ describe('Session AB-Design device key (ADR-024 D4): device-only, versioned, loo
     }
     expect(readDeviceRecord(memory().storage, UI_PREFS)).toEqual({data: emptyUiPrefs(), unreadable: false});
     expect(uiPrefsSchema.parse({version: 1})).toEqual({version: 1});
+  });
+  test('Phase 2 (ADR-024 P5): Today\'s device cards — the Life overview shows unless hidden; game widgets keep only the ids this build knows', () => {
+    const {m, storage} = memory();
+    const stored = {version: 1, today: {lifeOverview: false, gameWidgets: ['xp', 'quests']}};
+    storage.setItem(UI_PREFS_KEY, JSON.stringify(stored));
+    const read = readDeviceRecord(storage, UI_PREFS);
+    expect(read).toEqual({data: stored, unreadable: false});
+    expect(lifeOverviewShown(read.data)).toBe(false); expect(lifeOverviewShown(emptyUiPrefs())).toBe(true);
+    expect(gameWidgetsOf(read.data)).toEqual(['xp', 'quests']);
+    // A newer build's widget id and a field this build does not know: still readable, the unknown id skipped, both kept on write.
+    storage.setItem(UI_PREFS_KEY, JSON.stringify({version: 1, today: {gameWidgets: ['streak-orb', 'xp', 'xp'], later: 1}}));
+    const newer = readDeviceRecord(storage, UI_PREFS);
+    expect(newer.unreadable).toBe(false); expect(gameWidgetsOf(newer.data)).toEqual(['xp']);
+    updateDeviceRecord(storage, UI_PREFS, p => ({...p, heroCollapsed: true}));
+    expect(JSON.parse(m.get(UI_PREFS_KEY)!).today).toEqual({gameWidgets: ['streak-orb', 'xp', 'xp'], later: 1});
+    // Wrong types read as the defaults, bytes untouched.
+    storage.setItem(UI_PREFS_KEY, '{"version":1,"today":{"lifeOverview":"no"}}');
+    expect(readDeviceRecord(storage, UI_PREFS)).toEqual({data: emptyUiPrefs(), unreadable: true});
   });
   test('the synced records are byte-identical with the key beside them (an older build reads them unchanged)', () => {
     const {storage} = memory();
