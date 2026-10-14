@@ -102,8 +102,10 @@ Evidence: `docs/verification/ab-cloud/`; "Resume here": `docs/verification/ab-cl
 - **Part 8, `lib/amount-input.test.ts`:** three lines that asserted a refusal of unambiguous grouping ("1.234,5",
   "3,250.40", "1,234,567") now assert the amount read (owner item, C25); the ambiguous "1,234" refusals are unchanged.
 - **Part 8, `tests/persona-x.spec.ts:130`:** the Showcase banner's sentence is now "Fictional examples · Load or Reset starts
-  them fresh for today; anything you add here is cleared then" (C24: the old one promised something Load did not do);
-  the same check on the new sentence.
+  them fresh and clears what you added" (C24: the old one promised something Load did not do); the same check on the
+  new sentence. *(Gate C: the first wording, "… starts them fresh for today; anything you add here is cleared then",
+  wrapped the banner to two lines at 1280 px and moved every page 13 px down, which CI's `motion-arrival:18` caught: its
+  one in-view figure fell below the fold. The sentence is now shorter than the one it replaced.)*
 - **Gate B, `lib/restore/apply.test.ts`:** `undoRestore()` now also answers which parts it left as they are (`kept`); the
   round-trip test expects `{failed: [], kept: []}` (as strict, one more field).
 - **Part 10, `tests/help-page.spec.ts`:** the topic list gains "New: sync, restore and Point & tell" after AA-Local's

@@ -159,3 +159,12 @@ Every insertion is one line (an import plus one element) placed at the end of it
   `ai-history-undo`) above the list; Delete and "Delete all chats" now go through it.
 - **Photos (C27):** vision and progress photos are refused from their header above 40 MP / 12,000 px before decoding
   (lib files only; the messages are plain sentences shown where the old decode errors were).
+
+## 2026-10-14 — Gate C
+- **`SHOWCASE_BANNER` is shorter:** "Fictional examples · Load or Reset starts them fresh and clears what you added". The
+  first wording wrapped the banner to two lines at 1280 px and moved every page 13 px down (CI's `motion-arrival:18`).
+  If your chip or footer reads it, keep it to one line, or the arrival figures below the fold move again.
+- **`components/phone/phone-targets.css`** (shared file): one selector added to the phone 44 px rule,
+  `:root #point-tell label.checkbox`, so the Point & tell switch in Settings is a full-size target
+  (`phone-touch-targets:40`). Keep it when you merge, if you restyle that file.
+- No other visual change at Gate C: the rest is tests and records.

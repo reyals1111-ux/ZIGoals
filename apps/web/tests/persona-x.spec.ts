@@ -133,7 +133,7 @@ test('the Showcase says that Load or Reset starts its examples fresh (what is ad
   await page.waitForURL('**/app');
   const banner = page.getByRole('complementary', {name: 'Showcase data'});
   // Session AB-Cloud Part 8 (ADR-023 C24): the sentence now says what Load and Reset do (lib/showcase-copy.ts).
-  await expect(banner).toContainText('Fictional examples · Load or Reset starts them fresh for today; anything you add here is cleared then');
+  await expect(banner).toContainText('Fictional examples · Load or Reset starts them fresh and clears what you added');
   await banner.getByRole('button', {name: 'Exit Showcase', exact: true}).click();
   await page.waitForURL(url => url.pathname === '/app');
   await expect(page.getByRole('complementary', {name: 'Showcase data'})).toHaveCount(0);
