@@ -29,9 +29,12 @@ export function ChartGrid({ticks, left, right, labels = true}: {ticks: readonly 
   </g>)}</g>;
 }
 
-/** Labels under the plot; the first starts at its point, the last ends at it, the rest are centred. */
-export function ChartXAxis({ticks, y, edge = true}: {ticks: readonly {x: number; label: ReactNode}[]; y: number; edge?: boolean}) {
-  return <g className="chart-axis" aria-hidden="true">{ticks.map((t, i) => <text key={i} x={t.x} y={y} textAnchor={edge && i === 0 && ticks.length > 1 ? 'start' : edge && i === ticks.length - 1 && ticks.length > 1 ? 'end' : 'middle'}>{t.label}</text>)}</g>;
+/** Labels under the plot; the first starts at its point, the last ends at it, the rest are centred. A label closer than
+ * `gap` px to the one before it (or to the last, which always stays) is left out, so labels never run into each other. */
+export function ChartXAxis({ticks, y, edge = true, gap = 56}: {ticks: readonly {x: number; label: ReactNode}[]; y: number; edge?: boolean; gap?: number}) {
+  const last = ticks.length - 1, kept: {x: number; label: ReactNode; i: number}[] = [];
+  ticks.forEach((t, i) => { const prev = kept.at(-1); if (i === last) { if (prev && t.x - prev.x < gap && prev.i !== 0) kept.pop(); kept.push({...t, i}); } else if (!prev || t.x - prev.x >= gap) { if (last > 0 && i > 0 && ticks[last]!.x - t.x < gap) return; kept.push({...t, i}); } });
+  return <g className="chart-axis" aria-hidden="true">{kept.map(t => <text key={t.i} x={t.x} y={y} textAnchor={edge && t.i === 0 && last > 0 ? 'start' : edge && t.i === last && last > 0 ? 'end' : 'middle'}>{t.label}</text>)}</g>;
 }
 
 /** The glass tooltip, above the plot's top right; decorative (each chart's table or labels carry the same facts). */
