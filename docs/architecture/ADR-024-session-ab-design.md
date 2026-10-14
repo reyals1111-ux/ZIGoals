@@ -211,6 +211,13 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
 - `motion-polish.spec.ts` (Habits overview glide): the mid-glide sample is taken in the page two frames after the value
   changes (a slow CI runner, sampling after two round trips, read the 460 ms glide already at its end); the assertions
   are unchanged (start ≤ gliding < end, end on target).
+- `run9-2-life.spec.ts` (Life text at 320 px): after the existing wait for exactly one root, the visible root is the one
+  checked and measured (`filter({visible: true})`) — the server's hidden streamed copy could still arrive after that
+  moment on CI; the size check itself is unchanged.
+- `zigi-part-boundary.spec.ts` (WebKit): WebKit's rejected router prefetches are left out by the same shape-and-moment
+  rule webkit-smoke uses (ADR-017 S64); every other page error still fails it.
+- `scripts/worker-types.test.mjs` and `goals-best-aa.spec.ts` "share image": made deterministic (see "CI: the Alpha
+  gate in its own job").
 - `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
   together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
   made 5 folds for 4 counted widgets); still exactly one fold per widget.

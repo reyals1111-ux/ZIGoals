@@ -7,7 +7,23 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (2026-10-14; Phase 2 on Opus 5.5)
+## Resume here (checkpoint 2026-10-15 00:30, after the night's crash)
+**State.** Phase 2 parts 0–14 and closing-pass items 1–6 are built and pushed (head `9cc176e2` plus the recovered fixes
+committed from this checkpoint on). CI: web-checks, web-integration and the new `web-alpha-gate` job (the Workers security
+gate) green on `9cc176e2`; open there: today-screens (fixed by the phone footer, to confirm), run9-2-life at 320 (fixed in
+the spec, the visible root), WebKit (webkit-smoke's ResizeObserver loop: the nav observer now measures on the next frame;
+zigi-part-boundary: the S64 prefetch filter; the rotating ZIGi flakes: to reproduce under 2-worker load).
+**Running / next.** c12 (`scratchpad/pipeline-c12.sh`, log `logs/pipeline-c12.log`): rebuild on :3104 → targeted Chrome
+specs → the full WebKit set (2 workers) → the four layout audits (stress, WebKit, touch, Chrome). Then: fix what they find;
+Gate C (final captures into the gallery + the proof table's Gate C column, full unit, full browser suite once with 2
+workers, WebKit phone set, weights, revert gate, design critique), CI fully green on the final head, the STATUS entry as
+the final commit, PR #86 Ready for review.
+**Rules for the finish (owner).** today-screens ≤ 5.8 / Showcase ≤ 11.5 by layout only; no ceiling or budget raised; CI
+aggregate fully green with the security gate in its own job; a WebKit flake that also failed on AB-Cloud's pre-merge run
+and does not reproduce locally under 2-worker load is recorded with evidence, not looped on.
+**Keep-awake.** `nohup caffeinate -ims &` (never -d). Servers only from Bash (nohup, 3102–3104).
+
+## Earlier resume point (2026-10-14; Phase 2 on Opus 5.5)
 Phase 1 is complete (STATUS entry). Phase 2 ("Finish everything, nothing half done"): Parts 0–13 are built (ADR-024 P1–P20;
 Part 12, the second merger with AB-Cloud's PR #85, is in as a merge commit); Part 14 (the phone/tablet sweep), then the
 owner's **closing pass**, then Gate C remain. Scratchpad tools: `states.mjs` (named states × widths), `chain-part.sh`
