@@ -163,15 +163,22 @@
 /* Session AB-Design Phase 2 closing pass (design critique): two identical X icons could not be told apart on a phone, so
    the X links show their handles there (the website stays an icon); the row wraps when they need the room. */
 @media (max-width: 767.98px) {
-  .site-footer-social, .site-footer-social-links { flex-wrap: wrap; }
-  .site-footer-social-links > a[href*="x.com"] { width: auto; padding: 0 14px; }
+  .site-footer-social-links > a[href*="x.com"] { width: auto; }
   .site-footer-social-links > a[href*="x.com"] > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
 }
 /* On phones the facts flow as one readable paragraph again (each on its own line had made Today taller than its asserted
-   screen-count ceiling); the network label still leads and the environment chip still closes it. */
+   screen-count ceilings); the network label leads it and the environment chip closes it, inline. The social row stays one
+   line: the two X handles, the website and Back to top as a 44 px arrow (its name kept for assistive technology). */
 @media (max-width: 767.98px) {
-  .site-footer-disclaimer { display: block; }
+  .site-footer-inner { padding-top: 24px; gap: 12px; }
+  .site-footer-disclaimer { display: block; line-height: 1.5; }
   .site-footer-disclaimer > span + span::before { content: ' · '; color: #8fa6c8; }
-  .site-footer-disclaimer > .site-footer-build::before { content: none; }
-  .site-footer-disclaimer .site-footer-build { display: block; margin-top: 6px; }
+  .site-footer-disclaimer .network-banner strong { display: inline; margin: 0; }
+  .site-footer-disclaimer .site-footer-build { display: inline; margin: 0; }
+  .site-footer-social { flex-wrap: nowrap; }
+  .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }
+  .site-footer-social-links > a[href*="x.com"] { padding: 0 9px; gap: 6px; font-size: 14px; letter-spacing: -.01em; }
+  .site-footer-social-links > a[href*="x.com"] svg { width: 14px; height: 14px; }
+  .site-footer-top { width: 44px; padding: 0; justify-content: center; }
+  .site-footer-top > .site-footer-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }

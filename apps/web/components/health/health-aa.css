@@ -186,3 +186,6 @@
 :root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #8ab9ff33; background: #0a1430a6; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (min-width: 900px) { :root .health-micro-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 767.98px) { :root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 44px; } }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): an aisle's count sits on the page's nebula,
+   so it is near-white (4.5:1 over its lightest patch). */
+:root .health-grocery-aisle h3 small { color: var(--text-strong, #f4f8ff); }

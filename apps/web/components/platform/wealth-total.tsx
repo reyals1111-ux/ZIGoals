@@ -48,7 +48,7 @@ export function WealthTotal({subtotals,identity,empty}:{subtotals:readonly Curre
  const base=useBaseCurrency(),{primary,others,baseEmpty}=splitWealthTotals(subtotals,base);
  if(!primary)return <strong className="wealth-total-headline wealth-total-empty">{empty}</strong>;
  return <>
-  <strong className="wealth-total-headline"><NebulaFlow identity={identity}>{money(primary.value,primary.currency)}</NebulaFlow></strong>
+  <strong className="wealth-total-headline" style={{'--chars':money(primary.value,primary.currency).length} as import('react').CSSProperties}><NebulaFlow identity={identity}>{money(primary.value,primary.currency)}</NebulaFlow></strong>
   {baseEmpty&&<span className="wealth-total-base-note">Nothing tracked in {base} yet</span>}
   <OtherCurrencyChip others={others} id={identity}/>
  </>;
@@ -57,5 +57,5 @@ export function WealthTotal({subtotals,identity,empty}:{subtotals:readonly Curre
 export function SplitMoney({subtotals,id}:{subtotals:readonly CurrencyTotal[];id:string}){
  const base=useBaseCurrency(),{primary,others}=splitWealthTotals(subtotals,base);
  if(!primary)return <span>—</span>;
- return <><span>{money(primary.value,primary.currency)}</span><OtherCurrencyChip others={others} id={id}/></>;
+ return <><span className="split-figure" style={{'--chars':money(primary.value,primary.currency).length} as import('react').CSSProperties}>{money(primary.value,primary.currency)}</span><OtherCurrencyChip others={others} id={id}/></>;
 }

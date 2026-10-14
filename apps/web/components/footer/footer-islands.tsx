@@ -26,7 +26,7 @@ export function FooterHonesty() {
 /** While the Showcase is on, its own line (AB-Cloud's SHOWCASE_FOOTER); otherwise where the records live and sync. */
 export function FooterStatus() { const showcase = useShowcase(); return <div className="site-footer-status">{showcase ? SHOWCASE_FOOTER : <WorkspaceStatus/>}</div>; }
 export function FooterTop() {
-  return <a className="site-footer-top" href="#main" onClick={event => { event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('main')?.focus({preventScroll: true}); }}>Back to top <span aria-hidden="true">↑</span></a>;
+  return <a className="site-footer-top" href="#main" aria-label="Back to top" onClick={event => { event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('main')?.focus({preventScroll: true}); }}><span className="site-footer-top-word">Back to top</span> <span aria-hidden="true">↑</span></a>;
 }
 const FooterPath = lazy(() => import('./footer-path'));
 /** The constellation path and the opening moment: mounted inside the stage; finds its stage and footer from there. */

@@ -18,3 +18,14 @@
   /* A checkbox or a radio is reached through its whole label. */
   :root label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 44px !important; align-content: center; }
 }
+
+/* WebKit (Safari, iPhone): its native menulist ignores min-height and drew every select 23 px tall (layout audit, 390 px
+   WebKit). There, selects drop the native appearance, keep the app's 46 px field and carry a drawn chevron; Chrome keeps
+   its own select. `font: -apple-system-body` is understood by WebKit only. */
+@supports (font: -apple-system-body) {
+  select:not([multiple]):not([size]) {
+    -webkit-appearance: none; appearance: none; min-height: 44px; padding-right: 38px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5l5.5 5.5 5.5-5.5' fill='none' stroke='%23c9d6ea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 14px 9px;
+  }
+}

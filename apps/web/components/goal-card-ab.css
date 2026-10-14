@@ -46,3 +46,6 @@
 /* Session AB-Design Phase 2 closing pass (layout audit, 768–1440 px): the Details row's source/status preview wraps under
    its own right edge instead of ending in an ellipsis ("Existing wealth · active · Review needed" in a three-up row). */
 .goal-card-more > summary small { flex: 1 1 0; min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; text-align: right; line-height: 1.35; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): the card's foot wraps "Open Goal →" under
+   the source line when the touch layout's 44 px link no longer fits beside it, instead of running past the card. */
+.unified-goal-card .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; }
