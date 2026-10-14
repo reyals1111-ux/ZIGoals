@@ -9,7 +9,8 @@ import type {GoalMetadata} from '@zigoals/shared-types';
 import type {LocalGoal} from '../lib/local-ledger';
 import {formatGoalAmount,legacyGoalSummary,progressText,type GoalSummary,type ProgressBound} from '../lib/goal-summary';
 import {visualTone} from './visual-tone';
-import {SceneArt} from './scene-art';
+// Gate C weights: the card's scene is a lazy chunk (decorative; the card keeps its box while it arrives). Goals sat 1.6 kB over its budget; budgets are never raised.
+const SceneArt = lazy(() => import('./scene-art').then(m => ({default: m.SceneArt})));
 import {ProgressRing} from './platform/financial-ui';
 import {formatPlainDecimal} from '../lib/visual-format';
 import {PinToToday} from './pin-to-today';
@@ -33,7 +34,7 @@ export function GoalSummaryCard({summary:g,compact=false,...layout}:LayoutAttrs&
  const chosen=useCardArt(g.key),[picker,setPicker]=useState(false),[preview,setPreview]=useState<CardArt|null>(null),gid=useId();
  const scene:CardArt=preview??chosen??g.scene;
  return <article {...layout} className={`goal-card destination-card unified-goal-card${compact?' compact-goal':''}`} data-tone={visualTone(g.id)} data-goal-key={g.key}>
-  <div className="goal-card-art"><SceneArt scene={scene}/><span>{g.type}</span></div>
+  <div className="goal-card-art"><Suspense fallback={null}><SceneArt scene={scene}/></Suspense><span>{g.type}</span></div>
   <div className="card-top"><span className="eyebrow">{g.type}</span><span className="badge" data-health={g.status==='closed'?'CLOSED':g.requiresReview?'NEEDS_REVIEW':g.fundingHealth.replaceAll(' ','_')}>{g.status==='closed'?'Closed':g.status==='completed'?'Completed':g.requiresReview?'Needs review':g.fundingHealth}</span>{!compact&&g.status!=='closed'&&<PinToToday label={g.name} askName={g.name} choices={[{kind:'goal',metric:'progress',entity:g.key,label:`${g.name} progress`},{kind:'goal',metric:'next-contribution',entity:g.key,label:`${g.name} next contribution`}]} extra={<button type="button" onClick={()=>setPicker(true)}>Change artwork…</button>}/>}</div>
   {picker&&<Suspense fallback={null}><GoalArtPicker goalKey={g.key} name={g.name} current={scene} onClose={()=>setPicker(false)} onPreview={setPreview}/></Suspense>}
   <h2 className="nebula-number"><Link href={g.href}>{g.name}</Link></h2>
