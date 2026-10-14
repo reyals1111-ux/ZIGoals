@@ -21,3 +21,6 @@ production build at `6c1052b2` (Alpha #39 per the owner). "After" folders are ad
 | Staking | [1440](before/1440/staking.jpg) / [1024](before/1024/staking.jpg) / [390](before/390/staking.jpg) / [320](before/320/staking.jpg) | — | — |
 | Life review | [1440](before/1440/review.jpg) / [1024](before/1024/review.jpg) / [390](before/390/review.jpg) / [320](before/320/review.jpg) | — | — |
 | Help | [1440](before/1440/help.jpg) / [1024](before/1024/help.jpg) / [390](before/390/help.jpg) / [320](before/320/help.jpg) | — | — |
+
+## Gate C
+The final build (`09b2d307`) in the Showcase at the same four widths: `gate-c/<width>/<page>.jpg` and `-fold.png` (the gate-a column above shows the same pages before the Gate C fixes: one card caption, the Wealth eyebrow mark, the Habits phone art, the Hall media height, balanced titles, the footer legal block, the phone goal card at 254 px, thin counter rows at 320).
