@@ -1,5 +1,5 @@
-import {Suspense, lazy} from 'react';
 'use client';
+import {Suspense, lazy} from 'react';
 import type {LayoutAttrs} from '../layout-edit';
 import type {GoalSummary} from '../../lib/goal-summary';
 import type {AverageGoal} from '../../lib/average-goals/store';
