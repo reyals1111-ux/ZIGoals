@@ -10,9 +10,14 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {habitBell} from '../../lib/habits-extras/store';
 import {ringTimerBell} from '../../lib/habits-extras/bell';
 import {zigiSignals} from '../zigi/bus';
+import {ZigiFigure} from '../zigi/zigi-figure';
 import type {HabitsStore} from './use-habits';
 import type {HabitExtrasState} from './use-habit-extras';
 
+/** Phase 2, Part 6 (owner request 32): ZIGi guides the routine in a fixed line per moment — plain words, no model call. */
+function Guide({line, state = 'encouraging'}: {line: string; state?: string}) {
+  return <div className="routine-guide"><span className="routine-guide-figure" aria-hidden="true"><ZigiFigure state={state}/></span><p className="routine-guide-line" aria-live="polite"><span className="sr-only">ZIGi: </span>{line}</p></div>;
+}
 const mmss = (minutes: number) => { const s = Math.max(0, Math.round(minutes * 60)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 /**
  * H5: the routine player: one habit at a time, a timer where the habit measures minutes (the elapsed time comes from the
@@ -53,7 +58,7 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
   if (!mine) return <section className="routine-player" aria-label={routine.title}><p role="status">Starting {routine.title}…</p></section>;
   if (finished) {
     const f = finishSummary(routine, mine, store.today);
-    return <section className="routine-player routine-finish" aria-labelledby="routine-finish-title"><p className="eyebrow">Routine complete</p><h2 id="routine-finish-title"><NebulaFlow identity={`routine-finish:${headId}`}>Well done.</NebulaFlow></h2><p className="routine-finish-line">{f.done} of {f.total} steps done{f.skipped ? `, ${f.skipped} skipped` : ''}, in about {f.minutes} {f.minutes === 1 ? 'minute' : 'minutes'}.</p><ol className="routine-finish-steps">{steps.map(s => <li key={s.habit.id} data-status={s.status}><span aria-hidden="true">{s.status === 'done' ? '✓' : '○'}</span>{s.habit.title}</li>)}</ol><div className="actions"><button ref={closeButton} type="button" className="primary" onClick={() => leave(true)}>Close</button></div></section>;
+    return <section className="routine-player routine-finish" aria-labelledby="routine-finish-title"><p className="eyebrow">Routine complete</p><h2 id="routine-finish-title"><NebulaFlow identity={`routine-finish:${headId}`}>Well done.</NebulaFlow></h2><p className="routine-finish-line">{f.done} of {f.total} steps done{f.skipped ? `, ${f.skipped} skipped` : ''}, in about {f.minutes} {f.minutes === 1 ? 'minute' : 'minutes'}.</p><ol className="routine-finish-steps">{steps.map(s => <li key={s.habit.id} data-status={s.status}><span aria-hidden="true">{s.status === 'done' ? '✓' : '○'}</span>{s.habit.title}</li>)}</ol><div className="actions"><button ref={closeButton} type="button" className="primary" onClick={() => leave(true)}>Close</button></div><Guide line="You showed up for every step you could. That is the whole trick." state="celebrate"/></section>;
   }
   return <section className="routine-player" aria-labelledby="routine-player-title">
     <div className="routine-player-head"><p className="eyebrow">{routine.title} · step {mine.step + 1} of {steps.length}</p><button ref={closeButton} type="button" className="quiet" onClick={() => leave(false)} aria-label="Pause the routine and close">Close</button></div>
@@ -62,6 +67,7 @@ export function RoutinePlayer({headId, store, extras, onClose}: {headId: string;
     {current!.habit.description && <p className="routine-step-desc">{current!.habit.description}</p>}
     {current!.duration ? <div className="routine-timer"><GlassRing identity={`routine-ring:${current!.habit.id}`} className="routine-ring" arcs={[{key: 'elapsed', end: share * 100}]} role="timer" aria-label={`${mmss(elapsed)} of ${target} minutes`}><strong>{mmss(elapsed)}</strong><small>of {target} min</small></GlassRing><p className="fine">Counted from when this step began; a reload keeps it.</p></div> : <p className="routine-step-tick">Tick it off when it is done.</p>}
     <div className="actions routine-actions"><button type="button" className="primary" disabled={busy} onClick={() => void step('done')}>{busy ? 'Saving…' : mine.step + 1 === steps.length ? 'Done · finish' : 'Done · next'}</button><button type="button" className="quiet" disabled={busy} onClick={() => void step('skipped')}>Skip</button></div>
+    <Guide line={current!.duration && target ? (elapsed >= target ? `That’s your ${target} minutes. Tap Done when you’re ready.` : `I’ll keep time: ${target} minutes. Stay with it${extras.loaded && habitBell(extras.data, current!.habit.id) ? '; I’ll ring when it’s done' : ''}.`) : mine.step + 1 === steps.length ? `Last one: ${current!.habit.title}. Tap Done when it’s done.` : `One thing at a time: ${current!.habit.title}. Tap Done when it’s done, or Skip.`}/>
     {error && <p role="alert">{error}</p>}
   </section>;
 }

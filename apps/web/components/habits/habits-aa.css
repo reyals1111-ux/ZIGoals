@@ -167,3 +167,31 @@
 .habit-section-label .habit-section-count { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none; }
 .habit-section-compact[data-now] .habit-section-label { color: var(--text-strong, #f3eeff); }
 .habit-section-compact .habit-today-list { margin: 6px 0 0; }
+/* Phase 2, Part 6 (owner request 32): the routine player full screen — the night sky behind one step at a time, a large
+   ring, ZIGi's guiding line at the foot. Still under reduced motion and Motion Off (nothing here animates on its own). */
+:root .routine-sheet { padding: 0; place-items: stretch; background: radial-gradient(ellipse at 50% 18%, #3b2a7a88, transparent 60%), radial-gradient(ellipse at 80% 90%, #0e4a6a66, transparent 55%), #050916f2; }
+:root .routine-sheet .routine-player { width: 100%; max-width: none; height: 100%; max-height: none; border: 0; border-radius: 0; background: none; align-content: center; padding: max(24px, env(safe-area-inset-top)) clamp(18px, 6vw, 64px) max(24px, env(safe-area-inset-bottom)); gap: 22px; }
+:root .routine-sheet .routine-player-head { position: absolute; top: max(16px, env(safe-area-inset-top)); left: clamp(18px, 6vw, 64px); right: clamp(18px, 6vw, 64px); width: auto; }
+:root .routine-sheet .routine-player h2 { font-size: clamp(32px, 5vw, 56px); max-width: 760px; }
+:root .routine-sheet .routine-ring { width: min(320px, 68vw); }
+:root .routine-sheet .routine-dots li { width: 36px; }
+.routine-guide { display: flex; align-items: center; gap: 14px; max-width: 560px; margin-top: 6px; padding: 12px 18px 12px 12px; border-radius: 22px; background: #0d1a30cc; border: 1px solid #9fd6ff2e; text-align: left; }
+.routine-guide-figure { flex: 0 0 auto; width: 56px; height: 56px; display: grid; place-items: center; }
+.routine-guide-figure .zigi-figure { width: 56px; height: 56px; }
+.routine-guide-figure img { width: 100%; height: 100%; object-fit: contain; }
+.routine-guide-line { margin: 0; font-size: 16px; line-height: 1.45; color: #eef4fd; }
+@media (max-width: 480px) { .routine-guide-figure, .routine-guide-figure .zigi-figure { width: 44px; height: 44px; } .routine-guide-line { font-size: 15px; } }
+/* Phase 2, Part 6 (owner request 32): each time-of-day section opens under its own sky — dawn for Morning, a clear blue
+   day for Afternoon, dusk for Evening, the night for Anytime — a soft band behind the heading with a sun or moon glow at
+   the mark. Low-alpha over the dark card, so the white heading keeps its contrast. */
+.habit-section > .habit-section-summary { position: relative; isolation: isolate; border-radius: 22px 22px 0 0; }
+.habit-section:not([open]) > .habit-section-summary { border-radius: 22px; }
+.habit-section > .habit-section-summary::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; }
+.habit-section-morning > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ffd27a55, transparent 70px), linear-gradient(100deg, #ff9f6e33 0%, #ff7eb626 32%, #9273ff14 64%, transparent 92%); }
+.habit-section-afternoon > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #fff3b555, transparent 70px), linear-gradient(100deg, #39c6ff33 0%, #5ea4ff24 38%, #5effd414 70%, transparent 94%); }
+.habit-section-evening > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #ff74be44, transparent 70px), linear-gradient(100deg, #ff6f8f33 0%, #b177f42e 34%, #3b2a7a26 68%, transparent 95%); }
+.habit-section-anytime > .habit-section-summary::before { background: radial-gradient(circle at 34px 50%, #cfd9ff33, transparent 70px), radial-gradient(1px 1px at 62% 30%, #fff9, transparent), radial-gradient(1px 1px at 78% 62%, #fff8, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #fffa, transparent), linear-gradient(100deg, #2a2f6a40 0%, #1a1f4a30 50%, transparent 95%); }
+.habit-section-morning .habit-section-mark { background: radial-gradient(circle at 40% 35%, #ffd27a88, #ff9f6e33); }
+.habit-section-afternoon .habit-section-mark { background: radial-gradient(circle at 40% 35%, #fff3b588, #39c6ff33); }
+.habit-section-evening .habit-section-mark { background: radial-gradient(circle at 40% 35%, #ff74be77, #6c3fa033); }
+@media (forced-colors: active) { .habit-section > .habit-section-summary::before { display: none; } }
