@@ -1,3 +1,48 @@
+# Session AB-Cloud — "Everything left over + private sync for every feature" (ADR-023) (2026-10-13/14, [PR #85](https://github.com/reyals1111-ux/ZIGoals/pull/85), ready for review, not merged)
+**Evidence labels:** local = the cloud sandbox, production build on :3100 with `TZ=UTC`, Playwright Chromium as Chrome (2 workers, nothing in parallel); Miniflare = the private-sync Worker in `scripts/run11/`; CI = Milestone quality on GitHub.
+**Base:** `main` `6c1052b` (Alpha #39, recorded below). **Lane:** data, sync, Workers, CI, scripts, docs, Settings → Sync / Your data, Restore, Point & tell; AB-Design (ADR-024) owns the visuals and was not on origin at any gate. **Finish:** lean, per the owner's note (stretch items skipped).
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: Alpha #39, ADR-023, handoff, session status | — | `9435afec` | Actions API |
+| 1 | Finance v5 written (accounts, milestone dates; floor #32), `cardArt`, AB-Design's device keys, `scripts/frozen-readers.mjs` | 3 | `bdb4b5b7` `ed33e2d5` `c633814c` `516cba9e` | unit; frozen readers |
+| 2 | Extras sync: `/v1/extras` (four sealed sections, CAS, generation, receipts), the client and three-way merge, on with every account sync (Health's section only with its consent) | 3 | `aed011b3` `69edf6d2` `0e26879a` `e587ca16` | unit; Miniflare 4/4 + 5/5 |
+| Gate A | One status line; the extras switch renders with the panel | 3 | `05ad2bb3` `f381c1e9` `fe589e42` `097f19e1` | CI |
+| 3 | FIX_PLAN B3–B7 for the extras | 3 | `5d91c083` | unit |
+| 4 | Vitamins beside the nutrition format | 3 | `ccefd69d` | unit; browser |
+| 5 | Restore from a backup; image sizes from the header | 3 | `ce750e0b` | unit; browser round trip |
+| 6 | Point & tell | 2 | `97e14af1` | unit; browser; WCAG |
+| Gate B | Security read (6 findings fixed, C28); the lost-ack race's root cause (C21c) | 3 | `b586c963` `02677e45` `e3ac5003` | unit; Miniflare; CI integration green |
+| 8 | Showcase words as data, grouped amounts, default currency, History Undo, photo caps | 2 | `2c3fd6db` | unit; browser |
+| 7 | WebKit in two shards; PR runs queue | 3 | `ac973b74` | CI (both shards finish in cap) |
+| 9 | ZIGi without a model (Dutch intro; create-food, log-meal-plan, plan-goal steps) | 2 | `fe784693` | unit; browser; golden unchanged |
+| 10 | Readiness: verifier stages, redeploy and runsheet rows, guides, What's new + 7 Help answers | 1 | `f86985cb` | browser |
+| Gate C | Test audit acted on; frozen readers 17/17; revert gate 26/26; CI's browser failures fixed (banner wrap, Point & tell target, Known limitations count); records | — | `1f8f1cb8` `e57ab538` `732a2055` `a27e5560` `870c3929` `567e120e` | local; CI |
+| — | This entry | — | this commit | — |
+## Tier 3, in plain words (risk → rollback)
+- **Finance v5** (`c633814c`): the rollback floor rises from #29 to #32 (approved) → revert; finance stays v5, read by every build since #32.
+- **`/v1/extras`** (`aed011b3`, `b586c963`): a new keyspace in the account's object, never touched by older clients, compaction, deletion or rotation; **needs a private-sync Worker redeploy before the app** → revert and redeploy; stored keys stay unread, the erase removes them.
+- **Extras sync** (`69edf6d2`, `0e26879a`, `f381c1e9`, `fe589e42`, `5d91c083`): a merge could write a wrong value into a device key (schema-checked, never over a concurrent edit) → revert; the device keys hold every record as last merged.
+- **Vitamins, Restore, cardArt, AB-Design keys** (`ccefd69d`, `ce750e0b`, `02677e45`, `bdb4b5b7`, `ed33e2d5`): new loose device data and a restore that changes only what the person chose (Undo restores exact bytes) → revert; records stay, unread or as written.
+- **CI** (`ac973b74`): more CI minutes → revert the lines.
+## Checks
+- Unit 4,888 passed, 44 skipped (555 files). Typecheck and lint clean (7 old warnings). Key scan passed.
+- Frozen readers: #37 `32cb9c5`, #38 `e3fa408`, #39 `6c1052b` read every record this build writes, 17/17 each (`docs/verification/ab-cloud/frozen-readers-gate-c.txt`).
+- Revert gate: typecheck green at all 26 commits; reverting them newest-first ends at `6c1052b`'s tree (`revert-gate-gate-c.txt`).
+- Browser, local (lean): 1,482 of 2,688 run before the lean-finish note; 9 failed, each explained in SESSION_STATUS (2 brand-film local-only, 2 fixed with 10/10 and 30/30 after, 5 pass alone and in CI).
+- CI: Milestone quality on `870c392` ([run 38510173374](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38510173374)) green: `web`, three browser shards, checks, integration (weights), contract; Canonical reproducibility green. WebKit (advisory) red on the known classes (C29). The final head's run is named in the PR description.
+## Assertions changed
+Each is listed in ADR-023 ("Assertions changed"): export-everything, amount-input, persona-x, apply.test, help-page, whats-new, zigi-help-settings, finished-feel-aa (pinned 21), send-feedback (13 limitations). New texts and counts, the same or stricter checks; none removed or loosened.
+## Owner items
+1. PRIVACY.md E2 sentence with the extras clause: still "DRAFT — owner wording" (`docs/PRIVACY.md:9`); wording in the PR.
+2. Private-sync Worker redeploy (`/v1/extras`) before the app deploy (runsheet rows 15h–15j).
+3. Rollback floor #32; extras sync on by default (Health's section with its consent); CI minutes (queueing, WebKit shards).
+4. WebKit stays advisory with three known classes (C29); the Showcase banner sentence (data, AB-Design's chip replaces it).
+## Known CI intermittents (this session)
+- `persona-z:278` (phone) once on shard 2; `coherence:7` (phone) once on `e3ac500` (6/6 locally, green on the next run). One re-run each; a second failure means investigate.
+
+---
+
 # Alpha deploy #39 — 2026-10-13 morning, `6c1052b` live
 Recorded by Session AB-Cloud (2026-10-13).
 - **Source:** `6c1052b291812982f65875b86ea65001026125b5`, `main` after [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84) (Merge #84, Session AA-Local, "Habits, Health and the game layer, best in class + ZIGi everywhere", ADR-022; the second merger, carrying AA-Cloud's #83, which was #38).
