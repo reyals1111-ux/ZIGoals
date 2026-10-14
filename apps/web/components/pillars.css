@@ -9,3 +9,4 @@
 .page-header[data-pillar="goals"] { --pillar: var(--pillar-goals); } .page-header[data-pillar="habits"] { --pillar: var(--pillar-habits); } .page-header[data-pillar="health"] { --pillar: var(--pillar-health); } .page-header[data-pillar="wealth"] { --pillar: var(--pillar-wealth); }
 /* The Habits and Wealth heroes' eyebrows carry the mark inline before their words (the Wealth mark sat over "YOUR" on phones). */
 .wealth-hero .page-eyebrow, .habit-hero .page-eyebrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pillar-mark[data-pillar="journey"] { --pillar: #c790f6; }

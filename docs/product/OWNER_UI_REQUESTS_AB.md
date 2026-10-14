@@ -97,20 +97,23 @@ Statuses below are the Part 0 reading (before); the Gate C column is filled at t
 |---|---|---|---|---|---|
 | 1 | crisp nebula/star background, solid at top/bottom, stars towards the middle | done | — | | `1440/today-top.png` |
 | 1 | same quality as the sidebar; static; page weight healthy | done | — | | `1440/today-top.png` |
-| 2 | one full-width footer banner, planet/horizon exactly once | done | 11 | | `1440/footer.png` |
-| 2 | the ZIGoals logo | partly — a gradient wordmark, not the Z mark | 11 | | `1440/footer.png` |
-| 2 | slogan "Goals, Habits & Health = Wealth", zigoals.app, Help, Send feedback, security contact | done | — | | `1440/footer.png` |
-| 2 | X links with logos, only real handles (config off, owner edit) | done (off) | — | | `1440/footer.png` |
-| 2 | full Alpha disclaimer line, readable | partly — one 5-line centred block; the dock sits on it | 1, 11 | | `1440/footer.png`, `390/page-bottom-today.png` |
-| 2 | 3-step nebula line 01 Goals → 02 Habits & Health → 03 = Wealth, fold marks, draws once | done | — | | `1440/footer.png` |
-| 2 | old 3-step card removed; looks like a premium footer | done | 11 | | `1440/today-full.jpg` |
+| 2 | one full-width footer banner, the planet exactly once | done | — | done | `phase-2/after/1440/footer.png` |
+| 2 | the ZIGoals logo — *owner correction:* the origami Z/G logo as the "Z" of "[logo]IGoals", the slogan and its small line under it | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png`, `390/footer.png` |
+| 2 | *owner polish (final):* the logo 1.1× the cap height of "IGoals" (measured 1.099 at 1440/1024/390/320), on the baseline and centred on the letters' optical middle (equal 1.5–3 px overshoot above the cap and below the baseline), a 0.14 em clear gap, crisp dedicated lossless 1x/2x/3x files from the transparent master with no filter/opacity/blend on the raster (glow on a layer behind), "IGoals" in the logo's cyan-blue → violet → magenta flow with the same glow; compared with the sidebar logo at DPR 2 | done (Phase 2) | P6 | done | `phase-2/after/wordmark/wm-zoom-1440.png`, `wm-zoom-1024.png`, `wm-zoom-390.png`, `wm-zoom-320.png`, `sidebar-logo-1440.png` |
+| 2 | slogan, zigoals.app (globe), Help, Send feedback, security contact; grouped link columns (Product, Help & feedback, Your data) | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png` |
+| 2 | X links with logos — *owner correction:* @ZIGoals and @ZIGFluencer confirmed and shown | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png` |
+| 2 | full Alpha disclaimer, readable (14–15 px, shorter lines, a scrim behind it) | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png`, `320/footer.png` |
+| 2 | the steps — *owner correction:* 01 Goals → 02 Habits → 03 Health, lotus/butterfly/heart, pillar accents; the path flows from Health up into "= Wealth" | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png`, `phase-2/after/frames/1440/` |
+| 2 | the opening animation once per session (path draws, nodes ignite, lights travel, Wealth lights, rim sweep), resting state under reduced motion | done (Phase 2) | P6 | done | `phase-2/after/frames/1440/footer-f1…f7.png`, `frames/390/` |
+| 2 | phones: logo + slogan, steps stacked with the path running down, social icons, links in two columns, disclaimer; 44 px links | done (Phase 2) | P6 | done | `phase-2/after/390/footer.png`, `320/footer.png`, WebKit `phase-2/after-webkit/390/footer.png` |
+| 2 | the arcs never cross text; Back to top; old card removed | done (Phase 2) | P6 | done | `phase-2/after/1440/footer.png` |
 | 3 | My links directly above the footer by default | done | 8 | | `1440/today-full.jpg` |
 | 3 | page bottoms clean on 390/1024/1440/ultra-wide | partly — phone links ragged, "Make a backup" at the edge, the dock over the disclaimer | 1, 11 | | `390/page-bottom-today.png` |
 | 4 | the motto centred on the planet | done | — | | `1440/sidebar.png` |
 | 5 | theme switch Light (Soon) / Customize (Soon) / Dark, nebula style, sidebar bottom | done | — | | `1440/sidebar.png` |
 | 5 | on phones inside More/Settings | partly — in More below the rows; More's order to tidy | 10 | | `390/more-sheet.png` |
 | 6 | music button above ZIGi with clear spacing, fold arrow to the right, edge tab | done (desktop); on phones it lives in More (Session Z-Cloud) | 1 | | `1440/today-top.png` |
-| 6 | the dock never covers content | not done — covers cards, ⋯ menus, the disclaimer | 1 | | `1440/today-top.png`, `1440/goals-menu.png` |
+| 6 | *owner correction:* the buttons float on top (overlap accepted, both fold away); cards keep their full width; extra scroll room at the page end; the arrow 20 px above ZIGi on one axis | done (Phase 2) | P1, P2 | done | `phase-2/after/1440/today-rail.png`, `1024/goals-top.png`, `390/dock-goals.png` |
 | 7 | hero collapse arrow top-right, remembered; hero unchanged | done | 8 | | `1440/hero-folded.png` |
 | 7 | folded strip tidy on phones | partly — eyebrow wraps to two lines | 8 | | `390/hero-folded.png` |
 | 8 | warning clutter removed; pages start with their header | partly — "SHOWCASE DATA · …" lines remain inside some cards | 11 | | `1440/today-top.png` |

@@ -7,9 +7,8 @@ import { OrbitalArt } from "../../../components/orbital-art";
 import { useUnifiedGoals } from "../../../components/use-unified-goals";
 import { useGoals } from "../../../components/goal-provider";
 import { CardOptions } from "../../../components/card-options";
-import { PageMinorActions } from "../../../components/page-actions";
 import { ProgressSlot } from "../../../components/progress/slot";
-import { PageHeader } from "../../../components/page-header";
+import { PillarHero } from "../../../components/pillar-hero";
 import { GoalMilestones } from "../../../components/bottom-sections";
 import { useLocalToday } from "../../../components/use-local-today";
 import { LayoutLockButton, LayoutPage, LayoutRegion, useLayoutPage } from "../../../components/layout-edit";
@@ -42,7 +41,7 @@ export default function GoalsPage() {
   const count=visible.length,pages=Math.max(1,Math.ceil(count/24)),currentPage=Math.min(page,pages-1),displayed=large?visible.slice(currentPage*24,(currentPage+1)*24):visible;
   const changePage=(next:number)=>{setPage(next);document.getElementById('goal-collection-controls')?.focus();};
   return <LayoutPage page="goals"><div className="goals-page dashboard platform-workspace">
-    <PageHeader pillar="goals" className="page-heading goals-heading" eyebrow="A destination worth building" title="Your Goals" actions={<><PageMinorActions about="goals"/><Link className="primary" href="/app/goals/new">+ Create a goal</Link></>} lede="Small steps. A bigger future. Every plan starts with you."/><LayoutLockButton/>
+    <PillarHero pillar="goals" titleId="goals-title" className="goals-heading" eyebrow="A destination worth building" title="Your Goals" lede="Small steps. A bigger future. Every plan starts with you." buttons={<Link className="primary" href="/app/goals/new">+ Create a goal</Link>} about="goals"/><LayoutLockButton/>
     {keeperReady && <LazyExtrasKeeper liveKeys={[...collection.goals.map(g => g.key), ...healthGoals.data.goals.map(g => `health:${g.id}`)]} ready/>}
     {/* Session AB-Design (owner request 15): the filters on the left, the Cards / Vision board / Tree switch at the right end; the count lives in the Active filter's name; Positions stays reachable from the page's ⋯ menu (never removed). */}
     {!!total && <div className="goals-toolbar"><nav className="tab-row view-tabs goal-view-filters" aria-label="Goal views">{["Active", "Completed", "Closed", "All"].map(v => <button key={v} aria-pressed={filter === v} aria-description={filter === v ? `${count + shownAverages.length} ${count + shownAverages.length === 1 ? "destination" : "destinations"}` : undefined} onClick={() => {setFilter(v);setPage(0);}}>{v}</button>)}</nav><div className="goals-toolbar-end"><GoalsViewSwitch view={view} onChange={setView}/><CardOptions label="Goals"><Link href="/app/staking#positions">Positions →</Link></CardOptions></div></div>}

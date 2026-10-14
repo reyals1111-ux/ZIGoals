@@ -6,3 +6,29 @@
 .asset-detail{display:grid;gap:24px}.asset-detail>.asset-detail-actions{margin:0}.asset-detail .price-chart{margin:0}
 /* Session AB-Design (owner request 25): the hero headline keeps one line on a computer; the total box sits a row down, at the right. */
 @media (min-width: 1280px) { .wealth-product.wealth-workspace .wealth-hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "copy" "total" "split"; } .wealth-product.wealth-workspace .wealth-hero > .wealth-hero-copy { grid-area: copy; max-width: none; } .wealth-product.wealth-workspace .wealth-hero > .wealth-hero-total { grid-area: total; justify-self: end; width: min(100%, 540px); margin-top: -8px; } .wealth-product.wealth-workspace .wealth-hero > .wealth-split { grid-area: split; } .wealth-product.wealth-workspace .wealth-hero h1 { font-size: clamp(38px, 3.4vw, 60px); max-width: none; } }
+/* Session AB-Design Phase 2 (ADR-024 P5): the summary card under the shared header — the total at the left, the Goals split,
+   the holdings' tools and the privacy line at the right; one column below 1200 px. */
+.wealth-product.wealth-workspace .wealth-hero.wealth-summary { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "total side"; gap: 28px; align-items: stretch; padding: clamp(22px, 3vw, 36px); }
+.wealth-product.wealth-workspace .wealth-hero.wealth-summary > .wealth-hero-total { grid-area: total; justify-self: stretch; width: auto; margin: 0; position: relative; z-index: 1; }
+.wealth-summary-side { grid-area: side; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; min-width: 0; position: relative; z-index: 1; }
+.wealth-product .wealth-summary .wealth-split { grid-area: auto; margin: 0; }
+.wealth-summary-tools { display: flex; flex-wrap: wrap; gap: 10px; }
+.wealth-summary-tools > * { min-height: 44px; }
+.wealth-summary-side > .fine { margin: 0; color: var(--text-secondary, #c9d6ea); font-size: 14px; }
+@media (max-width: 1199.98px) { .wealth-product.wealth-workspace .wealth-hero.wealth-summary { grid-template-columns: minmax(0, 1fr); grid-template-areas: "total" "side"; } }
+@media (max-width: 767.98px) { .wealth-product.wealth-workspace .wealth-hero.wealth-summary { padding: 16px; gap: 16px; } .wealth-summary-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .wealth-summary-tools > * { min-width: 0; padding-inline: 10px; font-size: 15px; } }
+/* The summary's Goals split: each figure under its label, on one line, so a long amount never clips at the card's edge. */
+.wealth-product .wealth-summary .wealth-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.wealth-product .wealth-summary .wealth-split > div { display: grid; align-content: start; gap: 6px; min-width: 0; padding: 14px 16px; border-radius: 16px; border: 1px solid #9fd6ff1f; background: #0a1430a6; }
+.wealth-product .wealth-summary .wealth-split dt { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+.wealth-product .wealth-summary .wealth-split dd { margin: 0; display: grid; gap: 6px; justify-items: start; font-size: clamp(20px, 1.9vw, 26px); font-weight: 700; font-variant-numeric: tabular-nums; }
+.wealth-product .wealth-summary .wealth-split dd > span:first-child { white-space: nowrap; }
+
+/* Phase 2 (phone-pages: the total stays on the first screen under the shared header): on phones the header's own bottom margin
+   gives way to the page's 26 px gap, the label keeps one line beside the ⋯ menu, and the total box is a little tighter. */
+@media (max-width: 767.98px) {
+  .wealth-product.wealth-workspace > .pillar-hero { margin-bottom: 0; }
+  .wealth-product.wealth-workspace .wealth-hero.wealth-summary { padding: 12px; }
+  .wealth-product.wealth-workspace .wealth-hero.wealth-summary > .wealth-hero-total { padding: 16px 16px 18px; }
+  .wealth-product .wealth-summary .wealth-hero-total > span:first-of-type { padding-right: 48px; white-space: nowrap; letter-spacing: .1em; }
+}

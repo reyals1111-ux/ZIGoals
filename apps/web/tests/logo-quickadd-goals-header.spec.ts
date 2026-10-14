@@ -39,7 +39,12 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  // UI design pass: at the far right of the title row, vertically centred on the title.
  const header=(await page.locator('.goals-heading').boundingBox())!;
  // Session AB-Design: on phones the title takes its own row and the actions follow below it (ADR-024, second round).
- if(isMobile){expect(c.y).toBeGreaterThanOrEqual(t.y+t.height);}else{expect(c.x).toBeGreaterThanOrEqual(t.x+t.width);expect(Math.abs((c.x+c.width)-(header.x+header.width))).toBeLessThanOrEqual(2);expect(Math.abs((c.y+c.height/2)-(t.y+t.height/2))).toBeLessThanOrEqual(8);}
+ // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): one header grid on every pillar page — the
+ // title spans the row and the actions (Create first, the minor links under it) sit at the far right of the lede row below it,
+ // their block bottom-aligned with the lede. As strict.
+ const lede=(await page.locator('.goals-heading .pillar-hero-lede').boundingBox())!,actions=(await page.locator('.goals-heading .pillar-hero-actions').boundingBox())!;
+ expect(c.y).toBeGreaterThanOrEqual(t.y+t.height);
+ if(!isMobile){expect(c.x).toBeGreaterThanOrEqual(lede.x+lede.width);expect(Math.abs((c.x+c.width)-(header.x+header.width))).toBeLessThanOrEqual(2);expect(Math.abs((actions.y+actions.height)-(lede.y+lede.height))).toBeLessThanOrEqual(8);}
  // Session AB-Design (owner request 15): the filters on the left, the Cards / Vision board / Tree switch and the ⋯ menu (Positions) at the right end; the count is the active filter's name, not a text of its own.
  const toolbar=page.locator('.goals-toolbar'),controls=toolbar.locator(':scope a, :scope button');
  await expect(toolbar.getByRole('navigation',{name:'Goal views'})).toBeVisible();await expect(toolbar.getByRole('group',{name:'Show goals as'})).toBeVisible();await expect(toolbar.getByRole('button',{name:'Options for Goals',exact:true})).toBeVisible();
@@ -48,7 +53,9 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  for(const box of await controls.evaluateAll(els=>els.map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {h:r.height,w:r.width,font:parseFloat(s.fontSize)};}))){expect(box.h).toBeGreaterThanOrEqual(44);expect(box.font).toBeGreaterThanOrEqual(14);}
  const sw=(await toolbar.getByRole('group',{name:'Show goals as'}).boundingBox())!,hb=(await page.locator('.goals-heading').boundingBox())!;expect(Math.abs((sw.x+sw.width)-(hb.x+hb.width))).toBeLessThanOrEqual(60); // the switch at the right end
  const subtitle=(await page.getByText('Small steps. A bigger future. Every plan starts with you.',{exact:true}).boundingBox())!,bar=(await toolbar.boundingBox())!,grid=(await page.getByRole('region',{name:'Your goals',exact:true}).boundingBox())!;
- expect(bar.y-(subtitle.y+subtitle.height)).toBeLessThanOrEqual(32);expect(grid.y-(bar.y+bar.height)).toBeLessThanOrEqual(32);
+ // Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): the shared header ends with its actions (under the lede on
+ // phones), so the controls row is measured from the header's end, not the lede's. As strict: ≤ 32 px.
+ expect(subtitle.y).toBeLessThan(bar.y);expect(bar.y-(header.y+header.height)).toBeLessThanOrEqual(32);expect(grid.y-(bar.y+bar.height)).toBeLessThanOrEqual(32);
  // The filters still filter.
  await toolbar.getByRole('button',{name:'All',exact:true}).click();await expect(toolbar.getByRole('button',{name:'All',exact:true})).toHaveAttribute('aria-pressed','true');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(0);

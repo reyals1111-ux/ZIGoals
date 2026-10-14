@@ -3,8 +3,6 @@ import { HabitRhythmSection } from "../bottom-sections";
 import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readConfirmDelete } from "../../lib/confirm-delete";
-import Link from "next/link";
-import { PageMinorActions } from "../page-actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hashId } from "../../lib/hash-id";
 import { holdInView } from "../settings/keep-jump";
@@ -22,7 +20,7 @@ import { LayoutLockButton, LayoutPage, LayoutRegion, PageTools} from "../layout-
 import { entityLayoutId } from "../../lib/page-layout";
 import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
 import { NebulaFlow } from "../nebula-flow";
-import { PillarMark } from "../pillars";
+import { PillarHero } from "../pillar-hero";
 import { LoadBoundary } from "../load-boundary";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
@@ -191,7 +189,12 @@ export function HabitsWorkspace() {
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><LayoutPage page="habits"><div className="habits-workspace">
     {routine && <div className="routine-sheet" role="dialog" aria-modal="true" aria-label="Routine"><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></div>}
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><PillarMark pillar="habits" size={16}/><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{/* Session AB-Design (owner request 19): Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}{!phone && <PageTools><button className="quiet habit-vacation-button page-tool" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></PageTools>}<PageMinorActions about="habits"/></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+    {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, cut from this page's own. Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}
+    <PillarHero pillar="habits" titleId="habits-title" className="habit-hero" actionsClass="habit-hero-actions" eyebrow="Small steps. Your own rhythm." title="Find your daily cadence." lede="Make room for what matters. Every small return adds to the pattern." about="habits"
+      buttons={<button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>}
+      art={<div className="habit-constellation"><i /><i /><i /><i /><i /><span>✦</span></div>}>
+      {!phone && <PageTools><button className="quiet habit-vacation-button page-tool" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></PageTools>}<LayoutLockButton/>
+    </PillarHero>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {deletedHabit && <p role="status" className="habit-deleted">“{deletedHabit.title}” was deleted for good. <button type="button" className="secondary" onClick={() => void undoDeleteForGood()}>Undo · {Math.max(0, Math.ceil((deletedHabit.until - clock) / 1000))} s</button></p>}

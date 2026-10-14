@@ -24,13 +24,13 @@ test('Wealth: the total follows the title, so the figure is on the first screen'
  expect(box.y+box.height).toBeLessThanOrEqual(tabs.y);
  // Still one total, labelled as before; Add asset leads the actions.
  await expect(page.locator('.wealth-hero-total')).toHaveCount(1);await expect(page.locator('.wealth-hero-total')).toContainText('TRACKED WEALTH');
- await expect(page.locator('.wealth-actions .primary')).toHaveText('+ Add asset');
+ await expect(page.locator('.wealth-heading .pillar-hero-buttons .primary')).toHaveText('+ Add asset');
 });
 
 test('phone default orders: Health title, date, counters; Habits check-ins before charts; Wealth holdings after the total; a saved order still wins',async({page})=>{
  await page.setViewportSize({width:390,height:844});await showcase(page);
  await open(page,'/app/health');
- const order=await page.evaluate(()=>['.page-heading','.health-date-strip','.exercise-counters','.health-toolbar'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));
+ const order=await page.evaluate(()=>['.health-heading','.health-date-strip','.exercise-counters','.health-toolbar'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));
  expect([...order].sort((a,b)=>a-b)).toEqual(order);
  await expect(page.getByLabel('Journal date')).toHaveCount(1);
  await open(page,'/app/habits');

@@ -7,6 +7,8 @@ import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {baseCurrencyOf} from '../../lib/ui-prefs/schema';
 import './wealth-total.css';
+/** A whole-currency amount as Wealth shows it (Today's Life overview reads it too). */
+export const wealthMoney=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
 const money=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
 /** The person's base currency for Wealth's figures (owner request 24; AB-Cloud's defaultCurrency() once it lands, ADR-024 owner edit 5). */
 export function useBaseCurrency(){const prefs=useUiPrefs();return baseCurrencyOf(prefs.data);}

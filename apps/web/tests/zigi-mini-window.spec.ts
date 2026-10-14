@@ -103,7 +103,7 @@ test('the same chat goes on in the mini window; "Back to tab" and ZIGi\'s button
   await page.getByRole('navigation', {name: 'Main navigation'}).getByRole('link', {name: 'Wealth', exact: true}).click();
   await page.waitForURL('**/app/wealth');
   await expect(chat.locator('.ai-turn-assistant')).toHaveCount(2);
-  await page.locator('.wealth-actions').getByRole('button', {name: '+ Add asset', exact: true}).click();
+  await page.locator('.wealth-heading .pillar-hero-buttons').getByRole('button', {name: '+ Add asset', exact: true}).click();
   await expect(page.locator('dialog.wealth-sheet[open]')).toBeVisible();
   await expect(mini.getByRole('status').filter({hasText: 'Paused while a private screen is open in the tab'})).toBeVisible();
   expect(await chat.evaluate(el => (el as HTMLElement).inert)).toBe(true);

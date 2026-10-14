@@ -3,7 +3,6 @@ import {ProgressSlot} from '../progress/slot';
 import {WealthAllocationSection} from '../bottom-sections';
 import {WealthTotal} from './wealth-total';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
-import {PageMinorActions} from '../page-actions';
 import {SplitMoney} from './wealth-total';
 // Gate C weights: the chart is its own chunk (Wealth sat 4 kB over its budget with it inline; budgets are never raised).
 const WealthHistoryChart=lazy(()=>import('../wealth/wealth-history-chart').then(m=>({default:m.WealthHistoryChart})));
@@ -53,8 +52,7 @@ import {Watchlist} from './watchlist';
 import {PhoneFold} from '../phone/phone-fold';
 import {restoreAsset} from '../../lib/asset-management';
 import {PinToToday} from '../pin-to-today';
-import {NebulaFlow} from '../nebula-flow';
-import {PillarMark} from '../pillars';
+import {PillarHero} from '../pillar-hero';
 import {EmptyState} from '../ui/empty-state';
 import {assetQuantity} from './asset-quantity';
 import { formatDateTime } from '../../lib/visual-format';
@@ -77,7 +75,9 @@ export function WealthView(){
  // On a phone the total follows the title, so the figure is on the first screen; elsewhere it keeps its place.
  const total=<div className="wealth-hero-total" role="group" aria-label={overview.incomplete?'Known tracked wealth':'Total tracked wealth'}>{overview.subtotals.some(s=>s.currency==='USD'||s.currency==='EUR')&&<PinToToday label="Tracked wealth" choices={overview.subtotals.filter(s=>s.currency==='USD'||s.currency==='EUR').map(s=>({kind:'wealth' as const,metric:s.currency,label:`${s.currency} wealth`}))}/>}<span>{overview.incomplete?'KNOWN TRACKED WEALTH':'TOTAL TRACKED WEALTH'}</span><WealthTotal identity="wealth-total" subtotals={overview.subtotals} empty={overview.rows.length?'Needs valuation':'Start your wealth story'}/><small>{overview.rows.length}{` ${plural(overview.rows.length,'asset')} · `}{automatic.length} automatic · {overview.rows.length-automatic.length} manual</small>{overview.subtotals.length>1&&<p className="wealth-total-fx">Currency totals stay separate. No FX assumed.</p>}</div>;
  return <LayoutPage page="wealth"><div className="dashboard wealth-workspace wealth-product"><ActionIntent value="asset" onAction={()=>setAdding(true)}/>
- <section className="wealth-hero panel"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/><div className="wealth-hero-copy"><p className="eyebrow page-eyebrow"><PillarMark pillar="wealth" size={16}/><NebulaFlow identity="wealth-eyebrow">YOUR FINANCIAL ORBIT</NebulaFlow></p><h1><NebulaFlow identity="wealth-title">Wealth, with every source in view.</NebulaFlow></h1>{phone&&total}<p className="wealth-intro page-lede">Everything you own. Everything you’re working toward. One clear view.</p><div className="wealth-actions"><button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button><PageMinorActions about="wealth"/></div><p className="fine">Private tracking · no funds move.</p></div>{!phone&&total}<dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl></section>
+ {/* Session AB-Design Phase 2 (ADR-024 P5; critique 8): the shared pillar header, unboxed like the other three; the totals follow in their own card with the holdings' two tools ("Manage assets", "Refresh prices"), moved from the header, never removed. */}
+ <PillarHero pillar="wealth" titleId="wealth-title" className="wealth-heading" eyebrow="Your financial orbit" title="Wealth, with every source in view." lede="Everything you own. Everything you’re working toward. One clear view." about="wealth" buttons={<button className="primary" onClick={()=>setAdding(true)}>+ Add asset</button>}/>
+ <section className="wealth-hero wealth-summary panel" aria-label="Your wealth in one view"><LayoutLockButton/><div className="wealth-hero-scene"><SceneArt scene="horizon"/></div><div className="wealth-orbit wealth-orbit-one"/><div className="wealth-orbit wealth-orbit-two"/>{total}<div className="wealth-summary-side"><dl className="wealth-split"><div><dt><span className="split-dot allocated"/>Allocated to Goals</dt><dd>{metric('allocated')}</dd></div><div><dt><span className="split-dot available"/>Available for Goals</dt><dd>{metric('unallocated')}</dd></div></dl><div className="wealth-summary-tools"><a className="secondary" href="#holdings">Manage assets</a><button className="secondary" onClick={()=>void market.refresh()} disabled={market.loading||!requests.length}>{market.loading?'Refreshing…':'↻ Refresh prices'}</button></div><p className="fine">Private tracking · no funds move.</p></div></section>
  {market.error&&<p className="notice" role="status">Price refresh is unavailable. Last-good values stay visible with their timestamps.</p>}
  <ImportBanner imports={imports} kind="wealth" onUndo={undoRecord}/>
  <LayoutRegion region="body" items={phoneOrder(phone,[

@@ -2,6 +2,7 @@
 import {useState, type CSSProperties} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
+import {PillarHero} from '../pillar-hero';
 import {PillarMark, pillarOfHref} from '../pillars';
 import {GlassBar, GlassRing} from '../progress/glass-progress';
 import {LayoutLockButton, LayoutPage} from '../layout-edit';
@@ -27,7 +28,9 @@ export function JourneyPage() {
     catch (e) { setMessage(storageMessageOr(e, 'The freeze was not used.')); } finally { setBusy(false); }
   }
   return <LayoutPage page="journey"><div className="journey-page">
-    <section className="journey-hero" aria-labelledby="journey-title"><div className="journey-hero-copy"><p className="eyebrow page-eyebrow"><NebulaFlow identity="journey-eyebrow">Your journey</NebulaFlow></p><h1 id="journey-title"><NebulaFlow identity="journey-title">Small steps, counted kindly.</NebulaFlow></h1><p className="page-lede">Levels, quests and badges grow from the check-ins and logs you already make. Nothing is ever taken away.</p></div><LayoutLockButton /></section>
+    {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, with the Gamify rocket as its mark. */}
+    <PillarHero pillar="journey" titleId="journey-title" className="journey-hero" eyebrow="Your journey" title="Small steps, counted kindly." lede="Levels, quests and badges grow from the check-ins and logs you already make. Nothing is ever taken away."
+      mark={<span className="pillar-mark" data-pillar="journey" aria-hidden="true"><span className="pillar-mark-disc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15c-1.5 1.5-3.5 2-5 2 0-1.5.5-3.5 2-5M9 12l3-3c2.5-2.5 6-4 9-4 0 3-1.5 6.5-4 9l-3 3M9 12l3 3"/><circle cx="15.5" cy="8.5" r="1.4"/></svg></span></span>}><LayoutLockButton /></PillarHero>
     {!game.loaded ? <p role="status">Loading your journey…</p> : !game.enabled ? <section className="panel journey-off"><p className="eyebrow">Optional</p><h2><NebulaFlow identity="journey-off">The game layer is off.</NebulaFlow></h2><p>Turn it on to see your level, three quests a day and the badge cabinet, all from your own records. Off again whenever you like; nothing is stored but the switch.</p><GameSetting /></section> : d && <>
       <section className="panel journey-level" aria-labelledby="journey-level-title"><div className="journey-orb" aria-hidden="true"/>
         <GlassRing identity="journey-ring" className="journey-ring" arcs={[{key: 'level', end: d.xp.level.share * 100}]} role="img" aria-label={`Level ${d.xp.level.level}, ${d.xp.level.name}: ${d.xp.level.into} of ${d.xp.level.span} XP to level ${d.xp.level.level + 1}`}><strong>{d.xp.level.level}</strong><small>level</small></GlassRing>

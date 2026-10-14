@@ -22,6 +22,8 @@ import { AppIcon } from "./app-icon";
 import {useShowcase} from "./showcase-controls";
 import { ShowcaseChip } from "./shell/showcase-chip";
 import { AlphaNotice } from "./shell/alpha-notice";
+import { pillarOfHref } from "../lib/pillar-route";
+import "./pillar-hero.css";
 import { ThemeSwitch } from "./shell/theme-switch";
 import { SiteFooter } from "./footer/site-footer";
 import { GamifyButton } from "./game/gamify-button";
@@ -267,7 +269,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       <SiteFooter network={{label: networkLabel, sentence: networkSentence}} mode={modeText} financial={banners} status={<WorkspaceStatus/>}/>

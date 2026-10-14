@@ -119,7 +119,7 @@ test("phone sheets: dragging the grabber down closes the sheet as Escape does; a
   await page.setViewportSize({ width: 390, height: 844 });
   await showcase(page);
   await open(page, "/app/wealth");
-  const trigger = page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" });
+  const trigger = page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" });
   await trigger.click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
@@ -158,7 +158,7 @@ test("phone sheets under reduced motion: the sheet does not follow the finger, a
   await page.setViewportSize({ width: 390, height: 844 });
   await showcase(page);
   await open(page, "/app/wealth");
-  await page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" }).click();
+  await page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" }).click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
   await drag(page, await grab(page, sheet), 260);
@@ -171,7 +171,7 @@ test("desktop sheets are not draggable", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await showcase(page);
   await open(page, "/app/wealth");
-  await page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" }).click();
+  await page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" }).click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
   await drag(page, await grab(page, sheet), 260);
