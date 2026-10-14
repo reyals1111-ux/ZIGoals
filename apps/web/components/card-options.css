@@ -13,3 +13,5 @@
 .nutrition-trend,.wealth-history{position:relative}.nutrition-trend>.pin-to-today,.wealth-history>.pin-to-today{position:absolute;top:1rem;right:1rem}.nutrition-trend>header,.wealth-history>.wealth-section-heading{padding-right:3rem}
 /* Session AB-Design Phase 2: an open menu rises above every other card's ⋯ (each .card-options is its own stacking context). */
 .card-options:has(> .card-options-panel){z-index:40}
+/* Phase 2 closing pass: a card whose ⋯ sits in its top-right corner keeps its first eyebrow clear of it. */
+.health-summary .eyebrow, .health-water .eyebrow, .health-weight-overview .eyebrow, .health-activity-overview .eyebrow, .nutrition-trend .eyebrow, .owned-asset-card .eyebrow { padding-right: 3.2rem; }

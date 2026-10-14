@@ -193,7 +193,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         {/* The status row (Session AB-Design): the Showcase chip and the demo balance on the left; the wallet buttons (computers; phones reach them in More → Status & wallet), the page's own tools, Gamify and the layout lock on the right. */}
         <div className="status-row">
         <ShowcaseChip/>
-        {banners&&<span className="wallet-balance">{balanceText}</span>}
+        {banners&&<span className="wallet-balance"><span>{balanceText.replace(/ (demo|wallet) balance$/, "")}</span> <span className="wallet-balance-kind">{s.mode === "local" ? "demo balance" : "wallet balance"}</span></span>}
         {banners&&<div className="wallet status-wallet">{walletButtons}</div>}
         <div className="page-tools-slot" id={PAGE_TOOLS_SLOT}/>
         <GamifyButton/>
