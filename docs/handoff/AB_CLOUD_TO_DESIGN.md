@@ -113,3 +113,20 @@ Every insertion is one line (an import plus one element) placed at the end of it
   `.health-micro-bar`, `.health-form-grid`, `.fine`; restyle freely, keep the accessible names: the fieldset legend
   "Vitamins (optional)", "<Vitamin> (<unit>)" field labels, "Edit <Vitamin> target", "<Vitamin> target in <unit>", the
   progress bars' "<Vitamin>: <x> of <target> <unit>" / "<Vitamin>: unknown").
+
+## 2026-10-14 — Gate A fix and Part 5 pushed
+- **Gate A (ADR-023 C21b):** `components/sync/extras-sync-choice.tsx` is now imported directly in `vault-sync-panel.tsx`
+  (no `lazy`): loaded late, it pushed "Sync now" down while it was pressed. If you restyle the panel, please keep anything
+  that appears after the first render out of the space directly above "Sync now" (or reserve its height).
+- **Restore from a backup (Part 5, C22):** new `components/restore/restore-backup.tsx` + `restore-backup.css` (in the Data
+  health page's tokens: `.panel`, `.fine`, `.notice`, `.alert`, `.checkbox`, `.dh-actions`, `.primary`/`.secondary`; restyle
+  freely). One section inserted in `components/data-health/data-health-view.tsx` (mine): `<section id="restore">` with
+  heading "Restore from a backup", after "Your copies". Accessible names the specs use: the file field "Export everything
+  ZIP", the group "What this backup holds", fieldsets per group (legends "Goals and Wealth", "Habits", "Today and Life",
+  "Health", "Photos"), each part's select "<label>: what to do", the confirmation "I checked my choices…", the buttons
+  "Merge every part", "Restore the chosen parts", "Cancel", "Undo this restore".
+- **One-string copy edits in shared files (please keep at merge):** `components/help/help-page.tsx` (`#export-everything`:
+  "it is not a restore format" → how Restore reads it back), `components/export-everything.tsx` (the fine line under the
+  button and the header comment), `app/app/settings/data/page.tsx` (lede: "It changes nothing unless you restore a backup.").
+- **New `lib/image-header.ts` (C27):** `checkImageHeader(file)` refuses images above 40 MP or 12,000 px from the header;
+  Part 8 calls it in front of the vision and progress-photo decoders (my lib files only).

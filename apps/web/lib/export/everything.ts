@@ -42,7 +42,8 @@ import {buildStoredZip} from './zip';
  * "Export everything" (Session P, PR 3, T4; docs/product/features/T4-export-everything.md): one readable ZIP with a
  * JSON file of every stored record (parsed with JSON.parse only, so the bytes are faithful) and a CSV per area. The
  * export copies stored records as they are and computes nothing new; unknown values are empty cells, never 0. It reads
- * and writes nothing in storage. Not a restore format: the encrypted backup and the module backups remain those.
+ * and writes nothing in storage. Session AB-Cloud Part 5 reads it back (lib/restore/, Settings → Your data → Restore from a
+ * backup); the encrypted backup and the module backups stay as they are.
  */
 export const MODULE_KEYS = {finance: PLATFORM_KEY, habits: HABITS_KEY, health: HEALTH_STORAGE_KEY, settings: DASHBOARD_SETTINGS_KEY} as const;
 // ZIGi (ADR-012): its settings key is exported like every device key; its conversations arrive through `aiChats` (they
@@ -70,7 +71,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AB-Cloud (lib/ab-cloud-device-keys.ts): vitamins (Part 4) and Point & tell's pins (Part 6).
   ...Object.fromEntries(AB_CLOUD_PERSONAL_KEYS.map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'healthVitamins' | 'pointTell', string>} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
-export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. It is not a restore format; use Settings → Keep a protected copy for that.';
+export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',
   // Session W: one per new area, each a plain copy of its stored records.
   'sleep.csv', 'meditation.csv', 'vitals.csv', 'moods.csv', 'accounts.csv', 'links.csv'] as const;
