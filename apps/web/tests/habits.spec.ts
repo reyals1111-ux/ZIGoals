@@ -57,6 +57,9 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect(card).toHaveCount(0);
   await page.getByRole("button", { name: "Archived", exact: true }).click();
   await expect(card).toBeVisible();
+  // The Details expander by gesture once (the helper elsewhere opens it through the element): the summary is a real control.
+  if (!(await card.locator(".habit-more").evaluate(el => (el as HTMLDetailsElement).open))) await card.locator('summary[aria-label^="Details for"]').click();
+  await expect.poll(() => card.locator(".habit-more").evaluate(el => (el as HTMLDetailsElement).open)).toBe(true);
   await openHabitDetails(card);
   await card.getByRole("button", { name: "Restore habit" }).click();
   await expect(card).toContainText("Scheduled change from 2026-09-17: active");

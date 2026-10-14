@@ -1,7 +1,18 @@
-import { useId } from "react";
-import { EXTRA_SCENES } from "./scene-art-extra";
+import { Suspense, lazy, useId } from "react";
 import type { CardArt } from "../lib/card-art/catalog";
 type Scene = CardArt;
+type RefFn = (name: string) => string;
+const BASE_SCENES = new Set<string>(["garden", "home", "horizon", "mountains", "horizon"]);
+/** The default lines, drawn for an id no module knows. */
+function DefaultLines({ refFn }: { refFn: RefFn }) {
+  return <g fill="none" stroke={refFn("edge")}>
+    <path d="M-20 392Q190 54 410 252T1030 131" strokeWidth="70" opacity=".06"/>
+    <path d="M-20 392Q190 54 410 252T1030 131" strokeWidth="2" opacity=".7"/>
+    <path d="M-20 412Q220 101 433 282T1030 164" strokeWidth="1" opacity=".4"/>
+  </g>;
+}
+// Gate C weights: the ten extra scenes are their own chunk, fetched the first time a card shows one (Goals sat 4 kB over its budget with them inline; budgets are never raised).
+const ExtraScene = lazy(() => import("./scene-art-extra").then(m => ({ default: ({ scene, refFn }: { scene: string; refFn: RefFn }) => <>{m.EXTRA_SCENES[scene]?.(refFn) ?? <DefaultLines refFn={refFn}/>}</> })));
 /** Original, lightweight vector scenery. Decorative and independent of financial state. Session AB-Design: ten more scenes in components/scene-art-extra.tsx. */
 export function SceneArt({ scene = "horizon", className = "" }: { scene?: Scene; className?: string }) {
   const id = useId();
@@ -69,10 +80,6 @@ export function SceneArt({ scene = "horizon", className = "" }: { scene?: Scene;
       <path d="M296 406l22 90h109l23-90zM574 360l27 136h151l31-136z" fill="var(--mountain-far)"/>
       <path d="M374 415V255M680 370V170" fill="none" stroke="var(--garden-mid)" strokeWidth="9"/>
       <g fill="var(--garden-mid)"><ellipse cx="337" cy="290" rx="68" ry="25" transform="rotate(28 337 290)"/><ellipse cx="407" cy="329" rx="67" ry="23" transform="rotate(-31 407 329)"/><ellipse cx="622" cy="213" rx="100" ry="32" transform="rotate(29 622 213)"/><ellipse cx="725" cy="261" rx="94" ry="28" transform="rotate(-37 725 261)"/></g>
-    </> : EXTRA_SCENES[scene] ? EXTRA_SCENES[scene]!(ref) : <g fill="none" stroke={ref("edge")}>
-      <path d="M-20 392Q190 54 410 252T1030 131" strokeWidth="70" opacity=".06"/>
-      <path d="M-20 392Q190 54 410 252T1030 131" strokeWidth="2" opacity=".7"/>
-      <path d="M-20 412Q220 101 433 282T1030 164" strokeWidth="1" opacity=".4"/>
-    </g>}
+    </> : !BASE_SCENES.has(scene) ? <Suspense fallback={<DefaultLines refFn={ref}/>}><ExtraScene scene={scene} refFn={ref}/></Suspense> : <DefaultLines refFn={ref}/>}
   </svg>;
 }

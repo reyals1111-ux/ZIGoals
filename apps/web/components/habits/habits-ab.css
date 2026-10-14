@@ -33,3 +33,6 @@
 
 /* Session AB-Design (owner request 39): on wide screens the habit cards sit in two rails. */
 @media (min-width: 1440px) { :root .habit-list-block { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+
+/* Gate C critique: on phones the constellation art sits faint behind the words instead of across them. */
+@media (max-width: 600px) { .habit-hero .habit-constellation { opacity: .3; pointer-events: none; } }

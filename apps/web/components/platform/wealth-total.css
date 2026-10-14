@@ -11,3 +11,6 @@
 
 /* Phones and touch: the chip's button is a 44 px target. */
 @media (max-width: 767px), (pointer: coarse) { .wealth-other-chip-button, .wealth-split dd .wealth-other-chip-button { min-height: 44px; } }
+
+/* The chip's words stay on one line (a phone's split rows measure every amount span as one line). */
+.wealth-other-chip-button { white-space: nowrap; }

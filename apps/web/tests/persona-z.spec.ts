@@ -283,7 +283,7 @@ test('10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi 
 
 // Gate C (CI on 001e363e, motion-arrival on the phone): the two links joined "+ New habit"'s row, so the hero is two rows of
 // actions from 360 px and the overview's first figure stays on the first screen of an iPhone 13.
-test('10b. phones: Habits\' hero actions take two rows from 360 px, and the first figure is on the first screen', async ({page, isMobile}) => {
+test('10b. phones: Habits\' hero actions take at most two rows from 360 px, and the first figure is on the first screen', async ({page, isMobile}) => {
   test.skip(!isMobile, 'phones only');
   await showcase(page);
   for (const width of [360, 390, 430]) {

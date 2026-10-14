@@ -154,7 +154,7 @@
 :root .achievements-hall { margin: 8px 0; }
 :root .hall-wall { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 :root .hall-card { display: grid; border-radius: 22px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 40%, transparent); background: linear-gradient(160deg, #13223acc, #1d1a3ccc); }
-:root .hall-art { min-height: 120px; border-radius: 0; }
+:root .hall-art { height: 150px; min-height: 0; overflow: hidden; border-radius: 0; } /* Gate C critique: one media height, so the three finished cards line up */
 :root .hall-body { display: grid; gap: 8px; padding: 16px 18px 18px; }
 :root .hall-area { justify-self: start; padding: 4px 10px; border-radius: 10px; background: color-mix(in srgb, var(--area, #8fa6ff) 22%, transparent); font-size: 14px; font-weight: 700; }
 :root .hall-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-strong); }

@@ -53,7 +53,7 @@
 .site-footer-links > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 15px; font-weight: 550; color: #cfe6ff; }
 .site-footer-links > a:hover, .site-footer-links > a:focus-visible { color: #fff; background: #ffffff0f; }
 .site-footer-social svg { color: #e9f3ff; }
-.site-footer-disclaimer { max-width: 1100px; margin: 0; font-size: 14px; line-height: 1.7; text-align: center; color: var(--text-meta, #c2d0e5); }
+.site-footer-disclaimer { max-width: 78ch; margin: 0; font-size: 15px; line-height: 1.65; text-align: center; color: #c9d6ea; } /* Gate C critique: a narrower, 15 px legal block */
 .site-footer-disclaimer > span + span::before { content: ' · '; color: #7f99bf; }
 .site-footer-disclaimer .network-banner strong { color: var(--brand-cyan, #23eaff); letter-spacing: .06em; font-size: 13px; }
 .site-footer-disclaimer .site-footer-build { overflow-wrap: anywhere; }
@@ -83,3 +83,6 @@
 .site-footer-disclaimer .network-banner strong::before { content: none; }
 .site-footer .workspace-status { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: -22px 0 0; font-size: 14px; color: var(--text-meta, #c2d0e5); }
 .site-footer .workspace-status a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; color: #9fe6ff; }
+
+/* Gate C critique: on narrow phones the links stand in one centred column, each on one line. */
+@media (max-width: 480px) { .site-footer-links { flex-direction: column; gap: 2px; } .site-footer-links > a { white-space: nowrap; } }

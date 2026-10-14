@@ -22,6 +22,8 @@ async function openQuickAdd(page: Page) {
   await page.locator(await isPhone(page) ? '.phone-topbar .quick-add-trigger' : '.today-hero .quick-add-trigger').click();
   const dialog = page.getByRole('dialog', {name: 'What would you like to add?'});
   await expect(dialog).toBeVisible();
+  // Session AB-Design: the line form arrives a beat after the dialog (Today loads more lazily now); the keyboard checks start once it is there.
+  await expect(dialog.getByRole('textbox', {name: 'Type a line'})).toBeVisible();
   return {dialog, line: dialog.getByRole('form', {name: 'Type a line'}), field: dialog.getByRole('textbox', {name: 'Type a line'})};
 }
 

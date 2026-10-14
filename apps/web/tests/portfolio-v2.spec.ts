@@ -68,8 +68,7 @@ test('the header, holdings and allocation from your transactions and the market:
   // Its words (a phone hides the column, so the label is read from the attribute on both projects).
   await expect(btc.getByRole('img', {includeHidden: true})).toHaveAttribute('aria-label', 'Bitcoin, last 7 days: from $100.00 to $118.00, up');
   await expect(table.getByRole('row').filter({hasText: 'Ethereum'}).getByRole('cell', {includeHidden: true}).nth(7)).toHaveText('$2,000.00');
-  // A phone folds allocation away under its name.
-  if (isMobile) await page.getByRole('button', {name: /^Allocation/}).click();
+  await page.getByRole('tab', {name: 'Analysis', exact: true}).click(); // Session AB-Design (owner request 27): Analysis holds the allocation and the value chart
   const allocation = page.getByRole('region', {name: 'Allocation'});
   await expect(allocation.getByRole('listitem')).toHaveText(['BTC88.6%$35,000.00', 'ETH11.4%$4,500.00']);
   await expect(allocation.getByRole('img')).toHaveAccessibleName('Allocation of $39,500.00 known value: BTC 88.6%, ETH 11.4%');
@@ -84,6 +83,7 @@ test('the header, holdings and allocation from your transactions and the market:
 test('value over time: one history per coin, one after another, for the chosen range; exact values in the table', async ({page}) => {
   const asked = await market(page);await seed(page);
   await page.goto('/app/portfolio');
+  await page.getByRole('tab', {name: 'Analysis', exact: true}).click();
   const chart = page.getByRole('region', {name: 'Value over time'});
   await expect(chart.getByRole('button', {name: '30D', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(chart.getByRole('img')).toBeVisible();
@@ -101,6 +101,7 @@ test('value over time: one history per coin, one after another, for the chosen r
 test('a coin\'s page: price and changes, your position, market figures as observed, a transaction for this coin, favourites', async ({page}) => {
   await market(page);await seed(page);
   await page.goto('/app/portfolio');
+  await page.getByRole('table', {name: 'Fictional real coins holdings'}).locator('.data-coin-toggle').filter({hasText: 'Bitcoin'}).click(); // Session AB-Design (owner request 27): the row expands into its detail, where the coin's page link is
   await page.getByRole('table', {name: 'Fictional real coins holdings'}).getByRole('link', {name: /Bitcoin/}).click();
   await expect(page).toHaveURL(/\/app\/portfolio\/coin\/bitcoin\?portfolio=p-real$/);
   await expect(page.getByRole('heading', {level: 1, name: 'Bitcoin'})).toBeVisible();
@@ -165,6 +166,7 @@ test('Showcase: the whole page and a coin\'s page from labelled fixtures, and no
   await expect(totals.locator('div').filter({hasText: '24h change'}).locator('dd')).toHaveText(/^[+−]\$[\d,]+\.\d{2} \([+−][\d.]+%\)$/);
   await expect(totals.locator('div').filter({hasText: 'All-time result'}).locator('dd')).toHaveText('Unknown');
   await expect(page.getByRole('table', {name: 'Fictional long-term coins holdings'}).getByRole('row')).toHaveCount(4);
+  await page.getByRole('tab', {name: 'Analysis', exact: true}).click();
   await expect(page.getByRole('region', {name: 'Value over time'})).toContainText('The Showcase’s fixture prices, not market data.');
   await page.goto('/app/portfolio/coin/solana');
   await expect(page.getByRole('heading', {level: 1, name: 'Solana'})).toBeVisible();
@@ -180,8 +182,9 @@ test('phone: the coin, its 24h change, value and result; allocation and transact
   await page.goto('/app/portfolio');
   const table = page.getByRole('table', {name: 'Fictional real coins holdings'});
   await expect(table.getByRole('columnheader').filter({visible: true})).toHaveText(['Coin', '24h', 'Value', 'Result']);
-  await expect(page.getByRole('button', {name: /^Allocation/})).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.getByRole('button', {name: /^Transactions/})).toHaveAttribute('aria-expanded', 'false');
+  // Session AB-Design (owner request 27): allocation and transactions sit under the Analysis and Insights tabs, not folds.
+  await expect(page.getByRole('tab', {name: 'Analysis', exact: true})).toHaveAttribute('aria-selected', 'false');
+  await expect(page.getByRole('tab', {name: 'Insights', exact: true})).toHaveAttribute('aria-selected', 'false');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
   for (const control of await page.locator('main :is(button, select, a.portfolio-coin-link)').all()) if (await control.isVisible()) expect((await control.boundingBox())!.height, await control.innerText()).toBeGreaterThanOrEqual(44);
 });

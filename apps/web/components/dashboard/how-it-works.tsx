@@ -18,12 +18,15 @@ const STEPS = [
  * slogan with what to tap first — in place of the brand film, which stays one tap away inside ("Watch the film").
  */
 export function HowItWorks() {
-  const trigger = useRef<HTMLButtonElement>(null), dialog = useRef<HTMLDialogElement>(null), [host, setHost] = useState<HTMLElement | null>(null);
+  const trigger = useRef<HTMLButtonElement>(null), dialog = useRef<HTMLDialogElement>(null), [host, setHost] = useState<HTMLElement | null>(null), [open, setOpen] = useState(false), [mounted, setMounted] = useState(false);
   useEffect(() => setHost(document.body), []);
+  // The dialog opens once its content is rendered, so focus lands on the first step's link, not on an empty dialog.
+  useEffect(() => { if (open && dialog.current && !dialog.current.open) dialog.current.showModal(); }, [open]);
   return <>
-    <button ref={trigger} type="button" className="secondary" onClick={() => dialog.current?.showModal()}><span className="play-medallion"><AppIcon name="play" luminous/></span> See how it works</button>
-    {host && createPortal(<dialog ref={dialog} className="how-it-works-dialog" aria-labelledby="how-it-works-title" onClose={() => trigger.current?.focus()} onClick={e => { if (e.target === dialog.current) dialog.current.close(); }}>
-      <div className="how-it-works-card">
+    <button ref={trigger} type="button" className="secondary" onClick={() => { setMounted(true); setOpen(true); }}><span className="play-medallion"><AppIcon name="play" luminous/></span> See how it works</button>
+    {host && createPortal(<dialog ref={dialog} className="how-it-works-dialog" aria-labelledby="how-it-works-title" onClose={e => { if (e.target !== e.currentTarget) return; /* the film's own dialog closing inside must not close the how-to */ setOpen(false); trigger.current?.focus(); }} onClick={e => { if (e.target === dialog.current) dialog.current.close(); }}>
+      {/* Mounted from the first open on (not only while open): the film's dialog inside keeps its paused, rewound video for the next open. */}
+      {mounted && <div className="how-it-works-card">
         <div className="how-it-works-head"><div><p className="eyebrow">How it works</p><h2 id="how-it-works-title">Goals, Habits &amp; Health = Wealth</h2><p>Three steps, your pace. Everything stays private in this browser.</p></div><button type="button" className="quiet" aria-label="Close how it works" onClick={() => dialog.current?.close()}>×</button></div>
         <ol className="how-it-works-steps">
           {STEPS.map(s => <li key={s.n}>
@@ -32,7 +35,7 @@ export function HowItWorks() {
           </li>)}
         </ol>
         <div className="how-it-works-foot"><IntroVideo label="Watch the film (16 s)"/><p className="fine">Practice money with no real value · nothing is placed onchain · browser storage is not a backup.</p></div>
-      </div>
+      </div>}
     </dialog>, host)}
   </>;
 }

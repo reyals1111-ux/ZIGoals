@@ -41,3 +41,5 @@
   .unified-goal-card .card-footer { padding-top: 4px; }
   .unified-goal-card > .nebula-number { margin: 2px 0 0; }
 }
+/* Gate C critique: the goal type is said once (the body's eyebrow beside the status pill); the scene's caption is decoration only. */
+.unified-goal-card .goal-card-art > span { display: none; }

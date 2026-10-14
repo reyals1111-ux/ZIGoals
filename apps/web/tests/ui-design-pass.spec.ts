@@ -521,6 +521,8 @@ test.describe('Part 8: bottom sections',()=>{
    await page.goto(path);
    const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);
    await expect(items.last()).toContainText(text);
+   // The allocation card's honesty line stays asserted now that the calculator sits after it (owner request 26).
+   if(path==='/app/wealth')await expect(page.locator('[data-layout-item="wealth:allocation"]')).toContainText('Valuation coverage is incomplete');
    // No invented prices, projections or advice words in these summaries.
    await expect(items.last()).not.toContainText(/projected|forecast to|you should|recommend(?!ation)/i);
    if(path==='/app'){await expect(items.nth(-2)).toHaveAttribute('data-layout-item','today:game');await expect(items.nth(-3)).toHaveAttribute('data-layout-item','today:week');await expect(items.nth(-3)).toContainText('A dash means nothing was recorded that day.');} // owner requests 9 and 11: Your week, the game card (Gamify is on in the Showcase), My links

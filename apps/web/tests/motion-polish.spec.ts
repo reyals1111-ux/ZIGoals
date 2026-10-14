@@ -48,7 +48,7 @@ async function fictionalMovement(page:Page){
 }
 
 test('charts draw their marks once and settle on the exact rendered values',async({page,isMobile},info)=>{
- await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform'});
+ await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform','wealth-history-draw':{property:'stroke-dashoffset',within:'.wealth-history'}});
  await showcase(page);
  await page.goto('/app/wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
@@ -56,9 +56,12 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
  await donut.screenshot({path:info.outputPath('donut-settled.png')});
  await openFold(page,'Your wealth over time');
- const history=page.locator('.wealth-history .evidence-chart').first();await history.scrollIntoViewIfNeeded();
- const marks=await settled(page,'motion-mark-in');expect(Number(marks.start)).toBeLessThan(Number(marks.mid));expect(marks.end).toBe('1');
- await expect(history.locator('.evidence-line').first()).toHaveCSS('stroke-dasharray','none');
+ const history=page.locator('.wealth-history .wealth-history-chart').first(); // Session AB-Design (owner request 26): the new chart
+ // Sections between the donut and the chart finish mounting as the page scrolls and push the chart down; keep scrolling until it is really in view (its entrance plays on intersection).
+ await expect.poll(async()=>{await history.scrollIntoViewIfNeeded();const box=(await history.boundingBox())!,view=page.viewportSize()!;return box.y<view.height&&box.y+box.height>0;},{timeout:15000}).toBe(true);
+ // Session AB-Design (owner request 26): the new chart draws its total line once (dash offset to 0).
+ const marks=await settled(page,'wealth-history-draw');expect(parseFloat(marks.start)).toBeGreaterThan(parseFloat(marks.mid!));expect(parseFloat(marks.end)).toBe(0);
+ await expect(history.locator('.wealth-history-line').first()).toHaveCSS('stroke-dashoffset','0px');
  await history.screenshot({path:info.outputPath('history-settled.png')});
  // Open and close an overlay: Quick add on mobile; desktop Wealth has no Quick add, so use its Add asset dialog.
  await (isMobile?page.getByRole('button',{name:'+ Quick add',exact:true}):page.getByRole('button',{name:'+ Add asset',exact:true}).first()).click();await page.keyboard.press('Escape');await page.waitForTimeout(750);

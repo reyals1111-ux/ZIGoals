@@ -63,3 +63,8 @@
 @media (max-width: 767.98px) { .card-options-trigger { min-width: 44px; } }
 /* Phones: a tracked goal's "Goal actions" ⋯ summary is a 44 px target too. */
 @media (max-width: 767.98px) { .goal-actions > summary { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; box-sizing: border-box; } }
+/* 320 px: the demo balance keeps more of its words beside the chip. */
+@media (max-width: 360px) { .status-row .wallet-balance { font-size: 12px; letter-spacing: 0; } .status-row .showcase-chip { padding-left: 10px; padding-right: 10px; } }
+
+/* Gate C critique: on wide screens the notice's More link keeps the close button's company instead of dangling on a second line. */
+@media (min-width: 900px) { .alpha-notice { padding-right: 112px; } .alpha-notice .text-link { position: absolute; right: 52px; top: 50%; translate: 0 -50%; margin: 0; } }
