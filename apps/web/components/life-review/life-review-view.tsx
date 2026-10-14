@@ -93,22 +93,22 @@ export function LifeReviewView() {
           {review.wins.length ? <ul className="life-list">{review.wins.map(w => <li key={w}>{w}</li>)}</ul> : <p className="life-none">No finished goals or perfect habits in this {period} yet.</p>}
         </section>
         <section className="panel" aria-labelledby="life-review-streaks">
-          <SectionHeading id="life-review-streaks" eyebrow="Habits" title="Streaks" level={3} />
+          <SectionHeading id="life-review-streaks" pillar="habits" eyebrow="Habits" title="Streaks" level={3} />
           {review.streaks.length ? <ul className="life-list">{review.streaks.map(s => <li key={s.title}><strong>{s.title}</strong><span>{s.streak} {s.unit}</span></li>)}</ul> : <p className="life-none">No streak running yet.</p>}
         </section>
         <section className="panel" aria-labelledby="life-review-goals">
-          <SectionHeading id="life-review-goals" eyebrow="Goals" title="Goals that moved" level={3} />
+          <SectionHeading id="life-review-goals" pillar="goals" eyebrow="Goals" title="Goals that moved" level={3} />
           {review.goalsMoved.length ? <ul className="life-list">{review.goalsMoved.map((g, i) => <li key={`${g.name}-${i}`}><Link href={g.href}>{g.name}</Link><span>{g.line}</span></li>)}</ul> : <p className="life-none">No contributions or milestones recorded in this {period}.</p>}
           {review.plans.length > 0 && <div className="life-plans"><p className="eyebrow">The plans behind them</p>{review.plans.map(p => <p key={p.name}><strong>{p.name}</strong>{p.why && <> · why: {p.why}</>}{p.ifThen && <> · if-then: {p.ifThen}</>}</p>)}</div>}
         </section>
         <section className="panel" aria-labelledby="life-review-health">
-          <SectionHeading id="life-review-health" eyebrow="Health" title="Trends" level={3} />
+          <SectionHeading id="life-review-health" pillar="health" eyebrow="Health" title="Trends" level={3} />
           <table className="life-trends"><thead><tr><th scope="col">Measure</th><th scope="col">This {period}</th><th scope="col">Before</th></tr></thead>
             <tbody>{review.health.map(t => <tr key={t.label}><th scope="row">{t.label}<small>{t.detail}</small></th><td>{t.now ?? 'Not recorded'}</td><td>{t.before ?? 'Not recorded'}</td></tr>)}</tbody></table>
           <p className="fine">Averages of the days you recorded; a day without a record is left out, never counted as zero. Not advice.</p>
         </section>
         {financial && <section className="panel" aria-labelledby="life-review-money">
-          <SectionHeading id="life-review-money" eyebrow="Wealth" title="Net worth, by currency" level={3} />
+          <SectionHeading id="life-review-money" pillar="wealth" eyebrow="Wealth" title="Net worth, by currency" level={3} />
           {review.money.length ? <ul className="life-list">{review.money.map(m => <li key={m.currency}><strong>{m.currency}</strong><span>{m.change !== null ? `${formatSignedMoney(m.change, m.currency)} · ${formatMoney(m.start!, m.currency)} → ${formatMoney(m.end!, m.currency)}` : m.note}</span></li>)}</ul> : <p className="life-none">No recorded wealth values yet. Values recorded on Wealth show their change here, each in its own currency.</p>}
           <p className="fine">Each currency on its own, never converted. Recorded values only; a missing value is never filled in.</p>
         </section>}

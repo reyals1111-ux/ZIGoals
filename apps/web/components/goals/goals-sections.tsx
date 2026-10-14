@@ -10,6 +10,7 @@ import {GoalTreeView, GoalsFigures} from './goals-overview';
 // Gate C weights: the Vision board is its own chunk, fetched only in its view (Goals sat 1.6 kB over its budget; budgets are never raised).
 const VisionBoard = lazy(() => import('./vision-board').then(m => ({default: m.VisionBoard})));
 import {useGoalExtras} from './use-goal-extras';
+import {Skeleton} from '../ui/skeleton';
 
 /**
  * Goals' figures, vision board and tree with the extras they read (Session AA-Cloud Part 2), in one module that loads
@@ -25,6 +26,6 @@ export function GoalsAltView({view, goals, averages, ...layout}: Props & LayoutA
   const extras = useGoalExtras(), health = useHealth(), today = useLocalToday();
   const all = [...goals, ...averages.map(g => averageSummary(g, health.loaded && !health.error ? health.data : undefined, today))];
   return <div className="goals-alt-view" {...layout}>
-    {view === 'board' ? <Suspense fallback={<p className="fine" role="status">Opening your vision board…</p>}><VisionBoard goals={all} extras={extras.data} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} />}
+    {view === 'board' ? <Suspense fallback={<Skeleton label="Opening your vision board…" block lines={2}/>}><VisionBoard goals={all} extras={extras.data} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} />}
   </div>;
 }

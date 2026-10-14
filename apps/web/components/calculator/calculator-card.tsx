@@ -15,7 +15,7 @@ export function CalculatorCard({compact = false, ...layout}: LayoutAttrs & {comp
       <path d="M0 104 C70 100 120 86 160 58 S205 12 220 4 L220 110 L0 110 Z" fill="url(#calc-card-fill)" />
       <path d="M0 104 C70 100 120 86 160 58 S205 12 220 4" fill="none" stroke="#e9f3ff" strokeWidth="2" />
     </svg>
-    <SectionHeading id={compact ? 'calc-teaser-title' : 'calc-card-title'} eyebrow="A planning tool" title="Compound interest calculator" level={compact ? 3 : 2} />
+    <SectionHeading id={compact ? 'calc-teaser-title' : 'calc-card-title'} pillar="wealth" eyebrow="A planning tool" title="Compound interest calculator" level={compact ? 3 : 2} />
     <p>How could a starting amount and steady saving grow? Try your own numbers, compare returns and turn a result into a goal. An estimate; returns are not guaranteed.</p>
     <div className="calc-card-actions"><Link className="primary" href="/app/wealth/calculator">Open the calculator</Link></div>
   </section>;

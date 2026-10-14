@@ -1,0 +1,32 @@
+/*
+ * Session AB-Design Phase 2, Part 3 (owner request 29; critique 10): one card header across the app. Every section and card
+ * heading family — the shared SectionHeading (`.aa-section-heading`) and the pages' own (`.section-heading`,
+ * `.wealth-section-heading`, `.health-section-heading`, `.habit-section-heading`, `.positions-section-heading`,
+ * `.portfolio-section-head`, `.portfolio-panel-head`) — reads the same way: the eyebrow and title on the left (the pillar
+ * mark, where a card has one, sits in the eyebrow), then one figure or action, then the ⋯ menu, always last, at the top
+ * right. One title size per level: a section on the page, a card inside a panel. Page-specific layouts (phone grids) keep
+ * their own rules where they are more specific.
+ */
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) {
+  display: flex; flex-direction: row; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+  gap: 10px 20px; margin: 0 0 18px; min-width: 0;
+}
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child { flex: 1 1 14rem; min-width: 0; }
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :not(:first-child) { flex: 0 0 auto; align-self: flex-start; }
+/* The ⋯ menu (and a pin-to-Today menu) closes the row. */
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :is(.card-options, .pin-to-today) { order: 9; margin-top: -6px; }
+/* Titles: a section on the page, and a card inside a panel. */
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) :is(h2, h3):not(.eyebrow) {
+  margin: 0; font-size: clamp(22px, .6vw + 17px, 27px); line-height: 1.2; letter-spacing: -.025em; text-wrap: balance;
+}
+:root .panel :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) :is(h2, h3):not(.eyebrow),
+:root :is(.panel, .panel-card) > header > :is(h2, h3), :root :is(.panel, .panel-card) > header > div > :is(h2, h3) {
+  font-size: clamp(19px, .3vw + 16px, 22px);
+}
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) .eyebrow { margin: 0 0 6px; font-size: 14px; }
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child > p:not(.eyebrow) { margin: 6px 0 0; color: var(--text-secondary, #c9d6ea); font-size: 15px; line-height: 1.55; max-width: 68ch; }
+/* A figure beside a title (a meal's kcal, "N saved") reads as a quiet chip, not a second title. */
+:root :is(.health-section-heading, .habit-section-heading) > span:not(.health-symbol) { align-self: center; padding: 4px 10px; border-radius: 999px; background: #ffffff0d; border: 1px solid #ffffff14; color: var(--text-secondary, #c9d6ea); font-size: 14px; font-variant-numeric: tabular-nums; }
+/* The pillar mark at the start of an eyebrow (SectionHeading's `pillar`). */
+:root .aa-eyebrow-mark { display: flex; align-items: center; gap: 8px; }
+:root .aa-eyebrow-mark > .pillar-mark .pillar-mark-disc { width: 24px; height: 24px; }

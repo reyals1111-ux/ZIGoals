@@ -57,10 +57,19 @@
 
 /* Skeletons: calm placeholders while a part loads (no shimmer under reduced motion or Motion Off). */
 :root .aa-skeleton { display: grid; gap: 10px; padding: 18px; border-radius: 18px; background: #0f1d33aa; border: 1px solid #6c9cc526; }
-:root .aa-skeleton > i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+:root .aa-skeleton > :is(i, b) { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+/* Phase 2, Part 3: the shimmer carries the nebula tint; a chart-sized block; a page's first screen; still under Motion Off. */
+:root .aa-skeleton > :is(i, b) { background: linear-gradient(90deg, #16243d 0%, #1e2e4c 35%, #2c2f5e 50%, #1e2e4c 65%, #16243d 100%); background-size: 220% 100%; }
+:root .aa-skeleton > b { height: 132px; border-radius: 14px; margin-bottom: 4px; }
+:root .aa-skeleton > i:first-of-type { width: 46%; height: 18px; }
+:root .aa-skeleton-page { display: grid; gap: 18px; margin-top: 18px; }
+:root .aa-skeleton-head { background: none; border: 0; padding: 8px 0 12px; }
+:root .aa-skeleton-head > i:first-of-type { width: min(420px, 70%); height: 40px; border-radius: 12px; }
+:root .aa-skeleton-head > i:nth-of-type(2) { width: min(560px, 90%); }
+:root[data-app-motion="off"] .aa-skeleton > :is(i, b) { animation: none; }
 :root .aa-skeleton > i:nth-child(2) { width: 82%; } :root .aa-skeleton > i:nth-child(3) { width: 64%; }
 @keyframes aa-skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
-@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > :is(i, b) { animation: none; } }
 :root[data-app-motion=off] .aa-skeleton > i { animation: none; }
 
 /* The Undo toast: above the phone's tab bar, bottom-centre on computers. */

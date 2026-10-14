@@ -1,4 +1,5 @@
 "use client";
+import {EmptyState} from './ui/empty-state';
 import Link from "next/link";
 import { useGoals } from "./goal-provider";
 import { useHabits } from "./habits/use-habits";
@@ -54,7 +55,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
           <time dateTime={event.at}>{formatTime(event.at, { hour: "2-digit", minute: "2-digit", timeZone: activityTimeZone() })}</time>
         </article>
       </li>;
-    })}</ol> : <div className="timeline-empty"><AppIcon name="activity" size={28}/><p>Your next step belongs here.</p><small>Goal actions, habit check-ins and health logs will build your story.</small></div>}
+    })}</ol> : <EmptyState className="timeline-empty" zigi="encouraging" title="Your next step belongs here.">Goal actions, habit check-ins and health logs will build your story.</EmptyState>}
     {onMore && allEntries.length > limit && <button className="quiet" onClick={onMore}>Show more activity</button>}
   </div>;
 }

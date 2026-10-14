@@ -71,6 +71,7 @@ import { useDeviceRecord } from "../ai/use-device-record";
 import { MEDITATION_RUN } from "../../lib/meditation/schema";
 import { zigiSignals } from "../zigi/bus";
 import { LoadBoundary } from "../load-boundary";
+import {Skeleton} from "../ui/skeleton";
 
 /** Session W Part 4: Sleep's full view, a view of this page (/app/health?view=sleep), loaded when opened. */
 const SleepView = lazy(() => import("./sleep/sleep-view"));
@@ -126,9 +127,9 @@ export function HealthApp() {
   const view = params.get("view") ?? (params.has("state") && (params.has("code") || params.has("error")) ? "devices" : null);
   if (!store.loaded) return <section className="panel"><h1>Health</h1><p>Loading your private health journal…</p></section>;
   if (store.error) return <section className="panel"><h1>Health</h1><p role="alert">{store.error}</p><div className="actions"><button className="secondary" onClick={store.refresh}>Retry reading data</button><Link className="secondary" href="/app/settings">Open backup settings</Link></div></section>;
-  if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><p>Opening Sleep…</p></section>}><SleepView /></Suspense></LoadBoundary>;
-  if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><p>Opening Meditation…</p></section>}><MeditationView /></Suspense></LoadBoundary>;
-  if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><p>Opening Devices…</p></section>}><DevicesView /></Suspense></LoadBoundary>;
+  if (view === "sleep") return <LoadBoundary title="Sleep" label="Sleep"><Suspense fallback={<section className="panel"><h1>Sleep</h1><Skeleton label="Opening Sleep…" block/></section>}><SleepView /></Suspense></LoadBoundary>;
+  if (view === "meditation") return <LoadBoundary title="Meditation" label="Meditation"><Suspense fallback={<section className="panel"><h1>Meditation</h1><Skeleton label="Opening Meditation…" block/></section>}><MeditationView /></Suspense></LoadBoundary>;
+  if (view === "devices") return <LoadBoundary title="Devices" label="Devices"><Suspense fallback={<section className="panel"><h1>Devices</h1><Skeleton label="Opening Devices…" block/></section>}><DevicesView /></Suspense></LoadBoundary>;
   return <HealthWorkspace data={store.data} update={store.update} />;
 }
 
@@ -240,9 +241,9 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     <fieldset className="health-content" disabled={busy}>
       {view === "Diary" && <><LoadBoundary quiet><Suspense fallback={null}><WaterRing data={data} date={date} perform={perform} /></Suspense></LoadBoundary><DiaryView data={data} date={date} today={today} choice={dateChoice} perform={perform} invalid={invalid} onLibrary={() => setView("Foods & recipes")} phone={phone} error={error} logging={logging} setLogging={setLogging} /><details onToggle={(e) => setBarcodeOpen(e.currentTarget.open)}><summary>Scan or look up a food barcode</summary>{barcodeOpen && <LoadBoundary quiet><Suspense fallback={null}><BarcodeFoodLookup date={date} update={update}/></Suspense></LoadBoundary>}</details><details className="import-entry" id="import-meals" open={importingCsv || undefined}><summary>Import a nutrition CSV</summary><p>From any app’s export with a header row. Read on this device only.</p>{(() => { const panel = importingCsv && <NutritionImportPanel data={data} update={update} imports={imports} onUndo={undoRecord} onClose={() => setImportingCsv(false)} />; return !panel ? <button type="button" className="secondary" onClick={() => setImportingCsv(true)}>Choose a file</button> : phone ? <PhoneFormSheet title="Import meals" onClose={() => setImportingCsv(false)}>{panel}</PhoneFormSheet> : panel; })()}</details></>}
       {view === "Meals & planning" && <MealsAndPlanning key={dateChoice} data={data} date={date} perform={perform} invalid={invalid} />}
-      {view === "Planner" && <LoadBoundary quiet><Suspense fallback={<p role="status">Opening the planner…</p>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense></LoadBoundary>}
-      {view === "Insights" && <LoadBoundary quiet><Suspense fallback={<p role="status">Reading your diary…</p>}><InsightsView data={data} today={today} /></Suspense></LoadBoundary>}
-      {view === "Import" && <LoadBoundary quiet><Suspense fallback={<p role="status">Opening the import…</p>}><RecipeImport data={data} perform={perform} /></Suspense></LoadBoundary>}
+      {view === "Planner" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the planner…" block/>}><PlannerView data={data} date={date} today={today} perform={perform} /></Suspense></LoadBoundary>}
+      {view === "Insights" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Reading your diary…" block/>}><InsightsView data={data} today={today} /></Suspense></LoadBoundary>}
+      {view === "Import" && <LoadBoundary quiet><Suspense fallback={<Skeleton label="Opening the import…"/>}><RecipeImport data={data} perform={perform} /></Suspense></LoadBoundary>}
       {view === "Journal settings" && <HealthJournalSettings data={data} date={date} perform={perform} invalid={invalid} />}
       {view === "Foods & recipes" && <LibraryView data={data} perform={perform} invalid={invalid} />}
       {view === "Measurements" && <><BodyMeasurements data={data} perform={perform}/><LoadBoundary quiet><Suspense fallback={null}><MeasurementsAa data={data} today={today} /></Suspense></LoadBoundary></>}
