@@ -13,6 +13,7 @@ import {RatingChart} from './rating-chart';
 import {ChessFrames, PlayLinks} from './chess-frames';
 import {useChessCheckIn} from './use-chess-check-in';
 import './chess.css';
+import {ShowcaseTag} from '../ui/showcase-tag';
 
 /**
  * The Chess page (Session W Part 14; /app/chess, its own chunk): ratings and recent games from chess.com and Lichess by
@@ -34,7 +35,7 @@ export function ChessView() {
     <div className="page-heading"><div>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="chess-eyebrow">YOUR GAME</NebulaFlow></p>
       <h1><NebulaFlow identity="chess-title">Chess.</NebulaFlow></h1>
-      <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? 'SHOWCASE DATA · fictional ratings and games.' : ''}</p>
+      <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? <><ShowcaseTag/>Fictional ratings and games.</> : ''}</p>
     </div></div>
     {!hasUser && !showcase && <section className="panel chess-setup" aria-labelledby="chess-setup-title"><h2 id="chess-setup-title">Follow your chess</h2><p>Add the username you play under. ZIGoals reads your public ratings and recent games from that site, one request at a time, only from this page, Today&apos;s chess card or Refresh.</p><ChessUsernames state={state} onSaved={() => void refresh()} /></section>}
     {(hasUser || showcase) && <section className="panel chess-ratings" aria-labelledby="chess-ratings-title">

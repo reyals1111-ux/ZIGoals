@@ -176,7 +176,8 @@ test('Showcase: fictional ratings and games, and no request to either site', asy
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await page.goto('/app/chess');
-  await expect(page.locator('.page-lede')).toContainText('SHOWCASE DATA · fictional ratings and games.');
+  // Phase 2, Part 11 (deliberate, owner request 8; ADR-024): the quiet Showcase tag, then the plain sentence. As strict.
+  await expect(page.locator('.page-lede .showcase-tag')).toHaveText('Showcase');await expect(page.locator('.page-lede')).toContainText('Fictional ratings and games.');
   await expect(page.getByRole('article', {name: 'chess.com Rapid rating'})).toBeVisible();
   await expect(page.getByRole('button', {name: 'Refresh', exact: true})).toHaveCount(0);
   await expect(page.getByRole('region', {name: 'Recent games'})).toContainText('Won');

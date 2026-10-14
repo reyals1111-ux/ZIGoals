@@ -7,6 +7,7 @@ import {useEntrance} from '../use-entrance';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
 import './wealth-history-chart.css';
+import {ShowcaseTag} from '../ui/showcase-tag';
 
 const CLASS_COLORS: Record<string, string> = {Crypto: '#23eaff', Stablecoins: '#5effd4', Stocks: '#459dff', ETFs: '#9273ff', 'Precious Metals': '#ffd27a', Cash: '#7bddff', Property: '#f06dff', Custom: '#ff74be', Other: '#a9c9ff'};
 const RANGES = [['1M', 31], ['3M', 92], ['1Y', 366], ['All', Infinity]] as const;
@@ -31,7 +32,7 @@ export function WealthHistoryChart({history, showcase}: {history: WealthHistory;
   const end = all.length ? Date.parse(all.at(-1)!.at) : 0;
   const points = days === Infinity ? all : all.filter(p => end - Date.parse(p.at) <= days * 86400000);
   const classes = useMemo(() => { const seen = new Map<string, bigint>(); for (const p of points) for (const [c, v] of Object.entries(p.classes ?? {})) seen.set(c, (seen.get(c) ?? 0n) + BigInt(v)); return [...seen.entries()].sort((a, b) => Number(b[1] - a[1])).map(([c]) => c); }, [points]);
-  if (points.length < 2) return <p className="fine">{showcase ? 'SHOWCASE DATA · fictional dated portfolio observations.' : 'Two valid observations on different days draw the chart.'}</p>;
+  if (points.length < 2) return <p className="fine">{showcase && <ShowcaseTag/>}{showcase ? 'Fictional dated portfolio observations; two on different days draw the chart.' : 'Two valid observations on different days draw the chart.'}</p>;
   const times = points.map(p => Date.parse(p.at)), start = times[0]!, last = times.at(-1)!;
   const values = points.map(p => BigInt(p.value)), lo = values.reduce((a, b) => a < b ? a : b), hi = values.reduce((a, b) => a > b ? a : b);
   const min = lo < 0n ? lo : 0n, pad = (hi - min) / 12n || 1n, max = hi + pad, span = max - min || 1n;

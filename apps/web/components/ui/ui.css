@@ -125,3 +125,6 @@
 :root .empty-state-copy { display: grid; gap: 8px; min-width: 0; }
 :root .empty-state-action { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 480px) { :root .empty-state { grid-template-columns: minmax(0, 1fr); } :root .empty-state-figure { width: 56px; height: 56px; } }
+/* Phase 2, Part 11: the quiet Showcase tag inside cards (components/ui/showcase-tag.tsx). */
+:root .showcase-tag { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; padding: 1px 9px 1px 7px; border-radius: 999px; border: 1px solid #c790f655; background: #2a1f4466; color: #eadcff; font-size: 14px; font-weight: 700; letter-spacing: .02em; vertical-align: 1px; white-space: nowrap; }
+:root .showcase-tag-dot { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #23eaff, #f06dff); }
