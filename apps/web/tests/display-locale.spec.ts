@@ -32,7 +32,11 @@ for (const c of cases) test.describe(c.locale, () => {
     await page.goto("/app/wealth");
     const total = page.locator(".wealth-hero, main").first();
     await expect(total).toContainText(c.wealth.replace(/ /g, NBSP));
-    await expect(total).toContainText(`${c.euro.replace(/ /g, NBSP)} held in EUR · not converted`);
+    // Session AB-Design (owner request 24): the other currency is a chip; its panel keeps the "not converted" fact.
+    await expect(total.locator('.wealth-other-chip-button').first()).toHaveText(`+ ${c.euro.replace(/ /g, NBSP)} held in EUR`);
+    await total.locator('.wealth-other-chip-button').first().click();
+    await expect(total.locator('.wealth-other-chip-panel').first()).toContainText(`${c.euro.replace(/ /g, NBSP)} held in EUR · not converted`);
+    await page.keyboard.press('Escape');
     await expect(page.getByRole("main")).toContainText(c.share);
     await page.goto("/app/health");
     await expect(page.getByRole("main")).toContainText(`${c.kcal}kcal logged`);

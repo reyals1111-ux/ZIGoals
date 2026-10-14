@@ -131,3 +131,35 @@
 .portfolio-all-transactions > .quiet { justify-self: start; min-height: 44px; }
 @media (max-width: 899.98px) { .portfolio-overview { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 767.98px) { .portfolio-page .portfolio-totals, .portfolio-facts dl { grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr)); } .portfolio-totals dd { font-size: 19px; } }
+/* Session AB-Design (owner request 27): the big total, the Coins / Analysis / Insights tabs, expandable coin rows, phone cells. */
+.portfolio-summary-big .portfolio-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "value value value" "day all cost"; }
+.portfolio-summary-big .portfolio-totals > div:first-child { grid-area: value; padding: 22px 24px; background: linear-gradient(130deg, #0e1e3ad9, #141432d9); }
+.portfolio-summary-big .portfolio-totals > div:first-child dd { font-size: clamp(34px, 4vw, 52px); letter-spacing: -.03em; line-height: 1.05; background-image: var(--nebula-flow-mid); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); }
+.portfolio-summary-big .portfolio-totals > div:nth-child(2) { grid-area: day; } .portfolio-summary-big .portfolio-totals > div:nth-child(3) { grid-area: all; } .portfolio-summary-big .portfolio-totals > div:nth-child(4) { grid-area: cost; }
+.portfolio-summary-big .portfolio-totals dd { font-size: 22px; font-weight: 650; }
+.portfolio-summary-big .portfolio-totals dd[data-direction="up"] { color: #86f0d6; } .portfolio-summary-big .portfolio-totals dd[data-direction="down"] { color: #ff9ab0; }
+.portfolio-tabs { margin: 18px 0 14px; }
+.portfolio-tabs button[aria-selected="true"] { color: var(--text-strong); border-color: #3b84e1aa; background: linear-gradient(110deg, #063557, #081531 65%, #09283c); box-shadow: 0 0 18px -8px #6fe6f6aa; }
+.data-coin-toggle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 4px 6px 4px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+.data-coin-toggle > span { display: grid; gap: 1px; min-width: 0; }
+.data-coin-toggle strong { font-size: 15px; } .data-coin-toggle small { font-size: 13px; color: var(--text-meta, #c2d0e5); }
+.data-coin-chevron { display: inline-grid !important; place-items: center; width: 20px; height: 20px; color: #9fd6ff; transform: rotate(90deg); transition: transform .18s var(--motion-glide, ease); }
+tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
+.data-coin-toggle:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+.data-detail-row > td { padding: 0 0 14px !important; border-bottom: 1px solid #7fc8ff1f; }
+.coin-detail { display: grid; gap: 14px; padding: 14px 12px 4px; border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #0d1a3080, #0f1a3000); }
+.coin-detail-figures { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)) !important; }
+.coin-detail-spark { display: grid; gap: 4px; max-width: 320px; } .coin-detail-spark small { font-size: 13px; color: var(--text-meta, #c2d0e5); }
+.coin-detail-transfers h4 { margin: 0 0 6px; font-size: 15px; }
+.coin-detail-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; } .coin-detail-links .text-link { min-height: 44px; display: inline-flex; align-items: center; }
+@media (max-width: 767.98px) {
+  .portfolio-summary-big .portfolio-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "value value" "day all" "cost cost"; }
+  .portfolio-summary-big .portfolio-totals dd { font-size: 19px; }
+  .portfolio-holdings-section .data-table th:first-child, .portfolio-holdings-section .data-table td:first-child { min-width: 150px; }
+  .portfolio-holdings-section .data-table td { white-space: nowrap; }
+  .data-coin-toggle strong { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .data-coin-chevron { transition: none; } }
+:root[data-app-motion=off] .data-coin-chevron { transition: none; }
+/* The Showcase's fixture-price note stays (fictional must never look real) but as one quiet line, not a box (Session AB-Design, owner request 8). */
+.portfolio-hero .portfolio-note { max-width: none; margin: 8px 0 0; padding: 0; border: 0; background: none; font-size: 14px; color: var(--text-meta, #c2d0e5); }

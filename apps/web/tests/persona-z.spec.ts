@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,footerDisclaimer,openHabitDetails,openStatusSheet} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../lib/habits';
 import {scheduleHabitState} from '../lib/habit-actions';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, saveWeight} from '../lib/health';
@@ -40,51 +41,56 @@ test('1. Habits + Health and Habits only: Today is one centred column at a readi
   await expect(page.locator('.today-rail')).toHaveCount(1);
 });
 
-test('2. phones: one 44 px status line ("Demo · no real money") opens the Status sheet with every notice in full', async ({page}) => {
+test('2. phones: one compact Alpha notice on the first screen; More → Status & wallet opens the Status sheet with every notice in full', async ({page}) => {
+  // Session AB-Design (owner request 8, ADR-024 D7; assertion re-pointed, as strict): the one status line became the
+  // compact notice (closable on the device) and the Status sheet opens from More.
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/app/goals');
   await expect(page.locator('main h1').first()).toBeVisible();
-  const line = page.getByRole('button', {name: 'Status: Demo · no real money', exact: true});
-  await expect(line).toBeVisible();
-  const box = (await line.boundingBox())!, tabs = (await page.locator('.phone-tabbar').boundingBox())!;
-  expect(box.height).toBeGreaterThanOrEqual(44); expect(box.height).toBeLessThanOrEqual(52); expect(box.y + box.height).toBeLessThanOrEqual(tabs.y);
-  // The long notices wait in the sheet; the honesty label is the line itself, on the first screen of every page.
-  await expect(page.locator('.app-topbar .network-banner')).toBeHidden();
-  await expect(page.locator('.mode-strip')).toBeHidden();
-  await line.click();
-  const sheet = page.getByRole('dialog', {name: 'Status'});
-  await expect(sheet).toBeVisible();
-  await expect(line).toHaveAttribute('aria-expanded', 'true');
-  await expect(sheet).toContainText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
+  const notice = alphaNotice(page);
+  await expect(notice.locator('strong')).toHaveText(ALPHA_LABEL);
+  const box = (await notice.boundingBox())!, tabs = (await page.locator('.phone-tabbar').boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(44); expect(box.height).toBeLessThanOrEqual(72); expect(box.y + box.height).toBeLessThanOrEqual(tabs.y);
+  // The long sentences wait in the sheet and the footer; the first screen carries the label itself.
+  await expect(footerDisclaimer(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
+  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText(MODE_LOCAL);
+  expect(await footerDisclaimer(page).evaluate(e => e.getBoundingClientRect().top > innerHeight)).toBe(true);
+  const sheet = await openStatusSheet(page);
+  await expect(sheet).toContainText(ALPHA_LABEL);
   await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab');
   await expect(sheet).toContainText(/ZIG demo balance/);
   await expect(sheet.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(sheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
-  await expect(line).toBeFocused();
+  await expect(page.getByRole('button', {name: 'More', exact: true})).toBeFocused();
   for (const path of ['/app', '/app/wealth', '/app/staking', '/app/settings']) {
     await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
-    const l = page.getByRole('button', {name: 'Status: Demo · no real money', exact: true});
-    await expect(l, path).toBeInViewport();
+    await expect(alphaNotice(page), path).toBeInViewport();
   }
-  // Desktop never shows the line.
+  // Closing the notice keeps it closed on this device; the facts stay in the footer.
+  await notice.getByRole('button', {name: 'Close this notice', exact: true}).click();
+  await expect(notice).toHaveCount(0);
+  await page.reload(); await expect(page.locator('main h1').first()).toBeVisible();
+  await expect(alphaNotice(page)).toHaveCount(0);
+  await expect(footerDisclaimer(page).locator('.network-banner strong')).toHaveText(ALPHA_LABEL);
+  // Desktop: the wallet buttons sit in the status row, no sheet.
   await page.setViewportSize({width: 1280, height: 800});
   await page.goto('/app/goals');
-  if (!await isPhone(page)) { await expect(line).toBeHidden(); await expect(page.locator('.app-topbar .network-banner')).toBeVisible(); }
+  if (!await isPhone(page)) { await expect(page.getByRole('dialog', {name: 'Status'})).toHaveCount(0); await expect(page.locator('.status-row .status-wallet').getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible(); }
 });
 
 test('3. plain words without a wallet: practice money, Demo records, "Give your savings a purpose"', async ({page, isMobile}) => {
   test.skip(isMobile, 'The desktop top bar shows the words in place; the phone shows them in the Status sheet (test 2).');
   await showcase(page);
   await page.goto('/app');
-  await expect(page.locator('.app-topbar .network-banner strong')).toHaveText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
+  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL); // Session AB-Design: the compact notice
   await expect(page.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', {name: 'Local demo', exact: true})).toHaveCount(0);
   await expect(page.locator('.hero-pillars')).toContainText('Give your savings a purpose.');
   await expect(page.locator('.hero-pillars')).not.toContainText('Give your ZIG a purpose.');
-  // The honesty strip itself keeps its words (the hosted verifier reads them).
-  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  // The footer's disclaimer keeps the strip's words (the hosted verifier reads them).
+  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
 });
 
 test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked', async ({page}) => {
@@ -121,6 +127,7 @@ test('6. Delete for good: an archived habit goes after its name is typed, its st
   await page.goto('/app/habits');
   await page.getByRole('group', {name: 'Filter habits'}).getByRole('button', {name: 'Archived', exact: true}).click();
   const card = page.getByRole('article', {name: 'Stretch', exact: true});
+  await openHabitDetails(card);
   await card.getByRole('button', {name: 'Delete for good…', exact: true}).click();
   const confirm = card.getByRole('form', {name: 'Delete Stretch for good'}), go = confirm.getByRole('button', {name: 'Delete for good', exact: true});
   await expect(go).toBeDisabled();
@@ -259,7 +266,8 @@ test('9. phones: a goal card is about a third of a screen; details open on the g
   // A computer keeps the accepted card.
   await page.setViewportSize({width: 1440, height: 900});
   await page.goto('/app/goals');
-  if (!await isPhone(page)) await expect(page.locator('.goals-page .unified-goal-card .card-bottom').first()).toBeVisible();
+  // Session AB-Design (owner request 18): on every width the card's sources and plan wait behind the Details arrow; open it and they are there.
+  if (!await isPhone(page)) { const first = page.locator('.goals-page .unified-goal-card').first(); await first.locator('.goal-card-more > summary').click(); await expect(first.locator('.card-bottom')).toBeVisible(); }
 });
 
 test('10. Habits: "Ask ZIGi" about one habit is in its card menu; one "Ask ZIGi about my habits" at the top', async ({page}) => {
@@ -283,10 +291,11 @@ test('10b. phones: Habits\' hero actions take two rows from 360 px, and the firs
     await page.goto('/app/habits');
     // While the page settles, the server's hero and the phone's can both be there for a moment: measure the one that stays.
     await expect(page.locator('.habit-hero-actions')).toHaveCount(1);
-    await expect(page.locator('.habit-hero-actions .habit-ask-zigi')).toBeVisible();
+    await expect(page.locator('.habit-hero .page-ask-zigi')).toBeVisible(); // Session AB-Design (owner request 21): the shared Ask ZIGi action
     const tops = (await page.locator('.habit-hero-actions').evaluate(a => [...a.querySelectorAll('button, a')].map(e => e.getBoundingClientRect().top))).sort((a, b) => a - b);
     expect(tops, `three actions at ${width}`).toHaveLength(3);
-    expect(1 + tops.slice(1).filter((t, i) => t - tops[i]! > 10).length, `rows of actions at ${width}`).toBe(2);
+    // Session AB-Design (owner request 21): the shared minor actions are short on phones, so the three fit one row at 430 px; never more than two rows.
+    expect(1 + tops.slice(1).filter((t, i) => t - tops[i]! > 10).length, `rows of actions at ${width}`).toBeLessThanOrEqual(2);
   }
   await page.setViewportSize({width: 390, height: 664});
   await page.goto('/app/habits');

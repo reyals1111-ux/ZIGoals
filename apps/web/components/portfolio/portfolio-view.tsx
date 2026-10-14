@@ -19,7 +19,6 @@ import {allTimeResult, dayChange} from '../../lib/portfolio/performance';
 import {PortfolioUnreadable, createPortfolio, deletePortfolio, exportPortfolios, parsePortfolioImport, removeTransaction, renamePortfolio} from '../../lib/portfolio/store';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
-import {PhoneFold} from '../phone/phone-fold';
 import {useImportUndo} from '../import/use-import-undo';
 import {ImportBanner} from '../import/csv-import-steps';
 import {ProgressSlot} from '../progress/slot';
@@ -70,7 +69,6 @@ export function PortfolioView() {
     </section>
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}
-    <ProgressSlot page="portfolio" />
     <ImportBanner imports={imports} kind="portfolio" onUndo={undoRecord} />
     {!store.loaded ? <p role="status">Loading your portfolios…</p>
       : store.unreadable ? <Unreadable onStartOver={() => run(() => ({version: 1, portfolios: []}), 'Started over. The unreadable portfolios were replaced.', 'Could not start over.', {replaceUnreadable: true})} />
@@ -86,6 +84,7 @@ export function PortfolioView() {
         <PortfolioFiles data={store.data} showcase={store.showcase} onImport={data => run(() => data, 'Portfolios replaced from the file.', 'The file was not imported.')} importing={importing} onImportCsv={() => setImporting(!importing)} />
         {importPanel && (phone ? <PhoneFormSheet title="Import transactions" onClose={() => setImporting(false)}>{importPanel}</PhoneFormSheet> : importPanel)}
       </>}
+    <div className="page-game-slot"><ProgressSlot page="portfolio" /></div>
     <p className="fine portfolio-privacy">Stored on this device and not part of your private backups. With an account, it syncs, encrypted, only if you tick &ldquo;Also sync my Portfolio&rdquo; in Settings. Portfolio never changes your Wealth, Goals, Positions or Today.</p>
   </div>;
 }
@@ -128,6 +127,8 @@ function CreatePortfolio({onCreate}: {onCreate: (input: {name: string; kind: Por
 
 function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {portfolio: Portfolio; marketOf: (coin: PortfolioCoin) => CoinMarket; attribution: boolean; run: Run; showcase: boolean}) {
   const [sort, setSort] = useState<'value' | 'name' | 'result'>('value'), [renaming, setRenaming] = useState(false), [removing, setRemoving] = useState(false);
+  // Session AB-Design (owner request 27): Coins / Analysis / Insights, one view at a time; nothing is removed.
+  const [tab, setTab] = useState<'coins' | 'analysis' | 'insights'>('coins');
   const held = holdings(portfolio), rows = rowsFor(portfolio, held, marketOf), priceOf = (coin: string) => rows.find(r => r.holding.coin === coin)?.market.price?.value;
   const totals = portfolioTotals(portfolio, priceOf), day = dayChange(rows.map(r => ({quantity: r.holding.quantity, value: r.value, change24h: r.market.change24h}))), allTime = allTimeResult(portfolio, priceOf);
   const stale = rows.some(r => r.market.price?.stale && Number(r.holding.quantity) > 0);
@@ -138,15 +139,22 @@ function PortfolioPanel({portfolio, marketOf, attribution, run, showcase}: {port
     </header>
     {renaming && <form className="portfolio-inline-form" aria-label="Rename portfolio" onSubmit={event => { event.preventDefault(); const name = String(new FormData(event.currentTarget).get('name') ?? ''); if (name.trim() && run(data => renamePortfolio(data, portfolio.id, name), 'Portfolio renamed.', 'The new name was not saved.')) setRenaming(false); }}><label className="field"><span>New name</span><input name="name" required maxLength={80} defaultValue={portfolio.name} /></label><button className="secondary" type="submit">Save name</button></form>}
     {removing && <div className="portfolio-confirm" role="alertdialog" aria-label="Delete portfolio"><p>Delete “{portfolio.name}” and its {portfolio.transactions.length} transactions from this device? Export it first to keep a copy.</p><div className="actions"><button type="button" className="secondary" onClick={() => run(data => deletePortfolio(data, portfolio.id), 'Portfolio deleted.', 'The portfolio was not deleted.')}>Delete portfolio</button><button type="button" className="quiet" onClick={() => setRemoving(false)}>Keep it</button></div></div>}
-    <PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} />
+    <div className="portfolio-summary-big"><PortfolioSummary portfolio={portfolio} totals={totals} day={day} allTime={allTime} stale={stale} /></div>
     {rows.length > 0 && <>
-      {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures, then the chart. */}
-      <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} />
-      {/* On a phone, allocation and the transaction list fold away under their names; elsewhere they stay open. */}
-      <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <PhoneFold label="Allocation"><AllocationDonut portfolio={portfolio} rows={rows} /></PhoneFold>}</div>
-      {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
-      {showcase && <p className="fine portfolio-attribution">Showcase fixture prices, not market data.</p>}
-      <PhoneFold label="Transactions"><AllTransactions portfolio={portfolio} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} /></PhoneFold>
+      <div className="tab-row portfolio-tabs" role="tablist" aria-label={`${portfolio.name} views`}>{([['coins', 'Coins'], ['analysis', 'Analysis'], ['insights', 'Insights']] as const).map(([id, label]) => <button key={id} type="button" role="tab" id={`${portfolio.id}-tab-${id}`} aria-selected={tab === id} aria-controls={`${portfolio.id}-panel-${id}`} onClick={() => setTab(id)}>{label}</button>)}</div>
+      <div id={`${portfolio.id}-panel-coins`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-coins`} hidden={tab !== 'coins'}>
+        {/* Session AA-Cloud Part 1: the holdings (the portfolio's items) come right after its figures. */}
+        <HoldingsTable portfolio={portfolio} rows={rows} sort={sort} onSort={setSort} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} />
+        {attribution && <p className="fine portfolio-attribution">Prices by CoinGecko, when available. A price that needs a refresh says so with its time.</p>}
+        {showcase && <p className="fine portfolio-attribution">Showcase fixture prices, not market data.</p>}
+      </div>
+      <div id={`${portfolio.id}-panel-analysis`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-analysis`} hidden={tab !== 'analysis'}>
+        <div className="portfolio-overview"><PortfolioValueChart portfolio={portfolio} showcase={showcase} />{rows.some(r => r.value !== undefined && Number(r.value) > 0) && <AllocationDonut portfolio={portfolio} rows={rows} />}</div>
+      </div>
+      <div id={`${portfolio.id}-panel-insights`} role="tabpanel" aria-labelledby={`${portfolio.id}-tab-insights`} hidden={tab !== 'insights'}>
+        <AllTransactions portfolio={portfolio} onRemove={id => run(data => removeTransaction(data, portfolio.id, id), 'Transaction removed.', 'The transaction was not removed.')} />
+        <p className="fine">Insights are your own recorded trades and transfers; nothing here predicts anything.</p>
+      </div>
     </>}
     <TransactionForm portfolio={portfolio} run={run} />
   </section>;

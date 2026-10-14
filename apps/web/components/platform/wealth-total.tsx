@@ -1,15 +1,45 @@
 'use client';
+import {useEffect, useRef, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {formatSignedGoalAmount} from '../../lib/goal-summary';
 import {amount} from './common';
 import {splitWealthTotals,type CurrencyTotal} from '../../lib/wealth-total';
+import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
+import {baseCurrencyOf} from '../../lib/ui-prefs/schema';
+import './wealth-total.css';
 const money=(value:bigint,currency:string)=>formatSignedGoalAmount(value<0n,amount((value<0n?-value:value).toString(),2),currency);
-/** One large headline total in one currency; other currencies on a smaller line, never converted. */
+/** The person's base currency for Wealth's figures (owner request 24; AB-Cloud's defaultCurrency() once it lands, ADR-024 owner edit 5). */
+export function useBaseCurrency(){const prefs=useUiPrefs();return baseCurrencyOf(prefs.data);}
+/**
+ * Session AB-Design (owner request 24): other currencies as one small chip — "+ €8,000 held in EUR" — that opens the
+ * details (each currency's total, never converted, no FX assumed); nothing shows when every other total is zero.
+ */
+export function OtherCurrencyChip({others,id}:{others:readonly CurrencyTotal[];id:string}){
+ const shown=others.filter(o=>o.value!==0n),[open,setOpen]=useState(false),root=useRef<HTMLSpanElement>(null);
+ useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close);},[open]);
+ if(!shown.length)return null;
+ const first=shown[0]!;
+ return <span ref={root} className="wealth-other-chip" onKeyDown={e=>{if(e.key==='Escape'&&open){e.preventDefault();setOpen(false);}}}>
+  <button type="button" className="wealth-other-chip-button" aria-expanded={open} aria-controls={`${id}-others`} onClick={()=>setOpen(v=>!v)}>+ {money(first.value,first.currency)} held in {first.currency}{shown.length>1?` · +${shown.length-1}`:''}</button>
+  {open&&<span id={`${id}-others`} className="wealth-other-chip-panel" role="group" aria-label="Other currencies">
+   {shown.map(o=><span key={o.currency} className="wealth-total-other">+ {money(o.value,o.currency)} held in {o.currency} · not converted</span>)}
+   <small>Currency totals stay separate. No FX assumed.</small>
+  </span>}
+ </span>;
+}
+/** One large headline total in the base currency; other currencies as a chip, never converted. */
 export function WealthTotal({subtotals,identity,empty}:{subtotals:readonly CurrencyTotal[];identity:string;empty:string}){
- const {primary,others}=splitWealthTotals(subtotals);
+ const base=useBaseCurrency(),{primary,others,baseEmpty}=splitWealthTotals(subtotals,base);
  if(!primary)return <strong className="wealth-total-headline wealth-total-empty">{empty}</strong>;
  return <>
   <strong className="wealth-total-headline"><NebulaFlow identity={identity}>{money(primary.value,primary.currency)}</NebulaFlow></strong>
-  {others.map(o=><span key={o.currency} className="wealth-total-other">+ {money(o.value,o.currency)} held in {o.currency} · not converted</span>)}
+  {baseEmpty&&<span className="wealth-total-base-note">Nothing tracked in {base} yet</span>}
+  <OtherCurrencyChip others={others} id={identity}/>
  </>;
+}
+/** A row's figure (Allocated to Goals, Available for Goals): the base currency's amount, then the chip for the rest. */
+export function SplitMoney({subtotals,id}:{subtotals:readonly CurrencyTotal[];id:string}){
+ const base=useBaseCurrency(),{primary,others}=splitWealthTotals(subtotals,base);
+ if(!primary)return <span>—</span>;
+ return <><span>{money(primary.value,primary.currency)}</span><OtherCurrencyChip others={others} id={id}/></>;
 }
