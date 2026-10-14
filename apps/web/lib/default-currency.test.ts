@@ -24,7 +24,7 @@ describe('grouped amounts', () => {
     expect(parseAmountInput('1.234', 3, 'en-US')).toBe(1234n);
     // A leading zero is a decimal on every device; malformed grouping is left for the strict reader to refuse.
     expect(parseAmountInput('0.125', 3, 'nl-NL')).toBe(125n);
-    for (const bad of ['1,23,456', '12,34.5', '1.23.456', '1,234.5,6']) expect(() => parseAmountInput(bad, 2, 'en-US'), bad).toThrow();
+    for (const bad of ['1,23,456', '12,34.5', '1.23.456', '1,234.5,6']) expect(() => parseAmountInput(bad, 2, 'en-US'), bad).toThrow('Enter a non-negative decimal amount.');
   });
 });
 

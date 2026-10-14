@@ -40,6 +40,14 @@ export function frozenFixture() {
   // Part 2: every record the extras sections carry, as an extras merge writes it into the device keys: the Showcase's
   // records on device A merged with device B's edits (a goal's card art, a calculator scenario's name, a coach answer).
   const showcase = buildShowcase('2026-10-13', 'UTC').records, a = new Map<string, string>(Object.entries({...showcase, ...showcaseChoices()}));
+  // Gate C test audit: the Showcase holds no routine run, aisle choice or vitamins, so they are added here (fictional) and
+  // every record the sections carry reaches the frozen readers.
+  const SEEDS: Record<string, unknown> = {
+    'zigoals:routine-run:v1': {version: 1, run: {version: 1, headId: 'showcase-morning', day: '2026-10-13', step: 1, startedAt: '2026-10-13T07:00:00.000Z', stepStartedAt: '2026-10-13T07:05:00.000Z', done: ['stretch'], skipped: []}},
+    'zigoals:aisles:v1': {version: 1, overrides: {'oat milk': 'Dairy & eggs'}},
+    'zigoals:health-vitamins:v1': {version: 1, foods: {'health_fixture-oats': {cMg: 0, dUg: 2500, b12Ug: 400}}, entries: {'health_fixture-entry-1': {dUg: 2500}}, targets: {dUg: 15000}},
+  };
+  for (const [key, value] of Object.entries(SEEDS)) if (!a.has(key)) a.set(key, JSON.stringify(value));
   const storageA = {getItem: (k: string) => a.get(k) ?? null, setItem: (k: string, v: string) => { a.set(k, v); }, removeItem: (k: string) => { a.delete(k); }};
   for (const section of EXTRAS_SECTIONS) {
     const local = collectSection(storageA, section), other = structuredClone(local.records) as Record<string, {goals: Record<string, Record<string, unknown>>; scenarios?: {name: string}[]; answers?: Record<string, unknown>}>;
@@ -56,8 +64,20 @@ export function frozenFixture() {
 
 test('the frozen-reader fixture is read by this build', () => {
   const fixture = frozenFixture();
-  // Every extras record the sections carry is in the fixture with its older readers named.
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...new Set(EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key)).filter(k => fixture.records[k] || k === GOAL_EXTRAS_KEY)), GOAL_EXTRAS_KEY].sort());
+  // Every extras record the sections carry is in the fixture with its older readers named (Gate C test audit: no filter, so
+  // a record missing from the fixture fails here instead of dropping out of both sides).
+  const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
+  expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY].sort());
+  // Each record parses with this build's schema, and device B's three edits survived the merge.
+  for (const section of EXTRAS_SECTIONS) for (const r of section.records) r.spec.schema.parse(JSON.parse(fixture.records[r.spec.key === GOAL_EXTRAS_KEY ? `${GOAL_EXTRAS_KEY}#merged` : r.spec.key]!));
+  const merged = fixture.checks.find(c => c.key === `${GOAL_EXTRAS_KEY}#merged`)!;
+  expect(Object.keys(merged.expect!)).toHaveLength(1);
+  const [path] = Object.keys(merged.expect!), goalKey = path!.slice('goals.'.length, -'.cardArt'.length);
+  expect(goalKey).toMatch(/^private:\d+$/);
+  expect(goalExtrasSchema.parse(JSON.parse(fixture.records[`${GOAL_EXTRAS_KEY}#merged`]!)).goals[goalKey]!.cardArt).toBe('aurora-2');
+  expect(JSON.parse(fixture.records['zigoals:calculator:v1']!).scenarios[0].name).toBe('Renamed on device B');
+  expect(JSON.parse(fixture.records['zigoals:health-coach:v1']!).answers['2026-10-12']).toEqual({answer: 'keep', at: '2026-10-13T12:00:00.000Z'});
   expect(platformSchema.parse(JSON.parse(fixture.records['zigoals:platform:v1']!)).schemaVersion).toBe(5);
   expect(goalExtrasSchema.parse(JSON.parse(fixture.records[GOAL_EXTRAS_KEY]!)).goals['private:1']!.cardArt).toBe('nebula-1');
   if (process.env.FROZEN_OUT) writeFileSync(process.env.FROZEN_OUT, JSON.stringify(fixture));

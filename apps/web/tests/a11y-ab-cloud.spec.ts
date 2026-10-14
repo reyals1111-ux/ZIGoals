@@ -63,8 +63,11 @@ test('Point & tell: dialogs take focus and give it back, every control is named 
   await expect(launcher).toBeFocused();
   // The note sheet, by keyboard alone: the launcher, a focused part, Enter; the field has focus; Esc returns to the launcher.
   await launcher.press('Enter');
-  await page.locator('main h1').first().evaluate(el => { el.setAttribute('tabindex', '-1'); (el as HTMLElement).focus(); });
+  // Gate C test audit: Tab alone reaches a part of the page that takes focus on its own (no tabindex added).
+  for (let i = 0; i < 80 && !(await page.evaluate(() => !!document.activeElement?.closest('main') && !document.activeElement.closest('[data-point-tell]'))); i++) await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => !!document.activeElement?.closest('main') && document.activeElement.getAttribute('tabindex') === null)).toBe(true);
   await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/app\/goals$/);
   const sheet = page.getByRole('dialog', {name: /^Note on /});
   await expect(sheet.getByLabel('Your note')).toBeFocused();
   expect(await audit(tell)).toEqual([]);

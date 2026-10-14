@@ -111,3 +111,36 @@ test('a file that is not an export is refused with a plain sentence and nothing 
   await expect(restoreRegion(page)).toContainText('You are in the Showcase. Return to your own data to restore a backup.');
   await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toHaveCount(0);
 });
+
+test('a photo already on this device is never overwritten; Undo lasts only until the tab reloads', async ({page}) => {
+  // Gate C test audit (ADR-023 C22): the restore adds missing photos only, and its Undo lives in this tab's memory.
+  const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
+  await page.goto('/app/settings');
+  await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
+  await photoDb(page, 'put', webp());
+  const habits = await stored(page, HABITS_KEY);
+  const zip = await exportZip(page);
+  // This device now holds a different picture under the same id (four more bytes), and Habits are lost.
+  const mine = webp().concat([0, 0, 0, 0]);
+  await photoDb(page, 'put', mine);
+  await page.evaluate(h => localStorage.removeItem(h), HABITS_KEY);
+  await page.goto('/app/settings/data');
+  const region = restoreRegion(page);
+  await region.getByLabel('Export everything ZIP').setInputFiles({name: `zigoals-export-${DAY}.zip`, mimeType: 'application/zip', buffer: zip});
+  const preview = region.getByLabel('What this backup holds');
+  await preview.getByRole('combobox', {name: 'Habits: what to do'}).selectOption('replace');
+  await preview.getByLabel(/Add the missing progress photos/).check();
+  await preview.getByLabel(/I checked my choices/).check();
+  await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
+  // A photo this device already holds is passed over without a word (it is not "left out": it is here).
+  await expect(region.getByRole('status')).toHaveText('Restored: Habits.');
+  expect(await photoDb(page, 'get')).toBe(mine.length);
+  expect(JSON.parse((await stored(page, PROGRESS_PHOTOS_KEY))!)).toEqual({version: 1, photos: [PHOTO]});
+  expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
+  await expect(region.getByRole('button', {name: 'Undo this restore'})).toBeVisible();
+  // A reload ends the Undo; the restored records stay.
+  await page.reload();
+  await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toBeVisible();
+  await expect(restoreRegion(page).getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
+  expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
+});

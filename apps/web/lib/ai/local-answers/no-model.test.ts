@@ -16,6 +16,7 @@ test('a Dutch question gets its introduction in Dutch; the examples stay the Eng
     expect(questionLanguage(q), q).toBe('nl');
     const r = noModelReply(q, env());
     expect(r).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO_NL});
+    expect('examples' in r ? r.examples.length : 0, q).toBeGreaterThan(0);
     for (const example of 'examples' in r ? r.examples : []) expect(localAnswer(example, env()).kind, example).not.toBe('none');
   }
   for (const q of ['Tell me a joke', 'What should I do today?', 'Is de app klaar?']) expect(noModelReply(q, env())).toMatchObject({kind: 'examples', text: EXAMPLES_INTRO});

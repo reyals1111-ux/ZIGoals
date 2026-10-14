@@ -12,6 +12,9 @@ const NOW = '2026-10-14T19:00:00.000Z';
 const chat = (id: string, title: string, minutes: number) => ({version: 1, id, scope: 'local', title, provider: 'local', model: 'mock-chat', createdAt: NOW, updatedAt: new Date(Date.parse(NOW) - minutes * 60000).toISOString(), turns: []});
 const CHATS = [chat('chat-first-0001', 'Fictional first chat', 1), chat('chat-second-002', 'Fictional second chat', 2)];
 const stored = (page: Page) => page.evaluate(() => new Promise<string[]>((resolve, reject) => { const r = indexedDB.open('zigoals-ai-chats-v1'); r.onerror = () => reject(r.error); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.length) { db.close(); resolve([]); return; } const t = db.transaction(db.objectStoreNames[0]!, 'readonly'), q = t.objectStore(db.objectStoreNames[0]!).getAllKeys(); q.onsuccess = () => { db.close(); resolve((q.result as string[]).sort()); }; }; }));
+/** The stored chats themselves, by key, to show that Undo leaves them untouched (Gate C test audit). */
+const storedChats = (page: Page) => page.evaluate(() => new Promise<Record<string, unknown>>((resolve, reject) => { const r = indexedDB.open('zigoals-ai-chats-v1'); r.onerror = () => reject(r.error); r.onsuccess = () => { const db = r.result, t = db.transaction('chats', 'readonly'), s = t.objectStore('chats'), keys = s.getAllKeys(), values = s.getAll(); t.oncomplete = () => { db.close(); resolve(Object.fromEntries((keys.result as string[]).map((k, i) => [k, values.result[i]]))); }; }; }));
+const AS_STORED = Object.fromEntries(CHATS.map(c => [`local:${c.id}`, c]));
 test.beforeEach(async ({page}) => {
   await page.clock.install({time: NOW});
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
@@ -47,7 +50,7 @@ test('Delete hides a chat with Undo; Undo brings it back; the chat is removed on
   await expect(row(region, 'Fictional first chat')).toHaveCount(1);
   await expect(region.getByRole('status')).toHaveCount(0);
   await page.clock.runFor(9000);
-  expect(await stored(page)).toHaveLength(2);
+  expect(await storedChats(page)).toEqual(AS_STORED);
   // Deleted again, and the time runs out: removed from the device.
   await row(region, 'Fictional first chat').getByRole('button', {name: 'Delete', exact: true}).click();
   await page.clock.runFor(7900);
@@ -66,7 +69,8 @@ test('"Delete all chats" keeps its confirmation, then hides every chat with Undo
   await expect(region.getByRole('status')).toHaveText('All chats deleted. Undo');
   await region.getByRole('button', {name: 'Undo', exact: true}).click();
   await expect(region.locator('.ai-history-list li')).toHaveCount(2);
-  expect(await stored(page)).toHaveLength(2);
+  await page.clock.runFor(9000);
+  expect(await storedChats(page)).toEqual(AS_STORED);
   // One delete, then another before the first one's time ends: the first is removed at once, the second waits.
   await row(region, 'Fictional first chat').getByRole('button', {name: 'Delete', exact: true}).click();
   await row(region, 'Fictional second chat').getByRole('button', {name: 'Delete', exact: true}).click();
@@ -75,4 +79,27 @@ test('"Delete all chats" keeps its confirmation, then hides every chat with Undo
   await region.getByRole('button', {name: 'Undo', exact: true}).click();
   await expect(row(region, 'Fictional second chat')).toHaveCount(1);
   expect(await stored(page)).toEqual(['local:chat-second-002']);
+});
+
+test('"Delete all chats" removes every chat when its 8 seconds end', async ({page}) => {
+  const region = await history(page);
+  await region.getByRole('button', {name: 'Clear all', exact: true}).click();
+  await region.getByRole('button', {name: 'Delete all chats', exact: true}).click();
+  await page.clock.runFor(7900);
+  expect(await storedChats(page)).toEqual(AS_STORED);
+  await page.clock.runFor(200);
+  await expect.poll(() => stored(page)).toEqual([]);
+  await expect(region.getByRole('status')).toHaveCount(0);
+});
+
+test('closing History ends the Undo time: the deleted chat is removed then, the other kept as it was', async ({page}) => {
+  const region = await history(page);
+  await row(region, 'Fictional first chat').getByRole('button', {name: 'Delete', exact: true}).click();
+  await expect(region.getByRole('status')).toHaveText('“Fictional first chat” deleted. Undo');
+  const panel = page.locator('dialog.ai-chat[open]');
+  await panel.getByRole('button', {name: 'More: history, customize, settings and help'}).click();
+  await panel.getByRole('button', {name: 'Chat history'}).click();
+  await expect(panel.getByRole('region', {name: 'Chat history'})).toHaveCount(0);
+  await expect.poll(() => stored(page)).toEqual(['local:chat-second-002']);
+  expect(await storedChats(page)).toEqual({'local:chat-second-002': CHATS[1]});
 });

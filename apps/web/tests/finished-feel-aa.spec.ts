@@ -25,8 +25,10 @@ test('Settings → Your data: where each part lives, what this device holds, wha
   const synced = page.getByRole('region', {name: 'Synced records'});
   // Session AB-Cloud (ADR-023 C6, C1): the four modules, then the device records that now also travel (accounts and
   // milestone dates in finance v5; the extras sections), each named; what stays on this device is listed apart.
-  await expect(synced.getByRole('listitem')).toHaveCount(SYNCED.length);
-  expect(SYNCED.length).toBeGreaterThan(4);
+  // Gate C test audit: the count is pinned as a number (the four modules + 17 device records), not read from the list the
+  // page renders, so a row dropped from the catalog fails here.
+  await expect(synced.getByRole('listitem')).toHaveCount(21);
+  expect(SYNCED).toHaveLength(21);
   await expect(synced.getByRole('listitem').filter({hasText: 'Habits and check-ins'})).toContainText(/\d+(\.\d)? (B|kB|MB)/);
   for (const label of ['Goal plans, life areas, visions and sub-goals', 'Accounts and debts', 'Micronutrient targets']) await expect(synced).toContainText(label);
   await expect(page.getByRole('region', {name: 'Kept on this device'})).toContainText('Recent searches');

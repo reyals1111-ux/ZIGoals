@@ -109,3 +109,27 @@ test('nothing in Point & tell moves (reduced motion and Motion Off alike); every
     expect(await button.evaluate(el => [getComputedStyle(el).transitionDuration, getComputedStyle(el).animationName])).toEqual(['0s', 'none']);
   }
 });
+
+test('a button with its own action is picked, not pressed, by pointer and by keyboard (Gate C test audit)', async ({page}) => {
+  await page.evaluate(k => localStorage.setItem(k, JSON.stringify({version: 1, enabled: true})), POINT_TELL_KEY);
+  await page.goto('/app/habits');
+  const zigi = page.getByRole('button', {name: /Open ZIGi/}).first(), chat = page.locator('dialog.ai-chat[open]');
+  await expect(zigi).toBeVisible();
+  await launcher(page).click();
+  await zigi.click();
+  const sheet = page.getByRole('dialog', {name: /^Note on .*ZIGi/});
+  await expect(sheet).toBeVisible();
+  await expect(chat).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  await launcher(page).click();
+  await zigi.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', {name: /^Note on .*ZIGi/})).toBeVisible();
+  await expect(chat).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  // Out of picking mode the same button does its own work again.
+  await zigi.click();
+  await expect(chat).toHaveCount(1);
+  expect(await stored(page)).toEqual({version: 1, enabled: true});
+});

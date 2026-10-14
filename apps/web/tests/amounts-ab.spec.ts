@@ -27,13 +27,17 @@ test.describe('a device in the United States', () => {
 });
 test.describe('a device in the Netherlands', () => {
   test.use({locale: 'nl-NL'});
-  test('"3.250,50" is previewed as 3250.50 EUR; "1.234" is refused with its reason instead of read as 1.234', async ({page}) => {
-    await valueGoal(page, '3.250,50');
-    await expect(preview(page)).toHaveText('3250.50 EUR');
-    await page.getByLabel('Target amount', {exact: true}).fill('1.234');
+  test('"1.234" is refused with its reason instead of read as 1.234; "3.250,50" is previewed as 3250.50 EUR and saved exactly', async ({page}) => {
+    await valueGoal(page, '1.234');
     await expect(preview(page)).toHaveText('Unreadable amount · “1.234” could mean 1234 or 1.234. Type it without a thousands separator. EUR');
     await page.getByRole('button', {name: 'Create goal', exact: true}).click();
     await expect(page.getByRole('alert').filter({hasText: '“1.234” could mean 1234 or 1.234'})).toBeVisible();
     expect(await goals(page)).toEqual([]);
+    // Gate C test audit: the Dutch reading is also what is saved.
+    await page.getByLabel('Target amount', {exact: true}).fill('3.250,50');
+    await expect(preview(page)).toHaveText('3250.50 EUR');
+    await page.getByRole('button', {name: 'Create goal', exact: true}).click();
+    await page.waitForURL('**/app/goals/tracked/**');
+    expect((await goals(page)).map(g => [g.target, g.asset])).toEqual([['325050', 'EUR']]);
   });
 });

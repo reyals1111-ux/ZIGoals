@@ -139,7 +139,9 @@ describe('account sync: finance changed on both devices (mergePrivateData)',()=>
   const one=mergePrivateData({finance:text(b)},{finance:text(local)},{finance:text(remote)}).finance!;
   const other=mergePrivateData({finance:text(b)},{finance:text(remote)},{finance:text(local)}).finance!;
   expect(accountsIn(platformSchema.parse(JSON.parse(one))).map(a=>a.name).sort()).toEqual(['Mortgage','Renamed']);
-  expect(accountsIn(platformSchema.parse(JSON.parse(one))).map(a=>a.id).sort()).toEqual(accountsIn(platformSchema.parse(JSON.parse(other))).map(a=>a.id).sort());
+  // Gate C test audit: the whole accounts (names, stamps, every field), not only their ids, are the same from either side.
+  const byId=(t:string)=>[...accountsIn(platformSchema.parse(JSON.parse(t)))].sort((x,y)=>x.id.localeCompare(y.id));
+  expect(byId(one)).toEqual(byId(other));
  });
  test('a goal changed here and an account there: both kept',async()=>{
   const {mergePrivateData}=await import('./cloud-sync');

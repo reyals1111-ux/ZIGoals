@@ -54,7 +54,14 @@ describe('FIX_PLAN B3 for the extras: an older copy is refused, never applied', 
     d.storage.setItem(GOALS, JSON.stringify(setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'Mine'}, at)));
     await d.sync();
     d.bases.m.set('goals', {...d.bases.m.get('goals')!, generation: 2});
+    // A local edit waits, so a sync that was not refused would write it.
+    d.storage.setItem(GOALS, JSON.stringify(setGoalReasons(JSON.parse(d.storage.getItem(GOALS)!), 'private:1', {why: 'Edited'}, '2026-10-13T09:00:00.000Z')));
+    const before = new Map(d.storage.m);
+    d.cloud.calls.length = 0;
     expect(byState(await d.sync()).goals).toBe('error');
+    // Gate C test audit: as above, nothing is written to the cloud and nothing changes on the device.
+    expect(d.cloud.calls.filter(c => c.startsWith('write') && c.endsWith(':goals'))).toEqual([]);
+    expect(d.storage.m).toEqual(before);
   });
 });
 
