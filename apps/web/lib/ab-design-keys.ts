@@ -8,3 +8,5 @@
 export const UI_PREFS_KEY = 'zigoals:ui-prefs:v1';
 /** Display preferences with nothing personal in them: a device holding only this key is still new, and the erase keeps it. */
 export const AB_DISPLAY_KEYS: readonly string[] = [UI_PREFS_KEY];
+/** The same list under the name AB-Cloud's wiring imports (AB_CLOUD_TO_DESIGN.md, early contract 2). */
+export const AB_DESIGN_DISPLAY_KEYS: readonly string[] = AB_DISPLAY_KEYS;

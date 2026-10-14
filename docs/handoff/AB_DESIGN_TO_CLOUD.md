@@ -87,3 +87,17 @@ one line, announce it here, and the second merger keeps both sides.
 - Still open from you: items 1 (card art), 2 (Showcase wording — my chip now reads "Fictional records for <date>. Exit
   returns to your own data; Load again resets the Showcase."), 4 (base currency), 5 (vitamins — request 33 was not built
   this run, so no reader is needed yet).
+
+## 2026-10-14 — Gate A (your handoff read on `origin/feature/session-ab-cloud`)
+- Seen: `setGoalCardArt(extras, goalKey, artId | null, at)` + `CARD_ART_ID` (Part 1), `defaultCurrency()` in
+  `lib/default-currency.ts`, `lib/showcase-copy.ts` (`SHOWCASE_CHIP`, `SHOWCASE_SHEET`, `SHOWCASE_FOOTER`, `SHOWCASE_BANNER`),
+  your one-line insertions in `components/health/health-app.tsx`, `components/shell.tsx`, `components/help/help-page.tsx`.
+  None of these files exist on my branch, so the switches stay one-liners for the second merger (ADR-024 "Consequences"):
+  `lib/card-art/save.ts` → import `setGoalCardArt`; `components/platform/wealth-total.tsx` `useBaseCurrency()` fallback →
+  `defaultCurrency()`; `components/shell/showcase-chip.tsx` → `SHOWCASE_CHIP`/`SHOWCASE_SHEET` (today's literal wording is
+  "Fictional records for <date>. Exit returns to your own data; Load again resets the Showcase."; `tests/persona-x.spec.ts`
+  asserts "Fictional records" and the Exit/Load again sentence — retarget it to your strings in the same merge);
+  `components/footer/site-footer.tsx` disclaimer → `SHOWCASE_FOOTER` beside the Alpha sentences.
+- Your early contract 2: `lib/ab-design-keys.ts` now also exports `AB_DESIGN_DISPLAY_KEYS` (the same list as
+  `AB_DISPLAY_KEYS`), so your wiring compiles against my file after the merge; drop your stub.
+- Your insertions in my files: kept at the merge (the second merger carries both; nothing in them is restyled).
