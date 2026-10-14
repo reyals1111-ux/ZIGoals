@@ -7,17 +7,15 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (checkpoint 2026-10-15 00:30, after the night's crash)
-**State.** Phase 2 parts 0–14 and closing-pass items 1–6 are built and pushed (head `9cc176e2` plus the recovered fixes
-committed from this checkpoint on). CI: web-checks, web-integration and the new `web-alpha-gate` job (the Workers security
-gate) green on `9cc176e2`; open there: today-screens (fixed by the phone footer, to confirm), run9-2-life at 320 (fixed in
-the spec, the visible root), WebKit (webkit-smoke's ResizeObserver loop: the nav observer now measures on the next frame;
-zigi-part-boundary: the S64 prefetch filter; the rotating ZIGi flakes: to reproduce under 2-worker load).
-**Running / next.** c12 (`scratchpad/pipeline-c12.sh`, log `logs/pipeline-c12.log`): rebuild on :3104 → targeted Chrome
-specs → the full WebKit set (2 workers) → the four layout audits (stress, WebKit, touch, Chrome). Then: fix what they find;
-Gate C (final captures into the gallery + the proof table's Gate C column, full unit, full browser suite once with 2
-workers, WebKit phone set, weights, revert gate, design critique), CI fully green on the final head, the STATUS entry as
-the final commit, PR #86 Ready for review.
+## Resume here (checkpoint 2026-10-15 01:00, after the second lock at 00:50)
+**State.** Phase 2 parts 0–14 and closing-pass items 1–6 built and pushed; head `7162a9d2` (the c9/c10 audit fixes: phone
+footer one paragraph + one-line social row + arrow-only Back to top + tighter spacing; stress figures; WebKit selects; the
+nav's ResizeObserver on the next frame; run9-2-life visible root; part-boundary S64 filter). CI on `9cc176e2`: checks,
+integration and the new `web-alpha-gate` (Workers security gate) green; today-screens, run9-2-life and WebKit open there,
+all addressed in `be43ea5d`/`7162a9d2` (CI run 38649650159 on `7162a9d2` in progress at this checkpoint).
+**Running / next.** c13 (`scratchpad/pipeline-c13.sh`, log `logs/pipeline-c13.log`): rebuild → targeted Chrome specs
+(today-screens first) → the full WebKit set (2 workers; c12's run died at 00:53 with 178 "browser closed" failures from the
+lock, not real) → the four audits. Then Gate C, CI fully green, STATUS, PR Ready.
 **Rules for the finish (owner).** today-screens ≤ 5.8 / Showcase ≤ 11.5 by layout only; no ceiling or budget raised; CI
 aggregate fully green with the security gate in its own job; a WebKit flake that also failed on AB-Cloud's pre-merge run
 and does not reproduce locally under 2-worker load is recorded with evidence, not looped on.
