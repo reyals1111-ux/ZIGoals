@@ -42,8 +42,10 @@
 :root .page-header > .page-lede { grid-area: lede; margin: 14px 0 0; }
 :root .page-eyebrow { font-size: 15px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: #d3e2f6; margin: 0 0 12px; }
 :root .page-lede { font-size: var(--page-lede-size); line-height: 1.5; font-weight: 500; color: #e9f0fb; max-width: 680px; letter-spacing: -.005em; }
-@media (max-width: 600px) {
-  :root .page-header { column-gap: 12px; }
+@media (max-width: 767.98px) {
+  /* Session AB-Design: with several actions, the `auto` column swallowed the title's column (a 0 px h1 on phones); the title takes its own row. */
+  :root .page-header { column-gap: 12px; grid-template-areas: "eyebrow tools" "title title" "actions actions" "lede lede"; }
+  :root .page-header > .page-header-actions { justify-content: flex-start; margin-top: 12px; }
   :root .page-eyebrow { font-size: 14px; letter-spacing: .16em; }
 }
 

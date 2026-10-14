@@ -258,3 +258,7 @@
 .health-chip small { opacity: .8; }
 .health-water-buttons { margin-top: 8px; }
 .health-progress-slot:empty { display: none; } .health-progress-slot { margin: 0 0 16px; }
+/* Session AB-Design (owner request 21): the Health header is the shared open header (no card), like Goals and Habits. */
+.health-page .page-header.health-heading { background: none; border: 0; box-shadow: none; padding: 0; margin: 10px 0 24px; }
+.health-page .page-header.health-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); }
+.health-page .page-header.health-heading .health-privacy-link { min-height: 44px; display: inline-flex; align-items: center; }

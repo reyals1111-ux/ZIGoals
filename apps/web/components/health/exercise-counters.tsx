@@ -44,7 +44,7 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
  const gradient=`exercise-gradient-${useId().replace(/[^a-zA-Z0-9-]/g,'')}`;
  const today=healthDay(dailyData(data).preferences.timezone);
  const exercise=exerciseData(data);
- const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[status,setStatus]=useState(''),[error,setError]=useState('');
+ const [editor,setEditor]=useState<ExerciseCounter|'new'|null>(null),[removing,setRemoving]=useState<ExerciseCounter|null>(null),[managing,setManaging]=useState(false),[status,setStatus]=useState(''),[error,setError]=useState('');
  // Taps are applied one after another, each to the latest saved Health data.
  const queue=useRef(Promise.resolve());
  function run(updater:(h:HealthData)=>HealthData,done?:string){
@@ -65,17 +65,18 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
     <output className="exercise-count" aria-live="polite" aria-label={`${c.name} today`} data-empty={count===null||undefined}>{count===null?<><span aria-hidden="true">—</span><span className="sr-only">No entry today</span></>:count}</output>
     <button type="button" className="exercise-step" aria-label={`Increase ${c.name}`} onClick={()=>tap(c,1)}>+</button>
    </div>
-   <CardOptions label={c.name}><button type="button" onClick={()=>setEditor(c)}>Rename or change icon</button><button type="button" onClick={()=>setRemoving(c)}>Delete counter</button></CardOptions>
   </article>;
  };
  return <section className="exercise-counters" aria-labelledby="exercise-counters-title">
   <svg width="0" height="0" aria-hidden="true" focusable="false" style={{position:'absolute'}}><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5fe6f5"/><stop offset=".55" stopColor="#9d8cff"/><stop offset="1" stopColor="#f07fd8"/></linearGradient></defs></svg>
   <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">Today in your Health journal · <time dateTime={today}>{today}</time></p></div>
-   <button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>+ Add counter</button></div>
+   {/* Session AB-Design (owner request 22): one ⋯ in the card's corner manages the counters (add, rename or change icon, delete; reorder with the layout lock); the rows carry only the icon, the name and −/value/+. */}
+   <div className="exercise-counters-tools"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>+ Add counter</button><CardOptions label="Quick counters"><button type="button" onClick={()=>setManaging(true)}>Manage counters…</button><button type="button" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>Add counter</button></CardOptions></div></div>
   <div className="exercise-counter-grid"><LayoutRegion region="counters" grid items={exercise.counters.map(c=>({id:entityLayoutId(c.id),label:c.name,node:card(c)}))}/></div>
   {exercise.counters.length>=MAX_COUNTERS&&<p className="fine">You have {MAX_COUNTERS} counters, the most this row keeps. Delete one to add another.</p>}
   <p className="exercise-counters-status" role="status">{status}</p>{error&&<p role="alert">{error}</p>}
   {editor&&<CounterEditor key={editor==='new'?'new':editor.id} gradient={gradient} initial={editor==='new'?undefined:editor} onClose={()=>setEditor(null)} onSave={(name,icon)=>run(h=>editor==='new'?addCounter(h,name,icon,`health_counter-${crypto.randomUUID()}`):editCounter(h,editor.id,{name,icon}),editor==='new'?`${name.trim()} counter added.`:'Counter saved.')}/>}
+  {managing&&<Dialog title="Manage counters" onClose={()=>setManaging(false)}><p className="fine">Rename a counter, change its icon or delete it. To reorder, unlock the page layout and move the rows.</p><ul className="exercise-manage-list">{exercise.counters.map(c=><li key={c.id}><span className="exercise-medallion"><ExerciseIconGlyph icon={c.icon} gradient={gradient}/></span><strong>{c.name}</strong><span className="exercise-manage-actions"><button type="button" className="secondary" onClick={()=>{setManaging(false);setEditor(c);}}>Rename or change icon</button><button type="button" className="quiet" onClick={()=>{setManaging(false);setRemoving(c);}}>Delete counter</button></span></li>)}</ul><div className="dashboard-actions"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>{setManaging(false);setEditor('new');}}>+ Add counter</button><button type="button" className="primary" onClick={()=>setManaging(false)}>Done</button></div></Dialog>}
   {removing&&<Dialog title={`Delete ${removing.name}?`} onClose={()=>setRemoving(null)}><p>This removes the {removing.name} counter and its daily history from your Health journal. Other Health records are not changed.</p><div className="dashboard-actions"><button type="button" className="secondary" autoFocus onClick={()=>setRemoving(null)}>Keep counter</button><button type="button" className="primary" onClick={()=>{const target=removing;setRemoving(null);void run(h=>deleteCounter(h,target.id),`${target.name} counter deleted.`).catch(()=>{});}}>Delete counter</button></div></Dialog>}
  </section>;
 }

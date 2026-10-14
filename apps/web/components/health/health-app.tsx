@@ -5,6 +5,8 @@ import { useHealthToday } from "./use-health-today";
 import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
+import {PageHeader} from "../page-header";
+import {PageMinorActions} from "../page-actions";
 import { fastingHistory } from "../../lib/fasting/engine";
 import "./health-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
@@ -219,19 +221,17 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const summary = dailyHealthSummary(data, date);
   const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
   return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
+    {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
+    <PageHeader pillar="health" className="page-heading health-heading" titleId="health-title" eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." actions={<><PageMinorActions about="health"/><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button></>}/><LayoutLockButton/>
     {!phone && <ExerciseCounters data={data} update={update} />}
-    <div className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="health-eyebrow">YOUR EVERYDAY WELLBEING</NebulaFlow></p><h1><NebulaFlow identity="health-title">A little care, every day.</NebulaFlow></h1><p className="page-lede">Your food, water, movement and progress. Your private journal.</p></div><div className="actions"><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button><Link className="badge" href="/app/settings">Privacy &amp; backups</Link><LayoutLockButton/></div></div>
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}
     {phone && <div className="health-date-strip">{dateControl}</div>}
     {phone && <ExerciseCounters data={data} update={update} />}
-    {/* Session AA-Cloud Part 1 (announced in AA_CLOUD_TO_LOCAL.md): the page's progress slot under its heading. */}
-    <ProgressSlot page="health" />
     <LayoutRegion region="body" items={[
     {id: "health:summary", label: "Today’s nourishment", node: <HealthSummary data={data} date={date} today={today} onTargets={() => setView("Targets")} />},
     {id: "health:nutrition", label: "Nutrition patterns", node: <NutritionDashboard data={data} date={date} />},
     {id: "health:journal", label: "Your Health journal", node: <div className="health-journal-block">
-    <div className="health-progress-slot"><ProgressSlot page="health" /></div>
     <div className="health-toolbar"><nav className="health-views" aria-label="Health views">{views.map(tab => <button type="button" key={tab} aria-pressed={view === tab} onClick={() => { setView(tab); setError(""); setMessage(""); }}>{tab}</button>)}</nav>
       {!phone && dateControl}
     </div>
@@ -260,6 +260,8 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
     {id: "health:fasting", label: "Fasting timer", node: <PhoneFold label="Fasting timer" expanded={!!fasting.running}><div className="health-fasting-block"><FastingTimer fasting={fasting} health={data} /><LoadBoundary quiet><Suspense fallback={null}><FastingTimeline session={fasting.running ?? fastingHistory(fasting.data, 1)[0]?.session ?? null} /></Suspense></LoadBoundary></div></PhoneFold>}, // B49: one child, so PhoneFold can carry the layout attributes on computers (two children lost the item from the region since B41)
     {id: "health:trends", label: "Seven days of care", node: <HealthTrends health={data} today={today} waterUnit={dailyData(data).preferences.waterUnit} />},
     ]}/>
+    {/* Session AB-Design (owner requests 9, 23): the game card only at the very bottom of the page while Gamify is on. */}
+    <div className="health-progress-slot page-game-slot"><ProgressSlot page="health" /></div>
     <p className="health-private-note">Only the entries you add are counted. {summary.entries ? "Diary nutrition uses saved food snapshots." : "No meal entries for this date yet."} Private Health backups are in <Link href="/app/settings">Settings</Link>.</p>
   </div></LayoutPage>;
 }
@@ -390,7 +392,7 @@ function WeightView({ data, date, choice, perform, invalid, onDate }: { data: He
   const trend = weightTrend(data, date);
   const history = [...data.weights].sort((a, b) => b.date.localeCompare(a.date));
   return <div className="health-two-columns"><div><section className="panel health-weight-overview"><PinToToday label="Weight journal" choices={[{kind:'health',metric:'weight',label:'Latest weight'}]}/><p className="eyebrow">A LONGER VIEW</p><h2>Your weight journal.</h2><p>Individual readings can vary. See what you recorded over time.</p><div className="health-weight-stats"><div><span>Latest in 30 days</span><strong>{trend.latestGrams === null ? "—" : weightText(trend.latestGrams, unit)}</strong></div><div><span>Your weight goal</span><strong>{data.targets.weightGrams === null ? "Not set" : weightText(data.targets.weightGrams, unit)}</strong></div><div><span>30-day change</span><strong>{trend.changeGrams === null ? "—" : weightChangeText(trend.changeGrams, unit)}</strong></div></div>
-    <WeightChart data={data} date={date} unit={unit} /><p className="fine">{trend.count ? `${trend.count} readings in the 30 days ending ${date}. Average ${weightText(trend.averageGrams!, unit)}.` : "Add your first reading to start a trend."}</p></section>
+    <WeightChart data={data} date={date} unit={unit} /><p className="fine">{trend.count ? `${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} in the 30 days ending ${date}. Average ${weightText(trend.averageGrams!, unit)}.` : "Add your first reading to start a trend."}</p></section>
     <section className="panel health-weight-history"><h2>Weight history</h2>{history.length ? <div className="health-table-wrap"><table aria-label="Weight history"><thead><tr><th>Date</th><th>Weight</th><th><span className="health-sr-only">Actions</span></th></tr></thead><tbody>{history.slice(0, 100).map(w => <tr key={w.id}><td>{w.date}</td><td>{weightText(w.grams, unit)}</td><td><div className="health-row-actions"><button className="quiet" aria-label={`Edit weight for ${w.date}`} onClick={() => onDate(w.date)}>Edit</button><button className="quiet" aria-label={`Remove weight for ${w.date}`} onClick={() => void perform(latest => removeHealthItem(latest, "weights", w.id), "Weight entry removed.")}>Remove</button></div></td></tr>)}</tbody></table>{history.length > 100 && <p className="fine">Showing the latest 100 readings. All readings remain in your private backup.</p>}</div> : <p className="health-empty-inline">No weight readings yet.</p>}</section></div>
     <section className="panel health-fit-panel"><h2>{reading ? "Correct a reading." : "Add a reading."}</h2><p>{date} · One reading per day; saving again corrects that day.</p><FormBox key={`${choice}:${reading?.updatedAt ?? "new"}`} title="Weight entry" onSubmit={e => { e.preventDefault(); try { const grams = bodyWeightGrams(formString(new FormData(e.currentTarget), "weight"), unit); void perform(latest => saveWeight(latest, { id: reading?.id ?? newHealthId(), date, grams }, new Date().toISOString()), "Weight saved.", () => zigiSignals.emitValidated('health_log_recorded')); } catch (cause) { invalid(cause); } }}><label className="field"><span>Weight ({unit})</span><input name="weight" type="text" inputMode="decimal" autoComplete="off" required defaultValue={reading ? unit === "kg" ? reading.grams / 1000 : (reading.grams / 453.59237).toFixed(3) : ""} /></label><button className="primary" type="submit">Save weight</button><p className="fine">Manual reading, converted to and stored as grams. History and the chart use your weight unit from Journal settings. Set or clear your own weight goal in Targets.</p></FormBox></section></div>;
 }

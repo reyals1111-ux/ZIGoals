@@ -46,22 +46,24 @@ for(const width of [320,360,390,430])
   // idle breath (Session V Part 12) loops for as long as the page shows, on the launcher's figure only: not waited for.
   await page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'||a.effect?.getComputedTiming().iterations===Infinity));
   await page.mouse.move(1,1);
+  // Session AB-Design (owner request 22, ADR-024 D20): one thin row per exercise on every width — icon, name, − value + on
+  // one line; the name may end in an ellipsis, the figure and both buttons stay whole; the card's one ⋯ opens Manage counters.
   const bars=await page.locator('.exercise-counter').evaluateAll(els=>els.map(e=>{
    const b=e.getBoundingClientRect(),box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),h3=e.querySelector('h3')!,out=e.querySelector('output')!;
-   const icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),menu=box('.card-options-trigger'),count=box('output');
+   const icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),count=box('output');
    return {
     name:h3.textContent,
     nameBesideIcon:icon.right<=name.left&&Math.abs((icon.top+icon.bottom)/2-(name.top+name.bottom)/2)<=12,
-    menuOnNameRow:menu.top<name.bottom&&name.top<menu.bottom,
-    controlsBelowName:minus.top>=name.bottom-1&&plus.top>=name.bottom-1&&Math.abs(minus.top-plus.top)<1,
-    nameNotClipped:h3.scrollHeight<=h3.clientHeight+1&&h3.scrollWidth<=h3.clientWidth+1,
+    controlsOnNameRow:minus.top<name.bottom&&name.top<minus.bottom&&Math.abs(minus.top-plus.top)<1&&name.right<=minus.left+1,
+    nameOneLine:name.height<30&&name.width>=40,
     countWhole:out.scrollWidth<=out.clientWidth+1&&count.right<=plus.left+1&&count.left>=minus.right-1,
-    targets:[minus,plus,menu].every(t=>t.width>=43.99&&t.height>=43.99),
-    inside:[icon,name,minus,count,plus,menu].every(t=>t.left>=b.left-.5&&t.right<=b.right+.5&&t.top>=b.top-.5&&t.bottom<=b.bottom+.5),
+    targets:[minus,plus].every(t=>t.width>=43.99&&t.height>=43.99),
+    inside:[icon,name,minus,count,plus].every(t=>t.left>=b.left-.5&&t.right<=b.right+.5&&t.top>=b.top-.5&&t.bottom<=b.bottom+.5),
    };
   }));
+  const menu=(await page.locator('.exercise-counters-tools .card-options-trigger').boundingBox())!;expect(menu.width).toBeGreaterThanOrEqual(43.99);expect(menu.height).toBeGreaterThanOrEqual(43.99);
   expect(bars).toHaveLength(6);
-  for(const bar of bars)expect(bar,`${width}px ${bar.name}`).toMatchObject({nameBesideIcon:true,menuOnNameRow:true,controlsBelowName:true,nameNotClipped:true,countWhole:true,targets:true,inside:true});
+  for(const bar of bars)expect(bar,`${width}px ${bar.name}`).toMatchObject({nameBesideIcon:true,controlsOnNameRow:true,nameOneLine:true,countWhole:true,targets:true,inside:true});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
   await page.locator('.exercise-counters').screenshot({path:info.outputPath(`counters-${width}.png`)});
  });
