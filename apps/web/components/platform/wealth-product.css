@@ -42,3 +42,6 @@
 /* Session AB-Design Phase 2 closing pass (layout audit, 768 px): the composition ring stays a circle when its column is
    narrower than 230 px, so its label keeps clear of the band. */
 @media (min-width: 768px) { :root .composition-currency .composition-donut { width: min(230px, 100%); height: auto; aspect-ratio: 1; } }
+/* The ring's figure stays on one line inside the inner circle: sized from its own length against the ring (a size container). */
+:root .composition-donut { container-type: size; }
+:root .composition-donut > span > strong { white-space: nowrap; font-size: clamp(13px, min(1.35em, calc(66cqi / (var(--chars, 12) * .6))), 26px); }

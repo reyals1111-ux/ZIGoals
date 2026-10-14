@@ -208,8 +208,14 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   nothing at all may still be requested.
 - `run11-layout-stability.spec.ts`: restored, not changed. A Phase 1 comment had swallowed the sideways-scroll assertion on
   the same line; it is back on its own line.
+- `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
+  together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
+  made 5 folds for 4 counted widgets); still exactly one fold per widget.
+- `counters-compact.spec.ts`: unchanged; the layout audit's earlier fix (names wrapping at 320) broke its one-line rule, so
+  the fix was reverted and the row gives the name more room instead.
 - Integration scripts (AB-Cloud's lane, retargeted as second merger per the handoff): `scripts/run10/account-browser.test.mjs`,
-  `scripts/run11/packaged-consumer-journey.mjs` (+ `packaged-runtime.test.mjs`) and the stage-8 rehearsal harness `go()` open
+  `scripts/run11/packaged-consumer-journey.mjs` (+ `packaged-runtime.test.mjs`, its `navigate`), `packaged-goal-journey.mjs` and
+  the stage-8 rehearsal harness `go()` open
   Settings through the top-bar More sheet on a 390 px phone (owner decision D2), and through the sidebar link on larger
   screens. `scripts/verify-hosted-alpha.mjs` needs no change: its Settings step runs after its layout loop ends at 1280 px.
 
@@ -243,8 +249,9 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
    specificity), the goal page's and the calculator's big figures sized from their own length (`--chars` with a size
    container: one line for US$1,234,567,890.12), ZIGi's page cards following their column, the composition ring kept
    square. Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
-   (a small unit beside a big figure is one line); contrast is sampled per line box (a wrapped inline run's whole box had
-   taken in its neighbour's glyphs) and only where the text's own scroller shows it; a textarea's raw text node is not
+   (a small unit beside a big figure is one line); contrast is read inside each of the text's own line boxes on a second capture where
+   every glyph is transparent (edge pixels had caught the neighbouring line's letters, a wrapped run's box its neighbour's
+   figures, a swatch's glow), and only where the text's own scroller shows it; a textarea's raw text node is not
    laid out.
    **Targets (owner, 2026-10-14: "don't decide the 44 px rule by width alone").** 44 × 44 px wherever the primary pointer is
    coarse, at every width: under 768 px through the phone layout's own rules, from 768 px (tablets, landscape phones) through

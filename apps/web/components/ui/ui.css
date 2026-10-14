@@ -148,6 +148,6 @@ html[data-zigi-launcher="shown"] .zigi-explain-corner { align-items: center; min
 /* Session AB-Design Phase 2 closing pass (layout audit): Today's goal pulse keeps "of <amount>" and "Target <date>" whole. */
 :root .today-goal-pulse :is(.pulse-of, .pulse-date) { white-space: nowrap; }
 /* Session AB-Design Phase 2 closing pass (layout audit, pointer layout 768 px and up): text links reach the WCAG 2.5.8
-   24 px target with 2 px of block padding — on an inline link that grows the hit area without moving a line of text. The
+   24 px target with 4 px of block padding (summaries a 24 px minimum) — on an inline link that grows the hit area without moving a line of text. The
    touch layout keeps its own 44 px rules. */
-@media (min-width: 768px) { :root main :is(a.text-link, a:not([class])) { padding-block: 2px; } }
+@media (min-width: 768px) { :root main :is(a.text-link, a:not([class])) { padding-block: 4px; } :root main summary { min-height: 24px; align-content: center; } }

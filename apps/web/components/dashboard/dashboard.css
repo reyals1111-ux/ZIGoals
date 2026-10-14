@@ -96,3 +96,10 @@
     .dashboard-layout-grid > .placed-module { grid-column: 1 / -1 !important; }
   }
 }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280 px): a widget's money or count figure is sized from its own
+   length inside the card (--chars beside it, --ring when a ring shares the row), so "US$501,800.00" stays on one line. */
+.dashboard-widget{container-type:inline-size}
+.dashboard-widget .dashboard-metric-value>strong.is-figure{white-space:nowrap;font-size:clamp(1.1rem,min(3vw,calc((100cqi - 44px - var(--ring,0px)) / (var(--chars,10) * .6))),2.3rem)}
+/* The overview's figures, the same way (1920 px: "US$501,800.00" in a 165 px column). */
+.dashboard-summary-copy{container-type:inline-size;flex:1 1 0;min-width:0}
+.dashboard-summary-copy>strong.is-figure{white-space:nowrap;font-size:clamp(.95rem,min(1.6vw,calc(100cqi / (var(--chars,10) * .6))),1.45rem)}

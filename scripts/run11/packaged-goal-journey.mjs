@@ -4,7 +4,8 @@
 import {expect} from 'vitest';
 import {writeFile} from 'node:fs/promises';
 import {armPackagedSync,waitPackagedSync} from './packaged-consumer-journey.mjs';
-const navigate=async(page,name)=>{await page.getByRole('link',{name,exact:true}).first().click();};
+// Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet; the sidebar link elsewhere.
+const navigate=async(page,name)=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();};
 /** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
 // Session V Part 1b: a row the person opened before stays open on that device, so it is opened only while folded (a
 // remembered state that lands between the read and the click closes it once, and the second pass opens it again).

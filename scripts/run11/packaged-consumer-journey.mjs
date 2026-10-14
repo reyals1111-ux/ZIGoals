@@ -53,7 +53,7 @@ export async function protectAndRestorePackagedRecords(page,restored,origin){
 export async function verifyPackagedPresets(a,b,restored,origin,recovery,evidenceDir){
  for(const page of [a,b,restored])page.setDefaultTimeout(15000);
  const signatures=[];
- const navigate=async(page,name)=>{await page.getByRole('link',{name,exact:true}).first().click();};
+ const navigate=async(page,name)=>{if(name==='Settings'){await openSettings(page);return;}await page.getByRole('link',{name,exact:true}).first().click();};
  const unlock=async page=>{await navigate(page,'Settings');await page.getByLabel('Sync my Health records with this account.',{exact:false}).check();await page.getByLabel('Vault recovery secret',{exact:true}).fill(recovery);const synced3=await armPackagedSync(page);await page.getByRole('button',{name:'Unlock account vault',exact:true}).click();await waitPackagedSync(page,synced3);};
  const snapshot=async page=>{await page.waitForFunction(()=>{const root=document.querySelector('.personalized-today');return root&&!/Loading (?:habits|records)/.test(root.textContent??'');});return page.locator('.personalized-today').evaluate(el=>({interests:el.getAttribute('data-interests'),widgets:[...el.querySelectorAll('.dashboard-widget')].map(w=>({title:w.getAttribute('aria-label'),text:w.textContent})),financial:!!el.querySelector('.today-intelligence')}));};
  for(const [index,preset]of ['Wealth','Habits + Health','Health-only','Balanced'].entries()){

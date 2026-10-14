@@ -27,6 +27,8 @@ const stress = flags.includes('--stress');
 // --touch (owner, 2026-10-14): tablets are touch devices. The same states at 768 and 1024 px with touch emulation (a coarse
 // primary pointer), where every target must be 44 × 44 px, as on phones.
 const touch = flags.includes('--touch');
+// Contrast is left to the ordinary pass in --touch mode: a full-page capture drops the touch emulation while it runs, so the
+// page re-lays out for a fine pointer mid-capture and the pixels no longer line up with the boxes (colours do not change).
 const WIDTHS = (flag('widths') ?? (touch ? '768,1024' : engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
@@ -269,6 +271,8 @@ function inspect() {
       if (clipBox && (r.left < clipBox.left - 1 || r.right > clipBox.right + 1)) continue;
       samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)}); }
   }
+  // Gradient text paints its background through the glyphs: marked so the background capture can leave it out.
+  for (const el of texts) { const cs = getComputedStyle(el); if (/\btext\b/.test(cs.backgroundClip + ' ' + (cs.webkitBackgroundClip ?? ''))) el.setAttribute('data-audit-text-clip', ''); }
   return {out, samples, modal: !!modal};
 }
 
@@ -278,15 +282,13 @@ function contrast(pngs, samples) {
   for (const s of samples) {
     const slice = pngs.find(x => s.y - 4 >= x.top && s.y + s.h + 4 <= x.top + x.png.height); if (!slice) continue;
     const png = {at: (x, y) => slice.png.at(x, y - slice.top)};
-    // The background: the most common colour on the box's edge just outside the glyphs, read from the screenshot.
-    const pts = []; const step = Math.max(2, Math.round(s.w / 12));
-    for (let x = s.x; x <= s.x + s.w; x += step) { pts.push(png.at(Math.round(x), Math.round(s.y - 1)), png.at(Math.round(x), Math.round(s.y + s.h + 1))); }
-    for (let y = s.y; y <= s.y + s.h; y += Math.max(2, Math.round(s.h / 4))) { pts.push(png.at(Math.round(s.x - 2), Math.round(y)), png.at(Math.round(s.x + s.w + 2), Math.round(y))); }
+    // The background: read inside the text's own line box on the capture without text, on a grid of points; the 10th
+    // percentile towards the text's colour (one stray pixel is not the background, a light band behind light text is).
+    const pts = [];
+    for (const fx of [.06, .2, .35, .5, .65, .8, .94]) for (const fy of [.25, .5, .75]) pts.push(png.at(Math.round(s.x + s.w * fx), Math.round(s.y + s.h * fy)));
     if (!pts.length) continue;
-    const text = s.c, far = pts.filter(p => ratio(p, text) > 1.2);
-    if (!far.length) continue;
-    // the darkest-to-text worst case among the edge pixels (a light background behind light text is what matters)
-    const bg = far.sort((a, b) => ratio(a, text) - ratio(b, text))[Math.floor(far.length * .2)];
+    const text = s.c;
+    const bg = pts.sort((a, b) => ratio(a, text) - ratio(b, text))[Math.floor(pts.length * .1)];
     const mix = text.map((v, i) => v * s.a + bg[i] * (1 - s.a));
     const r = ratio(mix, bg), need = s.large ? 3 : 4.5;
     if (r < need) found.push({k: 'contrast', w: `${s.d} ${r.toFixed(2)}:1 (needs ${need}:1)`});
@@ -315,11 +317,14 @@ for (const width of WIDTHS) {
         if (st.steps) await st.steps(p);
         await p.waitForTimeout(500);
         const {out: found, samples, modal} = await p.evaluate(inspect);
-        const shotOpts = {type: 'png', animations: 'disabled', caret: 'hide', style: '[data-audit-fixed] { visibility: hidden !important; }'};
+        // The background capture: every glyph transparent (and gradient text's own fill removed), so what is read behind a text
+        // is only what it sits on — never a neighbouring line's letters.
+        const shotOpts = {type: 'png', animations: 'disabled', caret: 'hide', style: '[data-audit-fixed] { visibility: hidden !important; } *, *::before, *::after { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; text-decoration-color: transparent !important; } [data-audit-text-clip] { background: none !important; }'};
         const pngs = [];
-        if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
+        if (touch) { /* no pixels needed: see --touch */ }
+        else if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
         else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
-        const every = [...found, ...contrast(pngs, samples)], all = every.filter(f => f.k !== 'advisory-target');
+        const every = [...found, ...(touch ? [] : contrast(pngs, samples))], all = every.filter(f => f.k !== 'advisory-target');
         report.states[key] = all; report.advisory[key] = every.filter(f => f.k === 'advisory-target').map(f => f.w);
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
         writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});

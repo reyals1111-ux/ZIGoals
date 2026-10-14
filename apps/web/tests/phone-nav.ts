@@ -68,7 +68,9 @@ export async function openTodayWidgets(page:Page){
  const modules=page.locator('.today-page .placed-module[data-kind="widget"]');
  await expect(modules.first()).toBeAttached();
  if(await page.getByRole('button',{name:'Finish customizing',exact:true}).isVisible())return;
- await expect(modules.locator('.phone-fold-toggle')).toHaveCount(await modules.count());
+ // Session AB-Design Phase 2 (ADR-024): both counts read together until they agree, so a widget that mounts a moment later
+ // (a lazy part) is counted on both sides; still exactly one fold per widget.
+ await expect.poll(async()=>{const [m,t]=[await modules.count(),await modules.locator('.phone-fold-toggle').count()];return t===m?'one fold per widget':`${t} folds for ${m} widgets`;}).toBe('one fold per widget');
  const closed=modules.locator('.phone-fold-toggle[aria-expanded="false"]');
  while(await closed.count())await closed.first().click();
 }

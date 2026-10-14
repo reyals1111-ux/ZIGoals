@@ -80,7 +80,10 @@
    (counters-compact): it may end in an ellipsis, with the full name in its title and in Manage counters. */
 @media (max-width: 374px) {
   .exercise-medallion { width: 36px; height: 36px; border-radius: 12px; }
-  .exercise-counter-controls { grid-template-columns: 44px minmax(32px, auto) 44px; gap: 2px; }
+  .exercise-counter-controls { grid-template-columns: 44px minmax(26px, auto) 44px; gap: 2px; }
   .exercise-count { font-size: 22px; }
-  .exercise-counter-name h3 { font-size: 16px; }
+  .exercise-counter-name h3 { font-size: 15px; }
+  :root .exercise-counters { padding-inline: 14px; }
+  :root .exercise-counter { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 4px; padding-inline: 8px; }
+  :root .exercise-counter-name { padding-left: 2px; }
 }
