@@ -3,6 +3,7 @@
 import {useEffect, useState} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {useChartWidth} from '../charts/use-chart-width';
+import {ChartDefs, ChartGrid, ChartXAxis} from '../charts/chart-kit';
 import {measurementHistory} from '../../lib/body-measurements';
 import {measurementKinds} from '../../lib/body-measurement-schema';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -25,7 +26,7 @@ function MiniChart({title, points, unit, id}: {title: string; points: {date: str
   const d = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const change = vals[vals.length - 1]! - vals[0]!;
   return <div className="health-measure-chart" ref={plot}><h3><span>{title}</span><small>{vals[vals.length - 1]} {unit} · {change > 0 ? '+' : ''}{Math.round(change * 10) / 10} since {points[0]!.date}</small></h3>
-    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${points[0]!.value} to ${vals[vals.length - 1]} ${unit}`}><defs><linearGradient id={`m-${id}`} x1="0" x2="1"><stop offset="0" stopColor="#6fe6f6" /><stop offset="1" stopColor="#c790f6" /></linearGradient></defs><text x={PAD.left - 6} y={y(hi) + 4} textAnchor="end" fontSize="14" fill="#c2d0e5">{hi}</text><text x={PAD.left - 6} y={y(lo) + 4} textAnchor="end" fontSize="14" fill="#c2d0e5">{lo}</text><path d={d} fill="none" stroke={`url(#m-${id})`} strokeWidth="3" strokeLinecap="round" />{points.map((p, i) => <circle key={p.date} cx={x(i)} cy={y(p.value)} r="3.5" fill="#8ab9ff" />)}<text x={x(0)} y={H - 6} fontSize="14" fill="#c2d0e5">{points[0]!.date.slice(5)}</text><text x={x(points.length - 1)} y={H - 6} textAnchor="end" fontSize="14" fill="#c2d0e5">{points[points.length - 1]!.date.slice(5)}</text></svg>
+    <svg viewBox={`0 0 ${width} ${H}`} width={width} height={H} role="img" aria-label={`${title}: ${points.length} readings from ${points[0]!.value} to ${vals[vals.length - 1]} ${unit}`}><ChartDefs id={`m-${id}`} pillar="health" /><ChartGrid ticks={[{y: y(hi), label: hi}, {y: y(lo), label: lo}]} left={PAD.left} right={width - PAD.right} /><path className="chart-ink" d={d} stroke={`url(#m-${id}-ink)`} />{points.map((p, i) => <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.value)} r="3.5" />)}<ChartXAxis ticks={[{x: x(0), label: points[0]!.date.slice(5)}, {x: x(points.length - 1), label: points[points.length - 1]!.date.slice(5)}]} y={H - 6} /></svg>
     <details className="health-trend-table"><summary>Show as a table</summary><table><tbody>{points.map(p => <tr key={p.date}><td>{p.date}</td><td>{p.value} {unit}</td></tr>)}</tbody></table></details></div>;
 }
 /** N9: charts per measurement kind (the synced kinds and the person's own), custom kinds, and progress photos. */

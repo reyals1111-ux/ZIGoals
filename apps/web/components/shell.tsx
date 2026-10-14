@@ -25,6 +25,7 @@ import { AlphaNotice } from "./shell/alpha-notice";
 import { pillarOfHref } from "../lib/pillar-route";
 import "./pillar-hero.css";
 import "./ui/card-header.css";
+import "./charts/charts.css";
 import { ThemeSwitch } from "./shell/theme-switch";
 import { SiteFooter } from "./footer/site-footer";
 import { GamifyButton } from "./game/gamify-button";

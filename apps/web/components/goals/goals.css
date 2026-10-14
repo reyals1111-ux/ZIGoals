@@ -113,17 +113,9 @@
 :root .goal-forecast-chart svg { display: block; max-width: 100%; height: auto; overflow: visible; }
 :root .goal-forecast-target { stroke: #f4f8ff44; stroke-dasharray: 2 6; }
 :root .goal-forecast-band { fill: #8fa6ff22; }
-:root .goal-forecast-recorded { fill: none; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
 :root .goal-forecast-projection { stroke: #f08bd6; stroke-width: 2.5; stroke-dasharray: 7 6; }
 :root .goal-forecast-today { fill: #6fe6f6; stroke: #0b1428; stroke-width: 2; }
 :root .goal-forecast-date { fill: #f08bd6; stroke: #0b1428; stroke-width: 2; }
-:root .goal-forecast-axis { fill: #c2d0e5; font-size: 14px; }
-:root .goal-forecast-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 14px; color: var(--text-secondary); }
-:root .goal-forecast-legend span { display: inline-flex; align-items: center; gap: 8px; }
-:root .goal-forecast-legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
-:root .goal-forecast-legend .is-recorded { background: linear-gradient(90deg, #6fe6f6, #8fa6ff); }
-:root .goal-forecast-legend .is-projection { background: repeating-linear-gradient(90deg, #f08bd6 0 6px, transparent 6px 10px); }
-:root .goal-forecast-legend .is-band { height: 10px; background: #8fa6ff44; }
 :root .goal-forecast-numbers { margin-top: 10px; font-size: 15px; }
 :root .goal-forecast-numbers table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 :root .goal-forecast-numbers :is(th, td) { text-align: left; padding: 6px 4px; border-bottom: 1px solid #ffffff14; }

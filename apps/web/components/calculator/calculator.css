@@ -26,8 +26,6 @@
 :root .calc-chart { position: relative; margin: 0 0 14px; border-radius: 16px; outline: none; touch-action: pan-y; }
 :root .calc-chart:focus-visible { box-shadow: 0 0 0 3px #8fe6f4; }
 :root .calc-chart svg { display: block; max-width: 100%; height: auto; overflow: visible; cursor: crosshair; }
-:root .calc-grid { stroke: #8fb4d82a; stroke-width: 1; }
-:root .calc-axis { fill: var(--text-meta); font-size: 14px; font-variant-numeric: tabular-nums; }
 :root .calc-balance { fill: none; stroke: #e9f3ff; stroke-width: 2.5; stroke-linejoin: round; }
 :root .calc-whatif { fill: none; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
 :root .calc-milestone-line { stroke: #ffd98a; stroke-width: 1.5; stroke-dasharray: 4 4; }
@@ -47,8 +45,6 @@
 :root .calc-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 4px; }
 :root .calc-swatch.is-in { background: linear-gradient(#58c7e0, #2b6f9a); }
 :root .calc-swatch.is-growth { background: linear-gradient(90deg, #8fa6ff, #f08bd6); }
-:root .calc-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--text-secondary); }
-:root .calc-legend li { display: inline-flex; align-items: center; gap: 6px; }
 
 /* Compare. */
 :root .calc-compare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; padding: 0; border: 0; min-width: 0; }

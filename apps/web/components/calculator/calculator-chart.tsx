@@ -1,6 +1,7 @@
 'use client';
 import {useId, useState, type KeyboardEvent, type PointerEvent} from 'react';
 import {useChartWidth} from '../charts/use-chart-width';
+import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
 import {formatMoney, formatNumber} from '../../lib/visual-format';
 import type {CompoundResult, Milestone} from '../../lib/compound/engine';
 
@@ -62,8 +63,8 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
         <linearGradient id={`${id}-in`} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#58c7e0" stopOpacity=".75" /><stop offset="1" stopColor="#2b6f9a" stopOpacity=".45" /></linearGradient>
         <linearGradient id={`${id}-growth`} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#8fa6ff" stopOpacity=".7" /><stop offset=".6" stopColor="#b388f5" stopOpacity=".75" /><stop offset="1" stopColor="#f08bd6" stopOpacity=".8" /></linearGradient>
       </defs>
-      {ticks.map(t => <g key={t}><line className="calc-grid" x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} /><text className="calc-axis" x={padL - 8} y={y(t) + 5} textAnchor="end">{compact(t, currency)}</text></g>)}
-      {xTicks.map(t => <text key={t} className="calc-axis" x={x(t)} y={H - 10} textAnchor="middle">{t === 0 ? 'Now' : t < 0 ? `${t}` : `${t}y`}</text>)}
+      <ChartGrid ticks={ticks.map(t => ({y: y(t), label: compact(t, currency)}))} left={padL} right={W - padR} />
+      <ChartXAxis ticks={xTicks.map(t => ({x: x(t), label: t === 0 ? 'Now' : t < 0 ? `${t}` : `${t}y`}))} y={H - 10} edge={false} />
       <polygon points={contributedArea} fill={`url(#${id}-in)`} />
       <polygon points={growthArea} fill={`url(#${id}-growth)`} />
       <polyline className="calc-balance" points={upper.join(' ')} />
@@ -81,12 +82,12 @@ export function CalculatorChart({result, start, currency, lines}: {result: Compo
       {others.map(l => { const p = at(l.points, year); return p ? <p key={l.id} className="calc-tip-line"><i style={{background: l.tone}} />{l.label}: {formatMoney(p.balance.toFixed(2), currency)}</p> : null; })}
     </div>}
     <figcaption>
-      <ul className="calc-legend">
-        <li><i className="calc-swatch is-in" />Put in</li>
-        <li><i className="calc-swatch is-growth" />Growth</li>
-        {others.map(l => <li key={l.id}><svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" stroke={l.tone} strokeWidth="3" strokeDasharray={l.dash} /></svg>{l.label}</li>)}
-        {result.milestones.length > 0 && <li><svg width="14" height="14" aria-hidden="true"><line x1="7" x2="7" y1="0" y2="14" className="calc-milestone-line" /></svg>Milestones</li>}
-      </ul>
+      <ChartLegend className="calc-legend" items={[
+        {label: 'Put in', swatch: <i className="calc-swatch is-in" />},
+        {label: 'Growth', swatch: <i className="calc-swatch is-growth" />},
+        ...others.map(l => ({label: l.label, swatch: <svg width="26" height="10" aria-hidden="true"><line x1="1" x2="25" y1="5" y2="5" stroke={l.tone} strokeWidth="3" strokeDasharray={l.dash} /></svg>})),
+        ...(result.milestones.length > 0 ? [{label: 'Milestones', swatch: <svg width="14" height="14" aria-hidden="true"><line x1="7" x2="7" y1="0" y2="14" className="calc-milestone-line" /></svg>}] : []),
+      ]} />
     </figcaption>
   </figure>;
 }
