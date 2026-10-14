@@ -1,0 +1,18 @@
+/* Session AB-Design Phase 2 closing pass (owner, 2026-10-14): wherever the primary pointer is coarse — phones and tablets
+   (768–1366 px) at every width — every standalone control is a 44 × 44 px target. A fine pointer (mouse, trackpad) keeps
+   the compact desktop baseline, whose controls meet the WCAG 2.5.8 minimum of 24 px. Under 768 px every coarse pointer is
+   on the phone layout, whose own 44 px rules already hold (the layout audit checks them at 320, 390 and 430 px); this sheet
+   brings the same rule to tablets and landscape phones (768 px and up). Sizes only: no colour, no motion. */
+@media (pointer: coarse) and (min-width: 768px) {
+  :root :is(button, select, [role="button"], [role="tab"], [role="switch"], a.primary, a.secondary, a.quiet):not([hidden]) { min-height: 44px !important; }
+  :root :is(button, [role="button"], [role="tab"], [role="switch"]):not([hidden]) { min-width: 44px !important; }
+  :root input:is(:not([type]), [type="text"], [type="number"], [type="search"], [type="email"], [type="date"], [type="time"], [type="url"], [type="tel"], [type="password"]) { min-height: 44px !important; }
+  :root summary { min-height: 44px !important; align-content: center; }
+  /* A text link on its own (in a card's row, a list's end, a toolbar) is a 44 px tall box; one inside a sentence keeps its
+     line and grows its hit area with block padding only, which moves nothing. */
+  :root :is(div, section, header, footer, nav, article, aside, form, li) > a.text-link { display: inline-flex; align-items: center; min-height: 44px !important; }
+  :root main :is(p, span, small, dd, td, label, strong) > a:is(.text-link, :not([class])) { padding-block: 12px; }
+  :root main :is(div, section, header, footer, nav, article, aside, form, li) > a:not([class]) { display: inline-flex; align-items: center; min-height: 44px !important; }
+  /* A checkbox or a radio is reached through its whole label. */
+  :root label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 44px !important; display: inline-flex; align-items: center; gap: 8px; }
+}

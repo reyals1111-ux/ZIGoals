@@ -235,6 +235,25 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
    ⋯ menus and ZIGi's corner link over eyebrows, four-digit day figures on two lines, captioned rings' overlapping lines,
    small targets (Life review goal links, the measurement pager, Today's arranging buttons, the calculator's fields, the
    tree's size buttons), the vision link and "Back to top" on bright art.
+   Second full pass (every width, fixes after it): Habits at 1440 px (the earlier two-rail split of the whole list block
+   squeezed each card to 166 px; removed, the habit grid's own three columns stay), Today's widgets beside the rail at
+   1024 px (the widget area is a size container and stacks under 620 px), the Life overview legend's "Relationships" under
+   its value, the goal cards' Details preview wrapping instead of an ellipsis, the goal pulse's "of <amount>" and target
+   date kept whole, a soft scrim under the hero's three pillars, Health's summary at 320 (its stack rule lost on
+   specificity), the goal page's and the calculator's big figures sized from their own length (`--chars` with a size
+   container: one line for US$1,234,567,890.12), ZIGi's page cards following their column, the composition ring kept
+   square. Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
+   (a small unit beside a big figure is one line); contrast is sampled per line box (a wrapped inline run's whole box had
+   taken in its neighbour's glyphs) and only where the text's own scroller shows it; a textarea's raw text node is not
+   laid out.
+   **Targets (owner, 2026-10-14: "don't decide the 44 px rule by width alone").** 44 × 44 px wherever the primary pointer is
+   coarse, at every width: under 768 px through the phone layout's own rules, from 768 px (tablets, landscape phones) through
+   `components/ui/touch-targets.css` (`@media (pointer: coarse) and (min-width: 768px)`: controls, summaries, fields and
+   standalone links get a 44 px floor; a link inside a sentence grows its hit area with block padding, which moves no
+   line). A fine pointer (mouse, trackpad) keeps the compact desktop baseline, held to the WCAG 2.5.8 minimum of 24 px
+   (standalone text links reach it with 2 px of block padding); its 24–44 px controls are listed in the report as advisory.
+   The audit decides the minimum the same way (44 px under 768 px or with a coarse pointer, else 24 px) and runs once more
+   with touch emulation at 768 and 1024 px (`--touch`).
 3. **Stress states** — the audit's `--stress` mode rewrites the Showcase's own records to 40+ character names,
    US$1,234,567,890.12 and its euro twin, a 9,999 counter day, then runs every check.
 4. **Consistency** — every page's own header (PageHeader and the hand-written `.page-heading`) reads at the pillar header's

@@ -151,3 +151,7 @@
 /* Session AB-Design Phase 2 closing pass (layout audit): the "another return" chip's input is a full 44 px target. */
 :root .calc-chip-input input { min-height: 44px; }
 :root .calc-chip.calc-chip-input { min-height: 44px; align-items: center; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px and the stress amounts): the final value is sized from its
+   own length (--chars) inside its box, so a ten-digit result stays on one line within the card. */
+:root .calc-figures .calc-final { container-type: inline-size; min-width: 0; }
+:root .calc-figures .calc-final dd { font-size: clamp(22px, min(calc(2.4vw + 18px), calc((100cqi - 8px) / (var(--chars, 12) * .62))), 46px); }

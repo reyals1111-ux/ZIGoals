@@ -32,7 +32,9 @@
 .status-row:has(.status-wallet) .gamify:first-of-type { margin-left: 0; }
 .status-row > .gamify { margin-left: auto; }
 .status-row:has(.status-wallet) > .gamify, .status-row:has(.page-tools-slot:not(:empty)) > .gamify { margin-left: 0; }
-.status-row:has(.layout-lock) { margin-bottom: 8px; }
+/* Phase 2 closing pass (run11-layout-stability on CI): the row's spacing keys on what the server already renders (the
+   Gamify button, the balance), not on the lock that portals in after hydration, so nothing below it moves. */
+.status-row:has(.layout-lock), .status-row:has(.gamify), .status-row:has(.wallet-balance) { margin-bottom: 8px; }
 @media (max-width: 767.98px) {
   /* Phones: one line — the label and More; the sentence lives in Help and the footer. */
   .alpha-notice { margin: 8px var(--phone-gutter, 16px) 0; min-height: 44px; padding: 5px 46px 5px 12px; align-items: center; }

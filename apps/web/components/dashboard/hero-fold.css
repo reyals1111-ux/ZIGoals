@@ -16,3 +16,6 @@
 @media (max-width: 540px) { .today-hero-folded { margin: 0 0 10px; } .today-hero-strip { flex-wrap: wrap; row-gap: 6px; padding: 8px 48px 8px 4px; gap: 10px; } .today-hero-strip .eyebrow { flex: 1 1 100%; font-size: 14px; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
 @media (prefers-reduced-motion: reduce) { .hero-fold svg { transition: none; } }
 :root[data-app-motion=off] .hero-fold svg { transition: none; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024–1280 px): the three pillars sit on a soft dark scrim, so their
+   words keep 4.5:1 over the hero's brightest nebula. */
+@media (min-width: 768px) { :root .today-hero .hero-pillars { background: linear-gradient(180deg, #05091800, #050918b8 40%); } }

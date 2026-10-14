@@ -31,8 +31,9 @@
 @media (prefers-reduced-motion: reduce) { .habit-more-chevron, .habit-switch-knob, .habit-switch-knob::after { transition: none; } }
 :root[data-app-motion=off] .habit-more-chevron, :root[data-app-motion=off] .habit-switch-knob, :root[data-app-motion=off] .habit-switch-knob::after { transition: none; }
 
-/* Session AB-Design (owner request 39): on wide screens the habit cards sit in two rails. */
-@media (min-width: 1440px) { :root .habit-list-block { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+/* Session AB-Design (owner request 39): on wide screens the habit cards already sit three across (the habit grid's own
+   columns from 1280 px). Phase 2 closing pass (layout audit): the earlier two-rail split of the whole list block put the
+   filters beside the cards and squeezed each card to 166 px at 1440 px; it is gone. */
 
 /* Gate C critique: on phones the constellation art sits faint behind the words instead of across them. */
 @media (max-width: 600px) { .habit-hero .habit-constellation { opacity: .3; pointer-events: none; } }
@@ -41,3 +42,7 @@
 .habit-card .habit-more > summary { flex-wrap: wrap; }
 .habit-card .habit-more > summary small { min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; text-align: right; }
 @media (max-width: 420px) { .habit-card .habit-more > summary small { flex: 1 1 100%; margin-left: 34px; text-align: left; } }
+/* Session AB-Design Phase 2 closing pass (reflow at 320 px): the workspace's one column follows the page, never the
+   consistency cards' swipe row (a scroll container whose content had set the track to 341 px). */
+:root .habits-workspace { grid-template-columns: minmax(0, 1fr); }
+:root .habits-workspace > * { min-width: 0; }

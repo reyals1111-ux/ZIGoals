@@ -39,3 +39,6 @@
   .wealth-product .wealth-summary .wealth-split { grid-template-columns: minmax(0, 1fr); }
   .wealth-product .wealth-total-fx { max-width: 100%; overflow-wrap: anywhere; }
 }
+/* Session AB-Design Phase 2 closing pass (layout audit, 768 px): the composition ring stays a circle when its column is
+   narrower than 230 px, so its label keeps clear of the band. */
+@media (min-width: 768px) { :root .composition-currency .composition-donut { width: min(230px, 100%); height: auto; aspect-ratio: 1; } }

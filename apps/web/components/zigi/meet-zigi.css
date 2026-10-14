@@ -22,3 +22,7 @@
 /* Gate C (persona round; the same on #35): under 400 px the three sizes wrap, the large one on its own row, so the page
    never scrolls sideways (a card was 352 px wide at 320). */
 @media (max-width:399.98px){.meet-zigi-sizes{flex-wrap:wrap;justify-content:space-around;row-gap:12px}}
+/* Session AB-Design Phase 2 closing pass (layout audit, 768–1280 px): the card's one column follows the card, never a wider
+   child, so the "Wears the … clip" line wraps inside it. */
+:root .meet-zigi-card { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+:root .meet-zigi-card > * { min-width: 0; max-width: 100%; }

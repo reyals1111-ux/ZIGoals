@@ -40,4 +40,4 @@
 @media (prefers-reduced-motion: reduce) { :root .vision-tile-open { transition: none; } :root .vision-tile-open:hover, :root .vision-tile-open:focus-visible { transform: none; } }
 :root[data-app-motion=off] .vision-tile-open { transition: none; transform: none; }
 /* Phase 2 closing pass (contrast on artwork): the tile's "Open goal →" sits on a solid glass chip, readable on any image. */
-:root .vision-tile-link-out { min-height: 44px; background: #020918f5; color: #e9f6ff; border: 1px solid #9fd6ff40; }
+:root .vision-tile-link-out { display: inline-flex; align-items: center; min-height: 44px; background: #020918f5; color: #e9f6ff; border: 1px solid #9fd6ff40; }

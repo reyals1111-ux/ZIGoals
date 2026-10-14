@@ -204,3 +204,7 @@
 /* Phase 2 closing pass (layout audit, 320 px): the plan's fields never run past their card. */
 :root .goal-plan-card :is(textarea, input, select) { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; }
 :root .goal-plan-card .field, :root .goal-plan-card label { min-width: 0; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 768–1920 px): in the compact two-up legend each pillar's value sits
+   under its name, so "Relationships" never shares its cell with "Nothing here yet". */
+:root .life-balance-card.is-compact .balance-legend li { grid-template-columns: 12px minmax(0, 1fr); grid-template-areas: "dot name" ". value" ". activity"; row-gap: 2px; }
+:root .life-balance-card.is-compact .balance-value { font-size: 14px; }

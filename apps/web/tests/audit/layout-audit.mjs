@@ -8,11 +8,13 @@
 //   overlap   two pieces of text, or text and an icon, overlapping inside one card;
 //   wrap      a number (amount, %, count) broken onto two lines;
 //   ring      a progress ring's label outside its inner circle;
-//   target    a control smaller than 44 × 44 px (inline links inside a sentence are not standalone targets);
+//   target    a control smaller than 44 × 44 px on the touch layout (< 768 px), or than the WCAG 2.5.8 minimum of 24 × 24 px
+//             on the pointer layout (inline links inside a sentence are not standalone targets); 24–44 px pointer-layout
+//             controls are listed as advisory-target, which does not count as a finding;
 //   contrast  text below 4.5:1 (3:1 for large text) against the pixels actually behind it (one screenshot per state).
 // ZIGi's launcher, the music button and Point & tell float over content by the owner's decision and are left out.
 // Usage (from apps/web, a production build running):
-//   node tests/audit/layout-audit.mjs <base> <out-dir> [--only=<regex>] [--widths=320,390] [--engine=chrome|webkit]
+//   node tests/audit/layout-audit.mjs <base> <out-dir> [--only=<regex>] [--widths=320,390] [--engine=chrome|webkit] [--stress] [--touch]
 import {chromium, webkit, devices} from '@playwright/test';
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {inflateSync} from 'node:zlib';
@@ -22,7 +24,10 @@ const flag = name => flags.find(f => f.startsWith(`--${name}=`))?.split('=')[1];
 const only = flag('only') ? new RegExp(flag('only')) : null;
 const engine = flag('engine') ?? 'chrome';
 const stress = flags.includes('--stress');
-const WIDTHS = (flag('widths') ?? (engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
+// --touch (owner, 2026-10-14): tablets are touch devices. The same states at 768 and 1024 px with touch emulation (a coarse
+// primary pointer), where every target must be 44 × 44 px, as on phones.
+const touch = flags.includes('--touch');
+const WIDTHS = (flag('widths') ?? (touch ? '768,1024' : engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
 // ---- a small PNG reader (8-bit RGB/RGBA, non-interlaced: what Chrome and WebKit screenshots are) ----
@@ -180,7 +185,8 @@ function inspect() {
   // clip
   for (const el of texts) {
     const s = getComputedStyle(el);
-    if (s.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1) out.push({k: 'clip', w: `${desc(el)} ends in an ellipsis`});
+    // An ellipsis is a design choice only where the full text is offered with it (its title; e.g. counter names, ADR-024 D20).
+    if (s.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1 && el.getAttribute('title') !== (el.textContent ?? '').trim()) out.push({k: 'clip', w: `${desc(el)} ends in an ellipsis`});
     else if (['hidden', 'clip'].includes(s.overflowX) && el.scrollWidth > el.clientWidth + 2 && !el.closest('[role="listbox"], .phone-tabs')) out.push({k: 'clip', w: `${desc(el)} is cut off (${el.scrollWidth} > ${el.clientWidth})`});
   }
   // spill: text past its card
@@ -214,7 +220,9 @@ function inspect() {
   }
   // wrap: numbers on two lines
   const NUM = /^[\s+−\-–]*(US\$|€|\$|£)?\s?[\d.,  ]+\s?(%|kcal|kg|lb|mL|ml|h|min|XP|ZIG|USD|EUR|€|\$)?$/;
-  for (const el of texts) { const t = (el.textContent ?? '').trim(); if (!NUM.test(t) || !/\d/.test(t)) continue; const range = document.createRange(); range.selectNodeContents(el); const tops = new Set([...range.getClientRects()].filter(r => r.width > 1).map(r => Math.round(r.top))); if (tops.size > 1) out.push({k: 'wrap', w: `${desc(el)} breaks onto ${tops.size} lines`}); }
+  for (const el of texts) { const t = (el.textContent ?? '').trim(); if (!NUM.test(t) || !/\d/.test(t)) continue; const range = document.createRange(); range.selectNodeContents(el); // Lines are runs whose boxes overlap vertically: a smaller unit beside a big figure ("1000 ZIG") shares its line.
+    const lines = []; for (const r of [...range.getClientRects()].filter(r => r.width > 1).sort((a, b) => a.top - b.top)) { const last = lines[lines.length - 1]; if (last && r.top < last.bottom - 2) last.bottom = Math.max(last.bottom, r.bottom); else lines.push({bottom: r.bottom}); }
+    if (lines.length > 1) out.push({k: 'wrap', w: `${desc(el)} breaks onto ${lines.length} lines`}); }
   // ring
   for (const g of scope.querySelectorAll('.glass-ring')) {
     if (!shown(g) || !(g.textContent ?? '').trim()) continue;
@@ -226,9 +234,13 @@ function inspect() {
   // target
   for (const el of scope.querySelectorAll('a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option]')) {
     if (!shown(el)) continue; const r = el.getBoundingClientRect();
+    // A coarse primary pointer (phones, tablets, any width) or the phone layout: 44 × 44 (owner, 2026-10-14). A fine pointer
+    // (mouse, trackpad) on the larger layout: the WCAG 2.5.8 minimum of 24 × 24, its 24–44 px controls listed as advisory.
+    const min = innerWidth < 768 || matchMedia('(pointer: coarse)').matches ? 44 : 24;
     if (r.width >= 44 && r.height >= 44) continue;
+    if (min === 24 && r.width >= 24 && r.height >= 24) { out.push({k: 'advisory-target', w: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)} (pointer layout)`}); continue; }
     const s = getComputedStyle(el);
-    if (el.matches('input[type=checkbox], input[type=radio]') && el.closest('label') && el.closest('label').getBoundingClientRect().height >= 44) continue;
+    if (el.matches('input[type=checkbox], input[type=radio]') && el.closest('label') && el.closest('label').getBoundingClientRect().height >= min) continue;
     if (el.matches('input[type=checkbox], input[type=radio]') && (s.opacity === '0' || r.width <= 1)) continue;
     if (el.tagName === 'A' && s.display === 'inline' && el.parentElement && [...el.parentElement.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue; // a link inside a sentence
     if (el.closest('table, .data-table, [role=listbox]') && r.height >= 40) continue;
@@ -247,9 +259,15 @@ function inspect() {
     // rgb()/rgba() give 0–255 channels; color(srgb r g b / a) (what color-mix computes to) gives 0–1.
     const srgb = s.color.startsWith('color(srgb'), m = s.color.replace(/^color\(srgb/, '').match(/[\d.]+/g); if (!m) continue;
     const alpha = m[3] === undefined ? 1 : +m[3]; if (srgb) for (let i = 0; i < 3; i++) m[i] = String(Math.round(+m[i] * 255));
-    const range = document.createRange(); range.selectNodeContents(el); const r = range.getBoundingClientRect(); if (r.width < 4 || r.height < 6) continue;
+    // One sample per line box: a wrapped inline run's bounding box would also cover its neighbours' glyphs.
+    // The element's own text runs only (a swatch or an icon beside the words is not what the words sit on).
+    const rects = []; for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; const range = document.createRange(); range.selectNodeContents(n); rects.push(...range.getClientRects()); }
     const size = parseFloat(s.fontSize), bold = +s.fontWeight >= 700;
-    samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)});
+    // Text scrolled out of its own scroller (a swipeable row of chips) is not on screen: only what the scroller shows counts.
+    let clipBox = null; for (let e = el.parentElement; e; e = e.parentElement) { const ox = getComputedStyle(e).overflowX; if (ox === 'auto' || ox === 'scroll' || ox === 'hidden' || ox === 'clip') { clipBox = e.getBoundingClientRect(); break; } }
+    for (const r of rects) { if (r.width < 4 || r.height < 6) continue;
+      if (clipBox && (r.left < clipBox.left - 1 || r.right > clipBox.right + 1)) continue;
+      samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)}); }
   }
   return {out, samples, modal: !!modal};
 }
@@ -278,18 +296,18 @@ function contrast(pngs, samples) {
 
 const launcher = engine === 'webkit' ? webkit : chromium;
 const browser = await launcher.launch(engine === 'webkit' ? {} : {channel: 'chrome'});
-const report = {base, engine, widths: WIDTHS, at: new Date().toISOString(), states: {}};
+const report = {base, engine, widths: WIDTHS, at: new Date().toISOString(), states: {}, advisory: {}};
 for (const width of WIDTHS) {
   const phone = width < 768;
   for (const fresh of [false, true]) {
     const todo = STATES.filter(s => !!s.fresh === fresh && (!s.phone || phone) && (!only || only.test(s.name)));
     if (!todo.length) continue;
-    const ctx = await browser.newContext({...(phone ? devices['iPhone 13'] : {}), viewport: {width, height: phone ? 844 : 900}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
+    const ctx = await browser.newContext({...(phone ? devices['iPhone 13'] : {}), ...(touch ? {hasTouch: true} : {}), viewport: {width, height: phone ? 844 : 900}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
     await ctx.route('**/api/**', r => r.fulfill({status: 503, json: {error: 'audit fixture offline'}}));
     const p = await ctx.newPage();
     if (!fresh) { await p.goto(base + '/app/settings'); await btn(p, 'Load Showcase Demo').click(); await p.waitForURL('**/app'); await p.waitForTimeout(800); if (stress) console.log('stress records rewritten:', JSON.stringify(await p.evaluate(stressRecords))); }
     for (const st of todo) {
-      const key = `${st.name}@${width}${engine === 'webkit' ? '-webkit' : ''}`;
+      const key = `${st.name}@${width}${engine === 'webkit' ? '-webkit' : ''}${touch ? '-touch' : ''}`;
       try {
         await p.goto(base + st.path, {waitUntil: 'domcontentloaded'}); await p.waitForLoadState('networkidle', {timeout: 8000}).catch(() => {}); await p.waitForTimeout(900);
         // Every lazy part on the way down, then back to the top.
@@ -301,10 +319,10 @@ for (const width of WIDTHS) {
         const pngs = [];
         if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
         else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
-        const all = [...found, ...contrast(pngs, samples)];
-        report.states[key] = all;
+        const every = [...found, ...contrast(pngs, samples)], all = every.filter(f => f.k !== 'advisory-target');
+        report.states[key] = all; report.advisory[key] = every.filter(f => f.k === 'advisory-target').map(f => f.w);
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
-        writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});
+        writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});
         if (st.after) await st.after(p).catch(() => {});
         await p.keyboard.press('Escape').catch(() => {});
       } catch (e) { report.states[key] = [{k: 'error', w: String(e).split('\n')[0]}]; console.log(`${key}: could not run (${String(e).split('\n')[0]})`); }
@@ -315,9 +333,11 @@ for (const width of WIDTHS) {
 await browser.close();
 const counts = {}; for (const list of Object.values(report.states)) for (const f of list) counts[f.k] = (counts[f.k] ?? 0) + 1;
 report.counts = counts;
-const tag = `${engine}${stress ? '-stress' : ''}`;
+const tag = `${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}`;
 writeFileSync(`${out}/layout-audit-${tag}.json`, JSON.stringify(report, null, 1));
-const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
-  ...Object.entries(report.states).filter(([, l]) => l.length).flatMap(([k, l]) => [`## ${k}`, ...l.map(f => `- **${f.k}** ${f.w}`), ''])].join('\n');
+const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}${touch ? ', touch (coarse pointer)' : ''}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
+  ...Object.entries(report.states).filter(([, l]) => l.length).flatMap(([k, l]) => [`## ${k}`, ...l.map(f => `- **${f.k}** ${f.w}`), '']),
+  ...(() => { const seen = new Map(); for (const [k, l] of Object.entries(report.advisory)) for (const w of l) { const id = w.replace(/\d+×\d+/, '#'); if (!seen.has(id)) seen.set(id, {w, k, n: 0}); seen.get(id).n++; }
+    return seen.size ? ['## Advisory: pointer-layout controls between 24 and 44 px (not findings; owner item)', '', `${[...seen.values()].reduce((a, b) => a + b.n, 0)} occurrences of ${seen.size} distinct controls (WCAG 2.5.8 minimum met; 44 px is the touch layout's rule).`, '', ...[...seen.values()].map(v => `- ${v.w} (first at ${v.k}, ×${v.n})`), ''] : []; })()].join('\n');
 writeFileSync(`${out}/layout-audit-${tag}.md`, md);
 console.log('counts', JSON.stringify(counts));

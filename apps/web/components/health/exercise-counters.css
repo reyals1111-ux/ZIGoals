@@ -75,11 +75,12 @@
 .exercise-manage-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .exercise-manage-actions button { min-height: 40px; font-size: 14px; }
 @media (min-width: 560px) { .exercise-manage-list li { grid-template-columns: auto minmax(0, 1fr) auto; } .exercise-manage-actions { grid-column: auto; } }
-/* Phase 2 closing pass: on the narrowest phones the row gives its name the room (a 36 px medallion, 40 px steps), so a
-   name like "Push-ups" never ends in an ellipsis; a long custom name may take a second line rather than be cut. */
+/* Phase 2 closing pass: on the narrowest phones the row gives its name the room (a 36 px medallion, 44 px steps), so a
+   name like "Push-ups" never ends in an ellipsis. A long custom name stays on its one line as ADR-024 D20 asserts
+   (counters-compact): it may end in an ellipsis, with the full name in its title and in Manage counters. */
 @media (max-width: 374px) {
   .exercise-medallion { width: 36px; height: 36px; border-radius: 12px; }
   .exercise-counter-controls { grid-template-columns: 44px minmax(32px, auto) 44px; gap: 2px; }
   .exercise-count { font-size: 22px; }
-  .exercise-counter-name h3 { font-size: 16px; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; word-break: keep-all; hyphens: none; }
+  .exercise-counter-name h3 { font-size: 16px; }
 }

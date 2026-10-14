@@ -67,12 +67,16 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       const d = `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
       // Constellation stars: small points beside the path, between the nodes.
       const stars = segs.flatMap((s, i) => i === 0 ? [] : [.33, .66].map(t => { const p = at(s, t); return {x: p.x + (i % 2 ? 7 : -7), y: p.y + (t < .5 ? -8 : 9)}; }));
-      setGeo({w: base.width, h: base.height, d, stars});
+      // Same geometry → same state object (no re-render, so nothing resizes inside a ResizeObserver delivery).
+      setGeo(g => g && g.w === base.width && g.h === base.height && g.d === d ? g : {w: base.width, h: base.height, d, stars});
     };
     measure();
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure); ro?.observe(el);
-    window.addEventListener('resize', measure);
-    return () => { ro?.disconnect(); window.removeEventListener('resize', measure); };
+    // Session AB-Design Phase 2 closing pass (WebKit smoke: "ResizeObserver loop completed with undelivered notifications"):
+    // a resize is measured on the next frame, never inside the observer's own delivery.
+    let frame = 0; const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); };
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(later); ro?.observe(el);
+    window.addEventListener('resize', later);
+    return () => { cancelAnimationFrame(frame); ro?.disconnect(); window.removeEventListener('resize', later); };
   }, [stage, footer]);
   // The opening moment, once per session, when the banner is well in view.
   useEffect(() => {

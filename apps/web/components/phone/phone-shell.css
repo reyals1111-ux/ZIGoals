@@ -129,8 +129,8 @@
   :root .workspace > .workspace-status a { flex: none; font-size: 14px; }
   :root .workspace > .status-row { position: relative; align-items: flex-end; gap: 8px; margin: 6px 0 0; padding: 6px 0 6px 6px; }
   :root .workspace > .status-row::before { content: ""; position: absolute; inset: 0 -6px; z-index: -1; border: 1px solid var(--phone-glass-edge); border-radius: 16px; background: var(--phone-glass); pointer-events: none; }
-  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock))::before { display: none; }
-  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)) { padding: 0; margin: 0; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)):not(:has(.gamify)):not(:has(.wallet-balance))::before { display: none; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)):not(:has(.gamify)):not(:has(.wallet-balance)) { padding: 0; margin: 0; }
   :root .status-row > .mode-strip { display: block; padding: 2px 0; font-size: 13px; line-height: 1.45; letter-spacing: .02em; }
   :root .status-row > .mode-strip .wallet-balance { display: block; margin: 2px 0 0; font-size: 15px; letter-spacing: 0; color: var(--text-strong, #f4f8ff); }
   :root .status-row > .layout-lock-slot { margin-bottom: 0; }
@@ -146,7 +146,7 @@
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row::before { display: none; }
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row { padding: 0; }
     /* Gate B: the layout lock alone in that row keeps its 8 px gap above the page (Part 18.4's "clear of main"). */
-    :root:has(.app-topbar .phone-status-line) .workspace > .status-row:has(.layout-lock) { padding-bottom: 8px; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .status-row:is(:has(.layout-lock), :has(.gamify), :has(.wallet-balance)) { padding-bottom: 8px; }
     :root:has(.app-topbar .phone-status-line) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :root:has(.app-topbar .phone-status-line) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }

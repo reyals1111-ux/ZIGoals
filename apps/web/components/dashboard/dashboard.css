@@ -86,3 +86,13 @@
 .today-page[data-single] .today-layout{grid-template-columns:minmax(0,1fr)}
 /* Phase 2 closing pass (layout audit): Today's arranging controls are full-size targets, their words 14 px. */
 .dashboard-placement-controls button,.dashboard-insert-here{min-height:44px;font-size:14px}
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px): Today's main column beside the rail can be under 620 px;
+   two widgets side by side then got 239 px each (Habits' "Morning" split, its timer chip ran out). The widget area is a size
+   container and, below 620 px of its own width, the widgets stack. Phones keep their own compact two-up grid. */
+@media (min-width: 768px) {
+  .dashboard-widget-area { container-type: inline-size; }
+  @container (max-width: 619.98px) {
+    .dashboard-layout-grid { grid-template-columns: minmax(0, 1fr); }
+    .dashboard-layout-grid > .placed-module { grid-column: 1 / -1 !important; }
+  }
+}
