@@ -27,7 +27,8 @@ test('pick a part by pointer and by keyboard, note it, see its marker, edit, rem
   expect(await stored(page)).toEqual({version: 1, enabled: true});
 
   await page.goto('/app/goals');
-  const create = page.locator('.page-heading').getByRole('link', {name: '+ Create a goal', exact: true});
+  // AB-Design Phase 2 (the second merger; deliberate, ADR-024): Goals' header is the shared pillar header, `.goals-heading`.
+  const create = page.locator('.goals-heading').getByRole('link', {name: '+ Create a goal', exact: true});
   await expect(create).toBeVisible();
   await launcher(page).click();
   await expect(page.getByRole('button', {name: 'Stop picking'})).toHaveAttribute('aria-pressed', 'true');

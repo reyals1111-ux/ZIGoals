@@ -1,6 +1,5 @@
 'use client';
 import {ProgressSlot} from '../progress/slot';
-import {WealthAllocationSection} from '../bottom-sections';
 import {WealthTotal,BaseCurrencySwitch} from './wealth-total';
 import {LayoutLockButton,LayoutPage,LayoutRegion} from '../layout-edit';
 import {SplitMoney} from './wealth-total';
@@ -19,9 +18,22 @@ import {entityLayoutId} from '../../lib/page-layout';
 import './wealth.css';
 import './wealth-product.css';
 import './intelligence.css';
-import {Suspense,lazy,useState} from 'react';
-import {WealthChanges} from './wealth-changes';
-import {FinancialEvidence} from './financial-evidence';
+import {Suspense,lazy,useState,type ComponentType} from 'react';
+import type {LayoutAttrs} from '../layout-edit';
+/**
+ * Phase 2 (weights, never a raised budget): Wealth's sections below the fold load as their own chunks. Each stays one
+ * layout item: while its code arrives, a quiet placeholder carries the item's layout attributes (one DOM root, so the
+ * layout region keeps it in place), then the section itself does.
+ */
+function later<P extends object>(load:()=>Promise<ComponentType<P&LayoutAttrs>>,min=180){
+ const Part=lazy(()=>load().then(c=>({default:c})));
+ return function LaterPart(props:P&LayoutAttrs){const {'data-layout-item':item,'data-layout-region':region}=props;return <Suspense fallback={<div data-layout-item={item} data-layout-region={region} className="panel wealth-later" aria-busy="true" style={{minHeight:min}}/>}><Part {...props}/></Suspense>;};
+}
+const WealthChanges=later(()=>import('./wealth-changes').then(m=>m.WealthChanges));
+const FinancialEvidence=later(()=>import('./financial-evidence').then(m=>m.FinancialEvidence));
+const Watchlist=later(()=>import('./watchlist').then(m=>m.Watchlist),120);
+const CalculatorCard=later(()=>import('../calculator/calculator-card').then(m=>m.CalculatorCard));
+const WealthAllocationSection=later(()=>import('../bottom-sections').then(m=>m.WealthAllocationSection));
 import {ActionIntent} from '../action-intent';
 import {GlassBar} from '../progress/glass-progress';
 import {useMarketInsights} from './use-market-insights';
@@ -48,7 +60,6 @@ import {undoImport} from '../../lib/import/holdings';
 // Session Z-Cloud Part 5 (weights, ADR-019 C39): the holdings import loads when the person opens it.
 const HoldingsImportPanel=lazy(()=>import('../import/holdings-import').then(m=>({default:m.HoldingsImportPanel})));
 import type {ImportRecord} from '../../lib/import/undo-schema';
-import {Watchlist} from './watchlist';
 import {PhoneFold} from '../phone/phone-fold';
 import {restoreAsset} from '../../lib/asset-management';
 import {PinToToday} from '../pin-to-today';
@@ -58,7 +69,7 @@ import {assetQuantity} from './asset-quantity';
 import { formatDateTime } from '../../lib/visual-format';
 import {wealthMoney} from './wealth-money';
 import {WhatYouHave} from '../wealth/what-you-have';
-import {CalculatorCard} from '../calculator/calculator-card';
+import {ShowcaseTag} from '../ui/showcase-tag';
 export {wealthMoney};
 export function WealthView(){
  const store=usePlatform(),[adding,setAdding]=useState(false),[importing,setImporting]=useState(false),[filter,setFilter]=useState('All assets'),[error,setError]=useState('');
@@ -88,7 +99,7 @@ export function WealthView(){
   {id:'wealth:composition',label:'The shape of your wealth',node:<PortfolioComposition overview={overview}/>},
   {id:'wealth:mix',label:'Your wealth, in perspective',node:<PhoneFold label="Your wealth, in perspective"><section aria-label="Asset mix"><div className="wealth-section-heading"><div><p className="eyebrow">A PLACE FOR EVERY ASSET</p><h2>Your wealth, in perspective</h2></div></div><div className="asset-class-summaries" {...classes.listProps(overview.categories.length)}>{overview.categories.map(c=><button type="button" key={c.assetClass} className="class-summary" data-empty={!c.items.length} onClick={()=>{setFilter(c.assetClass);document.getElementById('holdings')?.scrollIntoView({behavior:'instant'});}}><div><span className="asset-swatch" style={{background:ASSET_COLORS[c.assetClass]}}/><strong>{c.assetClass}</strong><small>{c.items.length}{` ${plural(c.items.length,'asset')}`}</small></div><b>{c.subtotals.length?c.subtotals.map(t=><span key={t.currency}>{wealthMoney(t.value,t.currency)}</span>):'—'}</b>{c.items.length>0&&<span className="class-summary-caption">{c.incomplete?'Some values need review':c.items.slice(0,3).map(r=>r.position.asset).join(' · ')}</span>}</button>)}</div>{classes.button(overview.categories.length,'asset classes')}</section></PhoneFold>},
   {id:'wealth:watchlist',label:'Markets that matter to you',node:<PhoneFold label="Your favourite markets"><Watchlist/></PhoneFold>},
-  {id:'wealth:history',label:'Your wealth over time',node:<PhoneFold label="Your wealth over time"><section className="wealth-history panel" id="wealth-history" aria-labelledby="wealth-history-title">{overview.history.some(h=>h.currency==='USD'||h.currency==='EUR')&&<PinToToday label="Recorded wealth history" choices={overview.history.filter(h=>h.currency==='USD'||h.currency==='EUR').map(h=>({kind:'wealth' as const,metric:`history-${h.currency}`,label:`Recorded ${h.currency} wealth`}))}/>}<div className="wealth-section-heading"><div><p className="eyebrow">YOUR RECORDED JOURNEY</p><h2 id="wealth-history-title">{overview.history.length?'Your wealth over time':'Tracking starts here'}</h2><p>{showcase?'SHOWCASE DATA · fictional dated portfolio observations, separate from current public market prices.':'We record valid valuations going forward. Earlier performance is never invented.'}</p></div></div>{overview.history.length?<Suspense fallback={<p className="fine">Drawing your wealth over time…</p>}>{overview.history.map(h=><WealthHistoryChart key={h.currency} history={h} showcase={showcase}/>)}</Suspense>:<p className="picker-mode-note">Your first complete valuation starts this chart. More saved observations will reveal your journey.</p>}</section></PhoneFold>},
+  {id:'wealth:history',label:'Your wealth over time',node:<PhoneFold label="Your wealth over time"><section className="wealth-history panel" id="wealth-history" aria-labelledby="wealth-history-title">{overview.history.some(h=>h.currency==='USD'||h.currency==='EUR')&&<PinToToday label="Recorded wealth history" choices={overview.history.filter(h=>h.currency==='USD'||h.currency==='EUR').map(h=>({kind:'wealth' as const,metric:`history-${h.currency}`,label:`Recorded ${h.currency} wealth`}))}/>}<div className="wealth-section-heading"><div><p className="eyebrow">YOUR RECORDED JOURNEY</p><h2 id="wealth-history-title">{overview.history.length?'Your wealth over time':'Tracking starts here'}</h2><p>{showcase?<><ShowcaseTag/>Fictional dated portfolio observations, separate from current public market prices.</>:'We record valid valuations going forward. Earlier performance is never invented.'}</p></div></div>{overview.history.length?<Suspense fallback={<p className="fine">Drawing your wealth over time…</p>}>{overview.history.map(h=><WealthHistoryChart key={h.currency} history={h} showcase={showcase}/>)}</Suspense>:<p className="picker-mode-note">Your first complete valuation starts this chart. More saved observations will reveal your journey.</p>}</section></PhoneFold>},
   {id:'wealth:changes',label:'Explain recorded wealth change',node:<WealthChanges data={store.data}/>},
   {id:'wealth:evidence',label:'Evidence and returns',node:<PhoneFold label="Evidence & returns"><FinancialEvidence data={store.data} update={store.update}/></PhoneFold>},
   store.data.positions.some(p=>p.archivedAt)&&{id:'wealth:archived',label:'Archived assets',node:<details className="panel"><summary>Archived assets</summary><p>Historical evidence is retained. Restoring an asset adds it back to current wealth without recreating allocations.</p>{store.data.positions.filter(p=>p.archivedAt).map(p=><div className="archived-row" key={p.id}><span>{p.providerId}</span><button className="secondary" onClick={()=>void store.update(s=>restoreAsset(s,p.id)).catch(e=>setError(String(e)))}>Restore {p.providerId}</button></div>)}</details>},

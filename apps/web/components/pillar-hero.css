@@ -70,3 +70,5 @@
   :root .today-page .life-rings .flow-ring > span small { font-size: 10px; margin-left: 1px; }
   :root .today-page .life-rings > .life-ring { padding: 10px 8px 12px; gap: 6px; }
 }
+/* The active-goal count keeps its old hook (`.life-goal-number`) inside the Goals row's line, set as plain text there. */
+:root .life-rings .life-goal-number { display: inline; min-width: 0; font: inherit; color: inherit; text-align: inherit; }

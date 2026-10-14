@@ -18,10 +18,10 @@ function watchErrors(page: Page) {
 }
 
 const cases = [
-  { locale: "en-US", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
-  { locale: "de-DE", wealth: "501.800,00 $", euro: "8.000,00 €", share: "63,77%", kcal: "1.970" },
-  { locale: "nl-BE", wealth: "US$ 501.800,00", euro: "€ 8.000,00", share: "63,77%", kcal: "1.970" },
-  { locale: "ja-JP", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
+  { locale: "en-US", base: "USD", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
+  { locale: "de-DE", base: "EUR", wealth: "501.800,00 $", euro: "8.000,00 €", share: "63,77%", kcal: "1.970" },
+  { locale: "nl-BE", base: "EUR", wealth: "US$ 501.800,00", euro: "€ 8.000,00", share: "63,77%", kcal: "1.970" },
+  { locale: "ja-JP", base: "USD", wealth: "$501,800.00", euro: "€8,000.00", share: "63.77%", kcal: "1,970" },
 ] as const;
 
 for (const c of cases) test.describe(c.locale, () => {
@@ -33,9 +33,14 @@ for (const c of cases) test.describe(c.locale, () => {
     const total = page.locator(".wealth-hero, main").first();
     await expect(total).toContainText(c.wealth.replace(/ /g, NBSP));
     // Session AB-Design (owner request 24): the other currency is a chip; its panel keeps the "not converted" fact.
-    await expect(total.locator('.wealth-other-chip-button').first()).toHaveText(`+ ${c.euro.replace(/ /g, NBSP)} held in EUR`);
+    // Phase 2, Part 12 (deliberate, ADR-024 "Phase 2 — assertions changed"): the headline is the device's default currency
+    // (AB-Cloud's defaultCurrency(): euro in the euro area), so in de-DE and nl-BE the euro total leads and US dollars are
+    // the chip. As strict: the exact chip text and the panel's "not converted" line, per locale.
+    const [headline, other, otherCode] = c.base === "EUR" ? [c.euro, c.wealth, "USD"] : [c.wealth, c.euro, "EUR"];
+    await expect(total.locator('.wealth-total-headline').first()).toHaveText(headline.replace(/ /g, NBSP));
+    await expect(total.locator('.wealth-other-chip-button').first()).toHaveText(`+ ${other.replace(/ /g, NBSP)} held in ${otherCode}`);
     await total.locator('.wealth-other-chip-button').first().click();
-    await expect(total.locator('.wealth-other-chip-panel').first()).toContainText(`${c.euro.replace(/ /g, NBSP)} held in EUR · not converted`);
+    await expect(total.locator('.wealth-other-chip-panel').first()).toContainText(`${other.replace(/ /g, NBSP)} held in ${otherCode} · not converted`);
     await page.keyboard.press('Escape');
     await expect(page.getByRole("main")).toContainText(c.share);
     await page.goto("/app/health");

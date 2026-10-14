@@ -13,6 +13,8 @@
 }
 :root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child { flex: 1 1 14rem; min-width: 0; }
 :root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :not(:first-child) { flex: 0 0 auto; align-self: flex-start; }
+/* Headings written without a wrapper (eyebrow, title and lines as direct children) keep each line on its own full row. */
+:root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :is(p, h1, h2, h3, h4):not(:first-child) { flex: 1 1 100%; min-width: 0; }
 /* The ⋯ menu (and a pin-to-Today menu) closes the row. */
 :root :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :is(.card-options, .pin-to-today) { order: 9; margin-top: -6px; }
 /* Titles: a section on the page, and a card inside a panel. */

@@ -73,7 +73,7 @@
    cards keep their full width and position on every page and width. The one allowance: extra scroll room at the very end
    of a page, so its last lines (the footer's disclaimer) can be scrolled above the two buttons. */
 :root .site-footer-inner { padding-bottom: calc(40px + 150px); }
-@media (max-width: 767.98px) { :root .site-footer-inner { padding-bottom: calc(40px + 96px); } }
+@media (max-width: 767.98px) { :root .site-footer-inner { padding-bottom: calc(32px + 72px); } }
 /* Phase 2, Part 12: the chip's "· fictional" (SHOWCASE_CHIP) on wider screens; phones keep the one word beside the lock. */
 .showcase-chip-more { font-weight: 500; opacity: .85; }
 @media (max-width: 767.98px) { .showcase-chip-more { display: none; } }
