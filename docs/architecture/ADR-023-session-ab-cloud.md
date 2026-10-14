@@ -137,5 +137,8 @@ Evidence: `docs/verification/ab-cloud/`; "Resume here": `docs/verification/ab-cl
     (revert-gated); `no-model.test.ts` requires at least one example; `default-currency.test.ts` names the refusal
     message; `amounts-ab.spec.ts` saves "3.250,50" on a Dutch device and expects `['325050', 'EUR']`;
     `a11y-ab-cloud.spec.ts` reaches the picked part by Tab alone (no `tabindex` added).
+  - `tests/zigi-history-undo.spec.ts` (this session's own spec, after the full local run): `page.clock.install` keeps time
+    flowing in real time too, so "not yet removed" is checked 1.5 s before the 8 s end and "removed" after it (was 100 ms,
+    which load crossed once); the same assertions, 30 of 30 after.
   - Recorded, not changed: the sync-provider tests import the extras and finance-homes modules up front (C14), so the
     provider's cold dynamic import on a first sync is exercised only by the browser and Miniflare rehearsals.

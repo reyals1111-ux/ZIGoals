@@ -5,11 +5,9 @@ sandbox's `/home/user/ZIGoals`, branch `feature/session-ab-cloud` (push only the
 installed outside the checkout (`/root/node-v24.19.0-linux-x64`, checksum verified against nodejs.org's SHASUMS256).
 Plan: ADR-023 (owner decisions and C1…). Parallel lane: AB-Design (`feature/session-ab-design`, the owner's Mac).
 
-## Resume here (2026-10-14, Gate C in progress; every part pushed)
-Parts 0–10 pushed, Gates A and B recorded; Gate C: unit suite, test audit, frozen readers, key scan, revert gate done;
-CI's three browser failures on `e3ac500` fixed in `732a205`. Left: the full browser suite (running), CI on the final
-head, the STATUS entry (final commit), the PR description, Ready for review. Then the stretch items (Sync status polish,
-more Restore edge cases) with the time left.
+## Resume here (2026-10-14, finished: lean finish per the owner's note; PR #85 ready for review)
+Every part is pushed and Gates A–C are recorded; the docs/STATUS.md entry is the final commit. Stretch items skipped
+(owner's lean-finish note). Nothing is merged or deployed; the owner does both, after the private-sync Worker redeploy.
 
 ## Gate A (after Part 2; recorded 2026-10-14)
 - Local: unit suite 4,855 passed (one environmental failure passed on re-run); touched browser specs 141 passed, 11
@@ -39,7 +37,15 @@ more Restore edge cases) with the time left.
 - CI on `e3ac500` (run 38501294859): checks, contract, integration green; three browser rows red, each reproduced and
   fixed in `732a205` (the banner sentence wrapped and moved every page 13 px: `motion-arrival:18`; the Point & tell switch
   was 324×28 on phones: `phone-touch-targets:40`) or passing 6 of 6 here (`coherence:7`).
-- WebKit (advisory) on `e57ab538`: both shards finished inside their cap for the first time (C29).
+- CI on `870c392` (run 38510173374): `web`, the three browser shards, checks, integration, contract and reproducibility
+  green; WebKit (advisory) red on the known classes (C29). `send-feedback:75` (Help's Known limitations: 13 since Part 10)
+  was the last failure, fixed in `870c392`.
+- Full browser suite locally, lean: 1,482 of 2,688 run before the owner's lean-finish note stopped it; 9 failed, each
+  explained: the brand film ×2 (this Chromium plays no video, as CLAUDE.md says), `send-feedback:75` (the run had loaded
+  the old file; 10/10 after), `zigi-history-undo:43` (this session's spec, a 100 ms clock margin; 30/30 after the fix),
+  and five that pass alone here and passed in CI's shards (`brand-nav-polish:137`, `ui-evidence:65`, `webkit-smoke:35`,
+  `zigi-alive:190`, `zigi-simulated-day:44`). The rest of the suite is covered by CI's three shards on `870c392`.
+- WebKit (advisory): both shards finish inside their cap since Part 7 (C29).
 - AB-Design's handoff: `feature/session-ab-design` still not on origin (checked at Gate C); main is still `6c1052b`.
 
 ## Done

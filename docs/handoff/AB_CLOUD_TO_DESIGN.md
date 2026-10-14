@@ -168,3 +168,12 @@ Every insertion is one line (an import plus one element) placed at the end of it
   `:root #point-tell label.checkbox`, so the Point & tell switch in Settings is a full-size target
   (`phone-touch-targets:40`). Keep it when you merge, if you restyle that file.
 - No other visual change at Gate C: the rest is tests and records.
+
+## 2026-10-14 — Session AB-Cloud finished (PR #85 ready for review)
+- No visual change after the Gate C entry above. For the second merger, the shared files this lane touched are listed in the
+  entries above (`components/shell.tsx`, `app/app/settings/page.tsx`, `components/data-health/data-health-view.tsx`,
+  `health-app.tsx`, `micro-panel.tsx`, `components/help/help-page.tsx`, `lib/search/static.ts`, `lib/whats-new.ts`,
+  `components/for-you/whats-new-card.tsx`, `app/product-v2.css`, `components/phone/phone-targets.css`,
+  `lib/showcase-copy.ts`): keep both sides; the What's new release ids and Help sections stack.
+- `feature/session-ab-design` was not on origin at any gate (last checked at Gate C), so no `AB_DESIGN_TO_CLOUD.md` was
+  read; nothing of yours is merged into this branch.

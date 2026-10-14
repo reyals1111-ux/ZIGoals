@@ -9,6 +9,9 @@ import {AI_SETTINGS_KEY, defaultAiSettings} from '../lib/ai/settings';
  * delete replaces it). Two fictional chats are stored straight in the chat database; no AI is called.
  */
 const NOW = '2026-10-14T19:00:00.000Z';
+// page.clock.install keeps time flowing in real time as well, so each "not yet" check sits 1.5 s before the 8 s end and the
+// "gone" check after it: real time spent between steps under load can never carry the deletion across either check (Gate C:
+// with a 100 ms margin the full local suite saw the deletion land before the "not yet" check).
 const chat = (id: string, title: string, minutes: number) => ({version: 1, id, scope: 'local', title, provider: 'local', model: 'mock-chat', createdAt: NOW, updatedAt: new Date(Date.parse(NOW) - minutes * 60000).toISOString(), turns: []});
 const CHATS = [chat('chat-first-0001', 'Fictional first chat', 1), chat('chat-second-002', 'Fictional second chat', 2)];
 const stored = (page: Page) => page.evaluate(() => new Promise<string[]>((resolve, reject) => { const r = indexedDB.open('zigoals-ai-chats-v1'); r.onerror = () => reject(r.error); r.onsuccess = () => { const db = r.result; if (!db.objectStoreNames.length) { db.close(); resolve([]); return; } const t = db.transaction(db.objectStoreNames[0]!, 'readonly'), q = t.objectStore(db.objectStoreNames[0]!).getAllKeys(); q.onsuccess = () => { db.close(); resolve((q.result as string[]).sort()); }; }; }));
@@ -53,9 +56,9 @@ test('Delete hides a chat with Undo; Undo brings it back; the chat is removed on
   expect(await storedChats(page)).toEqual(AS_STORED);
   // Deleted again, and the time runs out: removed from the device.
   await row(region, 'Fictional first chat').getByRole('button', {name: 'Delete', exact: true}).click();
-  await page.clock.runFor(7900);
+  await page.clock.runFor(6500);
   expect(await stored(page)).toHaveLength(2);
-  await page.clock.runFor(200);
+  await page.clock.runFor(1600);
   await expect.poll(() => stored(page)).toEqual(['local:chat-second-002']);
   await expect(region.getByRole('status')).toHaveCount(0);
   await expect(region.locator('.ai-history-list li')).toHaveCount(1);
@@ -85,9 +88,9 @@ test('"Delete all chats" removes every chat when its 8 seconds end', async ({pag
   const region = await history(page);
   await region.getByRole('button', {name: 'Clear all', exact: true}).click();
   await region.getByRole('button', {name: 'Delete all chats', exact: true}).click();
-  await page.clock.runFor(7900);
+  await page.clock.runFor(6500);
   expect(await storedChats(page)).toEqual(AS_STORED);
-  await page.clock.runFor(200);
+  await page.clock.runFor(1600);
   await expect.poll(() => stored(page)).toEqual([]);
   await expect(region.getByRole('status')).toHaveCount(0);
 });
