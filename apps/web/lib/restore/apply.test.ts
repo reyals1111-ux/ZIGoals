@@ -56,7 +56,7 @@ describe('applying a restore', () => {
     for (const k of changedKeys) expect(RESTORE_KEYS.includes(k) || k.startsWith(`${HABITS_KEY}:recovery:`), k).toBe(true);
     // Undo: the exact earlier bytes, and keys that did not exist are gone again.
     expect(canUndoRestore()).toBe(true);
-    expect(await undoRestore()).toEqual({failed: []});
+    expect(await undoRestore()).toEqual({failed: [], kept: []});
     const undone = snapshot();
     expect(undone[HABITS_KEY]).toBe(changed);
     expect(undone[GOAL_EXTRAS_KEY]).toBeUndefined(); expect(undone[HEALTH_STORAGE_KEY]).toBeUndefined();
@@ -89,6 +89,20 @@ describe('applying a restore', () => {
     const opened = await backupOf(records);
     activateShowcase(sessionStorage, '2026-10-14', {}, 'test');
     await expect(applyRestore(opened, [{part: part(planParts(opened.json), 'module:habits'), mode: 'replace'}], {vision: false, progress: false})).rejects.toThrow(RESTORE_SHOWCASE_MESSAGE);
+    expect(localStorage.getItem(HABITS_KEY)).toBeNull();
+  });
+});
+
+describe('Undo never overwrites a later change (Gate B security read, finding 4)', () => {
+  test('a part changed after the restore (an edit, or a sync from another device) is left as it is and named; the rest is undone', async () => {
+    const opened = await backupOf(records);
+    const parts = planParts(opened.json);
+    await applyRestore(opened, [{part: part(parts, 'module:habits'), mode: 'replace'}, {part: part(parts, 'device:goalExtras'), mode: 'replace'}], {vision: false, progress: false});
+    // After the restore, goal extras change (say, a sync brought another device's edit).
+    const later = JSON.stringify({...JSON.parse(localStorage.getItem(GOAL_EXTRAS_KEY)!), areas: []});
+    localStorage.setItem(GOAL_EXTRAS_KEY, later);
+    expect(await undoRestore()).toEqual({failed: [], kept: ['Goal plans, areas and visions']});
+    expect(localStorage.getItem(GOAL_EXTRAS_KEY)).toBe(later);
     expect(localStorage.getItem(HABITS_KEY)).toBeNull();
   });
 });

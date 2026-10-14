@@ -29,10 +29,10 @@ import {entryBytes, RESTORE_LIMITS, type OpenedBackup} from './read-backup';
 export type RestoreChoice = {part: PlannedPart; mode: Exclude<RestoreMode, 'leave'>};
 export type PhotoChoice = {vision: boolean; progress: boolean};
 type UndoStep =
-  | {kind: 'module'; key: string; label: string; before: string | null}
-  | {kind: 'device'; key: string; label: string; before: string | null}
+  | {kind: 'module'; key: string; label: string; before: string | null; after: string | null}
+  | {kind: 'device'; key: string; label: string; before: string | null; after: string}
   | {kind: 'vision'; scope: string; ids: string[]}
-  | {kind: 'photos'; scope: string; ids: string[]; before: string | null};
+  | {kind: 'photos'; scope: string; ids: string[]; before: string | null; after: string};
 export type RestoreOutcome = {restored: string[]; failed: {label: string; error: string}[]; photos: {added: number; skipped: number}; undoable: boolean};
 type Session = {generation: number; storage: Storage; steps: UndoStep[]};
 let last: Session | null = null;
@@ -90,12 +90,12 @@ export async function applyRestore(opened: OpenedBackup, choices: readonly Resto
         fence();
         try { await (isDurableMarker(storage.getItem(part.key)) ? restoreDurableStore(storage, part.key, part.schema, raw) : importPrivateStore(storage, part.key, part.schema, raw)); }
         catch (error) { throw Error(restoreFailureMessage(error, {durable: isDurableMarker(storage.getItem(part.key))}), {cause: error}); }
-        session.steps.push({kind: 'module', key: part.key, label: part.label, before});
+        session.steps.push({kind: 'module', key: part.key, label: part.label, before, after: await moduleText(storage, part.key)});
         announceModule(part.key);
       } else {
         const before = storage.getItem(part.key);
         try { storage.setItem(part.key, JSON.stringify(next.value)); } catch { throw Error('This browser’s storage is full, so this part was not restored.'); }
-        session.steps.push({kind: 'device', key: part.key, label: part.label, before});
+        session.steps.push({kind: 'device', key: part.key, label: part.label, before, after: storage.getItem(part.key)!});
         announceDevice(part.key);
       }
       outcome.restored.push(part.label);
@@ -149,7 +149,7 @@ async function restoreProgress(opened: OpenedBackup, session: Session, outcome: 
   if (!added.length) return;
   fence();
   try { storage.setItem(PROGRESS_PHOTOS_KEY, JSON.stringify(index)); } catch { for (const id of added) await deletePhotoBlob(scope, id).catch(() => {}); outcome.photos.added -= added.length; outcome.photos.skipped += added.length; return; }
-  session.steps.push({kind: 'photos', scope, ids: added, before});
+  session.steps.push({kind: 'photos', scope, ids: added, before, after: storage.getItem(PROGRESS_PHOTOS_KEY)!});
   announceDevice(PROGRESS_PHOTOS_KEY);
 }
 
@@ -157,31 +157,38 @@ async function restoreProgress(opened: OpenedBackup, session: Session, outcome: 
 export function canUndoRestore(): boolean {
   try { return !!last && last.steps.length > 0 && last.generation === getAccountGeneration() && last.storage === getAppStorage() && !isShowcase(); } catch { return false; }
 }
-/** Puts back exactly what the last restore replaced, newest first. Each module goes back through its own validated path. */
-export async function undoRestore(): Promise<{failed: string[]}> {
+/**
+ * Puts back exactly what the last restore replaced, newest first. Each module goes back through its own validated path.
+ * A part changed since the restore (an edit here, or a sync from another device) is left as it is and named, so Undo never
+ * overwrites a later change (Gate B security read, finding 4).
+ */
+export async function undoRestore(): Promise<{failed: string[]; kept: string[]}> {
   if (!canUndoRestore()) throw Error('There is no restore to undo in this session.');
-  const session = last!, failed: string[] = [];
+  const session = last!, failed: string[] = [], kept: string[] = [], storage = session.storage;
   for (const step of [...session.steps].reverse()) {
-    if (session.generation !== getAccountGeneration() || session.storage !== getAppStorage()) throw Error(RESTORE_CHANGED_MESSAGE);
+    if (session.generation !== getAccountGeneration() || storage !== getAppStorage()) throw Error(RESTORE_CHANGED_MESSAGE);
     try {
       if (step.kind === 'module') {
-        const durable = isDurableMarker(session.storage.getItem(step.key)), schema = MODULE_PARTS.find(p => p.key === step.key)!.schema;
-        if (step.before === null) { if (!durable) session.storage.removeItem(step.key); }
-        else await (durable ? restoreDurableStore(session.storage, step.key, schema, step.before) : importPrivateStore(session.storage, step.key, schema, step.before));
+        if (await moduleText(storage, step.key) !== step.after) { kept.push(step.label); continue; }
+        const durable = isDurableMarker(storage.getItem(step.key)), schema = MODULE_PARTS.find(p => p.key === step.key)!.schema;
+        if (step.before === null) { if (!durable) storage.removeItem(step.key); }
+        else await (durable ? restoreDurableStore(storage, step.key, schema, step.before) : importPrivateStore(storage, step.key, schema, step.before));
         announceModule(step.key);
       } else if (step.kind === 'device') {
-        if (step.before === null) session.storage.removeItem(step.key); else session.storage.setItem(step.key, step.before);
+        if (storage.getItem(step.key) !== step.after) { kept.push(step.label); continue; }
+        if (step.before === null) storage.removeItem(step.key); else storage.setItem(step.key, step.before);
         announceDevice(step.key);
       } else if (step.kind === 'vision') await deleteImages(step.scope, step.ids);
       else {
+        if (storage.getItem(PROGRESS_PHOTOS_KEY) !== step.after) { kept.push('Progress photos'); continue; }
         for (const id of step.ids) await deletePhotoBlob(step.scope, id);
-        if (step.before === null) session.storage.removeItem(PROGRESS_PHOTOS_KEY); else session.storage.setItem(PROGRESS_PHOTOS_KEY, step.before);
+        if (step.before === null) storage.removeItem(PROGRESS_PHOTOS_KEY); else storage.setItem(PROGRESS_PHOTOS_KEY, step.before);
         announceDevice(PROGRESS_PHOTOS_KEY);
       }
     } catch { failed.push(step.kind === 'module' || step.kind === 'device' ? step.label : 'Photos'); }
   }
   last = null;
-  return {failed};
+  return {failed, kept};
 }
 /** Forgets the undo (an account change or erase). */
 export function forgetRestoreUndo() { last = null; }

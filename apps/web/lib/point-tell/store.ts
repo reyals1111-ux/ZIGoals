@@ -9,9 +9,10 @@ import {POINT_TELL_KEY} from '../ab-cloud-device-keys';
  * Device-only (`zigoals:point-tell:v1`, loose, v1): never synced, exported by Export everything, removed by the account
  * erase, never restored (it describes this screen).
  *
- * A pin keeps what a person reading the note needs and nothing private: the page path (no query or hash), a readable
- * name of the part (its region name, label or heading, at most 120 characters), an optional selector to find it again
- * on this device (a `data-region`, an id, or a short tag path), the note, and when it was written.
+ * A pin keeps what a person reading the note needs: the page path (no query or hash), a readable name of the part (its own
+ * text, region name, label or heading, at most 120 characters — what the page shows there, which can be a goal's name; it is
+ * shown in the note before saving and in the email before sending, never a form's typed value), an optional selector to
+ * find it again on this device (a `data-region`, an id, or a short tag path), the note, and when it was written.
  */
 export {POINT_TELL_KEY};
 export const MAX_PINS = 100, MAX_NOTE = 1000, MAX_TARGET = 120;
@@ -33,14 +34,17 @@ export const POINT_TELL: DeviceRecordSpec<PointTell> = {key: POINT_TELL_KEY, sch
 export const setPointTellEnabled = (r: PointTell, enabled: boolean): PointTell => pointTellSchema.parse({...r, enabled});
 /** The page path a pin keeps: no query string or hash (they can hold ids). */
 export const pinPath = (pathname: string) => (pathname.split(/[?#]/)[0] || '/').replace(/[^A-Za-z0-9/_.-]/g, '').slice(0, 201) || '/';
-const clip = (text: string, max: number) => { const t = text.replace(/\s+/g, ' ').trim(); return t.length > max ? `${t.slice(0, max - 1)}…` : t; };
+/** Text cut by whole characters (code points) and with no lone surrogate left, so encoding it never throws (Gate B, finding 5). */
+export const wellFormed = (text: string) => text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '\uFFFD');
+const cut = (text: string, max: number) => { const chars = Array.from(wellFormed(text)); return chars.length > max ? chars.slice(0, max).join('') : chars.join(''); };
+const clip = (text: string, max: number) => { const t = text.replace(/\s+/g, ' ').trim(); return Array.from(t).length > max ? `${cut(t, max - 1)}…` : cut(t, max); };
 export function addPin(r: PointTell, pin: {id: string; path: string; target: string; selector?: string; note: string; at: string}): PointTell {
   const pins = r.pins ?? [];
   if (pins.length >= MAX_PINS) throw Error(`Point & tell keeps up to ${MAX_PINS} notes. Export and clear some first.`);
   const n = pins.reduce((m, p) => Math.max(m, p.n), 0) + 1;
-  return pointTellSchema.parse({...r, pins: [...pins, {...pin, path: pinPath(pin.path), target: clip(pin.target, MAX_TARGET) || 'This part of the page', note: pin.note.slice(0, MAX_NOTE), n}]});
+  return pointTellSchema.parse({...r, pins: [...pins, {...pin, path: pinPath(pin.path), target: clip(pin.target, MAX_TARGET) || 'This part of the page', note: cut(pin.note, MAX_NOTE), n}]});
 }
-export const editPin = (r: PointTell, id: string, note: string): PointTell => pointTellSchema.parse({...r, pins: (r.pins ?? []).map(p => p.id === id ? {...p, note: note.slice(0, MAX_NOTE)} : p)});
+export const editPin = (r: PointTell, id: string, note: string): PointTell => pointTellSchema.parse({...r, pins: (r.pins ?? []).map(p => p.id === id ? {...p, note: cut(note, MAX_NOTE)} : p)});
 export const removePin = (r: PointTell, id: string): PointTell => pointTellSchema.parse({...r, pins: (r.pins ?? []).filter(p => p.id !== id)});
 /** Undo of a removal: the pin back in its place (by number). */
 export const restorePin = (r: PointTell, pin: Pin): PointTell => (r.pins ?? []).some(p => p.id === pin.id) ? r : pointTellSchema.parse({...r, pins: [...(r.pins ?? []), pin].sort((a, b) => a.n - b.n)});
@@ -55,7 +59,7 @@ export function pinsText(pins: readonly Pin[], meta: {version: string; at: strin
 /** The feedback email with the notes as its body, shortened to what a mail link carries safely. */
 export const MAILTO_BODY_MAX = 1800;
 export function pinsMailto(address: string, text: string): string {
-  const body = text.length > MAILTO_BODY_MAX ? `${text.slice(0, MAILTO_BODY_MAX)}\n… (more notes: use Download or Copy and paste them here)` : text;
+  const body = Array.from(text).length > MAILTO_BODY_MAX ? `${cut(text, MAILTO_BODY_MAX)}\n… (more notes: use Download or Copy and paste them here)` : wellFormed(text);
   return `mailto:${address}?subject=${encodeURIComponent('ZIGoals Point & tell notes')}&body=${encodeURIComponent(body)}`;
 }
 

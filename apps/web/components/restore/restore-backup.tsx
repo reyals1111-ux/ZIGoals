@@ -60,9 +60,10 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   });
   const undo = () => run(async () => {
     const {undoRestore} = await import('../../lib/restore/apply');
-    const {failed} = await undoRestore();
+    const {failed, kept} = await undoRestore();
     setUndoable(false); setOutcome(null);
-    setUndone(failed.length ? `Undone, except: ${failed.join(', ')}. Their earlier copy is kept as a recovery copy in this browser.` : 'The restore is undone: this device holds exactly what it held before.');
+    const notes = [kept.length ? `Changed since the restore, so left as they are now: ${kept.join(', ')}.` : '', failed.length ? `Not undone: ${failed.join(', ')}; their earlier copy is kept as a recovery copy in this browser.` : ''].filter(Boolean);
+    setUndone(notes.length ? `The restore is undone, except where noted. ${notes.join(' ')}` : 'The restore is undone: this device holds exactly what it held before.');
   });
   const mergeAll = () => preview && setModes(Object.fromEntries(preview.rows.map(r => [r.id, r.problem ? 'leave' : 'merge'])));
 
@@ -70,7 +71,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
     <p className="fine">Choose a ZIP made by &ldquo;Export everything&rdquo;. You see what it holds before anything changes; keys and secrets are never in it and never restored.</p>
     <label className="rb-file">Export everything ZIP<input key={fileKey} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void open(e.target.files?.[0])} /></label>
     {busy && <p className="fine" aria-live="polite">Working…</p>}
-    {preview && <div className="rb-preview" aria-label="What this backup holds">
+    {preview && <div className="rb-preview" role="group" aria-label="What this backup holds">
       <p>Exported {preview.opened.json.exportedAt.slice(0, 10)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
       {preview.opened.demo && <p className="alert" role="alert">This file holds the Showcase&rsquo;s fictional examples. Restoring them puts made-up records among your own.</p>}
       {!preview.rows.length && !preview.visionCount && !preview.progressCount && <p>This export holds nothing this version can restore.</p>}

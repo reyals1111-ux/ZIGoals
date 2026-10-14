@@ -63,3 +63,17 @@ describe('naming what was picked', () => {
     expect(describeTarget(document.querySelector('input')!).target).toBe('Log a meal');
   });
 });
+
+describe('Gate B security read, finding 5', () => {
+  test('an emoji at a cut is never split: names, notes and the email body stay encodable', () => {
+    const emoji = '🎯', name = `${'x'.repeat(118)}${emoji}${emoji}`;
+    const r = addPin(emptyPointTell(), {...pin('aaaaaaaa', `${'n'.repeat(999)}${emoji}`), target: name});
+    expect(() => encodeURIComponent(r.pins![0]!.target)).not.toThrow();
+    expect(() => encodeURIComponent(r.pins![0]!.note)).not.toThrow();
+    expect(Array.from(r.pins![0]!.note)).toHaveLength(1000);
+    const text = 'y'.repeat(MAILTO_BODY_MAX - 1) + emoji + 'z';
+    expect(() => pinsMailto('contact@example.invalid', text)).not.toThrow();
+    expect(decodeURIComponent(pinsMailto('contact@example.invalid', text).split('body=')[1]!)).toContain(emoji);
+    expect(() => pinsMailto('contact@example.invalid', 'lone \uD83C surrogate')).not.toThrow();
+  });
+});
