@@ -24,3 +24,6 @@ production build at `6c1052b2` (Alpha #39 per the owner). "After" folders are ad
 
 ## Gate C
 The final build (`09b2d307`) in the Showcase at the same four widths: `gate-c/<width>/<page>.jpg` and `-fold.png` (the gate-a column above shows the same pages before the Gate C fixes: one card caption, the Wealth eyebrow mark, the Habits phone art, the Hall media height, balanced titles, the footer legal block, the phone goal card at 254 px, thin counter rows at 320).
+
+## Phase 2
+Before = Phase 1's final build in named states (`phase-2/before/<width>/<state>`); after = the same states at Phase 2's Gate C (`phase-2/after/`). The proof table lives in `docs/product/OWNER_UI_REQUESTS_AB.md` ("Phase 2 proof").
