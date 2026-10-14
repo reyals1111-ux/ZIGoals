@@ -143,7 +143,8 @@ export function accountUi(page){
   access,syncRegion,healthConsent,
   settings:()=>page.goto(reviewOrigin()+'/app/settings'),
   /** Client-side navigation: a reload would lock the in-memory vault session. */
-  go:async name=>{await page.getByRole('link',{name,exact:true}).first().click();},
+  /** Session AB-Design (ADR-024 D2): on a phone Settings is a row of the More sheet (top-bar More); the desktop sidebar is unchanged. */
+  go:async name=>{const more=page.locator('.phone-more-top');if(name==='Settings'&&await more.isVisible()){await more.click();await page.getByRole('dialog',{name:'More',exact:true}).getByRole('link',{name,exact:true}).click();return;}await page.getByRole('link',{name,exact:true}).first().click();},
   async requestCode(email){await page.getByLabel('Email address',{exact:true}).fill(email);await page.getByRole('button',{name:'Send email code',exact:true}).click();},
   async enterCode(code){await page.getByLabel('Email code',{exact:true}).fill(code);await page.getByRole('button',{name:'Verify email code',exact:true}).click();},
   /** Waits until verification finished and the vault controls are shown. */

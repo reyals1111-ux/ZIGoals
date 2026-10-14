@@ -24,3 +24,19 @@
 .point-tell .pt-toast p{display:flex;align-items:center;gap:12px;margin:0;padding:8px 14px;border-radius:14px;background:#081329f2;border:1px solid var(--line,#2a325a)}
 .point-tell .pt-toast p:empty{display:none}
 .point-tell .pt-toast .text-link{min-height:44px}
+
+/* Session AB-Design Phase 2, Part 12 (second merger): Point & tell in the shell's glass language — the launcher and count
+   as the ZIGi-style glass discs, pressed in the nebula gradient; the hint and toast as the Alpha notice's strip; the sheet as
+   the More sheet's glass card; markers as nebula discs. Colours and borders only: nothing moves, so reduced motion and
+   Motion Off need nothing. Forced colours fall back to system colours. */
+:root .point-tell .pt-button, :root .point-tell .pt-count { border-color: color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); box-shadow: 0 14px 34px -14px #3c28a0cc, inset 0 1px 0 #ffffff14; }
+:root .point-tell .pt-button:is(:hover, :focus-visible) { border-color: #96eaffb0; }
+:root .point-tell .pt-button[aria-pressed=true] { background: var(--nebula-emphasis); border-color: #96eaffb0; color: #041126; }
+:root .point-tell :is(.pt-hint, .pt-toast p) { border: 1px solid #70cfff2e; background: linear-gradient(100deg, #061a2cf2, #0a0f2af2 50%, #1a1340f2); box-shadow: inset 0 1px 0 #67bbff1a, 0 18px 40px -24px #000c; }
+:root .point-tell .pt-hover { border-color: #7fe3f3; box-shadow: 0 0 0 4px #7fe3f322, 0 0 24px #2edbff33; }
+:root .point-tell .pt-marker { border-color: #041126; background: var(--nebula-emphasis); color: #041126; box-shadow: 0 0 0 3px #96eaff40, 0 8px 20px -8px #2edbff80; }
+:root .point-tell .pt-sheet { border-color: var(--phone-glass-edge, #8ab9ff33); border-radius: 24px; background: linear-gradient(180deg, #0b1a33fa, #050c1efa); box-shadow: 0 30px 70px -30px #000e, inset 0 1px 0 #ffffff12; }
+:root .point-tell .pt-sheet h2 { font-size: 20px; letter-spacing: -.01em; }
+:root .point-tell .pt-items li { border: 1px solid #8ab9ff14; background: #8ab9ff0b; border-radius: 14px; }
+:root .point-tell .pt-items small { font-size: 14px; }
+@media (forced-colors: active) { :root .point-tell :is(.pt-button, .pt-count, .pt-marker, .pt-sheet, .pt-hint, .pt-toast p) { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; } }
