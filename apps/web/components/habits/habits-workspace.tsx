@@ -4,7 +4,7 @@ import { useJournalZone } from "../use-journal-zone";
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readConfirmDelete } from "../../lib/confirm-delete";
 import Link from "next/link";
-import { askZigi } from "../ai/ask";
+import { PageMinorActions } from "../page-actions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { hashId } from "../../lib/hash-id";
 import { holdInView } from "../settings/keep-jump";
@@ -18,10 +18,11 @@ import { habitStackSuggestions } from "../../lib/habit-linked-policy";
 import type { Habit, HabitData } from "../../lib/habits";
 import type { DeletedHabit } from "../../lib/habit-delete";
 import { GlassBar } from "../progress/glass-progress";
-import { LayoutLockButton, LayoutPage, LayoutRegion } from "../layout-edit";
+import { LayoutLockButton, LayoutPage, LayoutRegion, PageTools} from "../layout-edit";
 import { entityLayoutId } from "../../lib/page-layout";
 import { habitDay, habitRuleOn,saveHabitTimezone } from "../../lib/habits";
 import { NebulaFlow } from "../nebula-flow";
+import { PillarMark } from "../pillars";
 import { LoadBoundary } from "../load-boundary";
 import { usePhoneActive } from "../phone/use-phone-layout";
 import { phoneOrder } from "../phone/phone-order";
@@ -180,7 +181,7 @@ export function HabitsWorkspace() {
   };
   const usedAreas = extras.loaded ? extras.areas.filter((a) => store.data.habits.some((h) => habitArea(extras.data, h.id) === a.id)) : [];
   const sectioned = SECTIONED.includes(filter);
-  const habitEditor = editor ? <HabitEditor today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} healthLink={editingHabit ? links.data.links[editingHabit.id] ?? null : null} counters={healthLinkContext.counters} waterUnit={healthLinkContext.waterUnit} healthLinksUnreadable={links.unreadable} onStartOverHealthLinks={() => { links.startOver().then(() => setMessage("Your Health links on this device start over. The old bytes were kept as a recovery copy."), error => setMessage(`Your Health links could not be replaced. ${deviceSettingFailureMessage(error)}`)); }} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="",healthLink) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
+  const habitEditor = editor ? <HabitEditor onIdeas={editor === "new" ? () => { setIdeas(true); setMessage(""); } : undefined} today={store.today} key={`${editor}-${goals.chain}-${goals.owner}-${reminders.loaded}`} habit={editingHabit} goals={goalOptions} habits={store.data.habits} reminder={editingHabit ? reminders.data.habits[editingHabit.id]?.time ?? "" : ""} healthLink={editingHabit ? links.data.links[editingHabit.id] ?? null : null} counters={healthLinkContext.counters} waterUnit={healthLinkContext.waterUnit} healthLinksUnreadable={links.unreadable} onStartOverHealthLinks={() => { links.startOver().then(() => setMessage("Your Health links on this device start over. The old bytes were kept as a recovery copy."), error => setMessage(`Your Health links could not be replaced. ${deviceSettingFailureMessage(error)}`)); }} onCancel={() => { setFocusTarget(editingHabit ? `habit-${editingHabit.id}` : "new-habit"); setEditor(null); }} onSave={async (input,from,expected,reminder="",healthLink) => { const id = editingHabit?.id ?? crypto.randomUUID(); if (editingHabit) await store.edit(id, input,from,expected); else await store.create(input, id); let saved = editingHabit ? "Habit saved." : "Habit created.";
             // The reminder time is this device's own (lib/reminders), written only when it changed. The habit is already saved.
             const time = reminderTime(reminder);
             if ((reminders.data.habits[id]?.time ?? null) !== time) { try { reminders.update(store.today, current => setHabitReminder(current, id, time, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The reminder time was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
@@ -190,7 +191,7 @@ export function HabitsWorkspace() {
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><LayoutPage page="habits"><div className="habits-workspace">
     {routine && <div className="routine-sheet" role="dialog" aria-modal="true" aria-label="Routine"><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></div>}
-    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{!phone && <button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button>}{!phone && <button className="quiet habit-vacation-button" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button>}<span className="habit-hero-minor"><button type="button" className="quiet ai-ask-link habit-ask-zigi" onClick={() => askZigi("About my habits: ")}>Ask ZIGi about my habits</button><Link className="text-link" href="/app/settings">Back up private data ↗</Link></span></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
+    <section className="habit-hero" aria-labelledby="habits-title"><div className="habit-hero-copy"><p className="eyebrow page-eyebrow habit-eyebrow"><PillarMark pillar="habits" size={16}/><NebulaFlow identity="habits-eyebrow">Small steps. Your own rhythm.</NebulaFlow></p><h1 id="habits-title"><NebulaFlow identity="habits-title">Find your daily cadence.</NebulaFlow></h1><p className="page-lede">Make room for what matters. Every small return adds to the pattern.</p></div><div className="actions habit-hero-actions"><button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>{/* Session AB-Design (owner request 19): Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}{!phone && <PageTools><button className="quiet habit-vacation-button page-tool" disabled={!store.loaded || !!store.error} aria-expanded={vacation} onClick={() => { setVacation((open) => !open); setMessage(""); }}>Vacation</button></PageTools>}<PageMinorActions about="habits"/></div><div className="habit-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><span>✦</span></div><LayoutLockButton/></section>
     {store.error && <div className="panel"><p role="alert">{store.error}</p><button className="secondary" onClick={store.refresh}>Retry loading habits</button></div>}
     {message && <p role="status">{message}</p>}
     {deletedHabit && <p role="status" className="habit-deleted">“{deletedHabit.title}” was deleted for good. <button type="button" className="secondary" onClick={() => void undoDeleteForGood()}>Undo · {Math.max(0, Math.ceil((deletedHabit.until - clock) / 1000))} s</button></p>}
@@ -217,7 +218,7 @@ export function HabitsWorkspace() {
         {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},
       ], PHONE_ORDER)}/>
       {/* ADR-022 B49: the game card follows the page's own sections (not a layout item, so the pinned orders and the first headings keep their places). */}
-      <div className="habit-progress-slot"><ProgressSlot page="habits" /></div>
+      <div className="habit-progress-slot page-game-slot"><ProgressSlot page="habits" /></div>
       <p className="fine habit-semantics">Streaks count scheduled successful days or completed target periods. Non-scheduled and paused dates do not count against consistency. Skips and failures remain distinct. Saved timers retain timestamps across reloads and require review before logging; browser-closed reminders are not promised.</p>
     </>}
     <section className="habit-journal-settings" aria-label="Habit journal settings">

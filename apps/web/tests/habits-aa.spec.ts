@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openHabitDetails} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezone, type HabitData, type HabitInput} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HABIT_EXTRAS_KEY, ROUTINE_RUN_KEY} from '../lib/aa-device-keys';
@@ -66,11 +67,13 @@ test('H2: Finish logs the timer into today\'s check-in; the timer survives a rel
   await page.goto('/app/habits');
   const read = card(page, 'Fictional read');
   await expect(section(page, 'Evening')).toHaveAttribute('open', ''); // 20:00 in Brussels
+  await openHabitDetails(read);
   await read.getByRole('button', {name: 'Start timer', exact: true}).click();
   await expect(read.locator('.habit-timer-chip')).toHaveAttribute('data-running', 'true');
   await page.clock.runFor(90_000);
   await page.reload();
   await expect(card(page, 'Fictional read').locator('.habit-timer-chip strong')).toHaveText(/^1:3\d$/);
+  await openHabitDetails(card(page, 'Fictional read'));
   await card(page, 'Fictional read').getByRole('button', {name: 'Log reviewed duration', exact: true}).click();
   await expect(card(page, 'Fictional read').getByText('Complete', {exact: true})).toBeVisible();
   const data = await stored(page, HABITS_KEY) as HabitData;
@@ -84,6 +87,7 @@ test('H3: a quit habit shows days since, the longest run, the slip calendar and 
   await page.goto('/app/habits');
   await openSection(page, 'Anytime'); // the morning section is the one open at 10:00
   const snacks = card(page, 'Fictional late snacks');
+  await openHabitDetails(snacks);
   const quit = snacks.getByRole('region', {name: 'Days since for Fictional late snacks'});
   await expect(quit.locator('.habit-quit-days')).toHaveText('7');
   await expect(quit.getByText('since September 30')).toBeVisible();
@@ -103,6 +107,7 @@ test('H4: skip today with a reason keeps the streak; a note and mood save on tod
   await seed(page);
   await page.goto('/app/habits');
   const stretch = card(page, 'Fictional stretch');
+  await openHabitDetails(stretch);
   await stretch.getByRole('button', {name: 'Skip today…', exact: true}).click();
   await stretch.getByRole('button', {name: 'Travelling', exact: true}).click();
   await stretch.getByRole('button', {name: 'Skip today', exact: true}).click();
@@ -111,6 +116,7 @@ test('H4: skip today with a reason keeps the streak; a note and mood save on tod
   expect(data.habits.find(h => h.id === ID.stretch)!.entries.find(e => e.date === TODAY)).toMatchObject({disposition: 'skipped', note: 'Skipped · Travelling'});
   await openSection(page, 'Afternoon');
   const walk = card(page, 'Fictional walk');
+  await openHabitDetails(walk);
   await walk.getByRole('button', {name: 'Add a note or mood', exact: true}).click();
   await walk.getByRole('button', {name: 'Calm', exact: true}).click();
   await walk.getByLabel('Note for today').fill('Fictional note: a slow one along the river.');
@@ -118,6 +124,7 @@ test('H4: skip today with a reason keeps the streak; a note and mood save on tod
   await expect(walk.getByText('Note saved for today.')).toBeVisible();
   data = await stored(page, HABITS_KEY) as HabitData;
   expect(data.habits.find(h => h.id === ID.walk)!.entries.find(e => e.date === TODAY)).toMatchObject({mood: 'calm', note: 'Fictional note: a slow one along the river.', count: 0});
+  await openHabitDetails(walk);
   await walk.getByText('History & reflection').click();
   await expect(walk.getByRole('heading', {name: 'Notes, moods and skips'})).toBeVisible();
   await expect(walk.getByText('Fictional note: a slow one along the river.').last()).toBeVisible();
@@ -153,6 +160,7 @@ test('H6: an area set on a card is kept by habit id on this device and the area 
   await page.getByRole('button', {name: 'All', exact: true}).click();
   await openSection(page, 'Afternoon');
   const walk = card(page, 'Fictional walk');
+  await openHabitDetails(walk);
   await walk.getByRole('button', {name: 'Area for Fictional walk: none'}).click();
   await walk.getByLabel('Area for Fictional walk').selectOption('health');
   await expect(walk.getByRole('button', {name: 'Area for Fictional walk: Health'})).toBeVisible();

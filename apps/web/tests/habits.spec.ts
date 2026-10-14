@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {openHabitDetails} from './ab-shell';
 import { createHabit, emptyHabitData, logHabitCount, HABITS_KEY } from "../lib/habits";
 
 test.use({ timezoneId: "Europe/Brussels" });
@@ -27,6 +28,7 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect(card.getByRole("button", { name: "Undo completion for Read a few pages" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Completed", exact: true }).click();
   await expect(card).toBeVisible();
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   await card.getByLabel("Day reflection (optional)").fill("A calm chapter before bed.");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
@@ -34,6 +36,7 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await page.reload();
   card = page.getByRole("article", { name: "Read a few pages", exact: true });
   await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   await expect(card.getByLabel("Day reflection (optional)")).toHaveValue("A calm chapter before bed.");
   await card.getByRole("button", { name: "Edit Read a few pages" }).click();
@@ -41,6 +44,7 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await page.getByRole("button", { name: "Save habit", exact: true }).click();
   card = page.getByRole("article", { name: "Read a chapter", exact: true });
   await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
+  await openHabitDetails(card);
   await card.getByRole("button", { name: "Pause habit" }).click();
   await expect(card).toContainText("Scheduled change from 2026-09-16: paused");
   await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
@@ -53,6 +57,7 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect(card).toHaveCount(0);
   await page.getByRole("button", { name: "Archived", exact: true }).click();
   await expect(card).toBeVisible();
+  await openHabitDetails(card);
   await card.getByRole("button", { name: "Restore habit" }).click();
   await expect(card).toContainText("Scheduled change from 2026-09-17: active");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
@@ -72,8 +77,10 @@ test("historical dates, missed days and scoped link retention remain correct", a
   await page.addInitScript(({ key, raw }) => localStorage.setItem(key, raw), { key: HABITS_KEY, raw: JSON.stringify(data) });
   await page.goto("/app/habits");
   const card = page.getByRole("article", { name: "A little daylight", exact: true });
+  await openHabitDetails(card);
   await expect(card.getByText("Goal link retained · another scope or unavailable Goal")).toBeVisible();
   await expect(card.locator(".habit-goal-link a")).toHaveCount(0);
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   await expect(card.getByRole("button", { name: "September 12, 2026: Not scheduled, 0 of 1" })).toBeVisible();
   await expect(card.getByRole("button", { name: "September 14, 2026: Failed, 0 of 1" })).toBeVisible();
@@ -160,12 +167,14 @@ test("templates, distinct habit types, measurement and reflection controls work 
   await card.getByRole("button", { name: "Record one event for No impulse buys" }).click();
   await expect(card.getByText("Failed", { exact: true })).toBeVisible();
 
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   await card.getByLabel("Mood (optional)").selectOption("calm");
   await card.getByLabel("Day reflection (optional)").fill("Noticed the trigger.");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
   await expect(card.getByRole("status")).toHaveText("Day saved.");
   await page.reload();
+  await openHabitDetails(page.getByRole("article", { name: "No impulse buys", exact: true }));
   await page.getByRole("article", { name: "No impulse buys", exact: true }).getByText("History & reflection", { exact: true }).click();
   await expect(page.getByLabel("Mood (optional)")).toHaveValue("calm");
   await expect(page.getByLabel("Day reflection (optional)")).toHaveValue("Noticed the trigger.");

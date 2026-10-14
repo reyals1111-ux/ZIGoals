@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openHabitDetails} from './ab-shell';
 import {HABITS_KEY, type HabitData} from '../lib/habits';
 import {isPhone} from './phone-nav';
 
@@ -22,6 +23,7 @@ test('plan a skip for tomorrow, see it in the list and the calendar, then remove
   const card = page.getByRole('article', {name: 'Stretch', exact: true});
   await card.getByRole('button', {name: 'Complete Stretch', exact: true}).click();
   await expect(card.locator('.habit-count')).toHaveText('1 / 1 time per day');
+  await openHabitDetails(card);
   await card.getByText('History & reflection', {exact: true}).click();
   await card.getByRole('button', {name: 'Plan a skip', exact: true}).click();
   const form = card.getByRole('form', {name: 'Plan a skip for Stretch'});
@@ -45,9 +47,11 @@ test('Showcase: the Exercise card lists the fictional planned skip and the Walk 
   await page.waitForURL('**/app');
   await page.goto('/app/habits');
   const exercise = page.getByRole('article', {name: 'Exercise', exact: true});
+  await openHabitDetails(exercise);
   await exercise.getByText('History & reflection', {exact: true}).click();
   await expect(exercise.getByRole('list', {name: 'Planned skips for Exercise'})).toContainText('SHOWCASE DATA · fictional travel day');
   const walk = page.getByRole('article', {name: 'Walk', exact: true});
+  await openHabitDetails(walk);
   await walk.getByText('Consistency & trends', {exact: true}).click();
   await expect(walk).toContainText('Current streak');
   await expect(walk.locator('.habit-metrics > div').filter({hasText: 'Current streak'}).locator('strong')).toContainText('27 days');
