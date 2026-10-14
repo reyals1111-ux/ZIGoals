@@ -6,6 +6,7 @@
  * photos. The Showcase never stores a photo: its visions are generated gradients. The goal-extras record holds only the
  * image's id (`lib/goal-extras/store.ts`).
  */
+import {checkImageHeader} from '../image-header';
 export const VISION_DATABASE = 'zigoals-vision-v1';
 export const VISION = {maxSide: 1600, maxBytes: 300_000, totalBytes: 30_000_000, maxImages: 200, inputBytes: 25_000_000} as const;
 const STORE = 'images', LIMIT_MS = 4000;
@@ -74,6 +75,8 @@ export async function deleteImages(scope: string, ids: readonly string[]): Promi
 export async function compressPhoto(file: Blob): Promise<{blob: Blob; width: number; height: number}> {
   if (!/^image\/(jpeg|png|webp|gif|heic|heif|avif)$/.test(file.type)) throw Error('Choose a photo (JPEG, PNG, WebP, GIF, HEIC or AVIF).');
   if (file.size > VISION.inputBytes) throw Error('This file is over 25 MB. Choose a smaller photo.');
+  // Session AB-Cloud Part 8 (ADR-023 C27): a picture too large to decode safely is refused from its header first.
+  await checkImageHeader(file);
   const bitmap = await createImageBitmap(file).catch(() => { throw Error('This browser could not read that photo.'); });
   try {
     for (const step of COMPRESSION_STEPS) {

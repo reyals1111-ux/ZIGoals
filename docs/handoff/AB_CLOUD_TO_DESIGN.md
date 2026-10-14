@@ -144,3 +144,18 @@ Every insertion is one line (an import plus one element) placed at the end of it
   to comment on" / "Stop picking", "Your Point & tell notes (N)", dialogs "Note on <part>" and "Your Point & tell notes",
   "Your note", "Save note", "Edit note N", "Save note N", "Remove note N", "Undo", "Copy all", "Download", "Email them",
   "Clear all…", "Close", markers "Note N: <part>". Restyle freely; please keep nothing animated (C23).
+
+## 2026-10-14 — Gate B and Part 8
+- **Showcase words (C24): `lib/showcase-copy.ts`** exports `SHOWCASE_CHIP` ("Showcase · fictional"), `SHOWCASE_SHEET` (the
+  first-visit sheet's paragraph), `SHOWCASE_FOOTER` (the footer line) and `SHOWCASE_BANNER` (today's banner sentence, used
+  by `components/showcase-controls.tsx` and `components/phone/phone-status-sheet.tsx` until your chip replaces them). They
+  say what Load and Reset do: fresh examples for today, what was added is cleared then; your own records untouched.
+- **Default currency (C25):** `useDefaultCurrency()` / `defaultCurrency()` in `lib/default-currency.ts`. I wired the goal
+  wizard's value Goal and the new-Portfolio form (one line each). Your forms that start with a hard-coded "USD" and no
+  stored choice — onboarding's goal draft, a new account, the quit cost — can call the hook the same way.
+- **Grouped amounts (C25):** every field using `parseAmountInput` now reads "3,250.50" / "3.250,50"; the Goal preview
+  shows the plain value. No UI change needed.
+- **ZIGi History (C26):** `components/ai/history-view.tsx` gains one `role="status"` line ("… deleted. Undo", class
+  `ai-history-undo`) above the list; Delete and "Delete all chats" now go through it.
+- **Photos (C27):** vision and progress photos are refused from their header above 40 MP / 12,000 px before decoding
+  (lib files only; the messages are plain sentences shown where the old decode errors were).
