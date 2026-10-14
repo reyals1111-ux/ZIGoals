@@ -177,7 +177,7 @@ is cleaner, the footer is a real banner; the dock overlap and the art unevenness
 `scripts/check-weight-budget.mjs` against the Gate C build: Today 515.3 of 515 kB, Goals 438.0 of 434 kB and Wealth 469.1 of
 465 kB were over (no budget is ever raised). Made lighter: the ten extra card scenes are a lazy chunk fetched the first
 time a card shows one (`components/scene-art.tsx`), the Wealth history chart is a lazy chunk (`wealth-view.tsx`), and the
-how-to dialog is a lazy chunk (`today-dashboard.tsx`). Re-measured in the STATUS entry.
+how-to dialog is a lazy chunk (`today-dashboard.tsx`), and — Goals still 1.6 kB over after those — the card's scene art and the Vision board are lazy chunks too. Final build: every page under budget (the STATUS entry has the table).
 
 ## Rejected options
 - Raster AVIF/WebP starfield at 1x/2x: crisp only at two DPRs, ≈ 150–300 KB for a 2x frame against ≈ 10 KB for the vector; the owner allowed either, the vector keeps page weight healthy.
