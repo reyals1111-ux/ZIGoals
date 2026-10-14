@@ -1,0 +1,16 @@
+/* Session AB-Design (owner request 7): the hero's fold chevron and the folded strip. */
+.hero-fold { position: absolute; z-index: 3; top: 8px; right: 8px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; background: transparent; cursor: pointer; }
+.hero-fold svg { display: block; opacity: .8; transition: opacity .15s ease, transform .2s var(--motion-glide, ease); }
+.hero-fold:hover svg, .hero-fold:focus-visible svg { opacity: 1; }
+.hero-fold:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; }
+.hero-fold[data-collapsed] svg { transform: rotate(180deg); }
+.hero-fold:not([data-collapsed]) svg { transform: rotate(0); }
+.today-hero-folded { min-height: 0; padding: 0; margin-bottom: 14px; background: none; border: 0; box-shadow: none; }
+.today-hero-folded::before, .today-hero-folded::after { display: none; }
+.today-hero-strip { position: relative; display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 6px 54px 6px 4px; }
+.today-hero-strip .eyebrow { margin: 0; flex: 1 1 auto; min-width: 0; }
+.today-hero-strip .hero-actions { margin: 0; }
+.today-hero-strip .hero-fold { top: 50%; translate: 0 -50%; }
+@media (max-width: 540px) { .today-hero-folded { margin: 0 0 10px; } .today-hero-strip { padding-right: 48px; gap: 10px; } .today-hero-strip .eyebrow { font-size: 13px; } }
+@media (prefers-reduced-motion: reduce) { .hero-fold svg { transition: none; } }
+:root[data-app-motion=off] .hero-fold svg { transition: none; }

@@ -21,3 +21,6 @@
 }
 /* Eyebrows above section titles read at 14 px in the meta colour everywhere (some pages set 12–13 px letter-spaced caps). */
 :root :is(.section-heading, .wealth-section-heading, .positions-section-heading) .eyebrow { font-size: 14px; color: var(--text-meta); }
+/* Session AB-Design (owner requests 18, 40): a ring's figure scales with the ring, so the % never leaves a small circle (tree 44–56 px, board 52 px, phone cards). */
+:root .flow-ring > span { font-size: min(25px, calc(var(--ring-size, 112px) * .3)); }
+:root .flow-ring small { font-size: min(14px, calc(var(--ring-size, 112px) * .2)); }

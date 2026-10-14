@@ -41,7 +41,7 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
  // Session AA-Cloud Part 1 (deliberate, PAGE_ORDER_AA.md): accounts join the items on top, before the tools.
  expect((await items('wealth:body')).slice(0,6)).toEqual(['wealth:pulse','wealth:holdings','wealth:have','wealth:accounts','wealth:composition','wealth:mix']);
- expect((await items('wealth:body')).at(-1)).toBe('wealth:allocation');
+ expect((await items('wealth:body')).at(-1)).toBe('wealth:calculator'); // Session AB-Design (owner request 26): the calculator is last
  // An order saved on this device wins over the phone default.
  await page.evaluate(()=>sessionStorage.setItem('zigoals:layout:v1',JSON.stringify({version:1,pages:{habits:{body:{order:['habits:rhythm','habits:consistency','habits:overview','habits:list']}}}})));
  await open(page,'/app/habits');

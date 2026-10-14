@@ -30,7 +30,7 @@ const hours = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(Math.
  * Health coach check-in (`today:coach`). Links to a view of a page (`?add=`, `?view=`) are not prefetched: WebKit
  * reports a prefetch cancelled by leaving Today as a page error (ADR-017 S64), and a tap loads them quickly anyway.
  */
-export function TodayFocus({reminders, nextGoal, financial, showHabits, showHealth, healthDate}: {reminders?: ReactNode; nextGoal?: GoalSummary; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string}) {
+export function TodayFocus({reminders, nextGoal, financial, showHabits, showHealth, healthDate, habitsWidget = false}: {reminders?: ReactNode; nextGoal?: GoalSummary; financial: boolean; showHabits: boolean; showHealth: boolean; healthDate: string; /** Session AB-Design (owner request 12): the habits widget shows the due habits itself, so the tile stands down. */ habitsWidget?: boolean}) {
   const habits = useHabits(), health = useHealth(), fasting = useFasting();
   const due = habits.loaded && !habits.error ? habits.data.habits.filter(h => habitDay(h, habits.today, habits.today).scheduled) : [];
   const done = due.filter(h => habitDay(h, habits.today, habits.today).status === 'complete').length;
@@ -54,7 +54,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
     <SectionHeading id="today-focus-title" eyebrow="What is due now" title="Today’s focus" />
     {reminders}
     <div className="today-focus-tiles">
-      {showHabits && <article className="focus-tile" data-tone="habits" aria-label="Focus: habits today">
+      {showHabits && !habitsWidget && <article className="focus-tile" data-tone="habits" aria-label="Focus: habits today">
         <span className="focus-label"><AppIcon name="habits" size={20} />Habits</span>
         {!habits.loaded ? <p role="status">Loading habits…</p> : habits.error ? <p role="alert">Habits need attention.</p> : due.length ? <>
           <strong>{due.length - done ? `${due.length - done} left today` : 'All done today'}</strong>

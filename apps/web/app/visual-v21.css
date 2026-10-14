@@ -13,6 +13,7 @@
   --cosmic-horizon: url('/art/v21/horizon.webp');
   --cosmic-wallet: url('/art/v21/wallet.webp');
   --cosmic-destination: url('/art/v21/destination.webp');
+  --cosmic-starfield: url('/art/v24/starfield.svg');
   --cosmic-dark: #020918;
   --cosmic-glass: #031020eb;
   --cosmic-edge: #70cfff47;
@@ -22,6 +23,17 @@
   --item-end: var(--brand-blue);
   --ring-emerald: #26e8bd;
   --ring-mint: #5effd4;
+  /* Session AB-Design (owner request 28): one accent per pillar — Goals lotus, Habits butterfly, Health heart, Wealth bull. */
+  --pillar-goals: #9273ff;
+  --pillar-habits: #23eaff;
+  --pillar-health: #ff74be;
+  --pillar-wealth: #ffd27a;
+  /* Session AB-Design (owner request 37): one named type scale; the values are the ones the app already used. */
+  --type-eyebrow: 14px;
+  --type-h1: clamp(32px, 4vw, 47px);
+  --type-h2: 24px;
+  --type-h3: 17px;
+  --type-fine: 14px;
 }
 [data-tone="1"] { --item-start: var(--brand-violet); --item-end: var(--brand-magenta); }
 [data-tone="2"] { --item-start: var(--ring-mint); --item-end: var(--ring-emerald); }
@@ -29,8 +41,8 @@
 [data-tone="4"] { --item-start: var(--brand-magenta); --item-end: var(--brand-violet); }
 body { background: var(--cosmic-dark); }
 .app-content { position: relative; isolation: isolate; }
-.app-content::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, #02091820, #020918a6 900px), var(--cosmic-space) center top / cover no-repeat; }
-.app-content::after { content: ''; position: absolute; inset: auto 0 0; height: 430px; z-index: -1; pointer-events: none; background: linear-gradient(180deg, #020918a0, #02091820), var(--cosmic-horizon) center bottom / cover no-repeat; mask-image: linear-gradient(180deg, transparent, black 80%); }
+/* Session AB-Design (ADR-024 D5): one fixed, viewport-sized vector starfield behind every page (crisp at every DPR; it never stretches over the page's height). Solid at the top and bottom, stars and faint nebula in the middle. */
+.app-content::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--cosmic-starfield) center / cover no-repeat, var(--cosmic-dark); }
 .app-sidebar { background: linear-gradient(180deg, #020916ed 30%, #02091655 80%, #020916), var(--cosmic-space) 65% center / auto 100% no-repeat; border-right-color: var(--cosmic-edge); }
 .app-sidebar .brand .brand-wordmark, .brand-wordmark { display: inline-block; color: transparent; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; font-size: 37px; font-weight: 750; letter-spacing: -2px; filter: drop-shadow(0 0 10px #4897ff30); }
 .app-sidebar .brand .brand-wordmark > span, .brand-wordmark > span { color: inherit; font-weight: inherit; }
@@ -125,11 +137,6 @@ body { background: var(--cosmic-dark); }
 .timeline-icon svg { filter: drop-shadow(0 0 3px color-mix(in srgb, currentColor 40%, transparent)); }
 .timeline-habit { color: var(--brand-violet); border-top-color: var(--brand-blue); border-bottom-color: var(--brand-magenta); }
 .timeline-health { color: var(--brand-magenta); border-top-color: var(--nebula-pink); border-bottom-color: var(--brand-violet); }
-.app-content .workspace > footer { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; padding: 30px 0; gap: 15px 24px; margin-top: 40px; }
-.app-content .workspace > footer::before { content: ''; position: absolute; inset: -25px -26px 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, #02091880, #02091825), var(--cosmic-horizon) center bottom / 100% auto no-repeat; mask-image: linear-gradient(180deg, transparent, black 25%); }
-.footer-brand { flex: 1 1 100%; display: grid; justify-items: center; gap: 8px; padding: 5px 0 25px; }
-.footer-brand .brand-wordmark { font-size: 25px; letter-spacing: -1px; }
-.footer-brand small { text-transform: uppercase; letter-spacing: .18em; font-size: 14px; color: #a6d6f5; }
 /* Habits retain cadence and state; identity colors never alter completion semantics. */
 .app-content .habits-workspace { --habit-ink: var(--text); --habit-muted: var(--muted); --habit-purple: var(--brand-violet); --habit-mint: var(--brand-cyan); }
 .habits-workspace .habit-hero { background: radial-gradient(ellipse at 92% 20%, #9c4be522, transparent 53%); }
@@ -176,7 +183,7 @@ body { background: var(--cosmic-dark); }
 @media (min-width: 1001px) and (max-width: 1250px) { .today-layout { grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; }.today-hero h1 { font-size: 37px; }.today-hero .hero-actions :is(a,button) { padding-inline: 17px; font-size: 14px; }.hero-pillars { gap: 7px; padding-inline: 14px; }.hero-pillars > div { gap: 7px; }.icon-medallion { width: 35px; height: 35px; }.icon-medallion svg { width: 25px; }.hero-pillars small { font-size: 14px; }.hero-pillars strong { font-size: 14px; } }
 @media (max-width: 1100px) { .app-sidebar .brand .brand-wordmark { font-size: 33px; }.product-descriptor { font-size: 14px; } }
 @media (max-width: 1000px) { .today-layout { grid-template-columns: minmax(0, 1fr); }.today-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }.today-hero { min-height: 370px; }.today-hero h1 { font-size: 49px; }.today-goals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.destination-panel { grid-column: 2; grid-row: 1 / span 2; }.account-panel { min-height: 220px; }.destination-panel { padding-top: 55px; } }
-@media (min-width: 541px) and (max-width: 1100px) { .today-hero::before, .today-hero::after { inset-inline: -20px; }.app-content .workspace > footer::before { inset-inline: -20px; } }
+@media (min-width: 541px) and (max-width: 1100px) { .today-hero::before, .today-hero::after { inset-inline: -20px; } }
 @media (max-width: 900px) { .app-sidebar { background-position: center 34%; background-size: cover; }.app-sidebar .brand .brand-wordmark { font-size: 34px; }.app-nav { margin-top: 12px; gap: 5px; }.app-topbar .network-banner { max-width: none; }.app-topbar .wallet-connect { min-width: 144px; } }
 @media (max-width: 540px) {
   :root { --cosmic-hero: url('/art/v21/hero-mobile.webp'); }
@@ -186,7 +193,6 @@ body { background: var(--cosmic-dark); }
   .app-nav a[aria-current="page"] { box-shadow: inset 0 -2px 3px #df83ff65, inset 0 0 12px #23d9ff24, 0 0 12px #23cfff20; }
   .app-topbar .wallet-connect { padding-inline: 12px; min-height: 46px; }
   .app-topbar .network-banner { font-size: 14px; }
-  .app-content::after { height: 450px; }
   .today-hero { min-height: 0; overflow: hidden; margin: 0 -6px 18px; border-radius: 10px; }
   .today-hero::before { inset: -20px -10px -10px; background-position: 72% center; opacity: .95; mask-image: linear-gradient(180deg, transparent, black 15%, black 80%, transparent); }
   .today-hero::after { inset: -20px -10px -10px; background: linear-gradient(90deg, #02091880, #02091820), linear-gradient(0deg, #020918e0, transparent 80%); }
@@ -209,7 +215,6 @@ body { background: var(--cosmic-dark); }
   .today-rail { grid-template-columns: 1fr; }.today-rail .account-panel { display: block; min-height: 215px; }
   .today-rail .destination-panel { grid-column: 1; grid-row: auto; min-height: 350px; padding: 40px 20px 25px; }
   .today-rail .destination-steps { display: grid; }.destination-panel h2 { font-size: 26px; }.destination-steps strong { font-size: 14px; }.destination-steps small { font-size: 14px; }
-  .app-content .workspace > footer::before { inset-inline: -16px; background-size: auto 100%; }
   .health-page .health-summary { padding: 22px 18px; }
 }
 @media (max-width: 359px) { .today-hero h1 { font-size: 27px; }.today-hero .hero-actions { gap: 7px; }.today-hero .hero-actions :is(a,button) { padding-inline: 9px; font-size: 14px; }.hero-pillars { gap: 6px; }.hero-pillars strong { font-size: 14px; }.icon-medallion { width: 24px; height: 24px; }.icon-medallion svg { width: 18px; }.progress-stats strong { font-size: 18px; }.account-panel .account-value { max-width: 90%; } }

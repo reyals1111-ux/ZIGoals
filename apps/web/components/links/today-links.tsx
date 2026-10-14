@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type {LayoutAttrs} from '../layout-edit';
 import {LinkGlyph} from './link-glyph';
+import {NebulaFlow} from '../nebula-flow';
 import type {PersonalLink} from '../../lib/links/schema';
 import './links.css';
 
@@ -10,7 +11,7 @@ import './links.css';
  */
 export function TodayLinks({links, ...layout}: LayoutAttrs & {links: readonly PersonalLink[]}) {
   return <section {...layout} className="panel today-links" aria-labelledby="today-links-title">
-    <header className="today-links-head"><h2 id="today-links-title">My links</h2><Link className="text-link" href="/app/settings#links">Edit</Link></header>
-    <ul className="today-links-list">{links.map(link => <li key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><LinkGlyph icon={link.icon} label={link.label} /><span>{link.label}</span><span className="sr-only"> (opens in a new tab)</span></a></li>)}</ul>
+    <header className="today-links-head"><h2 id="today-links-title"><NebulaFlow identity="today-links-title">My links</NebulaFlow></h2><Link className="text-link" href="/app/settings#links">Edit</Link></header>
+    <ul className="today-links-list">{links.map(link => <li key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"><span className="today-link-disc" aria-hidden="true"><LinkGlyph icon={link.icon} label={link.label} /></span><span>{link.label}</span><span className="sr-only"> (opens in a new tab)</span></a></li>)}</ul>
   </section>;
 }
