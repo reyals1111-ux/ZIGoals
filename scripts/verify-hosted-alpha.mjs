@@ -133,6 +133,16 @@ try {
     await page.getByRole('link',{name:'Activity',exact:true}).click(); await expect(page.getByRole('heading',{name:'Activity.',exact:true})).toBeVisible();
     await page.waitForLoadState('networkidle');
   });
+  // Session AB-Cloud Part 10 (ADR-023 C31): the pages Sessions AA-Cloud and AA-Local added open on the live Alpha with
+  // their own title and heading and no sideways scroll (fictional local data only, nothing is changed).
+  await stage('AA pages: calculator, Life review, Journey, Your data, Reminders and Share open', async()=>{
+    for (const [path,title] of [['/app/wealth/calculator','Compound interest calculator'],['/app/review','Life review'],['/app/journey','Journey'],['/app/settings/data','Your data'],['/app/settings/reminders','Reminders'],['/app/share?text=Fictional%20note','Shared with ZIGoals']]) {
+      await page.goto(alpha+path); await expect(page.locator('main h1').first()).toBeVisible();
+      assert.equal(await page.title(), `${title} · ZIGoals Alpha`, path);
+      await layout('alpha'+path.split('?')[0].replaceAll('/','-'));
+    }
+    await page.setViewportSize({width:1280,height:900});
+  });
   const alphaCaptureCount=captures.length;
   await stage('Live landing CTA, safety copy, social links and responsiveness', async()=>{
     await page.goto(apex); await page.waitForLoadState('networkidle');
@@ -145,6 +155,17 @@ try {
     report.landingLinks=await page.locator('a').evaluateAll(nodes=>nodes.map(a=>({text:a.textContent.trim(),href:a.href,target:a.target,rel:a.rel})));
     for(const url of ['https://x.com/ZIGoals','https://x.com/ZIGFluencer','https://github.com/reyals1111-ux/ZIGoals']) assert(report.landingLinks.some(a=>a.href===url));
     await layout('landing'); await page.screenshot({path:output+'/landing.png',fullPage:true});
+  });
+  // Session AB-Cloud Part 10 (ADR-023 C31): the recipe route refuses what it must before any fetch (outside the page, so
+  // the page's GET-only record is unchanged; never a real third-party page).
+  await stage('Recipe import refuses http, a private host and an oversized address', async()=>{
+    report.recipeRefusals=[];
+    for (const [url,code] of [['http://example.com/recipe','NOT_HTTPS'],['https://127.0.0.1/recipe','PRIVATE_HOST'],['https://example.com/'+'a'.repeat(2050),'INVALID_URL']]) {
+      const res=await fetch(alpha+'/api/recipe-import',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url})});
+      const body=await res.json().catch(()=>({}));
+      report.recipeRefusals.push({expected:code,status:res.status,error:body.error});
+      assert.equal(res.status,400,code); assert.equal(body.error,code);
+    }
   });
   await page.waitForLoadState('networkidle');
   let drained=0; while(drained<captures.length) {const batch=captures.slice(drained); drained+=batch.length; report.requestRecords.push(...await Promise.all(batch));}

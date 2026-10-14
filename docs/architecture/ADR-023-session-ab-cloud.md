@@ -79,6 +79,8 @@ Evidence: `docs/verification/ab-cloud/`; "Resume here": `docs/verification/ab-cl
 
 | C30 | 9 | **ZIGi without a model.** After the device's own answers say "none" and no model answers (no AI connected, no on-device model), `noModelReply` (lib/ai/local-answers/no-model.ts) (1) introduces the examples in Dutch for a Dutch question (persona #4; two Dutch-only words and more Dutch than English) — the examples stay the English questions the device answers, said plainly, because a tapped example must work; (2) gives "create a food", "log my meal plan" / "plan my meals" and "plan a goal" (English and Dutch) the steps to do it by hand and a card that opens the right page (Health; Health → Planner; Goals → new goal). `localAnswer` is unchanged, so every golden case stays byte-identical (golden-set.ts and golden-spoken.ts are not edited; nl-question, x-nl-whole, x-create-goal still "none"), and with a model connected these asks still go to the model, which drafts the cards. | Without an AI the person gets a useful next step in their own language instead of unrelated examples, and nothing the golden set pins moves. |
 
+| C31 | 10 | **Readiness docs and the release's words.** `scripts/verify-hosted-alpha.mjs` gains two stages: AA's six pages (calculator, Life review, Journey, Your data, Reminders, Share) open with their title, heading and no sideways scroll; the recipe route refuses http, a private host and an oversized address with 400 and its code (direct requests outside the page, never a third-party fetch). FINAL_ACCTEST_REDEPLOY.md "Session AB-Cloud changes" (the private-sync Worker first, for `/v1/extras`; no class, migration, secret or var); STAGE8_OWNER_RUNSHEET.md notes and rows 15h–15j; ZIGI_RELAY_ACTIVATION.md and PUSH_ACTIVATION.md checked current for #39 and this build (neither Worker changed); FRIENDS_GUIDE.md and Help's Known limitations (photos on the device, extras after a new key, what Restore does not bring back); `docs/ops/PRE_LAUNCH_SECURITY_RUN.md` for early November. What's new release `2026-10-session-ab-cloud` (six links, AA-Local's lead "Earlier updates") and a Help topic "New: sync, restore and Point & tell" with seven answers (what syncs now, photos, Restore, Point & tell, vitamins, grouped amounts, default currency), mirrored in the search index. | The owner's preview, the friends and the next session read the same facts the code has. |
+
 ## Assertions changed (deliberate, listed)
 - **Part 1, `tests/wealth-v2.spec.ts:33`:** the accounts section's sentence is now "Accounts are kept on this device; with an
   account they also travel in your encrypted sync." (C10); the same exact-text check on the new sentence (as strict).
@@ -103,3 +105,9 @@ Evidence: `docs/verification/ab-cloud/`; "Resume here": `docs/verification/ab-cl
   the same check on the new sentence.
 - **Gate B, `lib/restore/apply.test.ts`:** `undoRestore()` now also answers which parts it left as they are (`kept`); the
   round-trip test expects `{failed: [], kept: []}` (as strict, one more field).
+- **Part 10, `tests/help-page.spec.ts`:** the topic list gains "New: sync, restore and Point & tell" after AA-Local's
+  (thirteen topics, was twelve); every other topic and its position check unchanged.
+- **Part 10, `tests/whats-new.spec.ts` and `tests/zigi-help-settings.spec.ts`:** the release is
+  `2026-10-session-ab-cloud`; the card's first link checked is now Restore's (its Help answer opens); AA-Local's links lead
+  "Earlier updates", so every pinned position moves by seven, and AA-Local's habits answer is checked from there (as
+  strict: the same texts, one more release's links).
