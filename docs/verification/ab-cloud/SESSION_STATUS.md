@@ -5,11 +5,11 @@ sandbox's `/home/user/ZIGoals`, branch `feature/session-ab-cloud` (push only the
 installed outside the checkout (`/root/node-v24.19.0-linux-x64`, checksum verified against nodejs.org's SHASUMS256).
 Plan: ADR-023 (owner decisions and C1…). Parallel lane: AB-Design (`feature/session-ab-design`, the owner's Mac).
 
-## Resume here (2026-10-14, Gate A recorded, Part 5 pushed; Part 6 next)
-Parts 0–5 pushed. Part 3: B3–B7 for the extras (C15–C19). Part 4: vitamins (C20). Gate A fixes: C21 (one status line,
-synced announcements, extras edits travel with the next sync, lean finance merge) and C21b (the extras switch renders
-with the panel; it moved "Sync now" while pressed). Part 5: Restore from a backup (C22) and image header sizes (C27).
-Next: Part 6 (Point & tell), then Gate B (security read of every Tier 3 commit, WCAG, weights).
+## Resume here (2026-10-14, Gate C in progress; every part pushed)
+Parts 0–10 pushed, Gates A and B recorded; Gate C: unit suite, test audit, frozen readers, key scan, revert gate done;
+CI's three browser failures on `e3ac500` fixed in `732a205`. Left: the full browser suite (running), CI on the final
+head, the STATUS entry (final commit), the PR description, Ready for review. Then the stretch items (Sync status polish,
+more Restore edge cases) with the time left.
 
 ## Gate A (after Part 2; recorded 2026-10-14)
 - Local: unit suite 4,855 passed (one environmental failure passed on re-run); touched browser specs 141 passed, 11
@@ -22,19 +22,41 @@ Next: Part 6 (Point & tell), then Gate B (security read of every Tier 3 commit, 
   sandbox); WebKit cancelled at its cap (advisory; Part 7 shards it). Verdict for C21b: CI on the Part 5 push.
 - AB-Design's handoff: `feature/session-ab-design` is not on origin yet (checked at Gate A); main is still `6c1052b`.
 
-## Done
-- Part 0 (records, ADR-023, handoff, this file).
-- Part 1 (`bdb4b5b` `ed33e2d` `c633814` `516cba9`), Part 2 (`aed011b` `69edf6d` and the provider commit), Gate A records
-  `e587ca1` `05ad2bb`, Part 3 `5d91c08`, Part 4 `ccefd69`, Gate A fixes `f381c1e` `fe589e4`, Part 5 `ce750e0`.
+## Gate B (after Part 6; recorded 2026-10-14)
+- Independent security read of every Tier 3 commit and Point & tell: six findings, each reproduced first, fixed and
+  revert-gated (ADR-023 C28; `b586c963` workers/sync, `02677e45` data formats, `97e14af1` finding 5); THREAT_MODEL rows.
+- WCAG for the new UI: `tests/a11y-ab-cloud.spec.ts` (Restore, Point & tell, vitamins). Weights: CI's budget step green
+  on `e3ac500` (no budget raised).
+- CI on `097f19e`: `sync-lost-ack-browser` still 2 of 3 red → root cause found (C21c: "Sync now" under Settings' sticky
+  index) → integration green on `e3ac500`.
 
-## Open
-- Parts 6–10, gates B–C, What's new + Help + search index, the STATUS entry; see ADR-023 and the PR description.
+## Gate C (recorded 2026-10-14)
+- Unit suite: 555 files / 4,888 tests passed, 44 skipped by design.
+- Test audit (one agent, 34 test files): every finding acted on or recorded (ADR-023 "Gate C test audit"; `1f8f1cb8`).
+- Frozen readers 17/17 at #37, #38 and #39 with every extras record in the fixture (`frozen-readers-gate-c.txt`).
+- Key scan passed. Revert gate: typecheck green at all 26 commits; reverting them newest-first ends at `6c1052b`'s tree
+  (`revert-gate-gate-c.txt`).
+- CI on `e3ac500` (run 38501294859): checks, contract, integration green; three browser rows red, each reproduced and
+  fixed in `732a205` (the banner sentence wrapped and moved every page 13 px: `motion-arrival:18`; the Point & tell switch
+  was 324×28 on phones: `phone-touch-targets:40`) or passing 6 of 6 here (`coherence:7`).
+- WebKit (advisory) on `e57ab538`: both shards finished inside their cap for the first time (C29).
+- AB-Design's handoff: `feature/session-ab-design` still not on origin (checked at Gate C); main is still `6c1052b`.
+
+## Done
+- Part 0 `9435afec`; Part 1 `bdb4b5b7` `ed33e2d5` `c633814c` `516cba9e`; Part 2 `aed011b3` `69edf6d2` `0e26879a` `e587ca16`;
+  Gate A `05ad2bb3` `f381c1e9` `fe589e42` `097f19e1`; Part 3 `5d91c083`; Part 4 `ccefd69d`; Part 5 `ce750e0b`; Part 6
+  `97e14af1`; Gate B `b586c963` `02677e45` `e3ac5003`; Part 8 `2c3fd6db`; Part 7 `ac973b74`; Part 9 `fe784693`; Part 10
+  `f86985cb`; Gate C `1f8f1cb8` `e57ab538` `732a2055`.
 
 ## Owner items (collected as they arise)
 - The rollback floor rises to #32 (W) with Part 1's finance v5 writes (accepted at plan approval).
 - PRIVACY.md E2 sentence + the extras clause: drafted in the PR's owner items, for approval.
 - A private-sync Worker redeploy (`/v1/extras`) is needed before the app deploy that carries Part 2.
-- CI's WebKit job cannot finish inside its 45-minute cap (cancelled on `ccefd69` and `f381c1e`); Part 7 shards it in two.
-- `sync-lost-ack-browser` fails on main's own build in this sandbox (4 of 4); if it is ever red in CI again, the
-  timelines in `docs/verification/ab-cloud/lost-ack-race.txt` show the race (an automatic sync one second after an edit
-  against a delayed "Sync now" click).
+- `sync-lost-ack-browser`: root cause fixed (C21c); main's own build still fails it in this sandbox (4 of 4), so a red
+  run on main is that race (timelines in `lost-ack-race.txt`).
+- CI's WebKit job (advisory) now reports: three known classes remain (C29), traces per shard; fixing them needs a
+  local WebKit or a next session.
+- Extras travel with the next account sync (C21); after a key rotation a device whose base is not at the copy's
+  revision reports "waiting" until the device that is re-uploads it (C28).
+- `persona-z:278` failed once on shard 2 (3 of 3 locally); `coherence:7` once on `e3ac500` (6 of 6 locally): one re-run
+  each if they come back, a second failure means investigate.
