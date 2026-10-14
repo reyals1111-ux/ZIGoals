@@ -130,3 +130,17 @@ Every insertion is one line (an import plus one element) placed at the end of it
   button and the header comment), `app/app/settings/data/page.tsx` (lede: "It changes nothing unless you restore a backup.").
 - **New `lib/image-header.ts` (C27):** `checkImageHeader(file)` refuses images above 40 MP or 12,000 px from the header;
   Part 8 calls it in front of the vision and progress-photo decoders (my lib files only).
+
+## 2026-10-14 — Part 6 (Point & tell)
+- **New files:** `components/point-tell/mount.tsx` (reads one key, loads the rest only while on), `point-tell.tsx` +
+  `point-tell.css` (launcher, pick hint, hover outline, numbered markers, note sheet, list), `point-tell-setting.tsx`.
+- **One-line insertions in shared files (please keep at merge):** `components/shell.tsx`: one import and
+  `<LoadBoundary quiet><PointTellMount /></LoadBoundary>` right after the music launcher's; `app/app/settings/page.tsx`: one
+  import and a `<section id="point-tell">` (eyebrow "POINT & TELL", heading "Point at it, say what you think") right after
+  "Send feedback".
+- **Space it uses:** the launcher sits 64 px above the music button (`left` like the music button; right when
+  `data-zigi-side=left`; on phones `calc(var(--phone-tabs) + var(--safe-bottom) + 72px)`), z-index 44–62. Everything
+  under `[data-point-tell]` is ignored by picking. Accessible names the spec uses: "Point & tell: pick a part of this page
+  to comment on" / "Stop picking", "Your Point & tell notes (N)", dialogs "Note on <part>" and "Your Point & tell notes",
+  "Your note", "Save note", "Edit note N", "Save note N", "Remove note N", "Undo", "Copy all", "Download", "Email them",
+  "Clear all…", "Close", markers "Note N: <part>". Restyle freely; please keep nothing animated (C23).

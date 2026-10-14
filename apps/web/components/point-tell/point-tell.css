@@ -1,0 +1,26 @@
+/* Session AB-Cloud Part 6 (ADR-023 C23): Point & tell, in the app's tokens (AB-Design restyles). Nothing animates. */
+.point-tell .pt-launch{position:fixed;left:max(20px,env(safe-area-inset-left,0px));bottom:calc(max(16px,env(safe-area-inset-bottom,0px)) + 64px);z-index:45;display:flex;flex-direction:column;gap:8px}
+@media (min-width:901px){.point-tell .pt-launch{left:calc(var(--sidebar-width,216px) + 20px)}}
+:root[data-zigi-side=left] .point-tell .pt-launch{left:auto;right:max(20px,env(safe-area-inset-right,0px))}
+@media (max-width:767.98px){.point-tell .pt-launch{left:calc(var(--safe-left,0px) + 12px);bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 72px)}}
+.point-tell .pt-button,.point-tell .pt-count{display:grid;place-items:center;min-width:44px;min-height:44px;padding:0 10px;border-radius:999px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);background:#0b1430;color:var(--text,#eef1ff);font-weight:700;cursor:pointer}
+.point-tell .pt-button[aria-pressed=true]{background:var(--cyan,#6fd3ff);color:#04101f}
+.point-tell .pt-hint{position:fixed;top:max(12px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;width:max-content;max-width:min(92vw,560px);margin:0;padding:10px 14px;border-radius:14px;border:1px solid var(--line,#2a325a);background:#081329f2;color:var(--text,#eef1ff);font-size:15px}
+.point-tell .pt-hover{position:fixed;z-index:59;pointer-events:none;border:2px dashed var(--cyan,#6fd3ff);border-radius:8px}
+.point-tell .pt-marker{position:fixed;z-index:44;min-width:44px;min-height:44px;border-radius:999px;border:2px solid #04101f;background:var(--cyan,#6fd3ff);color:#04101f;font-weight:800;cursor:pointer}
+.point-tell .pt-sheet{position:fixed;z-index:61;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 96px);overflow-y:auto;display:grid;gap:10px;padding:18px 20px;border-radius:20px;border:1px solid #ffffff1f;background:#0d1533;color:var(--text,#eef1ff);box-shadow:0 30px 70px -30px #000e}
+@media (max-width:767.98px){.point-tell .pt-sheet{bottom:calc(var(--phone-tabs,60px) + var(--safe-bottom,0px) + 8px);max-height:calc(100dvh - var(--phone-tabs,60px) - var(--safe-bottom,0px) - 72px)}}
+.point-tell .pt-sheet h2{margin:0;font-size:18px;overflow-wrap:anywhere}
+.point-tell .pt-sheet textarea{width:100%;min-height:88px;font:inherit}
+.point-tell .pt-actions{display:flex;flex-wrap:wrap;gap:8px}
+.point-tell .pt-actions>*{min-height:44px}
+.point-tell .pt-export a{display:inline-grid;place-items:center}
+.point-tell .pt-items{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.point-tell .pt-items li{display:grid;gap:6px;padding:10px 12px;border-radius:12px;background:#0b172b99;overflow-wrap:anywhere}
+.point-tell .pt-items p{margin:0}
+.point-tell .pt-items small{color:var(--text-secondary,#a9b4d6)}
+.point-tell .pt-note{white-space:pre-wrap}
+.point-tell .pt-toast{position:fixed;z-index:62;left:50%;top:max(64px,env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:min(92vw,520px)}
+.point-tell .pt-toast p{display:flex;align-items:center;gap:12px;margin:0;padding:8px 14px;border-radius:14px;background:#081329f2;border:1px solid var(--line,#2a325a)}
+.point-tell .pt-toast p:empty{display:none}
+.point-tell .pt-toast .text-link{min-height:44px}
