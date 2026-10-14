@@ -14,3 +14,12 @@ feature/session-ab-cloud + C21b (extras switch rendered with the panel): 4 runs,
 
 CI (Linux runner, real Chrome): main green on this file (CI #905); f381c1e red on this file only (run 38490907596, job 115615593074,
 17 of 18 integration files green). Verdict for C21b: CI on the next push.
+
+Root cause (C21c, found from Playwright's action trace, DEBUG=pw:api):
+  attempting click action · element is not stable (×3) · scrolling into view if needed · done scrolling
+  <a href="#settings-areas">Your areas</a> from <nav class="settings-sections"> subtree intercepts pointer events · retrying
+  element is not enabled (the automatic sync has started) · … · performing click action (after that sync failed)
+  The button was scrolled to the top edge, under Settings' sticky index (position: sticky; top: 0 from 768 px).
+Fix: html:has(.settings-page .settings-sections) { scroll-padding-top: 128px } (app/product-v2.css).
+After the fix, this sandbox: sync-lost-ack-browser 3 runs × 3 variants = 9 of 9 passed; the click lands before the
+automatic sync (CREATED2 6855 · SETTINGS 7010 · CLICKED 7530 · DROPPED 7654, no intercept in the trace).
