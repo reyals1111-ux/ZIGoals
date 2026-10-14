@@ -85,3 +85,99 @@ The Showcase board's eight illustrations are `apps/web/public/showcase/vision/vi
 the Showcase goals in `apps/web/lib/showcase/vision-art.ts`. To replace one with a licensed photo: drop the photo in the
 same folder under the same number (`vision-03.webp`) and change that entry's extension in the map; nothing else reads the
 files. Real people's boards never use these files — their boards show their own chosen gradient, emoji or photo.
+
+## Phase 2 proof
+Phase 2 (owner follow-up, 2026-10-14) checks every request above, sub-point by sub-point, against captures of the build.
+"Before" = Phase 1's final build (`09b2d307`), captured in the Showcase into `review/session-ab-design-screens`
+`phase-2/before/<width>/<state>.(png|jpg)`; "after" = the same states in `phase-2/after/` at Gate C. A row reads
+**done** only with an after-capture looked at; **partly** and **not done** name the Phase 2 part that finishes them.
+Statuses below are the Part 0 reading (before); the Gate C column is filled at the end.
+
+| # | Sub-point (the owner's words, shortened) | Part 0 | Phase 2 part | Gate C | Capture |
+|---|---|---|---|---|---|
+| 1 | crisp nebula/star background, solid at top/bottom, stars towards the middle | done | — | | `1440/today-top.png` |
+| 1 | same quality as the sidebar; static; page weight healthy | done | — | | `1440/today-top.png` |
+| 2 | one full-width footer banner, planet/horizon exactly once | done | 11 | | `1440/footer.png` |
+| 2 | the ZIGoals logo | partly — a gradient wordmark, not the Z mark | 11 | | `1440/footer.png` |
+| 2 | slogan "Goals, Habits & Health = Wealth", zigoals.app, Help, Send feedback, security contact | done | — | | `1440/footer.png` |
+| 2 | X links with logos, only real handles (config off, owner edit) | done (off) | — | | `1440/footer.png` |
+| 2 | full Alpha disclaimer line, readable | partly — one 5-line centred block; the dock sits on it | 1, 11 | | `1440/footer.png`, `390/page-bottom-today.png` |
+| 2 | 3-step nebula line 01 Goals → 02 Habits & Health → 03 = Wealth, fold marks, draws once | done | — | | `1440/footer.png` |
+| 2 | old 3-step card removed; looks like a premium footer | done | 11 | | `1440/today-full.jpg` |
+| 3 | My links directly above the footer by default | done | 8 | | `1440/today-full.jpg` |
+| 3 | page bottoms clean on 390/1024/1440/ultra-wide | partly — phone links ragged, "Make a backup" at the edge, the dock over the disclaimer | 1, 11 | | `390/page-bottom-today.png` |
+| 4 | the motto centred on the planet | done | — | | `1440/sidebar.png` |
+| 5 | theme switch Light (Soon) / Customize (Soon) / Dark, nebula style, sidebar bottom | done | — | | `1440/sidebar.png` |
+| 5 | on phones inside More/Settings | partly — in More below the rows; More's order to tidy | 10 | | `390/more-sheet.png` |
+| 6 | music button above ZIGi with clear spacing, fold arrow to the right, edge tab | done (desktop); on phones it lives in More (Session Z-Cloud) | 1 | | `1440/today-top.png` |
+| 6 | the dock never covers content | not done — covers cards, ⋯ menus, the disclaimer | 1 | | `1440/today-top.png`, `1440/goals-menu.png` |
+| 7 | hero collapse arrow top-right, remembered; hero unchanged | done | 8 | | `1440/hero-folded.png` |
+| 7 | folded strip tidy on phones | partly — eyebrow wraps to two lines | 8 | | `390/hero-folded.png` |
+| 8 | warning clutter removed; pages start with their header | partly — "SHOWCASE DATA · …" lines remain inside some cards | 11 | | `1440/today-top.png` |
+| 8 | (a) one compact first-visit notice with × and More | done | — | | `1440/today-top.png` |
+| 8 | (b) tiny Showcase chip → what it is + Exit / Load again | done (to re-prove: the capture missed the popover) | 1 | | `1440/chip-popover.png` |
+| 8 | (c) full disclaimer in the footer; (d) Help keeps it | done | — | | `1440/footer.png`, `1440/help.png` |
+| 8 | pinned tests updated as strictly; verifier told | done (ADR-024, handoff) | 12 | | — |
+| 9 | rocket beside the lock, expands to "Gamify", menu on/off + Open your Journey | done | 8 | | `1440/gamify-menu.png` |
+| 9 | game cards only at page bottoms, never in the middle | done | 8 | | `1440/today-full.jpg` |
+| 9 | XP/level widgets addable to Today through the widget picker (owner edit) | not done | 8 | | — |
+| 9 | Settings toggle stays; streaks without XP when off | done | — | | `1440/settings.jpg` |
+| 10 | phone tabs Today/Goals/Habits/Health/Wealth; + / Search / More in the top bar | done | — | | `390/today-top.png` |
+| 10 | More lists Markets…Journey, Settings and Help last | partly — "Your soundtrack" and Journey follow Help | 10 | | `390/more-sheet.png` |
+| 11 | default order hero → focus → … → week → game → My links → footer | done | — | | `1440/today-full.jpg` |
+| 11 | My links title in the nebula flow; chips with nebula glyph discs + liquid glass | done (polish in 8) | 8 | | `1440/today-full.jpg` |
+| 12 | focus tiles merged with the habits widget; iPhone widget: timer chip, Complete, rows | done (re-prove on phones) | 8, 14 | | `390/today-habits-widget.png` |
+| 13 | "See how it works" opens a real how-to; the film stays available | done | — | | `1440/how-to.png` |
+| 14 | the summary figures a movable block after the cards | done | 7 | | `1440/goals-full.jpg` |
+| 15 | switch at the right end, no "N destinations", no Goals|Positions tabs, filters left, Positions in ⋯ | done | 7 | | `1440/goals-menu.png` |
+| 16 | vision board: big images, collage, overlay titles, progress, why, hover, full-screen, empty state | done | 7 | | `1440/board.jpg`, `1440/board-open.png` |
+| 16 | eight rich illustrations in one style (car without logos, piano, home, summit, beach, marathon, library, sunrise run) | partly — library, car, runner and sleep are flat | 7 | | `1440/board.jpg` |
+| 16 | the swap documented | done | — | | this file |
+| 16 | tree: sub-goals, rings, area colours, zoom/fit on phones | partly — rows read as a list; connectors and fit to finish | 7 | | `1440/tree.jpg`, `390/tree.jpg` |
+| 17 | "Change artwork" in ⋯ with ~10 new scenes, same size | done | 7 | | `1440/art-picker.png` |
+| 17 | saved through setGoalCardArt | not done — AB-Cloud's mutator is not in main ("Soon") | 12 | | — |
+| 17 | the Showcase uses more than three artworks | done | 7 | | `1440/goals-full.jpg` |
+| 17 | scenes look like one premium set (critique 9) | partly — the same glow on every scene, flat skylines | 2d, 7 | | `1440/goals-menu.png` |
+| 18 | details behind a small nebula arrow; first view title, status, amount, ring, remaining | partly — phones hide the amount | 7 | | `390/goal-card-open.png` |
+| 18 | iPhone rings with the % inside; spacing | done (re-prove at 320) | 7 | | `390/goal-card.png`, `320/goal-card.png` |
+| 19 | "Start from an idea" inside + New habit; Vacation beside the lock; header clean | done | 2a | | `1440/gamify-menu.png` |
+| 20 | first view name/tags/counter/−+/Done/progress; everything else behind one expander in order | done | 6 | | `390/habit-card.png`, `1440/habit-card-open.png` |
+| 20 | compact timer chips; the bell a proper switch; great on phones | done (re-prove) | 6 | | `1440/habit-card-open.png` |
+| 21 | Health header banner with the slogan and the four actions; identical Ask ZIGi / Back up | done | 2a | | `1440/health-top.png` |
+| 22 | thin counter rows on every width; one ⋯ to manage | done | — | | `390/health-top.png`, `390/counters-manage.png` |
+| 23 | the game strip only at the bottom, with a quest that fits the page | partly — position done; page-fitting quests not proven | 8 | | `1440/health-bottom.png` |
+| 24 | base currency only; a chip for other currencies; nothing when zero; Allocated/Available rows | done | — | | `1440/wealth-chip.png` |
+| 24 | default from defaultCurrency() (owner edit) | not done — AB-Cloud's helper is not in main | 12 | | — |
+| 25 | hero headline on one line on desktop; box inside its card on phones | done | — | | `1440/wealth-top.png`, `390/wealth-top.png` |
+| 26 | reorder by relevance, calculator last | done | — | | `1440/wealth-full.jpg` |
+| 26 | wealth over time: tooltip, ranges, multi-series by class | done (to the shared chart language in 4) | 4 | | `1440/wealth-chart.png` |
+| 26 | the iPhone allocation list on one line | done (re-prove) | 14 | | `390/wealth-allocation.png` |
+| 27 | big total, 24h, P&L with honest Unknown, Coins/Analysis/Insights tabs, clean coin table | done | 4 | | `1440/portfolio-full.jpg` |
+| 27 | every coin opens a detail card (chart, holdings, cost basis, transfers, goal links); iPhone cards fixed | done (re-prove) | 14 | | `390/portfolio-coin.png` |
+| 28 | one accent + fold mark per pillar in headers, chips, search, charts, insights | partly — marks yes; accents not carried into titles, buttons, chips, charts | 2b | | `1440/goals-menu.png`, `1440/search.png` |
+| 28 | the same header pattern on every pillar page | partly — four different layouts (critique 8) | 2a | | `1440/*-top.png` |
+| 28 | Today's "Life overview" with four pillar rings | not done | 2c | | — |
+| 29 | one card header pattern, spacing, liquid glass | partly | 3 | | — |
+| 29 | one empty state (ZIGi + one action) | partly — the component exists, used once | 3 | | `1440/today-empty.jpg` |
+| 29 | skeletons shown while loading | not done | 3 | | — |
+| 30 | one chart language across weight, pace, calculator, sleep, measurements, balance wheel, year view, wealth, markets | not done | 4 | | — |
+| 31 | Journey: level orb, XP bar, nebula path with planets, badges, weekly challenge, 3 quests with pillar icons | done (re-prove on phones) | 8 | | `1440/journey.jpg`, `390/journey.jpg` |
+| 31 | a compact Journey card at page bottoms when Gamify is on | partly — the slim progress strip | 8 | | `1440/health-bottom.png` |
+| 32 | Habits sky-gradient time-of-day headers | not done | 6 | | — |
+| 32 | full-screen routine player with ZIGi guiding | not done | 6 | | — |
+| 32 | a nicer year view | not done | 6 | | — |
+| 33 | Health highlight tiles (weight trend, coach, energy) | not done | 5 | | — |
+| 33 | meal planner as a day swiper on phones | not done | 5 | | — |
+| 33 | polished grocery list; coach card; fasting timeline; sleep score ring; water ring | not done | 5 | | — |
+| 33 | the vitamins view when AB-Cloud's data lands | not done — presentational component in 5, wiring in 12 | 5, 12 | | — |
+| 34 | the calculator result counts up once; scenario chips; premium layout | partly — count-up done; layout and chips to finish | 4 | | `1440/calculator.jpg` |
+| 35 | Life review as a magazine "Your week" story per pillar with a share card | not done | 9 | | `1440/review.jpg` |
+| 36 | search palette with pillar icons and previews | partly — marks yes, previews and phone sheet to finish | 10 | | `1440/search.png` |
+| 36 | Settings groups with icons | done | 10 | | `1440/settings.jpg` |
+| 36 | onboarding welcome with illustrated pillars | not done | 10 | | `1440/welcome.jpg` |
+| 37 | one type scale (system stack, D1) | done | — | | — |
+| 38 | one voice; "1 readings"; troy ounces; #19 wording | done | 11 | | — |
+| 38 | #27/#28: footer link sizes, Quick add ×, Hide-ZIGi toast, music over cards, duplicate "Stretch", knock once | partly — the music over cards (1), the rest to re-prove | 1, 11 | | — |
+| 39 | wide screens used better; freeze list | done | 14 | | ADR-024 "Freeze check" |
+| 40 | every page at 390/320 (and 1024/1440): rings, wraps, rows, the dock over Open Goal/values, the stray checkbox, tables | partly — the dock and the phone amount remain | 1, 14 | | `390/goal-card-open.png` |
+| 40 | one full visual check of the Showcase on all pages | done once (gate-c); again at Gate C | 14 | | gate-c gallery |
