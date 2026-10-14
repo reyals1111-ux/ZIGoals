@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {goalsPositionsLink} from './ab-shell';
 import {isPhone,openMore} from './phone-nav';
 
 /**
@@ -137,13 +138,13 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
  if(await isPhone(page)){
   // The tab bar is unchanged; More keeps the same groups: Wealth / Markets, Staking / Ecosystem, Chess (the Showcase shows it
   // since Session W Part 14), Activity, Settings, Help (last since Session Z-Cloud Part 4.11).
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health']);
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']); // five tabs (Session AB-Design)
   const sheet=await openMore(page),rows=sheet.locator('.phone-more-list > li');
-  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
+  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
   const gaps=await rows.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
   const gap=(i:number)=>gaps[i]!;
-  // Portfolio (Session I, Part 11) sits in the money group: the group gaps are now before Markets (1) and Ecosystem (4).
-  expect(gap(1)).toBeGreaterThan(gap(2)+8);expect(gap(4)).toBeGreaterThan(gap(5)+8);expect(Math.abs(gap(2)-gap(5))).toBeLessThan(1);expect(Math.abs(gap(3)-gap(2))).toBeLessThan(1);
+  // Session AB-Design: Wealth is a tab, so More opens with the money group (Markets, Staking, Portfolio); the one group gap is before Ecosystem (3).
+  expect(gap(3)).toBeGreaterThan(gap(1)+8);expect(Math.abs(gap(1)-gap(2))).toBeLessThan(1);expect(Math.abs(gap(4)-gap(1))).toBeLessThan(1);
   await expect(sheet.locator('hr, [role=separator]')).toHaveCount(0);
   return;
  }
@@ -178,7 +179,7 @@ test('Staking: the renamed page keeps every Position reachable, and the old addr
  await expect(page.locator('main h1')).toHaveText('Staking');
  await expect(page.locator('#positions')).toBeVisible();await expect(page.getByRole('heading',{name:'Positions & allocations',exact:true})).toBeVisible();
  // The Goals workspace tab "Positions" lands on that section.
- await page.goto('/app/goals');await page.getByRole('navigation',{name:'Goal workspace'}).getByRole('link',{name:'Positions',exact:true}).click();
+ await page.goto('/app/goals');await (await goalsPositionsLink(page)).click(); // Session AB-Design: Positions is the Goals ⋯ menu's link
  await expect(page).toHaveURL(/\/app\/staking#positions$/);
  // The nav item is "Staking" everywhere, and it is current on the page.
  if(!(await isPhone(page)))await expect(page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Staking',exact:true})).toHaveAttribute('aria-current','page');

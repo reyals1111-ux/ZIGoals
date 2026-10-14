@@ -68,8 +68,9 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   await page.waitForTimeout(600);
   await expect(page.getByRole('button', {name: 'Open the music player'})).toHaveCount(0);
   await showPlayer(page);
-  // On Today, where ZIGi's launcher shows too: the music button sits on the other side and the two never overlap. On a
-  // phone ZIGi is the one floating button and the More sheet holds the player's row (Session Z-Cloud Part 4.12).
+  // On Today, where ZIGi's launcher shows too: the music button sits above ZIGi's on the same side with clear space
+  // (Session AB-Design, owner request 6) and the two never overlap. On a phone ZIGi is the one floating button and the
+  // More sheet holds the player's row (Session Z-Cloud Part 4.12).
   await page.goto('/app');
   const button = page.getByRole('button', {name: 'Open the music player'}), launcher = page.getByTestId('ai-launcher');
   if (await isPhone(page)) {
@@ -78,7 +79,8 @@ test('hidden until shown (the approved default): Settings → Music shows it; th
   } else {
   await expect(button).toBeVisible(); await expect(launcher).toBeVisible();
   const box = (await button.boundingBox())!, zigi = (await launcher.boundingBox())!, viewport = page.viewportSize()!;
-  expect(box.x + box.width / 2).toBeLessThan(viewport.width / 2);
+  expect(box.x + box.width / 2).toBeGreaterThan(viewport.width / 2);
+  expect(box.y + box.height).toBeLessThanOrEqual(zigi.y - 8);
   expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
   expect(box.x + box.width <= zigi.x || zigi.x + zigi.width <= box.x || box.y + box.height <= zigi.y || zigi.y + zigi.height <= box.y).toBe(true);
   }

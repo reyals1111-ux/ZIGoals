@@ -20,10 +20,11 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(nav(undefined, true)).toEqual(NAV_ITEMS);
     expect(groupStarts(NAV_ITEMS, navGroupOf)).toEqual(NAV_GROUP_START);
     const {tabs, more} = phoneTabs(everyday);
-    expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health']);
-    expect(labels(more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
-    expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/markets', 2], ['/app/ecosystem', 3]]));
-    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
+    // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More (from the top bar) holds the rest.
+    expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health', 'Wealth']);
+    expect(labels(more)).toEqual(['Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
+    expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/ecosystem', 3]]));
+    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
     expect(startHref(viewOf(undefined))).toBe('/app');
     expect(homeHref(viewOf(undefined))).toBe('/app');
   });

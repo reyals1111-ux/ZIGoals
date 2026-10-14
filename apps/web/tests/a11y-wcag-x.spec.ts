@@ -219,9 +219,9 @@ test('consistent help (3.2.6): the help mechanisms repeated on every page keep t
   for (const [path, heading] of ALL) {
     await open(page, path, heading);
     places.add(await page.evaluate(phone => {
-      const links = phone ? [...document.querySelectorAll('.phone-topbar a')] : [...document.querySelectorAll('nav[aria-label="Main navigation"] a')];
-      // By its name: on Help the phone bar's back link ("Back to Settings") goes to the same address.
-      const settings = links.find(a => a.getAttribute('href') === '/app/settings' && (!phone || a.getAttribute('aria-label') === 'Settings'));
+      // Session AB-Design (owner decision D2): on a phone the way to Settings is the top bar's More button (Settings is its row); on Help the bar's back link ("Back to Settings") goes there directly.
+      const links = phone ? [...document.querySelectorAll('.phone-topbar a, .phone-topbar button')] : [...document.querySelectorAll('nav[aria-label="Main navigation"] a')];
+      const settings = phone ? (links.find(a => a.getAttribute('aria-label') === 'More') ?? links.find(a => a.getAttribute('href') === '/app/settings')) : links.find(a => a.getAttribute('href') === '/app/settings');
       return `settings:${settings ? links.indexOf(settings) - links.length : 'none'}`;
     }, isMobile));
   }

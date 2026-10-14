@@ -6,11 +6,12 @@ export const isPhone=(page:Page)=>page.evaluate(query=>matchMedia(query).matches
 export const mainNav=(page:Page)=>page.getByRole('navigation',{name:'Main navigation'});
 
 /**
- * Opens the phone's More sheet (Wealth, Markets, Staking, Portfolio, Ecosystem, Activity, Settings). The tab bar is
+ * Opens the phone's More sheet (Markets, Staking, Portfolio, Ecosystem, Activity, Settings, Help) from the top bar's More
+ * button (Session AB-Design, owner request 10; the sheet itself stays in the Main navigation). The chrome is
  * server-rendered, so a tap that lands before hydration is simply repeated.
  */
 export async function openMore(page:Page){
- const more=mainNav(page).getByRole('button',{name:'More',exact:true}),sheet=mainNav(page).getByRole('dialog',{name:'More'});
+ const more=page.getByRole('button',{name:'More',exact:true}),sheet=mainNav(page).getByRole('dialog',{name:'More'});
  await expect(async()=>{if(!await sheet.isVisible())await more.click();await expect(sheet).toBeVisible({timeout:1500});}).toPass({timeout:15000});
  // The sheet slides up (280 ms, none under reduced motion or Motion Off): return it at rest, so measurements of its
  // contents are taken in one place rather than across the slide.
@@ -20,7 +21,7 @@ export async function openMore(page:Page){
 
 /**
  * The Main navigation link for a destination. On a desktop or tablet every destination is in the sidebar; on a phone
- * the first four are tabs and the rest are in the More sheet, which is opened first.
+ * the first five are tabs and the rest are in the More sheet, which is opened first.
  */
 export async function navLink(page:Page,name:string):Promise<Locator>{
  const link=mainNav(page).getByRole('link',{name,exact:true});
@@ -77,11 +78,13 @@ export async function connectKeplr(page:Page){
  const sheet=page.getByRole('dialog',{name:'Status'});
  if(await sheet.isVisible()){await page.keyboard.press('Escape');await expect(sheet).toBeHidden();}
 }
-/** Session Z-Cloud Part 4.2: the wallet buttons. On a phone they are in the Status sheet behind the one status line. */
+/** The wallet buttons: in the status row on a computer; on a phone in the Status & wallet sheet behind More (Session AB-Design). */
 export async function walletArea(page:Page):Promise<Locator>{
- const line=page.locator('.phone-status-line');
- if(!await line.isVisible())return page.locator('.app-topbar');
+ if(!await isPhone(page))return page.locator('.status-row .status-wallet');
  const sheet=page.getByRole('dialog',{name:'Status'});
- if(!await sheet.isVisible()){await line.click();await expect(sheet).toBeVisible();}
+ if(await sheet.isVisible())return sheet;
+ const more=await openMore(page);
+ await more.getByRole('button',{name:'Status & wallet',exact:true}).click();
+ await expect(sheet).toBeVisible();
  return sheet;
 }

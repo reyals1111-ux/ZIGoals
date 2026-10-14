@@ -27,9 +27,10 @@ async function expectNav(page: Page, visible: string[]) {
   // Help is always shown, last (Session Z-Cloud Part 4.11).
   if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...visible, 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
-  await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 4));
+  // Five tabs since Session AB-Design (owner request 10); More, from the top bar, holds the rest, then Settings and Help.
+  await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 5));
   await openMore(page);
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 4), ...pagesOnly.slice(4), 'Settings', 'Help']);
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -52,7 +53,7 @@ test('hiding a page saves a stamped settings v3 choice; the navigation, preview 
   expect(record.pages.items).toEqual({goals: {v: 'hidden', at: expect.stringMatching(/^20\d\d-\d\d-\d\dT/)}});
   await expectNav(page, ALL.filter(label => label !== 'Goals'));
   await expect(card.locator('.pages-preview .sr-only')).toContainText('Sidebar: Today, Habits, Health, Wealth, Markets');
-  await expect(card.locator('.pages-preview .sr-only')).toContainText('Phone tab bar: Today, Habits, Health, Wealth, More');
+  await expect(card.locator('.pages-preview .sr-only')).toContainText('Phone tab bar: Today, Habits, Health, Wealth, Markets; More (in the top bar) holds'); // five tabs (Session AB-Design)
   expect(await stored(page, MIRROR)).toEqual({version: 1, hidden: ['goals', 'chess', 'music']});
   await page.reload();
   await expectNav(page, ALL.filter(label => label !== 'Goals'));
@@ -87,10 +88,10 @@ test('only Habits and Health: the navigation, the phone tab bar and More rebuild
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expectNav(page, ['Habits', 'Health', 'Settings']);
   if (await isPhone(page)) {
-    await expect(page.locator('.phone-tabs')).toHaveAttribute('style', /--tab-count: 3/);
+    await expect(page.locator('.phone-tabs')).toHaveAttribute('style', /--tab-count: 2/); // Session AB-Design: More left the tab bar
     // The Wealth shortcut follows the Wealth page.
     await expect(page.locator('.phone-wealth')).toHaveCount(0);
-    await expect(page.locator('.phone-settings')).toBeVisible();
+    await expect(page.getByRole('button', {name: 'More', exact: true})).toBeVisible(); // Settings is More's row (owner decision D2)
   }
   await expect(page.locator('a.brand')).toHaveAttribute('href', '/app/habits');
 });
@@ -121,7 +122,7 @@ test('every page hidden: ZIGoals opens on Settings; Settings and Help stay, and 
   await page.goto('/app');
   await expect(page).toHaveURL(/\/app\/settings$/);
   await expectNav(page, ['Settings']);
-  if (await isPhone(page)) await expect(mainNav(page).getByRole('button', {name: 'More', exact: true})).toBeVisible();
+  if (await isPhone(page)) await expect(page.getByRole('button', {name: 'More', exact: true})).toBeVisible(); // the top bar's More (Session AB-Design)
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Hidden page'})).toHaveCount(0);
@@ -252,8 +253,8 @@ test('while the settings are still opening, the device mirror already shapes the
   await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 4)); else await expect.poll(() => navLabels(page)).toEqual(expected);
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(expected);
   await page.evaluate(() => (window as unknown as {__vault: {release(): void}}).__vault.release());
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 4)); else await expect.poll(() => navLabels(page)).toEqual(expected);
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(expected);
 });

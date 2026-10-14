@@ -18,7 +18,7 @@ export default function PhoneStatusSheet({onClose, label, sentence, mode, balanc
       <div className="wallet phone-status-wallet">{children}</div>
       <p className="phone-status-mode">{mode}<strong>{balance}</strong></p>
       <p className="phone-status-storage"><strong>STORAGE &amp; SYNC</strong><span>{storage}</span></p>
-      {showcase && <p className="phone-status-showcase"><strong>SHOWCASE DATA</strong><span>Fictional portfolio &amp; history · anything you add here stays in the demo when you exit.</span></p>}
+      {showcase && <p className="phone-status-showcase"><strong>SHOWCASE DATA</strong><span>Fictional records. Exit returns to your own data; Load again resets the Showcase.</span></p>}
     </div>
   </PhoneFormSheet>;
 }

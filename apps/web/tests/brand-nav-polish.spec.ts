@@ -52,9 +52,9 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  await showcase(page);
  const nav=page.getByRole('navigation',{name:'Main navigation'});
  if(await isPhone(page)){
-  // Phone experience (Session E): four tabs, then the More sheet with the others, in the same order (the Showcase shows
-  // Chess since Session W Part 14).
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health']);
+  // Phone experience (Session E; five tabs since Session AB-Design): the tabs, then the More sheet with the others, in the
+  // same order (the Showcase shows Chess since Session W Part 14).
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']);
   await openMore(page);
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
   await page.keyboard.press('Escape');
@@ -72,7 +72,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   await positions.focus();await page.keyboard.press('Enter');
   await page.waitForURL('**/app/staking');
   // Focus returns to More, which now marks the current section; the link itself carries aria-current.
-  const more=nav.getByRole('button',{name:'More',exact:true});
+  const more=page.getByRole('button',{name:'More',exact:true});
   await expect(more).toBeFocused();await expect(more).toHaveAttribute('data-current','true');
   await openMore(page);await expect(positions).toHaveAttribute('aria-current','page');
   await expect(nav.getByRole('link',{name:'Goals',exact:true})).not.toHaveAttribute('aria-current','page');
@@ -107,8 +107,8 @@ test('reduced motion and the Off preference switch the navigation glide and page
  if(await isPhone(page)){
   // Phone experience (Session E): the tab pill never glides under reduced motion or Motion Off.
   const pill=page.locator('.phone-tab-pill');
-  await (await navLink(page,'Wealth')).click();await page.waitForURL('**/app/wealth');
-  await expect(nav.getByRole('button',{name:'More',exact:true})).toHaveAttribute('data-current','true');
+  await (await navLink(page,'Markets')).click();await page.waitForURL('**/app/markets'); // Wealth is a tab now; Markets is More's (Session AB-Design)
+  await expect(page.getByRole('button',{name:'More',exact:true})).toHaveAttribute('data-current','true');
   expect(await pill.evaluate(e=>getComputedStyle(e).transitionDuration.split(',').every(d=>parseFloat(d)===0))).toBe(true);
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.evaluate(()=>localStorage.setItem('zigoals:motion:v1','off'));await page.reload();

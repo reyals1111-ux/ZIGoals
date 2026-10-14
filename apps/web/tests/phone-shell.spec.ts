@@ -1,11 +1,13 @@
 import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
+import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,footerDisclaimer,openStatusSheet} from './ab-shell';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
 const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity']);
-const MORE=['Wealth','Markets','Staking','Portfolio','Ecosystem','Activity','Settings','Help'];
+// Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More opens from the top bar.
+const MORE=['Markets','Staking','Portfolio','Ecosystem','Activity','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 
@@ -15,12 +17,11 @@ async function firstScreen(page:Page,path:string){
  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');
  return page.evaluate(()=>{
   const box=(selector:string)=>{const e=document.querySelector(selector);if(!e)return null;const r=e.getBoundingClientRect();return r.width&&r.height?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null;};
-  // Session Z-Cloud Part 4.2: on a phone the honesty label is the one status line; the strip's words wait in the sheet.
-  const label=document.querySelector('.app-topbar .phone-status-line > span') as HTMLElement|null;
+  // Session AB-Design (ADR-024 D7): the honesty label is the compact notice's own; the strip's words wait in the footer's disclaimer and the Status & wallet sheet.
+  const label=document.querySelector('.alpha-notice strong') as HTMLElement|null,mode=document.querySelector('.site-footer .mode-strip');
   return {height:innerHeight,width:innerWidth,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
-   testnet:box('.app-topbar .phone-status-line'),testnetText:label?.textContent,labelWhole:label?label.scrollWidth<=label.clientWidth&&label.scrollHeight<=label.clientHeight&&getComputedStyle(label).textOverflow!=='ellipsis':false,
-   labelLines:label?Math.round(label.getBoundingClientRect().height/parseFloat(getComputedStyle(label).lineHeight)):0,
-   mode:box('.mode-strip'),modeText:document.querySelector('.mode-strip')?.textContent??'',showcase:box('.showcase-banner strong'),
+   testnet:box('.alpha-notice'),testnetText:label?.textContent,labelWhole:label?label.scrollWidth<=label.clientWidth&&label.scrollHeight<=label.clientHeight&&getComputedStyle(label).textOverflow!=='ellipsis':false,
+   modeBelow:mode?mode.getBoundingClientRect().top>innerHeight:false,modeText:mode?.textContent??'',showcase:box('.showcase-chip'),
    lock:box('.layout-lock'),balance:box('.wallet-balance'),title:box('main h1'),topbar:box('.phone-topbar'),tabbar:box('.phone-tabbar'),sidebar:box('.app-sidebar')};
  });
 }
@@ -33,12 +34,12 @@ for(const [width,height] of [[390,844],[360,800]] as const)
    const s=await firstScreen(page,path);
    expect(s.overflow,path).toBeLessThanOrEqual(0);
    expect(s.sidebar,path).toBeNull();expect(s.topbar,path).not.toBeNull();expect(s.tabbar,path).not.toBeNull();
-   // The honesty label: one 44 px line, whole, never clipped or ellipsised, on the first screen below the top bar.
-   expect(s.testnetText,path).toBe('Demo · no real money');expect(s.labelWhole,path).toBe(true);expect(s.labelLines,path).toBe(1);
+   // The honesty label: the compact notice (at least 44 px), its label whole, never clipped or ellipsised, on the first screen below the top bar.
+   expect(s.testnetText,path).toBe(ALPHA_LABEL);expect(s.labelWhole,path).toBe(true);
    expect(s.testnet!.height,path).toBeGreaterThanOrEqual(44);
    expect(s.testnet!.top,path).toBeGreaterThanOrEqual(s.topbar!.bottom-1);expect(s.testnet!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);
-   // The mode strip's words are kept (the Status sheet shows them), out of the first screen.
-   expect(s.modeText,path).toContain('LOCAL SIMULATION');expect(s.mode,path).toBeNull();
+   // The mode strip's words are kept (the footer's disclaimer and the Status sheet show them), out of the first screen.
+   expect(s.modeText,path).toContain('LOCAL SIMULATION');expect(s.modeBelow,path).toBe(true);
    if(LOCKED.has(path)){
     // Part 18.4's place (right after the balance), now on the first screen, never under a bar or over the title.
     expect(s.lock,path).not.toBeNull();expect(s.lock!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);expect(s.lock!.top,path).toBeGreaterThanOrEqual(s.topbar!.bottom);
@@ -54,7 +55,9 @@ test('Showcase: its label is on the first screen of every page and Exit stays on
  for(const path of PAGES){
   const s=await firstScreen(page,path);
   expect(s.showcase,path).not.toBeNull();expect(s.showcase!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);
-  await expect(page.getByRole('button',{name:'Exit Showcase',exact:true})).toBeInViewport();
+  // Session AB-Design: the tiny chip opens Exit Showcase / Load again, one tap away.
+  const chip=page.getByRole('complementary',{name:'Showcase data'});await chip.getByRole('button',{name:'Showcase',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Exit Showcase',exact:true})).toBeInViewport();await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'Exit Showcase',exact:true})).toHaveCount(0);
  }
 });
 
@@ -72,14 +75,14 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
  await page.setViewportSize({width:390,height:844});
  await page.goto('/app');await expect(page.locator('main h1')).toBeVisible();
  const nav=mainNav(page);
- for(const [name,url] of [['Goals','/app/goals'],['Habits','/app/habits'],['Health','/app/health'],['Today','/app']] as const){
+ for(const [name,url] of [['Goals','/app/goals'],['Habits','/app/habits'],['Health','/app/health'],['Wealth','/app/wealth'],['Today','/app']] as const){
   const tab=nav.getByRole('link',{name,exact:true});
   await expect(tab).toHaveAttribute('href',url);
   const box=(await tab.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   await tab.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(tab).toHaveAttribute('aria-current','page');
  }
- // More lists the other six, in the sidebar's order; each is a real link that closes the sheet and marks More current.
- const more=nav.getByRole('button',{name:'More',exact:true});
+ // More (the top bar's button, Session AB-Design) lists the other seven, in the sidebar's order; each is a real link that closes the sheet and marks More current.
+ const more=page.getByRole('button',{name:'More',exact:true});
  await expect(more).toHaveAttribute('aria-expanded','false');
  const sheet=await openMore(page);
  await expect(more).toHaveAttribute('aria-expanded','true');
@@ -89,9 +92,9 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
  await (await navLink(page,'Markets')).click();await page.waitForURL('**/app/markets');
  await expect(sheet).toBeHidden();await expect(more).toHaveAttribute('data-current','true');
  await openMore(page);await expect(sheet.getByRole('link',{name:'Markets',exact:true})).toHaveAttribute('aria-current','page');await closeMore(page);
- // Settings is one tap away in the top bar, as a real link.
- const settings=page.locator('.phone-topbar').getByRole('link',{name:'Settings',exact:true});
- await settings.click();await page.waitForURL('**/app/settings');await expect(settings).toHaveAttribute('aria-current','page');
+ // Settings is one tap away as More's last-but-one row (owner decision D2), as a real link.
+ const settings=await navLink(page,'Settings');
+ await settings.click();await page.waitForURL('**/app/settings');await expect(more).toHaveAttribute('data-current','true');
  // Detail pages step back to their list; the top bar names the page once its own title scrolls away.
  await page.goto('/app/goals/new');await expect(page.locator('main h1')).toBeVisible();
  const back=page.getByRole('link',{name:'Back to Goals',exact:true});await expect(back).toBeVisible();
@@ -101,14 +104,12 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
  await back.click();await page.waitForURL('**/app/goals');
 });
 
-test('the status line opens the Status sheet: every notice in full, the wallet buttons, and focus back on the line',async({page})=>{
+test('More → Status & wallet opens the Status sheet: every notice in full, the wallet buttons, and focus back on More',async({page})=>{
+ // Session AB-Design (ADR-024 D7; re-pointed, as strict): the one status line became the compact notice; the sheet opens from More.
  await page.setViewportSize({width:390,height:844});
  await page.goto('/app/habits');await expect(page.locator('main h1')).toBeVisible();
- const line=page.getByRole('button',{name:'Status: Demo · no real money',exact:true});
- await expect(line).toHaveAttribute('aria-haspopup','dialog');await expect(line).toHaveAttribute('aria-expanded','false');
- await line.click();
- const sheet=page.getByRole('dialog',{name:'Status'});
- await expect(sheet).toBeVisible();await expect(line).toHaveAttribute('aria-expanded','true');
+ await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
+ const sheet=await openStatusSheet(page);
  await expect(sheet).toContainText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
  await expect(sheet).toContainText('Simulation + wallet connection only. No blockchain transactions or financial signatures.');
  await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions');
@@ -117,10 +118,10 @@ test('the status line opens the Status sheet: every notice in full, the wallet b
  // Gate C (persona round): the storage line the page shortens ("This device o…") is in the sheet in full.
  await expect(sheet.locator('.phone-status-storage')).toContainText('This device only · account sync is off');
  await sheet.getByRole('button',{name:'Close Status',exact:true}).click();
- await expect(sheet).toBeHidden();await expect(line).toBeFocused();await expect(line).toHaveAttribute('aria-expanded','false');
+ await expect(sheet).toBeHidden();await expect(page.getByRole('button',{name:'More',exact:true})).toBeFocused();
  // At 320 px the wallet buttons stack, so no button's words are cut ("Connect Kep").
  await page.setViewportSize({width:320,height:640});
- await line.click();await expect(sheet).toBeVisible();
+ await openStatusSheet(page);await expect(sheet).toBeVisible();
  for(const name of ['Demo records','Connect Keplr']){const button=sheet.getByRole('button',{name,exact:true});await expect(button).toBeVisible();expect(await button.evaluate(e=>[...e.querySelectorAll('*'),e].every(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).overflow==='visible')),name).toBe(true);}
 });
 
@@ -128,10 +129,9 @@ test('without JavaScript a phone still shows the tab bar, the top bar and the ho
  const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const page=await context.newPage();
  await page.goto('/app/goals');
  await expect(page.locator('.phone-tabbar')).toBeVisible();await expect(page.locator('.phone-topbar')).toBeVisible();
- await expect(page.locator('.app-topbar .network-banner')).toContainText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');await expect(page.locator('.mode-strip')).toBeVisible();
- // Without scripts the status line could not open its sheet, so it is not there and nothing is folded away.
- await expect(page.locator('.phone-status-line')).toBeHidden();
- await expect(page.locator('.app-topbar .network-banner > span')).toBeVisible();
+ // Session AB-Design: the notice is in the page's own HTML (it cannot be closed without scripts) and the footer carries the sentence and the mode.
+ await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);await expect(footerDisclaimer(page).locator('.mode-strip')).toBeVisible();
+ await expect(footerDisclaimer(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
  await context.close();
 });
 
@@ -140,7 +140,7 @@ test('desktop and tablet keep the sidebar and never render the phone chrome',asy
   await page.setViewportSize({width,height});await page.goto('/app/habits');await expect(page.locator('main h1')).toBeVisible();
   if(await isPhone(page))continue;
   await expect(page.locator('.app-sidebar')).toBeVisible();
-  await expect(page.locator('.phone-topbar, .phone-tabbar')).toHaveCount(0);await expect(page.locator('.phone-status-line')).toBeHidden();
+  await expect(page.locator('.phone-topbar, .phone-tabbar')).toHaveCount(0);
   // Gate C (the test audit): the line is in the page for phones only by its style; here no one can reach it, by pointer or
   // by assistive technology.
   await expect(page.getByRole('button', {name: /^Status:/})).toHaveCount(0);
@@ -161,19 +161,19 @@ test('a stalled private read (Session D): the notice sits under the honesty stri
  const panel=page.locator('.private-read-delay');
  await expect(panel).toBeVisible({timeout:15000});
  await expect(page.locator('main')).toBeHidden();
- await expect(page.locator('.app-topbar .network-banner')).toContainText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');await expect(page.getByRole('button',{name:'Status: Demo · no real money',exact:true})).toBeVisible();
- const p=(await panel.boundingBox())!,strip=(await page.locator('.app-topbar').boundingBox())!,tabs=(await page.locator('.phone-tabbar').boundingBox())!;
+ await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL); // Session AB-Design: the compact notice stays above the stalled-read panel
+ const p=(await panel.boundingBox())!,strip=(await alphaNotice(page).boundingBox())!,tabs=(await page.locator('.phone-tabbar').boundingBox())!;
  expect(p.x).toBeGreaterThanOrEqual(12);expect(p.x+p.width).toBeLessThanOrEqual(390-12);
  expect(p.y).toBeGreaterThanOrEqual(strip.y+strip.height);expect(p.y).toBeLessThan(tabs.y);
  const retry=(await panel.getByRole('button',{name:'Retry'}).boundingBox())!;expect(retry.height).toBeGreaterThanOrEqual(44);expect(retry.y+retry.height).toBeLessThanOrEqual(tabs.y);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
 
-test('the names CI journeys click stay visible links on a phone: Today, Goals, Habits, Health, Wealth and Settings',async({page})=>{
- // scripts/run10 and scripts/run11 open these pages with getByRole('link',{name,exact:true}).first() at 390x844.
+test('the names CI journeys click stay visible links on a phone: Today, Goals, Habits, Health and Wealth; Settings through More',async({page})=>{
+ // scripts/run10 and scripts/run11 open these pages with getByRole('link',{name,exact:true}).first() at 390x844. Session AB-Design (owner decision D2): Settings is More's row, so those scripts open More first (AB_DESIGN_TO_CLOUD.md).
  await page.setViewportSize({width:390,height:844});await page.goto('/app');await expect(page.locator('main h1')).toBeVisible();
  for(const [name,url] of [['Wealth','/app/wealth'],['Settings','/app/settings'],['Goals','/app/goals'],['Habits','/app/habits'],['Health','/app/health'],['Today','/app']] as const){
-  const link=page.getByRole('link',{name,exact:true}).first();await expect(link).toBeVisible();
+  const link=name==='Settings'?await navLink(page,'Settings'):page.getByRole('link',{name,exact:true}).first();await expect(link).toBeVisible();
   const box=(await link.boundingBox())!;expect(box.width,name).toBeGreaterThanOrEqual(44);expect(box.height,name).toBeGreaterThanOrEqual(44);
   await link.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(page.locator('main h1')).toBeVisible();
  }

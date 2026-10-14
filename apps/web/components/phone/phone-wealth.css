@@ -85,3 +85,5 @@
   :root .wealth-product .composition-donut > span { inset: 22px; width: auto; height: auto; gap: 4px; }
   :root .wealth-product .composition-donut strong { font-size: 18px; letter-spacing: -.02em; white-space: nowrap; overflow-wrap: normal; }
 }
+/* Session AB-Design (owner request 26): the allocation legend keeps each value and share on one line at 390 and 320. */
+@media (max-width: 767.98px) { :root .wealth-product .composition-legend > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; } :root .wealth-product .composition-legend dd { display: flex; align-items: baseline; gap: 8px; margin: 0; white-space: nowrap; } :root .wealth-product .composition-legend dd strong { font-size: 15px; } :root .wealth-product .composition-legend dd span { font-size: 14px; color: var(--text-meta, #c2d0e5); } }

@@ -76,14 +76,17 @@ export const startHref = (view: PagesView) => { const id = startPage(view); retu
 /** The ZIGoals home link: Today while it shows, else the start page. */
 export const homeHref = (view: PagesView) => isShown(view, 'today') ? '/app' : startHref(view);
 
+/** Session AB-Design (owner request 10, ADR-024 D2): five tabs — Today, Goals, Habits, Health and Wealth, the 4-in-1 app. */
+export const PHONE_TAB_COUNT = 5;
 /**
- * The phone tab bar: the first four visible pages, then More with the rest, Settings and Help (always last), so More is never
- * empty. Each group's first entry (after the first entry of the list) keeps the space before it.
+ * The phone tab bar: the first five visible pages (Session AB-Design; four before it), then More with the rest, Settings
+ * and Help (always last), so More is never empty. More opens from the top bar. Each group's first entry (after the first
+ * entry of the list) keeps the space before it.
  */
 export function phoneTabs<T extends readonly [string, ...unknown[]]>(items: readonly T[]): {tabs: T[]; more: T[]} {
   // Settings and Help (Session Z-Cloud Part 4.11) are never tabs: they close the More sheet, in that order.
   const last = ['/app/settings', '/app/help'], pages = items.filter(item => !last.includes(item[0]));
-  return {tabs: pages.slice(0, 4), more: [...pages.slice(4), ...last.flatMap(href => items.filter(item => item[0] === href))]};
+  return {tabs: pages.slice(0, PHONE_TAB_COUNT), more: [...pages.slice(PHONE_TAB_COUNT), ...last.flatMap(href => items.filter(item => item[0] === href))]};
 }
 /** The space before a group: on the first visible entry of each group, never on the list's first entry. */
 export function groupStarts(items: readonly (readonly [string, ...unknown[]])[], groupOf: (href: string) => number): Map<string, number> {

@@ -38,7 +38,8 @@ export function PagesSettings() {
   const visible = visiblePages(view), start = startPage(view);
   const nav = NAV_ITEMS.filter(([href]) => hrefShown(view, href)), {tabs, more} = phoneTabs(nav);
   const chosenStart = view.start && visible.includes(view.start) ? view.start : '';
-  const summary = `Sidebar: ${nav.map(([, label]) => label).join(', ')}. Phone tab bar: ${[...tabs.map(([, label]) => label), 'More'].join(', ')}; More holds ${more.map(([, label]) => label).join(', ')}.`;
+  // Session AB-Design (owner request 10, D2): five tabs; More is the top bar's button, not a tab.
+  const summary = `Sidebar: ${nav.map(([, label]) => label).join(', ')}. Phone tab bar: ${tabs.map(([, label]) => label).join(', ')}; More (in the top bar) holds ${more.map(([, label]) => label).join(', ')}.`;
   return <section className="panel pages-settings" id="your-pages" aria-labelledby="your-pages-title">
     <p className="eyebrow">YOUR APP</p><h2 id="your-pages-title">Your pages & buttons</h2>
     <p>Hide what you don&rsquo;t use; your records stay as they are. Settings and Help always show. A hidden page still opens from a link, with a way to show it again.</p>
@@ -76,7 +77,7 @@ export function PagesSettings() {
         <p className="sr-only">{summary}</p>
         <div className="pages-preview-row" aria-hidden="true">
           <div className="pages-preview-sidebar"><span className="pages-preview-title">Sidebar</span><ol>{nav.map(([href, label]) => <li key={href}>{label}</li>)}</ol></div>
-          <div className="pages-preview-phone"><span className="pages-preview-title">Phone tab bar</span><ol className="pages-preview-tabs">{tabs.map(([href, label]) => <li key={href}>{label}</li>)}<li>More</li></ol><span className="pages-preview-more">In More: {more.map(([, label]) => label).join(' · ')}</span></div>
+          <div className="pages-preview-phone"><span className="pages-preview-title">Phone tab bar</span><ol className="pages-preview-tabs">{tabs.map(([href, label]) => <li key={href}>{label}</li>)}</ol><span className="pages-preview-more">In More: {more.map(([, label]) => label).join(' · ')}</span></div>
         </div>
       </figure>
       {confirming ? <div className="pages-reset-confirm" role="group" aria-labelledby="pages-reset-question">

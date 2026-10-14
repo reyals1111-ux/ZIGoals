@@ -1,9 +1,27 @@
 /* Session W Part 20: the music button, at the bottom on the side opposite ZIGi's (the root's data-zigi-side). */
-.music-launcher{position:fixed;left:max(20px,env(safe-area-inset-left,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:45;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);background:radial-gradient(120% 120% at 30% 20%,#173a5e,#0b1430 70%);color:var(--text,#eef1ff);box-shadow:0 14px 34px -14px rgba(20,120,200,.75);cursor:pointer}
-@media (min-width:901px){.music-launcher:not(.music-launcher-phone){left:calc(var(--sidebar-width,216px) + 20px)}}
-:root[data-zigi-side=left] .music-launcher{left:auto;right:max(20px,env(safe-area-inset-right,0px))}
+/* Session AB-Design (owner request 6): the button sits above ZIGi's stack on ZIGi's side (the right by default), with a nebula fold arrow that tucks it into the edge. */
+.music-launcher-stack{position:fixed;right:max(22px,env(safe-area-inset-right,0px));bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + 118px);z-index:45;display:flex;align-items:center;gap:2px}
+:root[data-zigi-side=left] .music-launcher-stack{right:auto;left:max(22px,env(safe-area-inset-left,0px));flex-direction:row-reverse}
+@media (min-width:901px){:root[data-zigi-side=left] .music-launcher-stack{left:calc(var(--sidebar-width,216px) + 22px)}}
+.music-launcher{position:relative;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);background:radial-gradient(120% 120% at 30% 20%,#173a5e,#0b1430 70%);color:var(--text,#eef1ff);box-shadow:0 14px 34px -14px rgba(20,120,200,.75);cursor:pointer}
+.music-launcher-fold{position:relative;display:grid;place-items:center;width:44px;height:44px;margin-right:-12px;padding:0;border:0;border-radius:10px;background:transparent;cursor:pointer}
+.music-launcher-fold svg{opacity:.8;transition:opacity .15s ease}
+.music-launcher-fold:hover svg,.music-launcher-fold:focus-visible svg{opacity:1}
+.music-launcher-fold:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:-2px}
+:root[data-zigi-side=left] .music-launcher-fold svg{transform:rotate(180deg)}
+.music-launcher-fold::after{content:attr(data-tip);position:absolute;top:50%;right:calc(100% + 6px);translate:0 -50%;padding:5px 9px;border-radius:8px;background:color-mix(in srgb,var(--panel,#0f1530) 94%,transparent);border:1px solid var(--line,#2a325a);color:var(--text,#eef1ff);font-size:13px;line-height:1.2;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease}
+:root[data-zigi-side=left] .music-launcher-fold::after{right:auto;left:calc(100% + 6px)}
+.music-launcher-fold:hover::after,.music-launcher-fold:focus-visible::after{opacity:1}
+/* Tucked: a small tab at the edge brings the button back. */
+.music-edge-tab{position:fixed;right:0;bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + 122px);z-index:45;width:40px;height:48px;padding:0 0 0 6px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);border-right:0;border-radius:14px 0 0 14px;background:radial-gradient(140% 120% at 30% 20%,#173a5e,#0b1430 75%);color:var(--text,#eef1ff);box-shadow:0 10px 26px -12px rgba(20,120,200,.75);cursor:pointer}
+:root[data-zigi-side=left] .music-edge-tab{right:auto;left:0;padding:0 6px 0 0;border-right:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);border-left:0;border-radius:0 14px 14px 0}
+@media (min-width:901px){:root[data-zigi-side=left] .music-edge-tab{left:var(--sidebar-width,216px)}}
+.music-edge-tab svg{width:20px;height:20px}
+.music-edge-tab[data-playing]::after{content:"";position:absolute;inset:4px;border-radius:12px;border:1px solid #7fe3f3;opacity:.6;pointer-events:none}
+.music-edge-tab:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.music-launcher-fold svg,.music-launcher-fold::after{transition:none}}
 .music-launcher[data-playing]::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid #7fe3f3;opacity:.75;pointer-events:none}
 .music-launcher:hover{border-color:#7fe3f3}
 .music-launcher:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:3px}
-:root[data-keyboard=open] .music-launcher,:root[data-keyboard=open] .music-mini,:root[data-keyboard=open] .music-panel{display:none}
-@media (forced-colors:active){.music-launcher{border-color:CanvasText}}
+:root[data-keyboard=open] .music-launcher-stack,:root[data-keyboard=open] .music-edge-tab,:root[data-keyboard=open] .music-mini,:root[data-keyboard=open] .music-panel{display:none}
+@media (forced-colors:active){.music-launcher,.music-edge-tab{border-color:CanvasText}}

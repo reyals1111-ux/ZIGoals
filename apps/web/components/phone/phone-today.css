@@ -146,6 +146,18 @@
   :root .today-page .habits-today .habit-completion-compact > div:first-child { text-align: right; }
   :root .today-page .habits-today .habit-completion-compact .habit-check-actions { grid-column: 1 / -1; gap: 8px; }
   :root .today-page .habits-today .habit-today-list small { font-size: 15px; }
+  /* Session AB-Design (owner request 12): the row is one grid — title and streak left, the count right, then the timer chip on its own full row, then −/+/Done; nothing wraps or overlaps. */
+  :root .today-page .habits-today .habit-today-list li { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto auto; gap: 2px 12px; border-left: 2px solid var(--item-start); padding-left: 12px; }
+  :root .today-page .habits-today .habit-today-list li > div:first-child { display: contents; border: 0; padding: 0; }
+  :root .today-page .habits-today .habit-today-list li > div:first-child > strong { grid-column: 1; grid-row: 1; }
+  :root .today-page .habits-today .habit-today-list li > div:first-child > small { grid-column: 1; grid-row: 2; }
+  :root .today-page .habits-today .habit-today-list li > .habit-completion-compact > div:first-child { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  :root .today-page .habits-today .habit-timer-chip { grid-column: 1 / -1; grid-row: 3; width: 100%; margin-top: 8px; justify-content: space-between; flex-wrap: nowrap; gap: 6px; min-height: 40px; padding: 3px 4px 3px 12px; }
+  :root .today-page .habits-today .habit-today-list li > .habit-completion-compact > .habit-check-actions { grid-row: 4; margin-top: 8px; }
+  :root .today-page .habits-today .habit-timer-chip strong { font-size: 15px; white-space: nowrap; }
+  :root .today-page .habits-today .habit-timer-chip > span { white-space: nowrap; font-size: 14px; }
+  :root .today-page .habits-today .habit-timer-chip .quiet { min-height: 44px; min-width: 44px; padding: 2px 9px; font-size: 14px; white-space: nowrap; }
+  :root .today-page .habits-today .habit-today-list li > .habit-completion-compact > div:first-child { white-space: nowrap; }
 
   /* Recent activity: compact rows with the time at the top right; the whole row opens its record. */
   :root .today-page .recent-panel .unified-activity ol { gap: 8px; margin: 12px 0; }
