@@ -195,3 +195,7 @@
 .habit-section-afternoon .habit-section-mark { background: radial-gradient(circle at 40% 35%, #fff3b588, #39c6ff33); }
 .habit-section-evening .habit-section-mark { background: radial-gradient(circle at 40% 35%, #ff74be77, #6c3fa033); }
 @media (forced-colors: active) { .habit-section > .habit-section-summary::before { display: none; } }
+/* The routine sheet is a native modal dialog (closing pass, item 5): full screen, no UA frame. */
+:root dialog.routine-sheet { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; color: inherit; overflow: auto; }
+:root dialog.routine-sheet:not([open]) { display: none; }
+:root dialog.routine-sheet::backdrop { background: #050916; }

@@ -146,3 +146,5 @@
 :root .calc-results.is-stale .calc-figures, :root .calc-results.is-stale .calc-chart, :root .calc-results.is-stale .calc-whatifs { opacity: .45; }
 :root .calc-stale { margin: 0 0 10px; padding: 8px 12px; border-radius: 12px; border: 1px solid #ffc27a66; background: #2a1d0f99; font-size: 15px; }
 :root .calc-figures dd { overflow-wrap: anywhere; }
+/* Phase 2 closing pass (layout audit): the calculator's number fields are full-size targets. */
+:root .calc-inputs input, :root .calculator input:not([type=range]) { min-height: 44px; }

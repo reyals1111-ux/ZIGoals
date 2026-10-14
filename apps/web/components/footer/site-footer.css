@@ -94,7 +94,7 @@
 .site-footer-social-links { display: flex; flex-wrap: wrap; gap: 6px 10px; }
 .site-footer-social a, .site-footer-top { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: 15px; font-weight: 600; color: #e9f3ff; border: 1px solid #9fd6ff2e; background: #0a1430b3; }
 .site-footer-social a svg { color: #ffffff; }
-.site-footer-top { color: #9fe6ff; background: transparent; }
+.site-footer-top { color: #bfefff; background: #0a1430d9; } /* closing pass: a solid chip, readable over the horizon */
 .site-footer-social a:is(:hover, :focus-visible), .site-footer-top:is(:hover, :focus-visible) { border-color: #9fe6ff88; background: #13234acc; color: #fff; }
 
 /* The link groups: three columns on a computer, two on a phone. */

@@ -24,7 +24,7 @@
 .game-card .text-link { min-height: 44px; display: inline-flex; align-items: center; }
 .game-card-strip { padding: 0; gap: 0; }
 .game-strip-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; min-height: 56px; padding: 8px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: inherit; }
-.game-strip-text { flex: 1 1 auto; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-strip-text { flex: 1 1 auto; min-width: 0; font-size: 15px; line-height: 1.3; text-align: left; white-space: normal; overflow-wrap: anywhere; } /* closing pass: the quest in full, on two lines if it needs them */
 .game-strip-xp { font-size: 14px; color: var(--accent-cyan); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .game-card-strip[data-open] .game-strip-toggle .habit-section-chevron { transform: rotate(-90deg); }
 .game-card-strip .game-card-body { padding: 0 14px 14px; }

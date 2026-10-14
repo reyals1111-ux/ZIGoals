@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import Link from "next/link";
 import "./collection.css";
 import { GoalSummaryCard } from "../../../components/goal-card";
@@ -17,10 +17,11 @@ import { entityLayoutId } from "../../../lib/page-layout";
 import { NebulaFlow } from "../../../components/nebula-flow";
 import { useHealth } from "../../../components/health/use-health";
 import { useHealthGoals } from "../../../components/health-goals/use-health-goals";
-import { HealthGoalsSection } from "../../../components/health-goals/health-goals-section";
 import { GoalsViewSwitch, type GoalsView } from "../../../components/goals/goals-view-switch";
 import { LazyAchievementsHall as AchievementsHall, LazyAverageGoalCard as AverageGoalCard, LazyExtrasKeeper, LazyGoalsAltView as GoalsAltView, LazyGoalsFigures as GoalsFigures, LazyLifeBalanceCard as LifeBalanceCard, LazyTemplateTeaser as TemplateTeaser } from "../../../components/goals/lazy";
 import { useAverageGoals } from "../../../components/goals/use-average-goals";
+// Phase 2 (weights, never a raised budget): Health goals follow the cards; their section and editor load as a chunk.
+const HealthGoalsSection = lazy(() => import("../../../components/health-goals/health-goals-section").then(m => ({default: m.HealthGoalsSection})));
 export default function GoalsPage() {
   const collection = useUnifiedGoals();
   // Session Z-Cloud Part 4.3: plain words until Keplr is connected.
@@ -42,7 +43,7 @@ export default function GoalsPage() {
   const count=visible.length,pages=Math.max(1,Math.ceil(count/24)),currentPage=Math.min(page,pages-1),displayed=large?visible.slice(currentPage*24,(currentPage+1)*24):visible;
   const changePage=(next:number)=>{setPage(next);document.getElementById('goal-collection-controls')?.focus();};
   return <LayoutPage page="goals"><div className="goals-page dashboard platform-workspace">
-    <PillarHero pillar="goals" titleId="goals-title" className="goals-heading" eyebrow="A destination worth building" title="Your Goals" lede="Small steps. A bigger future. Every plan starts with you." buttons={<Link className="primary" href="/app/goals/new">+ Create a goal</Link>} about="goals"/><LayoutLockButton/>
+    <PillarHero pillar="goals" titleId="goals-title" className="goals-heading page-heading" eyebrow="A destination worth building" title="Your Goals" lede="Small steps. A bigger future. Every plan starts with you." buttons={<Link className="primary" href="/app/goals/new">+ Create a goal</Link>} about="goals"/><LayoutLockButton/>
     {keeperReady && <LazyExtrasKeeper liveKeys={[...collection.goals.map(g => g.key), ...healthGoals.data.goals.map(g => `health:${g.id}`)]} ready/>}
     {/* Session AB-Design (owner request 15): the filters on the left, the Cards / Vision board / Tree switch at the right end; the count lives in the Active filter's name; Positions stays reachable from the page's ⋯ menu (never removed). */}
     {!!total && <div className="goals-toolbar"><nav className="tab-row view-tabs goal-view-filters" aria-label="Goal views">{["Active", "Completed", "Closed", "All"].map(v => <button key={v} aria-pressed={filter === v} aria-description={filter === v ? `${count + shownAverages.length} ${count + shownAverages.length === 1 ? "destination" : "destinations"}` : undefined} onClick={() => {setFilter(v);setPage(0);}}>{v}</button>)}</nav><div className="goals-toolbar-end"><GoalsViewSwitch view={view} onChange={setView}/><CardOptions label="Goals"><Link href="/app/staking#positions">Positions →</Link></CardOptions></div></div>}
@@ -55,7 +56,7 @@ export default function GoalsPage() {
       !!total && !count && {id:"goals:filter-empty",label:"No Goals in this view",node:<EmptyState as="section" level={2} className="panel empty-small" zigi="curious" title={query.trim()?"No matching goals.":`No ${filter.toLowerCase()} goals.`} action={<button className="secondary" onClick={() => {setFilter("All");setQuery("");setPage(0);}}>View all goals</button>}>{query.trim()?"Try a different name or clear your search.":"Your other destinations are under All. Closed Goals keep their history."}</EmptyState>},
       // Session AA-Cloud Part 1: Health goals are goals too, so they follow the cards; the timeline is a summary.
       // A wrapper takes the region's attributes, so the Health goals section can be moved like the others (it never could on main).
-      {id:"goals:health",label:"Health goals",node:<div className="goals-health-item"><HealthGoalsSection goals={healthGoals} health={health.data} healthLoaded={health.loaded&&!health.error}/></div>},
+      {id:"goals:health",label:"Health goals",node:<div className="goals-health-item"><Suspense fallback={null}><HealthGoalsSection goals={healthGoals} health={health.data} healthLoaded={health.loaded&&!health.error}/></Suspense></div>},
       {id:"goals:balance",label:"Life balance",node:<LifeBalanceCard/>},
       // Session AA-Cloud (order rule): the templates are a tool, then the Hall of finished goals; Milestones ahead stays the
       // page's last section, as every main page ends with its timeline (ui-design-pass Part 8).

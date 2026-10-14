@@ -128,3 +128,15 @@
 /* Phase 2, Part 11: the quiet Showcase tag inside cards (components/ui/showcase-tag.tsx). */
 :root .showcase-tag { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; padding: 1px 9px 1px 7px; border-radius: 999px; border: 1px solid #c790f655; background: #2a1f4466; color: #eadcff; font-size: 14px; font-weight: 700; letter-spacing: .02em; vertical-align: 1px; white-space: nowrap; }
 :root .showcase-tag-dot { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #23eaff, #f06dff); }
+/* Phase 2 closing pass, item 5 (interaction states): a visible ring on every focusable thing that is not a native control
+   (role=button groups, chart points, tabindex regions), the search field's ring on its row, and a pressed state on touch
+   screens (a brightness change, so nothing moves under reduced motion or Motion Off). */
+:root [tabindex]:not([tabindex="-1"]):focus-visible, :root [role="button"]:focus-visible, :root [role="tab"]:focus-visible, :root [role="option"]:focus-visible { outline: 3px solid var(--cyan, #23eaff); outline-offset: 3px; }
+:root .search-field:has(input:focus-visible) { box-shadow: inset 0 -2px 0 var(--cyan, #23eaff); }
+@media (hover: none) {
+  :root :is(button, a.primary, a.secondary, .phone-more-row, .phone-tab, summary):active:not(:disabled) { filter: brightness(1.18); }
+}
+/* Phase 2 closing pass (layout audit): ZIGi's corner "Ask ZIGi" link sits in a card's top-right corner; the card's first
+   eyebrow keeps clear of it, and the link is a full-size target. */
+:root .panel:has(> .zigi-explain-corner) > .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > :first-child .eyebrow:first-of-type { padding-right: 92px; white-space: normal; }
+html[data-zigi-launcher="shown"] .zigi-explain-corner { align-items: center; min-height: 44px; min-width: 44px; padding: 0 10px; top: 4px; right: 4px; }

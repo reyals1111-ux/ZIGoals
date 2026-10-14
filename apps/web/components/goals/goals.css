@@ -201,3 +201,6 @@
 :root .pace-forecasts .pace-list small { font-size: 14px; color: var(--text-secondary); }
 /* Gate C: the tree's small rings keep their number on one line, sized for the ring (phones draw the ring larger). */
 :root .goal-tree-row .flow-ring > span { white-space: nowrap; }
+/* Phase 2 closing pass (layout audit, 320 px): the plan's fields never run past their card. */
+:root .goal-plan-card :is(textarea, input, select) { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; }
+:root .goal-plan-card .field, :root .goal-plan-card label { min-width: 0; }

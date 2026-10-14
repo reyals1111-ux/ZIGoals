@@ -68,3 +68,5 @@
 :root .life-wins { background: radial-gradient(90% 120% at 0% 0%, #ffd27a1f, transparent 60%), linear-gradient(150deg, #0f1e36f2, #171a3cf2); }
 :root .life-wins .life-list li { font-size: 16px; }
 @media (forced-colors: active) { :root .life-chapter::before { -webkit-text-stroke: 0; color: CanvasText; } :root .life-cover-kicker { -webkit-text-fill-color: CanvasText; } }
+/* Phase 2 closing pass (layout audit): each goal in "Goals that moved" is a full-size link. */
+:root .life-list a { display: inline-flex; align-items: center; min-height: 44px; }

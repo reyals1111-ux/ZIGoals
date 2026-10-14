@@ -197,6 +197,36 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   `whats-new.spec.ts` (the release id; the card's own link now opens `#help-abd-footer`; AB-Cloud's six links lead "Earlier
   updates", so every pinned position moves by six).
 
+### Closing pass (owner follow-up, 2026-10-14: "the whole app finished, one premium 4-in-1 app, nothing forgotten")
+1. **Rings at the source.** Every progress ring is a size container: band 8.5 % of the ring's real size (4–10 px), the figure
+   a third of the inner circle (11–30 px), the % at half size on its baseline; pages no longer size the figure. Captioned rings
+   (sleep score, water, a routine step, the Journey level, Today's level) centre figure and caption as one column. A ring
+   script checked every page that draws rings at 1440 and 390: every label inside its inner circle (the tree's 44 px rings
+   had drawn "95 %" on the band — the owner's screenshot).
+2. **The layout audit** — `apps/web/tests/audit/layout-audit.mjs` (dev tooling outside the suite; no new dependency: contrast
+   is measured on the pixels behind each text, read with a small PNG reader). It visits every route and openable state
+   (Today open and folded, Quick add, Add widget, how-to, search, ZIGi's chat, the More sheet, the Showcase chip; Goals'
+   cards, board, tree, details, art picker, goal page, wizard, templates, average goals, positions; Habits, a card's
+   Details, the editor, the year view, the routine player; every Health view and the counters dialog; Wealth, Add asset,
+   an asset, the calculator, Markets, Staking, Portfolio and a coin, Activity, Ecosystem, Chess, the Journey, the Life review
+   week and month, Settings and its sub-pages, Help, ZIGi's page, Share, a missing page; and nine states on a new, empty
+   device) at 320, 390, 430, 768, 1024, 1280, 1440 and 1920 px in Chrome and 390 px in WebKit, and flags sideways scroll,
+   clipped or spilling text, overlaps, numbers on two lines, ring labels in the band, targets under 44 px and contrast.
+   With a dialog open only the dialog is checked; fixed bars and the floating ZIGi/music buttons are left out (owner).
+   Findings fixed so far: the game strip's quest cut off, counter names cut off at 320, macro tiles' label and figure on one
+   line at 320, Wealth's summary at 320 (label under ⋯, split figures too narrow, the currency note past its box), goal
+   amounts on two lines, the goal plan's fields past their card, the Details hint cut off, the phone demo balance cut off,
+   ⋯ menus and ZIGi's corner link over eyebrows, four-digit day figures on two lines, captioned rings' overlapping lines,
+   small targets (Life review goal links, the measurement pager, Today's arranging buttons, the calculator's fields, the
+   tree's size buttons), the vision link and "Back to top" on bright art.
+3. **Stress states** — the audit's `--stress` mode rewrites the Showcase's own records to 40+ character names,
+   US$1,234,567,890.12 and its euro twin, a 9,999 counter day, then runs every check.
+4. **Consistency** — every page's own header (PageHeader and the hand-written `.page-heading`) reads at the pillar header's
+   scale (eyebrow, title, lede); the Goals header keeps the `.page-heading` hook the account and sync scripts use.
+5. **Interaction states** — a visible ring on every focusable non-native control, the search field's ring, a pressed state on
+   touch screens (brightness only), the routine player in a native modal dialog (focus kept inside, Escape pauses, focus
+   returns to its opener).
+
 ## Freeze check
 This run changes desktop and tablet on purpose (owner request 39 and the whole brief), so `scripts/desktop-freeze-check.mjs`
 would list every page; the deliberate differences, each with its reason, are:

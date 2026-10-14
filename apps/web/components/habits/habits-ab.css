@@ -36,3 +36,8 @@
 
 /* Gate C critique: on phones the constellation art sits faint behind the words instead of across them. */
 @media (max-width: 600px) { .habit-hero .habit-constellation { opacity: .3; pointer-events: none; } }
+/* Phase 2 closing pass (layout audit): the hint beside "Details" says what is inside in full — on a second line under it
+   on a narrow phone, never cut off. */
+.habit-card .habit-more > summary { flex-wrap: wrap; }
+.habit-card .habit-more > summary small { min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; text-align: right; }
+@media (max-width: 420px) { .habit-card .habit-more > summary small { flex: 1 1 100%; margin-left: 34px; text-align: left; } }

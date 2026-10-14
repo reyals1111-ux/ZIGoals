@@ -84,3 +84,5 @@
 /* Session Z-Cloud Part 4.1 (persona item 1): no rail modules (Habits + Health, Habits only): one centred column at a reading width. */
 .today-page[data-single]{max-width:760px;margin-inline:auto}
 .today-page[data-single] .today-layout{grid-template-columns:minmax(0,1fr)}
+/* Phase 2 closing pass (layout audit): Today's arranging controls are full-size targets, their words 14 px. */
+.dashboard-placement-controls button,.dashboard-insert-here{min-height:44px;font-size:14px}

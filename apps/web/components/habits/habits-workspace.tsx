@@ -73,6 +73,15 @@ type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening
 const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"]; // ADR-022 B49: the game card and the year view are not layout items
 /** The filters whose habits are shown in the four time-of-day sections (H1); the others are flat lists. */
 const SECTIONED: readonly Filter[] = ["Today", "All", "Completed", "Goal linked"];
+/**
+ * Phase 2 closing pass (item 5): the full-screen routine player in a native modal dialog — focus stays inside it, Escape
+ * pauses and closes it, and focus goes back to the control that opened it.
+ */
+function RoutineSheet({onClose, children}: {onClose: () => void; children: React.ReactNode}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => { const dialog = ref.current, back = document.activeElement as HTMLElement | null; dialog?.showModal(); return () => { dialog?.close(); back?.focus?.(); }; }, []);
+  return <dialog ref={ref} className="routine-sheet" aria-label="Routine" onCancel={e => { e.preventDefault(); onClose(); }}>{children}</dialog>;
+}
 export function HabitsWorkspace() {
   const store = useHabits();
   // Session W Part 17: with no Habits zone, days follow the journal zone (Settings → Your time zone).
@@ -190,7 +199,7 @@ export function HabitsWorkspace() {
             if (healthLink !== undefined && !links.unreadable && linkFields(links.data.links[id] ?? null) !== linkFields(healthLink)) { try { await links.update(current => setHabitHealthLink(current, id, healthLink, new Set([...store.data.habits.map(habit => habit.id), id]))); } catch (error) { saved += ` The Health link was not saved on this device. ${deviceSettingFailureMessage(error)}`; } }
             setMessage(saved); setFocusTarget(`habit-${id}`); setEditor(null); setFilter("All"); }} /> : null;
   return <HealthLinkContext.Provider value={healthLinkContext}><HabitExtrasContext.Provider value={extras}><LayoutPage page="habits"><div className="habits-workspace">
-    {routine && <div className="routine-sheet" role="dialog" aria-modal="true" aria-label="Routine"><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></div>}
+    {routine && <RoutineSheet onClose={() => setRoutine(null)}><Suspense fallback={null}><RoutinePlayer headId={routine} store={store} extras={extras} onClose={() => setRoutine(null)} /></Suspense></RoutineSheet>}
     {/* Session AB-Design Phase 2 (ADR-024 P5): the shared pillar header, cut from this page's own. Habit ideas opens from the new-habit editor as "Start from an idea"; Vacation is a small button beside the lock (PageTools). */}
     <PillarHero pillar="habits" titleId="habits-title" className="habit-hero" actionsClass="habit-hero-actions" eyebrow="Small steps. Your own rhythm." title="Find your daily cadence." lede="Make room for what matters. Every small return adds to the pattern." about="habits"
       buttons={<button ref={newHabitButton} className="primary" disabled={!store.loaded || !!store.error} onClick={() => { setEditor("new"); setMessage(""); }}>+ New habit</button>}

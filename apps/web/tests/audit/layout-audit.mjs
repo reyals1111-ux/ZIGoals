@@ -21,6 +21,7 @@ const [base, out, ...flags] = process.argv.slice(2);
 const flag = name => flags.find(f => f.startsWith(`--${name}=`))?.split('=')[1];
 const only = flag('only') ? new RegExp(flag('only')) : null;
 const engine = flag('engine') ?? 'chrome';
+const stress = flags.includes('--stress');
 const WIDTHS = (flag('widths') ?? (engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
@@ -132,6 +133,27 @@ const STATES = [
   {name: 'empty-review', path: '/app/review', fresh: true},
 ];
 
+// ---- stress (item 3): the Showcase's own records, rewritten in place to the hard cases ----
+// Names of 40+ characters, US$1,234,567,890.12 and its euro twin, a 4-digit counter day, a goal at 0 % — then every check.
+function stressRecords() {
+  const LONG = 'Build a calm emergency fund for the whole family';
+  const key = suffix => Object.keys(sessionStorage).find(k => k.endsWith(suffix));
+  const edit = (suffix, fn) => { const k = key(suffix); if (!k) return false; const v = JSON.parse(sessionStorage.getItem(k)); fn(v); sessionStorage.setItem(k, JSON.stringify(v)); return true; };
+  const done = [];
+  done.push(edit(':zigoals:platform:v1', p => {
+    if (p.goals?.[0]) { p.goals[0].name = LONG; p.goals[0].target = '123456789012'; }
+    if (p.goals?.[1]) p.goals[1].name = 'A sabbatical year to sail the Mediterranean coast';
+    const usd = p.positions?.find(x => x.valuation?.currency === 'USD'), eur = p.positions?.find(x => x.valuation?.currency === 'EUR');
+    if (usd) usd.valuation.value = '123456789012'; if (eur) eur.valuation.value = '98765432109';
+  }));
+  done.push(edit(':zigoals:habits:v1', h => { if (h.habits?.[0]) h.habits[0].title = 'Read twenty pages of a good book before bedtime'; }));
+  done.push(edit(':zigoals:health:v1', h => {
+    if (h.foods?.[0]) h.foods[0].name = 'Overnight oats with blueberries, almonds and honey';
+    const day = h.exercise?.days?.at(-1); if (day) day.count = 9999;
+  }));
+  return done;
+}
+
 // ---- the checks, run in the page ----
 function inspect() {
   const EXCLUDE = '.ai-launcher, .ai-launcher-root, [class*="ai-launcher"], .music-launcher, [class*="music-launcher"], [data-point-tell], .zigi-edge-tab, .sr-only, .visually-hidden';
@@ -139,13 +161,20 @@ function inspect() {
   const W = innerWidth;
   // Visible: rendered, not inside a closed <details> (other than its summary), not off the page, and not scrolled out of an
   // ancestor that clips (a swipeable row shows only what is in it).
-  const inClosedDetails = el => { const d = el.closest('details:not([open])'); return !!d && !el.closest('summary'); };
+  // Hidden inside any closed <details> unless it is that details' own summary (nested folds included).
+  const inClosedDetails = el => { for (let d = el.parentElement?.closest('details:not([open])') ?? (el.matches('details:not([open])') ? el : null); d; d = d.parentElement?.closest('details:not([open])')) { const own = [...d.children].find(c => c.tagName === 'SUMMARY'); if (!own || !own.contains(el)) return true; } return false; };
   const outOfClip = el => { const r = el.getBoundingClientRect(); for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) { const st = getComputedStyle(a); if (st.overflowX !== 'visible' || st.overflowY !== 'visible') { const c = a.getBoundingClientRect(); if (r.right <= c.left + 1 || r.left >= c.right - 1 || r.bottom <= c.top + 1 || r.top >= c.bottom - 1) return true; } } return false; };
   const shown = el => { if (el.closest(EXCLUDE) || el.closest('[hidden], [inert], [aria-hidden="true"]') || inClosedDetails(el)) return false; const s = getComputedStyle(el); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity === 0) return false; const r = el.getBoundingClientRect(); if (r.width <= 0 || r.height <= 0) return false; if (r.bottom + scrollY <= 0 || r.right + scrollX <= 0 || r.left >= document.documentElement.scrollWidth) return false; return !outOfClip(el); };
   const clipped = el => { const s = getComputedStyle(el); return el.getAttribute('clip-path') || s.clipPath !== 'none' && s.clipPath.includes('inset(50%') || (s.position === 'absolute' && el.getBoundingClientRect().width <= 1); };
   const desc = el => { const c = typeof el.className === 'string' ? el.className.trim().split(/\s+/).slice(0, 2).join('.') : (el.className?.baseVal ?? ''); return `${el.tagName.toLowerCase()}${c ? '.' + c : ''} "${(el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)}"`; };
   const hasOwnText = el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
-  const texts = [...document.querySelectorAll('body *')].filter(el => !(el instanceof SVGElement) && hasOwnText(el) && shown(el) && !clipped(el));
+  // With a modal dialog or sheet open, only it is checked (the page behind is dimmed and inert). Fixed and sticky chrome
+  // (the bars, the dock) is the frame content scrolls under: it is hidden from the screenshot and left out of overlaps.
+  const modal = [...document.querySelectorAll('dialog')].find(d => d.open && d.matches(':modal')) ?? document.querySelector('.phone-sheet[open], [role="dialog"][aria-modal="true"]');
+  const scope = modal ?? document.body;
+  const fixedOf = el => { for (let a = el; a && a !== document.body; a = a.parentElement) { const pos = getComputedStyle(a).position; if (pos === 'fixed' || pos === 'sticky') return a; } return null; };
+  if (!modal) for (const el of document.querySelectorAll('body *')) { const pos = getComputedStyle(el).position; if (pos === 'fixed' || pos === 'sticky') el.setAttribute('data-audit-fixed', ''); }
+  const texts = [...scope.querySelectorAll('*')].filter(el => !(el instanceof SVGElement) && hasOwnText(el) && shown(el) && !clipped(el) && (modal || !fixedOf(el)));
   // scroll
   const over = document.documentElement.scrollWidth - W; if (over > 1) out.push({k: 'scroll', w: `${over}px wider than the window`});
   // clip
@@ -161,18 +190,22 @@ function inspect() {
     let scroller = el.parentElement; while (scroller && scroller !== card) { const ox = getComputedStyle(scroller).overflowX; if (ox !== 'visible') break; scroller = scroller.parentElement; }
     if (scroller && scroller !== card) continue; // inside its own scroller (a swipeable row): fine
     const r = el.getBoundingClientRect(), c = card.getBoundingClientRect();
-    const range = document.createRange(); range.selectNodeContents(el); const t = range.getBoundingClientRect();
+    // Only the element's own text runs (a screen-reader-only child is not on the page).
+    const range = document.createRange(); let t = null;
+    for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; range.selectNodeContents(n); const b = range.getBoundingClientRect(); t = t ? {left: Math.min(t.left, b.left), right: Math.max(t.right, b.right)} : {left: b.left, right: b.right}; }
+    if (!t) continue;
     if (t.right > c.right + 2 || t.left < c.left - 2) out.push({k: 'spill', w: `${desc(el)} runs ${Math.round(Math.max(t.right - c.right, c.left - t.left))}px past ${desc(card).split(' ')[0]}`});
     void r;
   }
   // overlap: text runs against text or icons inside one card
   const boxes = [];
-  for (const el of texts) { const range = document.createRange(); for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) boxes.push({el, r, card: el.closest(CARD) ?? document.body}); } }
-  const icons = [...document.querySelectorAll('svg, img')].filter(el => shown(el) && !el.closest('.glass-ring-art, .scene-art, .site-footer-art, .site-footer-line, [class*="chart"], [class*="sparkline"], .glass-ring') && el.getBoundingClientRect().width < 64).map(el => ({el, r: el.getBoundingClientRect(), card: el.closest(CARD) ?? document.body, icon: true}));
+  for (const el of texts) { if (getComputedStyle(el).textOverflow === 'ellipsis') continue; /* reported as clip; its range runs past the cut */ const range = document.createRange(); for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) boxes.push({el, r, card: el.closest(CARD) ?? document.body}); } }
+  const icons = [...scope.querySelectorAll('svg, img')].filter(el => shown(el) && (modal || !fixedOf(el)) && !el.closest('.glass-ring-art, .scene-art, .site-footer-art, .site-footer-line, [class*="chart"], [class*="sparkline"], .glass-ring') && el.getBoundingClientRect().width < 64).map(el => ({el, r: el.getBoundingClientRect(), card: el.closest(CARD) ?? document.body, icon: true}));
   const all = [...boxes, ...icons];
   const seen = new Set();
   for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
     const a = all[i], b = all[j]; if (a.card !== b.card || a.el === b.el || a.el.contains(b.el) || b.el.contains(a.el)) continue;
+    if (fixedOf(a.el) !== fixedOf(b.el)) continue; // a sticky header or footer passing over scrolling content: by design
     if (a.icon && b.icon) continue;
     const x = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), y = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
     if (x > 2 && y > 3) { const key = `${desc(a.el)}|${desc(b.el)}`; if (seen.has(key)) continue; seen.add(key); out.push({k: 'overlap', w: `${desc(a.el)} overlaps ${desc(b.el)} (${Math.round(x)}×${Math.round(y)})`}); }
@@ -181,7 +214,7 @@ function inspect() {
   const NUM = /^[\s+−\-–]*(US\$|€|\$|£)?\s?[\d.,  ]+\s?(%|kcal|kg|lb|mL|ml|h|min|XP|ZIG|USD|EUR|€|\$)?$/;
   for (const el of texts) { const t = (el.textContent ?? '').trim(); if (!NUM.test(t) || !/\d/.test(t)) continue; const range = document.createRange(); range.selectNodeContents(el); const tops = new Set([...range.getClientRects()].filter(r => r.width > 1).map(r => Math.round(r.top))); if (tops.size > 1) out.push({k: 'wrap', w: `${desc(el)} breaks onto ${tops.size} lines`}); }
   // ring
-  for (const g of document.querySelectorAll('.glass-ring')) {
+  for (const g of scope.querySelectorAll('.glass-ring')) {
     if (!shown(g) || !(g.textContent ?? '').trim()) continue;
     const R = g.getBoundingClientRect(), cx = R.left + R.width / 2, cy = R.top + R.height / 2, arc = g.querySelector('.glass-ring-arc, .glass-ring-track'), band = arc ? parseFloat(getComputedStyle(arc).strokeWidth) : 10, inner = R.width / 2 - band;
     const range = document.createRange(); let worst = -Infinity;
@@ -189,7 +222,7 @@ function inspect() {
     if (worst > 0) out.push({k: 'ring', w: `${desc(g)} label reaches ${Math.round(worst * 10) / 10}px into the band (ring ${Math.round(R.width)}px)`});
   }
   // target
-  for (const el of document.querySelectorAll('a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option]')) {
+  for (const el of scope.querySelectorAll('a[href], button, input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=switch], [role=checkbox], [role=radio], [role=option]')) {
     if (!shown(el)) continue; const r = el.getBoundingClientRect();
     if (r.width >= 44 && r.height >= 44) continue;
     const s = getComputedStyle(el);
@@ -199,9 +232,14 @@ function inspect() {
     if (el.closest('table, .data-table, [role=listbox]') && r.height >= 40) continue;
     out.push({k: 'target', w: `${desc(el)} is ${Math.round(r.width)}×${Math.round(r.height)}`});
   }
-  // contrast samples for the Node side: text colour and box (page coordinates)
+  // contrast samples for the Node side: text colour and box (page coordinates). Text under an open popover, menu or sticky
+  // bar is what the popover covers, not what a reader sees: left out.
+  const covers = [...scope.querySelectorAll('.card-options-panel, .showcase-chip-panel, .wealth-other-chip-panel, [role="menu"], [role="dialog"]:not(dialog), [popover]:popover-open')].filter(c => shown(c)).map(c => ({c, r: c.getBoundingClientRect()}))
+    .concat([...scope.querySelectorAll('*')].filter(el => { const pos = getComputedStyle(el).position; return pos === 'sticky' && modal; }).map(c => ({c, r: c.getBoundingClientRect()})));
+  const covered = el => { const r = el.getBoundingClientRect(); return covers.some(({c, r: k}) => !c.contains(el) && r.left < k.right && r.right > k.left && r.top < k.bottom && r.bottom > k.top); };
   const samples = [];
   for (const el of texts) {
+    if (covered(el)) continue;
     const s = getComputedStyle(el); if (el.closest('button:disabled, [aria-disabled="true"], .site-footer-art')) continue;
     if (s.webkitTextFillColor === 'rgba(0, 0, 0, 0)' || s.color === 'rgba(0, 0, 0, 0)' || s.backgroundClip === 'text') continue; // gradient text: checked by eye
     // rgb()/rgba() give 0–255 channels; color(srgb r g b / a) (what color-mix computes to) gives 0–1.
@@ -209,14 +247,17 @@ function inspect() {
     const alpha = m[3] === undefined ? 1 : +m[3]; if (srgb) for (let i = 0; i < 3; i++) m[i] = String(Math.round(+m[i] * 255));
     const range = document.createRange(); range.selectNodeContents(el); const r = range.getBoundingClientRect(); if (r.width < 4 || r.height < 6) continue;
     const size = parseFloat(s.fontSize), bold = +s.fontWeight >= 700;
-    samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)});
+    samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)});
   }
-  return {out, samples};
+  return {out, samples, modal: !!modal};
 }
 
-function contrast(png, samples) {
+function contrast(pngs, samples) {
+  // pngs: [{top, png}] slices of the page (a single full-page capture tops out near 16,000 px, so tall pages come in slices)
   const found = [];
   for (const s of samples) {
+    const slice = pngs.find(x => s.y - 4 >= x.top && s.y + s.h + 4 <= x.top + x.png.height); if (!slice) continue;
+    const png = {at: (x, y) => slice.png.at(x, y - slice.top)};
     // The background: the most common colour on the box's edge just outside the glyphs, read from the screenshot.
     const pts = []; const step = Math.max(2, Math.round(s.w / 12));
     for (let x = s.x; x <= s.x + s.w; x += step) { pts.push(png.at(Math.round(x), Math.round(s.y - 1)), png.at(Math.round(x), Math.round(s.y + s.h + 1))); }
@@ -244,7 +285,7 @@ for (const width of WIDTHS) {
     const ctx = await browser.newContext({...(phone ? devices['iPhone 13'] : {}), viewport: {width, height: phone ? 844 : 900}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
     await ctx.route('**/api/**', r => r.fulfill({status: 503, json: {error: 'audit fixture offline'}}));
     const p = await ctx.newPage();
-    if (!fresh) { await p.goto(base + '/app/settings'); await btn(p, 'Load Showcase Demo').click(); await p.waitForURL('**/app'); await p.waitForTimeout(800); }
+    if (!fresh) { await p.goto(base + '/app/settings'); await btn(p, 'Load Showcase Demo').click(); await p.waitForURL('**/app'); await p.waitForTimeout(800); if (stress) console.log('stress records rewritten:', JSON.stringify(await p.evaluate(stressRecords))); }
     for (const st of todo) {
       const key = `${st.name}@${width}${engine === 'webkit' ? '-webkit' : ''}`;
       try {
@@ -253,11 +294,15 @@ for (const width of WIDTHS) {
         await p.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 700) { scrollTo(0, y); await new Promise(r => setTimeout(r, 90)); } scrollTo(0, 0); });
         if (st.steps) await st.steps(p);
         await p.waitForTimeout(500);
-        const {out, samples} = await p.evaluate(inspect);
-        const shot = await p.screenshot({fullPage: true, type: 'png', animations: 'disabled', caret: 'hide'});
-        const all = [...out, ...contrast(readPng(shot), samples)];
+        const {out: found, samples, modal} = await p.evaluate(inspect);
+        const shotOpts = {type: 'png', animations: 'disabled', caret: 'hide', style: '[data-audit-fixed] { visibility: hidden !important; }'};
+        const pngs = [];
+        if (modal) pngs.push({top: 0, png: readPng(await p.screenshot(shotOpts))});
+        else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
+        const all = [...found, ...contrast(pngs, samples)];
         report.states[key] = all;
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
+        writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});
         if (st.after) await st.after(p).catch(() => {});
         await p.keyboard.press('Escape').catch(() => {});
       } catch (e) { report.states[key] = [{k: 'error', w: String(e).split('\n')[0]}]; console.log(`${key}: could not run (${String(e).split('\n')[0]})`); }
@@ -268,8 +313,9 @@ for (const width of WIDTHS) {
 await browser.close();
 const counts = {}; for (const list of Object.values(report.states)) for (const f of list) counts[f.k] = (counts[f.k] ?? 0) + 1;
 report.counts = counts;
-writeFileSync(`${out}/layout-audit-${engine}.json`, JSON.stringify(report, null, 1));
-const md = [`# Layout audit (${engine}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
+const tag = `${engine}${stress ? '-stress' : ''}`;
+writeFileSync(`${out}/layout-audit-${tag}.json`, JSON.stringify(report, null, 1));
+const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
   ...Object.entries(report.states).filter(([, l]) => l.length).flatMap(([k, l]) => [`## ${k}`, ...l.map(f => `- **${f.k}** ${f.w}`), ''])].join('\n');
-writeFileSync(`${out}/layout-audit-${engine}.md`, md);
+writeFileSync(`${out}/layout-audit-${tag}.md`, md);
 console.log('counts', JSON.stringify(counts));

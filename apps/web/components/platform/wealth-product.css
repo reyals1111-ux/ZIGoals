@@ -32,3 +32,10 @@
   .wealth-product.wealth-workspace .wealth-hero.wealth-summary > .wealth-hero-total { padding: 16px 16px 18px; }
   .wealth-product .wealth-summary .wealth-hero-total > span:first-of-type { padding-right: 48px; white-space: nowrap; letter-spacing: .1em; }
 }
+/* Phase 2 closing pass (layout audit, 320–420 px): the summary's label wraps beside the ⋯ rather than running under it,
+   the two split figures stack, and the currency note stays inside its box. */
+@media (max-width: 420px) {
+  .wealth-product .wealth-summary .wealth-hero-total > span:first-of-type { white-space: normal; }
+  .wealth-product .wealth-summary .wealth-split { grid-template-columns: minmax(0, 1fr); }
+  .wealth-product .wealth-total-fx { max-width: 100%; overflow-wrap: anywhere; }
+}

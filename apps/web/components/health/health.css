@@ -262,3 +262,7 @@
 .health-page .page-header.health-heading { background: none; border: 0; box-shadow: none; padding: 0; margin: 10px 0 24px; }
 .health-page .page-header.health-heading h1 { font-size: clamp(2rem, 4vw, 3.2rem); }
 .health-page .page-header.health-heading .health-privacy-link { min-height: 44px; display: inline-flex; align-items: center; }
+/* Phase 2 closing pass (layout audit): the measurement history's paging buttons are full-size targets. */
+nav[aria-label="Measurement history pages"] button { min-height: 44px; }
+/* Phase 2 closing pass: weights in the history table keep their unit beside the number. */
+:root .health-page table td { white-space: nowrap; }
