@@ -11,13 +11,15 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AA-Local (deliberate): the release's own topic, before the earlier ones.
   ['aa', 'Best in class, and ZIGi knows every bit of it'],
   // Session AB-Cloud (ADR-023, deliberate): this release's topic, after AA-Local's.
-  ['ab', 'Everything travels with you, and nothing is lost'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['ab', 'Everything travels with you, and nothing is lost'],
+  // Session AB-Design (ADR-024, deliberate; the second merger): this release's topic, after AB-Cloud's.
+  ['abd', 'Goals, Habits & Health = Wealth, in one calm look'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'What\'s new', 'Known limitations', 'Send feedback'];
 
-test('Help has one title and thirteen topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and fourteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');

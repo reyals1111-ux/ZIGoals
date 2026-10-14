@@ -60,12 +60,15 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session W Part 24: no promise that everything stays on this device (Spotify and chess reach their own sites).
   await expect(card).toContainText('Each one is optional, and nothing changes until you use it.');
   await expect(card).not.toContainText('stays on this device');
-  // Session AB-Cloud (ADR-023, deliberate): this release's links are the card's own; AA-Local's, AA-Cloud's, Z-Local's,
-  // Z-Cloud's, Y's, X-Local's, W's and V's wait under "Earlier updates", AA-Local's first.
-  await card.getByRole('link', {name: 'Restore from a backup: see what it holds, merge or replace, Undo'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-ab-restore$/);
-  await expect(page.locator('#help-ab-restore')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-ab-restore')).toContainText('nothing changes until you confirm');
+  // Session AB-Design (ADR-024, deliberate; the second merger): this release's links are the card's own; AB-Cloud's,
+  // AA-Local's, AA-Cloud's, Z-Local's, Z-Cloud's, Y's, X-Local's, W's and V's wait under "Earlier updates", AB-Cloud's first.
+  await card.getByRole('link', {name: 'The footer banner: Goals, Habits & Health = Wealth'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-abd-footer$/);
+  await expect(page.locator('#help-abd-footer')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-abd-footer')).toContainText('the Alpha’s full disclaimer');
+  await page.goto('/app');
+  await revealUpdates(page);
+  await expect(card.getByRole('link', {name: 'Restore from a backup: see what it holds, merge or replace, Undo'})).toHaveCount(0);
   await page.goto('/app');
   await revealUpdates(page);
   await expect(card.getByRole('link', {name: 'Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines'})).toHaveCount(0);
@@ -79,15 +82,16 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await card.getByText('Earlier updates', {exact: true}).click();
   const earlier = card.locator('.whats-new-earlier').getByRole('link');
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
-  // Session AB-Cloud (ADR-023, deliberate): AA-Local's seven links now lead, so every pinned position moves by seven.
-  await expect(earlier.first()).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
-  await expect(earlier.nth(7)).toHaveText('Every page starts with what matters most');
-  await expect(earlier.nth(15)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
-  await expect(earlier.nth(19)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(26)).toHaveText('End a vacation early');
-  await expect(earlier.nth(30)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
-  // AA-Local's release leads "Earlier updates" (its own assertions, kept): the habits answer.
-  await earlier.first().click();
+  // Session AB-Design (ADR-024, deliberate): AB-Cloud's six links now lead, so every pinned position moves by six.
+  await expect(earlier.first()).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
+  await expect(earlier.nth(6)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
+  await expect(earlier.nth(13)).toHaveText('Every page starts with what matters most');
+  await expect(earlier.nth(21)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(25)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(32)).toHaveText('End a vacation early');
+  await expect(earlier.nth(36)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  // AA-Local's release follows AB-Cloud's (its own assertions, kept): the habits answer.
+  await earlier.nth(6).click();
   await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
   await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
   await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');
