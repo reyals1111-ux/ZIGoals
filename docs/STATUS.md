@@ -1,3 +1,72 @@
+# Session AB-Design Phase 2 — "Finish everything, nothing half done" (ADR-024 P1–P20, the closing pass, Gate C) (2026-10-14/15, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), Ready for review, not merged)
+**Evidence labels:** local = this Mac, production builds on :3104 with `TZ=UTC`, Chrome (channel) and WebKit through Playwright, at most 2 workers, nothing in parallel; CI = GitHub Actions on the PR head. No paid model calls.
+**Base:** the Phase 1 head `09b2d307`; `main` `985720ee` (AB-Cloud's PR #85, Alpha #40, recorded below) merged in as the second merger (`201c0305`, both sides kept). **Model:** Opus 5.5. **Rules for the finish (owner):** today-screens by layout only, no ceiling or budget raised, CI fully green with the Workers security gate completing, a rotating WebKit flake proven on AB-Cloud's pre-merge runs recorded with evidence instead of looped on.
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | The proof table: every request's sub-points against Phase 1's captures (`docs/product/OWNER_UI_REQUESTS_AB.md`, "Phase 2 proof") | — | `d46a87c5` `c17032eb` | captures |
+| 1 | Owner corrections: the music button and ZIGi float over the page and tuck into the right edge (P1, P2); the footer banner rebuilt to the brief, the origami logo as the "Z" (P6); small fixes (P4) | 2 | `2a3ca945` | local |
+| 2 | The 4-in-1 identity: one pillar header on Goals, Habits, Health, Wealth and the Journey (P5); Today's Life overview in four pillar rings (P7); a light of its own per card scene (P8); `[TIER 3] (storage)` Today's device-only cards in the display preferences | 2, 3 | `2d678c75` `a2ebfe67` | local |
+| 3 | One card header, one empty state, real loading placeholders (P9) | 2 | `668e8bb5` | local |
+| 4 | One chart language: the chart kit, then weight, pace, calculator, measurements, wealth over time and the price chart on it (P10) | 2 | `41d6d542` `b49af7d6` | local |
+| 5 | Health: highlight tiles, the planner as a day swiper on phones, the grocery list, nutrients and vitamins (P12) | 2 | `271dfecc` | local |
+| 6 | Habits: a sky per time of day; the routine player full screen with ZIGi's fixed guiding lines (P13) | 2 | `7024f952` | local |
+| 7 | Goals: the amount on phone cards, the tree from one root, the redrawn illustrations (P14) | 2 | `8f68f996` | local |
+| 8 | Today and the game: Journey widgets through the widget picker, the compact Journey card (P15) | 2 | `3e648922` | local |
+| 9 | The Life review as a small magazine (P16) | 2 | `5ea8b8db` | local |
+| 10 | More, search with pillar shortcuts and previews, the illustrated welcome (P17) | 2 | `0587279d` | local |
+| 11 | Copy: one quiet "Showcase" tag inside cards (P18) | 2 | `b2a52a21` | local |
+| 12 | The second merger: `main` (AB-Cloud's #85) merged, both sides kept, AB-Cloud's pieces wired ("Change artwork" saves, the base currency default) (P11); `[TIER 3] (public-safety labels)` the footer banner as a server component with small client islands (P20); the merged-tree fixes; AB-Cloud's phone Settings scripts retargeted through More | 3 | `201c0305` `08ed4529` `dc787a2a` `3ff81da8` | local, CI |
+| 13 | What's new (release `2026-10-session-ab-design`) and the Help topic "New: one 4-in-1 look" (P19) | — | `dd13088d` | local |
+| 14 + closing pass | Rings at the source; the layout audit tool and its fixes (every route and state, 320–1920 Chrome, 390 WebKit, touch 768/1024, stress); 44 px targets on touch tablets; interaction states; the 4-in-1 consistency review; the design critique (item 6); one shared 30-second clock; Habit consistency with the page; the focus rescue | 2 | `615956e6` `3762413b` `6572f861` `5d63caa0` `e12e2864` `1d485832` `778b3998` `ac2f4c56` `74d50a3c` `9cc176e2` `be43ea5d` `7162a9d2` `05bd23e1` `d77dd66f` `f3b8a870` `7f4330e7` `2879a361` `c581109b` | local, CI |
+| CI | `[TIER 3] (CI)`: the Alpha artifact checks and the Workers security gate in their own job (the integration job had reached its limit: split, not dropped or weakened); the browser suite in four shards | 3 | `e6d3218e` `646f26e7` | CI |
+| Gate C | The final captures read and fixed; the drawn checkbox reverted; design critique rounds 1 and 2 fixed; today-screens under its ceiling at every hour by layout; Habits' upper sections with the page; the audit reports | — | `072ef6d2` `b39b16d2` `0179533f` `30806b17` `34336862` | local, CI |
+| Records | ADR-024 P1–P20, assertions changed, Resume-here checkpoints | — | `d6c7fabc` `fafcf784` `1c91509b` `25ccb812` | — |
+| — | This entry, PR Ready for review | — | this commit | — |
+## Tier 2, in plain words (owner visual OK)
+The four pillar pages share one header, one card header, one empty state and one chart language; Today has a Life overview in the four pillar colours; Health, Habits, Goals, the Life review, More, search and the welcome got their premium pass; the floating buttons stay on top of the page and tuck into the right edge; the footer banner carries the origami logo as its "Z". Every ring keeps its number inside; nothing scrolls sideways, clips, overlaps or wraps a figure at 320–1920 px; touch targets are 44 px on phones and touch tablets.
+## Tier 3, in plain words (risk → rollback)
+- **Storage (`2d678c75`):** Today's device-only cards (whether the Life overview shows, the Journey widgets chosen in the picker) are optional fields of the loose, never-synced `zigoals:ui-prefs:v1` record, because the synced dashboard's widget kinds are a strict enum older builds would refuse; a bad reader could hide those cards on that device. Rollback: revert; older builds ignore the fields, nothing is migrated or synced.
+- **Public-safety labels (`08ed4529`):** the footer's honesty spans (with the hosted verifier's class names) render on the server, so they arrive with the HTML, also without JavaScript. Risk: a span missing if its facts were absent; same spans and class names as before. Rollback: revert (the footer becomes a client component again).
+- **CI (`e6d3218e`):** the Alpha artifact checks, the Run11 package and the Workers security gate run in their own job with their own build. Risk: a moved step relied on the integration job's state (none found). Rollback: revert.
+- **CI (`646f26e7`):** the browser suite in four shards (shard 1 of 3 had reached 60 min). No coverage change; every test runs once. Rollback: revert.
+- Nothing in wallet, signing, keys or chain configuration changed.
+## Tests and assertions changed
+- Every changed assertion is listed with its reason in ADR-024 "Phase 2 — assertions changed"; none weakened. The latest: the relay size cap (declared size), `portfolio` (waits for Wealth's later sections), `zigi-alive` (`test.slow()`), `zigi-proactive` (opens "Show more" until the brief is there), the S64 prefetch filter one segment deeper, `a11y-wcag-x` contrast (waits out a page's one-time entrance).
+- Unit (local, the final code): 558 files / 4,891 tests passed, 56 skipped by design.
+- Browser (local): the full suite once, 2 workers, on `b39b16d2`'s build: 2,132 passed, 0 failed, 560 skipped (56.4 min). Later changes in focused production runs: the round-2 Chrome set, 200 passed and 2 failed (the two `a11y-wcag-x` intermittents, both fixed in `30806b17`); on the final build `a11y-wcag-x`, the Habits specs, motion and page order 198 passed, 0 failed; WebKit `zigi-proactive`, smoke and phone set 17 passed.
+- Layout audits (local, `30806b17`'s production build, `docs/verification/ab-design/LAYOUT_AUDIT.md`): no findings in Chrome at 320–1920 (531 states), with the stress records at 320/390/1440 (200), on touch at 768/1024 (132) and in WebKit at 390 (67).
+- today-screens: max 11.424 over the day (hours-probe), 5.67 local; ceilings 11.5 / 5.8 unchanged.
+- Weights (final build, `scripts/check-weight-budget.mjs`): every page under budget, none raised: Today 514.5 of 515 kB, Goals 431.2 of 434, Habits 457.2 of 458, Health 479.9 of 482, Wealth 451.7 of 465, Markets 428.8 of 432, Portfolio 451.1 of 454, Staking 438.1 of 442, Activity 405.6 of 415, Settings 478.6 of 482, Help 399.8 of 409, Chess 408.7 of 417, shell 395.7 of 406.
+- Key scans (`30806b17`): `scripts/check-secrets.mjs` passed (0 allowlisted values); `scripts/zigi/key-sweep.mjs` clean (5 patterns over the diff, both histories and 13 folders).
+- Revert gate (scratch worktree, `typecheck` after each step): every Phase 2 commit after the merge of `main` reverts newest-first and typechecks (`b2a52a21` and `b49af7d6` together with `dc787a2a`); the merge and the commits before it revert to Phase 1's final tree `09b2d307`; the two later commits revert to `0179533f` (ADR-024).
+- Design critique: round 1 (1440, 57 files) 15 findings, 10 fixed, 5 judged; round 2 (390 in two halves, the other 32 desktop files, a re-check) about ninety items, fixed or judged with reasons (ADR-024).
+- CI on `30806b17` (the last code change; [Milestone quality run 38690281909](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38690281909)): `web`, web checks (lint, types, unit, build, audit, secret scan), the four browser shards, web integration, the Alpha gate (the Alpha artifact, the full Run11 package and the Workers security gate, completed), `contract` green; Canonical reproducibility green; WebKit (advisory) shard 2 green, shard 1: 217 passed, 1 failed ("WebKit encountered an internal error" on a test's first `page.goto`, below). The final head (this entry): see the PR.
+## Known CI intermittents (this session)
+- WebKit (advisory): the rotating `zigi-accept-correct` set and `webkit-zigi-freeze` (phone): the chat's card is gone right after Add or Undo. The same shape failed on AB-Cloud's pre-merge runs (38509848456, 38510173374), and run 38505226605 on `e57ab538` failed the identical freeze case and create-habit weekdays case seen on `25ccb812`; the full WebKit set locally, 2 workers: 431 passed, 0 failed. Recorded with evidence (ADR-024), not looped on.
+- Alpha gate on `25ccb812` (once): the packaged goal journey's click on Habits' "All" missed; it fits the late Routines list that `30806b17` removed (probable, the trace artifact was not downloaded); green on `30806b17`.
+- WebKit "internal error" on a test's first `page.goto('/app')` (an engine crash during navigation): `3762413b` (phone) and `30806b17` (desktop); not seen in the 15 failed WebKit jobs of AB-Cloud, AA-Cloud and AA-Local; an earlier session saw it locally only with typecheck and lint beside WebKit.
+## Owner items
+- Inter (D1, a font decision).
+- One palette for life areas and pillars (AA-Cloud's Health teal against the pillar Health pink).
+- Today's and Wealth's repeated modules (the built-in habits card and a placed habits widget; Wealth's three holdings lists): a structural layout decision.
+- Midnight activity times and the mixed date formats (critique round 1).
+- Meet ZIGi's state gallery and the two Water cards on Health: content for their owners.
+
+---
+
+# Alpha deploy #40 — 2026-10-14, `985720e` live
+Recorded by Session AB-Design (2026-10-15).
+- **Source:** `985720ee2fef2d2868fc0ef87a43d95d52dd0242`, `main` after [PR #85](https://github.com/reyals1111-ux/ZIGoals/pull/85) (Merge #85, Session AB-Cloud, "Everything left over + private sync for every feature", ADR-023).
+- **CI:** Milestone quality #923 ([run 38528927892](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38528927892)) on `985720e` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 42 ([run 38536440733](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38536440733)), dispatched 2026-10-14 08:37:36 UTC from `main`, exact source `985720e`; the deploy job ran 10:42:30–10:43:57 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 4 reads; live prices `VERIFIED`; the market policy period ends 2026-10-31T16:00Z (17 days left at the deploy). Verified: the deploy run's CI log.
+- **Alpha Worker `zigoals-alpha`:** live version `6a46c6cd-4fc2-47a3-9fd3-fb6cd967d2d4`; rollback `3bcf2886-4cc6-4ab4-be2b-3518b59f2b72` (#39). Verified: CI log ("New version ID", "Rollback version ID"); owner-reported values identical. Evidence artifact `alpha-deployment-38536440733-1`.
+- **What went live:** Session AB-Cloud (ADR-023) on top of AA-Local (ADR-022). Session AB-Design (PR #86) is not in it.
+- **Record note:** run number 42 is Alpha #40 (the run number runs two ahead of the Alpha count, as in the earlier records).
+
+---
+
 # Session AB-Design — "The giant UI upgrade: one premium 4-in-1 app" (ADR-024) (2026-10-14, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), Draft → Ready for review, not merged)
 **Evidence labels:** local = this Mac, production builds on :3104 with `TZ=UTC`, Chrome (channel) and WebKit through Playwright; CI = GitHub Actions on the PR head. No paid model calls this session.
 **Base:** `main` `6c1052b2` (Alpha #39 per the owner). **Parallel lane:** AB-Cloud (`feature/session-ab-cloud`, ADR-023); the handoffs are `docs/handoff/AB_DESIGN_TO_CLOUD.md` and `AB_CLOUD_TO_DESIGN.md`; whichever PR merges second carries both sides (ADR-024 "Consequences").
