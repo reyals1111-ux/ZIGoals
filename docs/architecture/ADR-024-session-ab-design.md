@@ -224,6 +224,8 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   line 34, the same check the old 1.1 MB string body reached). Sending the whole body raced that early refusal: the
   client was still writing when the relay closed the connection (`terminated`, EPIPE) in a loaded unit run. The fixture's
   `call` passes a stream body through with `duplex: 'half'`. The reply-size half of the test is unchanged.
+- `zigi-alive.spec.ts` "idle that feels alive": `test.slow()` (≈ 630 one-second clock steps; 30–53 s of 60 s on CI's
+  WebKit on AB-Cloud's and this branch's runs); no step or check changed.
 - `portfolio.spec.ts` ("Wealth is untouched"): both reads of Wealth's text wait until none of its later sections is still
   loading (`main [aria-busy="true"]` count 0). This branch loads four Wealth sections on their own (weights); the cold
   first visit read the page before they arrived and the warm second one after. The equality itself is unchanged.
@@ -414,8 +416,20 @@ timer for many listeners, the last listener stopping it, a listener leaving whil
 `zigi-alive` "idle that feels alive" (desktop, 60 s) steps the clock one second at a time ≈ 630 times; from the job
 logs' timestamps it took 30–48 s on AB-Cloud's runs and ≈ 53 s on this branch's passing ones, so CI's general WebKit
 slowdown on these heavier pages tips it over; locally it takes 11 s of its 60 s and no timer or animation runs during
-its steps (measured: 120 steps, 1.2 s, no animation frame loop, no endless CSS animation on any page). It is recorded
-with the rotating WebKit set below if it still fails once the shared clock is in.
+its steps (measured: 120 steps, 1.2 s, no animation frame loop, no endless CSS animation on any page). With the shared
+clock in, CI on `1c91509b` passed it in ≈ 52 s and both WebKit shards were back in AB-Cloud's range (20.1 and 26.4 min
+against 17.5–26.8); since it sits near its 60 s on `main`'s code too, it takes `test.slow()` as `zigi-simulated-day`
+does — a time budget, not an assertion: every step and check is unchanged.
+**The rotating WebKit set (owner's rule: evidence, not a loop).** `zigi-accept-correct` (the 40-odd "accepted means the
+record is exactly right, and Undo puts it back" cases, mostly on the phone profile) fails one to three different cases
+per WebKit run: the chat's last card is gone right after Add or Undo (`.ai-card` not found), and once WebKit itself
+failed a `page.goto` ("WebKit encountered an internal error"). The same shape failed on AB-Cloud's own pre-merge runs
+before this branch existed on `main`: run 38509848456 (`732a2055`: create-habit weekdays, log-sleep nap, log-mood),
+38505226605 (`e57ab538`: create-habit weekdays), 38510173374 (`870c3929`: create-habit daily, Asia/Tokyo, desktop);
+here 7162a9d2 (stop-fast), 05bd23e1 (create-habit daily), 1c91509b (log-food, edit-habit, import-recipe). A real local
+attempt under the same load: the full WebKit set, two workers, production build — 431 passed, 0 failed (c13, all
+accept-correct cases included); never reproduced. WebKit stays the advisory job it is (AB-Cloud C29); recorded here and
+in the report, not looped on.
 Also from CI on `7162a9d2`: Today's 320 px life card spilled 1 px because the empty Wealth sentence ("Your first asset
 starts here") had taken the figure's one-line rule (it wraps now; `run10-widgets`); the phone footer's chips were
 squeezed below 44 px under 390 px and its Back to top kept a desktop padding through a more specific selector (they
