@@ -51,7 +51,7 @@ export function ActivityFeed({ limit = 6, category = "ALL", includeGoals = true,
         {startsDay && <h3 className="activity-date-heading">{heading}</h3>}
         <article className="activity-event" data-category={event.category} data-tone={presentation.tone}>
           <span className={`timeline-icon timeline-${presentation.tone}`}><AppIcon name={presentation.icon} size={28} /></span>
-          <div className="activity-event-content"><span className="activity-category-label">{presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
+          <div className="activity-event-content"><span className="activity-category-label">{presentation.label === event.title ? null : presentation.label}{(zigi.ids.has(event.id) || event.id.startsWith("zigi:")) && <span className="activity-by-zigi">{autoById.get(event.id) ? " · Added by ZIGi (auto-accept)" : " · by ZIGi"}</span>}</span><Link href={event.href}>{event.title}</Link><p>{event.detail}</p><small>{showcase ? "Showcase example" : 'source' in event ? String(event.source) : event.category === "GOAL" ? "Local simulation · confirmed ledger" : "Private · this browser"}</small></div>
           <time dateTime={event.at}>{formatTime(event.at, { hour: "2-digit", minute: "2-digit", timeZone: activityTimeZone() })}</time>
         </article>
       </li>;

@@ -10,7 +10,7 @@ import {useGame} from './use-game';
 import {CelebrationHost} from './celebration';
 import {GameSetting} from './game-setting';
 import {applyFreeze} from '../../lib/game/freeze';
-import {formatDate} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import './game.css';
 
@@ -34,7 +34,7 @@ export function JourneyPage() {
     {!game.loaded ? <p role="status">Loading your journey…</p> : !game.enabled ? <section className="panel journey-off"><p className="eyebrow">Optional</p><h2><NebulaFlow identity="journey-off">The game layer is off.</NebulaFlow></h2><p>Turn it on to see your level, three quests a day and the badge cabinet, all from your own records. Off again whenever you like; nothing is stored but the switch.</p><GameSetting /></section> : d && <>
       <section className="panel journey-level" aria-labelledby="journey-level-title"><div className="journey-orb" aria-hidden="true"/>
         <GlassRing identity="journey-ring" className="journey-ring" arcs={[{key: 'level', end: d.xp.level.share * 100}]} role="img" aria-label={`Level ${d.xp.level.level}, ${d.xp.level.name}: ${d.xp.level.into} of ${d.xp.level.span} XP to level ${d.xp.level.level + 1}`}><strong>{d.xp.level.level}</strong><small>level</small></GlassRing>
-        <div className="journey-level-copy"><p className="eyebrow">Level {d.xp.level.level}</p><h2 id="journey-level-title"><NebulaFlow identity="journey-level-name">{d.xp.level.name}</NebulaFlow></h2><p className="journey-level-line">{d.xp.level.into} of {d.xp.level.span} XP to level {d.xp.level.level + 1} · {d.xp.total} XP all told</p>
+        <div className="journey-level-copy"><p className="eyebrow">Level {d.xp.level.level}</p><h2 id="journey-level-title"><NebulaFlow identity="journey-level-name">{d.xp.level.name}</NebulaFlow></h2><p className="journey-level-line">{d.xp.level.into} of {d.xp.level.span} XP to level {d.xp.level.level + 1} · {formatNumber(d.xp.total)} XP all told</p>
           <GlassBar identity="journey-xp" className="journey-xp-bar" role="progressbar" aria-label={`XP to level ${d.xp.level.level + 1}`} aria-valuenow={d.xp.level.into} aria-valuemin={0} aria-valuemax={d.xp.level.span} value={d.xp.level.share}/>
           <dl className="journey-stats"><div><dt>This week</dt><dd>{d.xp.thisWeek} XP</dd></div><div><dt>Last week</dt><dd>{d.xp.lastWeek} XP</dd></div><div><dt>Today</dt><dd>{d.xp.today} XP</dd></div><div><dt>Freezes</dt><dd>{d.freezes}</dd></div></dl></div>
       </section>

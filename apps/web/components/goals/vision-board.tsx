@@ -10,11 +10,13 @@ import {SHOWCASE_VISION_ART} from '../../lib/showcase/vision-art';
 import {ProgressRing} from '../platform/financial-ui';
 import {VisionArt} from './vision-art';
 import {ZigiFigure} from '../zigi/zigi-figure';
+import {progressPresentation} from '../../lib/visual-format';
 import './vision-board.css';
 
 /** A goal without a chosen vision still gets a calm picture: one of the gradients, picked from its key. */
 const fallback = (key: string) => GRADIENTS[[...key].reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7) % GRADIENTS.length]!;
-const progressWords = (g: GoalSummary) => g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${Math.floor(Number(g.progressPct))}% of the way`;
+// Gate C (design critique): the words round as the ring beside them does (the ring read 95 % over "94% of the way").
+const progressWords = (g: GoalSummary) => g.status === 'completed' ? 'Finished' : g.progressBound === 'unavailable' ? 'Progress unknown' : `${progressPresentation(g.progressPct)?.label ?? Math.floor(Number(g.progressPct))}% of the way`;
 
 /**
  * Session AB-Design (owner request 16): the vision board as a real mood board — big pictures in a collage, the goal's

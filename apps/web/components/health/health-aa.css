@@ -182,7 +182,7 @@
 :root .health-micro-list > li > div:first-child { display: grid; gap: 3px; min-width: 0; }
 :root .health-micro-list > li > div:first-child > strong { font-size: 16px; }
 :root .health-micro-list > li > div:first-child > small { line-height: 1.45; }
-:root .health-micro-unknown { display: block; color: #ffe3a1; } /* its own line, so no leading " · " (a hidden ". " keeps the pause for screen readers) */
+:root .health-micro-unknown { display: block; color: #ffe3a1; text-wrap: balance; } /* its own line, so no leading " · " (a hidden ". " keeps the pause for screen readers) */
 :root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #8ab9ff33; background: #0a1430a6; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (min-width: 900px) { :root .health-micro-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 767.98px) { :root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 44px; } }

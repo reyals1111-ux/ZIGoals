@@ -80,7 +80,7 @@ export function LifeReviewView() {
       <section className="panel life-review-hero life-review-cover" aria-labelledby="life-review-highlights">
         {/* Phase 2, Part 9 (owner request 35): the review as a small magazine — this cover, then one chapter per pillar. */}
         <p className="life-cover-kicker" aria-hidden="true">{period === 'week' ? 'Your week' : 'Your month'}, in {financial ? 'four' : 'three'} chapters.</p>
-        <SectionHeading id="life-review-highlights" eyebrow={`${period === 'week' ? 'Your week' : 'Your month'} · ${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" onClick={() => void share()}>Share as an image</button>} />
+        <SectionHeading id="life-review-highlights" eyebrow={`${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" onClick={() => void share()}>Share as an image</button>} />
         {review.highlights.length ? <ul className="life-highlights">{review.highlights.map(h => <li key={h}>{h}</li>)}</ul> : <div className="aa-empty"><h3>A quiet {period}.</h3><p>Check in a habit, log a meal or water, or record a contribution, and your review fills from your own records.</p><Link className="primary" href="/app/habits">Open Habits</Link></div>}
         <dl className="life-counts">
           <div><dt>Habit check-ins</dt><dd>{review.counts.habitCheckIns}</dd></div>

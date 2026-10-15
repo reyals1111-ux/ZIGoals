@@ -45,7 +45,7 @@ function AchievementCard({a, color, vision}: {a: Achievement; color?: string; vi
       {a.areaLabel && <span className="hall-area">{a.areaLabel}</span>}
       {/* The goal's name is its card's title, not a heading: the same goal's own card on Goals already has the heading. */}
       <p className="hall-title">{a.name}</p>
-      <p className="hall-when">{a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished'} · {durationWords(a.days)}</p>
+      <p className="hall-when">{a.finished ? `Finished ${formatDay(a.finished)}` : 'Finished'} · <span className="nowrap">{durationWords(a.days)}</span></p>
       {a.story && <blockquote>{a.story}</blockquote>}
       <div className="hall-actions"><Link className="text-link" href={a.key.startsWith('private:') ? `/app/goals/tracked/${a.key.slice(8)}` : `/app/goals/average/${a.key.slice(8)}`}>Open →</Link><button type="button" className="secondary" disabled={busy} onClick={() => void share()}>{busy ? 'Making the image…' : 'Share image'}</button></div>
     </div>

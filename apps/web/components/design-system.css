@@ -16,7 +16,7 @@
   --accent-cyan: #9ee8f8;
   --accent-violet: #cbbfff;
   --accent-magenta: #f3b0e6;
-  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 60%, #8fa6ff 74%, #c790f6 87%, #f08bd6 100%);
+  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%);
   /* Figures (Phase 2 closing pass, design critique): one continuous pale blend, no hard edge mid-number. */
   --nebula-figure: linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b8ecfb 55%, #b9c6ff 78%, #dcb8fb 100%);
   --page-lede-size: clamp(17px, 1.05vw + 5px, 20px);

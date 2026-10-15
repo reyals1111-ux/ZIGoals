@@ -13,19 +13,24 @@ import { useHabits } from "./use-habits";
 // Session AB-Design Phase 2 (ADR-024): the chunk is fetched as soon as this page's code runs, and the section renders in
 // the page's own pass once it is there (through React.lazy it showed ~0.3 s after everything else, inside the first
 // screen); a chunk that fails to load shows nothing, as the quiet boundary did.
-type ConsistencyView = typeof import("./habit-consistency").HabitConsistency;
-let consistencyView: ConsistencyView | null = null;
-const consistencyLoad = typeof window === "undefined" ? null : import("./habit-consistency").then((m) => (consistencyView = m.HabitConsistency)).catch(() => null);
-function HabitConsistency(props: Parameters<ConsistencyView>[0]) {
-  const [View, setView] = useState<ConsistencyView | null>(() => consistencyView);
-  useEffect(() => {
-    if (View || !consistencyLoad) return;
-    let live = true;
-    void consistencyLoad.then((view) => { if (live && view) setView(() => view); });
-    return () => { live = false; };
-  }, [View]);
-  return View ? <View {...props} /> : null;
+// Gate C: Habit stacks and Routines, the two sections above the filter bar, load the same way. Through React.lazy the
+// Routines list arrived ~0.5 s late under load and pushed the filter bar off the screen while a keyboard user was on it
+// (a11y-wcag-x, "All" not on screen when focused; Phase 1's "Afternoon"/"Evening" intermittent was the same shift).
+function withPage<P extends object>(load: () => Promise<React.ComponentType<P>>) {
+  let ready: React.ComponentType<P> | null = null;
+  const loading = typeof window === "undefined" ? null : load().then((view) => (ready = view)).catch(() => null);
+  return function PageSection(props: P) {
+    const [View, setView] = useState<React.ComponentType<P> | null>(() => ready);
+    useEffect(() => {
+      if (View || !loading) return;
+      let live = true;
+      void loading.then((view) => { if (live && view) setView(() => view); });
+      return () => { live = false; };
+    }, [View]);
+    return View ? <View {...props} /> : null;
+  };
 }
+const HabitConsistency = withPage(() => import("./habit-consistency").then((m) => m.HabitConsistency));
 import { HabitEditor } from "./habit-editor"; // static on purpose: creating or editing a habit must work offline on a device that never opened the editor (CI's L78 offline step hit a chunk load, ADR-022 B48)
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
@@ -52,7 +57,7 @@ import { HealthLinkContext } from "./health-link-context";
 import { setHabitHealthLink } from "../../lib/habit-health-links/store";
 import { exerciseData } from "../../lib/health-counters";
 import { dailyData } from "../../lib/health-daily";
-const HabitStacks = lazy(() => import("./habit-stacks").then((m) => ({ default: m.HabitStacks }))); // Gate C (ADR-022 B49): its own chunk, for the Habits page budget
+const HabitStacks = withPage(() => import("./habit-stacks").then((m) => m.HabitStacks)); // Gate C (ADR-022 B49): its own chunk, for the Habits page budget; with the page (above)
 import { useHabitExtras } from "./use-habit-extras";
 import { HabitExtrasContext } from "./habit-extras-context";
 import { HabitSections } from "./habit-sections";
@@ -64,7 +69,7 @@ import {Skeleton} from '../ui/skeleton';
 // Session AA-Local Part 1: the routine player and the year view load when they are opened.
 const RoutinePlayer = lazy(() => import("./routine-player").then((m) => ({ default: m.RoutinePlayer })));
 const YearView = lazy(() => import("./year-view").then((m) => ({ default: m.YearView })));
-const RoutinesPanel = lazy(() => import("./routines-panel").then((m) => ({ default: m.RoutinesPanel }))); // Gate A (B41): the routines list and its templates load after the page
+const RoutinesPanel = withPage(() => import("./routines-panel").then((m) => m.RoutinesPanel)); // Gate A (B41): the routines list and its templates in their own chunk; with the page (above)
 // Session Z-Cloud Part 4 (weights, ADR-019 C39): the vacation and ideas panels load when they are opened.
 const VacationPanel = lazy(() => import("./vacation-panel").then((m) => ({ default: m.VacationPanel })));
 const HabitIdeas = lazy(() => import("./habit-ideas").then((m) => ({ default: m.HabitIdeas })));

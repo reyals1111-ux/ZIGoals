@@ -24,7 +24,7 @@
 .exercise-step { display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:14px;border:1px solid #a9c9ff4d;background:#ffffff0d;color:#eef5ff;font-size:24px;font-weight:600;line-height:1; }
 .exercise-step:hover:not(:disabled) { background:#ffffff1c;border-color:#9fe6ff99; }
 .exercise-step:last-child { background:linear-gradient(135deg,#5fe0f0,#a3a0ff);color:#0a1428;border-color:transparent; }
-.exercise-count { text-align:center;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
+.exercise-count { text-align:center;min-width:2ch;padding-inline:6px;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
 .exercise-count[data-empty] { color:#9fb2cf; }
 .exercise-counter-caption { margin:0;font-size:14px;color:var(--text-meta,#c2d0e5);font-weight:500; }
 .exercise-counters-status { margin:0;min-height:0;font-size:15px;color:var(--text-meta,#c2d0e5); }

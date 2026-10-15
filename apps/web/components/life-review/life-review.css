@@ -78,3 +78,6 @@
 :root .cross-pending[open] > summary::before { transform: rotate(45deg); }
 @media (prefers-reduced-motion: reduce) { :root .cross-pending > summary::before { transition: none; } }
 :root[data-app-motion=off] .cross-pending > summary::before { transition: none; }
+/* Gate C (design critique): the cover line stands apart from the dated Highlights heading under it (the eyebrow had read
+   as the cover's own, sitting tight under it and repeating "Your week"). */
+.life-review-cover > .life-cover-kicker { margin-bottom: 22px; }

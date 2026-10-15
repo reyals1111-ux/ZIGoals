@@ -25,8 +25,8 @@
 .habit-switch-words small { display: block; font-size: 13px; color: var(--text-meta, #c2d0e5); }
 .habit-switch:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; border-radius: 12px; }
 /* The Vacation button beside the lock, and the editor's idea button. */
-.page-tools-slot .habit-vacation-button.page-tool { min-height: 44px; padding: 0 14px; border: 1px solid #8fb6ff40; border-radius: 14px; background: linear-gradient(150deg, #16264299, #1b173499); color: #d7e5fb; font-weight: 600; }
-.page-tools-slot .habit-vacation-button.page-tool[aria-expanded="true"] { border-color: #7fe3f3; color: #fff; }
+.page-tools-slot .habit-vacation-button.page-tool, .habit-overview .habit-vacation-button { min-height: 44px; padding: 0 14px; border: 1px solid #8fb6ff40; border-radius: 14px; background: linear-gradient(150deg, #16264299, #1b173499); color: #d7e5fb; font-weight: 600; }
+.page-tools-slot .habit-vacation-button.page-tool[aria-expanded="true"], .habit-overview .habit-vacation-button[aria-expanded="true"] { border-color: #7fe3f3; color: #fff; }
 .habit-editor .habit-ideas-button { min-height: 44px; flex: none; }
 @media (prefers-reduced-motion: reduce) { .habit-more-chevron, .habit-switch-knob, .habit-switch-knob::after { transition: none; } }
 :root[data-app-motion=off] .habit-more-chevron, :root[data-app-motion=off] .habit-switch-knob, :root[data-app-motion=off] .habit-switch-knob::after { transition: none; }

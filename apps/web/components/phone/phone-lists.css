@@ -2,7 +2,7 @@
    source line, label and disclaimer stays visible. Cards stay stacked (tests check equal x at 320 and 390 px). */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   /* Activity: the three sources as a swipeable row. */
-  :root .activity-page .activity-context { display: flex; gap: 10px; margin: 12px calc(-1 * var(--phone-gutter)) 12px; padding: 0 var(--phone-gutter) 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  :root .activity-page .activity-context { scroll-padding-inline: var(--phone-gutter); display: flex; gap: 10px; margin: 12px calc(-1 * var(--phone-gutter)) 12px; padding: 0 var(--phone-gutter) 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
   :root .activity-page .activity-context::-webkit-scrollbar { display: none; }
   :root .activity-page .activity-context > div { flex: 0 0 80%; gap: 6px; padding: 14px 16px; scroll-snap-align: start; }
   /* Favourites: the list gets the full width; its link is a full 44 px row. */
@@ -30,7 +30,7 @@
   /* Ecosystem: compact intro, the three review chips on one scrolling row, one-row card headers. */
   :root .ecosystem-intro { padding: 18px 16px; }
   :root .ecosystem-intro h1 { font-size: clamp(28px, 8.4vw, 34px); }
-  :root .ecosystem-review { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  :root .ecosystem-review { flex-wrap: wrap; overflow-x: visible; } /* Gate C: the two chips wrap; scrolled, the second was cut at the card edge */
   :root .ecosystem-review::-webkit-scrollbar { display: none; }
   :root .ecosystem-review > span { flex: none; font-size: 15px; }
   :root .ecosystem-controls { gap: 10px; }

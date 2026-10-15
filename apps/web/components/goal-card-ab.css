@@ -54,3 +54,7 @@
 .goal-card-more .goal-next-contribution { display: grid; justify-content: start; gap: 2px; margin: 0 0 10px; }
 .goal-card-more .goal-next-contribution > span { font-size: 14px; color: var(--text-secondary, #dde7f7); }
 .goal-card-more .goal-next-contribution > time { font-size: 16px; }
+/* Gate C (design critique): one chip style for every goal state — capitals throughout, and the states that ask for
+   attention (no plan, needs review, value unknown) amber, never the green of a good state. */
+.badge[data-health] { text-transform: uppercase; letter-spacing: .08em; }
+.badge[data-health="No_plan"], .badge[data-health="NEEDS_REVIEW"], .badge[data-health="Value_unknown"] { color: #ffd384; background: #46311470; border-color: #d4a65147; }

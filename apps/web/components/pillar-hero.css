@@ -28,10 +28,10 @@
 
 /* Session AB-Design Phase 2, Part 2b (owner request 28; critique 11): each pillar page carries its accent — the end of every
    white→nebula title and topic on the page, the primary buttons' glow, the active chip or tab. Set on <main> by the shell. */
-:root main[data-pillar=goals], :root .pillar-hero[data-pillar=goals] { --pillar: var(--pillar-goals); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fd3ff 62%, #8fa6ff 80%, var(--pillar-goals) 100%); }
-:root main[data-pillar=habits], :root .pillar-hero[data-pillar=habits] { --pillar: var(--pillar-habits); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #c790f6 60%, #8fa6ff 78%, var(--pillar-habits) 100%); }
-:root main[data-pillar=health], :root .pillar-hero[data-pillar=health] { --pillar: var(--pillar-health); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 58%, #c790f6 78%, var(--pillar-health) 100%); }
-:root main[data-pillar=wealth], :root .pillar-hero[data-pillar=wealth] { --pillar: var(--pillar-wealth); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8fa6ff 58%, #f08bd6 78%, var(--pillar-wealth) 100%); }
+:root main[data-pillar=goals], :root .pillar-hero[data-pillar=goals] { --pillar: var(--pillar-goals); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fd3ff 72%, #8fa6ff 80%, var(--pillar-goals) 100%); }
+:root main[data-pillar=habits], :root .pillar-hero[data-pillar=habits] { --pillar: var(--pillar-habits); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #c790f6 72%, #8fa6ff 78%, var(--pillar-habits) 100%); }
+:root main[data-pillar=health], :root .pillar-hero[data-pillar=health] { --pillar: var(--pillar-health); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #c790f6 78%, var(--pillar-health) 100%); }
+:root main[data-pillar=wealth], :root .pillar-hero[data-pillar=wealth] { --pillar: var(--pillar-wealth); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8fa6ff 72%, #f08bd6 78%, var(--pillar-wealth) 100%); }
 :root .pillar-hero[data-pillar=journey] { --pillar: #c790f6; }
 :root main[data-pillar] .primary { box-shadow: 0 12px 30px -14px color-mix(in srgb, var(--pillar) 85%, transparent), 0 0 0 1px color-mix(in srgb, var(--pillar) 35%, transparent); }
 :root main[data-pillar] .primary:is(:hover, :focus-visible) { box-shadow: 0 16px 36px -12px color-mix(in srgb, var(--pillar) 95%, transparent), 0 0 0 1px color-mix(in srgb, var(--pillar) 55%, transparent); }

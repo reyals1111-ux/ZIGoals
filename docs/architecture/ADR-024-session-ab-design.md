@@ -241,6 +241,12 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
 - `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
   together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
   made 5 folds for 4 counted widgets); still exactly one fold per widget.
+- `a11y-wcag-x.spec.ts` contrast (1.4.3), Gate C: before reading the colours it waits out a page's one-time entrance as
+  well as CSS transitions (finite animations; the endless ones never settle and are not waited for). `bed-probe` on the
+  sleep view: `motion-page-enter` and `arrive-card` fade the cards in from 85 % opacity for about 0.6 s after the heading
+  shows; a loaded 2-worker run read the sleep button at 4.38:1 with its cards at 97 %. Settled, it passes. Phase 1's
+  listed intermittent ("sleep/meditation primary button 4.09:1") fits an earlier frame of the same fade. The 4.5:1 and
+  3:1 thresholds and every page are unchanged.
 - `counters-compact.spec.ts`: unchanged; the layout audit's earlier fix (names wrapping at 320) broke its one-line rule, so
   the fix was reverted and the row gives the name more room instead.
 - Integration scripts (AB-Cloud's lane, retargeted as second merger per the handoff): `scripts/run10/account-browser.test.mjs`,
@@ -432,6 +438,71 @@ for it, so the 390 set and the other 32 desktop files go to a second pass on the
   design (the board is the dream picture, the card art the card's scene; requests 16 and 17); (6) the four pillar pages
   share one header pattern (Part 2) — the actions column sits beside the lede by design; (11) Goals' ⋯ menu holding only
   "Positions →" is request 15 as asked; (14) the Vision board's lone last tile is the masonry layout's last column.
+
+### Gate C design critique, round 2 (2026-10-15)
+Three read-only agents over the re-captured build (`0179533f`): the 390 set in two halves (36 and 45 of 45 files, tall
+pages in 2000 px bands) and the 32 desktop files round 1 had not opened, plus a re-check of round 1's fixes (all "looks
+right"). About ninety items; each was read against its capture and sorted.
+- Fixed: the Gamify menu and the EUR chip's panel are opaque (97 % let the page title show through); on phones the EUR
+  panel opens in place under its chip (it ran past the card's left edge, in the card's tracked capitals); the Vision
+  board's "% of the way" rounds as its ring does (95 % over "94%"); Staking with no public wallet says so in words (a
+  display-size "—" drew a gradient bar over a tiny "ZIG"); account rows keep their actions together at the right and the
+  net-worth cards share their row; goal status chips are capitals throughout and amber for "no plan", "needs review" and
+  "value unknown" (they had the green of a good state); phone sheets' sticky header and action bar carry the sheet's
+  solid colour edge to edge; a date (`<time>`) never breaks at its hyphens and the calculator keeps "5 %" together;
+  nutrient notes, footer step lines and the average card's line wrap as balanced lines; the phone Vacation control is a
+  chip, not stray text; the Activity carousel's first card keeps the gutter; the goal page's history pages use the
+  secondary buttons; figures grouped or written as money ("3,302 XP", the energy card's kcal, "Next contribution
+  2026-10-17 · $500.00"), "1 linked Goal"; the title gradient blends from 42 % to 72 % (the white-to-42 % stop is
+  asserted); the phone year view opens on its recent weeks; Ecosystem's two chips and the Portfolio chart's ranges wrap
+  inside their cards; the empty goal card keeps a scrim over its art; an achievement's duration stays on one line; the
+  counters' value has a slot; the Life review's cover line stands apart from its dated heading; an Activity entry whose
+  kind equals its title shows it once; a goal page's Goals / Positions links are chips; the average goal card keeps its
+  own height in the grid.
+- Judged, not changed (with the reason): the Showcase's "Price unavailable" on Markets, Wealth's watch and the asset page
+  — the captures route every `/api` call to a 503 on purpose (no network), and offline the app says so honestly; the
+  Portfolio's fixture prices are its own Showcase data; Help's links in sentences stay 44 px blocks (`help-page.spec`
+  asserts every Help link at least 44 px tall on phones); the footer's `PUBLIC_ALPHA_UNDEPLOYED` chip is the environment
+  label the hosted verifier reads; midnight activity times and mixed date formats are the owner's open items (round 1);
+  the repeated modules on Today (the built-in habits card and a placed habits widget, small tiles and full widgets) and
+  Wealth's three holdings lists are what the Showcase's widget layout places — a structural change to Today and Wealth
+  for the owner, not a closing-pass fix; the life-area palette (AA-Cloud's, Health teal) against the pillar tokens
+  (Health pink) needs one palette decision, listed as an owner item; Meet ZIGi's state gallery (AA-Local) and the two
+  Water cards on Health (the highlight ring and the log) are content for their owners; the phone tables scroll sideways
+  inside their cards by design; "1 CUSTOM" remains where a contribution names no position (the named case shows the
+  position, `lib/asset-unit.ts`); the reminders' habit rows have no switch, so their titles start further left.
+
+### today-screens depends on the hour (Gate C, 2026-10-15)
+`today-screens.spec` measures Today's Showcase at 390 × 844 against the clock of the run, and the Habits widget opens
+the current time-of-day section. Morning (05–12 UTC) holds the most habits, so it is the tallest. Morning measured 11.514
+screens before round 2's trims, above the 11.5 ceiling (a run in the evening measured 11.28 and passed). Every hour was
+measured (`hours-probe`, eight hours of the day): the phone Today widget's habit list now has 6 px margins, 8 px row padding
+and 10 px above a section label (targets unchanged), and the phone footer starts 28 px under the page (was 44), with
+12 px between its parts (was 18) and 8 px between its steps (was 12). The maximum is now 11.424
+(06:30 and 09:30 UTC) and the evening 11.283. The 5.8 and 11.5 ceilings are unchanged.
+
+### Habits: the sections above the filter bar arrive with the page (Gate C, 2026-10-15)
+`a11y-wcag-x`'s keyboard walk failed once on Habits in a loaded 2-worker local run: "All" was not on screen when it was
+focused (and so counted as hidden). The trace's frames show why: AA-Local's Routines list (`React.lazy`, ADR-022 B41)
+was inserted above the filter bar about 0.5 s after the page, pushing the bar off the screen between two Tabs. Phase 1's
+listed intermittent ("Afternoon"/"Evening" not on screen) fits the same shift (the same bar, no trace kept then). Habit
+stacks and Routines now load as Habit consistency does since `7f4330e7`: the chunk is fetched when the page's code runs,
+and the section renders in the page's own pass once it is there (`withPage` in `habits-workspace.tsx`). They stay
+separate chunks outside the page's HTML, so the Habits weight is unchanged. The assertion is unchanged.
+The same shift fits CI's one Alpha gate failure on `25ccb812` (a docs-only commit; the same code passed on `0179533f`).
+`packaged-goal-journey.mjs` `pinGoalAndHabit` clicks "All" on Habits, then waits 15 s for the weekly review habit's ⋯,
+which the default "Today" filter does not list. A click on "All" while the Routines list is still arriving lands on
+whatever moved into its place. The CI trace artifact was not downloaded, so this cause is probable, not proven. Measured
+after the change (`filterbar-probe`, 1280 × 720, a new device and the Showcase, normal and 4× CPU): the Routines list is
+there when the filter bar first shows, and the bar does not move in the next 3 s.
+
+### Revert gate (Phase 2, Gate C)
+In `scratchpad/wt14` at `0179533f` with `node_modules` installed: `git revert -n` of each Phase 2 commit after the merge
+of `main`, newest first, and `pnpm typecheck` after each (`tsc --noEmit` for the app and the Workers). 38 steps: every
+one applies cleanly; 36 typecheck on their own; `b2a52a21` and `b49af7d6` typecheck together with `dc787a2a` (the copy
+part's `ui/showcase-tag` and the merged-tree fixes that use it revert as one group). Then the merge of `main` (`-m 1`)
+and the Phase 2 commits before it, as one step: they apply cleanly and the tree equals Phase 1's final `09b2d307`. So
+any newest-first suffix of Phase 2 reverts cleanly, the one three-commit group together.
 
 ### CI: the Alpha gate in its own job ([TIER 3] (CI), owner, 2026-10-14)
 Milestone quality's `web-integration` had grown to 12.7 min on an ordinary runner and reached its 15-minute limit on a slow

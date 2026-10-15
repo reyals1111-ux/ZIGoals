@@ -196,3 +196,11 @@
 /* Session AB-Design Phase 2 closing pass (design critique): the snapshot's tiles share the tallest tile's height, so the
    row reads as cards of one size instead of short cards over an empty band. */
 @media (max-width: 767.98px) { :root .today-page .dashboard-summary .dashboard-summary-grid { align-items: stretch; } }
+/* Gate C: Today's Showcase stays under its asserted screen ceiling at every hour — in the morning the open section holds
+   the two tallest rows (the timer, the automatic check-in) and measured 11.51 screens; the widget's rows, lists and section
+   labels sit a little closer on phones (targets unchanged). */
+@media (max-width: 767.98px) {
+  :root .today-page .habits-today .habit-today-list { margin: 6px 0; }
+  :root .today-page .habits-today .habit-today-list li { padding-block: 8px; }
+  :root .today-page .habits-today .habit-section-label { margin-top: 10px; }
+}

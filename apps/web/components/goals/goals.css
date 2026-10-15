@@ -219,3 +219,7 @@
    gold at 22 % alone read as a grey chip next to Health's green). */
 .hall-area { color: color-mix(in srgb, var(--area, #8fa6ff) 72%, #ffffff); border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 45%, transparent); }
 .hall-card { grid-template-rows: auto 1fr; } .hall-body { display: flex; flex-direction: column; } .hall-body > .hall-area { align-self: flex-start; } .hall-actions { margin-top: auto; } /* every card's actions on one line */
+/* Gate C re-check: the average card keeps its own height in the goal grid (it had stretched to its row, ~250 px empty),
+   and its line wraps as balanced lines ("14 of / 14 days" split the count). */
+.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: start; }
+.average-goal-figure > div > small { text-wrap: balance; }

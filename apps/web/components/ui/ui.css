@@ -179,3 +179,16 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
 :root .today-rail .destination-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; text-align: left; }
 :root .today-rail .destination-steps > div { grid-template-columns: 28px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 12px; row-gap: 0; border-right: 0; }
 :root .today-rail .destination-steps > div > :first-child { grid-row: span 2; }
+/* Gate C (design critique): a date never breaks at its hyphens ("2026-" / "10-15"). */
+:root time { white-space: nowrap; }
+/* Gate C (design critique, phones): chip rows wrap inside their card instead of running past its edge (Ecosystem's
+   "Sources reviewed" chip was cut; the Portfolio chart's "All" crossed the card's padding). */
+:root .portfolio-ranges { flex-wrap: wrap; row-gap: 8px; }
+/* Gate C (design critique): the empty goal card's words keep a scrim over the house art (it had faded out at 30 %). */
+:root .today-goal-empty::after { background: linear-gradient(90deg, var(--surface-1) 45%, color-mix(in srgb, var(--surface-1) 55%, transparent) 78%, transparent); }
+/* Gate C (design critique): an Activity entry whose kind equals its title shows the title once. */
+:root .activity-category-label:empty { display: none; }
+/* Gate C (design critique): a goal page keeps its Goals / Positions links (asserted), drawn as the app's chips rather
+   than plain grey words under the status row. */
+:root .goal-detail-workspace .platform-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid #8fb6ff33; border-radius: 999px; background: #0a1430a6; color: var(--text-secondary, #dde7f7); font-weight: 600; text-decoration: none; }
+:root .goal-detail-workspace .platform-nav a:is(:hover, :focus-visible) { border-color: #9fe6ff88; color: #fff; }

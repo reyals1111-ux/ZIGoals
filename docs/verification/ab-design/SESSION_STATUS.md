@@ -7,7 +7,13 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (checkpoint 2026-10-15 05:00, Gate C under way)
+## Resume here (checkpoint 2026-10-15 06:30, Gate C under way)
+**Since 05:00.** Critique round 2 fixed (ADR-024 "Gate C design critique, round 2"); today-screens' hour dependence fixed
+by layout (max 11.424 over the day, ceilings unchanged); Habit stacks and Routines load with the page (the keyboard
+walk's "All" shift); the sleep button's contrast intermittent under investigation (`scratchpad/bed-probe.mjs`).
+Focused Chrome + WebKit specs on :3104 (`chain-gatec9.sh`, `logs/specs-gatec9*.log`).
+
+## Checkpoint 2026-10-15 05:00
 **State.** Head `0179533f`. CI on `b39b16d2`: Milestone quality and Canonical reproducibility fully green (four browser
 shards, both WebKit shards, the Alpha gate, `web`); `0179533f`'s run in progress.
 **Gate C so far (on `b39b16d2`/`0179533f`, production builds on :3104).** Full unit 558 files / 4,891 tests (+ components

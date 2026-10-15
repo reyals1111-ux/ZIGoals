@@ -248,8 +248,11 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     // The Showcase shows the music button; its panel is what is measured on Today.
     // Session Z-Cloud Part 4.12: on a phone the player opens from the More sheet's row (ZIGi is the one floating button).
     if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
-    // The settled colours: a switch that takes its saved state after loading fades its colours for a moment.
-    await page.waitForFunction(() => !document.getAnimations().some(a => a instanceof CSSTransition && a.playState === 'running'));
+    // The settled colours: a switch that takes its saved state after loading fades its colours for a moment, and a page's
+    // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out
+    // (endless ones, such as the sidebar star's glow, never settle and are not). Under load the entrance was still
+    // running when the colours were read (the sleep button at 4.38:1 with its cards at 97 %).
+    await page.waitForFunction(() => !document.getAnimations().some(a => a.playState === 'running' && (a instanceof CSSTransition || a.effect?.getComputedTiming().endTime !== Infinity)));
     const result = await page.evaluate(([zigi, rootSelector]) => {
       type RGBA = {r: number; g: number; b: number; a: number};
       type RGB = {r: number; g: number; b: number};

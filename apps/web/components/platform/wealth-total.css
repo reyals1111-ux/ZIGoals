@@ -2,12 +2,14 @@
 .wealth-other-chip { position: relative; display: inline-flex; margin-top: 6px; }
 .wealth-other-chip-button { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #7bddff55; background: linear-gradient(120deg, #0b1b33cc, #1b1540c4); color: #cfe6ff; font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
 .wealth-other-chip-button:hover, .wealth-other-chip-button:focus-visible, .wealth-other-chip-button[aria-expanded="true"] { border-color: #9fd6ffaa; color: #fff; }
-.wealth-other-chip-panel { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; display: grid; gap: 6px; min-width: 240px; padding: 12px 14px; border-radius: 14px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30f8, #1b1535f8); box-shadow: 0 20px 50px -20px #000c; font-size: 14px; white-space: nowrap; }
+.wealth-other-chip-panel { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; display: grid; gap: 6px; min-width: 240px; padding: 12px 14px; border-radius: 14px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30, #1b1535); box-shadow: 0 20px 50px -20px #000c; font-size: 14px; white-space: nowrap; letter-spacing: normal; text-transform: none; font-weight: 500; }
 .wealth-other-chip-panel small { color: var(--text-meta, #c2d0e5); white-space: normal; }
 .wealth-total-base-note { display: block; font-size: 14px; color: var(--text-meta, #c2d0e5); }
 .wealth-split dd .wealth-other-chip { margin: 4px 0 0; }
 .wealth-split dd .wealth-other-chip-button { min-height: 30px; padding: 0 9px; font-size: 14px; }
-@media (max-width: 700px) { .wealth-other-chip-panel { left: auto; right: 0; } }
+/* Gate C (design critique): on phones the panel opens in place under its chip (absolutely placed it ran past the card's
+   left edge and lay over the lines below). */
+@media (max-width: 700px) { .wealth-other-chip { display: grid; justify-items: start; } .wealth-other-chip-panel { position: static; min-width: 0; max-width: 100%; margin-top: 6px; white-space: normal; box-shadow: none; } }
 
 /* Phones and touch: the chip's button is a 44 px target. */
 @media (max-width: 767px), (pointer: coarse) { .wealth-other-chip-button, .wealth-split dd .wealth-other-chip-button { min-height: 44px; } }
