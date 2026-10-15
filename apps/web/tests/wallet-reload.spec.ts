@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import {expectAlphaMode} from "./ab-shell";
 import { toBech32 } from "@cosmjs/encoding";
 
 const reconnectHintKey = "zigoals:wallet-reconnect-hint:v1";
@@ -58,14 +59,14 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   });
 
   await page.goto("/app");
-  await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  await expectAlphaMode(page, "LOCAL SIMULATION");
   await expect(
     (await wallet(page)).getByRole("button", { name: "Connect Keplr", exact: true }),
   ).toBeVisible();
   expect(mockCalls).toEqual([]);
 
   await (await wallet(page)).getByRole("button", { name: "Connect Keplr" }).click();
-  await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
+  await expectAlphaMode(page, "CONNECTION ONLY");
   await expect.poll(() => mockCalls).toEqual(["suggest", "enable", "getKey"]);
   await expect(
     (await wallet(page)).getByRole("button", { name: connectedLabel, exact: true }),
@@ -76,9 +77,7 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
 
   const otherTab = await context.newPage();
   await otherTab.goto("/app");
-  await expect(otherTab.locator(".mode-strip")).toContainText(
-    "LOCAL SIMULATION",
-  );
+  await expectAlphaMode(otherTab, "LOCAL SIMULATION");
   await expect(
     (await wallet(otherTab)).getByRole("button", { name: "Connect Keplr", exact: true }),
   ).toBeVisible();
@@ -86,17 +85,18 @@ test("mock Keplr reconnect stays explicit and tab scoped across reload", async (
   await otherTab.close();
 
   await page.reload();
-  await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
   await expect(
     (await wallet(page)).getByRole("button", { name: "Reconnect Keplr", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("status").filter({hasText:"Reloads intentionally start in Local demo"})).toContainText(
     "Reloads intentionally start in Local demo",
   );
+  // Session AC (owner finding 3): the mode is read in Settings' facts block (the footer's strip until then).
+  await expectAlphaMode(page, "LOCAL SIMULATION");
   expect(mockCalls).toEqual(["suggest", "enable", "getKey"]);
 
   await (await wallet(page)).getByRole("button", { name: "Reconnect Keplr" }).click();
-  await expect(page.locator(".mode-strip")).toContainText("CONNECTION ONLY");
+  await expectAlphaMode(page, "CONNECTION ONLY");
   await expect.poll(() => mockCalls).toEqual([
     "suggest",
     "enable",

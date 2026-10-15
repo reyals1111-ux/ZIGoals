@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import {expectAlphaMode} from "./ab-shell";
 import { navLink, openFold, walletArea } from "./phone-nav";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
@@ -229,7 +230,7 @@ test("local goal lifecycle, metadata recovery, exports and mobile layout", async
   await expect(
     page.getByRole("heading", { name: "Today's Goals, Habits & Health = Tomorrow's Wealth" }),
   ).toBeVisible();
-  await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  await expectAlphaMode(page, "LOCAL SIMULATION");
   await openFold(page, "Plan a new destination");
   await page.getByRole("link", { name: "Plan my first goal" }).click();
   await page.getByText("Personalize artwork and notes (optional)").click();
@@ -329,5 +330,5 @@ test("missing wallet is explicit and local mode remains available", async ({
   ).toBeVisible();
   // Session Z-Cloud Part 4.3: without a connected wallet the demo button says "Demo records".
   await (await walletArea(page)).getByRole("button", { name: "Demo records" }).click();
-  await expect(page.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  await expectAlphaMode(page, "LOCAL SIMULATION");
 });

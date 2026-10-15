@@ -2,6 +2,7 @@ import { toBech32 } from "@cosmjs/encoding";
 import { test, expect, type Page } from "@playwright/test";
 import { applyLocal, initialLedger } from "../lib/local-ledger";
 import { connectKeplr } from "./phone-nav";
+import { expectAlphaMode } from "./ab-shell";
 const ledgerKey = "zigoals:local-ledger:v1";
 const metadataKey = "zigoals:metadata:v1:local-simulation:local-demo-user";
 async function seed(page: Page) {
@@ -112,13 +113,17 @@ test("mode selection stays in its own tab while local reviews stay local", async
   // Connect without any extension keeps the Local demo, so the switch needs one to be there.
   await page.evaluate(() => { Reflect.set(window, "keplr", {}); });
   await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
-  await expect(page.locator(".mode-strip")).toContainText("KEPLR TESTNET");
-  await expect(other.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  // Session AC (owner finding 3): each tab's mode is read in Settings' facts block (the footer's strip until then).
+  await expectAlphaMode(page, "KEPLR TESTNET");
   await expect(
     other.getByRole("button", { name: "Confirm simulation" }),
   ).toBeVisible();
-  await expect(page.locator(".mode-strip")).toContainText("Mode: this tab");
-  await expect(other.locator(".mode-strip")).toContainText("Mode: this tab");
+  // The other tab's open review (a modal) is cancelled before that tab opens Settings in the app.
+  await other.keyboard.press("Escape");
+  await expect(other.getByRole("button", { name: "Confirm simulation" })).toBeHidden();
+  await expectAlphaMode(other, "LOCAL SIMULATION");
+  await expectAlphaMode(page, "Mode: this tab");
+  await expectAlphaMode(other, "Mode: this tab");
 });
 test("two tabs share only the active wallet's journal notifications and retain future rows", async ({
   page,
@@ -169,7 +174,7 @@ test("two tabs share only the active wallet's journal notifications and retain f
   const other = await context.newPage();
   await other.goto("/app/activity");
   await connectKeplr(page); // Part 4.2 (mechanics): the Status sheet on a phone
-  await expect(page.locator(".mode-strip")).toContainText("connected");
+  await expectAlphaMode(page, "connected"); // Session AC: Settings' facts block
   await other.evaluate(
     async ({ alice }) => {
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -234,7 +239,7 @@ test("two tabs share only the active wallet's journal notifications and retain f
   await expect(
     page.getByRole("alert").filter({ hasText: "Unreadable or unsupported" }),
   ).toBeVisible();
-  await expect(other.locator(".mode-strip")).toContainText("LOCAL SIMULATION");
+  await expectAlphaMode(other, "LOCAL SIMULATION"); // Session AC: Settings' facts block
   await expect(other.getByLabel("Testnet transaction outcomes")).toHaveCount(0);
   expect(
     await other.evaluate(async () => {

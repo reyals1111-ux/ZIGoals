@@ -108,6 +108,7 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["z-delete-habit", "Can I delete a habit for good?"],
   ["z-status", "Where are the Alpha notices and the wallet buttons now?"],
   ["z-alpha", "What does the notice at the top mean?"],
+  ["z-about", "About this Alpha"],
   ["z-have", "What is “What you have” in Wealth?"],
   ["z-units", "Can I see my weight in pounds and water in fluid ounces?"],
   ["z-more", "What else changed in this release?"],

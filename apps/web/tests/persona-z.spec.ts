@@ -1,5 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
-import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,footerDisclaimer,openHabitDetails,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,expectAlphaMode,inAboutAlpha,openHabitDetails,openStatusSheet} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../lib/habits';
 import {scheduleHabitState} from '../lib/habit-actions';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, saveWeight} from '../lib/health';
@@ -51,10 +51,10 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   await expect(notice.locator('strong')).toHaveText(ALPHA_LABEL);
   const box = (await notice.boundingBox())!, tabs = (await page.locator('.phone-tabbar').boundingBox())!;
   expect(box.height).toBeGreaterThanOrEqual(44); expect(box.height).toBeLessThanOrEqual(72); expect(box.y + box.height).toBeLessThanOrEqual(tabs.y);
-  // The long sentences wait in the sheet and the footer; the first screen carries the label itself.
-  await expect(footerDisclaimer(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
-  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText(MODE_LOCAL);
-  expect(await footerDisclaimer(page).evaluate(e => e.getBoundingClientRect().top > innerHeight)).toBe(true);
+  // The long sentences wait in the sheet and in Settings' facts block (Session AC: the footer's line moved there, so this
+  // page carries none of them); the first screen carries the label itself.
+  await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
+  await inAboutAlpha(page, async about => { await expect(about.locator('.network-banner')).toContainText(ALPHA_SENTENCE); await expect(about.locator('.mode-strip')).toContainText(MODE_LOCAL); });
   const sheet = await openStatusSheet(page);
   await expect(sheet).toContainText(ALPHA_LABEL);
   await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab');
@@ -68,12 +68,12 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
     await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
     await expect(alphaNotice(page), path).toBeInViewport();
   }
-  // Closing the notice keeps it closed on this device; the facts stay in the footer.
+  // Closing the notice keeps it closed on this device; the facts stay in Settings' facts block (the footer until Session AC).
   await notice.getByRole('button', {name: 'Close this notice', exact: true}).click();
   await expect(notice).toHaveCount(0);
   await page.reload(); await expect(page.locator('main h1').first()).toBeVisible();
   await expect(alphaNotice(page)).toHaveCount(0);
-  await expect(footerDisclaimer(page).locator('.network-banner strong')).toHaveText(ALPHA_LABEL);
+  await inAboutAlpha(page, about => expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL));
   // Desktop: the wallet buttons sit in the status row, no sheet.
   await page.setViewportSize({width: 1280, height: 800});
   await page.goto('/app/goals');
@@ -89,8 +89,8 @@ test('3. plain words without a wallet: practice money, Demo records, "Give your 
   await expect(page.getByRole('button', {name: 'Local demo', exact: true})).toHaveCount(0);
   await expect(page.locator('.hero-pillars')).toContainText('Give your savings a purpose.');
   await expect(page.locator('.hero-pillars')).not.toContainText('Give your ZIG a purpose.');
-  // The footer's disclaimer keeps the strip's words (the hosted verifier reads them).
-  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  // Settings' facts block keeps the strip's words (the hosted verifier reads them; the footer's line until Session AC).
+  await expectAlphaMode(page, 'LOCAL SIMULATION');
 });
 
 test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked', async ({page}) => {

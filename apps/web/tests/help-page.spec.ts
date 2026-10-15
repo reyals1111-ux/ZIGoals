@@ -205,6 +205,7 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
     ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
     ['z-status', 'Status & wallet'], // Session AB-Design: the answer follows the notice and the sheet
     ['z-alpha', 'Practice money (no real value) · Public Alpha:'],
+    ['z-about', 'Everything this Alpha says about itself, in one place'], // Session AC: the footer's facts, in Help
     ['z-have', 'with All, Accounts, Assets and Debts'],
     ['z-units', 'your records stay in kilograms and millilitres'],
     ['z-more', 'Today is one centred column when nothing sits beside it'],

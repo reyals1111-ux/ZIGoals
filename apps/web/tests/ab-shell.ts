@@ -1,25 +1,59 @@
 import {expect,type Locator,type Page} from '@playwright/test';
-import {isPhone,openMore} from './phone-nav';
+import {isPhone,navLink,openMore} from './phone-nav';
 
 /**
  * Session AB-Design (owner request 8, ADR-024 D7): the Alpha's facts moved from the top-of-page banners to one compact
  * notice (closable on the device) and the footer's disclaimer line on every page; a phone keeps every notice in full in
- * the Status & wallet sheet behind More. These helpers assert the same facts at their new places, as strictly.
+ * the Status & wallet sheet behind More. Session AC: the footer's line moved to Settings (see `aboutAlpha`). These
+ * helpers assert the same facts at their new places, as strictly.
  */
 export const ALPHA_LABEL='PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA';
 export const ALPHA_SENTENCE='Simulation + wallet connection only. No blockchain transactions or financial signatures.';
 export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions';
 /** The compact notice at the top of every page (until closed on this device). */
 export const alphaNotice=(page:Page)=>page.getByRole('complementary',{name:'Alpha notice'});
-/** The footer's disclaimer line: the label, the sentence and the mode, on every page at every width. */
-export const footerDisclaimer=(page:Page)=>page.locator('.site-footer .alpha-disclaimer');
-/** The Alpha's facts, as the hosted verifier reads them: the notice (not yet closed) and the footer line. */
+/**
+ * Session AC (owner finding 3 on Alpha #41, TIER 3 public-safety labels): the page ends after the footer's link columns;
+ * the footer's disclaimer facts moved, word for word and with the hosted verifier's class names, to Settings ("About
+ * this alpha" panel, and Settings → Your data), with Help's "About this Alpha". The facts block on a Settings page.
+ */
+export const aboutAlpha=(page:Page)=>page.locator('.about-alpha');
+/**
+ * Opens Settings inside the app (the sidebar, or More on a phone: no reload, so this tab's mode and Showcase stay as
+ * they are), runs `check` on the facts block there, then goes back to the page it came from.
+ */
+export async function inAboutAlpha(page:Page,check:(about:Locator)=>Promise<void>,{back=true}:{back?:boolean}={}){
+ const from=page.url();
+ // A phone's Status & wallet sheet (where Connect Keplr lives) is a modal: it is closed first, as a person would.
+ const statusSheet=page.getByRole('dialog',{name:'Status'});
+ if(await statusSheet.isVisible()){await page.keyboard.press('Escape');await expect(statusSheet).toBeHidden();}
+ if(!new URL(from).pathname.startsWith('/app/settings')){
+  await (await navLink(page,'Settings')).click();
+  await page.waitForURL(url=>url.pathname==='/app/settings');
+ }
+ const about=aboutAlpha(page).first();
+ await about.scrollIntoViewIfNeeded();
+ await check(about);
+ if(back&&page.url()!==from){await page.goBack();await page.waitForURL(from);}
+}
+/**
+ * The Alpha's facts, as the hosted verifier reads them: the notice on this page (not yet closed), and the full facts in
+ * Settings' block (label, sentence, mode). The second half is what the footer's disclaimer line asserted on every page;
+ * since Session AC the page ends after the link columns, so the facts are asserted where they now live.
+ */
 export async function expectAlphaFacts(page:Page,path=''){
  await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);
  if(!await isPhone(page))await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
- await expect(footerDisclaimer(page).locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
- await expect(footerDisclaimer(page).locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);
- await expect(footerDisclaimer(page).locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
+ await expect(page.locator('.site-footer .alpha-disclaimer, .site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
+ await inAboutAlpha(page,async about=>{
+  await expect(about.locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
+  await expect(about.locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);
+  await expect(about.locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
+ });
+}
+/** The mode as this tab shows it, read in Settings' facts block (the footer's mode strip until Session AC). */
+export async function expectAlphaMode(page:Page,text:string|RegExp){
+ await inAboutAlpha(page,about=>expect(about.locator('.mode-strip')).toContainText(text));
 }
 /** On a phone, opens the Status & wallet sheet from More (every notice in full and the wallet buttons); returns it. */
 export async function openStatusSheet(page:Page){

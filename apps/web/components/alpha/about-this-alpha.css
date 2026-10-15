@@ -1,0 +1,12 @@
+/* Session AC (owner finding 3): the Alpha's facts in Settings, one fact per line, readable (15 px, ≥ 4.5:1). */
+.about-alpha { display: grid; gap: 12px; margin-top: 4px; }
+.about-alpha-facts { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.6; color: #d3e0f2; }
+.about-alpha-facts > span { text-wrap: pretty; }
+.about-alpha-facts .network-banner strong { display: block; color: var(--brand-cyan, #23eaff); letter-spacing: .06em; font-size: 14px; }
+/* The spans carry the verifier's class names; the old banner and strip styles must not reach them. */
+.about-alpha-facts :is(.network-banner, .mode-strip) { display: block; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; letter-spacing: 0; font-size: inherit; line-height: inherit; color: inherit; text-transform: none; position: static; min-height: 0; width: auto; }
+.about-alpha-facts .network-banner strong::before { content: none; }
+.about-alpha-status { font-size: 15px; line-height: 1.55; color: #d3e0f2; }
+.about-alpha-status p { margin: 0; }
+.about-alpha-build { margin: 0; font-size: 15px; color: #c2d0e5; }
+.about-alpha-env { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 1px solid #8fa6c840; border-radius: 999px; font-size: 14px; letter-spacing: .04em; color: #c9d6ea; overflow-wrap: anywhere; }

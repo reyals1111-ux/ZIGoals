@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import {APP_ENVIRONMENT} from '../../lib/app-environment';
 import {enabledSocialLinks} from '../../lib/social-links';
 import {ButterflyGlyph, HeartGlyph, LotusGlyph} from './pillar-glyphs';
 import {LogoWordmark} from '../brand/logo-wordmark';
-import {FooterHonesty, FooterMotion, FooterStatus, FooterTop} from './footer-islands';
+import {FooterMotion, FooterTop} from './footer-islands';
 import './site-footer.css';
 
 /**
@@ -64,14 +63,6 @@ export function SiteFooter() {
       <nav className="site-footer-links" aria-label="ZIGoals links">
         {GROUPS.map(g => <div key={g.title} className="site-footer-group"><p className="site-footer-group-title">{g.title}</p><ul>{g.links.map(l => <li key={l.label}>{l.external ? <a href={l.href}>{l.label}</a> : <Link href={l.href} prefetch={false}>{l.label}</Link>}</li>)}</ul></div>)}
       </nav>
-      <FooterStatus/>
-      <p className="site-footer-disclaimer alpha-disclaimer">
-        <FooterHonesty/>
-        <span>Browser storage is not a backup.</span>
-        <span>Independent project · Unaudited alpha · Idle strategy only.</span>
-        <span>Never share secrets, private backups or wallet details.</span>
-        <span className="site-footer-build">Your goals. Onchain. <span className="site-footer-env" title="Build environment">{APP_ENVIRONMENT}</span></span>
-      </p>
     </div>
   </footer>;
 }

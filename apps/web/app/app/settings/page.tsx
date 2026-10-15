@@ -1,6 +1,7 @@
 "use client";
 import { DataHome } from "../../../components/bottom-sections";
 import { SendFeedback } from "../../../components/help/send-feedback";
+import { AboutThisAlpha } from "../../../components/alpha/about-this-alpha";
 import { PointTellSetting } from "../../../components/point-tell/point-tell-setting";
 import { exportFileName } from "../../../lib/showcase-detect";
 import "../../../components/life-pages.css";
@@ -208,8 +209,8 @@ export default function Settings() {
         </section>
         {/* Session AB-Cloud Part 6 (ADR-023 C23): the Point & tell switch. */}
         <section className="panel" id="point-tell" aria-labelledby="point-tell-title"><p className="eyebrow">POINT &amp; TELL</p><h2 id="point-tell-title">Point at it, say what you think</h2><PointTellSetting /></section>
-        <section className="panel">
-          <h2>About this alpha</h2>
+        <section className="panel" id="about-this-alpha" aria-labelledby="about-this-alpha-title">
+          <h2 id="about-this-alpha-title">About this alpha</h2>
           <dl className="metrics">
             <div>
               <dt>Selected environment</dt>
@@ -233,6 +234,8 @@ export default function Settings() {
             projections are illustrative. Testnet assets have no monetary value.
             This alpha is unaudited and does not support mainnet.
           </p>
+          {/* Session AC (owner finding 3): the facts the footer used to carry, live, with the build environment. */}
+          <AboutThisAlpha />
         </section>
       </SettingsGroup>
       <DataHome />
