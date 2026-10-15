@@ -50,7 +50,7 @@ jobs:
         run: pnpm audit --audit-level high || echo "::warning title=pnpm audit (all dependencies)::Advisories in development dependencies; read this step's log (FIX_PLAN F1)."
       - run: node scripts/check-secrets.mjs
   web-browser:
-    name: web browser suite (shard ${{ matrix.shard }}/3)
+    name: web browser suite (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-24.04
     # The whole suite took 15-20 min in one job. Split three ways (2 workers
     # each) the shards measured 7.6-8.4 min including about 1.5 min of setup
@@ -65,11 +65,15 @@ jobs:
     # and still moving (run 37784457470). 45 min gives about 40% headroom again.
     # Session Y (2026-10-09): shard 1 took 40m20s on main e30b7c6 (run 37853695437) and 42m23s with Session Y's hydration
     # guard (20 pages in three zones, run 37988501137). 60 min gives about 40% headroom again.
+    # Session AB-Design Phase 2 ([TIER 3] (CI), 2026-10-15): with 911 tests in the first of three shards it took 54m (run
+    # 38649650159) and then reached the 60 min with 905 done on a slower runner (run 38663559069, every spec about 35%
+    # slower, nothing new in it). The same suite and workers in four shards instead of three: each shard does about three
+    # quarters of the work, so the 60 min keeps about 40% headroom again; no test is dropped, skipped or loosened.
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
@@ -107,7 +111,7 @@ jobs:
             if curl -fsS http://127.0.0.1:3100/app >/dev/null; then break; fi
             sleep 1
           done
-          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/3 --reporter=line,json --output=/tmp/zigoals-web-results
+          env -u NO_COLOR pnpm --filter @zigoals/web exec playwright test --workers=2 --shard=${{ matrix.shard }}/4 --reporter=line,json --output=/tmp/zigoals-web-results
       - name: Retain fixture-only browser failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
