@@ -190,10 +190,12 @@ export const todayGroup=(ref:DashboardItemRef,widgets:readonly DashboardWidget[]
  * built-ins every build since #32 lets a person hide are used, so an older build reads a stored default as its own.
  */
 /** The built-in a widget repeats: the habits widget is Daily Habits' list, a calories widget Daily Health's calories. */
-export const twinOf=(w:Pick<DashboardWidget,'kind'|'metric'>):DashboardBuiltinId|null=>w.kind==='habits'?'habits':w.kind==='health'&&w.metric==='kcal'?'health':null;
+// Only exact twins: the habits widget is Daily Habits' own list. Daily Health also carries macros, weight and steps, so a
+// calories widget never stands in for it (Session AC review of item 5a).
+export const twinOf=(w:Pick<DashboardWidget,'kind'|'metric'>):DashboardBuiltinId|null=>w.kind==='habits'?'habits':null;
 export function defaultTwins(s:DashboardSettings,financial:boolean):DashboardBuiltinId[]{
  const shown=s.widgets.filter(w=>!w.hidden);
- return [...(shown.some(w=>twinOf(w)==='habits')?['habits' as const]:[]),...(shown.some(w=>twinOf(w)==='health')?['health' as const]:[]),...(financial?['next-action' as const]:[])];
+ return [...(shown.some(w=>twinOf(w)==='habits')?['habits' as const]:[]),...(financial?['next-action' as const]:[])];
 }
 function defaultPlacement(s:DashboardSettings):DashboardPlacement{
  const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth'),builtin=(b:{id:DashboardBuiltinId})=>({kind:'builtin' as const,id:b.id}),main=DASHBOARD_BUILTINS.filter(b=>b.region==='main');

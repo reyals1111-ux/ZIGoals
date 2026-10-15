@@ -49,12 +49,12 @@ test('legacy settings keep their original shape while placement resolves determi
  expect(JSON.stringify(parsed)).toBe(raw);expect(parsed.placement).toBeUndefined();
  const placement=reconcileDashboardPlacement(parsed);
  expect(placement.version).toBe(1);// Session AA-Cloud Part 1 (deliberate, as strict): the whole-life overview first, then the day's items, Goals led by the attention agenda, money, the summary.
- // Session AC (deliberate, the owner's "each thing once"): Daily Habits and Daily Health stand down for their widget twins,
- // which take the places right after them (still "Your day"); the other widgets follow the summary as before.
- expect(placement.main.slice(0,13).map(r=>r.id)).toEqual(['whole-life','habits','preset-balanced-1','health','preset-balanced-2','attention','goals','next-action','funding','needs-attention','watchlist','progress','summary']);
- expect(placement.hiddenBuiltins).toEqual(['habits','health','next-action']);
+ // Session AC (deliberate, the owner's "each thing once"): Daily Habits stands down for its widget twin (the same list),
+ // which takes the place right after it (still "Your day"); the other widgets follow the summary as before.
+ expect(placement.main.slice(0,12).map(r=>r.id)).toEqual(['whole-life','habits','preset-balanced-1','health','attention','goals','next-action','funding','needs-attention','watchlist','progress','summary']);
+ expect(placement.hiddenBuiltins).toEqual(['habits','next-action']);
  expect(placement.rail.map(r=>r.id)).toEqual(['wallet','staking','destination','activity']);
- expect(placement.main.slice(13)).toEqual(old.widgets.filter(w=>w.id!=='preset-balanced-1'&&w.id!=='preset-balanced-2').map(w=>widget(w.id)));
+ expect(placement.main.slice(12)).toEqual(old.widgets.filter(w=>w.id!=='preset-balanced-1').map(w=>widget(w.id)));
  expect(reconcileDashboardPlacement(parsed)).toEqual(placement);expect(JSON.stringify(old)).toBe(raw);
 });
 test('widgets move before and after built-ins and into rail without changing their records',()=>{
@@ -138,9 +138,9 @@ test('resetting Today restores the default card order and keeps widgets and hidd
  expect(reconcileDashboardPlacement(hidden).main[0]).toEqual({kind:'widget',id:widget.id});
  const reset=resetDashboardPlacement(hidden),placement=reconcileDashboardPlacement(reset);
  expect(placement.main).toEqual(start.main);expect(placement.rail).toEqual(start.rail);
- // Session AC: the default placement stores its built-in twins as hidden (Balanced has habits and calories widgets and
- // Today's focus names the next goal step), so the kept hidden choices are those three and the person's own wallet.
- expect(placement.hiddenBuiltins).toEqual(['habits','health','next-action','wallet']);expect(reset.widgets).toEqual(hidden.widgets);
+ // Session AC: the default placement stores its built-in twins as hidden (Balanced has the habits widget and Today's
+ // focus names the next goal step), so the kept hidden choices are those two and the person's own wallet.
+ expect(placement.hiddenBuiltins).toEqual(['habits','next-action','wallet']);expect(reset.widgets).toEqual(hidden.widgets);
  expect(placement.revision).toBe(reconcileDashboardPlacement(hidden).revision+1);
  // Already default: unchanged, no revision bump.
  expect(resetDashboardPlacement(reset)).toBe(reset);
@@ -149,28 +149,30 @@ test('resetting Today restores the default card order and keeps widgets and hidd
 
 test('Session AC: the default Today shows each thing once — built-in twins stand down, every one can come back',async()=>{
  const {defaultTwins,todayGroup}=await import('./dashboard-settings');
- // The twins keep "Your day": the habits and calories widgets sit right after their built-ins and carry their group.
+ // The twin keeps "Your day": the habits widget sits right after Daily Habits and carries its group; the calories
+ // widget is no twin (Daily Health also shows macros, weight and steps), so it stays a widget.
  const balancedSettings=presetSettings('balanced');
  expect(todayGroup({kind:'widget',id:'preset-balanced-1'},balancedSettings.widgets)).toBe('day');
  expect(todayGroup({kind:'widget',id:'preset-balanced-0'},balancedSettings.widgets)).toBe('widgets');
- // Balanced (a new device, the Showcase): the habits widget lists the day's habits, the calories widget the day's
- // calories, and Today's focus names the next goal step, so Daily Habits, Daily Health and the Next Goal action stand down.
+ expect(todayGroup({kind:'widget',id:'preset-balanced-2'},balancedSettings.widgets)).toBe('widgets');
+ // Balanced (a new device, the Showcase): the habits widget lists the day's habits and Today's focus names the next
+ // goal step, so Daily Habits and the Next Goal action stand down; Daily Health stays.
  const balanced=reconcileDashboardPlacement(presetSettings('balanced'));
- expect(balanced.hiddenBuiltins).toEqual(expect.arrayContaining(['habits','health','next-action']));
+ expect(balanced.hiddenBuiltins).toEqual(['habits','next-action']);
  expect(new Set(balanced.hiddenBuiltins).size).toBe(balanced.hiddenBuiltins.length);
  // Each stays in the placement and can be shown again; the stored record parses as before (every build since #32 lets a
- // person hide these three).
- for(const id of ['habits','health','next-action'] as const){
+ // person hide these two).
+ for(const id of ['habits','next-action'] as const){
   expect(balanced.main).toContainEqual({kind:'builtin',id});
   const shown=setDashboardBuiltinHidden(presetSettings('balanced'),id,false);
   expect(reconcileDashboardPlacement(shown).hiddenBuiltins).not.toContain(id);
   expect(DASHBOARD_BUILTINS.find(b=>b.id===id)!.hideable).toBe(true);
  }
- // Only real twins: a Health-only Today has no habits widget, no calories widget beside water and weight… and no money.
+ // Only real twins: a Health-only Today (a calories widget beside water and weight) keeps Daily Health, and no money.
  const healthOnly=presetSettings('health');
- expect(defaultTwins(healthOnly,false)).toEqual(['health']);
- expect(defaultTwins({...healthOnly,widgets:healthOnly.widgets.filter(w=>w.metric!=='kcal')},false)).toEqual([]);
- expect(defaultTwins({...presetSettings('balanced'),widgets:presetSettings('balanced').widgets.map(w=>w.kind==='habits'?{...w,hidden:true}:w)},true)).toEqual(['health','next-action']);
+ expect(defaultTwins(healthOnly,false)).toEqual([]);
+ expect(reconcileDashboardPlacement(healthOnly).hiddenBuiltins).not.toContain('health');
+ expect(defaultTwins({...presetSettings('balanced'),widgets:presetSettings('balanced').widgets.map(w=>w.kind==='habits'?{...w,hidden:true}:w)},true)).toEqual(['next-action']);
  // A saved placement keeps its own choices: nothing is added to what a person arranged.
  const saved=setDashboardBuiltinHidden(presetSettings('balanced'),'habits',false);
  expect(reconcileDashboardPlacement(saved).hiddenBuiltins).toEqual(saved.placement!.hiddenBuiltins);
