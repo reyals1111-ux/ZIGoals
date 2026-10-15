@@ -1,4 +1,18 @@
-# Session AB-Design Phase 2 — "Finish everything, nothing half done" (ADR-024 P1–P20, the closing pass, Gate C) (2026-10-14/15, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), Ready for review, not merged)
+# Alpha deploy #41 — 2026-10-15, `9e41f0d` live
+Recorded by Session AC (2026-10-15).
+- **Source:** `9e41f0d14284657819e53a78c2515cf58a94db40`, `main` after [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86) (Merge #86, Session AB-Design, "The giant UI upgrade: one premium 4-in-1 app", ADR-024).
+- **CI:** Milestone quality #946 ([run 38716443548](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38716443548)) on `9e41f0d` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 43 ([run 38726691677](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38726691677)), dispatched 2026-10-15 11:20:59 UTC from `main`, exact source `9e41f0d`: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 4 reads; live prices `VERIFIED`. Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** live version `ad8320e7-9a9a-4fcf-a0ef-b5699a20e963`; rollback `6a46c6cd-4fc2-47a3-9fd3-fb6cd967d2d4` (#40). Owner-reported.
+- **Owner's hosted check (2026-10-15):** `scripts/verify-hosted-alpha.mjs` from an ops checkout at `9e41f0d` with `EXPECTED_COMMIT` set: **FAIL at stage 6** — `/app/settings/reminders` had the tab title "Reminders" instead of "Reminders · ZIGoals Alpha"; stages 1–5 PASS (prices, identity, the local create/deposit/withdraw, backup export/import, reload and navigation); the Share, landing and recipe-import refusal checks were not reached. Owner-reported; the fix is Session AC item 4.
+- **What went live:** Session AB-Design (ADR-024, Phases 1 and 2) on top of AB-Cloud (#40).
+- **Release identity:** live #41, previous #40. **Rollback floor:** stays #32.
+- **Record note:** run number 43 is Alpha #41 (the run number runs two ahead of the Alpha count).
+
+---
+
+# Session AB-Design Phase 2 — "Finish everything, nothing half done" (ADR-024 P1–P20, the closing pass, Gate C) (2026-10-14/15, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), merged into `main` as `9e41f0d` and deployed as Alpha #41)
 **Evidence labels:** local = this Mac, production builds on :3104 with `TZ=UTC`, Chrome (channel) and WebKit through Playwright, at most 2 workers, nothing in parallel; CI = GitHub Actions on the PR head. No paid model calls.
 **Base:** the Phase 1 head `09b2d307`; `main` `985720ee` (AB-Cloud's PR #85, Alpha #40, recorded below) merged in as the second merger (`201c0305`, both sides kept). **Model:** Opus 5.5. **Rules for the finish (owner):** today-screens by layout only, no ceiling or budget raised, CI fully green with the Workers security gate completing, a rotating WebKit flake proven on AB-Cloud's pre-merge runs recorded with evidence instead of looped on.
 ## Parts
@@ -67,7 +81,7 @@ Recorded by Session AB-Design (2026-10-15).
 
 ---
 
-# Session AB-Design — "The giant UI upgrade: one premium 4-in-1 app" (ADR-024) (2026-10-14, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), Draft → Ready for review, not merged)
+# Session AB-Design — "The giant UI upgrade: one premium 4-in-1 app" (ADR-024) (2026-10-14, [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86), merged into `main` as `9e41f0d` with Phase 2 and deployed as Alpha #41)
 **Evidence labels:** local = this Mac, production builds on :3104 with `TZ=UTC`, Chrome (channel) and WebKit through Playwright; CI = GitHub Actions on the PR head. No paid model calls this session.
 **Base:** `main` `6c1052b2` (Alpha #39 per the owner). **Parallel lane:** AB-Cloud (`feature/session-ab-cloud`, ADR-023); the handoffs are `docs/handoff/AB_DESIGN_TO_CLOUD.md` and `AB_CLOUD_TO_DESIGN.md`; whichever PR merges second carries both sides (ADR-024 "Consequences").
 **Time:** branch created 2026-10-14 (local); this entry 2026-10-14.
@@ -6156,7 +6170,19 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-13 for the [Alpha deploy #39](#alpha-deploy-39--2026-10-13-morning-6c1052b-live) record at the top of this file (recorded by Session AB-Cloud).
+Updated 2026-10-15 for the [Alpha deploy #41](#alpha-deploy-41--2026-10-15-9e41f0d-live) record at the top of this file (recorded by Session AC). Rollback floor: #32.
+- Deployed source `9e41f0d14284657819e53a78c2515cf58a94db40`, `main` after [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86) (Merge #86, Session AB-Design). Verified: Actions API.
+- CI: Milestone quality #946 ([run 38716443548](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38716443548)) on `9e41f0d`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 43 ([run 38726691677](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38726691677)), exact source `9e41f0d`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `ad8320e7-9a9a-4fcf-a0ef-b5699a20e963`; live prices `VERIFIED`; rollback `6a46c6cd-4fc2-47a3-9fd3-fb6cd967d2d4` (#40). Owner-reported. The owner's hosted check failed at stage 6 (the Reminders tab title; the #41 record).
+
+Previous release identity (#40, 2026-10-14, recorded by Session AB-Design's entry and here by Session AC):
+- Deployed source `985720ee2fef2d2868fc0ef87a43d95d52dd0242`, `main` after [PR #85](https://github.com/reyals1111-ux/ZIGoals/pull/85) (Merge #85, Session AB-Cloud). Verified: Actions API.
+- CI: Milestone quality #923 ([run 38528927892](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38528927892)) on `985720e`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 42 ([run 38536440733](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38536440733)), exact source `985720e`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API and the deploy run's CI log.
+- Alpha Worker `zigoals-alpha`: version `6a46c6cd-4fc2-47a3-9fd3-fb6cd967d2d4`; rollback `3bcf2886-4cc6-4ab4-be2b-3518b59f2b72` (#39). Verified: CI log; owner-reported values identical.
+
+Previous release identity (#39, 2026-10-13 morning, recorded by Session AB-Cloud):
 - Deployed source `6c1052b291812982f65875b86ea65001026125b5`, `main` after [PR #84](https://github.com/reyals1111-ux/ZIGoals/pull/84) (Merge #84, Session AA-Local). Verified: Actions API.
 - CI: Milestone quality #905 ([run 38353178089](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38353178089)) on `6c1052b`: success (attempt 2). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 41 ([run 38365446959](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38365446959)), exact source `6c1052b`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API and the deploy job's CI log.
