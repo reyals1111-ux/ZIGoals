@@ -9,7 +9,8 @@ const navigate=async(page,name)=>{const more=page.locator('.phone-more-top');if(
 /** Session U follow-up F3: on a phone a Today widget card is a row named by it that opens in place; open it there. */
 // Session V Part 1b: a row the person opened before stays open on that device, so it is opened only while folded (a
 // remembered state that lands between the read and the click closes it once, and the second pass opens it again).
-async function todayCard(page,name){if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name,exact:true});for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}return page.getByRole('article',{name,exact:true});}
+// Session AC (ADR-025 E19): the habits widget standing in for Daily Habits shows open on a phone (no row).
+async function todayCard(page,name){const card=page.getByRole('article',{name,exact:true});if(await page.evaluate(()=>matchMedia('(max-width: 767.98px), (pointer: coarse) and (max-height: 500px)').matches)){const row=page.getByRole('button',{name,exact:true});await row.or(card).first().waitFor();if(await row.count()){for(let pass=0;pass<2&&await row.getAttribute('aria-expanded')!=='true';pass++)await row.click();}else await card.waitFor({state:'visible'});}return card;}
 
 async function openModule(page,id){const section=page.locator('#'+id);if(await section.getAttribute('open')===null)await section.locator('summary').first().click();return section;}
 async function sync(page){await navigate(page,'Settings');const synced1=await armPackagedSync(page);await page.getByRole('button',{name:'Sync now',exact:true}).click();await waitPackagedSync(page,synced1);}
