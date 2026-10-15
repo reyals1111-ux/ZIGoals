@@ -224,6 +224,9 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   line 34, the same check the old 1.1 MB string body reached). Sending the whole body raced that early refusal: the
   client was still writing when the relay closed the connection (`terminated`, EPIPE) in a loaded unit run. The fixture's
   `call` passes a stream body through with `duplex: 'half'`. The reply-size half of the test is unchanged.
+- `portfolio.spec.ts` ("Wealth is untouched"): both reads of Wealth's text wait until none of its later sections is still
+  loading (`main [aria-busy="true"]` count 0). This branch loads four Wealth sections on their own (weights); the cold
+  first visit read the page before they arrived and the warm second one after. The equality itself is unchanged.
 - `tests/phone-nav.ts` `openTodayWidgets` (used by run10-source-pinning and others): the widget and fold counts are read
   together until they agree, instead of the fold count against a widget count read once (a widget mounting a moment later
   made 5 folds for 4 counted widgets); still exactly one fold per widget.
@@ -269,7 +272,9 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
    favourites" at 320 px (own row), the Gamify rocket over the demo balance at 320–374 px (the balance takes its own line,
    "demo balance" kept whole), the goal page's metric tiles at 320 px (dates ran out of a 88 px tile; they stack). The goal
    page's nowrap rule is scoped to its overview figures (in the timeline it ran into the next row and took its clicks on
-   CI), and the charts measure their width on the next frame (WebKit's ResizeObserver loop error).
+   CI). (The charts and the footer line were first moved to measure on the next frame for WebKit's ResizeObserver loop
+   error; the error was traced to the main navigation, which keeps that, and the charts and the footer line measure in the
+   observer again: a page resized under a fake clock kept their old width for that long frame, see "one 30-second clock".)
    Audit corrections, each checked against a screenshot first: a line is the set of boxes that overlap vertically
    (a small unit beside a big figure is one line); contrast is read inside each of the text's own line boxes on a second capture where
    every glyph is transparent (edge pixels had caught the neighbouring line's letters, a wrapped run's box its neighbour's
@@ -391,6 +396,33 @@ Two tests made deterministic in the same pass (not loosened): `scripts/worker-ty
 match its own 60 s spawn limit (vitest's default 5 s had ended a wrangler run under load); `goals-best-aa` "share image"
 tells the browser it cannot share files, so the device-side save path it tests runs everywhere (a Chrome that can share
 files opened a share sheet a headless run never settles).
+
+### CI: WebKit time on this branch, and one 30-second clock (closing pass, 2026-10-15)
+CI's WebKit shards ran about 40 % longer on this branch than on AB-Cloud's pre-merge runs (median ≈ 28 min against
+≈ 19.5 min, from the job logs), and `zigi-simulated-day` (phone) timed out at its 180 s on nine of nine branch runs (once
+in six on AB-Cloud). Measured locally in WebKit: Playwright's fake clock yields to the real event loop after every timer
+it fires (≈ 7 ms each, whatever the timer does), and the phone Habits page ran six separate 30-second intervals — four
+`useHabits` day refreshes, the automatic check-ins and the vault idle check — so 60 fake minutes cost 6.7 s of real time,
+and the test's simulated day ≈ 100 s before anything else. Not a test change: `components/half-minute.ts` is one shared
+30-second clock (re-armed when the page's timer functions change, as a fake clock installed after load does), and the
+"today" and "what is due" refreshes ride it (`useHabits`, `useLocalToday`, `useHealthToday`, the reminder cards, the
+For-you clock); the automatic check-ins call their check through a ref instead of re-rendering the whole page every
+30 s to run it. Every listener still runs at most 30 s after the last time, plus on focus as before; ZIGi's knock keeps
+its own tick (its cadence is what its specs assert). Result: 60 fake minutes on phone Habits 6.7 s → 1.8 s; the
+simulated day 2.7 min → 1.2 min locally; fewer wake-ups for a real phone too. `lib/half-minute.test.ts` covers one
+timer for many listeners, the last listener stopping it, a listener leaving while it fires, and re-arming.
+`zigi-alive` "idle that feels alive" (desktop, 60 s) steps the clock one second at a time ≈ 630 times; from the job
+logs' timestamps it took 30–48 s on AB-Cloud's runs and ≈ 53 s on this branch's passing ones, so CI's general WebKit
+slowdown on these heavier pages tips it over; locally it takes 11 s of its 60 s and no timer or animation runs during
+its steps (measured: 120 steps, 1.2 s, no animation frame loop, no endless CSS animation on any page). It is recorded
+with the rotating WebKit set below if it still fails once the shared clock is in.
+Also from CI on `7162a9d2`: Today's 320 px life card spilled 1 px because the empty Wealth sentence ("Your first asset
+starts here") had taken the figure's one-line rule (it wraps now; `run10-widgets`); the phone footer's chips were
+squeezed below 44 px under 390 px and its Back to top kept a desktop padding through a more specific selector (they
+wrap as one row of chips there, never shrink); the footer line and the charts kept their measured width for a frame after
+a resize, which a fake clock makes long (`meditation` phone at 320 read 357 px): they measure inside the observer again,
+as on `main`, and the footer line is also held to its stage's width. The stress audit's Wealth
+figures: an asset card's value and the composition ring's phone figure size themselves from their own length too.
 
 ## Weights (Gate C)
 `scripts/check-weight-budget.mjs` against the Gate C build: Today 515.3 of 515 kB, Goals 438.0 of 434 kB and Wealth 469.1 of

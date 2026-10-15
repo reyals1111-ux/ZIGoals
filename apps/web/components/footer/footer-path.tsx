@@ -71,12 +71,12 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       setGeo(g => g && g.w === base.width && g.h === base.height && g.d === d ? g : {w: base.width, h: base.height, d, stars});
     };
     measure();
-    // Session AB-Design Phase 2 closing pass (WebKit smoke: "ResizeObserver loop completed with undelivered notifications"):
-    // a resize is measured on the next frame, never inside the observer's own delivery.
-    let frame = 0; const later = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); };
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(later); ro?.observe(el);
-    window.addEventListener('resize', later);
-    return () => { cancelAnimationFrame(frame); ro?.disconnect(); window.removeEventListener('resize', later); };
+    // Measured in the observer's own delivery, so a resized page never keeps the old width for a frame (a test's fake
+    // clock made that frame long): the line is absolutely placed and the properties set here only time the intro, so
+    // nothing the observer watches changes size inside its delivery.
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure); ro?.observe(el);
+    window.addEventListener('resize', measure);
+    return () => { ro?.disconnect(); window.removeEventListener('resize', measure); };
   }, [stage, footer]);
   // The opening moment, once per session, when the banner is well in view.
   useEffect(() => {

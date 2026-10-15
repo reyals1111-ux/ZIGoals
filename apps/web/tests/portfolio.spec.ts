@@ -17,6 +17,8 @@ test('create a portfolio and record transactions; without prices values stay unk
   await start(page);
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  // Session AB-Design Phase 2 (ADR-024): Wealth's later sections load on their own; both reads wait until none is still loading.
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
   const wealthBefore = await page.locator('main').innerText();
   await (await navLink(page, 'Portfolio')).click();
   await expect(page).toHaveURL(/\/app\/portfolio$/);
@@ -61,6 +63,7 @@ test('create a portfolio and record transactions; without prices values stay unk
   // Wealth reads nothing from Portfolio.
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
   expect(await page.locator('main').innerText()).toBe(wealthBefore);
   expect(await page.evaluate(() => localStorage.getItem('zigoals:platform:v1'))).toBeNull();
 });

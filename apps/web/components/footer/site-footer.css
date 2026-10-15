@@ -29,7 +29,7 @@
 
 /* The three steps; the path is drawn behind the nodes by footer-path.tsx. */
 .site-footer-steps { position: relative; z-index: 2; list-style: none; width: 100%; max-width: 1100px; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.site-footer-line { position: absolute; left: 0; top: 0; z-index: 1; overflow: visible; pointer-events: none; }
+.site-footer-line { position: absolute; left: 0; top: 0; z-index: 1; overflow: visible; pointer-events: none; max-width: 100%; } /* a width measured before a resize never widens the page (its viewBox scales it until the next measure) */
 .site-footer-path { stroke-dasharray: none; stroke-dashoffset: 0; }
 .site-footer-path-glow { opacity: .55; }
 .site-footer-star { fill: #e9f3ff; opacity: .75; }
@@ -179,6 +179,14 @@
   .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }
   .site-footer-social-links > a[href*="x.com"] { padding: 0 9px; gap: 6px; font-size: 14px; letter-spacing: -.01em; }
   .site-footer-social-links > a[href*="x.com"] svg { width: 14px; height: 14px; }
-  .site-footer-top { width: 44px; padding: 0; justify-content: center; }
+  .site-footer-social .site-footer-top { flex: none; width: 44px; padding: 0; justify-content: center; }
   .site-footer-top > .site-footer-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .site-footer-social-links > a { flex: none; }
+}
+/* Below 390 px the four chips (about 350 px) no longer fit one line, and squeezing them made the website and Back to top
+   narrower than 44 px: there they wrap as one row of chips, Back to top keeping the right edge. */
+@media (max-width: 389.98px) {
+  .site-footer-social { flex-wrap: wrap; justify-content: flex-start; gap: 8px 6px; }
+  .site-footer-social-links { display: contents; }
+  .site-footer-social .site-footer-top { margin-left: auto; }
 }
