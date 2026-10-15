@@ -1,6 +1,7 @@
 "use client";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import { useJournalZone } from "../use-journal-zone";
+import { everyHalfMinute } from "../half-minute";
 import { usePrivateStore } from "../use-private-store";
 import { habitCalendarDay,createHabit, emptyHabitData, habitDataSchema, HABITS_KEY, habitDay, habitRuleOn, logHabitValue, setHabitEntryStatus, smartDoneValue, planSkip as planHabitSkip, unplanSkip as unplanHabitSkip, setVacation as setHabitVacation, clearVacation as clearHabitVacation, type HabitData, type HabitInput, type HabitState, type VacationRange } from "../../lib/habits";
 import { shareHabitData } from "../../lib/habit-sharing";
@@ -55,9 +56,9 @@ export function useHabits() {
   useEffect(() => {
     const refreshDate = () => setToday(habitCalendarDay({timeZone}));
     refreshDate();
-    const timer = window.setInterval(refreshDate, 30000);
+    const stop = everyHalfMinute(refreshDate);
     window.addEventListener("focus", refreshDate);
-    return () => { window.clearInterval(timer); window.removeEventListener("focus", refreshDate); };
+    return () => { stop(); window.removeEventListener("focus", refreshDate); };
   }, [timeZone, journal]);
   // Actions depend only on the store's update, so their identity is stable once the store has loaded.
   const update = store.update;

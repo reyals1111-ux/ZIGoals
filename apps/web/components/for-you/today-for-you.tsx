@@ -48,6 +48,7 @@ import {addLocalDays} from '../../lib/local-date';
 import {usePagesView} from '../pages/use-pages-view';
 import {isShown} from '../../lib/pages/visibility';
 import {LoadBoundary} from '../load-boundary';
+import {everyHalfMinute} from '../half-minute';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -75,7 +76,7 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   const launcher = useLauncherRecord(), [brief, setBrief] = useState<DayBrief | null>(null);
   // Session W Part 13: the evening wrap-up follows this device's clock, checked every half minute.
   const pagesView = usePagesView(), [clock, setClock] = useState<Date | null>(null);
-  useEffect(() => { const tick = () => setClock(new Date()); queueMicrotask(tick); const id = setInterval(tick, 30_000); return () => clearInterval(id); }, []);
+  useEffect(() => { const tick = () => setClock(new Date()); queueMicrotask(tick); return everyHalfMinute(tick); }, []);
   const zigiOn = launcher.loaded && launcher.record.enabled && !launcher.record.launcherHidden;
   useEffect(() => { let active = true; queueMicrotask(() => { if (!active) return; try { setWhatsNew(!whatsNewSeen(getAppStorage())); } catch { setWhatsNew(false); } }); return () => { active = false; }; }, [showcase]);
   const dismissNew = useCallback(() => { let ok = false; try { ok = dismissWhatsNew(getAppStorage()); } catch { ok = false; } if (ok) setWhatsNew(false); return ok; }, []);

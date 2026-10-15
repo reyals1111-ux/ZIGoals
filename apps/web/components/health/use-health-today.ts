@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useJournalZone } from "../use-journal-zone";
+import { everyHalfMinute } from "../half-minute";
 import { healthDay } from "../../lib/health-daily";
 
 /**
@@ -14,11 +15,11 @@ export function useHealthToday(timezone: string | null) {
   useEffect(() => {
     const refresh = () => { try { setToday(healthDay(timezone)); } catch { /* an invalid zone keeps the last day */ } };
     refresh();
-    const timer = window.setInterval(refresh, 30_000);
+    const stop = everyHalfMinute(refresh);
     const visible = () => { if (document.visibilityState === "visible") refresh(); };
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", visible);
-    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", visible); };
+    return () => { stop(); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", visible); };
   }, [timezone, journal]);
   return today;
 }
