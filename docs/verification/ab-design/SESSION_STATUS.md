@@ -7,19 +7,28 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (checkpoint 2026-10-15 01:00, after the second lock at 00:50)
-**State.** Phase 2 parts 0–14 and closing-pass items 1–6 built and pushed; head `7162a9d2` (the c9/c10 audit fixes: phone
-footer one paragraph + one-line social row + arrow-only Back to top + tighter spacing; stress figures; WebKit selects; the
-nav's ResizeObserver on the next frame; run9-2-life visible root; part-boundary S64 filter). CI on `9cc176e2`: checks,
-integration and the new `web-alpha-gate` (Workers security gate) green; today-screens, run9-2-life and WebKit open there,
-all addressed in `be43ea5d`/`7162a9d2` (CI run 38649650159 on `7162a9d2` in progress at this checkpoint).
-**Running / next.** c13 (`scratchpad/pipeline-c13.sh`, log `logs/pipeline-c13.log`): rebuild → targeted Chrome specs
-(today-screens first) → the full WebKit set (2 workers; c12's run died at 00:53 with 178 "browser closed" failures from the
-lock, not real) → the four audits. Then Gate C, CI fully green, STATUS, PR Ready.
+## Resume here (checkpoint 2026-10-15 02:10, c13 done except the touch and Chrome audits)
+**State.** Head `f3b8a870`. Since `7162a9d2`: the relay size-cap test refuses on the declared size (`05bd23e1`); one
+shared 30-second clock (`d77dd66f`: CI's WebKit `zigi-simulated-day` timed out on every branch run — the fake clock costs
+~7 ms per timer firing and phone Habits had six 30 s intervals; 6.7 s → 1.8 s per fake hour); 320 px and stress fixes
+(`f3b8a870`: life card empty sentence wraps, phone footer chips wrap below 390 px and stay 44 px, charts and the footer
+line measure inside their ResizeObserver again, asset-card and ring figures sized from their length, portfolio.spec
+waits for Wealth's later sections). ADR-024 "CI: WebKit time on this branch, and one 30-second clock".
+**c13 results.** Chain: lint, typecheck, build green; unit 1 failure (the relay race, fixed); 183/185 targeted specs (Help
+46 px margin added; a11y-wcag-x keyboard is a local-load flake, green on CI). Full WebKit set 431 passed, 0 failed (2
+workers). Stress audit: footer chips, empty Wealth sentence, three stress figures — all fixed. WebKit audit: the empty
+Wealth sentence — fixed. Touch and Chrome audits still running on :3104. Scratch worktree `scratchpad/wt14` serves the
+working tree on :3103 for checks.
+**CI.** `7162a9d2` run 38649650159: checks, integration, alpha gate green; browser shards 1/3 (run10-widgets 320 px,
+portfolio) and both WebKit shards (zigi-simulated-day, zigi-alive:190, zigi-accept-correct stop-fast) red — the first
+three fixed in `d77dd66f`/`f3b8a870`; `05bd23e1`'s run in progress, `f3b8a870` queued.
+**Next.** Finish the c13 audits → fix → rebuild → Gate C (captures, proof table, full unit, full browser suite once, WebKit
+phone set, weights, revert gate, design critique) → CI fully green → STATUS → PR Ready.
 **Rules for the finish (owner).** today-screens ≤ 5.8 / Showcase ≤ 11.5 by layout only; no ceiling or budget raised; CI
 aggregate fully green with the security gate in its own job; a WebKit flake that also failed on AB-Cloud's pre-merge run
 and does not reproduce locally under 2-worker load is recorded with evidence, not looped on.
-**Keep-awake.** `nohup caffeinate -ims &` (never -d). Servers only from Bash (nohup, 3102–3104).
+**Keep-awake.** `caffeinate -dimsu` (with -d; owner, after the 00:50 lock). Never stop a running caffeinate. Servers only
+from Bash (nohup, 3102–3104).
 
 ## Earlier resume point (2026-10-14; Phase 2 on Opus 5.5)
 Phase 1 is complete (STATUS entry). Phase 2 ("Finish everything, nothing half done"): Parts 0–13 are built (ADR-024 P1–P20;
