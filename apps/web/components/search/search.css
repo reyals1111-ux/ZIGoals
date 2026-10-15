@@ -48,7 +48,7 @@
   :root .search-preview .pillar-mark-disc { width: 46px; height: 46px; }
   :root .search-preview-mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #9273ff2e; color: #e8dcff; font-size: 20px; }
   :root .search-preview-kind { margin: 6px 0 0; font-size: 14px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--text-meta); }
-  :root .search-preview-title { margin: 0; font-size: 22px; font-weight: 750; line-height: 1.25; letter-spacing: -.02em; overflow-wrap: anywhere; }
+  :root .search-preview-title { margin: 0; font-size: 22px; font-weight: 750; line-height: 1.25; letter-spacing: -.02em; overflow-wrap: anywhere; color: var(--text-strong, #f4f8ff); } /* Gate C: the selected result reads at full strength */
   :root .search-preview-detail { margin: 0; font-size: 15px; color: var(--text-secondary); overflow-wrap: anywhere; }
   :root .search-preview-where { margin: 8px 0 0; font-size: 14px; color: var(--text-secondary); }
   :root .search-preview-tip { margin: 0; font-size: 15px; color: var(--text-secondary); }

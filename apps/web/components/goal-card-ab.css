@@ -49,3 +49,8 @@
 /* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): the card's foot wraps "Open Goal →" under
    the source line when the touch layout's 44 px link no longer fits beside it, instead of running past the card. */
 .unified-goal-card .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; }
+/* Gate C (design critique): inside the open details the next contribution reads like the pairs above it (label over
+   value, from the left), not as a row with its date pushed to the card's far edge. */
+.goal-card-more .goal-next-contribution { display: grid; justify-content: start; gap: 2px; margin: 0 0 10px; }
+.goal-card-more .goal-next-contribution > span { font-size: 14px; color: var(--text-secondary, #dde7f7); }
+.goal-card-more .goal-next-contribution > time { font-size: 16px; }

@@ -171,3 +171,11 @@ main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
 /* Session AB-Design Phase 2 closing pass (stress audit, 320 px): below 375 px the focus tiles stack, so a ten-digit amount
    ("0% of US$1,234,567,890.12") fits its tile. */
 @media (max-width: 374px) { :root .today-focus-tiles { grid-template-columns: minmax(0, 1fr); } }
+/* Session AB-Design Phase 2, Gate C (design critique): Today's gradient words sit on the planet's brightest glow; a soft
+   dark halo keeps their edges ("Health" had dissolved into the light). */
+:root .today-hero .slogan-gradient { filter: drop-shadow(0 2px 10px #050816e6) drop-shadow(0 0 2px #05081699); }
+/* Gate C (design critique): in Today's narrow rail the three steps read as rows (icon, then the step and its line) —
+   three columns had wrapped "Stay consistent" alone and pressed "Reach farther" to the card's edge. */
+:root .today-rail .destination-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; text-align: left; }
+:root .today-rail .destination-steps > div { grid-template-columns: 28px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 12px; row-gap: 0; border-right: 0; }
+:root .today-rail .destination-steps > div > :first-child { grid-row: span 2; }

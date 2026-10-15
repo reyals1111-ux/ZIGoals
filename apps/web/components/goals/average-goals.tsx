@@ -34,7 +34,7 @@ export function AverageGoalCard({goal, ...layout}: LayoutAttrs & {goal: AverageG
     <h2><Link href={`/app/goals/average/${goal.id}`}>{goal.name}</Link></h2>
     <p className="average-goal-target">{goal.direction === 'at-least' ? 'At least' : 'At most'} <span className="nowrap">{value(goal, goal.target)} {goal.unit}</span></p>
     <div className="average-goal-figure">
-      <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={84} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />
+      <ProgressRing percent={p.share === null ? null : String(p.share * 100)} size={94} label={`${goal.name}: how close the average is`} complete={p.met === true} identity={`average-${goal.id}`} valueText={p.average === null ? 'No data' : undefined} />
       <div><strong>{p.average === null ? 'No data yet' : `${value(goal, p.average)}`}</strong><span>{p.average === null ? '' : goal.unit}</span><small>{verdict(goal, p)}</small></div>
     </div>
     <p className={`average-goal-state${p.met ? ' is-met' : ''}`}>{p.met === null ? 'Waiting for your first day.' : p.met ? 'On target over the last ' + goal.windowDays + ' days.' : 'Not on target yet over the last ' + goal.windowDays + ' days.'}</p>

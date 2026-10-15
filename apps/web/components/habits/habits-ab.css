@@ -55,3 +55,8 @@
 :root .habit-card-heading > div:first-child > :not(.eyebrow) { grid-column: 1 / -1; }
 :root .habit-card-heading > button { grid-column: 2; grid-row: 1; }
 :root .habit-card-heading > .pin-to-today { grid-column: 3; grid-row: 1; }
+/* Session AB-Design Phase 2, Gate C (design critique): a card's tags never split from their "·", and inside a time-of-day
+   section (whose heading already names it) the time of day leaves the label ("BUILD · LEARNING ·" had wrapped, leaving
+   "MORNING" alone against Edit and ⋯). */
+.habit-card-heading .habit-tag { white-space: nowrap; }
+.habit-section .habit-card-heading .habit-tag-time { display: none; }

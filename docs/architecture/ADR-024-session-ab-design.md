@@ -231,6 +231,10 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   `call` passes a stream body through with `duplex: 'half'`. The reply-size half of the test is unchanged.
 - `zigi-alive.spec.ts` "idle that feels alive": `test.slow()` (≈ 630 one-second clock steps; 30–53 s of 60 s on CI's
   WebKit on AB-Cloud's and this branch's runs); no step or check changed.
+- `zigi-proactive.spec.ts` "Today: the brief card only with ZIGi on…" (WebKit desktop, `ac2f4c56` and `072ef6d2`): it
+  looked for For you's "Show more" once, the moment the region showed; on a slow run the cards (and the button that
+  holds the lowest-priority brief) arrived after that look. It now opens "Show more" whenever it shows until the brief is
+  there (15 s); the brief's text, "Not today" and the nothing-written checks are unchanged.
 - `portfolio.spec.ts` ("Wealth is untouched"): both reads of Wealth's text wait until none of its later sections is still
   loading (`main [aria-busy="true"]` count 0). This branch loads four Wealth sections on their own (weights); the cold
   first visit read the page before they arrived and the warm second one after. The equality itself is unchanged.
@@ -407,6 +411,27 @@ froze it mid-page), 29 (the empty Today keeps the rail beside a longer main colu
 Owner items (product decisions beyond a visual fix): 12 — one display format for dates across pages (ISO, locale and long
 forms are mixed; changing it moves many asserted strings); 28 — the Showcase's activity times are all midnight because its
 records carry dates only (AB-Cloud's data lane).
+
+### Gate C design critique (2026-10-15)
+One independent read-only agent over the final build's 1440 captures (57 of 89 opened; its phone images did not render
+for it, so the 390 set and the other 32 desktop files go to a second pass on the re-captured build). Fifteen findings:
+- Fixed: (1, high) in a 900 px desktop window the sidebar cut Settings at the bottom edge — up to 1000 px tall the item
+  padding and gaps tighten so every destination shows and the search row peeks below (items stay 44 px; the Z logo keeps
+  its asserted size); (3) number
+  formats — the Vision board's "target 20000" and the history readout's "559,423.2 USD" (already fixed in the capture
+  reading) and the demo balance "1000 ZIG" beside "300,000 ZIG" (now grouped, "1,000 ZIG"); (5) the "Keep an average"
+  cards' ring at the goal cards' size and label, the unit on its figure's line ("1.9 h a day"); (7) Today's gradient
+  words over the planet's glow get a soft dark halo; (8) a habit card's tags never split from their "·", and inside a
+  time-of-day section the time of day leaves the label; (9) the rail's three steps read as rows; (10) the reminders
+  page's switch rows were turned into columns by a broader label rule (switch centred above its words) — the row is
+  horizontal again; (12) the next contribution inside a card's details reads like the pairs above it; (13) the footer's
+  lone "transactions" (balanced lines); (14) the achievement area chips carry their colour in their words and edge, and
+  every card's actions sit on one line; (15) the search preview's title at full strength.
+- Judged, not changed: (2) the floating music and ZIGi buttons over content — the owner's correction P1 ("the buttons
+  float on top, overlap accepted, both fold away"); (4) the Vision board's illustration differs from the card's scene by
+  design (the board is the dream picture, the card art the card's scene; requests 16 and 17); (6) the four pillar pages
+  share one header pattern (Part 2) — the actions column sits beside the lede by design; (11) Goals' ⋯ menu holding only
+  "Positions →" is request 15 as asked; (14) the Vision board's lone last tile is the masonry layout's last column.
 
 ### CI: the Alpha gate in its own job ([TIER 3] (CI), owner, 2026-10-14)
 Milestone quality's `web-integration` had grown to 12.7 min on an ordinary runner and reached its 15-minute limit on a slow

@@ -10,6 +10,8 @@
 .reminders-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px solid #c3a8f92a; background: #1a142a66; }
 .reminders-item[data-on] { border-color: #86f0d644; background: linear-gradient(120deg, #1d4a4b33, #1a142a80); }
 .reminders-switch { display: flex; align-items: center; gap: 12px; min-height: 44px; cursor: pointer; min-width: 0; }
+/* Gate C (design critique): a broader label rule turned this row into a column, centring the switch above its words. */
+:root .reminders-item > .reminders-switch { flex-direction: row; justify-content: flex-start; text-align: start; }
 .reminders-switch input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
 .reminders-switch span { display: grid; gap: 2px; min-width: 0; }
 .reminders-switch strong { font-size: 16px; }

@@ -52,7 +52,7 @@ import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { PointTellMount } from "./point-tell/mount";
-import { formatPlainDecimal } from "../lib/visual-format";
+import { formatExactNumber, formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
 /** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
 const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
@@ -116,7 +116,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const modeText = s.mode === "local"
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
-  const balanceText = `${formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
+  const balanceText = `${formatExactNumber(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
   const walletButtons = <>
           <button
             className="quiet"

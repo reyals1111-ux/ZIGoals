@@ -81,3 +81,13 @@
 @media(forced-colors:active) { .sidebar-star { display:none; } }
 /* While the workspace waits for private stores it stays hidden, but the honesty and status banners never do. */
 .workspace[aria-busy=true] > :is(.showcase-banner,.workspace-status,.status-row) { visibility:visible; }
+/* Session AB-Design Phase 2, Gate C (design critique): in a desktop window up to 1000 px tall every destination shows,
+   Settings and Help included, with the search row peeking below as the sign that the sidebar scrolls (at 900 px Settings
+   had been cut at the bottom edge). The Z logo keeps its size (asserted ≥ 130 × 150); taller windows keep the full
+   spacing; targets stay 44 px. */
+@media (min-width: 901px) and (max-height: 1000px) {
+  :root .app-sidebar { padding-top: 20px; }
+  :root .app-sidebar .app-nav { margin-top: 18px; gap: 6px; }
+  :root .app-sidebar .app-nav a { min-height: 44px; padding-block: 10px; }
+  :root .app-sidebar .app-nav [data-group-start] { margin-top: 18px; } /* groups stay clearly spaced (asserted > 15 px over the in-group gap) */
+}
