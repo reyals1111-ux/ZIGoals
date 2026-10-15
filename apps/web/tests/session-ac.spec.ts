@@ -130,6 +130,9 @@ test.describe('item 5: each thing once (Today defaults, Wealth\'s one holdings l
     await showcase(page);
     await page.goto('/app/wealth'); await settled(page);
     const have = page.getByRole('region', {name: 'What you have', exact: true});
+    // The heading keeps the section's width on every screen (the review found it squeezed to a 100 px column on phones).
+    const titleBox = (await page.locator('#holdings-title').boundingBox())!, sectionBox = (await have.boundingBox())!;
+    expect(titleBox.width).toBeGreaterThanOrEqual(sectionBox.width * 0.5);
     await expect(page.getByRole('region', {name: 'Your assets', exact: true})).toHaveCount(0);
     const chips = have.getByRole('group', {name: 'Show'}).getByRole('button');
     await expect(chips.nth(0)).toHaveText(/^All \d+$/); await expect(chips.nth(1)).toHaveText(/^Accounts \d+$/);

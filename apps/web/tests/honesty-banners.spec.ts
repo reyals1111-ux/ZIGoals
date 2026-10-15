@@ -27,6 +27,8 @@ const stores=[
 ];
 for(const store of stores)
  test(`${store.name}: the honesty banners stay on every main page and the read error shows where it belongs`,async({page})=>{
+  // Session AC: each of the 10 pages also reaches Settings' facts block in the app (through More on a phone) and back.
+  test.slow();
   await page.addInitScript(({key,value})=>{if(!sessionStorage.getItem('fixture-seeded')){localStorage.setItem(key,value);sessionStorage.setItem('fixture-seeded','1');}},{key:store.key,value:store.value});
   for(const path of PAGES){
    await page.goto(path);await expect(page.locator('main h1').first(),path).toBeVisible();
@@ -38,6 +40,7 @@ for(const store of stores)
  });
 
 test('a damaged account selection keeps the honesty banners and says so',async({page})=>{
+ test.slow(); // Session AC: the facts block is reached from each of the 10 pages, twice.
  await page.addInitScript(key=>sessionStorage.setItem(key,'{"version":9}'),ACCOUNT_SELECTOR);
  for(const path of PAGES){
   await page.goto(path);await expect(page.locator('main h1').first(),path).toBeVisible();
@@ -57,6 +60,8 @@ test.describe('while private stores are still loading',()=>{
    // Without scripts there is no in-app navigation (the phone's More sheet needs them): the notice here, and the facts
    // block from Settings' own server HTML, the same facts the footer's server line carried until Session AC.
    await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);await expect(alphaNotice(page),path).toBeVisible();
+   // As expectAlphaFacts does with scripts: the notice also carries the sentence wherever the screen is wider than a phone.
+   if(page.viewportSize()!.width>=768)await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
    await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
   }
   // Without scripts the workspace stays hidden until the stores are read (every page, Settings too), so the block is

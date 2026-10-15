@@ -1,0 +1,10 @@
+Session AC Gate C — the Today placement this branch stores, read by older builds (TIER 3 storage, ADR-025 E9/E19)
+Emitted by this branch (lib/dashboard-settings.ts at d45e9ff3+): a person's first change on the new default
+(setDashboardBuiltinHidden(..., 'wallet', true)) for the Balanced preset and for a legacy record without a preset:
+  stored hiddenBuiltins = ['habits', 'next-action', 'wallet'] (both)
+Read with each release's own dashboardSettingsSchema + reconcileDashboardPlacement (a scratch worktree, the release's
+own lib/dashboard-settings.ts; the check parses the raw record, compares hiddenBuiltins, checks the non-hideable
+summary is still placed, and that parsing leaves the record byte-identical):
+  #32 72ad872 (rollback floor): 2 passed (2)
+  #41 9e41f0d (live):           2 passed (2)
+Frozen readers (scripts/frozen-readers.mjs, frozen-readers.txt): #37 #38 #39 #40 (985720e) #41 (9e41f0d) PASS, 17/17 each.

@@ -1,5 +1,7 @@
 /* Session AC (owner finding 3): the Alpha's facts in Settings, one fact per line, readable (15 px, ≥ 4.5:1). */
-.about-alpha { display: grid; gap: 12px; margin-top: 4px; }
+.about-alpha { display: grid; gap: 12px; margin-top: 4px; text-align: start; }
+/* Phones centre the old banner (visual-theme.css); every fact here starts on the same line. */
+.about-alpha-facts :is(.network-banner, .mode-strip) { text-align: start; }
 .about-alpha-facts { display: grid; gap: 4px; margin: 0; font-size: 15px; line-height: 1.6; color: #d3e0f2; }
 .about-alpha-facts > span { text-wrap: pretty; }
 .about-alpha-facts .network-banner strong { display: block; color: var(--brand-cyan, #23eaff); letter-spacing: .06em; font-size: 14px; }
