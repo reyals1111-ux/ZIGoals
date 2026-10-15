@@ -22,3 +22,6 @@
 .reminders-when input, .reminders-when select { min-height: 44px; font-size: 16px; }
 .reminders-when .quiet { min-height: 44px; }
 @media (max-width: 600px) { .reminders-item { grid-template-columns: 1fr; } }
+/* Session AC (AB-Design critique leftover): the Water and habit rows have no switch of their own (their time sets them), so
+   their titles start where the switch rows' titles do: past the 22 px switch and its 12 px gap. */
+:root .reminders-item > div.reminders-switch { padding-inline-start: 34px; }

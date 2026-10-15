@@ -54,3 +54,13 @@ test('Wealth allocation stays inside the headline currency and reports coverage'
  expect(a.otherCurrencies).toEqual(['EUR']);expect(a.coverage.total).toBe(4);expect(a.coverage.valued).toBeLessThan(4);
  expect(wealthAllocation(wealthOverview(emptyPlatform(),0,[]))).toEqual({currency:undefined,classes:[],otherCurrencies:[],coverage:{valued:0,total:0}});
 });
+
+test('Session AC (persona #13): a weight counts as a Health entry, beside water and a meal on the same day',async()=>{
+ const {saveWeight}=await import('./health');
+ let health=createEmptyHealth();
+ health=addWater(health,{id:'health_water-ac-1',date:'2026-09-23',amountMilli:250_000,unit:'ml'},'2026-09-23T08:00:00Z');
+ health=saveWeight(health,{id:'health_weight-ac-1',date:'2026-09-23',grams:82735},'2026-09-23T08:05:00Z');
+ health=changeCount(health,DEFAULT_COUNTERS[0]!.id,'2026-09-23',3);
+ const week=weekAcross({today,habits:emptyHabitData(),health,platform:emptyPlatform()});
+ expect(week.at(-1)!.healthRecords).toBe(3);
+});

@@ -80,7 +80,7 @@
 @media(max-width:900px) { .sidebar-star { display:none; } }
 @media(forced-colors:active) { .sidebar-star { display:none; } }
 /* While the workspace waits for private stores it stays hidden, but the honesty and status banners never do. */
-.workspace[aria-busy=true] > :is(.showcase-banner,.workspace-status,.status-row) { visibility:visible; }
+.workspace[aria-busy=true] > :is(.workspace-status,.status-row) { visibility:visible; }
 /* Session AB-Design Phase 2, Gate C (design critique): in a desktop window up to 1000 px tall every destination shows,
    Settings and Help included, with the search row peeking below as the sign that the sidebar scrolls (at 900 px Settings
    had been cut at the bottom edge). The Z logo keeps its size (asserted ≥ 130 × 150); taller windows keep the full

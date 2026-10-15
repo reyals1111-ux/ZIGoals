@@ -201,7 +201,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // ZIGi's button while the chat is in the mini window: back to the tab. The composer takes the focus where the chat is.
   useEffect(() => { if (open && mini.win) mini.backToTab(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- only a new open asks for the chat back
   useEffect(() => { if (mini.win) return nextFrame(() => composer.current?.focus({preventScroll: true})); }, [mini.win]);
-  const popOut = async () => { if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
+  // Session AC (persona #24): Expand and pop-out keep the conversation where the person was reading: the distance from the
+  // log's end is kept and put back once the log has its new size (or, in the mini window, its new place).
+  const keepReadingPlace = () => { const el = log.current; if (!el) return; const fromEnd = el.scrollHeight - el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => { const now = log.current; if (now) now.scrollTop = Math.max(0, now.scrollHeight - fromEnd); })); };
+  const popOut = async () => { keepReadingPlace(); if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
   const replies = session.chat.turns.filter(t => t.role === 'assistant').length, lastStatus = useRef(session.status), lastReplies = useRef(replies);
   useEffect(() => { if (session.status === 'pending' && lastStatus.current === 'idle') setNote('Waiting for your AI to reply…'); lastStatus.current = session.status; }, [session.status]);
@@ -252,7 +255,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
       premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
-      onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => setExpanded(e => !e)} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
+      onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
         {key: 'customize', label: 'Customize', name: 'Customize ZIGi', pressed: view === 'customize', onSelect: () => setView(v => v === 'customize' ? 'chat' : 'customize')},

@@ -87,3 +87,10 @@
   :root .workspace > .status-row:has(.wallet-balance) { flex-wrap: wrap; row-gap: 2px; }
   :root .status-row .wallet-balance { order: 9; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0 6px; padding-left: 4px; }
 }
+/* Session AC (leftover "the 1024 px wrap"): from 768 to 1279 px the status row ran one item too long, so the layout lock
+   dropped alone to a second line at the left (Wealth and every page at 1024). The demo balance reads as two short lines
+   there ("1,000 ZIG" over "demo balance") and the row's gaps tighten, so the lock keeps the row's right end. */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+  :root .workspace > .status-row { gap: 8px; }
+  :root .status-row .wallet-balance { display: grid; line-height: 1.2; }
+}

@@ -2,7 +2,7 @@
 import type {ReactNode} from 'react';
 import {PhoneFormSheet} from './phone-form-sheet';
 import {useWorkspaceStatusText} from '../workspace-status';
-import {SHOWCASE_BANNER} from '../../lib/showcase-copy';
+import {SHOWCASE_FOOTER} from '../../lib/showcase-copy';
 
 /**
  * Session Z-Cloud Part 4.2 (persona item 2): on a phone the honesty notices are one 44 px line under the top bar
@@ -19,7 +19,8 @@ export default function PhoneStatusSheet({onClose, label, sentence, mode, balanc
       <div className="wallet phone-status-wallet">{children}</div>
       <p className="phone-status-mode">{mode}<strong>{balance}</strong></p>
       <p className="phone-status-storage"><strong>STORAGE &amp; SYNC</strong><span>{storage}</span></p>
-      {showcase && <p className="phone-status-showcase"><strong>SHOWCASE DATA</strong><span>{SHOWCASE_BANNER}.</span></p>}
+      {/* Session AC (one Showcase wording): the same sentence Settings' facts block shows in the Showcase. */}
+      {showcase && <p className="phone-status-showcase"><strong>SHOWCASE DATA</strong><span>{SHOWCASE_FOOTER}</span></p>}
     </div>
   </PhoneFormSheet>;
 }

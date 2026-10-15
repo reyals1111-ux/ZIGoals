@@ -3,8 +3,19 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AB-Design (release `2026-10-session-ab-design`, ADR-024): one 4-in-1 look. Each link opens its Help answer. */
+/** Session AC (release `2026-10-session-ac-polish`, ADR-025): polish — each thing once. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ac-habits', label: 'Habit cards show their last 28 days under the counter'},
+  {href: '/app/help#help-ac-sky', label: 'A calmer sky: plain dark at the top, richest in the middle'},
+  {href: '/app/help#help-ac-footer', label: 'The page ends at the footer links; the Alpha’s facts live in Settings and Help'},
+  {href: '/app/help#help-ac-today', label: 'Today shows each thing once (every card can come back)'},
+  {href: '/app/help#help-ac-wealth', label: 'Wealth: your assets, accounts and debts in one list with filters'},
+  {href: '/app/help#help-ac-water', label: 'One Water card: the ring, one tap with Undo, your history'},
+  {href: '/app/help#help-ac-vision', label: 'Your own picture on a vision board tile'},
+  {href: '/app/help#help-ac-more', label: 'Tab titles, custom units, aligned reminders and more'},
+];
+/** Session AB-Design (release `2026-10-session-ab-design`, ADR-024): one 4-in-1 look; Session AC followed it, so these lead "Earlier updates". */
+const SESSION_AB_DESIGN_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-abd-look', label: 'One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today'},
   {href: '/app/help#help-abd-footer', label: 'The footer banner: Goals, Habits & Health = Wealth'},
   {href: '/app/help#help-abd-showcase', label: 'Fewer banners: one Alpha notice and a small Showcase chip'},
@@ -90,6 +101,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AB_DESIGN_LINKS,
   ...SESSION_AB_CLOUD_LINKS,
   ...SESSION_AA_LOCAL_LINKS,
   ...SESSION_AA_CLOUD_LINKS,

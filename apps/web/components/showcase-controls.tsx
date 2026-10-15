@@ -4,10 +4,8 @@
 import {useState,useSyncExternalStore} from 'react';
 import {isShowcase,showcaseDay,loadShowcase,resetShowcase,exitShowcase} from '../lib/showcase';
 import {useGoals} from './goal-provider';
-import {SHOWCASE_BANNER} from '../lib/showcase-copy';
 const subscribe=()=>()=>{};
 export function useShowcase(){return useSyncExternalStore(subscribe,isShowcase,()=>false);}
-export function ShowcaseBanner(){const active=useShowcase();return active?<aside className="showcase-banner" aria-label="Showcase data"><div><strong>SHOWCASE DATA</strong><span>{SHOWCASE_BANNER} · {showcaseDay()}</span></div><button className="quiet" onClick={()=>{exitShowcase();window.location.assign('/app');}}>Exit Showcase</button></aside>:null;}
 export function ShowcaseControls(){
  const s=useGoals(),active=useShowcase(),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  function run(reset=false){setBusy(true);(reset?resetShowcase():loadShowcase()).then(()=>window.location.assign('/app'),()=>{setError('Showcase could not be loaded. Your existing data has been preserved. Check available browser storage.');setBusy(false);});}
