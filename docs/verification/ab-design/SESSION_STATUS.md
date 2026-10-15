@@ -7,28 +7,23 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (checkpoint 2026-10-15 02:10, c13 done except the touch and Chrome audits)
-**State.** Head `f3b8a870`. Since `7162a9d2`: the relay size-cap test refuses on the declared size (`05bd23e1`); one
-shared 30-second clock (`d77dd66f`: CI's WebKit `zigi-simulated-day` timed out on every branch run — the fake clock costs
-~7 ms per timer firing and phone Habits had six 30 s intervals; 6.7 s → 1.8 s per fake hour); 320 px and stress fixes
-(`f3b8a870`: life card empty sentence wraps, phone footer chips wrap below 390 px and stay 44 px, charts and the footer
-line measure inside their ResizeObserver again, asset-card and ring figures sized from their length, portfolio.spec
-waits for Wealth's later sections). ADR-024 "CI: WebKit time on this branch, and one 30-second clock".
-**c13 results.** Chain: lint, typecheck, build green; unit 1 failure (the relay race, fixed); 183/185 targeted specs (Help
-46 px margin added; a11y-wcag-x keyboard is a local-load flake, green on CI). Full WebKit set 431 passed, 0 failed (2
-workers). Stress audit: footer chips, empty Wealth sentence, three stress figures — all fixed. WebKit audit: the empty
-Wealth sentence — fixed. Touch and Chrome audits still running on :3104. Scratch worktree `scratchpad/wt14` serves the
-working tree on :3103 for checks.
-**CI.** `7162a9d2` run 38649650159: checks, integration, alpha gate green; browser shards 1/3 (run10-widgets 320 px,
-portfolio) and both WebKit shards (zigi-simulated-day, zigi-alive:190, zigi-accept-correct stop-fast) red — the first
-three fixed in `d77dd66f`/`f3b8a870`; `05bd23e1`'s run in progress, `f3b8a870` queued.
-**Next.** Finish the c13 audits → fix → rebuild → Gate C (captures, proof table, full unit, full browser suite once, WebKit
-phone set, weights, revert gate, design critique) → CI fully green → STATUS → PR Ready.
+## Resume here (checkpoint 2026-10-15 05:00, Gate C under way)
+**State.** Head `0179533f`. CI on `b39b16d2`: Milestone quality and Canonical reproducibility fully green (four browser
+shards, both WebKit shards, the Alpha gate, `web`); `0179533f`'s run in progress.
+**Gate C so far (on `b39b16d2`/`0179533f`, production builds on :3104).** Full unit 558 files / 4,891 tests (+ components
+4,896), 0 failed. Full browser suite once, 2 workers: 2,132 passed, 0 failed, 560 skipped (56.4 min). The four layout
+audits on `2879a361`'s build: no findings (Chrome 320–1920, stress, touch 768/1024, WebKit 390); later commits are CSS
+fixes checked by recaptures and focused runs. Weights: every page under budget, none raised (Today 514.5 of 515 kB).
+Key scans clean. Captures: `phase-2/after/` re-shot from `0179533f`, proof table's Gate C column filled; gallery
+pushed (`d8f1721a`). Design critique round 1 (1440, 57 files): 15 findings, 10 fixed, 5 judged (ADR-024 "Gate C design
+critique"); round 2 (390 in two halves, the other 32 desktop files plus a re-check) running as three read-only agents.
+Revert gate running in `scratchpad/wt14` (`scratchpad/revert-gate.sh`, `logs/revert-gate.tsv`).
+**Next.** Round-2 critique fixes → focused specs → re-capture what changed → final audits on the final head → commit the
+audit reports → CI fully green → STATUS entry (final commit) → PR #86 Ready → short report.
 **Rules for the finish (owner).** today-screens ≤ 5.8 / Showcase ≤ 11.5 by layout only; no ceiling or budget raised; CI
 aggregate fully green with the security gate in its own job; a WebKit flake that also failed on AB-Cloud's pre-merge run
 and does not reproduce locally under 2-worker load is recorded with evidence, not looped on.
-**Keep-awake.** `caffeinate -dimsu` (with -d; owner, after the 00:50 lock). Never stop a running caffeinate. Servers only
-from Bash (nohup, 3102–3104).
+**Keep-awake.** `caffeinate -dimsu` (with -d). Never stop a running caffeinate. Servers only from Bash (nohup, 3102–3104).
 
 ## Earlier resume point (2026-10-14; Phase 2 on Opus 5.5)
 Phase 1 is complete (STATUS entry). Phase 2 ("Finish everything, nothing half done"): Parts 0–13 are built (ADR-024 P1–P20;
