@@ -43,6 +43,15 @@ body { background: var(--cosmic-dark); }
 .app-content { position: relative; isolation: isolate; }
 /* Session AB-Design (ADR-024 D5): one fixed, viewport-sized vector starfield behind every page (crisp at every DPR; it never stretches over the page's height). Solid at the top and bottom, stars and faint nebula in the middle. */
 .app-content::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--cosmic-starfield) center / cover no-repeat, var(--cosmic-dark); }
+/* Session AC (owner finding 2 on Alpha #41): depth along the page, not along the window. The fixed art above stays as it
+   is; this layer spans the whole page (header to footer) and veils it in the exact colour the page already ends on (the
+   footer's last scrim, measured rgb(2 9 24) at the page end): solid behind the header at first load, easing to clear
+   towards the middle, and back to solid towards the end. On a short page the two veils overlap, so its middle stays
+   gentle. It starts 120 px above the content so the strip over the page's first line is veiled too. Static by
+   construction (no animation, no script, no layout), so Motion Off and reduced motion see the same. */
+.app-content::after { content: ''; position: absolute; inset: -120px 0 0; z-index: -1; pointer-events: none; background:
+  linear-gradient(180deg, #020918 0, #020918 calc(max(240px, 30vh) + 120px), #020918e0 calc(46vh + 120px), #020918a8 66vh, #02091862 88vh, #02091824 110vh, #02091800 130vh) top / 100% 130vh no-repeat,
+  linear-gradient(0deg, #020918 0, #020918 12vh, #020918d0 34vh, #02091880 58vh, #02091830 84vh, #02091800 110vh) bottom / 100% 110vh no-repeat; }
 .app-sidebar { background: linear-gradient(180deg, #020916ed 30%, #02091655 80%, #020916), var(--cosmic-space) 65% center / auto 100% no-repeat; border-right-color: var(--cosmic-edge); }
 .app-sidebar .brand .brand-wordmark, .brand-wordmark { display: inline-block; color: transparent; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; font-size: 37px; font-weight: 750; letter-spacing: -2px; filter: drop-shadow(0 0 10px #4897ff30); }
 .app-sidebar .brand .brand-wordmark > span, .brand-wordmark > span { color: inherit; font-weight: inherit; }
@@ -56,8 +65,6 @@ body { background: var(--cosmic-dark); }
 .sidebar-destination p { text-align: center; padding-bottom: 68px; font-size: 23px; line-height: 1.6; text-shadow: 0 2px 12px var(--cosmic-dark); }
 .sidebar-horizon { position: absolute; inset: 48% 0 0; background: linear-gradient(180deg, transparent, #02091890), var(--cosmic-destination) center top / 175% auto no-repeat; mask-image: linear-gradient(180deg, transparent, black 15%); }
 .sidebar-destination small { display: block; text-align: center; line-height: 1.8; }
-.app-topbar .network-banner { background: linear-gradient(100deg, #032435ee, #070b24e8 40%, #1d1545d9); border-color: var(--cosmic-edge); box-shadow: inset 0 1px 0 #67bbff23; }
-.app-topbar .network-banner strong { color: var(--brand-cyan); }
 .app-topbar .wallet-connect { gap: 13px; min-width: 157px; border: 1px solid transparent; border-radius: 12px; background: linear-gradient(120deg, #041322, #030917) padding-box, linear-gradient(120deg, #6789c499, #605daa7a, #39b4d762) border-box; box-shadow: inset 0 1px 3px #7acaff19; color: var(--text); }
 .wallet-connect > svg:first-child { flex-shrink: 0; filter: drop-shadow(0 0 6px #427fff55); }
 .wallet-identity { display: grid; text-align: left; gap: 3px; }
@@ -192,7 +199,6 @@ body { background: var(--cosmic-dark); }
   .app-nav { gap: 6px; }
   .app-nav a[aria-current="page"] { box-shadow: inset 0 -2px 3px #df83ff65, inset 0 0 12px #23d9ff24, 0 0 12px #23cfff20; }
   .app-topbar .wallet-connect { padding-inline: 12px; min-height: 46px; }
-  .app-topbar .network-banner { font-size: 14px; }
   .today-hero { min-height: 0; overflow: hidden; margin: 0 -6px 18px; border-radius: 10px; }
   .today-hero::before { inset: -20px -10px -10px; background-position: 72% center; opacity: .95; mask-image: linear-gradient(180deg, transparent, black 15%, black 80%, transparent); }
   .today-hero::after { inset: -20px -10px -10px; background: linear-gradient(90deg, #02091880, #02091820), linear-gradient(0deg, #020918e0, transparent 80%); }

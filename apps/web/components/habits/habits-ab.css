@@ -60,3 +60,13 @@
    "MORNING" alone against Edit and ⋯). */
 .habit-card-heading .habit-tag { white-space: nowrap; }
 .habit-section .habit-card-heading .habit-tag-time { display: none; }
+/* Session AC (owner finding 1 on Alpha #41): the coloured 28-day grid shows on the folded card, directly under the
+   counter row and above the Details fold. Cards in one row keep one height while every card is folded: the row
+   stretches, and each card's counter row, grid and fold sit at its foot, so the −/+/Done rows line up across the row
+   (the AB-Design critique's "Habits action alignment"). With a card open the row goes back to its own heights, so an
+   open card never stretches its neighbours. Nothing animates; the dots are not targets. */
+.habits-workspace .habit-grid { align-items: stretch; }
+.habits-workspace .habit-grid:has(.habit-more[open]) { align-items: start; }
+.habits-workspace .habit-grid > .habit-card { display: flex; flex-direction: column; }
+.habits-workspace .habit-grid > .habit-card > :is(.habit-completion, .habit-status) { margin-top: auto; }
+:root .habits-workspace .habit-card > .habit-cadence { margin: 0 0 6px; }
