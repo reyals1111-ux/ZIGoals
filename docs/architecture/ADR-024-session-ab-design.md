@@ -423,6 +423,13 @@ wrap as one row of chips there, never shrink); the footer line and the charts ke
 a resize, which a fake clock makes long (`meditation` phone at 320 read 357 px): they measure inside the observer again,
 as on `main`, and the footer line is also held to its stage's width. The stress audit's Wealth
 figures: an asset card's value and the composition ring's phone figure size themselves from their own length too.
+From CI on `05bd23e1`: `motion-arrival` compares the first screen's boxes while Habits arrives with the settled page,
+and on this branch's shorter Habits header the Habit consistency section starts inside that first screen; it is its
+own chunk (ADR-022 B49, the Habits budget) and through `React.lazy` it showed ≈ 0.3 s after everything else, so a slow
+run took the mid-arrival boxes without it. Its chunk is now fetched as soon as the Habits code runs and the section
+renders in the page's own pass once it is there (measured: with the habits at 642 ms, against 345 ms after them
+before); still its own chunk, Habits 456.9 of 458 kB. A chunk that fails to load shows nothing, as the quiet boundary
+did. No assertion changed.
 
 ## Weights (Gate C)
 `scripts/check-weight-budget.mjs` against the Gate C build: Today 515.3 of 515 kB, Goals 438.0 of 434 kB and Wealth 469.1 of

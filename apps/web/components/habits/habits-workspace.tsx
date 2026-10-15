@@ -9,7 +9,23 @@ import { holdInView } from "../settings/keep-jump";
 import { useGoals } from "../goal-provider";
 import { usePlatform } from "../platform/use-platform";
 import { useHabits } from "./use-habits";
-const HabitConsistency = lazy(() => import("./habit-consistency").then((m) => ({ default: m.HabitConsistency }))); // Gate C (ADR-022 B49): its own chunk, for the Habits page budget; the wrapper below carries the layout attributes
+// Gate C (ADR-022 B49): its own chunk, for the Habits page budget; the wrapper below carries the layout attributes.
+// Session AB-Design Phase 2 (ADR-024): the chunk is fetched as soon as this page's code runs, and the section renders in
+// the page's own pass once it is there (through React.lazy it showed ~0.3 s after everything else, inside the first
+// screen); a chunk that fails to load shows nothing, as the quiet boundary did.
+type ConsistencyView = typeof import("./habit-consistency").HabitConsistency;
+let consistencyView: ConsistencyView | null = null;
+const consistencyLoad = typeof window === "undefined" ? null : import("./habit-consistency").then((m) => (consistencyView = m.HabitConsistency)).catch(() => null);
+function HabitConsistency(props: Parameters<ConsistencyView>[0]) {
+  const [View, setView] = useState<ConsistencyView | null>(() => consistencyView);
+  useEffect(() => {
+    if (View || !consistencyLoad) return;
+    let live = true;
+    void consistencyLoad.then((view) => { if (live && view) setView(() => view); });
+    return () => { live = false; };
+  }, [View]);
+  return View ? <View {...props} /> : null;
+}
 import { HabitEditor } from "./habit-editor"; // static on purpose: creating or editing a habit must work offline on a device that never opened the editor (CI's L78 offline step hit a chunk load, ADR-022 B48)
 import { HabitCard, type HabitStackNext } from "./habit-card";
 import { habitStackSuggestions } from "../../lib/habit-linked-policy";
