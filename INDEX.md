@@ -2,7 +2,8 @@
 Owner amendment 4: only the views the items change, the same set before and after. Production builds, the Showcase,
 fixed clock 2026-10-16T09:30Z, every `/api` call answered 503 (offline on purpose), Playwright Chromium.
 - `before/`: `main` `9e41f0d` (Alpha #41).
-- `after/`: the PR head named in the PR description.
+- `after/`: `61267f43` (the vision tile re-captured after its ⋯ fix; the rest from `39bf9172`, same UI).
+- Veil pixel check (owner amendment 3, most common colour): page top after rgb(2 9 24) on desktop and phone (before: rgb(5 4 15)); page end rgb(2 9 24) desktop, before and after.
 
 | File | Item |
 |---|---|
