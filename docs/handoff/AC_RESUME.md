@@ -4,15 +4,20 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
-## Resume here (2026-10-15 23:10 Brussels, Part 0)
-- **Branch:** `feature/session-ac-polish` from `main` `9e41f0d` (upstream unset; push with
-  `git push -u origin feature/session-ac-polish`, never to `main` or the harness branch).
+## Resume here (2026-10-16 00:30 Brussels, after Part 3's main items)
+- **Branch:** `feature/session-ac-polish` (tracks origin; push with `git push -u origin feature/session-ac-polish`,
+  never to `main` or the harness branch). Draft PR #87. Captures branch `review/session-ac-screens` (`before/` pushed).
 - **Deadline:** PR out of Draft by Saturday 17 Oct 2026 20:00 Europe/Brussels (`TZ=Europe/Brussels date` at every part).
   After Saturday 16:00, or on the owner's "lean finish": finish the current part, then Gate C lean, STATUS, PR ready.
 - **Cut order (owner):** 16, 9c, 11 #12, 12, 9d stacked rows, 17 — each recorded "not done + why".
-- **Done:** —
-- **Next:** Part 0 commit + push, Draft PR, before captures (orphan branch `review/session-ac-screens`), then Part 1.
+- **Done:** Part 0 `c69b1db3`; item 3 `c9273d6b` (TIER 3 public-safety labels); Part 1 items 1, 2, 4 `676a054b`;
+  item 5a `1d735576` (TIER 3 storage); Part 2 items 5b, 6, 7 `3b440c14`; Part 3 9b 9e 9f 10 11 13 15 + What's new
+  `cb9094dd`. Weights on `cb9094dd` all within budget (Today 514.5 / 515).
+- **Next:** the focused browser run on `cb9094dd` (log `$SP/t4.log`); then 9c, 11 #12, 12, 17 (run
+  `phone-touch-targets:40`, `goals-best-aa:117` once), 16 if time; then Gate C (ADR-025 plan), the after captures
+  (`$SP/tools/capture.mjs` to `after/`), the review subagent, What's new is written, STATUS as the final commit.
 - **Open decisions:** —
+- `SP=/tmp/claude-0/-home-user-ZIGoals/bb66d39c-f176-5390-999e-c35fd28c19c0/scratchpad` (sandbox only).
 
 ## Environment (cloud sandbox)
 ```
