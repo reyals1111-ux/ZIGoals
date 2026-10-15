@@ -335,6 +335,7 @@ margin had kept label rows at 24 px; the consent checkbox is asserted at 22 px),
 app's accent colour, as it was through every earlier gate. Capture-tool fixes (not product): element shots hide the fixed chrome that a capture taller than the
 window stamps into its middle; the routine player adds a routine first; a coin's page is reached by opening its row;
 Wealth's chart opens its phone fold; the sidebar's end, the year view and the More sheet's end are captured too.
+After the critique's two rounds, the whole set was re-shot from `30806b17`'s production build (screens `836b471a`).
 
 ## Freeze check
 This run changes desktop and tablet on purpose (owner request 39 and the whole brief), so `scripts/desktop-freeze-check.mjs`
@@ -502,7 +503,9 @@ of `main`, newest first, and `pnpm typecheck` after each (`tsc --noEmit` for the
 one applies cleanly; 36 typecheck on their own; `b2a52a21` and `b49af7d6` typecheck together with `dc787a2a` (the copy
 part's `ui/showcase-tag` and the merged-tree fixes that use it revert as one group). Then the merge of `main` (`-m 1`)
 and the Phase 2 commits before it, as one step: they apply cleanly and the tree equals Phase 1's final `09b2d307`. So
-any newest-first suffix of Phase 2 reverts cleanly, the one three-commit group together.
+any newest-first suffix of Phase 2 reverts cleanly, the one three-commit group together. The two later commits
+(`30806b17`, `25ccb812`), reverted first in the same way (`scratchpad/revert-suffix.sh`): each applies and typechecks, and
+the tree then equals `0179533f`, where the 38 steps above start. The later commits touch only docs.
 
 ### CI: the Alpha gate in its own job ([TIER 3] (CI), owner, 2026-10-14)
 Milestone quality's `web-integration` had grown to 12.7 min on an ordinary runner and reached its 15-minute limit on a slow
@@ -559,7 +562,15 @@ per WebKit run: the chat's last card is gone right after Add or Undo (`.ai-card`
 failed a `page.goto` ("WebKit encountered an internal error"). The same shape failed on AB-Cloud's own pre-merge runs
 before this branch existed on `main`: run 38509848456 (`732a2055`: create-habit weekdays, log-sleep nap, log-mood),
 38505226605 (`e57ab538`: create-habit weekdays), 38510173374 (`870c3929`: create-habit daily, Asia/Tokyo, desktop);
-here 7162a9d2 (stop-fast), 05bd23e1 (create-habit daily), 1c91509b (log-food, edit-habit, import-recipe). A real local
+here 7162a9d2 (stop-fast), 05bd23e1 (create-habit daily), 1c91509b (log-food, edit-habit, import-recipe), 25ccb812
+(create-habit weekdays in Europe/Brussels, log-mood in Asia/Tokyo, and `webkit-zigi-freeze` phone, whose undone card is
+also gone: "element(s) not found" for `.ai-card` after Undo, identical to AB-Cloud's run 38505226605 on `e57ab538`,
+which failed the same freeze case and the same create-habit case). "WebKit encountered an internal error" on a test's first
+`page.goto('/app')` (an engine crash during navigation, before the test's own steps) happened twice on this branch's CI:
+on `3762413b` (`zigi-alive`, phone) and on `30806b17` (`zigi-help-settings` What's new, desktop). It was not in the 15
+failed WebKit jobs scanned on AB-Cloud (8), AA-Cloud (5) and AA-Local (2) (`main`'s last 40 runs had no failed WebKit
+job); an earlier session saw it locally only while
+typecheck and lint ran beside a WebKit run (STATUS). A real local
 attempt under the same load: the full WebKit set, two workers, production build — 431 passed, 0 failed (c13, all
 accept-correct cases included); never reproduced. WebKit stays the advisory job it is (AB-Cloud C29); recorded here and
 in the report, not looped on.

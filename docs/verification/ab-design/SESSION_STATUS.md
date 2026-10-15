@@ -7,11 +7,19 @@ Paths: repository `~/Documents/ZIGoals-Claude` (branch `feature/session-ab-desig
 (`env.sh` selects Node 24.19.0 through fnm; `capture.mjs`; `logs/`). Servers: `main`'s build on `:3103`, this branch's
 production build on `:3104`.
 
-## Resume here (checkpoint 2026-10-15 06:30, Gate C under way)
-**Since 05:00.** Critique round 2 fixed (ADR-024 "Gate C design critique, round 2"); today-screens' hour dependence fixed
-by layout (max 11.424 over the day, ceilings unchanged); Habit stacks and Routines load with the page (the keyboard
-walk's "All" shift); the sleep button's contrast intermittent under investigation (`scratchpad/bed-probe.mjs`).
-Focused Chrome + WebKit specs on :3104 (`chain-gatec9.sh`, `logs/specs-gatec9*.log`).
+## Resume here (checkpoint 2026-10-15 07:50 UTC, Gate C done)
+**State.** Last code change `30806b17` (critique round 2, today-screens by layout, Habits' upper sections with the page,
+the contrast check waiting out the entrance). CI on it: every required job green, the Alpha gate with the Workers security
+gate completed; WebKit (advisory) shard 1 had one engine "internal error" on a `page.goto` (ADR-024). Local on its build:
+unit 558 files / 4,891 tests; the focused Chrome + WebKit runs green; the four layout audits clean
+(`docs/verification/ab-design/LAYOUT_AUDIT.md`); weights all under budget, none raised; key scans clean; the revert gate
+clean (ADR-024); the gallery re-shot (screens `836b471a`).
+**Next.** The STATUS entry (final commit) → CI on the final head → PR #86 Ready for review → short report → stop :3104
+(never caffeinate).
+
+## Checkpoint 2026-10-15 06:30
+Critique round 2 fixed; today-screens' hour dependence fixed by layout; Habit stacks and Routines with the page; the
+sleep button's contrast intermittent traced to the entrance fade.
 
 ## Checkpoint 2026-10-15 05:00
 **State.** Head `0179533f`. CI on `b39b16d2`: Milestone quality and Canonical reproducibility fully green (four browser
@@ -48,7 +56,9 @@ ADR-024 "Closing pass", the gallery and the proof table; then Gate C, STATUS, PR
 Owner items: Inter (D1).
 
 ## Done
-- Part 0: docs scaffold; before-captures.
+- Phase 1: Parts 0–8, Gates A–C (STATUS entry).
+- Phase 2: Parts 0–14, the owner's closing pass (items 1–6), Gate C (ADR-024; STATUS entry at the top of docs/STATUS.md).
 
 ## Open
-- Parts 1–8 and the gates; see ADR-024 and `docs/product/OWNER_UI_REQUESTS_AB.md`.
+- Owner items only (STATUS, Phase 2 entry): Inter (D1); one palette for life areas and pillars; Today's and Wealth's
+  repeated modules; midnight activity times and mixed date formats; Meet ZIGi's gallery and Health's two Water cards.
