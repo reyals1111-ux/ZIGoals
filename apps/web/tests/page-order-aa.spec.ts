@@ -34,16 +34,20 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   await expect(today.locator('.today-group-heading')).toHaveText(['Your whole life', 'Your day', 'Goals', 'Money', 'Your widgets']);
   // Each heading opens its group's first card (it is never a movable item of its own).
   await expect(today.locator('[data-module="whole-life"] > .today-group-heading')).toHaveText('Your whole life');
-  await expect(today.locator('[data-module="habits"] > .today-group-heading')).toHaveText('Your day');
+  // Session AC (deliberate, the owner's "each thing once"): Daily Habits and Daily Health stand down for their widget twins,
+  // which open "Your day" in their place; the Next Goal action stands down for the focus tile's "Next step".
+  await expect(today.locator('[data-module="preset-balanced-1"] > .today-group-heading')).toHaveText('Your day');
   await expect(today.locator('[data-layout-item^="group:"]')).toHaveCount(0);
-  expect(await inOrder(page, ['#dashboard-title', '.today-focus', '[data-module="whole-life"]', '[data-module="habits"]', '[data-module="health"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
+  expect(await inOrder(page, ['#dashboard-title', '.today-focus', '[data-module="whole-life"]', '[data-module="preset-balanced-1"]', '[data-module="preset-balanced-2"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
   // Three focus tiles: the next goal step, water, and sleep or fasting; the habits tile stands down beside the habits widget, which lists the due habits itself (Session AB-Design, owner request 12).
   await expect(today.locator('.today-focus .focus-tile')).toHaveCount(3);
   await expect(today.locator('.today-focus .focus-tile[data-tone="habits"]')).toHaveCount(0);
   await expect(today.locator('.habits-today').first()).toBeVisible();
   // Every module 32cb9c5's Today showed with the Showcase is still there, once each (the rail's four included).
   const modules = (await today.locator('[data-module]').evaluateAll(els => els.map(e => e.getAttribute('data-module')!))).sort();
-  expect(modules).toEqual(['activity', 'attention', 'destination', 'funding', 'goals', 'habits', 'health', 'needs-attention', 'next-action', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
+  // Session AC: the three twins are kept, hidden by default; arranging lists each with "Show card" (asserted below).
+  expect(modules).toEqual(['activity', 'attention', 'destination', 'funding', 'goals', 'needs-attention', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
+  await expect(today.locator('.habits-today[aria-labelledby]')).toHaveCount(1);
   // What's new and the weekly review sit with the summaries now, still as For you cards behind the same fold rules.
   const end = page.getByRole('region', {name: 'Updates and summaries', exact: true});
   // On a phone the area's cards wait behind its one row.
@@ -56,7 +60,9 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
 
 test('Today: a person’s own arrangement shows as saved, without group headings', async ({page}) => {
   await showcase(page);
-  const modules = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
+  // Session AC: arranging also lists the built-ins hidden by default (as "… is hidden from Today."); the order compared is
+  // the shown modules', as before.
+  const modules = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]:not([data-hidden="true"])').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
   await expect(page.locator('.today-group-heading').first()).toBeVisible();
   const before = await modules();
   expect(before.length).toBeGreaterThan(2);
@@ -65,8 +71,9 @@ test('Today: a person’s own arrangement shows as saved, without group headings
   await expect(page.locator('.today-group-heading')).toHaveCount(0);
   // Gate C audit: arrange for real: the second module moves first, is saved, and survives a reload, without headings.
   const second = page.locator(`.dashboard-layout-grid > .placed-module[data-module="${before[1]}"]`);
-  await second.locator('.dashboard-builtin-options .card-options-trigger').click();
-  await second.getByRole('button', {name: 'Move earlier'}).click();
+  // Session AC: by default the second shown module is the habits widget (Daily Habits' twin), whose own ⋯ moves it.
+  if (await second.locator('.dashboard-builtin-options').count()) { await second.locator('.dashboard-builtin-options .card-options-trigger').click(); await second.getByRole('button', {name: 'Move earlier'}).click(); }
+  else { await second.locator('.card-options-trigger').first().click(); await second.getByRole('button', {name: /^Move .+ up$/}).click(); }
   await expect.poll(modules).toEqual([before[1], before[0], ...before.slice(2)]);
   await page.getByRole('button', {name: 'Finish customizing', exact: true}).click();
   await page.reload();
@@ -82,8 +89,9 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   const order = only(await items(page), 'wealth:');
   expect(order).toEqual(isPhone(page)
     // Session AB-Design (owner request 26): the calculator is the last section on every width.
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
-    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
+    // Session AC (the owner's decision of 2026-10-15): the three holdings lists are one item, wealth:holdings.
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
+    : ['wealth:pulse', 'wealth:holdings', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {
