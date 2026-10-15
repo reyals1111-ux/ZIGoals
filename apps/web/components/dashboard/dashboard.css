@@ -107,3 +107,6 @@
    card beside it, which left a dead area under Health; the two daily cards each take the row. */
 @media (min-width:768px){.dashboard-layout-grid>.placed-module:is([data-module="habits"],[data-module="health"]){grid-column:1/-1}}
 .widget-library-tile span{min-width:0;overflow-wrap:anywhere}.widget-library-tile small{white-space:normal}
+/* Session AB-Design Phase 2 closing pass (Gate C captures): a preset's name and line start at its left edge (the global
+   button rule centred the grid's content, leaving a gap that read as a missing icon). */
+:root .dashboard-preset-choices > button { justify-content: start; justify-items: start; align-content: start; }

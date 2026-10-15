@@ -3,7 +3,7 @@
 :root .pillar-hero.has-art { grid-template-columns: minmax(0, 1fr) auto 220px; grid-template-areas: "eyebrow eyebrow art" "title title art" "lede actions art"; }
 :root .pillar-hero > .pillar-hero-eyebrow { grid-area: eyebrow; display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
 :root .pillar-hero > .pillar-hero-title { grid-area: title; margin: 0 0 16px; font-size: clamp(2.3rem, 4vw, 4.2rem); line-height: 1.07; letter-spacing: -.05em; max-width: none; }
-:root .pillar-hero > .pillar-hero-lede { grid-area: lede; margin: 0; max-width: 600px; color: #e9f0fb; align-self: end; text-wrap: pretty; }
+:root .pillar-hero > .pillar-hero-lede { grid-area: lede; margin: 0; max-width: 600px; color: #e9f0fb; align-self: end; text-wrap: balance; }
 :root .pillar-hero > .pillar-hero-actions { grid-area: actions; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; justify-self: end; align-self: end; position: relative; z-index: 1; }
 :root .pillar-hero-buttons { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; }
 :root .pillar-hero-buttons > :is(a, button) { min-height: 44px; white-space: nowrap; }

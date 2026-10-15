@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
-import type {GoalSummary} from '../../lib/goal-summary';
+import {formatGoalAmount, type GoalSummary} from '../../lib/goal-summary';
 import type {GoalExtras} from '../../lib/goal-extras/store';
 import {GRADIENTS} from '../../lib/goal-extras/store';
 import {isShowcase} from '../../lib/showcase-storage';
@@ -63,7 +63,7 @@ function VisionFullScreen({goal: g, extras, picture, fallbackGradient, onClose}:
     <div className="vision-full-copy">
       <p className="eyebrow">{g.type}</p>
       <h2 id="vision-full-title">{g.name}</h2>
-      <p className="vision-full-progress"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={64} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`full-${g.key}`} bound={g.progressBound} /><span>{progressWords(g)}{g.target ? ` · ${g.currency === 'milestones' ? 'milestones' : 'target ' + g.target}` : ''}</span></p>
+      <p className="vision-full-progress"><ProgressRing percent={g.progressBound === 'unavailable' ? null : g.progressPct} size={64} label={`${g.name} progress`} complete={g.status === 'completed'} identity={`full-${g.key}`} bound={g.progressBound} /><span>{progressWords(g)}{g.target ? ` · target ${formatGoalAmount(g.target, g.currency)}` : ''}</span></p>
       {extra?.why && <p className="vision-full-why">“{extra.why}”</p>}
       {extra?.ifThen && <p className="fine">{extra.ifThen}</p>}
       <div className="vision-full-actions"><Link className="primary" href={g.href} onClick={() => dialog.current?.close()}>Open Goal →</Link><button type="button" className="secondary" onClick={() => dialog.current?.close()}>Close</button></div>

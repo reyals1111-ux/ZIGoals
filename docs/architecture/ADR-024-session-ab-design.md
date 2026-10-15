@@ -216,6 +216,11 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
   moment on CI; the size check itself is unchanged.
 - `zigi-part-boundary.spec.ts` (WebKit): WebKit's rejected router prefetches are left out by the same shape-and-moment
   rule webkit-smoke uses (ADR-017 S64); every other page error still fails it.
+- `webkit-smoke.spec.ts`, `webkit-phone.spec.ts`, `zigi-part-boundary.spec.ts` (WebKit, S64 filter): the prefetch shape
+  allows one more path segment, `/app/goals/tracked/<id>` — a phone goal card now shows its "Open Goal →" link, which the
+  router prefetches, and WebKit rejects it when the page is left (CI on `2879a361`, phone). The message shape (`_rsc`,
+  "due to access control checks"), the same origin and the 1.5 s navigation moment are unchanged; anything deeper or
+  any other page error still fails.
 - `scripts/worker-types.test.mjs` and `goals-best-aa.spec.ts` "share image": made deterministic (see "CI: the Alpha
   gate in its own job").
 - `scripts/run11/zigi-relay-runtime.test.mjs` (size caps): the oversized request now declares 1.1 MB in its
@@ -302,6 +307,23 @@ Each is re-pointed at the element that now carries the same fact, as strict as b
 5. **Interaction states** — a visible ring on every focusable non-native control, the search field's ring, a pressed state on
    touch screens (brightness only), the routine player in a native modal dialog (focus kept inside, Escape pauses, focus
    returns to its opener).
+
+### Gate C — the final captures, looked at (2026-10-15)
+The final build captured into `phase-2/after/` (1440/1024/390/320, Showcase) and every proof-table row read against its
+capture. Found and fixed in this reading: the footer's long fact left "transactions" alone on a line (each fact now
+wraps as balanced lines); the Vision board's full view wrote "target 20000" (now the goal's money, "$20,000.00", or
+"4 milestones"); Wealth's history readout wrote "559,423.2 USD" (now "$559,423.20" like the rest of Wealth); a phone
+Portfolio row's details opened inside the table's sideways scroller and their tiles were cut at the screen edge (they
+keep the scroller's visible width); Portfolio's header sat 12 px inside its cards' edge; Health's nutrient notes began
+their own line with " · "; the What's new card set its whole-sentence items in seven narrow columns at 1440 (two columns
+from tablet width; phones unchanged, so Today's asserted screen count is untouched); the "Make Today yours" presets
+centred their text in the button grid, leaving a gap that read as a missing icon; Sleep's six figures sat five in a row
+and one alone; the phone More sheet's theme bar let the selected Dark cover Customize's "Soon" tag (columns sized to
+their words, the tags under the labels on phones); the browser's own checkbox drew a flat grey square on the dark cards
+(one drawn checkbox, its geometry pinned like the radio's; switches keep theirs); the pillar headers' ledes balance
+their lines. Capture-tool fixes (not product): element shots hide the fixed chrome that a capture taller than the
+window stamps into its middle; the routine player adds a routine first; a coin's page is reached by opening its row;
+Wealth's chart opens its phone fold; the sidebar's end, the year view and the More sheet's end are captured too.
 
 ## Freeze check
 This run changes desktop and tablet on purpose (owner request 39 and the whole brief), so `scripts/desktop-freeze-check.mjs`

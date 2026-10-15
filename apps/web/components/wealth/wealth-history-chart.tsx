@@ -1,8 +1,8 @@
 'use client';
 import {useId, useMemo, useState} from 'react';
 import type {WealthHistory} from '../../lib/wealth';
-import {amount} from '../platform/common';
-import {formatDateTime, formatExactNumber, formatNumber} from '../../lib/visual-format';
+import {wealthMoney} from '../platform/wealth-money';
+import {formatDateTime, formatNumber} from '../../lib/visual-format';
 import {useEntrance} from '../use-entrance';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
@@ -14,7 +14,8 @@ const RANGES = [['1M', 31], ['3M', 92], ['1Y', 366], ['All', Infinity]] as const
 const H = 240, L = 64, R = 16, T = 14, B = 34;
 /** An axis value without its currency and cents, grouped (the readout and the table carry the exact figures). */
 const compactMoney = (v: bigint) => formatNumber(Number(v) / 100, {notation: 'compact', maximumFractionDigits: 1});
-const money = (value: string, currency: string) => `${value.startsWith('-') ? '-' : ''}${formatExactNumber(amount(value.replace(/^-/, ''), 2))} ${currency}`;
+// Session AB-Design Phase 2 closing pass: the readout writes money as the rest of Wealth does ($559,423.20, not 559,423.2 USD).
+const money = (value: string, currency: string) => wealthMoney(BigInt(value), currency);
 
 /**
  * Session AB-Design (owner request 26): "Your wealth over time" as a detailed, interactive chart — the recorded total

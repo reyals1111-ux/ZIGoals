@@ -1,7 +1,7 @@
 /* Portfolio (Session I, Part 11): deep navy panels, readable labels (≥ 14 px), body 15–16 px, 44 px targets. */
 .portfolio-page { display: grid; gap: 24px; min-width: 0; }
 .portfolio-page > * { min-width: 0; }
-.portfolio-hero { display: grid; gap: 10px; padding: 32px 12px 8px; background: radial-gradient(at 80% 40%, #3b4a8a33, transparent 60%); }
+.portfolio-hero { display: grid; gap: 10px; padding: 32px 0 8px; background: radial-gradient(at 80% 40%, #3b4a8a33, transparent 60%); }
 .portfolio-hero h1 { margin: 0; font-size: clamp(36px, 4.4vw, 60px); line-height: 1.06; }
 .portfolio-note { margin: 4px 0 0; padding: 12px 16px; border: 1px solid #8fd2ff40; border-radius: 16px; background: #13203acc; color: #d8e6f7; font-size: 15px; line-height: 1.5; max-width: 760px; }
 .portfolio-message { margin: 0; color: #bff3dd; font-size: 15px; }
@@ -67,7 +67,7 @@
 .portfolio-file-input:focus-within { outline: 2px solid #6fdcff; outline-offset: 2px; }
 .portfolio-privacy { margin: 0; }
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  .portfolio-hero { padding: 18px 4px 0; }
+  .portfolio-hero { padding: 18px 0 0; }
   .portfolio-page :is(input, select, textarea) { font-size: 16px; }
   .portfolio-holding-value { text-align: start; }
   .portfolio-switcher > button { flex: 1 1 calc(50% - 10px); }
@@ -148,6 +148,10 @@ tr[data-expanded] .data-coin-chevron { transform: rotate(-90deg); }
 .data-coin-toggle:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
 .data-detail-row > td { padding: 0 0 14px !important; border-bottom: 1px solid #7fc8ff1f; }
 .coin-detail { display: grid; gap: 14px; padding: 14px 12px 4px; border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #0d1a3080, #0f1a3000); }
+/* Session AB-Design Phase 2 closing pass (Gate C captures): a row's details open inside the table's sideways scroller;
+   they stay at the scroller's visible width and left edge, so on a phone no tile is cut at the screen's edge. */
+.data-table-wrap:has(.data-coin-toggle) { container-type: inline-size; }
+.coin-detail { position: sticky; left: 0; box-sizing: border-box; width: 100cqi; white-space: normal; text-align: start; }
 .coin-detail-figures { grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)) !important; }
 .coin-detail-spark { display: grid; gap: 4px; max-width: 320px; } .coin-detail-spark small { font-size: 13px; color: var(--text-meta, #c2d0e5); }
 .coin-detail-transfers h4 { margin: 0 0 6px; font-size: 15px; }

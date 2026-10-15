@@ -156,6 +156,7 @@
    dozen dot-joined clauses — every fact kept, word for word; the network label leads as a small heading, and the build
    environment (the hosted verifier reads it) sits last in a quiet chip instead of trailing the text. */
 .site-footer-disclaimer { display: grid; justify-items: center; gap: 2px; }
+.site-footer-disclaimer > span { text-wrap: balance; } /* a long fact wraps as two even lines, never a lone last word */
 .site-footer-disclaimer > span + span::before { content: none; }
 .site-footer-disclaimer .network-banner strong { display: block; margin-bottom: 2px; }
 .site-footer-disclaimer .site-footer-build { margin-top: 8px; }

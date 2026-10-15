@@ -44,7 +44,7 @@ test("the chat cannot load: ZIGi's button stays, a note says the chat could not 
   // every other page error still fails the test.
   const errors: string[] = [], navigations: number[] = [], prefetchCancels: string[] = [];
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
-  page.on('pageerror', e => { const at = Date.now(); if (/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+)?\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
+  page.on('pageerror', e => { const at = Date.now(); if (/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
   await blockChunk(page, 'Message to your AI');
   await page.goto('/app/settings');
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});
