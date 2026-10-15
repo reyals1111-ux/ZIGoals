@@ -103,8 +103,11 @@ test('Life functional text stays readable at 320 pixels', async ({ page }) => {
     // so for a moment the page holds two roots: the visible one and the server's hidden copy, which the reveal then
     // removes (CI on PR #70, 2026-10-04). Waiting for exactly one root is the stronger check; then it must be visible.
     await expect(page.locator(root!)).toHaveCount(1);
-    await expect(page.locator(root!)).toBeVisible();
-    const tooSmall = await page.locator(root!).evaluate(element => [...element.querySelectorAll<HTMLElement>('p,small,span,label,input,button,select,summary,a,b,dt,dd')].filter(item => item.getClientRects().length && !item.closest('.eyebrow') && (item.innerText?.trim() || ['INPUT', 'SELECT'].includes(item.tagName)) && parseFloat(getComputedStyle(item).fontSize) < 14).map(item => ({ text: (item.innerText || item.getAttribute('aria-label') || item.tagName).slice(0, 80), size: getComputedStyle(item).fontSize })));
+    // Session AB-Design Phase 2 (ADR-024): the server's hidden copy can still arrive after that moment (CI, 2026-10-14);
+    // the visible root is the one checked and measured.
+    const shown = page.locator(root!).filter({visible: true});
+    await expect(shown).toBeVisible();
+    const tooSmall = await shown.evaluate(element => [...element.querySelectorAll<HTMLElement>('p,small,span,label,input,button,select,summary,a,b,dt,dd')].filter(item => item.getClientRects().length && !item.closest('.eyebrow') && (item.innerText?.trim() || ['INPUT', 'SELECT'].includes(item.tagName)) && parseFloat(getComputedStyle(item).fontSize) < 14).map(item => ({ text: (item.innerText || item.getAttribute('aria-label') || item.tagName).slice(0, 80), size: getComputedStyle(item).fontSize })));
     if (tooSmall.length) issues.push({ route, tooSmall });
   }
   expect(issues).toEqual([]);

@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {alphaNotice} from './ab-shell';
 import {isPhone,openFold} from './phone-nav';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 
@@ -79,26 +80,23 @@ test.describe('Part 1: readability foundation',()=>{
  });
 });
 
-test.describe('Part 18.6: quick counters as bars',()=>{
- for(const [label,width,perRow] of [['desktop',1440,3],['tablet',1024,2],['phone',390,1]] as const)
-  // Phones (Session I, Part 4): with no subtitle, the name shares its line with the icon and the options, and − / count / +
-  // take the second line, so a long name keeps its room. Desktop and tablet keep one row.
-  test(`${label}: ${perRow} bar${perRow>1?'s':''} per row; icon and name on the left, − / count / + ${perRow>1?'on the right, in one row':'on a second line'}`,async({page})=>{
+test.describe('Part 18.6: quick counters as thin rows',()=>{
+ // Session AB-Design (owner request 22, ADR-024 D20): one thin row per exercise on every width — icon and name on the left,
+ // − / count / + on the right of the same line; the card's one ⋯ (Options for Quick counters) replaces the per-row menus.
+ for(const [label,width] of [['desktop',1440],['tablet',1024],['phone',390]] as const)
+  test(`${label}: one row per counter; icon and name on the left, − / count / + on the right, in one line`,async({page})=>{
    await page.setViewportSize({width,height:900});await showcase(page);await page.goto('/app/health');
    const bars=page.locator('.exercise-counter');await expect(bars).toHaveCount(3);await bars.first().scrollIntoViewIfNeeded();await page.mouse.move(1,1);
-   // Measured at rest: no bar lifted by a pointer that just passed over it, and the page and card arrival animations
-   // finished (a card still settling reads its buttons below 44 px: CI on c6b5663, tablet; the same wait as
-   // counters-compact.spec.ts). ZIGi's idle breath loops forever and is not waited for.
    await expect(page.locator('.exercise-counter[data-glass]')).toHaveCount(0);
    await page.waitForFunction(()=>document.getAnimations().every(a=>a.playState!=='running'||a.effect?.getComputedTiming().iterations===Infinity));
-   const r=await bars.evaluateAll(els=>els.map(e=>{const box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),b=e.getBoundingClientRect(),icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),menu=box('.card-options-trigger'),h3=e.querySelector('h3')!;
+   const r=await bars.evaluateAll(els=>els.map(e=>{const box=(s:string)=>e.querySelector(s)!.getBoundingClientRect(),b=e.getBoundingClientRect(),icon=box('.exercise-medallion'),name=box('h3'),minus=box('.exercise-step'),plus=box('.exercise-step:last-child'),h3=e.querySelector('h3')!;
     return {top:Math.round(b.top),width:b.width,iconLeftOfName:icon.right<=name.left,nameLeftOfControls:name.right<=minus.left,sameRow:name.top<minus.bottom&&minus.top<name.bottom&&minus.top<plus.bottom&&plus.top<minus.bottom,
-     controlsBelow:minus.top>=name.bottom-1&&Math.abs(minus.top-plus.top)<1,menuOnNameRow:menu.top<name.bottom&&name.top<menu.bottom,
-     nameWhole:h3.scrollWidth<=h3.clientWidth,nameOneLine:name.height<30,targets:[minus,plus,menu].every(t=>t.width>=44&&t.height>=44),inside:[icon,name,minus,plus,menu].every(t=>t.left>=b.left&&t.right<=b.right)};}));
-   const rows=[...new Set(r.map(x=>x.top))];expect(rows.length).toBe(Math.ceil(3/perRow));
-   for(const x of r)expect(x).toMatchObject(perRow>1?{iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true}:{iconLeftOfName:true,controlsBelow:true,menuOnNameRow:true,nameWhole:true,nameOneLine:true,targets:true,inside:true});
-   // The bars fill the card: a full row spans its width.
-   const card=(await page.locator('.exercise-counter-grid').boundingBox())!;expect(Math.abs(r.slice(0,perRow).reduce((a,x)=>a+x.width,0)+(perRow-1)*12-card.width)).toBeLessThanOrEqual(2);
+     nameOneLine:name.height<30,nameWhole:h3.scrollWidth<=h3.clientWidth,targets:[minus,plus].every(t=>t.width>=44&&t.height>=44),inside:[icon,name,minus,plus].every(t=>t.left>=b.left&&t.right<=b.right)};}));
+   expect(new Set(r.map(x=>x.top)).size).toBe(3);
+   for(const x of r)expect(x).toMatchObject({iconLeftOfName:true,nameLeftOfControls:true,sameRow:true,nameOneLine:true,nameWhole:true,targets:true,inside:true});
+   // Each row spans the card.
+   const card=(await page.locator('.exercise-counter-grid').boundingBox())!;for(const x of r)expect(Math.abs(x.width-card.width)).toBeLessThanOrEqual(2);
+   const menu=page.getByRole('button',{name:'Options for Quick counters'});await expect(menu).toBeVisible();await expect(page.locator('.exercise-counter .card-options-trigger')).toHaveCount(0);
   });
 });
 
@@ -138,7 +136,7 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
    // Session Z-Cloud Part 4.2 (assertion changed, ADR-019): on a phone the balance is in the Status sheet behind the one
    // status line, so there the lock is alone at the end of its row; everything else is checked as before.
    expect(w,path).toMatchObject({inRow:true,...(isMobile?{}:{afterBalance:true}),clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
-   if(isMobile)await expect(page.locator('.phone-status-line'),path).toBeVisible();
+   if(isMobile)await expect(alphaNotice(page),path).toBeVisible(); // Session AB-Design: the compact notice above the row
    expect(w.size[0],path).toBeGreaterThanOrEqual(44);expect(w.size[1],path).toBeGreaterThanOrEqual(44);spots.add(w.right);
   }
   expect(spots.size).toBe(1);
@@ -189,10 +187,10 @@ test.describe('Part 2: personal layouts',()=>{
   for(const path of ['/app','/app/goals','/app/wealth','/app/health']){
    await page.goto(path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
    await expect(page.locator('.layout-controls').first()).toBeVisible();
-   for(const selector of ['.network-banner','.showcase-banner','.mode-strip','main h1',...(isMobile?['.phone-status-line']:[])]){
-    // Part 4.2 (mechanics): on a phone the network banner and the mode strip wait in the Status sheet, behind the status
-    // line (checked here too); hidden, they are still never inside a movable item.
-    const el=page.locator(selector).first();if(isMobile&&(selector==='.network-banner'||selector==='.mode-strip'))await expect(el).toBeAttached();else await expect(el).toBeVisible();
+   for(const selector of ['.alpha-notice','.showcase-chip','.site-footer .network-banner','.site-footer .mode-strip','main h1']){
+    // Session AB-Design (ADR-024 D7): the notice, the Showcase chip and the footer's disclaimer spans are never inside a
+    // movable item (the banners they replaced were checked the same way).
+    const el=page.locator(selector).first();await expect(el).toBeVisible();
     expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')||!!e.querySelector('[data-layout-item],.layout-controls')),`${path} ${selector}`).toBe(false);
    }
    await page.getByRole('button',{name:'Done',exact:true}).click();
@@ -389,7 +387,7 @@ test.describe('Part 4: Health',()=>{
   const counters=page.getByRole('region',{name:'Every repetition counts.'});await expect(counters).toBeVisible();
   // Above the "A little care, every day." header; on a phone (Session E) the title comes first, then the journal date and the counters.
   const c=(await counters.boundingBox())!,h=(await page.getByRole('heading',{level:1,name:'A little care, every day.'}).boundingBox())!;
-  if(await isPhone(page))expect(c.y).toBeGreaterThan(h.y+h.height);else expect(c.y).toBeLessThan(h.y);
+  expect(c.y).toBeGreaterThan(h.y+h.height); // Session AB-Design (owner request 21): the counters sit under the header on every width
   await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Pull-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Squats',exact:true})).toBeVisible();
   // No entry is not zero; nothing is written before the first tap.
   await expect(count(page,'Push-ups')).toContainText('No entry today');
@@ -414,14 +412,18 @@ test.describe('Part 4: Health',()=>{
   await dialog.getByRole('button',{name:'Add counter'}).click();await expect(dialog).toHaveCount(0);
   const planks=page.getByRole('article',{name:'Planks',exact:true});await expect(planks).toBeVisible();
   await page.getByRole('button',{name:'Increase Planks'}).click();await expect(count(page,'Planks')).toHaveText('1');
-  await planks.getByRole('button',{name:'Options for Planks'}).click();await planks.getByRole('button',{name:'Rename or change icon'}).click();
+  // Session AB-Design (owner request 22): one ⋯ on the card opens "Manage counters"; each row there has its own actions.
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Planks'}).getByRole('button',{name:'Rename or change icon'}).click();
   const edit=page.getByRole('dialog',{name:'Edit Planks'});await edit.getByLabel('Counter name').fill('Plank holds');await edit.getByRole('button',{name:'Save counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toBeVisible();
   await page.reload();const renamed=page.getByRole('article',{name:'Plank holds',exact:true});await expect(renamed).toBeVisible();await expect(count(page,'Plank holds')).toHaveText('1');
-  await renamed.getByRole('button',{name:'Options for Plank holds'}).click();await renamed.getByRole('button',{name:'Delete counter'}).click();
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   const confirm=page.getByRole('dialog',{name:'Delete Plank holds?'});await expect(confirm).toContainText('its daily history');
   await confirm.getByRole('button',{name:'Keep counter'}).click();await expect(renamed).toBeVisible();
-  await renamed.getByRole('button',{name:'Options for Plank holds'}).click();await renamed.getByRole('button',{name:'Delete counter'}).click();
+  await page.getByRole('button',{name:'Options for Quick counters'}).click();await page.getByRole('button',{name:'Manage counters…'}).click();
+  await page.getByRole('dialog',{name:'Manage counters'}).locator('li').filter({hasText:'Plank holds'}).getByRole('button',{name:'Delete counter'}).click();
   await page.getByRole('dialog',{name:'Delete Plank holds?'}).getByRole('button',{name:'Delete counter'}).click();
   await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
   await page.reload();await expect(page.getByRole('article',{name:'Push-ups',exact:true})).toBeVisible();await expect(page.getByRole('article',{name:'Plank holds',exact:true})).toHaveCount(0);
@@ -446,6 +448,9 @@ test.describe('Part 5: Wealth headline',()=>{
   await showcase(page);await page.goto('/app/wealth');
   const total=page.locator('.wealth-hero-total');await expect(total).toBeVisible();
   await expect(total.locator('.wealth-total-headline')).toHaveText('$501,800.00');
+  // Session AB-Design (owner request 24): the other currency is a chip; its panel carries the line and the FX note.
+  await expect(total.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR');
+  await total.locator('.wealth-other-chip-button').click();
   await expect(total.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
   await expect(total).toContainText('Currency totals stay separate. No FX assumed.');
   await expect(total).toContainText('KNOWN TRACKED WEALTH');await expect(total).toContainText('13 assets');
@@ -453,24 +458,32 @@ test.describe('Part 5: Wealth headline',()=>{
   await expect(total).not.toContainText('509,800');
   expect(await total.locator('.wealth-total-headline .nebula-flow').evaluate(e=>getComputedStyle(e).backgroundImage)).toContain('linear-gradient');
   await page.goto('/app');const today=page.locator('.life-orbit-wealth');await expect(today.locator('.wealth-total-headline')).toHaveText('$501,800.00');
-  await expect(today.locator('.wealth-total-other')).toHaveText(['+ €8,000.00 held in EUR · not converted']);
+  await expect(today.locator('.wealth-other-chip-button')).toHaveText('+ €8,000.00 held in EUR'); // the same chip on Today's Life orbit card
  });
 });
 
-test.describe('Part 6: journey banner',()=>{
- test('describes ZIGoals in three orbit steps and keeps the Alpha truths visible',async({page})=>{
+test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: the three steps moved from Today\'s card into the footer)',()=>{
+ test('describes ZIGoals in three steps on the slogan and keeps the Alpha truths visible',async({page})=>{
   await showcase(page);
-  await openFold(page,'How it works');const banner=page.locator('#how-it-works');await banner.scrollIntoViewIfNeeded();await expect(banner).toBeVisible();
-  await expect(page.getByRole('region',{name:'How it works'})).toBeVisible();
-  await expect(banner.getByRole('heading',{level:2})).toHaveText('Your goals, habits and health, in one orbit.');
-  await expect(banner.locator('.journey-steps strong')).toHaveText(['Choose your orbit','Take a small step','Keep it yours']);
+  const footer=page.locator('.site-footer');await footer.scrollIntoViewIfNeeded();await expect(footer).toBeVisible();
+  await expect(page.getByRole('contentinfo',{name:'About ZIGoals'})).toBeVisible();
+  await expect(footer.locator('.site-footer-slogan')).toHaveText('Goals, Habits & Health = Wealth');
+  // Session AB-Design Phase 2 (deliberate, the owner's footer brief b; ADR-024 "Phase 2 — assertions changed"): the steps are 01 Goals,
+  // 02 Habits, 03 Health; "= Wealth" is the slogan's result, which the path flows up into. As strict: the exact three, in order.
+  await expect(page.getByRole('list',{name:'How ZIGoals works'}).locator('strong')).toHaveText(['Goals','Habits','Health']);
+  await expect(footer.locator('.site-footer-slogan .site-footer-wealth')).toHaveText('Wealth');
   // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled.
-  await expect(banner).toContainText('Financial execution is disabled on this Alpha.');
-  await expect(banner).toContainText('Browser storage is not a backup.');
-  await expect(banner.getByRole('link',{name:'Make a backup in Settings →'})).toHaveAttribute('href','/app/settings');
+  await expect(footer).toContainText('Financial execution is disabled on this Alpha.');
+  await expect(footer).toContainText('Browser storage is not a backup.');
+  await expect(footer.getByRole('link',{name:'Make a backup in Settings',exact:true})).toHaveAttribute('href','/app/settings'); // Phase 2: the brief's link text, no arrow
   // The footer keeps the wordmark and its line.
-  await expect(page.locator('footer .footer-brand')).toContainText('Same you. A brighter tomorrow.');
-  for(const el of await banner.locator('.journey-steps p, .journey-truths p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
+  await expect(footer.locator('.site-footer-tagline')).toContainText('Same you. A brighter tomorrow.');
+  await expect(footer.getByRole('img',{name:'ZIGoals',exact:true})).toHaveCount(1); // Phase 2: the logo acts as the Z of the wordmark (one image, named ZIGoals)
+  // The planet is drawn once: one art layer, no second horizon layer anywhere on the page.
+  await expect(page.locator('.site-footer-art')).toHaveCount(1);
+  expect(await page.evaluate(()=>[document.querySelector('.app-content'),document.querySelector('.workspace')].filter(Boolean).map(e=>getComputedStyle(e!,'::after').backgroundImage).filter(v=>v.includes('horizon')).length)).toBe(0);
+  for(const el of await footer.locator('.site-footer-steps p, .site-footer-disclaimer').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
+  for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
  });
 });
 
@@ -500,19 +513,22 @@ test.describe('Part 8: bottom sections',()=>{
  test('each main page ends with its new section, movable and honest',async({page})=>{
   await showcase(page);
   for(const [path,region,id,text] of [
-   ['/app','today:bottom','today:week','A dash means nothing was recorded that day.'],
+   ['/app','today:bottom','today:links','Edit'], // Session AB-Design (owner request 11): My links is Today's last card; Your week sits right before it (checked below)
    ['/app/goals','goals:body','goals:milestones','Target dates saved in your active Goals'],
    ['/app/habits','habits:body','habits:rhythm','Best streaks'],
    ['/app/health','health:body','health:trends','A dash means no entry, not zero.'],
-   ['/app/wealth','wealth:body','wealth:allocation','Valuation coverage is incomplete'],
+   ['/app/wealth','wealth:body','wealth:calculator','Compound interest calculator'], // Session AB-Design (owner request 26)
    ['/app/markets','markets:body','markets:sources','no new price appears'],
    ['/app/staking','positions:main','positions:sources','Public ZIG positions'],
   ] as const){
    await page.goto(path);
    const items=page.locator(`[data-layout-region="${region}"]`);await expect(items.last()).toHaveAttribute('data-layout-item',id);
    await expect(items.last()).toContainText(text);
+   // The allocation card's honesty line stays asserted now that the calculator sits after it (owner request 26).
+   if(path==='/app/wealth')await expect(page.locator('[data-layout-item="wealth:allocation"]')).toContainText('Valuation coverage is incomplete');
    // No invented prices, projections or advice words in these summaries.
    await expect(items.last()).not.toContainText(/projected|forecast to|you should|recommend(?!ation)/i);
+   if(path==='/app'){await expect(items.nth(-2)).toHaveAttribute('data-layout-item','today:game');await expect(items.nth(-3)).toHaveAttribute('data-layout-item','today:week');await expect(items.nth(-3)).toContainText('A dash means nothing was recorded that day.');} // owner requests 9 and 11: Your week, the game card (Gamify is on in the Showcase), My links
   }
   await page.goto('/app/settings');const home=page.getByRole('region',{name:'Where your data lives.'});await expect(home).toContainText('Browser storage is not a backup');
   await expect(home).toContainText('not synced or backed up');expect(await home.getAttribute('data-layout-item')).toBeNull();

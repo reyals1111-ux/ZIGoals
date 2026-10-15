@@ -37,8 +37,10 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   await expect(today.locator('[data-module="habits"] > .today-group-heading')).toHaveText('Your day');
   await expect(today.locator('[data-layout-item^="group:"]')).toHaveCount(0);
   expect(await inOrder(page, ['#dashboard-title', '.today-focus', '[data-module="whole-life"]', '[data-module="habits"]', '[data-module="health"]', '[data-module="attention"]', '[data-module="goals"]', '[data-module="needs-attention"]', '[data-module="summary"]', 'section.for-you[aria-label="For you"]', 'section.for-you[aria-label="Updates and summaries"]', '[data-layout-item="today:week"]'])).toBe('ok');
-  // The four focus tiles: habits, the next goal step, water, and sleep or fasting.
-  await expect(today.locator('.today-focus .focus-tile')).toHaveCount(4);
+  // Three focus tiles: the next goal step, water, and sleep or fasting; the habits tile stands down beside the habits widget, which lists the due habits itself (Session AB-Design, owner request 12).
+  await expect(today.locator('.today-focus .focus-tile')).toHaveCount(3);
+  await expect(today.locator('.today-focus .focus-tile[data-tone="habits"]')).toHaveCount(0);
+  await expect(today.locator('.habits-today').first()).toBeVisible();
   // Every module 32cb9c5's Today showed with the Showcase is still there, once each (the rail's four included).
   const modules = (await today.locator('[data-module]').evaluateAll(els => els.map(e => e.getAttribute('data-module')!))).sort();
   expect(modules).toEqual(['activity', 'attention', 'destination', 'funding', 'goals', 'habits', 'health', 'needs-attention', 'next-action', 'preset-balanced-0', 'preset-balanced-1', 'preset-balanced-2', 'preset-balanced-3', 'progress', 'staking', 'summary', 'wallet', 'watchlist', 'whole-life'].sort());
@@ -49,7 +51,7 @@ test('Today: hero, Today’s focus, grouped widgets, For you, then updates and s
   if (isPhone(page)) { await expect(end.locator('.for-you-slot')).toHaveCount(0); await fold.click(); }
   await expect(end.locator('[data-card="whats-new"]')).toHaveCount(1);
   const links = only(await items(page), 'today:');
-  expect(links).toEqual(['today:links', 'today:week']);
+  expect(links).toEqual(['today:week', 'today:game', 'today:links']); // Session AB-Design (owner request 11): week, the game card (Gamify is on in the Showcase), My links last
 });
 
 test('Today: a person’s own arrangement shows as saved, without group headings', async ({page}) => {
@@ -79,8 +81,9 @@ test('Wealth: the tracker row, then holdings and accounts, then the tools, then 
   await expect(page.locator('[data-layout-item="wealth:holdings"]')).toBeVisible();
   const order = only(await items(page), 'wealth:');
   expect(order).toEqual(isPhone(page)
-    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation']
-    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:calculator', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation']);
+    // Session AB-Design (owner request 26): the calculator is the last section on every width.
+    ? ['wealth:pulse', 'wealth:holdings', 'wealth:have', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']
+    : ['wealth:pulse', 'wealth:have', 'wealth:holdings', 'wealth:accounts', 'wealth:composition', 'wealth:mix', 'wealth:watchlist', 'wealth:history', 'wealth:changes', 'wealth:evidence', 'wealth:allocation', 'wealth:calculator']);
 });
 
 test('Goals: the cards first, Health goals with them, the timeline after', async ({page}) => {
@@ -89,7 +92,8 @@ test('Goals: the cards first, Health goals with them, the timeline after', async
   await expect(page.getByRole('heading', {name: 'Your Goals', level: 1})).toBeVisible();
   await expect(page.getByRole('region', {name: 'Hall of achievements'})).toBeVisible();
   // Every section is a layout item (it can be moved), in the default order: items, tools, the Hall, then the timeline.
-  expect(only(await items(page), 'goals:')).toEqual(['goals:collection', 'goals:health', 'goals:balance', 'goals:templates', 'goals:hall', 'goals:milestones']);
+  // Session AB-Design (owner request 14): the summary figures are their own movable block right after the cards.
+  expect(only(await items(page), 'goals:')).toEqual(['goals:collection', 'goals:summary', 'goals:health', 'goals:balance', 'goals:templates', 'goals:hall', 'goals:milestones']);
   await expect(page.locator('article.average-goal-card[data-layout-item]')).toHaveCount(2);
 });
 

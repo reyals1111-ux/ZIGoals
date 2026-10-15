@@ -1,4 +1,5 @@
 'use client';
+import {EmptyState} from '../ui/empty-state';
 import {useId,type CSSProperties} from 'react';
 import {amount} from './common';
 import {formatDateTime,formatExactNumber,formatPlainDecimal} from '../../lib/visual-format';
@@ -15,7 +16,7 @@ export function EvidenceChart({series,decimals,currency,label}:{series:EvidenceS
  const valid=(p:EvidencePoint)=>Number.isFinite(Date.parse(p.at))&&/^-?\d+$/.test(p.value);
  const clean=series.map(s=>({...s,unavailableAt:s.points.filter(p=>!valid(p)&&Number.isFinite(Date.parse(p.at))).map(p=>Date.parse(p.at)),points:s.points.filter(valid).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at))}));
  const points=clean.flatMap(s=>s.points),invalid=series.reduce((n,s)=>n+s.points.filter(p=>!valid(p)).length,0);
- if(!points.length)return <div className="intelligence-empty"><span aria-hidden="true">◌</span><h3>Your history starts here</h3><p>{invalid?'Some observations are unavailable because their values or dates could not be read.':'Real observations and recorded contributions will build this view. No earlier performance is assumed.'}</p></div>;
+ if(!points.length)return <EmptyState className="intelligence-empty" zigi="curious" title="Your history starts here">{invalid?'Some observations are unavailable because their values or dates could not be read.':'Real observations and recorded contributions will build this view. No earlier performance is assumed.'}</EmptyState>;
  const times=points.map(p=>Date.parse(p.at)),start=Math.min(...times),end=Math.max(...times),values=points.map(p=>BigInt(p.value));
  const lo=values.reduce((a,b)=>a<b?a:b),hi=values.reduce((a,b)=>a>b?a:b),padding=(hi-lo)/10n||1n,min=lo-padding,max=hi+padding,range=max-min;
  const x=(at:string)=>24+(end===start?268:(Date.parse(at)-start)/(end-start)*536);

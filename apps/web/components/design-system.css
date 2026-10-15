@@ -16,7 +16,9 @@
   --accent-cyan: #9ee8f8;
   --accent-violet: #cbbfff;
   --accent-magenta: #f3b0e6;
-  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 60%, #8fa6ff 74%, #c790f6 87%, #f08bd6 100%);
+  --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%);
+  /* Figures (Phase 2 closing pass, design critique): one continuous pale blend, no hard edge mid-number. */
+  --nebula-figure: linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b8ecfb 55%, #b9c6ff 78%, #dcb8fb 100%);
   --page-lede-size: clamp(17px, 1.05vw + 5px, 20px);
 }
 
@@ -34,7 +36,7 @@
 :root[data-app-motion=off] .nebula-flow[data-entrance=once] { animation: none; background-position: 0 0, 0 0; }
 
 /* One page-header system: eyebrow, title (actions pushed right on its row), lede; the layout lock sits top-right. */
-:root .page-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow tools" "title actions" "lede lede"; align-items: center; gap: 0 20px; margin: 26px 0 30px; }
+:root .page-header { display: grid; grid-template-columns: minmax(min(100%, 14ch), 1fr) minmax(0, auto); /* the title keeps at least 14 characters; wide action rows wrap instead of swallowing it */ grid-template-areas: "eyebrow tools" "title actions" "lede lede"; align-items: center; gap: 0 20px; margin: 26px 0 30px; }
 :root .page-header > .page-eyebrow { grid-area: eyebrow; }
 :root .page-header > .page-header-tools { grid-area: tools; display: flex; justify-content: flex-end; gap: 8px; }
 :root .page-header > h1 { grid-area: title; margin: 0; min-width: 0; }
@@ -42,8 +44,10 @@
 :root .page-header > .page-lede { grid-area: lede; margin: 14px 0 0; }
 :root .page-eyebrow { font-size: 15px; letter-spacing: .2em; font-weight: 700; text-transform: uppercase; color: #d3e2f6; margin: 0 0 12px; }
 :root .page-lede { font-size: var(--page-lede-size); line-height: 1.5; font-weight: 500; color: #e9f0fb; max-width: 680px; letter-spacing: -.005em; }
-@media (max-width: 600px) {
-  :root .page-header { column-gap: 12px; }
+@media (max-width: 767.98px) {
+  /* Session AB-Design: with several actions, the `auto` column swallowed the title's column (a 0 px h1 on phones); the title takes its own row. */
+  :root .page-header { column-gap: 12px; grid-template-areas: "eyebrow tools" "title title" "actions actions" "lede lede"; }
+  :root .page-header > .page-header-actions { justify-content: flex-start; margin-top: 12px; }
   :root .page-eyebrow { font-size: 14px; letter-spacing: .16em; }
 }
 
@@ -152,3 +156,10 @@
 @media not ((max-width: 767.98px) or ((pointer: coarse) and (max-height: 500px))) {
   :root :is(.goal-ideas, .goal-type-cards, .unified-wizard .form-grid) small { font-size: 14px; }
 }
+/* Gate C critique: no orphan word on a page title. */
+:root .page-header > h1, :root .habit-hero h1, :root .wealth-hero h1, :root .journey-hero h1 { text-wrap: balance; }
+
+/* Session AB-Design Phase 2 closing pass (design critique): figures read in one smooth blend (the white → nebula flow had
+   put a colour edge inside "$9,0|00.00"). Same contrast family: every stop is a pale tint on the dark cards. */
+:root .nebula-flow.is-figure, :root .nebula-number { background-image: var(--nebula-figure); }
+:root .nebula-flow.is-figure[data-entrance=once] { background-image: linear-gradient(100deg, transparent 40%, #ffffffb0 50%, transparent 60%), var(--nebula-figure); }

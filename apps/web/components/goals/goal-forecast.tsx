@@ -1,6 +1,7 @@
 'use client';
 import {useId} from 'react';
 import {useChartWidth} from '../charts/use-chart-width';
+import {ChartDefs, ChartLegend} from '../charts/chart-kit';
 import {forecastWords, type Forecast, type ForecastPoint, addDays, daysBetween} from '../../lib/goal-forecast';
 import {formatDay} from './format';
 
@@ -34,19 +35,21 @@ function ForecastChart({forecast, points, current, target, today, unit}: {foreca
   const label = forecast.state === 'estimate' ? `Recorded progress from ${formatDay(first)} to today, ${unit(current)} of ${unit(target)}; at this pace about ${formatDay(forecast.date!)}.` : `Recorded progress from ${formatDay(first)} to today, ${unit(current)} of ${unit(target)}.`;
   return <figure className="goal-forecast-chart" ref={box}>
     <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={label}>
-      <defs><linearGradient id={`${id}-line`} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#6fe6f6" /><stop offset=".55" stopColor="#8fa6ff" /><stop offset="1" stopColor="#f08bd6" /></linearGradient></defs>
+      <ChartDefs id={id} pillar="goals" />
       <line className="goal-forecast-target" x1={padL} x2={W - padR} y1={y(target)} y2={y(target)} />
-      <text className="goal-forecast-axis" x={W - padR} y={y(target) - 5} textAnchor="end">Target {unit(target)}</text>
+      <g className="chart-axis"><text x={W - padR} y={y(target) - 5} textAnchor="end">Target {unit(target)}</text></g>
       {band && <polygon className="goal-forecast-band" points={band} />}
-      <polyline className="goal-forecast-recorded" points={recorded} stroke={`url(#${id}-line)`} />
+      <polyline className="goal-forecast-recorded chart-ink" points={recorded} stroke={`url(#${id}-ink)`} />
       {forecast.state === 'estimate' && <line className="goal-forecast-projection" x1={x(today)} y1={y(current)} x2={x(forecast.date!)} y2={y(target)} />}
       <circle className="goal-forecast-today" cx={x(today)} cy={y(current)} r="4.5" />
       {forecast.state === 'estimate' && <circle className="goal-forecast-date" cx={x(forecast.date!)} cy={y(target)} r="4.5" />}
-      <text className="goal-forecast-axis" x={padL} y={H - 6}>{formatDay(first)}</text>
-      {x(today) - padL > 110 && <text className="goal-forecast-axis" x={x(today)} y={H - 6} textAnchor="middle">Today</text>}
-      {forecast.state === 'estimate' && x(forecast.date!) - x(today) > 150 && x(today) - padL > 110 && <text className="goal-forecast-axis" x={Math.min(W - padR, x(forecast.date!))} y={H - 6} textAnchor="end">{formatDay(forecast.date!)}</text>}
+      <g className="chart-axis">
+      <text x={padL} y={H - 6}>{formatDay(first)}</text>
+      {x(today) - padL > 110 && <text x={x(today)} y={H - 6} textAnchor="middle">Today</text>}
+      {forecast.state === 'estimate' && x(forecast.date!) - x(today) > 150 && x(today) - padL > 110 && <text x={Math.min(W - padR, x(forecast.date!))} y={H - 6} textAnchor="end">{formatDay(forecast.date!)}</text>}
+      </g>
     </svg>
-    <figcaption className="goal-forecast-legend"><span><i className="is-recorded" />Recorded</span>{forecast.state === 'estimate' && <><span><i className="is-projection" />At this pace</span><span><i className="is-band" />Earliest to latest</span></>}</figcaption>
+    <figcaption><ChartLegend className="goal-forecast-legend" items={[{label: 'Recorded'}, ...(forecast.state === 'estimate' ? [{label: 'At this pace', kind: 'dash' as const, color: '#f08bd6'}, {label: 'Earliest to latest', kind: 'area' as const, color: '#8fa6ff'}] : [])]} /></figcaption>
     <details className="goal-forecast-numbers"><summary>Show the numbers</summary>
       <table><caption>Recorded progress</caption><thead><tr><th scope="col">Day</th><th scope="col">Counted</th></tr></thead><tbody>{points.map(p => <tr key={p.day}><td>{formatDay(p.day)}</td><td>{unit(p.value)}</td></tr>)}<tr><td>Today</td><td>{unit(current)}</td></tr></tbody></table>
     </details>

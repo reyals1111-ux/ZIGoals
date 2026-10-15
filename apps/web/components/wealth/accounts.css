@@ -1,7 +1,7 @@
 /* Session W Part 12: accounts, debts and net worth on Wealth. */
 .accounts-section .wealth-section-heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; }
 .accounts-add, .accounts-inline { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 16px; align-items: end; margin: 12px 0; }
-.accounts-worth { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 16px 0; }
+.accounts-worth { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin: 16px 0; }
 .accounts-worth > .fine { grid-column: 1 / -1; margin: 0; }
 .accounts-worth-card { padding: 14px 16px; border: 1px solid #a6c1fa26; border-radius: 16px; }
 .accounts-worth-card h3 { font-size: .95rem; margin: 0 0 6px; }
@@ -36,3 +36,7 @@
 .what-you-have-list small{color:var(--muted,#b3cff2)}
 .what-you-have-value{flex:none;font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
 .what-you-have-list li[data-group="Debts"] .what-you-have-value{color:var(--text-secondary,#dde7f7)}
+/* Gate C (design critique): a row's actions sit together under its balance, at the right (the shared `.actions` grid had
+   stretched them into equal columns, each word centred mid-row). */
+:root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }
+:root .accounts-row > .actions > :is(button, a) { width: auto; flex: none; }

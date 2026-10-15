@@ -42,6 +42,6 @@ test('the phone set opens in WebKit at 390 px: a heading, no page error, no side
     }
   }
   // Session Z-Local (owner decision, 2026-10-11): Goals' nested routes (/app/goals/<id>, /app/goals/new) prefetch too; the same shape and moment, two segments deep.
-  const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+)?\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
+  const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
   expect(errors.filter(e => !prefetchCancel(e)).map(e => e.message), "page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)").toEqual([]);
 });

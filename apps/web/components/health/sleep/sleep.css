@@ -85,3 +85,6 @@
 /* "Open Sleep →" sits alone under a button: 3 px of padding makes its target 25 px tall without moving anything, since
    an inline link's padding never changes the line (WCAG 2.5.8; Session X Part 12). Phones already give it 44 px. */
 .sleep-card > a.text-link { padding-block: 3px; }
+/* Session AB-Design Phase 2 closing pass (Gate C captures): six figures read as 3 × 2 on wide screens instead of five in a
+   row and one alone underneath. */
+@media (min-width: 1024px) { .sleep-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

@@ -18,4 +18,6 @@ test.each([
     env: { ...process.env, WRANGLER_SEND_METRICS: "false", WRANGLER_WRITE_LOGS: "false" },
   });
   expect(result.status, result.stdout + result.stderr).toBe(0);
-});
+  // Session AB-Design Phase 2 (ADR-024): the test's own budget matches the spawn's 60 s limit — vitest's default 5 s had
+  // ended a wrangler run still in progress under load, reported as a failure of the declarations.
+}, 65_000);

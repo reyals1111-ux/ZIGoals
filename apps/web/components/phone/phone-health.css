@@ -63,3 +63,10 @@
 
   :root .health-page .health-private-note { font-size: 15px; }
 }
+/* Phase 2 closing pass (layout audit, 320–374 px): the day's summary stacks its ring above its words, and each macro tile
+   puts its name above its figure, so nothing shares a line it cannot fit. */
+@media (max-width: 374px) {
+  :root :is(.health-page, main) .health-summary { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  :root .health-macro-grid .health-macro { grid-template-columns: minmax(0, 1fr); row-gap: 2px; }
+  :root .health-macro-grid .health-macro > * { grid-column: 1 / -1; }
+}

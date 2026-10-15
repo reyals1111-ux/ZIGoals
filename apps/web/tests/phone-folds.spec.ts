@@ -8,7 +8,7 @@ async function showcase(page: Page) {
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
 }
-const TODAY = ['Your market watch', 'Your progress', 'Your wallet', 'Staking', 'Plan a new destination', 'Recent activity', 'How it works', 'Your week'];
+const TODAY = ['Your market watch', 'Your progress', 'Your wallet', 'Staking', 'Plan a new destination', 'Recent activity', 'Your week']; // Session AB-Design (owner request 2): the 3-step card became the footer's line
 const WEALTH = ['Your wealth, in perspective', 'Your favourite markets', 'Your wealth over time', 'Evidence & returns', 'Allocation and coverage'];
 const fold = (page: Page, label: string) => page.locator('.phone-fold').filter({has: page.getByRole('button', {name: new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)})}).first();
 
@@ -43,7 +43,7 @@ test('phone: Wealth folds its secondary modules, a link into one opens it, and a
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   for (const label of WEALTH) await expect(fold(page, label).locator('.phone-fold-toggle'), label).toHaveAttribute('aria-expanded', 'false');
   // Each amount in the hero's Goals split, and the composition ring's total, sits on one line.
-  for (const amount of await page.locator('.wealth-split dd > span, .composition-donut strong').all()) {
+  for (const amount of await page.locator('.wealth-split dd > span:not(.wealth-other-chip), .composition-donut strong').all()) {
     expect(await amount.evaluate(el => { const range = document.createRange(); range.selectNodeContents(el); return new Set([...range.getClientRects()].map(r => Math.round(r.top))).size; })).toBe(1);
   }
   await page.goto('/app/wealth#wealth-history');
@@ -58,7 +58,7 @@ test('desktop: no module is folded and every one shows as before', async ({page,
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   // Today's "For you" area folds its extra cards on every size (Session P, owner addition 2); no module is folded.
   await expect(page.locator('.phone-fold:not(.for-you-fold)')).toHaveCount(0);
-  await expect(page.getByRole('region', {name: 'How it works', exact: true})).toBeVisible();
+  // Session AB-Design (owner request 2): the 'How it works' card is the footer's 3-step line now; the how-to opens from the hero.
   await page.goto('/app/wealth');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   await expect(page.locator('.phone-fold')).toHaveCount(0);

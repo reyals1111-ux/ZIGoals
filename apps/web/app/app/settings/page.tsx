@@ -9,6 +9,7 @@ import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
+import {ThemeSwitch} from "../../../components/shell/theme-switch";
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
@@ -39,8 +40,18 @@ import { PagesSettings } from "../../../components/settings/pages-settings";
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
  */
 const SETTINGS_GROUPS: [id: string, title: string][] = [["settings-data", "Data & privacy"], ["settings-app", "Your app"], ["settings-areas", "Your areas"], ["settings-account", "Account & devices"], ["settings-zigi", "ZIGi"], ["settings-help", "Help & diagnostics"]];
+/** Session AB-Design (owner request 36): one small line icon per Settings group, before its title. */
+const GROUP_ICON: Record<string, ReactNode> = {
+  'settings-data': <path d="M4 7h16M4 12h16M4 17h10"/>,
+  'settings-app': <><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9 17h6"/></>,
+  'settings-areas': <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></>,
+  'settings-account': <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+  'settings-zigi': <><circle cx="12" cy="12" r="8"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/><path d="M9 15.5c1.5 1.5 4.5 1.5 6 0"/></>,
+  'settings-help': <><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></>,
+};
 function SettingsGroup({id, title, children}: {id: string; title: string; children: ReactNode}) {
-  return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{title}</p>{children}</div>;
+  const icon = GROUP_ICON[id];
+  return <div className="settings-group" id={id} role="group" aria-labelledby={`${id}-title`}><p className="settings-group-title" id={`${id}-title`}>{icon && <svg className="settings-group-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{icon}</svg>}{title}</p>{children}</div>;
 }
 export default function Settings() {
   const s = useGoals();
@@ -156,7 +167,7 @@ export default function Settings() {
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
-        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Motion</h2><MotionPreference/></section>
+        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">Dark is the nebula look you see now. Light and a customizable theme come later.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
         <MusicSettings/>
         <LinksSettings/>
       </SettingsGroup>

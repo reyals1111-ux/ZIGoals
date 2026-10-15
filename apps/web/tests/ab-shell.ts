@@ -1,0 +1,81 @@
+import {expect,type Locator,type Page} from '@playwright/test';
+import {isPhone,openMore} from './phone-nav';
+
+/**
+ * Session AB-Design (owner request 8, ADR-024 D7): the Alpha's facts moved from the top-of-page banners to one compact
+ * notice (closable on the device) and the footer's disclaimer line on every page; a phone keeps every notice in full in
+ * the Status & wallet sheet behind More. These helpers assert the same facts at their new places, as strictly.
+ */
+export const ALPHA_LABEL='PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA';
+export const ALPHA_SENTENCE='Simulation + wallet connection only. No blockchain transactions or financial signatures.';
+export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions';
+/** The compact notice at the top of every page (until closed on this device). */
+export const alphaNotice=(page:Page)=>page.getByRole('complementary',{name:'Alpha notice'});
+/** The footer's disclaimer line: the label, the sentence and the mode, on every page at every width. */
+export const footerDisclaimer=(page:Page)=>page.locator('.site-footer .alpha-disclaimer');
+/** The Alpha's facts, as the hosted verifier reads them: the notice (not yet closed) and the footer line. */
+export async function expectAlphaFacts(page:Page,path=''){
+ await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);
+ if(!await isPhone(page))await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
+ await expect(footerDisclaimer(page).locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
+ await expect(footerDisclaimer(page).locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);
+ await expect(footerDisclaimer(page).locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
+}
+/** On a phone, opens the Status & wallet sheet from More (every notice in full and the wallet buttons); returns it. */
+export async function openStatusSheet(page:Page){
+ const sheet=page.getByRole('dialog',{name:'Status'});
+ if(await sheet.isVisible())return sheet;
+ const more=await openMore(page);
+ await more.getByRole('button',{name:'Status & wallet',exact:true}).click();
+ await expect(sheet).toBeVisible();
+ await sheet.evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished.catch(()=>undefined))));
+ return sheet;
+}
+
+/** Session AB-Design (owner request 13): "See how it works" opens the how-to; the brand film is its "Watch the film" button. */
+export async function openFilm(page:Page){
+ await page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}).click();
+ const howTo=page.getByRole('dialog',{name:'Goals, Habits & Health = Wealth',exact:true});
+ await expect(howTo).toBeVisible();
+ await howTo.getByRole('button',{name:'Watch the film (16 s)',exact:true}).click();
+ await expect(page.getByRole('dialog',{name:'ZIGoals brand film',exact:true})).toBeVisible();
+ return howTo;
+}
+
+/** Session AB-Design (owner request 15): Positions left the Goals filter row for the page's ⋯ menu; this opens it and returns the link. */
+export async function goalsPositionsLink(page:Page){
+ await page.getByRole('button',{name:'Options for Goals',exact:true}).click();
+ const link=page.getByRole('group',{name:'Goals options',exact:true}).getByRole('link',{name:'Positions →',exact:true});
+ await expect(link).toHaveAttribute('href','/app/staking#positions');
+ return link;
+}
+
+/** Session AB-Design (owner request 20): a habit card shows its counter first; the timer, notes, trends, history and management wait behind one "Details" expander. Opens it (idempotent). */
+export async function openHabitDetails(card:Locator){
+ const more=card.locator('.habit-more').first();
+ // The list renders after the store loads: wait for the card itself before deciding it has no details (a count of zero
+ // right after navigation once made this helper return early and every click inside the details then waited forever).
+ await card.waitFor({timeout:20000});
+ if(await more.count()===0)return;
+ // Opening is the precondition here, never the behaviour under test. The card is re-created once or twice after the
+ // page loads (the list renders again when the store settles; under a fake clock React also client-renders the page
+ // afresh), and a details opened on a node that is then replaced reads as closed. So: wait until the same details node
+ // survives three checks, open it through the element (`open = true` fires toggle like a tap), and require it to stay open.
+ const page=more.page();
+ await page.locator('html[data-app-hydrated]').waitFor({timeout:20000});
+ let previous=await more.elementHandle(),same=0;
+ for(let attempt=0;attempt<40&&same<3;attempt++){
+  await page.waitForTimeout(250);
+  const current=await more.elementHandle();
+  same=previous&&current&&await page.evaluate(([a,b])=>a===b,[previous,current] as const)?same+1:0;
+  previous=current;
+ }
+ const isOpen=()=>more.evaluate(el=>(el as HTMLDetailsElement).open);
+ let stable=0;
+ for(let attempt=0;attempt<20&&stable<3;attempt++){
+  if(!(await isOpen())){stable=0;await more.evaluate(el=>{(el as HTMLDetailsElement).open=true;});}
+  await page.waitForTimeout(250);
+  if(await isOpen())stable++;else stable=0;
+ }
+ await expect(more).toHaveAttribute('open','');
+}

@@ -1,0 +1,81 @@
+/* Session AB-Design Phase 2, Part 2a: the pillar header grid (Habits' header is the reference). */
+:root .pillar-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "eyebrow eyebrow" "title title" "lede actions"; column-gap: 32px; row-gap: 0; align-items: end; margin: 22px 0 10px; padding: 0; min-height: 0; overflow: visible; background: none; border: 0; box-shadow: none; }
+:root .pillar-hero.has-art { grid-template-columns: minmax(0, 1fr) auto 220px; grid-template-areas: "eyebrow eyebrow art" "title title art" "lede actions art"; }
+:root .pillar-hero > .pillar-hero-eyebrow { grid-area: eyebrow; display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+:root .pillar-hero > .pillar-hero-title { grid-area: title; margin: 0 0 16px; font-size: clamp(2.3rem, 4vw, 4.2rem); line-height: 1.07; letter-spacing: -.05em; max-width: none; }
+:root .pillar-hero > .pillar-hero-lede { grid-area: lede; margin: 0; max-width: 600px; color: #e9f0fb; align-self: end; text-wrap: balance; }
+:root .pillar-hero > .pillar-hero-actions { grid-area: actions; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; justify-self: end; align-self: end; position: relative; z-index: 1; }
+:root .pillar-hero-buttons { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; }
+:root .pillar-hero-buttons > :is(a, button) { min-height: 44px; white-space: nowrap; }
+:root .pillar-hero-actions .page-minor-actions { justify-content: flex-end; }
+:root .pillar-hero > .pillar-hero-art { grid-area: art; align-self: center; justify-self: end; position: relative; }
+/* The art's glow and stars never widen the page at any width (horizontal clip only; the glow above and below stays). */
+:root .pillar-hero.has-art { overflow-x: clip; }
+:root .pillar-hero > :not(.pillar-hero-eyebrow, .pillar-hero-title, .pillar-hero-lede, .pillar-hero-actions, .pillar-hero-art) { grid-column: 1 / -1; }
+/* Tablets: the art column narrows; the buttons may wrap above the minor row. */
+@media (max-width: 1099.98px) { :root .pillar-hero.has-art { grid-template-columns: minmax(0, 1fr) auto 150px; } :root .pillar-hero-buttons { flex-wrap: wrap; } }
+/* Phones: one column — eyebrow, title, lede, then the buttons (primary first) and the minor row; the art sits faint behind the words. */
+@media (max-width: 767.98px) {
+  :root .pillar-hero, :root .pillar-hero.has-art { grid-template-columns: minmax(0, 1fr); grid-template-areas: "eyebrow" "title" "lede" "actions"; margin: 10px 0 8px; }
+  :root .pillar-hero > .pillar-hero-title { font-size: clamp(2rem, 9vw, 2.6rem); margin-bottom: 12px; }
+  :root .pillar-hero > .pillar-hero-actions { justify-self: stretch; align-items: flex-start; margin-top: 12px; gap: 4px; }
+  :root .pillar-hero > .pillar-hero-eyebrow { margin-bottom: 8px; }
+  :root .pillar-hero-buttons { flex-direction: row-reverse; justify-content: flex-end; flex-wrap: wrap; }
+  :root .pillar-hero-actions .page-minor-actions { justify-content: flex-start; }
+  :root .pillar-hero > .pillar-hero-art { position: absolute; right: 0; top: 0; opacity: .3; pointer-events: none; z-index: 0; transform: scale(.78); transform-origin: top right; }
+  :root .pillar-hero > :is(.pillar-hero-eyebrow, .pillar-hero-title, .pillar-hero-lede) { position: relative; z-index: 1; }
+}
+
+/* Session AB-Design Phase 2, Part 2b (owner request 28; critique 11): each pillar page carries its accent — the end of every
+   white→nebula title and topic on the page, the primary buttons' glow, the active chip or tab. Set on <main> by the shell. */
+:root main[data-pillar=goals], :root .pillar-hero[data-pillar=goals] { --pillar: var(--pillar-goals); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fd3ff 72%, #8fa6ff 80%, var(--pillar-goals) 100%); }
+:root main[data-pillar=habits], :root .pillar-hero[data-pillar=habits] { --pillar: var(--pillar-habits); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #c790f6 72%, #8fa6ff 78%, var(--pillar-habits) 100%); }
+:root main[data-pillar=health], :root .pillar-hero[data-pillar=health] { --pillar: var(--pillar-health); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #c790f6 78%, var(--pillar-health) 100%); }
+:root main[data-pillar=wealth], :root .pillar-hero[data-pillar=wealth] { --pillar: var(--pillar-wealth); --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8fa6ff 72%, #f08bd6 78%, var(--pillar-wealth) 100%); }
+:root .pillar-hero[data-pillar=journey] { --pillar: #c790f6; }
+:root main[data-pillar] .primary { box-shadow: 0 12px 30px -14px color-mix(in srgb, var(--pillar) 85%, transparent), 0 0 0 1px color-mix(in srgb, var(--pillar) 35%, transparent); }
+:root main[data-pillar] .primary:is(:hover, :focus-visible) { box-shadow: 0 16px 36px -12px color-mix(in srgb, var(--pillar) 95%, transparent), 0 0 0 1px color-mix(in srgb, var(--pillar) 55%, transparent); }
+:root main[data-pillar] :is(.tab-row, [role=tablist], .goals-filters, .goals-view-switch, .habit-filter-bar, .habit-area-bar, .health-view-tabs, .holdings-filters, [role=group][aria-label^="Filter"]) > :is(button, a)[aria-pressed=true],
+:root main[data-pillar] :is(.tab-row, [role=tablist], .goals-filters, .goals-view-switch, .health-view-tabs) > :is(button, a):is([aria-selected=true], [aria-current=page]) { border-color: color-mix(in srgb, var(--pillar) 75%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar) 40%, transparent), 0 0 18px -8px var(--pillar); }
+@media (forced-colors: active) { :root main[data-pillar] .primary { box-shadow: none; } }
+
+/* Session AB-Design Phase 2, Part 2c (owner request 28, ADR-024 P7): Today's Life overview — four pillar rows, each with its
+   ring in the pillar's accent, the pillar's mark and name, and the link into its page. */
+:root .life-rings > .life-ring { --pillar: var(--brand-violet); position: relative; padding: 18px 0 18px 14px; gap: 18px; }
+:root .life-rings > .life-ring[data-pillar=goals] { --pillar: var(--pillar-goals); }
+:root .life-rings > .life-ring[data-pillar=habits] { --pillar: var(--pillar-habits); }
+:root .life-rings > .life-ring[data-pillar=health] { --pillar: var(--pillar-health); }
+:root .life-rings > .life-ring[data-pillar=wealth] { --pillar: var(--pillar-wealth); }
+:root .life-rings > .life-ring::before { content: ''; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--pillar), transparent); opacity: .85; }
+:root .life-rings > .life-ring:is(:hover, :focus-visible) { background: linear-gradient(90deg, color-mix(in srgb, var(--pillar) 10%, transparent), transparent 70%); }
+:root .life-ring-pillar { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--pillar) 70%, #ffffff); }
+:root .life-ring-pillar .pillar-mark-disc { width: 24px; height: 24px; }
+:root .life-rings .flow-ring { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--pillar) 45%, transparent)); }
+/* Each figure has a long form (computers, tablets) and a short one for the phone tiles; the long one is what is read aloud. */
+:root .life-rings .life-short { display: none; }
+/* Phones: the four pillars as compact tiles (ring, pillar, the one figure); the longer lines stay on the pillar's page. */
+@media (max-width: 767.98px) {
+  :root .today-page .life-rings > .life-ring { padding: 12px 8px 14px; border-radius: 16px; background: #0a1430a6; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar) 22%, transparent); }
+  :root .today-page .life-rings > .life-ring::before { display: none; }
+  :root .today-page .life-rings .life-ring-pillar { justify-content: center; font-size: 14px; letter-spacing: .06em; }
+  :root .today-page .life-rings .life-ring-pillar .pillar-mark-disc { width: 20px; height: 20px; }
+  /* The tile's line stays for screen readers; the tile shows the ring, the pillar and its one figure. */
+  :root .today-page .life-rings h3 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :root .today-page .life-rings > .life-ring strong { font-size: 15px; line-height: 1.35; }
+  :root .today-page .life-rings .life-long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :root .today-page .life-rings .life-short { display: inline; }
+  :root .today-page .life-rings > .life-ring > span > small { display: none; }
+  :root .today-page .life-rings .flow-ring { --ring-size: 60px !important; }
+  :root .today-page .life-rings > .life-ring { padding: 10px 8px 12px; gap: 6px; }
+}
+/* The active-goal count keeps its old hook (`.life-goal-number`) inside the Goals row's line, set as plain text there. */
+:root .life-rings .life-goal-number { display: inline; min-width: 0; font: inherit; color: inherit; text-align: inherit; }
+/* Phase 2 closing pass, item 4 (consistency): every page's own header — the shared PageHeader and the pages' hand-written
+   .page-heading (the Life review, Settings, Activity, Staking, Help, Chess, the goal pages) — reads at the pillar header's
+   scale: the same eyebrow, the same title size and tracking, the same lede. */
+:root main :is(.page-heading, .page-header) h1 { font-size: clamp(2.3rem, 4vw, 4.2rem); line-height: 1.07; letter-spacing: -.05em; margin: 0 0 14px; }
+:root main :is(.page-heading, .page-header) > .eyebrow, :root main :is(.page-heading, .page-header) > div > .eyebrow { font-size: 14px; letter-spacing: .18em; margin: 0 0 12px; white-space: normal; }
+:root main :is(.page-heading, .page-header) .eyebrow > .nebula-flow { white-space: normal; }
+@media (max-width: 374px) { :root main :is(.page-heading, .page-header, .pillar-hero) .eyebrow { letter-spacing: .1em; } }
+:root main :is(.page-heading, .page-header) :is(.page-lede, h1 + p) { font-size: 18px; line-height: 1.55; color: #e9f0fb; max-width: 640px; text-wrap: pretty; }
+@media (max-width: 767.98px) { :root main :is(.page-heading, .page-header) h1 { font-size: clamp(2rem, 9vw, 2.6rem); margin-bottom: 10px; } :root main :is(.page-heading, .page-header) :is(.page-lede, h1 + p) { font-size: 16px; } }

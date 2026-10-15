@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import {openHabitDetails} from './ab-shell';
 import { HABITS_KEY } from "../lib/habits";
 
 // The QA-01 twin (Session F, docs/qa/QA_SWEEP_2026-09-30.md, "Deferred" in the Session E entry): Habits value fields were
@@ -34,6 +35,7 @@ test('a "1,5" liter target is saved as 1.5, never 15, and a "0,5" check-in as 0.
   await expect(card.locator(".habit-count")).toHaveText("0 / 1.5 liters per day");
   await expect.poll(async () => (await habit(page, "Drink water"))?.rules[0]?.target).toBe(1.5);
 
+  await openHabitDetails(card);
   await card.getByText("Set or add a value", { exact: true }).click();
   const value = card.getByLabel("Value for Drink water", { exact: true });
   await value.fill("");
@@ -43,6 +45,7 @@ test('a "1,5" liter target is saved as 1.5, never 15, and a "0,5" check-in as 0.
   await expect(card.locator(".habit-count")).toHaveText("0.5 / 1.5 liters per day");
   await expect.poll(async () => (await habit(page, "Drink water"))?.entries.map((entry) => entry.count)).toEqual([0.5]);
 
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   const day = card.getByLabel("Count for this day");
   await day.fill("");
@@ -63,6 +66,7 @@ test('an ambiguous "1,234" is refused with a reason and nothing is saved', async
   await page.getByLabel("Target value").fill("2");
   await page.getByRole("button", { name: "Create habit", exact: true }).click();
   const card = page.getByRole("article", { name: "Drink water", exact: true });
+  await openHabitDetails(card);
   await card.getByText("Set or add a value", { exact: true }).click();
   const value = card.getByLabel("Value for Drink water", { exact: true });
   await value.fill("1,234");
@@ -74,6 +78,7 @@ test('an ambiguous "1,234" is refused with a reason and nothing is saved', async
 test("no Habits field is a number field: every value is a text field with a numeric or decimal keypad", async ({ page }) => {
   await createWater(page, "2");
   const card = page.getByRole("article", { name: "Drink water", exact: true });
+  await openHabitDetails(card);
   await card.getByText("Set or add a value", { exact: true }).click();
   await card.getByText("History & reflection", { exact: true }).click();
   await page.getByRole("button", { name: "+ New habit", exact: true }).click();

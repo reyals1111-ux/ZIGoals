@@ -54,7 +54,9 @@
 :root .average-goal-card h2 { margin: 0; font-size: 22px; }
 :root .average-goal-card h2 a { color: inherit; text-decoration: none; }
 :root .average-goal-figure { display: flex; align-items: center; gap: 16px; }
-:root .average-goal-figure > div { display: grid; gap: 2px; min-width: 0; }
+:root .average-goal-figure > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px 6px; min-width: 0; } /* Gate C: the unit sits on its figure's line ("1.9 h a day") */
+.average-goal-figure > div > small { grid-column: 1 / -1; }
+:root .average-goal-card .flow-ring > span { font-size: 20px; } /* Gate C: the ring reads at the goal cards' size */
 :root .average-goal-figure strong { font-size: 28px; line-height: 1.15; }
 :root .average-goal-figure.is-large strong { font-size: 40px; }
 :root .average-goal-figure span { font-size: 15px; color: var(--text-secondary); }
@@ -113,17 +115,9 @@
 :root .goal-forecast-chart svg { display: block; max-width: 100%; height: auto; overflow: visible; }
 :root .goal-forecast-target { stroke: #f4f8ff44; stroke-dasharray: 2 6; }
 :root .goal-forecast-band { fill: #8fa6ff22; }
-:root .goal-forecast-recorded { fill: none; stroke-width: 3.5; stroke-linejoin: round; stroke-linecap: round; }
 :root .goal-forecast-projection { stroke: #f08bd6; stroke-width: 2.5; stroke-dasharray: 7 6; }
 :root .goal-forecast-today { fill: #6fe6f6; stroke: #0b1428; stroke-width: 2; }
 :root .goal-forecast-date { fill: #f08bd6; stroke: #0b1428; stroke-width: 2; }
-:root .goal-forecast-axis { fill: #c2d0e5; font-size: 14px; }
-:root .goal-forecast-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 14px; color: var(--text-secondary); }
-:root .goal-forecast-legend span { display: inline-flex; align-items: center; gap: 8px; }
-:root .goal-forecast-legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
-:root .goal-forecast-legend .is-recorded { background: linear-gradient(90deg, #6fe6f6, #8fa6ff); }
-:root .goal-forecast-legend .is-projection { background: repeating-linear-gradient(90deg, #f08bd6 0 6px, transparent 6px 10px); }
-:root .goal-forecast-legend .is-band { height: 10px; background: #8fa6ff44; }
 :root .goal-forecast-numbers { margin-top: 10px; font-size: 15px; }
 :root .goal-forecast-numbers table { width: 100%; border-collapse: collapse; margin-top: 8px; }
 :root .goal-forecast-numbers :is(th, td) { text-align: left; padding: 6px 4px; border-bottom: 1px solid #ffffff14; }
@@ -154,7 +148,7 @@
 :root .achievements-hall { margin: 8px 0; }
 :root .hall-wall { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 :root .hall-card { display: grid; border-radius: 22px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 40%, transparent); background: linear-gradient(160deg, #13223acc, #1d1a3ccc); }
-:root .hall-art { min-height: 120px; border-radius: 0; }
+:root .hall-art { height: 150px; min-height: 0; overflow: hidden; border-radius: 0; } /* Gate C critique: one media height, so the three finished cards line up */
 :root .hall-body { display: grid; gap: 8px; padding: 16px 18px 18px; }
 :root .hall-area { justify-self: start; padding: 4px 10px; border-radius: 10px; background: color-mix(in srgb, var(--area, #8fa6ff) 22%, transparent); font-size: 14px; font-weight: 700; }
 :root .hall-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-strong); }
@@ -209,4 +203,23 @@
 :root .pace-forecasts .pace-list small { font-size: 14px; color: var(--text-secondary); }
 /* Gate C: the tree's small rings keep their number on one line, sized for the ring (phones draw the ring larger). */
 :root .goal-tree-row .flow-ring > span { white-space: nowrap; }
-@media (min-width: 600px) { :root .goal-tree-row .flow-ring > span { font-size: 14px; } :root .goal-tree-row .flow-ring > span small { font-size: 10px; } }
+/* Phase 2 closing pass (layout audit, 320 px): the plan's fields never run past their card. */
+:root .goal-plan-card :is(textarea, input, select) { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; }
+:root .goal-plan-card .field, :root .goal-plan-card label { min-width: 0; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 768–1920 px): in the compact two-up legend each pillar's value sits
+   under its name, so "Relationships" never shares its cell with "Nothing here yet". */
+:root .life-balance-card.is-compact .balance-legend li { grid-template-columns: 12px minmax(0, 1fr); grid-template-areas: "dot name" ". value" ". activity"; row-gap: 2px; }
+:root .life-balance-card.is-compact .balance-value { font-size: 14px; }
+:root .average-goal-card .average-goal-target { margin: -2px 0 0; font-size: 15px; color: var(--text-secondary, #c9d6ea); }
+/* Session AB-Design Phase 2 closing pass (design critique): every template's "Use this template" sits at its card's foot,
+   so the buttons of one row line up. */
+:root .template-card { display: flex; flex-direction: column; }
+:root .template-card > :last-child { margin-top: auto; }
+/* Gate C (design critique): an achievement's area chip carries its area's colour in its words and edge too (Wealth's
+   gold at 22 % alone read as a grey chip next to Health's green). */
+.hall-area { color: color-mix(in srgb, var(--area, #8fa6ff) 72%, #ffffff); border: 1px solid color-mix(in srgb, var(--area, #8fa6ff) 45%, transparent); }
+.hall-card { grid-template-rows: auto 1fr; } .hall-body { display: flex; flex-direction: column; } .hall-body > .hall-area { align-self: flex-start; } .hall-actions { margin-top: auto; } /* every card's actions on one line */
+/* Gate C re-check: the average card keeps its own height in the goal grid (it had stretched to its row, ~250 px empty),
+   and its line wraps as balanced lines ("14 of / 14 days" split the count). */
+.goal-grid > .average-goal-card, .goal-grid .average-goal-card { align-self: start; }
+.average-goal-figure > div > small { text-wrap: balance; }

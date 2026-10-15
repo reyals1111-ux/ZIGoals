@@ -40,7 +40,7 @@ export function useLifeBalance() {
 export function LifeBalanceCard({compact = false, ...layout}: LayoutAttrs & {compact?: boolean}) {
   const {ready, result, today} = useLifeBalance();
   return <section className={`panel life-balance-card${compact ? ' is-compact' : ''}`} aria-labelledby="life-balance-title" {...layout}>
-    <SectionHeading id="life-balance-title" eyebrow={`Your life areas · ${formatMonth(today)}`} title="Life balance" lede={compact ? undefined : 'How each part of your life moved this month, from your own goals, habits and Health records.'} action={compact ? <Link className="text-link" href="/app/goals#life-balance-title">Open →</Link> : undefined} />
+    <SectionHeading id="life-balance-title" pillar="goals" eyebrow={`Your life areas · ${formatMonth(today)}`} title="Life balance" lede={compact ? undefined : 'How each part of your life moved this month, from your own goals, habits and Health records.'} action={compact ? <Link className="text-link" href="/app/goals#life-balance-title">Open →</Link> : undefined} />
     {!ready || !result ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : !result.areas.some(a => a.items || a.activity) ? <div className="aa-empty"><h3>Your wheel fills as you go.</h3><p>Each goal, habit and Health record adds to its life area: Health, Habits &amp; Mind, Wealth, Relationships, Career, Learning and Fun.</p><Link className="primary" href="/app/goals/templates">Start from a template</Link></div> : <>
       <div className="life-balance-body">
         <BalanceWheel areas={result.areas} size={compact ? 168 : 232} />

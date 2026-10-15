@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openHabitDetails} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezone, type HabitData} from '../lib/habits';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {CELEBRATIONS_KEY, W_REMINDERS_KEY} from '../lib/w-device-keys';
@@ -33,7 +34,8 @@ const card = (page: Page, title: string) => page.getByRole('article', {name: tit
 test('habit ideas: one tap adds a complete habit, or the same as a 30-day challenge; an idea already there says so', async ({page}) => {
   await seed(page);
   await page.goto('/app/habits');
-  await page.getByRole('button', {name: 'Habit ideas', exact: true}).click();
+  // Session AB-Design (owner request 19): on a computer the ideas open from "+ New habit" → "Start from an idea"; a phone keeps its list button.
+  if (await isPhone(page)) await page.getByRole('button', {name: 'Habit ideas', exact: true}).click(); else { await page.getByRole('button', {name: '+ New habit', exact: true}).click(); await page.getByRole('button', {name: 'Start from an idea', exact: true}).click(); }
   const ideas = page.getByRole('region', {name: 'Habit ideas'});
   await ideas.getByRole('button', {name: 'Sleep', exact: true}).click();
   await ideas.getByRole('button', {name: 'Add Read before sleep', exact: true}).click();
@@ -71,6 +73,7 @@ test('a finished challenge: one calm note in your own numbers, once on this devi
   await page.goto('/app/habits');
   await page.getByRole('button', {name: 'All', exact: true}).click();
   const walk = card(page, 'Fictional walk');
+  await openHabitDetails(walk);
   const note = walk.getByRole('group', {name: 'Fictional walk challenge ended'});
   await expect(note).toContainText('Your 7-day Fictional walk challenge ended on 2026-10-04: done on 5 of 7 scheduled days.');
   await note.getByRole('button', {name: 'Let it rest', exact: true}).click();
@@ -80,6 +83,7 @@ test('a finished challenge: one calm note in your own numbers, once on this devi
   await page.getByRole('button', {name: 'All', exact: true}).click();
   await expect(card(page, 'Fictional walk').getByRole('group', {name: 'Fictional walk challenge ended'})).toHaveCount(0);
   const bed = card(page, 'Fictional make the bed');
+  await openHabitDetails(bed);
   await bed.locator('summary', {hasText: 'Challenge'}).click();
   await bed.getByRole('textbox', {name: 'Days', exact: true}).fill('14');
   await bed.getByRole('button', {name: 'Start a challenge', exact: true}).click();
@@ -91,6 +95,7 @@ test('a habit\'s patterns: by weekday and by week over 12 weeks, and when check-
   await seed(page);
   await page.goto('/app/habits');
   const bed = card(page, 'Fictional make the bed');
+  await openHabitDetails(bed);
   await bed.locator('summary', {hasText: 'Consistency & trends'}).click();
   const patterns = bed.locator('.habit-patterns');
   await expect(patterns.getByRole('heading', {name: 'By weekday · last 12 weeks'})).toBeVisible();

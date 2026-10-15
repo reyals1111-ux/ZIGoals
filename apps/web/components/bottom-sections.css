@@ -71,3 +71,8 @@
  .bottom-section,.bottom-coverage,.bottom-counts div,.bottom-sources li,.bottom-places li,.bottom-streaks li { border:1px solid CanvasText; }
  .bottom-bar-track i,.bottom-timeline-dot { background:Highlight!important; }
 }
+/* Phase 2 closing pass: four-digit figures read compactly (2.3K) in a phone's narrow day columns, never on two lines; the
+   exact figure stays for screen readers. */
+.bottom-row strong { white-space: nowrap; }
+.bottom-compact { display: none; }
+@media (max-width: 767.98px) { .bottom-row .bottom-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .bottom-row .bottom-compact { display: inline; } }

@@ -45,3 +45,9 @@
 
   :root .habits-workspace .habit-semantics, :root .habits-workspace .habit-privacy { font-size: 15px; }
 }
+/* Phase 2 closing pass: a habit card's kicker (type · area · time) keeps its letters close on a phone, so it takes one or
+   two lines beside Edit and ⋯, never three. */
+@media (max-width: 767.98px) { :root .habits-workspace .habit-card-heading .eyebrow { letter-spacing: .06em; } }
+/* Phase 2 closing pass: the phone's "Habit ideas" is a chip at the end of its row, not a loose word between cards. */
+:root .habit-phone-ideas { display: flex; justify-content: flex-end; margin: 0 0 4px; }
+:root .habit-phone-ideas .habit-ideas-button { min-height: 44px; padding: 0 16px; border: 1px solid #8fb6ff33; border-radius: 999px; background: #0a1430a6; font-weight: 650; }

@@ -57,10 +57,19 @@
 
 /* Skeletons: calm placeholders while a part loads (no shimmer under reduced motion or Motion Off). */
 :root .aa-skeleton { display: grid; gap: 10px; padding: 18px; border-radius: 18px; background: #0f1d33aa; border: 1px solid #6c9cc526; }
-:root .aa-skeleton > i { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+:root .aa-skeleton > :is(i, b) { display: block; height: 14px; border-radius: 7px; background: linear-gradient(90deg, #1b2c46, #26395a 50%, #1b2c46); background-size: 200% 100%; animation: aa-skeleton 1.4s ease-in-out infinite; }
+/* Phase 2, Part 3: the shimmer carries the nebula tint; a chart-sized block; a page's first screen; still under Motion Off. */
+:root .aa-skeleton > :is(i, b) { background: linear-gradient(90deg, #16243d 0%, #1e2e4c 35%, #2c2f5e 50%, #1e2e4c 65%, #16243d 100%); background-size: 220% 100%; }
+:root .aa-skeleton > b { height: 132px; border-radius: 14px; margin-bottom: 4px; }
+:root .aa-skeleton > i:first-of-type { width: 46%; height: 18px; }
+:root .aa-skeleton-page { display: grid; gap: 18px; margin-top: 18px; }
+:root .aa-skeleton-head { background: none; border: 0; padding: 8px 0 12px; }
+:root .aa-skeleton-head > i:first-of-type { width: min(420px, 70%); height: 40px; border-radius: 12px; }
+:root .aa-skeleton-head > i:nth-of-type(2) { width: min(560px, 90%); }
+:root[data-app-motion="off"] .aa-skeleton > :is(i, b) { animation: none; }
 :root .aa-skeleton > i:nth-child(2) { width: 82%; } :root .aa-skeleton > i:nth-child(3) { width: 64%; }
 @keyframes aa-skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
-@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { :root .aa-skeleton > :is(i, b) { animation: none; } }
 :root[data-app-motion=off] .aa-skeleton > i { animation: none; }
 
 /* The Undo toast: above the phone's tab bar, bottom-centre on computers. */
@@ -109,3 +118,77 @@
 :root .today-device-option small { font-size: 14px; color: var(--text-secondary); }
 :root .today-device-option[aria-pressed='true'] { border-color: #8fe6f4; background: #12345299; box-shadow: inset 0 0 0 1px #8fe6f455; }
 :root .today-device-option[aria-pressed='true'] strong::after { content: ' · on'; color: #8fe6f4; font-weight: 500; }
+/* Session AB-Design (owner request 29): the one empty state — ZIGi beside the words, one action. */
+:root .empty-state { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 18px; }
+:root .empty-state-figure { width: 72px; height: 72px; display: grid; place-items: center; filter: drop-shadow(0 8px 16px #0008); }
+:root .empty-state-figure svg { width: 100%; height: 100%; }
+/* Phase 2 closing pass (empty Goals at 390 px): ZIGi's figure image fits its box instead of its intrinsic size, which had
+   drawn it over the title and the first line. */
+:root .empty-state-figure :is(.zigi-figure, img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+:root .empty-state-copy { display: grid; gap: 8px; min-width: 0; }
+:root .empty-state-action { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 480px) { :root .empty-state { grid-template-columns: minmax(0, 1fr); } :root .empty-state-figure { width: 56px; height: 56px; } }
+/* Phase 2, Part 11: the quiet Showcase tag inside cards (components/ui/showcase-tag.tsx). */
+:root .showcase-tag { display: inline-flex; align-items: center; gap: 6px; margin-right: 6px; padding: 1px 9px 1px 7px; border-radius: 999px; border: 1px solid #c790f655; background: #2a1f4466; color: #eadcff; font-size: 14px; font-weight: 700; letter-spacing: .02em; vertical-align: 1px; white-space: nowrap; }
+:root .showcase-tag-dot { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #23eaff, #f06dff); }
+/* Phase 2 closing pass, item 5 (interaction states): a visible ring on every focusable thing that is not a native control
+   (role=button groups, chart points, tabindex regions), the search field's ring on its row, and a pressed state on touch
+   screens (a brightness change, so nothing moves under reduced motion or Motion Off). */
+:root [tabindex]:not([tabindex="-1"]):focus-visible, :root [role="button"]:focus-visible, :root [role="tab"]:focus-visible, :root [role="option"]:focus-visible { outline: 3px solid var(--cyan, #23eaff); outline-offset: 3px; }
+:root .search-field:has(input:focus-visible) { box-shadow: inset 0 -2px 0 var(--cyan, #23eaff); }
+@media (hover: none) {
+  :root :is(button, a.primary, a.secondary, .phone-more-row, .phone-tab, summary):active:not(:disabled) { filter: brightness(1.18); }
+}
+/* Phase 2 closing pass (layout audit): ZIGi's corner "Ask ZIGi" link sits in a card's top-right corner; the card's first
+   eyebrow keeps clear of it, and the link is a full-size target. */
+:root .panel:has(> .zigi-explain-corner) > .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > :first-child .eyebrow:first-of-type, :root .panel:has(> .zigi-explain-corner) > header .eyebrow:first-of-type { padding-right: 92px; white-space: normal; }
+html[data-zigi-launcher="shown"] .zigi-explain-corner { align-items: center; min-height: 44px; min-width: 44px; padding: 0 10px; top: 4px; right: 4px; }
+
+/* Session AB-Design Phase 2, Part 12 (second merger): AB-Cloud's extras-sync choice in Settings, framed as an inner card
+   inside the sync panel like the other grouped choices. */
+:root .extras-sync-choice { display: grid; gap: 10px; margin-top: 12px; padding: 14px 16px; border: 1px solid #8ab9ff1f; border-radius: 16px; background: #8ab9ff07; min-width: 0; overflow-wrap: anywhere; }
+:root .extras-sync-choice .checkbox { min-height: 44px; }
+/* Session AB-Design Phase 2 closing pass (layout audit): Today's goal pulse keeps "of <amount>" and "Target <date>" whole. */
+:root .today-goal-pulse :is(.pulse-of, .pulse-date) { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique): the landing's old global `header { max-width: 1380px; margin:
+   auto }` (globals.css) centred every card header inside the app that sets no margin of its own (Ecosystem, ZIGi's page,
+   Reminders), so titles started at a different x from the text under them. Inside the app a header starts at its card's
+   start, without the landing bar's padding and rule; component rules that set their own still win. */
+main header { margin-inline: 0; max-width: none; padding: 0; border-bottom: 0; }
+/* Session AB-Design Phase 2 closing pass (design critique): a date, an amount or a duration never breaks inside itself
+   ("2026-10- / 16", "Oct / 12, 2026", "6 h 44 / min"); the words around it wrap instead. */
+:root .nowrap, :root .goal-target time, :root .unified-goal-card .card-footer .text-link { white-space: nowrap; }
+/* Session AB-Design Phase 2 closing pass (design critique): a form's action row always keeps the standard gap (Cancel and
+   Save goal had touched). */
+:root .dashboard-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280 px): a focus tile's action link is a 28 px target on the
+   pointer layout too (23 px with ZIGi's panel beside it failed the spacing rule). */
+@media (min-width: 768px) { :root .focus-tile .focus-actions .text-link { display: inline-flex; align-items: center; min-height: 28px; } }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280–1440 px): the wallet card's words sit on a soft scrim on the
+   artwork's dark side, so "1000 ZIG" stays 4.5:1 where the planet's rim passes behind the unit. The planet stays. */
+:root .account-panel { position: relative; isolation: isolate; }
+:root .account-panel::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(90deg, #070d22e8 0%, #070d22bf 42%, #070d2200 72%); }
+/* Session AB-Design Phase 2 closing pass (stress audit, 320 px): below 375 px the focus tiles stack, so a ten-digit amount
+   ("0% of US$1,234,567,890.12") fits its tile. */
+@media (max-width: 374px) { :root .today-focus-tiles { grid-template-columns: minmax(0, 1fr); } }
+/* Session AB-Design Phase 2, Gate C (design critique): Today's gradient words sit on the planet's brightest glow; a soft
+   dark halo keeps their edges ("Health" had dissolved into the light). */
+:root .today-hero .slogan-gradient { filter: drop-shadow(0 2px 10px #050816e6) drop-shadow(0 0 2px #05081699); }
+/* Gate C (design critique): in Today's narrow rail the three steps read as rows (icon, then the step and its line) —
+   three columns had wrapped "Stay consistent" alone and pressed "Reach farther" to the card's edge. */
+:root .today-rail .destination-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; text-align: left; }
+:root .today-rail .destination-steps > div { grid-template-columns: 28px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 12px; row-gap: 0; border-right: 0; }
+:root .today-rail .destination-steps > div > :first-child { grid-row: span 2; }
+/* Gate C (design critique): a date never breaks at its hyphens ("2026-" / "10-15"). */
+:root time { white-space: nowrap; }
+/* Gate C (design critique, phones): chip rows wrap inside their card instead of running past its edge (Ecosystem's
+   "Sources reviewed" chip was cut; the Portfolio chart's "All" crossed the card's padding). */
+:root .portfolio-ranges { flex-wrap: wrap; row-gap: 8px; }
+/* Gate C (design critique): the empty goal card's words keep a scrim over the house art (it had faded out at 30 %). */
+:root .today-goal-empty::after { background: linear-gradient(90deg, var(--surface-1) 45%, color-mix(in srgb, var(--surface-1) 55%, transparent) 78%, transparent); }
+/* Gate C (design critique): an Activity entry whose kind equals its title shows the title once. */
+:root .activity-category-label:empty { display: none; }
+/* Gate C (design critique): a goal page keeps its Goals / Positions links (asserted), drawn as the app's chips rather
+   than plain grey words under the status row. */
+:root .goal-detail-workspace .platform-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid #8fb6ff33; border-radius: 999px; background: #0a1430a6; color: var(--text-secondary, #dde7f7); font-weight: 600; text-decoration: none; }
+:root .goal-detail-workspace .platform-nav a:is(:hover, :focus-visible) { border-color: #9fe6ff88; color: #fff; }

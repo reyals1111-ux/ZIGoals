@@ -13,6 +13,7 @@ import {RatingChart} from './rating-chart';
 import {ChessFrames, PlayLinks} from './chess-frames';
 import {useChessCheckIn} from './use-chess-check-in';
 import './chess.css';
+import {ShowcaseTag} from '../ui/showcase-tag';
 
 /**
  * The Chess page (Session W Part 14; /app/chess, its own chunk): ratings and recent games from chess.com and Lichess by
@@ -34,7 +35,7 @@ export function ChessView() {
     <div className="page-heading"><div>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="chess-eyebrow">YOUR GAME</NebulaFlow></p>
       <h1><NebulaFlow identity="chess-title">Chess.</NebulaFlow></h1>
-      <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? 'SHOWCASE DATA · fictional ratings and games.' : ''}</p>
+      <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? <><ShowcaseTag/>Fictional ratings and games.</> : ''}</p>
     </div></div>
     {!hasUser && !showcase && <section className="panel chess-setup" aria-labelledby="chess-setup-title"><h2 id="chess-setup-title">Follow your chess</h2><p>Add the username you play under. ZIGoals reads your public ratings and recent games from that site, one request at a time, only from this page, Today&apos;s chess card or Refresh.</p><ChessUsernames state={state} onSaved={() => void refresh()} /></section>}
     {(hasUser || showcase) && <section className="panel chess-ratings" aria-labelledby="chess-ratings-title">
@@ -49,7 +50,7 @@ export function ChessView() {
     </section>}
     {games.length > 0 && <section className="panel chess-games" aria-labelledby="chess-games-title"><h2 id="chess-games-title">Recent games</h2>
       <dl className="chess-results"><div><dt>All recent games</dt><dd>{record(tally.total)}</dd></div><div><dt>With white</dt><dd>{record(tally.white)}</dd></div><div><dt>With black</dt><dd>{record(tally.black)}</dd></div>{tally.byControl.map(c => <div key={c.control}><dt>{CONTROL_NAME[c.control]}</dt><dd>{record(c.record)}</dd></div>)}</dl>
-      <ul className="chess-game-list">{games.slice(0, 20).map(g => <li key={`${g.site}:${g.id}`}><span className="chess-result" data-result={g.result}>{g.result === 'win' ? 'Won' : g.result === 'draw' ? 'Drew' : 'Lost'}</span><div><strong>{CONTROL_NAME[g.control]}{g.timeControl ? ` · ${g.timeControl}` : ''} · {g.color === 'white' ? 'White' : 'Black'}</strong><small>{g.opponentRating !== null ? `Opponent ${g.opponentRating}` : 'Opponent unrated'}{g.opening ? ` · ${g.opening}` : ''} · {time(g.endedAt)}{g.rated ? '' : ' · casual'}</small></div><a className="text-link" href={g.url} target="_blank" rel="noopener noreferrer">Open on {SITE_NAME[g.site]}</a></li>)}</ul>
+      <ul className="chess-game-list">{games.slice(0, 20).map(g => <li key={`${g.site}:${g.id}`}><span className="chess-result" data-result={g.result}>{g.result === 'win' ? 'Won' : g.result === 'draw' ? 'Drew' : 'Lost'}</span><div><strong>{CONTROL_NAME[g.control]}{g.timeControl ? ` · ${g.timeControl}` : ''} · {g.color === 'white' ? 'White' : 'Black'}</strong><small>{g.opponentRating !== null ? `Opponent ${g.opponentRating}` : 'Opponent unrated'}{g.opening ? ` · ${g.opening}` : ''} · <span className="nowrap">{time(g.endedAt)}</span>{g.rated ? '' : ' · casual'}</small></div><a className="text-link" href={g.url} target="_blank" rel="noopener noreferrer">Open on {SITE_NAME[g.site]}</a></li>)}</ul>
       <p className="fine">Results as each site recorded them, from the newest {Math.min(games.length, 100)} games fetched.</p>
     </section>}
     {(hasUser || showcase) && <ChessGoals state={state} />}

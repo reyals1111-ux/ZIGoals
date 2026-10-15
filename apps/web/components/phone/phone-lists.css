@@ -2,7 +2,7 @@
    source line, label and disclaimer stays visible. Cards stay stacked (tests check equal x at 320 and 390 px). */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   /* Activity: the three sources as a swipeable row. */
-  :root .activity-page .activity-context { display: flex; gap: 10px; margin: 12px calc(-1 * var(--phone-gutter)) 12px; padding: 0 var(--phone-gutter) 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  :root .activity-page .activity-context { scroll-padding-inline: var(--phone-gutter); display: flex; gap: 10px; margin: 12px calc(-1 * var(--phone-gutter)) 12px; padding: 0 var(--phone-gutter) 4px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
   :root .activity-page .activity-context::-webkit-scrollbar { display: none; }
   :root .activity-page .activity-context > div { flex: 0 0 80%; gap: 6px; padding: 14px 16px; scroll-snap-align: start; }
   /* Favourites: the list gets the full width; its link is a full 44 px row. */
@@ -30,7 +30,7 @@
   /* Ecosystem: compact intro, the three review chips on one scrolling row, one-row card headers. */
   :root .ecosystem-intro { padding: 18px 16px; }
   :root .ecosystem-intro h1 { font-size: clamp(28px, 8.4vw, 34px); }
-  :root .ecosystem-review { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  :root .ecosystem-review { flex-wrap: wrap; overflow-x: visible; } /* Gate C: the two chips wrap; scrolled, the second was cut at the card edge */
   :root .ecosystem-review::-webkit-scrollbar { display: none; }
   :root .ecosystem-review > span { flex: none; font-size: 15px; }
   :root .ecosystem-controls { gap: 10px; }
@@ -39,7 +39,10 @@
   :root .ecosystem-project { padding: 16px; }
   :root .ecosystem-project > header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 12px; }
   :root .ecosystem-project > header :is(.ecosystem-logo, .ecosystem-initials) { width: 44px; height: 44px; }
-  :root .ecosystem-project > header :is(.ecosystem-logo img) { width: 44px; height: 44px; }
+  /* Phase 2 closing pass (design critique): the logo fills the tile's own box (a forced 44 px image inside a padded 44 px
+     tile had slid out of its frame, down and right). */
+  :root .ecosystem-project > header :is(.ecosystem-logo, .ecosystem-initials) { padding: 5px; }
+  :root .ecosystem-project > header .ecosystem-logo img { width: 100%; height: 100%; object-fit: contain; }
   :root .ecosystem-project h2 { font-size: 19px; }
   :root .ecosystem-project :is(.ecosystem-labels span, .ecosystem-description) { font-size: 15px; }
   :root .ecosystem-description a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -48,4 +51,10 @@
   :root .ecosystem-coverage > summary, :root .ecosystem-tools > summary { min-height: 44px; }
   :root .ecosystem-details a { display: flex; align-items: center; min-height: 44px; }
   :root .ecosystem-details :is(small, li, p) { font-size: 15px; }
+}
+/* Session AB-Design Phase 2 closing pass (design critique, 390 px): a project's links stack full width, one per row, so
+   "Visit website ↗" never splits its arrow onto a second line when there are three. */
+@media (max-width: 767.98px) {
+  :root .ecosystem-project-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  :root .ecosystem-project-actions > a { justify-content: center; white-space: nowrap; }
 }

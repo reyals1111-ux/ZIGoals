@@ -24,7 +24,7 @@
 .game-card .text-link { min-height: 44px; display: inline-flex; align-items: center; }
 .game-card-strip { padding: 0; gap: 0; }
 .game-strip-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 0; max-width: 100%; overflow: hidden; min-height: 56px; padding: 8px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; border-radius: inherit; }
-.game-strip-text { flex: 1 1 auto; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.game-strip-text { flex: 1 1 auto; min-width: 0; font-size: 15px; line-height: 1.3; text-align: left; white-space: normal; overflow-wrap: anywhere; } /* closing pass: the quest in full, on two lines if it needs them */
 .game-strip-xp { font-size: 14px; color: var(--accent-cyan); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .game-card-strip[data-open] .game-strip-toggle .habit-section-chevron { transform: rotate(-90deg); }
 .game-card-strip .game-card-body { padding: 0 14px 14px; }
@@ -106,3 +106,51 @@
 
 /* AA-Cloud's slot wrappers: a place whose cards all render nothing (the game layer off) takes no room. */
 .aa-slot:empty, .progress-slot:empty { display: none; }
+
+/* Session AB-Design (owner request 31): the level orb, the XP bar, planets on the path, illustrated badges. */
+.journey-level { position: relative; overflow: hidden; isolation: isolate; }
+.journey-orb { position: absolute; inset: auto auto -40% -10%; width: 70%; aspect-ratio: 1; border-radius: 50%; z-index: -1; pointer-events: none; background: radial-gradient(circle at 30% 30%, #9e78ff55, #3b57e622 45%, transparent 70%); filter: blur(10px); }
+.journey-ring { position: relative; }
+.journey-ring::before { content: ""; position: absolute; inset: 12%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #2a2f6a, #0b0f2a 70%); box-shadow: inset -14px -10px 30px #06081a, inset 10px 8px 26px #5b6cff33, 0 0 40px -8px #7f8dff88; z-index: -1; }
+.journey-xp-bar { height: 10px; border-radius: 99px; margin-top: 6px; }
+.journey-path { position: relative; }
+.journey-path::before { content: ""; position: absolute; left: 17px; top: 18px; bottom: 18px; width: 2px; background: linear-gradient(180deg, #6fe6f6, #9e78ff 55%, #c3a8f94a); border-radius: 2px; opacity: .7; }
+.journey-path li { position: relative; }
+.journey-path-node { position: relative; width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; background: radial-gradient(circle at 32% 30%, hsl(var(--planet-hue, 250deg) 80% 78%), hsl(var(--planet-hue, 250deg) 70% 45%) 55%, hsl(var(--planet-hue, 250deg) 60% 22%) 100%); box-shadow: inset -6px -4px 10px #0007, 0 0 14px -4px hsl(var(--planet-hue, 250deg) 90% 70% / .8); text-shadow: 0 1px 2px #0008; }
+.journey-path li:not([data-reached]) .journey-path-node { filter: saturate(.4) brightness(.75); }
+.journey-path li[data-current] .journey-path-node::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1px solid #ffffff66; }
+.journey-badge-symbol { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; font-size: 26px; background: radial-gradient(circle at 35% 30%, #3b3f7a, #14172e 70%); box-shadow: inset -6px -4px 14px #0006, inset 4px 3px 12px #8fa0ff33, 0 0 18px -6px #9e78ff88; }
+.journey-badge-grid li[data-earned] { opacity: 1; border-color: #c3a8f955; background: linear-gradient(160deg, #2a1f4a99, #1a142a66); }
+.journey-badge-grid li[data-earned] .journey-badge-symbol { box-shadow: inset -6px -4px 14px #0006, inset 4px 3px 12px #ffffff33, 0 0 24px -4px #ffd27a99; background: radial-gradient(circle at 35% 30%, #6a5bd0, #2a1f5a 70%); }
+.journey-quest-pillar { margin-right: 8px; vertical-align: -3px; }
+.journey-quest-pillar .pillar-mark-disc { width: 22px; height: 22px; }
+/* Phase 2, Part 8: the Journey widgets on Today and their switches in the "Add a widget" dialog. */
+.today-game-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; margin: 18px 0; }
+.today-game-card { display: grid; gap: 10px; align-content: start; }
+.today-game-xp { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 18px; }
+.today-game-xp h2, .today-game-quests h2 { margin: 0; font-size: clamp(19px, .3vw + 16px, 22px); }
+.today-game-ring { --ring-width: 9px; width: 96px; aspect-ratio: 1; display: grid; place-items: center; grid-template-areas: "ring"; }
+.today-game-ring > * { grid-area: ring; }
+.today-game-ring strong { font-size: 30px; margin-top: -12px; }
+.today-game-ring small { font-size: 13px; color: var(--text-secondary, #c9d6ea); margin-top: 30px; }
+.today-game-bar { height: 8px; border-radius: 99px; margin: 6px 0 2px; }
+.today-game-card .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+.game-widget-choices { display: grid; gap: 8px; margin: 0 0 16px; padding: 14px; border-radius: 16px; border: 1px solid #c790f644; background: linear-gradient(140deg, #2a1f4433, #0d1a30aa); }
+.game-widget-choices h3 { margin: 0; font-size: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.game-widget-choices h3 small { font-size: 14px; font-weight: 500; color: var(--text-secondary, #c9d6ea); }
+.game-widget-choices [role=group] { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.game-widget-choice { display: grid; gap: 2px; text-align: left; min-height: 56px; }
+.game-widget-choice small { font-size: 14px; color: var(--text-secondary, #c9d6ea); }
+@media (max-width: 480px) { .today-game-xp { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+/* Phase 2, Part 8 (owner request 31): the compact Journey card at a page's bottom on computers and tablets — the level and
+   its XP bar on the left, the page's quest and the Journey link on the right. */
+.game-card:not(.game-card-strip) { padding: 18px 22px; }
+.game-card:not(.game-card-strip) .game-card-body { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "level quest" "bar link"; align-items: center; column-gap: 32px; row-gap: 8px; }
+.game-card:not(.game-card-strip) .game-card-level { grid-area: level; }
+.game-card:not(.game-card-strip) .game-card-bar { grid-area: bar; }
+.game-card:not(.game-card-strip) .game-card-quest { grid-area: quest; padding: 10px 14px; border-radius: 14px; background: #ffffff08; border: 1px solid #c790f62e; }
+.game-card:not(.game-card-strip) .text-link { grid-area: link; justify-self: end; }
+@media (max-width: 900px) { .game-card:not(.game-card-strip) .game-card-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "level" "bar" "quest" "link"; } .game-card:not(.game-card-strip) .text-link { justify-self: start; } }
+/* Session AB-Design Phase 2 closing pass (design critique): a level not reached yet is the one neutral "locked" marker —
+   desaturating each planet's own hue had turned levels 9 and 10 a muddy olive outside the palette. */
+.journey-path li:not([data-reached]) .journey-path-node { filter: none; background: #1a142a; border: 2px solid #a184e255; color: #d8ccf5; box-shadow: none; }

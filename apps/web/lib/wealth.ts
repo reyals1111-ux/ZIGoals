@@ -62,7 +62,7 @@ export function goalMarketRequests(s:Platform,goalId?:string):MarketQuoteRequest
  return deduplicatedRequests(requests);
 }
 
-export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string}[];change:string;changePercent?:string};
+export type WealthHistory={currency:string;decimals:2;points:{at:string;value:string;/** Session AB-Design (owner request 26): the same total split by asset class, for the chart's series; derived, never stored. */classes?:Record<string,string>}[];change:string;changePercent?:string};
 /** Reconstruct only complete currency totals from recorded local facts; never backfill a missing Position. */
 // Session G, Part 2: Platform records are never changed in place, so derived indexes and results are kept per object
 // (and rebuilt if the arrays they read were replaced). Results are identical to computing them afresh.
@@ -91,7 +91,7 @@ function computeWealthHistory(s:Platform):WealthHistory[]{
  return currencies.flatMap(currency=>{
   const required=s.positions.filter(p=>currencyOf(p)===currency).map(p=>p.id),requiredIds=new Set(required);
   const snapshots=s.valuationSnapshots.filter(v=>v.currency===currency&&requiredIds.has(v.positionId)).sort((a,b)=>Date.parse(a.capturedAt)-Date.parse(b.capturedAt));
-  const latest=new Map<string,bigint>(),points:{at:string;value:string}[]=[];
+  const latest=new Map<string,bigint>(),points:WealthHistory['points']=[];
   for(let index=0;index<snapshots.length;){
    const at=snapshots[index]!.capturedAt;
    const simultaneous=new Map<string,typeof snapshots>();
@@ -102,7 +102,7 @@ function computeWealthHistory(s:Platform):WealthHistory[]{
     const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);
    }
    const active=required.filter(id=>positionTrackedAt(s,byId.get(id)!,at));
-   if(active.length&&active.every(id=>latest.has(id)))points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString()});
+   if(active.length&&active.every(id=>latest.has(id))){const classes:Record<string,bigint>={};for(const id of active){const c=byId.get(id)!.assetClass??'Other';classes[c]=(classes[c]??0n)+latest.get(id)!;}points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString(),classes:Object.fromEntries(Object.entries(classes).map(([c,v])=>[c,v.toString()]))});}
   }
   if(!points.length)return [];
   const first=BigInt(points[0]!.value),last=BigInt(points.at(-1)!.value),change=last-first;

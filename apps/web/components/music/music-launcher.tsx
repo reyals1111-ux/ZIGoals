@@ -10,6 +10,7 @@ import {MUSIC_KEY} from '../../lib/w-device-keys';
 import {usePagesView} from '../pages/use-pages-view';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {MUSIC_OPEN_EVENT} from './music-events';
+import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import './music-launcher.css';
 
 /**
@@ -25,10 +26,14 @@ const MusicMini = lazy(() => import('./music-mini'));
 function readMini(): boolean {
   try { const raw = getAppStorage().getItem(MUSIC_KEY), value = raw ? JSON.parse(raw) as {version?: unknown; mini?: unknown} : null; return !!value && value.version === 1 && value.mini === true; } catch { return false; }
 }
+const MusicNote = () => <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M9 18V6l11-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0m11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M9 10l11-2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 export function MusicLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [mini, setMini] = useState(false);
   const pathname = usePathname() ?? '', shown = isShown(usePagesView(), 'music'), phone = usePhoneActive();
   const ambient = useSyncExternalStore(subscribeAmbient, ambientState, serverAmbientState), button = useRef<HTMLButtonElement>(null);
+  // Session AB-Design (owner request 6): the button sits above ZIGi's and can be tucked into the screen's edge (zigoals:ui-prefs:v1).
+  const prefs = useUiPrefs(), folded = prefs.loaded && !prefs.unreadable && !!prefs.data.musicFolded;
+  const setFolded = (value: boolean) => { try { prefs.update(p => ({...p, musicFolded: value})); } catch { /* storage refused: stays as it is */ } };
   useEffect(() => {
     const read = () => setMini(readMini());
     queueMicrotask(() => { setMounted(true); read(); });
@@ -41,13 +46,18 @@ export function MusicLauncher() {
   useEffect(() => { if (!shown && open) queueMicrotask(() => setOpen(false)); }, [shown, open]);
   // On a phone the player opens from ZIGi's "⋯" menu or the More sheet (Session Z-Cloud Part 4.12), whose items are gone
   // once it shows, so focus returns to ZIGi's launcher there, or to More when ZIGi's button is not shown.
-  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => (button.current ?? document.querySelector<HTMLElement>('.music-mini-open') ?? document.querySelector<HTMLElement>('[data-testid="ai-launcher"] .ai-launcher-button') ?? document.querySelector<HTMLElement>('.phone-more-button'))?.focus({preventScroll: true})); }, []);
+  const close = useCallback(() => { setOpen(false); requestAnimationFrame(() => (button.current ?? document.querySelector<HTMLElement>('.music-mini-open') ?? document.querySelector<HTMLElement>('[data-testid="ai-launcher"] .ai-launcher-button') ?? document.querySelector<HTMLElement>('.phone-more-top'))?.focus({preventScroll: true})); }, []);
   if (!mounted || !shown || !pathname.startsWith('/app')) return null;
   return <>
     {mini ? <Suspense fallback={null}><MusicMini phone={phone} onOpen={open ? close : show} expanded={open}/></Suspense>
-      : !phone && <button ref={button} type="button" className="music-launcher" data-playing={ambient.playing ? '' : undefined} aria-haspopup="dialog" aria-expanded={open} aria-label={open ? 'Close the music player' : 'Open the music player'} onClick={() => open ? close() : show()}>
-        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M9 18V6l11-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0m11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M9 10l11-2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-      </button>}
+      : !phone && (folded
+        ? <button ref={button} type="button" className="music-edge-tab" data-playing={ambient.playing ? '' : undefined} aria-label="Show the music button" onClick={() => setFolded(false)}><MusicNote/></button>
+        : <div className="music-launcher-stack">
+          <button ref={button} type="button" className="music-launcher" data-playing={ambient.playing ? '' : undefined} aria-haspopup="dialog" aria-expanded={open} aria-label={open ? 'Close the music player' : 'Open the music player'} onClick={() => open ? close() : show()}><MusicNote/></button>
+          <button type="button" className="music-launcher-fold" aria-label="Tuck the music button away" data-tip="Tuck away" onClick={() => setFolded(true)}>
+            <svg viewBox="0 0 12 22" width="12" height="22" aria-hidden="true" focusable="false"><defs><linearGradient id="music-fold-nebula" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--brand-cyan, #63e7ff)"/><stop offset=".5" stopColor="var(--brand-violet, #826cff)"/><stop offset="1" stopColor="var(--brand-magenta, #c664ff)"/></linearGradient></defs><path d="M3 3l6 8-6 8" fill="none" stroke="url(#music-fold-nebula)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>)}
     {loaded && <Suspense fallback={null}><MusicPanel open={open} onClose={close} phone={phone}/></Suspense>}
   </>;
 }

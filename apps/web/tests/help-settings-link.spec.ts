@@ -12,7 +12,7 @@ test('Settings links to Help exactly once, near the top, and back', async ({page
   // shows, once the page has settled).
   await expect(page.locator('main a[href="/app/help"]')).toHaveCount(1);
   await expect(page.locator('nav.app-nav a[href="/app/help"]')).toHaveCount(1);
-  const others = (await page.locator('a[href="/app/help"]:not(main a)').allTextContents()).map(text => text.trim());
+  const others = (await page.locator('a[href="/app/help"]:not(main a):not(.site-footer a)').allTextContents()).map(text => text.trim()); // Session AB-Design (owner request 2): the footer banner links to Help on every page as well
   expect(others.length).toBeLessThanOrEqual(2);
   expect(others.every(text => text === 'Help'), JSON.stringify(others)).toBe(true);
   const reachable = () => page.locator('a[href="/app/help"]:not(main a)').evaluateAll(links => links.filter(a => a.getClientRects().length > 0).map(a => {

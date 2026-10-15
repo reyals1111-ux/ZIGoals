@@ -49,7 +49,7 @@ const CAPTURES: Capture[] = [
   { name: "goals-mobile", width: 398, viewport: PHONE, path: "/app/goals", parts: [".goal-grid > article:nth-child(1)"] },
   { name: "habits-desktop", width: 1548, viewport: DESKTOP, path: "/app/habits", parts: [".habit-overview", ".habit-consistency"] },
   { name: "habits-mobile", width: 398, viewport: PHONE, path: "/app/habits", parts: [".habit-consistency-month"] },
-  { name: "health-desktop", width: 1548, viewport: DESKTOP, path: "/app/health", parts: [".health-page > .page-heading", ".health-summary"] },
+  { name: "health-desktop", width: 1548, viewport: DESKTOP, path: "/app/health", parts: [".health-page .health-heading", ".health-summary"] },
   { name: "health-mobile", width: 398, viewport: PHONE, path: "/app/health", parts: [".health-summary"] },
   { name: "wealth-desktop", width: 1548, viewport: DESKTOP, path: "/app/wealth", parts: [".wealth-hero"] },
   { name: "wealth-mobile", width: 398, viewport: PHONE, path: "/app/wealth", parts: [".wealth-hero"] },

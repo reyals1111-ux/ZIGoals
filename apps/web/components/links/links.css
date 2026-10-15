@@ -21,8 +21,13 @@
 .links-settings > button { justify-self: start; }
 .today-links { display: grid; gap: 12px; }
 .today-links-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; background: none; text-align: start; }
-.today-links-head h2 { margin: 0; font-size: 19px; }
+.today-links-head h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
 .today-links-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.today-links-list a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid #7fc8ff33; border-radius: 999px; background: #10203acc; color: inherit; text-decoration: none; font-size: 15px; }
-.today-links-list a:hover, .today-links-list a:focus-visible { border-color: #6fdcff; }
+/* Session AB-Design (owner request 11): liquid-glass chips with a nebula-gradient glyph disc. */
+.today-links-list a { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 16px 6px 6px; border: 1px solid transparent; border-radius: 999px; background: linear-gradient(130deg, #0b1b33e6, #0d1230e6 60%, #1b1540e0) padding-box, linear-gradient(120deg, #7bddff66, #5a91c24d 34%, #9775ed66, #c98fff73) border-box; box-shadow: inset 0 1px 2px #8ddfff26, 0 6px 18px -10px #00112d99; color: var(--text-strong, #f4f8ff); text-decoration: none; font-size: 15px; font-weight: 550; transition: transform var(--motion-hover, 220ms) var(--motion-glide, ease), box-shadow var(--motion-hover, 220ms) var(--motion-glide, ease); }
+.today-links-list a:hover, .today-links-list a:focus-visible { transform: translateY(-2px); box-shadow: 0 0 18px #23eaff26, 0 8px 22px -10px #c75cff55, inset 0 1px 2px #8ddfff33; }
+.today-link-disc { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #0a1428; background: var(--nebula-emphasis, linear-gradient(120deg, #23eaff, #9273ff, #f06dff)); box-shadow: inset 0 1px 2px #ffffff80, 0 0 12px #2edbff33; }
+.today-link-disc .link-glyph, .today-link-disc .link-monogram { color: #0a1428; }
+@media (prefers-reduced-motion: reduce) { .today-links-list a { transition: none; } .today-links-list a:hover, .today-links-list a:focus-visible { transform: none; } }
+:root[data-app-motion=off] .today-links-list a { transition: none; transform: none; }
 @media (max-width: 767.98px) { .links-settings input, .links-settings select { font-size: 16px; } }

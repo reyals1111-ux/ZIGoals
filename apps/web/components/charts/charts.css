@@ -1,0 +1,27 @@
+/* Session AB-Design Phase 2, Part 4: the one chart language (chart-kit.tsx). */
+:root .chart-grid line { stroke: #a6c1fa1c; stroke-width: 1; shape-rendering: crispEdges; }
+:root .chart-grid text, :root .chart-axis text { fill: #c2d0e5; font-size: 14px; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+:root .chart-ink { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+:root .chart-guide { stroke: #ffe3a1; stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+:root .chart-cursor { stroke: #e9f0fb66; stroke-width: 1; stroke-dasharray: 3 3; }
+:root .chart-dot { fill: #8ab9ff; stroke: #0b1428; stroke-width: 1.5; }
+:root :has(> .chart-tip) { position: relative; }
+:root .chart-tip { position: absolute; top: 4px; right: 4px; z-index: 2; margin: 0; max-width: min(320px, 80%); padding: 8px 12px; border-radius: 12px; background: linear-gradient(140deg, #0d1a30f2, #1b1535f2); border: 1px solid #9fd6ff2e; box-shadow: 0 12px 30px -16px #000c; color: #e9f0fb; font-size: 14px; line-height: 1.4; pointer-events: none; }
+:root .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; color: var(--text-secondary, #c9d6ea); font-size: 14px; }
+:root .chart-legend > li { display: inline-flex; align-items: center; gap: 8px; }
+:root .chart-key { display: inline-block; flex: 0 0 auto; }
+:root .chart-key-line { width: 20px; height: 3px; border-radius: 2px; background: var(--key, linear-gradient(90deg, #23eaff, #9273ff, var(--pillar, #f06dff))); }
+:root .chart-key-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--key, #8ab9ff); }
+:root .chart-key-dash { width: 20px; height: 0; border-top: 2px dashed var(--key, #ffe3a1); }
+:root .chart-key-area { width: 12px; height: 12px; border-radius: 3px; background: linear-gradient(180deg, var(--key, #9273ff), color-mix(in srgb, var(--key, #9273ff) 25%, transparent)); }
+:root .chart-key-bar { width: 8px; height: 14px; border-radius: 2px; background: var(--key, linear-gradient(180deg, #9273ff, #23eaff)); }
+/* Charts with a richer tooltip of their own (the calculator's year card, Sleep's night) wear the same glass. */
+:root :is(.calc-tip, .sleep-chart-tip) { background: linear-gradient(140deg, #0d1a30f2, #1b1535f2); border: 1px solid #9fd6ff2e; border-radius: 12px; box-shadow: 0 12px 30px -16px #000c; }
+/* Charts whose frames are still drawn by their own markup (Sleep, Meditation, the Portfolio value chart, chess, the
+   wealth evidence chart) take the same guides, labels, legend and tooltip here, so every chart reads alike. */
+:root :is(.sleep-grid, .chess-grid) line, :root line.portfolio-chart-grid { stroke: #a6c1fa1c; stroke-width: 1; stroke-dasharray: none; opacity: 1; }
+:root :is(.sleep-grid, .chess-grid) text, :root :is(.sleep-axis, .chess-axis) { fill: #c2d0e5; font-size: 14px; font-variant-numeric: tabular-nums; }
+:root :is(.portfolio-chart-axis, .evidence-chart-axis) { color: #c2d0e5; font-size: 14px; font-variant-numeric: tabular-nums; }
+:root :is(.sleep-key, .evidence-chart-legend) { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0; list-style: none; color: var(--text-secondary, #c9d6ea); font-size: 14px; }
+:root :is(.sleep-key, .evidence-chart-legend) > :is(li, span) { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+:root .chess-chart-tip { background: linear-gradient(140deg, #0d1a30f2, #1b1535f2); border: 1px solid #9fd6ff2e; border-radius: 12px; box-shadow: 0 12px 30px -16px #000c; }

@@ -1,0 +1,43 @@
+/* Session AB-Design (owner request 16): the vision board as a mood board. */
+:root .vision-board { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 150px; grid-auto-flow: dense; gap: 14px; columns: auto; }
+:root .vision-tile { position: relative; grid-column: span 2; grid-row: span 2; margin: 0; break-inside: auto; }
+:root .vision-tile[data-size=wide] { grid-column: span 4; }
+:root .vision-tile[data-size=tall] { grid-row: span 3; }
+:root .vision-tile-open { position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 1px solid #7aa7d040; border-radius: 24px; overflow: hidden; background: #0e1a2f; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: transform 220ms var(--motion-glide, ease), box-shadow 220ms var(--motion-glide, ease), border-color 220ms ease; }
+:root .vision-tile-open:hover, :root .vision-tile-open:focus-visible { transform: translateY(-3px); box-shadow: 0 22px 50px -18px #4d7cff66, 0 0 0 1px #9fd6ff55; border-color: #9fd6ff88; }
+:root .vision-tile-open:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+:root .vision-tile-art { position: absolute; inset: 0; min-height: 0; border-radius: 0; }
+:root .vision-tile-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; display: block; }
+:root .vision-tile-shade { position: absolute; inset: 0; background: linear-gradient(180deg, #02091800 40%, #020918e6 100%); pointer-events: none; } /* Gate C critique: a deeper scrim so every caption reads over busy art */
+:root .vision-tile-body { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; gap: 12px; padding: 14px; }
+:root .vision-tile-ring { flex: none; filter: drop-shadow(0 2px 8px #02091899); }
+:root .vision-tile-text { display: grid; gap: 2px; min-width: 0; }
+:root .vision-tile-text strong { font-size: 19px; line-height: 1.25; color: #fff; text-shadow: 0 2px 10px #020918cc; }
+:root .vision-tile-text small { font-size: 14px; color: #dff3ff; text-shadow: 0 1px 6px #020918cc; }
+:root .vision-tile-text em { font-size: 14px; font-style: italic; color: #e9e1ff; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-shadow: 0 1px 6px #020918cc; }
+:root .vision-tile-link-out { position: absolute; top: 10px; right: 12px; min-height: 36px; padding: 0 10px; border-radius: 10px; background: #02091899; color: #cfe6ff; font-size: 14px; opacity: 0; transition: opacity 160ms ease; }
+:root .vision-tile:hover .vision-tile-link-out, :root .vision-tile:focus-within .vision-tile-link-out { opacity: 1; }
+@media (hover: none) { :root .vision-tile-link-out { opacity: 1; } }
+/* The empty state: ZIGi and one action. */
+:root .vision-empty { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 40px 20px; border: 1px dashed #7aa7d055; border-radius: 24px; }
+:root .vision-empty-figure { display: block; width: 96px; height: 120px; }
+:root .vision-empty-figure .zigi { width: 100%; height: 100%; display: block; }
+:root .vision-empty h3 { margin: 6px 0 0; font-size: 24px; }
+:root .vision-empty p { margin: 0; max-width: 520px; color: var(--text-secondary, #dde7f7); }
+/* Full screen. */
+:root .vision-full { width: min(1100px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid #a9c9ff44; border-radius: 26px; background: #060b19; color: var(--text); overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr); }
+:root .vision-full::backdrop { background: #01050de6; }
+:root .vision-full-art { position: relative; min-height: 360px; background: #0e1a2f; }
+:root .vision-full-art img, :root .vision-full-art .vision-full-vision { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+:root .vision-full-copy { display: grid; align-content: center; gap: 12px; padding: 32px 28px; }
+:root .vision-full-copy h2 { margin: 0; font-size: clamp(26px, 3vw, 38px); letter-spacing: -.02em; line-height: 1.1; }
+:root .vision-full-progress { display: flex; align-items: center; gap: 14px; margin: 0; font-size: 15px; color: var(--text-secondary, #dde7f7); }
+:root .vision-full-why { margin: 0; font-size: 18px; font-style: italic; color: #e9e1ff; }
+:root .vision-full-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+:root .vision-full-close { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: #02091899; color: #fff; font-size: 24px; line-height: 1; }
+@media (max-width: 900px) { :root .vision-board { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 130px; } :root .vision-tile[data-size=wide] { grid-column: span 4; } }
+@media (max-width: 599px) { :root .vision-board { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 120px; gap: 10px; } :root .vision-tile { grid-column: span 1; grid-row: span 2; } :root .vision-tile[data-size=wide] { grid-column: span 2; grid-row: span 2; } :root .vision-tile[data-size=tall] { grid-row: span 3; } :root .vision-tile-body { padding: 10px; gap: 8px; } :root .vision-tile-text strong { font-size: 16px; } :root .vision-tile-text em { display: none; } :root .vision-tile-ring { display: none; } :root .vision-tile[data-size=wide] .vision-tile-ring { display: block; } :root .vision-full { grid-template-columns: minmax(0, 1fr); overflow: auto; } :root .vision-full-art { min-height: 240px; aspect-ratio: 4 / 3; } :root .vision-full-art img, :root .vision-full-art .vision-full-vision { position: relative; } :root .vision-full-copy { padding: 20px 18px 24px; } }
+@media (prefers-reduced-motion: reduce) { :root .vision-tile-open { transition: none; } :root .vision-tile-open:hover, :root .vision-tile-open:focus-visible { transform: none; } }
+:root[data-app-motion=off] .vision-tile-open { transition: none; transform: none; }
+/* Phase 2 closing pass (contrast on artwork): the tile's "Open goal →" sits on a solid glass chip, readable on any image. */
+:root .vision-tile-link-out { display: inline-flex; align-items: center; min-height: 44px; background: #020918f5; color: #e9f6ff; border: 1px solid #9fd6ff40; }

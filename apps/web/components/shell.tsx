@@ -1,7 +1,7 @@
 "use client";
 import "./platform/run92-product.css";
 import "./navigation.css";
-import { APP_ENVIRONMENT, FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
+import { FINANCIAL_EXECUTION_ALLOWED } from "../lib/app-environment";
 import Link from "next/link";
 import { navPrefetch } from "./nav-prefetch";
 import { usePathname } from "next/navigation";
@@ -19,8 +19,18 @@ import { useGoals } from "./goal-provider";
 import { ExplorerLinks } from "./explorer-links";
 import { LogoMark, Wordmark } from "./brand-mark";
 import { AppIcon } from "./app-icon";
-import {ShowcaseBanner,useShowcase} from "./showcase-controls";
-import {WorkspaceStatus,useWorkspaceSelection} from './workspace-status';
+import {useShowcase} from "./showcase-controls";
+import { ShowcaseChip } from "./shell/showcase-chip";
+import { AlphaNotice } from "./shell/alpha-notice";
+import { pillarOfHref } from "../lib/pillar-route";
+import "./pillar-hero.css";
+import "./ui/card-header.css";
+import "./charts/charts.css";
+import { ThemeSwitch } from "./shell/theme-switch";
+import { FooterFacts } from "./footer/footer-islands";
+import { GamifyButton } from "./game/gamify-button";
+import { PHONE_STATUS_EVENT } from "./phone/phone-status-event";
+import {useWorkspaceSelection} from './workspace-status';
 import {usePrivateStore} from './use-private-store';
 import {retryPrivateReads,usePrivateReadDelay} from './private-read-delay';
 import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,emptyDashboardSettings,visibleDomains} from '../lib/dashboard-settings';
@@ -30,7 +40,7 @@ import { LogoIntro } from "./logo-intro";
 import { PageMark } from "./page-mark";
 import { PageArrival } from "./page-arrival";
 import { LiquidGlass } from "./liquid-glass";
-import { LAYOUT_LOCK_SLOT } from "./layout-edit";
+import { LAYOUT_LOCK_SLOT, PAGE_TOOLS_SLOT } from "./layout-edit";
 import { PhoneTabBar, PhoneTopBar } from "./phone/phone-chrome";
 import { OfflineNotice, OfflinePill } from "./offline-notice";
 import { UndoToastHost } from "./ui/undo-toast";
@@ -42,7 +52,7 @@ import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { PointTellMount } from "./point-tell/mount";
-import { formatPlainDecimal } from "../lib/visual-format";
+import { formatExactNumber, formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
 /** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
 const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
@@ -62,7 +72,9 @@ function RouteFocusFallback() {
   }, [pathname]);
   return null;
 }
-export function Shell({ children }: { children: ReactNode }) {
+export function Shell({ children, footer }: { children: ReactNode; footer?: ReactNode }) {
+  // Session AB-Design: the root says when the shell has hydrated (`<html data-app-hydrated>`). A tap before hydration is replayed by React after it, which toggles a <details> shut again; the specs wait for this mark before opening card details.
+  useEffect(() => { document.documentElement.dataset.appHydrated = ""; return () => { delete document.documentElement.dataset.appHydrated; }; }, []);
   // Number, money and date formats follow the browser locale; this remounts the page content once after hydration
   // when that locale is not en-US (components/display-locale.ts, lib/visual-format.ts).
   const localeKey = useDisplayLocaleKey();
@@ -98,12 +110,13 @@ export function Shell({ children }: { children: ReactNode }) {
   // own words return with the wallet. Part 4.2 (item 2): on a phone one 44 px status line opens the full notices.
   const plain = s.mode === "local" && s.walletState !== "CONNECTED";
   const [statusOpen, setStatusOpen] = useState(false);
+  useEffect(() => { const open = () => setStatusOpen(true); window.addEventListener(PHONE_STATUS_EVENT, open); return () => window.removeEventListener(PHONE_STATUS_EVENT, open); }, []);
   const networkLabel = plain ? "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
   const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures.";
   const modeText = s.mode === "local"
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
-  const balanceText = `${formatPlainDecimal(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
+  const balanceText = `${formatExactNumber(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
   const walletButtons = <>
           <button
             className="quiet"
@@ -161,20 +174,13 @@ export function Shell({ children }: { children: ReactNode }) {
           <PageMark />
           <span className="sidebar-star" aria-hidden="true" />
         </div>
+        {/* Session AB-Design (owner request 5, owner follow-up): the theme bar is the sidebar's last thing, below the complete artwork. */}
+        <ThemeSwitch/>
       </aside>
       <div className="app-content">
-      {banners&&<header className="app-topbar">
-        {/* Phones only (phone-shell.css): the honesty label as one line; the full notices open in the Status sheet. */}
-        <button type="button" className="phone-status-line" aria-haspopup="dialog" aria-expanded={statusOpen} aria-label={`Status: ${plain ? "Demo · no real money" : "Testnet · no real value"}`} onClick={() => setStatusOpen(true)}>
-          <span>{plain ? "Demo · no real money" : "Testnet · no real value"}</span><AppIcon name="chevron" size={16} />
-        </button>
-        <div className="network-banner">
-          <strong>{networkLabel}</strong>
-          <span>{networkSentence}</span>
-        </div>
-        <div className="wallet">{walletButtons}</div>
-      </header>}
-      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => setStatusOpen(false)} label={networkLabel} sentence={networkSentence} mode={modeText} balance={balanceText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
+      {/* Session AB-Design (owner request 8, ADR-024 D7): pages start with their header. One compact first-visit notice replaces the Alpha box, the Showcase bar, the storage line and the mode strip; the same facts stay in the footer's disclaimer line, the Showcase chip stays in the status row, and the phone's Status & wallet sheet (More) keeps every notice in full. */}
+      {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"}/>}
+      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} balance={balanceText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
@@ -184,17 +190,13 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
       </section>}
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
-        <ShowcaseBanner/>
-        <WorkspaceStatus/>
-        {/* The status row: the mode strip (an honesty label) and, on pages that can be rearranged, the layout lock right after the demo balance. The row keeps the lock's place when the strip is hidden. */}
+        {/* The status row (Session AB-Design): the Showcase chip and the demo balance on the left; the wallet buttons (computers; phones reach them in More → Status & wallet), the page's own tools, Gamify and the layout lock on the right. */}
         <div className="status-row">
-        {banners&&<div className="mode-strip">
-          <span className="mode-dot" />
-          {modeText}
-          <span className="wallet-balance">
-            {balanceText}
-          </span>
-        </div>}
+        <ShowcaseChip/>
+        {banners&&<span className="wallet-balance"><span>{balanceText.replace(/ (demo|wallet) balance$/, "")}</span> <span className="wallet-balance-kind">{s.mode === "local" ? "demo balance" : "wallet balance"}</span></span>}
+        {banners&&<div className="wallet status-wallet">{walletButtons}</div>}
+        <div className="page-tools-slot" id={PAGE_TOOLS_SLOT}/>
+        <GamifyButton/>
         <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>
         </div>
         {s.error && (
@@ -270,16 +272,12 @@ export function Shell({ children }: { children: ReactNode }) {
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
-        <footer>
-          <div className="footer-brand"><Wordmark /><small>Same you. A brighter tomorrow.</small></div>
-          <span>Your goals. Onchain. · {APP_ENVIRONMENT}</span>
-          <span>
-            Independent project · Unaudited alpha · Idle strategy only
-          </span>
-          <span><Link href="/app/help#feedback" prefetch={false}>Send feedback</Link> · <a href="mailto:hello@zigoals.app">Private security contact</a> · Never share secrets, private backups or wallet details.</span>
-        </footer>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
+      {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
+      {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout; the shell
+          hands it the honesty values it already knows (footer-islands.tsx). */}
+      <FooterFacts value={{network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners}}>{footer}</FooterFacts>
       </div>
       {s.pending && (
         <dialog

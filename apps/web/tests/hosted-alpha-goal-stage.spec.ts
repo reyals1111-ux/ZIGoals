@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {navLink} from './phone-nav';
 import {readFile} from 'node:fs/promises';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, closeFictionalGoal, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics} from '../../../scripts/lib/hosted-alpha-goal-stage.mjs';
 
@@ -30,7 +31,7 @@ test('the verifier\'s fictional goal steps work on this build: create, fund, bac
   await createFictionalGoal(page, expect);
   await depositAndWithdraw(page);
   // The backup round trip, as the live script does it.
-  await page.getByRole('link', {name: 'Settings', exact: true}).click();
+  await (await navLink(page, 'Settings')).click(); // Session AB-Design (D2): on a phone Settings is More's row
   const download = page.waitForEvent('download');
   await page.getByRole('button', {name: 'Export Goal Data', exact: true}).click();
   const backup = JSON.parse(await readFile((await (await download).path())!, 'utf8')) as {goals: Record<string, {name: string; notes?: string; targetDate?: string}>};

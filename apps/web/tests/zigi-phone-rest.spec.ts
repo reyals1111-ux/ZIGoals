@@ -85,9 +85,10 @@ test('390x844: a press on a control under the corner keeps that control under th
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/app/settings');
   await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
-  // Session Z-Cloud Gate B (mechanics): Activity, a page whose first screen has a control where the corner is; Help's
-  // controls moved above it once Part 4.2 made the phone's notices one line (the launcher rests in its corner there).
-  await page.goto('/app/activity');
+  // Session Z-Cloud Gate B (mechanics): a page whose first screen has a control where the corner is. Session AB-Design moved every game card to its page's bottom and the Goals cards below the first screen, so Help (its topic chips) is that page now; before that it was Activity's game card, and originally
+  // Activity's game card to the page's bottom (owner request 9), so Goals is that page now: its first card's Details summary
+  // sits under the corner at 390 px.
+  await page.goto('/app/help');
   await expect(page.locator('.ai-launcher')).toBeVisible();
   await page.waitForTimeout(1600);
   // Where the corner is: the resting box moved down by its lift. A control there is what a person may tap.
@@ -105,7 +106,7 @@ test('390x844: a press on a control under the corner keeps that control under th
     }
     return null;
   }, CONTROL_SELECTOR);
-  expect(target, 'Activity has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
+  expect(target, 'Help has a first-screen control where the corner launcher would sit (why it rests lifted)').not.toBeNull();
   expect(target!.lift).toBeGreaterThan(0);
   await page.mouse.move(target!.x, target!.y);
   await page.mouse.down();

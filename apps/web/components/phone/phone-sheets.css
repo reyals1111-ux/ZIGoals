@@ -73,3 +73,9 @@
 .quick-add-line-card p { margin: 0; }
 .quick-add-line-will { font-size: 16px; }
 .quick-add-line-hint, .quick-add-line-saved { font-size: 15px; }
+/* Gate C (design critique): a sheet's sticky header and action bar carry the sheet's own solid colour from edge to edge
+   (the header's darker band stopped short of the edges, and a 90 % bar let the cards behind show through). */
+@media (max-width: 767.98px) {
+  :root dialog.dashboard-dialog > header, :root dialog.wealth-sheet > header { margin-inline: -16px; padding-inline: 16px; background: #101e35; }
+  :root dialog.dashboard-dialog .dashboard-actions { margin-inline: -16px; padding: 12px 16px; background: #101e35; box-shadow: 0 -12px 20px -12px #000a; }
+}

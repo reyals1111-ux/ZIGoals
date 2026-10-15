@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import {openFold} from "./phone-nav";
+import {openHabitDetails} from './ab-shell';
+import {openFold, openMore} from "./phone-nav";
 
 // Session G, Part 4: shorter phone pages without removing anything ("Show all N", a folded week with its totals), 44 px
 // Habits calendar days at 360 px, and drag-to-dismiss on sheet grabbers. Sizes are set explicitly so both projects run
@@ -29,7 +30,10 @@ test("Wealth on a phone: four holdings, then Show all 13 assets; every card stay
   await expect(more).toBeVisible();
   expect(await visibleCount(cards)).toBe(4);
   await expect(more).toHaveAttribute("aria-expanded", "false");
-  await expect(page.locator(".wealth-hero")).toContainText("held in EUR · not converted");
+  await expect(page.locator(".wealth-hero .wealth-other-chip-button").first()).toContainText("held in EUR"); // Session AB-Design: a chip (owner request 24)
+  await page.locator(".wealth-hero .wealth-other-chip-button").first().click();
+  await expect(page.locator(".wealth-hero .wealth-other-chip-panel").first()).toContainText("held in EUR · not converted");
+  await page.keyboard.press("Escape");
   await more.click();
   expect(await visibleCount(cards)).toBe(13);
   const fewer = page.getByRole("button", { name: "Show fewer assets", exact: true });
@@ -89,6 +93,7 @@ test("Habits calendar days are at least 44 px on a 360 px phone", async ({ page 
   await showcase(page);
   await open(page, "/app/habits");
   const card = page.locator(".habit-card").first();
+  await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
   const days = card.locator(".habit-calendar-day");
   await expect(days.first()).toBeVisible();
@@ -114,7 +119,7 @@ test("phone sheets: dragging the grabber down closes the sheet as Escape does; a
   await page.setViewportSize({ width: 390, height: 844 });
   await showcase(page);
   await open(page, "/app/wealth");
-  const trigger = page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" });
+  const trigger = page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" });
   await trigger.click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
@@ -139,7 +144,7 @@ test("phone sheets: dragging the grabber down closes the sheet as Escape does; a
   await expect(trigger).toBeFocused();
 
   // More, the phone navigation sheet, works the same way.
-  await page.locator(".phone-tabbar").getByRole("button", { name: "More", exact: true }).click();
+  await openMore(page); // Session AB-Design (D2): More lives in the top bar
   const more = page.getByRole("dialog", { name: "More" });
   await expect(more).toBeVisible();
   await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== "running"));
@@ -153,7 +158,7 @@ test("phone sheets under reduced motion: the sheet does not follow the finger, a
   await page.setViewportSize({ width: 390, height: 844 });
   await showcase(page);
   await open(page, "/app/wealth");
-  await page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" }).click();
+  await page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" }).click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
   await drag(page, await grab(page, sheet), 260);
@@ -166,7 +171,7 @@ test("desktop sheets are not draggable", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await showcase(page);
   await open(page, "/app/wealth");
-  await page.locator(".wealth-actions").getByRole("button", { name: "+ Add asset" }).click();
+  await page.locator(".wealth-heading .pillar-hero-buttons").getByRole("button", { name: "+ Add asset" }).click();
   const sheet = page.getByRole("dialog", { name: "Add to your wealth" });
   await expect(sheet).toBeVisible();
   await drag(page, await grab(page, sheet), 260);

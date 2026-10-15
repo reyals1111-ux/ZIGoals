@@ -66,3 +66,9 @@
 .unified-wizard .checkbox input { width:auto; flex-shrink:0; }
 .unified-wizard .setup-next,.unified-wizard dd { overflow-wrap:anywhere; }
 .allocation-owners .platform-position-row { display:grid; gap:.4rem; }
+/* Session AB-Design Phase 2 closing pass (design critique): "Edit <position>" and its ⋯ menu keep the standard gap. */
+.position-card > .pin-to-today { margin-inline-start: 10px; }
+/* Gate C (design critique): with no public wallet observed the hero says so in words at a readable size (a display-size
+   "—" had drawn as a thick gradient bar over a tiny "ZIG"), and the other totals show a plain dash without a unit. */
+.position-metrics .nebula-number.is-empty { font-size: 22px; letter-spacing: 0; line-height: 1.3; }
+.position-metrics .stake-hero .nebula-number.is-empty { font-size: clamp(24px, 3vw, 34px); }

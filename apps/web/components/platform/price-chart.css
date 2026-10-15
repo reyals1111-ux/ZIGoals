@@ -46,3 +46,6 @@
 .price-chart[data-entrance=once] .price-chart-line { animation:price-observation-draw var(--entrance-duration,650ms) var(--entrance-easing,cubic-bezier(.2,.7,.3,1)) both; }
 @keyframes price-observation-draw { from { stroke-dasharray:1;stroke-dashoffset:1; } 99% { stroke-dasharray:1; } to { stroke-dasharray:none;stroke-dashoffset:0; } }
 @media(prefers-reduced-motion:reduce) { .price-chart[data-entrance=once] .price-chart-line { animation:none; } }
+/* Session AB-Design Phase 2 closing pass (layout audit, coin page at 390 px): on touch screens and the phone layout the
+   range chips and the source toggle are 44 × 44 targets (they were 40 px tall). */
+@media (max-width: 767.98px), (pointer: coarse) { .price-chart-ranges button { min-height: 44px; min-width: 44px; } }

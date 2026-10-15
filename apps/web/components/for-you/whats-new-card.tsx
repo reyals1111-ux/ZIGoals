@@ -3,8 +3,19 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AB-Cloud (release `2026-10-session-ab-cloud`, ADR-023): your extras sync, Restore, Point & tell, vitamins, grouped amounts. Each link opens its Help answer. */
+/** Session AB-Design (release `2026-10-session-ab-design`, ADR-024): one 4-in-1 look. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-abd-look', label: 'One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today'},
+  {href: '/app/help#help-abd-footer', label: 'The footer banner: Goals, Habits & Health = Wealth'},
+  {href: '/app/help#help-abd-showcase', label: 'Fewer banners: one Alpha notice and a small Showcase chip'},
+  {href: '/app/help#help-abd-gamify', label: 'The rocket: Journey widgets on Today and a Journey card on each page'},
+  {href: '/app/help#help-abd-goals', label: 'Goal cards with their own artwork, a mood-board vision board and a goal tree'},
+  {href: '/app/help#help-abd-habits-health', label: 'Habits under the sky of their time of day; Health highlights and a day-by-day planner'},
+  {href: '/app/help#help-abd-wealth', label: 'Wealth in your base currency, the rest never converted'},
+  {href: '/app/help#help-abd-search-review', label: 'Search by pillar, and the Life review as a small magazine'},
+];
+/** Session AB-Cloud (release `2026-10-session-ab-cloud`, ADR-023): your extras sync, Restore, Point & tell, vitamins, grouped amounts; AB-Design merged after it, so these lead "Earlier updates". */
+const SESSION_AB_CLOUD_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ab-sync', label: 'Your goal plans, habit extras, routines and more now sync, encrypted'},
   {href: '/app/help#help-ab-restore', label: 'Restore from a backup: see what it holds, merge or replace, Undo'},
   {href: '/app/help#help-ab-point-tell', label: 'Point & tell: pin a note on any part of a page'},
@@ -79,6 +90,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AB_CLOUD_LINKS,
   ...SESSION_AA_LOCAL_LINKS,
   ...SESSION_AA_CLOUD_LINKS,
   ...SESSION_Z_LOCAL_LINKS,

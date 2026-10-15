@@ -73,7 +73,7 @@ it('starts wealth history only when real snapshots can form a complete currency 
   {id:'v2',positionId:second.id,quantity:second.quantity,quantityDecimals:18,value:'20000',decimals:2,currency:'USD',source:'MANUAL' as const,capturedAt:'2026-09-19T10:00:00.000Z'},
   {id:'v3',positionId:first.id,quantity:first.quantity,quantityDecimals:18,value:'15000',decimals:2,currency:'USD',source:'MANUAL' as const,capturedAt:'2026-09-20T10:00:00.000Z'},
  ]};
- expect(wealthHistory(state)).toEqual([{currency:'USD',decimals:2,points:[{at:'2026-09-19T10:00:00.000Z',value:'30000'},{at:'2026-09-20T10:00:00.000Z',value:'35000'}],change:'5000',changePercent:'16.66'}]);
+ expect(wealthHistory(state)).toEqual([{currency:'USD',decimals:2,points:[{at:'2026-09-19T10:00:00.000Z',value:'30000',classes:{Cash:'30000'}},{at:'2026-09-20T10:00:00.000Z',value:'35000',classes:{Cash:'35000'}}],change:'5000',changePercent:'16.66'}]); // Session AB-Design: each point also carries the per-class split (derived, never stored)
  const missing=manualSourcePosition({category:'Cash',name:'Unsnapshotted cash',quantity:'50',currency:'USD'},'history-missing');
  expect(wealthHistory({...state,positions:[...state.positions,missing]})).toEqual([]);
 });

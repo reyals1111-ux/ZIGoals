@@ -24,13 +24,13 @@ test('Wealth: the total follows the title, so the figure is on the first screen'
  expect(box.y+box.height).toBeLessThanOrEqual(tabs.y);
  // Still one total, labelled as before; Add asset leads the actions.
  await expect(page.locator('.wealth-hero-total')).toHaveCount(1);await expect(page.locator('.wealth-hero-total')).toContainText('TRACKED WEALTH');
- await expect(page.locator('.wealth-actions .primary')).toHaveText('+ Add asset');
+ await expect(page.locator('.wealth-heading .pillar-hero-buttons .primary')).toHaveText('+ Add asset');
 });
 
 test('phone default orders: Health title, date, counters; Habits check-ins before charts; Wealth holdings after the total; a saved order still wins',async({page})=>{
  await page.setViewportSize({width:390,height:844});await showcase(page);
  await open(page,'/app/health');
- const order=await page.evaluate(()=>['.page-heading','.health-date-strip','.exercise-counters','.health-toolbar'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));
+ const order=await page.evaluate(()=>['.health-heading','.health-date-strip','.exercise-counters','.health-toolbar'].map(s=>document.querySelector(s)!.getBoundingClientRect().top));
  expect([...order].sort((a,b)=>a-b)).toEqual(order);
  await expect(page.getByLabel('Journal date')).toHaveCount(1);
  await open(page,'/app/habits');
@@ -41,7 +41,7 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
  // Session AA-Cloud Part 1 (deliberate, PAGE_ORDER_AA.md): accounts join the items on top, before the tools.
  expect((await items('wealth:body')).slice(0,6)).toEqual(['wealth:pulse','wealth:holdings','wealth:have','wealth:accounts','wealth:composition','wealth:mix']);
- expect((await items('wealth:body')).at(-1)).toBe('wealth:allocation');
+ expect((await items('wealth:body')).at(-1)).toBe('wealth:calculator'); // Session AB-Design (owner request 26): the calculator is last
  // An order saved on this device wins over the phone default.
  await page.evaluate(()=>sessionStorage.setItem('zigoals:layout:v1',JSON.stringify({version:1,pages:{habits:{body:{order:['habits:rhythm','habits:consistency','habits:overview','habits:list']}}}})));
  await open(page,'/app/habits');

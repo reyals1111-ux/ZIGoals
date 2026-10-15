@@ -8,7 +8,7 @@
 .exercise-counter-grid { display:grid;grid-template-columns:minmax(0,1fr);gap:12px; }
 @container (min-width:620px) { .exercise-counter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @container (min-width:1040px) { .exercise-counter-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-.exercise-counter { position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;min-height:76px;padding:12px 10px;border-radius:20px;border:1px solid #a9c9ff2e;background:linear-gradient(160deg,#152440,#101a30 60%,#161433);box-shadow:inset 0 1px 0 #ffffff12; }
+.exercise-counter { position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:6px;min-height:76px;padding:12px 10px;border-radius:20px;border:1px solid #a9c9ff2e;background:linear-gradient(160deg,#152440,#101a30 60%,#161433);box-shadow:inset 0 1px 0 #ffffff12; }
 /* The name stays on one line (never "Push-/ups"); a long custom name ends in an ellipsis and shows in full on hover. It sits
    centred beside its icon: today's state is announced with it but no longer shown under it (Session I). */
 .exercise-counter-name { display:grid;gap:2px;min-width:0;padding-left:4px; }
@@ -18,20 +18,13 @@
 .exercise-counter-name { grid-area:name; }
 .exercise-counter-controls { grid-area:controls; }
 .exercise-counter > .card-options { grid-area:menu;justify-self:end; }
-/* Phones (Session I): the icon, the name and the options share the first line, with the name centred beside its icon;
-   − / count / + take the second line, at the end. A name of about 20 characters keeps room down to 320 px (it may wrap
-   onto a second line, never mid-number), and every count and button stays whole. */
-@container (max-width:439px) {
-  .exercise-counter { grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"icon name menu" "controls controls controls";row-gap:8px; }
-  .exercise-counter-name h3 { white-space:normal;overflow-wrap:break-word;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2; }
-  .exercise-counter-controls { justify-self:end; }
-}
+/* Session AB-Design (owner request 22, ADR-024 D20): the same thin row at every width; a long name ends in an ellipsis. */
 .exercise-medallion { display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:16px;background:radial-gradient(circle at 30% 25%,#2b4a7a,#141f3a 70%);box-shadow:inset 0 0 0 1px #9fd6ff33,0 0 22px -6px #8f7dff88; }
 .exercise-counter-controls { display:grid;grid-template-columns:44px minmax(40px,auto) 44px;align-items:center;gap:4px; }
 .exercise-step { display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:14px;border:1px solid #a9c9ff4d;background:#ffffff0d;color:#eef5ff;font-size:24px;font-weight:600;line-height:1; }
 .exercise-step:hover:not(:disabled) { background:#ffffff1c;border-color:#9fe6ff99; }
 .exercise-step:last-child { background:linear-gradient(135deg,#5fe0f0,#a3a0ff);color:#0a1428;border-color:transparent; }
-.exercise-count { text-align:center;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
+.exercise-count { text-align:center;min-width:2ch;padding-inline:6px;font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text-strong,#f4f8ff);font-variant-numeric:tabular-nums; }
 .exercise-count[data-empty] { color:#9fb2cf; }
 .exercise-counter-caption { margin:0;font-size:14px;color:var(--text-meta,#c2d0e5);font-weight:500; }
 .exercise-counters-status { margin:0;min-height:0;font-size:15px;color:var(--text-meta,#c2d0e5); }
@@ -66,4 +59,31 @@
   .exercise-icon { stroke:CanvasText; }
   .exercise-step:last-child { background:ButtonFace;color:ButtonText; }
   .exercise-icon-choice input:checked+span { outline:2px solid Highlight; }
+}
+/* Session AB-Design (owner request 22): one thin row per exercise on every width — icon, name, − value + — managed from the card's ⋯. */
+.exercise-counter-grid, .exercise-counters .exercise-counter-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 8px; }
+.exercise-counter { grid-template-columns: auto minmax(40px, 1fr) auto; grid-template-areas: "icon name controls"; min-height: 56px; padding: 6px 8px 6px 8px; gap: 6px; }
+/* 320 px with a four-digit count: a smaller medallion keeps − / count / + inside the row. */
+@media (max-width: 360px) { .exercise-counter > .exercise-medallion { width: 36px; height: 36px; border-radius: 12px; } .exercise-counter > .exercise-medallion svg { width: 22px; height: 22px; } .exercise-counter .exercise-counter-controls { gap: 2px; grid-template-columns: 44px minmax(32px, auto) 44px; } .exercise-counter .exercise-count { font-size: 15px; padding: 0 2px; min-width: 32px; } }
+.exercise-counter .card-options { display: none; }
+.exercise-counter-controls { display: flex; align-items: center; gap: 4px; }
+.exercise-counters-tools { display: flex; align-items: center; gap: 8px; }
+.exercise-counters-tools .card-options { position: relative; }
+.exercise-manage-list { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; gap: 8px; }
+.exercise-manage-list li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; padding: 8px 10px; border: 1px solid #a9c9ff2e; border-radius: 14px; background: #ffffff07; }
+.exercise-manage-list li strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exercise-manage-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.exercise-manage-actions button { min-height: 40px; font-size: 14px; }
+@media (min-width: 560px) { .exercise-manage-list li { grid-template-columns: auto minmax(0, 1fr) auto; } .exercise-manage-actions { grid-column: auto; } }
+/* Phase 2 closing pass: on the narrowest phones the row gives its name the room (a 36 px medallion, 44 px steps), so a
+   name like "Push-ups" never ends in an ellipsis. A long custom name stays on its one line as ADR-024 D20 asserts
+   (counters-compact): it may end in an ellipsis, with the full name in its title and in Manage counters. */
+@media (max-width: 374px) {
+  .exercise-medallion { width: 36px; height: 36px; border-radius: 12px; }
+  .exercise-counter-controls { grid-template-columns: 44px minmax(26px, auto) 44px; gap: 2px; }
+  .exercise-count { font-size: 22px; }
+  .exercise-counter-name h3 { font-size: 15px; }
+  :root .exercise-counters { padding-inline: 14px; }
+  :root .exercise-counter { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 4px; padding-inline: 8px; }
+  :root .exercise-counter-name { padding-left: 2px; }
 }

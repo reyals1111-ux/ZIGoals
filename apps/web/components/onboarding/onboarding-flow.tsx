@@ -47,6 +47,7 @@ import { documentAllowsCamera, healthNavigation } from "../../lib/health-navigat
 import { isAccountLocked } from "../../lib/account-session";
 import { currentInstallContext } from "../../lib/install/platform";
 import { GlassBar } from "../progress/glass-progress";
+import { BullGlyph, ButterflyGlyph, HeartGlyph, LotusGlyph } from "../footer/pillar-glyphs";
 
 /**
  * The first-run welcome v2 (Session W Part 3; Session E's flow before it): ZIGi says hello, the person picks what they
@@ -229,6 +230,13 @@ export function OnboardingFlow() {
     {ready && !storeError && <div className="onboarding-step" key={step}>
       {step === "welcome" && <>
         <div className="onboarding-zigi"><ZigiFigure state="idle" /><p><strong>Hi, I’m ZIGi.</strong> Let’s make ZIGoals yours. It takes about a minute, every step can be skipped, and nothing is saved until you finish.</p></div>
+        {/* Phase 2, Part 10 (owner request 36): the four pillars, illustrated with their fold marks, as one line: Goals, Habits & Health = Wealth. */}
+        <ol className="onboarding-pillars" aria-label="ZIGoals in four pillars">
+          <li data-pillar="goals"><span className="onboarding-pillar-art" aria-hidden="true"><LotusGlyph size={34}/></span><strong>Goals</strong><small>What matters, with a plan</small></li>
+          <li data-pillar="habits"><span className="onboarding-pillar-art" aria-hidden="true"><ButterflyGlyph size={34}/></span><strong>Habits</strong><small>Small daily steps</small></li>
+          <li data-pillar="health"><span className="onboarding-pillar-art" aria-hidden="true"><HeartGlyph size={34}/></span><strong>Health</strong><small>Care for the body</small></li>
+          <li data-pillar="wealth"><span className="onboarding-pillar-art" aria-hidden="true"><BullGlyph size={34}/></span><strong>= Wealth</strong><small>A life that adds up</small></li>
+        </ol>
         <ul className="onboarding-points">
           <li><strong>Private by design.</strong> What you add stays on this device. Encrypted sync between your devices is optional and off until you set it up.</li>
           <li><strong>No ads, no trackers.</strong> ZIGoals shows no advertising and runs no app analytics.</li>

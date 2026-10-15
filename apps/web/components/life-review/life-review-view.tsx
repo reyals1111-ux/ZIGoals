@@ -77,8 +77,10 @@ export function LifeReviewView() {
       <p>{formatDay(window.start)} – {formatDay(window.end)} · beside {formatDay(window.prevStart)} – {formatDay(window.prevEnd)}</p>
     </div>
     {!review ? <div className="aa-skeleton" aria-hidden="true"><i /><i /><i /></div> : <>
-      <section className="panel life-review-hero" aria-labelledby="life-review-highlights">
-        <SectionHeading id="life-review-highlights" eyebrow={period === 'week' ? 'Your week' : 'Your month'} title="Highlights" action={<button type="button" className="secondary" onClick={() => void share()}>Share as an image</button>} />
+      <section className="panel life-review-hero life-review-cover" aria-labelledby="life-review-highlights">
+        {/* Phase 2, Part 9 (owner request 35): the review as a small magazine — this cover, then one chapter per pillar. */}
+        <p className="life-cover-kicker" aria-hidden="true">{period === 'week' ? 'Your week' : 'Your month'}, in {financial ? 'four' : 'three'} chapters.</p>
+        <SectionHeading id="life-review-highlights" eyebrow={`${formatDay(window.start)} – ${formatDay(window.end)}`} title="Highlights" action={<button type="button" className="secondary" onClick={() => void share()}>Share as an image</button>} />
         {review.highlights.length ? <ul className="life-highlights">{review.highlights.map(h => <li key={h}>{h}</li>)}</ul> : <div className="aa-empty"><h3>A quiet {period}.</h3><p>Check in a habit, log a meal or water, or record a contribution, and your review fills from your own records.</p><Link className="primary" href="/app/habits">Open Habits</Link></div>}
         <dl className="life-counts">
           <div><dt>Habit check-ins</dt><dd>{review.counts.habitCheckIns}</dd></div>
@@ -87,28 +89,28 @@ export function LifeReviewView() {
         </dl>
       </section>
 
-      <div className="life-review-grid">
-        <section className="panel" aria-labelledby="life-review-wins">
+      <div className="life-review-grid life-chapters">
+        <section className="panel life-wins" aria-labelledby="life-review-wins">
           <SectionHeading id="life-review-wins" eyebrow="Worth noticing" title="Wins" level={3} />
           {review.wins.length ? <ul className="life-list">{review.wins.map(w => <li key={w}>{w}</li>)}</ul> : <p className="life-none">No finished goals or perfect habits in this {period} yet.</p>}
         </section>
-        <section className="panel" aria-labelledby="life-review-streaks">
-          <SectionHeading id="life-review-streaks" eyebrow="Habits" title="Streaks" level={3} />
-          {review.streaks.length ? <ul className="life-list">{review.streaks.map(s => <li key={s.title}><strong>{s.title}</strong><span>{s.streak} {s.unit}</span></li>)}</ul> : <p className="life-none">No streak running yet.</p>}
-        </section>
-        <section className="panel" aria-labelledby="life-review-goals">
-          <SectionHeading id="life-review-goals" eyebrow="Goals" title="Goals that moved" level={3} />
+        <section className="panel life-chapter" data-pillar="goals" data-chapter="1" aria-labelledby="life-review-goals">
+          <SectionHeading id="life-review-goals" pillar="goals" eyebrow="Chapter 1 · Goals" title="Goals that moved" level={3} />
           {review.goalsMoved.length ? <ul className="life-list">{review.goalsMoved.map((g, i) => <li key={`${g.name}-${i}`}><Link href={g.href}>{g.name}</Link><span>{g.line}</span></li>)}</ul> : <p className="life-none">No contributions or milestones recorded in this {period}.</p>}
           {review.plans.length > 0 && <div className="life-plans"><p className="eyebrow">The plans behind them</p>{review.plans.map(p => <p key={p.name}><strong>{p.name}</strong>{p.why && <> · why: {p.why}</>}{p.ifThen && <> · if-then: {p.ifThen}</>}</p>)}</div>}
         </section>
-        <section className="panel" aria-labelledby="life-review-health">
-          <SectionHeading id="life-review-health" eyebrow="Health" title="Trends" level={3} />
+        <section className="panel life-chapter" data-pillar="habits" data-chapter="2" aria-labelledby="life-review-streaks">
+          <SectionHeading id="life-review-streaks" pillar="habits" eyebrow="Chapter 2 · Habits" title="Streaks" level={3} />
+          {review.streaks.length ? <ul className="life-list">{review.streaks.map(s => <li key={s.title}><strong>{s.title}</strong><span>{s.streak} {s.unit}</span></li>)}</ul> : <p className="life-none">No streak running yet.</p>}
+        </section>
+        <section className="panel life-chapter" data-pillar="health" data-chapter="3" aria-labelledby="life-review-health">
+          <SectionHeading id="life-review-health" pillar="health" eyebrow="Chapter 3 · Health" title="Trends" level={3} />
           <table className="life-trends"><thead><tr><th scope="col">Measure</th><th scope="col">This {period}</th><th scope="col">Before</th></tr></thead>
-            <tbody>{review.health.map(t => <tr key={t.label}><th scope="row">{t.label}<small>{t.detail}</small></th><td>{t.now ?? 'Not recorded'}</td><td>{t.before ?? 'Not recorded'}</td></tr>)}</tbody></table>
+            <tbody>{review.health.map(t => <tr key={t.label}><th scope="row">{t.label}<small>{t.detail}</small></th><td className={t.now ? 'nowrap' : undefined}>{t.now ?? 'Not recorded'}</td><td className={t.before ? 'nowrap' : undefined}>{t.before ?? 'Not recorded'}</td></tr>)}</tbody></table>
           <p className="fine">Averages of the days you recorded; a day without a record is left out, never counted as zero. Not advice.</p>
         </section>
-        {financial && <section className="panel" aria-labelledby="life-review-money">
-          <SectionHeading id="life-review-money" eyebrow="Wealth" title="Net worth, by currency" level={3} />
+        {financial && <section className="panel life-chapter" data-pillar="wealth" data-chapter="4" aria-labelledby="life-review-money">
+          <SectionHeading id="life-review-money" pillar="wealth" eyebrow="Chapter 4 · Wealth" title="Net worth, by currency" level={3} />
           {review.money.length ? <ul className="life-list">{review.money.map(m => <li key={m.currency}><strong>{m.currency}</strong><span>{m.change !== null ? `${formatSignedMoney(m.change, m.currency)} · ${formatMoney(m.start!, m.currency)} → ${formatMoney(m.end!, m.currency)}` : m.note}</span></li>)}</ul> : <p className="life-none">No recorded wealth values yet. Values recorded on Wealth show their change here, each in its own currency.</p>}
           <p className="fine">Each currency on its own, never converted. Recorded values only; a missing value is never filled in.</p>
         </section>}

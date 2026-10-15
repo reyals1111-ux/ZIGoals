@@ -69,7 +69,19 @@
 .health-grocery-aisle select { min-height: 36px; font-size: 14px; }
 .health-grocery-progress { height: 8px; border-radius: 99px; }
 @media (max-width: 900px) { .health-planner-week { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 480px) { .health-planner-week { grid-template-columns: 1fr; } }
+/* Phase 2, Part 5: the day chips are a phone thing; on a phone the week is a snapping day swiper. */
+.health-planner-days { display: none; }
+@media (max-width: 767.98px) {
+  .health-planner-days { display: flex; gap: 6px; margin: 4px 0 10px; padding: 0; overflow-x: auto; scrollbar-width: none; }
+  .health-planner-days::-webkit-scrollbar { display: none; }
+  .health-planner-days > button { flex: 0 0 auto; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #8ab9ff33; font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .health-planner-days > button[aria-current] { border-color: #78e6c799; color: #fff; background: #0d2b33; }
+  .health-planner-week { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 88%; gap: 10px; margin: 0; padding: 2px 0 8px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .health-planner-week::-webkit-scrollbar { display: none; }
+  .health-planner-day { scroll-snap-align: start; padding: 14px; }
+  .health-planner-day h4 { font-size: 15px; }
+  .health-planner-slot .actions > button { min-height: 44px; }
+}
 
 /* N6: recipe import */
 .health-import-tabs { display: flex; gap: 6px; }
@@ -152,3 +164,28 @@
 
 /* The view tabs stay one row: a scrollable chip row on phones (owner edit 3). */
 @media (max-width: 767.98px) { .health-views { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; } .health-views::-webkit-scrollbar { display: none; } .health-views button { flex: 0 0 auto; white-space: nowrap; } }
+/* Phase 2, Part 5 (owner request 33): the grocery list as clean rows — the check, the item and its amount, the aisle at the
+   end — at every width; a bought item fades and strikes through. */
+:root .health-grocery-aisle li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; min-height: 52px; padding: 6px 8px 6px 12px; border-radius: 14px; background: #8ab9ff0d; border: 1px solid #8ab9ff14; }
+:root .health-grocery-aisle li > label { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; min-width: 0; min-height: 44px; margin: 0; text-align: left; cursor: pointer; }
+:root .health-grocery-aisle li > label > span { min-width: 0; display: grid; gap: 2px; }
+:root .health-grocery-aisle li > label strong { font-size: 15px; overflow-wrap: anywhere; }
+:root .health-grocery-aisle input[type=checkbox] { flex: 0 0 auto; width: 24px; height: 24px; margin: 0; accent-color: var(--pillar-health, #ff74be); }
+:root .health-grocery-aisle li > select { width: auto; max-width: 11rem; min-height: 44px; padding-inline: 10px 28px; font-size: 14px; }
+:root .health-grocery-aisle li[data-checked] { opacity: .6; }
+@media (max-width: 420px) { :root .health-grocery-aisle li { grid-template-columns: minmax(0, 1fr); } :root .health-grocery-aisle li > select { justify-self: start; max-width: 100%; } }
+/* Phase 2, Part 5 (owner request 33, the vitamins view with AB-Cloud's rows): micronutrients and vitamins as tidy rows —
+   the name on its line, the target and any unknown entries under it, today's value as a chip (tap to edit the target),
+   the bar across; two columns on wide screens. */
+:root .health-micro-list { gap: 10px; }
+:root .health-micro-list > li { padding: 12px 14px 14px; border-radius: 14px; background: #8ab9ff0b; border: 1px solid #8ab9ff14; gap: 8px 12px; align-items: start; }
+:root .health-micro-list > li > div:first-child { display: grid; gap: 3px; min-width: 0; }
+:root .health-micro-list > li > div:first-child > strong { font-size: 16px; }
+:root .health-micro-list > li > div:first-child > small { line-height: 1.45; }
+:root .health-micro-unknown { display: block; color: #ffe3a1; text-wrap: balance; } /* its own line, so no leading " · " (a hidden ". " keeps the pause for screen readers) */
+:root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #8ab9ff33; background: #0a1430a6; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (min-width: 900px) { :root .health-micro-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767.98px) { :root .health-micro-list > li > div:last-of-type > button.quiet { min-height: 44px; } }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): an aisle's count sits on the page's nebula,
+   so it is near-white (4.5:1 over its lightest patch). */
+:root .health-grocery-aisle h3 small { color: var(--text-strong, #f4f8ff); }

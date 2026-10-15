@@ -16,10 +16,12 @@ const undo = (page: Page) => page.getByRole('status').getByRole('button', {name:
 test('Settings → Your data: where each part lives, what this device holds, what ZIGi can see; it changes nothing', async ({page}) => {
   await showcase(page);
   await page.goto('/app/settings');
-  await expect(page.getByRole('link', {name: /^Your data/})).toBeVisible();
+  // Phase 2 (deliberate, ADR-024): the footer now has its own "Your data" link (owner brief d), so the Settings door is
+  // found inside the page's main content. As strict.
+  await expect(page.getByRole('main').getByRole('link', {name: /^Your data/})).toBeVisible();
   // Gate C audit: the baseline is taken before Your data opens, so a write on its mount would show.
   const before = await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage).concat(Object.entries(localStorage)).sort()));
-  await page.getByRole('link', {name: /^Your data/}).click();
+  await page.getByRole('main').getByRole('link', {name: /^Your data/}).click();
   await expect(page).toHaveURL(/\/app\/settings\/data$/);
   await expect(page).toHaveTitle(/Your data/);
   const synced = page.getByRole('region', {name: 'Synced records'});

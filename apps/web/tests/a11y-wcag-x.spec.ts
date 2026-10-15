@@ -219,9 +219,9 @@ test('consistent help (3.2.6): the help mechanisms repeated on every page keep t
   for (const [path, heading] of ALL) {
     await open(page, path, heading);
     places.add(await page.evaluate(phone => {
-      const links = phone ? [...document.querySelectorAll('.phone-topbar a')] : [...document.querySelectorAll('nav[aria-label="Main navigation"] a')];
-      // By its name: on Help the phone bar's back link ("Back to Settings") goes to the same address.
-      const settings = links.find(a => a.getAttribute('href') === '/app/settings' && (!phone || a.getAttribute('aria-label') === 'Settings'));
+      // Session AB-Design (owner decision D2): on a phone the way to Settings is the top bar's More button (Settings is its row); on Help the bar's back link ("Back to Settings") goes there directly.
+      const links = phone ? [...document.querySelectorAll('.phone-topbar a, .phone-topbar button')] : [...document.querySelectorAll('nav[aria-label="Main navigation"] a')];
+      const settings = phone ? (links.find(a => a.getAttribute('aria-label') === 'More') ?? links.find(a => a.getAttribute('href') === '/app/settings')) : links.find(a => a.getAttribute('href') === '/app/settings');
       return `settings:${settings ? links.indexOf(settings) - links.length : 'none'}`;
     }, isMobile));
   }
@@ -248,8 +248,11 @@ test('contrast of text (1.4.3) in Sleep, Meditation, Chess, Music, Portfolio and
     // The Showcase shows the music button; its panel is what is measured on Today.
     // Session Z-Cloud Part 4.12: on a phone the player opens from the More sheet's row (ZIGi is the one floating button).
     if (rootSelector === '.music-panel') { if (await isPhone(page)) { const sheet = await openMore(page); await sheet.getByRole('button', {name: /Your soundtrack/}).click(); } else await page.getByRole('button', {name: 'Open the music player', exact: true}).click(); await expect(page.locator(rootSelector)).toBeVisible(); }
-    // The settled colours: a switch that takes its saved state after loading fades its colours for a moment.
-    await page.waitForFunction(() => !document.getAnimations().some(a => a instanceof CSSTransition && a.playState === 'running'));
+    // The settled colours: a switch that takes its saved state after loading fades its colours for a moment, and a page's
+    // one-time entrance (motion-page-enter, arrive-card) fades its cards in from 85 % opacity; both are waited out
+    // (endless ones, such as the sidebar star's glow, never settle and are not). Under load the entrance was still
+    // running when the colours were read (the sleep button at 4.38:1 with its cards at 97 %).
+    await page.waitForFunction(() => !document.getAnimations().some(a => a.playState === 'running' && (a instanceof CSSTransition || a.effect?.getComputedTiming().endTime !== Infinity)));
     const result = await page.evaluate(([zigi, rootSelector]) => {
       type RGBA = {r: number; g: number; b: number; a: number};
       type RGB = {r: number; g: number; b: number};

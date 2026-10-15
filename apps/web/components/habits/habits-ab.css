@@ -1,0 +1,62 @@
+/* Session AB-Design Part 4 (owner request 20): the habit card's expander, compact timer chips and the bell switch. */
+.habit-card .habit-more { margin: 10px 0 0; border-top: 1px solid #ab95c21b; }
+.habit-card .habit-more > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 2px; cursor: pointer; color: var(--text-secondary, #dde7f7); font-size: 14px; font-weight: 600; }
+.habit-card .habit-more > summary::-webkit-details-marker { display: none; }
+.habit-card .habit-more > summary small { margin-left: auto; font-weight: 500; color: var(--text-meta, #c2d0e5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.habit-card .habit-more[open] > summary small { display: none; }
+.habit-more-chevron { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; transition: transform .2s var(--motion-glide, ease); }
+.habit-card .habit-more[open] > summary .habit-more-chevron { transform: rotate(180deg); }
+.habit-card .habit-more > summary:hover .habit-more-chevron, .habit-card .habit-more > summary:focus-visible .habit-more-chevron { background: #ffffff10; }
+.habit-card .habit-more > summary:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; border-radius: 10px; }
+/* The opened details arrive without an animation: Playwright's fake clock (page.clock.install) never lets an animated element read as stable, and the chevron's turn is motion enough. */
+.habit-card .habit-more .habit-completion-quick-log { margin-top: 4px; }
+/* The timer: short chips in one row; the accessible names stay the full words. */
+.habit-timer-section .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.habit-timer-section .actions .habit-timer-chip-button { min-height: 44px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 650; flex: 0 1 auto; }
+.habit-timer-section .actions .quiet.habit-timer-chip-button { border: 1px solid #ab95c23a; }
+.habit-timer-section .habit-timer-chip { margin: 0 0 8px; }
+/* The bell: a proper switch. */
+.habit-timer-bell { margin: 10px 0 6px; }
+.habit-switch { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; padding: 4px 6px 4px 0; border: 0; background: none; color: var(--text); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.habit-switch-knob { position: relative; flex: none; width: 44px; height: 26px; border-radius: 999px; border: 1px solid #ab95c24d; background: #ffffff12; transition: background-color .18s ease, border-color .18s ease; }
+.habit-switch-knob::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #cfe0ff; transition: transform .18s var(--motion-glide, ease), background-color .18s ease; }
+.habit-switch[aria-checked="true"] .habit-switch-knob { background: linear-gradient(90deg, #6fe6f6, #c790f6); border-color: transparent; }
+.habit-switch[aria-checked="true"] .habit-switch-knob::after { transform: translateX(18px); background: #0b1020; }
+.habit-switch-words small { display: block; font-size: 13px; color: var(--text-meta, #c2d0e5); }
+.habit-switch:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; border-radius: 12px; }
+/* The Vacation button beside the lock, and the editor's idea button. */
+.page-tools-slot .habit-vacation-button.page-tool, .habit-overview .habit-vacation-button { min-height: 44px; padding: 0 14px; border: 1px solid #8fb6ff40; border-radius: 14px; background: linear-gradient(150deg, #16264299, #1b173499); color: #d7e5fb; font-weight: 600; }
+.page-tools-slot .habit-vacation-button.page-tool[aria-expanded="true"], .habit-overview .habit-vacation-button[aria-expanded="true"] { border-color: #7fe3f3; color: #fff; }
+.habit-editor .habit-ideas-button { min-height: 44px; flex: none; }
+@media (prefers-reduced-motion: reduce) { .habit-more-chevron, .habit-switch-knob, .habit-switch-knob::after { transition: none; } }
+:root[data-app-motion=off] .habit-more-chevron, :root[data-app-motion=off] .habit-switch-knob, :root[data-app-motion=off] .habit-switch-knob::after { transition: none; }
+
+/* Session AB-Design (owner request 39): on wide screens the habit cards already sit three across (the habit grid's own
+   columns from 1280 px). Phase 2 closing pass (layout audit): the earlier two-rail split of the whole list block put the
+   filters beside the cards and squeezed each card to 166 px at 1440 px; it is gone. */
+
+/* Gate C critique: on phones the constellation art sits faint behind the words instead of across them. */
+@media (max-width: 600px) { .habit-hero .habit-constellation { opacity: .3; pointer-events: none; } }
+/* Phase 2 closing pass (layout audit): the hint beside "Details" says what is inside in full — on a second line under it
+   on a narrow phone, never cut off. */
+.habit-card .habit-more > summary { flex-wrap: wrap; }
+.habit-card .habit-more > summary small { min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; text-align: right; }
+@media (max-width: 420px) { .habit-card .habit-more > summary small { flex: 1 1 100%; margin-left: 34px; text-align: left; } }
+/* Session AB-Design Phase 2 closing pass (reflow at 320 px): the workspace's one column follows the page, never the
+   consistency cards' swipe row (a scroll container whose content had set the track to 341 px). */
+:root .habits-workspace { grid-template-columns: minmax(0, 1fr); }
+:root .habits-workspace > * { min-width: 0; }
+/* Session AB-Design Phase 2 closing pass (design critique): the card's heading is a grid — the eyebrow shares its row with
+   Edit and ⋯, while the title and the schedule line take the card's whole width ("30 minutes per / day" had wrapped in
+   the narrow column left beside the two buttons). */
+:root .habit-card-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 6px; align-items: start; }
+:root .habit-card-heading > div:first-child { display: contents; }
+:root .habit-card-heading > div:first-child > .eyebrow { grid-column: 1; grid-row: 1; align-self: center; }
+:root .habit-card-heading > div:first-child > :not(.eyebrow) { grid-column: 1 / -1; }
+:root .habit-card-heading > button { grid-column: 2; grid-row: 1; }
+:root .habit-card-heading > .pin-to-today { grid-column: 3; grid-row: 1; }
+/* Session AB-Design Phase 2, Gate C (design critique): a card's tags never split from their "·", and inside a time-of-day
+   section (whose heading already names it) the time of day leaves the label ("BUILD · LEARNING ·" had wrapped, leaving
+   "MORNING" alone against Edit and ⋯). */
+.habit-card-heading .habit-tag { white-space: nowrap; }
+.habit-section .habit-card-heading .habit-tag-time { display: none; }

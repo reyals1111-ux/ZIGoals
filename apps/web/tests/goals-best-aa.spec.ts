@@ -27,7 +27,8 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await expect(page).toHaveURL(/view=board/);
   const tiles = page.getByRole('list', {name: 'Vision board'}).getByRole('listitem');
   await expect(tiles).toHaveCount(7);
-  await expect(tiles.first().getByRole('img').first()).toHaveAttribute('aria-label', /picture for|photo for/);
+  // Session AB-Design (owner request 16): the Showcase's tiles carry its illustrations, each with a real description.
+  await expect(tiles.first().getByRole('img').first()).toHaveAttribute('aria-label', /A home library with tall shelves/);
   await expect(finished).toHaveText(finishedCount);
   // G5: the tree, three levels deep.
   await page.getByRole('group', {name: 'Show goals as'}).getByRole('button', {name: 'Tree'}).click();
@@ -38,7 +39,7 @@ test('Goals: key figures, average goals among the cards, a vision board and a th
   await expect(finished).toHaveText(finishedCount);
   // A ring's number stays on one line (the row's text rule no longer reaches the ring).
   // Every piece of the ring's text (the number, the small "%") shares one line: their boxes overlap vertically.
-  const oneLine = await page.locator('.goal-tree-row .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); const boxes = [...r.getClientRects()].filter(x => x.width > 0); return boxes.length >= 2 && Math.max(...boxes.map(x => x.top)) < Math.min(...boxes.map(x => x.bottom)); });
+  const oneLine = await page.locator('.goal-tree-node .flow-ring span[aria-hidden="true"]').first().evaluate(el => { const r = document.createRange(); r.selectNodeContents(el); const boxes = [...r.getClientRects()].filter(x => x.width > 0); return boxes.length >= 2 && Math.max(...boxes.map(x => x.top)) < Math.min(...boxes.map(x => x.bottom)); });
   expect(oneLine).toBe(true);
   // G2: the balance wheel with every area named in words.
   const balance = page.getByRole('region', {name: 'Life balance'});
@@ -115,6 +116,10 @@ test('an average goal from a template: no data yet, then a day, its average and 
 
 test('the Hall’s share image is made on the device (a download, nothing uploaded)', async ({page}) => {
   test.skip((page.viewportSize()?.width ?? 1280) < 600, 'A phone hands the image to its share sheet instead.');
+  // Session AB-Design Phase 2 (ADR-024): a desktop browser that can share files (this Chrome can) would open its share
+  // sheet, which a headless run never settles. The browser is told it cannot share files, so the device-side save path —
+  // what this test is about — runs deterministically everywhere.
+  await page.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'canShare', {configurable: true, value: () => false}); });
   await showcase(page);
   await page.goto('/app/goals');
   const requests: string[] = [];

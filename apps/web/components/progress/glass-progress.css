@@ -63,3 +63,9 @@
   .glass-ring-arc { stroke:Highlight; }
   .glass-ring-track { stroke:GrayText; }
 }
+/* Phase 2 closing pass, item 1 (rings everywhere): a ring that shows a figure and a caption (sleep score, water, a routine
+   step, the Journey level, Today's level) centres them as one column inside the ring — the figure, then its caption — so
+   the two never overlap at any size; the art stays behind. */
+:root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
+:root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) > :not(svg) { margin: 0; line-height: 1.05; max-width: 72%; }
+:root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) > small { line-height: 1.2; }

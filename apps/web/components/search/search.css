@@ -28,3 +28,28 @@
   :root .search-field { padding: calc(env(safe-area-inset-top, 0px) + 8px) 10px 8px 16px; }
   :root .search-keys { display: none; }
 }
+
+/* Session AB-Design (owner request 28): the pillar's fold mark leads each result that belongs to a pillar. */
+:root .search-row:has(> .pillar-mark) { grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; }
+:root .search-row > .pillar-mark { grid-row: 1 / span 2; align-self: center; }
+:root .search-row > .pillar-mark .pillar-mark-disc { width: 26px; height: 26px; }
+/* Phase 2, Part 10 (owner request 36): the four pillars as shortcuts before typing; on wide screens a preview of the
+   highlighted result beside the list (where it opens, its kind and words). */
+:root .search-pillars { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px 4px; }
+:root .search-pillar { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 8px; border-radius: 999px; border: 1px solid #8fb6ff33; background: #0a1430a6; font-size: 15px; font-weight: 650; color: var(--text-strong, #f4f8ff); }
+:root .search-pillar:is(:hover, :focus-visible) { border-color: color-mix(in srgb, var(--pillar, #9273ff) 70%, transparent); }
+:root .search-pillar .pillar-mark-disc { width: 28px; height: 28px; }
+:root .search-body { display: flex; min-height: 0; flex: 1; }
+:root .search-body > .search-results { flex: 1 1 auto; }
+:root .search-preview { display: none; }
+@media (min-width: 960px) {
+  :root .search-palette { width: min(920px, calc(100vw - 48px)); }
+  :root .search-preview { display: grid; align-content: start; gap: 8px; flex: 0 0 300px; padding: 22px 22px; border-left: 1px solid #6c9cc526; background: radial-gradient(120% 80% at 100% 0%, #6a46b033, transparent 60%); }
+  :root .search-preview .pillar-mark-disc { width: 46px; height: 46px; }
+  :root .search-preview-mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #9273ff2e; color: #e8dcff; font-size: 20px; }
+  :root .search-preview-kind { margin: 6px 0 0; font-size: 14px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: var(--text-meta); }
+  :root .search-preview-title { margin: 0; font-size: 22px; font-weight: 750; line-height: 1.25; letter-spacing: -.02em; overflow-wrap: anywhere; color: var(--text-strong, #f4f8ff); } /* Gate C: the selected result reads at full strength */
+  :root .search-preview-detail { margin: 0; font-size: 15px; color: var(--text-secondary); overflow-wrap: anywhere; }
+  :root .search-preview-where { margin: 8px 0 0; font-size: 14px; color: var(--text-secondary); }
+  :root .search-preview-tip { margin: 0; font-size: 15px; color: var(--text-secondary); }
+}

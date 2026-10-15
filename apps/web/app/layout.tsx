@@ -10,6 +10,7 @@ import "./product-beta.css";
 import "../components/motion.css";
 import "../components/design-system.css";
 import "../components/ui/ui.css";
+import "../components/ui/touch-targets.css";
 import "../components/ui/premium.css";
 /**
  * Phones draw edge to edge and pad with safe-area insets (Session E); the browser chrome takes the cosmic background colour

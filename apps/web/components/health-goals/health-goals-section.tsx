@@ -1,4 +1,5 @@
 'use client';
+import {EmptyState} from '../ui/empty-state';
 import {useMemo, useState} from 'react';
 import type {HealthData} from '../../lib/health';
 import {dailyData} from '../../lib/health-daily';
@@ -56,7 +57,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
       {!goals.unreadable && <button type="button" className="primary" disabled={!goals.loaded} onClick={() => { setEditor('new'); setMessage(''); }}>+ Health goal</button>}</div>
     {goals.unreadable ? goals.error ? <div className="notice" role="alert"><p>{goals.error}</p></div> : <div className="notice" role="alert"><p>Your saved health goals on this device could not be read. They were not changed.</p>
       {confirming ? <div className="actions"><p className="fine">Start over keeps the old bytes as a recovery copy and continues with no health goals.</p><button type="button" className="secondary" onClick={() => { setConfirming(false); goals.startOver().then(() => setMessage('Your health goals on this device start over.'), e => setError(deviceSettingFailureMessage(e))); }}>Start over</button><button type="button" className="quiet" onClick={() => setConfirming(false)}>Keep them</button></div> : <button type="button" className="quiet" onClick={() => setConfirming(true)}>Start over…</button>}</div> : <>
-      {goals.loaded && !goals.data.goals.length && !editor && <p className="health-goals-empty">No health goals yet. Choose a measure you already record in Health, and a target you’ve chosen yourself.</p>}
+      {goals.loaded && !goals.data.goals.length && !editor && <EmptyState className="health-goals-empty" zigi="encouraging" title="No health goals yet.">Choose a measure you already record in Health, and a target you’ve chosen yourself.</EmptyState>}
       {active.length > 0 && <ul className="health-goal-list" aria-label="Active health goals">{active.map(row)}</ul>}
       {rest.length > 0 && <div className="health-goals-fold"><button type="button" className="quiet" aria-expanded={showDone} onClick={() => setShowDone(open => !open)}>{showDone ? 'Hide done and ended' : `Show done and ended (${rest.length})`}</button>{showDone && <ul className="health-goal-list" aria-label="Done and closed health goals">{rest.map(row)}</ul>}</div>}
     </>}

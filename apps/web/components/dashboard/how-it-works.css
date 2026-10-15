@@ -1,0 +1,22 @@
+/* Session AB-Design (owner request 13): the how-to dialog. */
+.how-it-works-dialog { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid #a9c9ff44; border-radius: 24px; background: linear-gradient(150deg, #0d1a30fa, #140f2efa); color: var(--text); box-shadow: 0 30px 80px -20px #000d; overflow: auto; }
+.how-it-works-dialog::backdrop { background: #01050dc7; }
+.how-it-works-card { padding: 24px 24px 20px; display: grid; gap: 20px; }
+.how-it-works-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.how-it-works-head .eyebrow { margin: 0 0 6px; }
+.how-it-works-head h2 { margin: 0 0 6px; font-size: clamp(22px, 3vw, 30px); letter-spacing: -.02em; }
+.how-it-works-head p:not(.eyebrow) { margin: 0; color: var(--text-secondary, #dde7f7); font-size: 15px; }
+.how-it-works-head .quiet { flex: none; width: 44px; height: 44px; padding: 0; font-size: 24px; line-height: 1; }
+.how-it-works-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.how-it-works-steps li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px; align-items: start; padding: 14px 16px 14px 12px; border-radius: 18px; border: 1px solid #8fb6ff2a; background: #ffffff07; }
+.how-it-works-steps li > div { display: grid; gap: 6px; min-width: 0; }
+.how-it-works-steps strong { font-size: 18px; }
+.how-it-works-steps p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-secondary, #dde7f7); }
+.how-it-works-how { color: #cfe6ff; }
+.how-it-works-steps .text-link { min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
+.how-it-works-node { position: relative; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; border: 1px solid #9fd6ff55; background: radial-gradient(120% 120% at 30% 20%, #1b2f5ae6, #0a1130f2 70%); box-shadow: 0 0 24px -4px #8f7bff99, inset 0 1px 0 #ffffff1c; }
+.how-it-works-glyph { display: inline-flex; align-items: center; gap: 2px; color: #dff3ff; filter: drop-shadow(0 0 6px #23eaff66); }
+.how-it-works-n { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 750; color: #0a1428; background: linear-gradient(135deg, #6fe6f6, #a3a0ff 60%, #f08bd6); box-shadow: 0 0 0 3px #0d1a30; }
+.how-it-works-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding-top: 4px; }
+.how-it-works-foot .fine { margin: 0; font-size: 14px; color: var(--text-meta, #c2d0e5); }
+@media (max-width: 540px) { .how-it-works-card { padding: 18px 16px 16px; } .how-it-works-steps li { grid-template-columns: 52px minmax(0, 1fr); gap: 12px; padding: 12px; } .how-it-works-node { width: 52px; height: 52px; } .how-it-works-glyph svg { width: 22px; height: 22px; } }

@@ -1,5 +1,6 @@
 'use client';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import {entranceAllowed} from '../use-entrance';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
 import {useDeviceRecord} from '../ai/use-device-record';
@@ -33,10 +34,17 @@ export function PlannerView({data, date, today, perform}: {data: HealthData; dat
     void perform(latest => kind === 'recipe' ? planFromRecipe(latest, source, slot.date, slot.meal, now()) : planFromFood(latest, source, q, slot.date, slot.meal, now()), 'Meal planned; nothing logged as eaten.', () => { setSlot(null); setSource(''); });
   }
   const dayLabel = (d: string) => `${formatDate(`${d}T12:00:00`, {weekday: 'short'})} ${Number(d.slice(-2))}`;
+  // Phase 2, Part 5 (owner request 33): on a phone the week is a day swiper — one day per screen, snapping — with a row of
+  // day chips to jump; it opens on today (or the week's first day). Computers keep the seven-column grid.
+  const weekRef = useRef<HTMLDivElement>(null);
+  const show = (d: string, smooth = true) => { const row = weekRef.current, day = row?.querySelector<HTMLElement>(`[data-day="${d}"]`); if (!day || !row) return; const left = row.scrollLeft + day.getBoundingClientRect().left - row.getBoundingClientRect().left - parseFloat(getComputedStyle(row).paddingLeft || '0'); row.scrollTo({left, behavior: smooth && entranceAllowed() ? 'smooth' : 'auto'}); };
+  useEffect(() => { if (typeof matchMedia === 'function' && matchMedia('(max-width: 767.98px)').matches) show(week.days.includes(today) ? today : week.days[0]!, false); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anchor]);
   return <div className="health-planner">
     <section className="panel health-aa-card" aria-labelledby="planner-title">
       <div className="habit-section-heading"><div><p className="eyebrow">A little preparation</p><h2 id="planner-title"><NebulaFlow identity="planner-title">Meal planner</NebulaFlow></h2></div><div className="habit-year-nav"><button type="button" className="quiet" aria-label="Previous week" onClick={() => setAnchor(addLocalDays(anchor, -7))}>←</button><strong>{dayLabel(from)} – {dayLabel(to)}</strong><button type="button" className="quiet" aria-label="Next week" onClick={() => setAnchor(addLocalDays(anchor, 7))}>→</button></div></div>
-      <div className="health-planner-week">{week.days.map(d => <div key={d} className="health-planner-day" data-today={d === today || undefined}><h4><span>{dayLabel(d)}</span>{d === today && <span>today</span>}</h4>{HEALTH_MEALS.map(meal => { const plans = week.slots.find(s => s.date === d && s.meal === meal)!.plans; return <div key={meal} className="health-planner-slot">
+      <div className="health-planner-days" role="group" aria-label="Jump to a day">{week.days.map(d => <button key={d} type="button" className="quiet" aria-current={d === today ? 'date' : undefined} onClick={() => show(d)}>{dayLabel(d)}</button>)}</div>
+      <div className="health-planner-week" ref={weekRef}>{week.days.map(d => <div key={d} className="health-planner-day" data-day={d} data-today={d === today || undefined}><h4><span>{dayLabel(d)}</span>{d === today && <span>today</span>}</h4>{HEALTH_MEALS.map(meal => { const plans = week.slots.find(s => s.date === d && s.meal === meal)!.plans; return <div key={meal} className="health-planner-slot">
         <small>{meal}</small>
         {plans.map(p => <div key={p.id}><strong>{p.name}{p.loggedAt ? ' · logged' : ''}</strong><div className="actions">{!p.loggedAt && <button type="button" className="secondary" aria-label={`Log ${p.name} for ${meal} on ${dayLabel(d)}`} onClick={() => void perform(latest => logMealPlan(latest, p.id, now()), `${p.name} logged as eaten.`, () => { try { zigiSignals.emitValidated('health_log_recorded'); } catch { /* decoration */ } })}>Log</button>}<button type="button" className="quiet" aria-label={`Remove ${p.name} from ${meal} on ${dayLabel(d)}`} onClick={() => void perform(latest => removeMealPlan(latest, p.id), 'Plan removed.')}>Remove</button></div></div>)}
         {slot?.date === d && slot.meal === meal ? <form className="health-planner-form" aria-label={`Plan ${meal} on ${dayLabel(d)}`} onSubmit={e => { e.preventDefault(); plan(); }}><label className="field"><span>From</span><select value={kind} onChange={e => { setKind(e.target.value as 'recipe' | 'food'); setSource(''); }}><option value="recipe">A recipe</option><option value="food">A food</option></select></label><label className="field"><span>{kind === 'recipe' ? 'Recipe' : 'Food'}</span><select value={source} required onChange={e => setSource(e.target.value)}><option value="">Choose</option>{(kind === 'recipe' ? data.recipes : data.foods).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>{kind === 'food' && <label className="field"><span>Servings</span><input type="text" inputMode="decimal" value={servings} onChange={e => setServings(e.target.value)} /></label>}<div className="actions"><button type="submit" className="secondary">Plan</button><button type="button" className="quiet" onClick={() => setSlot(null)}>Cancel</button></div></form>

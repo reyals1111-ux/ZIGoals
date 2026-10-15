@@ -23,7 +23,7 @@ export function WidgetOverview({widgets,sources,loaded,error,ready,domainError,o
    const unavailable=!ready(domain)||!!domainError(domain);
    return <Link key={widget.id} href={unavailable?'/app/settings':metric.href} className="dashboard-summary-item" data-domain={domain} data-size={widget.size} aria-label={`${metric.title}: ${unavailable?'Unavailable':metric.value}`}>
     <span className="dashboard-summary-glyph"><AppIcon name={domain==='wealth'?'wallet':domain} size={26} luminous/></span>
-    <span className="dashboard-summary-copy"><small>{metric.title}</small><strong>{unavailable?ready(domain)?'Needs attention':'Loading…':metric.value}</strong><span>{unavailable?'Review this private record in Settings.':metric.detail}</span>{!unavailable&&metric.warning&&<small className="dashboard-warning">{metric.warning}</small>}</span>
+    <span className="dashboard-summary-copy"><small>{metric.title}</small><strong className={!unavailable&&/\d/.test(metric.value)&&!/[a-z]{4,}/.test(metric.value)?'is-figure':undefined} style={{'--chars':metric.value.length} as import('react').CSSProperties}>{unavailable?ready(domain)?'Needs attention':'Loading…':metric.value}</strong><span>{unavailable?'Review this private record in Settings.':metric.detail}</span>{!unavailable&&metric.warning&&<small className="dashboard-warning">{metric.warning}</small>}</span>
    </Link>;
   })}</div>:<p>No visible widgets yet. Choose a preset or add one to your daily space.</p>}
  </section>;

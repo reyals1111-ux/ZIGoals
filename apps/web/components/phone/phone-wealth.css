@@ -37,7 +37,7 @@
   :root .wealth-product .owned-asset-heading h3 { font-size: 17px; line-height: 1.3; }
   :root .wealth-product .owned-asset-heading p { margin: 0; font-size: 15px; }
   :root .wealth-product .owned-value { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; margin: 2px 0 0; }
-  :root .wealth-product .owned-value strong { font-size: 20px; }
+  :root .wealth-product .owned-value strong { --owned-size: 20px; }
   :root .wealth-product .owned-value > span { display: inline; margin: 0; font-size: 15px; }
   :root .wealth-product .asset-updated { display: block; margin: 0; }
   :root .wealth-product .holding-unit-price { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; margin: 0; font-size: 15px; }
@@ -81,7 +81,11 @@
 
 /* Session I, Part 9: the composition ring's centre keeps its known total whole ("$501,800.00"), never split inside the number. */
 @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
-  :root .wealth-product .composition-donut { width: 180px; height: 180px; }
+  :root .wealth-product .composition-donut { --ring-width: 15px; width: 180px; height: 180px; }
   :root .wealth-product .composition-donut > span { inset: 22px; width: auto; height: auto; gap: 4px; }
-  :root .wealth-product .composition-donut strong { font-size: 18px; letter-spacing: -.02em; white-space: nowrap; overflow-wrap: normal; }
+  /* Session AB-Design Phase 2 closing pass (stress audit): 17 px unless the total's own length needs less to stay inside the ring. */
+  :root .wealth-product .composition-donut strong { font-size: clamp(9px, calc(72cqi / (var(--chars, 12) * .6)), 17px); letter-spacing: -.02em; white-space: nowrap; overflow-wrap: normal; }
+  :root .wealth-product .composition-donut small { font-size: 14px; line-height: 1.25; max-width: 7.5em; }
 }
+/* Session AB-Design (owner request 26): the allocation legend keeps each value and share on one line at 390 and 320. */
+@media (max-width: 767.98px) { :root .wealth-product .composition-legend > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; } :root .wealth-product .composition-legend dd { display: flex; align-items: baseline; gap: 8px; margin: 0; white-space: nowrap; } :root .wealth-product .composition-legend dd strong { font-size: 15px; } :root .wealth-product .composition-legend dd span { font-size: 14px; color: var(--text-meta, #c2d0e5); } }

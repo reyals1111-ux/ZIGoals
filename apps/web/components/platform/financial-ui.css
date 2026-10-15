@@ -9,3 +9,11 @@
 
 /* QA-38 (Session I, Part 10): a lower bound reads "≥45%" in the ring. */
 .flow-ring>span .ring-at-least{margin:0 2px 0 0;font-size:.72em;font-weight:600}
+/* Session AB-Design Phase 2 closing pass (design critique, 390 px: "$11,000.0 / 0", "2026-10- / 16"): a tile's figure is
+   sized from its own length and stays on one line. */
+.financial-metric{container-type:inline-size}
+.financial-metric>strong.is-figure{white-space:nowrap;overflow-wrap:normal;font-size:clamp(15px,min(clamp(20px,2.3vw,30px),calc(100cqi / (var(--chars,10) * .6))),30px)}
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280–1440 px): a symbol's letters fit inside its badge ("ZIG" had
+   filled the 54 px badge edge to edge and lost its outer strokes to the clip); the badge is a size container. */
+.asset-orb{container-type:size}
+.asset-orb:not(:has(img)){font-size:clamp(11px,34cqi,21px);letter-spacing:-.02em}

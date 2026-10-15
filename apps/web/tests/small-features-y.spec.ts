@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {openHabitDetails} from './ab-shell';
 import {HABITS_KEY, type HabitData} from '../lib/habits';
 import {PLATFORM_KEY, emptyPlatform, privateGoalSchema} from '../lib/positions';
 import {manualSourcePosition} from '../lib/manual-source';
@@ -61,6 +62,7 @@ for (const setting of ['default', 'reduced', 'off'] as const) test(`"−" beside
   const minus = card.getByRole('button', {name: 'Remove one from Water plants', exact: true}), plus = card.getByRole('button', {name: 'Add one to Water plants', exact: true});
   await expect(minus).toBeDisabled();
   if (await isPhone(page)) for (const button of [minus, plus]) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await openHabitDetails(card);
   await card.getByText('Set or add a value', {exact: true}).click();
   await card.getByLabel('Value for Water plants').fill('2,2');
   await card.getByRole('button', {name: 'Set value', exact: true}).click();

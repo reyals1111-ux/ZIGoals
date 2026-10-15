@@ -44,13 +44,16 @@
   :root .phone-topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, #020918f2, #020918d9); border-bottom: 1px solid transparent; opacity: 0; transition: opacity 200ms ease; pointer-events: none; -webkit-backdrop-filter: saturate(1.4) blur(18px); backdrop-filter: saturate(1.4) blur(18px); }
   :root .phone-topbar[data-scrolled]::before { opacity: 1; border-bottom-color: #7fc8ff26; }
   :root .phone-topbar-row { display: grid; grid-template-columns: minmax(44px, auto) minmax(0, 1fr) auto; align-items: center; gap: 4px; height: var(--phone-bar); }
-  :root .phone-home, :root .phone-back, :root .phone-settings, :root .phone-wealth { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 14px; color: var(--text); text-decoration: none; }
+  :root .phone-home, :root .phone-back, :root .phone-settings, :root .phone-wealth, :root .phone-more-top { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 14px; color: var(--text); text-decoration: none; }
   :root .phone-home .brand-logo { display: block; width: 30px; height: 34px; margin: 0; filter: drop-shadow(0 0 8px #4897ff55); }
   :root .phone-back { gap: 2px; padding: 0 8px 0 2px; font-size: 17px; font-weight: 600; color: #9fe6ff; }
   :root .phone-title { margin: 0; text-align: center; font-size: 17px; font-weight: 650; letter-spacing: -.01em; color: var(--text-strong, #f4f8ff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transform: translateY(6px); transition: opacity 200ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }
   :root .phone-topbar[data-title-shown] .phone-title { opacity: 1; transform: none; }
   :root .phone-actions { display: flex; align-items: center; gap: 2px; }
-  :root :is(.phone-settings, .phone-wealth)[aria-current="page"] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
+  :root :is(.phone-settings, .phone-wealth)[aria-current="page"], :root .phone-more-top[data-current] { background: #0d2a44; box-shadow: inset 0 0 0 1px #6fdcff55; }
+  :root .phone-more-top { padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
+  :root .phone-more-status { width: 100%; font: inherit; cursor: pointer; }
+  :root .phone-more .theme-switch-compact { margin: 14px 0 0; }
   /* Quick add: the same component and name ("+ Quick add"), shown as a round "+". */
   :root .phone-topbar .phone-quick-add { position: relative; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; border: 1px solid transparent; font-size: 0; color: #041126; background: var(--nebula-emphasis) padding-box, linear-gradient(120deg, #bff4ff, #9d8cff) border-box; box-shadow: inset 0 1px 2px #e4fcffb0, 0 0 14px #2edbff40; }
   :root .phone-topbar .phone-quick-add::before, :root .phone-topbar .phone-quick-add::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 2.5px; border-radius: 2px; background: #041126; translate: -50% -50%; }
@@ -126,8 +129,8 @@
   :root .workspace > .workspace-status a { flex: none; font-size: 14px; }
   :root .workspace > .status-row { position: relative; align-items: flex-end; gap: 8px; margin: 6px 0 0; padding: 6px 0 6px 6px; }
   :root .workspace > .status-row::before { content: ""; position: absolute; inset: 0 -6px; z-index: -1; border: 1px solid var(--phone-glass-edge); border-radius: 16px; background: var(--phone-glass); pointer-events: none; }
-  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock))::before { display: none; }
-  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)) { padding: 0; margin: 0; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)):not(:has(.gamify)):not(:has(.wallet-balance))::before { display: none; }
+  :root .workspace > .status-row:not(:has(.mode-strip)):not(:has(.layout-lock)):not(:has(.gamify)):not(:has(.wallet-balance)) { padding: 0; margin: 0; }
   :root .status-row > .mode-strip { display: block; padding: 2px 0; font-size: 13px; line-height: 1.45; letter-spacing: .02em; }
   :root .status-row > .mode-strip .wallet-balance { display: block; margin: 2px 0 0; font-size: 15px; letter-spacing: 0; color: var(--text-strong, #f4f8ff); }
   :root .status-row > .layout-lock-slot { margin-bottom: 0; }
@@ -143,7 +146,7 @@
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row::before { display: none; }
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row { padding: 0; }
     /* Gate B: the layout lock alone in that row keeps its 8 px gap above the page (Part 18.4's "clear of main"). */
-    :root:has(.app-topbar .phone-status-line) .workspace > .status-row:has(.layout-lock) { padding-bottom: 8px; }
+    :root:has(.app-topbar .phone-status-line) .workspace > .status-row:is(:has(.layout-lock), :has(.gamify), :has(.wallet-balance)) { padding-bottom: 8px; }
     :root:has(.app-topbar .phone-status-line) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :root:has(.app-topbar .phone-status-line) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
@@ -165,8 +168,8 @@
   :root .app-content > .private-read-delay .actions > * { min-height: 44px; }
 
   /* Press feedback on touch (no hover effects): a gentle liquid-glass give on controls. */
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
-  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-more-top, .phone-sheet-close) { transition: transform 160ms ease, background-color 160ms ease; }
+  :root :is(.phone-tab, .phone-more-row, .phone-home, .phone-back, .phone-settings, .phone-wealth, .phone-more-top, .phone-sheet-close, .phone-quick-add):active { transform: scale(.94); }
 }
 
 @keyframes phone-tab-arrive { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1); } }

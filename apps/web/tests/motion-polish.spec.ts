@@ -48,7 +48,7 @@ async function fictionalMovement(page:Page){
 }
 
 test('charts draw their marks once and settle on the exact rendered values',async({page,isMobile},info)=>{
- await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform'});
+ await watch(page,{'glass-ring-draw':{property:'stroke-dashoffset',within:'.composition-donut'},'motion-mark-in':'opacity','motion-cell-in':'opacity','motion-rise':'transform','wealth-history-draw':{property:'stroke-dashoffset',within:'.wealth-history'}});
  await showcase(page);
  await page.goto('/app/wealth');
  const donut=page.locator('.composition-donut').first();await donut.scrollIntoViewIfNeeded();
@@ -56,9 +56,12 @@ test('charts draw their marks once and settle on the exact rendered values',asyn
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));expect(parseFloat(sweep.end)).toBeCloseTo(parseFloat(sweep.final!),3);
  await donut.screenshot({path:info.outputPath('donut-settled.png')});
  await openFold(page,'Your wealth over time');
- const history=page.locator('.wealth-history .evidence-chart').first();await history.scrollIntoViewIfNeeded();
- const marks=await settled(page,'motion-mark-in');expect(Number(marks.start)).toBeLessThan(Number(marks.mid));expect(marks.end).toBe('1');
- await expect(history.locator('.evidence-line').first()).toHaveCSS('stroke-dasharray','none');
+ const history=page.locator('.wealth-history .wealth-history-chart').first(); // Session AB-Design (owner request 26): the new chart
+ // Sections between the donut and the chart finish mounting as the page scrolls and push the chart down; keep scrolling until it is really in view (its entrance plays on intersection).
+ await expect.poll(async()=>{await history.scrollIntoViewIfNeeded();const box=(await history.boundingBox())!,view=page.viewportSize()!;return box.y<view.height&&box.y+box.height>0;},{timeout:15000}).toBe(true);
+ // Session AB-Design (owner request 26): the new chart draws its total line once (dash offset to 0).
+ const marks=await settled(page,'wealth-history-draw');expect(parseFloat(marks.start)).toBeGreaterThan(parseFloat(marks.mid!));expect(parseFloat(marks.end)).toBe(0);
+ await expect(history.locator('.wealth-history-line').first()).toHaveCSS('stroke-dashoffset','0px');
  await history.screenshot({path:info.outputPath('history-settled.png')});
  // Open and close an overlay: Quick add on mobile; desktop Wealth has no Quick add, so use its Add asset dialog.
  await (isMobile?page.getByRole('button',{name:'+ Quick add',exact:true}):page.getByRole('button',{name:'+ Add asset',exact:true}).first()).click();await page.keyboard.press('Escape');await page.waitForTimeout(750);
@@ -135,16 +138,19 @@ test('reduced motion and the Off preference keep buttons still on every route',a
 });
 
 test('progress fills grow in once when seen and glide to new values while their state updates at once',async({page},info)=>{
- await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-fill-y':{property:'transform',within:'.nutrition-gauge'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge'}});
+ await watch(page,{'glass-fill-x':{property:'transform',within:'.today-pace-track'},'glass-ring-draw':{property:'stroke-dashoffset',within:'.health-gauge, .life-ring[data-pillar="health"]'}});
  await showcase(page);
  const share=(locator:Locator)=>locator.evaluate(el=>({value:Number(getComputedStyle(el).getPropertyValue('--glass-value')),width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}));
  // A bar slides in from wholly before its start and settles exactly where its value says.
  const pace=page.locator('.today-pace-track').first();await pace.scrollIntoViewIfNeeded();
  const grow=await settled(page,'glass-fill-x'),paceShare=await share(pace);
  expect(translate(grow.start).x).toBeLessThan(translate(grow.mid!).x);expect(translate(grow.mid!).x).toBeLessThan(translate(grow.end).x);expect(translate(grow.end).x).toBeCloseTo((paceShare.value-1)*paceShare.width,0);
- const gaugeGlass=page.locator('.nutrition-gauge').first();await gaugeGlass.scrollIntoViewIfNeeded();
- const glass=await settled(page,'glass-fill-y'),glassShare=await share(gaugeGlass);
- expect(translate(glass.start).y).toBeGreaterThan(translate(glass.mid!).y);expect(translate(glass.mid!).y).toBeGreaterThan(translate(glass.end).y);expect(translate(glass.end).y).toBeCloseTo((1-glassShare.value)*(glassShare.height-2),0);
+ // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): Today's vertical calorie gauge became the
+ // Life overview's Health ring (owner request 28: four pillar rings), so this step follows the ring that replaced it — it
+ // draws in once when seen and settles exactly on its value. As strict as the gauge's start → mid → end check.
+ const lifeRing=page.locator('.life-ring[data-pillar="health"] .flow-ring').first();await lifeRing.scrollIntoViewIfNeeded();
+ const draw=await settled(page,'glass-ring-draw');expect(parseFloat(draw.start)).toBeGreaterThan(parseFloat(draw.mid!));expect(parseFloat(draw.mid!)).toBeGreaterThan(parseFloat(draw.end));
+ expect(parseFloat(draw.end)).toBeCloseTo(parseFloat((await lifeRing.locator('.glass-ring-arc').first().getAttribute('style'))!.replace(/[^0-9.]/g,'')),3);
  await page.goto('/app/health');
  const gauge=page.locator('.health-gauge');await gauge.scrollIntoViewIfNeeded();
  const sweep=await settled(page,'glass-ring-draw');expect(parseFloat(sweep.start)).toBeGreaterThan(parseFloat(sweep.mid!));expect(parseFloat(sweep.mid!)).toBeGreaterThan(parseFloat(sweep.end));
@@ -157,9 +163,13 @@ test('progress fills grow in once when seen and glide to new values while their 
  // The visible fill runs from the track's start to the fill's (translated) end.
  const filled=()=>overview.evaluate(el=>el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left);
  const before=Number(await overview.getAttribute('aria-valuenow')),start=await filled();
+ // Session AB-Design Phase 2 (ADR-024): the mid-glide sample is taken in the page, two frames after the value changes —
+ // sampled from the test after two round trips, a slow runner read the 460 ms glide already at its end. Same assertions.
+ await overview.evaluate(el=>{const w=window as unknown as {__glide?:number};delete w.__glide;new MutationObserver((_,o)=>{o.disconnect();requestAnimationFrame(()=>requestAnimationFrame(()=>{w.__glide=el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left;}));}).observe(el,{attributes:true,attributeFilter:['aria-valuenow']});});
  await page.locator('.habits-workspace').getByRole('button',{name:/^Complete /}).first().click();
  await expect(overview).toHaveAttribute('aria-valuenow',String(before+1));
- const gliding=await filled(),target=await overview.evaluate(el=>Number((el as HTMLElement).style.getPropertyValue('--glass-value')));
+ await expect.poll(()=>page.evaluate(()=>typeof (window as unknown as {__glide?:number}).__glide)).toBe('number');
+ const gliding=await page.evaluate(()=>(window as unknown as {__glide:number}).__glide),target=await overview.evaluate(el=>Number((el as HTMLElement).style.getPropertyValue('--glass-value')));
  await expect.poll(()=>overview.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length)).toBe(0);
  const end=await filled();
  expect(gliding).toBeGreaterThanOrEqual(start);expect(gliding).toBeLessThan(end);

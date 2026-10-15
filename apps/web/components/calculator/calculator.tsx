@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {CountUp} from './count-up';
 import {useDeferredValue, useEffect, useMemo, useState, type ReactNode} from 'react';
 import Decimal from 'decimal.js';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
@@ -126,7 +127,7 @@ export function Calculator() {
         <SectionHeading id="calc-results-title" eyebrow={`After ${input.years} ${input.years === 1 ? 'year' : 'years'} · an estimate`} title="What it could grow to" />
         {!parsed.input && <p className="calc-stale" role="status">These figures are from your last numbers that worked. Correct the marked field to update them.</p>}
         <dl className="calc-figures" aria-live="polite">
-          <div className="calc-final"><dt>Estimated final value</dt><dd>{money(result.final)}</dd></div>
+          <div className="calc-final"><dt>Estimated final value</dt><dd style={{'--chars': money(result.final).length} as import('react').CSSProperties}><CountUp text={money(result.final)}/></dd></div>
           <div><dt>You put in</dt><dd>{money(result.contributed)}</dd></div>
           <div><dt>Growth</dt><dd>{formatSignedMoney(result.growth, input.currency)}</dd></div>
           {result.realFinal && <div><dt>In today’s money</dt><dd>{money(result.realFinal)}</dd></div>}
@@ -201,7 +202,7 @@ export function Calculator() {
       </form>
       {record.unreadable && <p className="notice" role="status">Saved scenarios on this device could not be read, so nothing is changed there.</p>}
       {scenarios.length ? <ul className="calc-scenarios">{scenarios.map(s => { const r = safeCompound(s.input); return <li key={s.id}>
-        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {s.input.years} {s.input.years === 1 ? 'year' : 'years'}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
+        <div><strong>{s.name}</strong><span>{formatMoney(s.input.start, s.input.currency)} to start, {formatMoney(s.input.contribution, s.input.currency)} {s.input.frequency === 'weekly' ? 'a week' : s.input.frequency === 'monthly' ? 'a month' : 'a year'}, {s.input.ratePercent} % for {s.input.years} {s.input.years === 1 ? 'year' : 'years'}</span>{r && <small>About {formatMoney(r.final, s.input.currency)} (estimate)</small>}</div>
         <div className="calc-scenario-actions"><button type="button" className="secondary" onClick={() => { setTouched(true); setDraft(toDraft(s.input)); document.getElementById('calc-inputs-title')?.scrollIntoView({block: 'start'}); showToast({message: `“${s.name}” is in the calculator.`}); }} aria-label={`Open ${s.name}`}>Open</button><button type="button" className="quiet" onClick={() => remove(s)} aria-label={`Remove ${s.name}`}>Remove</button></div>
       </li>; })}</ul> : <p className="calc-empty">No saved scenarios yet. Save one to compare plans later.</p>}
     </section>

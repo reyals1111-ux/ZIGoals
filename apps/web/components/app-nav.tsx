@@ -80,6 +80,8 @@ export function useFocusRescue(container: RefObject<HTMLElement | null>, key: st
     const el = container.current;
     if (!el) return;
     const onFocus = (event: FocusEvent) => { focused.current = event.target instanceof Element ? event.target : null; };
+    // Session AB-Design Phase 2: a link focused before the page hydrated (its server HTML is focusable) counts as well.
+    if (document.activeElement instanceof Element && el.contains(document.activeElement)) focused.current = document.activeElement;
     el.addEventListener("focusin", onFocus);
     return () => el.removeEventListener("focusin", onFocus);
   }, [container]);
@@ -139,9 +141,12 @@ export function AppNav() {
     if (!el) return;
     const measure = () => { const active = el.querySelector('a[aria-current="page"]'); previous.current = active ? boxOf(active, el) : null; };
     if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
+    // Session AB-Design Phase 2 closing pass (WebKit: "ResizeObserver loop completed with undelivered notifications" on
+    // Wealth): the active link is measured on the next frame, never inside the observer's own delivery.
+    let frame = 0;
+    const observer = new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); };
   }, []);
   return (
     <nav ref={nav} className="app-nav" aria-label="Main navigation">

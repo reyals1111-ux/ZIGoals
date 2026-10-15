@@ -188,6 +188,10 @@ test('motion: the idle clip plays while ZIGi waits (Calm by default, the CSS bre
 });
 
 test('idle that feels alive: under Full a variation plays now and then (never twice the same, an accent rarely), Calm keeps the base idle, typing and a hidden tab stop it', async ({page}) => {
+  // Session AB-Design Phase 2 (ADR-024): about 630 one-second clock steps, each a round trip to the browser; CI's WebKit
+  // took 30–48 s of the 60 s on AB-Cloud's runs and 52–53 s on this branch's, so it gets the slow budget its sibling
+  // zigi-simulated-day has. Every step and check is unchanged.
+  test.slow();
   // Session X-Local Part 3. A fixed random number (a test-only session key) makes the picks exact: the first variation
   // is the accent (insight), the next a glance; the gap is the upper bound (60 s). The mocked clock is advanced in
   // steps and the figure watched at each, since the alive chunk's own start is not in step with this test.

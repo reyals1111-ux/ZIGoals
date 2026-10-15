@@ -1,0 +1,60 @@
+/* Session AB-Design (owner request 18): the goal card's expander, and the rings that never let the % escape the circle. */
+.goal-card-more { margin: 6px 0 0; border-top: 1px solid var(--edge-soft, #25334f); }
+.goal-card-more > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 2px; cursor: pointer; color: var(--text-secondary, #dde7f7); font-size: 14px; font-weight: 600; }
+.goal-card-more > summary::-webkit-details-marker { display: none; }
+.goal-card-more > summary small { margin-left: auto; font-weight: 500; color: var(--text-meta, #c2d0e5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goal-card-more-chevron { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; transition: transform .2s var(--motion-glide, ease); }
+.goal-card-more[open] > summary .goal-card-more-chevron { transform: rotate(180deg); }
+.goal-card-more[open] > summary small { display: none; }
+.goal-card-more > summary:hover .goal-card-more-chevron, .goal-card-more > summary:focus-visible .goal-card-more-chevron { background: #ffffff10; }
+.goal-card-more > summary:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; border-radius: 10px; }
+/* The opened details arrive without an animation (a fake test clock never lets an animated element settle); the chevron turns. */
+.goal-card-more .goal-card-state { margin: 2px 0 0; }
+.unified-goal-card .card-footer { justify-content: flex-end; padding-top: 12px; }
+.unified-goal-card .goal-card-more .card-bottom { margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .goal-card-more-chevron { transition: none; } }
+:root[data-app-motion=off] .goal-card-more-chevron { transition: none; }
+/* Phones: the ring's figure sits inside the circle at every width (owner request 18, 40). */
+@media (max-width: 767.98px) {
+  .unified-goal-card .goal-progress { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+  .unified-goal-card .goal-progress-ring { width: 94px; height: 94px; display: grid; place-items: center; }
+  .unified-goal-card .goal-progress-ring strong { font-size: 18px; line-height: 1; white-space: nowrap; }
+  .unified-goal-card .goal-progress-ring strong > span, .unified-goal-card .goal-progress-ring small { font-size: 12px; }
+}
+
+/* Phones (owner request 40, persona #9 — a card is about a third of a screen): a smaller ring and a tighter Details row. */
+@media (max-width: 480px) {
+  .unified-goal-card .goal-progress-ring, .unified-goal-card .goal-progress .flow-ring { --ring-size: 64px; width: 64px; height: 64px; }
+  .unified-goal-card .goal-progress-ring svg { width: 64px; height: 64px; }
+  .unified-goal-card .goal-progress-ring strong { font-size: 15px; }
+  .unified-goal-card .goal-progress { margin: 2px 0 0; }
+  .unified-goal-card .goal-card-art:empty, .unified-goal-card .goal-value:empty { margin: 0; }
+  .unified-goal-card .card-top { margin-bottom: 0; }
+  .unified-goal-card { padding: 8px; }
+  .unified-goal-card > .nebula-number { line-height: 1.1; }
+  .unified-goal-card .goal-progress { gap: 10px; }
+  .unified-goal-card .goal-progress-caption { font-size: 14px; line-height: 1.25; gap: 1px; }
+  .unified-goal-card .goal-progress-caption > * { margin: 0; font-size: 14px; line-height: 1.25; }
+  .unified-goal-card .card-footer { padding-top: 0; }
+  .unified-goal-card .goal-card-more { margin-top: 0; }
+  .unified-goal-card .goal-card-more > summary { min-height: 44px; padding: 0; }
+  .unified-goal-card .card-footer { padding-top: 4px; }
+  .unified-goal-card > .nebula-number { margin: 2px 0 0; }
+}
+/* Gate C critique: the goal type is said once (the body's eyebrow beside the status pill); the scene's caption is decoration only. */
+.unified-goal-card .goal-card-art > span { display: none; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 768–1440 px): the Details row's source/status preview wraps under
+   its own right edge instead of ending in an ellipsis ("Existing wealth · active · Review needed" in a three-up row). */
+.goal-card-more > summary small { flex: 1 1 0; min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; text-align: right; line-height: 1.35; }
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): the card's foot wraps "Open Goal →" under
+   the source line when the touch layout's 44 px link no longer fits beside it, instead of running past the card. */
+.unified-goal-card .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; min-width: 0; }
+/* Gate C (design critique): inside the open details the next contribution reads like the pairs above it (label over
+   value, from the left), not as a row with its date pushed to the card's far edge. */
+.goal-card-more .goal-next-contribution { display: grid; justify-content: start; gap: 2px; margin: 0 0 10px; }
+.goal-card-more .goal-next-contribution > span { font-size: 14px; color: var(--text-secondary, #dde7f7); }
+.goal-card-more .goal-next-contribution > time { font-size: 16px; }
+/* Gate C (design critique): one chip style for every goal state — capitals throughout, and the states that ask for
+   attention (no plan, needs review, value unknown) amber, never the green of a good state. */
+.badge[data-health] { text-transform: uppercase; letter-spacing: .08em; }
+.badge[data-health="No_plan"], .badge[data-health="NEEDS_REVIEW"], .badge[data-health="Value_unknown"] { color: #ffd384; background: #46311470; border-color: #d4a65147; }

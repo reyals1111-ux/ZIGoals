@@ -84,3 +84,29 @@
 /* Session Z-Cloud Part 4.1 (persona item 1): no rail modules (Habits + Health, Habits only): one centred column at a reading width. */
 .today-page[data-single]{max-width:760px;margin-inline:auto}
 .today-page[data-single] .today-layout{grid-template-columns:minmax(0,1fr)}
+/* Phase 2 closing pass (layout audit): Today's arranging controls are full-size targets, their words 14 px. */
+.dashboard-placement-controls button,.dashboard-insert-here{min-height:44px;font-size:14px}
+/* Session AB-Design Phase 2 closing pass (layout audit, 1024 px): Today's main column beside the rail can be under 620 px;
+   two widgets side by side then got 239 px each (Habits' "Morning" split, its timer chip ran out). The widget area is a size
+   container and, below 620 px of its own width, the widgets stack. Phones keep their own compact two-up grid. */
+@media (min-width: 768px) {
+  .dashboard-widget-area { container-type: inline-size; }
+  @container (max-width: 619.98px) {
+    .dashboard-layout-grid { grid-template-columns: minmax(0, 1fr); }
+    .dashboard-layout-grid > .placed-module { grid-column: 1 / -1 !important; }
+  }
+}
+/* Session AB-Design Phase 2 closing pass (layout audit, 1280 px): a widget's money or count figure is sized from its own
+   length inside the card (--chars beside it, --ring when a ring shares the row), so "US$501,800.00" stays on one line. */
+.dashboard-widget{container-type:inline-size}
+.dashboard-widget .dashboard-metric-value>strong.is-figure{white-space:nowrap;font-size:clamp(1.1rem,min(3vw,calc((100cqi - 44px - var(--ring,0px)) / (var(--chars,10) * .6))),2.3rem)}
+/* The overview's figures, the same way (1920 px: "US$501,800.00" in a 165 px column). */
+.dashboard-summary-copy{container-type:inline-size;flex:1 1 0;min-width:0}
+.dashboard-summary-copy>strong.is-figure{white-space:nowrap;font-size:clamp(.95rem,min(1.6vw,calc(100cqi / (var(--chars,10) * .6))),1.45rem)}
+/* Session AB-Design Phase 2 closing pass (design critique, 1440 px): Today's Habits list runs far longer than the Health
+   card beside it, which left a dead area under Health; the two daily cards each take the row. */
+@media (min-width:768px){.dashboard-layout-grid>.placed-module:is([data-module="habits"],[data-module="health"]){grid-column:1/-1}}
+.widget-library-tile span{min-width:0;overflow-wrap:anywhere}.widget-library-tile small{white-space:normal}
+/* Session AB-Design Phase 2 closing pass (Gate C captures): a preset's name and line start at its left edge (the global
+   button rule centred the grid's content, leaving a gap that read as a missing icon). */
+:root .dashboard-preset-choices > button { justify-content: start; justify-items: start; align-content: start; }

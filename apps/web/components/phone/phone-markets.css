@@ -35,3 +35,9 @@
   :root .market-product-card footer .text-link { position: relative; z-index: 2; }
   :root .markets-page .market-method-note { font-size: 15px; }
 }
+/* Session AB-Design Phase 2 closing pass (layout audit, 320 px): "+ Find a market" takes its own row under the count, so it
+   never covers "Your favourites". */
+@media (max-width: 374px) {
+  :root .markets-page .markets-intro-card { grid-template-columns: auto minmax(0, 1fr); }
+  :root .markets-page .markets-intro-card > .primary { grid-column: 1 / -1; justify-self: stretch; }
+}

@@ -2,7 +2,7 @@
 import type { LayoutAttrs } from "../layout-edit";
 import { askZigi } from "../ai/ask";
 import { PlanSkip } from "./plan-skip";
-import { Suspense, lazy, memo, useEffect, useState, type FormEvent } from "react";
+import { Suspense, lazy, memo, useEffect, useRef, useState, type FormEvent, useId} from "react";
 import { takeConfirmDelete } from "../../lib/confirm-delete";
 import Link from "next/link";
 import {PinToToday} from "../pin-to-today";
@@ -23,6 +23,7 @@ import { HabitPatterns } from "./habit-patterns";
 import { habitsZone } from "../../lib/habits-v2/stats";
 import {useHabitExtrasContext} from './habit-extras-context';
 import './habits-aa.css';
+import './habits-ab.css';
 import {SwipeRow} from '../swipe/swipe-row';
 // Gate A (weight budgets never rise, ADR-022 B41): the timer, the area field, the quit panel and the note sheets are their own chunks, loaded when a card shows them.
 const HabitTimer = lazy(() => import('./habit-timer').then(m => ({default: m.HabitTimer})));
@@ -31,6 +32,8 @@ const QuitPanel = lazy(() => import('./quit-panel').then(m => ({default: m.QuitP
 const TodayNote = lazy(() => import('./today-note').then(m => ({default: m.TodayNote})));
 const Reflections = lazy(() => import('./today-note').then(m => ({default: m.Reflections})));
 const HabitDeleteForm = lazy(() => import("./habit-delete-form"));
+/** Which cards have their details open, by habit id: a card that remounts (the list re-keys after a save, a layout change, a client re-render) opens again as it was. Memory only. */
+const DETAILS_OPEN = new Map<string, boolean>();
 
 const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skipped: "Skipped", failed: "Failed", "not-scheduled": "Not scheduled", paused: "Paused", archived: "Archived", future: "Future", "planned-skip": "Planned skip", "not-started": "Before you started" };
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
@@ -107,31 +110,40 @@ export const HabitCard = memo(function HabitCard({ habit, store, scope, goalName
   const matchedGoal = habit.goalLink && habit.goalLink.chainId === scope.chainId && habit.goalLink.owner === scope.owner && goalName;
   // Session Z-Cloud Gate B (Z-Local's `plan.confirm`): a ZIGi card that asks to delete this habit opens the page with
   // #confirm-delete=habit:<id>; the card is brought into view and its own confirmation opens. Nothing is deleted here.
-  const [asked, setAsked] = useState(false);
+  const [asked, setAsked] = useState(false), [moreOpen, setMoreOpen] = useState(false), gid = useId(), moreRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
-    const look = () => { if (!takeConfirmDelete("habit", habit.id)) return; setAsked(true); const card = document.getElementById(`habit-${habit.id}`); card?.scrollIntoView({ block: "center" }); card?.focus({ preventScroll: true }); };
+    const look = () => { if (!takeConfirmDelete("habit", habit.id)) return; setAsked(true); setMoreOpen(true); DETAILS_OPEN.set(habit.id, true); if (moreRef.current) moreRef.current.open = true; const card = document.getElementById(`habit-${habit.id}`); card?.scrollIntoView({ block: "center" }); card?.focus({ preventScroll: true }); };
     look(); window.addEventListener("hashchange", look); return () => window.removeEventListener("hashchange", look);
   }, [habit.id]);
+  // A remounted or re-rendered card opens its details again if they were open (see DETAILS_OPEN); runs after every render on purpose.
+  useEffect(() => { if (DETAILS_OPEN.get(habit.id) && moreRef.current && !moreRef.current.open) { moreRef.current.open = true; setMoreOpen(true); } });
   async function state(next: "active" | "paused" | "archived") { setBusy(true); setError(""); try { await store.setState(habit.id, next,earliestHabitChange(habit,store.today),habitEditFingerprint(habit)); } catch (error) { setError(storageMessageOr(error, "The habit was not changed. Try again.")); } finally { setBusy(false); } }
   // Session AA-Local S5: on phones a swipe right completes today's check-in (never a quit or limit habit: their tap is a statement, not a tick); a swipe left reveals Edit, Skip and Archive; nothing deletes.
   const today = habitDay(habit, store.today, store.today);
   const canSwipeComplete = rule.state === "active" && rule.type === "build" && today.scheduled && today.status !== "complete";
   return <SwipeRow as="article" attrs={{...layout, tabIndex: -1, "data-tone": visualTone(habit.id)}} id={`habit-${habit.id}`} className={`panel habit-card habit-state-${rule.state}`} label={habit.title} completeLabel="Complete" onComplete={canSwipeComplete ? () => void store.smartDone(habit.id, store.today) : undefined} actions={rule.state === "active" ? [{label: "Edit", run: () => onEdit(habit.id)}, ...(today.scheduled && today.status !== "complete" && today.status !== "skipped" ? [{label: "Skip", run: () => void store.markDay(habit.id, store.today, "skipped", "Skipped · swipe")}] : []), {label: "Archive", danger: true, confirm: "Archive?", run: () => void state("archived")}] : []}>
-    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span> · {habit.category} · {habit.timeOfDay}</p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><PinToToday label={habit.title} choices={rule.state!=='archived'?[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]:[]} extra={<button type="button" onClick={() => askZigi(`About my habit "${habit.title}": `)}>Ask ZIGi about this habit</button>}/></div>
-    {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}<ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
+    <div className="habit-card-heading"><div><p className="eyebrow"><span className={`habit-type habit-type-${rule.type}`}>{rule.type.toUpperCase()}</span><span className="habit-tag"> · {habit.category}</span><span className="habit-tag habit-tag-time"> · {habit.timeOfDay}</span></p><h2>{habit.title}</h2><small>{[scheduleLabel(rule.schedule), targetCopy(habit,store.today)].filter(Boolean).join(" · ")}</small></div><button className="quiet" onClick={() => onEdit(habit.id)} aria-label={`Edit ${habit.title}`}>Edit</button><PinToToday label={habit.title} choices={rule.state!=='archived'?[{kind:'habit',metric:'today',entity:habit.id,label:`${habit.title} check-in`},{kind:'habit',metric:'streak',entity:habit.id,label:`${habit.title} streak`}]:[]} extra={<button type="button" onClick={() => askZigi(`About my habit "${habit.title}": `)}>Ask ZIGi about this habit</button>}/></div>
+    {habit.description && <p className="habit-description">{habit.description}</p>}{stackName && <p className="habit-stack">After {stackName} → {habit.title}</p>}
     {planned.from>store.today&&<p className="notice">Scheduled change from {planned.from}: {planned.state} · {plain(planned.target)} {unitFor(planned.target, measurementUnit(planned))} per {habitTargetPeriod(planned)}. Today keeps its current rule.</p>}
-    <HabitCompletion habit={habit} store={store} />
-    {rule.type === "quit" && extras && <Suspense fallback={null}><QuitPanel habit={habit} today={store.today} extras={extras} /></Suspense>}
-    {rule.state === "active" && <Suspense fallback={null}><TodayNote habit={habit} store={store} /></Suspense>}
-    <Suspense fallback={null}><HabitTimer habit={habit} store={store}/></Suspense>
-    {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
-    {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
-    <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
-    <div className="habit-cadence" role="img" aria-label={`Last 28 days of ${habit.title}. Open History to review each day.`}>{Array.from({ length: 28 }, (_, index) => { const date = addLocalDays(store.today, index - 27); const result = habitDay(habit, date, store.today); return <span key={date} className={`habit-dot habit-day-${result.status}`} title={`${date}: ${statusLabel[result.status]}`} />; })}</div>
-    {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
-    <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
-    {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
-    <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management">{extras && <Suspense fallback={null}><HabitAreaField habitId={habit.id} title={habit.title} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} /></Suspense>}<button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{rule.state === "archived" && onDeleteForGood && <DeleteForGood habit={habit} onDelete={onDeleteForGood} asked={asked} />}{planned.state === "archived" && rule.state !== "archived" && <p className="fine">“Delete for good…” appears here once the archive starts ({planned.from}).</p>}{asked && planned.state !== "archived" && <p className="fine" role="status">To delete this habit for good, archive it first; then “Delete for good…” appears here.</p>}{error && <p role="alert">{error}</p>}
+    <HabitCompletion habit={habit} store={store} part="controls" />
+    {/* Session AB-Design (owner request 20, ADR-024 D17): the first view is the heading, the counter and today's progress; everything else waits behind one expander, in this order. */}
+    {/* Uncontrolled on purpose: a tap on the summary before hydration must not be undone when React takes over (a controlled `open` re-applied its initial false); the ZIGi delete flow opens it through the ref. */}
+    <details className="habit-more" ref={moreRef} onToggle={(event) => { setMoreOpen(event.currentTarget.open); DETAILS_OPEN.set(habit.id, event.currentTarget.open); }}>
+     <summary aria-label={`Details for ${habit.title}`}><span className="habit-more-chevron" aria-hidden="true"><svg viewBox="0 0 22 12" width="18" height="10" focusable="false"><defs><linearGradient id={`${gid}-chev`} x1="0" x2="1"><stop offset="0" stopColor="var(--brand-cyan, #63e7ff)"/><stop offset=".5" stopColor="var(--brand-violet, #826cff)"/><stop offset="1" stopColor="var(--brand-magenta, #c664ff)"/></linearGradient></defs><path d="M3 3l8 6 8-6" fill="none" stroke={`url(#${gid}-chev)`} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span className="habit-more-word">{moreOpen ? "Less" : "Details"}</span><small>{[habit.timer ? "timer" : null, "notes", "trends", "history"].filter(Boolean).join(" · ")}</small></summary>
+     <ChallengeLine habit={habit} today={store.today} /><ChallengeFinished habit={habit} store={store} />
+     <HabitCompletion habit={habit} store={store} part="quick-log" />
+     {rule.type === "quit" && extras && <Suspense fallback={null}><QuitPanel habit={habit} today={store.today} extras={extras} /></Suspense>}
+     {rule.state === "active" && <Suspense fallback={null}><TodayNote habit={habit} store={store} /></Suspense>}
+     <Suspense fallback={null}><HabitTimer habit={habit} store={store}/></Suspense>
+     {privateGoal&&<LinkedGoalReview habit={habit} goal={privateGoal} store={store}/>}
+     {onViewStack&&stackNext?.map(next=><p className="habit-stack" key={next.id}>Next in your stack: <button className="quiet" type="button" onClick={()=>onViewStack(next.id)}>View {next.title}</button> · suggestion only; nothing logged.</p>)}
+     <details className="habit-details habit-insight-details"><summary>Consistency &amp; trends</summary><HabitInsights habit={habit} today={store.today} zone={habitsZone(store.data)} /></details>{rule.state !== "archived" && <ChallengeControls habit={habit} store={store} />}
+     <div className="habit-cadence" role="img" aria-label={`Last 28 days of ${habit.title}. Open History to review each day.`}>{Array.from({ length: 28 }, (_, index) => { const date = addLocalDays(store.today, index - 27); const result = habitDay(habit, date, store.today); return <span key={date} className={`habit-dot habit-day-${result.status}`} title={`${date}: ${statusLabel[result.status]}`} />; })}</div>
+     {habit.goalLink && <p className="habit-goal-link">{matchedGoal && goalHref ? <Link href={goalHref}>Supports {goalName} ↗</Link> : "Goal link retained · another scope or unavailable Goal"}</p>}
+     <details className="habit-details" onToggle={(event) => { if (event.currentTarget.open) setHistoryOpen(true); }}><summary>History &amp; reflection</summary>{historyOpen && <HabitHistory habit={habit} store={store} />}</details>
+     {habit.notes && <details className="habit-details"><summary>Private habit notes</summary><p className="habit-notes">{habit.notes}</p></details>}
+     <p className="fine">Pause, resume and archive changes begin {earliestHabitChange(habit,store.today)}. Today’s recorded history stays unchanged.</p><div className="habit-management">{extras && <Suspense fallback={null}><HabitAreaField habitId={habit.id} title={habit.title} extras={extras} keep={new Set((store.journalData?.().habits ?? [habit]).map(h => h.id))} /></Suspense>}<button className="quiet" disabled={busy} onClick={() => void state(planned.state === "active" ? "paused" : "active")}>{planned.state === "archived" ? "Restore habit" : planned.state === "paused" ? "Resume habit" : "Pause habit"}</button>{planned.state !== "archived" && <button className="quiet" disabled={busy} onClick={() => void state("archived")}>Archive habit</button>}</div>{rule.state === "archived" && onDeleteForGood && <DeleteForGood habit={habit} onDelete={onDeleteForGood} asked={asked} />}{planned.state === "archived" && rule.state !== "archived" && <p className="fine">“Delete for good…” appears here once the archive starts ({planned.from}).</p>}{asked && planned.state !== "archived" && <p className="fine" role="status">To delete this habit for good, archive it first; then “Delete for good…” appears here.</p>}{error && <p role="alert">{error}</p>}
+    </details>
   </SwipeRow>;
 });
 /**

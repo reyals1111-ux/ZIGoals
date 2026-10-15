@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {alphaNotice,expectAlphaFacts,footerDisclaimer} from './ab-shell';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {createEmptyHealth,HEALTH_STORAGE_KEY} from '../lib/health';
 import {ACCOUNT_SELECTOR} from '../lib/account-session';
@@ -9,14 +10,12 @@ const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/ap
 const UNREADABLE='Private data could not be read. It has not been changed.';
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function expectBanners(page:Page,path:string){
- await expect(page.locator('.app-topbar'),path).toBeVisible();
- // Session Z-Cloud Part 4.3: without a wallet the label says practice money (the testnet's words return with Keplr).
- await expect(page.locator('.app-topbar .network-banner strong'),path).toHaveText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
- await expect(page.locator('.mode-strip'),path).toContainText('LOCAL SIMULATION');
- // Part 4.2: on a phone with scripts both are one status line that opens them in full; elsewhere both show in place.
- const line=page.locator('.phone-status-line');
- if(await line.isVisible())await expect(line,path).toHaveText('Demo · no real money');
- else{await expect(page.locator('.app-topbar .network-banner'),path).toBeVisible();await expect(page.locator('.mode-strip'),path).toBeVisible();}
+ // Session AB-Design (owner request 8, ADR-024 D7; assertion re-pointed, as strict): the compact notice at the top and the
+ // footer's disclaimer line carry the label, the sentence and the mode on every page; without a wallet the label says
+ // practice money (Session Z-Cloud Part 4.3).
+ await expectAlphaFacts(page,path);
+ await expect(alphaNotice(page),path).toBeVisible();
+ await expect(footerDisclaimer(page).locator('.mode-strip'),path).toBeVisible();
 }
 
 const stores=[
@@ -62,5 +61,5 @@ test('a readable Health/Habits-only Today still hides the financial bars, as cho
  await page.addInitScript(({key,value})=>{if(!sessionStorage.getItem('fixture-seeded')){localStorage.setItem(key,value);sessionStorage.setItem('fixture-seeded','1');}},{key:DASHBOARD_SETTINGS_KEY,value:JSON.stringify(presetSettings('habits-health'))});
  await page.goto('/app/habits');await expect(page.locator('main h1').first()).toBeVisible();
  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');
- await expect(page.locator('.app-topbar')).toHaveCount(0);await expect(page.locator('.mode-strip')).toHaveCount(0);
+ await expect(alphaNotice(page)).toHaveCount(0);await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
 });

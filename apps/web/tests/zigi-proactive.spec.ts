@@ -136,8 +136,10 @@ test('Today: the brief card only with ZIGi on, at the lowest priority; "Not toda
   const forYou = page.getByRole('region', {name: 'For you'});
   await expect(forYou).toBeVisible();
   const showMore = forYou.getByRole('button', {name: /^Show more/});
-  if (await showMore.count()) await showMore.click();
   const card = forYou.getByRole('article', {name: "ZIGi's morning brief"});
+  // Session AB-Design Phase 2 (ADR-024): For you's cards can arrive a moment after the region (a slow WebKit run checked
+  // for "Show more" before it existed); it is opened whenever it shows, until the lowest-priority brief is there.
+  await expect.poll(async () => { if (await showMore.isVisible()) await showMore.click(); return card.count(); }, {timeout: 15_000}).toBe(1);
   await expect(card).toContainText('Made on this device from your records · no AI used');
   expect(await stored(page, ZIGI_KEY)).toBeNull();
   await card.getByRole('button', {name: 'Not today'}).click();

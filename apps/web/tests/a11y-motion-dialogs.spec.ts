@@ -1,4 +1,5 @@
 import {expect,test,type Page} from '@playwright/test';
+import {openFilm} from './ab-shell';
 
 // Accessibility follow-ups for the new motion and dialogs (2026-09-29 review).
 async function showcase(page:Page){
@@ -29,7 +30,7 @@ test('after Quick add navigates away from Today, focus lands on the new page, no
 
 test('the brand film has an accessible name and a one-line summary that says it has no speech',async({page})=>{
  await showcase(page);
- await page.locator('.today-hero').getByRole('button',{name:'See how it works',exact:true}).click();
+ await openFilm(page); // Session AB-Design: through the how-to
  const dialog=page.getByRole('dialog',{name:'ZIGoals brand film',exact:true});
  await expect(dialog.getByText('Music and on-screen words, no speech.',{exact:false})).toBeVisible();
  await expect(dialog.locator('video')).toHaveAccessibleName('ZIGoals brand film (music and on-screen words, no speech)');

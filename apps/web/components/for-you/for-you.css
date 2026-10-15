@@ -17,3 +17,6 @@
 .wrap-up-form { display: grid; gap: 10px; }
 /* Session W Part 24: the previous release's links fold under one 44 px row. */
 .whats-new-earlier { margin: 0 0 10px; }.whats-new-earlier > summary { min-height: 44px; display: flex; align-items: center; font-size: 15px; cursor: pointer; }.whats-new-earlier[open] > summary { margin-bottom: 4px; }
+/* Session AB-Design Phase 2 closing pass (Gate C captures): the release's items are whole sentences; from tablet width
+   they read as two columns of short lines instead of seven narrow ones (phones keep their layout). */
+@media (min-width: 768px) { .whats-new-links { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; } .whats-new-links a { text-wrap: pretty; } }

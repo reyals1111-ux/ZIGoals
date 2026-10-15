@@ -29,6 +29,7 @@ import {healthGroupIn} from '../../lib/vault/w-homes';
 import './reminders.css';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {LoadBoundary} from '../load-boundary';
+import {everyHalfMinute} from '../half-minute';
 
 /**
  * Reminder cards on Today (Session I, Part 8): in-app only (no notification, no permission), from the times set on
@@ -54,12 +55,12 @@ export function ReminderCards({habits, health}: {habits?: HabitData; health?: He
   useEffect(() => {
     const tick = () => setNow(new Date());
     queueMicrotask(tick);
-    const timer = window.setInterval(tick, 30_000);
+    const stop = everyHalfMinute(tick);
     // The push-only service worker (ADR-010) posts this when a reminder arrives while the app is open.
     const onMessage = (event: MessageEvent) => { if (event.data?.type === 'zigoals:push-reminder') tick(); };
     const worker = typeof navigator !== 'undefined' ? navigator.serviceWorker : undefined;
     worker?.addEventListener('message', onMessage);
-    return () => { window.clearInterval(timer); worker?.removeEventListener('message', onMessage); };
+    return () => { stop(); worker?.removeEventListener('message', onMessage); };
   }, []);
   if (!reminders.loaded || !now) return null;
   const due = dueReminders({reminders: reminders.data, habits, health, now});

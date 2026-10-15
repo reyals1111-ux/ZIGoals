@@ -1,0 +1,19 @@
+/* Session AB-Design (owner request 17): the artwork picker. */
+.goal-art-dialog { width: min(820px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid #a9c9ff44; border-radius: 24px; background: linear-gradient(150deg, #0d1a30fa, #140f2efa); color: var(--text); box-shadow: 0 30px 80px -20px #000d; overflow: auto; }
+.goal-art-dialog::backdrop { background: #01050dc7; }
+.goal-art-card { padding: 22px 22px 18px; display: grid; gap: 18px; }
+.goal-art-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.goal-art-head .eyebrow { margin: 0 0 4px; }
+.goal-art-head h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+.goal-art-head .quiet { flex: none; width: 44px; height: 44px; padding: 0; font-size: 24px; line-height: 1; }
+.goal-art-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.goal-art-option { display: grid; gap: 6px; padding: 6px 6px 8px; border: 1px solid #8fb6ff2a; border-radius: 14px; background: #ffffff07; color: var(--text-secondary, #dde7f7); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+.goal-art-option[aria-checked="true"] { border-color: transparent; background: linear-gradient(140deg, #0f1c33, #1a1633) padding-box, linear-gradient(120deg, var(--brand-cyan), var(--brand-violet), var(--brand-magenta)) border-box; color: var(--text-strong, #f4f8ff); box-shadow: 0 0 18px -4px #9273ff99; }
+.goal-art-option:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+.goal-art-thumb { display: block; height: 72px; border-radius: 10px; overflow: hidden; }
+.goal-art-thumb .scene-art { width: 100%; height: 100%; }
+.goal-art-foot { display: grid; gap: 8px; }
+.goal-art-foot .fine { margin: 0; }
+.goal-art-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.goal-art-actions button { min-height: 44px; }
+@media (max-width: 540px) { .goal-art-card { padding: 16px 14px 14px; } .goal-art-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } .goal-art-thumb { height: 58px; } .goal-art-option { font-size: 13px; } .goal-art-actions { flex-direction: column-reverse; } .goal-art-actions button { width: 100%; } }
