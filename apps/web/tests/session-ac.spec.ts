@@ -178,5 +178,9 @@ test.describe('item 7: a vision tile\'s own image', () => {
     await tile.getByRole('button', {name: 'Back to the illustration', exact: true}).click();
     await expect(tile.locator('img[src^="blob:"]')).toHaveCount(0);
     await expect(tile.locator('img[src^="/showcase/vision/"]')).toHaveCount(1);
+    // ⋯ and "Open Goal →" (shown on hover and focus, always on touch) never cover each other.
+    await tile.hover();
+    const options = (await tile.getByRole('button', {name: /^Options for /}).boundingBox())!, open = (await tile.getByRole('link', {name: 'Open Goal →'}).boundingBox())!;
+    expect(options.x + options.width <= open.x || open.x + open.width <= options.x || options.y + options.height <= open.y || open.y + open.height <= options.y).toBe(true);
   });
 });

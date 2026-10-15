@@ -43,6 +43,7 @@
 :root .vision-tile-link-out { display: inline-flex; align-items: center; min-height: 44px; background: #020918f5; color: #e9f6ff; border: 1px solid #9fd6ff40; }
 /* Session AC (the owner's decision of 2026-10-15): each tile's ⋯ (Change image, and the way back) sits in its top-right
    corner over the picture, a 44 px target; the picture keeps the tile's size and is cropped to cover it. */
-:root .vision-tile-options { position: absolute; top: 10px; right: 10px; z-index: 3; }
+/* Top-left: the top-right corner holds "Open Goal →" (on hover and focus, and always on touch screens). */
+:root .vision-tile-options { position: absolute; top: 10px; left: 10px; z-index: 3; }
 :root .vision-tile-options .card-options-trigger { min-width: 44px; min-height: 44px; background: #0a1020cc; }
-:root .vision-tile-options .card-options-panel { right: 0; left: auto; }
+:root .vision-tile-options .card-options-panel { left: 0; right: auto; }
