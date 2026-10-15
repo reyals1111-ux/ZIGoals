@@ -29,7 +29,7 @@ The final build (`09b2d307`) in the Showcase at the same four widths: `gate-c/<w
 Before = Phase 1's final build in named states (`phase-2/before/<width>/<state>`); after = the same states at Phase 2's Gate C (`phase-2/after/`). The proof table lives in `docs/product/OWNER_UI_REQUESTS_AB.md` ("Phase 2 proof").
 
 ### Phase 2 — after (Gate C, the final build)
-Captured 2026-10-15 from the production build of `feature/session-ab-design` at `0179533f` (Showcase, Europe/Brussels,
+Captured 2026-10-15 from the production build of `feature/session-ab-design` at `30806b17` (re-shot after the critique's round 2) (Showcase, Europe/Brussels,
 1440 × 900, 1024 × 900, 390 × 844 and 320 × 844 iPhone-sized). `phase-2/after/<width>/<state>.(png|jpg)`: `.png` is the
 window or one element, `.jpg` the full page (in full-page captures the sticky sidebar and the phone's fixed bars are
 drawn once, a capture artefact). Element shots hide the fixed chrome (the phone top bar and the floating buttons).
