@@ -80,6 +80,8 @@ export function useFocusRescue(container: RefObject<HTMLElement | null>, key: st
     const el = container.current;
     if (!el) return;
     const onFocus = (event: FocusEvent) => { focused.current = event.target instanceof Element ? event.target : null; };
+    // Session AB-Design Phase 2: a link focused before the page hydrated (its server HTML is focusable) counts as well.
+    if (document.activeElement instanceof Element && el.contains(document.activeElement)) focused.current = document.activeElement;
     el.addEventListener("focusin", onFocus);
     return () => el.removeEventListener("focusin", onFocus);
   }, [container]);

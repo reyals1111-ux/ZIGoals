@@ -421,6 +421,20 @@ match its own 60 s spawn limit (vitest's default 5 s had ended a wrangler run un
 tells the browser it cannot share files, so the device-side save path it tests runs everywhere (a Chrome that can share
 files opened a share sheet a headless run never settles).
 
+### CI: the browser suite in four shards ([TIER 3] (CI), 2026-10-15)
+The browser suite's first shard (911 tests) took 54 min on `7162a9d2` (run 38649650159) and then reached its 60-minute
+limit with 905 tests done on `2879a361` (run 38663559069): every spec there ran about 35 % slower than on `1c91509b`'s
+runner, and nothing between the two heads touched a shared path, so it was the runner, with the suite at the edge of its
+budget. Same remedy as the Alpha gate's (the owner's rule for a job at its limit: split, never drop or weaken): the same
+suite, the same two workers, in four shards instead of three (`--shard=N/4`), so each does about three quarters of a
+former shard and the 60 minutes keep about 40 % headroom, as each earlier raise in that job's comment did. The required
+checks are `web`, `contract` and `compare` (the `web` aggregate needs `web-browser` as a whole), so no required name
+changes. Risk: none to coverage (Playwright's sharding covers every test once). Rollback: revert the commit.
+In the same run, `pages-visibility` "a focused navigation entry that disappears hands focus to the page" failed once
+(10 of 10 locally): on a slow runner the link can take focus before the page hydrates, when the navigation's `focusin`
+listener is not yet attached, so the focus was never recorded. The navigation now also records a focus already inside it
+when the listener attaches (a person can focus the server HTML's link too); the test is unchanged.
+
 ### CI: WebKit time on this branch, and one 30-second clock (closing pass, 2026-10-15)
 CI's WebKit shards ran about 40 % longer on this branch than on AB-Cloud's pre-merge runs (median ≈ 28 min against
 ≈ 19.5 min, from the job logs), and `zigi-simulated-day` (phone) timed out at its 180 s on nine of nine branch runs (once
