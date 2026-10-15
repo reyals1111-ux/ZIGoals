@@ -319,9 +319,10 @@ their own line with " · "; the What's new card set its whole-sentence items in 
 from tablet width; phones unchanged, so Today's asserted screen count is untouched); the "Make Today yours" presets
 centred their text in the button grid, leaving a gap that read as a missing icon; Sleep's six figures sat five in a row
 and one alone; the phone More sheet's theme bar let the selected Dark cover Customize's "Soon" tag (columns sized to
-their words, the tags under the labels on phones); the browser's own checkbox drew a flat grey square on the dark cards
-(one drawn checkbox, its geometry pinned like the radio's; switches keep theirs); the pillar headers' ledes balance
-their lines. Capture-tool fixes (not product): element shots hide the fixed chrome that a capture taller than the
+their words, the tags under the labels on phones); the pillar headers' ledes balance their lines. Tried and reverted: a
+drawn checkbox in place of the browser's grey square — the full suite showed it moves layouts app-wide (the native box's
+margin had kept label rows at 24 px; the consent checkbox is asserted at 22 px), so the native checkbox stays, with the
+app's accent colour, as it was through every earlier gate. Capture-tool fixes (not product): element shots hide the fixed chrome that a capture taller than the
 window stamps into its middle; the routine player adds a routine first; a coin's page is reached by opening its row;
 Wealth's chart opens its phone fold; the sidebar's end, the year view and the More sheet's end are captured too.
 
