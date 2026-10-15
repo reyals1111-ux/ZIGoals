@@ -71,9 +71,18 @@ test('Today: a person’s own arrangement shows as saved, without group headings
   await expect(page.locator('.today-group-heading')).toHaveCount(0);
   // Gate C audit: arrange for real: the second module moves first, is saved, and survives a reload, without headings.
   const second = page.locator(`.dashboard-layout-grid > .placed-module[data-module="${before[1]}"]`);
-  // Session AC: by default the second shown module is the habits widget (Daily Habits' twin), whose own ⋯ moves it.
-  if (await second.locator('.dashboard-builtin-options').count()) { await second.locator('.dashboard-builtin-options .card-options-trigger').click(); await second.getByRole('button', {name: 'Move earlier'}).click(); }
-  else { await second.locator('.card-options-trigger').first().click(); await second.getByRole('button', {name: /^Move .+ up$/}).filter({hasText: 'Move earlier'}).click(); }
+  // Session AC: by default the second shown module is the habits widget (Daily Habits' twin), whose own ⋯ moves it. While
+  // arranging, the hidden Daily Habits is listed right before it, so each "Move earlier" is one step in that full list
+  // (asserted per step) and the twin passes the hidden card, then the first module.
+  const arranged = () => page.locator('.dashboard-layout-grid > .placed-module[data-module]').evaluateAll(list => list.map(e => e.getAttribute('data-module')));
+  const start = await arranged(), from = start.indexOf(before[1]!), to = start.indexOf(before[0]!);
+  expect(to).toBeGreaterThanOrEqual(0); expect(from).toBeGreaterThan(to);
+  for (let step = 0; step < from - to; step++) {
+    const now = await arranged(), at = now.indexOf(before[1]!);
+    if (await second.locator('.dashboard-builtin-options').count()) { await second.locator('.dashboard-builtin-options .card-options-trigger').click(); await second.getByRole('button', {name: 'Move earlier'}).click(); }
+    else { await second.locator('.card-options-trigger').first().click(); await second.getByRole('button', {name: /^Move .+ up$/}).filter({hasText: 'Move earlier'}).click(); }
+    await expect.poll(arranged).toEqual([...now.slice(0, at - 1), now[at], now[at - 1], ...now.slice(at + 1)]);
+  }
   await expect.poll(modules).toEqual([before[1], before[0], ...before.slice(2)]);
   await page.getByRole('button', {name: 'Finish customizing', exact: true}).click();
   await page.reload();

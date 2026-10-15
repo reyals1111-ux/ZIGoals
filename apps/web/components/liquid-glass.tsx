@@ -31,6 +31,9 @@ const kindOf = (el: Element): Kind => REGISTRY.find(([, selector]) => el.matches
  * one would turn several screens of content into its own layer, redrawn on every frame. Cards up to a little over
  * a screen tall lift.
  */
+/** A text field, while focused, keeps the card around it still (its own focus ring is the cue). */
+const TYPING = 'input:not([type=checkbox],[type=radio],[type=button],[type=submit],[type=range]),textarea,select,[contenteditable]';
+const typingIn = (el: Element) => { const active = document.activeElement; return !!active && active.matches(TYPING) && el.contains(active); };
 const liftable = (el: Element) => !(el instanceof SVGElement) && (kindOf(el) !== 'card' || el.getBoundingClientRect().height <= Math.max(900, innerHeight * 1.25));
 /**
  * Rows (list entries, table-like lines, tracks) never move: they get a rounded glass pill instead. A row whose content
@@ -130,7 +133,7 @@ export function LiquidGlass() {
       if (next.inner === lifted[0]) return;
       // Moving between controls of the same card keeps the card up; anything else settles first.
       if (lifted.length && !focusSource && !lifted.some(el => el === next.inner || el === next.card)) set(null);
-      intent = window.setTimeout(() => { if (!pressed && !dragging()) set(next); }, INTENT_MS);
+      intent = window.setTimeout(() => { if (!pressed && !dragging() && !typingIn(next.card ?? next.inner)) set(next); }, INTENT_MS);
     };
     // Where the pointer last was: content moving under a still pointer (focus scrolled the page, a section loaded) fires
     // pointerover at the same spot, and must not take a keyboard focus lift away from the focused element.
@@ -160,7 +163,9 @@ export function LiquidGlass() {
     const onFocusIn = (event: FocusEvent) => {
       const el = event.target as HTMLElement;
       // Typing keeps its own focus ring; the card around a text field stays still.
-      if (dragging() || !el.matches?.(':focus-visible') || el.matches('input:not([type=checkbox],[type=radio],[type=button],[type=submit],[type=range]),textarea,select,[contenteditable]')) return;
+      // Session AC: a pointer resting over that card does not lift it while the field has focus either.
+      if (el.matches?.(TYPING)) { if (lifted.some(l => l.contains(el))) clear(); return; }
+      if (dragging() || !el.matches?.(':focus-visible')) return;
       set(targetsFor(el), true);
     };
     const onFocusOut = () => { if (focusSource) clear(); };
