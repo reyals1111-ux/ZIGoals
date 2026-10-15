@@ -6,7 +6,7 @@ import {createEmptyHealth, HEALTH_STORAGE_KEY, saveWeight} from '../lib/health';
 import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY, presetSettings, WIDGET_CATALOG, type DashboardSettings} from '../lib/dashboard-settings';
 import {localDate} from '../lib/local-date';
-import {isPhone, mainNav, openMore} from './phone-nav';
+import {isPhone,mainNav,openMore,openFold} from './phone-nav';
 
 // Session Z-Cloud Part 4: the owner's persona decisions (docs/product/PERSONA_DECISIONS_Y.md items 1–3 and 5–12; item 4
 // skipped), built. Fictional records; every /api request is answered by a fixture.
@@ -93,27 +93,36 @@ test('3. plain words without a wallet: practice money, Demo records, "Give your 
   await expectAlphaMode(page, 'LOCAL SIMULATION');
 });
 
-test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked', async ({page}) => {
+test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Debts · Assets and Portfolio linked', async ({page}) => {
+  // Session AC (the owner's decision of 2026-10-15, "show each thing once"): the compact list, "Your assets" and
+  // "Accounts, debts & net worth" are one list with one row of chips; each row is the full card or account row with its
+  // actions. As strict as before: the same counts per chip, the debts and accounts by name, the asset links, Portfolio.
   await showcase(page);
   await page.goto('/app/wealth');
-  const have = page.getByRole('region', {name: 'What you have'});
+  const have = page.getByRole('region', {name: 'What you have', exact: true});
   await have.scrollIntoViewIfNeeded();
   await expect(have).toBeVisible();
-  const rows = have.locator('.what-you-have-list > li');
+  if (await isPhone(page)) await openFold(page, 'Accounts, debts & net worth');
+  const rows = have.locator('.owned-asset-card, .accounts-group .accounts-list > li');
   const filter = (name: string) => have.getByRole('group', {name: 'Show'}).getByRole('button', {name: new RegExp(`^${name} \\d+$`)});
   await expect(filter('All')).toHaveAttribute('aria-pressed', 'true');
   const all = await rows.count();
   await filter('Debts').click();
   await expect(rows).toHaveCount(2);
-  await expect(rows.filter({hasText: 'Car loan'})).toContainText(/-\$/);
+  await expect(rows.filter({hasText: 'Car loan'}).getByRole('button', {name: /Record a payment/})).toBeVisible();
   await expect(rows.filter({hasText: 'Credit card'})).toBeVisible();
+  await expect(have.locator('.owned-asset-card')).toHaveCount(0);
   await filter('Accounts').click();
   await expect(rows).toHaveCount(3);
   await expect(rows.filter({hasText: 'Rainy-day savings'})).toBeVisible();
   await filter('Assets').click();
   expect(await rows.count()).toBe(all - 5);
-  await expect(rows.first().getByRole('link')).toHaveAttribute('href', /^\/app\/wealth\/asset\//);
+  await expect(have.locator('.accounts-section')).toHaveCount(0);
+  await expect(rows.first().locator('a.owned-card-link')).toHaveAttribute('href', /^\/app\/wealth\/asset\//);
   await expect(have.getByRole('link', {name: 'Open Portfolio →'})).toHaveAttribute('href', '/app/portfolio');
+  // The chips' counts are the rows each one shows.
+  await filter('All').click();
+  await expect(filter('All')).toHaveAccessibleName(new RegExp(`^All ${all}$`));
 });
 
 test('6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds', async ({page}) => {

@@ -10,6 +10,7 @@ import {GoalTreeView, GoalsFigures} from './goals-overview';
 // Gate C weights: the Vision board is its own chunk, fetched only in its view (Goals sat 1.6 kB over its budget; budgets are never raised).
 const VisionBoard = lazy(() => import('./vision-board').then(m => ({default: m.VisionBoard})));
 import {useGoalExtras} from './use-goal-extras';
+import {setGoalVision} from '../../lib/goal-extras/store';
 import {Skeleton} from '../ui/skeleton';
 
 /**
@@ -26,6 +27,6 @@ export function GoalsAltView({view, goals, averages, ...layout}: Props & LayoutA
   const extras = useGoalExtras(), health = useHealth(), today = useLocalToday();
   const all = [...goals, ...averages.map(g => averageSummary(g, health.loaded && !health.error ? health.data : undefined, today))];
   return <div className="goals-alt-view" {...layout}>
-    {view === 'board' ? <Suspense fallback={<Skeleton label="Opening your vision board…" block lines={2}/>}><VisionBoard goals={all} extras={extras.data} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} />}
+    {view === 'board' ? <Suspense fallback={<Skeleton label="Opening your vision board…" block lines={2}/>}><VisionBoard goals={all} extras={extras.data} onVision={(goalKey, vision, message) => extras.change(goalKey, x => setGoalVision(x, goalKey, vision, new Date().toISOString()), message)} /></Suspense> : <GoalTreeView goals={all} extras={extras.data} />}
   </div>;
 }

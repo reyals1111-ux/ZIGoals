@@ -120,10 +120,17 @@ test('N6: pasted recipe text becomes confirmable rows, then foods and a recipe; 
 
 test('N9–N12: a custom measurement, the sleep score, the water ring and the insight cards', async ({page}) => {
   await seed(page); await page.goto('/app/health');
-  const water = page.getByRole('region', {name: /A sip at a time/});
+  // Session AC (the owner's decision of 2026-10-15): one Water card. The ring heads the Water journal; its one-tap sizes
+  // were the journal's own buttons (the same Quick logging sizes), so the journal's "Add 250 mL" is the one tap, now with
+  // Undo. As strict: the ring's figure before and after the tap, and Undo takes the entry back out.
+  const water = page.getByRole('region', {name: 'Water journal', exact: true});
+  await expect(water.getByText('A sip at a time.')).toBeVisible();
   await expect(water.getByRole('img', {name: '500 mL of 2,000 mL today'})).toBeVisible();
-  await water.getByRole('button', {name: '+ 250 mL', exact: true}).click();
+  await water.getByRole('button', {name: 'Add 250 mL', exact: true}).click();
   await expect(water.getByRole('img', {name: '750 mL of 2,000 mL today'})).toBeVisible();
+  await page.getByRole('button', {name: 'Undo', exact: true}).click();
+  await expect(water.getByRole('img', {name: '500 mL of 2,000 mL today'})).toBeVisible();
+  await expect(page.getByRole('region', {name: /A sip at a time/})).toHaveCount(0);
   await view(page, 'Insights');
   await expect(page.getByRole('heading', {name: 'Best-protein days'})).toBeVisible();
   await expect(page.getByRole('heading', {name: 'Weekdays and weekends'})).toBeVisible();
