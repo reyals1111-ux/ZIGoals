@@ -204,15 +204,18 @@ test.describe('Part 2: personal layouts',()=>{
  test('Today moves go through the synced Today placement and Reset restores its default order',async({page})=>{
   await showcase(page);
   await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
-  const initial=await order(page,'today:main');
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   // Unlocking Today is the existing Customize mode.
   await expect(page.getByRole('heading',{name:'Arrange your daily space'})).toBeVisible();
+  // Session AC: the order is read while arranging, where the default's hidden twins (Daily Habits, the Next Goal action)
+  // are listed with "Show card"; a move steps past a hidden card as past any other.
+  const initial=await order(page,'today:main');
   await page.getByRole('button',{name:`Move Whole-life overview down`,exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
   await page.reload();await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
-  expect(await order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
-  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();await page.getByRole('button',{name:'Reset this page',exact:true}).click();
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await page.getByRole('button',{name:'Reset this page',exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual(initial);
  });
  test('dragging a Goal card with the mouse reorders the collection',async({page,isMobile})=>{

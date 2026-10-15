@@ -65,8 +65,11 @@ export async function closeFormSheet(page:Page){
  */
 export async function openTodayWidgets(page:Page){
  if(!await isPhone(page))return;
- const modules=page.locator('.today-page .placed-module[data-kind="widget"]');
+ // Session AC: a widget standing in for its hidden built-in (the habits list for Daily Habits) shows open as that built-in
+ // does, so the rows are counted on the other widgets; the stand-in must have no row and its card in view.
+ const modules=page.locator('.today-page .placed-module[data-kind="widget"]:not([data-stands-in])');
  await expect(modules.first()).toBeAttached();
+ for(const standIn of await page.locator('.today-page .placed-module[data-stands-in]').all()){await expect(standIn.locator('.phone-fold-toggle')).toHaveCount(0);await expect(standIn.locator('article.dashboard-widget')).toBeVisible();}
  if(await page.getByRole('button',{name:'Finish customizing',exact:true}).isVisible())return;
  // Session AB-Design Phase 2 (ADR-024): both counts read together until they agree, so a widget that mounts a moment later
  // (a lazy part) is counted on both sides; still exactly one fold per widget.

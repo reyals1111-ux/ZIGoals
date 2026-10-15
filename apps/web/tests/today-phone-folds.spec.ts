@@ -15,7 +15,9 @@ async function showcase(page: Page) {
   await page.waitForURL('**/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
 }
-const widgetModules = (page: Page) => page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]');
+// Session AC (deliberate, the owner's "each thing once"): the habits widget stands in for the hidden Daily Habits by default
+// and shows open as Daily Habits did on a phone (asserted below); every other widget folds to a row as before.
+const widgetModules = (page: Page) => page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"]:not([data-stands-in])');
 
 test('every widget card is a row named by it; the overview still shows every value', async ({page}) => {
   await showcase(page);
@@ -23,7 +25,10 @@ test('every widget card is a row named by it; the overview still shows every val
   expect(count).toBeGreaterThan(1);
   const overview = page.getByRole('region', {name: 'Your selected widgets'});
   await expect(overview).toBeVisible();
-  await expect(overview.getByRole('link')).toHaveCount(count);
+  const standIn = page.locator('.placed-module[data-stands-in="habits"]');
+  await expect(standIn).toHaveCount(1); await expect(standIn.locator('.phone-fold-toggle')).toHaveCount(0);
+  await expect(standIn.locator('.habits-today')).toBeVisible();
+  await expect(overview.getByRole('link')).toHaveCount(count + 1);
   for (let i = 0; i < count; i++) {
     const placed = modules.nth(i), card = placed.locator('article.dashboard-widget'), title = (await card.getAttribute('aria-label'))!;
     const row = placed.locator('.phone-fold-toggle');

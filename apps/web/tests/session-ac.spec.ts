@@ -113,16 +113,18 @@ test.describe('item 3: the page ends after the footer\'s link columns; the facts
 });
 
 test.describe('item 5: each thing once (Today defaults, Wealth\'s one holdings list)', () => {
-  test('the Showcase Today shows one habits block, one calories card and the next goal step once; each built-in can come back', async ({page}) => {
+  test('the Showcase Today shows one habits block and the next goal step once, keeps Daily Health; each twin can come back', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
     await showcase(page); await settled(page);
     await expect(page.locator('.habits-today[aria-labelledby]')).toHaveCount(1);
-    await expect(page.locator('section.health-today')).toHaveCount(0);
+    // Daily Health carries macros, weight and steps beside its calories, so it is no twin of the calories widget: it stays.
+    await expect(page.locator('section.health-today')).toHaveCount(1);
     await expect(page.locator('[data-module="next-action"]')).toHaveCount(0);
     await expect(page.getByRole('article', {name: 'Focus: next goal step'})).toBeVisible();
     // Still available: while arranging, each built-in twin is listed as hidden with "Show card".
     await page.getByRole('button', {name: 'Unlock layout to rearrange', exact: true}).click();
-    for (const label of ['Daily Habits', 'Daily Health', 'Next Goal action']) await expect(page.getByText(`${label} is hidden from Today.`)).toBeVisible();
+    for (const label of ['Daily Habits', 'Next Goal action']) await expect(page.getByText(`${label} is hidden from Today.`)).toBeVisible();
+    await expect(page.getByText('Daily Health is hidden from Today.')).toHaveCount(0);
   });
   test('Wealth: one list, one row of chips, every card and account row with its actions', async ({page}) => {
     await showcase(page);

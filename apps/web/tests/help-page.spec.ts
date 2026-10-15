@@ -257,6 +257,9 @@ test('Session AA-Cloud: the new answers open from a hash, say what stays on this
 // Session AC (ADR-025): this release's answers open from their hash; the facts moved from the footer are named in Help.
 test('Session AC: the polish answers open from a hash, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
+  // As above: every answer is listed and closed once the page has loaded (the workspace shows after its stores are read).
+  for (const id of ['ac-habits', 'ac-sky', 'ac-footer', 'ac-today', 'ac-wealth', 'ac-water', 'ac-vision', 'ac-more']) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
   for (const [id, words] of [['ac-habits', 'last 28 days'], ['ac-sky', 'the same with reduced motion or Motion Off'], ['ac-footer', 'Every page now ends after the footer’s links'], ['ac-today', 'Show card'], ['ac-wealth', 'All, Accounts, Debts, Assets'], ['ac-water', 'each with Undo'], ['ac-vision', 'kept on this device only'], ['ac-more', 'Reminders · ZIGoals Alpha']] as const) {
     await page.goto(`/app/help#help-${id}`);

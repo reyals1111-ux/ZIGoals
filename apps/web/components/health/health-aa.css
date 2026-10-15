@@ -193,3 +193,10 @@
 .health-water .water-ring-inline { display: flex; align-items: center; gap: 16px; margin: 8px 0 12px; }
 .health-water .water-ring-inline .water-ring { flex: none; }
 .health-water .water-ring-inline-line { margin: 0; font-size: 17px; font-weight: 650; }
+/* From 640 px the ring and its line sit beside the day's total, its line and the one-tap row, so the one card stays
+   within a screen (ui-design-pass: a card that fits the screen); the forms below start under both. */
+@media (min-width: 640px) {
+  .health-water .water-ring-inline { float: inline-end; flex-direction: column; gap: 6px; max-width: 40%; margin: 0 0 8px 16px; text-align: center; }
+  .health-water .water-ring-inline-line { font-size: 15px; }
+  .health-water > :is(.health-form, .health-simple-list) { clear: both; }
+}
