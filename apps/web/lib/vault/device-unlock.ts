@@ -215,6 +215,7 @@ async function denialOf(response:Response):Promise<AccountDenial|null>{try{const
  */
 export async function accountStatus(signal:AbortSignal):Promise<string|AccountDenial|null>{
  const check=async():Promise<string|AccountDenial|null>=>{
+  statusAt=Date.now();
   try{
    const status=()=>fetch('/api/private-account?action=status',{cache:'no-store',signal});
    let response=await status();
@@ -222,6 +223,29 @@ export async function accountStatus(signal:AbortSignal):Promise<string|AccountDe
    if(!response.ok){await response.body?.cancel();return null;}
    const parsed=statusSchema.safeParse(await json(response,32768));return parsed.success?parsed.data.accountId.toLowerCase():null;
   }catch(error){if(signal.aborted)throw error;return null;}
+ };
+ return typeof globalThis.navigator?.locks?.request==='function'?navigator.locks.request('zigoals:account-status',check):check();
+}
+/**
+ * Session AD item 12 (ADR-026, Q-SYNC-05, owner amendment 4): when this tab last asked the status route, so the
+ * revocation check (revocation-check.ts) never repeats a check that has just run (a locked tab's reopen makes the same
+ * request on load and focus).
+ */
+let statusAt=0;
+export const lastStatusCheck=()=>statusAt;
+/**
+ * The revocation check's one request: the existing status GET, nothing else (no body, and no refresh is spent: a routine
+ * sign-in requirement simply keeps the record). The denial a 401 names, or null for anything else: a confirmed account,
+ * a routine sign-in requirement, a 5xx, an unknown body, a failed or aborted request. One tab at a time, like accountStatus.
+ */
+export async function sessionDenial(signal:AbortSignal):Promise<AccountDenial['denied']|null>{
+ const check=async():Promise<AccountDenial['denied']|null>=>{
+  statusAt=Date.now();
+  try{
+   const response=await fetch('/api/private-account?action=status',{cache:'no-store',signal});
+   if(response.status===401)return (await denialOf(response))?.denied??null;
+   await response.body?.cancel();return null;
+  }catch{return null;}
  };
  return typeof globalThis.navigator?.locks?.request==='function'?navigator.locks.request('zigoals:account-status',check):check();
 }

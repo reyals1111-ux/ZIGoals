@@ -1,0 +1,65 @@
+/**
+ * Session AD item 12 (ADR-026; FINDINGS Q-SYNC-05, FIX_PLAN A7; owner amendment 4): a remembered device whose session was
+ * revoked, or whose account was deleted, on another device forgets its unlock record without waiting to be opened again.
+ *
+ * - When: only while this page is visible and this browser holds a remembered record: shortly after the app starts, when
+ *   the page is shown again or focused, and every 15 minutes while it stays visible. The timer stops while the page is
+ *   hidden; nothing ever runs in the background.
+ * - What: the existing status request (one GET, no body; no refresh is spent) and nothing else is sent.
+ * - Outcome: only a definitive SESSION_REVOKED or ACCOUNT_DELETED removes the record (the provider's accessDenied, with
+ *   its notes). Offline, a 5xx, a routine sign-in requirement or anything unknown keeps it.
+ * - Coalesced: one check at a time, never while the provider's own reopen is running (it makes the same request on load
+ *   and focus while the tab is locked), and never within 30 s of another status request from this tab.
+ * - Cheap: whether a record exists is cached and read again (IndexedDB, without creating the database) only at start,
+ *   when the page is shown or focused, and when the provider says this tab's remembered state changed.
+ * Loaded by the provider only once this browser holds a remembered record, so pages without one never load it.
+ */
+import {lastStatusCheck,sessionDenial,type AccountDenial} from './device-unlock';
+
+export const CHECK_EVERY_MS=15*60_000,CHECK_GAP_MS=30_000;
+export type RevocationCheckOptions={
+ /** Whether this browser holds a remembered record (readDevices().length>0). */
+ hasRecord:()=>Promise<boolean>;
+ /** A definitive denial: the provider forgets the record and says why. */
+ denied:(code:AccountDenial['denied'])=>Promise<void>|void;
+ /** True while the provider's own reopen runs (or in Showcase): this check then stands down. */
+ paused:()=>boolean;
+ /** Whether a record is already known to exist (the provider starts this once it saw one). */
+ known?:boolean;
+ /** The status request; sessionDenial (the existing GET) unless a test stands in. */
+ status?:(signal:AbortSignal)=>Promise<AccountDenial['denied']|null>;
+};
+export type RevocationCheck={stop:()=>void;refresh:()=>Promise<void>};
+
+export function startRevocationCheck(options:RevocationCheckOptions):RevocationCheck{
+ const status=options.status??sessionDenial;
+ let known:boolean|null=options.known??null,timer:ReturnType<typeof setTimeout>|undefined,running=false,stopped=false,lastRun=0;
+ const visible=()=>typeof document!=='undefined'&&document.visibilityState==='visible';
+ const clear=()=>{if(timer!==undefined){clearTimeout(timer);timer=undefined;}};
+ // The 15-minute timer runs only while the page is visible and a record is known to exist.
+ const arm=()=>{clear();if(stopped||!known||!visible())return;timer=setTimeout(()=>{timer=undefined;void run(false);},CHECK_EVERY_MS);};
+ async function run(reread:boolean){
+  if(stopped||running)return;
+  if(!visible()||options.paused()||Date.now()-Math.max(lastStatusCheck(),lastRun)<CHECK_GAP_MS){arm();return;}
+  running=true;lastRun=Date.now();
+  try{
+   if(reread||known===null)known=await options.hasRecord().catch(()=>false);
+   if(stopped||!known||!visible()||options.paused())return;
+   const code=await status(AbortSignal.timeout(20_000)).catch(()=>null);
+   if(stopped||!code)return;
+   known=false;await options.denied(code);
+  }finally{running=false;arm();}
+ }
+ async function refresh(){if(stopped)return;known=await options.hasRecord().catch(()=>false);arm();}
+ // Deferred out of the event itself, so a reopen started by the same event is seen as running and this one stands down.
+ const soon=()=>{if(!stopped)setTimeout(()=>void run(true),0);};
+ const shown=()=>{if(visible())soon();else clear();};
+ document.addEventListener('visibilitychange',shown);window.addEventListener('focus',soon);
+ // The start check waits for an idle moment (Safari has no requestIdleCallback: a short timer stands in).
+ const idle=typeof window.requestIdleCallback==='function',start=()=>void run(known===null);
+ const handle=idle?window.requestIdleCallback(start,{timeout:5000}):setTimeout(start,2000);
+ return {
+  refresh,
+  stop(){stopped=true;clear();if(idle)window.cancelIdleCallback(handle as number);else clearTimeout(handle as ReturnType<typeof setTimeout>);document.removeEventListener('visibilitychange',shown);window.removeEventListener('focus',soon);},
+ };
+}
