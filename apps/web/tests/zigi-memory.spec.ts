@@ -63,7 +63,7 @@ test('notes in Settings: add, refuse a secret, edit, delete with Undo, Export ev
   await expect(card.getByRole('status')).toHaveText('Note added.');
   const list = card.getByRole('list', {name: 'Your notes'});
   await expect(list.getByRole('listitem')).toHaveCount(1);
-  await expect(list).toContainText('Goals · written by you · 2026-09-20');
+  await expect(list).toContainText('Goals · written by you · Sep 20, 2026');
   expect((await stored(page, AI_MEMORY_KEY))!.notes).toEqual([expect.objectContaining({text: 'Training for a half marathon in April', category: 'goals', source: 'person', createdAt: expect.stringMatching(/^2026-09-20T19:0/), updatedAt: expect.stringMatching(/^2026-09-20T19:0/)})]);
   // Something shaped like a password is never kept.
   await card.getByRole('textbox', {name: 'Your note', exact: true}).fill('password: hunter22');

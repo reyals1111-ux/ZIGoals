@@ -3,9 +3,10 @@ import { useState, type FormEvent } from "react";
 import type { Habit } from "../../lib/habits";
 import { addLocalDays } from "../../lib/local-date";
 import { storageMessageOr } from "../../lib/storage-error-copy";
+import { formatDate } from "../../lib/visual-format";
 import type { HabitCardStore } from "./use-habits";
 
-const longDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+const longDate = (date: string) => formatDate(date, { weekday: true });
 /** H1: "Plan a skip" under History & reflection: a future scheduled day marked skipped ahead of time, listed with its reason, removable. */
 export function PlanSkip({ habit, store }: { habit: Habit; store: HabitCardStore }) {
   const [open, setOpen] = useState(false); const [date, setDate] = useState(""); const [reason, setReason] = useState("");
@@ -29,7 +30,7 @@ export function PlanSkip({ habit, store }: { habit: Habit; store: HabitCardStore
       <p className="fine">A planned skip never breaks a streak, and no reminder shows that day. You can remove it any time.</p>
       <div className="actions"><button className="secondary" type="submit">{busy ? "Saving…" : "Save skip"}</button><button className="quiet" type="button" onClick={() => { setOpen(false); setError(""); }}>Cancel</button></div>
     </fieldset></form>}
-    {planned.length > 0 && <ul className="habit-planned-skips" aria-label={`Planned skips for ${habit.title}`}>{planned.map((entry) => <li key={entry.date}><span>Planned: {entry.date}{entry.note && entry.note !== "Planned skip" ? ` · ${entry.note.replace(/^Planned skip · /, "")}` : ""}</span><button type="button" className="quiet" disabled={busy} onClick={() => void remove(entry.date)} aria-label={`Remove the planned skip on ${entry.date}`}>Remove</button></li>)}</ul>}
+    {planned.length > 0 && <ul className="habit-planned-skips" aria-label={`Planned skips for ${habit.title}`}>{planned.map((entry) => <li key={entry.date}><span>Planned: {formatDate(entry.date)}{entry.note && entry.note !== "Planned skip" ? ` · ${entry.note.replace(/^Planned skip · /, "")}` : ""}</span><button type="button" className="quiet" disabled={busy} onClick={() => void remove(entry.date)} aria-label={`Remove the planned skip on ${formatDate(entry.date)}`}>Remove</button></li>)}</ul>}
     {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
   </div>;
 }

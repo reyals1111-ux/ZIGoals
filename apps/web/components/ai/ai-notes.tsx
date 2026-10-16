@@ -3,6 +3,7 @@ import {useId, useMemo, useState, type FormEvent} from 'react';
 import {addNote, CATEGORY_LABELS, deleteNote, editNote, isHealthNote, newestFirst, restoreNote, type MemoryCategory} from '../../lib/ai/memory';
 import {AI_MEMORY, AI_OPTIONS, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, type AiMemory, type MemoryNoteRecord} from '../../lib/ai/store/records';
 import {isShowcase} from '../../lib/showcase-storage';
+import {formatDate} from '../../lib/visual-format';
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
 import {trackedQuestions, ZIGI_SUGGESTIONS} from '../../lib/zigi-suggestions';
@@ -51,7 +52,7 @@ export default function AiNotes() {
       : <ul className="ai-memory-list" aria-label="Your notes">{notes.map(note => <li key={note.id} className="ai-memory-note">
         {editing === note.id ? <NoteEdit note={note} onCancel={() => setEditing(null)} onSave={(text, kind) => { if (change(current => editNote(current, note.id, {text, category: kind}, new Date()), 'Note saved.')) setEditing(null); }}/> : <>
           <p className="ai-memory-text">{note.text}</p>
-          <p className="ai-memory-meta">{CATEGORY_LABELS[note.category]} · {note.source === 'zigi' ? 'from a ZIGi card you confirmed' : 'written by you'} · {note.updatedAt.slice(0, 10)}{isHealthNote(note.category) ? ' · goes to your AI only while Health is shared' : ''}</p>
+          <p className="ai-memory-meta">{CATEGORY_LABELS[note.category]} · {note.source === 'zigi' ? 'from a ZIGi card you confirmed' : 'written by you'} · {formatDate(note.updatedAt)}{isHealthNote(note.category) ? ' · goes to your AI only while Health is shared' : ''}</p>
           <div className="ai-card-actions"><button type="button" className="secondary" aria-label={`Edit the note "${excerpt(note.text)}"`} onClick={() => { setEditing(note.id); setMessage(null); }}>Edit</button><button type="button" className="text-link" aria-label={`Delete the note "${excerpt(note.text)}"`} onClick={() => remove(note)}>Delete</button></div>
         </>}
       </li>)}</ul>}

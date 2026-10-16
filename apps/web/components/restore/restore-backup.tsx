@@ -5,6 +5,7 @@ import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import type {PartSummary, PlannedPart, RestoreGroup, RestoreMode} from '../../lib/restore/plan';
 import type {OpenedBackup} from '../../lib/restore/read-backup';
 import type {RestoreOutcome} from '../../lib/restore/apply';
+import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
 
 /**
@@ -16,7 +17,7 @@ import './restore-backup.css';
 type Row = PlannedPart & {current: PartSummary | null; currentUnreadable: boolean};
 type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visionCount: number; progressCount: number};
 const MODE_LABEL: Record<RestoreMode, string> = {leave: 'Leave as it is', merge: 'Merge: add what is missing', replace: 'Replace with the backup'};
-const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.counts}${s.from ? ` · ${s.from === s.through ? s.from : `${s.from} to ${s.through}`}` : ''}`;
+const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.counts}${s.from ? ` · ${s.from === s.through ? formatDate(s.from) : `${formatDate(s.from)} to ${formatDate(s.through!)}`}` : ''}`;
 const lib = () => Promise.all([import('../../lib/restore/read-backup'), import('../../lib/restore/plan'), import('../../lib/restore/apply')]);
 
 export function RestoreBackup({showcase}: {showcase: boolean}) {
@@ -72,7 +73,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
     <label className="rb-file">Export everything ZIP<input key={fileKey} type="file" accept=".zip,application/zip" disabled={busy} onChange={e => void open(e.target.files?.[0])} /></label>
     {busy && <p className="fine" aria-live="polite">Working…</p>}
     {preview && <div className="rb-preview" role="group" aria-label="What this backup holds">
-      <p>Exported {preview.opened.json.exportedAt.slice(0, 10)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
+      <p>Exported {formatDate(preview.opened.json.exportedAt)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
       {preview.opened.demo && <p className="alert" role="alert">This file holds the Showcase&rsquo;s fictional examples. Restoring them puts made-up records among your own.</p>}
       {!preview.rows.length && !preview.visionCount && !preview.progressCount && <p>This export holds nothing this version can restore.</p>}
       {preview.rows.length > 0 && <div className="dh-actions"><button type="button" className="secondary" onClick={mergeAll}>Merge every part</button></div>}

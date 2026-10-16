@@ -1,21 +1,19 @@
 import type {DayRange} from '../tools/range';
+import {formatDate, formatTime} from '../../visual-format';
 
 /**
  * How local answers say things (Session V Part 3): plain English (S8), numbers grouped the same way everywhere, days as
- * "Mon 5 Oct", money with its own currency and two decimals, never converted. No judgement words: a figure is a figure.
+ * the app's one date format ("Mon, Oct 5" in en-US, "Mon, 5 Oct" in en-GB; lib/visual-format.ts), money with its own
+ * currency and two decimals, never converted. No judgement words: a figure is a figure.
  */
 /** The label every local answer carries (the brief's exact words). */
 export const LOCAL_LABEL = 'Answered on your device · no AI used';
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-/** "Mon 5 Oct" (with the year when it is not `thisYear`). */
+/** "Mon, Oct 5" (with the year when it is not `thisYear`: "Mon, Oct 5, 2025"). */
 export function dayText(iso: string, thisYear?: string): string {
-  const d = new Date(`${iso}T12:00:00Z`);
-  if (Number.isNaN(d.getTime())) return iso;
-  const year = iso.slice(0, 4);
-  return `${WEEKDAY_SHORT[d.getUTCDay()]} ${d.getUTCDate()} ${MONTH_SHORT[d.getUTCMonth()]}${thisYear && year !== thisYear ? ` ${year}` : ''}`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || Number.isNaN(Date.parse(`${iso}T12:00:00Z`))) return iso;
+  return formatDate(iso, {weekday: true, year: !!thisYear && iso.slice(0, 4) !== thisYear});
 }
-/** "this month (Thu 1 Oct to Mon 5 Oct)", "yesterday (Sun 4 Oct)", "on Mon 5 Oct", "in September 2026 (…)", "since Mon 14 Sep". */
+/** "this month (Thu, Oct 1 to Mon, Oct 5)", "yesterday (Sun, Oct 4)", "on Mon, Oct 5", "in September 2026 (…)", "since Mon, Sep 14". */
 export function span(range: DayRange, today: string): string {
   const year = today.slice(0, 4), short = (iso: string) => dayText(iso, year), label = range.label;
   if (/^[A-Z][a-z]+day \d{4}-\d{2}-\d{2}$/.test(label) || /^\d{4}-\d{2}-\d{2}$/.test(label)) return `on ${short(range.from)}`;
@@ -24,10 +22,10 @@ export function span(range: DayRange, today: string): string {
   const prefix = /^[A-Z][a-z]+ \d{4}$/.test(label) ? 'in ' : '';
   return range.from === range.to ? `${prefix}${label} (${short(range.from)})` : `${prefix}${label} (${short(range.from)} to ${short(range.to)})`;
 }
-/** "Mon 5 Oct, 18:55 UTC" for an instant. */
+/** "Mon, Oct 5, 6:55 PM UTC" for an instant (the time in the locale's hour cycle, in UTC as the records say it). */
 export function instantText(iso: string, today: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : `${dayText(d.toISOString().slice(0, 10), today.slice(0, 4))}, ${d.toISOString().slice(11, 16)} UTC`;
+  return Number.isNaN(d.getTime()) ? iso : `${dayText(d.toISOString().slice(0, 10), today.slice(0, 4))}, ${formatTime(d, {timeZone: 'UTC'})} UTC`;
 }
 /** Numbers of 1,000 and more that stand before a unit are grouped; dates, years and times are left alone. */
 export function groupUnits(text: string): string {

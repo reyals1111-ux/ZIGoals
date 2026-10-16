@@ -76,7 +76,7 @@ test('charts come from a tool\'s own rows: unknown values left out, one scale on
   const ok = (tool: string, data: Record<string, unknown>) => ({ok: true as const, tool, label: tool, provenance: 'From your journal on this device', data, truncated: null});
   const water = seriesOf(ok('water', {perDay: [{date: '2026-10-01', ml: 1500}, {date: '2026-10-02', ml: 2000}, {date: 'not a day', ml: 9}]}))!;
   expect(water).toMatchObject({shape: 'bars', unit: 'mL', points: [{date: '2026-10-01', value: 1500}, {date: '2026-10-02', value: 2000}]});
-  expect(seriesSummary(water)).toBe('Water per day: 2 days with a record from 2026-10-01 to 2026-10-02, 3,500 mL in all, the most 2,000 mL on 2026-10-02.');
+  expect(seriesSummary(water)).toBe('Water per day: 2 days with a record from Oct 1, 2026 to Oct 2, 2026, 3,500 mL in all, the most 2,000 mL on Oct 2, 2026.');
   // A check-in Health filled in while Health is not shared, and a skipped day, are not drawn as zero.
   const habit = seriesOf(ok('habit_checkins', {habit: 'Meditate', checkIns: [{date: '2026-10-01', value: 10, unit: 'minutes'}, {date: '2026-10-02', value: 'from Health, not shared', unit: 'minutes'}, {date: '2026-10-03', value: null, unit: 'minutes'}, {date: '2026-10-04', value: 15, unit: 'minutes'}]}))!;
   expect(habit.points).toEqual([{date: '2026-10-01', value: 10}, {date: '2026-10-04', value: 15}]); expect(habit.title).toBe('Meditate per day');
@@ -86,7 +86,7 @@ test('charts come from a tool\'s own rows: unknown values left out, one scale on
   // Weight: a line, the last reading of a day kept, no total in its sentence.
   const weight = seriesOf(ok('weight', {unit: 'kg', readings: [{date: '2026-10-01', weight: '72.4 kg'}, {date: '2026-10-01', weight: '72.2 kg'}, {date: '2026-10-03', weight: '71.9 kg'}, {date: '2026-10-04', weight: 'unknown'}]}))!;
   expect(weight).toMatchObject({shape: 'line', unit: 'kg', points: [{date: '2026-10-01', value: 72.2}, {date: '2026-10-03', value: 71.9}]});
-  expect(seriesSummary(weight)).toBe('Weight readings: 2 days with a record from 2026-10-01 to 2026-10-03, from 72.2 kg to 71.9 kg; lowest 71.9 kg on 2026-10-03, highest 72.2 kg on 2026-10-01.');
+  expect(seriesSummary(weight)).toBe('Weight readings: 2 days with a record from Oct 1, 2026 to Oct 3, 2026, from 72.2 kg to 71.9 kg; lowest 71.9 kg on Oct 3, 2026, highest 72.2 kg on Oct 1, 2026.');
   expect(seriesSummary(weight)).not.toMatch(/in all/);
   // Nothing from a refusal, an unknown tool, or a single day; at most 31 days.
   expect(seriesOf({ok: false, tool: 'water', label: 'Water', refusal: 'Health is not shared with ZIGi.', reason: 'gate'})).toBeNull();

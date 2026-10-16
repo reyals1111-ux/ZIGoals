@@ -41,7 +41,7 @@ test('before setup: a lookup is answered on the device with its records, nothing
   await panel(page).getByLabel('Ask ZIGi about your records').fill('How many minutes did I meditate this month?');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
   const answer = panel(page).locator('.ai-turn-local').last();
-  await expect(answer).toContainText(/^.*You logged \d+ minutes of Meditate this month \(Tue 1 Sep to Sun 20 Sep\)\./);
+  await expect(answer).toContainText(/^.*You logged \d+ minutes of Meditate this month \(Tue, Sep 1 to Sun, Sep 20\)\./);
   await expect(answer.locator('.ai-turn-label')).toHaveText('Answered on your device · no AI used');
   await answer.getByText('Records used').click();
   await expect(answer.locator('.ai-record-source')).toHaveText('From your Habits journal on this device · Meditate · this month (2026-09-01 to 2026-09-20, UTC)');
@@ -52,7 +52,7 @@ test('before setup: a lookup is answered on the device with its records, nothing
   await expect(panel(page).locator('.ai-turn-local').last()).toContainText('Health isn’t shared with ZIGi — turn it on in Settings');
   await expect(panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'})).toBeVisible();
   await panel(page).locator('.ai-turn-local').last().getByRole('button', {name: 'Drink water (habit)'}).click();
-  await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/Drink water: \d+ glasses yesterday \(Sat 19 Sep\)/);
+  await expect(panel(page).locator('.ai-turn-local').last()).toContainText(/Drink water: \d+ glasses yesterday \(Sat, Sep 19\)/);
   // Not a lookup, no AI: examples to tap, each answered here.
   await panel(page).getByLabel('Ask ZIGi about your records').fill('Help me plan a calmer week');
   await panel(page).getByRole('button', {name: 'Send', exact: true}).click();

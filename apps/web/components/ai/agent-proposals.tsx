@@ -4,6 +4,7 @@ import {dismissAgentBatch, useAgentBatches} from './agent-inbox';
 import {ZigiAvatar} from '../zigi/zigi-avatar';
 import {ProposalList} from './proposal-list';
 import type {ProposalRunner} from './use-proposals';
+import {formatTime} from '../../lib/visual-format';
 
 /**
  * A browser AI agent's proposals in ZIGi's panel (Session V Part 16): each batch as the usual cards (checked against the
@@ -15,7 +16,7 @@ export function AgentProposals({runner, onNavigate}: {runner: ProposalRunner; on
   useEffect(() => { if (newest) last.current?.scrollIntoView({block: 'nearest'}); }, [newest]);
   if (!batches.length) return null;
   return <>{batches.map(batch => {
-    const time = new Date(batch.at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    const time = formatTime(batch.at);
     return <article key={batch.id} ref={batch.id === newest ? last : undefined} className="ai-turn ai-turn-assistant ai-agent-batch" aria-label={`Proposed by a browser AI agent at ${time}`}>
       <ZigiAvatar state="presenting" size={28} decorative/>
       <div className="ai-turn-body">
