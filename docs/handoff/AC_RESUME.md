@@ -4,6 +4,14 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 09:55 UTC — item 16 two-greens count)
+- Run 38875420929 (`7dcf825a`): `web` green (browser shard 3 with `motion-polish` green: the slogan red was the recorded
+  sampling class); WebKit shard 2 green, shard 1 red: a desktop `page.goto` whose document request WebKit never
+  answered (navigation stall, not this PR's; spec untouched). ADR-025 E28 written.
+- Two-greens count starts at run 38879358853 (`f224abbd`, first with `fa431ed2`); this push queues the second. Both
+  WebKit green → `TIER 3 (CI)`: `web-webkit` into the `web` aggregate (skipped accepted outside pull requests), no
+  `continue-on-error`. Otherwise advisory, evidence in STATUS. Then STATUS FINAL, PR #87 ready, short report.
+
 ## Resume here (2026-10-16 10:05 UTC — finish phase, item 16 part 3b pushed)
 - **Run 38873163468 (`b99d6355`) read:** everything green except browser shard 3 (`motion-polish:195` phone, the slogan's
   mid sample read after its end: the recorded `motion-polish` sampling class under two-worker load; 10/10 alone here on
