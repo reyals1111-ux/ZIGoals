@@ -63,3 +63,36 @@ test('a press that scrolls the log does not put "Jump to the latest message" und
   await page.evaluate(() => window.dispatchEvent(new PointerEvent('pointerup', {bubbles: true, pointerType: 'touch', isPrimary: true})));
   await expect(panel(page).locator('.ai-jump-latest')).toBeVisible();
 });
+
+test('a button brought into view in the log stops above "Jump to the latest message", so the jump button never covers it', async ({page}) => {
+  await openChat(page);
+  for (const question of ['How many habits do I have?', 'Which habits are open today?', 'How much water today?']) {
+    await panel(page).locator('textarea').fill(question);
+    await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
+    await page.waitForTimeout(600);
+  }
+  const log = panel(page).getByRole('log', {name: 'Conversation'});
+  await log.evaluate(el => { el.scrollTop = 0; });
+  // What WebKit and a focus move do before a press: bring a button below the log's first screen into view, which lands
+  // it at the log's bottom edge, the jump button's place (CI run 38879358853: the auto-accept toast's Undo under it).
+  const placed = await log.evaluate(el => {
+    const box = el.getBoundingClientRect();
+    const button = [...el.querySelectorAll<HTMLElement>('button')].find(b => b.getBoundingClientRect().top - box.top > el.clientHeight
+      && b.getBoundingClientRect().bottom - box.top + el.scrollTop < el.scrollHeight - 220);
+    if (!button) return null;
+    button.dataset.probe = 'target';
+    button.scrollIntoView({block: 'nearest'});
+    return button.textContent;
+  });
+  expect(placed, 'a button below the first screen, far from the end').not.toBeNull();
+  await page.waitForTimeout(400);
+  await expect(panel(page).locator('.ai-jump-latest')).toBeVisible();
+  const hit = await page.evaluate(() => {
+    const button = document.querySelector<HTMLElement>('[data-probe="target"]')!, r = button.getBoundingClientRect();
+    const jump = document.querySelector('.ai-jump-latest')!.getBoundingClientRect();
+    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return {own: !!at && button.contains(at), overlap: r.bottom > jump.top && r.top < jump.bottom, button: [r.top, r.bottom], jump: [jump.top, jump.bottom]};
+  });
+  expect(hit.overlap, `button ${hit.button} vs jump ${hit.jump}`).toBe(false);
+  expect(hit.own, 'a tap at the button\'s centre reaches the button').toBe(true);
+});
