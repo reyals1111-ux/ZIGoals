@@ -70,3 +70,6 @@
 .habits-workspace .habit-grid > .habit-card { display: flex; flex-direction: column; }
 .habits-workspace .habit-grid > .habit-card > :is(.habit-completion, .habit-status) { margin-top: auto; }
 :root .habits-workspace .habit-card > .habit-cadence { margin: 0 0 6px; }
+/* Session AC (CI on 62483db1): the −/+/Done row is the last line of a folded card's controls, so rows line up whatever
+   else a card shows: an auto check-in note opens the controls (it sat under the row and lifted it by its own height). */
+.habits-workspace .habit-grid > .habit-card > .habit-completion > .habit-auto-badge { order: -1; flex-basis: 100%; }

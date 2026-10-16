@@ -10,7 +10,9 @@ import {TODAY_FOLDS_KEY} from '../lib/today-folds';
  * nothing, an unreadable value reads as folded and is left as it was, Showcase keeps it in the tab's session storage.
  */
 test.use({viewport: {width: 390, height: 844}});
-test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
+// Session AC: the records are the Showcase's for 2026-09-20, so the page's clock is that day too; with the real date the
+// seeded quit habit reached a 30-day badge on 2026-10-16 and its celebration covered Today.
+test.beforeEach(async ({page}) => { await page.clock.setFixedTime(new Date('2026-09-20T09:30:00.000Z')); await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 const rows = (page: Page) => page.getByRole('region', {name: 'Your Today widgets'}).locator('.placed-module[data-kind="widget"] .phone-fold-toggle');
 async function seeded(page: Page, extra: Record<string, string> = {}) {
   await page.goto('/app/settings');
@@ -20,6 +22,9 @@ async function seeded(page: Page, extra: Record<string, string> = {}) {
   await expect(rows(page).first()).toBeVisible();
 }
 const stored = (page: Page) => page.evaluate(key => localStorage.getItem(key), TODAY_FOLDS_KEY);
+// Session AC (ADR-025 E19): the preset's first widget (the habits list) stands in for the hidden Daily Habits and has no
+// row on a phone, so rows are named by their widget id, not their position.
+const rowOf = (page: Page, id: string) => page.locator(`.placed-module[data-module="${id}"] .phone-fold-toggle`);
 
 test('an opened row stays open after a reload, a closed one stays closed; viewing writes nothing', async ({page}) => {
   await seeded(page);
@@ -28,16 +33,16 @@ test('an opened row stays open after a reload, a closed one stays closed; viewin
   for (let i = 0; i < count; i++) await expect(rows(page).nth(i)).toHaveAttribute('aria-expanded', 'false');
   await page.reload(); await expect(rows(page).first()).toBeVisible();
   expect(await stored(page)).toBeNull();
-  await rows(page).nth(1).click();
-  await expect(rows(page).nth(1)).toHaveAttribute('aria-expanded', 'true');
+  await rowOf(page, 'preset-habits-health-1').click();
+  await expect(rowOf(page, 'preset-habits-health-1')).toHaveAttribute('aria-expanded', 'true');
   expect(JSON.parse((await stored(page))!)).toEqual({version: 1, open: {'preset-habits-health-1': true}});
   await page.reload();
-  await expect(rows(page).nth(1)).toHaveAttribute('aria-expanded', 'true');
-  await expect(rows(page).nth(0)).toHaveAttribute('aria-expanded', 'false');
-  await rows(page).nth(1).click();
-  await expect(rows(page).nth(1)).toHaveAttribute('aria-expanded', 'false');
+  await expect(rowOf(page, 'preset-habits-health-1')).toHaveAttribute('aria-expanded', 'true');
+  await expect(rowOf(page, 'preset-habits-health-2')).toHaveAttribute('aria-expanded', 'false');
+  await rowOf(page, 'preset-habits-health-1').click();
+  await expect(rowOf(page, 'preset-habits-health-1')).toHaveAttribute('aria-expanded', 'false');
   await page.reload(); await expect(rows(page).first()).toBeVisible();
-  await expect(rows(page).nth(1)).toHaveAttribute('aria-expanded', 'false');
+  await expect(rowOf(page, 'preset-habits-health-1')).toHaveAttribute('aria-expanded', 'false');
   expect(JSON.parse((await stored(page))!)).toEqual({version: 1, open: {}});
 });
 
@@ -46,8 +51,8 @@ test('an unreadable value reads as folded and is never rewritten by viewing; unk
   for (let i = 0; i < await rows(page).count(); i++) await expect(rows(page).nth(i)).toHaveAttribute('aria-expanded', 'false');
   expect(await stored(page)).toBe('{"version":1,"open":{"preset-habits-health-0":"yes"}}');
   await seeded(page, {[TODAY_FOLDS_KEY]: JSON.stringify({version: 1, open: {'a-widget-that-is-gone': true, 'preset-habits-health-2': true}})});
-  await expect(rows(page).nth(2)).toHaveAttribute('aria-expanded', 'true');
-  await expect(rows(page).nth(0)).toHaveAttribute('aria-expanded', 'false');
+  await expect(rowOf(page, 'preset-habits-health-2')).toHaveAttribute('aria-expanded', 'true');
+  await expect(rowOf(page, 'preset-habits-health-1')).toHaveAttribute('aria-expanded', 'false');
 });
 
 test('Showcase keeps the remembered rows in the tab and never in this device\'s storage', async ({page}) => {
@@ -88,5 +93,5 @@ test('a remembered row is open the first time it shows: after a reload and after
   await expect(page).toHaveURL(/\/app$/);
   await expect(row).toHaveAttribute('aria-expanded', 'true');
   expect(await states()).toEqual([`${id}=true`]);
-  await expect(page.locator('.placed-module[data-module="preset-habits-health-0"] .phone-fold-toggle')).toHaveAttribute('aria-expanded', 'false');
+  await expect(rowOf(page, 'preset-habits-health-2')).toHaveAttribute('aria-expanded', 'false');
 });

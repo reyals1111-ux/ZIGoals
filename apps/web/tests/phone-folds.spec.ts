@@ -32,7 +32,10 @@ test('phone: Today folds its secondary modules to rows that open in place, and f
   await toggle.click();
   await expect(activity.locator('.phone-fold-body')).toBeHidden();
   // The daily core stays open: what matters today, habits and health.
-  for (const heading of ['Small steps, steady rhythm.', 'Your daily balance.']) await expect(page.getByRole('heading', {name: heading})).toBeVisible();
+  // Session AC (ADR-025 E19): the habits list is the widget standing in for the hidden Daily Habits, open as Daily Habits was.
+  await expect(page.locator('.placed-module[data-stands-in="habits"] .habits-today')).toBeVisible();
+  await expect(page.locator('.placed-module[data-stands-in="habits"] .phone-fold-toggle')).toHaveCount(0);
+  await expect(page.getByRole('heading', {name: 'Your daily balance.'})).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
 });
 
