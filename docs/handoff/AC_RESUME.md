@@ -4,6 +4,11 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 16:05 UTC — done)
+- `8e930e93` (item 16 part 4: the ZIGi seeds wait for Settings' network before the next `goto`, the WebKit navigation
+  stall) green on run 38921698510, WebKit required. STATUS updated as the final commit; PR #87 ready for review.
+  Nothing open; the owner merges and deploys.
+
 ## Resume here (2026-10-16 14:30 UTC — finish)
 - Run 38909051298 (`21970372`): every job green, WebKit required. Revert gate part 2 (`revert-gate-2.txt`) green.
 - Done next: STATUS FINAL commit, PR #87 description and ready for review, short report. Nothing open.
