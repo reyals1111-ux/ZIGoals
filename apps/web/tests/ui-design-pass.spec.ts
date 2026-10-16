@@ -198,7 +198,9 @@ test.describe('Part 2: personal layouts',()=>{
    await page.getByRole('button',{name:'Done',exact:true}).click();
   }
   // Session AC: Settings' facts block (the footer's spans until then) is never inside a movable item either.
-  await page.goto('/app/settings');const about=page.locator('.about-alpha');
+  await page.goto('/app/settings');
+  await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.'); // Session AD: the footer's "Make a backup in Settings" lands here
+  const about=page.locator('.about-alpha');
   for(const selector of ['.network-banner','.mode-strip']){const el=about.locator(selector);await expect(el).toBeVisible();expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')),selector).toBe(false);}
  });
  test('Today moves go through the synced Today placement and Reset restores its default order',async({page})=>{
@@ -475,7 +477,12 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   await showcase(page);
   const footer=page.locator('.site-footer');await footer.scrollIntoViewIfNeeded();await expect(footer).toBeVisible();
   await expect(page.getByRole('contentinfo',{name:'About ZIGoals'})).toBeVisible();
-  await expect(footer.locator('.site-footer-slogan')).toHaveText('Goals, Habits & Health = Wealth');
+  // Session AD (deliberate, the owner's brief Part 1.4; ADR-026 "assertions moved"): the slogan is two lines, "Goals · Habits ·
+  // Health" and a larger "= Wealth". As strict: the exact words, the two lines, and the second line clearly larger.
+  await expect(footer.locator('.site-footer-slogan')).toHaveText('Goals · Habits · Health = Wealth');
+  await expect(footer.locator('.site-footer-slogan .site-footer-word')).toHaveText(['Goals','Habits','Health']);
+  const sizes=await footer.locator('.site-footer-slogan').evaluate(p=>[p.querySelector('.site-footer-line1'),p.querySelector('.site-footer-result')].map(e=>parseFloat(getComputedStyle(e!).fontSize)));
+  expect(sizes[1]!/sizes[0]!).toBeGreaterThanOrEqual(1.4);
   // Session AB-Design Phase 2 (deliberate, the owner's footer brief b; ADR-024 "Phase 2 — assertions changed"): the steps are 01 Goals,
   // 02 Habits, 03 Health; "= Wealth" is the slogan's result, which the path flows up into. As strict: the exact three, in order.
   await expect(page.getByRole('list',{name:'How ZIGoals works'}).locator('strong')).toHaveText(['Goals','Habits','Health']);
@@ -484,17 +491,21 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   // page ends after the link columns; these facts moved to Settings' facts block (asserted at the end of this test).
   await expect(footer).not.toContainText('Financial execution is disabled on this Alpha.');
   await expect(footer).not.toContainText('Browser storage is not a backup.');
-  await expect(footer.getByRole('link',{name:'Make a backup in Settings',exact:true})).toHaveAttribute('href','/app/settings'); // Phase 2: the brief's link text, no arrow
+  // Session AD (deliberate, the owner's brief Part 1.1): the link columns are gone; every link stays reachable in two taps
+  // (footer-links-moved.spec.ts walks each one). As strict: no link column is left, and the backup sits on Settings' first screen.
+  await expect(footer.locator('.site-footer-links, .site-footer-group')).toHaveCount(0);
   // The footer keeps the wordmark and its line.
   await expect(footer.locator('.site-footer-tagline')).toContainText('Same you. A brighter tomorrow.');
-  await expect(footer.getByRole('img',{name:'ZIGoals',exact:true})).toHaveCount(1); // Phase 2: the logo acts as the Z of the wordmark (one image, named ZIGoals)
+  await expect(footer.getByRole('img',{name:'ZIGoals',exact:true})).toHaveCount(1); // Session AD: the owner's wordmark, one image named ZIGoals
   // The planet is drawn once: one art layer, no second horizon layer anywhere on the page.
   await expect(page.locator('.site-footer-art')).toHaveCount(1);
   expect(await page.evaluate(()=>[document.querySelector('.app-content'),document.querySelector('.workspace')].filter(Boolean).map(e=>getComputedStyle(e!,'::after').backgroundImage).filter(v=>v.includes('horizon')).length)).toBe(0);
   for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
   for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
   // The facts' new place: Settings' facts block, readable (≥ 14 px, as the footer's line was).
-  await page.goto('/app/settings');const about=page.locator('.about-alpha');
+  await page.goto('/app/settings');
+  await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.'); // Session AD: the footer's "Make a backup in Settings" lands here
+  const about=page.locator('.about-alpha');
   await expect(about).toContainText('Financial execution is disabled on this Alpha.');
   await expect(about).toContainText('Browser storage is not a backup.');
   for(const el of await about.locator('p, span').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);

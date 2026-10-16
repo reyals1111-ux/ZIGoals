@@ -82,16 +82,18 @@ test.describe('item 2: the starfield is deepest in the middle of the page', () =
     });
 });
 
-test.describe('item 3: the page ends after the footer\'s link columns; the facts live in Settings and Help', () => {
+test.describe('item 3 (Session AD: the page ends with the footer\'s social row); the facts live in Settings and Help', () => {
   test('no disclaimer in the footer, every fact in Settings → Your data with the verifier\'s class names', async ({page}) => {
     await page.goto('/app'); await settled(page);
     const footer = page.locator('.site-footer');
-    await expect(footer.locator('.site-footer-links')).toBeVisible();
+    // Session AD (deliberate, the owner's brief Part 1.1–1.2; ADR-026): the link columns are gone and the page ends with
+    // the social row. As strict: the social row is visible and nothing follows it inside the footer.
+    await expect(footer.locator('.site-footer-social')).toBeVisible();
     await expect(footer.locator('.alpha-disclaimer, .network-banner, .mode-strip, .workspace-status')).toHaveCount(0);
     await expect(footer).not.toContainText('PUBLIC_ALPHA_UNDEPLOYED');
     await expect(footer).not.toContainText('Your goals. Onchain.');
-    // Nothing follows the link columns inside the footer.
-    expect(await footer.locator('.site-footer-links').evaluate(nav => nav.nextElementSibling === null)).toBe(true);
+    // Nothing follows the social row inside the footer.
+    expect(await footer.locator('.site-footer-social').evaluate(row => row.nextElementSibling === null && row.parentElement?.nextElementSibling === null)).toBe(true);
     await page.goto('/app/settings/data'); await settled(page);
     const about = aboutAlpha(page);
     await expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL);

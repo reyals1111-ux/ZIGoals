@@ -315,7 +315,7 @@ test('10b. phones: Habits\' hero actions take at most two rows from 360 px, and 
   expect((await figure.boundingBox())!.y, 'the first figure starts well inside the first screen').toBeLessThanOrEqual(634);
 });
 
-test('11. Help is the last item of the sidebar and of More; the footer\'s "Send feedback" opens the feedback form', async ({page}) => {
+test('11. Help is the last item of the sidebar and of More; Help\'s "Send feedback" opens the feedback form', async ({page}) => {
   await page.goto('/app');
   await expect(page.locator('main h1').first()).toBeVisible();
   if (await isPhone(page)) {
@@ -327,9 +327,12 @@ test('11. Help is the last item of the sidebar and of More; the footer\'s "Send 
     const links = mainNav(page).getByRole('link');
     await expect(links.last()).toHaveText('Help');
   }
-  const feedback = page.locator('footer').getByRole('link', {name: 'Send feedback', exact: true});
-  await expect(feedback).toHaveAttribute('href', '/app/help#feedback');
+  // Session AD (deliberate, the owner's brief Part 1.1; ADR-026): the footer's link columns are gone; "Send feedback" is
+  // Help's own topic link, two taps away (Help, then the topic). As strict: the same href, the same landing in view.
   await expect(page.locator('footer').getByRole('link', {name: 'Report a bug'})).toHaveCount(0);
+  await page.goto('/app/help');
+  const feedback = page.getByRole('navigation', {name: 'Help topics'}).getByRole('link', {name: 'Send feedback', exact: true});
+  await expect(feedback).toHaveAttribute('href', '#feedback');
   await feedback.click();
   await page.waitForURL('**/app/help#feedback');
   await expect(page.locator('#feedback')).toBeInViewport();

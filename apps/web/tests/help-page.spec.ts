@@ -103,7 +103,8 @@ test('feedback opens an email to the Alpha address with a short template, and se
   expect(href).toMatch(/^mailto:contact@zigoals\.app\?subject=ZIGoals%20Alpha%20feedback&body=/);
   const body = decodeURIComponent(href.split('&body=')[1] ?? '');
   for (const line of ['What happened:', 'What you expected:', 'Device and browser:', 'App version: ', 'leave out codes, your recovery secret']) expect(body).toContain(line);
-  await expect(page.getByRole('link', {name: 'hello@zigoals.app', exact: true})).toHaveAttribute('href', 'mailto:hello@zigoals.app');
+  // Session AD (deliberate; ADR-026): the footer's "Private security contact" moved here by name, so the link is named for it. As strict: the same private address.
+  await expect(page.getByRole('link', {name: 'Private security contact: hello@zigoals.app', exact: true})).toHaveAttribute('href', 'mailto:hello@zigoals.app');
 });
 
 test('viewing Help asks no server and writes nothing', async ({page}) => {
