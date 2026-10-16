@@ -27,7 +27,7 @@ test('Showcase: the fictional goal is counted from the Showcase journal on Goals
   if (!(await card.isVisible().catch(() => false))) { const fold = forYou.getByRole('button', {name: /^Show more/}); if (await fold.count()) await fold.click(); }
   await expect(card).toBeVisible();
   await expect(card).toContainText('Walk more (Showcase)');
-  const line = (await card.textContent())!.match(/(\d[\d,]* of 8,000 steps)/)![1]!;
+  const line = (await card.textContent())!.match(/(\d[\d,]* of 8,000 steps a day on average)/)![1]!;
   await page.goto('/app/goals');
   const section = page.getByRole('region', {name: 'Health goals', exact: true});
   await expect(section.getByRole('list', {name: 'Active health goals'})).toContainText('Walk more (Showcase)');
