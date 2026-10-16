@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import {ALPHA_LABEL,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaFacts,inAboutAlpha} from './ab-shell';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
+import {ALPHA_ESSENTIALS} from '../components/shell/alpha-notice';
 import {createEmptyHealth,HEALTH_STORAGE_KEY} from '../lib/health';
 import {ACCOUNT_SELECTOR} from '../lib/account-session';
 
@@ -62,6 +63,9 @@ test.describe('while private stores are still loading',()=>{
    await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);await expect(alphaNotice(page),path).toBeVisible();
    // As expectAlphaFacts does with scripts: the notice also carries the sentence wherever the screen is wider than a phone.
    if(page.viewportSize()!.width>=768)await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
+   // Session AC (owner item 8): without scripts the page stays hidden, so the notice itself shows the essentials (financial
+   // execution disabled, unaudited alpha, never share secrets) on every page and width, in Settings' words.
+   await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toHaveText(ALPHA_ESSENTIALS);await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toBeVisible();
    await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
   }
   // Without scripts the workspace stays hidden until the stores are read (every page, Settings too), so the block is

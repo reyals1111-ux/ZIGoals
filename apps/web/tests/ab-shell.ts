@@ -45,6 +45,8 @@ export async function expectAlphaFacts(page:Page,path=''){
  await expect(alphaNotice(page).locator('strong'),path).toHaveText(ALPHA_LABEL);
  if(!await isPhone(page))await expect(alphaNotice(page),path).toContainText(ALPHA_SENTENCE);
  await expect(page.locator('.site-footer .alpha-disclaimer, .site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
+ // Session AC (owner item 8): the notice's essentials line is for a page that cannot show (no scripts, a stalled read).
+ await expect(alphaNotice(page).locator('.alpha-notice-essentials'),path).toHaveCount(0);
  await inAboutAlpha(page,async about=>{
   await expect(about.locator('.network-banner strong'),path).toHaveText(ALPHA_LABEL);
   await expect(about.locator('.network-banner'),path).toContainText(ALPHA_SENTENCE);

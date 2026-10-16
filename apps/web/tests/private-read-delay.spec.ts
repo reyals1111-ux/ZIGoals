@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,expectAlphaFacts} from './ab-shell';
 import {isPhone} from './phone-nav';
+import {ALPHA_ESSENTIALS} from '../components/shell/alpha-notice';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {createEmptyHealth,HEALTH_STORAGE_KEY} from '../lib/health';
 
@@ -67,6 +68,8 @@ async function expectBanners(page:Page){
  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
  if(!await isPhone(page))await expect(alphaNotice(page)).toContainText(ALPHA_SENTENCE);
  await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
+ // Session AC (owner item 8): while the stalled read keeps the page hidden, the notice shows the essentials itself.
+ if(await page.locator('main#main').evaluate(el=>getComputedStyle(el).display==='none'))await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toHaveText(ALPHA_ESSENTIALS);
 }
 
 test('Today settings that never finish opening: an honest notice, no page, no writes, and the late read renders normally',async({page})=>{
@@ -83,10 +86,13 @@ test('Today settings that never finish opening: an honest notice, no page, no wr
  await expect(page.locator('main')).toBeHidden();
  await expect(page.locator('.workspace')).toHaveAttribute('aria-busy','true');
  await expectBanners(page);
+ await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toBeVisible();
  expect(await counters(page)).toMatchObject({readwrite:0,storeWrites:0});
  // The read resolves late: the page renders in place, without a reload.
  await page.evaluate(()=>{Object.assign(window,{__samePage:true});(window as unknown as {__vault:{release():void}}).__vault.release();});
  await expect(page.locator('main h1').first()).toBeVisible();
+ // Once the page shows, its own facts are back in Settings and the notice is its one line again.
+ await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toHaveCount(0);
  await expect(panel).toBeHidden();
  expect(await page.evaluate(()=>(window as unknown as {__samePage?:boolean}).__samePage)).toBe(true);
  await expectBanners(page);
