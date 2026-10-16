@@ -189,3 +189,16 @@ test.describe('item 7: a vision tile\'s own image', () => {
     expect(options.x + options.width <= open.x || open.x + open.width <= options.x || options.y + options.height <= open.y || open.y + open.height <= options.y).toBe(true);
   });
 });
+
+test.describe('item 12: Activity shows no invented time for a date-only record', () => {
+  test('the Showcase\'s records, stamped at their day, show under their day without "00:00"; every shown time is a real one', async ({page}) => {
+    await showcase(page);
+    await page.goto('/app/activity'); await settled(page);
+    const events = page.locator('.activity-event');
+    await expect(events.first()).toBeVisible();
+    const times = await page.locator('.activity-event time').allTextContents();
+    expect(times.filter(t => /^(00[:.]00|12[:.]00\s?AM)$/i.test(t.trim()))).toEqual([]);
+    // Each entry still sits under a day heading.
+    await expect(page.locator('.activity-date-heading').first()).toBeVisible();
+  });
+});
