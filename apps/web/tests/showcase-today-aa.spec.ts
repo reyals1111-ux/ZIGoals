@@ -71,8 +71,12 @@ test('Showcase insights, scenarios and last period\'s focus: the pairings have t
   await showcase(page);
   await page.goto('/app/review');
   const insights = page.getByRole('region', {name: 'On the same days'});
-  await expect(insights.getByRole('listitem')).toHaveCount(2);
+  // Session AD item 13: Sleep and habits joins them (its percentages move a point with the Showcase day's daylight saving).
+  await expect(insights.getByRole('listitem')).toHaveCount(3);
   await expect(insights).toContainText(/On days you walked at least 8,000 steps, you slept/);
+  const sleepHabits = insights.getByRole('listitem').filter({hasText: 'Sleep and habits'});
+  await expect(sleepHabits).toContainText(/On days after a night of at least 8 h of sleep, you completed \d+% of your scheduled habits; after shorter nights, \d+%\./);
+  await expect(sleepHabits).toContainText(/\d+ and \d+ days compared\./);
   await expect(insights).toContainText(/days compared\./);
   await expect(page.getByRole('region', {name: 'One focus'})).toContainText('Last week you chose: A short walk after lunch (Showcase)');
   await page.getByRole('group', {name: 'Review period'}).getByRole('button', {name: 'This month'}).click();

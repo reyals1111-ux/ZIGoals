@@ -1,4 +1,5 @@
 import {healthSchema, type HealthData} from '../health';
+import {createHabit, habitDataSchema, type HabitData} from '../habits';
 import {addLocalDays} from '../local-date';
 import {instantAt} from '../zone-time';
 import type {SleepNight} from '../sleep/schema';
@@ -8,6 +9,8 @@ import type {SleepNight} from '../sleep/schema';
  * Showcase day, so the cross-pillar pairings (90 days, 14 days a side) have real counts to show. It sits outside the
  * 60-day window of the older insights (lib/insights/engine.ts) and before the Showcase habits begin, so every count
  * pinned for the last 30 days stays as it was. Deterministic: the same day always gives the same records.
+ * Session AD item 13 (ADR-026): the season has one habit too (`withEarlierHabit`), so "Sleep and habits" has days on
+ * both sides.
  */
 export const EARLIER_FIRST = -89, EARLIER_LAST = -60;
 const ZONE = 'Europe/Brussels';
@@ -35,4 +38,30 @@ export function withEarlierSeason(health: HealthData, day: string): HealthData {
   }
   if (out.sleep) out.sleep = {...out.sleep, nights: [...nights, ...out.sleep.nights]};
   return healthSchema.parse(out);
+}
+
+/**
+ * Session AD item 13 (ADR-026): the earlier season's one habit, "Evening stretch (Showcase · earlier season)", done most
+ * days from 89 to 60 days back and archived since: the habit days "Sleep and habits" pairs with the season's nights
+ * (each side reaches 14 days in the 90-day window). Done after 14 of the 15 long nights and 11 of the 14 shorter ones, a
+ * modest difference (95% and 90% of the scheduled habits with the last 30 days), not a promise. Archived before the last 60 days begin, it is in no list, no
+ * card and no count of today's habits; the older insights' 60-day window and every pinned count of the last 30 days
+ * never see it. Deterministic: the same day always gives the same habit.
+ */
+export const EARLIER_HABIT_ID = '92000000-0000-4000-8000-000000000008';
+/** The season's days (k = 0 is its first) with no stretch: one after a long night (k odd), three after a shorter one; three
+ * of the four on a day with water, so water and habits stay close (91% and 93%) and "Sleep and habits" shows. */
+const STRETCH_MISSED = new Set([11, 8, 18, 22]);
+export function withEarlierHabit(habits: HabitData, day: string): HabitData {
+  if (habits.habits.some(h => h.id === EARLIER_HABIT_ID)) return habits;
+  const first = addLocalDays(day, EARLIER_FIRST), archivedFrom = addLocalDays(day, EARLIER_LAST + 1), stamp = `${first}T08:00:00.000Z`;
+  const data = createHabit(habits, {title: 'Evening stretch (Showcase · earlier season)', category: 'Wellbeing', description: 'Ten minutes of stretching before bed.', notes: 'SHOWCASE DATA · fictional habit from an earlier season, archived since', schedule: {kind: 'daily'}, target: 10, measurement: {kind: 'duration', unit: 'minutes'}}, new Date(stamp), EARLIER_HABIT_ID);
+  const habit = data.habits.at(-1)!, active = habit.rules[0]!;
+  habit.startDate = first;
+  habit.rules = [{...active, from: first}, {...active, from: archivedFrom, state: 'archived'}];
+  habit.entries = [];
+  // A check-in on each of its 30 days: ten minutes done, or marked missed (a day not done, never a skip).
+  for (let k = 0; k <= EARLIER_LAST - EARLIER_FIRST; k++) { const date = addLocalDays(day, EARLIER_FIRST + k), missed = STRETCH_MISSED.has(k); habit.entries.push({date, count: missed ? 0 : 10, disposition: missed ? 'failed' : 'logged', note: missed ? 'Showcase example · not done' : 'Showcase example', updatedAt: `${date}T21:00:00.000Z`}); }
+  habit.updatedAt = `${archivedFrom}T08:00:00.000Z`;
+  return habitDataSchema.parse(data);
 }
