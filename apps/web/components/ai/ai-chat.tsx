@@ -203,6 +203,11 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   useEffect(() => { if (mini.win) return nextFrame(() => composer.current?.focus({preventScroll: true})); }, [mini.win]);
   // Session AC (persona #24): Expand and pop-out keep the conversation where the person was reading: the distance from the
   // log's end is kept and put back once the log has its new size (or, in the mini window, its new place).
+  // Session AC (item 16, WebKit): a press can scroll the log by itself (WebKit brings a pressed button into view), and the
+  // "Jump to the latest message" button then appeared under the finger before the release, which took the click (an
+  // Undo that never happened). While a press is down the jump button keeps its state; it is decided again on release.
+  const pressing = useRef(false);
+  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
   const keepReadingPlace = () => { const el = log.current; if (!el) return; const fromEnd = el.scrollHeight - el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => { const now = log.current; if (now) now.scrollTop = Math.max(0, now.scrollHeight - fromEnd); })); };
   const popOut = async () => { keepReadingPlace(); if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
@@ -271,7 +276,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><ZigiPartBoundary label="Customize"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></ZigiPartBoundary></section></div>
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
-      <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>
+      <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onPointerDown={() => { pressing.current = true; const release = () => { pressing.current = false; window.removeEventListener('pointerup', release, true); window.removeEventListener('pointercancel', release, true); const el = log.current; if (el) markAway(el); }; window.addEventListener('pointerup', release, true); window.addEventListener('pointercancel', release, true); }} onScroll={event => markAway(event.currentTarget)}>
         {localOnly && session.chat.turns.length === 0 && <LocalGreeting sensitive={sensitive}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
         {connected && session.chat.turns.length === 0 && !busy && <Greeting/>}

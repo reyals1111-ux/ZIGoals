@@ -43,3 +43,23 @@ test('a press and a click on the backdrop, outside the sheet, still close the ch
   });
   await expect(panel(page)).toHaveCount(0);
 });
+
+test('a press that scrolls the log does not put "Jump to the latest message" under the finger; it shows once the press ends', async ({page}) => {
+  await openChat(page);
+  // A conversation long enough to scroll: three on-device answers.
+  for (const question of ['How many habits do I have?', 'Which habits are open today?', 'How much water today?']) {
+    await panel(page).locator('textarea').fill(question);
+    await panel(page).getByRole('button', {name: 'Send', exact: true}).click();
+    await page.waitForTimeout(600);
+  }
+  const log = panel(page).getByRole('log', {name: 'Conversation'});
+  await log.evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await page.waitForTimeout(500);
+  await expect(panel(page).locator('.ai-jump-latest')).toHaveCount(0);
+  // WebKit scrolls the log when a pressed button is brought into view: a press, then the log away from its end.
+  await log.evaluate(el => { el.dispatchEvent(new PointerEvent('pointerdown', {bubbles: true, pointerType: 'touch', isPrimary: true})); el.scrollTop = 0; });
+  await page.waitForTimeout(500);
+  await expect(panel(page).locator('.ai-jump-latest'), 'no jump button while the press is down').toHaveCount(0);
+  await page.evaluate(() => window.dispatchEvent(new PointerEvent('pointerup', {bubbles: true, pointerType: 'touch', isPrimary: true})));
+  await expect(panel(page).locator('.ai-jump-latest')).toBeVisible();
+});
