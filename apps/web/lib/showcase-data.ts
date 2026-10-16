@@ -50,8 +50,10 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  const clock=Date.parse(day+'T12:00:00Z');if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(clock)||new Date(clock).toISOString().slice(0,10)!==day)throw Error('Use a real showcase date.');
  const date=(offset:number)=>new Date(clock+offset*86400000).toISOString().slice(0,10),wall=(offset:number,time:string)=>new Date(instantAt(date(offset),time,zone)).toISOString(),at=(offset:number)=>wall(offset,'00:00'),now=at(0),start=at(-90);
  const specs:{asset:string;name:string;class:Position['assetClass'];quantity:string;decimals:number;value?:string;currency?:string;ref?:MarketAssetRef}[]=[
-  {asset:'BTC',name:'Bitcoin',class:'Crypto',quantity:'45000000',decimals:8,value:'4500000',ref:coin('bitcoin')},
-  {asset:'ETH',name:'Ethereum',class:'Crypto',quantity:'400000000',decimals:8,value:'1600000',ref:coin('ethereum')},
+  // Session AC (persona #12): Bitcoin and Ether are valued at the Showcase Portfolio's fixture prices (lib/portfolio/showcase.ts:
+  // $65,000 and $2,400), so Wealth's history and Portfolio read the same price; their current value is the live market's.
+  {asset:'BTC',name:'Bitcoin',class:'Crypto',quantity:'45000000',decimals:8,value:'2925000',ref:coin('bitcoin')},
+  {asset:'ETH',name:'Ethereum',class:'Crypto',quantity:'400000000',decimals:8,value:'960000',ref:coin('ethereum')},
   {asset:'ZIG',name:'ZIG reward reserve',class:'Crypto',quantity:'300000000000',decimals:6,value:'1800000',ref:coin('zignaly')},
   {asset:'USDC',name:'USD Coin',class:'Stablecoins',quantity:'12000000000',decimals:6,value:'1200000',ref:coin('usd-coin')},
   {asset:'AAPL',name:'Apple',class:'Stocks',quantity:'30',decimals:0,value:'750000',ref:rwa('apple','stock')},

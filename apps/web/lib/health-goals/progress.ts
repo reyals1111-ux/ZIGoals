@@ -48,11 +48,12 @@ export function healthGoalProgress(goal: HealthGoal, health: HealthData, today: 
   const current = counts.reduce((sum, count) => sum + count, 0);
   return {kind: 'value', current, target, unit: goal.unit, percent: Math.min(100, current / target * 100), days: counts.length, done: current >= target, ended, detail: `${counts.length} ${counts.length === 1 ? 'day' : 'days'} counted · ${number(current)} reps in total`};
 }
-/** "7,475 of 8,000 steps", "72.4 towards 72 kg", "No data yet". */
+/** "7,475 of 8,000 steps a day on average", "72.4 towards 72 kg", "No data yet". */
 export function healthGoalLine(goal: HealthGoal, progress: HealthGoalProgress): string {
   if (progress.kind === 'no-data') return 'No data yet';
   if (goal.measure === 'weight') return `${number(progress.current, 2)} towards ${number(progress.target, 2)} ${goal.unit}`;
-  return `${number(progress.current)} of ${number(progress.target)} ${goal.unit}`;
+  // Session AC (persona #12): steps are a daily average over the goal's days, never read as one day's count.
+  return `${number(progress.current)} of ${number(progress.target)} ${goal.unit}${goal.measure === 'steps' ? ' a day on average' : ''}`;
 }
 /** A water target's millilitres, whatever unit Health shows water in. */
 export const waterTargetMl = (value: number, unit: 'ml' | 'fl-oz-us') => unit === 'fl-oz-us' ? value * FL_OZ_ML : value;

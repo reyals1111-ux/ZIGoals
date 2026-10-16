@@ -231,3 +231,20 @@ test.describe('item 9d: phone tables', () => {
     expect(await wrap.evaluate(el => getComputedStyle(el).maskImage === 'none' || getComputedStyle(el).maskImage === '')).toBe(true);
   });
 });
+
+test.describe('item 11 #12: the Showcase figures read the same on every page', () => {
+  test('attention: Today names what its count covers, and its assets match Wealth; steps read as a daily average', async ({page}) => {
+    await page.setViewportSize({width: 1440, height: 900});
+    await showcase(page); await settled(page);
+    const card = page.locator('section.needs-attention');
+    const count = Number(await card.locator('.attention-count').textContent());
+    const split = (await card.locator('.attention-split').textContent())!;
+    const assets = Number(/(\d+) assets?/.exec(split)?.[1] ?? 0), goals = Number(/(\d+) goals?/.exec(split)?.[1] ?? 0);
+    expect(assets + goals).toBe(count);
+    await page.goto('/app/wealth'); await settled(page);
+    await expect(page.getByRole('button', {name: new RegExp(`^Needs attention ${assets}\\b`)})).toBeVisible();
+    // A steps goal's figure is its daily average, so it never reads as a different day's count beside "steps today".
+    await page.goto('/app/goals'); await settled(page);
+    await expect(page.getByText(/[\d,]+ of 8,000 steps a day on average/).first()).toBeVisible();
+  });
+});
