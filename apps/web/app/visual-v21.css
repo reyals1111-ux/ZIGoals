@@ -157,7 +157,7 @@ body { background: var(--cosmic-dark); }
 .habits-workspace .habit-dot.habit-day-due { background: color-mix(in srgb, var(--item-start) 20%, transparent); border-color: var(--item-start); }
 .habits-workspace .habit-calendar-day.habit-day-complete { background: color-mix(in srgb, var(--item-start) 24%, #051225); border-color: color-mix(in srgb, var(--item-start) 55%, transparent); color: var(--text); }
 .habits-workspace .habit-calendar-day[aria-pressed="true"] { outline-color: var(--brand-cyan); }
-.habits-workspace .habit-management .quiet, .habits-workspace .habit-metrics small, .habits-workspace .habit-metrics strong span, .habits-workspace .habit-count > span, .today-page .habit-today-list small { color: #a7bbd7; }
+.habits-workspace .habit-management .quiet, .habits-workspace .habit-metrics small, .habits-workspace .habit-metrics strong span, .habits-workspace .habit-count > span, .today-page .habit-today-list small, .today-page .habits-today .habit-count > span { color: #a7bbd7; }
 .habit-today-list li > div:first-child { border-left: 2px solid var(--item-start); padding-left: 10px; }
 .today-page .habit-spark { color: var(--brand-cyan); text-shadow: 4px 3px 14px var(--brand-magenta); }
 /* Health shares the spectrum while its existing success/error colors stay semantic. */
