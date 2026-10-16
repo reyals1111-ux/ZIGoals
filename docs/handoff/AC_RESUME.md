@@ -4,6 +4,13 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 12:55 UTC — WebKit required; finish steps next)
+- Item 16 done: three product causes fixed (`9804d676`, `fa431ed2`, `7f417281`); two consecutive green WebKit runs on
+  the final code (38889129910 `7f417281`, 38898027504 `5c734666`) → `TIER 3 (CI)` `f29eb964` (WebKit in the `web`
+  check on pull requests; skip accepted elsewhere). CI fix `5c734666` (the phone helper's stand-in read).
+- Next: the run on this head green (the aggregate with WebKit) → STATUS FINAL commit from `$SP/status-entry.md`
+  (fill WEBKIT_ITEM / WEBKIT_LINE / CI_LINE) → PR #87 body from `$SP/pr-body.md`, ready for review → short report.
+
 ## Resume here (2026-10-16 10:55 UTC — item 16 part 3c pushed, two-greens count from `7f417281`)
 - Run 38879358853 (`f224abbd`): WebKit shard 2 red — the auto-accept toast's Undo brought into view under "Jump to the
   latest message" (trace: "intercepts pointer events"); fixed in `7f417281` (the log's `scroll-padding-bottom: 64px`,
