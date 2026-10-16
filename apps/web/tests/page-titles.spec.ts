@@ -1,3 +1,5 @@
+import {readdirSync} from 'node:fs';
+import {join} from 'node:path';
 import {expect, test} from '@playwright/test';
 
 // Session X Part 12 (WCAG 2.4.2 Page titled): every page names itself in the browser tab and history, "<page> · ZIGoals
@@ -19,6 +21,29 @@ test('every page has its own title', async ({page}) => {
   }
   await page.goto('/');
   expect(await page.title()).not.toBe('');
+});
+
+// Session AC (the owner's hosted check on Alpha #41 failed at stage 6 on "Reminders"): every route under /app, the
+// dynamic ones with a sample id and the redirect at its destination, has "<title> · ZIGoals Alpha". A new route without
+// a row here fails the count check, so it gets one; lib/route-titles.test.ts guards the layouts behind the template.
+const EVERY_ROUTE: [path: string, title: string][] = [
+  ...PAGES,
+  ['/app/goals/1', 'Goal'], ['/app/goals/average/new', 'Keep an average'], ['/app/goals/average/sample', 'Goal'],
+  ['/app/goals/templates', 'Goal templates'], ['/app/goals/tracked', 'Goals'], ['/app/goals/tracked/sample', 'Goal'],
+  ['/app/goals/positions', 'Staking'], ['/app/journey', 'Journey'], ['/app/music/spotify', 'Spotify'],
+  ['/app/portfolio/coin/bitcoin', 'Coin'], ['/app/review', 'Life review'], ['/app/settings/data', 'Your data'],
+  ['/app/settings/reminders', 'Reminders'], ['/app/share?text=Hello', 'Shared with ZIGoals'], ['/app/wealth/asset/sample', 'Asset'],
+  ['/app/wealth/calculator', 'Compound interest calculator'], ['/app/zigi', 'Meet ZIGi'], ['/app/no-such-page', 'Page not found'],
+];
+test('every route under /app carries the " · ZIGoals Alpha" title', async ({page}) => {
+  test.setTimeout(180_000);
+  // One row per page file under app/app: a new route without a row fails here.
+  const pageFiles = (readdirSync(join(__dirname, '..', 'app', 'app'), {recursive: true}) as string[]).filter(f => /(^|\/)page\.tsx$/.test(f));
+  expect(new Set(EVERY_ROUTE.map(([path]) => path.split('?')[0])).size).toBe(pageFiles.length);
+  for (const [path, title] of EVERY_ROUTE) {
+    await page.goto(path);
+    await expect(page, path).toHaveTitle(`${title} · ZIGoals Alpha`);
+  }
 });
 
 test('the title follows a client-side navigation', async ({page, isMobile}) => {

@@ -23,7 +23,8 @@ export function weekAcross({today, habits, health, platform}: {today: string; ha
   return lastDays(today).map(date => ({
     date,
     habitCheckins: habits.habits.reduce((n, h) => n + h.entries.filter(e => e.date === date && e.disposition === 'logged').length, 0),
-    healthRecords: health.diary.filter(e => e.date === date).length + dailyData(health).water.filter(w => w.date === date).length + health.activity.filter(a => a.date === date).length + exercise.filter(d => d.date === date).length,
+    // Session AC (persona #13, "2 Health entries for 3 logged"): a weight is a Health entry too.
+    healthRecords: health.diary.filter(e => e.date === date).length + dailyData(health).water.filter(w => w.date === date).length + health.weights.filter(w => w.date === date).length + health.activity.filter(a => a.date === date).length + exercise.filter(d => d.date === date).length,
     goalContributions: platform.contributions.filter(c => localDate(new Date(c.occurredAt)) === date).length,
   }));
 }

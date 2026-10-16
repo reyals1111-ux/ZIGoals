@@ -111,7 +111,11 @@ ZIGoals grew from goals, habits, health and wealth into one place for most of yo
 - **No real money moves**, and the test network's tokens have no value.
 - **Oura, Withings, Polar and Strava** say "Needs setup by ZIGoals" until we register with them. **Fitbit's** web access is turned off on 30 October 2026: use Google Takeout and Switch to ZIGoals.
 - **Spotify** needs Premium, and only accounts we list can connect while Spotify keeps ZIGoals in development mode.
-- **Photos stay on the device** where you added them; a backup carries them.
+- **Photos stay on the device** where you added them; a backup carries them (Help → "Do my photos sync?").
+- **Safari on iPhone and iPad** offers no Home Screen shortcuts and no Share sheet entry for ZIGoals (Help → "Can I add shortcuts to my Home Screen…?").
+- **Push notifications are switched off** in this Alpha: nothing reaches your phone while ZIGoals is closed; due reminders show on Today while it is open (Help → "Where are my reminders?").
+- **Your last backup isn't recorded.** Settings → Your data says "Not recorded", because making a backup writes nothing on your device; your browser's downloads list shows when you made one.
+- **The Alpha's facts** (practice money, nothing signed or sent onchain, not a backup, unaudited) are in the notice on your first visit, in Settings → Your data and in Help → "About this Alpha".
 - **English only** for the app's words for now; ZIGi understands you spoken in English and Dutch.
 
 The full list, kept up to date, is in **Help → Known limitations**.

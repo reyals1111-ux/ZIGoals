@@ -189,3 +189,14 @@
 /* Session AB-Design Phase 2 closing pass (layout audit, 1024 px with touch): an aisle's count sits on the page's nebula,
    so it is near-white (4.5:1 over its lightest patch). */
 :root .health-grocery-aisle h3 small { color: var(--text-strong, #f4f8ff); }
+/* Session AC (one Water card): the ring at the head of the Water card, its line beside it. */
+.health-water .water-ring-inline { display: flex; align-items: center; gap: 16px; margin: 8px 0 12px; }
+.health-water .water-ring-inline .water-ring { flex: none; }
+.health-water .water-ring-inline-line { margin: 0; font-size: 17px; font-weight: 650; }
+/* From 640 px the ring and its line sit beside the day's total, its line and the one-tap row, so the one card stays
+   within a screen (ui-design-pass: a card that fits the screen); the forms below start under both. */
+@media (min-width: 640px) {
+  .health-water .water-ring-inline { float: inline-end; flex-direction: column; gap: 6px; max-width: 40%; margin: 0 0 8px 16px; text-align: center; }
+  .health-water .water-ring-inline-line { font-size: 15px; }
+  .health-water > :is(.health-form, .health-simple-list) { clear: both; }
+}

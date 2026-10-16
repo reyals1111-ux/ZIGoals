@@ -1,4 +1,5 @@
 import {expect, test, type Page} from '@playwright/test';
+import {expectAlphaMode} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitCount} from '../lib/habits';
 import {createEmptyHealth, HEALTH_STORAGE_KEY} from '../lib/health';
 import {addWater} from '../lib/health-daily';
@@ -32,10 +33,10 @@ test('Complete, then Undo: today is Due again, not Failed, on Habits and on Toda
 test('Connect Keplr without the extension: the Local demo and its balance stay; only the reason is shown', async ({page, isMobile}) => {
   test.skip(isMobile, 'The wallet buttons sit in the desktop top bar.');
   await page.goto('/app');
-  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  await expectAlphaMode(page, 'LOCAL SIMULATION');
   await page.getByRole('button', {name: 'Connect Keplr', exact: true}).click();
   await expect(page.getByRole('alert').filter({hasText: 'Install the Keplr'})).toBeVisible();
-  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  await expectAlphaMode(page, 'LOCAL SIMULATION');
   // Session Z-Cloud Part 4.3: without a connected wallet the button says "Demo records".
   await expect(page.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
 });

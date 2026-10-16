@@ -43,10 +43,25 @@ async function seed(page: Page) {
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})});
+  // Session AC (item 16): the next `goto` waits until Settings' prefetches are done. WebKit's "internal error" (or a
+  // document it never answers) hit that navigation while the prefetches it cancelled were in flight (CI runs 38875420929,
+  // 38902988046, 38915648788).
+  await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
-async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel(page).locator('.ai-card').last()).toBeVisible(); }
+async function send(page: Page, text: string) {
+  const box = page.getByLabel('Message to your AI'), sendButton = page.getByRole('button', {name: 'Send', exact: true});
+  await box.fill(text);
+  // Session AC (item 16): WebKit's phone runs once left Send disabled after the fill; if it happens, the failure says what
+  // the box held right after the fill and at the end, and how often a message box was mounted (diagnostic only).
+  const filled = await box.inputValue().catch(() => '?'), mounts = () => page.evaluate(() => (window as unknown as {__composerMounts?: {n: number}}).__composerMounts?.n ?? -1);
+  const mountedBefore = await mounts();
+  try { await expect(sendButton).toBeEnabled({timeout: 15_000}); }
+  catch (error) { throw new Error(`Send stayed disabled: right after the fill the box held ${JSON.stringify(filled)}, now ${JSON.stringify(await box.inputValue().catch(() => '?'))}; message boxes mounted ${mountedBefore} before, ${await mounts()} now. ${(error as Error).message.split('\n')[0]}`); }
+  await sendButton.click();
+  await expect(panel(page).locator('.ai-card').last()).toBeVisible();
+}
 const snapshot = (page: Page): Promise<Snap> => page.evaluate(keys => Object.fromEntries(keys.map(k => { const v = localStorage.getItem(k); return [k, v === null ? null : JSON.parse(v)]; })), KEYS as unknown as string[]);
 /**
  * What the app's own save paths leave behind that is not a record: `updatedAt` stamps, the water operation ledger (an
@@ -222,6 +237,21 @@ const FIRST_FOOD = JSON.parse(buildShowcase(DAY).records['zigoals:health:v1']!).
 const ZONES = ['UTC', 'Europe/Brussels', 'Asia/Tokyo'] as const;
 
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
+// Session AC (item 16): WebKit's phone runs lost the Undo press (the card stayed added, the chat open). Where each press,
+// release and click landed, and where the log was scrolled, is kept, so a failure says where the click went. Diagnostic
+// only: every assertion is unchanged.
+test.beforeEach(async ({page}) => { await page.addInitScript(() => {
+  const taps: string[] = []; (window as unknown as {__taps: string[]}).__taps = taps;
+  for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) document.addEventListener(type, event => {
+    const el = event.target as HTMLElement | null, log = document.querySelector('.ai-chat-log');
+    taps.push(`${type}:${el?.nodeName ?? '?'}.${el?.className?.toString().split(' ')[0] ?? ''}"${(el?.textContent ?? '').trim().slice(0, 14)}"@${Math.round((event as MouseEvent).clientY ?? -1)} log=${log ? Math.round(log.scrollTop) : '-'}/${log ? log.scrollHeight : '-'}`);
+    if (taps.length > 40) taps.shift();
+  }, true);
+  // How often a message box was put on the page (a remount loses what was typed).
+  const mounts = {n: 0}; (window as unknown as {__composerMounts: {n: number}}).__composerMounts = mounts;
+  new MutationObserver(list => { for (const m of list) for (const node of m.addedNodes) if (node instanceof Element && (node.matches('textarea[aria-label]') || node.querySelector('textarea[aria-label]'))) mounts.n++; }).observe(document, {subtree: true, childList: true});
+}); });
+const taps = (page: Page) => page.evaluate(() => (window as unknown as {__taps?: string[]}).__taps?.slice(-12).join(' | ') ?? '');
 for (const zone of ZONES) {
   test.describe(`in ${zone}`, () => {
     test.use({timezoneId: zone});
@@ -244,7 +274,7 @@ for (const zone of ZONES) {
         c.check(after, before, ctx);
         const actions = after[AI_ACTIONS_KEY].actions; expect(actions.length).toBe((before[AI_ACTIONS_KEY]?.actions ?? []).length + 1);
         await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: /^Undo/}).click();
-        await expect(card).toHaveClass(/ai-card-undone/);
+        await expect(card, `presses after Undo: ${await taps(page)}`).toHaveClass(/ai-card-undone/);
         const undone = await snapshot(page);
         expect(normalise(undone), 'every store exactly as before the card').toEqual(normalise(before));
         if (c.visible && zone === 'UTC' && info.project.name === 'desktop') {

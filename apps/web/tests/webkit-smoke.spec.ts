@@ -40,12 +40,25 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
   // within a second and a half of a main-frame navigation starting. Those are counted and reported; any other page error
   // fails the test as before.
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
+  // Session AC (item 16): "ResizeObserver loop completed with undelivered notifications" came on several pages of earlier
+  // runs. Each observer is named by the code that made it (its first app frame), and the deliveries of the 100 ms before
+  // such an error are kept, so a failure names the observer whose callback changed a size inside its own delivery.
+  await page.addInitScript(() => {
+    const Native = window.ResizeObserver; if (!Native) return;
+    const log: {at: number; who: string}[] = [], loops: string[] = []; (window as unknown as {__roLoops: string[]}).__roLoops = loops;
+    window.ResizeObserver = class extends Native { constructor(callback: ResizeObserverCallback) {
+      const who = (new Error().stack ?? '').split('\n').map(l => l.trim()).find(l => /_next\/static\/chunks\//.test(l))?.replace(/^.*\/chunks\//, '').slice(0, 80) ?? 'unknown';
+      super((entries, observer) => { log.push({at: performance.now(), who: `${who} → ${entries.map(e => (e.target as Element).className?.toString().split(' ')[0] || e.target.nodeName).join(',')}`}); if (log.length > 200) log.shift(); callback(entries, observer); });
+    } };
+    window.addEventListener('error', e => { if (/ResizeObserver loop/.test(String(e.message))) { const now = performance.now(); loops.push(`${location.pathname}: ${[...new Set(log.filter(l => now - l.at < 100).map(l => l.who))].join(' | ')}`); } });
+  });
   await seed(page);
+  const roLoops: string[] = [], readLoops = async () => { roLoops.push(...await page.evaluate(() => (window as unknown as {__roLoops?: string[]}).__roLoops ?? []).catch(() => [])); };
   for (const path of PAGES) {
     await page.goto(path);
     await expect(page.locator('main'), path).toBeVisible();
     // Settings is a sensitive screen (account, sync, recovery): the launcher stays away there by the app's own rule.
-    if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); await settled(page); continue; }
+    if (path === '/app/settings') { await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toHaveCount(0); await settled(page); await readLoops(); continue; }
     await expect(page.getByRole('button', {name: /Open ZIGi/}), path).toBeVisible();
     // The idle art: the poster first, and where the browser plays animated WebP and motion is allowed (Chrome), the
     // animated idle file swapped in once decoded. Either is F001; the reduced-motion test below pins the poster.
@@ -53,13 +66,14 @@ test('every app page opens in WebKit with the Showcase and no page error; ZIGi\'
     await expect(img, path).toHaveAttribute('src', /\/brand\/figures\/zigi\/origami-nebula\/F001-idle(-2x)?(\.anim)?\.webp$/);
     await expect.poll(() => img.evaluate(el => (el as HTMLImageElement).naturalWidth), {message: `${path}: the idle art decoded`}).toBeGreaterThan(0);
     await settled(page);
+    await readLoops();
   }
   // Session Z-Local (owner decision, 2026-10-11): Goals' nested routes (/app/goals/<id>, /app/goals/new) prefetch too; the same shape and moment, two segments deep.
   // Session AB-Design Phase 2 (ADR-024): a phone goal card shows its "Open Goal →" link (/app/goals/tracked/<id>), three segments deep; same shape and moment.
   const prefetchCancel = (e: {at: number; message: string}) => /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(e.at - t) <= 1500);
   const real = errors.filter(e => !prefetchCancel(e)).map(e => e.message);
   console.log(`webkit-smoke: ${errors.length - real.length} page error(s) were WebKit's cancelled router prefetches (ADR-017 S64); ${real.length} other`);
-  expect(real, "page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)").toEqual([]);
+  expect(real, `page errors (WebKit's rejected router prefetches excluded by shape and moment, S64)${roLoops.length ? `; ResizeObserver deliveries before each loop error: ${roLoops.join(' ;; ')}` : ''}`).toEqual([]);
 });
 
 test('the Session W surfaces render in WebKit: Sleep, Meditation, My links and the wrap-up card', async ({page}) => {

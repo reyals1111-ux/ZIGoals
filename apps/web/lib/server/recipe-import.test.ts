@@ -1,6 +1,6 @@
-import {describe, expect, test} from 'vitest';
+import {describe, expect, test, vi} from 'vitest';
 import {checkRecipeUrl, extractRecipe, fetchRecipePage, importRecipe, isRefusal, RECIPE_MAX_BYTES} from './recipe-import';
-import {allow} from '../../app/api/recipe-import/route';
+import {allow, POST} from '../../app/api/recipe-import/route';
 
 const page = (ld: unknown) => `<html><head><script type="application/ld+json">${JSON.stringify(ld)}</script></head><body>x</body></html>`;
 const recipe = {'@context': 'https://schema.org', '@type': 'Recipe', name: 'Fictional lentil soup', recipeIngredient: ['200 g red lentils', '1 onion', '2 tbsp olive oil'], recipeYield: '4 servings', recipeInstructions: [{'@type': 'HowToStep', text: 'Fry.'}, {'@type': 'HowToStep', text: 'Simmer.'}]};
@@ -54,4 +54,19 @@ test('Gate B: a trailing dot does not slip a private name through, and a page of
   for (const u of ['https://localhost./x', 'https://printer.local./x', 'https://box.internal./x']) expect(checkRecipeUrl(u)).toEqual({code: 'PRIVATE_HOST'});
   const t0 = performance.now(); const out = extractRecipe('<script'.repeat(140_000), 'evil.example');
   expect(out).toEqual({code: 'NO_RECIPE'}); expect(performance.now() - t0).toBeLessThan(2_000);
+});
+
+// Session AC (item 4, the hosted verifier's stage 8): the route answers the verifier's three inputs with 400 and the
+// exact code, before any outbound request (the owner's next hosted run reaches this stage once stage 6 passes).
+describe('the hosted verifier\'s recipe-import refusals', () => {
+  test.each([['http://example.com/recipe', 'NOT_HTTPS'], ['https://127.0.0.1/recipe', 'PRIVATE_HOST'], ['https://example.com/' + 'a'.repeat(2050), 'INVALID_URL']])('%s → 400 %s, nothing fetched', async (url, code) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    try {
+      const response = await POST(new Request('https://alpha.example/api/recipe-import', {method: 'POST', headers: {'content-type': 'application/json', 'cf-connecting-ip': '203.0.113.7'}, body: JSON.stringify({url})}));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({error: code});
+      expect(response.headers.get('cache-control')).toBe('no-store');
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally { fetchSpy.mockRestore(); }
+  });
 });

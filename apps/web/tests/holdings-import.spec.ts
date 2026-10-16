@@ -100,8 +100,8 @@ test('Wealth: two holdings become manual assets, one without a valuation; Undo r
   expect(platform.positions[1].valuation).toMatchObject({currency: 'EUR'});
   await panel.getByRole('button', {name: 'Done', exact: true}).click();
   await page.getByRole('button', {name: 'Close dialog', exact: true}).click();
-  await expect(page.getByRole('region', {name: 'Your assets', exact: true})).toContainText('Gold');
-  await expect(page.getByRole('region', {name: 'Your assets', exact: true})).toContainText('Needs valuation');
+  await expect(page.getByRole('region', {name: 'What you have', exact: true})).toContainText('Gold');
+  await expect(page.getByRole('region', {name: 'What you have', exact: true})).toContainText('Needs valuation');
   const banner = page.locator('.import-banner');
   await expect(banner).toContainText('2 assets added to Wealth.');
   await banner.getByRole('button', {name: 'Undo', exact: true}).click();

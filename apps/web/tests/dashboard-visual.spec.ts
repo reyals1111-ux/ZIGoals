@@ -17,7 +17,6 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await expect(page.getByRole("heading", { name: "A destination for your next chapter." })).toBeVisible();
     // Session AB-Design (ADR-024 D7; re-pointed, as strict): the compact notice carries the label; the wallet buttons
     // are in the status row (a phone: the Status & wallet sheet behind More); the footer line carries the sentence.
-    await expectAlphaFacts(page);
     const wallet = await walletArea(page);
     await expect(wallet.getByRole("button", { name: "Connect Keplr", exact: true })).toBeVisible();
     if (await page.getByRole("dialog", { name: "Status" }).isVisible()) await page.keyboard.press("Escape");
@@ -35,6 +34,8 @@ test("dashboard destinations, safety and layout work at desktop and 320px", asyn
     await page.getByRole("link", { name: "Plan my first goal" }).click();
     await expect(page).toHaveURL(/\/app\/goals\/new$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    // Session AC: the notice and Settings' facts block (in the app, then back), after this page's own steps.
+    await expectAlphaFacts(page);
   }
   expect(errors).toEqual([]);
 });

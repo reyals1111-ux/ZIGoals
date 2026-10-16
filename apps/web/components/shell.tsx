@@ -27,7 +27,7 @@ import "./pillar-hero.css";
 import "./ui/card-header.css";
 import "./charts/charts.css";
 import { ThemeSwitch } from "./shell/theme-switch";
-import { FooterFacts } from "./footer/footer-islands";
+import { AlphaFacts } from "./alpha/alpha-facts";
 import { GamifyButton } from "./game/gamify-button";
 import { PHONE_STATUS_EVENT } from "./phone/phone-status-event";
 import {useWorkspaceSelection} from './workspace-status';
@@ -116,6 +116,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const modeText = s.mode === "local"
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
+  const alphaFacts = {network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners};
   const balanceText = `${formatExactNumber(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
   const walletButtons = <>
           <button
@@ -179,7 +180,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
       </aside>
       <div className="app-content">
       {/* Session AB-Design (owner request 8, ADR-024 D7): pages start with their header. One compact first-visit notice replaces the Alpha box, the Showcase bar, the storage line and the mode strip; the same facts stay in the footer's disclaimer line, the Showcase chip stays in the status row, and the phone's Status & wallet sheet (More) keeps every notice in full. */}
-      {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"}/>}
+      {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"} stalled={slowRead&&settingsPending}/>}
       {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} balance={balanceText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>
@@ -272,12 +273,12 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}>{startHold?null:children}</Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
-      {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout; the shell
-          hands it the honesty values it already knows (footer-islands.tsx). */}
-      <FooterFacts value={{network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners}}>{footer}</FooterFacts>
+      {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:
+          it ends after its link columns; the honesty values reach Settings' About block through AlphaFacts instead. */}
+      {footer}
       </div>
       {s.pending && (
         <dialog

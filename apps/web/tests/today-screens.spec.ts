@@ -22,14 +22,20 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 // Second merger (ADR-022 B53): the merged Today measured 10.75 / 5.32 / 5.32 on this Mac (AA-Cloud's cards and the Updates fold keep the height once What's new is dismissed); the owner's rule: the measured value plus a small margin, listed.
 const CEILING = {showcase: 11.5, local: 5.8, localAfterWhatsNew: 5.8};
 test.use({viewport: {width: 390, height: 844}, reducedMotion: 'reduce'});
+// Session AC (owner item 15): one fixed time per run. Today's habits widget opens the current time-of-day section, so the
+// height followed the runner's hour (ADR-024: morning, 05–12 UTC, holds the most habits and measured tallest, 11.424 at
+// 06:30 and 09:30 UTC). The clock is fixed at 09:30 UTC on the seeded day, the tallest hour measured, so the check is as
+// strict as its strictest hour on every run; the page's timers still run. The ceilings are unchanged.
+const FIXED_TIME = new Date('2026-09-20T09:30:00.000Z');
 test('Today at 390×844 stays within its screen-count ceilings', async ({page}) => {
+  await page.clock.setFixedTime(FIXED_TIME);
   await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}}));
   const screens = async () => { await expect(page.getByRole('heading', {level: 1})).toBeVisible(); await page.waitForTimeout(800); return (await page.evaluate(() => document.documentElement.scrollHeight)) / 844; };
   await page.goto('/app/settings');
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   const showcase = await screens();
-  const {records} = buildShowcase('2026-09-20');
+  const {records} = buildShowcase('2026-09-20'); // the fixed clock's own day
   await page.goto('/app/settings');
   await page.evaluate(values => { sessionStorage.clear(); localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true})});
   await page.goto('/app');

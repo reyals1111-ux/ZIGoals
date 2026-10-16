@@ -1,12 +1,12 @@
 /* Session AB-Design (owner request 2; rebuilt to the owner's Phase 2 brief, ADR-024 P6): the one full-width footer banner. The
    planet once as its background; the logo-as-"Z" wordmark, the slogan and its small line as the centrepiece; the steps Goals →
-   Habits → Health on a constellation path that flows up into "Wealth"; social row, link groups, the Showcase line and the
-   Alpha's full disclaimer. Every line sits on a calm, darkened part of the art (contrast ≥ 4.5:1). */
+   Habits → Health on a constellation path that flows up into "Wealth"; social row and the link groups (Session AC: the page
+   ends there; the Alpha's facts live in Settings, Help and the first-visit notice). Every line sits on a calm, darkened part of the art (contrast ≥ 4.5:1). */
 .site-footer { position: relative; isolation: isolate; display: block; margin: 64px 0 0; padding: 0; border: 0; color: var(--text); font-size: 15px; overflow: hidden; }
 .site-footer-art, .site-footer-sweep { position: absolute; inset: 0; pointer-events: none; }
 .site-footer-art { background: var(--cosmic-destination) center 30% / cover no-repeat; }
 .site-footer-art { z-index: -4; mask-image: linear-gradient(180deg, transparent, #000 16%); }
-/* A soft scrim: clear over the planet's rim where the centrepiece sits, deepening behind the steps' text, the links and the disclaimer. */
+/* A soft scrim: clear over the planet's rim where the centrepiece sits, deepening behind the steps' text and the links. */
 .site-footer::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;
   background:
     radial-gradient(ellipse 34% 22% at 80% 34%, #f06dff24, transparent 70%),
@@ -104,20 +104,8 @@
 .site-footer .site-footer-group a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0; border-radius: 0; font-size: 15px; font-weight: 550; text-align: left; color: #e3ecf8; }
 .site-footer-group a:is(:hover, :focus-visible) { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
 
-/* The Showcase line and the disclaimer: centred, readable, shorter lines. Its link lives in "Your data" above. */
-.site-footer-status { width: 100%; display: flex; justify-content: center; max-width: 60ch; text-align: center; font-size: 15px; line-height: 1.55; color: #d3e0f2; }
-.site-footer .workspace-status { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: -18px 0 0; padding: 0; font-size: 15px; color: #d3e0f2; }
-.site-footer .workspace-status a { display: none; }
-.site-footer-disclaimer { max-width: 64ch; margin: -14px 0 0; font-size: 15px; line-height: 1.7; text-align: center; color: #d3e0f2; }
-.site-footer-disclaimer > span + span::before { content: ' · '; color: #8fa6c8; }
-.site-footer-disclaimer .network-banner strong { color: var(--brand-cyan, #23eaff); letter-spacing: .06em; font-size: 14px; }
-.site-footer-disclaimer .site-footer-build { overflow-wrap: anywhere; }
-/* The disclaimer's spans carry the verifier's class names; the old banner and strip styles must not reach them. */
-.site-footer-disclaimer :is(.network-banner, .mode-strip) { display: inline; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; gap: 0; letter-spacing: 0; font-size: inherit; line-height: inherit; color: inherit; max-width: none; }
-.site-footer-disclaimer .network-banner strong::before { content: none; }
-
 @media (max-width: 1100px) { .site-footer-inner { padding-top: 64px; gap: 34px; } .site-footer-stage { gap: 40px; } }
-/* Phones: logo and slogan, the steps one under the other with the path running down, the social icons, two columns of links, the disclaimer. */
+/* Phones: logo and slogan, the steps one under the other with the path running down, the social icons, two columns of links. */
 @media (max-width: 767.98px) {
   .site-footer { margin-top: 28px; }
   .site-footer-inner { padding: 26px var(--phone-gutter, 16px) 40px; gap: 12px; justify-items: stretch; } /* Gate C: tighter, so Today's Showcase stays under its screen ceiling at every hour (Morning's open habits section had made it 11.51) */
@@ -145,37 +133,19 @@
   .site-footer-links > .site-footer-group:last-child { grid-column: 1 / -1; }
   /* The lone last group spans both columns, and so do its links (two per row), so it is no taller than it needs to be. */
   .site-footer-links > .site-footer-group:last-child ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
-  .site-footer-disclaimer { font-size: 14px; line-height: 1.5; max-width: none; margin-top: -4px; }
-  .site-footer-status { font-size: 14px; max-width: none; }
-  .site-footer .workspace-status { font-size: 14px; margin-top: -10px; }
 }
 @media (max-width: 359px) { .site-footer-logo.logo-wordmark { font-size: 44px; } .site-footer-slogan { font-size: 21px; } .site-footer-social a, .site-footer-top { padding: 0 11px; } }
 @media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer-sweep, .site-footer::before { display: none; } }
 .site-footer-result { white-space: nowrap; }
-/* Session AB-Design Phase 2 closing pass (design critique): the honesty facts read as short lines, not one run-on of a
-   dozen dot-joined clauses — every fact kept, word for word; the network label leads as a small heading, and the build
-   environment (the hosted verifier reads it) sits last in a quiet chip instead of trailing the text. */
-.site-footer-disclaimer { display: grid; justify-items: center; gap: 2px; }
-.site-footer-disclaimer > span { text-wrap: balance; } /* a long fact wraps as two even lines, never a lone last word */
-.site-footer-disclaimer > span + span::before { content: none; }
-.site-footer-disclaimer .network-banner strong { display: block; margin-bottom: 2px; }
-.site-footer-disclaimer .site-footer-build { margin-top: 8px; }
-.site-footer-env { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 1px solid #8fa6c840; border-radius: 999px; font-size: 14px; letter-spacing: .04em; color: #b6c6dd; }
 /* Session AB-Design Phase 2 closing pass (design critique): two identical X icons could not be told apart on a phone, so
    the X links show their handles there (the website stays an icon); the row wraps when they need the room. */
 @media (max-width: 767.98px) {
   .site-footer-social-links > a[href*="x.com"] { width: auto; }
   .site-footer-social-links > a[href*="x.com"] > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
 }
-/* On phones the facts flow as one readable paragraph again (each on its own line had made Today taller than its asserted
-   screen-count ceilings); the network label leads it and the environment chip closes it, inline. The social row stays one
-   line: the two X handles, the website and Back to top as a 44 px arrow (its name kept for assistive technology). */
+/* On phones the social row stays one line: the two X handles, the website and Back to top as a 44 px arrow (its name kept for assistive technology). */
 @media (max-width: 767.98px) {
   .site-footer-inner { padding-top: 24px; gap: 12px; }
-  .site-footer-disclaimer { display: block; line-height: 1.5; }
-  .site-footer-disclaimer > span + span::before { content: ' · '; color: #8fa6c8; }
-  .site-footer-disclaimer .network-banner strong { display: inline; margin: 0; }
-  .site-footer-disclaimer .site-footer-build { display: inline; margin: 0; }
   .site-footer-social { flex-wrap: nowrap; }
   .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }
   .site-footer-social-links > a[href*="x.com"] { padding: 0 9px; gap: 6px; font-size: 14px; letter-spacing: -.01em; }

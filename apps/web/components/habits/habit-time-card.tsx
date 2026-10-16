@@ -20,7 +20,8 @@ export function HabitTimeCard() {
   // ADR-022 B49: when Today's own habits widget is on the page (it groups the due habits by section itself), this card
   // would list the same check-ins twice; it stands down and shows only on a Today without the widget.
   const [widget, setWidget] = useState(false);
-  useEffect(() => { setWidget(!!document.querySelector('.placed-module[data-module="habits"] .habits-today')); }, [store.data]);
+  // Session AC: Daily Habits or the habits widget standing in for it (the same list), whichever Today shows.
+  useEffect(() => { setWidget(!!document.querySelector('.placed-module:is([data-module="habits"], [data-stands-in="habits"]) .habits-today')); }, [store.data]);
   if (!store.loaded || store.error || widget) return null;
   const due = store.data.habits.filter(h => habitDay(h, store.today, store.today).scheduled);
   const sections = groupByTimeOfDay(due, store.today), now = currentSection(new Date().getHours());

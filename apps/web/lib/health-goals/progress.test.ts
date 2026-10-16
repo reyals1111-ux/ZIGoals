@@ -19,11 +19,11 @@ describe('healthGoalProgress', () => {
     const health = healthSchema.parse(JSON.parse(buildShowcase(DAY).records[HEALTH_STORAGE_KEY]!));
     const progress = healthGoalProgress(goal({}), health, DAY);
     expect(progress).toEqual({kind: 'value', current: 7475, target: 8000, unit: 'steps', percent: 93.4375, days: 28, done: false, detail: '28 days with activity recorded · 209,300 steps in total', ended: undefined});
-    expect(healthGoalLine(goal({}), progress)).toBe('7,475 of 8,000 steps');
+    expect(healthGoalLine(goal({}), progress)).toBe('7,475 of 8,000 steps a day on average');
   });
   test('the line follows the display locale, as every other figure does (Session X P2.5)', () => {
     const progress = healthGoalProgress(goal({}), healthSchema.parse(JSON.parse(buildShowcase(DAY).records[HEALTH_STORAGE_KEY]!)), DAY);
-    try { setDisplayLocale('nl-BE'); expect(healthGoalLine(goal({}), progress)).toBe('7.475 of 8.000 steps'); }
+    try { setDisplayLocale('nl-BE'); expect(healthGoalLine(goal({}), progress)).toBe('7.475 of 8.000 steps a day on average'); }
     finally { setDisplayLocale(DEFAULT_DISPLAY_LOCALE); }
   });
   test('steps: no activity is no data; the average counts recorded days only', () => {

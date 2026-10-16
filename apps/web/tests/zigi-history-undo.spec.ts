@@ -30,6 +30,9 @@ test.beforeEach(async ({page}) => {
     r.onsuccess = () => { const db = r.result, t = db.transaction('chats', 'readwrite'); for (const c of chats) t.objectStore('chats').put(c, `local:${c.id}`); t.oncomplete = () => { db.close(); resolve(); }; };
   }), {values: {[DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: 'http://127.0.0.1:1234'})}, chats: CHATS});
   expect(await stored(page)).toEqual(['local:chat-first-0001', 'local:chat-second-002']);
+  // Session AC (item 16): the next `goto` waits until Settings' prefetches are done (WebKit's "internal error" on it,
+  // CI run 38879358853; the same navigation stall as `zigi-accept-correct`).
+  await page.waitForLoadState('networkidle');
 });
 async function history(page: Page) {
   await page.goto('/app/habits');

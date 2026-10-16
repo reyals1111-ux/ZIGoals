@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 import {emptyPlatform,positionSchema,privateGoalSchema,PLATFORM_KEY} from '../lib/positions';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {openTodayWidgets} from './phone-nav';
+import {inAboutAlpha} from './ab-shell';
 const fixtureAccount='10000000-0000-4000-8000-000000000001';
 test.beforeEach(async({page})=>{
  await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
@@ -10,7 +11,7 @@ for(const width of [320,390])test(`selected staking/rewards and allocation widge
  data.goals=[privateGoalSchema.parse({id:'42',name:'Fixture Goal',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'20000',notes:'Fictional',createdAt:'2026-09-23T12:00:00Z',milestones:[]})];data.allocations=[{positionId:'fixture-cash',goalId:'42',quantity:'11002'}];
  await page.addInitScript(({data,platformKey,settings,settingsKey})=>{if(!sessionStorage.getItem('fixture-widget-seeded')){localStorage.setItem(platformKey,JSON.stringify(data));localStorage.setItem(settingsKey,JSON.stringify(settings));sessionStorage.setItem('fixture-widget-seeded','true');}},{data,platformKey:PLATFORM_KEY,settings:presetSettings('health'),settingsKey:DASHBOARD_SETTINGS_KEY});
  let financialRequests=0;page.on('request',request=>{if(/\/api\/(market|positions|chain)/.test(request.url()))financialRequests++;});
- await page.setViewportSize({width,height:900});await page.goto('/app');await expect(page.getByRole('button',{name:'Customize Today',exact:true})).toBeEnabled();await expect(page.locator('.workspace-status')).toContainText('This device only');await expect(page.locator('.alpha-notice')).toHaveCount(0);expect(financialRequests).toBe(0);
+ await page.setViewportSize({width,height:900});await page.goto('/app');await expect(page.getByRole('button',{name:'Customize Today',exact:true})).toBeEnabled();await expect(page.locator('.alpha-notice')).toHaveCount(0);expect(financialRequests).toBe(0);
  await expect(page.getByRole('alert').filter({hasText:'allocation exceeds'})).toBeVisible();
  await page.getByRole('button',{name:'Customize Today',exact:true}).click();
  for(const [kind,entity,title] of [['staking','fixture-stake','My selected stake'],['staking','fixture-rewards','My selected rewards'],['allocation','fixture-cash','My source allocation']]){
@@ -19,7 +20,10 @@ for(const width of [320,390])test(`selected staking/rewards and allocation widge
  await page.reload();await openTodayWidgets(page);const stake=page.getByRole('article',{name:'My selected stake',exact:true}),rewards=page.getByRole('article',{name:'My selected rewards',exact:true}),allocation=page.getByRole('article',{name:'My source allocation',exact:true});
  await expect(stake).toContainText('9,007,199,254,740,993.000001 ZIG');await expect(stake).toContainText('zigchain-1');await expect(stake).toContainText('stale');await expect(rewards).toContainText('0.000125 ZIG');await expect(rewards).toContainText('refresh failed');await expect(allocation).toContainText('110.02 USD');await expect(allocation).toContainText('10.01 USD');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);await page.screenshot({path:info.outputPath(`widgets-scope-${width}.png`),fullPage:true});
+ // Session AC (owner finding 3): the storage line left the footer for Settings' facts block.
+ await inAboutAlpha(page,about=>expect(about.locator('.workspace-status')).toContainText('This device only'),{back:false});
 });
 test('cold selected account has a global locked status and settings action with no identity leakage',async({page},info)=>{
- await page.addInitScript(id=>sessionStorage.setItem('zigoals:account:selector:v1',JSON.stringify({version:1,accountId:id})),fixtureAccount);await page.setViewportSize({width:320,height:900});await page.goto('/app');await expect(page.locator('.workspace-status')).toContainText('Account locked');await expect(page.locator('.workspace-status')).not.toContainText(fixtureAccount);await expect(page.locator('.mode-strip')).toHaveCount(0);await expect(page.locator('.workspace-status a')).toHaveAttribute('href','/app/settings#encrypted-sync');expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);await page.screenshot({path:info.outputPath('account-locked-shell-320.png'),fullPage:true});
+ await page.addInitScript(id=>sessionStorage.setItem('zigoals:account:selector:v1',JSON.stringify({version:1,accountId:id})),fixtureAccount);await page.setViewportSize({width:320,height:900});await page.goto('/app');// Session AC (owner finding 3): the storage line and the facts moved from the footer to Settings' facts block.
+ await expect(page.locator('.mode-strip, .workspace-status')).toHaveCount(0);await inAboutAlpha(page,async about=>{await expect(about.locator('.workspace-status')).toContainText('Account locked');await expect(about.locator('.workspace-status')).not.toContainText(fixtureAccount);await expect(about.locator('.mode-strip')).toHaveCount(0);await expect(about.locator('.workspace-status a')).toHaveAttribute('href','/app/settings#encrypted-sync');});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);await page.screenshot({path:info.outputPath('account-locked-shell-320.png'),fullPage:true});
 });

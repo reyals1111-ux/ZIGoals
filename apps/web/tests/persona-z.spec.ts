@@ -1,12 +1,12 @@
 import {expect, test, type Page} from '@playwright/test';
-import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,footerDisclaimer,openHabitDetails,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_SENTENCE,MODE_LOCAL,alphaNotice,expectAlphaMode,inAboutAlpha,openHabitDetails,openStatusSheet} from './ab-shell';
 import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue} from '../lib/habits';
 import {scheduleHabitState} from '../lib/habit-actions';
 import {createEmptyHealth, HEALTH_STORAGE_KEY, saveWeight} from '../lib/health';
 import {addWater, dailyData, saveHealthPreferences} from '../lib/health-daily';
 import {DASHBOARD_SETTINGS_KEY, presetSettings, WIDGET_CATALOG, type DashboardSettings} from '../lib/dashboard-settings';
 import {localDate} from '../lib/local-date';
-import {isPhone, mainNav, openMore} from './phone-nav';
+import {isPhone,mainNav,openMore,openFold} from './phone-nav';
 
 // Session Z-Cloud Part 4: the owner's persona decisions (docs/product/PERSONA_DECISIONS_Y.md items 1–3 and 5–12; item 4
 // skipped), built. Fictional records; every /api request is answered by a fixture.
@@ -51,10 +51,10 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   await expect(notice.locator('strong')).toHaveText(ALPHA_LABEL);
   const box = (await notice.boundingBox())!, tabs = (await page.locator('.phone-tabbar').boundingBox())!;
   expect(box.height).toBeGreaterThanOrEqual(44); expect(box.height).toBeLessThanOrEqual(72); expect(box.y + box.height).toBeLessThanOrEqual(tabs.y);
-  // The long sentences wait in the sheet and the footer; the first screen carries the label itself.
-  await expect(footerDisclaimer(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
-  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText(MODE_LOCAL);
-  expect(await footerDisclaimer(page).evaluate(e => e.getBoundingClientRect().top > innerHeight)).toBe(true);
+  // The long sentences wait in the sheet and in Settings' facts block (Session AC: the footer's line moved there, so this
+  // page carries none of them); the first screen carries the label itself.
+  await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
+  await inAboutAlpha(page, async about => { await expect(about.locator('.network-banner')).toContainText(ALPHA_SENTENCE); await expect(about.locator('.mode-strip')).toContainText(MODE_LOCAL); });
   const sheet = await openStatusSheet(page);
   await expect(sheet).toContainText(ALPHA_LABEL);
   await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab');
@@ -68,12 +68,12 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
     await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
     await expect(alphaNotice(page), path).toBeInViewport();
   }
-  // Closing the notice keeps it closed on this device; the facts stay in the footer.
+  // Closing the notice keeps it closed on this device; the facts stay in Settings' facts block (the footer until Session AC).
   await notice.getByRole('button', {name: 'Close this notice', exact: true}).click();
   await expect(notice).toHaveCount(0);
   await page.reload(); await expect(page.locator('main h1').first()).toBeVisible();
   await expect(alphaNotice(page)).toHaveCount(0);
-  await expect(footerDisclaimer(page).locator('.network-banner strong')).toHaveText(ALPHA_LABEL);
+  await inAboutAlpha(page, about => expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL));
   // Desktop: the wallet buttons sit in the status row, no sheet.
   await page.setViewportSize({width: 1280, height: 800});
   await page.goto('/app/goals');
@@ -89,31 +89,40 @@ test('3. plain words without a wallet: practice money, Demo records, "Give your 
   await expect(page.getByRole('button', {name: 'Local demo', exact: true})).toHaveCount(0);
   await expect(page.locator('.hero-pillars')).toContainText('Give your savings a purpose.');
   await expect(page.locator('.hero-pillars')).not.toContainText('Give your ZIG a purpose.');
-  // The footer's disclaimer keeps the strip's words (the hosted verifier reads them).
-  await expect(footerDisclaimer(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  // Settings' facts block keeps the strip's words (the hosted verifier reads them; the footer's line until Session AC).
+  await expectAlphaMode(page, 'LOCAL SIMULATION');
 });
 
-test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Assets · Debts and Portfolio linked', async ({page}) => {
+test('5. Wealth: "What you have" lists accounts, assets and debts together, with All · Accounts · Debts · Assets and Portfolio linked', async ({page}) => {
+  // Session AC (the owner's decision of 2026-10-15, "show each thing once"): the compact list, "Your assets" and
+  // "Accounts, debts & net worth" are one list with one row of chips; each row is the full card or account row with its
+  // actions. As strict as before: the same counts per chip, the debts and accounts by name, the asset links, Portfolio.
   await showcase(page);
   await page.goto('/app/wealth');
-  const have = page.getByRole('region', {name: 'What you have'});
+  const have = page.getByRole('region', {name: 'What you have', exact: true});
   await have.scrollIntoViewIfNeeded();
   await expect(have).toBeVisible();
-  const rows = have.locator('.what-you-have-list > li');
+  if (await isPhone(page)) await openFold(page, 'Accounts, debts & net worth');
+  const rows = have.locator('.owned-asset-card, .accounts-group .accounts-list > li');
   const filter = (name: string) => have.getByRole('group', {name: 'Show'}).getByRole('button', {name: new RegExp(`^${name} \\d+$`)});
   await expect(filter('All')).toHaveAttribute('aria-pressed', 'true');
   const all = await rows.count();
   await filter('Debts').click();
   await expect(rows).toHaveCount(2);
-  await expect(rows.filter({hasText: 'Car loan'})).toContainText(/-\$/);
+  await expect(rows.filter({hasText: 'Car loan'}).getByRole('button', {name: /Record a payment/})).toBeVisible();
   await expect(rows.filter({hasText: 'Credit card'})).toBeVisible();
+  await expect(have.locator('.owned-asset-card')).toHaveCount(0);
   await filter('Accounts').click();
   await expect(rows).toHaveCount(3);
   await expect(rows.filter({hasText: 'Rainy-day savings'})).toBeVisible();
   await filter('Assets').click();
   expect(await rows.count()).toBe(all - 5);
-  await expect(rows.first().getByRole('link')).toHaveAttribute('href', /^\/app\/wealth\/asset\//);
+  await expect(have.locator('.accounts-section')).toHaveCount(0);
+  await expect(rows.first().locator('a.owned-card-link')).toHaveAttribute('href', /^\/app\/wealth\/asset\//);
   await expect(have.getByRole('link', {name: 'Open Portfolio →'})).toHaveAttribute('href', '/app/portfolio');
+  // The chips' counts are the rows each one shows.
+  await filter('All').click();
+  await expect(filter('All')).toHaveAccessibleName(new RegExp(`^All ${all}$`));
 });
 
 test('6. Delete for good: an archived habit goes after its name is typed, its stack is undone, Undo brings it back for ten seconds', async ({page}) => {

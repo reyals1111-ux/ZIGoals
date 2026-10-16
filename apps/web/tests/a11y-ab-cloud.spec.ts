@@ -85,6 +85,9 @@ test('Point & tell: dialogs take focus and give it back, every control is named 
 test('Vitamins on the food form and in the micronutrient view: named fields and bars, 44 px edit buttons', async ({page}) => {
   await page.evaluate(values => { for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, records);
   await page.goto('/app/health');
+  // Session AC (CI run 38868257022): the view bar is tapped once Health has opened its records; a tap before that went
+  // nowhere and the Diary stayed.
+  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await page.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name: 'Targets', exact: true}).click();
   const vitamins = page.getByRole('region', {name: 'Micronutrients'}).locator('[data-region="vitamins"]');
   await expect(vitamins.getByRole('progressbar').first()).toBeVisible();

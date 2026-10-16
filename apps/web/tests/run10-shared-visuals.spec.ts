@@ -1,9 +1,10 @@
 import {test,expect,type Page} from '@playwright/test';
 import {openHabitDetails} from './ab-shell';
+// Session AC (deliberate): Today's habits list is the Balanced habits widget (Daily Habits, its twin, stands down by default).
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
  await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');
- await expect(page.locator('.placed-module[data-module="habits"] .habits-today')).toBeVisible();
+ await expect(page.locator('.placed-module[data-module="preset-balanced-1"] .habits-today')).toBeVisible();
 }
 test('Quick add lives in the mobile header and the Today hero, and Escape returns focus',async({page,isMobile})=>{
  await showcase(page);expect(await page.locator('.app-topbar .quick-add-trigger').count()).toBe(0);
@@ -13,7 +14,7 @@ test('Quick add lives in the mobile header and the Today hero, and Escape return
 });
 for(const width of [320,360,390,430,768,1440])test(`Habit labels and controls have distinct space at ${width}px`,async({page},testInfo)=>{
  await page.setViewportSize({width,height:1000});await showcase(page);
- const habits=page.locator('.placed-module[data-module="habits"] .habits-today');
+ const habits=page.locator('.placed-module[data-module="preset-balanced-1"] .habits-today');
  const rows=habits.locator('.habit-today-list li');await expect(rows).toHaveCount(5); // Session AA-Local (deliberate, ADR-022 B49): Today lists at most five of the Showcase's seven due habits; the rest are one tap away
  const overlaps=await rows.evaluateAll(items=>items.flatMap(row=>{
   const title=row.firstElementChild!.getBoundingClientRect(),completion=row.querySelector('.habit-completion')!.getBoundingClientRect();

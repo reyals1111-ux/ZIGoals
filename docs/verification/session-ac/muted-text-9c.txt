@@ -1,0 +1,9 @@
+Session AC item 9c — muted copy, measured by the layout audit (`node tests/audit/layout-audit.mjs <base> <out> --widths=390,1440 --muted`)
+Muted text: the --muted / --text-muted tokens, or .fine / .muted / .hint copy; contrast against the text's own pixels (the audit's method).
+Before (page-level states: today goals goal-page habits health health-sleep wealth markets staking portfolio activity ecosystem
+review-week settings settings-data settings-reminders help zigi-page, at 390 and 1440 px, Showcase and empty device):
+  1768 muted texts; lowest contrast 5.98:1; smallest 13 px; below 4.5:1 or 14 px: 150
+  (all 150 the Meet ZIGi size captions at 13 px). Separately, one audit contrast finding: Today 390, the habits list's
+  "/ 30 minutes" at 4.31:1 (Today's habits widget had not taken Habits' lifted counter colour).
+After (today and zigi-page re-audited at 390 and 1440):
+  533 muted texts; lowest contrast 6.13:1; smallest 14 px; below: 0; audit findings: 0.

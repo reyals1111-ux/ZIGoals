@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import {expectAlphaMode} from './ab-shell';
 import {navLink} from './phone-nav';
 import {readFile} from 'node:fs/promises';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, closeFictionalGoal, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics} from '../../../scripts/lib/hosted-alpha-goal-stage.mjs';
@@ -49,7 +50,7 @@ test('the verifier\'s fictional goal steps work on this build: create, fund, bac
   // Reload retention and closing the empty goal.
   await page.goto('/app/goals/1');
   await page.reload();
-  await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+  await expectAlphaMode(page, 'LOCAL SIMULATION');
   await closeFictionalGoal(page, expect);
   expect(errors).toEqual([]);
 });

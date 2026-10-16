@@ -1,0 +1,8 @@
+'use client';
+import {PRESETS, WIDGET_CATALOG, type DashboardPreset, type DashboardSettings} from '../../lib/dashboard-settings';
+import {widgetMetricLabel} from '../../lib/dashboard-metrics';
+
+/** The body of "Choose your Today layout" (its own small chunk since Session AC: Today's page weight). */
+export default function PresetChooser({preset, onChoose, preview, previewError, busy, error, onCancel, onApply}: {preset: DashboardPreset; onChoose: (preset: DashboardPreset) => void; preview: DashboardSettings | null; previewError: string; busy: boolean; error: string; onCancel: () => void; onApply: () => void}) {
+  return <><fieldset className="dashboard-preset-choices"><legend>Choose a starting point</legend>{PRESETS.map(p => <label key={p.id}><input type="radio" name="dashboard-preset" value={p.id} checked={preset === p.id} onChange={() => onChoose(p.id)}/><span><strong>{p.label}</strong><small>{p.description}</small></span></label>)}</fieldset><h3>Layout preview</h3>{preview ? <><ul>{preview.widgets.filter(w => !w.hidden).map(w => <li key={w.id}>{w.title || WIDGET_CATALOG[w.kind].label} · {widgetMetricLabel(w.metric)}</li>)}</ul><p>{preview.widgets.filter(w => w.hidden).length} existing widgets will be kept but hidden. This changes placement and visibility only; Goals, Habits, Health and assets remain saved.</p></> : <p role="alert">{previewError}</p>}<div className="dashboard-actions"><button className="secondary" onClick={onCancel}>Cancel</button><button className="primary" disabled={busy || !preview} onClick={onApply}>Apply layout</button></div>{error && <p role="alert">{error}</p>}</>;
+}

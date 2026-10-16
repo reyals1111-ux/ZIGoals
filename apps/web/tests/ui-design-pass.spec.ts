@@ -187,7 +187,9 @@ test.describe('Part 2: personal layouts',()=>{
   for(const path of ['/app','/app/goals','/app/wealth','/app/health']){
    await page.goto(path);await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
    await expect(page.locator('.layout-controls').first()).toBeVisible();
-   for(const selector of ['.alpha-notice','.showcase-chip','.site-footer .network-banner','.site-footer .mode-strip','main h1']){
+   // Session AC (owner finding 3): the footer's disclaimer spans moved to Settings' facts block (checked below).
+   await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip'),path).toHaveCount(0);
+   for(const selector of ['.alpha-notice','.showcase-chip','main h1']){
     // Session AB-Design (ADR-024 D7): the notice, the Showcase chip and the footer's disclaimer spans are never inside a
     // movable item (the banners they replaced were checked the same way).
     const el=page.locator(selector).first();await expect(el).toBeVisible();
@@ -195,19 +197,25 @@ test.describe('Part 2: personal layouts',()=>{
    }
    await page.getByRole('button',{name:'Done',exact:true}).click();
   }
+  // Session AC: Settings' facts block (the footer's spans until then) is never inside a movable item either.
+  await page.goto('/app/settings');const about=page.locator('.about-alpha');
+  for(const selector of ['.network-banner','.mode-strip']){const el=about.locator(selector);await expect(el).toBeVisible();expect(await el.evaluate(e=>!!e.closest('[data-layout-item]')),selector).toBe(false);}
  });
  test('Today moves go through the synced Today placement and Reset restores its default order',async({page})=>{
   await showcase(page);
   await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
-  const initial=await order(page,'today:main');
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
   // Unlocking Today is the existing Customize mode.
   await expect(page.getByRole('heading',{name:'Arrange your daily space'})).toBeVisible();
+  // Session AC: the order is read while arranging, where the default's hidden twins (Daily Habits, the Next Goal action)
+  // are listed with "Show card"; a move steps past a hidden card as past any other.
+  const initial=await order(page,'today:main');
   await page.getByRole('button',{name:`Move Whole-life overview down`,exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
   await page.reload();await expect(page.locator('[data-layout-region="today:main"]').first()).toBeVisible();
-  expect(await order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
-  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();await page.getByRole('button',{name:'Reset this page',exact:true}).click();
+  await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
+  await expect.poll(()=>order(page,'today:main')).toEqual([initial[1],initial[0],...initial.slice(2)]);
+  await page.getByRole('button',{name:'Reset this page',exact:true}).click();
   await expect.poll(()=>order(page,'today:main')).toEqual(initial);
  });
  test('dragging a Goal card with the mouse reorders the collection',async({page,isMobile})=>{
@@ -472,9 +480,10 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   // 02 Habits, 03 Health; "= Wealth" is the slogan's result, which the path flows up into. As strict: the exact three, in order.
   await expect(page.getByRole('list',{name:'How ZIGoals works'}).locator('strong')).toHaveText(['Goals','Habits','Health']);
   await expect(footer.locator('.site-footer-slogan .site-footer-wealth')).toHaveText('Wealth');
-  // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled.
-  await expect(footer).toContainText('Financial execution is disabled on this Alpha.');
-  await expect(footer).toContainText('Browser storage is not a backup.');
+  // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled. Session AC (owner finding 3): the
+  // page ends after the link columns; these facts moved to Settings' facts block (asserted at the end of this test).
+  await expect(footer).not.toContainText('Financial execution is disabled on this Alpha.');
+  await expect(footer).not.toContainText('Browser storage is not a backup.');
   await expect(footer.getByRole('link',{name:'Make a backup in Settings',exact:true})).toHaveAttribute('href','/app/settings'); // Phase 2: the brief's link text, no arrow
   // The footer keeps the wordmark and its line.
   await expect(footer.locator('.site-footer-tagline')).toContainText('Same you. A brighter tomorrow.');
@@ -482,8 +491,13 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   // The planet is drawn once: one art layer, no second horizon layer anywhere on the page.
   await expect(page.locator('.site-footer-art')).toHaveCount(1);
   expect(await page.evaluate(()=>[document.querySelector('.app-content'),document.querySelector('.workspace')].filter(Boolean).map(e=>getComputedStyle(e!,'::after').backgroundImage).filter(v=>v.includes('horizon')).length)).toBe(0);
-  for(const el of await footer.locator('.site-footer-steps p, .site-footer-disclaimer').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
+  for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
   for(const el of await footer.locator('.site-footer-steps p').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(15);
+  // The facts' new place: Settings' facts block, readable (≥ 14 px, as the footer's line was).
+  await page.goto('/app/settings');const about=page.locator('.about-alpha');
+  await expect(about).toContainText('Financial execution is disabled on this Alpha.');
+  await expect(about).toContainText('Browser storage is not a backup.');
+  for(const el of await about.locator('p, span').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
  });
 });
 

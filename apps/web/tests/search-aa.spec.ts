@@ -53,6 +53,9 @@ test('the header button and "/" open search on every page; ⌘K is not taken; Es
 
 test('finds goals, habits, foods, assets, templates, settings and Help answers; arrows and Enter open one', async ({page}) => {
   await showcase(page);
+  // Clicked once Today is live: a click while the Showcase's Today still hydrates is not seen by React (CI run
+  // 38902988046, desktop: the click landed 1.2 s into hydration and no search opened), as with the "/" key above.
+  await page.waitForLoadState('networkidle');
   await page.getByRole('button', {name: 'Search'}).filter({visible: true}).first().click();
   await field(page).fill('emergency');
   const results = palette(page).getByRole('listbox');

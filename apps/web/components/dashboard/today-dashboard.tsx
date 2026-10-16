@@ -12,6 +12,7 @@ const ChessTodayRefresh=lazy(()=>import('../chess/chess-today'));
 const TodayDeviceCards=lazy(()=>import('./today-device-cards'));
 // Phase 2 (weights): the widget library opens with the Add widget dialog, the welcome card only on a new device: both chunks.
 const WidgetLibrary=lazy(()=>import('./widget-library').then(m=>({default:m.WidgetLibrary})));
+const MakeToday=lazy(()=>import('./make-today')),PresetChooser=lazy(()=>import('./preset-chooser'));
 const WelcomeCard=lazy(()=>import('../onboarding/welcome-card').then(m=>({default:m.WelcomeCard})));
 // Phase 2, Part 8 (owner request 9): the Journey widgets (device-only, while Gamify is on) and their switches in the picker.
 const TodayGameCards=lazy(()=>import('../game/today-game-cards'));
@@ -60,8 +61,8 @@ import {AskZigiItem} from '../ai/ask-zigi-item';
 import {wealthMarketRequests} from '../../lib/wealth';
 import {unifiedGoalSummaries} from '../../lib/goal-summary';
 import {dailyData,healthDay} from '../../lib/health-daily';
-import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,type TodayGroup,emptyDashboardSettings,PRESETS,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
-import {dashboardIntegrityWarning,widgetMetric,widgetMetricLabel,type DashboardSources,type WidgetMetric} from '../../lib/dashboard-metrics';
+import {DASHBOARD_SETTINGS_KEY,dashboardSettingsSchema,TODAY_GROUPS,todayGroup,twinOf,type TodayGroup,emptyDashboardSettings,saveWidget,removeWidget,visibleDomains,WIDGET_CATALOG,DASHBOARD_BUILTINS,reconcileDashboardPlacement,moveDashboardItem,setDashboardBuiltinHidden,applyDashboardPreset,resetDashboardPlacement,type DashboardPreset,type DashboardWidget,type DashboardSettings,type WidgetKind,type DashboardBuiltinId,type DashboardItemRef,type DashboardRegion} from '../../lib/dashboard-settings';
+import {dashboardIntegrityWarning,widgetMetric,type DashboardSources,type WidgetMetric} from '../../lib/dashboard-metrics';
 import {widgetNeedsSource} from '../../lib/dashboard-widget-registry';
 import './dashboard.css';
 import {useShowcase} from '../showcase-controls';
@@ -165,7 +166,7 @@ export function TodayDashboard(){
   await change(s=>moveDashboardItem(s,ref,{region,anchor,position:after?'before':'after'},placement.revision),`${refLabel(ref)} moved. Layout saved on this device.`);
  }
  const regionItems=(region:DashboardRegion):LayoutEntry[]=>{
-  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref)}]:[];});
+  const entries=placement[region].flatMap((ref,index):(LayoutEntry&{group:TodayGroup})[]=>{const node=renderPlaced(ref,region,index);return node?[{id:layoutId(ref),label:refLabel(ref),node,group:todayGroup(ref,settings.data.widgets)}]:[];});
   // Session AA-Cloud Part 1: small group headings while Today keeps its default order and is not being arranged; a
   // person's own arrangement is shown exactly as saved, without headings.
   // The heading opens its group's first card (it is never a movable item of its own).
@@ -218,8 +219,10 @@ export function TodayDashboard(){
   // Session U follow-up F3: on a phone each widget card also folds to a row named by the widget and opens in place; the
   // overview ("Your selected widgets") still shows every widget's value at a glance, so nothing is removed. While Today
   // is being customized no widget folds, so every card and its options stay in reach.
-  const foldLabel=ref.kind==='widget'?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has(ref.id as DashboardBuiltinId)?PHONE_FOLD_LABEL[ref.id]??label:undefined;
-  return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined}>
+  // Session AC: a widget standing in for its hidden built-in twin (Daily Habits, Daily Health) folds as that built-in does.
+  const twin=widget?twinOf(widget):null,standsIn=!!twin&&placement.hiddenBuiltins.includes(twin);
+  const foldLabel=ref.kind==='widget'&&!standsIn?(customize?undefined:widgetMetric(widget!,sources).title):PHONE_FOLDED.has((standsIn?twin:ref.id) as DashboardBuiltinId)?PHONE_FOLD_LABEL[standsIn?twin!:ref.id]??label:undefined;
+  return <div key={`${ref.kind}:${ref.id}`} id={itemId(ref)} tabIndex={-1} className="placed-module" data-kind={ref.kind} data-module={ref.id} data-size={widget?.size} data-hidden={hidden?'true':undefined} data-stands-in={standsIn?twin!:undefined}>
    {customize&&ref.kind==='builtin'&&<div className="dashboard-builtin-options"><CardOptions label={label}><button type="button" disabled={busy||index===0} onClick={()=>relocate(ref,region,index,-1,label)}>Move earlier</button><button type="button" disabled={busy||index===placement[region].length-1} onClick={()=>relocate(ref,region,index,1,label)}>Move later</button>{builtin!.hideable&&<button type="button" disabled={busy} onClick={()=>apply(s=>setDashboardBuiltinHidden(s,ref.id as DashboardBuiltinId,!hidden,placement.revision))}>{hidden?'Show card':'Hide card'}</button>}</CardOptions></div>}
    {!withPage?<p className="dashboard-hidden-placeholder">{label} is hidden with its page. Show the page again in Settings, under Your pages &amp; buttons.</p>:hidden&&ref.kind==='builtin'?<p className="dashboard-hidden-placeholder">{label} is hidden from Today.</p>:foldLabel?<PhoneFold label={foldLabel} {...(ref.kind==='widget'?{remembered:!!folds&&isFoldOpen(folds,ref.id),onToggle:(open:boolean)=>toggleFold(ref.id,open)}:{})}>{content}</PhoneFold>:content}
    {customize&&<button type="button" className="dashboard-insert-here" disabled={busy||settings.data.widgets.length>=24} onClick={()=>addAfter(ref,region)}>+ Add widget after {label}</button>}
@@ -239,7 +242,7 @@ export function TodayDashboard(){
  const setHeroCollapsed=(value:boolean)=>{try{uiPrefs.update(p=>({...p,heroCollapsed:value}));}catch{setError('This device refused to save that choice.');}};
  const [focusPlace,setFocusPlace]=useState<HTMLDivElement|null>(null),[mainPlace,setMainPlace]=useState<HTMLDivElement|null>(null),[endPlace,setEndPlace]=useState<HTMLDivElement|null>(null);
  const forYouOn=settings.loaded&&!settings.error&&(settings.data.onboarded||showcase)&&!brandNew&&storesReady;
- const makeToday=settings.loaded&&!settings.error&&!settings.data.onboarded?<section className="dashboard-welcome panel"><h2>Make Today yours.</h2><p>Start with your interests. Your records stay as they are, and no wallet or account is required.</p><div className="dashboard-preset-choices">{PRESETS.map(p=><button className="secondary" key={p.id} onClick={()=>setPreset(p.id)}><strong>{p.label}</strong><span>{p.description}</span></button>)}</div><button className="text-link" onClick={()=>apply(s=>({...s,onboarded:true}))}>Keep Balanced and continue</button><p className="fine">Saved locally. Explore account, backup and encrypted-sync options in <Link href="/app/settings">Settings</Link>.</p></section>:null;
+ const makeToday=settings.loaded&&!settings.error&&!settings.data.onboarded?<Suspense fallback={null}><MakeToday chosen={settings.data.preset} onChoose={setPreset} onContinue={()=>apply(s=>({...s,onboarded:true}))}/></Suspense>:null;
  // The For you cards render into three fixed places (portals), so the page's own tree never changes shape when they
  // arrive: the hero and its slogan mount once per visit.
  const layout=(parts:ForYouParts)=><div className="today-page personalized-today" data-interests={settings.data.preset} data-single={single?'':undefined}>
@@ -267,7 +270,7 @@ export function TodayDashboard(){
   {/* Session AB-Design (owner requests 9 and 11): Your week, then the game card while Gamify is on, then My links as the last card before the footer. Saved orders are kept (resolveOrder); "Reset this page" offers this order. */}
   {platform.loaded&&habits.loaded&&health.loaded&&<LayoutRegion region="bottom" items={[{id:'today:week',label:'Your week',node:<PhoneFold label="Your week"><TodayWeek today={sources.healthDate} habits={habits.data} health={health.data} platform={platform.data} financial={financial}/></PhoneFold>},gameOn&&{id:'today:game',label:'Your progress',node:<div className="today-game-place"><Slot place="today:game"/></div>},myLinks.length>0&&isShown(pagesView,'links')&&{id:'today:links',label:'My links',node:<PhoneFold label="My links"><TodayLinks links={myLinks}/></PhoneFold>}]}/>}
   {editor&&<WidgetEditor key={editor==='new'?'new':editor.id} initial={editor==='new'?undefined:editor} sources={sources} ready={loaded} onRemove={editor==='new'?undefined:()=>change(s=>removeWidget(s,editor.id),'Widget removed. Your underlying record was kept.')} onClose={()=>{setEditor(null);setInsertAt(null);}} onSave={(w,rev)=>change(s=>{const saved=saveWidget(s,w,rev);return editor==='new'&&insertAt?moveDashboardItem(saved,{kind:'widget',id:w.id},{region:insertAt.region,anchor:insertAt.anchor,position:'after'}):saved;},'Widget saved on this device.')}/>}
-  {preset&&<Modal title="Choose your Today layout" onClose={()=>setPreset(null)}><fieldset className="dashboard-preset-choices"><legend>Choose a starting point</legend>{PRESETS.map(p=><label key={p.id}><input type="radio" name="dashboard-preset" value={p.id} checked={preset===p.id} onChange={()=>setPreset(p.id)}/><span><strong>{p.label}</strong><small>{p.description}</small></span></label>)}</fieldset><h3>Layout preview</h3>{presetPreview?<><ul>{presetPreview.widgets.filter(w=>!w.hidden).map(w=><li key={w.id}>{w.title||WIDGET_CATALOG[w.kind].label} · {widgetMetricLabel(w.metric)}</li>)}</ul><p>{presetPreview.widgets.filter(w=>w.hidden).length} existing widgets will be kept but hidden. This changes placement and visibility only; Goals, Habits, Health and assets remain saved.</p></>:<p role="alert">{presetError}</p>}<div className="dashboard-actions"><button className="secondary" onClick={()=>setPreset(null)}>Cancel</button><button className="primary" disabled={busy||!presetPreview} onClick={()=>void change(s=>applyDashboardPreset(s,preset),'Preset saved on this device.').then(()=>setPreset(null)).catch(()=>{})}>Apply layout</button></div>{error&&<p role="alert">{error}</p>}</Modal>}
+  {preset&&<Modal title="Choose your Today layout" onClose={()=>setPreset(null)}><Suspense fallback={null}><PresetChooser preset={preset} onChoose={setPreset} preview={presetPreview} previewError={presetError} busy={busy} error={error} onCancel={()=>setPreset(null)} onApply={()=>void change(s=>applyDashboardPreset(s,preset),'Preset saved on this device.').then(()=>setPreset(null)).catch(()=>{})}/></Suspense></Modal>}
  </div>;
  return <HealthLinkContext.Provider value={healthLinkContext}><LayoutPage page="today" unlocked={customize} onUnlockedChange={setCustomize} onReset={()=>apply(s=>resetDashboardPlacement(s),'Today is back to its default layout.')}>
   {layout({focus:null,main:null,end:null})}

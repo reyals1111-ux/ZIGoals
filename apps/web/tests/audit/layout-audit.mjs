@@ -29,6 +29,9 @@ const stress = flags.includes('--stress');
 // --touch (owner, 2026-10-14): tablets are touch devices. The same states at 768 and 1024 px with touch emulation (a coarse
 // primary pointer), where every target must be 44 × 44 px, as on phones.
 const touch = flags.includes('--touch');
+// --muted (Session AC, item 9c): also report every muted text (the --muted / --text-muted tokens, or .fine / .muted /
+// .hint copy) with its measured contrast against its own pixels and its size, in muted-<tag>.json and a summary.
+const mutedReport = flags.includes('--muted'), mutedRows = [];
 const WIDTHS = (flag('widths') ?? (touch ? '768,1024' : engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
@@ -285,6 +288,8 @@ function inspect() {
   // A popover's drop shadow darkens what is just around it too: 24 px of margin around each cover.
   const covered = el => { const r = el.getBoundingClientRect(); return covers.some(({c, r: k}) => !c.contains(el) && r.left < k.right + 24 && r.right > k.left - 24 && r.top < k.bottom + 24 && r.bottom > k.top - 24); };
   const samples = [];
+  // The muted tokens as computed colours (what an element's computed colour reads when it uses them).
+  const mutedColors = new Set(['--muted', '--text-muted'].map(v => { const probe = document.createElement('span'); probe.style.color = `var(${v})`; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; }));
   for (const el of texts) {
     if (covered(el)) continue;
     const s = getComputedStyle(el); if (el.closest('button:disabled, [aria-disabled="true"], .site-footer-art')) continue;
@@ -296,11 +301,12 @@ function inspect() {
     // The element's own text runs only (a swatch or an icon beside the words is not what the words sit on).
     const rects = []; for (const n of el.childNodes) { if (n.nodeType !== 3 || !n.textContent.trim()) continue; const range = document.createRange(); range.selectNodeContents(n); rects.push(...range.getClientRects()); }
     const size = parseFloat(s.fontSize), bold = +s.fontWeight >= 700;
+    const muted = mutedColors.has(s.color) || !!el.closest('.fine, .muted, .hint, .text-muted');
     // Text scrolled out of its own scroller (a swipeable row of chips) is not on screen: only what the scroller shows counts.
     let clipBox = null; for (let e = el.parentElement; e; e = e.parentElement) { const ox = getComputedStyle(e).overflowX; if (ox === 'auto' || ox === 'scroll' || ox === 'hidden' || ox === 'clip') { clipBox = e.getBoundingClientRect(); break; } }
     for (const r of rects) { if (r.width < 4 || r.height < 6) continue;
       if (clipBox && (r.left < clipBox.left - 1 || r.right > clipBox.right + 1)) continue;
-      samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66)}); }
+      samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66), muted, size}); }
   }
   // Gradient text paints its background through the glyphs: marked so the background capture can leave it out.
   for (const el of texts) { const cs = getComputedStyle(el); if (/\btext\b/.test(cs.backgroundClip + ' ' + (cs.webkitBackgroundClip ?? ''))) el.setAttribute('data-audit-text-clip', ''); }
@@ -323,12 +329,14 @@ function contrast(pngs, samples) {
     const mix = text.map((v, i) => v * s.a + bg[i] * (1 - s.a));
     const r = ratio(mix, bg), need = s.large ? 3 : 4.5;
     if (r < need) found.push({k: 'contrast', w: `${s.d} ${r.toFixed(2)}:1 (needs ${need}:1)`});
+    if (mutedReport && s.muted) mutedRows.push({at: currentKey, d: s.d, ratio: +r.toFixed(2), size: s.size});
   }
   return found;
 }
 
 const launcher = engine === 'webkit' ? webkit : chromium;
 const browser = await launcher.launch(engine === 'webkit' ? {} : {channel: 'chrome'});
+let currentKey = '';
 const report = {base, engine, widths: WIDTHS, at: new Date().toISOString(), states: {}, advisory: {}};
 for (const width of WIDTHS) {
   const phone = width < 768;
@@ -362,6 +370,7 @@ for (const width of WIDTHS) {
           for (let top = 0; ; top += vh - 120) { const at = await p.evaluate(t => { scrollTo(0, t); return scrollY; }, top); await p.waitForTimeout(80); pngs.push({top: at, png: readPng(await p.screenshot(shotOpts))}); if (at + vh >= h) break; }
           await p.evaluate(t => scrollTo(0, t), start); }
         else { const {h, w} = await p.evaluate(() => ({h: document.documentElement.scrollHeight, w: document.documentElement.clientWidth})); for (let top = 0; top < h; top += 7800) pngs.push({top, png: readPng(await p.screenshot({...shotOpts, fullPage: true, clip: {x: 0, y: top, width: w, height: Math.min(8000, h - top)}}))}); }
+        currentKey = key;
         const every = [...found, ...contrast(pngs, samples)], all = every.filter(f => f.k !== 'advisory-target');
         report.states[key] = all; report.advisory[key] = every.filter(f => f.k === 'advisory-target').map(f => f.w);
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
@@ -383,4 +392,9 @@ const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}${touch
   ...(() => { const seen = new Map(); for (const [k, l] of Object.entries(report.advisory)) for (const w of l) { const id = w.replace(/\d+×\d+/, '#'); if (!seen.has(id)) seen.set(id, {w, k, n: 0}); seen.get(id).n++; }
     return seen.size ? ['## Advisory: pointer-layout controls between 24 and 44 px (not findings; owner item)', '', `${[...seen.values()].reduce((a, b) => a + b.n, 0)} occurrences of ${seen.size} distinct controls (WCAG 2.5.8 minimum met; 44 px is the touch layout's rule).`, '', ...[...seen.values()].map(v => `- ${v.w} (first at ${v.k}, ×${v.n})`), ''] : []; })()].join('\n');
 writeFileSync(`${out}/layout-audit-${tag}.md`, md);
+if (mutedReport) {
+  const below = mutedRows.filter(r => r.ratio < 4.5 || r.size < 14), ratios = mutedRows.map(r => r.ratio), sizes = mutedRows.map(r => r.size);
+  writeFileSync(`${out}/muted-${tag}.json`, JSON.stringify({texts: mutedRows.length, minRatio: Math.min(...ratios), minSize: Math.min(...sizes), below}, null, 1));
+  console.log(`muted texts: ${mutedRows.length}; lowest contrast ${Math.min(...ratios)}:1; smallest ${Math.min(...sizes)} px; below 4.5:1 or 14 px: ${below.length}`);
+}
 console.log('counts', JSON.stringify(counts));

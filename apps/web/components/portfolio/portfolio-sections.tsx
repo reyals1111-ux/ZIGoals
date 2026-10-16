@@ -14,6 +14,7 @@ import {Change, compactAmount, compactMoney, direction, percent} from '../market
 import '../markets/data-table.css';
 export {Change, percent};
 import type {CoinMarket, Price, Sizes} from './use-portfolio-market';
+import {useScrollEdges} from '../ui/use-scroll-edges';
 
 /** Session W Part 15: the pieces of Portfolio v2 and its coin page. Unknown is written as unknown, never as 0. */
 export const KIND_LABEL = {real: 'Real holdings', hypothetical: 'Hypothetical'} as const;
@@ -44,13 +45,14 @@ function PriceCell({price, currency}: {price?: Price; currency: string}) {
 }
 /** The holdings table: one row per coin ever held, linking to its page. Narrow screens keep the coin, value and result. */
 export function HoldingsTable({portfolio, rows, sort, onSort, onRemove}: {portfolio: Portfolio; rows: Row[]; sort: 'value' | 'name' | 'result'; onSort: (sort: 'value' | 'name' | 'result') => void; /** Session AB-Design (owner request 27): removes a transaction from the expanded row's transfers. */ onRemove?: (id: string) => void}) {
+  const edges = useScrollEdges<HTMLDivElement>();
   const currency = portfolio.currency;
   const [open, setOpen] = useState<string | null>(null);
   const names = new Map(portfolio.coins.map(c => [coinKey(c.ref), c]));
   const sorted = [...rows].sort((a, b) => sort === 'name' ? a.coin.name.localeCompare(b.coin.name) : Number((sort === 'value' ? b.value : b.unrealized) ?? -Infinity) - Number((sort === 'value' ? a.value : a.unrealized) ?? -Infinity) || a.coin.name.localeCompare(b.coin.name));
   return <section className="portfolio-holdings-section" aria-labelledby={`holdings-${portfolio.id}`}>
     <header className="portfolio-section-head"><h3 id={`holdings-${portfolio.id}`}>Holdings</h3><label className="field portfolio-sort"><span>Sort holdings</span><select value={sort} onChange={event => onSort(event.target.value as typeof sort)}><option value="value">By value</option><option value="result">By result</option><option value="name">By name</option></select></label></header>
-    <div className="data-table-wrap" role="region" aria-label={`${portfolio.name} holdings, scrolls sideways`} tabIndex={0}>
+    <div ref={edges} className="data-table-wrap" role="region" aria-label={`${portfolio.name} holdings, scrolls sideways`} tabIndex={0}>
       <table className="data-table" aria-label={`${portfolio.name} holdings`}>
         <thead><tr><th scope="col">Coin</th><th scope="col" className="data-col-wide">Price</th><th scope="col" className="data-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th><th scope="col" className="data-col-wide">Holdings</th><th scope="col">Value</th><th scope="col" className="data-col-optional">Average cost</th><th scope="col">Result</th></tr></thead>
         <tbody>{sorted.map(row => {

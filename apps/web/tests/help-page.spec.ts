@@ -13,13 +13,15 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AB-Cloud (ADR-023, deliberate): this release's topic, after AA-Local's.
   ['ab', 'Everything travels with you, and nothing is lost'],
   // Session AB-Design (ADR-024, deliberate; the second merger): this release's topic, after AB-Cloud's.
-  ['abd', 'Goals, Habits & Health = Wealth, in one calm look'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['abd', 'Goals, Habits & Health = Wealth, in one calm look'],
+  // Session AC (ADR-025, deliberate): this release's topic, after AB-Design's.
+  ['ac', 'Each thing once, and a calmer page'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'What\'s new', 'Known limitations', 'Send feedback'];
 
-test('Help has one title and fourteen topics, listed before them, each linking to its section', async ({page}) => {
+test('Help has one title and fifteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -205,7 +207,8 @@ test('Session Z-Cloud: the new answers open from a hash, the voice answer follow
     ['z-delete-habit', 'Its name, notes and every check-in go, on every device you sync'],
     ['z-status', 'Status & wallet'], // Session AB-Design: the answer follows the notice and the sheet
     ['z-alpha', 'Practice money (no real value) · Public Alpha:'],
-    ['z-have', 'with All, Accounts, Assets and Debts'],
+    ['z-about', 'Everything this Alpha says about itself, in one place'], // Session AC: the footer's facts, in Help
+    ['z-have', 'All, Accounts, Debts, Assets, each asset class and Needs attention'], // Session AC: one holdings list
     ['z-units', 'your records stay in kilograms and millilitres'],
     ['z-more', 'Today is one centred column when nothing sits beside it'],
   ];
@@ -247,6 +250,21 @@ test('Session AA-Cloud: the new answers open from a hash, say what stays on this
     await page.goto(`/app/help#help-${id}`);
     await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`), id).toContainText(text);
+  }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AC (ADR-025): this release's answers open from their hash; the facts moved from the footer are named in Help.
+test('Session AC: the polish answers open from a hash, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  // As above: every answer is listed and closed once the page has loaded (the workspace shows after its stores are read).
+  for (const id of ['ac-habits', 'ac-sky', 'ac-footer', 'ac-today', 'ac-wealth', 'ac-water', 'ac-vision', 'ac-more']) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [['ac-habits', 'last 28 days'], ['ac-sky', 'the same with reduced motion or Motion Off'], ['ac-footer', 'Every page now ends after the footer’s links'], ['ac-today', 'Show card'], ['ac-wealth', 'All, Accounts, Debts, Assets'], ['ac-water', 'each with Undo'], ['ac-vision', 'kept on this device only'], ['ac-more', 'Reminders · ZIGoals Alpha']] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`)).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`)).toContainText(words);
   }
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

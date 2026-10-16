@@ -89,10 +89,15 @@ try {
   const nonceSample=appNonceFindings(report.responses); report.review.push(...nonceSample.findings); report.freshNonceSamples=nonceSample.nonces.length;
   await stage('Live Alpha identity, initial resources and navigation', async()=>{
     await page.goto(alpha+'/app'); await page.waitForLoadState('networkidle');
-    await expect(page.locator('footer')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
-    await expect(page.locator('.network-banner')).toContainText('No blockchain transactions or financial signatures');
+    // Session AC (owner finding 3 on #41): the page ends after the footer's link columns. The first-visit notice carries
+    // the label and the sentence on /app; Settings' facts block carries the sentence, the mode and the build environment.
+    await expect(page.getByRole('complementary',{name:'Alpha notice'})).toContainText('No blockchain transactions or financial signatures');
+    await expect(page.locator('footer .network-banner, footer .mode-strip')).toHaveCount(0);
     report.initialPerformance=await page.evaluate(()=>({navigation:performance.getEntriesByType('navigation').map(x=>x.toJSON()),resources:performance.getEntriesByType('resource').map(x=>x.toJSON())}));
     await layout('alpha-dashboard');
+    await page.goto(alpha+'/app/settings');
+    await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
+    await expect(page.locator('.about-alpha .network-banner')).toContainText('No blockchain transactions or financial signatures');
   });
   // Session V Part 1a: the goal steps live in lib/hosted-alpha-goal-stage.mjs, which a browser spec runs against a local
   // production build on every PR (apps/web/tests/hosted-alpha-goal-stage.spec.ts), so these selectors cannot go stale.
@@ -127,8 +132,11 @@ try {
   });
   await stage('Reload retention, close empty goal and navigation', async()=>{
     await page.goto(alpha+'/app/goals/1'); await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
-    await page.reload(); await expect(page.locator('.mode-strip')).toContainText('LOCAL SIMULATION');
-    await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
+    await page.reload(); await expect(page.getByRole('heading',{name:sentinels[0],exact:true})).toBeVisible();
+    // Session AC: the mode is read in Settings' facts block (the footer's strip until #41), reached in the app, then back.
+    await page.getByRole('navigation',{name:'Main navigation'}).getByRole('link',{name:'Settings',exact:true}).click();
+    await expect(page.locator('.about-alpha .mode-strip')).toContainText('LOCAL SIMULATION');
+    await page.goBack();
     await closeFictionalGoal(page, expect);
     await page.getByRole('link',{name:'Activity',exact:true}).click(); await expect(page.getByRole('heading',{name:'Activity.',exact:true})).toBeVisible();
     await page.waitForLoadState('networkidle');

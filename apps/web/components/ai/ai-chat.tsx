@@ -125,7 +125,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // ZIGi's state machine runs here, once the chat chunk is on the page (Session V Part 12); the launcher shows its state.
   useZigiMachine();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
-  const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null), pressedOutside = useRef(false);
   // Session V Part 14: the mini window; "Back to tab" opens the panel here again.
   const mini = useMiniWindow(() => onOpen?.());
   const musicShown = isShown(usePagesView(), 'music');
@@ -201,7 +201,15 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // ZIGi's button while the chat is in the mini window: back to the tab. The composer takes the focus where the chat is.
   useEffect(() => { if (open && mini.win) mini.backToTab(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps -- only a new open asks for the chat back
   useEffect(() => { if (mini.win) return nextFrame(() => composer.current?.focus({preventScroll: true})); }, [mini.win]);
-  const popOut = async () => { if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
+  // Session AC (persona #24): Expand and pop-out keep the conversation where the person was reading: the distance from the
+  // log's end is kept and put back once the log has its new size (or, in the mini window, its new place).
+  // Session AC (item 16, WebKit): a press can scroll the log by itself (WebKit brings a pressed button into view), and the
+  // "Jump to the latest message" button then appeared under the finger before the release, which took the click (an
+  // Undo that never happened). While a press is down the jump button keeps its state; it is decided again on release.
+  const pressing = useRef(false);
+  const markAway = (el: HTMLElement) => { const far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; if (!pressing.current) setAway(far && !jumping.current); };
+  const keepReadingPlace = () => { const el = log.current; if (!el) return; const fromEnd = el.scrollHeight - el.scrollTop; requestAnimationFrame(() => requestAnimationFrame(() => { const now = log.current; if (now) now.scrollTop = Math.max(0, now.scrollHeight - fromEnd); })); };
+  const popOut = async () => { keepReadingPlace(); if (await mini.popOut()) onClose(); else setNote('The mini window could not open here.'); };
   // Announced once per reply: when the wait starts, and when the reply has arrived.
   const replies = session.chat.turns.filter(t => t.role === 'assistant').length, lastStatus = useRef(session.status), lastReplies = useRef(replies);
   useEffect(() => { if (session.status === 'pending' && lastStatus.current === 'idle') setNote('Waiting for your AI to reply…'); lastStatus.current = session.status; }, [session.status]);
@@ -252,7 +260,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
         const full = hosted ? (hosted.provider === 'Anthropic' ? `${CLAUDE_HOSTED_NAME} · ${hosted.model}` : text) : connected ? `via ${providerName} · ${data.model}` : text;
         return connected && !hosted ? <ModelSwitcher settings={settings} scope={scope} status={text} full={full}/> : <span className="ai-chat-via-text" title={full}>{text}</span>; })()}
       premium={entitlement(hosted ? 'hosted' : 'your-ai').label.replace(/ · free during (the )?Alpha$/i, '')}
-      onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => setExpanded(e => !e)} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
+      onNew={() => { session.startNew(); setView('chat'); setSheet(false); composer.current?.focus(); }} onExpand={() => { keepReadingPlace(); setExpanded(e => !e); }} onPopOut={() => void popOut()} onBackToTab={mini.backToTab} onClose={mini.win ? mini.close : onClose}
       more={[
         {key: 'history', label: 'History', name: 'Chat history', pressed: view === 'history', onSelect: () => setView(v => v === 'history' ? 'chat' : 'history')},
         {key: 'customize', label: 'Customize', name: 'Customize ZIGi', pressed: view === 'customize', onSelect: () => setView(v => v === 'customize' ? 'chat' : 'customize')},
@@ -268,7 +276,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       : view === 'customize' ? <div className="ai-chat-log"><section className="ai-proactive-view" aria-label="Customize ZIGi"><header className="ai-proactive-head"><h3>Customize ZIGi</h3><button type="button" className="text-link" onClick={() => setView('chat')}>Back to the chat</button></header><ZigiPartBoundary label="Customize"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><ZigiCustomize onNavigate={onClose}/></Suspense></ZigiPartBoundary></section></div>
       : view === 'review' ? <div className="ai-chat-log"><ReviewView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div>
       : view === 'insights' ? <div className="ai-chat-log"><InsightsView context={context} connected={connected} session={session} onBack={() => setView('chat')}/></div> : <>
-      <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onScroll={event => { const el = event.currentTarget, far = el.scrollHeight - el.scrollTop - el.clientHeight > 160; if (!far) jumping.current = false; setAway(far && !jumping.current); }}>
+      <div ref={log} className="ai-chat-log" role="log" aria-label="Conversation" onPointerDown={() => { pressing.current = true; const release = () => { pressing.current = false; window.removeEventListener('pointerup', release, true); window.removeEventListener('pointercancel', release, true); const el = log.current; if (el) markAway(el); }; window.addEventListener('pointerup', release, true); window.addEventListener('pointercancel', release, true); }} onScroll={event => markAway(event.currentTarget)}>
         {localOnly && session.chat.turns.length === 0 && <LocalGreeting sensitive={sensitive}/>}
         {bridge && <BridgeView settings={settings} context={context} attach={attach} sensitive={sensitive} phone={phone}/>}
         {connected && session.chat.turns.length === 0 && !busy && <Greeting/>}
@@ -311,7 +319,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   </>;
   // Session Z-Cloud Part 2: the tab's panel lives at the end of <body>, outside the page's isolated stacking context, so
   // no part of the page (the ≤900 px top bar at z-index 30) can sit over its header; phones open it as a modal anyway.
-  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={() => { if (reader.speaking) reader.stop(); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+  // Session AC (item 16): a backdrop tap on a phone is a press and a click outside the sheet. WebKit gives the click of a
+  // button that re-rendered under the finger (a card's Add or Undo) to the dialog itself, inside the sheet: never a close.
+  const outsideSheet = (event: {clientX: number; clientY: number; currentTarget: Element}) => { const r = event.currentTarget.getBoundingClientRect(); return event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom; };
+  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={event => { if (reader.speaking) reader.stop(); pressedOutside.current = phone && event.target === event.currentTarget && outsideSheet(event); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { const backdrop = phone && event.target === event.currentTarget && pressedOutside.current && outsideSheet(event); pressedOutside.current = false; if (backdrop) onClose(); }}>
       {!mini.win && body}
     </dialog>;
   return <>

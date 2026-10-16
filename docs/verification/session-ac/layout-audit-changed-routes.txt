@@ -1,0 +1,14 @@
+Session AC closing checks — layout audit on the changed routes (production build, this sandbox's Chromium, Showcase and empty device)
+States: today today-folded habits habit-details health health-insights health-weight health-measurements wealth portfolio markets
+activity goals goals-board goal-page settings settings-data settings-reminders help zigi-page zigi-chat; widths 320 390 768 1024 1440.
+Muted copy (--muted): 5141 muted texts; lowest contrast 5.71:1; smallest 14 px; below 4.5:1 or 14 px: 0.
+Findings (21 states x 5 widths): 3 states.
+- goals-board@320: "Open Goal ->" and the vision tile's options button overlapped (item 7, this session): fixed (on a two-column
+  phone tile the link sits under the options row); re-audited goals-board at 320, 390, 1440: clean.
+- today@768 and zigi-chat@768 (the Today hero behind the chat): the hero slogan's two lines' inline boxes overlap by 4 px.
+  Measured (Chromium's platform font for the heading, CSS.getPlatformFontsForNode; 48.16 px type on a 55.38 px line):
+    this sandbox: Inter (fontconfig maps the stack's Helvetica/Arial to it)  inline box 59 px  -> boxes overlap 4 px
+    Liberation Sans (CI's runners, the stack's Arial on Linux)               inline box 54 px  -> 2 px apart
+    DejaVu Sans (Linux fallback)                                             inline box 56 px  -> touching, no overlap
+  The boxes are the font's ascent + descent, not the drawn letters; it does not reproduce with CI's font. The accepted hero
+  (protected baseline) is unchanged; the owner's preview steps include a look at the Today hero at 768 px.

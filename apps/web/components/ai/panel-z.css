@@ -153,6 +153,9 @@
 /* ---- "Jump to the latest message": round 2, a small pill floating over the log (bottom centre, above the composer); it
    takes no row and pushes nothing ---- */
 .ai-chat .ai-jump-holder{position:relative;height:0;padding:0;margin:0;z-index:4;display:block}
+/* Session AC (item 16, WebKit): the pill covers the log's last 10–54 px, so whatever is brought into view there (WebKit
+   before a press, a focus move, a new card) stops above it: the auto-accept toast's Undo was under the pill. */
+.ai-chat .ai-chat-log{scroll-padding-bottom:64px}
 /* Gate C (persona round): as wide as its words (an absolute box from the middle could be only half the log wide: 142 px for 198 px of text at 320). */
 .ai-chat .ai-jump-latest{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);min-height:44px;padding:0 16px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 55%,var(--line,#2a325a));background:#0d1330;color:var(--text,#eef1ff);box-shadow:0 10px 26px -12px rgba(0,0,0,.9)}
 

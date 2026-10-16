@@ -1,5 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
-import {expectAlphaFacts} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,expectAlphaFacts} from './ab-shell';
+import {isPhone} from './phone-nav';
+import {ALPHA_ESSENTIALS} from '../components/shell/alpha-notice';
 import {DASHBOARD_SETTINGS_KEY,presetSettings} from '../lib/dashboard-settings';
 import {createEmptyHealth,HEALTH_STORAGE_KEY} from '../lib/health';
 
@@ -60,8 +62,14 @@ async function storedHeader(page:Page,key:string){
 }
 async function expectBanners(page:Page){
  // Session AB-Design (ADR-024 D7; re-pointed, as strict): the compact notice and the footer's disclaimer line carry the
- // facts; without a wallet the label says practice money (Session Z-Cloud Part 4.3).
- await expectAlphaFacts(page);
+ // facts; without a wallet the label says practice money (Session Z-Cloud Part 4.3). Session AC (owner finding 3): the
+ // footer's line moved to Settings, which a stalled read keeps hidden like every page; while it stalls the notice carries
+ // the facts here, and each test ends by reading Settings' facts block once the page has opened (`expectAlphaFacts`).
+ await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
+ if(!await isPhone(page))await expect(alphaNotice(page)).toContainText(ALPHA_SENTENCE);
+ await expect(page.locator('.site-footer .network-banner, .site-footer .mode-strip')).toHaveCount(0);
+ // Session AC (owner item 8): while the stalled read keeps the page hidden, the notice shows the essentials itself.
+ if(await page.locator('main#main').evaluate(el=>getComputedStyle(el).display==='none'))await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toHaveText(ALPHA_ESSENTIALS);
 }
 
 test('Today settings that never finish opening: an honest notice, no page, no writes, and the late read renders normally',async({page})=>{
@@ -78,16 +86,20 @@ test('Today settings that never finish opening: an honest notice, no page, no wr
  await expect(page.locator('main')).toBeHidden();
  await expect(page.locator('.workspace')).toHaveAttribute('aria-busy','true');
  await expectBanners(page);
+ await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toBeVisible();
  expect(await counters(page)).toMatchObject({readwrite:0,storeWrites:0});
  // The read resolves late: the page renders in place, without a reload.
  await page.evaluate(()=>{Object.assign(window,{__samePage:true});(window as unknown as {__vault:{release():void}}).__vault.release();});
  await expect(page.locator('main h1').first()).toBeVisible();
+ // Once the page shows, its own facts are back in Settings and the notice is its one line again.
+ await expect(alphaNotice(page).locator('.alpha-notice-essentials')).toHaveCount(0);
  await expect(panel).toBeHidden();
  expect(await page.evaluate(()=>(window as unknown as {__samePage?:boolean}).__samePage)).toBe(true);
  await expectBanners(page);
  expect(await counters(page)).toMatchObject({readwrite:0,storeWrites:0});
  expect(await page.evaluate(key=>localStorage.getItem(key),DASHBOARD_SETTINGS_KEY)).toBe(MARKER);
  expect(JSON.parse(await storedHeader(page,DASHBOARD_SETTINGS_KEY))).toMatchObject({revision:1});
+ await expectAlphaFacts(page); // Session AC: Settings' facts block, once the page has opened
 });
 
 test('Retry starts a new open for a stalled one and the page renders',async({page})=>{
@@ -103,6 +115,7 @@ test('Retry starts a new open for a stalled one and the page renders',async({pag
  expect((await counters(page)).opens).toBeGreaterThan(before.opens);
  await expectBanners(page);
  expect(await page.evaluate(key=>localStorage.getItem(key),DASHBOARD_SETTINGS_KEY)).toBe(MARKER);
+ await expectAlphaFacts(page); // Session AC: Settings' facts block, once the page has opened
 });
 
 test('a page store that stalls keeps its own loading state, with the notice and a Settings pointer above it',async({page})=>{
@@ -121,6 +134,7 @@ test('a page store that stalls keeps its own loading state, with the notice and 
  await expect(page.locator('main h1').first()).toBeVisible();
  expect(await counters(page)).toMatchObject({readwrite:0,storeWrites:0});
  expect(await storedHeader(page,HEALTH_STORAGE_KEY)).toBe(before);
+ await expectAlphaFacts(page); // Session AC: Settings' facts block, once the page has opened
 });
 
 test('another tab\'s blocked upgrade stalls the open; the page explains, keeps the banners, and recovers when it clears',async({page,context})=>{
@@ -147,4 +161,5 @@ test('another tab\'s blocked upgrade stalls the open; the page explains, keeps t
  await expectBanners(page);
  expect(await counters(page)).toMatchObject({readwrite:0,storeWrites:0});
  expect(await page.evaluate(key=>localStorage.getItem(key),DASHBOARD_SETTINGS_KEY)).toBe(MARKER);
+ await expectAlphaFacts(page); // Session AC: Settings' facts block, once the page has opened
 });

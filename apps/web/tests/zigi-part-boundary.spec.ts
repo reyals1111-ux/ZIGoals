@@ -39,12 +39,15 @@ test('the Customize panel cannot load: the panel says so, the rest of the ZIGi s
 });
 
 test("the chat cannot load: ZIGi's button stays, a note says the chat could not be opened, the page keeps working", async ({page}) => {
+  // Session AC (item 16): so are Settings' own three probes (music config, push, the private account's status) when the
+  // move cancels them: each catches its failure in the app (spotifyClientId, pushBuildAvailability, checkSession), and
+  // WebKit still reports the cancelled fetch as a page error (S77's class, run 38861155974); same moment rule.
   // Session AB-Design Phase 2 (ADR-024): WebKit's rejected router prefetches are left out exactly as webkit-smoke does
   // (ADR-017 S64: a same-origin `_rsc` address "due to access control checks", within 1.5 s of a main-frame navigation);
   // every other page error still fails the test.
   const errors: string[] = [], navigations: number[] = [], prefetchCancels: string[] = [];
   page.on('request', r => { if (r.isNavigationRequest() && r.frame() === page.mainFrame()) navigations.push(Date.now()); });
-  page.on('pageerror', e => { const at = Date.now(); if (/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
+  page.on('pageerror', e => { const at = Date.now(); if ((/^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/app(?:\/[a-z-]+)?(?:\/[A-Za-z0-9_-]+){0,2}\?_rsc=[\w-]+ due to access control checks\.?$/.test(e.message) || /^(?:https?:\/\/)?\/?127\.0\.0\.1:\d+\/api\/(?:music-config|push|private-account)(?:\?action=[a-z]+)? due to access control checks\.?$/.test(e.message)) && navigations.some(t => Math.abs(at - t) <= 1500)) prefetchCancels.push(e.message); else errors.push(e.message); });
   await blockChunk(page, 'Message to your AI');
   await page.goto('/app/settings');
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); localStorage.setItem(v.key, v.value); }, {key: AI_SETTINGS_KEY, value: JSON.stringify({...defaultAiSettings(), enabled: true})});

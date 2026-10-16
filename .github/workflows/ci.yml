@@ -260,7 +260,6 @@ jobs:
     # Playwright 1.63 (WebKit 26.6), the one owner-approved browser download: the smoke, the ZIGi suites
     # (playwright.webkit.config.ts selects them; real-model, conversation and on-device specs stay out) and the curated
     # phone set (tests/webkit-phone.spec.ts), two workers. Evidence label "WebKit", never "Safari on an iPhone".
-    # Not part of the aggregate "web" check until it has been green twice in a row on the PR (ADR-018 Y4).
     # 45 min: the first run (df436a1) needed about 36 min for its 396 tests and stopped at 30.
     # Session AB-Cloud Part 7 ([TIER 3] (CI), ADR-023 C29): the set outgrew one runner (474 tests, cancelled at the cap on
     # every run since Session Z); two shards of about half each, each with its own 45 minutes and its own traces.
@@ -269,10 +268,10 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2]
-    # Until it is promoted (two green runs in a row, ADR-018 Y4) it runs on pull requests only and cannot fail the
-    # workflow: pushes to main (whose Milestone quality gates a deploy) and the release candidate's call skip it.
+    # Session AC ([TIER 3] (CI), ADR-025 E28): promoted after two green runs in a row on PR #87 (ADR-018 Y4's rule); it is
+    # part of the "web" check on pull requests. It still runs on pull requests only: pushes to main (whose Milestone
+    # quality gates a deploy) and the release candidate's call skip it, and the "web" check accepts that skip there.
     if: github.event_name == 'pull_request'
-    continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
@@ -340,7 +339,7 @@ jobs:
           retention-days: 7
   web:
     # Keeps the "web" check name. Passes only if every web job passed.
-    needs: [web-checks, web-browser, web-integration, web-alpha-gate]
+    needs: [web-checks, web-browser, web-integration, web-alpha-gate, web-webkit]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -350,9 +349,14 @@ jobs:
           BROWSER: ${{ needs.web-browser.result }}
           INTEGRATION: ${{ needs.web-integration.result }}
           ALPHA_GATE: ${{ needs.web-alpha-gate.result }}
+          WEBKIT: ${{ needs.web-webkit.result }}
+          EVENT: ${{ github.event_name }}
         run: |
-          echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION; web-alpha-gate: $ALPHA_GATE"
-          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success && test "$ALPHA_GATE" = success
+          echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION; web-alpha-gate: $ALPHA_GATE; web-webkit: $WEBKIT ($EVENT)"
+          # Each line exits on its own: under bash -e a failing test inside an && list does not end the step, so only an
+          # explicit exit (or the last command) fails it (Session AC: a line after it once hid a failed browser shard).
+          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success && test "$ALPHA_GATE" = success || exit 1
+          test "$WEBKIT" = success || { test "$EVENT" != pull_request && test "$WEBKIT" = skipped; } || exit 1
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 25

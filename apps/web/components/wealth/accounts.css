@@ -23,19 +23,13 @@
 .accounts-history th, .accounts-history td { text-align: left; padding: 4px 8px; border-top: 1px solid #a6c1fa1f; }
 .accounts-archived li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 8px 0; }
 /* Session Z-Cloud Part 4.5: "What you have", one list with All · Accounts · Assets · Debts. */
-.what-you-have .wealth-section-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px 16px}
-.what-you-have .wealth-section-heading .text-link{display:inline-flex;align-items:center;min-height:44px}
-.what-you-have-filters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}
-.what-you-have-filters button{min-height:44px}
+/* Session AC: Wealth's one holdings list ("What you have": assets, accounts and debts under one row of chips). */
+.wealth-holdings-one .wealth-section-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:8px 16px}
+.wealth-holdings-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.wealth-holdings-actions .text-link{display:inline-flex;align-items:center;min-height:44px}
+.wealth-holdings-one .holdings-filters button{min-height:44px}
+.wealth-holdings-one > .phone-fold, .wealth-holdings-one > .accounts-section{margin-top:18px}
 .what-you-have-count{opacity:.75;font-variant-numeric:tabular-nums}
-.what-you-have-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
-.what-you-have-list a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:8px 12px;border:1px solid var(--line,#9fc8ff2e);border-radius:14px;color:inherit;text-decoration:none}
-.what-you-have-list a:hover,.what-you-have-list a:focus-visible{border-color:#6fdcff77}
-.what-you-have-list a>span:first-child{display:grid;min-width:0}
-.what-you-have-list strong{overflow-wrap:anywhere}
-.what-you-have-list small{color:var(--muted,#b3cff2)}
-.what-you-have-value{flex:none;font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
-.what-you-have-list li[data-group="Debts"] .what-you-have-value{color:var(--text-secondary,#dde7f7)}
 /* Gate C (design critique): a row's actions sit together under its balance, at the right (the shared `.actions` grid had
    stretched them into equal columns, each word centred mid-row). */
 :root .accounts-row > .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px 14px; }

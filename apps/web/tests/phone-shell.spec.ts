@@ -1,6 +1,6 @@
 import {expect,test,type Page} from '@playwright/test';
 import {closeMore,isPhone,mainNav,navLink,openMore} from './phone-nav';
-import {ALPHA_LABEL,ALPHA_SENTENCE,alphaNotice,footerDisclaimer,openStatusSheet} from './ab-shell';
+import {ALPHA_LABEL,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openStatusSheet} from './ab-shell';
 
 // Session E, Part 2: the phone shell. Phone sizes are set explicitly so both projects run them (the desktop project with a
 // fine pointer, the mobile project with a coarse one); the landscape case needs the coarse pointer.
@@ -17,7 +17,7 @@ async function firstScreen(page:Page,path:string){
  await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy','true');
  return page.evaluate(()=>{
   const box=(selector:string)=>{const e=document.querySelector(selector);if(!e)return null;const r=e.getBoundingClientRect();return r.width&&r.height?{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width,height:r.height}:null;};
-  // Session AB-Design (ADR-024 D7): the honesty label is the compact notice's own; the strip's words wait in the footer's disclaimer and the Status & wallet sheet.
+  // Session AB-Design (ADR-024 D7): the honesty label is the compact notice's own; the strip's words wait in the Status & wallet sheet and (Session AC) Settings' facts block.
   const label=document.querySelector('.alpha-notice strong') as HTMLElement|null,mode=document.querySelector('.site-footer .mode-strip');
   return {height:innerHeight,width:innerWidth,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
    testnet:box('.alpha-notice'),testnetText:label?.textContent,labelWhole:label?label.scrollWidth<=label.clientWidth&&label.scrollHeight<=label.clientHeight&&getComputedStyle(label).textOverflow!=='ellipsis':false,
@@ -38,8 +38,9 @@ for(const [width,height] of [[390,844],[360,800]] as const)
    expect(s.testnetText,path).toBe(ALPHA_LABEL);expect(s.labelWhole,path).toBe(true);
    expect(s.testnet!.height,path).toBeGreaterThanOrEqual(44);
    expect(s.testnet!.top,path).toBeGreaterThanOrEqual(s.topbar!.bottom-1);expect(s.testnet!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);
-   // The mode strip's words are kept (the footer's disclaimer and the Status sheet show them), out of the first screen.
-   expect(s.modeText,path).toContain('LOCAL SIMULATION');expect(s.modeBelow,path).toBe(true);
+   // The mode strip's words are kept (the Status sheet and Settings' facts block show them; the footer's disclaimer until
+   // Session AC), never on the first screen: the page itself now carries none of them, and they are read in Settings below.
+   expect(s.modeText,path).toBe('');expect(s.modeBelow,path).toBe(false);
    if(LOCKED.has(path)){
     // Part 18.4's place (right after the balance), now on the first screen, never under a bar or over the title.
     expect(s.lock,path).not.toBeNull();expect(s.lock!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);expect(s.lock!.top,path).toBeGreaterThanOrEqual(s.topbar!.bottom);
@@ -47,6 +48,7 @@ for(const [width,height] of [[390,844],[360,800]] as const)
     expect(s.lock!.width,path).toBeGreaterThanOrEqual(44);expect(s.lock!.height,path).toBeGreaterThanOrEqual(44);
    }else expect(s.lock,path).toBeNull();
   }
+  await expectAlphaMode(page,'LOCAL SIMULATION'); // Session AC: the strip's words, in Settings' facts block
  });
 
 test('Showcase: its label is on the first screen of every page and Exit stays one tap away',async({page})=>{
@@ -130,8 +132,11 @@ test('without JavaScript a phone still shows the tab bar, the top bar and the ho
  await page.goto('/app/goals');
  await expect(page.locator('.phone-tabbar')).toBeVisible();await expect(page.locator('.phone-topbar')).toBeVisible();
  // Session AB-Design: the notice is in the page's own HTML (it cannot be closed without scripts) and the footer carries the sentence and the mode.
- await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);await expect(footerDisclaimer(page).locator('.mode-strip')).toBeVisible();
- await expect(footerDisclaimer(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
+ // Session AC (owner finding 3): the footer's sentence and mode moved to Settings' facts block, in its server HTML too.
+ await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);await expect(page.locator('.site-footer .mode-strip')).toHaveCount(0);
+ // (Without scripts the workspace stays hidden until the stores are read, so the block is read in Settings' server HTML.)
+ await page.goto('/app/settings');await expect(aboutAlpha(page).locator('.mode-strip')).toHaveCount(1);await expect(aboutAlpha(page).locator('.mode-strip')).toContainText('LOCAL SIMULATION');
+ await expect(aboutAlpha(page).locator('.network-banner')).toContainText(ALPHA_SENTENCE);
  await context.close();
 });
 

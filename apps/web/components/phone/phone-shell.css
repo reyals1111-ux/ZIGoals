@@ -107,9 +107,6 @@
      The same testnet bar, wallet buttons, Showcase banner, sync line and Local simulation strip, restyled as one compact
      stack right under the top bar. Labels never clip; only the long sentences are clamped while "Status details" is closed. */
   :root .app-topbar { display: grid; gap: 6px; max-width: none; margin: 6px calc(var(--phone-gutter) - 6px) 0; padding: 4px 6px 6px 12px; border: 1px solid var(--phone-glass-edge); border-radius: 18px; background: var(--phone-glass); box-shadow: inset 0 1px 0 #67bbff1c; }
-  :root .app-topbar .network-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; width: auto; max-width: none; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; text-align: left; min-height: 44px; }
-  :root .app-topbar .network-banner strong { flex: 1 1 0; min-width: 0; font-size: 13px; line-height: 1.3; letter-spacing: .03em; white-space: normal; overflow-wrap: normal; }
-  :root .app-topbar .network-banner > span { flex: 1 0 100%; order: 3; padding-bottom: 6px; font-size: 15px; line-height: 1.45; color: var(--text-secondary, #dde7f7); }
   :root .app-topbar .wallet { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 6px; width: auto; margin: 0; order: 0; }
   :root .app-topbar .wallet button { min-height: 44px; min-width: 0; margin: 0; padding: 6px 10px; border-radius: 14px; font-size: 15px; justify-content: center; }
   :root .app-topbar .wallet .quiet { display: inline-flex; align-items: center; border: 1px solid #9fc8ff2e; background: #0a1a30; color: var(--text); }
@@ -119,11 +116,6 @@
 
   /* The status rows share the strip's card language; the lock stays flush with the content edge (Part 18.4). */
   :root .app-content .workspace { padding-inline: var(--phone-gutter); }
-  :root .workspace > .showcase-banner { align-items: center; gap: 8px; margin: 8px -6px 0; padding: 0 6px 0 12px; min-height: 48px; border-radius: 16px; font-size: 14px; }
-  :root .workspace > .showcase-banner > div { display: block; min-width: 0; }
-  :root .workspace > .showcase-banner strong { display: block; font-size: 14px; letter-spacing: .05em; }
-  :root .workspace > .showcase-banner span { display: block; font-size: 15px; line-height: 1.4; }
-  :root .workspace > .showcase-banner button { flex: none; min-height: 44px; padding: 0 12px; font-size: 15px; }
   :root .workspace > .workspace-status { flex-wrap: nowrap; gap: 8px; padding: 2px 0 0; font-size: 14px; }
   :root .workspace > .workspace-status > span { flex: 1 1 auto; }
   :root .workspace > .workspace-status a { flex: none; font-size: 14px; }
@@ -147,7 +139,6 @@
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row { padding: 0; }
     /* Gate B: the layout lock alone in that row keeps its 8 px gap above the page (Part 18.4's "clear of main"). */
     :root:has(.app-topbar .phone-status-line) .workspace > .status-row:is(:has(.layout-lock), :has(.gamify), :has(.wallet-balance)) { padding-bottom: 8px; }
-    :root:has(.app-topbar .phone-status-line) .workspace > .showcase-banner span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     :root:has(.app-topbar .phone-status-line) .workspace > .workspace-status > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   }
   :root .phone-status-sheet { display: grid; gap: 14px; }
@@ -180,9 +171,7 @@
   :root .phone-tab { flex-direction: row; gap: 8px; min-height: 44px; }
   :root .phone-tab-pill { top: 0; bottom: 0; }
   :root .app-topbar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding-block: 2px; }
-  :root .app-topbar .network-banner { min-height: 44px; }
   :root .app-topbar .wallet { grid-template-columns: auto auto; }
-  :root .workspace > .showcase-banner { min-height: 44px; }
   :root .workspace > .status-row { align-items: center; }
 }
 

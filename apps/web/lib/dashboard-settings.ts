@@ -179,10 +179,32 @@ export const DEFAULT_MAIN_TAIL:readonly DashboardBuiltinId[]=[];
 export const TODAY_GROUPS=[{id:'life',label:'Your whole life'},{id:'day',label:'Your day'},{id:'goals',label:'Goals'},{id:'money',label:'Money'},{id:'widgets',label:'Your widgets'}] as const;
 export type TodayGroup=typeof TODAY_GROUPS[number]['id'];
 const BUILTIN_GROUP:Record<string,TodayGroup>={habits:'day',health:'day',goals:'goals','next-action':'goals',attention:'goals',funding:'goals','needs-attention':'money',watchlist:'money',progress:'money',summary:'widgets','whole-life':'life'};
-export const todayGroup=(ref:DashboardItemRef):TodayGroup=>ref.kind==='widget'?'widgets':BUILTIN_GROUP[ref.id]??'widgets';
+/** A widget that stands in for its built-in twin (Session AC) belongs to that built-in's group ("Your day"). */
+export const todayGroup=(ref:DashboardItemRef,widgets:readonly DashboardWidget[]=[]):TodayGroup=>{if(ref.kind==='builtin')return BUILTIN_GROUP[ref.id]??'widgets';const w=widgets.find(x=>x.id===ref.id),twin=w&&twinOf(w);return twin?BUILTIN_GROUP[twin]??'widgets':'widgets';};
+/**
+ * Session AC (the owner's decision of 2026-10-15, "show each thing once"; `TIER 3 (storage)`): in the default placement —
+ * a new device, the Showcase, anyone who never arranged Today — a built-in card stands down when Today already shows the
+ * same thing: Daily Habits beside a habits widget (both are the same list), Daily Health beside a calories widget (the
+ * same day's calories), and the Next Goal action beside Today's focus "Next step" tile (the same goal and link). They are
+ * hidden, never removed: "Show card" while arranging brings each back, and a saved placement keeps its own choices. Only
+ * built-ins every build since #32 lets a person hide are used, so an older build reads a stored default as its own.
+ */
+/** The built-in a widget repeats: the habits widget is Daily Habits' list, a calories widget Daily Health's calories. */
+// Only exact twins: the habits widget is Daily Habits' own list. Daily Health also carries macros, weight and steps, so a
+// calories widget never stands in for it (Session AC review of item 5a).
+export const twinOf=(w:Pick<DashboardWidget,'kind'|'metric'>):DashboardBuiltinId|null=>w.kind==='habits'?'habits':null;
+export function defaultTwins(s:DashboardSettings,financial:boolean):DashboardBuiltinId[]{
+ const shown=s.widgets.filter(w=>!w.hidden);
+ return [...(shown.some(w=>twinOf(w)==='habits')?['habits' as const]:[]),...(financial?['next-action' as const]:[])];
+}
 function defaultPlacement(s:DashboardSettings):DashboardPlacement{
  const financial=visibleDomains(s).some(d=>d==='goals'||d==='wealth'),builtin=(b:{id:DashboardBuiltinId})=>({kind:'builtin' as const,id:b.id}),main=DASHBOARD_BUILTINS.filter(b=>b.region==='main');
- return {version:1,revision:1,main:[...main.filter(b=>!DEFAULT_MAIN_TAIL.includes(b.id)).map(builtin),...s.widgets.map(w=>({kind:'widget' as const,id:w.id})),...main.filter(b=>DEFAULT_MAIN_TAIL.includes(b.id)).map(builtin)],rail:DASHBOARD_BUILTINS.filter(b=>b.region==='rail').map(b=>({kind:'builtin' as const,id:b.id})),hiddenBuiltins:DASHBOARD_BUILTINS.filter(b=>b.hideable&&b.financial&&!financial).map(b=>b.id)};
+ // Session AC: a built-in that stands down for its widget twin keeps its place in the list (hidden, ready for "Show card"),
+ // and the twin widget takes the place right after it, so the day's habits and calories stay in "Your day".
+ const twins=defaultTwins(s,financial),moved=new Map<DashboardBuiltinId,string>();
+ for(const id of twins){const w=s.widgets.find(x=>!x.hidden&&twinOf(x)===id);if(w)moved.set(id,w.id);}
+ const placed=new Set(moved.values()),widgetRef=(id:string)=>({kind:'widget' as const,id});
+ return {version:1,revision:1,main:[...main.filter(b=>!DEFAULT_MAIN_TAIL.includes(b.id)).flatMap(b=>moved.has(b.id)?[builtin(b),widgetRef(moved.get(b.id)!)]:[builtin(b)]),...s.widgets.filter(w=>!placed.has(w.id)).map(w=>widgetRef(w.id)),...main.filter(b=>DEFAULT_MAIN_TAIL.includes(b.id)).map(builtin)],rail:DASHBOARD_BUILTINS.filter(b=>b.region==='rail').map(b=>({kind:'builtin' as const,id:b.id})),hiddenBuiltins:[...DASHBOARD_BUILTINS.filter(b=>b.hideable&&b.financial&&!financial).map(b=>b.id),...twins]};
 }
 /** Read-only legacy reconciliation: incomplete known layouts fill deterministically; invalid backups throw. */
 export function reconcileDashboardPlacement(s:DashboardSettings):DashboardPlacement{

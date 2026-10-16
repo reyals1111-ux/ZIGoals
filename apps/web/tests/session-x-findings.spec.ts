@@ -136,7 +136,10 @@ test('J012: Customize Today at 1024 px: a hidden widget keeps a readable title a
   await page.setViewportSize({width: 1024, height: 768});
   await showcase(page);
   await page.getByRole('button', {name: 'Customize Today', exact: true}).click();
-  const widget = page.locator('.today-page .placed-module[data-kind="widget"]').first();
+  // Session AC: the widget is pinned by its id; `.first()` would move on once the first one (the habits widget standing in
+  // for the hidden Daily Habits) is hidden and Today re-places it.
+  const id = await page.locator('.today-page .placed-module[data-kind="widget"]').first().getAttribute('data-module');
+  const widget = page.locator(`.today-page .placed-module[data-kind="widget"][data-module="${id}"]`);
   await widget.getByRole('button', {name: /^Options for/}).click();
   await widget.getByRole('button', {name: 'Hide widget'}).click();
   await expect(widget).toHaveAttribute('data-hidden', 'true');
