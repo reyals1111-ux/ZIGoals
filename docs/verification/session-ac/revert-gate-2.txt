@@ -1,0 +1,12 @@
+Session AC finish — revert gate, part 2 (scratch worktree of e78c12a2; git revert newest-first back to b99d6355, then the root typecheck after each step)
+e78c12a2 reverted: typecheck ok
+f29eb964 reverted: typecheck ok
+5c734666 reverted: typecheck ok
+39fa14de reverted: typecheck ok
+7f417281 reverted: typecheck ok
+cc1a3ad1 reverted: typecheck ok
+f224abbd reverted: typecheck ok
+fa431ed2 reverted: typecheck ok
+7dcf825a reverted: typecheck ok
+4c555959 reverted: typecheck ok
+Result: the tree equals b99d6355, where part 1 (revert-gate.txt) starts; with part 1, every session commit reverts newest-first to 9e41f0d with typecheck green.

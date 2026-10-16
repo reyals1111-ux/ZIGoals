@@ -4,6 +4,10 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 14:30 UTC — finish)
+- Run 38909051298 (`21970372`): every job green, WebKit required. Revert gate part 2 (`revert-gate-2.txt`) green.
+- Done next: STATUS FINAL commit, PR #87 description and ready for review, short report. Nothing open.
+
 ## Resume here (2026-10-16 12:55 UTC — WebKit required; finish steps next)
 - Item 16 done: three product causes fixed (`9804d676`, `fa431ed2`, `7f417281`); two consecutive green WebKit runs on
   the final code (38889129910 `7f417281`, 38898027504 `5c734666`) → `TIER 3 (CI)` `f29eb964` (WebKit in the `web`
