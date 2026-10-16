@@ -353,8 +353,10 @@ jobs:
           EVENT: ${{ github.event_name }}
         run: |
           echo "web-checks: $CHECKS; web-browser: $BROWSER; web-integration: $INTEGRATION; web-alpha-gate: $ALPHA_GATE; web-webkit: $WEBKIT ($EVENT)"
-          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success && test "$ALPHA_GATE" = success
-          test "$WEBKIT" = success || { test "$EVENT" != pull_request && test "$WEBKIT" = skipped; }
+          # Each line exits on its own: under bash -e a failing test inside an && list does not end the step, so only an
+          # explicit exit (or the last command) fails it (Session AC: a line after it once hid a failed browser shard).
+          test "$CHECKS" = success && test "$BROWSER" = success && test "$INTEGRATION" = success && test "$ALPHA_GATE" = success || exit 1
+          test "$WEBKIT" = success || { test "$EVENT" != pull_request && test "$WEBKIT" = skipped; } || exit 1
   contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
