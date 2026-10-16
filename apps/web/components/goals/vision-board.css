@@ -47,3 +47,6 @@
 :root .vision-tile-options { position: absolute; top: 10px; left: 10px; z-index: 3; }
 :root .vision-tile-options .card-options-trigger { min-width: 44px; min-height: 44px; background: #0a1020cc; }
 :root .vision-tile-options .card-options-panel { left: 0; right: auto; }
+/* Session AC (layout audit, 320 px): a phone's two-column tile is too narrow for ⋯ and "Open Goal →" side by side, so the
+   link sits under the ⋯ row there. */
+@media (max-width: 599px) { :root .vision-tile-link-out { top: 60px; right: 8px; } }

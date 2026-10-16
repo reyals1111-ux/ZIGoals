@@ -1,4 +1,18 @@
-Session AC Gate C — revert gate (scratch worktree of 7ff94069; git revert newest-first, then pnpm typecheck after each step)
+Session AC Gate C (after the owner's amended list) — revert gate (scratch worktree of ce283862; git revert newest-first, then pnpm typecheck after each step)
+ce283862 reverted: typecheck ok
+4dafa926 reverted: typecheck ok
+104a7367 reverted: typecheck ok
+cdb07e66 reverted: typecheck ok
+3e9e309a reverted: typecheck ok
+84c6a091 reverted: typecheck ok
+8b4b09fb reverted: typecheck ok
+08ccae15 reverted: typecheck ok
+957e92c2 reverted: typecheck ok
+9804d676 reverted: typecheck ok
+36194ad1 reverted: typecheck ok
+62483db1 reverted: typecheck ok
+5169820f reverted: typecheck ok
+58a3cd20 reverted: typecheck ok
 7ff94069 reverted: typecheck ok
 61267f43 reverted: typecheck ok
 39bf9172 reverted: typecheck ok

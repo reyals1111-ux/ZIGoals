@@ -1,0 +1,10 @@
+Session AC closing checks — layout audit on the changed routes (production build, this sandbox's Chromium, Showcase and empty device)
+States: today today-folded habits habit-details health health-insights health-weight health-measurements wealth portfolio markets
+activity goals goals-board goal-page settings settings-data settings-reminders help zigi-page zigi-chat; widths 320 390 768 1024 1440.
+Muted copy (--muted): 5141 muted texts; lowest contrast 5.71:1; smallest 14 px; below 4.5:1 or 14 px: 0.
+Findings (21 states x 5 widths): 3 states.
+- goals-board@320: "Open Goal ->" and the vision tile's options button overlapped (item 7, this session): fixed (on a two-column
+  phone tile the link sits under the options row); re-audited goals-board at 320, 390, 1440: clean.
+- today@768 and zigi-chat@768 (the Today hero behind the chat): the hero slogan's two lines overlap by 4 px in this sandbox,
+  where the system font resolves to Inter; nothing in this session touched the hero, and the AB-Design audit on the
+  owner's Mac (its system font) found none. The accepted hero is not changed (protected baseline); named for the owner.
