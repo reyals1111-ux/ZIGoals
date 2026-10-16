@@ -125,7 +125,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   // ZIGi's state machine runs here, once the chat chunk is on the page (Session V Part 12); the launcher shows its state.
   useZigiMachine();
   const aiOptions = useDeviceRecord(AI_OPTIONS).data, deepModel = data.provider ? aiOptions.deepModel?.[data.provider] ?? null : null;
-  const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null), composer = useRef<HTMLTextAreaElement>(null), log = useRef<HTMLDivElement>(null), pressedOutside = useRef(false);
   // Session V Part 14: the mini window; "Back to tab" opens the panel here again.
   const mini = useMiniWindow(() => onOpen?.());
   const musicShown = isShown(usePagesView(), 'music');
@@ -314,7 +314,10 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
   </>;
   // Session Z-Cloud Part 2: the tab's panel lives at the end of <body>, outside the page's isolated stacking context, so
   // no part of the page (the ≤900 px top bar at z-index 30) can sit over its header; phones open it as a modal anyway.
-  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={() => { if (reader.speaking) reader.stop(); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { if (phone && event.target === event.currentTarget) onClose(); }}>
+  // Session AC (item 16): a backdrop tap on a phone is a press and a click outside the sheet. WebKit gives the click of a
+  // button that re-rendered under the finger (a card's Add or Undo) to the dialog itself, inside the sheet: never a close.
+  const outsideSheet = (event: {clientX: number; clientY: number; currentTarget: Element}) => { const r = event.currentTarget.getBoundingClientRect(); return event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom; };
+  const tabDialog = <dialog ref={dialog} data-ai-dialog="" onPointerDown={event => { if (reader.speaking) reader.stop(); pressedOutside.current = phone && event.target === event.currentTarget && outsideSheet(event); }} className={`ai-chat${expanded && !phone ? ' ai-chat-expanded' : ''}${phone ? ' ai-chat-phone' : ''}`} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); if (event.target === event.currentTarget) onClose(); }} onKeyDown={trapTab} onClick={event => { const backdrop = phone && event.target === event.currentTarget && pressedOutside.current && outsideSheet(event); pressedOutside.current = false; if (backdrop) onClose(); }}>
       {!mini.win && body}
     </dialog>;
   return <>
