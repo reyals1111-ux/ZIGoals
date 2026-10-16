@@ -20,7 +20,7 @@ export function HabitPatterns({habit, today, zone}: {habit: Habit; today: string
       {weeks.map(w => { const p = pct(w.done, w.scheduled); return <span key={w.weekStart} title={`Week of ${w.weekStart}: ${w.scheduled ? `${w.done} of ${w.scheduled}` : 'none scheduled'}`}><i style={{height: `${p ?? 0}%`}} data-empty={w.scheduled ? undefined : ''} /></span>; })}
     </div>
     <details className="habit-weeks-table"><summary>The weeks as a table</summary><table><caption>Days done of days scheduled, by week</caption><thead><tr><th scope="col">Week of</th><th scope="col">Done</th><th scope="col">Scheduled</th></tr></thead>
-      <tbody>{weeks.map(w => <tr key={w.weekStart}><th scope="row">{formatDate(`${w.weekStart}T12:00:00`, {month: 'short', day: 'numeric'})}</th><td>{w.done}</td><td>{w.scheduled}</td></tr>)}</tbody></table></details>
+      <tbody>{weeks.map(w => <tr key={w.weekStart}><th scope="row">{formatDate(w.weekStart, {year: false})}</th><td>{w.done}</td><td>{w.scheduled}</td></tr>)}</tbody></table></details>
     {usual && <p className="fine">Check-ins are usually saved around <strong>{usual.clock}</strong> (from when {usual.n} check-ins of the last 60 days were saved, which can be later than the habit itself).</p>}
   </div>;
 }

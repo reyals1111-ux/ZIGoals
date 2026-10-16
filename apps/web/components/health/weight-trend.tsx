@@ -36,7 +36,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
           <ChartGrid ticks={[0, 0.5, 1].map(f => { const g = lo + f * (hi - lo); return {y: y(g), label: weightText(Math.round(g / 100) * 100, unit).replace(/\s.*$/, '')}; })} left={PAD.left} right={width - PAD.right}/>
           {goal !== null && <line className="chart-guide" x1={PAD.left} x2={width - PAD.right} y1={y(goal)} y2={y(goal)} />}
           <path className="chart-ink" d={line} stroke="url(#weight-trend-ink)" />
-          {t.points.map((p, i) => p.grams === null ? null : <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.grams)} r="4" fill="#8ab9ff" onMouseEnter={() => setTip(`${formatDate(`${p.date}T12:00:00`, {month: 'short', day: 'numeric'})}: ${weightText(p.grams!, unit)} (trend ${weightText(tenths(p.trend!), unit)})`)} />)}
+          {t.points.map((p, i) => p.grams === null ? null : <circle key={p.date} className="chart-dot" cx={x(i)} cy={y(p.grams)} r="4" fill="#8ab9ff" onMouseEnter={() => setTip(`${formatDate(p.date, {year: false})}: ${weightText(p.grams!, unit)} (trend ${weightText(tenths(p.trend!), unit)})`)} />)}
           <ChartXAxis ticks={t.points.flatMap((p, i) => i % 7 === 0 || i === t.points.length - 1 ? [{x: x(i), label: p.date.slice(5)}] : [])} y={H - 8} edge={false}/>
         </svg>
         {tip && <ChartTip>{tip}</ChartTip>}

@@ -31,7 +31,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
   const range = chosen.preview.range;
   return <div className="switch-preview">
     <h3>Check what comes in</h3>
-    <p className="import-summary">{plan.label} export{range ? ` · ${formatDate(`${range.from}T12:00:00Z`, {timeZone: 'UTC'})} – ${formatDate(`${range.to}T12:00:00Z`, {timeZone: 'UTC'})}` : ''}</p>
+    <p className="import-summary">{plan.label} export{range ? ` · ${formatDate(range.from)} – ${formatDate(range.to)}` : ''}</p>
     <div className="import-preview"><table>
       <caption className="sr-only">What this import would add to your Health journal</caption>
       <thead><tr><th scope="col">Records</th><th scope="col">To add</th><th scope="col">Already here</th><th scope="col">Stays out</th></tr></thead>
@@ -50,7 +50,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
       {!fullSize.comfortable && <>
         <p className="notice">The whole export would fill more than three quarters of what {limit > 2_000_000 ? 'your account' : 'this browser'} keeps for Health.{fitFrom ? ' You can bring in a shorter window instead.' : ' Even its last day would not fit comfortably here.'}{limit <= 2_000_000 ? ' With an account open, Health can hold up to 32 MB.' : ''}</p>
         {fitFrom && <fieldset className="switch-window"><legend>What to bring in</legend>
-          <label className="checkbox"><input type="radio" name="switch-window" checked={from === fitFrom} onChange={() => setFrom(fitFrom)} />From {formatDate(`${fitFrom}T12:00:00Z`, {timeZone: 'UTC'})} on (the most that fits comfortably)</label>
+          <label className="checkbox"><input type="radio" name="switch-window" checked={from === fitFrom} onChange={() => setFrom(fitFrom)} />From {formatDate(fitFrom)} on (the most that fits comfortably)</label>
           <label className="checkbox"><input type="radio" name="switch-window" checked={from === null} disabled={!fullSize.fits} onChange={() => setFrom(null)} />Everything{fullSize.fits ? '' : ' (does not fit)'}</label>
         </fieldset>}
       </>}

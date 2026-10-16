@@ -38,6 +38,6 @@ export function YearView({habits, today}: {habits: readonly Habit[]; today: stri
     </div></div>
     {data ? <p className="habit-map-legend"><span><i className="filled" /> Complete {data.counts.complete}</span><span><i data-level="part" /> Partial {data.counts.partial}</span><span><i data-level="skip" /> Skipped {data.counts.skipped}</span><span><i data-level="miss" /> Missed {data.counts.failed}</span></p>
       : <p className="habit-map-legend"><span><i className="filled" /> Every habit done ({overview!.fullDays})</span><span><i data-level="part" /> Half or more</span><span><i data-level="low" /> Some</span><span><i data-level="miss" /> None</span></p>}
-    <p className="fine">Weeks run top to bottom, Monday first; {formatDate(`${year}-01-01T12:00:00`, {month: 'long', day: 'numeric'})} sits in the first column. Days before a habit started and days ahead stay blank.</p>
+    <p className="fine">Weeks run top to bottom, Monday first; {formatDate(`${year}-01-01`, {year: false})} sits in the first column. Days before a habit started and days ahead stay blank.</p>
   </section>;
 }

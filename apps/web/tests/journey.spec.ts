@@ -79,7 +79,7 @@ test('a freeze earned by a seven-day streak repairs one missed day of the last w
   const freezes = page.getByRole('region', {name: 'Freezes'});
   await expect(freezes.getByText(/You have 2 freezes/)).toBeVisible(); // a 19-day streak: two sevens
   await freezes.getByRole('button', {name: 'Use a freeze', exact: true}).first().click();
-  await expect(freezes.getByText(/Freeze used: October 6 now counts as a rest day/)).toBeVisible();
+  await expect(freezes.getByText(/Freeze used: Oct 6 now counts as a rest day/)).toBeVisible();
   const data = await stored(page, HABITS_KEY) as HabitData;
   expect(data.habits.find(h => h.id === ID.stretch)!.entries.find(e => e.date === '2026-10-06')).toMatchObject({disposition: 'skipped', note: 'Streak freeze'});
   await expect(freezes.getByText(/You have 1 freeze:/)).toBeVisible();

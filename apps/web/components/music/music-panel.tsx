@@ -14,7 +14,7 @@ import {SpotifySource} from './spotify-source';
 import './music-panel.css';
 
 const SOURCE_LABEL: Record<MusicPrefs['source'], string> = {ambient: 'Focus sounds', spotify: 'Spotify', apple: 'Apple Music'};
-const clock = (ms: number) => formatTime(ms, {hour: 'numeric', minute: '2-digit'});
+const clock = (ms: number) => formatTime(ms);
 const WaveGlyph = () => <svg viewBox="0 0 24 24" width="30" height="30" focusable="false" aria-hidden="true"><path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
 
 /** Focus sounds in the panel: the same player as Meditation's (Part 6), with previous and next stepping through the sounds. */

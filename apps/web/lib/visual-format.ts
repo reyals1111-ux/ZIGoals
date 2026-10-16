@@ -5,7 +5,7 @@ import Decimal from 'decimal.js';
  * - Dates written only with digits follow the browser's locale too. A date or time with words in it (month or weekday
  *   names, AM/PM) is written in English, the app's language, with the conventions of the user's region (en-<REGION>),
  *   so names never mix languages.
- * - Form inputs are never localized, and ISO dates shown as ISO stay ISO.
+ * - Form inputs are never localized. ISO dates are for exports and machine fields only (Session AD item 8).
  * Hydration: the server cannot know the browser's locale, so the server render and hydration always use en-US. Right
  * after hydration, the Shell (useDisplayLocaleKey) switches to the browser's locale in a layout effect and remounts the
  * page content once, before the first paint and while the workspace is still hidden, so every figure is written in
@@ -131,16 +131,28 @@ export function formatPlainDecimal(text:string){
 /** True when the display locale groups thousands with a dot ("1.234" means one thousand there). */
 export function displayGroupsWithDot(){return numberFormat(active).formatToParts(1234567).some(part=>part.type==='group'&&part.value==='.');}
 
-type DateInput=Date|number|string;
-const DATE_FIELDS=['weekday','year','month','day'] as const,TIME_FIELDS=['dayPeriod','hour','minute','second','fractionalSecondDigits'] as const;
+/**
+ * Dates and times (Session AD item 8, ADR-026): one style on every page. A date is the medium date, day + short month +
+ * year in the order of the user's region ("17 Oct 2026" en-GB, "Oct 17, 2026" en-US); a time follows the locale's hour
+ * cycle ("14:05" en-GB, "2:05 PM" en-US); a date-time is both. A day key ("2026-10-17") is that calendar day wherever the
+ * reader is, never moved by a zone. ISO stays in exports and machine fields only. Pages call these, never
+ * Date#toLocale…String or Intl.DateTimeFormat (lib/date-format-guard.test.ts).
+ */
+export type DateInput=Date|number|string;
+/** weekday adds the short weekday ("Thu, 1 Oct 2026"); year: false leaves the year out where a page means this year. */
+export type DateOptions={weekday?:boolean;year?:boolean;timeZone?:string};
+export type TimeOptions={seconds?:boolean;timeZone?:string};
+const DAY_KEY=/^\d{4}-\d{2}-\d{2}$/,MONTH_KEY=/^\d{4}-\d{2}$/;
 const dateFormatters=new Map<string,Intl.DateTimeFormat>();
 function dateFormat(locale:string,options:Intl.DateTimeFormatOptions){const key=`${locale}|${JSON.stringify(options)}`;let format=dateFormatters.get(key);if(!format){format=new Intl.DateTimeFormat(locale,options);dateFormatters.set(key,format);}return format;}
-const has=(options:Intl.DateTimeFormatOptions,fields:readonly (keyof Intl.DateTimeFormatOptions)[])=>!!options.dateStyle||!!options.timeStyle||fields.some(field=>options[field]!==undefined);
 // Session Y Part 9 (QA2-08's leftover): a page writes the same dates many times (Wealth's 200 rows); the strings are kept
 // per locale, options and instant, at most WRITTEN_KEPT of them (the oldest half goes when full). Output is unchanged.
 const WRITTEN_KEPT=2000,writtenCache=new Map<string,string>();
 function written(date:DateInput,options:Intl.DateTimeFormatOptions){
- const value=date instanceof Date?date:new Date(date);
+ // A day key (or a month key) is written at its UTC noon, in UTC, so no zone moves it to another day.
+ const calendarKey=typeof date==='string'&&(DAY_KEY.test(date)||MONTH_KEY.test(date));
+ const value=calendarKey?new Date(`${MONTH_KEY.test(date as string)?`${date}-15`:date}T12:00:00Z`):date instanceof Date?date:new Date(date);
+ if(calendarKey)options={...options,timeZone:'UTC'};
  // Date#toLocale…String writes "Invalid Date" where Intl throws; keep that.
  if(Number.isNaN(value.getTime()))return 'Invalid Date';
  const key=`${active}|${wordLocale()}|${JSON.stringify(options)}|${value.getTime()}`,kept=writtenCache.get(key);if(kept!==undefined)return kept;
@@ -150,9 +162,34 @@ function written(date:DateInput,options:Intl.DateTimeFormatOptions){
  if(writtenCache.size>=WRITTEN_KEPT)for(const old of [...writtenCache.keys()].slice(0,WRITTEN_KEPT/2))writtenCache.delete(old);
  writtenCache.set(key,text);return text;
 }
-/** As Date#toLocaleDateString: the date, digits in the display locale, words in English. */
-export function formatDate(date:DateInput,options:Intl.DateTimeFormatOptions={}){return written(date,has(options,DATE_FIELDS)?options:{...options,year:'numeric',month:'numeric',day:'numeric'});}
-/** As Date#toLocaleTimeString. */
-export function formatTime(date:DateInput,options:Intl.DateTimeFormatOptions={}){return written(date,has(options,TIME_FIELDS)?options:{...options,hour:'numeric',minute:'numeric',second:'numeric'});}
-/** As Date#toLocaleString. */
-export function formatDateTime(date:DateInput,options:Intl.DateTimeFormatOptions={}){return written(date,has(options,DATE_FIELDS)||has(options,TIME_FIELDS)?options:{...options,year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'});}
+const zoned=(timeZone?:string):Intl.DateTimeFormatOptions=>timeZone?{timeZone}:{};
+const dateFields=({weekday,year}:DateOptions):Intl.DateTimeFormatOptions=>({...(weekday?{weekday:'short'}:{}),day:'numeric',month:'short',...(year===false?{}:{year:'numeric'})});
+// A 24-hour clock writes the hour with two digits ("09:05"), a 12-hour one without ("9:05 AM"), as each locale does.
+const twentyFour=()=>/^h2[34]$/.test(dateFormat(active,{hour:'numeric'}).resolvedOptions().hourCycle??'');
+const timeFields=({seconds}:TimeOptions):Intl.DateTimeFormatOptions=>({hour:twentyFour()?'2-digit':'numeric',minute:'2-digit',...(seconds?{second:'2-digit'}:{})});
+/** The medium date: "17 Oct 2026" (en-GB), "Oct 17, 2026" (en-US). */
+export function formatDate(date:DateInput,options:DateOptions={}){return written(date,{...dateFields(options),...zoned(options.timeZone)});}
+/** A time in the locale's hour cycle: "14:05" (en-GB), "2:05 PM" (en-US). */
+export function formatTime(date:DateInput,options:TimeOptions={}){return written(date,{...timeFields(options),...zoned(options.timeZone)});}
+/** The medium date and the time: "17 Oct 2026, 14:05" (en-GB), "Oct 17, 2026, 2:05 PM" (en-US). */
+export function formatDateTime(date:DateInput,options:DateOptions&TimeOptions={}){return written(date,{...dateFields(options),...timeFields(options),...zoned(options.timeZone)});}
+/** A month and its year, for calendar headings: "Oct 2026" ("Oct" with year: false, a date tile's label). Takes a month key ("2026-10") too. */
+export function formatMonth(date:DateInput,{year,timeZone}:{year?:boolean;timeZone?:string}={}){return written(date,{month:'short',...(year===false?{}:{year:'numeric'}),...zoned(timeZone)});}
+/** The short weekday alone, for chart columns and week strips: "Thu". */
+export function formatWeekday(date:DateInput,{timeZone}:{timeZone?:string}={}){return written(date,{weekday:'short',...zoned(timeZone)});}
+/** The calendar day ("2026-10-17") an instant falls on in the zone (the device's by default); a day key is itself. */
+export function calendarDay(date:DateInput,timeZone?:string){
+ if(typeof date==='string'&&DAY_KEY.test(date))return date;
+ const value=date instanceof Date?date:new Date(date);if(Number.isNaN(value.getTime()))return '';
+ const parts=dateFormat('en-US',{year:'numeric',month:'2-digit',day:'2-digit',...zoned(timeZone)}).formatToParts(value),get=(type:string)=>parts.find(part=>part.type===type)?.value??'';
+ return `${get('year')}-${get('month')}-${get('day')}`;
+}
+/**
+ * "Today", "Yesterday" or "Tomorrow" when the date falls on that calendar day as seen at `now` (in `timeZone`, the
+ * device's by default), else the medium date. Pages pass the `now` they render with, so the server and browser agree.
+ */
+export function formatRelativeDay(date:DateInput,now:DateInput,options:DateOptions={}){
+ const day=calendarDay(date,options.timeZone),today=calendarDay(now,options.timeZone);
+ if(day&&today){const apart=Math.round((Date.parse(`${day}T12:00:00Z`)-Date.parse(`${today}T12:00:00Z`))/86_400_000);if(apart===0)return 'Today';if(apart===-1)return 'Yesterday';if(apart===1)return 'Tomorrow';}
+ return formatDate(date,options);
+}

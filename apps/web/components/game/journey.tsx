@@ -24,7 +24,7 @@ export function JourneyPage() {
   const d = game.derived;
   async function repair(habitId: string, date: string) {
     setBusy(true); setMessage('');
-    try { await game.habits.update(data => applyFreeze(data, habitId, date, game.today)); setMessage(`Freeze used: ${formatDate(`${date}T12:00:00`, {month: 'long', day: 'numeric'})} now counts as a rest day.`); }
+    try { await game.habits.update(data => applyFreeze(data, habitId, date, game.today)); setMessage(`Freeze used: ${formatDate(date, {year: false})} now counts as a rest day.`); }
     catch (e) { setMessage(storageMessageOr(e, 'The freeze was not used.')); } finally { setBusy(false); }
   }
   return <LayoutPage page="journey"><div className="journey-page">
@@ -53,7 +53,7 @@ export function JourneyPage() {
         <p className="journey-next"><span className="eyebrow">Next unlock</span>{(() => { const next = d.badges.find(b => !b.earned); const stop = d.path.find(s => !s.reached); return <strong>{next ? `${next.symbol} ${next.title}: ${next.blurb}` : stop ? `Level ${stop.level} · ${stop.name}` : 'Everything on the path, reached.'}</strong>; })()}</p></section>
       <section className="panel journey-freeze" aria-labelledby="journey-freeze-title"><p className="eyebrow">Streak repair</p><h2 id="journey-freeze-title"><NebulaFlow identity="journey-freeze">Freezes</NebulaFlow></h2>
         <p>{d.freezes > 0 ? `You have ${d.freezes} ${d.freezes === 1 ? 'freeze' : 'freezes'}: each turns one missed day of the last week into a rest day.` : 'A seven-day streak on any habit earns a freeze, which repairs one missed day of the last week.'}</p>
-        {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(`${r.date}T12:00:00`, {weekday: 'short', month: 'short', day: 'numeric'})}</span><button type="button" className="secondary" disabled={busy} onClick={() => void repair(r.habitId, r.date)}>Use a freeze</button></li>)}</ul>}
+        {d.freezes > 0 && d.repairable.length > 0 && <ul className="journey-repair-list">{d.repairable.slice(0, 6).map(r => <li key={`${r.habitId}:${r.date}`}><span>{r.title} · {formatDate(r.date, {weekday: true, year: false})}</span><button type="button" className="secondary" disabled={busy} onClick={() => void repair(r.habitId, r.date)}>Use a freeze</button></li>)}</ul>}
         {d.freezes > 0 && d.repairable.length === 0 && <p className="fine">Nothing to repair this week.</p>}
         {message && <p role="status" className="fine">{message}</p>}</section>
       <section className="panel journey-settings"><GameSetting /></section>

@@ -90,7 +90,7 @@ test('H3: a quit habit shows days since, the longest run, the slip calendar and 
   await openHabitDetails(snacks);
   const quit = snacks.getByRole('region', {name: 'Days since for Fictional late snacks'});
   await expect(quit.locator('.habit-quit-days')).toHaveText('7');
-  await expect(quit.getByText('since September 30')).toBeVisible();
+  await expect(quit.getByText('since Sep 30')).toBeVisible();
   await expect(quit.getByText('29 days')).toBeVisible(); // 1 Sep → 29 Sep
   await quit.getByRole('button', {name: 'Set a cost per day', exact: true}).click();
   await quit.getByRole('textbox', {name: 'Cost per day'}).fill('3.50');

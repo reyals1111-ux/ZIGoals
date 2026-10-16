@@ -85,12 +85,12 @@ test("historical dates, missed days and scoped link retention remain correct", a
   await expect(card.locator(".habit-goal-link a")).toHaveCount(0);
   await openHabitDetails(card);
   await card.getByText("History & reflection", { exact: true }).click();
-  await expect(card.getByRole("button", { name: "September 12, 2026: Not scheduled, 0 of 1" })).toBeVisible();
-  await expect(card.getByRole("button", { name: "September 14, 2026: Failed, 0 of 1" })).toBeVisible();
-  await card.getByRole("button", { name: "September 14, 2026: Failed, 0 of 1" }).click();
+  await expect(card.getByRole("button", { name: "Sep 12, 2026: Not scheduled, 0 of 1" })).toBeVisible();
+  await expect(card.getByRole("button", { name: "Sep 14, 2026: Failed, 0 of 1" })).toBeVisible();
+  await card.getByRole("button", { name: "Sep 14, 2026: Failed, 0 of 1" }).click();
   await card.getByLabel("Count for this day").fill("1");
   await card.getByRole("button", { name: "Save day", exact: true }).click();
-  await expect(card.getByRole("button", { name: "September 14, 2026: Complete, 1 of 1" })).toBeVisible();
+  await expect(card.getByRole("button", { name: "Sep 14, 2026: Complete, 1 of 1" })).toBeVisible();
   await expect(card.locator(".habit-metrics > div").first()).toContainText("2 days");
   await card.getByRole("button", { name: "Edit A little daylight" }).click();
   await expect(page.getByLabel("Linked Goal (optional)")).toHaveValue("keep");

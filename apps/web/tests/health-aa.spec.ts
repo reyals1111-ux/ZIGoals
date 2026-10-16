@@ -77,8 +77,8 @@ test('N4, N7: a micronutrient target edited on the device; unknown stays unknown
 test('N5: a recipe planned into the week grid, its grocery list by aisle with check-off, and one tap logs it', async ({page}) => {
   await seed(page); await page.goto('/app/health'); await view(page, 'Planner');
   const planner = page.getByRole('region', {name: 'Meal planner'});
-  await planner.getByRole('button', {name: 'Plan Dinner on Wed 7'}).click();
-  const form = planner.getByRole('form', {name: 'Plan Dinner on Wed 7'});
+  await planner.getByRole('button', {name: 'Plan Dinner on Wed, Oct 7'}).click();
+  const form = planner.getByRole('form', {name: 'Plan Dinner on Wed, Oct 7'});
   await form.locator('select').nth(1).selectOption('health_recipe-0001'); // the second select: the recipe (the first picks recipe or food)
   await form.getByRole('button', {name: 'Plan', exact: true}).click();
   await expect(planner.locator('strong', {hasText: 'Fictional lentil soup'})).toBeVisible(); // the planned row's title, not the chooser's option
@@ -89,7 +89,7 @@ test('N5: a recipe planned into the week grid, its grocery list by aisle with ch
   await expect(grocery.getByText('1 of 1 bought')).toBeVisible();
   await grocery.getByLabel('Aisle for Fictional lentils').selectOption('Produce');
   await expect(grocery.getByRole('heading', {name: /Produce/})).toBeVisible();
-  await planner.getByRole('button', {name: 'Log Fictional lentil soup for Dinner on Wed 7'}).click();
+  await planner.getByRole('button', {name: 'Log Fictional lentil soup for Dinner on Wed, Oct 7'}).click();
   await expect(planner.getByText('Fictional lentil soup · logged')).toBeVisible();
   const data = await stored(page, HEALTH_STORAGE_KEY) as HealthData;
   expect(data.diary.filter(d => d.date === TODAY && d.meal === 'Dinner' && d.snapshot.name === 'Fictional lentil soup')).toHaveLength(1);

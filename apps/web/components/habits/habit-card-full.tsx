@@ -15,7 +15,7 @@ import { habitDay, habitRuleOn, habitStats, habitTargetPeriod, habitTrends, late
 import { addLocalDays, localDate, localWeekday } from "../../lib/local-date";
 import { formNumberText, readFormNumber } from "../../lib/decimal-input";
 import { type HabitCardStore } from "./use-habits";
-import { formatDate, formatDateTime, formatNumber } from "../../lib/visual-format";
+import { formatDate, formatDateTime, formatMonth, formatNumber } from "../../lib/visual-format";
 import { unitFor } from "../../lib/plural";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
@@ -39,7 +39,7 @@ const statusLabel = { complete: "Complete", partial: "Partial", due: "Due", skip
 /** A count or amount as typed data shows it ("1.5"), with the display locale's decimal sign. */
 // Grouped as every other figure (Session X P2.1: "8000" sat beside "8,800 steps"), every decimal kept.
 const plain = (value: number) => formatNumber(value, { maximumFractionDigits: 9 });
-function longDate(date: string) { return formatDate(`${date}T12:00:00`, { month: "long", day: "numeric", year: "numeric" }); }
+function longDate(date: string) { return formatDate(date); }
 function moveMonth(month: string, amount: number) { const date = new Date(`${month}-01T12:00:00`); date.setMonth(date.getMonth() + amount); return localDate(date).slice(0, 7); }
 function targetCopy(habit: Habit,today:string) {
   const rule = habitRuleOn(habit,today)??habit.rules[0]!; const unit = measurementUnit(rule); const period = habitTargetPeriod(rule);
@@ -65,7 +65,7 @@ function HabitHistory({ habit, store }: { habit: Habit; store: HabitCardStore })
   async function mark(status: "skipped" | "failed") { setBusy(true); setMessage(""); setError(""); try { await store.markDay(habit.id, selectedDate, status, day.note); setMessage(status === "skipped" ? "Day skipped." : "Day marked failed."); } catch (error) { setError(storageMessageOr(error, "This day could not be changed.")); } finally { setBusy(false); } }
   function chooseDate(date: string) { if (!date) return; setSelectedDate(date); setMonth(date.slice(0, 7)); setMessage(""); setError(""); }
   return <div className="habit-history">
-    <div className="habit-calendar-heading"><button className="quiet" aria-label={`Previous month for ${habit.title}`} disabled={month <= habit.startDate.slice(0, 7)} onClick={() => setMonth(moveMonth(month, -1))}>←</button><strong>{formatDate(`${first}T12:00:00`, { month: "long", year: "numeric" })}</strong><button className="quiet" aria-label={`Next month for ${habit.title}`} disabled={month >= store.today.slice(0, 7)} onClick={() => setMonth(moveMonth(month, 1))}>→</button></div>
+    <div className="habit-calendar-heading"><button className="quiet" aria-label={`Previous month for ${habit.title}`} disabled={month <= habit.startDate.slice(0, 7)} onClick={() => setMonth(moveMonth(month, -1))}>←</button><strong>{formatMonth(first)}</strong><button className="quiet" aria-label={`Next month for ${habit.title}`} disabled={month >= store.today.slice(0, 7)} onClick={() => setMonth(moveMonth(month, 1))}>→</button></div>
     <div className="habit-calendar" role="group" aria-label={`${habit.title} completion calendar`}>{["M", "T", "W", "T", "F", "S", "S"].map((label, index) => <small aria-hidden="true" key={`label-${index}`}>{label}</small>)}{Array.from({ length: 42 }, (_, index) => {
       const date = addLocalDays(gridStart, index); const result = habitDay(habit, date, store.today); if (!date.startsWith(month)) return <span key={date} />;
       return <button key={date} type="button" className={`habit-calendar-day habit-day-${result.status}`} disabled={date > store.today || date < habit.startDate} aria-pressed={selectedDate === date} aria-label={`${longDate(date)}: ${statusLabel[result.status]}, ${plain(result.count)} of ${plain(result.target)}`} onClick={() => chooseDate(date)}><span>{Number(date.slice(-2))}</span>{result.status === "complete" && <span className="habit-calendar-check" aria-hidden="true">✓</span>}</button>;

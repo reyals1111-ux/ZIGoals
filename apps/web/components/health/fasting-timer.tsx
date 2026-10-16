@@ -15,7 +15,7 @@ import './fasting.css';
 import type {LayoutAttrs} from '../layout-edit';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
-const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone, hour: 'numeric', minute: '2-digit'}); } catch { return formatTime(iso, {hour: 'numeric', minute: '2-digit'}); } };
+const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
 /** The Health page module "Fasting timer" (HE6): a clock against a chosen target, a short history, no praise. */
 export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fasting: FastingStore; health: HealthData}) {
   const habits = useHabits();

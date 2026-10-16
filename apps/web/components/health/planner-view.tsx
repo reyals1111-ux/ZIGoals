@@ -33,7 +33,7 @@ export function PlannerView({data, date, today, perform}: {data: HealthData; dat
     const q = Math.round(Number(servings.replace(',', '.')) * 1000); if (!Number.isFinite(q) || q <= 0) return;
     void perform(latest => kind === 'recipe' ? planFromRecipe(latest, source, slot.date, slot.meal, now()) : planFromFood(latest, source, q, slot.date, slot.meal, now()), 'Meal planned; nothing logged as eaten.', () => { setSlot(null); setSource(''); });
   }
-  const dayLabel = (d: string) => `${formatDate(`${d}T12:00:00`, {weekday: 'short'})} ${Number(d.slice(-2))}`;
+  const dayLabel = (d: string) => formatDate(d, {weekday: true, year: false});
   // Phase 2, Part 5 (owner request 33): on a phone the week is a day swiper — one day per screen, snapping — with a row of
   // day chips to jump; it opens on today (or the week's first day). Computers keep the seven-column grid.
   const weekRef = useRef<HTMLDivElement>(null);
