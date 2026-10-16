@@ -69,7 +69,10 @@ export async function openTodayWidgets(page:Page){
  // does, so the rows are counted on the other widgets; the stand-in must have no row and its card in view.
  const modules=page.locator('.today-page .placed-module[data-kind="widget"]:not([data-stands-in])');
  await expect(modules.first()).toBeAttached();
- for(const standIn of await page.locator('.today-page .placed-module[data-stands-in]').all()){await expect(standIn.locator('.phone-fold-toggle')).toHaveCount(0);await expect(standIn.locator('article.dashboard-widget')).toBeVisible();}
+ // Read as one state until it holds: a seeded page shows the default Today (with its stand-in) for a moment before its
+ // saved placement, so a stand-in listed then can be gone a moment later (CI run 38883353936, both at 320 px).
+ const standIns=page.locator('.today-page .placed-module[data-stands-in]');
+ await expect.poll(async()=>{const [n,open,folds]=[await standIns.count(),await standIns.filter({has:page.locator('article.dashboard-widget:visible')}).count(),await standIns.locator('.phone-fold-toggle').count()];return open===n&&folds===0?'every stand-in open':`${open} of ${n} stand-ins open, ${folds} folds`;}).toBe('every stand-in open');
  if(await page.getByRole('button',{name:'Finish customizing',exact:true}).isVisible())return;
  // Session AB-Design Phase 2 (ADR-024): both counts read together until they agree, so a widget that mounts a moment later
  // (a lazy part) is counted on both sides; still exactly one fold per widget.
