@@ -46,7 +46,18 @@ async function seed(page: Page) {
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }
-async function send(page: Page, text: string) { await page.getByLabel('Message to your AI').fill(text); await page.getByRole('button', {name: 'Send', exact: true}).click(); await expect(panel(page).locator('.ai-card').last()).toBeVisible(); }
+async function send(page: Page, text: string) {
+  const box = page.getByLabel('Message to your AI'), sendButton = page.getByRole('button', {name: 'Send', exact: true});
+  await box.fill(text);
+  // Session AC (item 16): WebKit's phone runs once left Send disabled after the fill; if it happens, the failure says what
+  // the box held right after the fill and at the end, and how often a message box was mounted (diagnostic only).
+  const filled = await box.inputValue().catch(() => '?'), mounts = () => page.evaluate(() => (window as unknown as {__composerMounts?: {n: number}}).__composerMounts?.n ?? -1);
+  const mountedBefore = await mounts();
+  try { await expect(sendButton).toBeEnabled({timeout: 15_000}); }
+  catch (error) { throw new Error(`Send stayed disabled: right after the fill the box held ${JSON.stringify(filled)}, now ${JSON.stringify(await box.inputValue().catch(() => '?'))}; message boxes mounted ${mountedBefore} before, ${await mounts()} now. ${(error as Error).message.split('\n')[0]}`); }
+  await sendButton.click();
+  await expect(panel(page).locator('.ai-card').last()).toBeVisible();
+}
 const snapshot = (page: Page): Promise<Snap> => page.evaluate(keys => Object.fromEntries(keys.map(k => { const v = localStorage.getItem(k); return [k, v === null ? null : JSON.parse(v)]; })), KEYS as unknown as string[]);
 /**
  * What the app's own save paths leave behind that is not a record: `updatedAt` stamps, the water operation ledger (an
@@ -232,6 +243,9 @@ test.beforeEach(async ({page}) => { await page.addInitScript(() => {
     taps.push(`${type}:${el?.nodeName ?? '?'}.${el?.className?.toString().split(' ')[0] ?? ''}"${(el?.textContent ?? '').trim().slice(0, 14)}"@${Math.round((event as MouseEvent).clientY ?? -1)} log=${log ? Math.round(log.scrollTop) : '-'}/${log ? log.scrollHeight : '-'}`);
     if (taps.length > 40) taps.shift();
   }, true);
+  // How often a message box was put on the page (a remount loses what was typed).
+  const mounts = {n: 0}; (window as unknown as {__composerMounts: {n: number}}).__composerMounts = mounts;
+  new MutationObserver(list => { for (const m of list) for (const node of m.addedNodes) if (node instanceof Element && (node.matches('textarea[aria-label]') || node.querySelector('textarea[aria-label]'))) mounts.n++; }).observe(document, {subtree: true, childList: true});
 }); });
 const taps = (page: Page) => page.evaluate(() => (window as unknown as {__taps?: string[]}).__taps?.slice(-12).join(' | ') ?? '');
 for (const zone of ZONES) {
