@@ -18,7 +18,7 @@ vi.mock('./vault/account-data',async original=>({...await original<any>(),captur
 vi.mock('./vault/local',()=>({localDatabase:{pending:async()=>h.pending,acknowledge:async()=>{}}}));
 // The extras' own sync (ADR-023) is not under test here: it answers with its outcomes at once.
 vi.mock('./vault/extras-sync',()=>({readExtrasChoice:()=>({enabled:true,explained:true}),writeExtrasChoice:()=>{},indexedDbBases:()=>({}),extrasTransport:()=>({}),syncExtras:(...args:any[])=>h.extras(...args),ExtrasChangedDuringSync:class extends Error{},releaseHealthHold:async()=>{},forgetExtrasBases:async()=>{}}));
-import {VaultSyncProvider} from '../components/vault-sync-controls';
+import {HEALTH_HELD_REFUSAL,VaultSyncProvider} from '../components/vault-sync-controls';
 import {NO_ACCOUNT_STATUS,VaultSyncControls} from '../components/vault-sync-panel';
 import {HEALTH_STAYS_LOCAL,SECTION_TEXT} from './vault/section-status';
 
@@ -102,6 +102,13 @@ test('offline: the sections wait for the network, and say so again when it comes
 test('a section deleted from the cloud is shown as kept on this device',async()=>{
  h.journal.mockResolvedValue({...EMPTY,heldDomains:['finance']});await open();
  expect(row('Goals & Wealth')!.textContent).toContain('Kept on this device only, because its cloud copy was deleted');
+});
+test('a refused Health tick is not a failed sync: the sections keep their status, the refusal is said by the consent box',async()=>{
+ h.journal.mockResolvedValue({...EMPTY,heldDomains:['health']});await open();
+ await act(async()=>consent().click());await settle();
+ expect(element.querySelector('[role=alert]')!.textContent).toBe(HEALTH_HELD_REFUSAL);
+ expect(row('Habits')!.textContent).toMatch(/Up to date/);expect(row('Habits')!.querySelector('button')).toBeNull();
+ expect(row('Health')).toBeUndefined();
 });
 test('the extras: updated from another device, or failed with their own message kept beside their switch',async()=>{
  h.extras.mockResolvedValueOnce([{section:'life',state:'pulled'}]);await open();
