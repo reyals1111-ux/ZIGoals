@@ -4,18 +4,17 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
-## Resume here (2026-10-16 02:00 Brussels, Gate C in progress)
-- **Branch:** `feature/session-ac-polish` (tracks origin). Draft PR #87. Captures `review/session-ac-screens` (`before/`, `after/`).
-- **Deadline:** PR out of Draft by Saturday 17 Oct 2026 20:00 Europe/Brussels.
-- **Done:** Part 0 `c69b1db3`; item 3 `c9273d6b` (TIER 3 public-safety labels); Part 1 `676a054b`; 5a `1d735576` +
-  `d45e9ff3` (TIER 3 storage, revised: only exact twins); Part 2 `3b440c14`; Part 3 `cb9094dd`; records `b80fe187`;
-  E19 `c1fc02bc`; E20 `39bf9172`; item 7 fix `61267f43`; review fixes `7ff94069` (E21). Gate C so far: unit 560 files /
-  4,918 passed; key scans; frozen readers #37–#41 PASS; stored placement read by #32 and #41; independent review done
-  (one fix round); after captures pushed; weights within budget (Today 514.6 / 515).
-- **Next:** revert gate (`$SP/revert-gate.sh $SP/mainwt <head>`, output `$SP/revert-gate.txt`); CI on `7ff94069`
-  (run 38825041393) — fix anything red; then the STATUS entry as the FINAL commit, PR description, PR ready.
-- **Open decisions:** none. Owner items in ADR-025 E20/E21 (today-screens in this sandbox; no-JS facts visibility).
-- `SP=/tmp/claude-0/-home-user-ZIGoals/bb66d39c-f176-5390-999e-c35fd28c19c0/scratchpad` (sandbox only).
+## Resume here (2026-10-16 ~10:00 Brussels, owner amendment of the finish checkpoint: nothing is cut)
+- **Order (owner):** 1 item 16 WebKit → 2 item 9c → 3 item 9d → 4 item 11 #12 → 5 item 12 → 6 item 17 → 7 today-screens →
+  8 no-JS facts; each its own commit + push + this block; then affected specs, layout audit on changed routes, weights,
+  revert gate, frozen readers once; one fix round; finish steps (ADR-025, STATUS final commit, PR ready, report).
+- **Pushing:** a push cancels the running CI; WebKit evidence needs a whole run (~35 min), so item commits wait for it.
+- **Done since the checkpoint:** CI fixes `36194ad1` (stand-in specs by widget id, seed-day clock, habit action row);
+  item 16 part 1 `9804d676` (phone chat closes only on a real backdrop tap; smoke names ResizeObserver loops).
+- **Item 16 next:** read WebKit on `9804d676` (run on the PR); a second green WebKit run → `TIER 3 (CI)` required;
+  otherwise advisory with the evidence (artifacts summarised in `$SP/wk/`).
+- **Item 8 code is written (unstaged):** `components/shell/alpha-notice.tsx` (ALPHA_ESSENTIALS, `<noscript>` and the
+  stalled line), `shell.tsx` (`stalled`), `shell-ab.css`, tests honesty-banners / private-read-delay / ab-shell.
 
 ## Environment (cloud sandbox)
 ```
