@@ -8,8 +8,10 @@ import {PinToToday} from "../pin-to-today";
 import {useEntrance} from '../use-entrance';
 import {GlassSegments} from '../progress/glass-progress';
 import { formatNumber } from "../../lib/visual-format";
+import {useScrollEdges} from '../ui/use-scroll-edges';
 
 export function NutritionDashboard({ data, date, ...layout }: LayoutAttrs & { data: HealthData; date: string }) {
+  const edges = useScrollEdges<HTMLDivElement>();
   const result = nutritionDashboard(data, date);
   const showcase = useShowcase();
   const max = Math.max(1, ...result.history.flatMap(day => day.nutrients.kcal===null?[]:[day.nutrients.kcal]));
@@ -31,7 +33,7 @@ export function NutritionDashboard({ data, date, ...layout }: LayoutAttrs & { da
       <div className="nutrition-month-bars" role="img" aria-label={`30-day calorie history ending ${date}. ${result.loggedDays} logged days. Exact values in the nutrition history table below.`}>{result.history.map((day, index) => <div key={day.date} title={`${day.date}: ${day.entries ? nutritionSummaryText(day,"kcal","kcal") : "No entries"}`}><i style={{ height: `${day.entries && day.nutrients.kcal!==null ? Math.max(2, day.nutrients.kcal / max * 100) : 0}%`, "--i": index } as CSSProperties} /></div>)}</div>
       <div className="nutrition-chart-axis"><span>{result.history[0]?.date}</span><span>{date}</span></div>
       <p className="fine">Dates with no entries or incomplete calories are excluded from bars and the average. Values describe what you logged.</p>
-      <details className="nutrition-exact-history"><summary>View nutrition history table</summary><div className="health-table-wrap" tabIndex={0} role="region" aria-label="Nutrition history table"><table><caption>{showcase ? "Showcase example" : "Saved"} nutrition · last 30 days</caption><thead><tr><th scope="col">Date</th><th scope="col">Calories</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead><tbody>{result.history.map(day => <tr key={day.date}><th scope="row">{day.date}</th><td>{day.entries ? nutritionSummaryText(day,"kcal","kcal") : "No entries"}</td>{(["proteinMg", "carbsMg", "fatMg"] as const).map(key => <td key={key}>{day.entries ? nutritionSummaryText(day,key,"g",1000) : "—"}</td>)}</tr>)}</tbody></table></div></details>
+      <details className="nutrition-exact-history"><summary>View nutrition history table</summary><div ref={edges} className="health-table-wrap" tabIndex={0} role="region" aria-label="Nutrition history table"><table><caption>{showcase ? "Showcase example" : "Saved"} nutrition · last 30 days</caption><thead><tr><th scope="col">Date</th><th scope="col">Calories</th><th scope="col">Protein</th><th scope="col">Carbs</th><th scope="col">Fat</th></tr></thead><tbody>{result.history.map(day => <tr key={day.date}><th scope="row">{day.date}</th><td>{day.entries ? nutritionSummaryText(day,"kcal","kcal") : "No entries"}</td>{(["proteinMg", "carbsMg", "fatMg"] as const).map(key => <td key={key}>{day.entries ? nutritionSummaryText(day,key,"g",1000) : "—"}</td>)}</tr>)}</tbody></table></div></details>
     </article>
   </section>;
 }

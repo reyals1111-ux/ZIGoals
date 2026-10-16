@@ -202,3 +202,30 @@ test.describe('item 12: Activity shows no invented time for a date-only record',
     await expect(page.locator('.activity-date-heading').first()).toBeVisible();
   });
 });
+
+test.describe('item 9d: phone tables', () => {
+  test('390 px: no table of three columns or fewer scrolls sideways; a wider one marks the edge with more to see', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await showcase(page);
+    for (const path of ['/app/habits', '/app/goals/tracked/9201', '/app/health', '/app/health?view=sleep', '/app/health?view=meditation', '/app/wealth', '/app/review']) {
+      await page.goto(path); await settled(page);
+      await page.evaluate(() => document.querySelectorAll('main details').forEach(d => { (d as HTMLDetailsElement).open = true; }));
+      await page.waitForTimeout(400);
+      const narrowScrolling = await page.evaluate(() => [...document.querySelectorAll('main table')].filter(t => {
+        const cols = Math.max(...[...t.querySelectorAll('tr')].map(r => [...r.children].reduce((n, c) => n + ((c as HTMLTableCellElement).colSpan || 1), 0)));
+        let wrap: Element | null = t.parentElement; while (wrap && getComputedStyle(wrap).overflowX === 'visible' && wrap !== document.body) wrap = wrap.parentElement;
+        return cols <= 3 && !!wrap && wrap.scrollWidth > wrap.clientWidth + 1;
+      }).map(t => t.getAttribute('aria-label') ?? t.querySelector('caption')?.textContent ?? 'a table'));
+      expect(narrowScrolling, path).toEqual([]);
+    }
+    await page.goto('/app/portfolio'); await settled(page);
+    const wrap = page.locator('.data-table-wrap').first();
+    await expect(wrap).toHaveAttribute('data-more-right', '');
+    await expect(wrap).not.toHaveAttribute('data-more-left', '');
+    await wrap.evaluate(el => { el.scrollLeft = el.scrollWidth; });
+    await expect(wrap).toHaveAttribute('data-more-left', '');
+    await expect(wrap).not.toHaveAttribute('data-more-right', '');
+    // The hint is a shadow on the edge: every column stays fully readable (nothing is masked).
+    expect(await wrap.evaluate(el => getComputedStyle(el).maskImage === 'none' || getComputedStyle(el).maskImage === '')).toBe(true);
+  });
+});

@@ -5,6 +5,7 @@ import {Sparkline, sparklineWords} from './sparkline';
 import {Change, compactMoney} from './market-format';
 import {formatMoney, formatPrice} from '../../lib/visual-format';
 import './data-table.css';
+import {useScrollEdges} from '../ui/use-scroll-edges';
 
 export type MarketTableRow = {
   key: string; name: string; symbol: string; category: string; href: string; logoUrl: string | null;
@@ -19,7 +20,8 @@ export type MarketTableRow = {
  * favourite star. Phones keep the market, its 24h change, price and star.
  */
 export function MarketTable({rows, currency, label, onToggle, disabled}: {rows: readonly MarketTableRow[]; currency: 'USD' | 'EUR'; label: string; onToggle: (row: MarketTableRow) => void; disabled: boolean}) {
-  return <div className="data-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
+  const edges = useScrollEdges<HTMLDivElement>();
+  return <div ref={edges} className="data-table-wrap" role="region" aria-label={`${label}, scrolls sideways`} tabIndex={0}>
     <table className="data-table market-table" aria-label={label}>
       <thead><tr><th scope="col">Market</th><th scope="col">Price</th><th scope="col" className="data-col-optional">1h</th><th scope="col">24h</th><th scope="col" className="data-col-optional">7d</th><th scope="col" className="data-col-optional">Last 7 days</th><th scope="col" className="data-col-wide">Market cap</th><th scope="col"><span className="sr-only">Favourite</span></th></tr></thead>
       <tbody>{rows.map(row => <tr key={row.key}>

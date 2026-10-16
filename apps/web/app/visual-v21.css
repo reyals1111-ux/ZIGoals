@@ -228,3 +228,8 @@ body { background: var(--cosmic-dark); }
 /* Eight main destinations, including the Positions shortcut. */
 @media (min-width:541px) and (max-width:900px) { .app-nav { grid-template-columns:repeat(8,minmax(0,1fr)); } }
 @media (max-width:540px) { .app-nav { grid-template-columns:repeat(4,minmax(0,1fr)); }.app-nav a,.app-nav a:nth-child(n+5) { grid-column:auto; flex-direction:column; min-height:48px; }.app-nav a span { text-align:center; } }
+/* Session AC (item 9d): a table that scrolls sideways shows a soft shadow on the edge with more to see
+   (components/ui/use-scroll-edges.ts); the shadow sits under the cells' text and never hides a column. */
+[data-more-right] { box-shadow: inset -22px 0 16px -16px #000000b3; }
+[data-more-left] { box-shadow: inset 22px 0 16px -16px #000000b3; }
+[data-more-left][data-more-right] { box-shadow: inset 22px 0 16px -16px #000000b3, inset -22px 0 16px -16px #000000b3; }
