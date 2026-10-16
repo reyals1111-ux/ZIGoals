@@ -4,6 +4,18 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 10:05 UTC — finish phase, item 16 part 3b pushed)
+- **Run 38873163468 (`b99d6355`) read:** everything green except browser shard 3 (`motion-polish:195` phone, the slogan's
+  mid sample read after its end: the recorded `motion-polish` sampling class under two-worker load; 10/10 alone here on
+  `fa431ed2`'s build; nothing in this PR touches the slogan) and WebKit shard 2 (`webkit-zigi-freeze:81` phone; the
+  `zigi-accept-correct` Undo whose presses diagnostic gave the root cause).
+- **Item 16 part 3b (`fa431ed2`):** a press on Undo let WebKit scroll the log, "Jump to the latest message" appeared under
+  the finger and took the release, so the click went to the dialog. The jump button now keeps its state while a press is
+  down (`zigi-chat-backdrop` third test fails before the fix). Local on its build: chat set 178 passed.
+- **Next:** read the WebKit jobs of `7dcf825a` (stop-timer diagnostics, run 38875420929) and `fa431ed2` (run
+  38878829190); two consecutive greens after `fa431ed2` → TIER 3 (CI) `web-webkit` required; otherwise advisory with
+  the evidence. Then ADR-025 E28, STATUS FINAL commit, PR #87 ready, short report.
+
 ## Resume here (2026-10-16 08:45 UTC — finish phase)
 - **Every owner item has its outcome** (ADR-025 E22–E27): 9c, 9d, 12, 11 #12, 17, today-screens (CI 10.73 / 5.68),
   no-JS facts (TIER 3), closing checks (audit on changed routes, hero 768 px measured per font, revert gate, frozen readers).
