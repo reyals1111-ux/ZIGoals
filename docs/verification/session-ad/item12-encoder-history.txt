@@ -1,0 +1,14 @@
+Session AD item 12 (B7, owner amendment 3), 2026-10-16, local: `node scripts/frozen-writers.mjs` (each release's own
+encoder, in a throwaway worktree of that commit, wrote apps/web/lib/vault/fixtures/encoder-history.json; this build's
+reader then opens every value: apps/web/lib/vault/encoder-history.test.ts, 35 tests passed).
+#32 72ad872a: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#33 757b3b1b: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#34 e30b7c6c: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#35 12a3ef9c: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#36 a6e8bb9e: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#37 32cb9c5a: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#38 e3fa408d: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#39 6c1052b2: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#40 985720ee: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#41 9e41f0d1: wrote 16 records, 2 manifests, 2 device seals, 1 backup
+#42 61204c3f: wrote 16 records, 2 manifests, 2 device seals, 1 backup

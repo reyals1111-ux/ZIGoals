@@ -14,11 +14,31 @@ export type RecordContext=z.infer<typeof recordContextSchema>;
  * and has been unchanged since it was written (d36d204, 2026-09-23); btoa never sets the spare bits, so everything any
  * build stored passes (ADR-018). Workers store the strings as given and are unchanged.
  */
-export function isCanonicalBase64(s:string):boolean{if(!/^[A-Za-z0-9_-]+$/.test(s)||s.length%4===1||s.length>350_000)return false;return encode(decode(s))===s;}
-const base64=z.string().regex(/^[A-Za-z0-9_-]+$/).refine(isCanonicalBase64,'Encrypted data is not in its canonical form.');
-const legacyEnvelopeSchema=z.object({version:z.literal(1),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
+export function isCanonicalBase64(s:string):boolean{return canonicalBase64(s)===s;}
+/**
+ * Session AD item 12 (ADR-026, owner amendment 3): B7 is strict where this build writes and forgiving where it reads.
+ * - Write: every string this build stores or sends goes through written() below, which refuses anything but the
+ *   canonical spelling (encode() always produces it, so this only guards against a future change to the writer).
+ * - Read: a stored value that is not canonical but decodes (spare bits set; as before Session Y, every build up to #34
+ *   read it) is never refused. It is read as its canonical spelling, the same bytes, so a digest or a comparison taken
+ *   after reading sees one spelling either way, and the first such value on a page is logged once (no value is logged).
+ *   Every value builds #32–#42 wrote is canonical (encoder-history.test.ts reads each one with this reader).
+ * Padding, characters outside base64url and impossible lengths stay refused, as in every build. The salt's own check
+ * (below) is unchanged since before #32.
+ */
+export function canonicalBase64(s:string):string|null{if(!/^[A-Za-z0-9_-]+$/.test(s)||s.length%4===1||s.length>350_000)return null;try{return encode(decode(s));}catch{return null;}}
+let nonCanonical=0;
+/** How many non-canonical values this page has read (for tests and diagnostics). */
+export const nonCanonicalReads=()=>nonCanonical;
+function noteNonCanonical(){if(nonCanonical++===0)console.info('ZIGoals: an encrypted value was stored in a non-canonical base64 spelling; it was read as its canonical form (FIX_PLAN B7). Nothing was refused or changed.');}
+/** Read side: the canonical spelling of a decodable value; a non-canonical one is accepted and noted once. */
+const read=(s:string)=>{const spelled=canonicalBase64(s);if(spelled!==null&&spelled!==s)noteNonCanonical();return spelled;};
+/** Write side: only the canonical spelling is ever written. */
+export function written(s:string):string{if(!isCanonicalBase64(s))throw Error('Encrypted data is not in its canonical form.');return s;}
+const base64=(size:(s:z.ZodString)=>z.ZodString)=>size(z.string().regex(/^[A-Za-z0-9_-]+$/)).transform((s,ctx)=>{const spelled=read(s);if(spelled===null){ctx.issues.push({code:'custom',message:'Invalid encrypted data.',input:s});return z.NEVER;}return spelled;});
+const legacyEnvelopeSchema=z.object({version:z.literal(1),nonce:base64(s=>s.length(16)),ciphertext:base64(s=>s.min(22).max(350_000))}).strict();
 // A canonical 32-byte public HKDF salt; unused base64 bits must be zero.
-const recordEnvelopeSchema=z.object({version:z.literal(2),salt:z.string().regex(/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/),nonce:base64.length(16),ciphertext:base64.min(22).max(350_000)}).strict();
+const recordEnvelopeSchema=z.object({version:z.literal(2),salt:z.string().regex(/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/),nonce:base64(s=>s.length(16)),ciphertext:base64(s=>s.min(22).max(350_000))}).strict();
 export const envelopeSchema=z.discriminatedUnion('version',[legacyEnvelopeSchema,recordEnvelopeSchema]);
 export type EncryptedEnvelope=z.infer<typeof envelopeSchema>;
 export const manifestSchema=z.object({version:z.literal(1),vault:uuid,epoch:epochSchema,wrapped:legacyEnvelopeSchema}).strict();
@@ -32,7 +52,7 @@ async function encrypt(key:CryptoKey,plaintext:Uint8Array<ArrayBuffer>,aad:strin
  if(plaintext.byteLength>MAX_BYTES)throw Error('Encrypted record exceeds 256 KiB. Split the record before saving.');
  const nonce=crypto.getRandomValues(new Uint8Array(12));
  const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:bytes(aad),tagLength:128},key,plaintext);
- return {version:1,nonce:encode(nonce),ciphertext:encode(new Uint8Array(cipher))};
+ return {version:1,nonce:written(encode(nonce)),ciphertext:written(encode(new Uint8Array(cipher)))};
 }
 async function decrypt(key:CryptoKey,input:unknown,aad:string){
  const e=envelopeSchema.parse(input),cipher=decode(e.ciphertext);
@@ -56,7 +76,7 @@ export async function unlockVault(input:unknown,recovery:string):Promise<CryptoK
 // choose the result's algorithm and extractability, so script in this origin could unwrap the seal as an extractable AES
 // or HMAC key and export the root's bytes. Version 1 records are no longer written: an open migrates one to version 2
 // (deviceCommitment below), which stores the root key itself and no key that can unwrap anything.
-export const sealedRootSchema=z.object({iv:base64.length(16),ciphertext:base64.length(64)}).strict();
+export const sealedRootSchema=z.object({iv:base64(s=>s.length(16)),ciphertext:base64(s=>s.length(64))}).strict();
 export type SealedRoot=z.infer<typeof sealedRootSchema>;
 /** The SHA-256 of the manifest's fields, in a fixed order: what a remembered device is bound to. */
 export async function manifestDigest(input:unknown):Promise<string>{
@@ -72,7 +92,7 @@ export async function unlockVaultForDevice(input:unknown,recovery:string,account
  try{
   if(raw.length!==32)throw Error('Invalid vault key.');
   const iv=crypto.getRandomValues(new Uint8Array(12)),ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},deviceKey,raw));
-  return {key:await rootKey(raw),sealed:{iv:encode(iv),ciphertext:encode(ciphertext)}};
+  return {key:await rootKey(raw),sealed:{iv:written(encode(iv)),ciphertext:written(encode(ciphertext))}};
  }finally{raw.fill(0);}
 }
 /** Opens a remembered root for exactly this account and manifest; the bytes go from ciphertext into a key, never to script. */
@@ -93,11 +113,11 @@ async function commitmentKey(root:CryptoKey){return crypto.subtle.deriveKey({nam
 /** The commitment a version 2 record stores for its root, the account and the manifest digest (manifestDigest). */
 export async function deviceCommitment(root:CryptoKey,account:string,manifest:string):Promise<string>{
  uuid.parse(account);if(!/^[A-Za-z0-9_-]{43}$/.test(manifest))throw Error('Invalid manifest digest.');
- return encode(new Uint8Array(await crypto.subtle.sign('HMAC',await commitmentKey(root),commitmentText(account,manifest))));
+ return written(encode(new Uint8Array(await crypto.subtle.sign('HMAC',await commitmentKey(root),commitmentText(account,manifest)))));
 }
 /** Whether a stored root still derives its record's commitment; false for anything unusable, never an error. */
 export async function deviceCommitmentMatches(root:CryptoKey,account:string,manifest:string,commitment:string):Promise<boolean>{
- try{uuid.parse(account);if(!isCanonicalBase64(commitment))return false;const tag=decode(commitment);return tag.byteLength===32&&await crypto.subtle.verify('HMAC',await commitmentKey(root),tag,commitmentText(account,manifest));}catch{return false;}
+ try{uuid.parse(account);const spelled=read(commitment);if(spelled===null)return false;const tag=decode(spelled);return tag.byteLength===32&&await crypto.subtle.verify('HMAC',await commitmentKey(root),tag,commitmentText(account,manifest));}catch{return false;}
 }
 /** A version 1 seal's digest. The version 2 record migrated from it keeps it, so a tab that opened with the version 1
  * record still recognises the record it opened with (its binding holds the seal, not the new record's id). */
@@ -114,7 +134,7 @@ async function recordKey(root:CryptoKey,salt:Uint8Array<ArrayBuffer>,aad:string)
 export async function sealRecord(key:CryptoKey,context:RecordContext,value:unknown):Promise<EncryptedEnvelope>{
  const aad=contextText(context,2),salt=crypto.getRandomValues(new Uint8Array(32));
  const encrypted=await encrypt(await recordKey(key,salt,aad),bytes(JSON.stringify(value)),aad);
- return {version:2,salt:encode(salt),nonce:encrypted.nonce,ciphertext:encrypted.ciphertext};
+ return {version:2,salt:written(encode(salt)),nonce:encrypted.nonce,ciphertext:encrypted.ciphertext};
 }
 export async function openRecord(key:CryptoKey,context:RecordContext,envelope:unknown):Promise<unknown>{
  const e=envelopeSchema.parse(envelope),aad=contextText(context,e.version);
