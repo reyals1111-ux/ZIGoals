@@ -4,6 +4,13 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
+## Resume here (2026-10-16 10:55 UTC — item 16 part 3c pushed, two-greens count from `7f417281`)
+- Run 38879358853 (`f224abbd`): WebKit shard 2 red — the auto-accept toast's Undo brought into view under "Jump to the
+  latest message" (trace: "intercepts pointer events"); fixed in `7f417281` (the log's `scroll-padding-bottom: 64px`,
+  `zigi-chat-backdrop` 4 fails before). Also `zigi-history-undo:98` "internal error" on its first `goto` (engine).
+- Two-greens count starts at `7f417281`'s run; this commit queues the second. Then TIER 3 (CI) from
+  `$SP/webkit-required.patch` (or advisory with evidence), STATUS FINAL, PR #87 ready, short report.
+
 ## Resume here (2026-10-16 09:55 UTC — item 16 two-greens count)
 - Run 38875420929 (`7dcf825a`): `web` green (browser shard 3 with `motion-polish` green: the slogan red was the recorded
   sampling class); WebKit shard 2 green, shard 1 red: a desktop `page.goto` whose document request WebKit never
