@@ -112,8 +112,9 @@ test('a file that is not an export is refused with a plain sentence and nothing 
   await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toHaveCount(0);
 });
 
-test('a photo already on this device is never overwritten; Undo lasts only until the tab reloads', async ({page}) => {
-  // Gate C test audit (ADR-023 C22): the restore adds missing photos only, and its Undo lives in this tab's memory.
+test('a photo already on this device is never overwritten; Undo survives a reload and, once used, is gone', async ({page}) => {
+  // Gate C test audit (ADR-023 C22): the restore adds missing photos only. Session AD item 11 (ADR-026, a deliberate
+  // change): its Undo no longer ends with the tab; it is kept with the restore's undo record until it is used.
   const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
   await page.goto('/app/settings');
   await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [PROGRESS_PHOTOS_KEY]: JSON.stringify({version: 1, photos: [PHOTO]}), [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
@@ -138,9 +139,74 @@ test('a photo already on this device is never overwritten; Undo lasts only until
   expect(JSON.parse((await stored(page, PROGRESS_PHOTOS_KEY))!)).toEqual({version: 1, photos: [PHOTO]});
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
   await expect(region.getByRole('button', {name: 'Undo this restore'})).toBeVisible();
-  // A reload ends the Undo; the restored records stay.
+  await expect(region).toContainText('You can undo this restore here for 7 days, also after a reload');
+  // A reload keeps the Undo, with when it ran and until when; the restored records stay until it is used.
+  await page.reload();
+  const again = restoreRegion(page);
+  await expect(again.getByLabel('Export everything ZIP')).toBeVisible();
+  await expect(again).toContainText(`A restore from ${DAY} can still be undone here until 2026-10-21, unless you change those records first.`);
+  expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
+  await again.getByRole('button', {name: 'Undo this restore'}).click();
+  await expect(again.getByRole('status')).toHaveText('The restore is undone: this device holds exactly what it held before.');
+  expect(await stored(page, HABITS_KEY)).toBeNull();
+  expect(await photoDb(page, 'get')).toBe(mine.length);
+  // Used once, the Undo is gone, also after another reload.
+  await page.reload();
+  await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toBeVisible();
+  await expect(restoreRegion(page).getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
+  expect(await stored(page, HABITS_KEY)).toBeNull();
+});
+
+test('“Keep the restore” ends the Undo, also after a reload; a part changed later ends it too; the restored records stay', async ({page}) => {
+  // Session AD item 11 (ADR-026).
+  const {records} = buildShowcase(DAY, 'Europe/Brussels', {aa: true});
+  await page.goto('/app/settings');
+  await page.evaluate(values => { localStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), 'zigoals:onboarding:v1': JSON.stringify({version: 1, seen: true})});
+  const habits = await stored(page, HABITS_KEY);
+  const zip = await exportZip(page);
+  const restoreHabits = async () => {
+    await page.evaluate(h => localStorage.removeItem(h), HABITS_KEY);
+    await page.goto('/app/settings/data');
+    const region = restoreRegion(page);
+    await region.getByLabel('Export everything ZIP').setInputFiles({name: `zigoals-export-${DAY}.zip`, mimeType: 'application/zip', buffer: zip});
+    const preview = region.getByLabel('What this backup holds');
+    await preview.getByRole('combobox', {name: 'Habits: what to do'}).selectOption('replace');
+    await preview.getByLabel(/I checked my choices/).check();
+    await preview.getByRole('button', {name: 'Restore the chosen parts'}).click();
+    await expect(region.getByRole('status')).toHaveText('Restored: Habits.');
+    return region;
+  };
+  const region = await restoreHabits();
+  await region.getByRole('button', {name: 'Keep the restore'}).click();
+  await expect(region.getByRole('status')).toHaveText('The restore is kept. Undo is no longer offered for it.');
+  await expect(region.getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
   await page.reload();
   await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toBeVisible();
   await expect(restoreRegion(page).getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
+  // Again, then Habits change before the reload: nothing is as restored any more, so no Undo is offered.
+  await restoreHabits();
+  await page.evaluate(h => { const v = JSON.parse(localStorage.getItem(h)!); localStorage.setItem(h, JSON.stringify({...v, habits: v.habits.slice(1)})); }, HABITS_KEY);
+  await page.reload();
+  await expect(restoreRegion(page).getByLabel('Export everything ZIP')).toBeVisible();
+  await expect(restoreRegion(page).getByRole('button', {name: 'Undo this restore'})).toHaveCount(0);
+});
+
+test('other ZIGoals files picked by mistake, and a ZIP cut short, are refused with their own sentence; nothing changes', async ({page}) => {
+  // Session AD item 11 (ADR-026): foreign and incomplete files.
+  await page.goto('/app/settings');
+  await page.evaluate(settings => { localStorage.clear(); localStorage.setItem('zigoals:dashboard-settings:v1', settings); localStorage.setItem('zigoals:onboarding:v1', JSON.stringify({version: 1, seen: true})); }, JSON.stringify({...presetSettings('balanced'), onboarded: true}));
+  await page.goto('/app/settings/data');
+  const region = restoreRegion(page), before = await zigoalsKeys(page);
+  const pick = (name: string, text: string | Buffer) => region.getByLabel('Export everything ZIP').setInputFiles({name, mimeType: 'application/octet-stream', buffer: typeof text === 'string' ? Buffer.from(text) : text});
+  await pick('zigoals-encrypted-backup.json', JSON.stringify({format: 'zigoals-encrypted-backup', version: 1}));
+  await expect(region.getByRole('alert')).toHaveText('This is an encrypted backup, not an “Export everything” ZIP. Restore it under Settings → Keep a protected copy. Nothing was changed.');
+  await pick('habits.json', JSON.stringify({schemaVersion: 2, kind: 'zigoals-habits', habits: []}));
+  await expect(region.getByRole('alert')).toHaveText('This is a single Habits backup, not an “Export everything” ZIP. Restore it in Settings under “Habits backup”. Nothing was changed.');
+  await pick('everything.json', JSON.stringify({format: 'zigoals-everything', version: 1}));
+  await expect(region.getByRole('alert')).toHaveText('This is the everything.json from inside an export. Choose the zigoals-export ZIP itself, as you downloaded it. Nothing was changed.');
+  await pick('cut.zip', Buffer.from([0x50, 0x4b, 3, 4, ...new Array(64).fill(0)]));
+  await expect(region.getByRole('alert')).toHaveText('This ZIP stops part-way, as when a download or copy did not finish, so nothing was read or changed. Export everything again, then restore that file.');
+  await expect(region.getByLabel('What this backup holds')).toHaveCount(0);
+  expect(await zigoalsKeys(page)).toBe(before);
 });
