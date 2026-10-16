@@ -94,6 +94,15 @@ export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everythi
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
 export const MERGE_REFUSED_MESSAGE = 'These records cannot be merged safely. Choose Replace, or leave them as they are.';
+/**
+ * Session AD item 11 (ADR-026), backups older than this build. Every section's version 1 and later is still read (each
+ * section's schema reads its earlier versions), so an older part restores, with a note; only a version below the first
+ * one ZIGoals ever wrote (an early test file) is left out. A Replace never puts an older version over a newer one this
+ * device holds (storage refuses that too); Merge stays possible.
+ */
+export const OLDER_PART_MESSAGE = 'Saved by an early test version of ZIGoals that this app no longer reads, so this part is left out.';
+export const OLDER_READABLE_NOTE = 'Saved by an earlier version of ZIGoals. This version still reads it, so it can be restored.';
+export const OLDER_THAN_DEVICE_MESSAGE = 'This device holds these records in a newer format than the backup, so the backup cannot replace them. Choose Merge to add what is missing; nothing this device holds is changed.';
 
 const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const UNSAFE = new Set(['__proto__', 'constructor', 'prototype']);
@@ -152,7 +161,7 @@ function moduleSummary(part: ModulePart, value: unknown): PartSummary {
   } catch { return summarizeValue(value); }
 }
 
-export type PlannedPart = (ModulePart | DevicePart) & {value?: unknown; problem?: string; summary: PartSummary | null};
+export type PlannedPart = (ModulePart | DevicePart) & {value?: unknown; problem?: string; note?: string; summary: PartSummary | null};
 /** The parts of a parsed everything.json: every module and device part present in it, each validated or explained. */
 export function planParts(json: {modules?: Record<string, unknown>; device?: Record<string, unknown>; portfolio?: unknown}): PlannedPart[] {
   const out: PlannedPart[] = [];
@@ -161,8 +170,10 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     if (value === undefined) continue;
     const version = isObject(value) ? value.schemaVersion : undefined;
     if (typeof version === 'number' && version > CURRENT_VERSIONS[part.name]) { out.push({...part, problem: NEWER_PART_MESSAGE, summary: null}); continue; }
+    if (typeof version === 'number' && version < 1) { out.push({...part, problem: OLDER_PART_MESSAGE, summary: null}); continue; }
     const parsed = part.schema.safeParse(value);
-    out.push(parsed.success ? {...part, value: parsed.data, summary: moduleSummary(part, parsed.data)} : {...part, problem: INVALID_PART_MESSAGE, summary: null});
+    const note = typeof version === 'number' && version < CURRENT_VERSIONS[part.name] ? {note: OLDER_READABLE_NOTE} : {};
+    out.push(parsed.success ? {...part, ...note, value: parsed.data, summary: moduleSummary(part, parsed.data)} : {...part, problem: INVALID_PART_MESSAGE, summary: null});
   }
   for (const part of DEVICE_PARTS) {
     const value = part.name === 'portfolio' ? json.portfolio : json.device?.[part.name];
@@ -170,7 +181,7 @@ export function planParts(json: {modules?: Record<string, unknown>; device?: Rec
     const version = isObject(value) ? value.version : undefined;
     const parsed = part.schema.safeParse(value);
     if (parsed.success) out.push({...part, value: parsed.data, summary: summarizeValue(parsed.data)});
-    else out.push({...part, problem: typeof version === 'number' && version > 1 ? NEWER_PART_MESSAGE : INVALID_PART_MESSAGE, summary: null});
+    else out.push({...part, problem: typeof version === 'number' && version > 1 ? NEWER_PART_MESSAGE : typeof version === 'number' && version < 1 ? OLDER_PART_MESSAGE : INVALID_PART_MESSAGE, summary: null});
   }
   return out;
 }
@@ -189,9 +200,17 @@ function keepDormant(current: unknown, backup: unknown): unknown {
   return {...backup, dormant: {...current.dormant, ...(isObject(backup.dormant) ? backup.dormant : {})}};
 }
 
+const versionOf = (v: unknown) => isObject(v) && typeof v.schemaVersion === 'number' ? v.schemaVersion : null;
+/** A module this device holds in a newer version than the backup's: Replace is refused (Merge is not). */
+export function replaceRefused(part: PlannedPart, current: unknown): boolean {
+  if (part.kind !== 'module') return false;
+  const held = versionOf(current), backup = versionOf(part.value);
+  return held !== null && backup !== null && held > backup;
+}
 /** What a part becomes: the validated value to write, or the reason nothing is written. `current` is this device's parsed value (undefined when it holds none). */
 export function nextValue(part: PlannedPart, mode: Exclude<RestoreMode, 'leave'>, current: unknown): {value: unknown} | {error: string} {
   if (part.problem || part.value === undefined) return {error: part.problem ?? INVALID_PART_MESSAGE};
+  if (mode === 'replace' && replaceRefused(part, current)) return {error: OLDER_THAN_DEVICE_MESSAGE};
   let next: unknown;
   if (mode === 'merge') next = mergeKeep(current, part.value);
   else next = part.name === 'habits' ? keepDeletedHabits(current, part.value) : part.name === 'goalExtras' ? keepDormant(current, part.value) : part.value;
