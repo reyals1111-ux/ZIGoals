@@ -26,12 +26,14 @@ test.describe('item 1: the habit day grid on the folded card', () => {
           grid: box(grid), fold: box(fold?.querySelector('summary') ?? null), controls: box(controls), card: box(card), actions: box(card.querySelector(':scope > .habit-completion .habit-check-actions')),
           // The −/+/Done row is the controls' last line (an auto check-in note sits above it), so rows line up whatever a card shows.
           actionsLast: (() => { const c = card.querySelector(':scope > .habit-completion'), act = c?.querySelector(':scope > .habit-check-actions'); if (!c || !act) return true; const end = act.getBoundingClientRect().bottom; return [...c.children].every(k => k === act || (k as HTMLElement).offsetHeight === 0 || k.getBoundingClientRect().top < end - 1); })(),
+          // …on a line of its own, under the counter, whatever the counter's length.
+          actionsOwnLine: (() => { const c = card.querySelector(':scope > .habit-completion'), act = c?.querySelector(':scope > .habit-check-actions'), count = c?.querySelector(':scope > div:not(.habit-check-actions):not(.habit-auto-badge)'); return !act || !count || act.getBoundingClientRect().top >= count.getBoundingClientRect().bottom - 1; })(),
           visible: !!grid && getComputedStyle(grid).display !== 'none' && (grid as HTMLElement).offsetHeight > 0};
       }));
       expect(report.length).toBeGreaterThan(2);
       for (const card of report) {
         // On the folded card, visible without opening Details, and nowhere inside the fold.
-        expect(card).toMatchObject({dots: 28, insideFold: false, open: false, visible: true, actionsLast: true});
+        expect(card).toMatchObject({dots: 28, insideFold: false, open: false, visible: true, actionsLast: true, actionsOwnLine: true});
         // Order: counter row → the grid → the fold line.
         expect(card.grid!.top).toBeGreaterThanOrEqual(card.controls!.bottom - 1);
         expect(card.fold!.top).toBeGreaterThanOrEqual(card.grid!.bottom - 1);

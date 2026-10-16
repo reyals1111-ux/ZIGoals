@@ -73,3 +73,6 @@
 /* Session AC (CI on 62483db1): the −/+/Done row is the last line of a folded card's controls, so rows line up whatever
    else a card shows: an auto check-in note opens the controls (it sat under the row and lifted it by its own height). */
 .habits-workspace .habit-grid > .habit-card > .habit-completion > .habit-auto-badge { order: -1; flex-basis: 100%; }
+/* …and the row always has a line of its own: a short counter ("2 / 3") would otherwise share its line and centre it a
+   few pixels lower than its neighbours' rows (CI's fonts: 14 px). */
+.habits-workspace .habit-grid > .habit-card > .habit-completion > .habit-check-actions { flex-basis: 100%; }
