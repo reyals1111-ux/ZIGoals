@@ -222,6 +222,18 @@ const FIRST_FOOD = JSON.parse(buildShowcase(DAY).records['zigoals:health:v1']!).
 const ZONES = ['UTC', 'Europe/Brussels', 'Asia/Tokyo'] as const;
 
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
+// Session AC (item 16): WebKit's phone runs lost the Undo press (the card stayed added, the chat open). Where each press,
+// release and click landed, and where the log was scrolled, is kept, so a failure says where the click went. Diagnostic
+// only: every assertion is unchanged.
+test.beforeEach(async ({page}) => { await page.addInitScript(() => {
+  const taps: string[] = []; (window as unknown as {__taps: string[]}).__taps = taps;
+  for (const type of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) document.addEventListener(type, event => {
+    const el = event.target as HTMLElement | null, log = document.querySelector('.ai-chat-log');
+    taps.push(`${type}:${el?.nodeName ?? '?'}.${el?.className?.toString().split(' ')[0] ?? ''}"${(el?.textContent ?? '').trim().slice(0, 14)}"@${Math.round((event as MouseEvent).clientY ?? -1)} log=${log ? Math.round(log.scrollTop) : '-'}/${log ? log.scrollHeight : '-'}`);
+    if (taps.length > 40) taps.shift();
+  }, true);
+}); });
+const taps = (page: Page) => page.evaluate(() => (window as unknown as {__taps?: string[]}).__taps?.slice(-12).join(' | ') ?? '');
 for (const zone of ZONES) {
   test.describe(`in ${zone}`, () => {
     test.use({timezoneId: zone});
@@ -244,7 +256,7 @@ for (const zone of ZONES) {
         c.check(after, before, ctx);
         const actions = after[AI_ACTIONS_KEY].actions; expect(actions.length).toBe((before[AI_ACTIONS_KEY]?.actions ?? []).length + 1);
         await panel(page).locator('.ai-turn-assistant').last().getByRole('button', {name: /^Undo/}).click();
-        await expect(card).toHaveClass(/ai-card-undone/);
+        await expect(card, `presses after Undo: ${await taps(page)}`).toHaveClass(/ai-card-undone/);
         const undone = await snapshot(page);
         expect(normalise(undone), 'every store exactly as before the card').toEqual(normalise(before));
         if (c.visible && zone === 'UTC' && info.project.name === 'desktop') {

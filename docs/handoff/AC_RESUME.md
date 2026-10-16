@@ -4,17 +4,15 @@ Kept current after every part (owner rule: model-switch and crash safe). On any 
 read this file and `git log --oneline -15`, then continue at the next unfinished step with the same quality bar.
 Never redo a finished part; never re-plan. Plan: ADR-025 (owner decisions, the leftover table, E-decisions).
 
-## Resume here (2026-10-16 ~10:00 Brussels, owner amendment of the finish checkpoint: nothing is cut)
-- **Order (owner):** 1 item 16 WebKit → 2 item 9c → 3 item 9d → 4 item 11 #12 → 5 item 12 → 6 item 17 → 7 today-screens →
-  8 no-JS facts; each its own commit + push + this block; then affected specs, layout audit on changed routes, weights,
-  revert gate, frozen readers once; one fix round; finish steps (ADR-025, STATUS final commit, PR ready, report).
-- **Pushing:** a push cancels the running CI; WebKit evidence needs a whole run (~35 min), so item commits wait for it.
-- **Done since the checkpoint:** CI fixes `36194ad1` (stand-in specs by widget id, seed-day clock, habit action row);
-  item 16 part 1 `9804d676` (phone chat closes only on a real backdrop tap; smoke names ResizeObserver loops).
-- **Item 16 next:** read WebKit on `9804d676` (run on the PR); a second green WebKit run → `TIER 3 (CI)` required;
-  otherwise advisory with the evidence (artifacts summarised in `$SP/wk/`).
-- **Item 8 code is written (unstaged):** `components/shell/alpha-notice.tsx` (ALPHA_ESSENTIALS, `<noscript>` and the
-  stalled line), `shell.tsx` (`stalled`), `shell-ab.css`, tests honesty-banners / private-read-delay / ab-shell.
+## Resume here (2026-10-16 ~10:30 Brussels, the owner's amended list)
+- **Done:** CI fixes `36194ad1`, `cdb07e66` (habit row own line); item 16 part 1 `9804d676` (phone chat closes only on a
+  real backdrop tap: confirmed on CI — the chat now stays open); 9c `08ccae15`; 12 `8b4b09fb`; 9d `84c6a091`; 8 (no-JS
+  facts, TIER 3) `3e9e309a`; 11 #12 `1d…` + follow-up; 17 passes here; today-screens: CI's Chrome 10.73 / 5.68 (within).
+- **Item 16 now:** on `9804d676` WebKit still lost the Undo press on phones (card stays added, chat open): diagnostics
+  in zigi-accept-correct record press/release/click targets and the log's scroll; zigi-part-boundary's S64/S77 filter
+  covers Settings' three handled probes. Next WebKit run tells where the click goes → product fix → two greens → TIER 3 (CI).
+- **Then:** closing checks (affected specs, audit on changed routes, weights, revert gate, frozen readers), one fix
+  round, ADR-025, STATUS final commit, PR ready, report.
 
 ## Environment (cloud sandbox)
 ```
