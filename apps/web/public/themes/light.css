@@ -8609,6 +8609,9 @@
    colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
 :root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
 :root[data-theme=light] .health-grocery-aisle h3:not(#\-) { color: #0d6b5f; }
+/* Session AE (Part 3 audit, Light): a new goal's chosen source tile is one light tint of its own teal and violet (its two
+   stops had mapped to dark teal and near white, so its words sat on the dark half at 4.33:1). */
+:root[data-theme=light] .goal-choice-tiles > label:has(input:checked):not(#\-) { background: linear-gradient(125deg, #dcf0f5, #ebe6f8); }
 /* apps/web/themes/light.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art by day. On Light's white-family sky the rings, planets and glyphs
    take deeper, matte versions of the same hues (never pale); every glyph colour is ≥ 3:1 against the sky (the worst, the
