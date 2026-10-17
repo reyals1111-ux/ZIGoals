@@ -17,12 +17,21 @@ plan mode again (the plan was approved once: ADR-026 and the PR description).
 | Part | State | Commits |
 |---|---|---|
 | 0 Records | done | merge `c0a985c0`, `5c041573`; before captures on `review/session-ad-screens` `e0c9e45b`; Draft PR #88 |
-| 1 Footer banner | done (CI pending) | `76949675` |
-| 2 Hero bleed | done (CI pending) | `a0e01369` |
-| 3 Themes | | |
-| 4 Items 8–13 | | |
+| 1 Footer banner | done | `76949675`, CI fixes `ce9b3545` |
+| 2 Hero bleed | done | `a0e01369`, `ce9b3545` |
+| 3 Themes | done; per-theme audits running | `c360ba01` (TIER 3 storage), `b917d802` (TIER 3 CSP), `cfe0f1e1`, weights `389bb3f6` `c2ca3697` `d5fd2ddf`, contrast fix |
+| 4 Items 8–13 | 8, 11, 12, 13 merged; 9 test done (needs 3 green CI runs); 10 evidence pending | merges `b1117cd4` (13), `a34eb012` (11), `ab11cf47` (12), `50ab05c6` (8) |
 | 5 Carried checks | | |
 | Gate C, finish | | |
+
+## Resume here (2026-10-17 03:45 Brussels — Part 3 and Part 4 merges pushed; audits next)
+- Weights: every page within budget, none raised (Today 514.9/515.0, Habits 457.7/458.0); thin margins, so check
+  `node scripts/check-weight-budget.mjs http://127.0.0.1:3101` after any shell or Today change.
+- CI run 984 (cfe0f1e1) failures fixed locally: send-feedback, a11y-wcag-x contrast (theme bar words), guide:124,
+  run11-food-widgets; reflow/logo-fold/run10-widgets passed locally. Item 9 test change green locally.
+- The theme sheets MUST be regenerated after any CSS change: `node scripts/themes/build-themes.mjs` (unit test fails otherwise).
+- Rebuild without killing your own shell: `bash $SP/rebuild.sh` as its own command (it stops only the 3101 server).
+- Next: Light/Dark audits (`--theme=`), fixes; item 10 WebKit table; Part 5; Gate C by 19:00.
 
 ## Resume here (2026-10-17 01:30 Brussels — Parts 1–2 pushed; Part 3 next)
 - Done: footer banner (`76949675`), hero bleed (`a0e01369`); focused specs green locally (footer-motion, footer-links-moved,
