@@ -8230,6 +8230,17 @@
         border-color: #b0667c8f
     }
 }
+/*  components/sync/section-status.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .theme-switch-wrap) {
+    :scope .ss-rows li:not(#\-) {
+        border: 1px solid #5581c31c;
+        border-radius: 14px;
+        background: #7eacf10b
+    }
+    :scope .ss-rows li[data-tone='error']:not(#\-) {
+        border-color: #bd62518f
+    }
+}
 /*  components/ui/card-header.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .theme-switch-wrap) {
     :scope :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child > p:not(.eyebrow):not(#\-) {
@@ -8340,6 +8351,12 @@
     }
     .meet-zigi-meaning:not(#\-) {
         color: var(--text,#0d0f18)
+    }
+    .meet-zigi-when:not(#\-) {
+        color: var(--text,#0d0f18)
+    }
+    .meet-zigi-group-line:not(#\-) {
+        color: var(--muted,#202332)
     }
     .meet-zigi-sizes:not(#\-) {
         border-radius: 12px;
