@@ -73,7 +73,7 @@ test('a contribution reminder: set on the Goal, a calm card on Today once due, "
   const reminder = plan.getByRole('form', {name: 'Contribution reminder'});
   await reminder.getByLabel('Remind me on this device at').fill('09:30');
   await reminder.getByRole('button', {name: 'Set reminder', exact: true}).click();
-  await expect(reminder.getByRole('status')).toHaveText('Reminder set for 09:30 on this device.');
+  await expect(reminder.getByRole('status')).toHaveText('Reminder set for 9:30 AM on this device.');
   expect((await stored(page, W_REMINDERS_KEY)).contributions).toEqual({'7': {time: '09:30'}});
   await page.clock.setFixedTime(new Date(`${TODAY}T07:45:00.000Z`)); // 09:45 in Brussels
   await page.goto('/app');

@@ -92,7 +92,7 @@ test('a one-minute sitting: its bell, a pause, the end, how you feel, saved to H
   await expect(note(page)).toHaveText('Saved: 1 min.');
   const recent = page.getByRole('region', {name: 'Recent sessions'});
   await expect(recent).toContainText('Sitting · Oct 21, 2026');
-  await expect(recent).toContainText('07:00 · 1 min · feeling 3 → 4 of 5');
+  await expect(recent).toContainText('7:00 AM · 1 min · feeling 3 → 4 of 5');
   const health = await stored(page);
   expect(health!.schemaVersion).toBe(4);
   // Begun a few seconds after 07:00 (the installed clock also flows on its own).
@@ -191,13 +191,13 @@ test('mindful minutes by hand: logged, corrected, deleted; your weekly goal; you
   await expect(note(page)).toHaveText('Mindful minutes saved.');
   const recent = page.getByRole('region', {name: 'Recent sessions'});
   await expect(recent).toContainText('Mindful minutes · Oct 21, 2026');
-  await expect(recent).toContainText('06:30 · 12 min');
+  await expect(recent).toContainText('6:30 AM · 12 min');
   await recent.getByRole('button', {name: 'Edit the session of Oct 21, 2026 at 6:30 AM', exact: true}).click();
   const edit = page.getByRole('form', {name: 'Edit this session'});
   await edit.getByLabel('Minutes').fill('15');
   await edit.getByRole('button', {name: 'Save changes', exact: true}).click();
   await expect(note(page)).toHaveText('Session updated.');
-  await expect(recent).toContainText('06:30 · 15 min');
+  await expect(recent).toContainText('6:30 AM · 15 min');
   // Refusals: a session that would end in the future, minutes that are not whole.
   await manual.getByLabel('Began (time)').fill('06:55');
   await manual.getByLabel('Minutes').fill('30');

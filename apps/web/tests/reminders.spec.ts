@@ -77,7 +77,7 @@ test('water: a reminder set in the Water journal shows until water is logged', a
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel('Reminder time — on this device').fill('20:00');
   await form.getByRole('button', {name: 'Save reminder time'}).click();
-  await expect(form.getByRole('status')).toHaveText('Water reminder set for 20:00 on this device.');
+  await expect(form.getByRole('status')).toHaveText('Water reminder set for 8:00 PM on this device.');
   expect(await stored(page)).toEqual({version: 1, habits: {}, water: {time: '20:00'}, dismissed: {}});
   await page.goto('/app');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();

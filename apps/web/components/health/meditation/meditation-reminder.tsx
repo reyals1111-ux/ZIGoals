@@ -14,7 +14,7 @@ export function MeditationReminderSetting() {
   const w = useDeviceRecord(W_REMINDERS), [note, setNote] = useState<{text: string; failed?: boolean} | null>(null);
   const time = w.data.meditation?.time ?? null;
   const save = (next: string | null, text: string) => { try { w.update(r => setMeditationTime(r, next)); setNote({text}); } catch (error) { setNote({text: `Not saved on this device. ${deviceSettingFailureMessage(error)}`, failed: true}); } };
-  const submit = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); const value = String(new FormData(e.currentTarget).get('time') ?? ''); if (!value) { setNote({text: 'Choose a time, or turn the reminder off.', failed: true}); return; } save(value, `Meditation reminder set for ${value} on this device.`); };
+  const submit = (e: FormEvent<HTMLFormElement>) => { e.preventDefault(); const value = String(new FormData(e.currentTarget).get('time') ?? ''); if (!value) { setNote({text: 'Choose a time, or turn the reminder off.', failed: true}); return; } save(value, `Meditation reminder set for ${formatClock(value)} on this device.`); };
   if (!w.loaded) return null;
   if (w.unreadable) return <p className="fine" role="alert">This device’s reminders could not be read. They were not changed.</p>;
   return <form className="sleep-wind-down" onSubmit={submit} aria-label="Meditation reminder">

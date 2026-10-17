@@ -57,7 +57,7 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   await expect(note(page)).toHaveText('Night saved.');
   // Nine hours in bed (the clocks went back at 03:00), eight and a half asleep.
   await expect(recent(page)).toContainText('Night ending Oct 25, 2026');
-  await expect(recent(page)).toContainText('23:00 → 07:00 · 8 h 30 min asleep · in bed 9 h 00 min');
+  await expect(recent(page)).toContainText('11:00 PM → 7:00 AM · 8 h 30 min asleep · in bed 9 h 00 min');
   await expect(recent(page)).toContainText('Quality 4/5 · caffeine');
   const week = page.getByRole('region', {name: 'Your last 7 days'});
   await expect(week).toContainText('8 h 30 min');
@@ -72,7 +72,7 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   await edit.getByLabel('Woke up (time)').fill('06:30');
   await edit.getByRole('button', {name: 'Save changes', exact: true}).click();
   await expect(note(page)).toHaveText('Night updated.');
-  await expect(recent(page)).toContainText('23:00 → 06:30 · 8 h 00 min asleep · in bed 8 h 30 min');
+  await expect(recent(page)).toContainText('11:00 PM → 6:30 AM · 8 h 00 min asleep · in bed 8 h 30 min');
   expect((await storedSleep(page))!.sleep!.nights).toHaveLength(1);
   // Delete asks first.
   await recent(page).getByRole('button', {name: 'Delete the night ending Oct 25, 2026', exact: true}).click();
@@ -163,7 +163,7 @@ test('a night left running for more than a day asks when you woke up; nothing is
   await ask.getByLabel('Woke up (date)').fill('2026-10-24');
   await ask.getByRole('button', {name: 'Save the wake time', exact: true}).click();
   await expect(note(page)).toHaveText('Night saved.');
-  await expect(recent(page)).toContainText('23:15 → 07:00');
+  await expect(recent(page)).toContainText('11:15 PM → 7:00 AM');
   await expect(tonight.getByRole('button', {name: 'I’m going to bed', exact: true})).toBeVisible();
 });
 
@@ -246,7 +246,7 @@ test('the wind-down setting is this device\'s own, and a night in bed ends the c
   await expect(setting).toContainText('Off.');
   await setting.getByLabel('Wind-down reminder (this device)').fill('21:15');
   await setting.getByRole('button', {name: 'Set reminder', exact: true}).click();
-  await expect(setting.getByRole('status')).toHaveText('Wind-down reminder set for 21:15 on this device.');
+  await expect(setting.getByRole('status')).toHaveText('Wind-down reminder set for 9:15 PM on this device.');
   await expect(setting).toContainText('Today shows a card from 9:15 PM until you go to bed.');
   await page.goto('/app');
   await expect(page.getByRole('article', {name: 'Reminder: Wind-down time'})).toBeVisible();
