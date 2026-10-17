@@ -1,0 +1,122 @@
+/* Session AE (Part 4, ADR-027 G5): the page-header art family (orbit-art.tsx). Every colour is a custom property here, so
+   the themes restyle the drawing (apps/web/themes/<theme>.headerart.css); the SVG itself carries only shapes. */
+.orbit-art {
+  --ha-ring-a: #39d6ff; --ha-ring-b: #9273ff; --ha-ring-c: #da74ff; --ha-nebula: #8252db; --ha-twinkle: #e4edff;
+  --ha-dot-a: #23eaff; --ha-dot-b: #f06dff; --ha-dot-c: #e6ddff; --ha-dot-glow-a: #459dff; --ha-dot-glow-b: #9273ff;
+  --ha-glyph-a: #f4fcff; --ha-glyph-b: #8fe6ff; --ha-glyph-c: #b9a6ff; --ha-glow: #9a6bff;
+  --ha-ring-o1: .28; --ha-ring-o2: .5; --ha-ring-o3: .5; --ha-nebula-o: .2; --ha-halo-o: .42; --ha-bloom-o: .75; --ha-fill-o: .2; --ha-dot-glow-o: .7;
+  --ha-ease: cubic-bezier(.22, 1, .36, 1);
+  display: block; width: 220px; height: 220px; overflow: visible; pointer-events: none;
+}
+/* The glyph leans to the page's pillar: Goals' lotus violet, Habits' butterfly cyan, Health's heart pink, Wealth's bull gold
+   (with a teal second accent); the Journey's violet; everything else the nebula's pale blue with a violet glow (Habits' ✦). */
+.orbit-art[data-tone=goals] { --ha-glyph-a: #f3efff; --ha-glyph-b: #ab95ff; --ha-glyph-c: #6fd3ff; --ha-glow: #8a6bff; }
+.orbit-art[data-tone=habits] { --ha-glyph-a: #eafdff; --ha-glyph-b: #5fe9ff; --ha-glyph-c: #c790f6; --ha-glow: #459dff; }
+.orbit-art[data-tone=health] { --ha-glyph-a: #fff0f7; --ha-glyph-b: #ff8fca; --ha-glyph-c: #c790f6; --ha-glow: #ff5fae; }
+.orbit-art[data-tone=wealth] { --ha-glyph-a: #fff8e6; --ha-glyph-b: #ffd27a; --ha-glyph-c: #5fe3d0; --ha-glow: #f2a93b; }
+.orbit-art[data-tone=journey] { --ha-glyph-a: #f7efff; --ha-glyph-b: #c790f6; --ha-glyph-c: #6fd3ff; --ha-glow: #a86bff; }
+.orbit-art .ha-neb-0 { stop-color: var(--ha-nebula); stop-opacity: var(--ha-nebula-o); }
+.orbit-art .ha-neb-1 { stop-color: var(--ha-nebula); stop-opacity: calc(var(--ha-nebula-o) * .3); }
+.orbit-art .ha-neb-2 { stop-color: var(--ha-nebula); stop-opacity: 0; }
+.orbit-art .ha-rs-a { stop-color: var(--ha-ring-a); }
+.orbit-art .ha-rs-b { stop-color: var(--ha-ring-b); }
+.orbit-art .ha-rs-c { stop-color: var(--ha-ring-c); }
+.orbit-art .ha-rs-ab { stop-color: color-mix(in srgb, var(--ha-ring-a) 70%, var(--ha-ring-b)); }
+.orbit-art .ha-orbit { stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.orbit-art .ha-ring-1 .ha-orbit { stroke-opacity: var(--ha-ring-o1); }
+.orbit-art .ha-ring-2 .ha-orbit { stroke-opacity: var(--ha-ring-o2); }
+.orbit-art .ha-ring-3 .ha-orbit { stroke-opacity: var(--ha-ring-o3); }
+.orbit-art .ha-planet-a { fill: var(--ha-dot-a); }
+.orbit-art .ha-planet-b { fill: var(--ha-dot-b); }
+.orbit-art .ha-planet-c { fill: var(--ha-dot-c); }
+.orbit-art .ha-dg-a { stop-color: var(--ha-dot-glow-a); stop-opacity: var(--ha-dot-glow-o); }
+.orbit-art .ha-dg-b { stop-color: var(--ha-dot-glow-b); stop-opacity: var(--ha-dot-glow-o); }
+.orbit-art .ha-dg-a.ha-clear, .orbit-art .ha-dg-b.ha-clear { stop-opacity: 0; }
+.orbit-art .ha-twinkle { fill: var(--ha-twinkle); opacity: .7; }
+.orbit-art .ha-halo-0 { stop-color: var(--ha-glow); stop-opacity: var(--ha-halo-o); }
+.orbit-art .ha-halo-1 { stop-color: var(--ha-glow); stop-opacity: calc(var(--ha-halo-o) * .32); }
+.orbit-art .ha-halo-2 { stop-color: var(--ha-glow); stop-opacity: 0; }
+.orbit-art .ha-gs-a { stop-color: var(--ha-glyph-a); }
+.orbit-art .ha-gs-ab { stop-color: color-mix(in srgb, var(--ha-glyph-a) 45%, var(--ha-glyph-b)); }
+.orbit-art .ha-gs-b { stop-color: var(--ha-glyph-b); }
+.orbit-art .ha-gs-c { stop-color: var(--ha-glyph-c); }
+.orbit-art .ha-fill-0 { stop-color: var(--ha-glyph-b); stop-opacity: var(--ha-fill-o); }
+.orbit-art .ha-fill-1 { stop-color: var(--ha-glyph-c); stop-opacity: calc(var(--ha-fill-o) * .2); }
+.orbit-art .ha-flood { flood-color: var(--ha-glow); flood-opacity: var(--ha-bloom-o); }
+/* Small solid paints a glyph may use for its stars and knots. */
+.orbit-art .ha-ink-a { fill: var(--ha-glyph-a); }
+.orbit-art .ha-ink-b { fill: var(--ha-glyph-b); }
+.orbit-art .ha-ink-c { fill: var(--ha-glyph-c); }
+
+/* Where it sits. PillarHero: its art column (Habits' place) — 220 px, 150 px on tablets; on phones small and faint at the
+   top right, behind the words (as Habits' orbit). */
+:root .pillar-hero > .pillar-hero-art > .orbit-art { width: 220px; height: 220px; }
+@media (max-width: 1099.98px) { :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 150px; height: 150px; } }
+/* PageHeader (`art`) and hand-written headers (`header-art-host` + HeaderArtCorner): the top-right corner, never under the
+   title, lede or actions (the header keeps the corner's width free on its right) and never taller than the header. */
+:root :is(.page-header.has-art, .header-art-host) { position: relative; padding-right: 244px; min-height: 150px; }
+:root .header-art-slot { position: absolute; top: 0; right: 0; height: clamp(150px, 100%, 220px); aspect-ratio: 1; pointer-events: none; }
+:root .header-art-slot > .orbit-art { width: 100%; height: 100%; }
+@media (max-width: 1099.98px) {
+  :root :is(.page-header.has-art, .header-art-host) { padding-right: 166px; min-height: 120px; }
+  :root .header-art-slot { height: clamp(120px, 100%, 150px); }
+}
+/* Phones: the words take the whole width; the art sits small and faint behind them at the top right, never below the
+   header (`data-phone=hide` removes it where a header keeps its own buttons up there). */
+@media (max-width: 767.98px) {
+  :root :is(.page-header.has-art, .header-art-host) { padding-right: 0; min-height: 0; }
+  :root .header-art-slot { top: 0; right: 0; height: min(132px, 100%); opacity: .36; z-index: 0; }
+  :root .header-art-slot[data-phone=hide] { display: none; }
+  :root .page-header.has-art > :not(.header-art-slot), :where(.header-art-host) > :where(:not(.header-art-slot)) { position: relative; z-index: 1; }
+  :root .pillar-hero > .pillar-hero-art:has(> .orbit-art) { top: 0; right: 0; opacity: .36; transform: none; }
+  :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 132px; height: 132px; }
+}
+@media (max-width: 540px) {
+  :root .header-art-slot { height: min(112px, 100%); }
+  :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 112px; height: 112px; }
+}
+@media (forced-colors: active) { :root .orbit-art { display: none; } }
+
+/* The one-time entrance (ADR-027 G5), on mount: the nebula and rings fade and grow in from 92 %, the planets glide to their
+   places along their rings, the glyph's glow blooms once and settles; about 900 ms. Transform and opacity only. */
+@keyframes ha-fade { from { opacity: 0; } }
+@keyframes ha-ring-in { from { opacity: 0; transform: scale(.92); } }
+@keyframes ha-dot-in { 0% { opacity: 0; transform: var(--ha-p0) scale(.5); } 20% { transform: var(--ha-p1) scale(.8); } 40% { opacity: 1; transform: var(--ha-p2); } 60% { transform: var(--ha-p3); } 80% { transform: var(--ha-p4); } 100% { transform: translate(0, 0); } }
+@keyframes ha-bloom { 0% { opacity: 0; transform: scale(.5); } 55% { opacity: 1; transform: scale(1.14); } }
+@keyframes ha-glyph-in { from { opacity: 0; transform: scale(.9); } }
+.orbit-art :is(.ha-ring, .ha-halo, .ha-glyph) { transform-box: view-box; transform-origin: 50% 50%; }
+.orbit-art .ha-nebula { animation: ha-fade 700ms ease-out both; }
+.orbit-art .ha-ring { animation: ha-ring-in 720ms var(--ha-ease) both; }
+.orbit-art .ha-ring-2 { animation-delay: 70ms; }
+.orbit-art .ha-ring-3 { animation-delay: 140ms; }
+.orbit-art .ha-dot { transform-box: fill-box; transform-origin: center; animation: ha-dot-in 600ms linear 160ms both; }
+.orbit-art .ha-dot + .ha-dot { animation-delay: 230ms; }
+.orbit-art .ha-ring-2 .ha-dot { animation-delay: 200ms; } .orbit-art .ha-ring-2 .ha-dot + .ha-dot { animation-delay: 270ms; }
+.orbit-art .ha-ring-3 .ha-dot { animation-delay: 240ms; } .orbit-art .ha-ring-3 .ha-dot + .ha-dot { animation-delay: 300ms; }
+.orbit-art .ha-twinkle { animation: ha-fade 500ms ease-out 420ms both; }
+.orbit-art .ha-halo { opacity: .85; animation: ha-bloom 760ms cubic-bezier(.3, .7, .4, 1) 160ms both; }
+.orbit-art .ha-glyph { animation: ha-glyph-in 640ms var(--ha-ease) 220ms both; }
+
+/* Habits' orbit (CSS-drawn in habits.css) gets the same entrance: the disc and its two ellipses grow in, the planets glide
+   round the disc's centre to their places, the ✦ blooms once. Phones: the planets only fade (the disc is resized there). */
+@keyframes ha-habit-in { from { opacity: 0; scale: .92; } }
+@keyframes ha-habit-dot { from { opacity: 0; rotate: -26deg; } 40% { opacity: 1; } }
+@keyframes ha-habit-glyph { 0% { opacity: 0; scale: .6; filter: brightness(1.9); } 55% { opacity: 1; scale: 1.08; filter: brightness(1.45); } 100% { scale: 1; filter: none; } }
+.habits-workspace .habit-constellation { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) both; }
+.habits-workspace .habit-constellation::before { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) 70ms both; }
+.habits-workspace .habit-constellation::after { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) 140ms both; }
+.habits-workspace .habit-constellation > i { animation: ha-habit-dot 600ms cubic-bezier(.22, 1, .36, 1) 180ms both; }
+.habits-workspace .habit-constellation > i:nth-child(1) { transform-origin: 57px 86px; }
+.habits-workspace .habit-constellation > i:nth-child(2) { transform-origin: -95px 41px; animation-delay: 230ms; }
+.habits-workspace .habit-constellation > i:nth-child(3) { transform-origin: -9px -96px; animation-delay: 280ms; }
+.habits-workspace .habit-constellation > i:nth-child(4) { transform-origin: 96px -55px; animation-delay: 210ms; }
+.habits-workspace .habit-constellation > i:nth-child(5) { transform-origin: 58px 8px; animation-delay: 300ms; }
+.habits-workspace .habit-constellation > span { animation: ha-habit-glyph 700ms cubic-bezier(.3, .7, .4, 1) 200ms both; }
+@media (max-width: 767.98px) { .habits-workspace .habit-constellation > i { animation-name: ha-fade; } }
+
+/* Motion: none at all under the device's reduced motion or the app's Motion Off — the art is simply there. */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-art, .orbit-art *, .habit-constellation, .habit-constellation > *, .habit-constellation::before, .habit-constellation::after { animation: none !important; }
+}
+:root[data-app-motion=off] :is(.orbit-art, .orbit-art *, .habit-constellation, .habit-constellation > *) { animation: none !important; }
+:root[data-app-motion=off] .habit-constellation::before, :root[data-app-motion=off] .habit-constellation::after { animation: none !important; }
