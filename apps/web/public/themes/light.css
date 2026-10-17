@@ -3314,7 +3314,7 @@
     }
     .site-footer-burst > i:not(#\-) {
         border-radius: 50%;
-        filter: blur(14px);
+        filter: blur(20px);
         background: radial-gradient(closest-side, var(--mist), #fafafa00 72%)
     }
     .site-footer-twinkle:not(#\-) {
