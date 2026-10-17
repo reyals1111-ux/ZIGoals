@@ -20,9 +20,13 @@ plan mode again (the plan was approved once: ADR-026 and the PR description).
 | 1 Footer banner | done | `76949675`, CI fixes `ce9b3545` |
 | 2 Hero bleed | done | `a0e01369`, `ce9b3545` |
 | 3 Themes | done; per-theme audits running | `c360ba01` (TIER 3 storage), `b917d802` (TIER 3 CSP), `cfe0f1e1`, weights `389bb3f6` `c2ca3697` `d5fd2ddf`, contrast fix |
-| 4 Items 8–13 | 8, 11, 12, 13 merged; 9 test done (needs 3 green CI runs); 10 evidence pending | merges `b1117cd4` (13), `a34eb012` (11), `ab11cf47` (12), `50ab05c6` (8) |
+| 4 Items 8–13 | done (9: green in runs 988, 990, 991, 992; 10: `item10-webkit.md`) | merges `b1117cd4` (13), `a34eb012` (11), `ab11cf47` (12), `50ab05c6` (8) |
 | 5 Carried checks | What's new + 7 Help answers merged (`ab511c07`), two older answers made true (`402d1935`), hero 768 measured (unchanged) | |
-| Gate C, finish | | |
+| Gate C, finish | done: full suite, audits ×3, weights, scans, revert gate, frozen readers, two reviews, captures; STATUS final | see docs/STATUS.md |
+
+## Resume here (2026-10-17 09:00 Brussels — Gate C done; finishing)
+- Everything is pushed. Left: the STATUS entry (the final commit), CI green on it, the PR out of Draft with its full
+  description, the short report. Nothing else is open in this session's scope.
 
 ## Resume here (2026-10-17 05:00 Brussels — CI 987 fixes pushed; Light audit fixes in progress)
 - Pushed `34dad87c`+: run 987 fixes (unit test for the lazy market search, two item-8 dates), restore Keep, Light pillar
