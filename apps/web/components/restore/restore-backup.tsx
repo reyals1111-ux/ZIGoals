@@ -38,7 +38,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   const [restoring, setRestoring] = useState(false), stop = useRef<AbortController | null>(null);
   useEffect(() => {
     let active = true;
-    const check = () => void import('../../lib/restore/apply').then(async m => { const s = await m.restoreUndoStatus(); if (!active) return; const days = s.at ? m.undoDays(s.at) : null; setUndo(s.available ? {afterReload: s.afterReload, note: days ? m.RESTORE_NOTES.stored(days.at, days.until) : null} : null); }).catch(() => {});
+    const check = () => void import('../../lib/restore/apply').then(async m => { const s = await m.restoreUndoStatus(); if (!active) return; const days = s.at ? m.undoDays(s.at) : null; setUndo(s.available ? {afterReload: s.afterReload, note: days ? m.RESTORE_NOTES.stored(formatDate(days.at), formatDate(days.until)) : null} : null); }).catch(() => {});
     // An account change forgets this tab's in-memory Undo; a stored one stays with its own account and shows again there.
     const reset = () => { setPreview(null); setModes({}); setPhotos({vision: false, progress: false}); setConfirm(false); setOutcome(null); setNotes([]); setUndo(null); setError(''); setUndone(''); setFileKey(k => k + 1); void import('../../lib/restore/apply').then(m => { m.forgetRestoreUndo(); check(); }); };
     window.addEventListener(ACCOUNT_CHANGE, reset);

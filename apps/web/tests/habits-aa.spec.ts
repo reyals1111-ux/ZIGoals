@@ -4,6 +4,7 @@ import {createHabit, emptyHabitData, HABITS_KEY, logHabitValue, saveHabitTimezon
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {HABIT_EXTRAS_KEY, ROUTINE_RUN_KEY} from '../lib/aa-device-keys';
 import {isPhone} from './phone-nav';
+import {formatDate} from '../lib/visual-format';
 
 /**
  * Session AA-Local Part 1 (H1–H6, H8): time-of-day sections that open by the clock and remember a fold, the timer's
@@ -100,7 +101,7 @@ test('H3: a quit habit shows days since, the longest run, the slip calendar and 
   await expect.poll(() => stored(page, HABIT_EXTRAS_KEY)).toMatchObject({quitCost: {[ID.snacks]: {perDay: 3.5, currency: 'EUR'}}});
   await quit.getByRole('button', {name: 'Previous month', exact: true}).click();
   await expect(quit.locator('.habit-quit-slip')).toHaveCount(1);
-  await expect(quit.locator('.habit-quit-slip')).toHaveAttribute('title', '2026-09-30: a slip');
+  await expect(quit.locator('.habit-quit-slip')).toHaveAttribute('title', `${formatDate('2026-09-30')}: a slip`); // Session AD item 8 (deliberate): the medium date
 });
 
 test('H4: skip today with a reason keeps the streak; a note and mood save on today\'s check-in; both show in the history', async ({page}) => {

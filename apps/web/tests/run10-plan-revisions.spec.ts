@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {emptyPlatform,privateGoalSchema,positionSchema} from '../lib/positions';
 import {recordGoalChanges} from '../lib/goal-intelligence';
+import {formatDate} from '../lib/visual-format';
 test('plan edits retain earlier terms, show explicit installments and survive reload',async({page},info)=>{
  const now=Date.now(),today=new Date(now).toISOString().slice(0,10),tomorrow=new Date(now+86400000).toISOString().slice(0,10);
  const g=privateGoalSchema.parse({id:'81',name:'Fictional reserve',type:'VALUE',status:'active',asset:'USD',denom:'USD',decimals:2,target:'100000',notes:'Browser fixture',createdAt:new Date(now).toISOString(),milestones:[],plan:{amount:'10000',asset:'USD',decimals:2,cadence:'weekly',nextDate:today,active:true}});
@@ -17,7 +18,7 @@ test('plan edits retain earlier terms, show explicit installments and survive re
  await page.reload();await expect(history).toContainText('200 USD');
  await page.getByRole('button',{name:'Fund Goal',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Cash',exact:true}).click();await dialog.getByLabel('Cash amount',{exact:true}).fill('40');await dialog.getByRole('button',{name:'Continue with this asset',exact:true}).click();
- await dialog.getByLabel('Match a retained installment (optional)').selectOption({label:`${today} · 100 USD remaining`});
+ await dialog.getByLabel('Match a retained installment (optional)').selectOption({label:`${formatDate(today)} · 100 USD remaining`}); /* Session AD item 8 (deliberate): the medium date */
  await dialog.getByRole('button',{name:'Preview contribution',exact:true}).click();await dialog.getByRole('button',{name:'Confirm & fund Goal',exact:true}).click();await expect(dialog).toHaveCount(0);
  await expect(page.getByRole('region',{name:'Plan installments'})).toContainText('60 USD remaining');
  await page.setViewportSize({width:320,height:900});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

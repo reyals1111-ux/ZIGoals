@@ -1,3 +1,4 @@
+import {formatDate} from '../lib/visual-format';
 import {expect, test, type Page} from '@playwright/test';
 import {buildShowcase} from '../lib/showcase-data';
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
@@ -144,7 +145,7 @@ test('a photo already on this device is never overwritten; Undo survives a reloa
   await page.reload();
   const again = restoreRegion(page);
   await expect(again.getByLabel('Export everything ZIP')).toBeVisible();
-  await expect(again).toContainText(`A restore from ${DAY} can still be undone here until 2026-10-21, unless you change those records first.`);
+  await expect(again).toContainText(`A restore from ${formatDate(DAY)} can still be undone here until ${formatDate('2026-10-21')}, unless you change those records first.`); // Session AD item 8: the medium date
   expect(JSON.parse((await stored(page, HABITS_KEY))!)).toEqual(JSON.parse(habits!));
   await again.getByRole('button', {name: 'Undo this restore'}).click();
   await expect(again.getByRole('status')).toHaveText('The restore is undone: this device holds exactly what it held before.');
