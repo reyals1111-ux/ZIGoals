@@ -437,7 +437,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--cyan); }
 /* Session AA-Cloud Part 1: Settings' in-page index stays in reach while the page scrolls (computers and tablets; a
    phone keeps its own list of rows). */
 @media (min-width: 768px) {
-  :root .settings-page .settings-sections { position: sticky; top: 0; z-index: 20; margin-inline: -12px; padding: 12px; border-radius: 0 0 16px 16px; background: linear-gradient(180deg, #060b19f2, #0a1224e6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  /* Session AE (Part 5, ADR-027): what scrolls under the index is frosted out of sight. The prefixed blur comes first: in
+     the other order the build kept only the prefixed one, which Chrome ignores, so the page's words read through the bar. */
+  :root .settings-page .settings-sections { position: sticky; top: 0; z-index: 20; margin-inline: -12px; padding: 12px; border-radius: 0 0 16px 16px; background: linear-gradient(180deg, #060b19f7, #0a1224f0); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
   /* Session AB-Cloud Gate B (ADR-023 C21c): what focus or a scroll brings into view stops below the sticky index, never under
      it (WCAG 2.4.11, as globals.css does for the bottom buttons); the index wraps to two rows on narrower screens. */
   html:has(.settings-page .settings-sections) { scroll-padding-top: 128px; }
