@@ -8,13 +8,16 @@
   :root .health-page .page-heading .actions .primary { min-height: 48px; }
   :root .health-page .page-heading .badge { display: inline-flex; align-items: center; min-height: 44px; padding-inline: 14px; font-size: 15px; }
 
-  /* The journal date: one row of 44 px controls right under the title. */
+  /* The journal date: one row of 44 px controls right under the title. Session AE (Part 5, ADR-027): the date field is
+     as wide as its date needs at least (it was cut at 320 px and 1 px short at 390); where the row has no room for that
+     beside the arrows and Today, Today moves under the next-day arrow. */
   :root .health-date-strip { margin: 0 0 12px; padding: 10px 12px 12px; border: 1px solid var(--edge-soft, #a6c1fa24); border-radius: 20px; background: #0a1123a6; }
-  :root .health-date-strip .health-date { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px auto; align-items: end; gap: 6px; width: 100%; max-width: none; }
-  :root .health-date-strip .health-date .field { width: auto; min-width: 0; margin: 0; }
+  :root .health-date-strip .health-date { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 4px; width: 100%; max-width: none; }
+  :root .health-date-strip .health-date .field { flex: 1 1 auto; width: auto; min-width: auto; margin: 0; }
   :root .health-date-strip .health-date .field > span { font-size: 15px; }
-  :root .health-date-strip .health-date .field input { width: 100%; min-height: 44px; font-size: 16px; }
+  :root .health-date-strip .health-date .field input { width: auto; min-width: 100%; min-height: 44px; font-size: 16px; }
   :root .health-date-strip .health-date .quiet { min-width: 44px; min-height: 44px; padding: 6px 12px; }
+  :root .health-date-strip .health-date .quiet:last-child { margin-inline-start: auto; }
 
   :root .health-page .exercise-counters { margin: 0 0 12px; padding: 16px 14px 12px; }
   /* A counter menu can overflow onto the section below; the press effect makes the card its own stacking context, so

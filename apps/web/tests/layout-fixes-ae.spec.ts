@@ -55,3 +55,31 @@ for (const demo of ['Showcase', 'a new device'] as const)
       expect(found.hits, `${width}: words under a floating button`).toEqual([]);
     }
   });
+
+// 2. Health's journal date on a phone: the field is at least as wide as the date it shows (the browser's own width for the
+// date in the field's font, measured on a copy of the field at its natural width), every control stays inside the strip
+// and keeps its 44 px target, and the label reads on one line. It was cut at 320 px and a pixel short at 390.
+test('Health on a phone: the journal date fits its field at 390 and 320 px, with 44 px targets', async ({page}) => {
+  await newDevice(page);
+  for (const width of [390, 320]) {
+    await page.setViewportSize({width, height: 800});
+    await page.goto('/app/health');
+    const strip = page.locator('.health-date-strip');
+    await expect(strip.getByLabel('Journal date', {exact: true})).toBeVisible();
+    const m = await strip.evaluate(el => {
+      const input = el.querySelector('input')!, probe = input.cloneNode() as HTMLInputElement;
+      probe.style.cssText = 'width:auto!important;min-width:0!important;max-width:none!important;position:absolute;visibility:hidden';
+      input.parentElement!.append(probe); const needs = probe.getBoundingClientRect().width; probe.remove();
+      const box = (e: Element) => { const r = e.getBoundingClientRect(); return {left: r.left, right: r.right, width: r.width, height: r.height}; };
+      const label = el.querySelector('.field > span')!, range = document.createRange(); range.selectNodeContents(label);
+      return {needs, input: box(input), strip: box(el), controls: [...el.querySelectorAll('button, input')].map(c => ({name: c.getAttribute('aria-label') ?? (c.textContent || 'date'), ...box(c)})), labelLines: range.getClientRects().length};
+    });
+    expect(m.input.width, `${width}: the date's field holds the whole date`).toBeGreaterThanOrEqual(m.needs - 0.5);
+    for (const c of m.controls) {
+      expect(c.left, `${width}: ${c.name} inside the strip`).toBeGreaterThanOrEqual(m.strip.left);
+      expect(c.right, `${width}: ${c.name} inside the strip`).toBeLessThanOrEqual(m.strip.right);
+      expect(Math.min(c.width, c.height), `${width}: ${c.name} is a 44 px target`).toBeGreaterThanOrEqual(44);
+    }
+    expect(m.labelLines, `${width}: "Journal date" on one line`).toBe(1);
+  }
+});
