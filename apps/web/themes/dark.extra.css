@@ -1,0 +1,6 @@
+/* Session AD (Part 3, ADR-026 F14): Dark's hand-written layer — the same nebula, deeper: a near-black ground, the starfield
+   and the artwork dimmed a little, the accents as they are. */
+:root[data-theme=dark] body { background: #010208; }
+:root[data-theme=dark] .app-content::before { opacity: .62; }
+:root[data-theme=dark] :is(.today-hero, .account-panel, .destination-panel, .stake-hero, .staking-card)::before { filter: brightness(.82); }
+:root[data-theme=dark] .site-footer-art { filter: brightness(.8); }

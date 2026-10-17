@@ -168,7 +168,7 @@ export default function Settings() {
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
-        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">Dark is the nebula look you see now. Light and a customizable theme come later.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
+        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
         <MusicSettings/>
         <LinksSettings/>
       </SettingsGroup>
