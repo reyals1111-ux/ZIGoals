@@ -8213,9 +8213,6 @@
     .showcase-chip-panel strong:not(#\-) {
         color: #6f4b79
     }
-    .status-row .wallet-balance:not(#\-) {
-        color: var(--text-meta, #08111e)
-    }
 }
 /*  components/shell/theme-switch.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
@@ -8302,6 +8299,77 @@
         background: #2424240d;
         border: 1px solid #3333331e;
         color: var(--text-secondary, #070f1c)
+    }
+}
+/*  components/wallet/wallet.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
+    .wallet-more .wallet-menu:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid #6381b35f;
+        background: linear-gradient(140deg, #e6ecf6, #eae9f8);
+        box-shadow: 0 24px 60px -20px #3d3d3d52
+    }
+    .wallet-menu-heading:not(#\-), .wallet-choices-group h4:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .wallet-menu-note:not(#\-), .wallet-choices-note:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .wallet-menu-status:not(#\-) {
+        border-radius: 10px;
+        background: #2424240a;
+        color: var(--text-secondary, #09101a)
+    }
+    .wallet-more .wallet-menu .wallet-row:not(#\-), .wallet-choices .wallet-row:not(#\-) {
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--text, #0c0f16)
+    }
+    .wallet-more .wallet-menu .wallet-row:hover:not(#\-), .wallet-more .wallet-menu .wallet-row:focus-visible:not(#\-), .wallet-choices .wallet-row:hover:not(#\-), .wallet-choices .wallet-row:focus-visible:not(#\-) {
+        border-color: #5286ac77;
+        background: #2424240f;
+        color: #0f0f0f
+    }
+    .wallet-row-detail:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .wallet-row[data-key^="remove:"] .wallet-row-detail:not(#\-) {
+        color: #844357
+    }
+    .wallet-row-external:not(#\-) {
+        color: #036771
+    }
+    .wallet-row .wallet-glyph:not(#\-) {
+        color: #18647a
+    }
+    .wallet-btc-form label:not(#\-) {
+        color: var(--text-secondary, #09101a)
+    }
+    .wallet-btc-form input:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #5b7fc477;
+        background: #edf0f7;
+        color: var(--text, #0c0f16)
+    }
+    .wallet-btc-form input[aria-invalid="true"]:not(#\-) {
+        border-color: #c25875
+    }
+    .wallet-btc-help:not(#\-), .wallet-btc-error:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .wallet-btc-error:not(#\-) {
+        color: #844357
+    }
+    :scope .wallet-choices:not(#\-) {
+        border-top: 1px solid #5c82b540
+    }
+    :scope .wallet-choices .wallet-choices-title:not(#\-) {
+        color: var(--text-strong, #0d0f14)
+    }
+    .wallet-choices .wallet-row:not(#\-) {
+        border-color: #5c82b540;
+        background: #e5ecf6
     }
 }
 /*  components/wealth/accounts.css  */

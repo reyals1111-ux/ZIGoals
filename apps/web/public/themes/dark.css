@@ -3031,6 +3031,39 @@
         color: var(--text-strong)
     }
 }
+/*  components/wallet/wallet-card.css  */
+@scope (:root[data-theme=dark]) {
+    .account-panel .wallet-card-choice select:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #5de5e33d;
+        background: #01030b;
+        color: var(--text, #f0f5ff)
+    }
+    .account-panel .wallet-card-currency:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid #5de5e324;
+        background: #01030bc9
+    }
+}
+/*  components/wallet/wallet.css  */
+@scope (:root[data-theme=dark]) {
+    .wallet-more .wallet-menu:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid #a9c9ff44;
+        background: linear-gradient(140deg, #010512, #060315);
+        box-shadow: 0 24px 60px -20px #000c
+    }
+    .wallet-btc-form input:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #8fb6ff55;
+        background: #010206;
+        color: var(--text, #f0f5ff)
+    }
+    .wallet-choices .wallet-row:not(#\-) {
+        border-color: #9fc8ff2e;
+        background: #010512
+    }
+}
 /*  components/wealth/wealth-history-chart.css  */
 @scope (:root[data-theme=dark]) {
     .wealth-history-tools .quiet[aria-pressed="true"]:not(#\-) {
