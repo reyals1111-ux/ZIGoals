@@ -38,7 +38,7 @@ describe('evidence-aware history',()=>{
 });
 it('preserves date-only measurement dates without manufacturing a time of day',()=>{
  const html=renderToStaticMarkup(createElement(EvidenceChart,{series:[{label:'Manual weight',color:'#38d9f5',points:[{at:'2026-09-01',value:'7200',dateOnly:true}]}],decimals:2,currency:'kg',label:'Weight history'}));
- expect(html).toContain('<time dateTime="2026-09-01">2026-09-01</time>');expect(html).not.toContain('AM');expect(html).not.toContain('PM');
+ expect(html).toContain('<time dateTime="2026-09-01">Sep 1, 2026</time>');expect(html).not.toContain('AM');expect(html).not.toContain('PM');
 });
 it('does not connect through a known invalid measurement',()=>{
  const html=renderToStaticMarkup(createElement(EvidenceChart,{series:[{label:'Wealth',color:'#38d9f5',points:[point(1,'12000'),point(2,'unknown'),point(3,'13000')]}],decimals:2,currency:'USD',label:'Wealth history'}));

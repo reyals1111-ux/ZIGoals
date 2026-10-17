@@ -63,7 +63,7 @@ test("transparency escapes provider text and omits unconfirmed attribution", () 
   expect(html).not.toContain("Invented relationship");
   expect(html).toContain("Not audited");
   expect(html).toContain(
-    'Reviewed <time dateTime="2026-09-13">2026-09-13</time>',
+    'Reviewed <time dateTime="2026-09-13">Sep 13, 2026</time>',
   );
 });
 
