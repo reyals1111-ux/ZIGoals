@@ -21,14 +21,15 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 ## Lanes (ADR-027 G3)
 | Lane | Branch | Owner | State |
 |---|---|---|---|
-| Part 0b verifier | `ae/verifier` | helper V | running |
-| 4.2 demo balance + Part 6 wallets | `ae/wallet` | helper W | running |
-| 6.5 on-ramp research | `ae/onramp` | helper R | running |
-| 4.3/4.4 Habits | `ae/habits` | helper B | running |
-| Part 5 layout | `ae/layout` | helper L | running |
-| 4.1 sidebar, 3.1 icon, 3.5 cross-fade | `ae/sidebar` | helper S | running |
-| 4.5 header art | `ae/header-art` (+ H2 later) | helper H1 | running |
-| Parts 1, 2, 3, integration, builds, captures, Gate C | this branch | lead | Part 1 next |
+| Part 0b verifier | `ae/verifier` | helper V | merged |
+| 4.2 demo balance + Part 6 wallets | `ae/wallet` | helper W | merged |
+| 6.5 on-ramp research | `ae/onramp` | helper R | merged |
+| 4.3/4.4 Habits | `ae/habits` | helper B | merged |
+| Part 5 layout | `ae/layout` | helper L | merged (`98d5b11f`) |
+| 4.1 sidebar, 3.1 icon, 3.5 cross-fade | `ae/sidebar` | helper S | merged |
+| 4.5 header art | `ae/header-art`, `ae/header-art-2` | helpers H1, H2 | merged (`f49a9a5a`, `cdad35dd`) |
+| What's new + Help | `ae/whats-new` | helper N | merged (`d71ef164`) |
+| Parts 1, 2, 3, integration, builds, captures, Gate C | this branch | lead | Part 3 audits |
 
 ## Parts
 | Part | State | Commits |
@@ -36,10 +37,17 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 0 Records, rules, verifier | done | `f1d91638` (rule B), `57c8017a` (rule A), `fd0d56ee`, `b480412f`, verifier merge (V) |
 | 1 Hero scene | done (D1) | `1e21a079` |
 | 2 Banner finale, music twin | done (S2) | `28c26393`, `bd38ffe2` |
-| 3 Themes | in progress: sidebar/icon/cross-fade merged (S); Light mapping + dusk banner edited, not yet built | `37f07128` + this part's next commits |
-| 4 | 4.1 merged (S); 4.2 merged (W); 4.3/4.4 merged (B); 4.5 H1 merged, H2 running | merges `f49a9a5a` et al. |
-| 5 Layout | helper L running | — |
+| 3 Themes | Light white-family (`e4198fc2`), translucent tints (`88b175db`); Preview labels removed once audits pass | `37f07128`, `e4198fc2`, `88b175db` |
+| 4 | done: 4.1 (S), 4.2 (W), 4.3/4.4 (B), 4.5 (H1, H2) | merges `f49a9a5a`, `cdad35dd` et al. |
+| 5 Layout | done: four issues (L) + the blur-order fix (`39ebce78`) | `98d5b11f`, `39ebce78` |
 | 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
+
+## Resume here (2026-10-17 22:20 Brussels — every lane merged; Part 3 audits)
+- Done since 21:35: Light white-family + hero pool (`e4198fc2`); L, N, H2 merged; blur order (`39ebce78`); translucent
+  tints (`88b175db`); the fold test rewritten (a new device shows its welcome panels when folded: the old "moves up"
+  assumption failed in CI run 997 on desktop and phone).
+- Uncommitted at this note: Preview labels removed (theme-switch, specs) — commit after the Light/Dark audits.
+- Next: focused specs (`$SP/logs/spec3.log`), Light/Dark audits + fixes, commit, push; Gate C by 05:30.
 
 ## Resume here (2026-10-17 21:35 Brussels — Parts 1, 2 done; 3–6 integrating)
 - Running: the focused spec run on `bd38ffe2` (34 files; `$SP/logs/spec2.log`); helpers L (layout), H2 (header art for the
