@@ -21,8 +21,16 @@ plan mode again (the plan was approved once: ADR-026 and the PR description).
 | 2 Hero bleed | done | `a0e01369`, `ce9b3545` |
 | 3 Themes | done; per-theme audits running | `c360ba01` (TIER 3 storage), `b917d802` (TIER 3 CSP), `cfe0f1e1`, weights `389bb3f6` `c2ca3697` `d5fd2ddf`, contrast fix |
 | 4 Items 8–13 | 8, 11, 12, 13 merged; 9 test done (needs 3 green CI runs); 10 evidence pending | merges `b1117cd4` (13), `a34eb012` (11), `ab11cf47` (12), `50ab05c6` (8) |
-| 5 Carried checks | | |
+| 5 Carried checks | What's new + 7 Help answers merged (`ab511c07`), two older answers made true (`402d1935`), hero 768 measured (unchanged) | |
 | Gate C, finish | | |
+
+## Resume here (2026-10-17 05:00 Brussels — CI 987 fixes pushed; Light audit fixes in progress)
+- Pushed `34dad87c`+: run 987 fixes (unit test for the lazy market search, two item-8 dates), restore Keep, Light pillar
+  names, Part 5 Help/What's new, item 10 table (`docs/verification/session-ad/item10-webkit.md`).
+- Light audit (main pages, 390/1440; `bash $SP/audit.sh light 390,1440`): pillar/area/tone/activity labels and the theme
+  note fixed in `apps/web/themes/light.extra.css` WITH the `:not(#\-)` boost (extra rules lose to the generated ones
+  without it). Public theme files are served live: regenerate, no rebuild needed to re-audit.
+- Next: re-audit Light failures, Dark audit, then Gate C (by 19:00): full browser suite once, audits, captures, reviews.
 
 ## Resume here (2026-10-17 03:45 Brussels — Part 3 and Part 4 merges pushed; audits next)
 - Weights: every page within budget, none raised (Today 514.9/515.0, Habits 457.7/458.0); thin margins, so check

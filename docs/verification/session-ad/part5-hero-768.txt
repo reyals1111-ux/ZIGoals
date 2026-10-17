@@ -1,0 +1,12 @@
+Session AD Part 5 (carried item 14): the Today hero at 768 px, measured on this PR's production build (Showcase, reduced
+motion, Chrome), after Part 2's bleed. Line boxes of the slogan's text nodes (48.16 px type on a 55.38 px line), by font:
+
+  font                                        lines   gap between line 1's bottom and line 2's top
+  this sandbox's platform font (Inter)        2       -3.6 px (inline boxes overlap; the drawn letters do not)
+  Liberation Sans (CI's runners, the stack's Arial on Linux)   2   +1.4 px apart
+  DejaVu Sans (Linux fallback)                2       -0.6 px (touching)
+
+The hero's heading stays inside the hero at every font and the page does not scroll sideways. Same as Session AC's
+measurement (docs/verification/session-ac/layout-audit-changed-routes.txt): it does not reproduce with CI's font, and the
+accepted hero (protected baseline) is unchanged. Script: a throwaway Playwright page reading Range.getClientRects() per
+text node with the heading's font-family forced per row; not committed.
