@@ -10,7 +10,8 @@ import {THEME_SHEETS} from './theme-sheets';
  * scripts/themes/build-themes.mjs) and `data-theme` on <html>.
  */
 /* Session AD: the theme helpers live here, with the lazily loaded theme bar, not in the schema every page loads. */
-/** Session AD: the three themes. Nebula is today's look and the default for everyone; Light and Dark are previews. */
+/** Session AD: the three themes. Nebula is today's look and the default for everyone; Light and Dark are final since
+ *  Session AE (ADR-027 G7). */
 export const THEMES = ['nebula', 'light', 'dark'] as const;
 export type Theme = typeof THEMES[number];
 /** The theme a record asks for; anything unknown (a later build's theme, a typo) reads as nebula. */

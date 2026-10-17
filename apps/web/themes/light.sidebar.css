@@ -33,5 +33,4 @@
 :root[data-theme=light] .theme-option:focus-visible:not(#\-) { outline-color: #4b3fd1; }
 :root[data-theme=light] .theme-switch-compact .theme-option:not(#\-) { color: #2a3352; }
 :root[data-theme=light] .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) { color: #ffffff; }
-:root[data-theme=light] .theme-switch-compact .theme-option small:not(#\-) { color: #0a1428; background: linear-gradient(90deg, #cfe3ff, #a9c9ff); }
 :root[data-theme=light] .app-sidebar .theme-switch-note:not(#\-) { color: #dcd6f6; }

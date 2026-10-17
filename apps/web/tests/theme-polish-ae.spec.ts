@@ -7,7 +7,7 @@ import {expect, test, type Page} from '@playwright/test';
  * and the first buttons with crisp stars lower down, in each theme's own colours (never plain white or plain black).
  */
 const KEY = 'zigoals:ui-prefs:v1';
-const NAMES = {light: 'Light theme (preview)', nebula: 'Nebula theme', dark: 'Dark theme (preview)'} as const;
+const NAMES = {light: 'Light theme', nebula: 'Nebula theme', dark: 'Dark theme'} as const;
 type Theme = keyof typeof NAMES;
 const appearance = (page: Page) => page.locator('#appearance').getByRole('radiogroup', {name: 'Theme'});
 const hydrated = (page: Page) => expect(page.locator('html[data-app-hydrated]')).toBeAttached();

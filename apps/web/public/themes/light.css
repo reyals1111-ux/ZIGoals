@@ -289,8 +289,8 @@
         --pink: #f06dff
     }
     body:not(#\-) {
-        background: radial-gradient(ellipse 70% 35% at 90% 15%, #564ea513, transparent),
-    radial-gradient(ellipse 65% 35% at 5% 30%, #2785a610, transparent),
+        background: radial-gradient(ellipse 70% 35% at 90% 15%, #7e79d413, transparent),
+    radial-gradient(ellipse 65% 35% at 5% 30%, #3792b310, transparent),
     var(--surface-0)
     }
     .nebula-text:not(#\-) {
@@ -311,11 +311,11 @@
     .brand small:not(#\-) {
         color: #036771;
         border-color: #08919c43;
-        background: #259ea808
+        background: #3fbfca08
     }
     nav a[aria-current="page"]:not(#\-) {
         color: #036771;
-        background: #259ea80b;
+        background: #3fbfca0b;
         border-bottom: 0;
         box-shadow: inset 0 0 0 1px #2cb2be0a
     }
@@ -371,7 +371,7 @@
     .destination-state:not(#\-) {
         border: 1px solid var(--edge-raised);
         border-radius: 24px;
-        background: radial-gradient(ellipse 50% 65% at 50% 8%, #4b70c419, transparent), linear-gradient(150deg, #eef2f7, #f1f3f8 70%, #f2f0f570);
+        background: radial-gradient(ellipse 50% 65% at 50% 8%, #5c83d919, transparent), linear-gradient(150deg, #eef2f7, #f1f3f8 70%, #f2f0f570);
         box-shadow: var(--shadow-raised)
     }
     .destination-state:not(#\-)::before {
@@ -656,7 +656,7 @@
         filter: drop-shadow(0 0 5px #18b1cb3e)
     }
     .app-nav a:not([aria-current]):hover:not(#\-) {
-        background: #3f8ee60d;
+        background: #4f9ef70d;
         color: var(--text)
     }
     .sidebar-horizon:not(#\-) {
@@ -665,7 +665,7 @@
     .app-topbar .wallet-connect:not(#\-) {
         border: 1px solid transparent;
         border-radius: 12px;
-        background: linear-gradient(120deg, #eff4f8, #f3f5fa) padding-box, linear-gradient(120deg, #6a89bf99, #605ea57a, #299aba62) border-box;
+        background: linear-gradient(120deg, #eff4f8, #f3f5fa) padding-box, linear-gradient(120deg, #6a89bf99, #7d7dc67a, #48b3d362) border-box;
         box-shadow: inset 0 1px 3px #57a7db0e;
         color: var(--text)
     }
@@ -693,7 +693,7 @@
         filter: brightness(1.09)
     }
     .cosmic-glow:not(#\-) {
-        background: radial-gradient(circle, #aa7b9a2b, #a867e513 30%, transparent 65%)
+        background: radial-gradient(circle, #ca9ab92b, #b878f713 30%, transparent 65%)
     }
     .today-hero-copy > p:not(.eyebrow):not(.hero-truth):not(#\-) {
         color: #07101c
@@ -793,7 +793,7 @@
         border-bottom-color: #8362ec
     }
     .habits-workspace .habit-hero:not(#\-) {
-        background: radial-gradient(ellipse at 92% 20%, #9952dd22, transparent 53%)
+        background: radial-gradient(ellipse at 92% 20%, #a35ce822, transparent 53%)
     }
     .habits-workspace .habit-constellation:not(#\-) {
         border-color: #208ea75a;
@@ -980,10 +980,10 @@
         border-radius: 8px
     }
     .quick-add nav a:hover:not(#\-) {
-        background: #426e9255
+        background: #5f8bb055
     }
     .health-page>.page-heading:not(#\-) {
-        background: radial-gradient(at 90% 30%,#6b4da440,transparent 58%),linear-gradient(120deg,#e6eef180,#eef1f990);
+        background: radial-gradient(at 90% 30%,#8f72ce40,transparent 58%),linear-gradient(120deg,#e6eef180,#eef1f990);
         border: 1px solid #498aa263;
         border-radius: 26px
     }
@@ -1042,7 +1042,7 @@
         background: radial-gradient(closest-side,#f2f5fae0 0%,#f2f5fab0 42%,#f2f5fa4d 70%,#f2f5fa00 100%)
     }
     .hero-star-core:not(#\-) {
-        background: radial-gradient(closest-side,#242424 0 8%,#29231a 14%,#a98464cc 24%,#c26f8566 40%,#9277df26 60%,#fcfcfc00 100%)
+        background: radial-gradient(closest-side,#242424 0 8%,#29231a 14%,#a98464cc 24%,#e48da466 40%,#a88ef826 60%,#fcfcfc00 100%)
     }
     .app-nav a[data-arrive]:not(#\-)::after {
         border-radius: inherit;
@@ -1141,7 +1141,7 @@
 /*  components/ui/ui.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     :scope .today-group-heading:not(#\-)::after {
-        background: linear-gradient(90deg, #6192b755, #9479d533 60%, transparent)
+        background: linear-gradient(90deg, #7fb1d855, #a88dec33 60%, transparent)
     }
     :scope .focus-tile:not(#\-) {
         border-radius: 18px;
@@ -1164,7 +1164,7 @@
     :scope .aa-empty:not(#\-) {
         border-radius: 20px;
         border: 1px dashed #5985ac77;
-        background: radial-gradient(at 90% 10%, #6b4da430, transparent 60%), #eef2f8cc
+        background: radial-gradient(at 90% 10%, #8f72ce30, transparent 60%), #eef2f8cc
     }
     :scope .aa-skeleton:not(#\-) {
         border-radius: 18px;
@@ -1252,7 +1252,7 @@
     :scope .extras-sync-choice:not(#\-) {
         border: 1px solid #5581c32b;
         border-radius: 16px;
-        background: #648dcb07
+        background: #82acec07
     }
     :scope .goal-detail-workspace .platform-nav a:not(#\-) {
         border: 1px solid #5b7fc447;
@@ -1328,7 +1328,7 @@
     .unified-activity .timeline-icon:not(#\-) {
         border-radius: 17px;
         color: var(--event-accent);
-        background: linear-gradient(140deg,#6e91ab16,#8b7ae01a);
+        background: linear-gradient(140deg,#8cb0cb16,#9684ec1a);
         border: 1px solid #19364b44
     }
     .unified-activity .activity-event a:not(#\-) {
@@ -2364,7 +2364,7 @@
     .bottom-section:not(#\-) {
         border-radius: 26px;
         border: 1px solid #5b7fc440;
-        background: radial-gradient(ellipse at 100% 0,#7954f51f,transparent 50%),linear-gradient(160deg,#eef1f8,#f0f3f8)
+        background: radial-gradient(ellipse at 100% 0,#8468fa1f,transparent 50%),linear-gradient(160deg,#eef1f8,#f0f3f8)
     }
     .bottom-section-heading .eyebrow:not(#\-) {
         color: #07101c
@@ -2406,7 +2406,7 @@
         border: 1px solid #3333331b
     }
     .bottom-row li[data-today]:not(#\-) {
-        background: linear-gradient(160deg,#189eac26,#8480d526);
+        background: linear-gradient(160deg,#48becc26,#a29ff626);
         box-shadow: inset 0 0 0 1px #64aac12f
     }
     .bottom-row li small:not(#\-) {
@@ -2519,7 +2519,7 @@
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .logo-wordmark-z:not(#\-)::before {
         border-radius: 50%;
-        background: radial-gradient(closest-side, #7a61f559, #2197d026 55%, transparent 100%)
+        background: radial-gradient(closest-side, #8068fd59, #3bb7f826 55%, transparent 100%)
     }
     .logo-wordmark-letters:not(#\-) {
         background-image: linear-gradient(100deg, #14647f 0%, #0c59ad 18%, #5146b5 40%, #7039a7 60%, #8b2b89 80%, #9d1e5f 100%);
@@ -2532,7 +2532,7 @@
 /*  components/calculator/calculator.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     :scope .calc-results:not(#\-) {
-        background: radial-gradient(120% 90% at 100% 0%, #5b429940, transparent 60%), radial-gradient(90% 80% at 0% 100%, #276a8738, transparent 60%), linear-gradient(160deg, #edf1f8f2, #eef1f9f2)
+        background: radial-gradient(120% 90% at 100% 0%, #8b74d040, transparent 60%), radial-gradient(90% 80% at 0% 100%, #4f8fae38, transparent 60%), linear-gradient(160deg, #edf1f8f2, #eef1f9f2)
     }
     :scope .calc-figures > div:not(#\-) {
         border-radius: 16px;
@@ -2678,7 +2678,7 @@
         background: linear-gradient(140deg, #ebf0f6cc, #eff0f9cc)
     }
     :scope .calc-card:not(#\-) {
-        background: radial-gradient(110% 120% at 100% 0%, #6949aa4d, transparent 55%), radial-gradient(80% 90% at 0% 100%, #2b799c4a, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
+        background: radial-gradient(110% 120% at 100% 0%, #8e71d54d, transparent 55%), radial-gradient(80% 90% at 0% 100%, #4490b44a, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
     }
     @media (max-width: 767.98px) {
         :scope .calc-sticky:not(#\-) {
@@ -2962,7 +2962,7 @@
         border-radius: 12px
     }
     .dashboard-summary:not(#\-) {
-        background: radial-gradient(circle at 90% 0%,#a25fd720,transparent 38%),radial-gradient(circle at 0% 100%,#039cba1a,transparent 52%),linear-gradient(125deg,#ecf0f7,#eff2f8);
+        background: radial-gradient(circle at 90% 0%,#a461d920,transparent 38%),radial-gradient(circle at 0% 100%,#40bcdb1a,transparent 52%),linear-gradient(125deg,#ecf0f7,#eff2f8);
         border: 1px solid #5286ad81
     }
     .dashboard-summary .section-heading p:not(.eyebrow):not(#\-) {
@@ -2989,23 +2989,23 @@
         box-shadow: 0 0 18px #36aae217
     }
     .dashboard-widget:not(#\-) {
-        background: radial-gradient(circle at 92% 6%,#385b834d,transparent 43%),linear-gradient(145deg,#eaeff6,#eef1f7);
+        background: radial-gradient(circle at 92% 6%,#6589b44d,transparent 43%),linear-gradient(145deg,#eaeff6,#eef1f7);
         border-color: #17364e
     }
     .dashboard-widget[data-domain=goals]:not(#\-) {
         background: radial-gradient(circle at 93% 5%,#986de74c,transparent 44%),linear-gradient(145deg,#e9eff5,#f0eff6)
     }
     .dashboard-widget[data-domain=habits]:not(#\-) {
-        background: radial-gradient(circle at 93% 5%,#bf5fca4a,transparent 44%),linear-gradient(145deg,#e9eff5,#f1eff7)
+        background: radial-gradient(circle at 93% 5%,#d271dd4a,transparent 44%),linear-gradient(145deg,#e9eff5,#f1eff7)
     }
     .dashboard-widget[data-domain=health]:not(#\-) {
-        background: radial-gradient(circle at 93% 5%,#239f9e4a,transparent 44%),linear-gradient(145deg,#e8eff3,#ecf0f6)
+        background: radial-gradient(circle at 93% 5%,#3ec1bf4a,transparent 44%),linear-gradient(145deg,#e8eff3,#ecf0f6)
     }
     .dashboard-widget[data-domain=wealth]:not(#\-) {
-        background: radial-gradient(circle at 93% 5%,#528ed84a,transparent 44%),linear-gradient(145deg,#e9eff5,#efeff7)
+        background: radial-gradient(circle at 93% 5%,#6ba8f34a,transparent 44%),linear-gradient(145deg,#e9eff5,#efeff7)
     }
     .dashboard-widget[data-domain=ecosystem]:not(#\-) {
-        background: radial-gradient(circle at 93% 5%,#7984d54a,transparent 44%),linear-gradient(145deg,#eaeff6,#efeff7)
+        background: radial-gradient(circle at 93% 5%,#8f9bee4a,transparent 44%),linear-gradient(145deg,#eaeff6,#efeff7)
     }
     .dashboard-summary-glyph:not(#\-) {
         border-radius: 13px;
@@ -3119,7 +3119,7 @@
     .ecosystem-intro:not(#\-) {
         border: 1px solid #5f83ac55;
         border-radius: 28px;
-        background: radial-gradient(ellipse at 90% 0,#623a7857,transparent 55%),radial-gradient(ellipse at 0 100%,#1a516855,transparent 60%),#eef1f8
+        background: radial-gradient(ellipse at 90% 0,#9d72b557,transparent 55%),radial-gradient(ellipse at 0 100%,#5a8ea855,transparent 60%),#eef1f8
     }
     .ecosystem-intro>p:not(.eyebrow):not(#\-) {
         color: #08111e
@@ -3253,14 +3253,14 @@
 /*  components/footer/site-footer.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .site-footer-glow > i[data-glow=horizon]:not(#\-) {
-        background: radial-gradient(closest-side, #c752d51f, transparent 100%)
+        background: radial-gradient(closest-side, #e973f71f, transparent 100%)
     }
     .site-footer-glow > i[data-glow=mist]:not(#\-) {
-        background: radial-gradient(closest-side, #239dab17, transparent 100%)
+        background: radial-gradient(closest-side, #24c0d117, transparent 100%)
     }
     .site-footer-logo:not(#\-)::before {
         border-radius: 50%;
-        background: radial-gradient(closest-side, #7a61f54d, #2197d01f 55%, transparent 100%)
+        background: radial-gradient(closest-side, #8068fd4d, #3bb7f81f 55%, transparent 100%)
     }
     .site-footer-shine > i:not(#\-) {
         background: linear-gradient(100deg, transparent 0, #419ba88c 30%, #a47e9ce6 50%, #c752d58c 70%, transparent 100%)
@@ -3323,10 +3323,10 @@
         background: radial-gradient(closest-side, #f2f5fad9 0%, #f2f5faa6 42%, #f2f5fa40 70%, #f2f5fa00 100%)
     }
     .site-footer-star-core:not(#\-) {
-        background: radial-gradient(closest-side, #c664a8 0 10%, #d256ab 18%, #c752d5cc 30%, #c052e5a3 42%, #a467ed4d 58%, #8d72f21a 72%, #fcfcfc00 100%)
+        background: radial-gradient(closest-side, #c664a8 0 10%, #d256ab 18%, #c752d5cc 30%, #c052e5a3 42%, #ae70f74d 58%, #9177f61a 72%, #fcfcfc00 100%)
     }
     .site-footer-star-pulse:not(#\-) {
-        background: radial-gradient(closest-side, #c664a8d0 0, #c752d58c 30%, #c052e53d 58%, #fcfcfc00 100%)
+        background: radial-gradient(closest-side, #c664a8d0 0, #c752d58c 30%, #d264f73d 58%, #fcfcfc00 100%)
     }
     .site-footer-burst > i:not(#\-) {
         border-radius: 50%;
@@ -3433,7 +3433,7 @@
     .journey-badge-symbol:not(#\-) {
         border-radius: 50%;
         color: #120c1a;
-        background: radial-gradient(circle at 35% 30%, #7c62cd66, #efedf777);
+        background: radial-gradient(circle at 35% 30%, #8a70dd66, #efedf777);
         box-shadow: inset 0 0 0 1px #a88edd20
     }
     .journey-badge-grid li[data-earned] .journey-badge-symbol:not(#\-) {
@@ -3443,7 +3443,7 @@
     }
     .journey-path:not(#\-)::before {
         border-radius: 99px;
-        background: linear-gradient(180deg, #289dab, #9372ec, #c75cbb, #947acf33)
+        background: linear-gradient(180deg, #289dab, #9372ec, #c75cbb, #a086dc33)
     }
     .journey-path li[data-current] > div:not(#\-) {
         border-color: #8961e68f;
@@ -3493,7 +3493,7 @@
     }
     .journey-orb:not(#\-) {
         border-radius: 50%;
-        background: radial-gradient(circle at 30% 30%, #9372ec55, #3e5bdc22 45%, transparent 70%);
+        background: radial-gradient(circle at 30% 30%, #9d7cf755, #5678fd22 45%, transparent 70%);
         filter: blur(10px)
     }
     .journey-ring:not(#\-)::before {
@@ -3502,7 +3502,7 @@
         box-shadow: inset -14px -10px 30px #373c5266, inset 10px 8px 26px #5b6cff1c, 0 0 40px -8px #7f8dff4b
     }
     .journey-path:not(#\-)::before {
-        background: linear-gradient(180deg, #289dab, #9372ec 55%, #957dc44a);
+        background: linear-gradient(180deg, #289dab, #9372ec 55%, #b49ce54a);
         border-radius: 2px
     }
     .journey-path-node:not(#\-) {
@@ -3773,7 +3773,7 @@
     :scope .goal-tree-root:not(#\-) {
         border-radius: 999px;
         border: 1px solid #5286ac47;
-        background: radial-gradient(circle at 22px 50%, #8d72f255, transparent 40px), #eef2f8cc
+        background: radial-gradient(circle at 22px 50%, #9177f655, transparent 40px), #eef2f8cc
     }
     :scope .goal-tree-root-mark:not(#\-) {
         border-radius: 50%;
@@ -3909,7 +3909,7 @@
         border-bottom: 1px solid #3333331e
     }
     :scope .life-balance-card:not(#\-) {
-        background: radial-gradient(at 85% 15%, #6b4da433, transparent 55%), linear-gradient(140deg, #ecf1f6e6, #eff0f9e6)
+        background: radial-gradient(at 85% 15%, #8f72ce33, transparent 55%), linear-gradient(140deg, #ecf1f6e6, #eff0f9e6)
     }
     :scope .balance-core-value:not(#\-) {
         fill: #303338
@@ -4072,7 +4072,7 @@
     .habit-section-mark:not(#\-) {
         border-radius: 50%;
         color: #120c1a;
-        background: radial-gradient(circle at 35% 30%, #7c62cd66, #efedf777);
+        background: radial-gradient(circle at 35% 30%, #8a70dd66, #efedf777);
         box-shadow: inset 0 0 0 1px #a88edd20
     }
     .habit-section-evening .habit-section-mark:not(#\-) {
@@ -4087,7 +4087,7 @@
     .habit-section-count:not(#\-) {
         color: #120c1a;
         border-radius: 99px;
-        background: #947acf1f;
+        background: #a086dc1f;
         border: 1px solid #8a71b751
     }
     .habit-section-chevron:not(#\-) {
@@ -4097,7 +4097,7 @@
         color: #120c1b
     }
     .habit-area-bar .quiet[aria-pressed="true"]:not(#\-) {
-        background: #289dab1c;
+        background: #50bdcb1c;
         border-color: #10919f77;
         color: #021215
     }
@@ -4131,11 +4131,11 @@
     .habit-quit-day:not(#\-) {
         border-radius: 8px;
         color: #041310;
-        background: #3d9f8a14;
+        background: #5fbfa814;
         border: 1px solid #1b957e30
     }
     .habit-quit-slip:not(#\-) {
-        background: #ba74883a;
+        background: #d48ca03a;
         border-color: #b0667cbe;
         color: #1a0a0f
     }
@@ -4145,7 +4145,7 @@
         background: #f2f1f799
     }
     .habit-reason-chips .quiet[aria-pressed="true"]:not(#\-), .habit-mood-chips .quiet[aria-pressed="true"]:not(#\-) {
-        background: #947acf33;
+        background: #a086dc33;
         border-color: #8a6fbcee;
         color: #120d18
     }
@@ -4160,7 +4160,7 @@
     }
     .habit-reflection-kind:not(#\-) {
         border-radius: 99px;
-        background: #947acf1f;
+        background: #a086dc1f;
         color: #110c1b
     }
     .habit-reflection-kind.habit-day-skipped:not(#\-) {
@@ -4168,7 +4168,7 @@
         color: #120c19
     }
     .habit-reflection-kind.habit-day-failed:not(#\-) {
-        background: #b26c7b38;
+        background: #b46f7d38;
         color: #1a0a0f
     }
     .habit-reflections em:not(#\-) {
@@ -4180,7 +4180,7 @@
     .habit-timer-chip:not(#\-) {
         border-radius: 99px;
         border: 1px solid #10919f77;
-        background: linear-gradient(90deg, #159fa81c, #9372ec1c);
+        background: linear-gradient(90deg, #0cc1cd1c, #9d7cf71c);
         color: #021215
     }
     .habit-timer-chip[data-running] strong:not(#\-)::before {
@@ -4204,7 +4204,7 @@
     }
     .habit-routine-progress i:not(#\-) {
         border-radius: 99px;
-        background: #947acf2a
+        background: #a086dc2a
     }
     .habit-routine-progress i[data-done]:not(#\-) {
         background: linear-gradient(90deg, #289dab, #a472cd);
@@ -4220,7 +4220,7 @@
     }
     .routine-dots li:not(#\-) {
         border-radius: 99px;
-        background: #947acf2a
+        background: #a086dc2a
     }
     .routine-dots li[data-status="done"]:not(#\-) {
         background: linear-gradient(90deg, #289dab, #a472cd)
@@ -4258,7 +4258,7 @@
     }
     .habit-year-cells i:not(#\-) {
         border-radius: 3px;
-        background: #748cbd14;
+        background: #92abde14;
         border: 1px solid #8974ab24
     }
     .habit-year-cells i[data-level="full"]:not(#\-), .habit-map-legend i.filled:not(#\-) {
@@ -4271,14 +4271,14 @@
         border-color: #8d6ebbbe
     }
     .habit-year-cells i[data-level="low"]:not(#\-), .habit-map-legend i[data-level="low"]:not(#\-) {
-        background: #9372ec40
+        background: #9d7cf740
     }
     .habit-year-cells i[data-level="skip"]:not(#\-), .habit-map-legend i[data-level="skip"]:not(#\-) {
         background: #e5e3e655;
         border-color: #392e3c80
     }
     .habit-year-cells i[data-level="miss"]:not(#\-), .habit-map-legend i[data-level="miss"]:not(#\-) {
-        background: #b26c7b44;
+        background: #b46f7d44;
         border-color: #b0667c8f
     }
     .habit-section-label:not(#\-) {
@@ -4299,25 +4299,25 @@
         color: #0c1015
     }
     .habit-section-morning > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #ac853455, transparent 70px), linear-gradient(100deg, #c7734733 0%, #d15f9226 32%, #8d72f214 64%, transparent 92%)
+        background: radial-gradient(circle at 34px 50%, #cca45555, transparent 70px), linear-gradient(100deg, #e9926633 0%, #f47eb026 32%, #9177f614 64%, transparent 92%)
     }
     .habit-section-afternoon > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #978d5855, transparent 70px), linear-gradient(100deg, #2398c633 0%, #4e8ddf24 38%, #25a28414 70%, transparent 94%)
+        background: radial-gradient(circle at 34px 50%, #b7ac7655, transparent 70px), linear-gradient(100deg, #3db9ed33 0%, #65a4f824 38%, #27c6a114 70%, transparent 94%)
     }
     .habit-section-evening > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #d4599c44, transparent 70px), linear-gradient(100deg, #db5a7833 0%, #a26edf2e 34%, #eae9fc26 68%, transparent 95%)
+        background: radial-gradient(circle at 34px 50%, #f778bb44, transparent 70px), linear-gradient(100deg, #f9759133 0%, #af7bed2e 34%, #eae9fc26 68%, transparent 95%)
     }
     .habit-section-anytime > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #828bab33, transparent 70px), radial-gradient(1px 1px at 62% 30%, #24242499, transparent), radial-gradient(1px 1px at 78% 62%, #24242488, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #242424aa, transparent), linear-gradient(100deg, #e8ebfa40 0%, #eceffb30 50%, transparent 95%)
+        background: radial-gradient(circle at 34px 50%, #a1a9cb33, transparent 70px), radial-gradient(1px 1px at 62% 30%, #24242499, transparent), radial-gradient(1px 1px at 78% 62%, #24242488, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #242424aa, transparent), linear-gradient(100deg, #e8ebfa40 0%, #eceffb30 50%, transparent 95%)
     }
     .habit-section-morning .habit-section-mark:not(#\-) {
-        background: radial-gradient(circle at 40% 35%, #ac853488, #c7734733)
+        background: radial-gradient(circle at 40% 35%, #ac853488, #e9926633)
     }
     .habit-section-afternoon .habit-section-mark:not(#\-) {
-        background: radial-gradient(circle at 40% 35%, #978d5888, #2398c633)
+        background: radial-gradient(circle at 40% 35%, #978d5888, #3db9ed33)
     }
     .habit-section-evening .habit-section-mark:not(#\-) {
-        background: radial-gradient(circle at 40% 35%, #d4599c77, #6a429b33)
+        background: radial-gradient(circle at 40% 35%, #f778bb77, #976fcb33)
     }
     :scope dialog.routine-sheet:not(#\-)::backdrop {
         background: #f3f5f9
@@ -4389,7 +4389,7 @@
     .habit-constellation:not(#\-) {
         border: 1px solid #8a6ebf32;
         border-radius: 50%;
-        background: radial-gradient(ellipse at center, #8157d32e, transparent 68%)
+        background: radial-gradient(ellipse at center, #9169e72e, transparent 68%)
     }
     .habit-constellation:not(#\-)::before, .habit-constellation:not(#\-)::after {
         border: 1px solid #8873b068;
@@ -4416,7 +4416,7 @@
         --glass-ink: linear-gradient(90deg, #6044a6, #634a93)
     }
     .habit-filter-bar .quiet[aria-pressed="true"]:not(#\-) {
-        background: #947acf29;
+        background: #a086dc29;
         border-color: #8a71b75f;
         color: #130c1a
     }
@@ -4434,7 +4434,7 @@
     .habit-done:not(#\-) {
         color: #306751;
         border-color: #4b916b5f;
-        background: #5c9c7a12
+        background: #7abc9812
     }
     .habit-metrics:not(#\-) {
         border-top: 1px solid #3d284d2a;
@@ -4448,7 +4448,7 @@
     }
     .habit-dot:not(#\-) {
         border-radius: 4px;
-        background: #73617e20;
+        background: #917e9c20;
         border: 1px solid #3a2c431c
     }
     .habit-dot.habit-day-complete:not(#\-) {
@@ -4456,11 +4456,11 @@
         box-shadow: 0 0 8px #a98be31a
     }
     .habit-dot.habit-day-missed:not(#\-) {
-        background: #8f729a15;
+        background: #977aa215;
         border-color: #4727377b
     }
     .habit-dot.habit-day-due:not(#\-) {
-        background: #8f72bf48;
+        background: #9275c248;
         border-color: #8d6ebbbe
     }
     .habit-status:not(#\-), .habit-goal-link:not(#\-) {
@@ -4486,7 +4486,7 @@
     .habit-calendar-day:not(#\-) {
         border-radius: 8px;
         color: #2f2737;
-        background: #6c5c8019;
+        background: #8e7da319;
         border: 1px solid #3a2b4a23
     }
     .habit-calendar-day.habit-day-complete:not(#\-) {
@@ -4527,7 +4527,7 @@
     .habit-empty:not(#\-) {
         border: 1px solid #8a74a835;
         border-radius: 24px;
-        background: radial-gradient(ellipse at top, #72488e23, #f3f2f570 70%)
+        background: radial-gradient(ellipse at top, #9d71ba23, #f3f2f570 70%)
     }
     .habit-empty > span:not(#\-) {
         color: #684a8a
@@ -4542,7 +4542,7 @@
         color: #373040
     }
     .habit-dot.habit-day-failed:not(#\-) {
-        background: #b26c7b38;
+        background: #b46f7d38;
         border-color: #b0667c8f
     }
     .habit-dot.habit-day-skipped:not(#\-) {
@@ -4550,7 +4550,7 @@
         border-color: #392e3c80
     }
     .habit-dot.habit-day-partial:not(#\-) {
-        background: #8f72bf48;
+        background: #9275c248;
         border-color: #8d6ebbbe
     }
     .habit-type-build:not(#\-) {
@@ -4604,11 +4604,11 @@
     }
     .habit-calendar-day.habit-day-skipped:not(#\-) {
         color: #3e3748;
-        background: #6c5c8010;
+        background: #8e7da310;
         border-color: #3a2b4a16
     }
     .habit-calendar-day.habit-day-partial:not(#\-) {
-        background: #8769ab35;
+        background: #9476b935;
         border-color: #906db9a7
     }
     .habits-workspace .habit-overview-track:not(#\-) {
@@ -4673,7 +4673,7 @@
     }
     .habit-week-bars>div>div:not(#\-) {
         border-radius: 8px;
-        background: #967ebd0a
+        background: #b59dde0a
     }
     .habit-week-bars i:not(#\-) {
         border-radius: 8px;
@@ -4691,7 +4691,7 @@
     .habit-calendar-day.habit-day-planned-skip:not(#\-) {
         border-style: dashed;
         color: #3e3748;
-        background: #6c5c8012
+        background: #8e7da312
     }
     .habit-vacation-habits legend:not(#\-) {
         color: #322c3c
@@ -4704,7 +4704,7 @@
         border-radius: 14px
     }
     .habit-weeks span:not(#\-) {
-        background: #748cbd14;
+        background: #92abde14;
         border-radius: 4px
     }
     .habit-weeks-table th:not(#\-), .habit-weeks-table td:not(#\-) {
@@ -4771,7 +4771,7 @@
     .exercise-counters:not(#\-) {
         border: 1px solid #5b7fc440;
         border-radius: 24px;
-        background: radial-gradient(ellipse at 88% 0,#8962f51f,transparent 55%),radial-gradient(ellipse at 0 100%,#209db01a,transparent 50%),linear-gradient(150deg,#eef2f8,#f0f3f8)
+        background: radial-gradient(ellipse at 88% 0,#8b64f81f,transparent 55%),radial-gradient(ellipse at 0 100%,#20bfd71a,transparent 50%),linear-gradient(150deg,#eef2f8,#f0f3f8)
     }
     .exercise-counters-heading .eyebrow:not(#\-) {
         color: #126a59
@@ -4878,7 +4878,7 @@
         color: #705711;
         border-radius: 99px;
         border: 1px solid #977d3d5f;
-        background: #a1895012
+        background: #c1a86e12
     }
     .health-trend-key .key-trend:not(#\-) {
         background: linear-gradient(90deg, #289dab, #a472cd)
@@ -4900,7 +4900,7 @@
         color: #705711
     }
     .health-rich-row .quiet[aria-pressed="true"]:not(#\-) {
-        background: #39a0861c;
+        background: #5cc0a51c;
         border-color: #13957a8f;
         color: #02130f
     }
@@ -4915,11 +4915,11 @@
     }
     .health-planner-slot:not(#\-) {
         border-radius: 10px;
-        background: #648dcb0e
+        background: #82acec0e
     }
     .health-grocery-aisle li:not(#\-) {
         border-radius: 12px;
-        background: #648dcb0a
+        background: #82acec0a
     }
     @media (max-width: 767.98px) {
         .health-planner-days > button:not(#\-) {
@@ -4935,18 +4935,18 @@
         }
     }
     .health-import-tabs .quiet[aria-pressed="true"]:not(#\-) {
-        background: #39a0861c;
+        background: #5cc0a51c;
         border-color: #13957a8f;
         color: #02130f
     }
     .health-macro-modes .quiet[aria-pressed="true"]:not(#\-) {
-        background: #947cc91f;
+        background: #b39bea1f;
         border-color: #896fc18f;
         color: #120d19
     }
     .fasting-timeline-track:not(#\-) {
         border-radius: 99px;
-        background: #648dcb14
+        background: #82acec14
     }
     .fasting-timeline-fill:not(#\-) {
         border-radius: 99px;
@@ -4982,7 +4982,7 @@
     }
     :scope .health-grocery-aisle li:not(#\-) {
         border-radius: 14px;
-        background: #648dcb0d;
+        background: #82acec0d;
         border: 1px solid #5581c31c
     }
     :scope .health-grocery-aisle input[type=checkbox]:not(#\-) {
@@ -4990,7 +4990,7 @@
     }
     :scope .health-micro-list > li:not(#\-) {
         border-radius: 14px;
-        background: #648dcb0b;
+        background: #82acec0b;
         border: 1px solid #5581c31c
     }
     :scope .health-micro-unknown:not(#\-) {
@@ -5085,17 +5085,17 @@
     }
     .health-views button:hover:not(#\-) {
         color: #08120e;
-        background: #45a07909
+        background: #66c09709
     }
     .health-views button[aria-pressed=true]:not(#\-) {
-        background: #3fa08612;
+        background: #61bfa412;
         color: #146a56;
         border-color: #47917635;
         box-shadow: 0 2px 12px #3d3d3d0e
     }
     .health-error:not(#\-) {
         border: 1px solid #b1677470;
-        background: #7b2d4524;
+        background: #bd687e24;
         border-radius: 10px;
         color: #1a090d
     }
@@ -5117,7 +5117,7 @@
     }
     .health-preview:not(#\-) {
         border: 1px solid #2695723e;
-        background: #3ea17707;
+        background: #60c19507;
         border-radius: 11px
     }
     .health-preview>strong:not(#\-) {
@@ -5128,11 +5128,11 @@
     }
     .health-bar-track:not(#\-) {
         border-radius: 5px 5px 0 0;
-        background: #758db605
+        background: #93acd705
     }
     .health-bar-track i:not(#\-) {
         border-radius: 5px 5px 0 0;
-        background: linear-gradient(0deg, #37917b70, #559d82);
+        background: linear-gradient(0deg, #40988270, #559d82);
         box-shadow: 0 -3px 15px #43b68b0a
     }
     .health-library-row:not(#\-) {
@@ -5176,7 +5176,7 @@
     }
     .health-today:not(#\-) {
         --health-muted: #1d2634;
-        background: radial-gradient(ellipse at top right, #42a07f17, transparent 70%), #eff2f7b0;
+        background: radial-gradient(ellipse at top right, #64c09d17, transparent 70%), #eff2f7b0;
         border-color: #45917632
     }
     .health-today .eyebrow:not(#\-) {
@@ -5189,7 +5189,7 @@
         color: #15222f
     }
     .health-today .health-symbol:not(#\-) {
-        background: #499f7e12;
+        background: #69bf9c12;
         color: #186a51;
         border: 1px solid #45917634;
         border-radius: 12px
@@ -5263,7 +5263,7 @@
         border-bottom: 1px solid #17345448
     }
     .nutrition-month-bars>div:not(#\-) {
-        background: #738fac05
+        background: #91aecc05
     }
     .nutrition-month-bars i:not(#\-) {
         background: linear-gradient(0deg,#5a8ca5,#5098a7 45%,#947ec2);
@@ -5398,7 +5398,7 @@
     .sleep-key-estimated:not(#\-) {
         border: 1.5px solid #6472e7;
         border-radius: 3px;
-        background: #7081ec6b
+        background: #7181ed6b
     }
     .sleep-grid line:not(#\-) {
         stroke: #448dc11f
@@ -5488,7 +5488,7 @@
     .help-topics a:not(#\-) {
         border-radius: 12px;
         border: 1px solid #647ebc46;
-        background: #6f87d614;
+        background: #829cec14;
         color: #0a0f19
     }
     .help-question:not(#\-) {
@@ -5624,7 +5624,7 @@
     [data-layout-placeholder]:not(#\-) {
         outline: 2px dashed #4189ad !important;
         outline-offset: -2px !important;
-        background: linear-gradient(140deg,#5b86ef14,#a666ec12) !important;
+        background: linear-gradient(140deg,#618df714,#b170f712) !important;
         box-shadow: none !important
     }
     .layout-bar:not(#\-) {
@@ -5675,7 +5675,7 @@
     }
     .ecosystem-page .hub-links a:not(#\-) {
         border-radius: 12px;
-        background: #6f87d614;
+        background: #829cec14;
         border: 1px solid #647ebc46
     }
     .ecosystem-page .provider-record summary small:not(#\-) {
@@ -5740,7 +5740,7 @@
         border-color: #348e9ca7
     }
     :scope .life-review-hero:not(#\-) {
-        background: radial-gradient(110% 120% at 100% 0%, #6949aa4d, transparent 55%), radial-gradient(80% 90% at 0% 100%, #2b799c4a, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
+        background: radial-gradient(110% 120% at 100% 0%, #8e71d54d, transparent 55%), radial-gradient(80% 90% at 0% 100%, #4490b44a, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
     }
     :scope .life-highlights li:not(#\-) {
         border-radius: 14px;
@@ -5777,7 +5777,7 @@
         background: #eff2f880
     }
     :scope .life-wins:not(#\-) {
-        background: radial-gradient(90% 120% at 0% 0%, #ac85341f, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
+        background: radial-gradient(90% 120% at 0% 0%, #cca4551f, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
     }
     :scope .cross-pending > summary:not(#\-)::before {
         border-right: 2px solid #03919f;
@@ -5800,7 +5800,7 @@
     .today-links-list a:not(#\-) {
         border: 1px solid transparent;
         border-radius: 999px;
-        background: linear-gradient(130deg, #edf2f9e6, #f0f2fbe6 60%, #eff0fce0) padding-box, linear-gradient(120deg, #3e99b666, #5f91be4d 34%, #9375e266, #a470d473) border-box;
+        background: linear-gradient(130deg, #edf2f9e6, #f0f2fbe6 60%, #eff0fce0) padding-box, linear-gradient(120deg, #60b8d766, #5f91be4d 34%, #9678e666, #c48ff573) border-box;
         box-shadow: inset 0 1px 2px #59abc915, 0 6px 18px -10px #2c3e573d;
         color: var(--text-strong, #0d0f14)
     }
@@ -5824,7 +5824,7 @@
         box-shadow: 0 10px 20px -10px #6f7dff62,0 0 16px -6px #c177f846,inset 0 0 0 1px #989fa846
     }
     .glass-light[data-kind=row]>i:not(#\-) {
-        background: linear-gradient(135deg,#24242410,#738cbd0a 55%,#a270d70a);
+        background: linear-gradient(135deg,#24242410,#91abde0a 55%,#c18ef80a);
         box-shadow: 0 12px 26px -20px #4a6eff5b,0 6px 16px -14px #c36cff31,inset 0 0 0 1px #8f9fbc15,inset 0 1px 0 #9e9e9e11
     }
 }
@@ -5967,7 +5967,7 @@
     }
     .music-disc-grooves:not(#\-) {
         border-radius: 50%;
-        background: repeating-radial-gradient(circle at 50% 50%,#24242407 0 1px,transparent 1px 5px),conic-gradient(from 210deg,#0c9db226,#8270f61f,#b45ce826,#0c9db226)
+        background: repeating-radial-gradient(circle at 50% 50%,#24242407 0 1px,transparent 1px 5px),conic-gradient(from 210deg,#43bdd226,#8270f61f,#c36bf726,#43bdd226)
     }
     .music-disc-art:not(#\-) {
         border-radius: 8px;
@@ -6014,7 +6014,7 @@
         color: #051214
     }
     .music-open:hover:not(#\-) {
-        background: #5198a614
+        background: #70b8c614
     }
     .music-more:not(#\-) {
         border-top: 1px solid #3333331e
@@ -6054,13 +6054,13 @@
     @media (min-width:901px) {
         .sidebar-star:not(#\-) {
             border-radius: 50%;
-            background: radial-gradient(closest-side,#242424 0 9%,#29231a 15%,#a98464cc 25%,#c26f8566 42%,#9277df26 62%,#fcfcfc00 100%)
+            background: radial-gradient(closest-side,#242424 0 9%,#29231a 15%,#a98464cc 25%,#e48da466 42%,#a88ef826 62%,#fcfcfc00 100%)
         }
     }
     @media (min-width:901px) {
         .sidebar-star:not(#\-)::after {
             border-radius: 50%;
-            background: radial-gradient(closest-side,#5597aa55,#9277df22 55%,#fcfcfc00)
+            background: radial-gradient(closest-side,#74b6ca55,#a88ef822 55%,#fcfcfc00)
         }
     }
 }
@@ -6089,7 +6089,7 @@
     .onboarding-welcome:not(#\-) {
         border: 1px solid #208dab5a;
         border-radius: 22px;
-        background: radial-gradient(at 90% 0%, #5a3f8647, transparent 60%), linear-gradient(135deg, #ecf1f7e6, #f0f3faf0 60%, #f0f0fae6)
+        background: radial-gradient(at 90% 0%, #9076c147, transparent 60%), linear-gradient(135deg, #ecf1f7e6, #f0f3faf0 60%, #f0f0fae6)
     }
     .onboarding-welcome p:not(.eyebrow):not(#\-) {
         color: #08101b
@@ -6181,7 +6181,7 @@
     .onboarding-undo:not(#\-) {
         border-radius: 16px;
         border: 1px solid #977d3d5f;
-        background: #a1895012
+        background: #c1a86e12
     }
     .onboarding-pillars > li:not(#\-) {
         border-radius: 18px;
@@ -6277,7 +6277,7 @@
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
         :scope .phone-settings-list a:active:not(#\-) {
-            background: #329ab814
+            background: #57b9d914
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
@@ -6293,7 +6293,7 @@
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
         :scope :is(dialog.quick-add-dialog, dialog.dashboard-dialog, dialog.wealth-sheet, dialog.dialog, dialog.phone-form-sheet)[open]:not(#\-)::before {
             border-radius: 3px;
-            background: #798eab66
+            background: #97accb66
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
@@ -6464,7 +6464,7 @@
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
         :scope .phone-grabber:not(#\-) {
             border-radius: 3px;
-            background: #798eab66
+            background: #97accb66
         }
     }
     @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
@@ -6710,7 +6710,7 @@
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .asset-orb:not(#\-) {
         border-radius: 18px;
-        background: radial-gradient(at 20% 10%,#009eae30,transparent 65%),linear-gradient(145deg,#e7eef6,#f1eff8);
+        background: radial-gradient(at 20% 10%,#29bfd130,transparent 65%),linear-gradient(145deg,#e7eef6,#f1eff8);
         box-shadow: inset 0 0 0 1px #719eed26,0 6px 24px #3d3d3d14;
         color: #001317
     }
@@ -6767,7 +6767,7 @@
     .picker-tabs button[aria-pressed="true"]:not(#\-) {
         color: #071115;
         border-color: #1e8fa1;
-        background: linear-gradient(120deg,#1f637d55,#63488d55)
+        background: linear-gradient(120deg,#4f90ab55,#9176bf55)
     }
     .picker-intro p:not(#\-) {
         color: #0f1a27
@@ -6812,7 +6812,7 @@
         -webkit-text-fill-color: transparent
     }
     .goal-milestone-mark:not(#\-) {
-        background: #748cbd66;
+        background: #92abde66;
         border-radius: 1px
     }
     .goal-milestone-note:not(#\-) {
@@ -6824,19 +6824,19 @@
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .intelligence-panel:not(#\-) {
         border: 1px solid #4386ba4f;
-        background: radial-gradient(ellipse at 0 0,#3383ad26,transparent 55%),linear-gradient(130deg,#edf0f7fa,#f0f3f8fa);
+        background: radial-gradient(ellipse at 0 0,#418fba26,transparent 55%),linear-gradient(130deg,#edf0f7fa,#f0f3f8fa);
         border-radius: 24px;
         box-shadow: 0 16px 55px #303d5513
     }
     .intelligence-status:not(#\-) {
         border: 1px solid #2a937f77;
-        background: #36a08c15;
+        background: #5ac0ab15;
         color: #116a59;
         border-radius: 99px
     }
     .intelligence-status[data-status=BEHIND]:not(#\-) {
         color: #74542a;
-        background: #b3823313;
+        background: #d4a05413;
         border-color: #aa74105f
     }
     .intelligence-metrics div:not(#\-) {
@@ -6887,7 +6887,7 @@
         background: #eff2f8
     }
     .intelligence-timeline li:not(:last-child):not(#\-):after {
-        background: #5895b430
+        background: #77b4d530
     }
     .intelligence-timeline p:not(#\-) {
         color: #0b1522
@@ -6924,7 +6924,7 @@
     }
     .intelligence-status[data-status="NO_PLAN"]:not(#\-) {
         color: #09121f;
-        background: #64779320
+        background: #7488a420
     }
     .contribution-purpose p:not(#\-), .funding-preview>p:not(#\-) {
         color: #08121e
@@ -7021,7 +7021,7 @@
     .price-chart:not(#\-) {
         border: 1px solid #777bac39;
         border-radius: 24px;
-        background: radial-gradient(ellipse at 80% 0%,#905bd414,transparent 62%),linear-gradient(155deg,#eef1f8d9,#f1f3f9e6);
+        background: radial-gradient(ellipse at 80% 0%,#9a66df14,transparent 62%),linear-gradient(155deg,#eef1f8d9,#f1f3f9e6);
         color: var(--text,#0c0f16)
     }
     .price-chart-eyebrow:not(#\-) {
@@ -7079,13 +7079,13 @@
     }
     .price-chart-ranges button[aria-pressed=true]:not(#\-) {
         color: #100e15;
-        background: linear-gradient(115deg,#328ea948,#7658a854,#b76e8742);
+        background: linear-gradient(115deg,#3893ae48,#9174c654,#b76e8742);
         border-color: #7976bf6c;
         box-shadow: 0 1px 10px #3f395033
     }
     .price-chart-ranges button:hover:not(#\-) {
         color: #0f0f0f;
-        background-color: #7e8ab715
+        background-color: #9ca8d715
     }
     .price-chart-plot:not(#\-) {
         color: #1e2534
@@ -7185,7 +7185,7 @@
         color: #0b1622
     }
     .showcase-controls:not(#\-) {
-        background: radial-gradient(at 100% 0,#804fad2b,transparent 65%),#edf2f8 !important
+        background: radial-gradient(at 100% 0,#9d6bcc2b,transparent 65%),#edf2f8 !important
     }
     .quick-add-dialog:not(#\-) {
         color: #0c0f16;
@@ -7264,7 +7264,7 @@
         background: #37a186
     }
     .markets-hero:not(#\-) {
-        background: radial-gradient(at 80% 60%,#583d6838,transparent 60%)
+        background: radial-gradient(at 80% 60%,#9679a738,transparent 60%)
     }
     .markets-intro-card:not(#\-) {
         border: 1px solid #5285b474;
@@ -7318,7 +7318,7 @@
     .life-wealth-orbit:not(#\-) {
         border: 1px solid #4889a861;
         border-radius: 24px;
-        background: radial-gradient(at 2% 100%,#277d9122,transparent 65%),linear-gradient(135deg,#ebf0f7,#f0f2f8)
+        background: radial-gradient(at 2% 100%,#4093a722,transparent 65%),linear-gradient(135deg,#ebf0f7,#f0f2f8)
     }
     .life-orbit-main p:not(#\-) {
         color: #091320
@@ -7376,18 +7376,18 @@
     }
     .attention-symbol:not(#\-) {
         border: 1px solid #9c7b3373;
-        background: #795c281f;
+        background: #a0814d1f;
         color: #6f571e;
         border-radius: 12px
     }
     .attention-count:not(#\-) {
         border-radius: 50%;
-        background: #9a7bc124;
+        background: #ad8ed524;
         color: #604e8c
     }
     .attention-clear>span:not(#\-) {
         border-radius: 50%;
-        background: #409f8820;
+        background: #62bfa620;
         color: #18695a
     }
     .attention-clear p:not(#\-) {
@@ -7408,7 +7408,7 @@
     .watch-card:not(#\-), .owned-asset-card:not(#\-) {
         border-radius: 24px;
         border: 1px solid #5587a85f;
-        background: radial-gradient(at 100% 0%,#6147aa25,transparent 62%),linear-gradient(135deg,#ebf1f6,#f0f3f9)
+        background: radial-gradient(at 100% 0%,#8972d825,transparent 62%),linear-gradient(135deg,#ebf1f6,#f0f3f9)
     }
     .watch-card:hover:not(#\-), .owned-asset-card:hover:not(#\-) {
         border-color: #238fa3c1
@@ -7477,7 +7477,7 @@
         color: #0e1926
     }
     .asset-detail-hero:not(#\-) {
-        background: radial-gradient(at 90% 0,#7453b23a,transparent 65%),#edf1f7;
+        background: radial-gradient(at 90% 0,#9070d23a,transparent 65%),#edf1f7;
         border-radius: 28px;
         border: 1px solid #4687b570
     }
@@ -7626,7 +7626,7 @@
     .wealth-category-alert:not(#\-) {
         border-left: 2px solid #9d7b29;
         color: #1b1304;
-        background: #a787410b
+        background: #c7a6600b
     }
     .wealth-category-empty>span:not(#\-) {
         color: #036771
@@ -7634,18 +7634,18 @@
     .valuation-chip:not(#\-) {
         border: 1px solid #08967b68;
         border-radius: 999px;
-        background: #36a18710;
+        background: #5ac0a610;
         color: #056a59
     }
     .valuation-chip[data-state="manual"]:not(#\-) {
         color: #0e1724;
         border-color: #24334d66;
-        background: #7c8daa0d
+        background: #94a6c30d
     }
     .valuation-chip[data-state="stale"]:not(#\-), .valuation-chip[data-state="missing"]:not(#\-) {
         color: #705622;
         border-color: #9d7b295f;
-        background: #a787410d
+        background: #c7a6600d
     }
     .wealth-loading>span:not(#\-) {
         border-radius: 50%;
@@ -7739,14 +7739,14 @@
     }
     :scope .point-tell .pt-items li:not(#\-) {
         border: 1px solid #5581c31c;
-        background: #648dcb0b;
+        background: #82acec0b;
         border-radius: 14px
     }
 }
 /*  components/portfolio/portfolio.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .portfolio-hero:not(#\-) {
-        background: radial-gradient(at 80% 40%, #3c4b8533, transparent 60%)
+        background: radial-gradient(at 80% 40%, #7182c233, transparent 60%)
     }
     .portfolio-note:not(#\-) {
         border: 1px solid #4688b15a;
@@ -7923,7 +7923,7 @@
         color: inherit
     }
     .portfolio-ranges button[aria-pressed="true"]:not(#\-) {
-        background: #6f82ea38;
+        background: #7a8ef738;
         border-color: #6a7bc2d6
     }
     .portfolio-chart-quote span:not(#\-) {
@@ -8007,7 +8007,7 @@
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .reminder-card:not(#\-) {
         border: 1px solid #4688b15a;
-        background: radial-gradient(circle at 0 0,#209bb91c,transparent 45%),linear-gradient(150deg,#ecf0f7,#eef1f8)
+        background: radial-gradient(circle at 0 0,#21bde21c,transparent 45%),linear-gradient(150deg,#ecf0f7,#eef1f8)
     }
     .reminder-card p:not(#\-) {
         color: #06101c
@@ -8028,18 +8028,18 @@
     }
     :scope .rb-group:not(#\-) {
         border-color: #5581c32b;
-        background: #648dcb07;
+        background: #82acec07;
         border-radius: 18px
     }
     :scope .rb-rows li:not(#\-) {
         border: 1px solid #5581c31c;
-        background: #648dcb0b;
+        background: #82acec0b;
         border-radius: 14px
     }
     :scope .rb-file:not(#\-) {
         border: 1px dashed #5581c35a;
         border-radius: 16px;
-        background: #648dcb07
+        background: #82acec07
     }
 }
 /*  components/search/search.css  */
@@ -8091,13 +8091,13 @@
     @media (min-width: 960px) {
         :scope .search-preview:not(#\-) {
             border-left: 1px solid #5685ad35;
-            background: radial-gradient(120% 80% at 100% 0%, #6949aa33, transparent 60%)
+            background: radial-gradient(120% 80% at 100% 0%, #8e71d533, transparent 60%)
         }
     }
     @media (min-width: 960px) {
         :scope .search-preview-mark:not(#\-) {
             border-radius: 50%;
-            background: #8d72f22e;
+            background: #9177f62e;
             color: #120c1a
         }
     }
@@ -8250,7 +8250,7 @@
     .theme-switch:not(#\-) {
         border-radius: 16px;
         border: 1px solid transparent;
-        background: linear-gradient(150deg, #f0f3f8f2, #f3f3faf2) padding-box, linear-gradient(120deg, #3e99b64d, #5f91be33 34%, #9375e24d, #a470d459) border-box;
+        background: linear-gradient(150deg, #f0f3f8f2, #f3f3faf2) padding-box, linear-gradient(120deg, #60b8d74d, #5f91be33 34%, #9678e64d, #c48ff559) border-box;
         box-shadow: inset 0 1px 0 #9e9e9e07, 0 10px 28px -18px #3d3d3d52
     }
     .theme-option:not(#\-) {
@@ -8273,11 +8273,6 @@
     }
     .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) {
         color: #0f0f0f
-    }
-    .theme-switch-compact .theme-option small:not(#\-) {
-        border-radius: 999px;
-        color: #0a1428;
-        background: linear-gradient(90deg, #172537, #718dbb)
     }
     .theme-switch-note:not(#\-) {
         color: #0e1624
@@ -8314,7 +8309,7 @@
     :scope .ss-rows li:not(#\-) {
         border: 1px solid #5581c31c;
         border-radius: 14px;
-        background: #648dcb0b
+        background: #82acec0b
     }
     :scope .ss-rows li[data-tone='error']:not(#\-) {
         border-color: #bd62518f
@@ -8691,5 +8686,4 @@
 :root[data-theme=light] .theme-option:focus-visible:not(#\-) { outline-color: #4b3fd1; }
 :root[data-theme=light] .theme-switch-compact .theme-option:not(#\-) { color: #2a3352; }
 :root[data-theme=light] .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) { color: #ffffff; }
-:root[data-theme=light] .theme-switch-compact .theme-option small:not(#\-) { color: #0a1428; background: linear-gradient(90deg, #cfe3ff, #a9c9ff); }
 :root[data-theme=light] .app-sidebar .theme-switch-note:not(#\-) { color: #dcd6f6; }

@@ -2,8 +2,9 @@ import {expect, test, type Page} from '@playwright/test';
 
 /**
  * Session AD (the owner's brief Part 3, ADR-026 F4/F5/F13): the theme bar is real. Nebula (today's look) is the default for
- * everyone and loads nothing; Light and Dark are previews with their own stylesheet. The choice is this device's, applied
- * before the first paint on every later page, the same in the Showcase; the early script carries the page's CSP nonce.
+ * everyone and loads nothing; Light and Dark have their own stylesheet. The choice is this device's, applied before the first
+ * paint on every later page, the same in the Showcase; the early script carries the page's CSP nonce. Session AE (Part 3,
+ * ADR-027 G7): Light and Dark are final; the bar and its note no longer say "preview" anywhere.
  */
 const KEY = 'zigoals:ui-prefs:v1';
 async function firstPaintTheme(page: Page) {
@@ -24,7 +25,10 @@ test('Nebula is the default: no theme attribute, no theme sheet, the middle choi
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('aria-checked', 'true');
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('title', /Customize — coming later/);
   await expect(page.locator('#appearance')).toContainText('Customize — coming later');
-  for (const name of ['Light theme (preview)', 'Dark theme (preview)']) await expect(group.getByRole('radio', {name})).toContainText('Preview');
+  // Session AE: final themes. Each is named plainly, and nothing in the bar, its tips or its note says "preview".
+  for (const name of ['Light theme', 'Dark theme']) await expect(group.getByRole('radio', {name, exact: true})).toHaveCount(1);
+  await expect(page.locator('#appearance .theme-switch-wrap')).not.toContainText(/preview/i);
+  for (const title of await group.getByRole('radio').evaluateAll(els => els.map(e => e.getAttribute('title') ?? ''))) expect(title).not.toMatch(/preview/i);
 });
 
 for (const theme of ['light', 'dark'] as const) {
@@ -32,7 +36,7 @@ for (const theme of ['light', 'dark'] as const) {
     await violations(page); await firstPaintTheme(page);
     await page.goto('/app/settings');
     await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
-    await page.locator('#appearance').getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme (preview)`}).click();
+    await page.locator('#appearance').getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme`, exact: true}).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     await expect(page.locator('#zigoals-theme-sheet')).toHaveAttribute('href', new RegExp(`^/themes/${theme}\\.css\\?v=[0-9a-f]{12}$`));
     expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), KEY))!)).toMatchObject({version: 1, theme});
@@ -51,7 +55,7 @@ for (const theme of ['light', 'dark'] as const) {
     expect(tag).not.toMatch(/\b(async|defer)\b/);
     expect(await page.evaluate(() => Reflect.get(window, '__csp'))).toEqual([]);
     // The theme bar says the same on the next page (the sidebar's; on a phone it is in More and Settings, checked above).
-    if ((page.viewportSize()?.width ?? 0) > 900) await expect(bar(page).getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme (preview)`})).toHaveAttribute('aria-checked', 'true');
+    if ((page.viewportSize()?.width ?? 0) > 900) await expect(bar(page).getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme`, exact: true})).toHaveAttribute('aria-checked', 'true');
   });
 }
 
