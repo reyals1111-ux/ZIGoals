@@ -1,3 +1,17 @@
+# Alpha deploy #43 — 2026-10-17, `11d8408` live
+Recorded by Session AE (2026-10-17).
+- **Source:** `11d8408280f4f7d5b32f12d17eeeaedd62b43b1f`, `main` after [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88) (Merge #88, Session AD, "The final look", ADR-026).
+- **CI:** Milestone quality #995 ([run 39033571400](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39033571400)) on `11d8408` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 45 ([run 39038011811](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39038011811)), dispatched 2026-10-17 13:47:28 UTC from `main`, exact source `11d8408`: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 3 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC, 14 days left). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** new version `5ee8241e-047f-4cf1-93d8-c688b4a71f29`; rollback `e3c6ba1c-14f9-4a9b-928b-e1bd57b3ce08` (#42). Owner-reported.
+- **Owner's hosted verifier on #43** (2026-10-17, ops checkout at `11d8408`, `EXPECTED_COMMIT` set): stages 1–2 PASS; stage 3 FAIL — a verifier bug, not a site bug: since Session AC (`c9273d6b`) stage 2 ends on `/app/settings`, while stage 3's `createFictionalGoal` expects Today's `.today-hero` "+ Quick add". Fixed in Session AE Part 0 (every stage opens its own page first; ADR-027). Owner-reported; the cause verified in the code.
+- **What went live:** Session AD (ADR-026) on top of AC (#42).
+- **Release identity:** live #43, previous #42. **Rollback floor:** stays #32.
+- **Record note:** run number 45 is Alpha #43 (the run number runs two ahead of the Alpha count).
+
+---
+
 # Session AD — "The final look" (ADR-026, Parts 0–5, Gate C) (2026-10-17, [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88), not merged, not deployed)
 **Evidence labels:** local = the cloud sandbox, production builds on :3101, Playwright Chromium as the Chrome channel, at most 2 workers, nothing in parallel; CI = Milestone quality on the PR head; WebKit = CI's required WebKit job. No paid model calls; fictional data only.
 **Base:** `main` `61204c3` (Alpha #42). **Rules (owner):** the brief plus four amendments at plan approval (the banner once per visit; no Python script committed for the wordmark; B7 never refusing data our builds wrote; the Q-SYNC-05 checker only while visible).
@@ -6326,7 +6340,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-17 for the [Alpha deploy #42](#alpha-deploy-42--2026-10-16-61204c3-live) record at the top of this file (recorded by Session AD). Rollback floor: #32.
+Updated 2026-10-17 for the [Alpha deploy #43](#alpha-deploy-43--2026-10-17-11d8408-live) record near the top of this file (recorded by Session AE). Rollback floor: #32.
+- Deployed source `11d8408280f4f7d5b32f12d17eeeaedd62b43b1f`, `main` after [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88) (Merge #88, Session AD). Verified: Actions API.
+- CI: Milestone quality #995 ([run 39033571400](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39033571400)) on `11d8408`: success (attempt 1). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 45 ([run 39038011811](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39038011811)), exact source `11d8408`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `5ee8241e-047f-4cf1-93d8-c688b4a71f29`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z, 14 days left); rollback `e3c6ba1c-14f9-4a9b-928b-e1bd57b3ce08` (#42). Owner-reported. The owner's hosted verifier on #43: stages 1–2 PASS, stage 3 FAIL on a verifier bug (stage order since `c9273d6b`; fixed in Session AE Part 0), not a site bug.
+
+Previous release identity (#42, 2026-10-16, recorded by Session AD):
 - Deployed source `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC). Verified: Actions API.
 - CI: Milestone quality #980 ([run 38953016185](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38953016185)) on `61204c3`: success (attempt 2; attempt 1's shard 1/4 red once on `motion-polish:50`, the known timing family). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 44 ([run 38965380164](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38965380164)), exact source `61204c3`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
