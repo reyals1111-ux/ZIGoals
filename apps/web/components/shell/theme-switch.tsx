@@ -2,8 +2,8 @@
 import {useSyncExternalStore} from 'react';
 import {THEME_EVENT, chooseTheme, readTheme} from '../../lib/ui-prefs/theme';
 import type {Theme} from '../../lib/ui-prefs/theme';
-import {THEME_NOTE} from './theme-switch-lazy';
-
+/** The line under the bar. */
+const THEME_NOTE = {compact: 'Nebula is the look you know, for everyone. Customize — coming later. Light and Dark are previews.', sidebar: 'Light and Dark: preview'} as const;
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;
 const Palette = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3.5c-4.7 0-8.5 3.6-8.5 8 0 4.5 3.8 8 8.5 8 1.1 0 1.8-.7 1.8-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.6 1.8-1.6h1.9c2.4 0 4-1.6 4-3.7 0-3.8-3.8-6.7-8.5-6.7z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.2" cy="7.5" r="1"/></g></svg>;

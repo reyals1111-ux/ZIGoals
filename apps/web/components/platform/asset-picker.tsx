@@ -1,9 +1,11 @@
 'use client';
-import {useState,type FormEvent} from 'react';
+import {lazy,Suspense,useState,type FormEvent} from 'react';
 import type {MarketCatalogAsset} from '../../lib/market-assets';
 import type {Position,AssetClass} from '../../lib/positions';
 import {manualSourcePosition,type ManualSource} from '../../lib/manual-source';
-import {AssetSearch,automaticSourcePosition,automaticUnitLabel} from './asset-search';
+import {automaticSourcePosition,automaticUnitLabel} from './asset-source';
+/** Session AD (weights): the market search loads when the picker first shows it (it is only drawn for an automatic source). */
+const AssetSearch=lazy(()=>import('./asset-search').then(m=>({default:m.AssetSearch})));
 import {AssetIcon} from './financial-ui';
 import {useMarketInsights} from './use-market-insights';
 import {marketRequestKey} from '../../lib/market-assets';
@@ -24,7 +26,7 @@ export function AssetPicker({positions=[],onExisting,onDraft,onFavourite,initial
  }catch(e){setError(e instanceof Error?e.message:'Check the asset details.');}}
  return <div className="asset-picker"><div className="picker-intro"><h3>{onFavourite?'Markets you care about':'Choose an asset'}</h3><p>{onFavourite?'Follow a price without adding it to your wealth.':'Use an asset you already track, or add something new.'}</p></div><div className="picker-tabs" role="group" aria-label="Asset categories">{categories.filter(c=>onDraft||onFavourite||c==='Existing assets').filter(c=>c!=='Existing assets'||!!onExisting).filter(c=>!onFavourite||!['Existing assets','Cash','Property','Custom'].includes(c)).map(c=><button type="button" key={c} aria-pressed={category===c} onClick={()=>choose(c)}>{c}</button>)}</div>
  {category==='Existing assets'?<div className="picker-existing">{positions.filter(p=>!p.archivedAt).map(p=><button key={p.id} type="button" onClick={()=>onExisting?.(p)}><AssetIcon symbol={p.asset} kind={p.assetClass} logoUrl={p.marketRef?insights.results[marketRequestKey({marketRef:p.marketRef,currency:'USD'})]?.insight?.logoUrl:null}/><span><strong>{p.providerId}</strong><small>{shownAmount(p.quantity,p.decimals)} {p.asset} · {p.valuation?.source==='MANUAL'||p.valuationMode==='manual'?'Manual value':p.marketRef&&p.valuationMode==='automatic'?'Automatic price':p.valuation?'Recorded value':'Needs valuation'}</small></span></button>)}{!positions.filter(p=>!p.archivedAt).length&&<p>No assets yet. Choose a category to add your first.</p>}</div>:<>
- {automatic&&<AssetSearch category={category} selected={selected} onSelect={a=>{setSelected(a);setCurrency('USD');}} onManual={()=>setManual(true)}/>}
+ {automatic&&<Suspense fallback={<p className="fine" aria-live="polite">Loading the market search…</p>}><AssetSearch category={category} selected={selected} onSelect={a=>{setSelected(a);setCurrency('USD');}} onManual={()=>setManual(true)}/></Suspense>}
  {onFavourite&&selected&&<button className="primary" type="button" onClick={()=>onFavourite(selected)}>Add {selected.name} to favourites</button>}
  {!onFavourite&&(!automatic||selected)&&<form className="picker-draft-form" onSubmit={create} key={`${category}:${manual}:${selected?.ref.id??''}`}>
  {selected&&automatic&&<div className="picker-selected wide"><AssetIcon symbol={selected.symbol} kind={category} logoUrl={insights.results[marketRequestKey({marketRef:selected.ref,currency:'USD'})]?.insight?.logoUrl}/><div><h3>{selected.name}</h3><p>{selected.symbol.toUpperCase()} · {category} · {selected.ref.kind==='rwa'?'CoinGecko tokenized RWA reference':'CoinGecko'}</p></div></div>}

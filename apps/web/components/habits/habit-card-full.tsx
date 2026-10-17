@@ -19,7 +19,6 @@ import { formatDate, formatDateTime, formatMonth, formatNumber } from "../../lib
 import { unitFor } from "../../lib/plural";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 import { ChallengeControls, ChallengeFinished, ChallengeLine } from "./habit-challenge";
-import { HabitPatterns } from "./habit-patterns";
 import { habitsZone } from "../../lib/habits-v2/stats";
 import {useHabitExtrasContext} from './habit-extras-context';
 import './habits-aa.css';
@@ -32,6 +31,8 @@ const QuitPanel = lazy(() => import('./quit-panel').then(m => ({default: m.QuitP
 const TodayNote = lazy(() => import('./today-note').then(m => ({default: m.TodayNote})));
 const Reflections = lazy(() => import('./today-note').then(m => ({default: m.Reflections})));
 const HabitDeleteForm = lazy(() => import("./habit-delete-form"));
+// Session AD (weights): the patterns sit inside the closed "Consistency & trends" and load as their own chunk.
+const HabitPatterns = lazy(() => import('./habit-patterns').then(m => ({default: m.HabitPatterns})));
 /** Which cards have their details open, by habit id: a card that remounts (the list re-keys after a save, a layout change, a client re-render) opens again as it was. Memory only. */
 const DETAILS_OPEN = new Map<string, boolean>();
 
@@ -93,7 +94,7 @@ function HabitInsights({ habit, today, zone }: { habit: Habit; today: string; zo
     <div className="habit-metrics"><div><strong>{stats.currentStreak}<span> {unitFor(stats.currentStreak, stats.streakUnit)}</span></strong><small>Current streak</small></div><div><strong>{stats.bestStreak}<span> {unitFor(stats.bestStreak, stats.streakUnit)}</span></strong><small>Personal best</small></div><div><strong>{stats.completionPercentage}<span>%</span></strong><small>Completion</small></div></div>
     <div className="habit-trends">{trends.map((trend) => <div key={trend.period}><span><b>{trend.period}</b><small>{trend.success}/{trend.total}</small></span><GlassBar identity={`habit-trends:${habit.id}:${trend.period}`} className="habit-trend-track" aria-hidden="true" value={trend.percentage / 100} /><strong>{trend.percentage}%</strong></div>)}</div>
     <p className="habit-distribution"><span>✓ {stats.successCount} success</span><span>× {stats.failCount} failed</span><span>○ {stats.skipCount} skipped</span></p>
-    <HabitPatterns habit={habit} today={today} zone={zone} />
+    <Suspense fallback={null}><HabitPatterns habit={habit} today={today} zone={zone} /></Suspense>
   </div>;
 }
 
