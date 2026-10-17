@@ -23,7 +23,7 @@ beforeEach(async () => {
 });
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); });
 
-test('the app\'s simulated wallet in ZIG first, with no request; another currency asks the market service and, without a price, says unavailable', async () => {
+test('the app\'s simulated wallet in ZIG first, with no request; practice money is never shown in another currency (unavailable, with why, still no request)', async () => {
   await act(async () => root.render(createElement(GoalProvider, null, createElement(WalletCard, {plainWords: true}))));
   await vi.waitFor(async () => { await act(async () => {}); expect(card().querySelector('.wallet-card-currency')).not.toBeNull(); });
   expect(card().querySelector('.account-value')!.textContent).toBe('1,000 ZIG');
@@ -34,9 +34,9 @@ test('the app\'s simulated wallet in ZIG first, with no request; another currenc
   expect(card().querySelector('select')).toBeNull();
   await settle(); expect(requests).toEqual([]);
   await act(async () => { buttons[1]!.click(); }); await settle(); await settle();
-  expect(requests.some(r => r.startsWith('POST /api/market-quotes ') && r.includes('"id":"zignaly"') && r.includes('"currency":"USD"'))).toBe(true);
-  expect(requests.join(' ')).not.toMatch(/bitcoin/);
-  await vi.waitFor(async () => { await act(async () => {}); expect(card().querySelector('.account-value')!.textContent).toBe('USD unavailable'); expect(card().textContent).toContain('so nothing is estimated'); });
+  // ADR-027: practice money has no market value — no price is asked for and no amount is shown.
+  expect(requests).toEqual([]);
+  await vi.waitFor(async () => { await act(async () => {}); expect(card().querySelector('.account-value')!.textContent).toBe('USD unavailable'); expect(card().textContent).toContain('Practice money has no market value'); });
   expect(card().textContent).not.toMatch(/\$0|0\.00/);
   expect(JSON.parse(localStorage.getItem(LINKED_WALLETS_KEY)!)).toEqual({version: 1, display: 'USD'});
 });

@@ -1,28 +1,24 @@
 'use client';
 import {useId, useState} from 'react';
-import {TESTNET} from '@zigoals/chain-config';
-import {useMarketQuotes} from '../platform/use-market-quotes';
 import {useLinkedWallets} from './use-linked-wallets';
 import {WalletCardFrame, useAppWallet} from './wallet-card';
 import {DISPLAY_CURRENCIES, LinkedWalletError, displayOf, selectedOf, withDisplay, withSelected, type DisplayCurrency} from '../../lib/linked-wallets';
 import {shortAddress} from '../../lib/wallet-address';
-import {displayRequests, displayValue} from '../../lib/wallet-display';
-import {formatExactNumber, formatMoney} from '../../lib/visual-format';
 
 const KIND_WORDS = {cosmos: 'ZIGChain address', evm: 'EVM address', btc: 'Bitcoin address'} as const;
 /**
  * Session AE (Part 6, ADR-027): Today's wallet card with its two choices, kept in the linked-wallets record on this device:
  * which wallet it shows (the app's own, or one linked read-only) and the display currency (ZIG, USD, EUR or BTC) from the
  * prices the app already reads (lib/wallet-display.ts). A price that is missing or old reads "unavailable", never 0. The
- * app's wallet asks for a price only once a currency other than ZIG is chosen, and never on testnet (testnet ZIG has no
- * market price). A linked address shows itself, shortened (whole in its title); its balance is not read. The Showcase keeps
+ * app's own wallet is practice money (the local demo) or testnet ZIG: neither has a market value, so in USD, EUR or BTC it
+ * reads "unavailable" with that reason and no price is asked for (ADR-027: a dollar figure for practice money would
+ * contradict "Practice money (no real value)"). The conversion itself (lib/wallet-display.ts) waits for the staking session's
+ * real balances. A linked address shows itself, shortened (whole in its title); its balance is not read. The Showcase keeps
  * its simulated wallet and its line; there the switch changes this view only (nothing is written) and no chooser shows.
  */
 export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
   const app = useAppWallet(plainWords), linked = useLinkedWallets(), id = useId(), [error, setError] = useState(''), [tour, setTour] = useState<DisplayCurrency>('ZIG');
   const display = linked.showcase ? tour : displayOf(linked.data), chosen = selectedOf(linked.data), wallet = linked.wallets.find(w => w.id === chosen);
-  const priced = !wallet && app.local && display !== 'ZIG';
-  const market = useMarketQuotes(priced ? displayRequests(display) : false);
   const save = (change: Parameters<typeof linked.write>[0]) => { try { linked.write(change); setError(''); } catch (e) { setError(e instanceof LinkedWalletError ? e.message : 'This device refused to save that choice.'); } };
   const choose = (c: DisplayCurrency) => { if (linked.showcase) setTour(c); else save(r => withDisplay(r, c)); };
 
@@ -38,9 +34,7 @@ export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
   if (wallet) return <WalletCardFrame pill="Read-only" value={<strong className="account-value wallet-card-address" title={wallet.address}>{shortAddress(wallet.address)}</strong>}
     lines={<p>{wallet.label} · {KIND_WORDS[wallet.kind]}<br/>Balance tracking arrives with the staking session.</p>} controls={controls}/>;
   if (display === 'ZIG') return <WalletCardFrame pill={app.pill} value={app.zig} lines={<p>{app.line}</p>} controls={controls}/>;
-  const value = app.local ? displayValue(app.balance, TESTNET.nativeAsset.decimals, display, market.quotes, market.now) : {state: 'unavailable' as const};
-  const shown = value.state === 'value' ? <strong className="account-value">≈ {value.unit === 'BTC' ? <>{formatExactNumber(value.amount)} <span>BTC</span></> : formatMoney(value.amount, value.unit)}</strong>
-    : <strong className="account-value wallet-card-unavailable" aria-describedby={`${id}-why`}>{display} unavailable</strong>;
-  const why = value.state === 'value' ? `At ZIG’s market price${display === 'BTC' ? ' and Bitcoin’s, in USD' : ''}` : !app.local ? 'Testnet ZIG has no market price.' : market.loading ? 'Reading the price…' : `No current ZIG price in ${display === 'BTC' ? 'USD and Bitcoin' : display}, so nothing is estimated.`;
+  const shown = <strong className="account-value wallet-card-unavailable" aria-describedby={`${id}-why`}>{display} unavailable</strong>;
+  const why = app.local ? 'Practice money has no market value, so it is never shown in another currency.' : 'Testnet ZIG has no market price.';
   return <WalletCardFrame pill={app.pill} value={shown} lines={<p>{app.line}<br/><span id={`${id}-why`}>{why}</span></p>} controls={controls}/>;
 }
