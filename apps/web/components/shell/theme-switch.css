@@ -34,3 +34,9 @@
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
 @media (max-width: 767.98px) { .theme-switch-slot-compact { min-height: 148px; } }
 @media (max-width: 900px) { .app-sidebar .theme-switch-slot { display: none; } }
+/* Session AE (Part 3.5, ADR-027): a theme switch is one short colour cross-fade of the whole page (lib/ui-prefs/theme.ts
+   starts it only where the browser has view transitions and motion is welcome, and only once the new sheet is in). This
+   sheet loads with the bar, the only place a switch starts. Opacity only; none under reduced motion or Motion Off. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
+:root[data-app-motion=off]::view-transition-old(root), :root[data-app-motion=off]::view-transition-new(root) { animation: none; }

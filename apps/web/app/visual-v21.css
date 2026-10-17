@@ -52,7 +52,11 @@ body { background: var(--cosmic-dark); }
 .app-content::after { content: ''; position: absolute; inset: -120px 0 0; z-index: -1; pointer-events: none; background:
   linear-gradient(180deg, #020918 0, #020918 calc(max(240px, 30vh) + 120px), #020918e0 calc(46vh + 120px), #020918a8 66vh, #02091862 88vh, #02091824 110vh, #02091800 130vh) top / 100% 130vh no-repeat,
   linear-gradient(0deg, #020918 0, #020918 12vh, #020918d0 34vh, #02091880 58vh, #02091830 84vh, #02091800 110vh) bottom / 100% 110vh no-repeat; }
-.app-sidebar { background: linear-gradient(180deg, #020916ed 30%, #02091655 80%, #020916), var(--cosmic-space) 65% center / auto 100% no-repeat; border-right-color: var(--cosmic-edge); }
+/* Session AE (Part 4, ADR-027): the sidebar's sky in the pages' manner (it was a 700 px raster stretched to the window's
+   height): one clean colour behind the logo and the first buttons, crisp vector stars easing in from the middle down, a
+   calm foot behind the page mark, the planet and the theme bar. Every layer scrolls with the sidebar's content and is
+   pinned to its end, so the stars sit behind the same buttons at every window height (art-src/sidebar-sky.mjs). */
+.app-sidebar { background: url('/art/v24/sidebar-stars.svg') center bottom / 240px 1100px no-repeat local, linear-gradient(0deg, #030a1b 0, #030a1b 300px, #060b23 560px, #050a20 700px, #020916 930px) local, #020916; border-right-color: var(--cosmic-edge); }
 .app-sidebar .brand .brand-wordmark, .brand-wordmark { display: inline-block; color: transparent; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; font-size: 37px; font-weight: 750; letter-spacing: -2px; filter: drop-shadow(0 0 10px #4897ff30); }
 .app-sidebar .brand .brand-wordmark > span, .brand-wordmark > span { color: inherit; font-weight: inherit; }
 .product-descriptor { color: #b3cff2; font-size: 14px; padding-top: 12px; letter-spacing: .065em; }
@@ -191,7 +195,8 @@ body { background: var(--cosmic-dark); }
 @media (max-width: 1100px) { .app-sidebar .brand .brand-wordmark { font-size: 33px; }.product-descriptor { font-size: 14px; } }
 @media (max-width: 1000px) { .today-layout { grid-template-columns: minmax(0, 1fr); }.today-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }.today-hero { min-height: 370px; }.today-hero h1 { font-size: 49px; }.today-goals-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.destination-panel { grid-column: 2; grid-row: 1 / span 2; }.account-panel { min-height: 220px; }.destination-panel { padding-top: 55px; } }
 @media (min-width: 541px) and (max-width: 1100px) { .today-hero::before, .today-hero::after { inset-inline: -20px; } }
-@media (max-width: 900px) { .app-sidebar { background-position: center 34%; background-size: cover; }.app-sidebar .brand .brand-wordmark { font-size: 34px; }.app-nav { margin-top: 12px; gap: 5px; }.app-topbar .network-banner { max-width: none; }.app-topbar .wallet-connect { min-width: 144px; } }
+/* Session AE (Part 4): at 768–900 px the sidebar is the page's header (logo and buttons), so it wears the page's own clean top colour. */
+@media (max-width: 900px) { .app-sidebar { background: var(--cosmic-dark); }.app-sidebar .brand .brand-wordmark { font-size: 34px; }.app-nav { margin-top: 12px; gap: 5px; }.app-topbar .network-banner { max-width: none; }.app-topbar .wallet-connect { min-width: 144px; } }
 @media (max-width: 540px) {
   :root { --cosmic-hero: url('/art/v21/hero-mobile.webp'); }
   .app-sidebar .brand .brand-wordmark { font-size: 32px; letter-spacing: -1.6px; }

@@ -1,0 +1,10 @@
+/* Session AE (Part 3, ADR-027): Dark's sidebar — the same sky as Nebula's, deeper: a near-black ground (never plain black)
+   and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
+:root[data-theme=dark] .app-sidebar:not(#\-) {
+  background: linear-gradient(#03040b9e, #03040b9e) local,
+    url('/art/v24/sidebar-stars.svg') center bottom / 240px 1100px no-repeat local,
+    linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #050614 700px, #03040b 930px) local,
+    #03040b;
+  /* At 768–900 px the sidebar is the page's header: one clean near-black, like the page's top. */
+  @media (max-width: 900px) { background: #03040b; }
+}

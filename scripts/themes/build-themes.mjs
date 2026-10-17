@@ -24,8 +24,9 @@ const postcss = require(require.resolve('postcss', {paths: [require.resolve('nex
 
 /** The global sheets in the order app/layout.tsx imports them; every other sheet follows in path order. */
 const GLOBAL_ORDER = ['app/globals.css', 'app/visual-theme.css', 'app/product-v2.css', 'app/visual-v21.css', 'app/product-beta.css', 'components/motion.css', 'components/design-system.css', 'components/ui/ui.css', 'components/ui/touch-targets.css', 'components/ui/premium.css'];
-/** Light keeps these dark: cosmic artwork with light text on it. */
-export const ISLANDS = ['.today-hero', '.site-footer', '.app-sidebar', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.theme-switch-wrap', '.goal-card-art'];
+/** Light keeps these dark: cosmic artwork with light text on it. Session AE (Part 3, ADR-027): the sidebar and the theme bar
+ *  take Light's own colours (apps/web/themes/light.sidebar.css draws its dawn sky); only its planet foot stays night. */
+export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art'];
 
 export function sourceFiles() {
   const out = [];
