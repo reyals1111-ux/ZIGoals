@@ -12,7 +12,7 @@ import {buildShowcase} from '../showcase-data';
 import {habitDataSchema, HABITS_KEY} from '../habits';
 import {healthSchema, HEALTH_STORAGE_KEY} from '../health';
 import {insightCards} from './engine';
-import {EARLIER_FIRST, EARLIER_LAST} from './showcase';
+import {EARLIER_FIRST, EARLIER_HABIT_ID, EARLIER_LAST} from './showcase';
 
 const TODAY = '2026-10-31', UTC = 'UTC', HABIT = '92000000-0000-4000-8000-000000000401';
 const deviceZone = process.env.TZ;
@@ -55,20 +55,31 @@ describe('crossPillarInsights (Session AA-Cloud Part 5)', () => {
     expect(ready).toEqual([]);
     expect(pending.every(p => p.withA === 0 && p.withoutA === 0)).toBe(true);
   });
-  test('the Showcase (Part 8): two pairings pass 14 days a side from its earlier season; the 60-day insights and the last 30 days are unchanged', () => {
+  test('the Showcase (Part 8; Session AD item 13): three pairings pass 14 days a side from its earlier season, "Sleep and habits" among them; the 60-day insights and the last 30 days are unchanged', () => {
     process.env.TZ = UTC;
     const day = '2026-10-12', {records} = buildShowcase(day, UTC);
     const habits = habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)), health = healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!));
     const {ready, pending} = crossPillarInsights({habits, health, today: day});
-    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days])).toEqual([['steps-sleep', 24, 31], ['water-sleep', 29, 27]]);
-    for (const i of ready) expect(i.sentence).toMatch(/^On days you (walked at least 8,000 steps|logged water), you slept \d+ h( \d+ min)? that night on average; on (other days|days without), \d+ h( \d+ min)?\.$/);
-    expect(pending.map(p => [p.id, p.withA, p.withoutA])).toEqual([['sleep-habits', 4, 23], ['water-habits', 12, 18]]);
+    expect(ready.map(i => [i.id, i.withA.days, i.withoutA.days])).toEqual([['steps-sleep', 24, 31], ['water-sleep', 29, 27], ['sleep-habits', 19, 37]]);
+    for (const i of ready.filter(i => i.id !== 'sleep-habits')) expect(i.sentence).toMatch(/^On days you (walked at least 8,000 steps|logged water), you slept \d+ h( \d+ min)? that night on average; on (other days|days without), \d+ h( \d+ min)?\.$/);
+    // Sleep and habits (Session AD item 13): ready, each side at least 14 days, a modest difference said as a pairing.
+    const sleepHabits = ready.find(i => i.id === 'sleep-habits')!;
+    expect(sleepHabits.withA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE); expect(sleepHabits.withoutA.days).toBeGreaterThanOrEqual(CROSS_MIN_PER_SIDE);
+    expect(sleepHabits.sentence).toBe('On days after a night of at least 8 h of sleep, you completed 95% of your scheduled habits; after shorter nights, 90%.');
+    // Water and habits passes too (32 and 28 days, 91% and 93%), the weakest of four, so the card's three leave it out.
+    expect(pending).toEqual([]);
+    const all = crossPillarInsights({habits, health, today: day, max: 4}).ready.find(i => i.id === 'water-habits')!;
+    expect([all.withA.days, all.withoutA.days, all.sentence]).toEqual([32, 28, 'On days you logged water, you completed 91% of your scheduled habits; on days without, 93%.']);
+    // The season's one habit: 30 days within the season, archived since the day after it.
+    const stretch = habits.habits.find(h => h.id === EARLIER_HABIT_ID)!;
+    expect(stretch.entries.map(e => e.date)).toEqual(Array.from({length: 30}, (_, k) => addLocalDays(day, EARLIER_FIRST + k)));
+    expect(stretch.rules.map(r => [r.from, r.state])).toEqual([[addLocalDays(day, EARLIER_FIRST), 'active'], [addLocalDays(day, EARLIER_LAST + 1), 'archived']]);
     // The earlier season ends 60 days back: nothing in the older insights' 60-day window comes from it.
     const earlier = [...health.activity.filter(a => a.id.includes('earlier')).map(a => a.date), ...(health.daily?.water ?? []).filter(w => w.id.includes('earlier')).map(w => w.date), ...(health.sleep?.nights ?? []).filter(n => n.id.includes('earlier')).map(n => n.end!.slice(0, 10))];
     expect(earlier.length).toBe(30 + 20 + 29);
     expect(earlier.every(d => d >= addLocalDays(day, EARLIER_FIRST) && d <= addLocalDays(day, EARLIER_LAST))).toBe(true);
     const without = {...health, activity: health.activity.filter(a => !a.id.includes('earlier')), daily: {...health.daily!, water: health.daily!.water.filter(w => !w.id.includes('earlier'))}, sleep: {...health.sleep!, nights: health.sleep!.nights.filter(n => !n.id.includes('earlier'))}};
-    expect(insightCards({habits, health, today: day})).toEqual(insightCards({habits, health: without, today: day}));
+    expect(insightCards({habits, health, today: day})).toEqual(insightCards({habits: {...habits, habits: habits.habits.filter(h => h.id !== EARLIER_HABIT_ID)}, health: without, today: day}));
   });
   test('water and sleep: the night after a day with water against the night after a day without', () => {
     process.env.TZ = UTC;

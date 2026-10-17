@@ -26,7 +26,7 @@ import {showcaseHabitsAa,showcaseHabitExtras} from './habits-extras/showcase';
 import {showcaseHealthAa,showcaseHealthAaDevice} from './health-aa/showcase';
 import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
-import {withEarlierSeason} from './insights/showcase';
+import {withEarlierHabit,withEarlierSeason} from './insights/showcase';
 import {CALCULATOR_KEY} from './compound/store';
 import {showcaseCalculator} from './compound/showcase';
 import {LIFE_REVIEW_KEY} from './life-review/store';
@@ -126,6 +126,8 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  records[HEALTH_STORAGE_KEY]=JSON.stringify(healthSchema.parse(withHealthGroup(withHealthGroup(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),'sleep',showcaseSleep(day),false),'meditation',showcaseMeditation(day),false)));
  // Session AA-Cloud Part 8: an earlier fictional season (60 to 89 days back) so the cross-pillar pairings have counts.
  records[HEALTH_STORAGE_KEY]=JSON.stringify(withEarlierSeason(healthSchema.parse(JSON.parse(records[HEALTH_STORAGE_KEY]!)),day));
+ // Session AD item 13: the season's one habit, archived since, so "Sleep and habits" has 14 days a side (lib/insights/showcase.ts).
+ records[HABITS_KEY]=JSON.stringify(withEarlierHabit(habitDataSchema.parse(JSON.parse(records[HABITS_KEY]!)),day));
  // Session AA-Local Part 7 (ADR-022, owner edit 6): one call per module. Habits best in class (sections, six weeks, a quit habit, a routine, a running timer),
  // Health best in class (six weeks of weights, micronutrients, recipes, a planned week, measurements), and the device records beside them (habit extras,
  // the game layer ON in the Showcase with one unseen celebration, the coach, micro targets, the macro view, custom measurements, the reminders plan).

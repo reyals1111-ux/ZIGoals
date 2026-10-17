@@ -28,7 +28,7 @@ test("a Showcase export is named showcase-demo, and restoring it into real data 
   const demo = await exportHabits(page);
   // Export names carry the local date (QA-26).
   expect(demo.name).toBe(`zigoals-showcase-demo-habits-backup-${await today(page)}.json`);
-  expect(JSON.parse(demo.text).habits).toHaveLength(7); // Session AA-Local Part 7 (deliberate): the Showcase's quit habit (ADR-022 B42)
+  expect(JSON.parse(demo.text).habits).toHaveLength(8); // Session AA-Local Part 7 (deliberate): the Showcase's quit habit (ADR-022 B42); Session AD item 13: the earlier season's archived habit
 
   await page.getByRole("button", { name: "Return to my data", exact: true }).click();
   await expect(page.getByRole("button", { name: "Load Showcase Demo", exact: true })).toBeVisible();

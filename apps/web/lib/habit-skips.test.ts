@@ -1,5 +1,6 @@
 import {afterEach, describe, expect, test} from 'vitest';
 import {buildShowcase} from './showcase-data';
+import {EARLIER_HABIT_ID} from './insights/showcase';
 import {powerUserRecords} from './vault/power-user-fixture';
 import {HABITS_KEY, clearVacation, createHabit, emptyHabitData, habitCalendarDay, habitDataSchema, habitDay, habitRuleOn, habitStats, logHabitCount, planSkip, setHabitEntryStatus, setVacation, unplanSkip, upcomingVacation, type Habit, type HabitData, type HabitInput} from './habits';
 import {addLocalDays} from './local-date';
@@ -102,9 +103,11 @@ describe('vacation', () => {
     process.env.TZ = 'UTC';
     const now = at('2026-10-01'), data = habitDataSchema.parse(JSON.parse(buildShowcase('2026-10-01').records[HABITS_KEY]!));
     const marked = setVacation(data, {from: '2026-10-05', to: '2026-10-11'}, now);
+    // Session AD item 13: the Showcase's earlier-season habit is archived, and a vacation leaves an archived habit alone.
+    expect(marked.habits.filter(h => habitRuleOn(h, '2026-10-05')?.state === 'archived').map(h => h.id)).toEqual([EARLIER_HABIT_ID]);
     for (const habit of marked.habits) {
       const vacation = habit.entries.filter(e => e.note === 'Vacation');
-      expect(vacation.map(e => e.date)).toEqual(['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11']);
+      expect(vacation.map(e => e.date)).toEqual(habit.id === EARLIER_HABIT_ID ? [] : ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10', '2026-10-11']);
       expect(vacation.every(e => e.disposition === 'skipped' && e.count === 0)).toBe(true);
       const before = data.habits.find(h => h.id === habit.id)!;
       expect(habit.entries.filter(e => e.date <= '2026-10-01')).toEqual(before.entries.filter(e => e.date <= '2026-10-01'));
