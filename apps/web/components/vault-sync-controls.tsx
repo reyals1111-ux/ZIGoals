@@ -1,4 +1,5 @@
 'use client';
+import type {RevocationCheck} from '../lib/vault/revocation-check';
 import {forgetPushOnThisDevice} from '../lib/push/device';
 import {forgetAiAccount} from '../lib/ai/account';
 import {forgetZigiFace} from '../lib/z-device-forget';
@@ -436,7 +437,11 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  // request, and stands down while the reopen above runs. A definitive denial goes through accessDenied, as a reopen's does.
  const deniedRef=useRef(accessDenied);
  useEffect(()=>{deniedRef.current=accessDenied;});
- useEffect(()=>{if(!remembered||isShowcase())return;let live=true,stop:(()=>void)|undefined;void import('../lib/vault/revocation-check').then(m=>{if(live)stop=m.watchRevocation(code=>deniedRef.current(code),()=>reopening.current);},()=>{});return()=>{live=false;stop?.();};},[remembered]);
+ // One check for the provider's life (Session AD security review): a change of the remembered state refreshes it, so a
+ // drop that failed is retried on the next show or focus and an in-flight denial is never thrown away; it stops on unmount.
+ const revocation=useRef<Promise<RevocationCheck|null>|null>(null);
+ useEffect(()=>{if(isShowcase())return;if(revocation.current){void revocation.current.then(check=>check?.refresh());return;}if(!remembered)return;revocation.current=import('../lib/vault/revocation-check').then(m=>m.watchRevocation(code=>deniedRef.current(code),()=>reopening.current),()=>null);},[remembered]);
+ useEffect(()=>()=>{const loaded=revocation.current;revocation.current=null;void loaded?.then(check=>check?.stop());},[]);
  return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud,extras,setExtrasEnabled,removeExtrasCloud,sections,portfolioAt}}>{children}</Context.Provider>;
 }
 /** Public status only; keys, recovery material and private records never leave the provider. */

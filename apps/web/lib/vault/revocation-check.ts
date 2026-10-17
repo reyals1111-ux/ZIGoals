@@ -86,7 +86,6 @@ export function startRevocationCheck(options:RevocationCheckOptions):RevocationC
  * The provider's one call (components/vault-sync-controls.tsx), kept here so the code every page loads stays small: a check
  * for this browser's remembered record, standing down while the provider's own reopen runs and in the Showcase.
  */
-export function watchRevocation(denied:RevocationCheckOptions['denied'],reopening:()=>boolean):()=>void{
- const check=startRevocationCheck({known:true,hasRecord:()=>readDevices().then(records=>records.length>0),denied,paused:()=>reopening()||isShowcase()});
- return ()=>check.stop();
+export function watchRevocation(denied:RevocationCheckOptions['denied'],reopening:()=>boolean):RevocationCheck{
+ return startRevocationCheck({known:true,hasRecord:()=>readDevices().then(records=>records.length>0),denied,paused:()=>reopening()||isShowcase()});
 }
