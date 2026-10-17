@@ -8,6 +8,9 @@ import {GOAL_EXTRAS_KEY, goalExtrasSchema} from '../goal-extras/store';
 import {buildShowcase, showcaseChoices} from '../showcase-data';
 import {EXTRAS_SECTIONS} from './extras-sections';
 import {applySection, collectSection, mergeSection} from './extras-sync';
+import {LAYOUT_KEY, emptyLayout, serializeLayout, setRegionOrder} from '../page-layout';
+import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
+import {linkedWalletsSchema} from '../linked-wallets';
 
 /**
  * Session AB-Cloud (ADR-023): the records this build writes, for the frozen-reader proof (scripts/frozen-readers.mjs
@@ -59,7 +62,17 @@ export function frozenFixture() {
     for (const r of section.records) if (a.has(r.spec.key) && r.spec.key !== GOAL_EXTRAS_KEY) { records[r.spec.key] = a.get(r.spec.key)!; checks.push({key: r.spec.key, ...FROZEN_READERS[r.spec.key]!}); }
     if (section.name === 'goals') { records[GOAL_EXTRAS_KEY + '#merged'] = a.get(GOAL_EXTRAS_KEY)!; checks.push({key: GOAL_EXTRAS_KEY + '#merged', module: './goal-extras/store', spec: 'GOAL_EXTRAS', expect: {[`goals.${first}.cardArt`]: 'aurora-2'}}); }
   }
-  return {records, checks, finance: {accounts: 1, dates: 1}};
+  // Session AE (ADR-027 G14, TIER 3 storage): Habits' layout as this build saves it after a move, with Routines
+  // (`habits:routines`) as its own block. Older builds read the record, show their own blocks (the new id ignored), and
+  // keep the new id when they save a move of their own (lib/page-layout.ts, unchanged since #32).
+  const layout = setRegionOrder(emptyLayout(), 'habits', 'body', ['habits:overview', 'habits:list', 'habits:routines', 'habits:consistency', 'habits:rhythm']);
+  records[LAYOUT_KEY] = serializeLayout(layout);
+  // Session AE (ADR-027 G16, TIER 3 storage): the device-only record of wallets linked read-only (fictional addresses).
+  // No older build has a reader: the key is ignored there (and never synced or restored here).
+  const linked = linkedWalletsSchema.parse({version: 1, display: 'USD', wallets: [{kind: 'btc', address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', label: 'BIP-173 test vector', addedAt: '2026-10-17T08:00:00.000Z'}]});
+  records[LINKED_WALLETS_KEY] = JSON.stringify(linked);
+  checks.push({key: LINKED_WALLETS_KEY, module: './linked-wallets', spec: 'LINKED_WALLETS', expect: {display: 'USD'}});
+  return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
 test('the frozen-reader fixture is read by this build', () => {
@@ -68,7 +81,10 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY].sort());
+  // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
+  expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
+  expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
   // Each record parses with this build's schema, and device B's three edits survived the merge.
   for (const section of EXTRAS_SECTIONS) for (const r of section.records) r.spec.schema.parse(JSON.parse(fixture.records[r.spec.key === GOAL_EXTRAS_KEY ? `${GOAL_EXTRAS_KEY}#merged` : r.spec.key]!));
   const merged = fixture.checks.find(c => c.key === `${GOAL_EXTRAS_KEY}#merged`)!;
