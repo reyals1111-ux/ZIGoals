@@ -17,6 +17,8 @@ export type Theme = typeof THEMES[number];
 export const themeOf = (prefs: Pick<UiPrefs, 'theme'> | null | undefined): Theme => (THEMES as readonly string[]).includes(prefs?.theme ?? '') ? prefs!.theme as Theme : 'nebula';
 export const THEME_EVENT = 'zigoals-theme';
 const LINK_ID = 'zigoals-theme-sheet';
+/** The in-app Motion setting's device key (components/use-entrance.ts names it too; not imported, so no client CSS comes along). */
+const MOTION_KEY = 'zigoals:motion:v1';
 
 export function readTheme(storage: Pick<Storage, 'getItem'> | null = safeLocal()): Theme {
   try { const raw = storage?.getItem(UI_PREFS_KEY); if (!raw) return 'nebula'; const parsed = uiPrefsSchema.safeParse(JSON.parse(raw)); return parsed.success ? themeOf(parsed.data) : 'nebula'; } catch { return 'nebula'; }
@@ -30,21 +32,55 @@ export function writeTheme(theme: Theme, storage: Pick<Storage, 'getItem' | 'set
   if (theme === 'nebula') delete next.theme; else next.theme = theme;
   storage.setItem(UI_PREFS_KEY, JSON.stringify(next));
 }
-/** Puts a theme on the page now: the attribute on <html> and the theme's own stylesheet (none for Nebula). */
-export function applyTheme(theme: Theme, doc: Document = document): void {
+/** Session AE (Part 3.5): how long a switch waits for the new sheet before showing the page anyway (the early script's hold). */
+const SHEET_WAIT_MS = 1500;
+/**
+ * Puts a theme on the page now: the attribute on <html> and the theme's own stylesheet (none for Nebula). Session AE (Part
+ * 3.5, ADR-027): it settles once the page shows that theme in full — at once for Nebula or a sheet already in place, else
+ * when the sheet has loaded, or after 1.5 s. A sheet that fails leaves the page whole in Nebula, as the early script does
+ * (no attribute, no link), unless another theme was chosen meanwhile.
+ */
+export function applyTheme(theme: Theme, doc: Document = document): Promise<void> {
   const root = doc.documentElement;
   if (theme === 'nebula') delete root.dataset.theme; else root.dataset.theme = theme;
   const href = theme === 'nebula' ? null : THEME_SHEETS[theme];
   let link = doc.getElementById(LINK_ID) as HTMLLinkElement | null;
-  if (!href) { link?.remove(); return; }
-  if (link?.getAttribute('href') === href) return;
+  if (!href) { link?.remove(); return Promise.resolve(); }
+  if (link?.getAttribute('href') === href) return Promise.resolve();
   if (!link) { link = doc.createElement('link'); link.id = LINK_ID; link.rel = 'stylesheet'; doc.head.appendChild(link); }
-  link.href = href;
+  const sheet = link;
+  const settled = new Promise<void>(resolve => {
+    const done = () => { clearTimeout(timer); sheet.removeEventListener('load', done); sheet.removeEventListener('error', failed); resolve(); };
+    const failed = () => { if (sheet.isConnected && sheet.getAttribute('href') === href) { if (root.dataset.theme === theme) delete root.dataset.theme; sheet.remove(); } done(); };
+    const timer = setTimeout(done, SHEET_WAIT_MS);
+    sheet.addEventListener('load', done); sheet.addEventListener('error', failed);
+  });
+  sheet.href = href;
+  return settled;
 }
-/** Choose: store, apply, and tell the other theme bars on the page (and other tabs, through the storage event). */
+/** Session AE (Part 3.5): a cross-fade only where motion is welcome — not under reduced motion, Motion Off, or unreadable storage. */
+export function themeMotionAllowed(doc: Document = document): boolean {
+  try { const win = doc.defaultView; return !!win && doc.documentElement.dataset.appMotion !== 'off' && win.localStorage.getItem(MOTION_KEY) !== 'off' && !win.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+}
+/**
+ * Session AE (Part 3.5, ADR-027): shows a theme with one short colour cross-fade (theme-switch.css, 280 ms) where the
+ * browser has view transitions and motion is welcome: the page keeps its old look until the new sheet is in, then fades
+ * once, so it never shows half a theme. Otherwise (no API, reduced motion, Motion Off) the theme applies at once, as before.
+ */
+export function showTheme(theme: Theme, doc: Document = document): void {
+  if (typeof doc.startViewTransition !== 'function' || !themeMotionAllowed(doc)) { void applyTheme(theme, doc); return; }
+  let applied = false;
+  const apply = () => { applied = true; return applyTheme(theme, doc); };
+  try {
+    const t = doc.startViewTransition(apply);
+    // A transition that is skipped (another switch, a hidden tab) rejects these; the theme is applied all the same.
+    for (const p of [t?.ready, t?.finished, t?.updateCallbackDone]) p?.catch(() => {});
+  } catch { if (!applied) void applyTheme(theme, doc); }
+}
+/** Choose: store, show, and tell the other theme bars on the page (and other tabs, through the storage event). */
 export function chooseTheme(theme: Theme): void {
   writeTheme(theme);
-  applyTheme(theme);
+  showTheme(theme);
   window.dispatchEvent(new Event(THEME_EVENT));
 }
 function safeLocal(): Storage | null { try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; } }
