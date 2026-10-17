@@ -14,4 +14,4 @@
 :root[data-theme=light] .orbit-art[data-tone=wealth]:not(#\-) { --ha-glyph-a: #7d5200; --ha-glyph-b: #9a6200; --ha-glyph-c: #0b7a6f; --ha-glow: #f2b54b; }
 :root[data-theme=light] .orbit-art[data-tone=journey]:not(#\-) { --ha-glyph-a: #5f2aae; --ha-glyph-b: #8048cf; --ha-glyph-c: #0a7ea3; --ha-glow: #b48cff; }
 /* Phones: the faint copy behind the words stays a whisper on the light sky. */
-@media (max-width: 767.98px) { :root[data-theme=light] :is(.header-art-slot, .pillar-hero > .pillar-hero-art:has(> .orbit-art)):not(#\-) { opacity: .3; } }
+:root[data-theme=light] :is(.header-art-slot, .pillar-hero > .pillar-hero-art:has(> .orbit-art)):not(#\-) { @media (max-width: 767.98px) { opacity: .3; } }
