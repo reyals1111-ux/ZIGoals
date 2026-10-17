@@ -1,0 +1,42 @@
+/* Session AE (Part 6, ADR-027): the wallet choices — the menu under the ▾ (computers), the rows in the phone's Status &
+   wallet sheet, the Bitcoin watch-only form. Night glass like the Gamify menu beside it; every row a 44 px target. */
+.wallet-more .wallet-menu { position: absolute; z-index: 40; top: calc(100% + 8px); right: 0; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 560px); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 6px; padding: 10px; border-radius: 16px; border: 1px solid #a9c9ff44; background: linear-gradient(140deg, #0d1a30, #1b1535); box-shadow: 0 24px 60px -20px #000c; text-align: left; }
+.wallet-menu [role="menu"] { display: grid; gap: 8px; }
+.wallet-menu-group { display: grid; gap: 2px; }
+.wallet-menu-heading, .wallet-choices-group h4 { margin: 4px 8px 2px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-meta, #c2d0e5); }
+.wallet-menu-note, .wallet-choices-note { margin: 0; padding: 2px 8px; font-size: 14px; line-height: 1.5; color: var(--text-meta, #c2d0e5); }
+.wallet-menu-status:empty { display: none; }
+.wallet-menu-status { margin: 0; padding: 6px 8px; border-radius: 10px; background: #ffffff0a; font-size: 14px; line-height: 1.5; color: var(--text-secondary, #dde7f7); }
+
+/* A row: icon, label over its detail, and ↗ for a site that opens in a new tab. */
+.wallet-more .wallet-menu .wallet-row, .wallet-choices .wallet-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; margin: 0; padding: 6px 10px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 15px; line-height: 1.35; text-align: left; text-decoration: none; cursor: pointer; }
+.wallet-more .wallet-menu .wallet-row:hover, .wallet-more .wallet-menu .wallet-row:focus-visible, .wallet-choices .wallet-row:hover, .wallet-choices .wallet-row:focus-visible { border-color: #9fd6ff55; background: #ffffff0f; color: #fff; }
+.wallet-row[aria-busy="true"] { cursor: progress; }
+.wallet-row-text { display: grid; flex: 1 1 auto; min-width: 0; }
+.wallet-row-label { font-weight: 650; overflow-wrap: anywhere; }
+.wallet-row-detail { font-size: 14px; color: var(--text-meta, #c2d0e5); overflow-wrap: anywhere; }
+.wallet-row[data-key^="remove:"] .wallet-row-detail { color: #ffb4c8; font-weight: 600; }
+.wallet-row-external { flex: none; color: var(--brand-cyan, #23eaff); }
+.wallet-row .wallet-glyph, .wallet-row .wallet-icon, .wallet-row-icon-space { flex: none; width: 24px; height: 24px; }
+.wallet-row .wallet-glyph { color: #9fe6ff; }
+.wallet-row .wallet-icon { border-radius: 6px; object-fit: contain; }
+
+/* The Bitcoin watch-only form (in the menu, or under its row in the sheet). */
+.wallet-btc-form { display: grid; gap: 8px; padding: 6px 4px; }
+.wallet-btc-form label { font-size: 14px; font-weight: 650; color: var(--text-secondary, #dde7f7); }
+.wallet-btc-form input { width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 12px; border: 1px solid #8fb6ff55; background: #050a18; color: var(--text, #f0f5ff); font-size: 15px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.wallet-btc-form input[aria-invalid="true"] { border-color: #ff8fab; }
+.wallet-btc-help, .wallet-btc-error { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-meta, #c2d0e5); }
+.wallet-btc-error { color: #ffb4c8; }
+.wallet-btc-actions { display: flex; gap: 8px; }
+.wallet-btc-actions button, .wallet-more .wallet-menu .wallet-btc-actions button { min-height: 44px; flex: 1; }
+
+/* The phone's Status & wallet sheet: the same choices as native rows. */
+:root .wallet-choices { display: grid; gap: 10px; padding-top: 4px; border-top: 1px solid #9fc8ff2e; }
+:root .wallet-choices .wallet-choices-title { margin: 6px 0 0; font-size: 16px; color: var(--text-strong, #f4f8ff); }
+:root .wallet-choices .wallet-choices-group { display: grid; gap: 4px; }
+.wallet-choices ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.wallet-choices .wallet-row { border-color: #9fc8ff2e; background: #0a1a30; }
+:root .wallet-choices .wallet-choices-note, :root .wallet-choices .wallet-menu-status { display: block; font-size: 14px; }
+
+@media (forced-colors: active) { .wallet-more .wallet-menu, .wallet-row, .wallet-btc-form input { border-color: CanvasText; } }

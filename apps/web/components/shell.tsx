@@ -52,8 +52,9 @@ import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
 import { PointTellMount } from "./point-tell/mount";
-import { formatExactNumber, formatPlainDecimal } from "../lib/visual-format";
+import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
+import { WalletMoreButton } from "./wallet/wallet-more-button";
 /** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
 const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
@@ -117,7 +118,6 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
   const alphaFacts = {network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners};
-  const balanceText = `${formatExactNumber(formatUnits(s.balance, TESTNET.nativeAsset.decimals))} ZIG ${s.mode === "local" ? "demo balance" : "wallet balance"}`;
   const walletButtons = <>
           <button
             className="quiet"
@@ -181,7 +181,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
       <div className="app-content">
       {/* Session AB-Design (owner request 8, ADR-024 D7): pages start with their header. One compact first-visit notice replaces the Alpha box, the Showcase bar, the storage line and the mode strip; the same facts stay in the footer's disclaimer line, the Showcase chip stays in the status row, and the phone's Status & wallet sheet (More) keeps every notice in full. */}
       {banners&&<AlphaNotice label={networkLabel} sentence={networkSentence} mode={s.mode === "local" ? "local" : "keplr"} stalled={slowRead&&settingsPending}/>}
-      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} balance={balanceText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
+      {banners&&statusOpen&&<Suspense fallback={null}><PhoneStatusSheet onClose={() => { setStatusOpen(false); requestAnimationFrame(() => { if (document.activeElement === document.body) document.querySelector<HTMLElement>(".phone-more-top")?.focus(); }); }} label={networkLabel} sentence={networkSentence} mode={modeText} showcase={showcase}>{walletButtons}</PhoneStatusSheet></Suspense>}
       {slowRead&&<section className="panel private-read-delay" role="status" aria-label="Private data is still opening">
         <h2>Your private data is taking longer than usual to open.</h2>
         <p>Nothing has been changed, and saving is paused until it opens. Another ZIGoals tab may be using browser storage: close other ZIGoals tabs, then retry. Reloading this page is also safe.</p>
@@ -191,11 +191,12 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         </div>
       </section>}
       <div className="workspace" aria-busy={!selection.ready||!preferences.loaded||startHold} style={{visibility:selection.ready&&preferences.loaded&&!startHold?undefined:"hidden"}}>
-        {/* The status row (Session AB-Design): the Showcase chip and the demo balance on the left; the wallet buttons (computers; phones reach them in More → Status & wallet), the page's own tools, Gamify and the layout lock on the right. */}
+        {/* The status row (Session AB-Design): the Showcase chip on the left; the wallet buttons (computers; phones reach them in More → Status & wallet), the page's own tools, Gamify and the layout lock on the right.
+            Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated here or in the phone's Status sheet; Today's wallet card shows the simulated balance. */}
         <div className="status-row">
         <ShowcaseChip/>
-        {banners&&<span className="wallet-balance"><span>{balanceText.replace(/ (demo|wallet) balance$/, "")}</span> <span className="wallet-balance-kind">{s.mode === "local" ? "demo balance" : "wallet balance"}</span></span>}
-        {banners&&<div className="wallet status-wallet">{walletButtons}</div>}
+        {/* Session AE (Part 6, ADR-027): the ▾ opens the other wallet choices (read-only links, Disconnect); its menu is a lazy chunk. */}
+        {banners&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}
         <div className="page-tools-slot" id={PAGE_TOOLS_SLOT}/>
         <GamifyButton/>
         <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>

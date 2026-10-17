@@ -22,7 +22,8 @@ async function firstScreen(page:Page,path:string){
   return {height:innerHeight,width:innerWidth,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
    testnet:box('.alpha-notice'),testnetText:label?.textContent,labelWhole:label?label.scrollWidth<=label.clientWidth&&label.scrollHeight<=label.clientHeight&&getComputedStyle(label).textOverflow!=='ellipsis':false,
    modeBelow:mode?mode.getBoundingClientRect().top>innerHeight:false,modeText:mode?.textContent??'',showcase:box('.showcase-chip'),
-   lock:box('.layout-lock'),balance:box('.wallet-balance'),title:box('main h1'),topbar:box('.phone-topbar'),tabbar:box('.phone-tabbar'),sidebar:box('.app-sidebar')};
+   // Session AE (Part 1): the demo balance's box (never asserted) went with the balance; the lock's checks below are unchanged.
+   lock:box('.layout-lock'),title:box('main h1'),topbar:box('.phone-topbar'),tabbar:box('.phone-tabbar'),sidebar:box('.app-sidebar')};
  });
 }
 
@@ -42,7 +43,7 @@ for(const [width,height] of [[390,844],[360,800]] as const)
    // Session AC), never on the first screen: the page itself now carries none of them, and they are read in Settings below.
    expect(s.modeText,path).toBe('');expect(s.modeBelow,path).toBe(false);
    if(LOCKED.has(path)){
-    // Part 18.4's place (right after the balance), now on the first screen, never under a bar or over the title.
+    // Part 18.4's place (the row's right end), now on the first screen, never under a bar or over the title.
     expect(s.lock,path).not.toBeNull();expect(s.lock!.bottom,path).toBeLessThanOrEqual(s.tabbar!.top);expect(s.lock!.top,path).toBeGreaterThanOrEqual(s.topbar!.bottom);
     expect(s.lock!.top,path).toBeGreaterThanOrEqual(s.testnet!.bottom);expect(s.lock!.bottom,path).toBeLessThanOrEqual(s.title!.top);
     expect(s.lock!.width,path).toBeGreaterThanOrEqual(44);expect(s.lock!.height,path).toBeGreaterThanOrEqual(44);

@@ -101,8 +101,11 @@ test("damaged local funds keep the shell usable and block simulation instead of 
   await expect(
     (await walletArea(page)).getByRole("button", { name: "Connect Keplr" }),
   ).toBeEnabled();
-  await expect(page.locator(".wallet-balance")).toContainText("0 ZIG");
   if (await page.getByRole("dialog", { name: "Status" }).isVisible()) await page.keyboard.press("Escape");
+  // Session AE (Part 1, ADR-027; moved, as strict): the status row no longer repeats the balance (owner); Today's wallet
+  // card shows the same value at this moment (was: `.wallet-balance` contains "0 ZIG").
+  await openFold(page, "Your wallet");
+  await expect(page.locator(".account-panel .account-value")).toContainText("0 ZIG");
   await (await navLink(page, "Settings")).click();
   await expect(
     page.getByRole("heading", { name: "Your data. Your control." }),
