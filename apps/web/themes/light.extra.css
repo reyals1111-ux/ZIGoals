@@ -45,6 +45,9 @@
 /* Habits' 30-day map: a full day keeps its own light nebula fill under dark numerals (the mapping had darkened its first
    stop, so the numerals sat on near-black; Session AD design review). */
 :root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #3aa7c4, #7d72e0, #c475c9); color: #0b1020; }
+/* Session AE (Part 3 audit, Light): the days with some or many check-ins keep their deep matte fill (the white-family
+   mapping's fills), so their numerals stay white on it (7.6:1 and 6.5:1); the mapping had made them dark ink (3.05:1). */
+:root[data-theme=light] .habit-month-grid > span:is([data-level=some], [data-level=many]):not(#\-) { color: #ffffff; }
 /* Gate C audit (Light, every route): the goal templates' area tags and the grocery list's aisle headings take their
    colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
 :root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
