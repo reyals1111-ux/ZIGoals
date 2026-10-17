@@ -8647,9 +8647,9 @@
    that dissolves into the day on every side (no card, no edge) — and the scene is painted on it, so the light words keep
    their dark sky. The pool and the scene end above "What is due now" (its words are ink by day). */
 :root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: visible; border-radius: 0; background: none; box-shadow: none; }
-:root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -14px -84px -8px -26px; z-index: -3; pointer-events: none; background: #040a1c;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 110px), #0007 calc(100% - 50px), transparent); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 110px), #0007 calc(100% - 50px), transparent); mask-composite: intersect;
+:root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -14px -84px -70px -26px; z-index: -3; pointer-events: none; background: #040a1c;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 70px), transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 70px), transparent); mask-composite: intersect;
   @media (min-width: 541px) and (max-width: 1100px) { inset-inline-start: -20px; } }
 /* The pool's left side fades in over the page's gutter, beside the sidebar (the workspace clips sideways, hero-fold.css). */
 /* The copy's shade stays inside the pool (above it, by day, it would grey the status row). */
@@ -8661,14 +8661,16 @@
   /* Its left side fades in with the pool, over the scene box's first 40 px (the picture overhangs the box by (w − 100cqw) / 2). */
   --fade-x: linear-gradient(90deg, transparent 0, transparent calc((var(--w) - 100cqw) / 2), #000 calc((var(--w) - 100cqw) / 2 + 40px), #000 84%, #0008 93%, transparent 100%);
   @media (max-width: 540px) { --fade-x: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); } }
-:root[data-theme=light] .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 30px; }
+/* The pool is full night to the hero's foot (the pillars' words are light) and fades out over 70 px below it; "What is due
+   now" (dark ink) starts after the fade (Gate C audit, Light at 768–1920: the pillars' words had sat in the fade). */
+:root[data-theme=light] .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 30px; @media (min-width: 541px) { margin-top: 76px; } }
 /* Gate C design review (ADR-027 G22): the night pool's top is a 64 px fade, not a line under the status row: the copy moves
    down 30 px to sit in the pool's full night; the pillars' own shade is not drawn by day (the pool is their night; the
    shade's ellipse showed as a grey smudge past the pool's side). */
 :root[data-theme=light] .today-hero:not(.today-hero-folded) > .today-hero-copy { @media (min-width: 541px) { margin-top: 30px; } }
 :root[data-theme=light] .today-hero .hero-pillars::before { content: none; }
 :root[data-theme=light] .today-hero:not(.today-hero-folded)::before {
-  @media (max-width: 540px) { inset: -28px -16px -40px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 96px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 96px), transparent); }
+  @media (max-width: 540px) { inset: -28px -16px -60px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 60px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 60px), transparent); }
 }
 /* apps/web/themes/light.sidebar.css */
 /* Session AE (Part 3, ADR-027 G7): Light's sidebar is no longer a night island beside the pale page. A soft lavender dawn:
