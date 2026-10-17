@@ -2,6 +2,8 @@
 import {useEffect, useState, type FormEvent} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
+import {ChessGlyph} from '../header-art/glyphs/chess';
 import {CHESS_CONTROLS, CHESS_SITES, type ChessControl, type ChessGoal, type ChessSite} from '../../lib/skills/chess/schema';
 import {CONTROL_NAME, SITE_NAME, currentRatings, goalProgress, ratingLine, removeChessGoal, results, saveChessGoal, setChessHabit, type Record3} from '../../lib/skills/chess/engine';
 import {sitePausedFor} from '../../lib/skills/chess/api';
@@ -32,11 +34,11 @@ export function ChessView() {
   // Session X Part 14 (J187): draw again when a site's pause runs out, so Refresh comes back by itself.
   useEffect(() => { if (!paused) return; const timer = window.setTimeout(() => wake(n => n + 1), Math.max(...CHESS_SITES.map(sitePausedFor)) + 50); return () => window.clearTimeout(timer); }, [paused, wakes]);
   return <div className="chess-page">
-    <div className="page-heading"><div>
+    <div className="page-heading header-art-host"><div>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="chess-eyebrow">YOUR GAME</NebulaFlow></p>
       <h1><NebulaFlow identity="chess-title">Chess.</NebulaFlow></h1>
       <p className="page-lede">Your ratings and games from chess.com and Lichess, read with your username only. {showcase ? <><ShowcaseTag/>Fictional ratings and games.</> : ''}</p>
-    </div></div>
+    </div><HeaderArtCorner><OrbitArt glyph={ChessGlyph} tone="journey" spin={-8}/></HeaderArtCorner></div>
     {!hasUser && !showcase && <section className="panel chess-setup" aria-labelledby="chess-setup-title"><h2 id="chess-setup-title">Follow your chess</h2><p>Add the username you play under. ZIGoals reads your public ratings and recent games from that site, one request at a time, only from this page, Today&apos;s chess card or Refresh.</p><ChessUsernames state={state} onSaved={() => void refresh()} /></section>}
     {(hasUser || showcase) && <section className="panel chess-ratings" aria-labelledby="chess-ratings-title">
       <div className="chess-head"><h2 id="chess-ratings-title">Ratings</h2>{!showcase && <button type="button" className="secondary" disabled={busy || paused} onClick={() => void refresh()}>{busy ? 'Refreshing…' : 'Refresh'}</button>}</div>

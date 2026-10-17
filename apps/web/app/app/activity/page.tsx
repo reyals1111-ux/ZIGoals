@@ -14,6 +14,8 @@ import {
 import { formatUnits, TESTNET } from "@zigoals/chain-config";
 import { LayoutLockButton, LayoutPage, LayoutRegion } from "../../../components/layout-edit";
 import { NebulaFlow } from "../../../components/nebula-flow";
+import { HeaderArtCorner, OrbitArt } from "../../../components/header-art/orbit-art";
+import { ActivityGlyph } from "../../../components/header-art/glyphs/activity";
 import { ProgressSlot } from "../../../components/progress/slot";
 import {formatDateTime,formatPlainDecimal} from "../../../lib/visual-format";
 export default function ActivityPage() {
@@ -25,7 +27,7 @@ export default function ActivityPage() {
   const [limit, setLimit] = useState(30);
   return (
     <LayoutPage page="activity"><div className="activity-page">
-      <div className="page-heading">
+      <div className="page-heading header-art-host">
         <div>
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="activity-eyebrow">Every step forward</NebulaFlow></p>
           <h1><NebulaFlow identity="activity-title">Activity.</NebulaFlow></h1>
@@ -36,6 +38,7 @@ export default function ActivityPage() {
           </p>
         </div>
         <LayoutLockButton />
+        <HeaderArtCorner><OrbitArt glyph={ActivityGlyph} spin={-30}/></HeaderArtCorner>
       </div>
       <LayoutRegion region="body" items={[
         {id: "activity:sources", label: "Your activity sources", node: <section className="activity-context" aria-label="Your current activity sources"><div><AppIcon name="goals" size={26}/><strong>Goals & contributions</strong><span>Plans, funding and corrections</span></div><div><AppIcon name="wallet" size={26}/><strong>Every kind of wealth</strong><span>Crypto, stocks, metals and cash</span></div><div><AppIcon name="health" size={26}/><strong>Your everyday progress</strong><span>Habit check-ins and Health logs</span></div></section>},
