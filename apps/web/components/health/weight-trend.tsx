@@ -42,7 +42,7 @@ export function WeightTrendCard({data, today, unit}: {data: HealthData; today: s
         {tip && <ChartTip>{tip}</ChartTip>}
         <ChartLegend className="health-trend-key" items={[{label: 'Trend (smoothed)'}, {label: 'A reading', kind: 'dot'}, ...(goal !== null ? [{label: 'Goal', kind: 'dash' as const}] : [])]}/>
       </div>
-      <details className="health-trend-table"><summary>Show as a table</summary><table><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{p.date}</td><td>{weightText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : weightText(tenths(p.trend), unit)}</td></tr>)}</tbody></table></details>
+      <details className="health-trend-table"><summary>Show as a table</summary><table><thead><tr><th>Day</th><th>Reading</th><th>Trend</th></tr></thead><tbody>{t.points.filter(p => p.grams !== null).map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{weightText(p.grams!, unit)}</td><td>{p.trend === null ? '—' : weightText(tenths(p.trend), unit)}</td></tr>)}</tbody></table></details>
       <p className="fine">The line moves a tenth of the way to each new reading, so one unusual morning barely bends it. <span className="health-estimate-tag">an estimate, not medical advice</span></p>
     </>}
   </section>;

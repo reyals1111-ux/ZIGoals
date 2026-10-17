@@ -3,6 +3,7 @@ import {useState, type FormEvent} from 'react';
 import {habitDay, type Habit} from '../../lib/habits';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import type {HabitCardStore} from './use-habits';
+import {formatDate} from '../../lib/visual-format';
 
 export const SKIP_REASONS = ['Rest day', 'Not feeling well', 'Travelling', 'No time today', 'Other'] as const;
 export const MOODS = [['energized', 'Energized'], ['good', 'Good'], ['calm', 'Calm'], ['neutral', 'Neutral'], ['difficult', 'Difficult']] as const;
@@ -38,5 +39,5 @@ export function Reflections({habit, today}: {habit: Habit; today: string}) {
   const rows = habit.entries.filter(e => e.date <= today && (e.note || e.mood || e.disposition === 'skipped')).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
   if (!rows.length) return null;
   const moodLabel = (m: string | undefined) => MOODS.find(([id]) => id === m)?.[1];
-  return <div className="habit-reflections"><h3>Notes, moods and skips</h3><ul>{rows.map(e => <li key={e.date}><time>{e.date}</time><span className={`habit-reflection-kind habit-day-${e.disposition}`}>{e.disposition === 'skipped' ? 'skipped' : e.disposition === 'failed' ? 'missed' : e.count > 0 ? 'logged' : 'note'}</span>{e.mood && <em>{moodLabel(e.mood)}</em>}{e.note && <span className="habit-reflection-note">{e.note}</span>}</li>)}</ul></div>;
+  return <div className="habit-reflections"><h3>Notes, moods and skips</h3><ul>{rows.map(e => <li key={e.date}><time dateTime={e.date}>{formatDate(e.date)}</time><span className={`habit-reflection-kind habit-day-${e.disposition}`}>{e.disposition === 'skipped' ? 'skipped' : e.disposition === 'failed' ? 'missed' : e.count > 0 ? 'logged' : 'note'}</span>{e.mood && <em>{moodLabel(e.mood)}</em>}{e.note && <span className="habit-reflection-note">{e.note}</span>}</li>)}</ul></div>;
 }
