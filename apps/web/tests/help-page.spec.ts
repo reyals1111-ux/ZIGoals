@@ -15,13 +15,16 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AB-Design (ADR-024, deliberate; the second merger): this release's topic, after AB-Cloud's.
   ['abd', 'Goals, Habits & Health = Wealth, in one calm look'],
   // Session AC (ADR-025, deliberate): this release's topic, after AB-Design's.
-  ['ac', 'Each thing once, and a calmer page'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['ac', 'Each thing once, and a calmer page'],
+  // Session AD (ADR-026, deliberate): this release's topic, after AC's.
+  ['ad', 'The final look, and three ways to see it'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'What\'s new', 'Known limitations', 'Send feedback'];
 
-test('Help has one title and fifteen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
+test('Help has one title and sixteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -267,5 +270,26 @@ test('Session AC: the polish answers open from a hash, and nothing is written', 
     await expect(page.locator(`#help-${id}`)).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`)).toContainText(words);
   }
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AD (ADR-026): this release's answers open from their hash, each saying what the code does; nothing is written.
+test('Session AD: the final-look answers open from a hash, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  // As above: every answer is listed and closed once the page has loaded (the workspace shows after its stores are read).
+  const ids = ['ad-themes', 'ad-banner', 'ad-hero', 'ad-dates', 'ad-sync-status', 'ad-restore', 'ad-zigi'];
+  await expect(page.getByRole('region', {name: 'The final look, and three ways to see it', exact: true}).locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [['ad-themes', 'is never synced'], ['ad-banner', 'Goals · Habits · Health'], ['ad-hero', 'When you fold the hero, none of it shows'], ['ad-dates', '“17 Oct 2026” or “Oct 17, 2026”'], ['ad-sync-status', 'every 15 minutes while the page stays open and visible'], ['ad-restore', 'Stop restoring'], ['ad-zigi', '25 states']] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(words);
+  }
+  // The banner's answer points to where the footer's links live now.
+  await expect(page.locator('#help-ad-banner').getByRole('link', {name: 'Send feedback', exact: true})).toHaveAttribute('href', '#feedback');
+  await expect(page.locator('#help-ad-banner').getByRole('link', {name: 'Settings', exact: true})).toHaveAttribute('href', '/app/settings');
+  await expect(page.locator('#help-ad-zigi').getByRole('link', {name: 'Meet ZIGi', exact: true})).toHaveAttribute('href', '/app/zigi');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
