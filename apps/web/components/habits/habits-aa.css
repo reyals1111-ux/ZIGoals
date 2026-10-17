@@ -14,15 +14,19 @@
 .habit-section-count { font-size: 15px; font-weight: 600; color: #e9ddff; padding: 8px 14px; border-radius: 99px; background: #a184e21f; border: 1px solid #b89ee83a; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .habit-section-chevron { font-size: 22px; color: #bfb0dd; transform: rotate(90deg); transition: transform 180ms ease; display: inline-block; text-align: center; }
 .habit-section[open] > .habit-section-summary .habit-section-chevron { transform: rotate(-90deg); }
-.habit-section > :not(summary) { padding: 4px 18px 18px; }
+/* Session AE (Part 4, ADR-027): the owner's S3. The banner gets the same breathing room above its first cards as the group
+   keeps below its last: 18 px all round (a phone matches its own 12 px, below). The cards' global .panel margin (24 px)
+   made the foot 42 px; inside a group the grid's own gap spaces the rows, as it spaces the columns. */
+.habit-section > :not(summary) { padding: 18px; }
 .habit-section .habit-grid { margin: 0; }
+.habit-section .habit-grid > .habit-card { margin-bottom: 0; }
 .habit-section-empty { margin: 0; padding: 4px 18px 18px; color: #d5cbe9; font-size: 15px; }
 .habit-section-empty .text-link { min-height: 44px; display: inline-flex; align-items: center; }
 .habit-sections-compact .habit-section-summary { min-height: 52px; padding: 6px 12px; grid-template-columns: 28px minmax(0, 1fr) auto 24px; }
 .habit-sections-compact .habit-section-title { font-size: 17px; }
 .habit-sections-compact .habit-section > :not(summary) { padding: 0 12px 10px; }
 .habit-sections-compact .habit-section-mark { width: 28px; height: 28px; font-size: 14px; }
-@media (max-width: 600px) { .habit-section-summary { padding: 8px 14px; gap: 10px; } .habit-section > :not(summary) { padding: 2px 10px 14px; } .habit-section-title { font-size: 19px; } }
+@media (max-width: 600px) { .habit-section-summary { padding: 8px 14px; gap: 10px; } .habit-section-title { font-size: 19px; } } /* the phone's content padding is B49's, below */
 
 /* H6: areas */
 .habit-area-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -156,8 +160,10 @@
 :root[data-app-motion=off] .habit-section-chevron { transition: none; }
 /* H7: the game card's place on the Habits page (empty until the layer is on). */
 .habit-progress-slot:empty { display: none; }
-/* B49: on a narrow phone the section keeps its cards wide enough for 44 px calendar days. */
-@media (max-width: 600px) { .habit-section > :not(summary) { padding: 4px 0 12px; } }
+/* B49: on a narrow phone the section keeps its cards wide enough for 44 px calendar days. Session AE (Part 4, ADR-027):
+   as much room under the banner as under the last card (S3); an empty group's line starts under the banner's mark, not
+   against the border. */
+@media (max-width: 600px) { .habit-section > :not(summary) { padding: 12px 0; } .habit-section > .habit-section-empty { padding-inline: 14px; } }
 /* B49: Today's widget groups its rows under slim labels instead of folding panels. */
 .habit-section-compact { border: 0; border-radius: 0; background: none; overflow: visible; }
 .habit-section-compact > :not(.habit-section-label) { padding: 0; }

@@ -64,6 +64,45 @@ test('entity IDs are stable, short and never contain the source key',()=>{
  expect(entityLayoutId('a')).not.toBe(entityLayoutId('b'));
 });
 
+// Session AE (Part 4, ADR-027): Habits' Routines block is its own layout item, `habits:routines`, by default right after the
+// groups (`habits:list`). These are the defaults habits-workspace.tsx renders (desktop: source order; phone: PHONE_ORDER).
+// page-layout.ts is byte-identical from build #37 (32cb9c5) to this branch, so the old-build cases below are those builds' own reader.
+const OLD_DESKTOP=['habits:overview','habits:consistency','habits:list','habits:rhythm'],OLD_PHONE=['habits:overview','habits:list','habits:consistency','habits:rhythm'];
+const DESKTOP=['habits:overview','habits:consistency','habits:list','habits:routines','habits:rhythm'],PHONE=['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm'];
+test('Habits: a saved order from before the Routines block keeps winning, and Routines appears right after the list',()=>{
+ // A new device, the Showcase and "Reset this page": the new defaults.
+ expect(resolveOrder(DESKTOP)).toEqual(DESKTOP);expect(resolveOrder(PHONE)).toEqual(PHONE);
+ // An old saved order, wherever the list is, on either default.
+ for(const defaults of [DESKTOP,PHONE]){
+  expect(resolveOrder(defaults,OLD_DESKTOP)).toEqual(DESKTOP);
+  expect(resolveOrder(defaults,OLD_PHONE)).toEqual(PHONE);
+  expect(resolveOrder(defaults,['habits:rhythm','habits:consistency','habits:overview','habits:list'])).toEqual(['habits:rhythm','habits:consistency','habits:overview','habits:list','habits:routines']);
+  expect(resolveOrder(defaults,['habits:list','habits:overview','habits:consistency','habits:rhythm'])).toEqual(['habits:list','habits:routines','habits:overview','habits:consistency','habits:rhythm']);
+  expect(resolveOrder(defaults,['habits:consistency','habits:overview','habits:list','habits:rhythm'])).toEqual(['habits:consistency','habits:overview','habits:list','habits:routines','habits:rhythm']);
+ }
+ // With no habits there is no consistency card; Routines still follows the list.
+ expect(resolveOrder(DESKTOP.filter(id=>id!=='habits:consistency'),['habits:rhythm','habits:list','habits:overview'])).toEqual(['habits:rhythm','habits:list','habits:routines','habits:overview']);
+ // Reading never rewrites: the stored layout is the same bytes after the page resolves it.
+ const raw=serializeLayout(setRegionOrder(emptyLayout(),'habits','body',OLD_DESKTOP)),layout=parseLayout(raw);
+ resolveOrder(DESKTOP,savedOrder(layout,'habits','body'));expect(serializeLayout(layout)).toBe(raw);expect(savedOrder(layout,'habits','body')).toEqual(OLD_DESKTOP);
+});
+test('Habits: an older build ignores habits:routines when it reads, and keeps it when it writes',()=>{
+ // The person moved Routines above the groups on this build.
+ const mine=['habits:overview','habits:consistency','habits:routines','habits:list','habits:rhythm'];
+ const layout=parseLayout(serializeLayout(setRegionOrder(emptyLayout(),'habits','body',mine)));
+ expect(savedOrder(layout,'habits','body')).toEqual(mine);
+ // An older build (Routines inside the list block) shows its own four items in the saved order; the unknown id is ignored.
+ expect(resolveOrder(OLD_DESKTOP,savedOrder(layout,'habits','body'))).toEqual(OLD_DESKTOP);
+ expect(resolveOrder(OLD_PHONE,savedOrder(layout,'habits','body'))).toEqual(OLD_DESKTOP);
+ // A move there writes its four ids; habits:routines keeps its place after the item it followed.
+ const old=setRegionOrder(layout,'habits','body',['habits:rhythm','habits:overview','habits:consistency','habits:list']);
+ expect(savedOrder(old,'habits','body')).toEqual(['habits:rhythm','habits:overview','habits:consistency','habits:routines','habits:list']);
+ // Back on this build, Routines is still above the list.
+ expect(resolveOrder(DESKTOP,savedOrder(old,'habits','body'))).toEqual(['habits:rhythm','habits:overview','habits:consistency','habits:routines','habits:list']);
+ // "Reset this page" on either build forgets the whole page, so the defaults return.
+ expect(savedOrder(resetPage(old,'habits'),'habits','body')).toBeUndefined();
+});
+
 test('grid columns are counted from the first row',()=>{
  expect(columnsFromTops([])).toBe(1);expect(columnsFromTops([10,10,10,300,300])).toBe(3);expect(columnsFromTops([0,200,400])).toBe(1);
 });
