@@ -265,7 +265,7 @@ test('Session AC: the polish answers open from a hash, and nothing is written', 
   for (const id of ['ac-habits', 'ac-sky', 'ac-footer', 'ac-today', 'ac-wealth', 'ac-water', 'ac-vision', 'ac-more']) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
   await expect(page.locator('details[open]')).toHaveCount(0);
   const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
-  for (const [id, words] of [['ac-habits', 'last 28 days'], ['ac-sky', 'the same with reduced motion or Motion Off'], ['ac-footer', 'Every page now ends after the footer’s links'], ['ac-today', 'Show card'], ['ac-wealth', 'All, Accounts, Debts, Assets'], ['ac-water', 'each with Undo'], ['ac-vision', 'kept on this device only'], ['ac-more', 'Reminders · ZIGoals Alpha']] as const) {
+  for (const [id, words] of [['ac-habits', 'last 28 days'], ['ac-sky', 'the same with reduced motion or Motion Off'], ['ac-footer', 'Every page now ends with the footer banner'] /* Session AD (ADR-026, deliberate): the link columns went; same check */, ['ac-today', 'Show card'], ['ac-wealth', 'All, Accounts, Debts, Assets'], ['ac-water', 'each with Undo'], ['ac-vision', 'kept on this device only'], ['ac-more', 'Reminders · ZIGoals Alpha']] as const) {
     await page.goto(`/app/help#help-${id}`);
     await expect(page.locator(`#help-${id}`)).toHaveAttribute('open', '');
     await expect(page.locator(`#help-${id}`)).toContainText(words);
