@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {PageHeader} from '../page-header';
+import {OrbitArt} from '../header-art/orbit-art';
+import {HelpGlyph} from '../header-art/glyphs/help';
 import {InstallGuide} from './install-guide';
 import {KeepData} from './keep-data';
 import {HelpQuestion} from './help-question';
@@ -31,7 +33,7 @@ function Question({question, children}: {question: string; children: ReactNode})
  */
 export function HelpPage() {
   return <div className="help-page">
-    <PageHeader titleId="help-title" eyebrow="Help & guides" title="Help." lede="How ZIGoals keeps your plans, and how to get the most out of the Alpha."/>
+    <PageHeader titleId="help-title" eyebrow="Help & guides" title="Help." lede="How ZIGoals keeps your plans, and how to get the most out of the Alpha." art={<OrbitArt glyph={HelpGlyph} spin={-26}/>}/>
     <p className="help-back"><Link className="text-link" href="/app/settings">← Back to Settings</Link></p>
     <nav className="help-topics" aria-label="Help topics">{TOPICS.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav>
 

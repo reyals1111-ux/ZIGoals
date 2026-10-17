@@ -54,21 +54,21 @@
 @media (max-width: 1099.98px) { :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 150px; height: 150px; } }
 /* PageHeader (`art`) and hand-written headers (`header-art-host` + HeaderArtCorner): the top-right corner, never under the
    title, lede or actions (the header keeps the corner's width free on its right) and never taller than the header. */
-:root :is(.page-header.has-art, .header-art-host) { position: relative; padding-right: 244px; min-height: 120px; }
-:root .header-art-slot { position: absolute; top: 0; right: 0; height: clamp(120px, 100%, 220px); aspect-ratio: 1; pointer-events: none; }
+:root :is(.page-header.has-art, .header-art-host) { position: relative; padding-right: 244px; min-height: 150px; }
+:root .header-art-slot { position: absolute; top: 0; right: 0; height: clamp(150px, 100%, 220px); aspect-ratio: 1; pointer-events: none; }
 :root .header-art-slot > .orbit-art { width: 100%; height: 100%; }
 @media (max-width: 1099.98px) {
-  :root :is(.page-header.has-art, .header-art-host) { padding-right: 166px; min-height: 110px; }
-  :root .header-art-slot { height: clamp(110px, 100%, 150px); }
+  :root :is(.page-header.has-art, .header-art-host) { padding-right: 166px; min-height: 120px; }
+  :root .header-art-slot { height: clamp(120px, 100%, 150px); }
 }
 /* Phones: the words take the whole width; the art sits small and faint behind them at the top right (`data-phone=hide`
    removes it where a header keeps its own buttons up there). */
 @media (max-width: 767.98px) {
   :root :is(.page-header.has-art, .header-art-host) { padding-right: 0; min-height: 0; }
-  :root .header-art-slot { top: -10px; right: 0; height: 132px; opacity: .36; z-index: 0; }
+  :root .header-art-slot { top: 0; right: 0; height: 132px; opacity: .36; z-index: 0; }
   :root .header-art-slot[data-phone=hide] { display: none; }
   :root .page-header.has-art > :not(.header-art-slot), :where(.header-art-host) > :where(:not(.header-art-slot)) { position: relative; z-index: 1; }
-  :root .pillar-hero > .pillar-hero-art:has(> .orbit-art) { top: -10px; right: 0; opacity: .36; transform: none; }
+  :root .pillar-hero > .pillar-hero-art:has(> .orbit-art) { top: 0; right: 0; opacity: .36; transform: none; }
   :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 132px; height: 132px; }
 }
 @media (max-width: 540px) {
