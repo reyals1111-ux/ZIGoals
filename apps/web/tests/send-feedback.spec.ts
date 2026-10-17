@@ -23,6 +23,12 @@ test('Help: details only when ticked, shown in full, the person\'s to edit, and 
   // Session AB-Design Phase 2 (ADR-024): the page's own route prefetches (its guide links to Goals, Habits and the welcome)
   // finish first, so the window below starts quiet; nothing at all may still be requested inside it.
   await page.waitForLoadState('networkidle');
+  // Session AD (ADR-026 F8): the footer's wordmark is a lazy image, fetched when the page nears it; the checkbox sits near
+  // the page's end, so the image is brought in first: the window below belongs to Send feedback alone.
+  const wordmark = page.locator('footer.site-footer img').first();
+  await wordmark.scrollIntoViewIfNeeded();
+  await expect.poll(() => wordmark.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await page.waitForLoadState('networkidle');
   const before = await storage(page), requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
 
@@ -59,7 +65,8 @@ test('Help: the controls are readable and easy to hit; the checkbox sits beside 
   expect(parseFloat(await section.getByRole('textbox').evaluate(e => getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
   expect((await section.getByRole('link', {name: 'Email feedback to contact@zigoals.app', exact: true}).boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
-  await expect(section.getByRole('link', {name: 'hello@zigoals.app', exact: true})).toHaveAttribute('href', 'mailto:hello@zigoals.app');
+  // Session AD (deliberate, ADR-026 F7): the footer's "Private security contact" lives here by that name. As strict: the same private address.
+  await expect(section.getByRole('link', {name: 'Private security contact: hello@zigoals.app', exact: true})).toHaveAttribute('href', 'mailto:hello@zigoals.app');
 });
 
 test('Settings → Help & diagnostics: the same email; Motion Off is named when chosen', async ({page}) => {

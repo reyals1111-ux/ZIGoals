@@ -30,6 +30,8 @@
    every width it has exactly the art's scale and meets it without a seam. It takes no pointer events and no space, and
    Today's later sections and the right column are lifted above it (position: relative, no new stacking context), so every
    card, heading and button stays on top. Folded, neither shows. Phones: below. */
+/* The art and its continuation never widen the page: Today clips them at its own sides (only sideways; up and down they show). */
+:root .today-page { overflow-x: clip; }
 @media (min-width: 541px) {
   :root .today-hero:not(.today-hero-folded) > .hero-pillars::after { content: ''; position: absolute; z-index: -3; pointer-events: none;
     left: -26px; top: -60px; width: calc((100% + 52px) * 1.3); height: calc((100% + 72px) * 1.7);
