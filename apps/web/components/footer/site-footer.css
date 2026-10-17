@@ -75,9 +75,14 @@
 /* The planet's flare (footer-path.tsx): the Today header star's layer (motion.css .hero-star), in pink and magenta. */
 .site-footer-star-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .site-footer-star-layer > span { position: absolute; left: 0; top: 0; opacity: 0; border-radius: 50%; }
-.site-footer-star-veil { background: radial-gradient(closest-side, #020918d9 0%, #020918a6 42%, #02091840 70%, #02091800 100%); }
+/* Gate C design review (ADR-027 G22): the veil only softens the artwork's own flare under the rising star (at d9 it
+   blacked it out for a second and a half, then the flare popped back). */
+.site-footer-star-veil { background: radial-gradient(closest-side, #0209188c 0%, #02091866 42%, #02091826 70%, #02091800 100%); }
 /* Session AE: the core stays pink and magenta to its centre (never white or yellow), and one pulse follows the bloom. */
-.site-footer-star-core { background: radial-gradient(closest-side, #ff8fdc 0 10%, #ff74d2 18%, #f06dffcc 30%, #d65cffa3 42%, #b06bff4d 58%, #9273ff1a 72%, #0000 100%); mix-blend-mode: screen; }
+.site-footer-star-core { background: radial-gradient(closest-side, #ffc2ee 0 4%, #ff8fdc 9%, #ff74d2 16%, #f06dffb3 26%, #d65cff80 38%, #b06bff33 54%, #9273ff12 70%, #0000 100%); mix-blend-mode: screen; }
+/* A crisp star, not a blur: four thin pink spikes through a small bright pink core (never white or yellow). */
+.site-footer-star-core::before, .site-footer-star-core::after { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 2px; margin-top: -1px; border-radius: 2px; background: linear-gradient(90deg, #0000, #ff8fdc66 30%, #ffc2ee 50%, #ff8fdc66 70%, #0000); }
+.site-footer-star-core::after { transform: rotate(90deg) scaleX(.72); }
 .site-footer-star-pulse { background: radial-gradient(closest-side, #ff8fdcd0 0, #f06dff8c 30%, #d65cff3d 58%, #0000 100%); mix-blend-mode: screen; }
 
 /* The opening moment (footer-path.tsx sets data-intro: "ready" before it plays, "play" while it runs, "done" after).

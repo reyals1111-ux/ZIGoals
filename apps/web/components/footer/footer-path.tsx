@@ -52,7 +52,8 @@ function arc(last: Pt, wealth: Pt, w: number): [Seg, Seg] {
   const turn = {x: last.x + reach * .92, y: last.y - rise * .52};
   return [
     [last, {x: last.x + reach * .55, y: last.y + 2}, {x: turn.x, y: last.y - rise * .16}, turn],
-    [turn, {x: turn.x, y: turn.y - rise * .36}, {x: wealth.x + (turn.x - wealth.x) * .38, y: wealth.y - 2}, wealth],
+    // Gate C design review (ADR-027 G22): the return comes down into the word (not along it), ending at a small glowing node.
+    [turn, {x: turn.x, y: turn.y - rise * .36}, {x: wealth.x + (turn.x - wealth.x) * .45, y: wealth.y - rise * .14}, wealth],
   ];
 }
 const at = (s: Seg, t: number): Pt => {
@@ -103,7 +104,7 @@ function playFlare(layer: HTMLElement, frame: NonNullable<ReturnType<typeof foot
 }
 
 type Box = {l: number; t: number; w: number; h: number};
-type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box}[]; arcY: [number, number]; burst: Pt | null; twinkles: Pt[]};
+type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt}[]; arcY: [number, number]; burst: Pt | null; twinkles: Pt[]};
 const boxOf = (s: Seg, pad: number): Box => { const xs = [s[0].x, s[1].x, s[2].x, s[3].x], ys = [s[0].y, s[1].y, s[2].y, s[3].y], l = Math.min(...xs) - pad, t = Math.min(...ys) - pad; return {l, t, w: Math.max(...xs) + pad - l, h: Math.max(...ys) + pad - t}; };
 const pathOf = (segs: Seg[]) => `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
 const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && a.arcs.map(x => x.d).join() === b.arcs.map(x => x.d).join() && a.twinkles.length === b.twinkles.length;
@@ -121,7 +122,7 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       if (nodes.length < 3) return;
       const stacked = Math.abs(nodes[0]!.x - nodes[2]!.x) < 60, segs = segments(nodes, stacked);
       const wr = root.querySelector<HTMLElement>('[data-footer-wealth]')?.getBoundingClientRect();
-      const wealth = wr && wr.width > 0 ? {x: wr.right - base.left + 16, y: wr.top - base.top + wr.height * .58} : null;
+      const wealth = wr && wr.width > 0 ? {x: wr.right - base.left + 8, y: wr.top - base.top + wr.height * .56} : null;
       const arcs = !stacked && wealth ? arc(nodes[2]!, wealth, base.width) : null;
       const {T0, REVEAL, ARC_RISE, ARC_RETURN, WEALTH_AFTER, FLARE_AFTER} = FOOTER_TIMING, extent = stacked ? base.height : base.width;
       const arrive = nodes.map(n => T0 + REVEAL * Math.min(1, Math.max(0, (stacked ? n.y : n.x) / extent)));
@@ -138,7 +139,7 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
       // The rim stars that twinkle, mapped from the artwork into the stage.
       const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
       const twinkles = frame ? FOOTER_RIM_STARS.map(([x, y]) => { const [px, py] = frame.map(x, y); return {x: px, y: py}; }).filter(p => p.x > 4 && p.x < base.width - 4 && p.y > -200) : [];
-      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: arcs ? arcs.map(a => ({d: pathOf([a]), box: boxOf(a, 10)})) : [], arcY: [nodes[2]!.y, wealth?.y ?? 0], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
+      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: arcs ? arcs.map((a, i) => ({d: pathOf([a]), box: boxOf(a, 10), end: i === 1 ? a[3] : undefined})) : [], arcY: [nodes[2]!.y, wealth?.y ?? 0], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
       // Same geometry → same state object (no re-render, so nothing resizes inside a ResizeObserver delivery).
       setGeo(g => g && sameGeo(g, next) ? g : next);
     };
@@ -181,13 +182,14 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
   if (!geo) return null;
   const grad = `sf-g-${id}`, arcGrad = `sf-a-${id}`, glow = `sf-glow-${id}`;
   // The arc's colour runs from Health's pink at its foot to the magenta of "= Wealth" at its end (top to bottom in the stage).
-  const arcSvg = (d: string, box: Box, i: number) => <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false" style={{left: `${f(-box.l)}px`, top: `${f(-box.t)}px`}}>
+  const arcSvg = (d: string, box: Box, i: number, end?: Pt) => <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false" style={{left: `${f(-box.l)}px`, top: `${f(-box.t)}px`}}>
     <defs>
       <linearGradient id={`${arcGrad}-${i}`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={f(geo.arcY[0])} y2={f(geo.arcY[1])}><stop offset="0" stopColor="#ff74be"/><stop offset=".5" stopColor="#ff7fd6"/><stop offset="1" stopColor="#d77cff"/></linearGradient>
       <filter id={`${glow}-${i}`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
     </defs>
     <path className="site-footer-path site-footer-path-glow" d={d} fill="none" stroke={`url(#${arcGrad}-${i})`} strokeWidth="7" strokeLinecap="round" filter={`url(#${glow}-${i})`}/>
     <path className="site-footer-path" d={d} fill="none" stroke={`url(#${arcGrad}-${i})`} strokeWidth="2" strokeLinecap="round"/>
+    {end && <><circle cx={f(end.x)} cy={f(end.y)} r="5.5" fill="#f06dff" opacity=".75" filter={`url(#${glow}-${i})`}/><circle cx={f(end.x)} cy={f(end.y)} r="2.4" fill="#ffd1f0"/></>}
   </svg>;
   return <>
     {flare && <div ref={starLayer} className="site-footer-star-layer" aria-hidden="true"><span className="site-footer-star-veil"/><span className="site-footer-star-pulse"/><span className="site-footer-star-core"/></div>}
@@ -202,7 +204,7 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
         {geo.stars.map((s, i) => <circle key={i} className="site-footer-star" cx={f(s.x)} cy={f(s.y)} r={i % 3 ? 1.3 : 1.9}/>)}
       </svg>
     </div></div>
-    {geo.arcs.map((a, i) => <div key={i} className="site-footer-arc" data-part={i ? 'return' : 'rise'} aria-hidden="true" style={{left: `${f(a.box.l)}px`, top: `${f(a.box.t)}px`, width: `${f(a.box.w)}px`, height: `${f(a.box.h)}px`}}><div className="site-footer-arc-in">{arcSvg(a.d, a.box, i)}</div></div>)}
+    {geo.arcs.map((a, i) => <div key={i} className="site-footer-arc" data-part={i ? 'return' : 'rise'} aria-hidden="true" style={{left: `${f(a.box.l)}px`, top: `${f(a.box.t)}px`, width: `${f(a.box.w)}px`, height: `${f(a.box.h)}px`}}><div className="site-footer-arc-in">{arcSvg(a.d, a.box, i, a.end)}</div></div>)}
     {geo.burst && <div className="site-footer-burst" aria-hidden="true" style={{left: `${f(geo.burst.x)}px`, top: `${f(geo.burst.y)}px`}}><i/><i/><i/><i/><i/></div>}
     {geo.twinkles.map((t, i) => <span key={i} className="site-footer-twinkle" data-twinkle={i} aria-hidden="true" style={{left: `${f(t.x)}px`, top: `${f(t.y)}px`}}/>)}
   </>;

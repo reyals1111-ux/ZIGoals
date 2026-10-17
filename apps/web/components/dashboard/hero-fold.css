@@ -44,12 +44,17 @@
   background-image: image-set(url('/art/v27/hero-scene.avif') type('image/avif'), url('/art/v27/hero-scene.webp') type('image/webp'));
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 74%, #0008 89%, transparent 100%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); -webkit-mask-composite: source-in;
   mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 74%, #0008 89%, transparent 100%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); mask-composite: intersect; }
-/* The scene never widens the page: Today clips it at its own sides (only sideways; up and down it shows). */
-:root .today-page { overflow-x: clip; }
+/* The scene never widens the page, and is never cut inside it: the workspace clips it sideways (at the sidebar's edge and
+   the window's), so its side feathers end beside the content instead of being cut at Today's own box (Gate C design
+   review, ADR-027 G22: a vertical cut through the flare at 768 px and at a phone's sides). Up and down it shows. */
+:root .workspace:has(.today-page) { overflow-x: clip; }
 @media (min-width: 541px) {
   :root .today-primary > .today-hero:not(.today-hero-folded) ~ *, :root .today-layout:has(> .today-primary > .today-hero:not(.today-hero-folded)) > .today-rail { position: relative; }
   /* Room for the lower planet between the hero and Today's focus. */
   :root .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 24px; }
+  /* The copy's own box keeps no background of its own while the scene shows (its 100° gradient never reached transparent
+     at its top-right corner: a seam through the flare at the hero's right and foot; Gate C design review). */
+  :root .today-hero:not(.today-hero-folded) .today-hero-copy { background: none; }
   /* The copy's shade: a soft ellipse, no edge (its box's sides fade too). */
   :root .today-hero:not(.today-hero-folded)::after { background: radial-gradient(ellipse 64% 60% at 28% 44%, #020918a6, #0209185a 56%, #02091800 100%); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%); mask-image: linear-gradient(90deg, transparent, #000 8%); }
 }
@@ -62,5 +67,6 @@
   .today-scene::before { --k: 1; left: calc((100cqw - var(--w)) * .72); opacity: .95;
     background-image: url('/art/v27/hero-scene-mobile.webp'); background-image: image-set(url('/art/v27/hero-scene-mobile.avif') type('image/avif'), url('/art/v27/hero-scene-mobile.webp') type('image/webp'));
     -webkit-mask-image: linear-gradient(180deg, transparent 0, #0008 7%, #000 18%, #000 76%, transparent 100%), linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(180deg, transparent 0, #0008 7%, #000 18%, #000 76%, transparent 100%), linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
-  :root .today-hero:not(.today-hero-folded)::after { -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%); mask-image: linear-gradient(180deg, transparent, #000 18%); }
+  /* The shade fades out at its foot too (it ended in a hard line under the pillars: invisible by night, a cut by day). */
+  :root .today-hero:not(.today-hero-folded)::after { -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(180deg, transparent, #000 18%, #000 calc(100% - 56px), transparent); }
 }

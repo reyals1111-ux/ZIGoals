@@ -1,5 +1,6 @@
 // Session AE (Parts 1 and 2, ADR-027): the cosmic artwork made ready to be painted straight onto the app's starfield.
-// Run: node apps/web/art-src/scene-alpha.mjs   (writes public/art/v27/*-scene.{avif,webp}; uses only Next's own sharp)
+// Run: node apps/web/art-src/scene-alpha.mjs   (writes public/art/v27/*-scene.{avif,webp}; uses only Next's own sharp;
+//      SCENE_ONLY=<regex> regenerates only the matching scenes)
 //
 // The originals stay untouched and at their full resolution; only an alpha channel is added, the colours are the
 // originals'. Outside the planets, "colour to alpha" against the page's own ground (#020918): every pixel keeps exactly
@@ -23,8 +24,12 @@ const OUT = join(WEB, 'public', 'art', 'v27');
 
 /** The rim of a planet, one y per column: the brightest row near the fitted circle where the rim is lit (above `lit`),
  *  the circle itself elsewhere; smoothed by a running median so stars on the rim do not dent it. */
-function rimLine(lum, W, H, {cx, cy, r, band, lit, from = 0, to = W}) {
+function rimLine(lum, W, H, {cx, cy, r, band, lit, from = 0, to = W, fixed = false}) {
   const circle = x => { const d = r * r - (x - cx) ** 2; return d > 0 ? cy - Math.sqrt(d) : Number.POSITIVE_INFINITY; };
+  // Gate C design review (ADR-027 G22): a planet whose rim the fitted circle follows closely enough uses the circle itself,
+  // so its opaque disc has one smooth edge (column-read rims can step where the brightest row jumps between the rim and
+  // its glow; invisible over the night, the steps showed on Light's dusk).
+  if (fixed) return Float64Array.from({length: W}, (_, x) => circle(x));
   const raw = new Float64Array(W);
   for (let x = 0; x < W; x++) {
     const yc = circle(x);
@@ -49,6 +54,7 @@ function rimLine(lum, W, H, {cx, cy, r, band, lit, from = 0, to = W}) {
 }
 
 async function scene({src, name, planets, soft = 6, inset = 4}) {
+  if (process.env.SCENE_ONLY && !new RegExp(process.env.SCENE_ONLY).test(name)) return;
   const {data, info} = await sharp(join(WEB, src)).removeAlpha().raw().toBuffer({resolveWithObject: true});
   const W = info.width, H = info.height, lum = new Float64Array(W * H);
   for (let i = 0; i < W * H; i++) lum[i] = (data[i * 3] + data[i * 3 + 1] + data[i * 3 + 2]) / 3;
@@ -89,5 +95,5 @@ await scene({src: 'public/art/v21/hero.webp', name: 'hero-scene', planets: [
 await scene({src: 'public/art/v21/hero-mobile.webp', name: 'hero-scene-mobile', planets: [
   {cx: 209.6, cy: 1084.8, r: 1074.5, band: 40, lit: 60, from: 260, to: 945, depth: 38},
   {cx: 833.5, cy: 1018.2, r: 656.7, band: 24, lit: 110, from: 560, to: 960, depth: 32}]});
-await scene({src: 'public/art/v21/destination.webp', name: 'destination-scene', planets: [
-  {cx: 485, cy: 738, r: 700, band: 40, lit: 60, from: 0, to: 1000}]});
+await scene({src: 'public/art/v21/destination.webp', name: 'destination-scene', soft: 16, inset: 6, planets: [
+  {cx: 485, cy: 738, r: 700, band: 40, lit: 60, from: 0, to: 1000, fixed: true}]});
