@@ -3,6 +3,7 @@ import {emptyPlatform, PLATFORM_KEY, positionSchema, privateGoalSchema, type Pla
 import {DASHBOARD_SETTINGS_KEY, presetSettings} from '../lib/dashboard-settings';
 import {ACCOUNTS_KEY, W_REMINDERS_KEY} from '../lib/w-device-keys';
 import {openFold} from './phone-nav';
+import {formatDate} from '../lib/visual-format';
 
 // Session W Part 12: accounts and debts on this device, net worth per currency (never converted), a debt's payoff from
 // the person's own figures, and a contribution plan's reminder whose "Fund now" opens the Goal's form filled in.
@@ -58,7 +59,7 @@ test('accounts and debts: net worth per currency with Wealth\'s valued holding a
   await loan.getByRole('button', {name: 'Record a payment on Fictional car loan', exact: true}).click();
   await loan.getByRole('form', {name: 'Payment on Fictional car loan'}).getByLabel(/Payment/).fill('100');
   await loan.getByRole('form', {name: 'Payment on Fictional car loan'}).getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(section.getByRole('status').filter({hasText: 'payment recorded for 2026-10-01'})).toBeVisible();
+  await expect(section.getByRole('status').filter({hasText: `payment recorded for ${formatDate('2026-10-01')}`}) /* Session AD item 8 (deliberate): the medium date, the suite's en-US */).toBeVisible();
   const saved = await stored(page, ACCOUNTS_KEY);
   expect(saved.items.map((a: {name: string; currency: string; kind: string}) => [a.name, a.kind, a.currency])).toEqual([['Fictional savings', 'savings', 'EUR'], ['Fictional car loan', 'loan', 'EUR'], ['Fictional dollars', 'cash', 'USD']]);
   expect(saved.items[1].payments.map((p: {value: string; date: string}) => [p.date, p.value])).toEqual([['2026-10-01', '10000']]);
