@@ -41,7 +41,7 @@ test('keyboard: Enter and Space open and close a card, focus stays on its button
   await expect(details).toBeVisible();
   for (const heading of ['About', 'Evidence & access', 'Verification and audits', 'Eligibility and access', 'What the sources say']) await expect(details.getByRole('heading', {name: heading, exact: true})).toBeVisible();
   await expect(details).toContainText(/identity verification \(KYC\)/i);
-  await expect(details).toContainText(/Record reviewed \d{4}-\d{2}-\d{2}/);
+  await expect(details).toContainText(/Record reviewed [A-Z][a-z]{2} \d{1,2}, \d{4}/);
   await second.locator('.ecosystem-toggle').click();
   await expect(first.locator('.ecosystem-toggle')).toHaveAttribute('aria-expanded', 'true');
   await expect(second.locator('.ecosystem-toggle')).toHaveAttribute('aria-expanded', 'true');

@@ -11,7 +11,7 @@ export const WHATS_NEW_KEY = 'zigoals:whats-new:v1';
  * the persona decisions (ADR-019). Session AA-Cloud bumps it for pages in order, Goals, the calculator, search and the
  * Life review (ADR-021). Same key and schema: an earlier build reads the id as one more dismissed string.
  */
-export const WHATS_NEW_RELEASE = '2026-10-session-ac-polish'; // Session AC (ADR-025): each thing once — the habit days on the card, a calmer sky, the footer ending at its links with the Alpha's facts in Settings and Help, one holdings list, one Water card, your own vision images.
+export const WHATS_NEW_RELEASE = '2026-10-session-ad-final-look'; // Session AD (ADR-026): the final look — the theme bar (Light and Dark previews beside Nebula), the footer banner, final, Today's planets into the page, one date style, sync by section and the revoked-device check, the restore's edges with Undo after a reload, Meet ZIGi's 25 states — on top of AC's '2026-10-session-ac-polish' (ADR-025), whose links now lead "Earlier updates"
 export const whatsNewSchema = z.strictObject({version: z.literal(1), dismissed: z.array(z.string().min(1).max(40)).max(50)});
 export type WhatsNew = z.infer<typeof whatsNewSchema>;
 type Read = Pick<Storage, 'getItem'>;

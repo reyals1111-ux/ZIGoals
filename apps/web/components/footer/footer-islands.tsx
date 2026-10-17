@@ -5,8 +5,9 @@ import {lazy, Suspense, useEffect, useRef, useState, type RefObject} from 'react
  * Phase 2 (weights, never a raised budget; no-JavaScript honesty): the footer banner is a server component
  * (site-footer.tsx) — its markup arrives with the HTML and costs no script on any page. These are its few live parts:
  * Back to top and the opening moment's path (its own chunk, requested as the page hydrates, so no page sees a late
- * request). Session AC: the page ends after the link columns; the Alpha's facts and the storage line moved to Settings
- * (components/alpha/about-this-alpha.tsx), Help and the first-visit notice.
+ * request). Session AC: the Alpha's facts and the storage line moved to Settings (components/alpha/about-this-alpha.tsx),
+ * Help and the first-visit notice. Session AD: the page ends with the social row; the link columns' links live in the
+ * sidebar, the phone's More, Help and Settings.
  */
 export function FooterTop() {
   return <a className="site-footer-top" href="#main" aria-label="Back to top" onClick={event => { event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'}); document.getElementById('main')?.focus({preventScroll: true}); }}><span className="site-footer-top-word">Back to top</span> <span aria-hidden="true">↑</span></a>;

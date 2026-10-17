@@ -4,9 +4,10 @@ import { habitTargetPeriod, latestHabitRule, upcomingVacation, type HabitData, t
 import { addLocalDays } from "../../lib/local-date";
 import { storageMessageOr } from "../../lib/storage-error-copy";
 import { useFieldErrors } from "../field-errors";
+import { formatDate } from "../../lib/visual-format";
 
-/** "12 Oct" or "12 Oct – 18 Oct", read in the day's own calendar (no zone shift). */
-const dayText = (date: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(Date.parse(`${date}T00:00:00Z`));
+/** "Oct 12" or "Oct 12 – Oct 18" (en-US), read in the day's own calendar (no zone shift). */
+const dayText = (date: string) => formatDate(date, { year: false });
 const runText = (run: VacationRun) => run.from === run.to ? dayText(run.from) : `${dayText(run.from)} – ${dayText(run.to)}`;
 const dayCount = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000) + 1;
 /**
@@ -49,6 +50,6 @@ export function VacationPanel({ data, today, onMark, onClear, onClose }: { data:
     </fieldset></form>
     {ahead.length > 0 && <div className="habit-vacation-ahead"><h3>Vacation days ahead</h3><ul>{ahead.map((run) => <li key={run.from}><span>{runText(run)} · {run.habitIds.length} {run.habitIds.length === 1 ? "habit" : "habits"}</span><button type="button" className="quiet" disabled={busy} aria-label={`Clear vacation days ${runText(run)}`} onClick={() => void clearRun(run)}>Clear</button></li>)}</ul></div>}
     {message && <p role="status">{message}</p>}{error && <p role="alert" id={errorId}>{error}</p>}
-    {marked && <div className="habit-vacation-clear"><button type="button" className="quiet" disabled={busy} onClick={() => void clear()}>Clear vacation days</button><small>Removes the vacation entries of {marked.from} to {marked.to} from today on.</small></div>}
+    {marked && <div className="habit-vacation-clear"><button type="button" className="quiet" disabled={busy} onClick={() => void clear()}>Clear vacation days</button><small>Removes the vacation entries of {formatDate(marked.from)} to {formatDate(marked.to)} from today on.</small></div>}
   </section>;
 }

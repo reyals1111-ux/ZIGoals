@@ -7,6 +7,7 @@ import type {MarketCatalogAsset} from '../market-assets';
 import {parseNumberCell, type NumberStyle} from '../csv/numbers';
 import {parseDateCell, DATE_FORMAT_LABELS, type DateFormat} from '../csv/dates';
 import type {ImportRecord} from './undo-schema';
+import {formatDate} from '../visual-format';
 
 /**
  * CSV import for holdings and transactions (Session P, PR 3, W3; docs/product/features/W3-holdings-import.md).
@@ -63,7 +64,7 @@ export const addedCoinIds = (before: PortfolioData, after: PortfolioData, portfo
 export function applyTransactionImport(data: PortfolioData, portfolioId: string, ready: readonly ReadyTransaction[], {importId, at}: {importId: string; at: string}): PortfolioData {
   const next = ready.reduce((current, item) => addTransaction(current, portfolioId, item.coin, {id: transactionImportId(importId, item.row), kind: item.kind, quantity: item.quantity, ...(item.price ? {price: item.price} : {}), ...(item.fee ? {fee: item.fee} : {}), date: item.date, note: item.note, createdAt: at}), data);
   try { checkHistories(next); } catch (error) {
-    if (error instanceof HoldingsBelowZero) { const culprit = ready.find(item => coinKey(item.coin.ref) === error.coin && item.date <= error.date && item.kind !== 'buy' && item.kind !== 'transfer-in'); throw Error(`${culprit ? `Row ${culprit.row}` : 'This import'} would sell more ${culprit?.coin.symbol ?? error.coin} than the portfolio holds on ${error.date}. Nothing was imported.`); }
+    if (error instanceof HoldingsBelowZero) { const culprit = ready.find(item => coinKey(item.coin.ref) === error.coin && item.date <= error.date && item.kind !== 'buy' && item.kind !== 'transfer-in'); throw Error(`${culprit ? `Row ${culprit.row}` : 'This import'} would sell more ${culprit?.coin.symbol ?? error.coin} than the portfolio holds on ${formatDate(error.date)}. Nothing was imported.`); }
     throw error;
   }
   return next;
@@ -115,7 +116,7 @@ export function undoImport(record: ImportRecord, stores: {portfolio?: PortfolioD
     if (!portfolio) return {portfolio: stores.portfolio, removed: 0};
     const mine = portfolio.transactions.filter(t => ids.has(t.id) && t.createdAt === record.at);
     const removed = mine.reduce((current, t) => removeTransaction(current, record.portfolioId!, t.id), stores.portfolio);
-    try { checkHistories(removed); } catch (error) { throw new UndoRefused(error instanceof HoldingsBelowZero ? `A later sale of ${error.coin} on ${error.date} needs what this import brought in. Remove the sale first.` : 'This import cannot be undone now.'); }
+    try { checkHistories(removed); } catch (error) { throw new UndoRefused(error instanceof HoldingsBelowZero ? `A later sale of ${error.coin} on ${formatDate(error.date)} needs what this import brought in. Remove the sale first.` : 'This import cannot be undone now.'); }
     // The coins this import added leave the list again when no transaction uses them any more.
     const addedCoins = new Set(record.createdIds.filter(id => id.startsWith('coin:')).map(id => id.slice('coin:'.length)));
     const next = {...removed, portfolios: removed.portfolios.map(p => p.id !== record.portfolioId ? p : {...p, coins: p.coins.filter(c => !addedCoins.has(coinKey(c.ref)) || p.transactions.some(t => t.coin === coinKey(c.ref)))})};

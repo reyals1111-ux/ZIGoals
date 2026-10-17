@@ -43,7 +43,7 @@ test('habit ideas: one tap adds a complete habit, or the same as a 30-day challe
   if (await isPhone(page)) { await closeFormSheet(page); await page.getByRole('button', {name: 'Habit ideas', exact: true}).click(); await ideas.getByRole('button', {name: 'Sleep', exact: true}).click(); }
   await expect(ideas.getByText('Already in your habits')).toHaveCount(1);
   await ideas.getByRole('button', {name: 'Add Wind down without screens as a 30-day challenge', exact: true}).click();
-  await expect(page.getByRole('status').filter({hasText: 'Wind down without screens added as a 30-day challenge, ending 2026-11-05.'})).toBeVisible();
+  await expect(page.getByRole('status').filter({hasText: 'Wind down without screens added as a 30-day challenge, ending Nov 5, 2026.'})).toBeVisible();
   await closeFormSheet(page);
   await expect(card(page, 'Wind down without screens')).toContainText('Challenge · day 1 of 30');
   const saved = (await stored(page, HABITS_KEY)) as HabitData;
@@ -75,7 +75,7 @@ test('a finished challenge: one calm note in your own numbers, once on this devi
   const walk = card(page, 'Fictional walk');
   await openHabitDetails(walk);
   const note = walk.getByRole('group', {name: 'Fictional walk challenge ended'});
-  await expect(note).toContainText('Your 7-day Fictional walk challenge ended on 2026-10-04: done on 5 of 7 scheduled days.');
+  await expect(note).toContainText('Your 7-day Fictional walk challenge ended on Oct 4, 2026: done on 5 of 7 scheduled days.');
   await note.getByRole('button', {name: 'Let it rest', exact: true}).click();
   await expect(note).toHaveCount(0);
   expect(Object.keys((await stored(page, CELEBRATIONS_KEY)).seen)).toEqual([`challenge:${ID.walk}:2026-10-04`]);
@@ -100,7 +100,7 @@ test('a habit\'s patterns: by weekday and by week over 12 weeks, and when check-
   const patterns = bed.locator('.habit-patterns');
   await expect(patterns.getByRole('heading', {name: 'By weekday · last 12 weeks'})).toBeVisible();
   await expect(patterns.locator('.habit-weekdays li')).toHaveCount(7);
-  await expect(patterns).toContainText('Check-ins are usually saved around 07:15');
+  await expect(patterns).toContainText('Check-ins are usually saved around 7:15 AM');
   await patterns.locator('summary', {hasText: 'The weeks as a table'}).click();
   await expect(patterns.getByRole('table')).toContainText('Week of');
   if (await isPhone(page)) expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);

@@ -204,6 +204,26 @@ describe('what makes it ask for the secret again',()=>{
   h.offline=true;await newTab(false);expect(isAccountLocked()).toBe(true);expect(await readDevices()).toHaveLength(1);
   h.offline=false;await reload();await verified();expect(opened()).toBe(true);
  });
+ // Session AD item 12 (ADR-026, Q-SYNC-05, owner amendment 4): the vault is open on a page other than Settings, so no
+ // reopen runs; the revocation check notices the denial when the page is shown again and removes the record at once.
+ // The person's records stay byte for byte. Offline, the same moment keeps the record.
+ for(const code of ['SESSION_REVOKED','ACCOUNT_DELETED'] as const)test(`Session AD: ${code} while the vault is open on a page, seen when the page is shown again: only the record goes`,async()=>{
+  await remembered();await reload(false);expect(isAccountLocked()).toBe(false);
+  const habits=JSON.stringify(habitsV2());await act(async()=>getAppStorage().setItem(HABITS_KEY,habits));
+  const physical=`zigoals:account:v1:${A}:${HABITS_KEY}`,before=h.requests.length;
+  h.denied=code;const now=Date.now(),clock=vi.spyOn(Date,'now');
+  try{
+   clock.mockReturnValue(now+60_000);await act(async()=>{document.dispatchEvent(new Event('visibilitychange'));});await settle();
+   expect(h.requests.slice(before).filter(url=>url.endsWith('?action=status'))).toHaveLength(1);
+   expect(await readDevices()).toEqual([]);expect(localStorage.getItem(physical)).toBe(habits);
+  }finally{clock.mockRestore();}
+ });
+ test('Session AD: offline when the page is shown again keeps the record',async()=>{
+  await remembered();await reload(false);expect(isAccountLocked()).toBe(false);
+  h.offline=true;const now=Date.now(),clock=vi.spyOn(Date,'now');
+  try{clock.mockReturnValue(now+60_000);await act(async()=>{document.dispatchEvent(new Event('visibilitychange'));});await settle();expect(await readDevices()).toHaveLength(1);}
+  finally{clock.mockRestore();}
+ });
  test('a routine token expiry keeps it and opens again at once; a revoked session deletes it',async()=>{
   await remembered();
   await act(async()=>{noteAccessDenial(A,'SIGN_IN_REQUIRED');lockAccount('access-changed');});await settle();

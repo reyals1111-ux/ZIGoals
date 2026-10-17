@@ -65,10 +65,14 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AB-Design (ADR-024, deliberate; the second merger): this release's links are the card's own; AB-Cloud's,
   // AA-Local's, AA-Cloud's, Z-Local's, Z-Cloud's, Y's, X-Local's, W's and V's wait under "Earlier updates", AB-Cloud's first.
   // Session AC (ADR-025, deliberate): this release's links are the card's own; AB-Design's eight lead "Earlier updates".
-  await card.getByRole('link', {name: 'The page ends at the footer links; the Alpha’s facts live in Settings and Help'}).click();
-  await expect(page).toHaveURL(/\/app\/help#help-ac-footer$/);
-  await expect(page.locator('#help-ac-footer')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-ac-footer')).toContainText('Every page now ends after the footer’s links');
+  // Session AD (ADR-026, deliberate): this release's seven links are the card's own; AC's eight lead "Earlier updates".
+  await card.getByRole('link', {name: 'The footer banner, final, with every link still close'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-ad-banner$/);
+  await expect(page.locator('#help-ad-banner')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-ad-banner')).toContainText('Its link columns are gone, and every link is still close');
+  await page.goto('/app');
+  await revealUpdates(page);
+  await expect(card.getByRole('link', {name: 'The page ends at the footer links; the Alpha’s facts live in Settings and Help'})).toHaveCount(0);
   await page.goto('/app');
   await revealUpdates(page);
   await expect(card.getByRole('link', {name: 'The footer banner: Goals, Habits & Health = Wealth'})).toHaveCount(0);
@@ -90,16 +94,18 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   await expect(earlier).toHaveCount(EARLIER_LINKS.length);
   // Session AB-Design (ADR-024, deliberate): AB-Cloud's six links now lead, so every pinned position moves by six.
   // Session AC (ADR-025, deliberate): AB-Design's eight links now lead, so every pinned position moves by eight more.
-  await expect(earlier.first()).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
-  await expect(earlier.nth(8)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
-  await expect(earlier.nth(14)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
-  await expect(earlier.nth(21)).toHaveText('Every page starts with what matters most');
-  await expect(earlier.nth(29)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
-  await expect(earlier.nth(33)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(40)).toHaveText('End a vacation early');
-  await expect(earlier.nth(44)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  // Session AD (ADR-026, deliberate): AC's eight links now lead, so every pinned position moves by eight more again.
+  await expect(earlier.first()).toHaveText('Habit cards show their last 28 days under the counter');
+  await expect(earlier.nth(8)).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
+  await expect(earlier.nth(16)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
+  await expect(earlier.nth(22)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
+  await expect(earlier.nth(29)).toHaveText('Every page starts with what matters most');
+  await expect(earlier.nth(37)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(41)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(48)).toHaveText('End a vacation early');
+  await expect(earlier.nth(52)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
   // AA-Local's release follows AB-Cloud's (its own assertions, kept): the habits answer.
-  await earlier.nth(14).click();
+  await earlier.nth(22).click();
   await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
   await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
   await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');

@@ -4,6 +4,7 @@ import {checkStop, isoOf, localDay, realDay, type ReadContext} from './common';
 import {csvRows, headerIndex} from './csv-stream';
 import {stableHash} from './ids';
 import {baseName, progressCounter, textStream, type ImportFile} from './source';
+import {formatDate} from '../../visual-format';
 
 /**
  * Loop Habit Tracker's "Export as CSV" (Session W Part 7; IMPORT_FORMATS.md "Loop Habit Tracker"), read to Loop's own
@@ -109,7 +110,7 @@ export function undoHabitsPlan(data: HabitData, batch: ImportBatch): {remove: nu
   let remove = 0;
   for (const h of data.habits) if (refs.habitIds.includes(h.id)) { remove++; if (Date.parse(h.updatedAt) > since + 1000 || h.entries.some(e => Date.parse(e.updatedAt) > since + 1000)) edited.push(h.title); }
   const wanted = new Set(refs.entries.map(([id, d]) => `${id}|${d}`));
-  for (const h of data.habits) if (!refs.habitIds.includes(h.id)) for (const e of h.entries) if (wanted.has(`${h.id}|${e.date}`)) { remove++; if (Date.parse(e.updatedAt) > since + 1000) edited.push(`${h.title} on ${e.date}`); }
+  for (const h of data.habits) if (!refs.habitIds.includes(h.id)) for (const e of h.entries) if (wanted.has(`${h.id}|${e.date}`)) { remove++; if (Date.parse(e.updatedAt) > since + 1000) edited.push(`${h.title} on ${formatDate(e.date)}`); }
   return {remove, edited};
 }
 export function undoHabits(data: HabitData, batch: ImportBatch): HabitData {

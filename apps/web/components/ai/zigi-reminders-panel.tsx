@@ -6,6 +6,7 @@ import {ZIGI, ZIGI_REMINDERS, zigiPrefs, type ZigiReminders} from '../../lib/ai/
 import {useDeviceRecord} from './use-device-record';
 import {useGoals} from '../goal-provider';
 import {usePlatform} from '../platform/use-platform';
+import {formatClock} from '../../lib/visual-format';
 
 /**
  * Settings → ZIGi · your AI → Reminders (Session V Part 18): ZIGi's own weekly reminders (`zigoals:zigi-reminders:v1`:
@@ -21,10 +22,10 @@ export default function ZigiRemindersPanel() {
   const data = record.data, rows: Row[] = [];
   for (const [key, when] of Object.entries(data.goalCheckIns ?? {})) {
     const found = goal(key);
-    rows.push({id: `goal:${key}`, title: found ? `Weekly check-in: ${found.title}` : 'Weekly check-in: a goal that is closed or not on this device', when: `${WEEKDAYS[when.weekday]} at ${when.time}`, remove: r => { const goalCheckIns = {...(r.goalCheckIns ?? {})}; delete goalCheckIns[key]; return {...r, goalCheckIns}; }});
+    rows.push({id: `goal:${key}`, title: found ? `Weekly check-in: ${found.title}` : 'Weekly check-in: a goal that is closed or not on this device', when: `${WEEKDAYS[when.weekday]} at ${formatClock(when.time)}`, remove: r => { const goalCheckIns = {...(r.goalCheckIns ?? {})}; delete goalCheckIns[key]; return {...r, goalCheckIns}; }});
   }
-  if (data.wealthLook) rows.push({id: 'wealth', title: 'A look at Wealth', when: `${WEEKDAYS[data.wealthLook.weekday]} at ${data.wealthLook.time}`, remove: r => ({...r, wealthLook: null})});
-  if (data.packRefresh) rows.push({id: 'pack', title: 'A new context pack', when: `${WEEKDAYS[data.packRefresh.weekday]} at ${data.packRefresh.time}`, remove: r => ({...r, packRefresh: null})});
+  if (data.wealthLook) rows.push({id: 'wealth', title: 'A look at Wealth', when: `${WEEKDAYS[data.wealthLook.weekday]} at ${formatClock(data.wealthLook.time)}`, remove: r => ({...r, wealthLook: null})});
+  if (data.packRefresh) rows.push({id: 'pack', title: 'A new context pack', when: `${WEEKDAYS[data.packRefresh.weekday]} at ${formatClock(data.packRefresh.time)}`, remove: r => ({...r, packRefresh: null})});
   const remove = (row: Row) => {
     try { record.update(row.remove); setMessage({text: `Removed: ${row.title}.`}); }
     catch { setMessage({text: 'This reminder could not be removed on this device.', failed: true}); }

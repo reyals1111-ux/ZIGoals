@@ -8,6 +8,7 @@ import {WEEKLY_REVIEW_KEY, type WeeklyReview} from '../lib/weekly-review/schema'
 import {reviewWindow} from '../lib/weekly-review/engine';
 import {addLocalDays} from '../lib/local-date';
 import {isPhone} from './phone-nav';
+import {formatDate} from '../lib/visual-format';
 
 // G1 (Session P): the weekly review on the chosen day; six calm steps with the person's own numbers; device-only.
 const TODAY = '2026-09-15', WEEKDAY = 2; // a Tuesday, chosen as the review day
@@ -55,7 +56,7 @@ test('on the review day: six steps with the week\'s own numbers, an intention, f
   await page.goto('/app');
   await reveal(page);
   await expect(card(page)).toBeVisible();
-  await expect(card(page)).toContainText(`${window.weekStart} – ${window.weekEnd}`);
+  await expect(card(page)).toContainText(`${formatDate(window.weekStart)} – ${formatDate(window.weekEnd)}`) /* Session AD item 8 (deliberate): the medium date */;
   await card(page).getByRole('button', {name: 'Start review', exact: true}).click();
   const dialog = page.getByRole('dialog', {name: 'Your week'});
   await expect(dialog).toBeVisible();

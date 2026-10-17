@@ -1,5 +1,6 @@
 import {editHabit, habitCalendarDay, habitDay, habitInputSchema, latestHabitRule, type Habit, type HabitData, type HabitInput} from '../habits';
 import {addLocalDays} from '../local-date';
+import {formatDate} from '../visual-format';
 
 /**
  * Habit challenges (Session W Part 10): a habit with an end date, started for 30 days or any number from 7 to 365. It
@@ -58,5 +59,5 @@ export function keepGoing(data: HabitData, id: string, now = new Date()): HabitD
 export const challengeNoteId = (habit: Pick<Habit, 'id'>, c: Pick<Challenge, 'end'>) => `challenge:${habit.id}:${c.end}`;
 /** The words of the finished note: what was done, in the person's own numbers. */
 export function finishedWords(habit: Pick<Habit, 'title'>, c: Challenge): string {
-  return `Your ${c.days}-day ${habit.title} challenge ended on ${c.end}: done on ${c.done} of ${c.scheduled} scheduled ${c.scheduled === 1 ? 'day' : 'days'}.`;
+  return `Your ${c.days}-day ${habit.title} challenge ended on ${formatDate(c.end)}: done on ${c.done} of ${c.scheduled} scheduled ${c.scheduled === 1 ? 'day' : 'days'}.`;
 }

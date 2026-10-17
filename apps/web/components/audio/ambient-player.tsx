@@ -8,7 +8,7 @@ import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {formatTime} from '../../lib/visual-format';
 import './ambient.css';
 
-const clock = (ms: number) => formatTime(ms, {hour: 'numeric', minute: '2-digit'});
+const clock = (ms: number) => formatTime(ms);
 /**
  * Ambient focus sounds (Session W Part 6): choose a sound, a volume and an optional timer, then play. The choices are
  * this device's (`zigoals:music:v1`); the sound is made here, nothing is downloaded or recorded. It keeps playing while

@@ -3,6 +3,9 @@ import {useId, useState, type FormEvent} from 'react';
 import {applyEdits, editableFields, fieldText, type Field} from '../../lib/ai/actions/edit';
 import type {Plan} from '../../lib/ai/actions/plan';
 import type {Action} from '../../lib/ai/actions/schema';
+import {formatDate} from '../../lib/visual-format';
+// The card's day as people read it ("Sep 18, 2026", "week of Sep 14, 2026"); the card keeps the ISO day.
+const dayText = (day: string) => day.replace(/\d{4}-\d{2}-\d{2}/g, key => formatDate(key));
 
 /**
  * One proposal from ZIGi (ADR-012, Part 5): exactly what would be written, where and for which day, with Add, Edit and
@@ -54,7 +57,7 @@ export function ProposalCard({action, plan, refusal, status, error, onAdd, onDis
     {error && <p role="alert" className="ai-card-error">{error}</p>}
   </article>;
   return <article className={`ai-card ai-card-${status}${card.estimate ? ' ai-card-estimate' : ''}`} aria-labelledby={titleId} data-kind={card.kind}>
-    <header className="ai-card-head"><span className="ai-card-where" title={`${card.where}${card.day ? ` · ${card.day}` : ''}`}>{card.where}{card.day ? ` · ${card.day}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
+    <header className="ai-card-head"><span className="ai-card-where" title={`${card.where}${card.day ? ` · ${dayText(card.day)}` : ''}`}>{card.where}{card.day ? ` · ${dayText(card.day)}` : ''}</span>{card.estimate && <span className="ai-card-badge">{fromPhoto ? 'Estimated by your AI from a photo' : 'AI estimate'}</span>}</header>
     <h4 id={titleId}>{card.title}</h4>
     <ul className="ai-card-lines">{card.lines.map((line, i) => <li key={i}>{line}</li>)}</ul>
     {card.safety && <p className="ai-card-safety">{card.safety}</p>}

@@ -52,7 +52,9 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
   // Session AA-Cloud's five personal device keys (ADR-021; listed here by the second merger, ADR-022 B52).
   GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY,
   // Session AB-Cloud's own (lib/ab-cloud-device-keys.ts): vitamins, Point & tell's notes.
-  ...AB_CLOUD_PERSONAL_KEYS];
+  ...AB_CLOUD_PERSONAL_KEYS,
+  // Session AD item 11: a restore's undo record (lib/restore/apply.ts RESTORE_UNDO_KEY; written as text so this module stays light).
+  'zigoals:restore-undo:v1'];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as

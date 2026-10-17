@@ -22,6 +22,8 @@ export function SendFeedback() {
       <textarea id={`${id}-details`} value={details ?? ''} onChange={event => setDetails(event.target.value)} rows={6} maxLength={DETAILS_MAX} spellCheck={false} autoComplete="off"/>
     </div>}
     <p><a className="primary send-feedback-mail" href={feedbackHref(APP_VERSION_LABEL, add ? details : null)}>Email feedback to {FEEDBACK_ADDRESS}</a></p>
-    <p className="fine">Your mail app opens with the email; nothing is sent until you send it there. ZIGoals adds the app version and, only if you ticked the box, the details above: no account or device id and none of your records. Please leave out codes, your recovery secret, and personal money or health details. Found a security problem? Write privately to <a className="text-link" href={`mailto:${SECURITY_ADDRESS}`}>{SECURITY_ADDRESS}</a>.</p>
+    <p className="fine">Your mail app opens with the email; nothing is sent until you send it there. ZIGoals adds the app version and, only if you ticked the box, the details above: no account or device id and none of your records. Please leave out codes, your recovery secret, and personal money or health details.</p>
+    {/* Session AD (Part 1): the footer's "Private security contact" lives here now, by the same name. */}
+    <p className="send-feedback-security">Found a security problem? Write privately: <a className="text-link" href={`mailto:${SECURITY_ADDRESS}`} aria-label={`Private security contact: ${SECURITY_ADDRESS}`}>Private security contact · {SECURITY_ADDRESS}</a></p>
   </div>;
 }

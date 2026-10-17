@@ -15,6 +15,12 @@ export const uiPrefsSchema = z.looseObject({
   musicFolded: z.boolean().optional(),
   /** The theme (owner request 5): only "dark" exists today; any other stored word reads as dark until that theme ships. */
   themeMode: z.string().max(24).optional(),
+  /**
+   * Session AD (Part 3, ADR-026 F4): the theme in effect — "nebula" (today's look, the default), "light" or "dark" (both
+   * previews). A new field beside `themeMode`, which older builds keep reading as their only look; any other word reads as
+   * nebula. Kept in this device's own record (lib/ui-prefs/theme.ts), never synced.
+   */
+  theme: z.string().max(24).optional(),
   /** The currency Wealth's totals are shown in (owner request 24); other currencies stay separate and never convert. */
   baseCurrency: z.enum(['USD', 'EUR']).optional(),
   /** Notices the person closed (owner request 8): the compact Alpha notice at the top of every page. */
@@ -29,7 +35,7 @@ export const uiPrefsSchema = z.looseObject({
 export type UiPrefs = z.infer<typeof uiPrefsSchema>;
 export const emptyUiPrefs = (): UiPrefs => ({version: 1});
 export const UI_PREFS: DeviceRecordSpec<UiPrefs> = {key: UI_PREFS_KEY, schema: uiPrefsSchema, empty: emptyUiPrefs};
-/** The theme in effect: dark is the only one that exists; Light and Customize say "Soon" and never store themselves. */
+/** The pre-Session AD theme mode: always today's look ("dark" in AB-Design's words; kept for older readers and tests). */
 export const themeModeOf = (prefs: UiPrefs): 'dark' => (prefs.themeMode === 'dark' || prefs.themeMode === undefined ? 'dark' : 'dark');
 /** The currency Wealth's totals are shown in: the person's choice, else the device's default (AB-Cloud's defaultCurrency(),
  * passed in by the hook; USD where none is given) — ADR-024 owner edit 5, wired at the second merger (Phase 2 Part 12). */

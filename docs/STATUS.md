@@ -1,3 +1,79 @@
+# Session AD — "The final look" (ADR-026, Parts 0–5, Gate C) (2026-10-17, [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88), not merged, not deployed)
+**Evidence labels:** local = the cloud sandbox, production builds on :3101, Playwright Chromium as the Chrome channel, at most 2 workers, nothing in parallel; CI = Milestone quality on the PR head; WebKit = CI's required WebKit job. No paid model calls; fictional data only.
+**Base:** `main` `61204c3` (Alpha #42). **Rules (owner):** the brief plus four amendments at plan approval (the banner once per visit; no Python script committed for the wordmark; B7 never refusing data our builds wrote; the Q-SYNC-05 checker only while visible).
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records: Alpha #42 entry and Release identity, ADR-026, AD_RESUME; the owner's wordmark source merged; before captures; Draft PR | — | `c0a985c0` `5c041573` | Actions API, captures |
+| 1 | The footer banner: the owner's transparent wordmark (AVIF/WebP/PNG, lazy; steps in ADR-026 F8), the banner as tall as its planet, "Goals · Habits · Health" and a larger "= Wealth", one opening moment per visit (transform/opacity, still under reduced motion and Motion Off), nebula buttons, the music button as ZIGi's; the link columns gone, every link two taps away | 2 | `76949675` `ce9b3545` | local, CI |
+| 2 | Today's hero planets bleed into the page (the art unchanged; a 13 kB continuation of its own pixels); folded shows nothing | 2 | `a0e01369` `ce9b3545` | local, CI |
+| 3 | The theme bar: Light (Preview), Nebula (default; "Customize — coming later"), Dark (Preview) from generated override sheets that leave Nebula's CSS untouched and load only when chosen | 2 | `cfe0f1e1` `fafff139` `4ed78fe4` `74aee323` `38702f69` `ee1eaf53` | local, CI, audits |
+| 3 / storage | `TIER 3 (storage)`: `zigoals:ui-prefs:v1` gains an optional `theme`, device-only, never synced | 3 | `c360ba01` | local, readers |
+| 3 / CSP | `TIER 3 (security headers/CSP)`: one 846-byte same-origin boot script in `<head>` with the request's nonce, server-rendered only; no new CSP source, no Trusted Types sink | 3 | `b917d802` | local, CI (`themes.spec`) |
+| 4 / 8 | One date format (medium date, the locale's hour cycle; ISO only in exports and machine fields) and a guard test; realistic Showcase times | 2 | `50ab05c6` (merge) `2a3f58d2` `651ec506` `b91b19d4` | local, CI |
+| 4 / 9 | `motion-polish` reads each animation's mid value at its own half-way point | 2 | `132b9c10` | CI 988, 990, 991, 992 |
+| 4 / 10 | WebKit evidence across runs 981–992: no navigation stall | — | `34dad87c` | CI |
+| 4 / 11 | Per-section sync status; restore edges (damaged, foreign, too new/old, cut short, Stop midway); `TIER 3 (sync / data formats)`: Undo survives a reload (`zigoals:restore-undo:v1`) | 3 | `a34eb012` (merge: `5bfafed4` `5ef11473`) `9753a430` | local, CI |
+| 4 / 12 | `TIER 3 (auth/sync)`: Q-SYNC-05 — a remembered device checks for revocation only while visible (amendment 4); `TIER 3 (data formats)`: B7 strict on write, never refusing on read (amendment 3), encoder history of #32–#42 proven readable; §2 records | 3 | `ab11cf47` (merge: `b283eb9c` `c28d26f7`) `57bb6927` | local, readers, review |
+| 4 / 13 | Meet ZIGi's 25-state gallery; the Showcase's earlier season makes "Sleep and habits" ready | 2 | `b1117cd4` (merge) | local, CI |
+| 5 | What's new `2026-10-session-ad-final-look` and seven Help answers mirrored in search; `TIER 3 (public-safety labels)`: two earlier answers made true (wording only); hero at 768 px (unchanged); Session AC's open items | 2 / 3 | `ab511c07` (merge) `402d1935` `bff3d92c` `d4db6089` | local, CI |
+| Weights | Every page within its budget, none raised: the theme bar, the market search and a habit's patterns as their own chunks | 2 | `389bb3f6` `c2ca3697` `d5fd2ddf` `262c0c8c` | local, CI |
+| Gate C | Security review (F22) and design review (F23) fix rounds; audits; revert gate; frozen readers; scans | 2 / 3 | `57bb6927` `e26b25fc` `99907550` `ee1eaf53` `e7da91f6` and the records commits | below |
+| — | This entry, PR ready for review | — | this commit | — |
+## Tier 3, in plain words (risk → rollback)
+- **Storage (`c360ba01`):** one optional field in the device's own ui-prefs record; older builds ignore it (frozen readers #37–#42 PASS). Rollback: revert; a stored `theme` is then ignored and everyone sees Nebula.
+- **CSP (`b917d802`):** a same-origin script with the page's nonce sets `data-theme` before paint and links that theme's sheet; the stored value is only a lookup key. Risk: a page shows nothing until the sheet loads (1.5 s cap). Rollback: revert with `cfe0f1e1` (the theme bar).
+- **Sync / data formats (`5bfafed4`, `5ef11473`):** section times in memory; a restore's Undo record holds digests and, for 7 days at most, the replaced device records in this browser only (removed by Undo, Keep, a change, or Settings → Your data after expiry; PRIVACY.md says so). Rollback: revert `5ef11473`; the key then sits unread.
+- **Auth/sync (`b283eb9c`, `57bb6927`):** the existing status GET only while visible and a remembered record exists; a definitive revoke drops the record; offline/5xx keep it; it needs a current sign-in (PRIVACY.md). Rollback: revert both; the record is then dropped only when the vault is opened, as before.
+- **Data formats (`c28d26f7`):** B7 refuses nothing any build wrote; a non-canonical but decodable value is read as its canonical spelling and noted once without the value. Rollback: revert; the reader is strict again, which still refuses nothing our builds wrote.
+- **Public-safety labels (`402d1935`):** two Help sentences only; the Alpha's facts unchanged.
+- Nothing in wallet, signing or keys changed; no new dependency; no workflow changed.
+## Tests and assertions changed (deliberate, equal strength unless said)
+- Footer links moved (Part 1): `ui-design-pass` Part 6, `session-ac` item 3, `persona-z` 11, `help-page:106`, `send-feedback:11/:62`; `guide:124` views the footer first (the once-per-visit flag).
+- Item 8: the date expectations of ~35 specs and 15 unit tests moved to the medium date (listed in the item 8 commits and `2a3f58d2` `651ec506` `b91b19d4`).
+- Owner amendment 3 (not to get green): `crypto.test` and `extras-hardening.test` B7 tests now assert reading, not refusing.
+- Item 11: `restore-backup` "Undo lasts only until the tab reloads" → "survives a reload".
+- Item 13: `showcase.test` 7 → 8 habits, `cross-pillar` ready at 19/37, `showcase-today-aa`, `showcase-export-guard`.
+- Part 5: `help-page` topics (16), `whats-new` positions, `zigi-help-settings` release.
+- Weights: `manual-source-cards.test` reads the market search once its chunk has loaded.
+- Item 9: `motion-polish` samples at the half-way point; a missing mid value now fails (stricter).
+- New: `footer-motion`, `footer-links-moved`, `today-hero-bleed`, `themes` specs; `theme`, `theme-boot`, `build-themes`, `date-format`, `date-format-guard`, `revocation-check`, `encoder-history`, `undo-reload`, `state-gallery` unit tests.
+## Gate C evidence
+- Unit (local, final code): 575 files / 5,058 tests passed, 44 skipped by design.
+- Browser (local, full suite once on `99907550`, 2 workers): 2,226 passed, 6 failed, 560 skipped. The 6: the four intro-film specs (this sandbox's Chromium cannot play the film; CLAUDE.md), `zigi-alive:146` and `my-links:80` (pass alone here and in CI). Later commits re-ran their specs (drag, footer, hero, themes: green).
+- CI: run 992 on `262c0c8c` green on every job incl. both WebKit shards; the final head's run is linked in the PR.
+- Audits (`docs/verification/session-ad/gate-c-audits.md`): every state × Nebula/Light/Dark at 390 and 1440, the changed pages at 320–1920; all findings fixed or the same on `main` (Journey's level badge; the hero slogan's line boxes in this sandbox's font).
+- Weights (local, final): Today 515.0 (514,982 B of 515,000), Goals 432.2, Habits 457.8, Health 481.5, Wealth 451.3, Markets 427.8, Portfolio 449.9, Staking 439.1, Activity 406.7, Settings 481.7, Help 400.9, Chess 409.7, shell 396.7 kB; no budget raised. Today has 18 bytes of room.
+- Revert gate (`gate-c-revert-gate.txt`): every commit reverts newest-first with typecheck green, except that `d5fd2ddf` must be reverted together with `ab11cf47`; the tree ends at `61204c3`.
+- Frozen readers #37–#42 (`gate-c-frozen-readers.txt`): PASS each.
+- Key scans (`gate-c-scans.txt`): `check-secrets` passed; `key-sweep` no pattern hit.
+- Reviews: security of every Tier 3 commit (ADR-026 F22: no high or medium; two lows fixed, the rest recorded); design critique of the captures (F23: Light's three defects and two layout issues fixed; Dark shippable as a Preview).
+- Captures: `review/session-ad-screens` (`before/` from `61204c3`, `after/` in Nebula, Light and Dark).
+## Known CI intermittents (this session)
+- `motion-polish` (AC's sampling intermittent): sampled at the animation's own half-way point since `132b9c10`; green in runs 988, 990, 991, 992 — no longer listed.
+- WebKit, run 986 only: a content-process crash ("Target crashed") in `zigi-accept-correct:260` (Brussels case) and a 60 s Send-disabled timeout in `zigi-memory:105`; not repeated in six runs since (`item10-webkit.md`).
+## Owner items
+- Light and Dark are labelled Previews; owner taste notes in ADR-026 F23 (Light's night sidebar beside the pastel page, its cards' separation, Dark's bright sidebar starfield, the dark space under the banner's steps at 1440, the short pink flare).
+- On `main` too, not this PR's: the floating buttons over Today's reserve-card text at 1024 px and a Health date at 390 px; Settings' sticky tab bar over scrolling content; Journey's level badge overlap.
+- Today's script budget has 18 bytes of room: the next feature on Today needs a split or an owner-approved budget.
+- Carried from AC, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal, the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #42 — 2026-10-16, `61204c3` live
+Recorded by Session AD (2026-10-17).
+- **Source:** `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC, "Polish to zero", ADR-025).
+- **CI:** Milestone quality #980 ([run 38953016185](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38953016185)) on `61204c3` (push to `main`): success on attempt 2 — attempt 1's browser shard 1/4 failed once on `tests/motion-polish.spec.ts:50` (the known `motion-polish` timing family), green on the re-run before the deploy. Verified: Actions API (attempt and result); the failing test owner-reported.
+- **Deployment:** Manual Alpha deployment, run number 44 ([run 38965380164](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38965380164)), dispatched 2026-10-16 20:52:34 UTC from `main`, exact source `61204c3`: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 3 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC). Owner-reported.
+- **Alpha Worker `zigoals-alpha`:** live version `e3c6ba1c-14f9-4a9b-928b-e1bd57b3ce08`; rollback `ad8320e7-9a9a-4fcf-a0ef-b5699a20e963` (#41). Owner-reported.
+- **Owner's hosted check on #42:** pending (owner).
+- **What went live:** Session AC (ADR-025) on top of AB-Design (#41).
+- **Release identity:** live #42, previous #41. **Rollback floor:** stays #32.
+- **Record note:** run number 44 is Alpha #42 (the run number runs two ahead of the Alpha count).
+
+---
+
 # Session AC — "Polish to zero" (ADR-025 items 1–17, Gate C) (2026-10-15/16, [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87), not merged, not deployed)
 **Evidence labels:** local = the cloud sandbox, production builds on :3101 with `TZ=UTC`, Playwright Chromium as the Chrome channel, at most 2 workers, nothing in parallel; CI = Milestone quality on the PR head; WebKit = CI's WebKit job (advisory until `f29eb964`, required on pull requests since). No paid model calls; fictional data only.
 **Base:** `main` `9e41f0d` (Alpha #41). **Rules (owner):** the brief plus the five amendments at plan approval (lean usage, the cut order, the veil colour, the capture set, one independent review).
@@ -6250,7 +6326,13 @@ Live Alpha is unchanged (Worker `05de2b25-1ff8-4b5b-a867-e1f685e1f2bb`). Nothing
 **Handover rule:** every merged change updates this section. Sections below it are earlier records.
 
 ## Release identity
-Updated 2026-10-15 for the [Alpha deploy #41](#alpha-deploy-41--2026-10-15-9e41f0d-live) record at the top of this file (recorded by Session AC). Rollback floor: #32.
+Updated 2026-10-17 for the [Alpha deploy #42](#alpha-deploy-42--2026-10-16-61204c3-live) record at the top of this file (recorded by Session AD). Rollback floor: #32.
+- Deployed source `61204c3fb1e959763ecbe81ef402c76990ad1f14`, `main` after [PR #87](https://github.com/reyals1111-ux/ZIGoals/pull/87) (Merge #87, Session AC). Verified: Actions API.
+- CI: Milestone quality #980 ([run 38953016185](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38953016185)) on `61204c3`: success (attempt 2; attempt 1's shard 1/4 red once on `motion-polish:50`, the known timing family). Verified: Actions API.
+- Deployment: Manual Alpha deployment, run number 44 ([run 38965380164](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38965380164)), exact source `61204c3`: success; new version confirmed after 3 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.
+- Alpha Worker `zigoals-alpha`: live version `e3c6ba1c-14f9-4a9b-928b-e1bd57b3ce08`; live prices `VERIFIED` (policy period ends 2026-10-31T16:00Z); rollback `ad8320e7-9a9a-4fcf-a0ef-b5699a20e963` (#41). Owner-reported. The owner's hosted check on #42: pending (owner).
+
+Previous release identity (#41, 2026-10-15, recorded by Session AC):
 - Deployed source `9e41f0d14284657819e53a78c2515cf58a94db40`, `main` after [PR #86](https://github.com/reyals1111-ux/ZIGoals/pull/86) (Merge #86, Session AB-Design). Verified: Actions API.
 - CI: Milestone quality #946 ([run 38716443548](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38716443548)) on `9e41f0d`: success (attempt 1). Verified: Actions API.
 - Deployment: Manual Alpha deployment, run number 43 ([run 38726691677](https://github.com/reyals1111-ux/ZIGoals/actions/runs/38726691677)), exact source `9e41f0d`: success; new version confirmed after 4 reads; `VERIFIED`. Verified: Actions API (the run); the rest owner-reported.

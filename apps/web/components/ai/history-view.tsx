@@ -6,6 +6,7 @@ import {chatAreas, forgetChatAreas, groupHistory, type HistoryFilter} from '../.
 import {PAGE_AREAS, type PageArea} from '../../lib/ai/settings';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {ReplyIcon} from './reply-actions';
+import {formatDateTime} from '../../lib/visual-format';
 import type {ChatSession} from './use-chat-session';
 import './chat-polish.css';
 
@@ -53,7 +54,7 @@ export function HistoryView({session, onOpen}: {session: ChatSession; onOpen: ()
   useEffect(() => () => { void latest.current(); }, []);
   const hidden = (item: ChatSummary) => pending !== null && (pending.ids === 'all' || pending.ids.includes(item.id));
   const {pinned, recent} = groupHistory((items ?? []).filter(item => !hidden(item)), areas, filter);
-  const details = (item: ChatSummary) => `${new Date(item.updatedAt).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'})} · ${item.turnCount} turns${item.model ? ` · ${item.model}` : ''}${areas[item.id] ? ` · ${AREA_LABELS[areas[item.id]!]}` : ''}`;
+  const details = (item: ChatSummary) => `${formatDateTime(item.updatedAt)} · ${item.turnCount} turns${item.model ? ` · ${item.model}` : ''}${areas[item.id] ? ` · ${AREA_LABELS[areas[item.id]!]}` : ''}`;
   const row = (item: ChatSummary) => <li key={item.id} className={item.id === session.chat.id ? 'ai-history-current' : undefined}>
     {renaming?.id === item.id ? <form className="ai-history-rename" onSubmit={e => { e.preventDefault(); void session.rename(item.id, renaming.title).then(() => { setRenaming(null); return refresh(); }); }}><input value={renaming.title} onChange={e => setRenaming({id: item.id, title: e.target.value})} maxLength={120} aria-label="Chat title" autoFocus/><button type="submit" className="secondary">Save</button><button type="button" className="text-link" onClick={() => setRenaming(null)}>Cancel</button></form>
       : <><button type="button" className="ai-history-open" title={`${item.title}\n${details(item)}`} onClick={() => void session.open(item.id).then(onOpen)}><strong>{item.title}</strong><small>{details(item)}</small></button>

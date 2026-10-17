@@ -6,6 +6,7 @@
 :root[data-zigi-side=left] .music-launcher-stack{right:auto;left:max(22px,env(safe-area-inset-left,0px))}
 @media (min-width:901px){:root[data-zigi-side=left] .music-launcher-stack{left:calc(var(--sidebar-width,216px) + 22px)}}
 .music-launcher{position:relative;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid color-mix(in srgb,var(--cyan,#6fd3ff) 45%,transparent);background:radial-gradient(120% 120% at 30% 20%,#173a5e,#0b1430 70%);color:var(--text,#eef1ff);box-shadow:0 14px 34px -14px rgba(20,120,200,.75);cursor:pointer}
+
 .music-launcher-fold{position:relative;display:grid;place-items:center;width:44px;height:26px;margin:0;padding:0;border:0;border-radius:10px;background:transparent;cursor:pointer}
 .music-launcher-fold svg{transform:rotate(0deg) scale(.82)}
 .music-launcher-fold svg{opacity:.8;transition:opacity .15s ease}
@@ -24,7 +25,15 @@
 .music-edge-tab:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.music-launcher-fold svg,.music-launcher-fold::after{transition:none}}
 .music-launcher[data-playing]::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid #7fe3f3;opacity:.75;pointer-events:none}
-.music-launcher:hover{border-color:#7fe3f3}
+.music-launcher:hover{border-color:#b9a8ff}
 .music-launcher:focus-visible{outline:2px solid var(--cyan,#6fd3ff);outline-offset:3px}
 :root[data-keyboard=open] .music-launcher-stack,:root[data-keyboard=open] .music-edge-tab,:root[data-keyboard=open] .music-mini,:root[data-keyboard=open] .music-panel{display:none}
 @media (forced-colors:active){.music-launcher,.music-edge-tab{border-color:CanvasText}}
+/* Session AD (Part 1, owner request): the music button wears ZIGi's button exactly (ai-launcher.css .ai-launcher-button):
+   the violet rim, the deep nebula fill and its purple glow; hover lifts it as it lifts ZIGi. */
+.music-launcher{border-color:color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);background:radial-gradient(120% 120% at 30% 20%,#2b2a6e,#0d1230 70%);box-shadow:0 14px 34px -14px rgba(60,40,160,.8),0 0 0 1px rgba(255,255,255,.04) inset;transition:transform .18s ease,box-shadow .18s ease}
+.music-launcher:hover,.music-launcher:focus-visible{transform:translateY(-2px);box-shadow:0 18px 40px -14px rgba(90,70,200,.9)}
+.music-edge-tab,:root[data-zigi-side=left] .music-edge-tab{border-color:color-mix(in srgb,var(--violet,#8b7cff) 55%,transparent);background:radial-gradient(140% 120% at 30% 20%,#2b2a6e,#0d1230 75%)}
+@media (prefers-reduced-motion:reduce){.music-launcher{transition:none}.music-launcher:hover,.music-launcher:focus-visible{transform:none}}
+:root[data-app-motion=off] .music-launcher{transition:none}
+:root[data-app-motion=off] .music-launcher:hover,:root[data-app-motion=off] .music-launcher:focus-visible{transform:none}

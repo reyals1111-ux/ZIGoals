@@ -1,6 +1,7 @@
 import Decimal from 'decimal.js';
 import type {Portfolio, PortfolioTransaction} from './schema';
 import {normalizeDecimalInput} from '../decimal-input';
+import {formatDate} from '../visual-format';
 
 /** Exact arithmetic for Portfolio, on its own Decimal so no other module's settings are changed. */
 export const PortfolioDecimal = Decimal.clone({precision: 64, rounding: Decimal.ROUND_HALF_EVEN, toExpNeg: -40, toExpPos: 64});
@@ -11,7 +12,7 @@ type Dec = InstanceType<typeof PortfolioDecimal>;
 export type Holding = {coin: string; quantity: string; cost?: string; averageCost?: string; transactions: number};
 /** Refused history: a sell or transfer out that would take holdings below zero at that point in time. */
 export class HoldingsBelowZero extends Error {
-  constructor(readonly coin: string, readonly date: string) { super(`This would take the holding below zero on ${date}. Record what came in first, or change the amount.`); this.name = 'HoldingsBelowZero'; }
+  constructor(readonly coin: string, readonly date: string) { super(`This would take the holding below zero on ${formatDate(date)}. Record what came in first, or change the amount.`); this.name = 'HoldingsBelowZero'; }
 }
 
 /** Transactions in the order they happened: by date, then by when they were recorded. */

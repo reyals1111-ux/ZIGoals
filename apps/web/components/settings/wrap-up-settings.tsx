@@ -3,6 +3,7 @@ import {useState, type FormEvent} from 'react';
 import {usePrivateStore} from '../use-private-store';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
 import {setWrapUp, wrapUpEnabled, wrapUpTime} from '../../lib/wrap-up/engine';
+import {formatClock} from '../../lib/visual-format';
 
 /**
  * "Evening wrap-up" (Session W Part 13): off until turned on here. Saved with Today's settings (settings v3 `wrapUp`,
@@ -15,7 +16,7 @@ export function WrapUpSettings() {
   async function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget), enabled = f.get('enabled') === 'on', at = String(f.get('time') ?? '');
-    try { await settings.update(s => setWrapUp(s, enabled, at, new Date().toISOString())); setMessage({text: enabled ? `The evening wrap-up shows on Today from ${at}.` : 'The evening wrap-up is off.'}); }
+    try { await settings.update(s => setWrapUp(s, enabled, at, new Date().toISOString())); setMessage({text: enabled ? `The evening wrap-up shows on Today from ${formatClock(at)}.` : 'The evening wrap-up is off.'}); }
     catch (error) { setMessage({text: error instanceof Error && error.message ? error.message : 'Could not save.', failed: true}); }
   }
   return <section className="panel wrap-up-settings" id="wrap-up" aria-label="Evening wrap-up">

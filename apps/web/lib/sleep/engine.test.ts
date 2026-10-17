@@ -63,7 +63,7 @@ describe('the sleep engine', () => {
   });
   test('overlapping nights are refused; naps may sit inside a day; deleting removes one', () => {
     let s = night(emptySleep(), '2026-10-01', '23:00', '07:00');
-    expect(() => night(s, '2026-10-02', '03:00', '09:00')).toThrow('This overlaps the night that ended on 2026-10-02.');
+    expect(() => night(s, '2026-10-02', '03:00', '09:00')).toThrow('This overlaps the night that ended on Oct 2, 2026.');
     s = saveNight(s, {kind: 'nap', start: instantAt('2026-10-02', '14:00', BXL), end: instantAt('2026-10-02', '14:30', BXL), timeZone: BXL}, at('2026-12-01T00:00:00Z'));
     expect(s.nights).toHaveLength(2);
     s = deleteNight(s, s.nights[1]!.id);

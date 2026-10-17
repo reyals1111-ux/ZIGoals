@@ -79,7 +79,8 @@
 /* Session AB-Design Phase 2, Part 1 (owner correction, 2026-10-14): the music button and ZIGi float on top of the page;
    cards keep their full width and position on every page and width. The one allowance: extra scroll room at the very end
    of a page, so its last lines (the footer's disclaimer) can be scrolled above the two buttons. */
-:root .site-footer-inner { padding-bottom: calc(40px + 150px); }
+/* Session AD (Part 1): on computers and tablets the banner ends where its planet ends, its social row at the very bottom;
+   that row keeps clear of the buttons' lane instead (site-footer.css), so only phones keep the extra room. */
 @media (max-width: 767.98px) { :root .site-footer-inner { padding-bottom: calc(32px + 72px); } }
 /* Phase 2, Part 12: the chip's "· fictional" (SHOWCASE_CHIP) on wider screens; phones keep the one word beside the lock. */
 .showcase-chip-more { font-weight: 500; opacity: .85; }

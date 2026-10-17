@@ -7,6 +7,7 @@ import {localDate} from '../../lib/local-date';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, withGuesses, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import {detectNutritionPreset, type NutritionPreset} from '../../lib/import/nutrition-presets';
 import type {ImportUndoStore} from './use-import-undo';
+import {formatDate} from '../../lib/visual-format';
 
 const OPTIONS: SetupOptions = {fields: NUTRITION_FIELDS, numberFields: ['quantity', 'servingAmount', 'kcal', 'protein', 'carbs', 'fat'], dateField: 'date'};
 const REQUIRED = ['date', 'food'];
@@ -62,7 +63,7 @@ export function NutritionImportPanel({update, imports, onUndo, onClose}: {data: 
     </MappingStep><StepActions onBack={() => setStep(1)} onNext={() => setStep(3)} nextDisabled={!mappingReady} /></>}
     {step === 3 && plan && <><StepHeading step={3} title="Preview" />
       <p className="import-summary" aria-live="polite">{plan.foods.length} {plan.foods.length === 1 ? 'food' : 'foods'} will be added to your library · {plan.entries.length} diary {plan.entries.length === 1 ? 'entry' : 'entries'} on {plan.days} {plan.days === 1 ? 'day' : 'days'} · {plan.withoutMeasure} {plan.withoutMeasure === 1 ? 'entry' : 'entries'} without a serving measure · {plan.refused.length} rows refused</p>
-      {plan.entries.length > 0 && <div className="import-preview"><ul className="import-preview-lines" aria-label="The first entries that will be imported">{plan.entries.slice(0, 50).map(e => <li key={e.id}>{e.date} · {e.meal} · {e.snapshot.name} · {formatNutrient(e.quantityMilli, 1000)} {e.quantityMilli === 1000 ? 'serving' : 'servings'} · {formatNutrient(e.snapshot.nutrients.kcal)} kcal · P {formatHealthGrams(e.snapshot.nutrients.proteinMg)} g · C {formatHealthGrams(e.snapshot.nutrients.carbsMg)} g · F {formatHealthGrams(e.snapshot.nutrients.fatMg)} g{e.snapshot.servingGrams === null && e.snapshot.servingMl === undefined ? ' · serving measure unknown' : ''}</li>)}</ul>
+      {plan.entries.length > 0 && <div className="import-preview"><ul className="import-preview-lines" aria-label="The first entries that will be imported">{plan.entries.slice(0, 50).map(e => <li key={e.id}>{formatDate(e.date)} · {e.meal} · {e.snapshot.name} · {formatNutrient(e.quantityMilli, 1000)} {e.quantityMilli === 1000 ? 'serving' : 'servings'} · {formatNutrient(e.snapshot.nutrients.kcal)} kcal · P {formatHealthGrams(e.snapshot.nutrients.proteinMg)} g · C {formatHealthGrams(e.snapshot.nutrients.carbsMg)} g · F {formatHealthGrams(e.snapshot.nutrients.fatMg)} g{e.snapshot.servingGrams === null && e.snapshot.servingMl === undefined ? ' · serving measure unknown' : ''}</li>)}</ul>
         {plan.entries.length > 50 && <p className="fine">… and {plan.entries.length - 50} more entries.</p>}</div>}
       <RefusedRows refused={plan.refused} />
       {plan.entries.length === 0 && <p role="alert">Nothing to import: every row was refused.</p>}

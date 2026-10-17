@@ -1,5 +1,5 @@
 import {expect,test,vi} from 'vitest';
-import {createVault,unlockVault,sealRecord,openRecord,envelopeSchema,isCanonicalBase64,manifestSchema} from './crypto';
+import {createVault,unlockVault,sealRecord,openRecord,envelopeSchema,isCanonicalBase64,canonicalBase64,manifestSchema,nonCanonicalReads,written} from './crypto';
 const context={vault:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',domain:'health' as const,object:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',revision:1,epoch:1 as const};
 test('random recovery unlocks on an independent device; ciphertext reveals no private marker',async()=>{
  const a=await createVault(context.vault); const b=await unlockVault(a.manifest,a.recovery);
@@ -85,19 +85,31 @@ test('a portfolio record seals and opens under its own label, which no other lab
 const ALPHABET='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 const spare=(s:string)=>s.slice(0,-1)+ALPHABET[ALPHABET.indexOf(s.at(-1)!)^1];
 const bytesOf=(s:string)=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
-test('B7: a ciphertext with a spare bit set decodes to the same bytes and is refused; the canonical one still opens',async()=>{
- const vault=await createVault(context.vault);
+// Session AD item 12 (ADR-026, owner amendment 3): B7 is strict on write and never refuses a decodable stored value on
+// read. Session Y's version of this test asserted the refusal on read; the owner's amendment replaces that with: read as
+// the same bytes in the canonical spelling, logged once; the writer refuses anything but the canonical spelling.
+test('B7: a ciphertext with a spare bit set decodes to the same bytes; it is read as its canonical spelling and logged once, never refused, and never written',async()=>{
+ const vault=await createVault(context.vault),info=vi.spyOn(console,'info').mockImplementation(()=>{});
  let value='',sealed=await sealRecord(vault.key,context,{value});
  // AES-GCM output is plaintext + 16 bytes; lengths that are not a multiple of 3 leave spare bits in the last character.
  while(sealed.ciphertext.length%4===0){value+='x';sealed=await sealRecord(vault.key,context,{value});}
- const flipped=spare(sealed.ciphertext);
+ const flipped=spare(sealed.ciphertext),before=nonCanonicalReads();
  expect(flipped).not.toBe(sealed.ciphertext);
  expect(bytesOf(flipped)).toEqual(bytesOf(sealed.ciphertext));
  expect(isCanonicalBase64(sealed.ciphertext)).toBe(true);expect(isCanonicalBase64(flipped)).toBe(false);
- expect(envelopeSchema.safeParse(sealed).success).toBe(true);
- expect(envelopeSchema.safeParse({...sealed,ciphertext:flipped}).success).toBe(false);
- await expect(openRecord(vault.key,context,{...sealed,ciphertext:flipped})).rejects.toThrow();
+ expect(canonicalBase64(flipped)).toBe(sealed.ciphertext);
+ expect(envelopeSchema.safeParse(sealed).success).toBe(true);expect(nonCanonicalReads()).toBe(before);
+ // Read: accepted, as the canonical spelling (so a digest taken after reading is the same either way), and noted.
+ expect(envelopeSchema.parse({...sealed,ciphertext:flipped})).toEqual(sealed);
+ expect(await openRecord(vault.key,context,{...sealed,ciphertext:flipped})).toEqual({value});
+ expect(nonCanonicalReads()).toBe(before+2);expect(info).toHaveBeenCalledTimes(before===0?1:0);
+ expect(JSON.stringify(info.mock.calls)).not.toContain(flipped);
  expect(await openRecord(vault.key,context,sealed)).toEqual({value});
+ // Write: only the canonical spelling.
+ expect(written(sealed.ciphertext)).toBe(sealed.ciphertext);expect(()=>written(flipped)).toThrow('Encrypted data is not in its canonical form.');
+ // Not decodable, or not base64url at all: refused on read, as in every build.
+ for(const bad of [sealed.ciphertext+'=',sealed.ciphertext.slice(0,-1)+'+',sealed.ciphertext+'A'.repeat(5-sealed.ciphertext.length%4)])expect(envelopeSchema.safeParse({...sealed,ciphertext:bad}).success,bad.slice(-3)).toBe(false);
+ info.mockRestore();
  // The manifest's wrapped root is checked the same way (its 48 bytes have no spare bits, so only a padded or
  // out-of-alphabet spelling could differ, and both were already refused).
  expect(manifestSchema.safeParse(vault.manifest).success).toBe(true);

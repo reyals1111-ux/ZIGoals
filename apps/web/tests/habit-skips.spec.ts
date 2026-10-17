@@ -30,14 +30,14 @@ test('plan a skip for tomorrow, see it in the list and the calendar, then remove
   await form.getByLabel('Day to skip').fill('2026-09-16');
   await form.getByLabel('Reason (optional)').fill('Trip');
   await form.getByRole('button', {name: 'Save skip', exact: true}).click();
-  await expect(card.getByRole('status')).toContainText('Skip planned for Wednesday, September 16, 2026.');
-  await expect(card.getByRole('list', {name: 'Planned skips for Stretch'})).toContainText('Planned: 2026-09-16 · Trip');
+  await expect(card.getByRole('status')).toContainText('Skip planned for Wed, Sep 16, 2026.');
+  await expect(card.getByRole('list', {name: 'Planned skips for Stretch'})).toContainText('Planned: Sep 16, 2026 · Trip');
   const planned = (await stored(page)).habits[0]!.entries.find(e => e.date === '2026-09-16')!;
   expect(planned).toMatchObject({disposition: 'skipped', count: 0});
   expect(planned.note).toMatch(/^Planned skip/); expect(planned.note).toContain('Trip');
-  await expect(card.getByRole('button', {name: /^September 16, 2026: Planned skip/})).toBeVisible();
-  await card.getByRole('button', {name: 'Remove the planned skip on 2026-09-16', exact: true}).click();
-  await expect(card.getByRole('status')).toContainText('Planned skip on Wednesday, September 16, 2026 removed.');
+  await expect(card.getByRole('button', {name: /^Sep 16, 2026: Planned skip/})).toBeVisible();
+  await card.getByRole('button', {name: 'Remove the planned skip on Sep 16, 2026', exact: true}).click();
+  await expect(card.getByRole('status')).toContainText('Planned skip on Wed, Sep 16, 2026 removed.');
   expect((await stored(page)).habits[0]!.entries.map(e => e.date)).toEqual(['2026-09-15']);
 });
 

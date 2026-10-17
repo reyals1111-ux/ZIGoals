@@ -2,16 +2,17 @@
 .theme-switch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 5px; border-radius: 16px; border: 1px solid transparent; background: linear-gradient(150deg, #0a1324f2, #0f0d24f2) padding-box, linear-gradient(120deg, #7bddff4d, #5a91c233 34%, #9775ed4d, #c98fff59) border-box; box-shadow: inset 0 1px 0 #ffffff0d, 0 10px 28px -18px #000c; }
 .theme-option { position: relative; display: grid; place-items: center; min-height: 44px; padding: 0; border: 0; border-radius: 12px; background: transparent; color: #8ea2c7; font: inherit; cursor: pointer; transition: color 160ms ease, background-color 160ms ease; }
 .theme-option > span { display: none; }
-.theme-option[data-soon] { cursor: default; color: #6c7fa3; }
 .theme-option[aria-checked="true"] { color: #ffffff; background: linear-gradient(120deg, #3b57e6, #6a4fd6 55%, #9a3fd0); box-shadow: 0 0 16px -2px #9273ff99, inset 0 1px 0 #ffffff33; } /* white on every stop ≥ 4.5:1 (1.4.3) */
-.theme-option:not([data-soon]):hover { color: var(--text); }
+.theme-option:hover { color: var(--text); }
 .theme-option:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
 /* The sidebar: after the planet artwork (the destination bleeds to the sidebar's edges; the bar gets the sidebar's padding and the safe area below). */
 .app-sidebar .theme-switch { flex: none; margin: 14px 0 0; }
-/* The phone's More sheet and Settings: the same control with its words and a "Soon" tag. */
-.theme-switch-compact { margin: 14px 0 4px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, .8fr); } /* Gate C: Customize and its Soon tag need the most room (an even third let the selected Dark cover the tag at 390 px) */
-.theme-switch-compact .theme-option { grid-auto-flow: column; gap: 8px; min-height: 48px; font-size: 14px; font-weight: 600; }
+/* The phone's More sheet and Settings: the same control with its words and a "Preview" tag (Session AD). */
+.theme-switch-compact { margin: 14px 0 4px; grid-template-columns: repeat(3, minmax(0, 1fr)); } /* Session AD: Light and Dark carry the tag, Nebula is one word */
+.theme-switch-compact .theme-option { grid-auto-flow: column; gap: 8px; min-height: 48px; font-size: 14px; font-weight: 600; color: #c9d6ee; } /* words: ≥ 4.5:1 over every stop of the bar and its border (1.4.3) */
 .theme-switch-compact .theme-option > span { display: inline; }
+.theme-switch-compact .theme-option:hover { color: var(--text); }
+.theme-switch-compact .theme-option[aria-checked="true"] { color: #ffffff; }
 .theme-switch-compact .theme-option small { display: inline-grid; place-items: center; height: 16px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: #0a1428; background: linear-gradient(90deg, #cfe3ff, #a9c9ff); }
 @media (max-width: 900px) { .app-sidebar .theme-switch { display: none; } }
 @media (max-width: 767.98px) { .theme-switch-compact .theme-option { grid-auto-flow: row; grid-template-columns: auto auto; justify-content: center; align-content: center; gap: 2px 6px; padding: 6px 0; } .theme-switch-compact .theme-option small { grid-column: 1 / -1; justify-self: center; } }
@@ -20,3 +21,16 @@
 @media (forced-colors: active) { .theme-switch, .theme-option[aria-checked="true"] { border: 1px solid CanvasText; } }
 /* The artwork ends above the bar (its bleed into the sidebar's bottom padding is gone); the bar keeps the padding and the safe area to the edge. */
 @media (min-width: 901px) { .app-sidebar .sidebar-destination { margin-bottom: 0; } .app-sidebar { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }
+/* Session AD (Part 3): the line under the bar — in the sidebar "Light and Dark: preview", on phones and in Settings what
+   Nebula is and that Customize comes later. Readable size, the sidebar's secondary text colour. */
+.theme-switch-note { margin: 8px 2px 0; font-size: 14px; line-height: 1.45; color: #b9c8e2; }
+.app-sidebar .theme-switch-wrap { flex: none; }
+.app-sidebar .theme-switch-note { text-align: center; }
+@media (max-width: 900px) { .app-sidebar .theme-switch-wrap { display: none; } }
+/* The lazy bar's slot keeps the bar's measured height while its chunk loads (Session AD weights). */
+.theme-switch-slot { min-height: 98px; }
+.app-sidebar .theme-switch-slot { flex: none; }
+.theme-switch-slot-compact { min-height: 94px; }
+@media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
+@media (max-width: 767.98px) { .theme-switch-slot-compact { min-height: 148px; } }
+@media (max-width: 900px) { .app-sidebar .theme-switch-slot { display: none; } }

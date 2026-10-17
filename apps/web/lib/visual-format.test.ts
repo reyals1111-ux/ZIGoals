@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { DEFAULT_DISPLAY_LOCALE, currencyDigits, displayGroupsWithDot, displayLocale, formatDate, formatDateTime, formatExactNumber, formatMoney, formatNumber, formatPlainDecimal, formatPrice, formatTime, isMoneyCurrency, resolveDisplayLocale, setDisplayLocale, wordLocale } from "./visual-format";
+import { DEFAULT_DISPLAY_LOCALE, currencyDigits, displayGroupsWithDot, displayLocale, formatDate, formatDateTime, formatExactNumber, formatMoney, formatMonth, formatNumber, formatPlainDecimal, formatPrice, formatTime, formatWeekday, isMoneyCurrency, resolveDisplayLocale, setDisplayLocale, wordLocale } from "./visual-format";
 
 // Session G, Part 3 (QA-06, QA-29): numbers and money follow the browser's locale, en-US looks exactly as before, and
 // any date with words in it is written in English for the user's region.
@@ -31,10 +31,17 @@ describe("en-US is unchanged", () => {
     for (const [value, options] of [[1234.5, undefined], [0.125, { style: "percent" }], [1234567.891, { maximumFractionDigits: 2 }], [12, { style: "currency", currency: "EUR" }]] as const) expect(formatNumber(value, options)).toBe(value.toLocaleString("en-US", options));
     for (const text of ["1234.5", "-0.00012345", "Unavailable", "1e-7"]) expect(formatPlainDecimal(text)).toBe(text);
   });
-  it("dates and times are what Date#toLocale…String('en-US') wrote", () => {
-    for (const options of [utc, { ...utc, month: "long", day: "numeric", year: "numeric" }, { ...utc, month: "short", day: "numeric" }, { ...utc, weekday: "short" }, { ...utc, dateStyle: "medium" }] as const) expect(formatDate(at, options)).toBe(at.toLocaleDateString("en-US", options));
-    for (const options of [utc, { ...utc, hour: "2-digit", minute: "2-digit" }] as const) expect(formatTime(at, options)).toBe(at.toLocaleTimeString("en-US", options));
-    for (const options of [utc, { ...utc, dateStyle: "medium", timeStyle: "short" }] as const) expect(formatDateTime(at, options)).toBe(at.toLocaleString("en-US", options));
+  // Session AD item 8: one style, the medium date, with times in the locale's hour cycle (en-US: 12 hours).
+  it("dates and times are what Date#toLocale…String('en-US') writes for the one style", () => {
+    const medium = { ...utc, month: "short", day: "numeric", year: "numeric" } as const, clock = { hour: "numeric", minute: "2-digit" } as const;
+    expect(formatDate(at, utc)).toBe(at.toLocaleDateString("en-US", medium));
+    expect(formatDate(at, utc)).toBe("Oct 1, 2026");
+    expect(formatDate(at, { ...utc, weekday: true })).toBe(at.toLocaleDateString("en-US", { ...medium, weekday: "short" }));
+    expect(formatDate(at, { ...utc, year: false })).toBe(at.toLocaleDateString("en-US", { ...utc, month: "short", day: "numeric" }));
+    expect(formatTime(at, utc)).toBe(at.toLocaleTimeString("en-US", { ...utc, ...clock }));
+    expect(formatTime(at, { ...utc, seconds: true })).toBe(at.toLocaleTimeString("en-US", { ...utc, ...clock, second: "2-digit" }));
+    expect(formatDateTime(at, utc)).toBe(at.toLocaleString("en-US", { ...medium, ...clock }));
+    expect(formatDateTime(at, utc)).toBe("Oct 1, 2026, 2:05 PM");
     const invalid = new Date("not a date");
     expect([formatDate(invalid), formatTime(invalid), formatDateTime("2026-13-45", utc)]).toEqual([invalid.toLocaleDateString("en-US"), invalid.toLocaleTimeString("en-US"), invalid.toLocaleString("en-US", utc)]);
   });
@@ -42,12 +49,12 @@ describe("en-US is unchanged", () => {
 
 describe("other locales", () => {
   const cases = [
-    { locale: "en-GB", words: "en-GB", number: "1,234,567.891", euro: "€1,234,567.5", plain: "1234.5", date: "01/10/2026", time: "14:05:09" },
-    { locale: "de-DE", words: "en-DE", number: "1.234.567,891", euro: `1.234.567,5${NBSP}€`, plain: "1234,5", date: "1.10.2026", time: "14:05:09" },
-    { locale: "nl-BE", words: "en-BE", number: "1.234.567,891", euro: `€${NBSP}1.234.567,5`, plain: "1234,5", date: "1/10/2026", time: "14:05:09" },
-    { locale: "fr-FR", words: "en-FR", number: `1${NNBSP}234${NNBSP}567,891`, euro: `1${NNBSP}234${NNBSP}567,5${NBSP}€`, plain: "1234,5", date: "01/10/2026", time: "14:05:09" },
-    { locale: "ja-JP", words: "en-JP", number: "1,234,567.891", euro: "€1,234,567.5", plain: "1234.5", date: "2026/10/1", time: "14:05:09" },
-    { locale: "hi-IN", words: "en-IN", number: "12,34,567.891", euro: "€12,34,567.5", plain: "1234.5", date: "1/10/2026", time: "2:05:09 pm" },
+    { locale: "en-GB", words: "en-GB", number: "1,234,567.891", euro: "€1,234,567.5", plain: "1234.5", date: "1 Oct 2026", time: "14:05" },
+    { locale: "de-DE", words: "en-DE", number: "1.234.567,891", euro: `1.234.567,5${NBSP}€`, plain: "1234,5", date: "1 Oct 2026", time: "14:05" },
+    { locale: "nl-BE", words: "en-BE", number: "1.234.567,891", euro: `€${NBSP}1.234.567,5`, plain: "1234,5", date: "1 Oct 2026", time: "14:05" },
+    { locale: "fr-FR", words: "en-FR", number: `1${NNBSP}234${NNBSP}567,891`, euro: `1${NNBSP}234${NNBSP}567,5${NBSP}€`, plain: "1234,5", date: "1 Oct 2026", time: "14:05" },
+    { locale: "ja-JP", words: "en-JP", number: "1,234,567.891", euro: "€1,234,567.5", plain: "1234.5", date: "Oct 1, 2026", time: "14:05" },
+    { locale: "hi-IN", words: "en-IN", number: "12,34,567.891", euro: "€12,34,567.5", plain: "1234.5", date: "1 Oct 2026", time: "2:05 pm" },
   ];
   for (const c of cases) it(`${c.locale}: grouping and decimal sign of the locale, every digit kept, currency as its own code`, () => {
     setDisplayLocale(c.locale);
@@ -63,13 +70,15 @@ describe("other locales", () => {
   it("month and weekday names are English everywhere, in the region's order", () => {
     for (const locale of ["de-DE", "nl-BE", "fr-FR", "en-GB", "hi-IN"]) {
       setDisplayLocale(locale);
-      expect(formatDate(at, { ...utc, month: "long", day: "numeric", year: "numeric" }), locale).toBe("1 October 2026");
-      expect(formatDate(at, { ...utc, weekday: "long" }), locale).toBe("Thursday");
-      expect(formatDate(at, { ...utc, month: "short", day: "numeric" }), locale).toBe("1 Oct");
+      expect(formatDate(at, utc), locale).toBe("1 Oct 2026");
+      expect(formatDate(at, { ...utc, weekday: true }), locale).toMatch(/^Thu, 1 Oct,? 2026$/);
+      expect(formatWeekday(at, utc), locale).toBe("Thu");
+      expect(formatDate(at, { ...utc, year: false }), locale).toBe("1 Oct");
+      expect(formatMonth(at, utc), locale).toBe("Oct 2026");
     }
     setDisplayLocale("ja-JP");
-    expect(formatDate(at, { ...utc, month: "long", day: "numeric", year: "numeric" })).toBe("October 1, 2026");
-    expect(formatDate(at, { ...utc, weekday: "short" })).toBe("Thu");
+    expect(formatDate(at, utc)).toBe("Oct 1, 2026");
+    expect(formatWeekday(at, utc)).toBe("Thu");
   });
   it("knows which locales group thousands with a dot", () => {
     expect(displayGroupsWithDot()).toBe(false);
@@ -150,13 +159,13 @@ describe("repeated dates", () => {
   it("read the same each time, past the kept limit and across a locale change", () => {
     const options = { ...utc, month: "short", day: "numeric", year: "numeric" } as const;
     const days = Array.from({ length: 2600 }, (_, i) => new Date(at.getTime() + i * 86_400_000));
-    const first = days.map(day => formatDate(day, options));
+    const first = days.map(day => formatDate(day, utc));
     expect(first).toEqual(days.map(day => day.toLocaleDateString("en-US", options)));
-    expect(days.map(day => formatDate(day, options))).toEqual(first);
+    expect(days.map(day => formatDate(day, utc))).toEqual(first);
     setDisplayLocale("de-DE");
-    expect(formatDate(at, utc)).toBe("1.10.2026");
+    expect(formatDate(at, utc)).toBe("1 Oct 2026");
     setDisplayLocale(DEFAULT_DISPLAY_LOCALE);
-    expect(formatDate(at, utc)).toBe(at.toLocaleDateString("en-US", utc));
-    expect(formatDate(days[0]!, options)).toBe(first[0]);
+    expect(formatDate(at, utc)).toBe(at.toLocaleDateString("en-US", options));
+    expect(formatDate(days[0]!, utc)).toBe(first[0]);
   });
 });

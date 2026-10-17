@@ -10,5 +10,5 @@ export function activityTimeLabel(at: string, timeZone?: string): string | null 
   const when = new Date(at);
   if (Number.isNaN(when.getTime())) return null;
   if (when.getUTCSeconds() === 0 && when.getUTCMilliseconds() === 0 && new Intl.DateTimeFormat('en-GB', {hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone}).format(when) === '00:00') return null;
-  return formatTime(at, {hour: '2-digit', minute: '2-digit', timeZone});
+  return formatTime(at, {timeZone});
 }

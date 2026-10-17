@@ -1,0 +1,4 @@
+Session AD Gate C — key scans on 262c0c8c (local)
+- scripts/check-secrets.mjs: "Tracked-file credential pattern check passed (0 allowlisted test values)."
+- scripts/zigi/key-sweep.mjs: no pattern hit. Its one note: the owner's Mac runs worktree (/Users/AIUSER/Documents/ZIGoals-Claude-z-runs) is absent here, so its history was not swept (as in Session AC). Eight orphaned Playwright profiles in /tmp it named were removed and the sweep re-run.
+- The security review's scan of 61204c3..HEAD (ADR-026 F22): the only address added is hello@zigoals.app; no keys, tokens or personal data; lib/vault/fixtures/encoder-history.json holds fictional vault material only.

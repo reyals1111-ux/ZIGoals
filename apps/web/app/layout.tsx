@@ -1,4 +1,5 @@
 import { trustedOrigin } from "../lib/trusted-origin";
+import { ThemeBootScript } from "../components/theme-boot-script";
 import { connection } from "next/server";
 import { headers } from "next/headers";
 import type { Metadata, Viewport } from "next";
@@ -59,8 +60,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   await connection();
+  // Session AD (Part 3, ADR-026 F5; TIER 3 security headers/CSP): the theme is applied before the first paint by one small
+  // same-origin script (public/theme-boot.js, generated), loaded synchronously in <head> with this request's CSP nonce
+  // (middleware.ts sets x-nonce), in the server's HTML only (components/theme-boot-script.tsx). <html> takes `data-theme`
+  // before React hydrates, so that attribute difference is expected (suppressHydrationWarning covers <html>'s own
+  // attributes only).
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeBootScript nonce={nonce} />
+      </head>
       <body>{children}</body>
     </html>
   );

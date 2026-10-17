@@ -32,7 +32,7 @@ test('Apple Health: read in the worker, checked in the preview, imported with th
   const row = (name: string) => c.getByRole('row', {name: new RegExp(`^${name}`)});
   await expect(row('Nights and naps')).toContainText(/Nights and naps\s*2\s*0\s*0/);
   await expect(row('Steps and workouts')).toContainText(/3\s*0\s*0/);
-  await expect(c.getByText(/Night ending 2026-10-06: in bed 22:30 → up 06:30 · 7 h 15 min asleep/)).toBeVisible();
+  await expect(c.getByText(/Night ending Oct 6, 2026: in bed 10:30 PM → up 6:30 AM · 7 h 15 min asleep/)).toBeVisible();
   await expect(c.getByText(/Heart rate: each day's lowest, average and highest/)).toBeVisible();
   await expect(c.getByText(/Your Health journal after this import: .+ of 2 MB/)).toBeVisible();
   // Nothing is written while the preview shows.

@@ -3,8 +3,18 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AC (release `2026-10-session-ac-polish`, ADR-025): polish — each thing once. Each link opens its Help answer. */
+/** Session AD (release `2026-10-session-ad-final-look`, ADR-026): the final look, and three ways to see it. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ad-themes', label: 'Three looks: Light and Dark previews beside Nebula'},
+  {href: '/app/help#help-ad-banner', label: 'The footer banner, final, with every link still close'},
+  {href: '/app/help#help-ad-hero', label: 'Today’s planets flow softly into the page'},
+  {href: '/app/help#help-ad-dates', label: 'One date style everywhere, in your own clock'},
+  {href: '/app/help#help-ad-sync-status', label: 'Sync by section, and signed-out devices forget their unlock'},
+  {href: '/app/help#help-ad-restore', label: 'Restore: clearer messages, Stop restoring, Undo after a reload'},
+  {href: '/app/help#help-ad-zigi', label: 'Meet ZIGi: all 25 states and what each one means'},
+];
+/** Session AC (release `2026-10-session-ac-polish`, ADR-025): polish — each thing once; Session AD followed it, so these lead "Earlier updates". */
+const SESSION_AC_LINKS: WhatsNewLink[] = [
   {href: '/app/help#help-ac-habits', label: 'Habit cards show their last 28 days under the counter'},
   {href: '/app/help#help-ac-sky', label: 'A calmer sky: plain dark at the top, richest in the middle'},
   {href: '/app/help#help-ac-footer', label: 'The page ends at the footer links; the Alpha’s facts live in Settings and Help'},
@@ -101,6 +111,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AC_LINKS,
   ...SESSION_AB_DESIGN_LINKS,
   ...SESSION_AB_CLOUD_LINKS,
   ...SESSION_AA_LOCAL_LINKS,

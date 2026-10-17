@@ -30,7 +30,7 @@ test("saved meal, preview copy, water, planner and export work with fictional pr
   await copy.getByLabel("Copy source").selectOption({ label: "Morning bowl" });
   await copy.getByLabel("Copy date 1").fill("2026-09-24");
   await copy.getByRole("button", { name: "Preview copy" }).click();
-  await expect(page.getByRole("region", { name: "Copy preview" })).toContainText("2026-09-24");
+  await expect(page.getByRole("region", { name: "Copy preview" })).toContainText("Sep 24, 2026");
   await page.getByRole("button", { name: "Confirm copy", exact: true }).click();
   const plan = page.getByRole("form", { name: "Plan a meal" });
   await plan.getByLabel("Planned saved meal").selectOption({ label: "Morning bowl" });

@@ -3,6 +3,7 @@ import {widgetMetric,type DashboardSources} from './dashboard-metrics';
 import {emptyPlatform,privateGoalSchema} from './positions';
 import {emptyHabitData} from './habits';
 import {createEmptyHealth} from './health';
+import {formatDateTime} from './visual-format';
 import {manualSourcePosition} from './manual-source';
 import type {DashboardWidget} from './dashboard-settings';
 import {directoryEntries} from '@zigoals/ecosystem-registry/providers';
@@ -36,7 +37,7 @@ test('staking widgets resolve only the selected observed source and preserve fre
  const s=source();const base=manualSourcePosition({category:'Crypto',name:'Fixture validator',symbol:'ZIG',quantity:'9007199254740993.000001',currency:'USD'},'stake');
  s.platform.positions=[{...base,sourceType:'NATIVE_STAKING',verification:'VERIFIED_READ_ONLY',network:'zigchain-1',sync:'CURRENT',observedAt:'2026-09-23T11:59:59Z'}];
  const value=widgetMetric(widget('staking','quantity','stake'),s);
- expect(value.value).toBe('9,007,199,254,740,993.000001 ZIG');expect(value.href).toBe('/app/wealth/asset/stake');expect(value.detail).toContain('Staked principal');expect(value.detail).toContain('zigchain-1');expect(value.detail).toContain('2026-09-23T11:59:59Z');
+ expect(value.value).toBe('9,007,199,254,740,993.000001 ZIG');expect(value.href).toBe('/app/wealth/asset/stake');expect(value.detail).toContain('Staked principal');expect(value.detail).toContain('zigchain-1');expect(value.detail).toContain(formatDateTime('2026-09-23T11:59:59Z',{seconds:true}));expect(formatDateTime('2026-09-23T11:59:59Z',{seconds:true,timeZone:'UTC'})).toBe('Sep 23, 2026, 11:59:59 AM');
  expect(widgetMetric(widget('staking','quantity','absent'),s).missing).toBe(true);
  s.platform.positions[0]!.sync='ERROR';expect(widgetMetric(widget('staking','quantity','stake'),s).warning).toContain('refresh failed');
  s.platform.positions[0]!.sourceType='MANUAL';expect(widgetMetric(widget('staking','quantity','stake'),s).missing).toBe(true);

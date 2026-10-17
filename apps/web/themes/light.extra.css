@@ -1,0 +1,49 @@
+/* Session AD (Part 3, ADR-026 F14): Light's hand-written layer — daylight with windows onto the night sky. The page is a
+   soft pastel nebula sky (lavender, sky blue and rose clouds on a pale ground, a few faint stars); the cosmic artwork
+   sections stay night-dark cards and bands ("islands": the Today hero, the footer banner, the sidebar, the art cards), so
+   their light words keep their own dark sky behind them. */
+:root[data-theme=light] { color-scheme: light; }
+:root[data-theme=light] :is(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature) { color-scheme: dark; }
+:root[data-theme=light] body { background: #f6f5fc; }
+:root[data-theme=light] .app-content::before {
+  background:
+    radial-gradient(1200px 700px at 12% 6%, #e4dcff 0, #e4dcff00 70%),
+    radial-gradient(1000px 640px at 88% 16%, #d6efff 0, #d6efff00 70%),
+    radial-gradient(1100px 800px at 64% 82%, #ffe0f1 0, #ffe0f100 70%),
+    radial-gradient(900px 600px at 20% 92%, #dff6f8 0, #dff6f800 70%),
+    #f6f5fc;
+}
+/* A few faint stars over the sky: the starfield artwork itself, darkened to a whisper. */
+:root[data-theme=light] .app-content { --light-stars: .14; }
+/* The starfield's veils (Session AC) were the night's own colour; by day the sky shows through. */
+:root[data-theme=light] .app-content::after { display: none; }
+/* Islands: night-dark cards and bands with clean edges by day. */
+:root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: hidden; border-radius: 24px; background: #040a1c; box-shadow: 0 24px 60px -30px #2a2f6680; }
+:root[data-theme=light] .today-hero:not(.today-hero-folded) > .hero-pillars::after { display: none; }
+:root[data-theme=light] .today-hero-folded { border-radius: 18px; background: #040a1c; }
+:root[data-theme=light] .site-footer { background: #020918; }
+:root[data-theme=light] .site-footer-art { -webkit-mask-image: linear-gradient(180deg, #000 0, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 84%, transparent 100%); }
+:root[data-theme=light] :is(.destination-panel, .account-panel, .stake-hero, .staking-card) { box-shadow: 0 18px 44px -26px #2a2f6680; }
+/* Focus rings stay visible on light surfaces. */
+:root[data-theme=light] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(:where(.today-hero, .site-footer, .app-sidebar) *) { outline-color: #4b3fd1; }
+/* Pillar- and area-coloured labels (Session AD audit, 1.2–3.7:1 before): by night each colour is lifted with white; by
+   day the same colour is deepened with night ink, ≥ 4.5:1 on the pale cards and chips. The generated rules carry the sheet's
+   uniform weight (:not(#\-)), so these carry it too; the islands keep their night colours. */
+:root[data-theme=light] .life-ring-pillar:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--pillar) 38%, #0b1230); }
+:root[data-theme=light] .hall-area:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--area, #8fa6ff) 38%, #0b1230); }
+:root[data-theme=light] .health-hl-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--tone) 38%, #0b1230); }
+:root[data-theme=light] .activity-category-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--event-accent) 38%, #0b1230); }
+/* The line under the theme bar in Settings and More sits on the page itself, not on the bar's night glass. */
+:root[data-theme=light] .theme-switch-note:not(#\-):not(:where(.app-sidebar) *) { color: #3a4566; }
+/* Gradient words in titles and eyebrows (Session AD design review, 2.0–2.9:1 before): by day the nebula flows in deeper
+   stops, each ≥ 4.5:1 on the pale sky; the islands keep the night gradient. */
+:root[data-theme=light] .nebula-flow:not(.is-figure):not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .goal-card-art) *) { --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #0b6f80 68%, #3f4fc0 82%, #6a36b8 92%, #a3266f 100%); }
+/* Wealth's world map behind the glass cards: a whisper by day (it read as grey smudges). */
+:root[data-theme=light] .wealth-hero-scene:not(#\-) { opacity: .08; }
+/* Habits' 30-day map: a full day keeps its own light nebula fill under dark numerals (the mapping had darkened its first
+   stop, so the numerals sat on near-black; Session AD design review). */
+:root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #7ec9df, #aaa4f0, #d7a7df); color: #161c36; }
+/* Gate C audit (Light, every route): the goal templates' area tags and the grocery list's aisle headings take their
+   colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
+:root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
+:root[data-theme=light] .health-grocery-aisle h3:not(#\-) { color: #0d6b5f; }

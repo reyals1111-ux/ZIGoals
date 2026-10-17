@@ -20,7 +20,7 @@ import { LEGACY_STAKING_PATH, NAV_ITEMS, isNavActive, navGroupOf, useFocusRescue
 import { groupStarts, homeHref, isShown, phoneTabs } from "../../lib/pages/visibility";
 import { AiMoreRow } from "../ai/ai-more-row";
 import { MusicMoreRow } from "../music/music-more-row";
-import { ThemeSwitch } from "../shell/theme-switch";
+import { LazyThemeSwitch as ThemeSwitch } from "../shell/theme-switch-lazy";
 import { useGameEnabled } from "../game/use-game-enabled";
 import { setMoreOpen, useMoreOpen } from "./phone-more-event";
 import { PHONE_STATUS_EVENT } from "./phone-status-event";

@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
-import {describe, expect, test} from 'vitest';
-import {createVault} from './crypto';
+import {describe, expect, test, vi} from 'vitest';
+import {createVault, nonCanonicalReads} from './crypto';
 import {HEALTH_HELD_NOTE, releaseHealthHold, sealSection, sectionText, syncExtras, type ExtrasBase, type ExtrasTransport} from './extras-sync';
 import {setGoalReasons, emptyGoalExtras} from '../goal-extras/store';
 
@@ -103,8 +103,11 @@ describe('FIX_PLAN B6 for the extras: no vault in the cloud is not a fresh start
   });
 });
 
+// Session AD item 12 (ADR-026, owner amendment 3): a decodable stored value is never refused on read. AB-Cloud's version of
+// this test asserted the refusal; the owner's amendment replaces it with: the part opens as the same bytes and its content
+// is applied exactly as the canonical part's would be (lib/vault/crypto.ts reads it in its canonical spelling, once noted).
 describe('FIX_PLAN B7 for the extras: one spelling per sealed value', () => {
-  test('a part whose ciphertext has a spare bit set is refused and nothing is applied', async () => {
+  test('a part whose ciphertext has a spare bit set is read as the same bytes and applied, never refused', async () => {
     const d = await device();
     // AES-GCM output lengths that are not a multiple of 3 bytes leave spare bits in the last character: pad until they do.
     let pad = '', parts = await sealSection(d.vault.key, d.vault.manifest, 'goals', 1, sectionText({[GOALS]: setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'From the cloud'}, at)}));
@@ -113,12 +116,17 @@ describe('FIX_PLAN B7 for the extras: one spelling per sealed value', () => {
     const part = parts[0] as {ciphertext: string}, flipped = part.ciphertext.slice(0, -1) + ALPHABET[ALPHABET.indexOf(part.ciphertext.at(-1)!) ^ 1];
     expect(flipped).not.toBe(part.ciphertext);
     d.cloud.sections.goals = {revision: 1, generation: 0, epoch: d.vault.manifest.epoch, parts: [{...part, ciphertext: flipped}]};
-    const out = await d.sync();
-    expect(byState(out).goals).toBe('error'); expect(d.storage.getItem(GOALS)).toBeNull();
-    // The canonical part opens and is applied.
-    d.cloud.sections.goals = {revision: 1, generation: 0, epoch: d.vault.manifest.epoch, parts};
-    expect(byState(await d.sync()).goals).toBe('pulled');
-    expect(JSON.parse(d.storage.getItem(GOALS)!).goals['private:1'].why).toBe('From the cloud' + pad);
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {}), before = nonCanonicalReads();
+    try {
+      expect(byState(await d.sync()).goals).toBe('pulled');
+      expect(JSON.parse(d.storage.getItem(GOALS)!).goals['private:1'].why).toBe('From the cloud' + pad);
+      expect(nonCanonicalReads()).toBeGreaterThan(before);
+    } finally { info.mockRestore(); }
+    // The canonical part, on a second device, opens to exactly the same records.
+    const e = await device();
+    e.cloud.sections.goals = {revision: 1, generation: 0, epoch: e.vault.manifest.epoch, parts: await sealSection(e.vault.key, e.vault.manifest, 'goals', 1, sectionText({[GOALS]: setGoalReasons(emptyGoalExtras(), 'private:1', {why: 'From the cloud' + pad}, at)}))};
+    expect(byState(await e.sync()).goals).toBe('pulled');
+    expect(e.storage.getItem(GOALS)).toBe(d.storage.getItem(GOALS));
   });
 });
 

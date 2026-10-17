@@ -89,7 +89,7 @@ test('S7: the Reminders page lists every type with its time and quiet hours; a b
   await page.goto('/app/settings/reminders');
   await expect(page.getByRole('heading', {name: 'Every reminder, in one place.'})).toBeVisible();
   await expect(page.getByText(/Push delivery is off/)).toBeVisible();
-  await expect(page.getByRole('heading', {name: 'Nothing between 22:00 and 08:00'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Nothing between 10:00 PM and 8:00 AM'})).toBeVisible();
   await page.getByRole('switch', {name: /Bedtime/}).check();
   await page.getByLabel('Bedtime time').fill('21:00');
   await page.getByLabel('Fictional stretch reminder time').fill('07:30');
@@ -100,7 +100,7 @@ test('S7: the Reminders page lists every type with its time and quiet hours; a b
   await page.goto('/app/settings/reminders');
   await page.getByLabel('From').fill('23:30'); await page.getByLabel('Until').fill('07:00');
   await page.getByRole('button', {name: 'Save quiet hours', exact: true}).click();
-  await expect(page.getByRole('heading', {name: 'Nothing between 23:30 and 07:00'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: 'Nothing between 11:30 PM and 7:00 AM'})).toBeVisible();
   await page.goto('/app');
   const card = page.getByRole('article', {name: 'Reminder: Bedtime'});
   await expect(card).toBeVisible();

@@ -5,7 +5,7 @@ import {deleteSession} from '../../../lib/meditation/engine';
 import {PATTERNS} from '../../../lib/meditation/breathing';
 import {meditationSummary, minutesText, sessionDay, weeklyBars} from '../../../lib/meditation/stats';
 import type {MeditationSession as Session} from '../../../lib/meditation/schema';
-import {wallClock} from '../../../lib/zone-time';
+import {formatDate, formatTime} from '../../../lib/visual-format';
 import {NebulaFlow} from '../../nebula-flow';
 import {MeditationWeeksChart} from './meditation-chart';
 import {BeginForm, BellsForm, ManualForm, MeditationGoalForm} from './meditation-forms';
@@ -19,8 +19,8 @@ import {sourceName} from '../../../lib/health-sources';
 
 const KIND_WORDS: Record<Session['kind'], string> = {timer: 'Sitting', breathing: 'Breathing', manual: 'Mindful minutes', import: 'Imported'};
 const sessionLine = (s: Session) => {
-  const start = wallClock(Date.parse(s.startedAt), s.timeZone), length = s.seconds >= 60 ? minutesText(Math.round(s.seconds / 60)) : `${s.seconds} s`;
-  return `${start.clock} · ${length}${s.pattern ? ` · ${PATTERNS[s.pattern].label}` : ''}${s.moodBefore !== undefined || s.moodAfter !== undefined ? ` · feeling ${s.moodBefore ?? '–'} → ${s.moodAfter ?? '–'} of 5` : ''}`;
+  const length = s.seconds >= 60 ? minutesText(Math.round(s.seconds / 60)) : `${s.seconds} s`;
+  return `${formatTime(s.startedAt, {timeZone: s.timeZone})} · ${length}${s.pattern ? ` · ${PATTERNS[s.pattern].label}` : ''}${s.moodBefore !== undefined || s.moodAfter !== undefined ? ` · feeling ${s.moodBefore ?? '–'} → ${s.moodAfter ?? '–'} of 5` : ''}`;
 };
 
 /**
@@ -73,11 +73,11 @@ export default function MeditationView() {
       <h2 id="meditation-recent-title">Recent sessions</h2>
       {recent.length ? <ul className="sleep-nights">{recent.map(s => <li key={s.id}>
         {editing === s.id ? <ManualForm store={store} session={s} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{KIND_WORDS[s.kind]} · {sessionDay(s)}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {sourceName(s.source)}</span>}</div>
+          <div><strong>{KIND_WORDS[s.kind]} · {formatDate(sessionDay(s))}</strong><span>{sessionLine(s)}</span>{s.note && <span className="fine">{s.note}</span>}{s.source !== 'manual' && s.source !== 'timer' && s.source !== 'breathing' && <span className="fine">From {sourceName(s.source)}</span>}</div>
           <div className="actions">
-            {s.kind === 'manual' && <button type="button" className="secondary" onClick={() => setEditing(s.id)} aria-label={`Edit the session of ${sessionDay(s)} at ${wallClock(Date.parse(s.startedAt), s.timeZone).clock}`}>Edit</button>}
+            {s.kind === 'manual' && <button type="button" className="secondary" onClick={() => setEditing(s.id)} aria-label={`Edit the session of ${formatDate(sessionDay(s))} at ${formatTime(s.startedAt, {timeZone: s.timeZone})}`}>Edit</button>}
             {confirm === s.id ? <><button type="button" className="secondary" onClick={() => void remove(s.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>
-              : <button type="button" className="quiet" onClick={() => setConfirm(s.id)} aria-label={`Delete the session of ${sessionDay(s)} at ${wallClock(Date.parse(s.startedAt), s.timeZone).clock}`}>Delete</button>}
+              : <button type="button" className="quiet" onClick={() => setConfirm(s.id)} aria-label={`Delete the session of ${formatDate(sessionDay(s))} at ${formatTime(s.startedAt, {timeZone: s.timeZone})}`}>Delete</button>}
           </div>
         </>}
       </li>)}</ul> : <p>No sessions yet. Begin one above, or log minutes you meditated elsewhere.</p>}

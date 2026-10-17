@@ -10,6 +10,7 @@ import {addHealthGoal, editHealthGoal, setHealthGoalStatus, type HealthGoalDraft
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {isShowcase} from '../../lib/showcase-storage';
 import {SYNC_WRITES} from '../../lib/vault/sync-writes';
+import {formatDate} from '../../lib/visual-format';
 import {GlassBar} from '../progress/glass-progress';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {usePhoneActive} from '../phone/use-phone-layout';
@@ -39,9 +40,9 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
     return <li key={goal.id} className="health-goal-row" data-status={goal.status}>
       <div className="health-goal-row-copy"><strong>{goal.name}</strong><span className="health-goal-line">{line}{isShowcase() && goal.id.startsWith('92000000-') ? ' · Showcase example' : ''}</span>
         {progress.kind === 'value' && progress.percent !== null && <GlassBar identity={`health-goal:${goal.id}`} className="health-goal-track" aria-hidden="true" value={progress.percent / 100} />}
-        {progress.kind === 'value' && <small>{progress.ended ? `Ended ${progress.ended} · ` : ''}{progress.detail}</small>}
+        {progress.kind === 'value' && <small>{progress.ended ? `Ended ${formatDate(progress.ended)} · ` : ''}{progress.detail}</small>}
         {progress.kind === 'no-data' && progress.detail && <small>{progress.detail}</small>}
-        {goal.status === 'closed' && <small>Ended {goal.updatedAt.slice(0, 10)}</small>}
+        {goal.status === 'closed' && <small>Ended {formatDate(goal.updatedAt)}</small>}
       </div>
       <div className="health-goal-row-actions">
         {goal.status === 'active' && <button type="button" className="quiet" aria-label={`Edit ${goal.name}`} onClick={() => { setEditor(goal); setMessage(''); }}>Edit</button>}

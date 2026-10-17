@@ -45,12 +45,12 @@ for (const setting of ['default', 'reduced', 'off'] as const) test(`vacation day
   await page.reload();
   panel = await open();
   const ahead = panel.locator('.habit-vacation-ahead');
-  await expect(ahead.getByRole('listitem')).toHaveText(['17 Sept – 18 Sept · 1 habitClear', '25 Sept – 26 Sept · 1 habitClear']);
-  const clear = ahead.getByRole('button', {name: 'Clear vacation days 17 Sept – 18 Sept', exact: true});
+  await expect(ahead.getByRole('listitem')).toHaveText(['Sep 17 – Sep 18 · 1 habitClear', 'Sep 25 – Sep 26 · 1 habitClear']);
+  const clear = ahead.getByRole('button', {name: 'Clear vacation days Sep 17 – Sep 18', exact: true});
   if (await isPhone(page)) expect((await clear.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await clear.click();
-  await expect(panel.getByRole('status')).toHaveText('Vacation days cleared: 17 Sept – 18 Sept. Your own check-ins and skips were kept.');
-  await expect(ahead.getByRole('listitem')).toHaveText(['25 Sept – 26 Sept · 1 habitClear']);
+  await expect(panel.getByRole('status')).toHaveText('Vacation days cleared: Sep 17 – Sep 18. Your own check-ins and skips were kept.');
+  await expect(ahead.getByRole('listitem')).toHaveText(['Sep 25 – Sep 26 · 1 habitClear']);
   expect((await stored(page)).habits[0]!.entries.filter(e => e.note === 'Vacation').map(e => e.date)).toEqual(['2026-09-25', '2026-09-26']);
 });
 

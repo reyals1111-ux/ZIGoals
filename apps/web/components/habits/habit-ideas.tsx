@@ -4,6 +4,7 @@ import {scheduleLabel, type HabitData, type HabitInput} from '../../lib/habits';
 import {addLocalDays} from '../../lib/local-date';
 import {HABIT_GROUP_LABEL, HABIT_TEMPLATE_GROUPS, HABIT_TEMPLATES, habitTemplateInputOf, hasHabitLike, type HabitTemplateGroup} from '../../lib/templates/habits';
 import {CHALLENGE_DAYS} from '../../lib/habits-v2/challenge';
+import {formatDate} from '../../lib/visual-format';
 
 /**
  * Habit ideas (Session W Part 10): the starter library from the welcome (Part 3), on the Habits page. One tap adds a
@@ -23,7 +24,7 @@ export function HabitIdeas({data, today, onAdd, onClose}: {data: HabitData; toda
       return <li key={t.id}><div><strong>{t.title}</strong><small>{t.note} · {scheduleLabel(t.schedule)}</small></div>
         {added ? <span className="fine habit-idea-added">Already in your habits</span> : <div className="actions">
           <button type="button" className="secondary" disabled={busy} aria-label={`Add ${t.title}`} onClick={() => void add(input, `${t.title} added.`)}>Add</button>
-          <button type="button" className="quiet" disabled={busy} aria-label={`Add ${t.title} as a ${CHALLENGE_DAYS.usual}-day challenge`} onClick={() => void add({...input, endCondition: {kind: 'date', date: addLocalDays(today, CHALLENGE_DAYS.usual - 1)}}, `${t.title} added as a ${CHALLENGE_DAYS.usual}-day challenge, ending ${addLocalDays(today, CHALLENGE_DAYS.usual - 1)}.`)}>As a {CHALLENGE_DAYS.usual}-day challenge</button>
+          <button type="button" className="quiet" disabled={busy} aria-label={`Add ${t.title} as a ${CHALLENGE_DAYS.usual}-day challenge`} onClick={() => void add({...input, endCondition: {kind: 'date', date: addLocalDays(today, CHALLENGE_DAYS.usual - 1)}}, `${t.title} added as a ${CHALLENGE_DAYS.usual}-day challenge, ending ${formatDate(addLocalDays(today, CHALLENGE_DAYS.usual - 1))}.`)}>As a {CHALLENGE_DAYS.usual}-day challenge</button>
         </div>}
       </li>;
     })}</ul>

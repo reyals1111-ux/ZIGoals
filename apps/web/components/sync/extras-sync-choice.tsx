@@ -4,8 +4,8 @@ import {getAppStorage} from '../../lib/showcase-storage';
 import {EXTRAS_CHOICE_KEY} from '../../lib/vault/extras-keys';
 import type {ExtrasStatus} from '../vault-sync-controls';
 
-/** On unless turned off on this device (owner decision, ADR-023); read without loading the sync code. */
-function readChoice(): {enabled: boolean; explained: boolean} {
+/** On unless turned off on this device (owner decision, ADR-023); read without loading the sync code (also by Settings → Sync's section rows). */
+export function readExtrasChoiceNow(): {enabled: boolean; explained: boolean} {
   try { const raw = getAppStorage().getItem(EXTRAS_CHOICE_KEY); if (raw === null) return {enabled: true, explained: false}; const v = JSON.parse(raw); return {enabled: v?.enabled !== false, explained: v?.explained === true}; } catch { return {enabled: true, explained: false}; }
 }
 const SECTION_DONE: Record<string, string> = {goals: 'goal extras', life: 'calculator, Life review, Today and reminders', habits: 'habit extras', health: 'Health extras'};
@@ -34,8 +34,8 @@ function line(status: ExtrasStatus | null, health: boolean): string | null {
  */
 export function ExtrasSyncChoice({opened, busy, health, status, onEnable, onRemove}: {opened: boolean; busy: boolean; health: boolean; status: ExtrasStatus | null; onEnable: (on: boolean) => Promise<void>; onRemove: () => Promise<void>}) {
   const id = useId();
-  const [choice, setChoice] = useState(readChoice), [confirming, setConfirming] = useState(false), [note, setNote] = useState('');
-  useEffect(() => { let active = true; queueMicrotask(() => { if (active) setChoice(readChoice()); }); return () => { active = false; }; }, [status]);
+  const [choice, setChoice] = useState(readExtrasChoiceNow), [confirming, setConfirming] = useState(false), [note, setNote] = useState('');
+  useEffect(() => { let active = true; queueMicrotask(() => { if (active) setChoice(readExtrasChoiceNow()); }); return () => { active = false; }; }, [status]);
   async function choose(enabled: boolean) {
     setNote('');
     try { await onEnable(enabled); setChoice({enabled, explained: true}); }

@@ -117,7 +117,7 @@ describe("calendar completion and cadence", () => {
   });
   it("projects real logged activity with no private values in the URL", () => {
     const data = logHabitCount(make(), id, "2026-09-07", 1, "Private sentinel", at("2026-09-07"));
-    expect(getHabitActivities(data)).toEqual([{ id: `habit:${id}:2026-09-07`, category: "HABIT", title: "Walk outside", detail: "2026-09-07 · 1 / 1 completed", at: at("2026-09-07").toISOString(), href: "/app/habits" }]);
+    expect(getHabitActivities(data)).toEqual([{ id: `habit:${id}:2026-09-07`, category: "HABIT", title: "Walk outside", detail: "Sep 7, 2026 · 1 / 1 completed", at: at("2026-09-07").toISOString(), href: "/app/habits" }]);
     expect(getHabitActivities(logHabitCount(data, id, "2026-09-07", 0, "", at("2026-09-07")))).toEqual([]);
   });
 });

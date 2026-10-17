@@ -2,6 +2,7 @@
 import type {ReactNode} from 'react';
 import {followupsFor, type FollowupCall} from '../../lib/ai/followups';
 import {ReplyIcon} from './reply-actions';
+import {formatDateTime, formatTime} from '../../lib/visual-format';
 import './chat-polish.css';
 
 /**
@@ -12,7 +13,7 @@ import './chat-polish.css';
 export function TurnTime({at}: {at: string}) {
   const date = new Date(at);
   if (Number.isNaN(date.getTime())) return null;
-  return <time className="ai-turn-time" dateTime={at} title={date.toLocaleString()}>{date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</time>;
+  return <time className="ai-turn-time" dateTime={at} title={formatDateTime(date)}>{formatTime(date)}</time>;
 }
 /** The person's own note on an answer: two icons, kept on this device and never sent (panel polish round 2). */
 export function FeedbackButtons({value, onChange}: {value: 'up' | 'down' | undefined; onChange: (next: 'up' | 'down' | undefined) => void}) {

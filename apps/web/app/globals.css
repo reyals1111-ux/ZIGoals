@@ -1372,3 +1372,7 @@ body .field, body .field>span, body .metadata, body .help-text,
 body .metric-note, body .wallet-subtitle {
  font-size:var(--explanatory-size);line-height:var(--explanatory-leading);
 }
+
+/* Session AD (Part 3, ADR-026 F5): while a Light or Dark theme's stylesheet loads on the first paint, nothing is painted in
+   the wrong theme (app/theme-boot.ts clears this within 1.5 s at most). */
+:root[data-theme-loading] body { visibility: hidden; }

@@ -3,7 +3,7 @@ import { normalizeDecimalInput } from "./decimal-input";
 import {exerciseSchema} from "./health-counters";
 import * as z from "zod";
 import { addLocalDays } from "./local-date";
-import { formatNumber } from "./visual-format";
+import { formatDate, formatNumber } from "./visual-format";
 import { healthGoalsSchema } from "./health-goals/schema";
 import { habitHealthLinksSchema, habitHealthLinksV4Schema } from "./habit-health-links/schema";
 import { sleepSchema } from "./sleep/schema";
@@ -305,8 +305,8 @@ export function weightTrend(data: HealthData, endDate: string) {
 const LB_GRAMS = 453.59237;
 export function getHealthActivities(data: HealthData, weightUnit: WeightUnit = "kg"): { id: string; category: "HEALTH"; title: string; detail: string; at: string; href: string }[] {
   return [
-    ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${e.date}`, at: e.updatedAt, href: "/app/health" })),
-    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 1 })} lb` : `${formatHealthGrams(w.grams)} kg`} · ${w.date}`, at: w.updatedAt, href: "/app/health" })),
-    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${a.date}`, at: a.updatedAt, href: "/app/health" })),
+    ...data.diary.map(e => ({ id: e.id, category: "HEALTH" as const, title: `${e.meal} logged`, detail: `${e.snapshot.name} · ${formatDate(e.date)}`, at: e.updatedAt, href: "/app/health" })),
+    ...data.weights.map(w => ({ id: w.id, category: "HEALTH" as const, title: "Weight recorded", detail: `${weightUnit === "lb" ? `${formatNumber(w.grams / LB_GRAMS, { maximumFractionDigits: 1 })} lb` : `${formatHealthGrams(w.grams)} kg`} · ${formatDate(w.date)}`, at: w.updatedAt, href: "/app/health" })),
+    ...data.activity.map(a => ({ id: a.id, category: "HEALTH" as const, title: a.name, detail: `${formatNumber(a.steps)} steps · ${formatDate(a.date)}`, at: a.updatedAt, href: "/app/health" })),
   ].sort((a, b) => b.at.localeCompare(a.at));
 }

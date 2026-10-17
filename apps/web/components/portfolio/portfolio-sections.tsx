@@ -128,7 +128,7 @@ export function TransactionList({portfolio, list, names, onRemove}: {portfolio: 
   const currency = portfolio.currency;
   return <ol className="portfolio-transactions">{list.map(t => <li key={t.id}>
     <span><strong>{TX_LABEL[t.kind]}</strong> {formatExactNumber(t.quantity)} {names.get(t.coin)?.symbol ?? ''}{t.price !== undefined ? ` at ${formatPrice(t.price, currency)}` : ' · no price'}{t.fee ? ` · fee ${formatMoney(t.fee, currency)}` : ''}</span>
-    <small><time dateTime={t.date}>{formatDate(`${t.date}T12:00:00`)}</time>{t.note ? ` · ${t.note}` : ''}</small>
+    <small><time dateTime={t.date}>{formatDate(t.date)}</time>{t.note ? ` · ${t.note}` : ''}</small>
     <button type="button" className="quiet" onClick={() => onRemove(t.id)}>Remove</button>
   </li>)}</ol>;
 }

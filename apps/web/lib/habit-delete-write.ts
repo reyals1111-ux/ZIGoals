@@ -1,5 +1,6 @@
 import {habitCalendarDay, habitDataSchema, habitRuleOn, latestHabitRule, type Habit, type HabitData} from './habits';
 import {DELETED_HABIT_NOTE, DELETED_HABIT_TITLE, isDeletedHabit, type DeletedHabit} from './habit-delete';
+import {formatDate} from './visual-format';
 /**
  * "Delete for good" and its Undo (Session Z-Cloud Part 4.6, ADR-019 C25; `[TIER 3] (data formats)`): the writes, loaded
  * when the person deletes a habit (the shell's form and the readers are in lib/habit-delete.ts).
@@ -10,7 +11,7 @@ export function deleteHabitForGood(data: HabitData, id: string, now = new Date()
   if (latestHabitRule(original).state !== 'archived') throw Error('Archive the habit first; only an archived habit can be deleted for good.');
   // Gate B security read: the archive must be in effect, not only scheduled; a shell that is still due would show as due on
   // #32–#35, keep its reminders, and come back with any check-in another device records.
-  if (habitRuleOn(original, habitCalendarDay(data, now))?.state !== 'archived') throw Error(`The archive starts on ${latestHabitRule(original).from}; the habit can be deleted for good from then.`);
+  if (habitRuleOn(original, habitCalendarDay(data, now))?.state !== 'archived') throw Error(`The archive starts on ${formatDate(latestHabitRule(original).from)}; the habit can be deleted for good from then.`);
   const at = now.toISOString(), updatedAt = at > original.updatedAt ? at : original.updatedAt;
   const shell: Habit = {
     id: original.id, title: DELETED_HABIT_TITLE, category: 'Deleted', description: '', notes: DELETED_HABIT_NOTE, timeOfDay: 'anytime',

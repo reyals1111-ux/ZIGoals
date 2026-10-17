@@ -7,7 +7,7 @@ type Watched=string|{property:string;within:string};
 type MotionWindow={motionSamples:Sample[];motionStarts:Record<string,number>};
 
 /**
- * Samples the first element each named animation touches: at start, shortly after, and on its own end. `final` keeps the
+ * Samples the first element each named animation touches: at start, at its half-way point, and on its own end. `final` keeps the
  * target's own inline value (a ring arc's stroke-dashoffset), the value the animation must settle on.
  */
 async function watch(page:Page,properties:Record<string,Watched>){
@@ -21,7 +21,11 @@ async function watch(page:Page,properties:Record<string,Watched>){
    if(!property||samples.some(s=>s.name===event.animationName))return;
    const read=()=>getComputedStyle(target).getPropertyValue(property).trim();
    const sample:Sample={name:event.animationName,start:read(),final:(target as SVGElement).style?.getPropertyValue(property)||undefined};samples.push(sample);
-   setTimeout(()=>{sample.mid=read();},120);
+   // Session AD item 9: the mid value is read at the animation's own half-way point, not after a timer (a starved runner
+   // read it after the end): the running animation is paused, set to half its duration, read, and put back where it was.
+   const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===event.animationName);
+   if(animation?.effect){const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
+    animation.pause();animation.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;sample.mid=read();animation.currentTime=was;if(running)animation.play();}
    target.addEventListener('animationend',end=>{if(end.target===target&&(end as AnimationEvent).animationName===sample.name)sample.end=read();});
   },true);
  },properties);
@@ -32,7 +36,7 @@ const sample=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as 
 const starts=(page:Page,name:string)=>page.evaluate(name=>(window as unknown as MotionWindow).motionStarts[name]??0,name);
 async function settled(page:Page,name:string){
  await expect.poll(async()=>(await sample(page,name))?.end,{message:`${name} settles`}).toBeTruthy();
- const result=(await sample(page,name)) as Sample&{end:string};expect(result.start,name).not.toBe(result.end);expect(result.mid,name).not.toBe(result.end);return result;
+ const result=(await sample(page,name)) as Sample&{end:string};expect(result.mid,`${name} has a half-way value`).toBeDefined();expect(result.start,name).not.toBe(result.end);expect(result.mid,name).not.toBe(result.end);return result;
 }
 async function showcase(page:Page){
  await page.route('**/api/market-**',route=>route.fulfill({status:503,contentType:'application/json',body:'{"error":"fixture offline"}'}));
@@ -163,9 +167,10 @@ test('progress fills grow in once when seen and glide to new values while their 
  // The visible fill runs from the track's start to the fill's (translated) end.
  const filled=()=>overview.evaluate(el=>el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left);
  const before=Number(await overview.getAttribute('aria-valuenow')),start=await filled();
- // Session AB-Design Phase 2 (ADR-024): the mid-glide sample is taken in the page, two frames after the value changes —
- // sampled from the test after two round trips, a slow runner read the 460 ms glide already at its end. Same assertions.
- await overview.evaluate(el=>{const w=window as unknown as {__glide?:number};delete w.__glide;new MutationObserver((_,o)=>{o.disconnect();requestAnimationFrame(()=>requestAnimationFrame(()=>{w.__glide=el.querySelector('.glass-fill')!.getBoundingClientRect().right-el.getBoundingClientRect().left;}));}).observe(el,{attributes:true,attributeFilter:['aria-valuenow']});});
+ // Session AB-Design Phase 2 (ADR-024): the mid-glide sample is taken in the page when the value changes. Session AD item 9:
+ // not two frames later (a starved runner's frames ran past the 460 ms glide) but at the glide's own half-way point: the
+ // fill's transition is paused, set to half its duration, measured, and put back where it was. Same assertions.
+ await overview.evaluate(el=>{const w=window as unknown as {__glide?:number};delete w.__glide;new MutationObserver((_,o)=>{o.disconnect();{const fill=el.querySelector('.glass-fill')!,glide=fill.getAnimations().find(a=>a instanceof CSSTransition);const measure=()=>fill.getBoundingClientRect().right-el.getBoundingClientRect().left;if(!glide?.effect)return;const timing=glide.effect.getComputedTiming(),was=glide.currentTime,running=glide.playState==='running';glide.pause();glide.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;w.__glide=measure();glide.currentTime=was;if(running)glide.play();}}).observe(el,{attributes:true,attributeFilter:['aria-valuenow']});});
  await page.locator('.habits-workspace').getByRole('button',{name:/^Complete /}).first().click();
  await expect(overview).toHaveAttribute('aria-valuenow',String(before+1));
  await expect.poll(()=>page.evaluate(()=>typeof (window as unknown as {__glide?:number}).__glide)).toBe('number');

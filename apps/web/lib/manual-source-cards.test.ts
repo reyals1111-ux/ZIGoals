@@ -13,6 +13,8 @@ it('makes automatic versus manual valuation explicit while preserving the manual
  await act(async()=>{root.render(createElement(ManualSourceCards,{update:async()=>{},onSaved:()=>{}}));});
  const buttons=[...container.querySelectorAll('button')];
  expect(buttons.map(button=>button.textContent)).toEqual(expect.arrayContaining(['Crypto','Stablecoins','Stocks','ETFs','Precious metals','Cash']));
+ // Session AD (weights, deliberate): the market search is its own lazy chunk; it is read once that chunk has loaded. Same check.
+ await act(async()=>{await import('../components/platform/asset-search');await new Promise(resolve=>setTimeout(resolve,0));});
  expect(container.textContent).toContain('Find your asset');
  const cash=buttons.find(button=>button.textContent==='Cash')!;
  await act(async()=>{cash.click();await Promise.resolve();});

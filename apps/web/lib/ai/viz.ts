@@ -1,4 +1,5 @@
 import {plural} from './tools/format';
+import {formatDate} from '../visual-format';
 import type {ToolResult} from './tools/types';
 
 /**
@@ -54,10 +55,10 @@ const fmt = (n: number) => Number(n.toFixed(1)).toLocaleString('en-US');
 export function seriesSummary(series: Series): string {
   const p = series.points, first = p[0]!, last = p.at(-1)!, unit = series.unit ? ` ${series.unit}` : '';
   const high = p.reduce((a, b) => b.value > a.value ? b : a), low = p.reduce((a, b) => b.value < a.value ? b : a);
-  const days = `${plural(p.length, 'day')} with a record from ${first.date} to ${last.date}`;
-  if (series.shape === 'line') return `${series.title}: ${days}, from ${fmt(first.value)}${unit} to ${fmt(last.value)}${unit}; lowest ${fmt(low.value)}${unit} on ${low.date}, highest ${fmt(high.value)}${unit} on ${high.date}.`;
+  const days = `${plural(p.length, 'day')} with a record from ${formatDate(first.date)} to ${formatDate(last.date)}`;
+  if (series.shape === 'line') return `${series.title}: ${days}, from ${fmt(first.value)}${unit} to ${fmt(last.value)}${unit}; lowest ${fmt(low.value)}${unit} on ${formatDate(low.date)}, highest ${fmt(high.value)}${unit} on ${formatDate(high.date)}.`;
   const total = p.reduce((a, b) => a + b.value, 0);
-  return `${series.title}: ${days}, ${fmt(total)}${unit} in all, the most ${fmt(high.value)}${unit} on ${high.date}.`;
+  return `${series.title}: ${days}, ${fmt(total)}${unit} in all, the most ${fmt(high.value)}${unit} on ${formatDate(high.date)}.`;
 }
 /**
  * The headline figure of a result, for a small stat card above the chart: a habit's total for the range, water and

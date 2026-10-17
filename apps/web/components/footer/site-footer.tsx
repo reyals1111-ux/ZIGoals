@@ -1,13 +1,12 @@
-import Link from 'next/link';
 import {enabledSocialLinks} from '../../lib/social-links';
 import {ButterflyGlyph, HeartGlyph, LotusGlyph} from './pillar-glyphs';
-import {LogoWordmark} from '../brand/logo-wordmark';
+import {IGoalsWordmark} from '../brand/igoals-wordmark';
 import {FooterMotion, FooterTop} from './footer-islands';
 import './site-footer.css';
 
 /**
- * The three steps of the slogan (owner request 2, re-cut at the owner's Phase 2 correction): Goals → Habits → Health; the
- * slogan above them already says "= Wealth", and the constellation path flows from Health up into that word.
+ * The three steps (owner request 2): Goals → Habits → Health, each with its word in the slogan's first line. The second
+ * line, "= Wealth", is where they lead.
  */
 const STEPS = [
   {n: '01', pillar: 'goals', title: 'Goals', body: 'Pick what matters: a destination with meaning.', glyph: <LotusGlyph size={28}/>},
@@ -16,32 +15,30 @@ const STEPS = [
 ] as const;
 const X_PATH = 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z';
 const Globe = () => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.8 3.8 5.8 3.8 9s-1.2 6.2-3.8 9c-2.6-2.8-3.8-5.8-3.8-9S9.4 5.8 12 3z"/></svg>;
-const GROUPS: readonly {title: string; links: readonly {label: string; href: string; external?: boolean}[]}[] = [
-  {title: 'Product', links: [{label: 'Today', href: '/app'}, {label: 'Goals', href: '/app/goals'}, {label: 'Habits', href: '/app/habits'}, {label: 'Health', href: '/app/health'}, {label: 'Wealth', href: '/app/wealth'}]},
-  {title: 'Help & feedback', links: [{label: 'Help', href: '/app/help'}, {label: 'What’s new', href: '/app/help#whats-new-alpha'}, {label: 'Send feedback', href: '/app/help#feedback'}, {label: 'Private security contact', href: 'mailto:hello@zigoals.app', external: true}]},
-  {title: 'Your data', links: [{label: 'Make a backup in Settings', href: '/app/settings'}, {label: 'Storage & sync settings', href: '/app/settings#encrypted-sync'}, {label: 'Your data', href: '/app/settings/data'}]},
-];
 
 /**
- * Session AB-Design (owner request 2; rebuilt to the owner's Phase 2 brief, ADR-024 P6): one full-width footer banner on
- * every page. The planet horizon is drawn exactly once as the band's own background. Centrepiece: the origami Z/G logo
- * acting as the "Z" of "ZIGoals", the slogan "Goals, Habits & Health = Wealth" and its small line; under it the three
- * steps Goals → Habits → Health on a glowing constellation path that flows up into "Wealth". The first time the banner
- * is seen in a session the path draws itself, the nodes ignite in turn and "Wealth" lights up (footer-path.tsx); under
- * reduced motion and Motion Off, and before that script arrives, everything simply shows its final, resting state.
- * Then the social row, three groups of links, the Showcase line and the Alpha's full disclaimer — whose spans keep the
- * class names the hosted-Alpha verifier reads (`network-banner`, `mode-strip`).
+ * Session AB-Design (owner request 2) → Session AD, "the final look" (ADR-026 Part 1): one full-width footer banner on every
+ * page that ends where the planet artwork ends (the whole planet shown, never cropped on a computer or tablet). The
+ * owner's wordmark, the slogan in two lines ("Goals · Habits · Health", then a larger "= Wealth"), the three steps on
+ * their constellation line, and at the very bottom the social row and Back to top between two dividers. The link columns
+ * are gone: every one of their links is reachable in two taps from the sidebar, the phone's More, Help and Settings.
+ * The first time the banner is seen in a visit, each word appears with its step, the line draws between them, "= Wealth"
+ * arrives and the wordmark shines once while the planet's flare rises along its rim (footer-path.tsx); reduced motion,
+ * Motion Off, or before that script arrives: the final, resting state.
  */
 export function SiteFooter() {
   const social = enabledSocialLinks();
   return <footer className="site-footer" aria-label="About ZIGoals">
     <div className="site-footer-art" aria-hidden="true"/>
-    <div className="site-footer-sweep" aria-hidden="true"/>
     <div className="site-footer-inner">
       <div className="site-footer-stage">
         <div className="site-footer-brand">
-          <LogoWordmark className="site-footer-logo"/>
-          <p className="site-footer-slogan"><span>Goals, Habits &amp; Health</span> <span className="site-footer-result"><span className="site-footer-equals">=</span> <span className="site-footer-wealth" data-footer-wealth="">Wealth</span></span></p>
+          <span className="site-footer-logo" data-footer-logo=""><IGoalsWordmark/><span className="site-footer-shine" aria-hidden="true"><i/></span></span>
+          <p className="site-footer-slogan">
+            <span className="site-footer-line1">{STEPS.map((s, i) => <span key={s.n}>{i > 0 && <> <span className="site-footer-dot" data-word={i} aria-hidden="true">·</span> </>}<span className="site-footer-word" data-pillar={s.pillar} data-word={i}>{s.title}</span></span>)}</span>
+            {' '}
+            <span className="site-footer-result" data-footer-wealth=""><span className="site-footer-equals">=</span> <span className="site-footer-wealth">Wealth</span></span>
+          </p>
           <p className="site-footer-tagline">Same you. A brighter tomorrow.</p>
         </div>
         <ol className="site-footer-steps" aria-label="How ZIGoals works">
@@ -60,9 +57,6 @@ export function SiteFooter() {
         </div>
         <FooterTop/>
       </div>
-      <nav className="site-footer-links" aria-label="ZIGoals links">
-        {GROUPS.map(g => <div key={g.title} className="site-footer-group"><p className="site-footer-group-title">{g.title}</p><ul>{g.links.map(l => <li key={l.label}>{l.external ? <a href={l.href}>{l.label}</a> : <Link href={l.href} prefetch={false}>{l.label}</Link>}</li>)}</ul></div>)}
-      </nav>
     </div>
   </footer>;
 }

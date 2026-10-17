@@ -1,39 +1,52 @@
-/* Session AB-Design (owner request 2; rebuilt to the owner's Phase 2 brief, ADR-024 P6): the one full-width footer banner. The
-   planet once as its background; the logo-as-"Z" wordmark, the slogan and its small line as the centrepiece; the steps Goals →
-   Habits → Health on a constellation path that flows up into "Wealth"; social row and the link groups (Session AC: the page
-   ends there; the Alpha's facts live in Settings, Help and the first-visit notice). Every line sits on a calm, darkened part of the art (contrast ≥ 4.5:1). */
-.site-footer { position: relative; isolation: isolate; display: block; margin: 64px 0 0; padding: 0; border: 0; color: var(--text); font-size: 15px; overflow: hidden; }
-.site-footer-art, .site-footer-sweep { position: absolute; inset: 0; pointer-events: none; }
-.site-footer-art { background: var(--cosmic-destination) center 30% / cover no-repeat; }
-.site-footer-art { z-index: -4; mask-image: linear-gradient(180deg, transparent, #000 16%); }
-/* A soft scrim: clear over the planet's rim where the centrepiece sits, deepening behind the steps' text and the links. */
+/* Session AB-Design (owner request 2) → Session AD, "the final look" (ADR-026 Part 1): the one full-width footer banner.
+   The planet is drawn whole, full width, from the banner's top; the banner ends where the planet ends (its height is the
+   artwork's own aspect ratio, taller only when its content needs more). Centrepiece: the owner's wordmark, the slogan in
+   two lines, the three steps on their constellation line; at the very bottom the social row and Back to top between two
+   dividers. Every line sits on a calm, darkened part of the art (contrast ≥ 4.5:1). */
+.site-footer { position: relative; isolation: isolate; display: block; container-type: inline-size; margin: 64px 0 0; padding: 0; border: 0; color: var(--text); font-size: 15px; overflow: hidden; }
+/* The planet, whole: full width at the top, its own height (1000 × 689); faded in at its top edge into the starfield and
+   out at its foot into the page's end colour. */
+.site-footer-art { position: absolute; left: 0; right: 0; top: 0; z-index: -4; aspect-ratio: 1000 / 689; pointer-events: none; background: var(--cosmic-destination) 50% 0 / 100% auto no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 84%, transparent 100%); }
+/* A soft scrim: clear over the planet's rim where the wordmark sits, deepening behind the steps' text and the social row. */
 .site-footer::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;
   background:
-    radial-gradient(ellipse 34% 22% at 80% 34%, #f06dff24, transparent 70%),
-    radial-gradient(ellipse 36% 26% at 14% 40%, #23eaff1a, transparent 70%),
-    linear-gradient(180deg, #02091800 0, #0209184d 30%, #020918b8 52%, #020918e6 70%, #020918f5 100%); }
-/* The closing sweep: a soft band of light crosses the planet, blended so only its bright rim lights up (dark space stays dark). */
-@property --sf-sweep { syntax: '<percentage>'; inherits: false; initial-value: -25%; }
-.site-footer-sweep { z-index: -3; opacity: 0; mix-blend-mode: overlay;
-  background: linear-gradient(100deg, transparent calc(var(--sf-sweep) - 11%), #ffffff var(--sf-sweep), transparent calc(var(--sf-sweep) + 11%));
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 38%, transparent 56%); mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 38%, transparent 56%); }
-.site-footer-inner { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 88px 26px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; justify-items: center; }
+    radial-gradient(ellipse 34% 22% at 80% 30%, #f06dff1f, transparent 70%),
+    radial-gradient(ellipse 36% 26% at 14% 36%, #23eaff17, transparent 70%),
+    linear-gradient(180deg, #02091800 0, #0209182e 26%, #0209188c 50%, #020918c4 72%, #020918eb 100%); }
+.site-footer-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 1240px; min-height: calc(100cqw * 689 / 1000); margin: 0 auto; padding: clamp(60px, 6.4cqw, 132px) 26px 28px; }
 
-/* The centrepiece: the origami Z/G logo is the "Z" of ZIGoals. */
-.site-footer-stage { position: relative; width: 100%; display: grid; justify-items: center; gap: 46px; }
-.site-footer-brand { position: relative; z-index: 2; display: grid; justify-items: center; gap: 8px; text-align: center; }
-.site-footer-slogan { margin: 8px 0 0; font-size: clamp(25px, 3vw, 44px); font-weight: 750; letter-spacing: -.03em; line-height: 1.15; color: var(--text-strong, #f4f8ff); text-shadow: 0 2px 18px #020918cc; }
-.site-footer-slogan .site-footer-equals { color: #9fe6ff; font-weight: 500; margin: 0 .08em; }
-.site-footer-slogan .site-footer-wealth { display: inline-block; background-image: var(--nebula-headline, linear-gradient(100deg, #6fe6f6, #8fa6ff 35%, #c790f6 65%, #f08bd6)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--text-strong); text-shadow: none; filter: drop-shadow(0 0 14px #c790f655); }
-.site-footer-tagline { margin: 6px 0 0; font-size: 14px; letter-spacing: .22em; text-transform: uppercase; color: #bfe3f8; text-shadow: 0 1px 10px #020918; }
+/* The centrepiece. */
+.site-footer-stage { position: relative; width: 100%; display: grid; justify-items: center; gap: clamp(52px, 5cqw, 84px); margin-bottom: auto; padding-bottom: 48px; }
+.site-footer-brand { position: relative; z-index: 2; display: grid; justify-items: center; gap: 0; text-align: center; }
+/* The owner's wordmark (components/brand/igoals-wordmark.tsx): its box is reserved, so nothing moves when it arrives. */
+.site-footer-logo { position: relative; isolation: isolate; display: block; width: 360px; max-width: 100%; aspect-ratio: 360 / 112; }
+.site-footer-logo picture, .site-footer-logo img { display: block; width: 100%; height: auto; }
+/* Its glow lives behind it, never on it; the shine is a band of light masked to the wordmark's own shape. */
+.site-footer-logo::before { content: ''; position: absolute; inset: -30% -12%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, #7b5cff4d, #23b8ff1f 55%, transparent 100%); opacity: .8; pointer-events: none; }
+.site-footer-shine { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; mix-blend-mode: screen;
+  -webkit-mask: url('/brand/wordmark/igoals-wordmark-720.webp') center / 100% 100% no-repeat; mask: url('/brand/wordmark/igoals-wordmark-720.webp') center / 100% 100% no-repeat; }
+.site-footer-shine > i { position: absolute; top: -10%; bottom: -10%; left: -60%; width: 60%; background: linear-gradient(100deg, transparent 0, #8ff0ff8c 30%, #ffd2f5e6 50%, #f06dff8c 70%, transparent 100%); transform: translateX(0); }
 
-/* The three steps; the path is drawn behind the nodes by footer-path.tsx. */
+/* The slogan: "Goals · Habits · Health", then "= Wealth" centred under it and clearly larger; every word in the nebula flow. */
+.site-footer-slogan { margin: 18px 0 0; display: grid; justify-items: center; gap: 2px; font-weight: 750; letter-spacing: -.03em; color: var(--text-strong, #f4f8ff); }
+.site-footer-line1 { display: block; font-size: clamp(26px, 2.7cqw, 40px); line-height: 1.2; white-space: nowrap; }
+.site-footer-word, .site-footer-result { display: inline-block; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 14px #020918d9); }
+.site-footer-word[data-pillar=goals] { background-image: linear-gradient(100deg, var(--brand-cyan, #23eaff), var(--brand-blue, #459dff)); }
+.site-footer-word[data-pillar=habits] { background-image: linear-gradient(100deg, var(--brand-blue, #459dff), var(--brand-violet, #9273ff)); }
+.site-footer-word[data-pillar=health] { background-image: linear-gradient(100deg, var(--brand-violet, #9273ff), var(--brand-magenta, #f06dff) 70%, var(--nebula-pink, #ff74be)); }
+.site-footer-dot { display: inline-block; margin: 0 .12em; color: #b9c8ff; font-weight: 500; }
+.site-footer-result { font-size: clamp(42px, 4.6cqw, 68px); line-height: 1.08; padding: 0 .04em .06em; background-image: var(--nebula-headline, linear-gradient(100deg, #6fe6f6, #8fa6ff 35%, #c790f6 65%, #f08bd6)); white-space: nowrap; }
+.site-footer-equals { margin-right: .06em; font-weight: 600; }
+.site-footer-tagline { margin: 14px 0 0; font-size: 14px; letter-spacing: .22em; text-transform: uppercase; color: #c7e6f9; text-shadow: 0 1px 10px #020918; }
+
+/* The three steps; the line is drawn behind the nodes by footer-path.tsx, inside a reveal box (only transform moves). */
 .site-footer-steps { position: relative; z-index: 2; list-style: none; width: 100%; max-width: 1100px; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.site-footer-line { position: absolute; left: 0; top: 0; z-index: 1; overflow: visible; pointer-events: none; max-width: 100%; } /* a width measured before a resize never widens the page (its viewBox scales it until the next measure) */
-.site-footer-path { stroke-dasharray: none; stroke-dashoffset: 0; }
+.site-footer-reveal { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.site-footer-reveal-in { position: absolute; inset: 0; }
+.site-footer-line { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; max-width: 100%; } /* a width measured before a resize never widens the page */
 .site-footer-path-glow { opacity: .55; }
 .site-footer-star { fill: #e9f3ff; opacity: .75; }
-.site-footer-particle { display: none; fill: #fff; filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #8fd8ff); }
 .site-footer-steps li { --pillar: #9fd6ff; position: relative; display: grid; justify-items: center; align-content: start; gap: 10px; padding: 0 8px; text-align: center; }
 .site-footer-steps li[data-pillar=goals] { --pillar: var(--pillar-goals, #9273ff); }
 .site-footer-steps li[data-pillar=habits] { --pillar: var(--pillar-habits, #23eaff); }
@@ -46,120 +59,111 @@
 .site-footer-n { position: absolute; right: -6px; bottom: -4px; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 6px; border-radius: 999px; font-size: 13px; font-weight: 750; letter-spacing: .04em; color: #0a1428;
   background: linear-gradient(135deg, color-mix(in srgb, var(--pillar) 70%, #ffffff), var(--pillar)); box-shadow: 0 0 0 3px #020918; }
 .site-footer-steps strong { margin-top: 6px; font-size: 20px; letter-spacing: -.01em; color: var(--text-strong, #f4f8ff); text-shadow: 0 1px 12px #020918; }
-.site-footer-steps p { margin: 0; max-width: 270px; font-size: 15px; line-height: 1.55; color: #e3ecf8; text-shadow: 0 1px 10px #020918; }
+.site-footer-steps p { margin: 0; max-width: 270px; font-size: 15px; line-height: 1.55; color: #e3ecf8; text-shadow: 0 1px 10px #020918; text-wrap: balance; }
 
-/* The opening moment (footer-path.tsx sets data-intro: "ready" before it plays, "play" while it runs, "done" after). */
-.site-footer[data-intro=ready] :is(.site-footer-path, .site-footer-path-glow) { stroke-dasharray: 1; stroke-dashoffset: 1; }
-.site-footer[data-intro=ready] .site-footer-star { opacity: 0; }
-.site-footer[data-intro=ready] .site-footer-steps li { opacity: .3; filter: grayscale(.7); }
-.site-footer[data-intro=ready] .site-footer-steps li :is(strong, p) { opacity: 0; transform: translateY(8px); }
-.site-footer[data-intro=ready] .site-footer-wealth { opacity: .4; filter: grayscale(1) brightness(.75); }
-.site-footer[data-intro=play] :is(.site-footer-path, .site-footer-path-glow) { stroke-dasharray: 1; stroke-dashoffset: 1; animation: sf-draw var(--sf-draw, 2.2s) linear forwards; }
-.site-footer[data-intro=play] .site-footer-star { animation: sf-star .9s ease-out both; animation-delay: calc(var(--sf-draw, 2.2s) * .12 * var(--i)); }
-.site-footer[data-intro=play] .site-footer-particle { display: block; animation: sf-particle var(--sf-draw, 2.2s) linear both; animation-delay: calc(.17s * var(--i)); }
-.site-footer[data-intro=play] .site-footer-steps li { animation: sf-ignite .75s cubic-bezier(.2, .7, .2, 1) both; }
-.site-footer[data-intro=play] .site-footer-steps li :is(strong, p) { animation: sf-rise .6s ease-out both; }
-.site-footer[data-intro=play] .site-footer-steps li .site-footer-node::after { animation: sf-pulse 1.1s ease-out both; }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="0"] { animation-delay: var(--sf-at0, .4s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="1"] { animation-delay: var(--sf-at1, 1.1s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="2"] { animation-delay: var(--sf-at2, 1.7s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="0"] :is(strong, p) { animation-delay: calc(var(--sf-at0, .4s) + .12s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="1"] :is(strong, p) { animation-delay: calc(var(--sf-at1, 1.1s) + .12s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="2"] :is(strong, p) { animation-delay: calc(var(--sf-at2, 1.7s) + .12s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="0"] .site-footer-node::after { animation-delay: var(--sf-at0, .4s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="1"] .site-footer-node::after { animation-delay: var(--sf-at1, 1.1s); }
-.site-footer[data-intro=play] .site-footer-steps li[data-step="2"] .site-footer-node::after { animation-delay: var(--sf-at2, 1.7s); }
-.site-footer[data-intro=play] .site-footer-wealth { animation: sf-wealth 1.1s cubic-bezier(.2, .7, .2, 1) both; animation-delay: var(--sf-wealth, 2.2s); }
-.site-footer[data-intro=play] .site-footer-sweep { animation: sf-sweep 1.1s ease-in-out both; animation-delay: var(--sf-sweep, 2.35s); }
-@keyframes sf-draw { to { stroke-dashoffset: 0; } }
-@keyframes sf-star { from { opacity: 0; transform: scale(.2); } 60% { opacity: 1; } to { opacity: .75; transform: none; } }
-@keyframes sf-particle { 0% { opacity: 0; } 6% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes sf-ignite { from { opacity: .3; filter: grayscale(.7); transform: scale(.94); } 55% { opacity: 1; filter: grayscale(0) brightness(1.35); transform: scale(1.04); } to { opacity: 1; filter: none; transform: none; } }
-@keyframes sf-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* The planet's flare (footer-path.tsx): the Today header star's layer (motion.css .hero-star), in pink and magenta. */
+.site-footer-star-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.site-footer-star-layer > span { position: absolute; left: 0; top: 0; opacity: 0; border-radius: 50%; }
+.site-footer-star-veil { background: radial-gradient(closest-side, #020918d9 0%, #020918a6 42%, #02091840 70%, #02091800 100%); }
+.site-footer-star-core { background: radial-gradient(closest-side, #ffb0ea 0 9%, #ff8fdc 16%, #f06dffcc 28%, #d65cffa3 40%, #b06bff4d 56%, #9273ff1a 72%, #0000 100%); mix-blend-mode: screen; }
+
+/* The opening moment (footer-path.tsx sets data-intro: "ready" before it plays, "play" while it runs, "done" after).
+   Only transform and opacity animate. */
+.site-footer[data-intro=ready] .site-footer-reveal, .site-footer[data-intro=play] .site-footer-reveal { transform: translateX(-100%); }
+.site-footer[data-intro=ready] .site-footer-reveal-in, .site-footer[data-intro=play] .site-footer-reveal-in { transform: translateX(100%); }
+.site-footer[data-intro=ready] .site-footer-reveal[data-stacked], .site-footer[data-intro=play] .site-footer-reveal[data-stacked] { transform: translateY(-100%); }
+.site-footer[data-intro=ready] .site-footer-reveal[data-stacked] .site-footer-reveal-in, .site-footer[data-intro=play] .site-footer-reveal[data-stacked] .site-footer-reveal-in { transform: translateY(100%); }
+.site-footer[data-intro=ready] :is(.site-footer-word, .site-footer-dot, .site-footer-result, .site-footer-tagline, .site-footer-steps li :is(strong, p)) { opacity: 0; transform: translateY(10px); }
+.site-footer[data-intro=ready] .site-footer-node { opacity: .25; transform: scale(.86); }
+.site-footer[data-intro=play] .site-footer-reveal { animation: sf-reveal-out var(--sf-reveal, 1.5s) linear var(--sf-t0, .15s) both; }
+.site-footer[data-intro=play] .site-footer-reveal-in { animation: sf-reveal-in var(--sf-reveal, 1.5s) linear var(--sf-t0, .15s) both; }
+.site-footer[data-intro=play] .site-footer-reveal[data-stacked] { animation-name: sf-reveal-down-out; }
+.site-footer[data-intro=play] .site-footer-reveal[data-stacked] .site-footer-reveal-in { animation-name: sf-reveal-down-in; }
+.site-footer[data-intro=play] :is(.site-footer-word, .site-footer-dot, .site-footer-steps li :is(strong, p)) { animation: sf-rise .6s cubic-bezier(.2, .7, .2, 1) both; }
+.site-footer[data-intro=play] .site-footer-node { animation: sf-ignite .75s cubic-bezier(.2, .7, .2, 1) both; }
+.site-footer[data-intro=play] .site-footer-node::after { animation: sf-pulse 1.1s ease-out both; }
+.site-footer[data-intro=play] :is(.site-footer-word[data-word="0"], .site-footer-steps li[data-step="0"] .site-footer-node, .site-footer-steps li[data-step="0"] .site-footer-node::after) { animation-delay: var(--sf-at0, .4s); }
+.site-footer[data-intro=play] :is(.site-footer-word[data-word="1"], .site-footer-dot[data-word="1"], .site-footer-steps li[data-step="1"] .site-footer-node, .site-footer-steps li[data-step="1"] .site-footer-node::after) { animation-delay: var(--sf-at1, .9s); }
+.site-footer[data-intro=play] :is(.site-footer-word[data-word="2"], .site-footer-dot[data-word="2"], .site-footer-steps li[data-step="2"] .site-footer-node, .site-footer-steps li[data-step="2"] .site-footer-node::after) { animation-delay: var(--sf-at2, 1.4s); }
+.site-footer[data-intro=play] .site-footer-steps li[data-step="0"] :is(strong, p) { animation-delay: calc(var(--sf-at0, .4s) + .1s); }
+.site-footer[data-intro=play] .site-footer-steps li[data-step="1"] :is(strong, p) { animation-delay: calc(var(--sf-at1, .9s) + .1s); }
+.site-footer[data-intro=play] .site-footer-steps li[data-step="2"] :is(strong, p) { animation-delay: calc(var(--sf-at2, 1.4s) + .1s); }
+.site-footer[data-intro=play] .site-footer-result { animation: sf-arrive .8s cubic-bezier(.2, .7, .2, 1) var(--sf-wealth, 1.85s) both; }
+.site-footer[data-intro=play] .site-footer-tagline { animation: sf-rise .6s ease-out calc(var(--sf-wealth, 1.85s) + .3s) both; }
+.site-footer[data-intro=play] .site-footer-shine { animation: sf-shine-on .95s ease-in-out var(--sf-wealth, 1.85s) both; }
+.site-footer[data-intro=play] .site-footer-shine > i { animation: sf-shine .95s cubic-bezier(.45, 0, .3, 1) var(--sf-wealth, 1.85s) both; }
+.site-footer[data-intro=play] .site-footer-logo::before { animation: sf-glow 1.4s ease-in-out var(--sf-wealth, 1.85s) both; }
+@keyframes sf-reveal-out { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes sf-reveal-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes sf-reveal-down-out { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes sf-reveal-down-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sf-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes sf-arrive { from { opacity: 0; transform: translateY(12px) scale(.94); } 60% { opacity: 1; transform: scale(1.03); } to { opacity: 1; transform: none; } }
+@keyframes sf-ignite { from { opacity: .25; transform: scale(.86); } 55% { opacity: 1; transform: scale(1.06); } to { opacity: 1; transform: none; } }
 @keyframes sf-pulse { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.45); } }
-@keyframes sf-wealth { from { opacity: .4; filter: grayscale(1) brightness(.75); } 45% { opacity: 1; filter: grayscale(0) brightness(1.6) drop-shadow(0 0 22px #c790f6); } to { opacity: 1; filter: drop-shadow(0 0 14px #c790f655); } }
-@keyframes sf-sweep { 0% { opacity: 0; --sf-sweep: -25%; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; --sf-sweep: 125%; } }
+@keyframes sf-shine-on { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sf-shine { from { transform: translateX(0); } to { transform: translateX(267%); } }
+@keyframes sf-glow { 0% { opacity: .8; } 35% { opacity: 1; transform: scale(1.12); } 100% { opacity: .8; transform: none; } }
 /* Reduced motion and Motion Off: the resting state only (the script also never prepares the moment there). */
 @media (prefers-reduced-motion: reduce) {
-  .site-footer[data-intro] :is(.site-footer-path, .site-footer-path-glow) { animation: none; stroke-dashoffset: 0; }
-  .site-footer[data-intro] :is(.site-footer-steps li, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-wealth, .site-footer-star) { animation: none; opacity: 1; filter: none; transform: none; }
-  .site-footer[data-intro] :is(.site-footer-sweep, .site-footer-particle, .site-footer-node::after) { animation: none; display: none; }
+  .site-footer[data-intro] :is(.site-footer-reveal, .site-footer-reveal-in, .site-footer-word, .site-footer-dot, .site-footer-result, .site-footer-tagline, .site-footer-node, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-logo::before) { animation: none; opacity: 1; transform: none; }
+  .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer) { animation: none; display: none; }
 }
-:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-path, .site-footer-path-glow) { animation: none; stroke-dashoffset: 0; }
-:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-steps li, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-wealth, .site-footer-star) { animation: none; opacity: 1; filter: none; transform: none; }
-:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-sweep, .site-footer-particle) { animation: none; display: none; }
+:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-reveal, .site-footer-reveal-in, .site-footer-word, .site-footer-dot, .site-footer-result, .site-footer-tagline, .site-footer-node, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-logo::before) { animation: none; opacity: 1; transform: none; }
+:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer) { animation: none; display: none; }
+.site-footer-logo::before { opacity: .8; }
 
-/* The social row: X and the website with their icons; Back to top at the right. */
-.site-footer-social { width: 100%; max-width: 980px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 14px 0; border-top: 1px solid #9fd6ff22; border-bottom: 1px solid #9fd6ff22; }
-.site-footer-social-links { display: flex; flex-wrap: wrap; gap: 6px 10px; }
-.site-footer-social a, .site-footer-top { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: 15px; font-weight: 600; color: #e9f3ff; border: 1px solid #9fd6ff2e; background: #0a1430b3; }
+/* The social row, at the very bottom between two dividers: X and the website with their icons, Back to top at the right.
+   The app's main buttons' nebula treatment: a gradient rim over a deep glass fill; hover lifts and glows (no pointer tracking). */
+.site-footer-social { position: relative; z-index: 2; width: min(980px, 100% - 120px); max-width: 980px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 14px 0; border-top: 1px solid #9fd6ff26; border-bottom: 1px solid #9fd6ff26; }
+.site-footer-social-links { display: flex; flex-wrap: wrap; gap: 8px 10px; }
+.site-footer-social a, .site-footer-top { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 650; color: #f2f7ff; text-decoration: none;
+  border: 1px solid transparent; background: linear-gradient(130deg, #021225f2, #070d28ee, #201946ea) padding-box, linear-gradient(120deg, #7bddffc9, #5a91c29c 34%, #9775eda6, #c98fffcc) border-box;
+  box-shadow: inset 0 1px 3px #8ddfff36, inset 0 -2px 3px #bf7eff40, 0 5px 18px #00112d69; transition: transform 180ms ease, box-shadow 180ms ease; }
 .site-footer-social a svg { color: #ffffff; }
-.site-footer-top { color: #bfefff; background: #0a1430d9; } /* closing pass: a solid chip, readable over the horizon */
-.site-footer-social a:is(:hover, :focus-visible), .site-footer-top:is(:hover, :focus-visible) { border-color: #9fe6ff88; background: #13234acc; color: #fff; }
+.site-footer-top { color: #dff7ff; }
+.site-footer-social a:is(:hover, :focus-visible), .site-footer-top:is(:hover, :focus-visible) { color: #fff; transform: translateY(-2px); box-shadow: 0 0 18px var(--cosmic-cyan-glow, #23eaff40), 0 5px 20px var(--cosmic-pink-glow, #f06dff40), inset 0 1px 3px #8ddfff4d; }
+.site-footer-social a:active, .site-footer-top:active { transform: translateY(0) scale(.98); }
+@media (prefers-reduced-motion: reduce) { .site-footer-social a, .site-footer-top { transition: none; } .site-footer-social a:is(:hover, :focus-visible), .site-footer-top:is(:hover, :focus-visible) { transform: none; } }
+:root[data-app-motion=off] :is(.site-footer-social a, .site-footer-top) { transition: none; transform: none !important; }
 
-/* The link groups: three columns on a computer, two on a phone. */
-.site-footer .site-footer-links { order: 0; width: 100%; max-width: 980px; display: grid; grid-template-columns: repeat(3, max-content); justify-content: center; gap: 18px clamp(56px, 9vw, 132px); }
-.site-footer-group-title { margin: 0 0 4px; font-size: 14px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; color: #bfe3f8; }
-.site-footer-group ul { list-style: none; margin: 0; padding: 0; display: grid; }
-.site-footer .site-footer-group a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0; border-radius: 0; font-size: 15px; font-weight: 550; text-align: left; color: #e3ecf8; }
-.site-footer-group a:is(:hover, :focus-visible) { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
-
-@media (max-width: 1100px) { .site-footer-inner { padding-top: 64px; gap: 34px; } .site-footer-stage { gap: 40px; } }
-/* Phones: logo and slogan, the steps one under the other with the path running down, the social icons, two columns of links. */
+@media (max-width: 1100px) { .site-footer-inner { padding-top: clamp(48px, 7cqw, 80px); } .site-footer-logo { width: 310px; } }
+/* Tablets: the floating music and ZIGi buttons float at the right edge; the steps keep their lane clear on both sides, so they stay centred (Session AD design review: the buttons covered a step's words at 1024 px). */
+@media (min-width: 768px) and (max-width: 1279.98px) { .site-footer-steps { padding-inline: 72px; } }
+/* Phones: the planet whole at the top, framing the wordmark and the slogan; the steps one under the other with the line
+   running down through them, on the dark below; then the social row. */
 @media (max-width: 767.98px) {
   .site-footer { margin-top: 28px; }
-  .site-footer-inner { padding: 26px var(--phone-gutter, 16px) 40px; gap: 12px; justify-items: stretch; } /* Gate C: tighter, so Today's Showcase stays under its screen ceiling at every hour (Morning's open habits section had made it 11.51) */
-  .site-footer-art { background-size: auto 520px; background-position: 50% 0; }
-  .site-footer-sweep { -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 4%, #000 20%, transparent 32%); mask-image: linear-gradient(180deg, transparent 0, #000 4%, #000 20%, transparent 32%); }
-  .site-footer-logo.logo-wordmark { font-size: 50px; }
-  .site-footer-slogan { font-size: clamp(22px, 6.4vw, 27px); }
-  .site-footer-tagline { font-size: 13px; letter-spacing: .18em; }
-  .site-footer-stage { gap: 22px; }
-  .site-footer-steps { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .site-footer-art { -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 70%, transparent 100%); }
+  .site-footer-inner { min-height: 0; padding: clamp(30px, 9cqw, 44px) var(--phone-gutter, 16px) 24px; align-items: stretch; }
+  .site-footer-stage { gap: 30px; padding-bottom: 28px; }
+  .site-footer-logo { width: 248px; }
+  .site-footer-slogan { margin-top: 12px; }
+  .site-footer-line1 { font-size: clamp(22px, 6.2cqw, 27px); }
+  .site-footer-result { font-size: clamp(34px, 10cqw, 42px); }
+  .site-footer-tagline { margin-top: 10px; font-size: 13px; letter-spacing: .18em; }
+  .site-footer-steps { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-left: 6px; }
   .site-footer-steps li { grid-template-columns: 64px minmax(0, 1fr); column-gap: 16px; row-gap: 2px; justify-items: start; text-align: left; padding: 0; }
   .site-footer-node { width: 64px; height: 64px; grid-row: span 2; }
   .site-footer-glyph svg { width: 28px; height: 28px; }
   .site-footer-n { min-width: 26px; height: 26px; font-size: 12px; }
   .site-footer-steps strong { margin-top: 8px; font-size: 18px; }
   .site-footer-steps p { max-width: none; }
-  /* Phones (the brief: social icons): the three links as 44 px icons, Back to top at the right of the same row. */
-  .site-footer-social { justify-content: space-between; flex-wrap: nowrap; }
-  .site-footer-social-links { justify-content: flex-start; flex-wrap: nowrap; gap: 8px; }
-  .site-footer-social-links > a { width: 44px; padding: 0; justify-content: center; }
-  .site-footer-social-links > a > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .site-footer .site-footer-links { grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 12px 16px; }
-  .site-footer-social { padding: 8px 0; }
-  .site-footer-steps { padding-left: 6px; }
-  .site-footer-links > .site-footer-group:last-child { grid-column: 1 / -1; }
-  /* The lone last group spans both columns, and so do its links (two per row), so it is no taller than it needs to be. */
-  .site-footer-links > .site-footer-group:last-child ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
-}
-@media (max-width: 359px) { .site-footer-logo.logo-wordmark { font-size: 44px; } .site-footer-slogan { font-size: 21px; } .site-footer-social a, .site-footer-top { padding: 0 11px; } }
-@media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer-sweep, .site-footer::before { display: none; } }
-.site-footer-result { white-space: nowrap; }
-/* Session AB-Design Phase 2 closing pass (design critique): two identical X icons could not be told apart on a phone, so
-   the X links show their handles there (the website stays an icon); the row wraps when they need the room. */
-@media (max-width: 767.98px) {
-  .site-footer-social-links > a[href*="x.com"] { width: auto; }
-  .site-footer-social-links > a[href*="x.com"] > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
-}
-/* On phones the social row stays one line: the two X handles, the website and Back to top as a 44 px arrow (its name kept for assistive technology). */
-@media (max-width: 767.98px) {
-  .site-footer-inner { padding-top: 24px; gap: 12px; }
-  .site-footer-social { flex-wrap: nowrap; }
+  /* The social row stays one line: the two X handles, the website as an icon and Back to top as a 44 px arrow (their names kept for assistive technology). */
+  .site-footer-social { width: 100%; flex-wrap: nowrap; padding: 10px 0; }
   .site-footer-social-links { flex-wrap: nowrap; min-width: 0; gap: 6px; }
-  .site-footer-social-links > a[href*="x.com"] { padding: 0 9px; gap: 6px; font-size: 14px; letter-spacing: -.01em; }
-  .site-footer-social-links > a[href*="x.com"] svg { width: 14px; height: 14px; }
-  .site-footer-social .site-footer-top { flex: none; width: 44px; padding: 0; justify-content: center; }
-  .site-footer-top > .site-footer-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .site-footer-social-links > a { flex: none; }
+  .site-footer-social-links > a[href*="x.com"] { padding: 0 10px; gap: 6px; font-size: 14px; letter-spacing: -.01em; }
+  .site-footer-social-links > a[href*="x.com"] svg { width: 14px; height: 14px; }
+  .site-footer-social-links > a:not([href*="x.com"]) { width: 44px; padding: 0; justify-content: center; }
+  .site-footer-social-links > a:not([href*="x.com"]) > span, .site-footer-top > .site-footer-top-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .site-footer-social .site-footer-top { flex: none; width: 44px; padding: 0; justify-content: center; }
 }
-/* Below 390 px the four chips (about 350 px) no longer fit one line, and squeezing them made the website and Back to top
-   narrower than 44 px: there they wrap as one row of chips, Back to top keeping the right edge. */
+/* Below 390 px the four chips no longer fit one line: they wrap as one row of chips, Back to top keeping the right edge. */
 @media (max-width: 389.98px) {
   .site-footer-social { flex-wrap: wrap; justify-content: flex-start; gap: 8px 6px; }
   .site-footer-social-links { display: contents; }
   .site-footer-social .site-footer-top { margin-left: auto; }
 }
-/* Gate C (design critique): a step's line wraps as balanced lines ("…with / meaning." left one word alone). */
-.site-footer-steps li p { text-wrap: balance; }
+@media (max-width: 359px) { .site-footer-logo { width: 210px; } .site-footer-line1 { font-size: 21px; } .site-footer-result { font-size: 32px; } }
+@media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer::before, .site-footer-shine, .site-footer-logo::before { display: none; } .site-footer-word, .site-footer-result { -webkit-text-fill-color: CanvasText; background: none; filter: none; } }

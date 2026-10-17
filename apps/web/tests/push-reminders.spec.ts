@@ -154,7 +154,7 @@ test('turn on: permission, one worker at /push-sw.js, a subscribe call with time
   const form = page.getByRole('form', {name: 'Water reminder'});
   await form.getByLabel(/^Reminder time/).fill('20:15');
   await form.getByRole('button', {name: 'Save reminder time'}).click();
-  await expect(form.getByRole('status')).toHaveText('Water reminder set for 20:15 on this device.');
+  await expect(form.getByRole('status')).toHaveText('Water reminder set for 8:15 PM on this device.');
   await expect.poll(() => calls.map(c => c.action), {timeout: 10_000}).toEqual(['subscribe', 'schedule']);
   const schedule = calls[1]!.body;
   expect(schedule.subscriptionId).toBe(SUBSCRIPTION_ID);

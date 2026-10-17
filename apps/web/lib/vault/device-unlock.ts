@@ -206,7 +206,7 @@ export async function verifiedAccount(signal:AbortSignal):Promise<string|null>{c
 /** Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the two answers that end a remembered device's record. */
 export type AccountDenial={denied:'SESSION_REVOKED'|'ACCOUNT_DELETED'};
 const deniedSchema=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
-async function denialOf(response:Response):Promise<AccountDenial|null>{try{const parsed=deniedSchema.safeParse(await json(response,4096));return parsed.success?{denied:parsed.data.error}:null;}catch{return null;}}
+export async function denialOf(response:Response):Promise<AccountDenial|null>{try{const parsed=deniedSchema.safeParse(await json(response,4096));return parsed.success?{denied:parsed.data.error}:null;}catch{return null;}}
 /**
  * verifiedAccount, and also why not when the server says this session was revoked or the account deleted: those answers
  * come back as {denied}, read from the first status reply (a refresh is not spent on them; the next status call would no
@@ -215,6 +215,7 @@ async function denialOf(response:Response):Promise<AccountDenial|null>{try{const
  */
 export async function accountStatus(signal:AbortSignal):Promise<string|AccountDenial|null>{
  const check=async():Promise<string|AccountDenial|null>=>{
+  statusAt=Date.now();
   try{
    const status=()=>fetch('/api/private-account?action=status',{cache:'no-store',signal});
    let response=await status();
@@ -225,6 +226,15 @@ export async function accountStatus(signal:AbortSignal):Promise<string|AccountDe
  };
  return typeof globalThis.navigator?.locks?.request==='function'?navigator.locks.request('zigoals:account-status',check):check();
 }
+/**
+ * Session AD item 12 (ADR-026, Q-SYNC-05, owner amendment 4): when this tab last asked the status route, so the
+ * revocation check (revocation-check.ts) never repeats a check that has just run (a locked tab's reopen makes the same
+ * request on load and focus).
+ */
+let statusAt=0;
+export const lastStatusCheck=()=>statusAt;
+/** Session AD item 12: the status check's start, recorded by the revocation check's own request too (revocation-check.ts). */
+export const noteStatusCheck=()=>{statusAt=Date.now();};
 /** This browser's server session id: it survives token refreshes but not a new sign-in. Null when not confirmed. */
 export async function currentSession(account:string,signal:AbortSignal):Promise<string|null>{
  try{

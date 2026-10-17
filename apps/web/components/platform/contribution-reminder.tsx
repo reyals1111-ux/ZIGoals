@@ -4,6 +4,7 @@ import {W_REMINDERS} from '../../lib/reminders/w-schema';
 import {setContributionReminder} from '../../lib/reminders/contribution-due';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
+import {formatClock} from '../../lib/visual-format';
 
 /**
  * A contribution plan's reminder (Session W Part 12): a time on this device (`zigoals:w-reminders:v1`). On a day the
@@ -16,7 +17,7 @@ export function ContributionReminder({goalId, disabled = false}: {goalId: string
   if (w.unreadable) return <p className="fine">Reminders on this device could not be read, so this one cannot be set now. Their bytes are kept.</p>;
   const time = w.data.contributions[goalId]?.time;
   function save(next: string | null) {
-    try { w.update(r => setContributionReminder(r, goalId, next)); setError(''); setMessage(next ? `Reminder set for ${next} on this device.` : 'Reminder turned off on this device.'); }
+    try { w.update(r => setContributionReminder(r, goalId, next)); setError(''); setMessage(next ? `Reminder set for ${formatClock(next)} on this device.` : 'Reminder turned off on this device.'); }
     catch (cause) { setMessage(''); setError(`Not saved on this device. ${deviceSettingFailureMessage(cause)}`); }
   }
   return <form className="contribution-reminder" aria-label="Contribution reminder" onSubmit={e => { e.preventDefault(); const value = String(new FormData(e.currentTarget).get('time') ?? ''); if (value) save(value); }}>

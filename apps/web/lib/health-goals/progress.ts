@@ -3,7 +3,7 @@ import {dailyData, healthDay, waterSummary} from '../health-daily';
 import {countOn, exerciseData} from '../health-counters';
 import {addLocalDays} from '../local-date';
 import {targetNumber, type HealthGoal} from './schema';
-import {formatNumber} from '../visual-format';
+import {formatDate, formatNumber} from '../visual-format';
 
 const LB_GRAMS = 453.59237, FL_OZ_ML = 29.5735295625;
 const number = (value: number, digits = 0) => formatNumber(value, {maximumFractionDigits: digits});
@@ -24,7 +24,7 @@ export function healthGoalProgress(goal: HealthGoal, health: HealthData, today: 
     const perUnit = goal.unit === 'lb' ? LB_GRAMS : 1000, current = Math.round(trend.averageGrams / perUnit * 100) / 100, targetGrams = Math.round(target * perUnit);
     const latest = trend.readings.at(-1)!;
     return {kind: 'value', current, target, unit: goal.unit, percent: null, days: trend.count, done: goal.direction === 'down' ? trend.averageGrams <= targetGrams : trend.averageGrams >= targetGrams,
-      detail: `30-day average of ${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} · latest ${number(latest.grams / perUnit, 2)} ${goal.unit} on ${latest.date}`, ended};
+      detail: `30-day average of ${trend.count} ${trend.count === 1 ? 'reading' : 'readings'} · latest ${number(latest.grams / perUnit, 2)} ${goal.unit} on ${formatDate(latest.date)}`, ended};
   }
   if (goal.measure === 'steps' || goal.measure === 'activeMinutes') {
     const recorded = window.filter(date => health.activity.some(a => a.date === date));

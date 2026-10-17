@@ -10,7 +10,7 @@ import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
-import {ThemeSwitch} from "../../../components/shell/theme-switch";
+import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";
@@ -168,7 +168,7 @@ export default function Settings() {
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>
         <WrapUpSettings/>
-        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">Dark is the nebula look you see now. Light and a customizable theme come later.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
+        <section className="panel" id="appearance" aria-label="Appearance"><p className="eyebrow">APPEARANCE</p><h2>Theme</h2><p className="fine">How ZIGoals looks on this device. Your choice stays here and is never synced.</p><ThemeSwitch compact/><h2>Motion</h2><MotionPreference/></section>
         <MusicSettings/>
         <LinksSettings/>
       </SettingsGroup>
