@@ -111,16 +111,39 @@ test('no hard edge: across every former boundary of the art and of the old conti
   }
 });
 
+/** The gap between the hero and the first piece of content after it that takes up room. */
+const gapAfterHero = (page: Page) => page.evaluate(() => {
+  const hero = document.querySelector<HTMLElement>('.today-primary > .today-hero')!;
+  let next = hero.nextElementSibling;
+  while (next && next.getBoundingClientRect().height < 1) next = next.nextElementSibling;
+  return next ? next.getBoundingClientRect().top - hero.getBoundingClientRect().bottom : null;
+});
+
 test('folded, the scene is gone and Today\'s focus moves up; the fold is saved; unfolding brings it back', async ({page}) => {
-  await today(page);
-  // What follows the hero (Today's focus on a used device; the widgets on a new one) moves up when it folds.
-  const next = page.locator('.today-primary > .today-hero ~ :is(.today-focus, .dashboard-widget-area)').first();
-  const focusUnfolded = await next.boundingBox();
+  // A used device (the Showcase): Today's focus follows the hero and moves up when it folds.
+  await page.goto('/app/settings');
+  await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
+  await page.waitForURL('**/app');
+  await expect(page.locator('.today-hero').first()).toBeVisible();
+  const focus = page.locator('.today-primary > .today-hero ~ .today-focus').first();
+  const focusUnfolded = (await focus.boundingBox())!;
   await page.getByRole('button', {name: 'Hide the welcome header'}).click();
   await expect(page.locator('.today-hero-folded')).toBeVisible();
   await expect(page.locator('.today-scene')).toHaveCount(0);
-  const focusFolded = await next.boundingBox();
-  expect(focusUnfolded && focusFolded && focusFolded.y < focusUnfolded.y).toBe(true);
+  expect((await focus.boundingBox())!.y).toBeLessThan(focusUnfolded.y - 150);
+  // Folded, no room is kept for the scene: what follows sits at the page's usual gap (the 24 px for the scene is gone).
+  expect(await gapAfterHero(page)).toBeLessThanOrEqual(30);
+  await page.getByRole('button', {name: 'Show the welcome header'}).click();
+  await expect(page.locator('.today-hero:not(.today-hero-folded) > .today-scene')).toHaveCount(1);
+  // A new device: folding shows the welcome panels in the hero's place (the app's own behaviour); still no room for the
+  // scene is kept, and the fold is saved.
+  await page.context().clearCookies();
+  await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+  await today(page);
+  await page.getByRole('button', {name: 'Hide the welcome header'}).click();
+  await expect(page.locator('.today-hero-folded')).toBeVisible();
+  await expect(page.locator('.today-scene')).toHaveCount(0);
+  expect(await gapAfterHero(page)).toBeLessThanOrEqual(30);
   await page.reload();
   await expect(page.locator('.today-hero-folded')).toBeVisible();
   await expect(page.locator('.today-scene')).toHaveCount(0);
