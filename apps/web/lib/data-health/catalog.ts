@@ -29,6 +29,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   uiPrefs: ['How pages look on this device', 'Settings'],
   // Session AB-Cloud's own (lib/ab-cloud-device-keys.ts).
   healthVitamins: ['Vitamins of your foods and their targets', 'Health'], pointTell: ['Point & tell notes', 'Settings'],
+  // Session AE (Part 6, ADR-027): the wallets linked read-only.
+  linkedWallets: ['Linked wallet addresses (read-only)', 'Wallet'],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page
