@@ -44,7 +44,9 @@ test('the Goals header reads "Your Goals" and the cards follow one compact contr
  // their block bottom-aligned with the lede. As strict.
  const lede=(await page.locator('.goals-heading .pillar-hero-lede').boundingBox())!,actions=(await page.locator('.goals-heading .pillar-hero-actions').boundingBox())!;
  expect(c.y).toBeGreaterThanOrEqual(t.y+t.height);
- if(!isMobile){expect(c.x).toBeGreaterThanOrEqual(lede.x+lede.width);expect(Math.abs((c.x+c.width)-(header.x+header.width))).toBeLessThanOrEqual(2);expect(Math.abs((actions.y+actions.height)-(lede.y+lede.height))).toBeLessThanOrEqual(8);}
+ // Session AE (Part 4, ADR-027 G5, deliberate): the header art now holds the far right (Habits' art column), so the button
+ // ends exactly one column gap before the art, and the art ends at the header's right edge. As strict: ≤ 2 px each.
+ if(!isMobile){const art=(await page.locator('.goals-heading .pillar-hero-art').boundingBox())!,gap=await page.locator('.goals-heading').evaluate(e=>parseFloat(getComputedStyle(e).columnGap));expect(c.x).toBeGreaterThanOrEqual(lede.x+lede.width);expect(Math.abs((c.x+c.width)-(art.x-gap))).toBeLessThanOrEqual(2);expect(Math.abs((art.x+art.width)-(header.x+header.width))).toBeLessThanOrEqual(2);expect(Math.abs((actions.y+actions.height)-(lede.y+lede.height))).toBeLessThanOrEqual(8);}
  // Session AB-Design (owner request 15): the filters on the left, the Cards / Vision board / Tree switch and the ⋯ menu (Positions) at the right end; the count is the active filter's name, not a text of its own.
  const toolbar=page.locator('.goals-toolbar'),controls=toolbar.locator(':scope a, :scope button');
  await expect(toolbar.getByRole('navigation',{name:'Goal views'})).toBeVisible();await expect(toolbar.getByRole('group',{name:'Show goals as'})).toBeVisible();await expect(toolbar.getByRole('button',{name:'Options for Goals',exact:true})).toBeVisible();
