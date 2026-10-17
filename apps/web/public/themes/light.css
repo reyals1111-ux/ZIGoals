@@ -6996,6 +6996,9 @@
         border-radius: 14px;
         background: #f0f4f8b8
     }
+    :scope .positions-section-heading > .fine:not(#\-) {
+        color: #121927
+    }
 }
 /*  components/platform/positions-layout.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {

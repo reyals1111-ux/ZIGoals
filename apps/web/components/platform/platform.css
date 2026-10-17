@@ -83,3 +83,6 @@
   :root:not([data-zigi-side=left]) .today-rail > .placed-module:nth-child(even of .placed-module) > :not(.dashboard-builtin-options) { padding-inline-end: var(--rail-lane); }
   @media (min-width: 1001px) { :root:not([data-zigi-side=left]) .today-rail > .placed-module > :not(.dashboard-builtin-options) { padding-inline-end: var(--rail-lane); } }
 }
+/* Session AE (Part 5 audit, touch at 1024 px): the positions heading's line sits straight on the page's starfield, where the
+   nebula's glow is lightest (4.23:1); a touch brighter it reads ≥ 5:1 there. */
+:root .positions-section-heading > .fine { color: #b6c3dc; }
