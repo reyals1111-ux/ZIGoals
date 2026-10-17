@@ -40,6 +40,10 @@ those of this branch on 2026-10-08. **Labels:** local, CI, source (dated), owner
 | FIX_PLAN A4, plain-http cookies (Q-AUTH-09) | Part 10, `[TIER 3] (auth/sync)`: only loopback may use plain http; tested |
 
 ## 2. Session Q's FIX_PLAN, every item (`docs/security/review-2026-10/FIX_PLAN.md`)
+> **Session AD (2026-10-16):** this table is as of 2026-10-08 (only A7's row is updated). The state of every row today,
+> with the session and commit that closed it or the reason it stays open, is in
+> [SESSION_AD_SECTION2.md](security/review-2026-10/SESSION_AD_SECTION2.md).
+
 | ID | State | Evidence or reason; owner action |
 |---|---|---|
 | A1 sign-in creates no user | done | STATUS:589 (U 5.1) |
@@ -48,7 +52,7 @@ those of this branch on 2026-10-08. **Labels:** local, CI, source (dated), owner
 | A4 plain-http cookies only on loopback | **done in Session X** | `lib/server/private-account.ts`, unit test; ADR-016 X37 |
 | A5 global send ceiling; IPv6 /48 grouping | open | `workers/auth-abuse/worker.mjs` groups by /64 and has no global ceiling. The ceiling's value is policy (how many codes a day the Alpha may send in total) → **owner decides the number**; the /48 grouping then lands with it in one Worker change |
 | A6 step-up for destructive actions; an expiry on remembering | open | needs a product decision (which proof, how long a device is remembered; ADR-008:146) → **owner decision** |
-| A7 / Q-SYNC-05 status route passes `SESSION_REVOKED`/`ACCOUNT_DELETED`; the client drops the remembered record | **not done** | changes what the status route answers and when a remembered device forgets its record (`lib/server/private-account.ts:89–97`, `lib/vault/device-unlock.ts:205–216`, `vault-remember.test.ts:156–158` pins today's behaviour). The owner allowed Q-SYNC-04/05 only if behaviour-preserving; it is not → **owner decision** (a Tier 3 PR of its own) |
+| A7 / Q-SYNC-05 status route passes `SESSION_REVOKED`/`ACCOUNT_DELETED`; the client drops the remembered record | **done** (Session Y `242672a`, Session Z-Cloud Part 5, Session AD item 12) | Y: the status route names both denials and a reopen drops the record (ADR-018 Y20); AD: a check while the page is visible (start, shown or focused, every 15 min) drops it at once, offline keeps it (`lib/vault/revocation-check.ts`). Was, on 2026-10-08: "not done", owner decision. Every row's current state: [SESSION_AD_SECTION2.md](security/review-2026-10/SESSION_AD_SECTION2.md) |
 | B1 non-extractable root | done | STATUS:593; ADR-008:144 |
 | B2 Lock in every tab | done | STATUS:594 |
 | B3 refuse an older manifest epoch | open | `lib/vault/cloud-sync.ts` accepts the manifest's epoch in either direction. A sync-merge rule change → its own Tier 3 PR with the frozen #29–#31 readers; **owner go-ahead** (the same rule as Q-SYNC-04/05) |

@@ -1,0 +1,3723 @@
+{
+ "about": "Session AD item 12 (FIX_PLAN B7, owner amendment 3): encrypted strings written by each release's own encoder (scripts/frozen-writers.mjs). Fictional data; these vaults and their recovery secrets exist only in this fixture.",
+ "builds": [
+  {
+   "label": "#32",
+   "commit": "#32 72ad872a73ec14dd264260975d15a2fd3db8c699",
+   "vaults": [
+    {
+     "recovery": "L76We90t1GkyzcnLU02CwLmXbUKgpxnewZaLmEHaWww",
+     "manifest": {
+      "version": 1,
+      "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "nijmdEAXP4BMvfSU",
+       "ciphertext": "EL2m35rtDTIL5LckY7zd6XZgevnI2szbHo7Yr_9FnwgTYVN3opqw3y4jQOcwUUsj"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "kO70Tl-0upEUXU0LkzX4Z3PXzt5MpGSNkihChz3ebpQ",
+        "nonce": "4yMMTPVF7ZLsY2HY",
+        "ciphertext": "nmMBo4S5PFyECD6vkjVzX7o4"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "MFqI5LWteGfN7zfSfV3oqKiJXMX_CCuvUsvX7Qb3ibw",
+        "nonce": "hZT6oHuBwc_8eIE-",
+        "ciphertext": "HOF6OKCJ26dIp9EIDI45X4EEAA"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "ZU83FZmqFXH5nUD-BbyXh_DVqnsn1ksyM4QPacqHDIE",
+        "nonce": "7qzpKztrjy9Mg0HZ",
+        "ciphertext": "G0lBInxirMRLSewnhys4ghnX-KE"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "XmDW9ovIl0WI99NbKyXxCAsFZXfqnoIyxG_j8PRN0SI",
+        "nonce": "ZkikUCkzN4aKpjSq",
+        "ciphertext": "ghfaKxOXw-ytEwlygoMthdXqIlz_"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "tcYBJ18QPQS9Z-IjurnqPPd2kPrhKsnIfTbhGhneQmo",
+        "nonce": "An_bQBVOtq_3CwRj",
+        "ciphertext": "-LE3INCmroD7BLcLuqIj-tPOqEGGl8vR2TsTCoq5aQRFxeCbz8OP1AAKzmn0Nk9_q4ESgA3BJBQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "34syUBv1a7dJ9AgWbZH0VViRwZoZ3DiwpE3a70X7plc",
+        "nonce": "QxUuc5KjNHkl188h",
+        "ciphertext": "iqgk3H9sN1qgm4PVkXOEA8uiZ0iMroZAPmIeJlFB4pT8VFep8xKDVl56eEN_K2ARwe4AZV1fP4FItq0omf0nNQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "A9Qa07B_sCuN3U0zfHS1qz06pVnX028MgCN0S_rKb_8",
+        "nonce": "qm9VAQxEDSM4S-xQ",
+        "ciphertext": "JnncmVHxX-fSY4GhsmL4wiQKVNgltLj7YFu1oamxUtwMdqtYp0wOKahBYw"
+       }
+      },
+      {
+       "context": {
+        "vault": "c50c4a1b-67de-4e41-b846-39890bfc5e43",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "P00N513xOPKfTYEwxiOdmO0IkelwLm2aO3KBi6YU-Zs",
+        "nonce": "aoO79gOGO24o-EYk",
+        "ciphertext": "9M0bWoFH6vL8aAxEpWZTolBaIyBL9l-S-ODauSd5VI4imQeC4_oHvZ-fKR3CIw7K96lFwodbwrsG9iecrXKNvVChAWt1ZOuKCxIH2TFDAzjfA8euI94xhhGdFM3QiPh7T4uSuYZkgL_Cnca01CEeY55EOmYfp7OWrGFG-P9nmkiqAy8TSNjQbr0XQGGrGfQ75qkL7xzvMBZZvv_H05RSbzanxjgNCFw7sH9jv-Hesw-c1nGHqkEeUJhQC78W-LTOA6r6ajnGsKI8u5dFTbn5LsUY9B1TcKqhqEE"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "lK-MtRglSguY2wG8ES55esBw4l0z4CnTJvmF6lEw5-E",
+      "sealed": {
+       "iv": "bAvfBRRgISd5Laq3",
+       "ciphertext": "ssjrT3Tuk3RXjcF565Glsk3S3KlEg7n9awGXSJGIKrcn_AsGUJMmCiRs2uEH6kik"
+      },
+      "commitment": "Jqz-_0Z1qI4bYUA1U466Hz-qKPBsxNzSsCkeinoumwI"
+     }
+    },
+    {
+     "recovery": "At3LXllVBFrlX8UFEpcrL3yCOBMDgieJKUHWj4x6rJQ",
+     "manifest": {
+      "version": 1,
+      "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "BHTjeCKhKb6z1RE8",
+       "ciphertext": "0mWRrQh2AwpMjHgCY6Ag63sErvbcrJ_iYNupE9Z0tCymvYNQOkJWpe7Bg84z26WB"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "hmdTLOfVpSoRcm-uP1LalIO_3otIaYBjWc-5nbF7Z8Y",
+        "nonce": "-O8ZmA1Yon4ApiYA",
+        "ciphertext": "bJWojIyOjIVbkDnui3T-eaKg"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "kjEsFI0rD9qKBi0Ew01qKfIrfpCc1lJUd7E-bKC_GMw",
+        "nonce": "ih1LkEgrwaMjuSot",
+        "ciphertext": "JcmuG9mKYu0vVoEWAYEaV1Kk5g"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "0n5DWxz5LHbsj5TkVCH-V207kv9IDt4vKNS1UrzCPV0",
+        "nonce": "3V9_tp1JXv6Xpzpi",
+        "ciphertext": "wol3wpIvowChkBmAoVq8N5f-7o4"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "uvyndfnDGw8vYLB77kOYLcp7M9R7rAjh26-dGNZtQdk",
+        "nonce": "xWDoRjOd-P6mbXSW",
+        "ciphertext": "tnf5x5spXaDQcm6ntKI37o23CH32"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "gkOaLRtj6oKTC8a3aOGB5v79OMwcX5t5qoQ6iuHE7Ns",
+        "nonce": "7y5h3BNZGkk9ZUn_",
+        "ciphertext": "57Rdrak5OVJOnPwv-THvuI1HF61c2NMEULBTM9cK6BW7U1n80IIQ0F6N-j8QuLTDNGRNR8-eMTk"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "TWT8WR4leVtm5NL2kLgYcTgbNjVXd7nHSdg32dI_VjY",
+        "nonce": "Z81HuBzAzqTQnPii",
+        "ciphertext": "HoOLUYpw-e03vMd5m8OGJQJOJR8voCb_87PvLR5NkTh8kQmNkmDBiE6yxmQsrYbgiA5RmZKmhBvZZkeQdT_IRw"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "xyYvQ-DbhN3oKQ99IGoX2Dh7FuI_XOoCK7yaLTNXsjA",
+        "nonce": "59ypIQwJgPosv6zR",
+        "ciphertext": "HLrvN2x4Nray_eGl6YwciEdkKolSjWXWR95sUbmFSjuUS-oLgA_Gs1XWOQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "0df5a462-f562-4840-a238-50d51aa7e846",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "ENsyObO2kwfW4BNBot_i5kPVCnLRU13Hbsdjhgfr_3g",
+        "nonce": "xajLUMgj_N4D7jJ8",
+        "ciphertext": "kdkP1YTZ0TgUFt6eD6s2mobh3ETCGWsHbD6VrYNtB2BHby8SvTW5LWKdYaIJ0veD_mzYjHIZizS74mdxfIJjF3ttcy9pwumjrYI0KS-QqT5epakjuAreOA0nepfQcZQOaivj0gxpRSPZpMYU96vp4tVx7_R20h1GkBSv0QNiSk2nntSlh-wb1LrjTr4oiuBxsXDved98FnIvBXzoUWwls_qi5J2a3NQ-op55AX2yoMNhp3byT_JWOyseVDYHdQTmkDrBiOxuBRB0KM5qimSwc5y54pEVaYh6tQ0"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "YwIu9sDWEifJJ5BDp2-bJUnvacOEh2ZqUyTmAPghQjE",
+      "sealed": {
+       "iv": "5BvOwMQ_nu4k98db",
+       "ciphertext": "FT3ijR4gFqt03TW9Px5BH3aUIqekvIBZcmXxvSvwFaaTyGRa_7v2g7pK2qqQCzfY"
+      },
+      "commitment": "2BN35IkaW4mrHrnttQI7cZVZMmjX23nliyRUamCzJFY"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"823a5390-7aa9-443b-b10b-613a48b336f3\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"B66lMfkX35GghX3F\",\"ciphertext\":\"88h5rs5en7ri0_DIthTVH-MGNUCJ4fBXqiULFmyiY4wZJaMN7U1Ym6jSCtvFpBjH\"}},\"index\":{\"id\":\"2f219df2-72b3-415f-8f7d-8be8efa1cc2f\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"lS4_7t1PXhg5clWU7_HVaTLcYdQsb1ikynhHraUUzJE\",\"nonce\":\"w39dLsGhi5aN4MUP\",\"ciphertext\":\"mxDgkWlxgU3WEMi1LLPKo9rtI-j5Tr011mXVFlUXsYAljczs2kbsTzCZqjKYtBC9xTm7ckAk2k0BzIzQimpPI5Ya3GAU_R4XXKkVGlAfJBydwSMGY7K5ZJEsT4fzzYbJGkX_xJmSxKVqCjnDLZB1oPMKOwYmj79HBppTTcfTaFYSrPM-w2lOSn92RXWmc3b3oYnWsnjFrMtVAO9_R1_i3xO-Jsv5jLDE37LODMxrcqeGAb8wtEt3KByXEcozwHm6Lj7gKRHp1PT-ibINZbwNF2pL3JFhEDfpvHgIXi3ST87mDDzT82t6RVzv\"}},\"chunks\":[{\"id\":\"64692d6c-b593-43a5-a389-52fdbb6f2d6a\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"JdFhEBYIGJ1vU3SODVRHSI9VyY8ARCzBDArCAiThwt4\",\"nonce\":\"UFI2TbnuliB6vg1x\",\"ciphertext\":\"9dNIc9rghhiUXMgg1ZE0E2OGzBitM0JSOA1mkIWINszBpP9fASp5ekneCwhs75XYQerkr1i713NHTby0kb2CXtf-moiDcKwyjkbvrIIU2X3odwM\"}},{\"id\":\"1db6d656-5492-4e0a-aa7c-ee3e1ea8a1cf\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"6A8tN6aReo18lnuyd1Ewkv5nhBdG3Maq_lY_yKNKy1U\",\"nonce\":\"gFQsfSVqwEyKr5to\",\"ciphertext\":\"HMmy7t6kUoVcrgU4Gn_8lsaTzCOt8c1j416gXVkkreH1Xd_hpTT46fzSeXh4EUg\"}},{\"id\":\"f011aad0-3665-4eb8-8af7-8b06b18c4e62\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"cerUgE968ViKmELZPYSG4iPPRpcuxcrvzhsZeEUmDfU\",\"nonce\":\"VYd_-8-29iW39Lsv\",\"ciphertext\":\"BEh4wK4MRBxzf4TwjiQdUoUWBJjKoih8HsGY7ecUBkV8X5McGFI\"}}]}",
+    "recovery": "1zg6qwi_Hrgu6qFqirBE5BW0HVvWZOlht-5DuHZVqR0"
+   }
+  },
+  {
+   "label": "#33",
+   "commit": "#33 757b3b1be013c767c1ec9e1c2d18547b04c2cd9a",
+   "vaults": [
+    {
+     "recovery": "8AOAgWe9hDMDeg1Ky2jl4cGCQvlm-aJYpfjGXdJbc50",
+     "manifest": {
+      "version": 1,
+      "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "aESFA7pw6r3LYhA3",
+       "ciphertext": "iTpK_Z_ECyHfkCTS6M8uPmHVhupXAb5oE9DzSBPyarZ2dHPb9cbkBQ6SLfmeBq2T"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "PJMoTnWsRDmNIctHv9NFnqYhNDB_vFGUQrkiR5sR2lA",
+        "nonce": "Vgp-EnQs05QlPTwe",
+        "ciphertext": "WyqSO6rDBVQeuI_ji5s0qKIN"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "0-0gDT67dSq1jRSv5mrwdt1x6Ms7VDeYvImcX33_XTU",
+        "nonce": "kgHQhXOG91EoL161",
+        "ciphertext": "Vy5YBxauX3DZT17Rkv40ZDc7qA"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "3mvGvJdIFY0sGPisIHUqok8LiqO-1NnoVWjJ335tFCg",
+        "nonce": "hhYLCqcKLvBkEny3",
+        "ciphertext": "T7ZDofUAGnqMLCIH5LaYFzpWG8s"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "Q_IwMx0wTPHpQyLlISZ4adoAX12kHh8dEgjHtqm6BoU",
+        "nonce": "mWc_voiAx8Yz_jlm",
+        "ciphertext": "oEKMlncxkAY8bN-S-h4UusenEX8O"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "h8aG37aPUivzpB-DhY8rR6TI3-h23A6DOYJBdFqIiDU",
+        "nonce": "j8v_cO4xkOcv_7I3",
+        "ciphertext": "KJbcQcFWhjRTUNQRSoYV_KHehB3wjLeBBCJ6o5eYsNmz2puB_wZMe4_YzLOhTGf4kbUMLRnyVXk"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "aOVpIxzOBRjYqCDgFouLZViSJ2Itp5QwtPqXxD0j9oY",
+        "nonce": "IEqS_YJY_jCV5llF",
+        "ciphertext": "RQ6syKejit1jamrt27MwNUhS7nK5_rXgXilf4tBA6UpziyDls69Oz52A67YpggcfLMx_8SqdGKIhamF1vndIqg"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "UswKxJGKkAT9RhxjJ0zyR_7Jj3e7PfyHkLiaCq2RVUo",
+        "nonce": "c4NC-D7422Rh8ZWE",
+        "ciphertext": "LQ_y29pbtyjE1OLfP5j38OE9wix7Ni8uBfHtNwGw-5lrGq3De8IBh11gJg"
+       }
+      },
+      {
+       "context": {
+        "vault": "7c774257-0fe8-411a-ac2a-02a7dbd21a83",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "2EJjUfCbMtl7vnOg7lA5Xm8mCb7AJcauvGun4e7ZfgY",
+        "nonce": "GVYhRtfskYUwByYY",
+        "ciphertext": "ZeMNH8leWgNdqOn4FqMHHEKlAcBKcYGCbRamXbd1YzJKlXmhrShnonlZmn_SXlzPiWq3uaLE-GgnaPOW-w03IPWp7PsP60k-kaKD8Z1vS4ZpIdC6P7LtrNlZi6YS4nlcDbfe3hkjASjn-kr562mjyj1IlOzBYFAFoxCFpLUPXTV0hv7QauMKWo80JyJA-5DdcM8FRXyigPXreT4E6Ek7LeLaDl7FGJMz5WDooJ16LkwKZLNjNJwZrOj9rP91jbURTglaOpGdFKKjBopOhWFkqJxCm9BCrXn2YZA"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "q-51Zm4nzObTjDQUJ5yQHLch3smj59Z_eecwRt7EIDw",
+      "sealed": {
+       "iv": "XzLyH3J7PWopuBGX",
+       "ciphertext": "l59SricXjHRk0Z9NoVCrh6E9O0Ovmj8Ofhkje52om82Jd4hzc5hrn6lyTjuAnA8Y"
+      },
+      "commitment": "DOOwcLy008LEjOS1aGCWy5N7jwFXpR2Z0rXrG7pZ8h8"
+     }
+    },
+    {
+     "recovery": "j6VWcoFAti8xXWpS0UK6STosqXUudOs-Ujy61TuvgVI",
+     "manifest": {
+      "version": 1,
+      "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "zpqrMpjYZrPx3nCj",
+       "ciphertext": "s_R1uvHpu0tkuAw6KvizKdmomPXJScasZrlkR5iMvi9jmiD3L9Amkbkt2_p6p0CV"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "FCGE-w99-BR3_Hy9YOoCMxav6jPF_Y7C_Bg4_CR1vJA",
+        "nonce": "YSRVu9RzEW9CadRX",
+        "ciphertext": "viarDURQJTBNs2KyRUK5ozNq"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "WSJFG26OKp2BCXEyn8ybQ8nf94n_zGpHtvXJbSw8Cik",
+        "nonce": "LKHQScUO-WkoKG5z",
+        "ciphertext": "8-MO8y0gu7YhD7hfvjYJGMIW6g"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "DUHwZxGOkvoj9yKlWAD87OE0CmKol3lva3lPCMnWIw4",
+        "nonce": "PXyI5aLk3sFk1zhC",
+        "ciphertext": "Qj6kJViIFfm549E5tBsa-el9OI8"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "YNxJCfi2YnIeKDgSdI2LKUVXsYZERni88O06k60ou7Q",
+        "nonce": "TfddMVdzD5VHaRRf",
+        "ciphertext": "zTjH9Hk09u1-ZvgNpB9oB6kfJwmW"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "WS4VyRBkUnEMI4kw3Gs80Ph3fnvi_RwTa-qS5htQo2Y",
+        "nonce": "IqhyzyQgKHyN66gj",
+        "ciphertext": "j35HfXS3eWWoyrbjiYb6SLwYTP4LvMYNeMVG1HL21QFyRUYdghDpdYoOt7F78akDlrSDWrlfWxw"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "JiAHShPsHI3yQPwXRqNnZRTb1jtlTuqU1p6L0PO2G7o",
+        "nonce": "5wDmHwpv1xip-1q-",
+        "ciphertext": "mpCulEv5mIb5tyOToeL55r0HgfwAhxXYi8mJ3TOu3hQn_zrLjL0qidta8bMOm20-8RjxUdl-og1awhrmKx3P1g"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "d-jn22HVdx3cUrHxT3HrvcKZDZeBp1F1kj7jB0nEJEo",
+        "nonce": "Iupw4nPX73YPAQ1V",
+        "ciphertext": "FH6V5QlhGCrjvQrLOsBmxiiy58d7D30JCmbvU1IU_d6T6s6T8pmsFhNlLQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "11eda5ef-9707-481a-99b3-c31bbe0250a1",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "IwO1cz4qE7OCp9ILQY_xLjPxYMJ-T1vFF3RC6ux2K6w",
+        "nonce": "KIWzG5LVERIjju1G",
+        "ciphertext": "fVztsi2Pv5E3Yix2br1wbQA43O-EGWDjg6_KzA4GbRBHBLgTY2ta7l_QN0l-PHbveVaCVlMU-1lYr4OsIMaIX91j0aKqsPYXTeHZAKilPJfpZWe7x_dQ4l81OVeW6a9JiHg1xNGl0m6kF8kMjBqZInTympmkvKD37vwkeoWJeTejj3CzKWpy12cMZgxlOe-lDFIfmPOQjWbwwMVqh2wh9h-9sgDt97POpIVmN8T3MkJdXxEokl0yS2DWM9ZFhJgIKLfG_1uxs3dFJNIQyT4rEfALPVr8NcQSI5Y"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "mVJYCPK8_jF100Yh2560csEcXqAOA5jeAyWaAZ5Qs1Y",
+      "sealed": {
+       "iv": "UebN2F_z8rQlG-EE",
+       "ciphertext": "ZQQk2SXXRzaGoSh5x8pSOh-s619gIegtuhuXdGu3jSoqaw1OW9zZI8OnUAwDCPFG"
+      },
+      "commitment": "R3fTqVVz1tmZhHbNJ9njtoi8B3GDPakyCsqIMj6WQIs"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"ab4088e2-e002-470b-9ff5-938a5cdef4b1\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"PDAv4kuzRUl7FbtZ\",\"ciphertext\":\"87pDOPRrTYRKuQe6HJCBqoB0gI_6Yq0RWjnd72s8HbLKE61JL4DSi-jUC_KHkxSI\"}},\"index\":{\"id\":\"cc9a6e5e-e6da-4001-b928-0dce760a25f8\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"1CgMdRZCxOKDWT4wMK2xcRcaKZIghFAPnPUJHQoczQQ\",\"nonce\":\"VmUrccbjYe3ahtEI\",\"ciphertext\":\"HLXXAaQgp-krEiMMQ6sZlmMQBrNe_1fgdzmkMTAQDkPRNUWERmxsUJL5bnNP_Vn2uLcT1opPO9azVmqoymyfn0EsmPcIME4Q7v2jTXk2fDVfZaAovEPlTf5sM4k8JYtzLrdcQd7rT5UQK6mSfMyIoOwSAHD0lNDnok1K4qxvynKhXwnBTt7XzVMqhp4jaacYmAaaIDtq3O89HNjAHOAVUyNsbl-cg8NnAnLVFSc13syEePXqUpcpUc-B7OJogkd0tRbBfvl5TK3CNXDKtRoBQIJW4GbrmiJ13K9cOwkP_Vxd56efVGuhpF-9\"}},\"chunks\":[{\"id\":\"e38b2558-1426-46a4-80d7-bdb3e7c11589\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"K6YYrhYv4WBQz0IlC_629mwtEjCeA7xPwU5ySj1hVNU\",\"nonce\":\"xvKpT1vb3h-2EVzn\",\"ciphertext\":\"Ola8Q32NQdOLteEfJaNpNIOSRbwx0iiPPuWmMoGxUFwIYcpZlYnruj3hJ54lxkY0RTBtu3GuPz3OPaPe1TETc-gX88cNFF0Y20983gcLLLslp0I\"}},{\"id\":\"009293a4-61a9-4c3e-879c-7f367f4ff63b\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"a5MTIkoUDM4urI_sKJNgJowc6lgBptL_rw5fx5bJWBo\",\"nonce\":\"9jvirvm9BhVwKGm2\",\"ciphertext\":\"WFDrRd871i9JQ43tBPzTV6HRzVgy2wwOMqm5ivZEFInahosR57fH1LJTZIQ0U8k\"}},{\"id\":\"dbdcadcd-1790-48e2-a3ca-a29de8d3119d\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"dBjDfn7yNqMTSrgZp_6gk5spc2bzw3yX6n-OtbIa_WQ\",\"nonce\":\"G507gcrgOKW7WMEV\",\"ciphertext\":\"KlEfmNzuVpiqy1HZdZ1RQP3pFoMjBqXkR9kBe8tOHpoj4WDuKOo\"}}]}",
+    "recovery": "85h1uzuE47iZBCVzA4eyKxz3F3bS8bBWkR7pO97Rang"
+   }
+  },
+  {
+   "label": "#34",
+   "commit": "#34 e30b7c6c0fe6d94500d58908c56f87256e6e61ce",
+   "vaults": [
+    {
+     "recovery": "VQ7vTKLCarraLcq0VW8Tm0wGoF2eKVMoz_SYJRgLMV8",
+     "manifest": {
+      "version": 1,
+      "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "XFRfXK2_Pg44JaBT",
+       "ciphertext": "HiHnGILgCV0xuXPbHYf-Sh7LWN6jNKDTxk-gKKdTtX2jzHDnAx-mVZYIfUHuwkWO"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "kMC9Xc5zWXn4xXn7y9xYzFybxIlPY0AFMhNEav9Nweg",
+        "nonce": "COttNiRW1100J5sJ",
+        "ciphertext": "t1hH7TRaRPPmxEgYFeO5YmZS"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "Uo01QXhraDicEmqIkivMsiNtw_G87Lpra1qYQFhBfT8",
+        "nonce": "GF88NVHbvhDuHz7l",
+        "ciphertext": "D09BLTlJ0IpqhYmCm0T4ZZc9Dg"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "WuUPOE7pLxrn8zqnQ2OQ36N2QOSmdhHbg8BrHcifNyU",
+        "nonce": "x3Hiuf092eAqgKZJ",
+        "ciphertext": "airzKaa0oFqWNKMMmdFrNnyBk6Q"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "VsEy0dAYrHZne4uSAaiLBcvxccCtiKqzvyHZucTqe8U",
+        "nonce": "7f_zgdhDEDSPapc4",
+        "ciphertext": "rVQoUltpGBf0ICpp59rREJ0Zm1hr"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "ANqkCHYxEvtz-gnvkqCQlRo8jyx1BgKutWSHHHdWkJw",
+        "nonce": "oWI5bf-Ek6mh_boz",
+        "ciphertext": "iLYLQv0UAzxdzJooqzki5CcuNzWI9h7r72PCQfckXUWVu4qK7TBpOVKHXn9eFphvHy0j8DqSzho"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "JM2zEi8hz0Uk1sMIgbvPlcerKiar2TdaoDxTWW2YEeo",
+        "nonce": "LsT7hWc6-LVZbQ1r",
+        "ciphertext": "uRy4XLvP5wkhdaXjEBzS1AH6_GCZ-pDDQUfc8fDgULUSTSBPWi-cW-ArTzyVua7llHGID89Wnynm7kPu5INUZA"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "c08RVyoDxtuLz1TSShdTF5wkdUKaBgDGHZJrh-vLiQk",
+        "nonce": "kkYmhgOwUDTWVXbs",
+        "ciphertext": "cq98NaE3n9Yd-Q2QMz7xe7x2c-K31djAjetBkfxbHHtTdr0FIFB_rRjxXg"
+       }
+      },
+      {
+       "context": {
+        "vault": "add20fbe-e82b-467c-bfdd-91247fac2598",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "LAohOrjJ6j75Z-_R_CFmth0VoN93A4CZUd6VEdDI0V0",
+        "nonce": "-0rs3AeccuQW8dIj",
+        "ciphertext": "UhCEzp5105rnnvif_qCd6AnhVHOGUossWV9V4lt-r8T9JiYMrObHLnqp8DT3lAoXlKUXnRM3_ei1F5giiObW2-R4Zrck7T6soZgT1iVZoGUGoUmYGHX5jJ3SvcLlFsZbGT73dtaztGURe_Afa_FNZAJaFi2y2uHhQ9EkdY_Nx0t0MwlD-kO66xOkxXRlHRBdSFoyCiIQbRxKwo1056f9T6OLlzYe9ma4mtcpkVsXx7lROuySz-CAGnrDIJxJRCfnRvaumJK2kFhSXx3GyRTsHiBtvsZZ4TcPY0E"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "IM-Zn8EVqwvDdSNhEvlgOKBW3gQMFq08_NSNIU-lsVM",
+      "sealed": {
+       "iv": "u3KU2pU31xWLRBvx",
+       "ciphertext": "dzEDopDP0MRCzb0QZeaJ8juwqF50O3HwgK3Xr3N33MODLCtFK7jr9tckhqet1Gxj"
+      },
+      "commitment": "TohCebjEZkVsp0-sZZwzRtgUTRlhPIrkUpMjLSyLzn8"
+     }
+    },
+    {
+     "recovery": "PnBWtVdiz27-ElLZnKqzrvBCwcVW-DrJJFhksqghjy0",
+     "manifest": {
+      "version": 1,
+      "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "Al4zQLfyNt6eyOHL",
+       "ciphertext": "3qtBfauSke-y_aMJMu1bzGWkLnKU1bg_5mE0cwuLO9wJ5fRKbYI9ARAg6YHvBfel"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "hnfn7V1i_a8oxgH25EFDI0H8DJ48giog-tzxySjnqBQ",
+        "nonce": "9hC0YmaEOwTriZXw",
+        "ciphertext": "zcf7ZdVOn9_IowdA5pqGLShy"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "L1rHd03p8wCu-rP6GXtFmU7bRX1cDiF2_4YQ8zR2J04",
+        "nonce": "oyDpAQyh2AKVWdXT",
+        "ciphertext": "HaECbMznA-jzhlSkfwau7hm7VA"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "iBvHVqlwIP_4dG0v4ThDQ0i6TUE-rn2wwXZSkR3R0Lg",
+        "nonce": "Yikg6VT70XH0vZMb",
+        "ciphertext": "u65kr1EWj3NeAhfWio19fUYM7Wg"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "PlP4jrEdM2Br8pEERX2iCXg1Z5PWKH8vwbeHYbMlroo",
+        "nonce": "dRVs-3Zg04p3MtbX",
+        "ciphertext": "59Arr773EUMJWbnAN-bycC5AxGuy"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "ssYLeyVxLT0XYy3csKPvQu41UDPyiTSdGPyY53jz2UI",
+        "nonce": "zJBCFlCUH25Y_LMx",
+        "ciphertext": "F6NUV0_Nsj8lmm6wX1I2Qg9r6BRai1r-ssT0-G9G_88JXNjgwHfwWyl_z-vVc9YOfTKXuxBZN0o"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "74X23XbZk0OhAlMqIpLYvSbJrliwhcdGDMh5Fkxungg",
+        "nonce": "EaGm0NzRvPa1KJ0N",
+        "ciphertext": "_-EMFbmb1IGKBp5ApyA7oiFF0SOO6HeeIvXGuxw7FBQXhxvN6l1VfPuvNZcbP1ZBU4xJWbCWlHt2PERH7E2FbA"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "7SJ6a_a-kv-JVqc9ZW2OW5BMW2w7NtKnsjwzB9y82_8",
+        "nonce": "rJNftf9xUWPizBle",
+        "ciphertext": "FmljUzfkgtEeU3GKbEiphMTGy5UMcxPcloaUMUN1qtrYDmTgofZ1lE-qTw"
+       }
+      },
+      {
+       "context": {
+        "vault": "3c619c4b-1d5e-47d6-9fb7-d18bf50037e2",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "j4p0EmLImcwnNCRvKWnGQZC9Dcyp94si2JY8DvX2g70",
+        "nonce": "qpftJ9cT11EjX2UM",
+        "ciphertext": "eCR6E7ay7qgJTx3MFp8PNbPnosMtOAfOWb3bogo5nOsiTF3lFm9o8zditL2MiLcFY7ivmoqEzx_m8I5NwfPPNsXIGUf0Z2T3SLT14CemRHp_lwA3vPva6Ohtlqb3wv84fKKRpYWZATZ1q8v7ArAd3RwtosquvdrS9PzqJic_9CahDcP-PwRrf9g_CnK1JqX6QYdzBhKhZMpw_cLyN8u3hHdFOrRtpbo4WUEhpi2DvfEXpgswJkYygRD8zr4sohb3swnZKd_KfujbbmapGuGBg8UUrKb4tOJCWFw"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "nCldwnaMlG20KuiFq2GPYXYJHNk_HwQtTS3SaZ3MRM8",
+      "sealed": {
+       "iv": "4bjZzYc6gsymzcbS",
+       "ciphertext": "1CXk0j_uheARK9yHdecGcfkOxSo5ak3uzyITiJWwgFQbHHEkLnKect95N_GJl6t-"
+      },
+      "commitment": "YXJHmKB4GB_qu22HBoSm1dw6Icy0iYk7-LTpduP4LAU"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"7f2aeeff-a637-4331-ab31-1d9cd8c13f58\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"1xEH45QvJqL9_caf\",\"ciphertext\":\"SNettacg2Zjz8Gv1XdfkJN0cHc_DHWdUoKCtDsLYYkoPTxl1DcApSoR2iPcQi7mg\"}},\"index\":{\"id\":\"7f2b2bee-f607-410b-b59b-a02b73251b4e\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"mdI9c3jKjh_imc6K9oVCnHioiSr5jxdN-W0oUnY_-xI\",\"nonce\":\"C9c2VuPW7Qbm1tMX\",\"ciphertext\":\"J_irFOeKCFG8ThbINtJqnv6X80hsAQNI-chZBI63txMSj72vv3kmUOdN-BfddUWzUezS5Eao2NDGWDNdEGBIkJJ2CUoo8qXe1r4-_p4083xn5Ctja2s9gLIgBw675xt1QBMCbpuHxxbsK8RcaJkPUdwa6UuwKw5bKc6iVCgTHAp0jo2xnAj-HaNnoTC66HVixuakdeOAg1AIXHJ6DlXgAdeyeC7qjUWSjsJIccRgyNKCpIpjziSxSTfWbk05mKo25sWQcnQsQuOqfOX5zCM7fKIieyrkck1ARW4YcdO7B7wsF8_gWINEeN7G\"}},\"chunks\":[{\"id\":\"7bbe45c5-774a-4b7a-9a29-fe413c48a24a\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"wP9IMGjjEtn8sshG9tv2jAnqdPw8IWHRMj3kBO7MWUU\",\"nonce\":\"voPP3n5Jcrdvw3KS\",\"ciphertext\":\"8_kEALDf3FETo9TbYiAiZVrJ3GmQOCAsT-n99IdXODJ0rij9akmlSrlHBeJXZ98yLOAvxSx-KTEKsODiOUOYhM_OtiP2LZgfIQrHUx27S1uqapA\"}},{\"id\":\"8b33dc49-0922-4fb3-b35d-454f132e5881\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"lSjoHzb5a53EgX5rpRpjWo3pISt5RwGA1bzp26J4eqY\",\"nonce\":\"dJgBwkSQyvtv2kPA\",\"ciphertext\":\"iETBfjlvniRmGtQzkkicAFo0jD1lbAq0s5zp832-Sf4BSAF8z8q9G5M-3t7PB_I\"}},{\"id\":\"ecb8054d-af5a-4919-9a1e-f91150eecf33\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"AsSzYJjqtWP7hCLI70xbQQYCiwFY10iUSqYMSfH5JIw\",\"nonce\":\"f_7pKM6GQHKhqXZM\",\"ciphertext\":\"eng_5_FDnWGd0fUivmO_ob_tZqkyqr5W2PTUr4e3QMjzW_-lFqw\"}}]}",
+    "recovery": "qjdYAG8F-Mk92o6NLkKa5M3yPpI9CPtv1Bt54WguVsI"
+   }
+  },
+  {
+   "label": "#35",
+   "commit": "#35 12a3ef9c2ef4c73052fc336c0b86721fd69a4889",
+   "vaults": [
+    {
+     "recovery": "9QCY84ai2PFx7W0tt9Vx5A9k_WYPpkojb2i_f1iQHYs",
+     "manifest": {
+      "version": 1,
+      "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "yeVO0tM0YqiFiCE_",
+       "ciphertext": "B21ElhosHD4Fox8eQba_Zhl3axvzQ9TuOwxQJmzKtiiqcHMmiSuVfFzXbBRe92AX"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "sDrmsVHYZmg6sLdMOpEGTL5Jb-12D1MKrxFt4HvxT4k",
+        "nonce": "4oeSi1PEr7qfZfDb",
+        "ciphertext": "NOZBIa5Wpt72KDU-1JdvGOjb"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "ZCC1GDgLxrXpwWHjmCKcbVEZd0fBppZveqLXtC3RJNg",
+        "nonce": "mnZAPR7xz5M55vV9",
+        "ciphertext": "JMiFRUC5AJtDgpEItHq2ZDb3uA"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "dZO63rMks9A1AcM4n1QFnyeXgJYdRewykuQ6GH_IgjM",
+        "nonce": "_WuIuBhZ8DC5axtA",
+        "ciphertext": "5iWVI5SSQVih9y342dY-qv3vTts"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "VEUWrMt6Ifr4RvWgr4po1QXXKvYc-GkNfQD-6FI-0T0",
+        "nonce": "V5aMNEZNqKsNfUJ7",
+        "ciphertext": "owHo-EyBLTVSd6Q4ED5AcmdZXI59"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "FxSWpE-hyNyHFZcSbfBnYrM9Pp1pL1FgWMtRiR-YXow",
+        "nonce": "QzKxtuC-WHYkqs_4",
+        "ciphertext": "n4qVRyENbWa0IXA51K_ai4wyTdBzvcs-ia5pJzw4uuPTPkMsjxZSNeucbBouaDXxt-bBTv94e9w"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "901el_FJXtKtpXnXNY5fEb8XHdN-H1xmdoErwuPB4TQ",
+        "nonce": "vByaexfBODS5s39x",
+        "ciphertext": "tT2EWphSDhjKGQDBXCsBc1e6ArhaJBeyrDZkE0bsDKloag7i4j-J_JpgAbOCGapJs5c-s3pTHu3JTKZ9UFIaQg"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "WjD5DKRKHGgRYqMCGN4XTZpyUZTbKSC5xXngwq0HARc",
+        "nonce": "-ecH10oQJtFHP_xR",
+        "ciphertext": "9uTocE-_ykig39l75eBEMDtyCW4UwM5ZlmN_ulJAoXXYDY0PEqb-v5vkDg"
+       }
+      },
+      {
+       "context": {
+        "vault": "13c9c828-c05f-453f-b1c7-e99e51f421fa",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "SlGfFudstplJzOcNg9lFw9yIYmNGfrql7IcXDRIe5AU",
+        "nonce": "yjGVejV5XHhuEnX1",
+        "ciphertext": "O7xabMXP7oS8ShYf69jFWk9gGv0pIPFQBCFqKWzzFf2rmQqh-v1rfi4a3RN5LpuYmB9YJeUgTc5jChZpLaamWfl6hbxPyR2FGUhjiZIOxKHAmHVbUMoVSQmmn2XJ3w_rGAYc6Hvot06YXyVoLwsxlY1tWtDR_rMJ_UG3Ly2H38VD3i-8_5b6h9ISQ3pSbdY7J7Q9Pqr9BV61XNSWd0H7P5zZ-LO3SA5UvdcxbAsnlVnd5x1sZQ_29Sfuc3LNpPMCfNjXbDi9uBNZXGzfNUti0UUtef7DWrTqoGs"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "MRq17wDBNjnrp1DbxFuJqMah69dVhBNP3NQDqGUYwqs",
+      "sealed": {
+       "iv": "wVi0Q2KdSLdkKU-u",
+       "ciphertext": "04ta_P1tOsaDr0pvksy7-y_ig2KMO0YIMb4Tvs4nlolwxkqiAzNK4sJIjG3xfBK_"
+      },
+      "commitment": "0uth-ZUMYJaLO6OjDK5PzFYq2OMUrROn1gd5xLNzfNU"
+     }
+    },
+    {
+     "recovery": "nCZ5yjZRqI0Dp5ybMyIm13eW3iTQFdDiYqzsxgfMGUg",
+     "manifest": {
+      "version": 1,
+      "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "HPwQbLCJiffaJzcP",
+       "ciphertext": "RLTb38UqRBsy1da9zOL5BEqiV7VHA6y_X0J-TQ5BBR_3QCUx8hMHAvGWyUrl72yX"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "B_kUGzhZV1stDCyEeakOlEgUsy1ioksahDofGVd39d0",
+        "nonce": "IINoIleXhyGfNB3A",
+        "ciphertext": "fINeSgotO-5epKtXLjqLqYId"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "2fWucT-twUKuwXaQJ7Nqis75_n_csshm2W1ff8Sn9Os",
+        "nonce": "m0KpMemDlU1IBKmj",
+        "ciphertext": "IfQvvZM1Wty_07RxQW0o7xIZDA"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "ODaPBhwf83YKXlyuLgiNATS5j85_96-zhtYMnHuw0vE",
+        "nonce": "tL2CLfrApD2ttYdC",
+        "ciphertext": "gOWulYmvx1cL-ZTUvudwQi5Q_-k"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "UueiwVDHc30RQIFGTXwVkxtOyRtXzOlKaqgzSc_kqJw",
+        "nonce": "soMwQOFgBJtF2ucA",
+        "ciphertext": "th51rpYHbEC86kmiSdqPsPrC87Um"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "qywIuyIy9NVukeOaYxNF91qzWMkxQTVJxu0eM7TJFNQ",
+        "nonce": "2fhu8FTp9rIekWgl",
+        "ciphertext": "2lOWwWIxRwdXWdP7y50RoaOBwjKjv-XT7xo17f5SaIT7lmoXAAcllqUUhvU_bZuHMN_QQ20nlrU"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "lE2Odwr6_oDW2O0ZF2p8ga2Vb12jQq-oIgzcSPQebwY",
+        "nonce": "edEEfGwVocyb2c7g",
+        "ciphertext": "v7HWJGVzW9dHPea_DFLYeKkYd6v8qR-8XWdJWRP4Ey_Qn3selnvLZaFnVUkPtXg15wdoC8EbfLoR3xjaX55QBA"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "9umg1ICjQGysGiKB__4wjsouAEhN1u8QCQTzzeiLkUA",
+        "nonce": "ff09hgy7mMGYUhLm",
+        "ciphertext": "WqDY0fz7Zq7D3YuOTcX7tftbcYdNsf4Rio4UL_sFmZXEYTh5gOYnVHSvgw"
+       }
+      },
+      {
+       "context": {
+        "vault": "3fad0363-c86f-41d8-9b33-aa1dbe2eac24",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "3n8sUrvw6tlStBqXn92Q2yzaLy-qy4VlCQqdC9VDFh0",
+        "nonce": "HSZRnk1W3PeoXyzH",
+        "ciphertext": "WystYN930rp16zo1bPZs8AaJw8YfjeIThXGzUimRArNzeIBB4VxHz_cbuQoD60EHnHReSoWqzsarbexRvAz6nXybomZuAdZPBKaQk8QG9r9DkBcqPc3hED6SNcIuhk1NQdbBb8P5Qv9H0krQgRFPTAcRt_34QGg_oj5XttLY4d_032VVe5Q__Q57AIJc8LdIpQ-zkKksT1Y__b-PVtpM5a4dPQADeFCLDN2nmgjE4vmzCmKfAUseKHAhiuVDnlwOaVs0P6NsEu6USkiWsQzRFDQ_QkEkhQS2hgo"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "_wzjuek3w-Ecv3gj1uy-w4p5cdmCWb3lX9MebixhUUI",
+      "sealed": {
+       "iv": "mWY5bXjj--Glch22",
+       "ciphertext": "hZ5Pq5MTBp-D_pC9ddrzYhfQj89KjHrmy_axmXU9kpiVLgbGTrgmOIacx_o95cMM"
+      },
+      "commitment": "6iHoEOEZSkxf6D_lQOcGQpwG7eL_VzYcShszfACTrNo"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"d1a63424-6c8b-458d-9f2a-f249d34009ef\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"KeBglZ-WXT55t8Gn\",\"ciphertext\":\"ZPzSC_JML_Xe6Mv667z08y7RWTf9koCDS1dxgcnqtvqOE8KJz-okT6hbrZr_Ps74\"}},\"index\":{\"id\":\"2521adcf-2119-4754-99b3-110a6c3faacf\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"jI8tRID3yqyIJJR9CqGhmXVcJTtnNxXbX4-8d37JwK4\",\"nonce\":\"VGuoXmwr1yJGoXq1\",\"ciphertext\":\"_aBVbUSibbdCq5e9YIHkp2QQglLwubcvfBlZ_1-bQYNY_yPMR5DNLrZEvc9uC9YX3mo1xbS_qLNcP4k-P_dCAvmTCLF9xkua3IDNWkjnKTGd8_YdF5OD3xIv9owlkL2FeoupH52nQ6CkekPVfZvTkrCD_aoUoCkwXLNycLsdAsmOsCpHz8eXkEtsdYMs1j3xLf9g1W5Bf3jbWNmNs__vT5znbS07YOvPGRocA1pco2ObDFxzJLasWlMH-MRz_x5GKUmuxb3UYGDhHWvtuycF8w5H4CWHrJQfWOWIXxVFlZdS7asSGLvdODXh\"}},\"chunks\":[{\"id\":\"391560cc-b3c4-41cc-8862-a1f5064349ac\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"mHax1EtP1xSFqEixfl1iy6GbOB8PyE-mMNzXS7XNx08\",\"nonce\":\"cJC5N6WrzbK7KHMF\",\"ciphertext\":\"Hib2_sqyDW0OvOTgWEWtveHbKw2idZJFDYVM51XR6ugqyfC7F7nVXCcoVobtY5MSWvJ3wmtrpkaBmSdtZwzzQqf-FZFJjUK7LGItK8RJ2AzIvVI\"}},{\"id\":\"ae2fb2dd-2c51-48da-9b38-52fbebc1ecf1\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"Cju9BQFhpD-SuqEuTJSlx49FJBdwbUtBMe5PfQE5tHw\",\"nonce\":\"ry0upSMyod2pjk9D\",\"ciphertext\":\"r3eOlBaJ1utAtPDjTHbNNFjPQzi7CXiUh61rnRbpmz8QfTdNkxKioSt1XjWmITU\"}},{\"id\":\"bcd292d7-76c0-4e3f-b518-fde967f15c29\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"T6iEcRcd9n1hAFGpCaSh7hDU6awyCJIvjxvnnQmBtqs\",\"nonce\":\"XFxic0TxSX7pySAp\",\"ciphertext\":\"JKPrSNPCvbBH06NhbLeLcHKvsIrra3RgRYrClkaT8bIukFlPmao\"}}]}",
+    "recovery": "D3bHBrw1d0drB10Nj-nKLywGi0_VaQNgGxyqJO6tXs0"
+   }
+  },
+  {
+   "label": "#36",
+   "commit": "#36 a6e8bb9e81b211f6ab5c26168441e8fd5f879a53",
+   "vaults": [
+    {
+     "recovery": "1xE-7XsojY_EhKs7I9uH7iQEoxKcQYMYIkQalpzHM5U",
+     "manifest": {
+      "version": 1,
+      "vault": "44424deb-1772-4571-9492-4c4f21854828",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "6aK1Ru4rjgpIZmmD",
+       "ciphertext": "OeVi7CD2jfK28jdzJRzHSdUsZL5BqUQEkTyjY_eIusi5mD0McBVZExGIj8pZ2TY5"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "8XvrApViSd9NoePRMPLGOTUAJy4yQy7VPO7SlwbRPRs",
+        "nonce": "o9pcr0YAo2CivmXZ",
+        "ciphertext": "e5p62XBHaYqkN_3wz4ytHFec"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "FGc8jRkbsXqh32R-checcNdr6eoVq7_mQFrhN5REaIM",
+        "nonce": "4xLLKUUE86QWVa0T",
+        "ciphertext": "SMPW_lqmIEq7XQ8iebhPHTs8dg"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "rdk6fpKO_OCCzH0Uk75-PF7AJ8qmfk7VmFZ4UyuoYoo",
+        "nonce": "mMZwWzxR71rRDS_P",
+        "ciphertext": "PlDkZuOy40i-3KJMZO6JCVaDeXQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "MeNgEIh9ijHr1Y1e4b_wHpmtZPLPIvcy6XKi_BgFXkw",
+        "nonce": "WEKy5vNI7usq0Apb",
+        "ciphertext": "aXce3j64keteYzR2YNB_GDK14LNI"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "XTDrSLf3ISr5Dgl9xfX2vMtD34P4Thk3iBJoVQ9gTHE",
+        "nonce": "HhF53wWPElRgppNM",
+        "ciphertext": "DgzZ9HpH26PJSIys1N0MPSTSqnOSDpHbU-dJDZKIxgK3VW7TVbr0uglk-9wIXYJTv9952NSRz9o"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "d83Ag350P9MtlT0iSSV6VOHFcM4Sy68UAu8f_8x3sJA",
+        "nonce": "blaEGXF1Ka0fPulR",
+        "ciphertext": "7zMVWi-t4JZw_5zVh4eAimdqHSX2dGp2gcZXq6IN7DJnBUw4OWJEszgM62hrgAJa66AxfblFnOSnY4F2WLixrA"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "VYZD98LUMOSSkWrzyWRyXZjwItWcKAKmLuHiRmZE5Vk",
+        "nonce": "6-zFVf1_f58y5IWa",
+        "ciphertext": "HTp6nbTwDEpYLRsMD629pX-j6lh2d6FzQ8jA8aO_Lx8FC5FSxR5Ml9oaPQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "44424deb-1772-4571-9492-4c4f21854828",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "xCFYL3va38PRUk2TZ8XPX18pMiMJ1Om726pBhPyGmwI",
+        "nonce": "6ceux2nwiwNFSz1J",
+        "ciphertext": "Iw_Jp0dc7kZtD4gExG7NcZPvOAelN10gLZ5IAB4Vxub__dA6MgOLCHrQ849yn1GODAbPyxsP6YJifrHdUjIS-YCr-djVvE-8zIRC4zrScrEXVAZhAdSJgzdLvTdpDmq9kZshDh3yD1nJ2digFUXXFqtr8dg8Y2UFX9nBYUcteZq8OyR4AxD6LMpCsVfAODdGLVUG22Bz-Qyk4_jaNSpvJ3pNC4BH9nEcmV3WsWIeL2O1GGb1RZfjm-JLytfgCGQ9D5DfXBgkKXU-aiEEB4oyk2tandxj7EDnxpQ"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "3LufGgIxsYlQJfIApwS_kGL48qQKE4_J38XQbtxNtiM",
+      "sealed": {
+       "iv": "Gapieu8H1ss5uWC4",
+       "ciphertext": "9gDEInZVO_DRZXEWpM1ny-V8MxfMB6wa0EHZUPCTwwHc0Qs4scHpbkQ_FRqXlFeo"
+      },
+      "commitment": "xIuvxEP56mPWx1PhdMmy-Lf0lZXFsfhjle0_c9AT5Lg"
+     }
+    },
+    {
+     "recovery": "S5JSLNNBrQHrAXrhrc1wRhPUou5uqzjPEJNVR_cPoy8",
+     "manifest": {
+      "version": 1,
+      "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "PqSKvyoOfzkxEb60",
+       "ciphertext": "9r5d_4N7fpdUL7GZtzPHMwN8l66f0WyPktH5TzFXaHoxXlaCrDBIeZ-UoboLTFaS"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "fuvys9gat8W1Txb4vW1JUTj0LVXQWssWyU55ZLb9PM0",
+        "nonce": "owK5GxYc9q_BAhAF",
+        "ciphertext": "nudPMwz-_wyXGSM5OC-je5j5"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "QTF4untWItU0hQ_glk3c5hw3_wqx3rv-bhJNcWKcCIo",
+        "nonce": "CRu8ZOwepqfJFy4q",
+        "ciphertext": "kHcUHw-oL1i4g7vJ8O26BDLysg"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "4Lx6Ee1NSGKPTaQjV97eJHADlXAG_2JY1PUDmqX7xA8",
+        "nonce": "iPEB16r6ql-7_Aoe",
+        "ciphertext": "7Kxyz4KesJ2vSP2yDbAYmpZ-eIo"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "0wy-tbpY6kM9JKT97BrAFbHQ0jEdt0DP4cjmWKkQ60I",
+        "nonce": "yvx3zLxf_w3ERONA",
+        "ciphertext": "ItvFo2QygUc21Sec22_sUrDUDEIR"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "rPmmellENZe9dx_KfziJM37VlyP_SeI5_G1DCylZlGg",
+        "nonce": "mxueIWbsOqqRYPwt",
+        "ciphertext": "k2oWpFWRY15cwSG4wIGdNoIJHvb4BfKhzxBkGGifVJlbyyXXstlAcj7VHV0ttK-eedsNIBdEugE"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "X5bS7Tjyz9v_v_X4z63c-xzl8FNYHW5bGJZYaAVcFSY",
+        "nonce": "pTOgwrXlbkB1H-qR",
+        "ciphertext": "jJ7FWJZL1Q7HcNIlmD8YDwMPlpWzQKGmsFA_Pa0ZZGoFwhdCRcTwcDLuzGd6hizQC8wxeFxmkfZrrk0cM06Wtw"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "2xwMVwqf98f0hv_KzROi2qMDZ3nrsser3Lm5MRkKd2w",
+        "nonce": "_eLOhzIaYAzK95b-",
+        "ciphertext": "3XHzogshRltzZLRKxGYGm8jASw5Qb6oN5v_B-nm4U74Ir_Lyw-xdinVl3A"
+       }
+      },
+      {
+       "context": {
+        "vault": "920e0b4c-54e8-45fd-b648-697188f5eb7f",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "UTHOH0t62S7QQrsXffIoaP5vIZ7-aTmNTi0zo3CwSHM",
+        "nonce": "MxHJ02MU9gdIlmQC",
+        "ciphertext": "YULT_7Fk0D8HlGr9LKeO5I_kU35Rz_toNCNNijU_EMWQ-av627CoVXvkLmZT84LWfBDRUSPREOIl-IA1Wm50SOoWJw_pH-aEnqj96LuYJmxT4efW2IDBEv0Sk6Rs08DUpL3N0pRhyej7pnW-K-ROxgZFSq1ODqRGgqtILbsHGS59euNq271YB0bhkva0xdMojbFRnCadYqn4oQtrHLwy5ui9P52pYN3xUrn7kENDRn6iN7IuCogi9W4-BDOEhkFHyUZX7AS_ixXee-77UkeaNnCOkEZjtYokfCs"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "GH_OEycVQGtYqb8Vis-hM04nYWQyR6M-ORnDtIiYiu8",
+      "sealed": {
+       "iv": "RT8W4DxkGV7Hw6ZV",
+       "ciphertext": "ffCijhku7WQU0s_7Z7vXwC0GrPcCwKc69SzoT2ldNoIYfkRVac7bnaCYoaoYL82U"
+      },
+      "commitment": "bAlpQiz5BJqyvj1sqYF2g55FsWerVT7FWRZelTeg0JM"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"6e884425-28cf-4b03-95c4-7a7a4e3309eb\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"WeUFY-CTZ_v8pQZa\",\"ciphertext\":\"MFE_7es2xqqyvKgq90n6801He3X8eK2OkPxvmqwntMeXNJKrNTdH-wOgfJbrD8Dv\"}},\"index\":{\"id\":\"d8d55136-255e-48fc-8040-4cd9617ede2a\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"CFWPHz1cPLxapW-KH6V6cHROUYYLMyZ5OTAJEi_j5QA\",\"nonce\":\"QdjYj5AZcODnL0r4\",\"ciphertext\":\"OoeYFoUwr2zbPe2mYQ2VX1k7uin3nu6ML_OaX9-HtkA3w0V2jwr1fKN1scKFtk9jIkiYW_rP3zpGhIC5JI0rr_0eV9H0GuqjAe6gvM-JVXoawqEkRWcFsv6ovAH5AJp_BxSsbyunbS_CcAR6iHmlOPCznLp0dypadtd36q-pAhs9yte6rZxilrpoFC9lUSNkvbuNqSwEZD1iZ4p78puoUoJ9zAKTVGodWkvExsL85h5agLEHjF54pvozC1O9P4Vo_E8T3AECL4TTAjnumm-2ONNtkAQXy-rjZcqp2htKpaJSoGNV2YGau_BB\"}},\"chunks\":[{\"id\":\"97dec183-0661-4cba-ada8-a54737a591df\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"h1L5oLfe4-77oDVoLu0WpumaE_bDaReraBbea9Yx_i8\",\"nonce\":\"6d80ZFQarA6FMNrO\",\"ciphertext\":\"iXYOsX0QFTNNa7bkekgbY-hRkmodH6_9lzohXtVLZr48t5Cd-ayvuhF_l3OH7ADWb49zkpYSTaSBTf5VCJcr0f8ZjU-c8muJ_jD3m_psDIxL_fg\"}},{\"id\":\"d453312f-a98e-4bfe-ab7a-2f02b190aeec\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"RC5xNe20iqMlaR93HpANFrzBuwkrG_iqrK4yuVcBzO0\",\"nonce\":\"l3cbtn4rKJZ52zJu\",\"ciphertext\":\"n7qq28K9yU_Jvm8HuNPsPM4bzwC42EFKGfz5ANVkzEjYo7rYlkNAKlg9TmTe_3M\"}},{\"id\":\"504be8a4-2a10-4838-a2bb-0d31622f36f3\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"2JGKn9bDR3fRqgWOxuiUbILUp1OLApXXAeuaXggOcLg\",\"nonce\":\"KtNei9BXd-hZp_78\",\"ciphertext\":\"yxjj3ymXaGS1neXj4malqZJsxzCMpixq5JDf3bQeccleTFmXMv8\"}}]}",
+    "recovery": "jYwNRAMGdd0O-ApbCsg4c5GSE2SCmLnG4olpiJsLgpQ"
+   }
+  },
+  {
+   "label": "#37",
+   "commit": "#37 32cb9c5addedf6dfcd2c68887c7ded6ecf81b730",
+   "vaults": [
+    {
+     "recovery": "PpEyawiZt5pRvucN0OsosxbMwh-utDcSzh5JKMRyevw",
+     "manifest": {
+      "version": 1,
+      "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "5M5x8r16PZUflHzc",
+       "ciphertext": "CBQ3yRXyjwAzyYQunke76R-5rvYDEfJjalLT5_TT_js9kU4UKetWzSP5wKnI-Djo"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "9Ewr_azMvqzIA8zjmIhBvIP6mpBLoWa6viUNdmw7Qpk",
+        "nonce": "F4FWOeqiSLgJeJsG",
+        "ciphertext": "mXRfERGjAqvX9_pVqRhR0y2L"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "TNiSKACStZ0OxqJrMilcl0ROnVx9GGYtOKuTyGC9_Bc",
+        "nonce": "qNu9mUf0Sy9-LWwp",
+        "ciphertext": "rBztc1PkQ2EP8p9PdhLcobnXxQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "oJXLrnbaiF5sDv3X95y_1R6a-QS7ITEr-CCd5HPdGhg",
+        "nonce": "hl2W5tK0DH8h4blU",
+        "ciphertext": "jmeY1SUyvJRu4VwxCS44LyLbX2Y"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "XpEpUP0-rBis4TVGIiqq537PRxzU9gc2SLdq14sKA7g",
+        "nonce": "tY2SlMrhWsdAjCyU",
+        "ciphertext": "3fXsPvsUciapp5aYy-dvN5tbyRbF"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "Rj1xDGH2lHEnhWuXll7ukOj72EC87_ecu6ZR66Tv3uo",
+        "nonce": "VGAdk9mX9uePkpH9",
+        "ciphertext": "IjPcFbheRIpfsl0BijtyhMCKb2hhLW6SsrGT7uwz1rGW-thsKhj7Ssm2w1_yOKoT3gLU98xXtXI"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "O7affMtI1Dg4cztAHMKgw5EX1vRYgOZxRAdNiegw_BA",
+        "nonce": "I0PLhH4mefefV6kK",
+        "ciphertext": "WeskrUBSXjEhwar_fMEZOqbioc5SGyGQncOOQH7D7NrGQlkaBJa_Qv06eWF2bnpiCg6yAvxxv68x8481ZaYjvg"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "FuX-JgcS6zbi-Ip-YS7cB2KCiVU8XiyrZh2wL_bGFik",
+        "nonce": "WSaLoX-KZNWGEkp_",
+        "ciphertext": "hWb-DlI_Zh8xlsvDgUOmPCcOkL3hmw-Vgha1zwmKyTXiUFNXT0uEMnhM1w"
+       }
+      },
+      {
+       "context": {
+        "vault": "89252d75-c630-4ab6-8e29-45bc6fdf981d",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "f_IvKZw61Dvr47VTT1PoexMhA5wqpSkBePFx5E8vIBo",
+        "nonce": "5-CH2mL-vCW1ncMC",
+        "ciphertext": "9aW1haWedvGmaX_hlIZSpe4wuAnR1vbb7bD13tJOvJvK4kX2k7fnMr4H1ac2y0ByDHVvlAHR9quNTCFkmwgL1pfD2KJHtFb0saAH8Vv4OvBk7kChOhN788i_qfAQFxbKGWFSW5rb9n0y0ZiTKjSsB2chO-llAKq27cQVs96-K2tx8ekocyyIKdmelwiYa76goULjCIzDp4lc6hajF9cywZh97KMWVVbUN4fnPoAJ7eT3e2l5EsHbsUPT1rSYnpEeSHa6ulqcs4mlDIAeCONUaM8yddT7qVUtplo"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "7wkRMW4OAgQuHDFIXlTk2-PP05PYr4j8TuCD9bYbAjA",
+      "sealed": {
+       "iv": "Vzda8tegzcVf5TCI",
+       "ciphertext": "P0JD6uXh-B-4NagFdLyZGVttdWyQcd6f0nSTX4ULkrQSCe44JpXVyC0vIOnaH9mk"
+      },
+      "commitment": "-kKZi8vilxNmb7zODNrWzmUERM7BmofNidpjJdwzH2I"
+     }
+    },
+    {
+     "recovery": "m38ZUDu02VUlJ1YZ-r70U2lGOr1StWwh1yeaTDy2W1E",
+     "manifest": {
+      "version": 1,
+      "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "GTgQcEqluO8HYk7i",
+       "ciphertext": "tlF5snyKkUtCNSUTSYp7ddd1oSCb2dqufzUlnRpFfNWdJ6P_GBfCPW__H8mNHNtK"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "3fnYL6VQEFjXYcxkGPmpi8epnOwvp3AjpxxqQCONVFU",
+        "nonce": "o0ekPpg2FCHFdvgO",
+        "ciphertext": "t_5TPZ7rG4sf9LzSqrYDciLj"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "h5pkavvoHsqNcZwyzJSzrq6NUzGCfbBf6eF0LI7Cngw",
+        "nonce": "IcWALyCUw3lOyXxV",
+        "ciphertext": "JV-4KMSdqPDShbM19fooADr_vA"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "wmGZKe079ooSduU8fW5tN2ZkgdZQduB_bx6JAdhVG-Y",
+        "nonce": "nzNS3Ud-34Aj_1qi",
+        "ciphertext": "Qx8ts5Vy-mGo-8hioOpGJQOcaYs"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "fVGXioHzPT2sZQ5eDxlwLzXPpmarudUJ4QpDCGmsYfI",
+        "nonce": "lO6ve8mkxpodwwSt",
+        "ciphertext": "96lCWEWEMPY6Nru4fPno6KrOZEhZ"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "yNi5Q_Vi2rRk1gMVszgxGtRG6tY-b3dMaxWzYm4pUqs",
+        "nonce": "dZu8Lw9HCAlogoe1",
+        "ciphertext": "Qm5RDwvJZW2DskjV4KdA8ixfJk4EyTDWl32yMZemL_ajcgnP0WkF8KkIC71NVhR3swjJ_gJ-AeQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "p-uIL26niP6ZodgOgvkRvM5BsEFnV3D7drtERAloi6c",
+        "nonce": "KLlKSlaKHyeO6UTq",
+        "ciphertext": "5kDUbXaehlm8_aTyeBSNr2gF90zwKwy1ouPbtb_81tSN63hn1UM_1AbpyZlbpF1rSV2PWCYVfH6w5IpLLA5LYg"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "vZtRgPJrsXfjCYvVPOphcrDCtuJMsML4A7PSWMUDSjs",
+        "nonce": "5U7k0H0y-VvgsUDZ",
+        "ciphertext": "61iqvvDu70340Qfnxg62_xZqYqIDJBOXYOfNyTglONakSFC29mYOXh7DGQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "21219dd2-8c2f-4512-bd87-f39a64521087",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "kLHa1dp7acf7kGFhWq0xcnOjFGdVZee8a-6qQMtrfb8",
+        "nonce": "hLiZnVfxbiKiKA66",
+        "ciphertext": "XE7QSBBk1RB4BO9TL-UrFTPvxoCzjM3yfMME96wz10pu3_JKCI6LoPNCfXicU3pv0U4EwfODqbJ74VSHV0XBdJUOjfj01JLdrdStkHWus-GVVPWAJPimlpXFcj9TtrfAC81FfE4rUaUa7_OLP3_a6c6vH3Y7iAYlh_n2jYpU7m0GhBTGoQM0-ZjvcM8wr7HLqeEym-T_He4KQAAxLrGOFR7TUy_GUrzZ6aQPw6SVDWfn0v2PWp_-ZI-ZkkN_d6Lk08ipjPwhWD3xqQYh4u5Zd2uuQ16X10A6nyw"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "piQnghTN6ZfgAsXclcgdqFZFiZwnz_2ajzP27oBVs0o",
+      "sealed": {
+       "iv": "irhxOYXJ6uiSMakN",
+       "ciphertext": "27ygHdCE_pMQks9sjtFfL59kKh86E0pG44uWYk5ADWWeVgvqCe-0INCkM9d3A9dV"
+      },
+      "commitment": "RqcGHiYWXD12Nyz5ocQwZMKZCV6RQIiEWmANmfwR4J8"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"15b660e8-fc17-4d72-b315-d357d39400a6\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"WjeJIbBicQGYj08y\",\"ciphertext\":\"dRO0sfjPvxOvHnZpZXx-xjMUgt8SW7HRKz905vE5uJOdfwR3h4DW4XK3nsRQ8VdU\"}},\"index\":{\"id\":\"acc51f5e-40bc-4380-a8e4-6e319e6492a0\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"GDZMgVcgig4n06PaGMXzElXxtJy0oTQLYcQiUbB8fec\",\"nonce\":\"Ms_V5mUPoYZFTwNj\",\"ciphertext\":\"RUX9hPokKF7lJjRZfeFhWPoq-fZuANlSBt9aEcEFVzMjmfiWamcoMVC_XyUDCLz9GdntLteXGRtuIxpYGSvBnmaVi1XrZ_pHej_A4Rc7KW8odbqqMbpMQgXl-eaDVQIb74dWyqHcjjsainf3V88dU3a_DXg6JV-xy30ONDZOsvmtrhCq62gBtrjLZ00DiR1cRSLIOYuUQHAnMRwPW1UC2Ix43INCPLo9BQ7KuzkwNeHvSBqIX3H52biQe-vAGIVA6eOvI27iUzCbQyv_HsUeBv7-6GYHJYRbHu6Ltf-E1L-8niHeaSwJeGyT\"}},\"chunks\":[{\"id\":\"375ac129-9f7d-4d6f-845d-2b0fff2bde4b\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"OZhTuQaq8t1w55qkHpbs1Ydhe-slUKO-60JnbxBqZcY\",\"nonce\":\"rE9SdLAqekPBCHYy\",\"ciphertext\":\"VP1BenLAtD1J2NfPDHUtVKu_3djwAxvRjMAKb3q-WVa83nAJTAyiz8TuLEvXAsHGdIPd7x3gbWyQdQ27nJRp4sFfCcxY7E5c-GYOm_wjNqMx224\"}},{\"id\":\"27972344-333c-480b-a256-089427a5d36a\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"Lr6EQoJ-SkmBIqk_vGVjtdsSa4FNR1g9qDHgHngE-xk\",\"nonce\":\"cnfIaVYdKpxTBJ5t\",\"ciphertext\":\"ORrg7cf8CptA6gPcF34VfjuUC8_XPp84KHaSEQgW9F1belGa5oP4pinZ6T9HO7U\"}},{\"id\":\"507d54be-f5c7-4aa5-ae5f-edc670abd824\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"BSA_Pval_T0iS3hm1P9VllbhArap3J13ecWktsEh6p4\",\"nonce\":\"ESuRct8k_v3O4H9F\",\"ciphertext\":\"gswEOj5i76_HaG8qTq7po9gH9RdjgWqQaO1hujmI-fLZO3tSAJQ\"}}]}",
+    "recovery": "kOoBbUXVREPg7mxO3y8afmde7T85kMtEh0o1_sSmDWc"
+   }
+  },
+  {
+   "label": "#38",
+   "commit": "#38 e3fa408db9dee4fc6c255d574c52e2baa7b5458e",
+   "vaults": [
+    {
+     "recovery": "MfNjrMqm93ZuIwnMM2A5Ksts0r72KyXa_DUHpaoXzQ0",
+     "manifest": {
+      "version": 1,
+      "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "zKweFW15-Lp4OLLD",
+       "ciphertext": "1cwbh9zmlqQYPjJgav8x7n4_5qxAinwZiF9df9Gs2_yTKKnu2Y9zkvtAKaKAt1PH"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "QGrPGU1-FzRsePv9V5bmHdbxwWGOIDv1STEqDtLky0k",
+        "nonce": "s34fTRXNcWMczjhq",
+        "ciphertext": "7vea6fYYw4a-LsZ5DKwEFSAS"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "bbNBrV1PXILlsbcfK-FQtEk5pzJLI4rbBUiKMUbScRw",
+        "nonce": "QYuPmD4xWFP4lGmU",
+        "ciphertext": "CYtuY2r7XdZtaJm4IMy03gmftg"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "IXXDwHnqN18ja1s5B_gT8bbT_1YMsYS_5nDnRRQTZ0Q",
+        "nonce": "RQv304nJYEl38yuG",
+        "ciphertext": "H6OisM_PD6nNW2R8c8YWPLOhMzE"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "sEC48xW5qHseYb0zCAXjM96t2huL3dPND_qsSBTRQ7E",
+        "nonce": "sNsoZKexYUdDB6d8",
+        "ciphertext": "ti7rNfyJYK9Ac1xUzvzCw6s3rlvp"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "99fPRRopIb3sZq7GDOnWfzrOsv5KTCb3GtGOfqeayxk",
+        "nonce": "61FjIjrb0bh9cUIa",
+        "ciphertext": "fwmNRuJU2A3v2qh0SsVCi8EmYr8h20zXLf1YpwRdgG_pVLF9z2vR7Q0fyViEHvOUnpNr7nbnV-4"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "ZsfplapCTRrSqUTK_D7Lhej33DNhicW4Cw8GRukeWdk",
+        "nonce": "k-eEigI8SrdI6U3e",
+        "ciphertext": "zlYFbdrpoQNa0AozcOoPm6QgoejTf7V4WoRKj7W1f7zOKiuamVY8D_-SUQj9BbDKZ6tbnUVcKhsw0PNQ7f5SQw"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "C7pr3dLCe2uv_kMDROg8tr43kfBaChtlArjhKeGr3XM",
+        "nonce": "fOGkKAsXYnFQi88_",
+        "ciphertext": "a2GbQlE0mmib9rXn_kdfrtBc7O6yw4sv6GqbQU6mDkhn6c0CmdyyPZP8QA"
+       }
+      },
+      {
+       "context": {
+        "vault": "1437f8ef-c370-466f-8ebc-3faab00d335b",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "elq9Vkhg1l2nuefK7I0l2GHH_MBsijTNNbI3Nm6yH4U",
+        "nonce": "sggRAuX1-f7wVWHT",
+        "ciphertext": "M7mmlD2Ru-NRaXMOGGrvt8BMVGxEnBYJPDdJM7xMSet0JqWGfU5pf3TxONkpDfic06ba5XNfWNqyj0howQjRZ-YdbW6dCb0B-Xbvz3TycaNgZAcqcl5mXiw-3pXHc8_CW_-PzQFOlgtFMjuIGEEB7eHTlgXq5EKxZlS13cHS_B7hXH9gNW1sQMiA8lKq9QSwGMke37xD9jRCRK9coETc_g6lPU024lZaktFynqdlArMvy1e2htbStgQfDwmvqUyeJ-qC9ND9ibFCeNKORf5gmcdY_JnsLUdP7vI"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "C49SSKh7MQJYIfWS-mz3x7B9QHkcIE1TtoxBEipAIhI",
+      "sealed": {
+       "iv": "_ciOOK7ZHHMnSp6M",
+       "ciphertext": "KJ4-M1t9H35CWRqSTVkC8OuZ3h9RM8aZ51uQZ5LuZeEZ6gCJ9RzsO46D3LF9Vzjj"
+      },
+      "commitment": "E-5dZzYGauU1gl9QodOccIWvhvPKirT-UlzPdOz7OMg"
+     }
+    },
+    {
+     "recovery": "w2qxBhXv-LnhOa8iAhvo8bwhUjChUgdd7Tr6b7l7rEI",
+     "manifest": {
+      "version": 1,
+      "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "pfMZmsZLN2_zMQVY",
+       "ciphertext": "4-8gQCEswaSeHNn3dVey4ReqcFE-NRoCyO93OWmJTbCS-py1ASM-6Lw7ggOq0EwU"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "zhiVu4WtTfOMoJkOYIJ2ZZl443g1UBOItsRr2pgy_D8",
+        "nonce": "VDRkJCj2PN5watUF",
+        "ciphertext": "zCX2lZtyi4oDVj8GZ47mW-1J"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "YlAjFYaGbNKZ6RmMEykKP-Mynkmn-5wSgnm7DxVfSXQ",
+        "nonce": "SebOICBUeOxftGIz",
+        "ciphertext": "0UhIB-XgDYvty-N2pyZ4V3NepQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "pFFFw4GPB_BxiA09ScF0hrsmHEuvFuuy5o8Dj9adAYM",
+        "nonce": "-cEK1hvH1T_wTkgG",
+        "ciphertext": "jQdFNH-xEfr19n7HKcZkKO_hasc"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "IMFQKWa0QzTBYWxVZvPTTtI0J_czpclUV_9C86p26i0",
+        "nonce": "ck3p-yPVGVlqSVBG",
+        "ciphertext": "cyM1LviqIPEtmUivVT6QQeMvoAr4"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "1MGocZdS0ro6jF6uM6YQ1iO4OrVGi7FpcPh_3F6P-iQ",
+        "nonce": "3ydVeCZPufKPWDSg",
+        "ciphertext": "8SGFAT2ftKChoR_65dG6HT3nAC0eFG6EYJzkvr0CGDHD9A1eJ43aL0l-v_xz0RbkgTci8gDfW9I"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "htAXNqDsB5fxUxWHvQ2J-yiJp-LZxWWWvEeDX49J3pI",
+        "nonce": "V2TZIZBrEdzsIfxI",
+        "ciphertext": "rDKaUxwPW1PWKsPEuHQM_6A5FEP8ftLGyNmUh-w0T9hJ94wbR5zbRadCSbqcBdjiAFntmAU2wke1DVl20DDPsw"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "KGTAxroEwM2b3iUPR4gq4i_DyDAsARwvwlB19sJD3VM",
+        "nonce": "-HOOeMGHCYMv8ZIn",
+        "ciphertext": "QyVyRCjltaW_9SYA62i8azYug03apkMp28yEQdJYY8bPJbWLeHed3HY18w"
+       }
+      },
+      {
+       "context": {
+        "vault": "c5fec1bf-c4b6-4fc1-9e34-0c1ff187116a",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "seelcHTJDCBh_jFEMRRFtXvfblWtEriAJczN7NFHZAU",
+        "nonce": "Q2UCTs4Y4W04jreR",
+        "ciphertext": "KKmqra-aS6g4S79v2PIvR5UtKVSD0nNavAoNGWskZ8zuBanJrwfE9Z5Wg4OoMN3wAfOY_ojlOLmmP6VENUBT89VDOTKQE3CiCmmqv1dZvkPL_RmVS7CJjA3evzW6QUd1zm6RrXKmKPFAfm21xjPsTIj2eI1SVyhhV249m4E1Y5K2xuoMNwKkQtHuFk_Z-gvlOOnNrmqR5TLFf1Y50kLYxjFhuGXHSTcDtWAH0wTV9wanomcgycB-HBSFjxdApLYoDqrbunAKAKkL05kiYn0I7li8hIpHXzlRX_Y"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "hG6coHMH6-AC8MPMzwip_2qUE91IBSj1wsiASz79GQE",
+      "sealed": {
+       "iv": "YPHWw_LnBTEwZhm1",
+       "ciphertext": "jZGGyxrnwDdE6PbKVzYVSPVFprBVAdoON9kUK86GDqax95NcXNaQWDUYJ04FxCiw"
+      },
+      "commitment": "B6afEl_WypxclJ-GZwExe-N6x441Vi3bDeXeCVkKMpA"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"737172ff-0568-47b2-85f8-2a91602dbc9b\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"yTErgKKH6zv3G79l\",\"ciphertext\":\"gODgNnmOJxeNkI6o_2qOIAYOK5ZXjnlDlHWlSUvDNCGt13-KAXuwj0v6GRwIK_0l\"}},\"index\":{\"id\":\"1ca303db-caca-4572-ba6e-85aa1f88f5e7\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"1KXkrO38bjt7ULKGjavopiUntPz68iH1llfnMAoEpe0\",\"nonce\":\"kDIffhmDzyoMzIUw\",\"ciphertext\":\"iqA2kjqIn0eMDU7vwJYfnCwIyn8RcUHFpfvltnkwBQ2d7qELn9lmRt8iPG4Xd4e6ksfpYcZH5yQE3AMrdQFGJZ4BZl_CD3-cIkduPAnwmfHTN_hoJFGQzbVNo-V9RMQaTxqVofZhkZQKbqELJ2UCSOfucQzoj0hazN0R0Mwa8sfeECTFZ1WA1zokWSV0kYpEq8pmuB87gal5-eipzCDfhaGQXFUqRUB9djXLQqaTXXb6FtkI7XMWRYWgBV7ijaFUoz7wGVbey8bcbpX6oanL3OZ9f6hKvGAgExSM8YBiqtGTVnyJ6jnGEqg2\"}},\"chunks\":[{\"id\":\"a9f9f6ac-c4db-49c9-9efd-759886c9ece0\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"0oSuhf5HKv7XXUxzCvd1KFBNjYtOiLcayybCzxRF6lc\",\"nonce\":\"-J_f4lgPJNkUO2yu\",\"ciphertext\":\"9QFtLo1-dlPH9P4U1-mi5Bi1xR_fNVwWIa-Qcsx8S2K_gZ7qOuj1u9qEVxXKjLKHkMIA4Je3Qgm0BtLtLGOTJXOjkT2x7wiL_8B6r9Yl5fyEFto\"}},{\"id\":\"183ec199-bb31-4c6e-b3d1-3af49f1196cd\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"FI4aR5jCDqjtkVj87AJa9Xctoqkkb19t3LrOvFDgIzQ\",\"nonce\":\"t3POsQYZZgfd79S_\",\"ciphertext\":\"LzTlROfaSF3Tiq2hPaNIzKI3Bn2nvoomNNGfFMcjuS6ZPyEocidlCNfocf-O9nI\"}},{\"id\":\"6940fa77-9b37-4a63-9209-c20728021a81\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"quPv2wc9tFqArHgF7tTkMtNegd22O-o-4yJeve5Tr28\",\"nonce\":\"X0q8NgXbrXcGWV9M\",\"ciphertext\":\"Jw0W4imlK8uCLO8Lr2AsimBjb_s0I63zfIIU38HJEWIDDctWzMg\"}}]}",
+    "recovery": "nY5PU3O5fASPfPusa6uaRGf8agKFB8nc_HER1kA79-Q"
+   }
+  },
+  {
+   "label": "#39",
+   "commit": "#39 6c1052b291812982f65875b86ea65001026125b5",
+   "vaults": [
+    {
+     "recovery": "l__UdHPD-kk2-Aa9hCZrzU6GREmiOjC7_quvxCLMjQc",
+     "manifest": {
+      "version": 1,
+      "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "5QJF6xYWjT3_HPOh",
+       "ciphertext": "cakH-EvsxMXdki32PjlVTssntXEoxeSz9MHDx6tGdVVaUkcti_Q3BR3K67dy_6pn"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "y5e5EgY9aBV9VpJKwihoon65xFypkQhMaMc6NYVLo6g",
+        "nonce": "Ig-_bJbTMW541aVM",
+        "ciphertext": "2D2QddSyBdK6waPAeCSDbr22"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "7ZLf4HgNVl7ngxYrMlb0yCr7AD_U7iTT2WPAP5WWjkY",
+        "nonce": "U4LIwIvpL9Q5sxYb",
+        "ciphertext": "DlJffeJuG0qEIP0rmWxZK-9vKA"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "aokkYOWN8_Nt4LCR1BI0YOu7eJidrWSXJ1LwcQRtLo8",
+        "nonce": "xzT9TAQX6-H22zve",
+        "ciphertext": "sv4guBd_faeET5mYA2d5FqHMuCM"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "BH67I-bYnC99OBjq-zL8UB7QpC3W5_TiKpU0y9m8ZBo",
+        "nonce": "Zt8KN98Niy7ATsJr",
+        "ciphertext": "R2idvCzh4rPoB10qC4fRP86PPmya"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "W5u_Qau_FLbo7WLz7Sj1z6lbK5Q8jC0ZMRxn5Z-41KY",
+        "nonce": "bkTZDJGhBHLYrkSt",
+        "ciphertext": "W5lUDlgF_mhdDe4ashfbo05REUb62pXSqg_x5AwC8dw6XBPE0PzBCn9PnzILdan5w1DxDqFr2eM"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "mf50XICl-Ah4BbzcM20I-wpdJ0VpHwMEl1DiMSQggmM",
+        "nonce": "42Pr2vTjITbSYr95",
+        "ciphertext": "VGllsPjWesp3u7sfJntXWOsrwUAG8h-43q0fvA5ceyyTkaL1wcebXxIIC0T3K2Q5XghV9OrmCX2uo1GiAC-4-Q"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "Nm72NbsMBsFEC5gN_LSIsWccr5qMU9Z23T_G_ImLR4c",
+        "nonce": "wGZcsTHxNqX7M4ep",
+        "ciphertext": "xzcuaMIKJe0Dsa9epzPpNTJzbKbKWgPkGG8qDYvF0yyMTPserVOk_QNIPA"
+       }
+      },
+      {
+       "context": {
+        "vault": "cea333bb-5ed5-42e9-9bb8-d39b22cd4d96",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "JHrQOpEjlnaqLoItSlPbeNy76BPsCcNLOaPNvoSalGA",
+        "nonce": "5A4Bog64HdzBfxfk",
+        "ciphertext": "_smi5i4fPebdh8KCHSmdXY-PisRV9FhBxnZ6lQG2jM11jE7mP9TKUSdYOMa6IYvBQ5g7RHQAYYcG8-emS7UZqpVr0xz-Aqan1_oj6QHM4xIY76njkD8qHDNdUcLIrJ12ug7pB45_u7tY5K_TiFuF2KpspTgQrs81XSQbqTZlhlBFWZFj_ev4b0aKgKn5iCEnzpFFqtu6ysgTe5Sw2eRCaJLgtq7KDwHGg9xFWldpXQwZoYkZfhtNOVVreHgnnOAd1GJ2VQnuPuGVas512nXEohriOmZgj1faCOY"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "DNqlkBy0vl3zsmwK5USGAXrNaURI3Ep2FSObbHtSyV8",
+      "sealed": {
+       "iv": "nX92tP0ATI_u4ntb",
+       "ciphertext": "wzQUQdeE-Mc2zHPE8IkpVpoqRiKJdmB57g1kxqa4sV1S_NvCQXLTvJb7Wj12AgDV"
+      },
+      "commitment": "ydX5PfhXdqgh9ifoC2PFyzIeCHcbWOpExmnkgY7j6_0"
+     }
+    },
+    {
+     "recovery": "-IIEskN3qBOuwwLvNV_yNoSv2HUA4srWCCigOcXlQAc",
+     "manifest": {
+      "version": 1,
+      "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "QEmbjmMA6-ksldcs",
+       "ciphertext": "GDfG83PEKvxwv9nFOz6kCo2-WVi0YFR6P8sRNc2YbDpHgZMf_ESPRM5KJZdSn6KF"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "mSZKtGWqvLnfC1Sf0Qd9PHRWV5nBmf0W8KwExdzdiWs",
+        "nonce": "Mq1kDEwbrjCqzsQj",
+        "ciphertext": "zbi94FYVTzGxxZsk4p3SfX36"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "jaLTVMhKDAb2bkJIQ6fSoAlPVNED5eczv1p_jdFZuhQ",
+        "nonce": "Ac1ShFkfz35XUfYe",
+        "ciphertext": "V6uHCM15gjfx4rM2HEX4p4XPaw"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "7I8gBVe-98dhaQwRwOiCgSUeJVbq2XfwUq2L8x8UwEE",
+        "nonce": "GjqLBB766O-B5TiD",
+        "ciphertext": "yS76PbE4ub4nZ9gGrF6xZSYOSnQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "1p-ArvZ_lLJhOhCSNLsWVgacTRVW6ls48ciCfQzPr8M",
+        "nonce": "OKBLWtmJe47Wze47",
+        "ciphertext": "71ZAxQ2gI5LkasR2lf-K6u_OYHpC"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "DHNy6x3zzu1BmdidqiN9Qd9f3LRya9czBqHqcHH3QhQ",
+        "nonce": "V251j2oaX-yz8N9I",
+        "ciphertext": "fXHtkhBTKDePXKTH1xk8_pl9fmxsIMZYD8IFpAx-hNi3rFFKolgRod3rdF-jGTl-aY_7jrH8Nwc"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "W01681uNU4yeFUdGtM1tOdXt5FO2zN5LnOh4AMJIX7I",
+        "nonce": "ROh-rhIhIqF0rM1-",
+        "ciphertext": "qIRm0dvsRVU0dSQ4CvqhN-MyMUz3hJXwPVZbpScbSNLKMRRIPfdxLbIEzEZ6Y-ExgBqq8uoZ4UXbd5XlW6kqPw"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "ptfewn4I0LbhrgVD4cP48W0umc1slSHsAA_OByGeX5Y",
+        "nonce": "feVUaa5Gi-pErLF2",
+        "ciphertext": "rlEWpCQtxRKJjqym4lQA35hA2zzssCM-HM0HCV_3fNn5JpOfqUWU3Ra9pQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "37585e42-6260-47a1-95d7-7b5c1050e19d",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "-UwDIl4qbOzMtbNFYDAtVNNkegCNit5IAfKTTsZmB2s",
+        "nonce": "P1Uxqjkm9phEao3j",
+        "ciphertext": "0PfGZB2OkNalP2DMOuzVHbFQFChsIJS2w8gCXWSJqQjDL7V7pO3kBP0UocZTr9ib1donFj2F-1cNtwTgA5e3u8TuZSBcLbKrW1STpXBNnqm3LLYqlQnAUWGeX8lqC3vCA-H6JEu40Tmpn2BlpoOTb3zCPlRwAst1Va0mKUEtsICrrCikt5g9Hfk49peqofIKjQ38IHqjb-XpshgyQ6beuNg8RD70hR4c5giyFjG7jbMexWVIwTGjQ_pjgIWV-UiO5yiiYvgrlWkSAdgkJnLbEPE4WGM7JRylk2Y"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "95ykDOxDadKWKQConXsguISteo6h8rUsoi8i81uSNqE",
+      "sealed": {
+       "iv": "xOxVrRWwrUqRQq7z",
+       "ciphertext": "KqmCckQ4sL8JDITSTRe8wShWBzwgYTColAwO26BvpWoDuDQV4QbhGAG3oeNNVca0"
+      },
+      "commitment": "ASJcytOEKb0v6fligvv788dDilwxrZ7EtT-ukfdo1Q4"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"d911b37a-c78a-4c8d-8d59-cdf1990f1444\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"OLDwcxu7l16Uo8Vk\",\"ciphertext\":\"zGx-wNsVg2WqL_S6TaRCdk69cMwRj9NuRnBo8TPYfJz4PwcUz3GLnwMV_uSjTIcL\"}},\"index\":{\"id\":\"c0bbf336-f373-4376-9ec3-d2566c745e68\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"1bFpZKFoEqmm_8-nQUZE2tbZGfZOHjLe46gDnCU1LoU\",\"nonce\":\"IF5hdXFhIQBpGeaA\",\"ciphertext\":\"OZhLZZEUsei65f9RiVvdisIL9g0Ok7T1A8SLW-0PHu1c6fYsiD1_EoVB5xa63vx7C_-PJ4qZDVPvYkpgz1ycQ6HOgjl331zDVn_fvD0_1EoSjz5ZlgA10t3Iy86C4uRpjrWoAGlDy2gXhSr68ys-k2XvlCC_-Tnyd_ytXmPz5lyN954UdLa08jE9NIt85eByAXvvGQakJKw8a-aXm99HF2QpPI19McUF6t34m9iRTFAtYC7enwEvzAYf9nT25qE8aPeJc-Dy7AEdzNwOYndSoDf4H33XJ1pBbQ0R_VqedPjNhYIksan5TbNz\"}},\"chunks\":[{\"id\":\"c15bfc17-b15c-4b7d-b510-0ef84597c146\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"2eiUxZ8CDEz3gCxCOSBRvvw3_AxbQYKxMYM29hGV4gE\",\"nonce\":\"_Q14-kbO1HCJVFlH\",\"ciphertext\":\"fpClcVKszG_RTfKLPdEu0Iq5dDRr8mLQcz5VzNSkPV84iecUZCGCiI0ahWL7JyRMz1gob099ztczQTHiGH6rgtfju1lGJnYYuNhMknCIaAGHTp4\"}},{\"id\":\"89a222c1-f863-4429-aa2b-fae668cd1bf0\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"W3cm4JhsgIUED_2QJPrwzqCVjfP4kuwM8euZh00ZSFY\",\"nonce\":\"dwZRl_0r3a3suh9G\",\"ciphertext\":\"Ot7oAGqtEPk_oE3m4qOX5dlifb4155umW9rgrAV9AOPA2wprSsH1JYA9O35LyM4\"}},{\"id\":\"7c23343b-a07c-433d-8119-496ea60ca031\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"uLtw41Mh_iWgqte7hAF-gQlKnWEonMOQDmo7xnUp4Fw\",\"nonce\":\"knEsVo4A52Y5vZlc\",\"ciphertext\":\"KnYrGgBVWKxNJanxn1NrxbX8ZlHly_AsMChL6Tw8usjHF9216oE\"}}]}",
+    "recovery": "2hlAe0dbM3fkkXf4fMwhm0oViuL7D_-LqaYOorVuNHM"
+   }
+  },
+  {
+   "label": "#40",
+   "commit": "#40 985720ee2fef2d2868fc0ef87a43d95d52dd0242",
+   "vaults": [
+    {
+     "recovery": "bxeo5KgGINSsAaPRBDtf2XTOvQGADAu-ikq51aJuewc",
+     "manifest": {
+      "version": 1,
+      "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "9ZpqIF8StYE-YjoV",
+       "ciphertext": "L4zSo0UpcdbqdNPHpKXjKq13NQtD8MgX1oH9H495g6AwXxnyLK6J3qyRMzsYqqMG"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "3PoNAczhWA-S-0PI5OwQ-3zGYJzhOcdNvVSfo4mpVsY",
+        "nonce": "Awhddspg3X5nkAB8",
+        "ciphertext": "0W7lPqbp19rmgzl_3urzj6ys"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "oayern4rRa_ejmAZKzWWRgVI0-vlc2miU_h06dLEITE",
+        "nonce": "P0d2UZv3eJ1n31Wa",
+        "ciphertext": "1fU-5mq_aa-e23Y1vkAZd-8o8Q"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "25wMb-zK1iFW0KuTV5Cd0i9ZOKQGKEUWLPqo6nkNXJU",
+        "nonce": "Ct9aTZUsP0-8m9ml",
+        "ciphertext": "lDuZWryjg_iOikeRF8ZLRdT0tns"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "esX-ob6faj-d0stepvCW_9zt81wQZwg3juBd8QcAbeA",
+        "nonce": "-fXRbKVu2nBzJ2P1",
+        "ciphertext": "2U2O7HzzH0oVZJhi22J3MEMrJBvb"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "eOmcriddHhrVIRmEB8f2dcSJ3O97z_utv7bCDr8j2Z0",
+        "nonce": "WlUE7alfSeQNrEYp",
+        "ciphertext": "QpJC8uGGMysbPx_7LJMDb-oIZmQXIx9rkPAR8IZyrBIfGOf3pKWXOVPj9WnrU2r-QYX6-4mNUUA"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "fzEMDddyGMuHe0ecgIIGxdh3_H-Z9AsJ5-6SLsUjsvE",
+        "nonce": "c3wtLhZDppd7-eoG",
+        "ciphertext": "M7rXM2W9gEfs5Bv_VN3dvYudM-8rq4cLxwvkdpZ8F0YJaDzshxfv50YLZdtBSaFjWBUe3kxbUpA1xWXpkzlwAg"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "LVXTbJwaTr3Q1EEbb-DfhFCZe1TmFP8kxmKuDkVe3ew",
+        "nonce": "_XHxki_tq5x1ijNb",
+        "ciphertext": "_HTWeWV2n9mqRPpyWrC_xjwYatPoQnzcXbJeVbCIZSe8Fw1slp4pnzDdFQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "77c27ab4-7d4d-4b82-b81d-957012776326",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "KhDiReh_WyuigoHx4W3EhLl0LhE1asNt9ieqLMC-Row",
+        "nonce": "bgIewKc_qOg4x4oz",
+        "ciphertext": "7Ub0M2IzSdQ4AsdMzu-qSxOVJdlD9mcXrKtXXc-8kFE87GiclBBJGWnV8dtx4M_Hh3xsgJgeQavWqbP_fPQY-WPJmG6ijg7JfPDdsobPz08cUhzgHju6odwh7OGI6DhaUglyxt1I2NL7Xd2Z9QiC3pbrib8vS9nM5ny4ugzvL0XwQj-HNgvtimSqrvklKdwNe3dYGocJ5iD3dRcEKlG-0s02Wnl6dteq9q_F2Yh4nabHWCcb-_i6F9xzzUQkFtKmEJ0KYH4_so8yAmkPHmfBK4mh-uO94J8AL6I"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "egzfQfj9H2GhQ6xl-MMnPLHLRrUjfYFa6K2Ff2ZItfU",
+      "sealed": {
+       "iv": "PpOQ9FS4yUcIHhxk",
+       "ciphertext": "_TfrrcRN0vbaE4K61rRFere_ZL_AS-KrQ4ZxY9CfNWgXRY_w6jmN5OmBDh3d8Vgv"
+      },
+      "commitment": "qkzpLbzvgGxaeHUbpr8fxgt6EJEhChPA8Ri4RRw0eaw"
+     }
+    },
+    {
+     "recovery": "mDngvUeEZ_uQPQ7KNgyNx7vZoyaZR6Cm-5Gx1y3DUms",
+     "manifest": {
+      "version": 1,
+      "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "yuUWbQ8f2-FliP11",
+       "ciphertext": "BClg1hXpuAPlbYdg7bAu38MuSW2b-n6bLMcU41OzttqkJg0IQhtkq1lCJBknQHbR"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "sFL_83qKqHEXEyvqtx4F_eWqNmsDtb3tddwDeAtCKwE",
+        "nonce": "lI-yeuZOB6AH2EIV",
+        "ciphertext": "uVSqdhcdLokzzLG30Y_sTO2v"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "GOXdsJKJs831Yea3f75T_NvvVURpoAuFVgH5Gm8TcHk",
+        "nonce": "k_JzHelp8Q8fgJHx",
+        "ciphertext": "YN-1r3_GrreoHdw-BPG5kjGspw"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "8tsECNVrrwtjVDEeYFkPFd8_oViKjEYUPxxWJAzJOnM",
+        "nonce": "a9yCm5AZPBBgNeAq",
+        "ciphertext": "E3V3PDdLPzAUhfZVTwZE0mn1wKw"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "Lq68KFznSKE7wXM0zhoE2RqRa2Nz60rp10EsP5JKX2s",
+        "nonce": "41Bj0mi6azQNefbC",
+        "ciphertext": "hEYjlvhuvL0PbKtvHwn0H5pjlN7V"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "WNKKfBbjATmmMQ7FRY-lugp5R5tgzX7W1CKngaSbZJY",
+        "nonce": "seWgZYdVmIT6gjUv",
+        "ciphertext": "BFwy-NXcDIFZwESBEGusd04rABHMwDq7ny1wf1JSrO8z3CAzvy6YPD9s0Rz4ziS_nc_gf6krGRk"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "xvjFvBs6QymKZKJHCha5D1bEbye2TbKhSt_J1y1eVFM",
+        "nonce": "ZW43lWosX_kbO5DI",
+        "ciphertext": "yc7d72i9An86Xi4hKrtE_kFiJ6gdqB74YI0FpWp7XUAhMWPpH58YNOJIvVxvZNV6hUtTfuSthmtn19fWSaLWuw"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "UVgdTzYOC328RO7P72nYrFkFt4w-t95o9uBgfUQ2pt4",
+        "nonce": "fxIh56KYfMQ7XTog",
+        "ciphertext": "cb9GrMfZi2PoXu8RBrNnN4AWJc9mtspwDM6Berqv780grfC2Fahh8x1l3w"
+       }
+      },
+      {
+       "context": {
+        "vault": "a9c2a7d2-00bc-4739-861e-58f502a4ac48",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "DMOpcf5x3xhoYA3ygIcVVn-YKNPNiBjj80zehi0X8kc",
+        "nonce": "ENcwVQ1F3Y5eBrGT",
+        "ciphertext": "Bbicz4d_2OqyCJvAmr4lQCLOM8fmdsl8X_IDV9hn7LcCJ82SwDf3FpiUGqSPIxjYM_rKIZ2acpxITST7YBdoom8KG8Y0Oh1K-CbjGxuf2TBvKJnB45xcIrqALY4XcU6BUlJ5i0pM8XoMWnwZoj58a-IpyODKWX43XiHmsD7VqfWH3AArg9BJ9_rwvyJ5BJCezSiSWvOCSiMAjKfi7dDOMLA0AcnWduCgDUgaJ83zFdV3oMsfCMSlH6IQTISnUVVg1V7DbQXeHMYWVsTpzM9hhRkfLlGMOpxf5ec"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "kvGaU5JO0ZPOJa0qFAAAKOXsr_GEBpKpoxRAVTPkaxQ",
+      "sealed": {
+       "iv": "O6dIvJ9ieWSAOJMB",
+       "ciphertext": "4-jYEZPhlbAye1HHJk4TIhDbvJM86Ht5fOVpHNgY2VFVYr0WP1OOQ-XwExhPBKiq"
+      },
+      "commitment": "XMOoWxNvcQZ0Usp5rotGvaqEWNR9kwVXXgoHKeAeI10"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"3b391cd5-a12c-4e1d-9479-b354b478459f\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"P95joAKjI40rdEYd\",\"ciphertext\":\"Jimn8vO3R4l53nR2v4If19ZKzHPNLaCM3o7nZC6eAlINIMgtmSQO7M9N_qZoLISx\"}},\"index\":{\"id\":\"3e7a8246-c416-4a8c-929f-94a746518701\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"SJdOkIRB1-4CV0ZTfAuJNA8zLzPJIlikeOy0ph6o6T8\",\"nonce\":\"enjX0m392C0W5Tzt\",\"ciphertext\":\"rlqAuAe8dZ4u0MnDCzGwAnD3lCmLYQgHJisLKAYtATKLtnrozR1pMtSHl6MDsdqPVkmVM1UhCYVNwc5gm5syRZfNb9viVIOzWM1INX-qlWutttDzn0J6y9UQMU6qs7u_Y5NOIiRJdH-2is5hagIMX4DkEYPkGwU8pcJsOvLi2XeDk7Dw_wBApgbVWMayxgcqWo2K8l8si-DaIPKHC8N95x9ZAAuLIv-J6VdeOIqbyY_oWcLoCQ-6bYawCt3r8xNF0Swr1IM2b5_a7T-Fi8j250ODhfwVtl4UewWdrkcBg5UfxiX1oOgx9ROZ\"}},\"chunks\":[{\"id\":\"9146cfc5-f7bc-41f1-9622-1656363f8162\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"QmU_DGxrE53X82JBu8RXdRTzPbHk0TKy4CUjWJRRyGU\",\"nonce\":\"g6zaHxJfi1gjkw_v\",\"ciphertext\":\"BkgOLCcmJWNfUeeogm3LeSR3wHZlamTQSQvdNlcjnaS1Ke__hQczxG6CoifBKcLQ-p_x4Wyr31FKxWZfT7XiLGIv4QNb1gf92keL18YJlFnwQbk\"}},{\"id\":\"2dc66bad-7a08-45ad-a31a-6dc2ee0ce57b\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"XvQK3PP0E9SnUPBJ72f5FAfh9ZPjzWLrOTVOjJpS6DU\",\"nonce\":\"Wk3QuW1YyD7I9kNw\",\"ciphertext\":\"9t3-3TadsPfadz2DZFSZlm8yXfiG1rZZQMouihx5Q7T5qVi1Bd6Rzyp2qnIg1U4\"}},{\"id\":\"3283f783-c68a-4929-bfb7-64f9663db580\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"eiR4ToyGAHBRyrpgyWnZXQoZvFiRfh964PZ0lrJYL3g\",\"nonce\":\"3PwFw-WEgQXP8kEB\",\"ciphertext\":\"zhLtDiC0wZajK76LeqKDbWq59165156kJGjqlgZHqcDpMpcany4\"}}]}",
+    "recovery": "VpI63PAtx6dkj7YUytk_Dg3lTCh5wOMnqM7912k2t5k"
+   }
+  },
+  {
+   "label": "#41",
+   "commit": "#41 9e41f0d14284657819e53a78c2515cf58a94db40",
+   "vaults": [
+    {
+     "recovery": "vTAnpmjxcd7OVx8P4cwPaqqf1hB01_lQDeq-CqCxpFE",
+     "manifest": {
+      "version": 1,
+      "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "5vCHlkyAqitfiPel",
+       "ciphertext": "g0tJFIRIF3zC6oxggj3DUvilPjOMVtNrzTkB7Fl9DCcLM9nGloEoBo6XpDm175Ag"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "C6JKr6ccWiPiPpdZqzJ6sd4tZIKXd17YpEexcYy_sno",
+        "nonce": "V5MZBlkwzMRYSE2j",
+        "ciphertext": "2lfoWrllB66gJDaGBNnknYB-"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "Tr9gRPhYoHflzy5jyReC9hzrZzLS5ftfJHPwkTcKDJE",
+        "nonce": "k6UBTtsk6NIjQX2t",
+        "ciphertext": "_Y1sFWfCT2Rj3nDqzOL4kH5h5A"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "e4wDf1v6XgkIXI-w8rNx9Lmxa75UCjK6tDqGRhVbcVs",
+        "nonce": "pzvcDhH6w3CFoh12",
+        "ciphertext": "9IjW7xuu_PQtBOThZzXtNssQpF0"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "mw6n3NVxYsUQmQKTdPfI7-4rK0EuruvBMYO9ra4TFCs",
+        "nonce": "yQPKmePCsdpjWgNh",
+        "ciphertext": "NVu0L5Yae9VR3sWSdOanQkFkNh2_"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "IxR6pkb-jf6yzUVMvVyUf73gPaGxArWMU0E8VMPC558",
+        "nonce": "Q4TUo_w5lFG08MsJ",
+        "ciphertext": "KgamY89itz-qq6fxxYYExLMQZftvwAtyZex8Wkbu3eBkuvc4I8sixUZnDUvdWPzP-LS_Uc8e7uM"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "mWtw8qz2pJCkaxEtnFxuqISRwWJYB_Zq5w2YyY63wRk",
+        "nonce": "TQcvfEyCP8AoqX8a",
+        "ciphertext": "Y_yfJJ51W51GCh2B8ZAZ1Rv6y4neI952u3PTMy5vzZNKMm__lzrX-ntGcsz4tUCNe6qA-BfCehEHlHjT_YC6Rw"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "QVAIZh3S07rjvhH2_pmGHX9MTX0Sz02FSVRo8qVbpJI",
+        "nonce": "hKs_uEKSosFlIK8-",
+        "ciphertext": "tgrLQw3YdM-a5fhR6MoLNv2nPBV1vkg31_VwSG8LrZ6PgAlXAJ3F9Tf4xg"
+       }
+      },
+      {
+       "context": {
+        "vault": "081fedf8-45ca-4ae0-8e63-48e237d752da",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "O952ZWNVeavT5r8Ty2Apfah0_X12HwNSrkXu1grNnW4",
+        "nonce": "TWbK9XLjcK5DQu_h",
+        "ciphertext": "xJXn6p3izxnHq8Lvkv78YX1jhe0kDchZC9wV6q8HOvq7oXLLmLsL8usdLGRGRDftmStRToDYkBRcD3YJh_9l1bxVQYpt4UTowOzXffKRmjDrfRht7VXsKVIbZAA6VgLaSAj6UwtlxZCLY9VjkjMq8uic7J0aeH_F14vLM-7vUy16WLLxGPKygTGHi3xOA6JKFQI7pKh5k7q1WS-9PTUoDERKtaAHpYb4lOpjb519gh0hMhi8vrPxq1WtMWBCozAPTbE3ukDCKkVzns3XVgCmehUG6QUwS6JmWzA"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "tfWx8WabcC4d0PfRRcz-O5f3H6q3zDYd58GBhmh6OWI",
+      "sealed": {
+       "iv": "mSz9kaP1KQQUGL3y",
+       "ciphertext": "fsuWZ53E11pJ45hsQ25uwTZzzXjWyAqdDyjYljNmThsadF3HEiBFfbGfRNqNojYl"
+      },
+      "commitment": "8Y0bRvamc9bMu3MaXUvo_GKzHxHmPP_7771eSszcepI"
+     }
+    },
+    {
+     "recovery": "KR0V_vAd0Gg70vhSP9Ka7sAvfuvMEkSMO-Bi596Zb4A",
+     "manifest": {
+      "version": 1,
+      "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "914ejktUaqX9D5MM",
+       "ciphertext": "GvhwQjrcswyNjtCgs9aLGqSjTY9DFWak5wXtBEEK76l-PpLPqsktsVAp9XLY1Qma"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "H5vqVuZk4QB_eO7msiNnEKLBkvRwiOtjRiTv2Cn1SLw",
+        "nonce": "F0os1-FOkHPTF1uU",
+        "ciphertext": "9QmTgcfHydB33OlTesK90syn"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "7uOGPfRQKweMY8bmjQ-0Z-qGgAxf6skkSs4q8U6J0po",
+        "nonce": "YsxY6NmUoJTVjggA",
+        "ciphertext": "aV79qZeKe-3C_BrBfbqMv5GXZw"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "Y9PEb7cFyEU13q89KE7ILp3ElSJlmYY6hm_f3zUYB1E",
+        "nonce": "e9Krfo45c23i-VkF",
+        "ciphertext": "vbJXULdh84OQVMm-jbWf_4sUZo0"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "v78USm2iaawoSY3nl95DuaYhj1fqdRVfIMZDHm3rIOs",
+        "nonce": "4MjtcXb23J5xRPcp",
+        "ciphertext": "wnQjs6f0NOgH0mQq6Ez7hDEl9VkW"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "AXE11kanSvAApqZZJNqcZXw6alOazXzhjthGDqE2VOY",
+        "nonce": "KIyQEHKIoxrbN5kH",
+        "ciphertext": "8LLyLqvWKHLOVfbsQw4BGk6o5AbiE_RFSZk0WbEz4lAQZN8LC4M-CxMwD6HUF-molADuJCJ_1TQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "xr5ZiZJPMxuXV3mnJpxZJVotInmsNDIxnAWWJQ3MUDo",
+        "nonce": "bqtPnHMwOPc846tZ",
+        "ciphertext": "-nBSjwwX5cIcupdPUzimpezbG2YwgIGUCBsABRdKNloZzgNK4T5peR6NPAFQHXJ2iK5p7xJiGDiIY-B0rDjRUQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "5MAI0Z0v5QjuYTMr0oKNLMy49JbINqX3uWwCBG3i-rY",
+        "nonce": "5VFNBVfShAvqURhn",
+        "ciphertext": "hDPoYjsnE3U7R1mMlnXhU2fuPdwikT40kxZuX8QpiSw-E0WxGLHYN-Q90w"
+       }
+      },
+      {
+       "context": {
+        "vault": "91d234a1-dd70-45a8-8ca5-664d360b27db",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "9NYqyTcgaBwk8nipd2zYxxnYHA_4dXTzD7eZoTn8YHo",
+        "nonce": "fFa2hDf55o6V7Vnc",
+        "ciphertext": "hplS_ojj2r0UA5aQjPplYtttASLgb6uQUvEXREZvd_GFHODQMOsUPYMtXjH_8MU16h2_VX0gNRhYlf5eAKWg8OncQa1UyGHrD69BOwONBokP_rh3BahvCyH4TmUKcyfIBfRM4P0aArCEC5mBQx5G1X3Cm_6eJwU0HB2OGCoZUuLWHVsyZfKuclLGzrwsF0xJ1qL_rGBEL8MdAtzdSaCMpmbtAvO1jk9eBLz4L_-ML3S84Aog5FTljSiqRQttqXdBHY4rdgClXf7CLkmHNpknVhc-n_230itAEi4"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "P6OINxyJXDho8RGYFDoVf_IOq3eGJ29V11vLkUQCvbs",
+      "sealed": {
+       "iv": "o5HQ7j83BrP3UO4M",
+       "ciphertext": "IuWh5bRkguCnZvWO9eZZknbBlfwE8Z-uCk63CkmsynwOCupOg5VWKO7HJXsXr07W"
+      },
+      "commitment": "-9C6eIjeN7giZMz5TZVcsTKiGbjvU_IuGWFWee1JvbE"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"ef9bc7ce-78e1-4a51-92d1-98105f348e0e\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"IPu4_zIv7-dPWLfT\",\"ciphertext\":\"yrtcI7VojbO8KQGY862zz5WU18HKJ6UqpHtiheuHP1xLo9pGI7b7GmV_4pCN3IWw\"}},\"index\":{\"id\":\"3495b6ec-502a-4057-83de-06b61ff00d6f\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"ovRjZhknClck4p0j6GKYSwpEim-iWlGO4-ix9imteDM\",\"nonce\":\"9z1lLrJkKVBiWoZK\",\"ciphertext\":\"eVp9ckuiulvawlht8pLzNo_15AiHAPF-I3ajWh8wH2y-9Fr8KIXgdFGeIy0y7m4zENRjRSoovPZLIs4ZZN6EFOMrHTcpvD01Zr0dXlLP-UzkogSCe19rOkoJQiIPLcM2OrX7SuONqrTQr7wXK09hfafuMhSS7DzGOHXiaS5PNILlm9-m5Xbak0AzsFI84O_8CCFh9DRVF_9f_18pP0iuL-iD08CvorkA18jiwXJyg6ITOIvGJDOB7JvPtk0UqJ9CdEdcZNaVbSi0zYM9L4XslcVR7eeNA0hFONDMp0mvqtCCVo9wSvev3Vxa\"}},\"chunks\":[{\"id\":\"377dacef-cf04-468a-bb46-c33a9be49b23\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"q8wyw64zXs_ELnC3RAoompZV9dbAIS2fYMp_71BAKmk\",\"nonce\":\"D0jd64K-1uXU2S8E\",\"ciphertext\":\"9-r7WoAcRE1FeFRghcfkdUu7jtOltQvku9Ib0_p4n6BRE_ZGhCQmtuzAadLB57KHtGcPQzRdZWm0V8v2IY2nPWksfdqM4T0NcJsXGZohTeVFZ9g\"}},{\"id\":\"b4b36972-8992-4104-9322-19718c73d927\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"mVLE3gFAfEuEHHxDMgduxI2-A_DEBELPGGhvLd9vdlQ\",\"nonce\":\"qMftK7b-CTIqxpEN\",\"ciphertext\":\"65Ms9NO7tJSawoXKinjoFHrRJRkfePvwD8s05utSKnjiXr5_vKxJThchsJ1qQj4\"}},{\"id\":\"54485958-73f0-41c1-8c7e-610cf1928530\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"UnlSzeY4-dneTHeuzXkYBA4xGCsckRPXzaP2jFbUckY\",\"nonce\":\"rNIqvwKxft0isKls\",\"ciphertext\":\"fi2u_gh0-fXVn9fqRnmt386jhyi-jKV3U-mIB3T_LDk3Yu2PxOo\"}}]}",
+    "recovery": "jXcJMh6_bOwgKDXTrVED9E0OWreXc8Q4xCfUW6akjIU"
+   }
+  },
+  {
+   "label": "#42",
+   "commit": "#42 61204c3fb1e959763ecbe81ef402c76990ad1f14",
+   "vaults": [
+    {
+     "recovery": "Sz8nxI9V6SNQS_i0tbdue9UIwB8xSC1ycCsssjbe2dM",
+     "manifest": {
+      "version": 1,
+      "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+      "epoch": 1,
+      "wrapped": {
+       "version": 1,
+       "nonce": "7nP4IWTo-Y0cPYQQ",
+       "ciphertext": "FI8cMwRisPvdnCrx2uc3X8lXu6mq7SsjQIrtLGSsWt-27Pll-bAvEIGoRfOCrIN-"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 1
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "0PmDDWJR9YZkmxMBe4dCZJ7oJ5O4ctNEXrN7CykFdR4",
+        "nonce": "xoewX9jXKYdCgRdE",
+        "ciphertext": "9Quv9rNBQWLG-2KAIrIK5_Ir"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 1
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "_n0JWayhmYjOZ1kL_1eN5Sj32wLNAHsRfP-3H13XcJE",
+        "nonce": "pIqhrgPMLIQt7xtB",
+        "ciphertext": "xZEFAgy4bbPs4LxOQCBfaKLclg"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 1
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "dxNSqjhm7tGhjvG1XCCbYrbOGPNlA4fGlAj4zd537Ik",
+        "nonce": "aViOh0H3-Lr_jXF3",
+        "ciphertext": "ry0j4QncU7H-Shk0kvmohfkkjl8"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 1
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "kbVFo-1YaBlccGFp_rWjSYP_CK5abRp3Od40GbHw8eI",
+        "nonce": "cGX9y7qQpKUSFFsK",
+        "ciphertext": "N-J0rt0K4Mak2u1c3SUPJQR5FPnz"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 1
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "OONuu_wyIV4JCqXKgT-nNTkQZ4uxqGGrh1BUQ96rchA",
+        "nonce": "p51oT49OxE2djaLf",
+        "ciphertext": "aEhyFuDqlCFIOX3cs5rTsE5PzM4e8XaFDC7NrrZZUEqHF_EBcVwONqrgPqrOWHSiGebMPjX3Ds4"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 1
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "gL8ciVT0i-sw_U6MWE5hk91qMPdwuGungq1rRmhZN9E",
+        "nonce": "r_oWEr-mRY6OukLr",
+        "ciphertext": "uYzF9uN2mTVTv1G8v_M3yB8ZLlPY06Qbo6Ph-zNCniRakxK3bF53oSSnejJheOqtxJnrHmk5P8xJcwowwSusQQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 1
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "bab7wfDzhLDax2uSj8SIY7FzIu4GNu0FgyNILU1fGzY",
+        "nonce": "yK1QEtQmVAwXpgkF",
+        "ciphertext": "YDh88fpoEKFQ0GJXoFGZ9SoKsMx03jM4NlpTQTIdoi2FYjyHMjCCoETAxg"
+       }
+      },
+      {
+       "context": {
+        "vault": "b163dc12-2c6a-4c56-8553-86b326aa9d57",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 1
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "LscowowBjZGtEGnWRO11R_lAtFAcz-J0fS4LrS5JtPQ",
+        "nonce": "C3jh3oHhXAUypQlg",
+        "ciphertext": "l5YeU2NMtS-xOOztU1VxT5Os-4fRoo9t9KKX_ctesYECSdhikAZY17XF1EV00xkWYjB8N1cepvIOerB6VXJEEhiT9dZvYOiN43RpmtQ8kl2WZSfW4W-iHRHP8tZuFiFa4pT2WGsimIGRPHSWpFaNuVG0r6lBT1hH8aB-7I2dMHNuXnVKDeL9Whd1YaA_Fq6-WXyFywQTrpfK5lyEhK48MLdyU_-mVW6nURMYZ6cUoVHo8QdCg24DXlxVyqYZt7r2aIBdFOoAzeBomstWWn01GAKWFzxi5jFOK5c"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "A-JmXmiZT1x24VZsg_lWxXCHKF0OjoTdDMl2ofcZ1Ss",
+      "sealed": {
+       "iv": "UjQf0_ZynRculZhd",
+       "ciphertext": "rLsLXyaN00s8fMQhx_CsvCepHQ1KRqfZBuLeOoKzr67XQO8P27Qw0snTW5AkgJV6"
+      },
+      "commitment": "iKTYLAYG5eSLXZ9ZyU3Pi7DAw3ySlG_p2mDEqs4LtJE"
+     }
+    },
+    {
+     "recovery": "PrzTMYpp2AR8PFldN2cg-s4vce68Vpe7reVSkZytHRA",
+     "manifest": {
+      "version": 1,
+      "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+      "epoch": 2,
+      "wrapped": {
+       "version": 1,
+       "nonce": "44hgnmzMW-ZWG__s",
+       "ciphertext": "QxbQ7fR8IC9K2sD9KI7ZLMQlssddf6pQCRGNdoDlYTzGCrexlwYKTVERRo2NxghI"
+      }
+     },
+     "records": [
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000001",
+        "revision": 1,
+        "epoch": 2
+       },
+       "value": "",
+       "envelope": {
+        "version": 2,
+        "salt": "Wx4iWn9Chq0zYjE3gQKSDAWrK9K-0KtAehxMMyX1Ja0",
+        "nonce": "GD12RBd2ZO3BdKCu",
+        "ciphertext": "mkHu5s-A2zlO6KWs144wJit1"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000002",
+        "revision": 2,
+        "epoch": 2
+       },
+       "value": "x",
+       "envelope": {
+        "version": 2,
+        "salt": "oZt-3NvzwtlQPXtBOvNM5Q9EZD3z9DkpKNsilqCs_Nw",
+        "nonce": "GI2law2bBDLiL-Oe",
+        "ciphertext": "wnGaiOq2BSqBuFl4f0K7qhNsiw"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000003",
+        "revision": 3,
+        "epoch": 2
+       },
+       "value": "xy",
+       "envelope": {
+        "version": 2,
+        "salt": "t0qksgIucN-7GQiCRkcj9f0_n-ck4XjcXAtUC7fZd-s",
+        "nonce": "92tNsY-3G2D6pmgG",
+        "ciphertext": "_UIrHrKmoIqJen5eFb1MlTvqBCI"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000004",
+        "revision": 4,
+        "epoch": 2
+       },
+       "value": "xyz",
+       "envelope": {
+        "version": 2,
+        "salt": "M5n17sG29hsYVrWLIn_XuZNmsTTjRrVWgnFgpR7D-kw",
+        "nonce": "2y9KFFyO689rbcEd",
+        "ciphertext": "FhfFpkzBu5hlhfh4bIUzcPGIDCe3"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "finance",
+        "object": "00000000-0000-4000-8000-000000000005",
+        "revision": 5,
+        "epoch": 2
+       },
+       "value": {
+        "goal": "See the sea",
+        "saved": "1250.00"
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "2yZicyDYwwCUIoygz92PbjPEBsUJUo7NiugwrKFgrJ8",
+        "nonce": "h2lsbyKJi31lHKOJ",
+        "ciphertext": "dhxyKsfYPQne7WXFK9rR-fQaeg2nOH2gZXfDrKyu14J6HDJUvnjFf9sMVXVap3idI9al2bBZhww"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "habits",
+        "object": "00000000-0000-4000-8000-000000000006",
+        "revision": 6,
+        "epoch": 2
+       },
+       "value": {
+        "habits": [
+         {
+          "id": "walk",
+          "done": [
+           "2026-10-01"
+          ]
+         }
+        ]
+       },
+       "envelope": {
+        "version": 2,
+        "salt": "MFX7jykD28VZSpY6r6o7HxlMu7HZDLa0FNBWiEz9jMI",
+        "nonce": "o2m9W6y8z-x4AjTx",
+        "ciphertext": "zBZcYJ_y4-ElbHaFCJX8S4ag63cFe8Nhw-ybbppxsBfAaz8ovuFoakHN59mJPKdnCZ0V_gcZM1P1n7KiQzh7OQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "health",
+        "object": "00000000-0000-4000-8000-000000000007",
+        "revision": 7,
+        "epoch": 2
+       },
+       "value": "Ω≈ç√∫ — unicode",
+       "envelope": {
+        "version": 2,
+        "salt": "44uNT6KmJ--5QyCxEbbYEqMGpk0aKEN3zXteYJLhtrI",
+        "nonce": "Uik_pLeBtBTcMrfR",
+        "ciphertext": "vSpSu5LM7d3HaVQFfQPpRMSoBivhRoSLrDImGau3ZrwvG1zY5lhP5Fp_RQ"
+       }
+      },
+      {
+       "context": {
+        "vault": "23dd2244-a7d8-4edd-9530-96365806c137",
+        "domain": "settings",
+        "object": "00000000-0000-4000-8000-000000000008",
+        "revision": 8,
+        "epoch": 2
+       },
+       "value": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+       "envelope": {
+        "version": 2,
+        "salt": "4_QwjAU2Enq26cXV9N2ksFVUL6t4Ur9EqBjJByxRsMw",
+        "nonce": "iX_ZTB6n8Cs0mTkM",
+        "ciphertext": "3gw8YdYg9luymHaQFO4uoHQB3rXnRp0MidvPcfSWbpqxDWwDdBC_GGJ_LiNGTKo9JStVqSJd6EapFFOozGZ3ScAHM7KzIhdRM22SbY1_9ofbQHx9OumR7cpSEoTCfkgldTKBU2CxQyuU_olTMaoWakTtNBSdrhzc10alRIEThOWUaUuzRAsX-tefqq7teeLY_YdQtfBN3Nu4A-fyzm8EnboFsH6IgMpMADp7YfBat_15z8phwAYOwdPgkWBNjM3FadU8VCoTY-lGG-L1I4E3DZ48TVVF8rPrCbY"
+       }
+      }
+     ],
+     "device": {
+      "account": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "manifestDigest": "GaCXGrfpCe-xw3uuonJ_Zf7Md44eod5yW1E5i8O_ZEk",
+      "sealed": {
+       "iv": "fqc0bdVey8-BomiS",
+       "ciphertext": "2GpqCKQEsdt7Ie8eKtvs8vuHF84NzO0FJQMCt9eWAtoYM7f301pikvO63OV0Lj9d"
+      },
+      "commitment": "UxSQhcz1xBuTycoDTvLv05YmU6d9J1BYON3fRet72cA"
+     }
+    }
+   ],
+   "backup": {
+    "file": "{\"format\":\"zigoals-encrypted-backup\",\"version\":1,\"manifest\":{\"version\":1,\"vault\":\"3b606694-9202-4e77-bb4b-1e24d62af6b0\",\"epoch\":1,\"wrapped\":{\"version\":1,\"nonce\":\"qKMorQN2wIaVn6I8\",\"ciphertext\":\"SDHtHKRG60teTtzWtp_luc7SY6oDf6dN5LFZsEMIPtMsoZxmxKmT6nHRVbm-3Biv\"}},\"index\":{\"id\":\"0dd0d53c-aa72-44c5-b114-e591f0470324\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"ljNtceaTMpUE1Z21FhyfcyiIv8kUqF-1-US7pgV7Vu4\",\"nonce\":\"vH307I50JOfkybVR\",\"ciphertext\":\"bVCa5izHxlD1Fp8dKaAStppTaVBHxRuvjor8pCBePU7KFPSpKlXSN16DoEcLoDELzRI3FOcBRluchoAaX6TyxGANtSCpf6roZFq4H7oiHVs9DKO7WTx3HW6nfKh4I7cydPI39b5C3dbUklfmI8GUwnIKylx8lNqOSCBUOdlqaS6_AddAWIjWS6zckDtpJ4Ost8QWHXbbgNEPn7wn1QRN7DJ-t-epiKNh14Jx-6IM4bnJuS07O3I42K1-PPfSso_m0uNDr1VEtJxwb7DZaj55oY8oesGdsqPzmcA5q54s8R3iiWBWDJ_K-DBS\"}},\"chunks\":[{\"id\":\"0757812f-3f69-4cbe-881c-458fff1e6b07\",\"domain\":\"finance\",\"envelope\":{\"version\":2,\"salt\":\"mUGvvGARS329yDi2cy2mVanxsIJaLTnasKShlTsplt0\",\"nonce\":\"VCEy_0gJsVO5a9IN\",\"ciphertext\":\"ZPvm0Iuza2kbGIQLe4TXVcvynhSYGKaNM_tjrZ9VS0ASvOvuIiEfQ04LFG60S5g9T0bLu6ASrmYN-vBXtwQe88sQJ7gGEZtg1HVkKhYYgyzcMmA\"}},{\"id\":\"0d5c55dd-ce11-4382-b938-703bade90eb0\",\"domain\":\"habits\",\"envelope\":{\"version\":2,\"salt\":\"SxtHZgb7k-5e3pmGrtnkYoIUbx5N1BAz7zRXlIecMRc\",\"nonce\":\"79Jb5kr1ufvLD5gj\",\"ciphertext\":\"8JlYNCUcGskVEPMB_jOWVh-L7ywqJcNz4Ey-ecWyV14Saf8i-JzJXtPT-9-Wcak\"}},{\"id\":\"5ad2911e-1a7d-4279-96d7-1ae057b7c7b8\",\"domain\":\"settings\",\"envelope\":{\"version\":2,\"salt\":\"OWhekEOLL2PAQ_NGsqE9CbKwmW7YYAHAN3XV8eBbxGg\",\"nonce\":\"MAEKMIJ4iisg5DWB\",\"ciphertext\":\"Li5iOv7rUti2tU1gxj20OGfLK60xWWs-AB5P8PukizS6bX31sPI\"}}]}",
+    "recovery": "pz3tPB8r_H7aPJHQcfd4nCcKaPhMowZmPbA0CbMUUe0"
+   }
+  }
+ ]
+}
