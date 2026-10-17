@@ -3,21 +3,23 @@ import {useLayoutEffect,useRef,useState} from 'react';
 import {entranceAllowed} from './use-entrance';
 
 type Art={w:number;h:number;star:readonly [number,number];rim:readonly [number,number,number]};
-/** Flare centre and the planet-rim circle [cx, cy, r], measured in source pixels from each artwork file. */
+/** Flare centre and the planet-rim circle [cx, cy, r], measured in source pixels from each artwork file (Session AE: the
+ *  scene files are the same pictures, pixel for pixel, with an alpha channel). */
 export const HERO_ART:Record<string,Art>={
- 'hero.webp':{w:1774,h:887,star:[1552.4,397.2],rim:[468.7,1829.4,1792.9]},
- 'hero-mobile.webp':{w:960,h:480,star:[830.4,206.9],rim:[252.2,994.5,975]},
+ 'hero-scene':{w:1774,h:887,star:[1552.4,397.2],rim:[468.7,1829.4,1792.9]},
+ 'hero-scene-mobile':{w:960,h:480,star:[830.4,206.9],rim:[252.2,994.5,975]},
 };
-const fraction=(value:string)=>value.trim().endsWith('%')?parseFloat(value)/100:Number.NaN;
 
-/** Maps artwork pixels into the ::before box through its cover scale and position; clip copies that box, mask and opacity so the star shows only where the artwork does. */
+/** Maps artwork pixels into the hero through the scene layer's picture box (.today-scene::before, Session AE); clip copies
+ *  that box, its mask and opacity so the star shows only where the artwork does. */
 export function heroArtFrame(hero:HTMLElement){
- const style=getComputedStyle(hero,'::before'),file=/\/([\w-]+\.webp)/.exec(style.backgroundImage)?.[1],art=file?HERO_ART[file]:undefined;
- const left=parseFloat(style.left),top=parseFloat(style.top),width=parseFloat(style.width),height=parseFloat(style.height),px=fraction(style.backgroundPositionX),py=fraction(style.backgroundPositionY);
- if(!art||style.backgroundSize!=='cover'||![left,top,width,height,px,py].every(Number.isFinite))return null;
- const scale=Math.max(width/art.w,height/art.h),x0=(width-art.w*scale)*px,y0=(height-art.h*scale)*py;
+ const scene=hero.querySelector<HTMLElement>(':scope > .today-scene');if(!scene)return null;
+ const style=getComputedStyle(scene,'::before'),file=/\/([\w-]+)\.(?:avif|webp)/.exec(style.backgroundImage)?.[1],art=file?HERO_ART[file]:undefined;
+ const left=parseFloat(style.left)+scene.offsetLeft,top=parseFloat(style.top)+scene.offsetTop,width=parseFloat(style.width),height=parseFloat(style.height);
+ if(!art||![left,top,width,height].every(Number.isFinite)||width<=0)return null;
+ const scale=width/art.w;
  const clip={left:`${left}px`,top:`${top}px`,width:`${width}px`,height:`${height}px`,opacity:style.opacity,maskImage:style.maskImage,maskComposite:style.maskComposite,maskSize:style.maskSize,maskPosition:style.maskPosition,maskRepeat:style.maskRepeat};
- return {art,scale,clip,map:(x:number,y:number)=>[x0+x*scale,y0+y*scale] as const};
+ return {art,scale,clip,map:(x:number,y:number)=>[x*scale,y*scale] as const};
 }
 
 /** Once per visit, the star rises along the planet's rim into the artwork's flare and blooms into it. The layer then leaves the page, so the settled hero is the untouched artwork. */

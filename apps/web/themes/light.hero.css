@@ -1,0 +1,12 @@
+/* Session AE (Part 1 in Light, ADR-027 G7): by day the hero keeps its own night — a soft pool of the nebula's night
+   that dissolves into the day on every side (no card, no edge) — and the scene is painted on it, so the light words keep
+   their dark sky. The pool and the scene end above "What is due now" (its words are ink by day). */
+:root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: visible; border-radius: 0; background: none; box-shadow: none; }
+:root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -96px -84px -8px; z-index: -3; pointer-events: none; background: #040a1c;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 84px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 96px, #000 calc(100% - 64px), transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 84px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 96px, #000 calc(100% - 64px), transparent); mask-composite: intersect; }
+:root[data-theme=light] .today-scene::before { --k: 1; -webkit-mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 66%, transparent 92%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 66%, transparent 92%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); }
+:root[data-theme=light] .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 30px; }
+:root[data-theme=light] .today-hero:not(.today-hero-folded)::before {
+  @media (max-width: 540px) { inset: -28px -16px -6px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); }
+}

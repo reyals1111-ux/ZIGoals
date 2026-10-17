@@ -16,38 +16,51 @@
 @media (max-width: 540px) { .today-hero-folded { margin: 0 0 10px; } .today-hero-strip { flex-wrap: wrap; row-gap: 6px; padding: 8px 48px 8px 4px; gap: 10px; } .today-hero-strip .eyebrow { flex: 1 1 100%; font-size: 14px; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
 @media (prefers-reduced-motion: reduce) { .hero-fold svg { transition: none; } }
 :root[data-app-motion=off] .hero-fold svg { transition: none; }
-/* Session AB-Design Phase 2 closing pass (layout audit, 1024–1280 px): the three pillars sit on a soft dark scrim, so their
-   words keep 4.5:1 over the hero's brightest nebula. */
-@media (min-width: 768px) { :root .today-hero .hero-pillars { background: linear-gradient(180deg, #05091800, #050918b8 40%); } }
-/* Session AD (Part 2): the row's shade fades out at its foot too, so no band edge is left where the hero meets the page. */
-@media (min-width: 768px) { :root .today-hero .hero-pillars { background: linear-gradient(180deg, #05091800, #050918b8 34%, #050918a8 74%, #05091800 100%); } }
-/* Session AD (the owner's brief Part 2, ADR-026 F9): the hero's planets bleed into the page, the footer banner's way — the
-   artwork untouched, its edges feathered, and a soft continuation of the same artwork (public/art/v21/hero-bleed.webp: the
-   hero's own pixels with their right and bottom edges carried outward and blurred, fading to nothing; 1.3 × its width,
-   1.7 × its height) laid under the art, so the planets run on down into "What is due now" and right into the gap by the
-   right column instead of stopping at a card's edge. The continuation's box is the art's box (.today-hero::before) grown
-   by those same factors, and it is drawn with `cover` from the matching point (38.46 % = 1/2.6, 29.41 % = 1/3.4), so at
-   every width it has exactly the art's scale and meets it without a seam. It takes no pointer events and no space, and
-   Today's later sections and the right column are lifted above it (position: relative, no new stacking context), so every
-   card, heading and button stays on top. Folded, neither shows. Phones: below. */
-/* The art and its continuation never widen the page: Today clips them at its own sides (only sideways; up and down they show). */
+/* Session AB-Design Phase 2 closing pass → Session AE: the three pillars' words keep 4.5:1 over the hero's brightest nebula
+   on a soft dark scrim; Session AE (Part 1): an ellipse that fades to nothing before every edge of a box larger than the
+   row (closest-side), so no band or corner of it shows over the planet's horizon (the owner's S2 pointer 1). */
+@media (min-width: 768px) {
+  :root .today-hero .hero-pillars { position: relative; background: none; }
+  :root .today-hero .hero-pillars::before { content: ''; position: absolute; inset: -34px -48px -30px; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, #050918d0 0, #050918b8 46%, #0509186b 76%, #05091800 100%); }
+}
+
+/* Session AE (Part 1, the owner's brief, ADR-027 G10): Today's hero is ONE seamless cosmic scene. The artwork — today's
+   picture, its big planet and the second planet's lit horizon — is painted straight onto the app's starfield: its dark
+   space is see-through (public/art/v27/hero-scene, art-src/scene-alpha.mjs: the original pixels at full resolution with an
+   alpha channel; over the page's ground it is the original picture), and its own edges dissolve into the starfield with
+   wide, soft feathering, so there is no box, seam or hard edge anywhere — not under the top bar, not at its right by the
+   right column, not at its foot. The layer reproduces the old art box's centred cover (the box is a size container; the
+   picture is max(100cqw, 200cqh) wide, 2 : 1), drawn 1.15 × larger around the flare so the flare, the arc and the copy keep
+   their places and the lower planet now reaches down behind "What is due now". It is no longer clipped: it rises behind
+   the status row, runs on under the right column and through the gap beside it, and continues behind Today's focus, which
+   moves down to give it room. It takes no pointer events and no space; every later section and the right column are
+   lifted above it (position: relative, no new stacking context). Folded, the hero has no scene. Phones: below. */
+:root .today-hero::before { content: none; }
+.today-scene { position: absolute; inset: -60px -26px -12px; z-index: -2; pointer-events: none; container-type: size; }
+.today-scene::before { content: ''; position: absolute; --w: max(100cqw, 200cqh); --k: 1.15; --fx: .875; --fy: .448;
+  width: calc(var(--w) * var(--k)); height: calc(var(--w) * var(--k) / 2);
+  left: calc((100cqw - var(--w)) / 2 + var(--fx) * var(--w) * (1 - var(--k))); top: calc((100cqh - var(--w) / 2) / 2 + var(--fy) * var(--w) / 2 * (1 - var(--k)));
+  background: url('/art/v27/hero-scene.webp') 0 0 / 100% 100% no-repeat;
+  background-image: image-set(url('/art/v27/hero-scene.avif') type('image/avif'), url('/art/v27/hero-scene.webp') type('image/webp'));
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 74%, #0008 89%, transparent 100%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 74%, #0008 89%, transparent 100%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); mask-composite: intersect; }
+/* The scene never widens the page: Today clips it at its own sides (only sideways; up and down it shows). */
 :root .today-page { overflow-x: clip; }
 @media (min-width: 541px) {
-  :root .today-hero:not(.today-hero-folded) > .hero-pillars::after { content: ''; position: absolute; z-index: -3; pointer-events: none;
-    left: -26px; top: -60px; width: calc((100% + 52px) * 1.3); height: calc((100% + 72px) * 1.7);
-    background: url('/art/v21/hero-bleed.webp') 38.46% 29.41% / cover no-repeat;
-    /* Its box crops the asset's own fade (cover): the box's far edges fade out too, so no edge shows in a gutter (Session AD design review). */
-    -webkit-mask-image: linear-gradient(90deg, #000 72%, transparent), linear-gradient(180deg, #000 70%, transparent); -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(90deg, #000 72%, transparent), linear-gradient(180deg, #000 70%, transparent); mask-composite: intersect; }
   :root .today-primary > .today-hero:not(.today-hero-folded) ~ *, :root .today-layout:has(> .today-primary > .today-hero:not(.today-hero-folded)) > .today-rail { position: relative; }
-  /* The hero's own art meets that continuation with longer, softer fades at its foot and its right edge (the star, at 87 %
-     of the width, stays clear of the fade). */
-  :root .today-hero::before { mask-image: linear-gradient(180deg, transparent, black 15%, black 72%, transparent), linear-gradient(90deg, transparent, black 5%, black 90%, transparent); }
+  /* Room for the lower planet between the hero and Today's focus. */
+  :root .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 24px; }
+  /* The copy's shade: a soft ellipse, no edge (its box's sides fade too). */
+  :root .today-hero:not(.today-hero-folded)::after { background: radial-gradient(ellipse 64% 60% at 28% 44%, #020918a6, #0209185a 56%, #02091800 100%); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%); mask-image: linear-gradient(90deg, transparent, #000 8%); }
 }
-@media (min-width: 541px) and (max-width: 1100px) { :root .today-hero:not(.today-hero-folded) > .hero-pillars::after { left: -20px; width: calc((100% + 40px) * 1.3); } }
+@media (min-width: 541px) and (max-width: 1100px) { .today-scene { inset-inline: -20px; } }
 @media (max-width: 540px) {
-  /* Phones: the same idea, scaled. The hero's foot already darkens into the page (.today-hero::after), so the planets need no
-     continuation below; the hero stops clipping its art to a rounded box, and the art's sides fade into the page instead. */
+  /* Phones: the same idea, a lighter crop of the phone picture (hero-scene-mobile), its sides and foot dissolving into the
+     page; the hero no longer clips its art to a rounded box. */
   :root .today-hero { overflow: visible; border-radius: 0; }
-  :root .today-hero::before { -webkit-mask-image: linear-gradient(180deg, transparent, black 15%, black 80%, transparent), linear-gradient(90deg, transparent, black 9%, black 91%, transparent); mask-image: linear-gradient(180deg, transparent, black 15%, black 80%, transparent), linear-gradient(90deg, transparent, black 9%, black 91%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .today-scene { inset: -20px -10px -10px; }
+  .today-scene::before { --k: 1; left: calc((100cqw - var(--w)) * .72); opacity: .95;
+    background-image: url('/art/v27/hero-scene-mobile.webp'); background-image: image-set(url('/art/v27/hero-scene-mobile.avif') type('image/avif'), url('/art/v27/hero-scene-mobile.webp') type('image/webp'));
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #0008 7%, #000 18%, #000 76%, transparent 100%), linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(180deg, transparent 0, #0008 7%, #000 18%, #000 76%, transparent 100%), linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
+  :root .today-hero:not(.today-hero-folded)::after { -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%); mask-image: linear-gradient(180deg, transparent, #000 18%); }
 }

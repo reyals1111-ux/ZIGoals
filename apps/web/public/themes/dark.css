@@ -1214,13 +1214,13 @@
 /*  components/dashboard/hero-fold.css  */
 @scope (:root[data-theme=dark]) {
     @media (min-width: 768px) {
-        :scope .today-hero .hero-pillars:not(#\-) {
-            background: linear-gradient(180deg, #01010600, #010106b8 40%)
+        :scope .today-hero .hero-pillars:not(#\-)::before {
+            background: radial-gradient(closest-side, #010106d0 0, #010106b8 46%, #0101066b 76%, #01010600 100%)
         }
     }
-    @media (min-width: 768px) {
-        :scope .today-hero .hero-pillars:not(#\-) {
-            background: linear-gradient(180deg, #01010600, #010106b8 34%, #010106a8 74%, #01010600 100%)
+    @media (min-width: 541px) {
+        :scope .today-hero:not(.today-hero-folded):not(#\-)::after {
+            background: radial-gradient(ellipse 64% 60% at 28% 44%, #000106a6, #0001065a 56%, #00010600 100%)
         }
     }
 }
@@ -1325,7 +1325,9 @@
 /*  components/footer/site-footer.css  */
 @scope (:root[data-theme=dark]) {
     .site-footer:not(#\-)::before {
-        background: linear-gradient(180deg, #00010600 0, #0001062e 26%, #0001068c 50%, #000106c4 70%, #000106e6 86%, #000106 100%)
+        background: radial-gradient(ellipse 34% 22% at 80% 30%, #f06dff1f, transparent 70%),
+    radial-gradient(ellipse 36% 26% at 14% 36%, #23eaff17, transparent 70%),
+    linear-gradient(180deg, #00010600 0, #0001062e 26%, #0001068c 50%, #000106c4 72%, #000106eb 100%)
     }
     .site-footer-node:not(#\-) {
         border-radius: 50%;
@@ -3066,8 +3068,12 @@
    and the artwork dimmed a little, the accents as they are. */
 :root[data-theme=dark] body { background: #010208; }
 :root[data-theme=dark] .app-content::before { opacity: .62; }
-:root[data-theme=dark] :is(.today-hero, .account-panel, .destination-panel, .stake-hero, .staking-card)::before { filter: brightness(.82); }
+:root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card)::before { filter: brightness(.82); }
 :root[data-theme=dark] .site-footer-art { filter: brightness(.8); }
+/* apps/web/themes/dark.hero.css */
+/* Session AE (Part 1 in Dark, ADR-027): the same scene on Dark's deeper ground, the artwork dimmed once (one layer, so
+   nothing meets anything at a different brightness). */
+:root[data-theme=dark] .today-scene::before { filter: brightness(.84); }
 /* apps/web/themes/dark.sidebar.css */
 /* Session AE (Part 3, ADR-027): Dark's sidebar — the same sky as Nebula's, deeper: a near-black ground (never plain black)
    and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
