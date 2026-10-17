@@ -111,6 +111,40 @@ test('no hard edge: across every former boundary of the art and of the old conti
   }
 });
 
+test('by day (Light): the scene keeps its own night, a pool with no edge, and the status row above stays in the day', async ({page}, info) => {
+  test.skip(info.project.name !== 'desktop', 'computers: the pool fades in over the gutter beside the sidebar');
+  await page.goto('/app/settings');
+  await page.evaluate(() => localStorage.setItem('zigoals:ui-prefs:v1', JSON.stringify({version: 1, theme: 'light'})));
+  await today(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme-loading', /.*/);
+  await page.addStyleTag({content: ART_ONLY});
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.waitForTimeout(400);
+  const g = (await geometry(page))!;
+  const median = async (clip: {x: number; y: number; width: number; height: number}) => {
+    const blank = await page.context().newPage();
+    try {
+      return await blank.evaluate(async data => {
+        const img = new Image(); img.src = `data:image/png;base64,${data}`; await img.decode();
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d')!; x.drawImage(img, 0, 0);
+        const px = x.getImageData(0, 0, c.width, c.height).data, v: number[] = [];
+        for (let i = 0; i < px.length; i += 4) v.push((px[i]! + px[i + 1]! + px[i + 2]!) / 3);
+        v.sort((a, b) => a - b); return v[v.length >> 1]!;
+      }, (await page.screenshot({clip})).toString('base64'));
+    } finally { await blank.close(); }
+  };
+  const w = g.hero.right - g.hero.left;
+  // Above the pool, behind the status row: still the day. Behind the copy: night.
+  expect(await median({x: Math.round(g.hero.left + w * .3), y: Math.round(g.hero.top - 40), width: Math.round(w * .4), height: 16})).toBeGreaterThan(200);
+  expect(await median({x: Math.round(g.hero.left + 20), y: Math.round(g.hero.top + 70), width: 240, height: 60})).toBeLessThan(60);
+  // The pool's edges are fades, never cuts: day to night over its gutter side and its top (a cut is a step of ~200).
+  const left = {x: Math.round(g.hero.left - 34), y: Math.round(g.hero.top + 60), width: 56, height: Math.round(g.hero.bottom - g.hero.top - 140)};
+  expect(await largestStep(page, await page.screenshot({clip: left}), 'cols'), 'the gutter side').toBeLessThanOrEqual(14);
+  const top = {x: Math.round(g.hero.left + w * .2), y: Math.round(g.hero.top - 28), width: Math.round(w * .6), height: 56};
+  expect(await largestStep(page, await page.screenshot({clip: top}), 'rows'), 'the top').toBeLessThanOrEqual(14);
+});
+
 /** The gap between the hero and the first piece of content after it that takes up room. */
 const gapAfterHero = (page: Page) => page.evaluate(() => {
   const hero = document.querySelector<HTMLElement>('.today-primary > .today-hero')!;
