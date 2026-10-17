@@ -19,12 +19,23 @@ async function open(page: Page, path: string) {
   await expect(page.locator('.workspace')).not.toHaveAttribute('aria-busy', 'true');
   await page.waitForFunction(() => !document.getAnimations().some(a => a.playState === 'running' && a.effect?.getComputedTiming().endTime !== Infinity));
 }
-const PAGES: [path: string, header: string][] = [
+/** `beside`: what sits next to the header and the art must never touch at any width; `hiddenAt`: widths where a header has
+ * no art by design (still hidden from assistive tech, and nothing there to collide with). */
+type Own = {beside?: string; hiddenAt?: readonly number[]};
+const PAGES: [path: string, header: string, own?: Own][] = [
   ['/app/goals', '.pillar-hero'], ['/app/health', '.pillar-hero'], ['/app/wealth', '.pillar-hero'], ['/app/journey', '.pillar-hero'],
   ['/app/review', '.page-header'], ['/app/wealth/calculator', '.page-header'], ['/app/help', '.page-header'], ['/app/settings/data', '.page-header'],
   ['/app/goals/average/new', '.page-header'], ['/app/share', '.page-header'], ['/app/zigi', '.page-header'],
+  // The hand-written headers: their own .page-heading, Portfolio's hero and the ecosystem's intro panel.
+  ['/app/settings', '.settings-page > .page-heading'], ['/app/activity', '.activity-page > .page-heading'], ['/app/staking', '.positions-workspace > .page-heading'],
+  ['/app/chess', '.chess-page > .page-heading'], ['/app/settings/reminders', '.reminders-plan > .page-heading'], ['/app/goals/templates', '.template-library > .page-heading'],
+  ['/app/goals/new', '.page-heading'], ['/app/health?view=sleep', '.sleep-view > .page-heading'], ['/app/health?view=meditation', '.meditation-view > .page-heading'],
+  ['/app/health?view=devices', '.devices-view > .page-heading'], ['/app/portfolio', '.portfolio-hero'], ['/app/ecosystem', '.ecosystem-intro'],
+  // Markets: the favourites card holds the hero's right, so the art is the top-right corner of the words' column, never on
+  // the card; tablets have none (the card stands right beside the title there).
+  ['/app/markets', '.markets-hero > .markets-hero-copy', {beside: '.markets-hero > .markets-intro-card', hiddenAt: [1024]}],
 ];
-const HABITS: [path: string, header: string] = ['/app/habits', '.pillar-hero'];
+const HABITS: [path: string, header: string, own?: Own] = ['/app/habits', '.pillar-hero'];
 // Each part of the entrance, by any of its names (on phones Habits' planets only fade in: its disc is resized there).
 const ENTRANCE = {orbit: [['ha-ring-in'], ['ha-dot-in'], ['ha-bloom'], ['ha-glyph-in']], habits: [['ha-habit-in'], ['ha-habit-dot', 'ha-fade'], ['ha-habit-glyph']]};
 
@@ -59,15 +70,18 @@ for (const [width, height] of [[1440, 900], [1024, 768], [390, 844]] as const) {
     await page.setViewportSize({width, height});
     await showcase(page);
     // Habits' orbit is the reference; its placement is checked where it is the reference (1440), its motion everywhere below.
-    for (const [path, header] of width === 1440 ? [...PAGES, HABITS] : PAGES) {
+    for (const [path, header, own] of width === 1440 ? [...PAGES, HABITS] : PAGES) {
       await open(page, path);
+      // Health's own views arrive after a placeholder heading: wait for the header's art itself.
+      await expect(page.locator(`main ${header} :is(.orbit-art, .habit-constellation)`).first()).toBeAttached();
       const m = await page.evaluate(measure, header);
       expect(m, `${path}: header art`).not.toBeNull();
       const {disc, host} = m!;
       expect.soft(m!.hidden, `${path}: hidden from assistive tech`).toBe(true);
+      expect.soft(m!.overflow, `${path}: no sideways scroll`).toBeLessThanOrEqual(0);
+      if (own?.hiddenAt?.includes(width)) { expect.soft(m!.shown, `${path}: no art at ${width} px, by design`).toBe(false); continue; }
       expect.soft(m!.shown, `${path}: shown`).toBe(true);
       expect.soft(m!.events, `${path}: never takes a tap`).toBe('none');
-      expect.soft(m!.overflow, `${path}: no sideways scroll`).toBeLessThanOrEqual(0);
       // Inside the header's box, at its right edge and in its upper part.
       expect.soft(disc.x - disc.r, `${path}: left edge inside`).toBeGreaterThanOrEqual(host.left - 2);
       expect.soft(disc.x + disc.r, `${path}: right edge inside`).toBeLessThanOrEqual(host.right + 2);
@@ -76,6 +90,7 @@ for (const [width, height] of [[1440, 900], [1024, 768], [390, 844]] as const) {
       expect.soft(host.right - (disc.x + disc.r), `${path}: at the right`).toBeLessThanOrEqual(24);
       expect.soft(disc.y - disc.r - host.top, `${path}: at the top`).toBeLessThanOrEqual(Math.max(24, (host.bottom - host.top) * .3));
       for (const control of m!.controls) expect.soft(touches(disc, control), `${path}: clear of ${control.what}`).toBe(false);
+      if (own?.beside) for (const beside of await page.locator(`main ${own.beside}`).evaluateAll(els => els.map(e => e.getBoundingClientRect().toJSON() as Box))) expect.soft(touches(disc, beside), `${path}: clear of ${own.beside}`).toBe(false);
       if (width === 390) {
         // Phones: small and faint behind the words, as Habits' orbit.
         expect.soft(disc.r * 2, `${path}: small on a phone`).toBeLessThanOrEqual(140);
@@ -98,6 +113,7 @@ test('the entrance plays once on each header art (Habits\' orbit too), and never
     for (const [path, header] of [...PAGES, HABITS]) {
       await page.goto(path);
       await expect(page.locator('main h1').first()).toBeVisible();
+      await expect(page.locator(`main ${header} :is(.orbit-art, .habit-constellation)`).first()).toBeAttached();
       if (mode === 'off') await expect(page.locator('html')).toHaveAttribute('data-app-motion', 'off');
       const m = await page.evaluate(measure, header);
       expect(m, `${path}: header art`).not.toBeNull();
