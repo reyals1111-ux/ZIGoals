@@ -35,3 +35,11 @@
 :root[data-theme=light] .activity-category-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--event-accent) 38%, #0b1230); }
 /* The line under the theme bar in Settings and More sits on the page itself, not on the bar's night glass. */
 :root[data-theme=light] .theme-switch-note:not(#\-):not(:where(.app-sidebar) *) { color: #3a4566; }
+/* Gradient words in titles and eyebrows (Session AD design review, 2.0–2.9:1 before): by day the nebula flows in deeper
+   stops, each ≥ 4.5:1 on the pale sky; the islands keep the night gradient. */
+:root[data-theme=light] .nebula-flow:not(.is-figure):not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .goal-card-art) *) { --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #0b6f80 68%, #3f4fc0 82%, #6a36b8 92%, #a3266f 100%); }
+/* Wealth's world map behind the glass cards: a whisper by day (it read as grey smudges). */
+:root[data-theme=light] .wealth-hero-scene:not(#\-) { opacity: .08; }
+/* Habits' 30-day map: a full day keeps its own light nebula fill under dark numerals (the mapping had darkened its first
+   stop, so the numerals sat on near-black; Session AD design review). */
+:root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #7ec9df, #aaa4f0, #d7a7df); color: #161c36; }
