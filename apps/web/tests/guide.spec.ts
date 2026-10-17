@@ -130,6 +130,10 @@ test('Showcase: the Guide is on in the demo and its card says so; viewing writes
   await expect(card(page)).toBeVisible();
   await expect(card(page).locator('.eyebrow')).toHaveText(LABEL);
   await expect(card(page)).toContainText('Showcase example.');
+  // Session AD (Part 1, deliberate): the first view includes the footer, whose opening moment marks itself seen for the
+  // visit (a session flag, as before). The phone's shorter footer now came into view on the second view only. Same assertion.
+  await page.locator('footer.site-footer').scrollIntoViewIfNeeded();
+  await expect(page.locator('footer.site-footer [data-intro="done"], footer.site-footer[data-intro="done"]')).toHaveCount(1, {timeout: 10_000});
   const keys = await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes('zigoals')).sort()));
   await page.reload(); await reveal(page); await expect(card(page)).toBeVisible();
   expect(await page.evaluate(() => JSON.stringify(Object.entries(sessionStorage).filter(([k]) => k.includes('zigoals')).sort()))).toBe(keys);
