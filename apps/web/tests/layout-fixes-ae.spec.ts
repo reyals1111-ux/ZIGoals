@@ -39,7 +39,7 @@ for (const demo of ['Showcase', 'a new device'] as const)
         const rail = document.querySelector('.today-rail')!, cards = [...rail.querySelectorAll('.placed-module > :not(.dashboard-builtin-options)')];
         const words = () => cards.flatMap(card => { const out: {card: string; text: string; r: DOMRect}[] = []; const walk = document.createTreeWalker(card, NodeFilter.SHOW_TEXT); let n: Node | null;
           while ((n = walk.nextNode())) { const t = n.textContent!.trim(), el = n.parentElement!; if (!t || el.closest('.sr-only, [hidden], [aria-hidden="true"]') || getComputedStyle(el).visibility === 'hidden') continue;
-            const range = document.createRange(); range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) out.push({card: card.className.split(' ')[0], text: t.slice(0, 40), r}); }
+            const range = document.createRange(); range.selectNodeContents(n); for (const r of range.getClientRects()) if (r.width > 1 && r.height > 1) out.push({card: card.className.split(' ')[0] ?? '', text: t.slice(0, 40), r}); }
           return out; });
         const hits = new Set<string>(), top = rail.getBoundingClientRect().top + scrollY, bottom = top + rail.getBoundingClientRect().height;
         for (let y = Math.max(0, top - innerHeight); y <= bottom; y += 40) {
@@ -98,7 +98,7 @@ test('Settings: the sticky index hides what scrolls under it, nothing paints ove
     await expect(index).toBeVisible();
     await expect(page.locator('#your-ai')).toContainText('Which setup fits me?');
     const surface = await index.evaluate(el => {
-      const s = getComputedStyle(el), alpha = (text: string) => [...text.matchAll(/rgba?\(([^)]+)\)/g)].map(m => { const p = m[1].split(/[\s,/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3]) : 1; });
+      const s = getComputedStyle(el), alpha = (text: string) => [...text.matchAll(/rgba?\(([^)]+)\)/g)].map(m => { const p = (m[1] ?? '').split(/[\s,/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3] ?? '1') : 1; });
       // The colour and the gradient's thinnest stop, layered: how much of what is behind still shows through.
       const color = alpha(s.backgroundColor)[0] ?? 0, stops = alpha(s.backgroundImage), layer = stops.length ? Math.min(...stops) : 0;
       return {blur: parseFloat(/blur\(([\d.]+)px\)/.exec(s.backdropFilter)?.[1] ?? '0'), alpha: +(1 - (1 - color) * (1 - layer)).toFixed(3)};
