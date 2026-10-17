@@ -76,7 +76,11 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 export const MAPS = {
   light: {
     text: c => c.L < 0.58 ? c : c.C < 0.06 ? {...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)} : {...c, L: 0.47, C: Math.min(c.C, 0.17)},
-    surface: c => c.C >= 0.09 && c.L >= 0.55 ? {...c, L: Math.min(c.L, 0.74)} : c.L >= 0.62 && c.C < 0.09 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.985 - c.L * 0.2, C: c.C * 0.32},
+    // Session AE (Part 3, ADR-027 G7): white-family surfaces (near white, a faint tint of their hue) and accent fills a deeper,
+    // matte version of their hue (L ≤ 0.64: bars, rings, trackers and chips reach 3:1 on white; dark ink on them ≥ 5:1).
+    // A mid-tone or light colour with a hue (C ≥ 0.05, L ≥ 0.4) is a mark or a fill (a bar, a ring, a chip), never a panel:
+    // Nebula's panels are dark (L < 0.4).
+    surface: c => c.C >= 0.05 && c.L >= 0.4 ? {...c, L: Math.min(c.L, 0.64), C: c.C * 0.92} : c.L >= 0.62 && c.C < 0.05 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.99 - c.L * 0.14, C: c.C * 0.2},
     border: c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.6), a: Math.min(1, c.a * 1.4)} : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5},
     shadow: c => c.L < 0.42 ? {...c, L: 0.36, C: Math.min(c.C, 0.05), a: c.a * 0.4} : {...c, L: Math.min(c.L, 0.7), a: c.a * 0.55},
     graphic: c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.62)} : c.L >= 0.6 ? {...c, L: 0.32} : c,

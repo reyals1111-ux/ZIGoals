@@ -2,10 +2,23 @@
    that dissolves into the day on every side (no card, no edge) — and the scene is painted on it, so the light words keep
    their dark sky. The pool and the scene end above "What is due now" (its words are ink by day). */
 :root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: visible; border-radius: 0; background: none; box-shadow: none; }
-:root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -96px -84px -8px; z-index: -3; pointer-events: none; background: #040a1c;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 84px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 96px, #000 calc(100% - 64px), transparent); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent, #000 84px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 96px, #000 calc(100% - 64px), transparent); mask-composite: intersect; }
-:root[data-theme=light] .today-scene::before { --k: 1; -webkit-mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 66%, transparent 92%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #0006 9%, #000 24%, #000 66%, transparent 92%), linear-gradient(90deg, transparent 0, #000 9%, #000 84%, #0008 93%, transparent 100%); }
+:root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -14px -84px -8px -26px; z-index: -3; pointer-events: none; background: #040a1c;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 64px), transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 64px), transparent); mask-composite: intersect;
+  @media (min-width: 541px) and (max-width: 1100px) { inset-inline-start: -20px; } }
+/* The pool's left side fades in over the page's gutter, beside the sidebar: Today clips sideways at the workspace by day
+   (only sideways; the page never scrolls sideways), so the fade is not cut at the hero's own edge. */
+:root[data-theme=light] .today-page { overflow-x: visible; }
+:root[data-theme=light] .workspace:has(.today-page) { overflow-x: clip; }
+/* The copy's shade stays inside the pool (above it, by day, it would grey the status row). */
+:root[data-theme=light] .today-hero:not(.today-hero-folded)::after {
+  @media (min-width: 541px) { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%), linear-gradient(180deg, transparent 60px, #000 110px); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 8%), linear-gradient(180deg, transparent 60px, #000 110px); mask-composite: intersect; }
+}
+/* The status row above keeps the day: the scene starts inside the pool. */
+:root[data-theme=light] .today-scene::before { --k: 1; -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 9%, #000 18%, #000 66%, transparent 92%), var(--fade-x); mask-image: linear-gradient(180deg, transparent 0, transparent 9%, #000 18%, #000 66%, transparent 92%), var(--fade-x);
+  /* Its left side fades in with the pool, over the scene box's first 40 px (the picture overhangs the box by (w − 100cqw) / 2). */
+  --fade-x: linear-gradient(90deg, transparent 0, transparent calc((var(--w) - 100cqw) / 2), #000 calc((var(--w) - 100cqw) / 2 + 40px), #000 84%, #0008 93%, transparent 100%);
+  @media (max-width: 540px) { --fade-x: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); } }
 :root[data-theme=light] .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 30px; }
 :root[data-theme=light] .today-hero:not(.today-hero-folded)::before {
   @media (max-width: 540px) { inset: -28px -16px -6px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); }
