@@ -33,7 +33,21 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 ## Parts
 | Part | State | Commits |
 |---|---|---|
-| 0 Records, rules | in progress | `f1d91638` (rule B), `57c8017a` (rule A), generator layers, STATUS #43, ADR-027, this file |
+| 0 Records, rules, verifier | done | `f1d91638` (rule B), `57c8017a` (rule A), `fd0d56ee`, `b480412f`, verifier merge (V) |
+| 1 Hero scene | done (D1) | `1e21a079` |
+| 2 Banner finale, music twin | done (S2) | `28c26393`, `bd38ffe2` |
+| 3 Themes | in progress: sidebar/icon/cross-fade merged (S); Light mapping + dusk banner edited, not yet built | `37f07128` + this part's next commits |
+| 4 | 4.1 merged (S); 4.2 merged (W); 4.3/4.4 merged (B); 4.5 H1 merged, H2 running | merges `f49a9a5a` et al. |
+| 5 Layout | helper L running | — |
+| 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
+
+## Resume here (2026-10-17 21:35 Brussels — Parts 1, 2 done; 3–6 integrating)
+- Running: the focused spec run on `bd38ffe2` (34 files; `$SP/logs/spec2.log`); helpers L (layout), H2 (header art for the
+  hand-written headers), N (What's new + Help). CI run 998 on `3c304d0e`. Run 996 (Part 0 only) red once on
+  `motion-polish:128` (the known family, code identical to `main`).
+- Next: after spec2, regenerate the theme sheets (Light mapping, dusk banner), rebuild, Light/Dark captures and audits,
+  fix; merge L, H2, N as they report; remove the Preview labels once the audits pass; then Gate C (by 05:30).
+- Sandbox-only: `scripts/pre-run11-setup.test.mjs` fails here ("Select pnpm 11.19.0" inside a spawned CLI); CI decides.
 
 ## Resume here (2026-10-17 20:30 Brussels — Part 0)
 - Done: branch, rules A and B, the generator's per-lane layers, STATUS #43 + Release identity, ADR-027, this file; seven
