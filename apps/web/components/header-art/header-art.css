@@ -102,7 +102,7 @@
 @keyframes ha-habit-in { from { opacity: 0; scale: .92; } }
 @keyframes ha-habit-dot { from { opacity: 0; rotate: -26deg; } 40% { opacity: 1; } }
 @keyframes ha-habit-glyph { 0% { opacity: 0; scale: .6; filter: brightness(1.9); } 55% { opacity: 1; scale: 1.08; filter: brightness(1.45); } 100% { scale: 1; filter: none; } }
-.habits-workspace .habit-constellation { animation: ha-habit-in 720ms var(--ha-ease, ease-out) both; }
+.habits-workspace .habit-constellation { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) both; }
 .habits-workspace .habit-constellation::before { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) 70ms both; }
 .habits-workspace .habit-constellation::after { animation: ha-habit-in 720ms cubic-bezier(.22, 1, .36, 1) 140ms both; }
 .habits-workspace .habit-constellation > i { animation: ha-habit-dot 600ms cubic-bezier(.22, 1, .36, 1) 180ms both; }
