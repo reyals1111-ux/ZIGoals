@@ -42,6 +42,17 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 5 Layout | done: four issues (L) + the blur-order fix (`39ebce78`) | `98d5b11f`, `39ebce78` |
 | 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
 
+## Resume here (2026-10-17 22:50 Brussels — Gate C under way)
+- Done: Preview removed (`b9855e3f`); Light audit at 390/1440 (fixes `90c1b18d`, `87780f88`); frozen readers #37–#43 PASS
+  incl. `habits:routines` and linked wallets (`47f95b2f`, `docs/verification/session-ae/gate-c-frozen-readers.txt`);
+  security review (fresh agent): no high, one medium (a unit guard, fixed `418b14b2`), lows fixed (`419c781a` wallet,
+  `0d5b5c2d` PRIVACY.md); review branch `review/session-ae-screens` has `before/` and the variants.
+- Running (`$SP/chain1.sh`): wallet specs → Light re-check → Dark audit (390/1440).
+- Next, in order: Dark fixes; Nebula audit 390/1440; width audits (changed pages 320/768/1024/1920 × 3 themes), touch,
+  stress; after captures → review branch; design critique agent (one fix round); unit suite; revert gate; weights; key
+  scans; rebuild; full browser suite once (nohup, 2 workers); local verifier (`ZIGOALS_VERIFY_BASE`); ADR outcomes; STATUS
+  final entry (last commit); PR out of Draft.
+
 ## Resume here (2026-10-17 22:20 Brussels — every lane merged; Part 3 audits)
 - Done since 21:35: Light white-family + hero pool (`e4198fc2`); L, N, H2 merged; blur order (`39ebce78`); translucent
   tints (`88b175db`); the fold test rewritten (a new device shows its welcome panels when folded: the old "moves up"
