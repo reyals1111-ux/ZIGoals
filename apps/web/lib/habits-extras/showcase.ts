@@ -3,6 +3,7 @@ import {pauseHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {habitExtrasSchema, type HabitExtras} from './schema';
 import {addLocalDays} from '../local-date';
 import {instantAt} from '../zone-time';
+import {showcaseMoment} from '../showcase-moment';
 
 /**
  * Session AA-Local Part 7 (ADR-022): what the Showcase shows of Habits best in class, all fictional and labelled. The six
@@ -38,7 +39,8 @@ export function showcaseHabitsAa(habits: HabitData, day: string, zone: string): 
     const quit = data.habits.find(h => h.id === SHOWCASE_QUIT_ID)!;
     const slips = new Set([date(-26), date(-17), date(-9), date(-4)]); // four slips, spread over the month
     const skips: Record<string, string> = {[date(-24)]: 'Skipped · travelling', [date(-15)]: 'Skipped · ill', [date(-8)]: 'Skipped · family dinner', [date(-3)]: 'Skipped · travelling'}; // four skips with their reasons: the weekday insight leaves skipped days out, so this habit's sample stays below the six habits'
-    quit.entries = Array.from({length: 30}, (_, n) => { const d = date(-29 + n); if (skips[d]) return {date: d, count: 0, disposition: 'skipped' as const, note: skips[d]!, updatedAt: at(-29 + n)}; return {date: d, count: slips.has(d) ? 1 : 0, disposition: slips.has(d) ? 'failed' as const : 'logged' as const, note: '', updatedAt: at(-29 + n)}; });
+    // Session AD item 8: each day's check-in has its evening moment (lib/showcase-moment.ts); today's keeps the day's start.
+    quit.entries = Array.from({length: 30}, (_, n) => { const d = date(-29 + n), updatedAt = showcaseMoment(day, -29 + n, zone, `${SHOWCASE_QUIT_ID}:${d}`, 'evening'); if (skips[d]) return {date: d, count: 0, disposition: 'skipped' as const, note: skips[d]!, updatedAt}; return {date: d, count: slips.has(d) ? 1 : 0, disposition: slips.has(d) ? 'failed' as const : 'logged' as const, note: '', updatedAt}; });
   }
   data = habitDataSchema.parse(data);
   // A timer on Read, paused at 25:00 this morning (the chip on the card and on Today; Resume and Finish work).
