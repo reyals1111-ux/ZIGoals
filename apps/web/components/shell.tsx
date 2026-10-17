@@ -26,7 +26,7 @@ import { pillarOfHref } from "../lib/pillar-route";
 import "./pillar-hero.css";
 import "./ui/card-header.css";
 import "./charts/charts.css";
-import { ThemeSwitch } from "./shell/theme-switch";
+import { LazyThemeSwitch as ThemeSwitch } from "./shell/theme-switch-lazy";
 import { AlphaFacts } from "./alpha/alpha-facts";
 import { GamifyButton } from "./game/gamify-button";
 import { PHONE_STATUS_EVENT } from "./phone/phone-status-event";
