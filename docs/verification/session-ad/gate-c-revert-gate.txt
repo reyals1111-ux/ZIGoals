@@ -1,0 +1,41 @@
+Session AD Gate C — revert gate (scratch worktree of 262c0c8c; git revert newest-first, first-parent, merges with -m 1; tsc --noEmit and -p tsconfig.workers.json (pnpm typecheck's two steps) after each step)
+262c0c8c reverted: typecheck ok
+99907550 reverted: typecheck ok
+e26b25fc reverted: typecheck ok
+57bb6927 reverted: typecheck ok
+cfde99c7 reverted: typecheck ok
+d4db6089 reverted: typecheck ok
+b91b19d4 reverted: typecheck ok
+38702f69 reverted: typecheck ok
+bff3d92c reverted: typecheck ok
+34dad87c reverted: typecheck ok
+651ec506 reverted: typecheck ok
+402d1935 reverted: typecheck ok
+ab511c07 reverted: typecheck ok
+74aee323 reverted: typecheck ok
+9753a430 reverted: typecheck ok
+136be3c3 reverted: typecheck ok
+ab6f8545 reverted: typecheck ok
+132b9c10 reverted: typecheck ok
+2a3f58d2 reverted: typecheck ok
+4ed78fe4 reverted: typecheck ok
+d5fd2ddf reverted: typecheck FAILED
+fafff139 reverted: typecheck FAILED
+50ab05c6 reverted: typecheck FAILED
+ce9b3545 reverted: typecheck FAILED
+c2ca3697 reverted: typecheck FAILED
+389bb3f6 reverted: typecheck FAILED
+ab11cf47 reverted: typecheck ok
+a34eb012 reverted: typecheck ok
+b1117cd4 reverted: typecheck ok
+cfe0f1e1 reverted: typecheck ok
+b917d802 reverted: typecheck ok
+c360ba01 reverted: typecheck ok
+a9505b56 reverted: typecheck ok
+a0e01369 reverted: typecheck ok
+76949675 reverted: typecheck ok
+5c041573 reverted: typecheck ok
+c0a985c0 reverted: typecheck ok
+tree after the last revert equals 61204c3: yes
+
+Note: the six red steps (d5fd2ddf back to 389bb3f6) share one cause. d5fd2ddf added "scripts/frozen-writers/**" to the root tsconfig's exclude; the file it excludes (scripts/frozen-writers/writer.frozen.ts, item 12's frozen encoder runner) came with the merge ab11cf47. Reverting d5fd2ddf alone puts that file back under the root typecheck, which fails until ab11cf47 is reverted too (green again from there). Rollback rule: revert d5fd2ddf together with ab11cf47, or not at all. Every other commit reverts alone.
