@@ -86,7 +86,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
   });
   const keep = () => run(async () => {
     const {dismissRestoreUndo} = await import('../../lib/restore/apply');
-    dismissRestoreUndo(); setUndo(null); setNotes([]); setUndone('The restore is kept. Undo is no longer offered for it.');
+    dismissRestoreUndo(); setUndo(null); setOutcome(null); setNotes([]); setUndone('The restore is kept. Undo is no longer offered for it.'); // one status line, as after Undo
   });
   const mergeAll = () => preview && setModes(Object.fromEntries(preview.rows.map(r => [r.id, r.problem ? 'leave' : 'merge'])));
 
