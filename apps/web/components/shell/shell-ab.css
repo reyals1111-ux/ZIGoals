@@ -21,9 +21,9 @@
 .showcase-chip-actions { display: flex; gap: 8px; }
 .showcase-chip-actions button { flex: 1; min-height: 40px; font-size: 14px; }
 
-/* The status row: one thin utility row (the Showcase chip and demo balance left; wallet, the page's tools, Gamify and the lock right). */
+/* The status row: one thin utility row (the Showcase chip left; wallet, the page's tools, Gamify and the lock right).
+   Session AE (Part 1, ADR-027; owner): the demo balance is no longer in this row; Today's wallet card shows it. */
 .status-row { position: relative; z-index: 31; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 0 2px; }
-.status-row .wallet-balance { font-size: 14px; color: var(--text-meta, #c2d0e5); letter-spacing: .02em; white-space: nowrap; }
 .status-row .status-wallet { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .status-row .status-wallet button { font-size: 14px; min-height: 40px; }
 .status-row .status-wallet .wallet-connect { gap: 10px; min-width: 0; padding-inline: 12px; }
@@ -37,8 +37,9 @@
 .status-row > .gamify { margin-left: auto; }
 .status-row:has(.status-wallet) > .gamify, .status-row:has(.page-tools-slot:not(:empty)) > .gamify { margin-left: 0; }
 /* Phase 2 closing pass (run11-layout-stability on CI): the row's spacing keys on what the server already renders (the
-   Gamify button, the balance), not on the lock that portals in after hydration, so nothing below it moves. */
-.status-row:has(.layout-lock), .status-row:has(.gamify), .status-row:has(.wallet-balance) { margin-bottom: 8px; }
+   Gamify button, the wallet buttons), not on the lock that portals in after hydration, so nothing below it moves. Session
+   AE: the wallet buttons stand in for the balance, which was rendered under the same condition. */
+.status-row:has(.layout-lock), .status-row:has(.gamify), .status-row:has(.status-wallet) { margin-bottom: 8px; }
 @media (max-width: 767.98px) {
   /* Phones: one line — the label and More; the sentence lives in Help and Settings (About this alpha). */
   .alpha-notice { margin: 8px var(--phone-gutter, 16px) 0; min-height: 44px; padding: 5px 46px 5px 12px; align-items: center; }
@@ -50,8 +51,9 @@
   :root .workspace > .status-row { flex-wrap: nowrap; gap: 8px; padding: 6px 0 2px; margin: 0; }
   :root .workspace > .status-row::before { display: none; }
   .status-row .status-wallet { display: none; } /* phones reach the wallet buttons through More → Status & wallet */
-  /* Phase 2 closing pass: the amount and its kind on two short 14 px lines, never cut off. */
-  .status-row .wallet-balance { flex: 1 1 auto; min-width: 0; display: grid; font-size: 14px; line-height: 1.2; white-space: nowrap; }
+  /* Session AE (Part 1): with the balance gone (it filled the row's middle), Gamify and the lock still hug the right edge;
+     the wallet buttons are hidden here but present, so the computer's "no auto margin after the wallet" rule is undone. */
+  .status-row:has(.status-wallet):not(:has(.page-tools-slot:not(:empty))) > .gamify { margin-left: auto; }
   .status-row .showcase-chip, .status-row .gamify, .status-row .layout-lock-slot { flex: none; }
   .status-row .showcase-chip-button { padding: 0 9px 0 8px; font-size: 12px; }
 }
@@ -63,15 +65,15 @@
 .page-game-slot:empty { display: none; }
 .today-game-place { display: grid; }
 
-/* The page tools, the rocket and the lock always hug the row's right edge, with or without the demo balance. */
+/* The page tools, the rocket and the lock always hug the row's right edge. */
 .status-row > .page-tools-slot { margin-left: auto; }
 
 /* Phones: every ⋯ options trigger is a 44 px target (a tracked goal's 'Goal actions' measured 39 px). */
 @media (max-width: 767.98px) { .card-options-trigger { min-width: 44px; } }
 /* Phones: a tracked goal's "Goal actions" ⋯ summary is a 44 px target too. */
 @media (max-width: 767.98px) { .goal-actions > summary { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; box-sizing: border-box; } }
-/* 320 px: the demo balance keeps more of its words beside the chip. */
-@media (max-width: 360px) { .status-row .wallet-balance { font-size: 14px; letter-spacing: 0; } .status-row .showcase-chip { padding-left: 10px; padding-right: 10px; } }
+/* 320 px: the chip keeps its narrower padding (it made room for the demo balance, gone since Session AE). */
+@media (max-width: 360px) { .status-row .showcase-chip { padding-left: 10px; padding-right: 10px; } }
 
 /* Gate C critique: on wide screens the notice's More link keeps the close button's company instead of dangling on a second line. */
 @media (min-width: 900px) { .alpha-notice { padding-right: 112px; } .alpha-notice .text-link { position: absolute; right: 52px; top: 50%; translate: 0 -50%; margin: 0; } }
@@ -85,17 +87,9 @@
 /* Phase 2, Part 12: the chip's "· fictional" (SHOWCASE_CHIP) on wider screens; phones keep the one word beside the lock. */
 .showcase-chip-more { font-weight: 500; opacity: .85; }
 @media (max-width: 767.98px) { .showcase-chip-more { display: none; } }
-/* Session AB-Design Phase 2 closing pass (layout audit, 320–374 px): the chip, the balance, Gamify and the lock need about
-   31 px more than the row has, and the rocket was drawn over "1000 ZIG / demo balance". There the balance takes its own
-   line under the controls, whole and still labelled "demo balance" (an honesty label: never shortened). */
-@media (max-width: 374px) {
-  :root .workspace > .status-row:has(.wallet-balance) { flex-wrap: wrap; row-gap: 2px; }
-  :root .status-row .wallet-balance { order: 9; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 0 6px; padding-left: 4px; }
-}
 /* Session AC (leftover "the 1024 px wrap"): from 768 to 1279 px the status row ran one item too long, so the layout lock
-   dropped alone to a second line at the left (Wealth and every page at 1024). The demo balance reads as two short lines
-   there ("1,000 ZIG" over "demo balance") and the row's gaps tighten, so the lock keeps the row's right end. */
+   dropped alone to a second line at the left (Wealth and every page at 1024). The row's gaps tighten there, so the lock
+   keeps the row's right end. (Session AE: the demo balance's two-line form and its own line at 320–374 px went with it.) */
 @media (min-width: 768px) and (max-width: 1279.98px) {
   :root .workspace > .status-row { gap: 8px; }
-  :root .status-row .wallet-balance { display: grid; line-height: 1.2; }
 }

@@ -58,12 +58,19 @@ test('2. phones: one compact Alpha notice on the first screen; More → Status &
   const sheet = await openStatusSheet(page);
   await expect(sheet).toContainText(ALPHA_LABEL);
   await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab');
-  await expect(sheet).toContainText(/ZIG demo balance/);
+  // Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated in this sheet (nor the top bar); its
+  // assertion moved to Today's wallet card below, as strict.
+  await expect(sheet).not.toContainText(/demo balance/);
   await expect(sheet.getByRole('button', {name: 'Demo records', exact: true})).toHaveAttribute('aria-pressed', 'true');
   await expect(sheet.getByRole('button', {name: 'Connect Keplr', exact: true})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(sheet).toBeHidden();
   await expect(page.getByRole('button', {name: 'More', exact: true})).toBeFocused();
+  // Moved from the sheet (was: `toContainText(/ZIG demo balance/)`): the amount in ZIG and its simulated kind, on Today's wallet card.
+  await page.goto('/app'); await expect(page.locator('main h1').first()).toBeVisible();
+  await openFold(page, 'Your wallet');
+  await expect(page.locator('.account-panel .account-value')).toContainText(/\d ZIG/);
+  await expect(page.locator('.account-panel')).toContainText('Simulated balance · this browser');
   for (const path of ['/app', '/app/wealth', '/app/staking', '/app/settings']) {
     await page.goto(path); await expect(page.locator('main h1').first()).toBeVisible();
     await expect(alphaNotice(page), path).toBeInViewport();

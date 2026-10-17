@@ -124,9 +124,12 @@ test.describe('Part 18.5: one white→nebula style for titles and topics',()=>{
 
 test.describe('Part 18.4: one place for the layout lock',()=>{
  const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity'];
- const where=(page:Page)=>page.evaluate(()=>{const lock=document.querySelector<HTMLElement>('.layout-lock')!,b=lock.getBoundingClientRect(),row=lock.closest('.status-row'),balance=row?.querySelector('.wallet-balance')?.getBoundingClientRect(),main=document.querySelector('main')!.getBoundingClientRect(),workspace=document.querySelector('.workspace')!.getBoundingClientRect();
-  return {inRow:!!row,afterBalance:balance?b.left>=balance.right-1&&b.top<balance.bottom&&b.bottom>balance.top:null,right:Math.round(workspace.right-b.right),padding:Math.round(parseFloat(getComputedStyle(document.querySelector('.workspace')!).paddingRight)),size:[Math.round(b.width),Math.round(b.height)],firstView:b.top>=0&&b.bottom<=innerHeight,clearOfMain:b.bottom<=main.top-4,count:document.querySelectorAll('.layout-lock').length};});
- test('the lock sits right after the demo balance, in the same spot on every page',async({page,isMobile})=>{
+ // Session AE (Part 1, ADR-027 G6; re-anchored, as strict): the demo balance left the row (owner), so the lock is measured
+ // against its remaining neighbour on the left, the wallet buttons (which always followed the balance): after them, on
+ // their line. A box with no size (the buttons are hidden on phones) counts as absent, as the balance did there.
+ const where=(page:Page)=>page.evaluate(()=>{const lock=document.querySelector<HTMLElement>('.layout-lock')!,b=lock.getBoundingClientRect(),row=lock.closest('.status-row'),seen=row?.querySelector('.status-wallet')?.getBoundingClientRect(),wallet=seen&&seen.width&&seen.height?seen:undefined,main=document.querySelector('main')!.getBoundingClientRect(),workspace=document.querySelector('.workspace')!.getBoundingClientRect();
+  return {inRow:!!row,afterWallet:wallet?b.left>=wallet.right-1&&b.top<wallet.bottom&&b.bottom>wallet.top:null,right:Math.round(workspace.right-b.right),padding:Math.round(parseFloat(getComputedStyle(document.querySelector('.workspace')!).paddingRight)),size:[Math.round(b.width),Math.round(b.height)],firstView:b.top>=0&&b.bottom<=innerHeight,clearOfMain:b.bottom<=main.top-4,count:document.querySelectorAll('.layout-lock').length};});
+ test('the lock sits right after the wallet buttons, in the same spot on every page',async({page,isMobile})=>{
   await showcase(page);const spots=new Set<number>();
   for(const path of PAGES){
    await page.goto(path);await expect(page.locator('main h1').first()).toBeVisible();await page.evaluate(()=>scrollTo(0,0));
@@ -135,7 +138,7 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
    // On phones the whole status strip sits below the navigation and banners; on desktop it is in the first view.
    // Session Z-Cloud Part 4.2 (assertion changed, ADR-019): on a phone the balance is in the Status sheet behind the one
    // status line, so there the lock is alone at the end of its row; everything else is checked as before.
-   expect(w,path).toMatchObject({inRow:true,...(isMobile?{}:{afterBalance:true}),clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
+   expect(w,path).toMatchObject({inRow:true,...(isMobile?{}:{afterWallet:true}),clearOfMain:true,count:1,right:w.padding});if(!isMobile)expect(w.firstView,path).toBe(true);
    if(isMobile)await expect(alphaNotice(page),path).toBeVisible(); // Session AB-Design: the compact notice above the row
    expect(w.size[0],path).toBeGreaterThanOrEqual(44);expect(w.size[1],path).toBeGreaterThanOrEqual(44);spots.add(w.right);
   }
@@ -147,7 +150,7 @@ test.describe('Part 18.4: one place for the layout lock',()=>{
   await page.addInitScript(({key,value})=>{if(!sessionStorage.getItem('fixture-seeded')){localStorage.setItem(key,value);sessionStorage.setItem('fixture-seeded','1');}},{key:DASHBOARD_SETTINGS_KEY,value:JSON.stringify(presetSettings('habits-health'))});
   await page.goto('/app/habits');await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.mode-strip')).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Unlock layout to rearrange',exact:true})).toBeVisible();
-  const w=await where(page);expect(w).toMatchObject({inRow:true,afterBalance:null,right:w.padding,clearOfMain:true,count:1});if(!isMobile)expect(w.firstView).toBe(true);
+  const w=await where(page);expect(w).toMatchObject({inRow:true,afterWallet:null,right:w.padding,clearOfMain:true,count:1});if(!isMobile)expect(w.firstView).toBe(true);
  });
 });
 
