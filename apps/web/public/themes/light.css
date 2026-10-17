@@ -8195,6 +8195,12 @@
         outline: 2px solid #03919f;
         outline-offset: 2px
     }
+    .theme-switch-compact .theme-option:not(#\-) {
+        color: #080f1c
+    }
+    .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) {
+        color: #0f0f0f
+    }
     .theme-switch-compact .theme-option small:not(#\-) {
         border-radius: 999px;
         color: #0a1428;
