@@ -601,7 +601,7 @@
     @media (min-width: 768px) {
         :scope .settings-page .settings-sections:not(#\-) {
             border-radius: 0 0 16px 16px;
-            background: linear-gradient(180deg, #f3f5f9f2, #f0f3f9e6)
+            background: linear-gradient(180deg, #f3f5f9f7, #f0f3f9f0)
         }
     }
 }
