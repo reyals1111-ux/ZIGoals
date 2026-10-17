@@ -90,7 +90,8 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
   useEffect(() => { if (!sheet && !btcOpen) (items().find(el => el.dataset.key === focusNext.current) ?? items()[0])?.focus({preventScroll: true}); focusNext.current = null; }, [sheet, btcOpen, linked.wallets.length]);
   const onKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const all = items(), at = all.indexOf(event.target as HTMLElement);
-    if (event.key === 'Tab') { onClose?.(false); return; }
+    // Tab leaves the menu from the ▾ (the menu is gone by the time the browser moves the focus on).
+    if (event.key === 'Tab') { onClose?.(true); return; }
     const move = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : event.key === 'Home' ? -at : event.key === 'End' ? all.length - 1 - at : 0;
     if (!move || at < 0) return;
     event.preventDefault(); all[(at + move + all.length) % all.length]?.focus();
