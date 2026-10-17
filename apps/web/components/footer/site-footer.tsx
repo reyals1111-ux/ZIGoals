@@ -30,6 +30,7 @@ export function SiteFooter() {
   const social = enabledSocialLinks();
   return <footer className="site-footer" aria-label="About ZIGoals">
     <div className="site-footer-art" aria-hidden="true"/>
+    <div className="site-footer-glow" aria-hidden="true"><i data-glow="mist"/><i data-glow="horizon"/></div>
     <div className="site-footer-inner">
       <div className="site-footer-stage">
         <div className="site-footer-brand">

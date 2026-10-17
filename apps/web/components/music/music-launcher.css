@@ -37,3 +37,18 @@
 @media (prefers-reduced-motion:reduce){.music-launcher{transition:none}.music-launcher:hover,.music-launcher:focus-visible{transform:none}}
 :root[data-app-motion=off] .music-launcher{transition:none}
 :root[data-app-motion=off] .music-launcher:hover,:root[data-app-motion=off] .music-launcher:focus-visible{transform:none}
+/* Session AE (Part 2.5, the owner's request, ADR-027): the music button is ZIGi's launcher's twin — the same circle
+   (ai-launcher.css .ai-launcher-button: its size, following ZIGi's own s/m/l setting, the violet rim, the deep nebula fill,
+   the purple glow, the hover lift) with a music glyph in ZIGi's nebula colours instead of ZIGi; its edge tab is ZIGi's tab. */
+.music-launcher{--zigi-circle:56px;width:var(--zigi-circle);height:var(--zigi-circle)}
+/* One column with ZIGi's button: both circles' centres on the same line (ZIGi's sits 20 px from the edge). */
+.music-launcher-stack{right:max(20px,env(safe-area-inset-right,0px))}
+:root[data-zigi-side=left] .music-launcher-stack{right:auto;left:max(20px,env(safe-area-inset-left,0px))}
+@media (min-width:901px){:root[data-zigi-side=left] .music-launcher-stack{left:calc(var(--sidebar-width,216px) + 20px)}}
+:root:has(.ai-launcher[data-size=s]) .music-launcher{--zigi-circle:48px}
+:root:has(.ai-launcher[data-size=l]) .music-launcher{--zigi-circle:64px}
+.music-launcher .music-note{width:calc(var(--zigi-circle) * .54);height:calc(var(--zigi-circle) * .54);filter:drop-shadow(0 0 6px #b06bff8c) drop-shadow(0 0 2px #63e7ff66)}
+.music-edge-tab{width:44px;height:52px;padding:0 0 0 4px;border-radius:16px 0 0 16px;box-shadow:0 10px 26px -12px rgba(60,40,160,.8);bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + 122px)}
+:root[data-zigi-side=left] .music-edge-tab{padding:0 4px 0 0;border-radius:0 16px 16px 0}
+.music-edge-tab .music-note{width:24px;height:24px;filter:drop-shadow(0 0 5px #b06bff8c)}
+@media (forced-colors:active){.music-note{filter:none}}

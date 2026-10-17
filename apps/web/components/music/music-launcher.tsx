@@ -1,6 +1,6 @@
 'use client';
 import {usePathname} from 'next/navigation';
-import {Suspense, lazy, useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore} from 'react';
 import {ACCOUNT_CHANGE} from '../../lib/account-session';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {ambientState, serverAmbientState, subscribeAmbient} from '../../lib/audio/ambient-state';
@@ -26,7 +26,9 @@ const MusicMini = lazy(() => import('./music-mini'));
 function readMini(): boolean {
   try { const raw = getAppStorage().getItem(MUSIC_KEY), value = raw ? JSON.parse(raw) as {version?: unknown; mini?: unknown} : null; return !!value && value.version === 1 && value.mini === true; } catch { return false; }
 }
-const MusicNote = () => <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M9 18V6l11-2v12M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0m11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M9 10l11-2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+/** Session AE (Part 2.5, ADR-027): the music button is ZIGi's twin; its glyph is drawn in ZIGi's nebula colours (cyan,
+ *  violet, magenta, pink) as ZIGi's origami figure is, so the two circles read as one pair. */
+const MusicNote = () => { const id = `mn${useId().replace(/[^a-zA-Z0-9]/g, '')}`; return <svg className="music-note" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true" focusable="false"><defs><linearGradient id={id} x1="3" y1="20" x2="21" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#63e7ff"/><stop offset=".42" stopColor="#826cff"/><stop offset=".75" stopColor="#c664ff"/><stop offset="1" stopColor="#ff74be"/></linearGradient></defs><g fill={`url(#${id})`} stroke={`url(#${id})`} strokeLinecap="round" strokeLinejoin="round"><path d="M9 6.4 20 4.1v2.7L9 9.1z" strokeWidth=".6"/><path d="M9.2 7.4v10.2M19.8 5.2v9.9" fill="none" strokeWidth="1.8"/><ellipse cx="6.7" cy="17.7" rx="3" ry="2.3" transform="rotate(-20 6.7 17.7)" strokeWidth=".4"/><ellipse cx="17.3" cy="15.4" rx="3" ry="2.3" transform="rotate(-20 17.3 15.4)" strokeWidth=".4"/></g><path d="M4.6 3.2l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="#d9f6ff"/></svg>; };
 export function MusicLauncher() {
   const [mounted, setMounted] = useState(false), [open, setOpen] = useState(false), [loaded, setLoaded] = useState(false), [mini, setMini] = useState(false);
   const pathname = usePathname() ?? '', shown = isShown(usePagesView(), 'music'), phone = usePhoneActive();

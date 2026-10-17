@@ -3236,6 +3236,12 @@
 }
 /*  components/footer/site-footer.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
+    .site-footer-glow > i[data-glow=horizon]:not(#\-) {
+        background: radial-gradient(closest-side, #ee6bfd1f, transparent 100%)
+    }
+    .site-footer-glow > i[data-glow=mist]:not(#\-) {
+        background: radial-gradient(closest-side, #24c0d117, transparent 100%)
+    }
     .site-footer-logo:not(#\-)::before {
         border-radius: 50%;
         background: radial-gradient(closest-side, #7b5cff4d, #22b7fe1f 55%, transparent 100%)
@@ -3301,7 +3307,18 @@
         background: radial-gradient(closest-side, #ecf1f9d9 0%, #ecf1f9a6 42%, #ecf1f940 70%, #ecf1f900 100%)
     }
     .site-footer-star-core:not(#\-) {
-        background: radial-gradient(closest-side, #da8dc6 0 9%, #ec7ecb 16%, #ee6bfdcc 28%, #d65cffa3 40%, #b06bff4d 56%, #9273ff1a 72%, #fafafa00 100%)
+        background: radial-gradient(closest-side, #ec7ecb 0 10%, #fa70ce 18%, #ee6bfdcc 30%, #d65cffa3 42%, #b06bff4d 58%, #9273ff1a 72%, #fafafa00 100%)
+    }
+    .site-footer-star-pulse:not(#\-) {
+        background: radial-gradient(closest-side, #ec7ecbd0 0, #ee6bfd8c 30%, #d65cff3d 58%, #fafafa00 100%)
+    }
+    .site-footer-burst > i:not(#\-) {
+        border-radius: 50%;
+        filter: blur(14px);
+        background: radial-gradient(closest-side, var(--mist), #fafafa00 72%)
+    }
+    .site-footer-twinkle:not(#\-) {
+        background: radial-gradient(closest-side, #242424 0 10%, #0e2830aa 22%, #fafafa00 62%), linear-gradient(90deg, #fafafa00 47%, #19262cd9 50%, #fafafa00 53%), linear-gradient(0deg, #fafafa00 47%, #19262cd9 50%, #fafafa00 53%)
     }
     .site-footer-social:not(#\-) {
         border-top: 1px solid #5286ac35;
@@ -5847,6 +5864,9 @@
     }
     .music-launcher:hover:not(#\-), .music-launcher:focus-visible:not(#\-) {
         box-shadow: 0 18px 40px -14px #5a46c87e
+    }
+    .music-launcher .music-note:not(#\-) {
+        filter: drop-shadow(0 0 6px #b06bff4d) drop-shadow(0 0 2px #13b1c938)
     }
 }
 /*  components/music/music-panel.css  */
