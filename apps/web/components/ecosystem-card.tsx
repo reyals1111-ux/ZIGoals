@@ -5,6 +5,7 @@ import {isSafeReferenceUrl} from '@zigoals/ecosystem-registry/links';
 import type {DirectoryEntry} from '@zigoals/ecosystem-registry/providers';
 import {PinToToday} from './pin-to-today';
 import {AppIcon} from './app-icon';
+import {formatDate} from '../lib/visual-format';
 
 /**
  * One Ecosystem project (Session I, Part 6). The header is a button (inside the heading, so the heading keeps the
@@ -53,7 +54,7 @@ export function EcosystemCard({entry, open, onToggle}: {entry: DirectoryEntry; o
       <section><h3>What the sources say</h3><ul>{p.sources.map((s, i) => <li key={`${s.url}:${i}`}><a href={s.url} {...external}>{s.title} ↗</a><small>{s.supports}</small></li>)}</ul></section>
       {/* The project's own links stay in the quick links above; documentation the record lists (HTTPS, no credentials) comes here. */}
       {documentation.length > 0 && <section><h3>Documentation</h3><ul className="ecosystem-links">{documentation.map(url => <li key={url}><a href={url} {...external}>{new URL(url).hostname}{new URL(url).pathname.replace(/\/$/, '')} ↗</a></li>)}</ul></section>}
-      <p className="fine">Record reviewed <time dateTime={entry.reviewedAt}>{entry.reviewedAt}</time>. Logo: {entry.logo.reason}</p>
+      <p className="fine">Record reviewed <time dateTime={entry.reviewedAt}>{formatDate(entry.reviewedAt)}</time>. Logo: {entry.logo.reason}</p>
     </div>
   </article>;
 }

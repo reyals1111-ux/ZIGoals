@@ -18,6 +18,7 @@ import {zigiSignals} from '../zigi/bus';
 import {AI_OPTIONS} from '../../lib/ai/store/records';
 import {languageModel, onDeviceAvailability, onDeviceSession} from '../../lib/ai/on-device';
 import {ON_DEVICE_FAILED, ON_DEVICE_NOT_READY, SAY_NICER_SYSTEM, shortReply} from '../../lib/ai/on-device-chat';
+import {formatDate} from '../../lib/visual-format';
 
 /**
  * ZIGi's proactive side (Session V Part 9), all computed on this device: the morning brief in the greeting, suggestion
@@ -117,9 +118,9 @@ export function ReviewView({context, connected, session, onBack}: {context: Cont
   useEffect(() => { if (shown) zigiSignals.emit('week_opened'); }, [shown]);
   return <ViewFrame title="Your week with ZIGi" onBack={onBack}>
     {!review ? <p className="ai-note">The weekly review is not available on this device yet; it starts on Today.</p> : <>
-      <p className="ai-note">Your review week, {review.from} to {review.to}, read on this device. Counts, not grades: a skipped day is part of a plan.</p>
+      <p className="ai-note">Your review week, {formatDate(review.from)} to {formatDate(review.to)}, read on this device. Counts, not grades: a skipped day is part of a plan.</p>
       <ul className="ai-review-lines">
-        <li>{review.checkIns} habit check-ins{review.busiestDay ? `; the busiest day was ${review.busiestDay}` : ''}.</li>
+        <li>{review.checkIns} habit check-ins{review.busiestDay ? `; the busiest day was ${formatDate(review.busiestDay, {weekday: true})}` : ''}.</li>
         <li>{review.contributions} goal contributions recorded.</li>
         <li>{review.quietDays.length ? `Days with a habit planned and no check-in: ${review.quietDays.length} (${review.quietDays.join(', ')}).` : 'Every day with a habit planned had a check-in.'}</li>
         {review.lastIntention && <li>Your intention last week: {review.lastIntention}</li>}

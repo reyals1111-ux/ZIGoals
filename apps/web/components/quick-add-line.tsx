@@ -9,6 +9,7 @@ import {parse, type QuickAddContext, type QuickAddKnown, type QuickAddResult} fr
 import {describeChoice, describeQuickAdd, savedLine} from '../lib/quick-add/describe';
 import {applyQuickAdd, type QuickAddStores, type QuickAddWrite} from '../lib/quick-add/save';
 import {storageMessageOr} from '../lib/storage-error-copy';
+import {formatClock} from '../lib/visual-format';
 
 /**
  * A2: the Quick-add line. One field, Enter or Preview shows exactly what would be saved, and nothing is written before
@@ -66,7 +67,7 @@ export function QuickAddLine({initialText, onlyIfUnderstood = false}: {initialTe
       {active && <div className="quick-add-line-card"><p className="quick-add-line-will">Will save: {describeQuickAdd(active)} · {active.day}</p>
         {active.kind === 'water' && active.shown.unit === 'glasses' && <p className="fine">A glass is counted as 250 mL.</p>}
         {active.kind === 'sleep' && <><label className="field"><span>When did you wake up ({active.day})?</span><input type="time" required value={wake} onChange={event => setWake(event.target.value)} /></label>
-          <p className="fine">{bedtime ? `A night in Sleep: in bed from ${bedtime}, worked out from your wake time and how long you slept.` : 'It becomes a night in Health → Sleep, ending when you woke up.'} Time to fall asleep and time awake aren’t known, so Sleep marks it estimated.</p></>}
+          <p className="fine">{bedtime ? `A night in Sleep: in bed from ${formatClock(bedtime)}, worked out from your wake time and how long you slept.` : 'It becomes a night in Health → Sleep, ending when you woke up.'} Time to fall asleep and time awake aren’t known, so Sleep marks it estimated.</p></>}
         <div className="actions"><button type="button" className="primary" disabled={busy || needsWake} onClick={() => void save(active)}>{busy ? 'Saving…' : 'Save'}</button><button type="button" className="quiet" disabled={busy} onClick={() => { setResult(null); setChosen(null); setText(''); setWake(''); field.current?.focus(); }}>Clear</button></div></div>}
       {result?.kind === 'ambiguous' && !chosen && <div className="quick-add-line-card"><p>Did you mean…</p><div className="actions">{result.choices.map((choice, index) => <button key={index} type="button" className="secondary" onClick={() => setChosen(choice)}>{describeChoice(choice)}</button>)}</div></div>}
       {result?.kind === 'needs-more' && <p className="quick-add-line-hint">{result.hint}</p>}

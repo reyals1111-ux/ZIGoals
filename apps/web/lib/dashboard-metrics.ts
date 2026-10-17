@@ -9,7 +9,7 @@ import {HEALTH_MEALS,scaleNutrition,summarizeNutrition,nutritionSummaryText,dail
 import {dailyData,waterSummary} from './health-daily';
 import {waterText} from './health-units';
 import type {MarketQuote} from './market-quotes';
-import {formatExactNumber,formatNumber} from './visual-format';
+import {formatDate,formatDateTime,formatExactNumber,formatNumber} from './visual-format';
 import {plural,unitFor} from './plural';
 import {WIDGET_CATALOG,type DashboardWidget} from './dashboard-settings';
 import {DIRECTORY_NAMES} from '@zigoals/ecosystem-registry/directory-names';
@@ -46,7 +46,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const last=[...nights].sort((a,b)=>b.end!.localeCompare(a.end!))[0];
   if(!last)return {...defaults,title,value:'No night logged yet',detail:'Log a night or tap “I’m going to bed” in Sleep.',href};
   const slept=sleepAsleep(last)!;
-  return {...defaults,title,value:`${formatMinutes(slept.minutes)} asleep`,detail:`Night ending ${sleepNightDay(last)}${slept.estimated?' · estimated':''}${last.quality?` · quality ${last.quality}/5`:''}`,href};
+  return {...defaults,title,value:`${formatMinutes(slept.minutes)} asleep`,detail:`Night ending ${formatDate(sleepNightDay(last)!)}${slept.estimated?' · estimated':''}${last.quality?` · quality ${last.quality}/5`:''}`,href};
  }
  // Session W Part 5: Meditation from Health v4's own sessions; a day without one says so, never zero.
  if(widget.kind==='meditation'){
@@ -76,7 +76,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const days=Math.round((Date.parse(`${next.targetDate}T00:00:00Z`)-Date.parse(`${s.today}T00:00:00Z`))/86400000);
   // QA-37/38 (Session I, Part 10): progress that is a lower bound or unknown is said so, never drawn as exact.
   const remaining=next.heldAsset||next.progressBound==='unavailable'?'Unknown':next.remaining!==undefined?`${next.progressBound==='at-least'?'At most ':''}${formatGoalAmount(next.remaining,next.currency)}`:'Not available';
-  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${next.targetDate} · saved in your plan`,href:next.href,percent:next.progressBound?undefined:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:formatNumber(days)},...(next.progressBound?[{label:'Progress',value:progressText(next.progressPct,next.progressBound)}]:[]),{label:next.currency==='milestones'?'Milestones left':'Remaining',value:remaining}]};
+  return {...defaults,title:widget.title||'Next Goal milestone',value:next.name,detail:`Target date ${formatDate(next.targetDate!)} · saved in your plan`,href:next.href,percent:next.progressBound?undefined:next.progressPct,complete:false,facts:[{label:'Days to the target date',value:formatNumber(days)},...(next.progressBound?[{label:'Progress',value:progressText(next.progressPct,next.progressBound)}]:[]),{label:next.currency==='milestones'?'Milestones left':'Remaining',value:remaining}]};
  }
  if(widget.kind==='streak'||widget.kind==='checkins'){
   const active=s.habits.habits.filter(h=>habitRuleOn(h,habitToday)?.state!=='archived');
@@ -99,7 +99,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
  }
  if(widget.kind==='exercise'){
   const counters=exerciseData(s.health).counters,counts=counters.map(c=>({c,n:countOn(s.health,c.id,s.healthDate)})),logged=counts.filter(x=>x.n!==null).length;
-  return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${s.healthDate} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
+  return {...defaults,title:widget.title||'Exercise counters today',value:counters.length?`${logged} of ${counters.length} counted`:'No counters',detail:`${formatDate(s.healthDate)} · each exercise counted on its own`,href:'/app/health',facts:counts.map(({c,n})=>({label:c.name,value:n===null?'No entry':formatNumber(n)}))};
  }
  if(widget.kind==='goals')return {...defaults,title:widget.title||'Your destinations',value:`${s.goals.filter(g=>g.status==='active').length} active Goals`,detail:`${s.goals.filter(g=>g.status==='completed').length} completed · recorded progress`,href:'/app/goals'};
  if(widget.kind==='goal'){
@@ -122,15 +122,15 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const meal=entry?.meal??widget.entity!,date=entry?.date??s.healthDate;
   const summary=dailyHealthSummary({...s.health,diary:s.health.diary.filter(row=>row.meal===meal)},date),nutrients=entry?scaleNutrition(entry.snapshot.nutrients,entry.quantityMilli):summary.nutrients,count=entry?1:summary.entries,nutrition=entry?summarizeNutrition([nutrients]):summary;
   return {...defaults,title:widget.title||(entry?entry.snapshot.name:`${meal} today`),value:count?widget.metric==='macros'?nutritionSummaryText(nutrition,"proteinMg","g protein",1000):nutritionSummaryText(nutrition,"kcal","kcal"):'No meals recorded',
-   detail:`${date} · ${meal} · ${entry?`${entry.quantityMilli/1000} ${plural(entry.quantityMilli/1000,'serving')} · saved diary entry`:`${count} ${plural(count,'entry','entries')} · current Health day`}${count&&widget.metric==='macros'?` · ${nutritionSummaryText(nutrition,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(nutrition,"fatMg","g fat",1000)}`:''}`,
+   detail:`${formatDate(date)} · ${meal} · ${entry?`${entry.quantityMilli/1000} ${plural(entry.quantityMilli/1000,'serving')} · saved diary entry`:`${count} ${plural(count,'entry','entries')} · current Health day`}${count&&widget.metric==='macros'?` · ${nutritionSummaryText(nutrition,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(nutrition,"fatMg","g fat",1000)}`:''}`,
    href:`/app/health?date=${date}#${entry?`entry-${entry.id}`:`diary-${meal.toLowerCase()}`}`};
  }
  if(widget.kind==='health'){
-  const summary=dailyHealthSummary(s.health,s.healthDate),common={...defaults,title:widget.title||widgetMetricLabel(widget.metric),detail:`${s.healthDate} · manually logged`,href:'/app/health'};
-  if(widget.metric==='macros-ring'){const target=s.health.targets.kcal,kcal=summary.nutrients.kcal;if(!summary.entries)return {...common,value:'No meals recorded',detail:'Log a meal to start your day.'};return {...common,value:nutritionSummaryText(summary,'kcal','kcal'),detail:target?`Personal target ${formatNumber(target)} kcal · ${s.healthDate}`:`${s.healthDate} · no calorie target set`,...(target&&kcal!==null?{percent:String(Math.min(100,kcal/target*100)),complete:false}:{}),facts:[{label:'Protein',value:nutritionSummaryText(summary,'proteinMg','g',1000)},{label:'Carbs',value:nutritionSummaryText(summary,'carbsMg','g',1000)},{label:'Fat',value:nutritionSummaryText(summary,'fatMg','g',1000)}]};}
-  if(widget.metric==='kcal')return {...common,value:summary.entries?nutritionSummaryText(summary,"kcal","kcal"):'No meals recorded',detail:`${summary.entries} meals & snacks · ${s.healthDate}`};
+  const summary=dailyHealthSummary(s.health,s.healthDate),common={...defaults,title:widget.title||widgetMetricLabel(widget.metric),detail:`${formatDate(s.healthDate)} · manually logged`,href:'/app/health'};
+  if(widget.metric==='macros-ring'){const target=s.health.targets.kcal,kcal=summary.nutrients.kcal;if(!summary.entries)return {...common,value:'No meals recorded',detail:'Log a meal to start your day.'};return {...common,value:nutritionSummaryText(summary,'kcal','kcal'),detail:target?`Personal target ${formatNumber(target)} kcal · ${formatDate(s.healthDate)}`:`${formatDate(s.healthDate)} · no calorie target set`,...(target&&kcal!==null?{percent:String(Math.min(100,kcal/target*100)),complete:false}:{}),facts:[{label:'Protein',value:nutritionSummaryText(summary,'proteinMg','g',1000)},{label:'Carbs',value:nutritionSummaryText(summary,'carbsMg','g',1000)},{label:'Fat',value:nutritionSummaryText(summary,'fatMg','g',1000)}]};}
+  if(widget.metric==='kcal')return {...common,value:summary.entries?nutritionSummaryText(summary,"kcal","kcal"):'No meals recorded',detail:`${summary.entries} meals & snacks · ${formatDate(s.healthDate)}`};
   if(widget.metric==='macros')return {...common,value:summary.entries?nutritionSummaryText(summary,"proteinMg","g protein",1000):'No meals recorded',detail:summary.entries?`${nutritionSummaryText(summary,"carbsMg","g carbs",1000)} · ${nutritionSummaryText(summary,"fatMg","g fat",1000)}`:'Log a meal to start your day.'};
-  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate),unit=dailyData(s.health).preferences.waterUnit,text=(ml:number)=>unit==='ml'?`${formatNumber(ml)} mL`:waterText(ml,unit);return {...common,value:water.entries?text(water.millilitres):'No water recorded',detail:water.targetMl?`Personal target ${text(water.targetMl)} · ${s.healthDate}`:`${s.healthDate} · no target set`};}
+  if(widget.metric==='water'){const water=waterSummary(s.health,s.healthDate),unit=dailyData(s.health).preferences.waterUnit,text=(ml:number)=>unit==='ml'?`${formatNumber(ml)} mL`:waterText(ml,unit);return {...common,value:water.entries?text(water.millilitres):'No water recorded',detail:water.targetMl?`Personal target ${text(water.targetMl)} · ${formatDate(s.healthDate)}`:`${formatDate(s.healthDate)} · no target set`};}
   if(widget.metric==='weight'){const latest=latestWeightObservation(s.health,s.healthDate),unit=dailyData(s.health).preferences.weightUnit;return {...common,value:latest?`${formatNumber((latest.grams/(unit==='lb'?453.59237:1000)), {maximumFractionDigits:3})} ${unit}`:'No measurements yet',detail:latest?latest.detail:'Record a measurement when you choose.'};}
   if(widget.metric==='history'){const rhythm=nutritionDashboard(s.health,s.healthDate);return {...common,title:widget.title||'Your nutrition rhythm',value:rhythm.averageKcal===null?'No logged days':`${formatNumber(rhythm.averageKcal)} kcal`,detail:`${rhythm.loggedDays} of 30 days with entries · average per complete calorie day`,href:'/app/health#nutrition-history'};}
   const recorded=s.health.activity.some(a=>a.date===s.healthDate);return {...common,value:recorded?widget.metric==='steps'?`${formatNumber(summary.steps)} steps`:`${formatNumber(summary.minutes)} minutes`:'No activity recorded'};
@@ -148,7 +148,7 @@ export function widgetMetric(widget:DashboardWidget,s:DashboardSources):WidgetMe
   const source=position.sourceType==='NATIVE_STAKING'?'Staked principal':position.sourceType==='NATIVE_REWARDS'?'Unclaimed rewards':position.sourceType==='NATIVE_UNBONDING'?'Unbonding':'Recorded balance';
   const warnings=[balance.deficit!=='0'?'Allocation exceeds this source balance. Review the deficit.':'',sync==='ERROR'?'Last refresh failed. Showing the saved observation.':sync==='STALE'?'Saved observation is stale. Refresh it on Staking.':''];
   return {...defaults,title:widget.title||`${widget.kind==='staking'?source:'Allocations'} · ${position.validator?.name??position.providerId}`,value:amount(position.quantity),href:`/app/wealth/asset/${encodeURIComponent(position.id)}`,
-   detail:`Selected Position only · ${source} · ${position.network} · ${position.verification==='MANUAL'?'manual record':'read-only observation'} · ${position.observedAt}${widget.kind==='staking'?` · ${position.liquidity.toLowerCase()} · recorded rewards are not future yield`:'. Unallocated is an accounting amount, not a guarantee of spendable funds.'}`,
+   detail:`Selected Position only · ${source} · ${position.network} · ${position.verification==='MANUAL'?'manual record':'read-only observation'} · ${formatDateTime(position.observedAt,{seconds:true})}${widget.kind==='staking'?` · ${position.liquidity.toLowerCase()} · recorded rewards are not future yield`:'. Unallocated is an accounting amount, not a guarantee of spendable funds.'}`,
    warning:warnings.filter(Boolean).join(' ')||undefined,
    ...(widget.kind==='allocation'?{facts:[{label:'Allocated to Goals',value:amount(balance.allocated)},{label:'Unallocated',value:amount(balance.unallocated)},{label:'Allocation deficit',value:amount(balance.deficit)}]}:{})};
  }

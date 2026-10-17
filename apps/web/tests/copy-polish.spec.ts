@@ -27,8 +27,8 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
   await page.getByRole("button", { name: "Load Showcase Demo", exact: true }).click();
   await page.waitForURL("**/app");
   const dates = page.locator(".today-contribution-dates").first();
-  await expect(dates).toContainText(/Next contribution\s*\d{4}-\d{2}-\d{2}/);
-  await expect(dates).toContainText(/Latest contribution\s*.* · \d{4}-\d{2}-\d{2}$/);
+  await expect(dates).toContainText(/Next contribution\s*[A-Z][a-z]{2} \d{1,2}, \d{4}/);
+  await expect(dates).toContainText(/Latest contribution\s*.* · [A-Z][a-z]{2} \d{1,2}, \d{4}$/);
   await expect(dates).not.toContainText(/\d{1,2}\/\d{1,2}\/\d{4}/);
 });
 

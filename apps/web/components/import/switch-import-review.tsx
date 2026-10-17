@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
-import {formatDate, formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber, formatTime} from '../../lib/visual-format';
 import {wallClock, formatMinutes, zoneLabel} from '../../lib/zone-time';
 import {asleep} from '../../lib/sleep/engine';
 import {scheduleLabel, type HabitData} from '../../lib/habits';
@@ -31,7 +31,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
   const range = chosen.preview.range;
   return <div className="switch-preview">
     <h3>Check what comes in</h3>
-    <p className="import-summary">{plan.label} export{range ? ` · ${formatDate(`${range.from}T12:00:00Z`, {timeZone: 'UTC'})} – ${formatDate(`${range.to}T12:00:00Z`, {timeZone: 'UTC'})}` : ''}</p>
+    <p className="import-summary">{plan.label} export{range ? ` · ${formatDate(range.from)} – ${formatDate(range.to)}` : ''}</p>
     <div className="import-preview"><table>
       <caption className="sr-only">What this import would add to your Health journal</caption>
       <thead><tr><th scope="col">Records</th><th scope="col">To add</th><th scope="col">Already here</th><th scope="col">Stays out</th></tr></thead>
@@ -41,7 +41,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
     {GROUPS.filter(([g]) => chosen.preview[g].full > 0).map(([g]) => <p key={g} className="notice">{n(chosen.preview[g].full)} older {GROUP_LIMIT_WORDS[g]} stay out: your Health journal keeps at most {n(GROUP_LIMITS[g])}. The newest are imported.</p>)}
     {sample.length > 0 && <div className="switch-sample"><h4>A few nights to check against what you remember</h4><ul className="import-preview-lines">{sample.map(night => {
       const bed = wallClock(Date.parse(night.start), night.timeZone), up = night.end ? wallClock(Date.parse(night.end), night.timeZone) : null, a = asleep(night);
-      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {up?.date ?? bed.date}: in bed {bed.clock} → up {up?.clock ?? '—'}{night.timeZone !== zone ? ` (${zoneLabel(night.timeZone)})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
+      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(up?.date ?? bed.date)}: in bed {formatTime(night.start, {timeZone: night.timeZone})} → up {night.end ? formatTime(night.end, {timeZone: night.timeZone}) : '—'}{night.timeZone !== zone ? ` (${zoneLabel(night.timeZone)})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
     })}</ul></div>}
     {plan.summarised.length > 0 && <div className="switch-summarised"><h4>Kept as summaries</h4><ul>{plan.summarised.map(s => <li key={s}>{s}</li>)}</ul></div>}
     {plan.warnings.length > 0 && <details className="import-warnings"><summary>{n(plan.warnings.length)} {plan.warnings.length === 1 ? 'note' : 'notes'} about this export</summary><ul>{plan.warnings.map(w => <li key={w}>{w}</li>)}</ul></details>}
@@ -50,7 +50,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
       {!fullSize.comfortable && <>
         <p className="notice">The whole export would fill more than three quarters of what {limit > 2_000_000 ? 'your account' : 'this browser'} keeps for Health.{fitFrom ? ' You can bring in a shorter window instead.' : ' Even its last day would not fit comfortably here.'}{limit <= 2_000_000 ? ' With an account open, Health can hold up to 32 MB.' : ''}</p>
         {fitFrom && <fieldset className="switch-window"><legend>What to bring in</legend>
-          <label className="checkbox"><input type="radio" name="switch-window" checked={from === fitFrom} onChange={() => setFrom(fitFrom)} />From {formatDate(`${fitFrom}T12:00:00Z`, {timeZone: 'UTC'})} on (the most that fits comfortably)</label>
+          <label className="checkbox"><input type="radio" name="switch-window" checked={from === fitFrom} onChange={() => setFrom(fitFrom)} />From {formatDate(fitFrom)} on (the most that fits comfortably)</label>
           <label className="checkbox"><input type="radio" name="switch-window" checked={from === null} disabled={!fullSize.fits} onChange={() => setFrom(null)} />Everything{fullSize.fits ? '' : ' (does not fit)'}</label>
         </fieldset>}
       </>}

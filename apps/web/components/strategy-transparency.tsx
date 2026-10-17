@@ -1,3 +1,4 @@
+import {formatDate} from "../lib/visual-format";
 import {
   documentedProvenance,
   type StrategyDescriptor,
@@ -45,7 +46,7 @@ export function StrategyTransparency({
                 </a>{" "}
                 <span>
                   Reviewed{" "}
-                  <time dateTime={entry.verifiedAt}>{entry.verifiedAt}</time>
+                  <time dateTime={entry.verifiedAt}>{entry.verifiedAt ? formatDate(entry.verifiedAt) : ""}</time>
                 </span>
               </dd>
             </div>

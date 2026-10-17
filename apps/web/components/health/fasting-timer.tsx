@@ -7,7 +7,7 @@ import {latestHabitRule} from '../../lib/habits';
 import {readFormNumber} from '../../lib/decimal-input';
 import {saveFailureMessage} from '../../lib/storage-error-copy';
 import {isShowcase} from '../../lib/showcase-storage';
-import {formatTime} from '../../lib/visual-format';
+import {formatDate, formatTime} from '../../lib/visual-format';
 import {GlassBar} from '../progress/glass-progress';
 import {useHabits} from '../habits/use-habits';
 import type {FastingStore} from './use-fasting';
@@ -15,7 +15,7 @@ import './fasting.css';
 import type {LayoutAttrs} from '../layout-edit';
 
 export const FASTING_SAFETY_NOTE = 'Fasting isn’t for everyone. If you’re pregnant, under 18, have a medical condition or an eating disorder, or take medication, talk to a doctor first. Stop if you feel unwell.';
-const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone, hour: 'numeric', minute: '2-digit'}); } catch { return formatTime(iso, {hour: 'numeric', minute: '2-digit'}); } };
+const clock = (iso: string, zone: string) => { try { return formatTime(iso, {timeZone: zone}); } catch { return formatTime(iso); } };
 /** The Health page module "Fasting timer" (HE6): a clock against a chosen target, a short history, no praise. */
 export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fasting: FastingStore; health: HealthData}) {
   const habits = useHabits();
@@ -71,6 +71,6 @@ export function FastingTimer({fasting, health, ...layout}: LayoutAttrs & {fastin
     </div>}
     {fasting.data.sessions.some(s => s.stoppedBy === 'limit' && !result) && !running && history[0]?.session.stoppedBy === 'limit' && <p className="fine" role="status">This fast was stopped automatically at {MAX_HOURS} hours.</p>}
     {result && <p role="status">{result}</p>}{error && <p role="alert">{error}</p>}
-    {history.length > 0 && <div className="fasting-history"><h3>Recent fasts</h3><ul>{history.map(row => <li key={row.session.id}><span>{row.day} · {row.hours.toFixed(1)} h · target {row.session.targetHours} h · {row.session.stoppedBy === 'limit' ? `stopped at ${MAX_HOURS} h` : 'stopped by you'}{isShowcase() && row.session.id.startsWith('fast_showcase') ? ' · Showcase example' : ''}</span><button type="button" className="quiet" aria-label={`Remove the fast of ${row.day}`} onClick={() => { setError(''); fasting.update(current => removeFast(current, row.session.id)).catch(e => setError(saveFailureMessage(e))); }}>Remove</button></li>)}</ul></div>}
+    {history.length > 0 && <div className="fasting-history"><h3>Recent fasts</h3><ul>{history.map(row => <li key={row.session.id}><span>{formatDate(row.day)} · {row.hours.toFixed(1)} h · target {row.session.targetHours} h · {row.session.stoppedBy === 'limit' ? `stopped at ${MAX_HOURS} h` : 'stopped by you'}{isShowcase() && row.session.id.startsWith('fast_showcase') ? ' · Showcase example' : ''}</span><button type="button" className="quiet" aria-label={`Remove the fast of ${formatDate(row.day)}`} onClick={() => { setError(''); fasting.update(current => removeFast(current, row.session.id)).catch(e => setError(saveFailureMessage(e))); }}>Remove</button></li>)}</ul></div>}
   </section>;
 }

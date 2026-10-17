@@ -61,7 +61,7 @@ test('Export everything → lose records → restore from the ZIP gives them bac
   const region = restoreRegion(page), before = await zigoalsKeys(page);
   await region.getByLabel('Export everything ZIP').setInputFiles({name: `zigoals-export-${DAY}.zip`, mimeType: 'application/zip', buffer: zip});
   const preview = region.getByLabel('What this backup holds');
-  await expect(preview).toContainText(`Exported ${DAY}`);
+  await expect(preview).toContainText('Exported Oct 14, 2026');
   // The Showcase's examples are recognised and said.
   await expect(preview.getByText('This file holds the Showcase’s fictional examples.', {exact: false})).toBeVisible();
   await expect(preview.getByRole('group', {name: 'Habits'})).toContainText('This device: Nothing here yet');

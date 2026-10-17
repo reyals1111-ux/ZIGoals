@@ -4,7 +4,7 @@ import type {MarketAssetRef} from '../../lib/market-assets';
 import {availableHistoryRanges,createMarketHistoryCache,fetchPublicMarketHistory,formatHistoryValue,historyIsStale,historyPointsForRange,historyRequestSchema,RWA_HISTORY_UNAVAILABLE,validLocalHistory,type ChartHistoryRange,type HistoryPoint,type MarketHistoryResult} from '../../lib/market-history';
 import './price-chart.css';
 import {useEntrance} from '../use-entrance';
-import { formatDateTime, formatPlainDecimal } from '../../lib/visual-format';
+import { formatDate, formatDateTime, formatPlainDecimal } from '../../lib/visual-format';
 const cache=createMarketHistoryCache((request,refresh)=>fetchPublicMarketHistory(request,refresh));
 const labels:Record<ChartHistoryRange,string>={'1d':'24H','7d':'7D','30d':'30D','90d':'90D','1y':'1Y',all:'Available'};
 const EMPTY_POINTS:HistoryPoint[]=[];
@@ -78,7 +78,7 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
     {current&&<line className="chart-cursor" x1={x(current.at)} x2={x(current.at)} y1="28" y2="222"/>}
 
    </svg>}
-   <div className="price-chart-axis"><time dateTime={points[0]!.at}>{points[0]!.at.slice(0,10)}</time>{points.length>1&&<time dateTime={points[points.length-1]!.at}>{points[points.length-1]!.at.slice(0,10)}</time>}</div>
+   <div className="price-chart-axis"><time dateTime={points[0]!.at}>{formatDate(points[0]!.at)}</time>{points.length>1&&<time dateTime={points[points.length-1]!.at}>{formatDate(points[points.length-1]!.at)}</time>}</div>
    {points.length===1&&<div className="price-chart-single"><strong>Tracking starts here</strong><p>One observed price is saved. Earlier performance is not assumed.</p></div>}
   </>:<div className="price-chart-empty"><span aria-hidden="true">◌</span><h4>{loading?'Loading observed prices':'Your price history starts here'}</h4><p>{loading?'Checking available market history.':'Prices will appear as verified observations become available. Earlier performance is not assumed.'}</p></div>}
   <figcaption>
@@ -87,6 +87,6 @@ export function PriceChart({marketRef,currency,localPoints=EMPTY_POINTS,title='P
    {history&&<span>Fetched <time dateTime={history.fetchedAt}>{formatDateTime(history.fetchedAt)}</time> · {currency} per asset unit.</span>}
    {result?.error&&marketRef.kind==='coin'&&<span className="price-chart-limitation" role="status">{result.error}</span>}
   </figcaption>
-  {points.length>0&&<details className="price-chart-details"><summary>View exact price history <span>{points.length} {points.length===1?'observation':'observations'}</span></summary><div className="price-chart-table-wrap" tabIndex={0} role="region" aria-label="Exact price history"><table><caption>{source} · {currency} per asset unit</caption><thead><tr><th scope="col">Observed at (UTC)</th><th scope="col">Price ({currency})</th></tr></thead><tbody>{points.map(point=><tr key={point.at}><td><time dateTime={point.at}>{new Date(point.at).toISOString().replace('T',' ').replace('.000Z',' UTC')}</time></td><td>{formatPlainDecimal(formatHistoryValue(point))}</td></tr>)}</tbody></table></div></details>}
+  {points.length>0&&<details className="price-chart-details"><summary>View exact price history <span>{points.length} {points.length===1?'observation':'observations'}</span></summary><div className="price-chart-table-wrap" tabIndex={0} role="region" aria-label="Exact price history"><table><caption>{source} · {currency} per asset unit</caption><thead><tr><th scope="col">Observed at</th><th scope="col">Price ({currency})</th></tr></thead><tbody>{points.map(point=><tr key={point.at}><td><time dateTime={point.at}>{formatDateTime(point.at,{seconds:true})}</time></td><td>{formatPlainDecimal(formatHistoryValue(point))}</td></tr>)}</tbody></table></div></details>}
  </figure>;
 }

@@ -19,63 +19,63 @@ const habit = (title: string) => showcaseSources().habits.habits.find(h => h.tit
 const sum = (title: string, from: string, to: string) => habit(title).entries.filter(e => e.date >= from && e.date <= to && e.disposition === 'logged').reduce((s, e) => s + e.count, 0);
 
 test('the brief\'s eight examples, answered with the figures the records hold', () => {
-  expect(textOf(ask('How many minutes did I meditate this month?'))).toMatch(new RegExp(`^You logged ${sum('Meditate', '2026-10-01', DAY)} minutes of Meditate this month \\(Thu 1 Oct to Mon 5 Oct\\)\\.`));
+  expect(textOf(ask('How many minutes did I meditate this month?'))).toMatch(new RegExp(`^You logged ${sum('Meditate', '2026-10-01', DAY)} minutes of Meditate this month \\(Thu, Oct 1 to Mon, Oct 5\\)\\.`));
   expect(textOf(ask('What\'s my longest reading streak?'))).toMatch(/^Your longest Read streak is \d+ days; the current one is \d+ days\.$/);
   const water = dailyData(sources().health).water.filter(w => w.date === '2026-10-04').reduce((s, w) => s + w.amountMilli / 1000, 0);
-  expect(textOf(ask('How much water did I drink yesterday?'))).toMatch(new RegExp(`^You logged ${water.toLocaleString('en-US')} mL of water yesterday \\(Sun 4 Oct\\)`));
+  expect(textOf(ask('How much water did I drink yesterday?'))).toMatch(new RegExp(`^You logged ${water.toLocaleString('en-US')} mL of water yesterday \\(Sun, Oct 4\\)`));
   const week = sources().health.activity.filter(a => a.date >= '2026-09-28' && a.date <= '2026-10-04'), days = new Set(week.map(a => a.date)).size;
-  expect(textOf(ask('Average steps last week?'))).toContain(`You averaged ${Math.round(week.reduce((s, a) => s + a.steps, 0) / days).toLocaleString('en-US')} steps a day last week (Mon 28 Sep to Sun 4 Oct), over the ${days} days with steps recorded.`);
+  expect(textOf(ask('Average steps last week?'))).toContain(`You averaged ${Math.round(week.reduce((s, a) => s + a.steps, 0) / days).toLocaleString('en-US')} steps a day last week (Mon, Sep 28 to Sun, Oct 4), over the ${days} days with steps recorded.`);
   expect(textOf(ask('How far am I on my Japan goal?'))).toMatch(/^Japan adventure: [\d.]+% of the target — [\d,]+\.\d{2} USD of [\d,]+\.\d{2} USD\./);
   const monday = ask('What did I eat on Monday?');
-  expect(textOf(monday)).toMatch(new RegExp(`^You logged ${sources().health.diary.filter(e => e.date === DAY).length} items on Mon 5 Oct:\\n- Breakfast: `));
+  expect(textOf(monday)).toMatch(new RegExp(`^You logged ${sources().health.diary.filter(e => e.date === DAY).length} items on Mon, Oct 5:\\n- Breakfast: `));
   const btc = sources().platform.positions.filter(p => p.asset === 'BTC' && !p.archivedAt);
   expect(textOf(ask('Total BTC I hold?'))).toMatch(new RegExp(`^You hold [\\d.]+ BTC in Wealth \\(${btc.length} holding${btc.length === 1 ? '' : 's'}\\)`));
   expect(textOf(ask('Total BTC I hold?'))).toContain('Portfolio (separate from Wealth): 0.05 BTC in your Real portfolio Long-term coins');
   expect(textOf(ask('Total BTC I hold?'))).not.toContain('Hypothetical');
-  expect(textOf(ask('Did I hit my protein target this week?'))).toMatch(/^Your protein target is 120 g a day\. This week \(Mon 5 Oct\):\n- At or above it on \d+ days?/);
+  expect(textOf(ask('Did I hit my protein target this week?'))).toMatch(/^Your protein target is 120 g a day\. This week \(Mon, Oct 5\):\n- At or above it on \d+ days?/);
 });
 test('forty more phrasings across habits, Health, goals and wealth', () => {
   const env = open(withSentinels(sources()));
   const cases: [string, RegExp][] = [
     ['how many mins did i meditate last week', /^You logged \d+ minutes of Meditate last week/],
-    ['How long did I meditate in September?', /^You logged \d+ minutes of Meditate in September 2026 \(Tue 1 Sep to Wed 30 Sep\)/],
+    ['How long did I meditate in September?', /^You logged \d+ minutes of Meditate in September 2026 \(Tue, Sep 1 to Wed, Sep 30\)/],
     ['Minutes of reading this month?', /^You logged \d+ minutes of Read this month/],
     ['How many minutes did I exercise over the last 14 days?', /^You logged \d+ minutes of Exercise the last 14 days/],
     ['How many times did I exercise last week?', /^You checked in Exercise \d+ times last week/],
     ['How often did I meditate this month?', /^You checked in Meditate \d+ times this month/],
-    ['What is my completion rate for reading this month?', /^Read this month \(Thu 1 Oct to Mon 5 Oct\): \d+%/],
+    ['What is my completion rate for reading this month?', /^Read this month \(Thu, Oct 1 to Mon, Oct 5\): \d+%/],
     ['What\'s my current meditation streak?', /^Your current Meditate streak is \d+ days? \(longest: \d+ days?\)\.$/],
     ['best streak for exercise', /^Your longest Exercise streak is \d+ days?/],
-    ['When did I last meditate?', /^You last checked in Meditate on Mon 5 Oct/],
-    ['Did I meditate more this week than last week?', /^Meditate: \d+ minutes this week \(Mon 5 Oct\), and \d+ minutes last week/],
+    ['When did I last meditate?', /^You last checked in Meditate on Mon, Oct 5/],
+    ['Did I meditate more this week than last week?', /^Meditate: \d+ minutes this week \(Mon, Oct 5\), and \d+ minutes last week/],
     ['Compare my reading this month vs last month', /^Read: \d+ minutes this month .*, and \d+ minutes last month/],
     ['Average minutes of reading per check-in this month?', /^On average [\d.]+ minutes per check-in for Read this month/],
-    ['What was my best meditation day this month?', /^Your best Meditate day this month .* was \w{3} \d+ \w{3} with \d+ minutes\.$/],
-    ['How many glasses of water did I drink yesterday?', /^Drink water: \d+ glasses yesterday \(Sun 4 Oct\)\.$/],
+    ['What was my best meditation day this month?', /^Your best Meditate day this month .* was \w{3}, \w{3} \d+ with \d+ minutes\.$/],
+    ['How many glasses of water did I drink yesterday?', /^Drink water: \d+ glasses yesterday \(Sun, Oct 4\)\.$/],
     ['How many minutes did I walk this month?', /^Walk isn't measured in time, so there are no minutes to add up\. It's measured in steps: [\d,]+ steps this month/],
-    ['How much water did I drink today?', /^You logged [\d,]+ mL of water today \(Mon 5 Oct\)/],
+    ['How much water did I drink today?', /^You logged [\d,]+ mL of water today \(Mon, Oct 5\)/],
     ['How much water did I drink this week?', /^You logged [\d,]+ mL of water this week/],
-    ['Did I reach my water target last week?', /^Your daily water target is 2,000 mL\. Last week \(Mon 28 Sep to Sun 4 Oct\):/],
-    ['Compare my water this week and last week', /^Water: [\d,]+ mL this week \(Mon 5 Oct\), and [\d,]+ mL last week/],
-    ['How many steps did I take yesterday?', /^You logged [\d,]+ steps yesterday \(Sun 4 Oct\)\.$/],
+    ['Did I reach my water target last week?', /^Your daily water target is 2,000 mL\. Last week \(Mon, Sep 28 to Sun, Oct 4\):/],
+    ['Compare my water this week and last week', /^Water: [\d,]+ mL this week \(Mon, Oct 5\), and [\d,]+ mL last week/],
+    ['How many steps did I take yesterday?', /^You logged [\d,]+ steps yesterday \(Sun, Oct 4\)\.$/],
     ['What was my best day for steps this month?', /^Your best day for steps this month .* with [\d,]+ steps\.$/],
     ['Did I hit my step goal last week?', /^Your daily step target is 8,000\. Last week/],
     ['How many active minutes last week?', /^You averaged [\d,]+ active minutes a day last week/],
-    ['How many calories did I eat today?', /^Energy today \(Mon 5 Oct\): unknown|^Energy today \(Mon 5 Oct\): [\d,]+ kcal/],
-    ['How much protein did I eat yesterday?', /^Protein yesterday \(Sun 4 Oct\): [\d.]+ g from \d+ diary entr(y|ies)\.$/],
-    ['How much fat did I eat today?', /^Fat today \(Mon 5 Oct\): unknown \([\d.]+ g known; \d+ of \d+ entries known\)/],
+    ['How many calories did I eat today?', /^Energy today \(Mon, Oct 5\): unknown|^Energy today \(Mon, Oct 5\): [\d,]+ kcal/],
+    ['How much protein did I eat yesterday?', /^Protein yesterday \(Sun, Oct 4\): [\d.]+ g from \d+ diary entr(y|ies)\.$/],
+    ['How much fat did I eat today?', /^Fat today \(Mon, Oct 5\): unknown \([\d.]+ g known; \d+ of \d+ entries known\)/],
     ['Average calories per day last week?', /^On average [\d,.]+ kcal of energy a day last week/],
-    ['What did I eat yesterday?', /^You logged \d+ items yesterday \(Sun 4 Oct\):/],
-    ['What did I have for breakfast on Friday?', /^You logged \d+ items on Fri 2 Oct:/],
-    ['What is my weight?', /^Your latest weight is [\d.]+ lb, on Mon 5 Oct\./],
+    ['What did I eat yesterday?', /^You logged \d+ items yesterday \(Sun, Oct 4\):/],
+    ['What did I have for breakfast on Friday?', /^You logged \d+ items on Fri, Oct 2:/],
+    ['What is my weight?', /^Your latest weight is [\d.]+ lb, on Mon, Oct 5\./],
     ['How did my waist change this month?', /^Your body measurements this month .*:\n- Waist: 93\.7 cm on 2026-10-05/],
-    ['When was my last fast?', /^Your last fast: 16 h on Sun 4 Oct \(target 16 h\)\./],
+    ['When was my last fast?', /^Your last fast: 16 h on Sun, Oct 4 \(target 16 h\)\./],
     ['How many push-ups this week?', /^Push-ups: \d+ on \d+ days? this week/],
     ['How many squats did I do this month?', /^Squats: \d+/],
     ['How much is left for my emergency fund?', /^Emergency fund: [\d,]+\.\d{2} USD to go \([\d.]+% of the target reached\)\.$/m],
     ['What is the progress of my first home deposit?', /^First home deposit: [\d.]+% of the target/],
-    ['How much did I contribute this month?', /^Contributions this month \(Thu 1 Oct to Mon 5 Oct\), per currency \(never converted\):\n- [\d,]+\.\d{2} USD in/],
-    ['How much did I put into my Japan goal last month?', /^Contributions to Japan adventure last month \(Tue 1 Sep to Wed 30 Sep\)/],
+    ['How much did I contribute this month?', /^Contributions this month \(Thu, Oct 1 to Mon, Oct 5\), per currency \(never converted\):\n- [\d,]+\.\d{2} USD in/],
+    ['How much did I put into my Japan goal last month?', /^Contributions to Japan adventure last month \(Tue, Sep 1 to Wed, Sep 30\)/],
     ['What is my net worth?', /^Your tracked wealth, one total per currency \(never converted\): [\d,]+\.\d{2} USD and [\d,]+\.\d{2} EUR\./],
     ['How much ETH do I own?', /^You hold [\d.]+ ETH in Wealth/],
     ['how many bitcoin do i have', /^You hold [\d.]+ BTC in Wealth/],
@@ -148,7 +148,7 @@ test('Session W Part 21: the new areas answer here, in calm words; a habit the q
   // Health's sleep and mindful minutes, from the Showcase's fictional nights and sessions.
   expect(textOf(ask('How did I sleep last night?'))).toMatch(/^Last night: \d+ h \d+ min asleep, \d+ h \d+ min in bed, from \d\d:\d\d to \d\d:\d\d\./);
   expect(textOf(ask('What is my sleep debt?'))).toMatch(/^Over the last 7 days your sleep came to .+, across \d+ logged nights? \(your goal minus the time asleep, night by night\)\./);
-  expect(textOf(ask('How many mindful minutes this week?'))).toMatch(/^\d+ min of meditation this week \(Mon 5 Oct\), over \d+ sessions?\.$/);
+  expect(textOf(ask('How many mindful minutes this week?'))).toMatch(/^\d+ min of meditation this week \(Mon, Oct 5\), over \d+ sessions?\.$/);
   // "meditation" still means the habit called Meditate (Session V's pins); a habit called Chess keeps "play chess".
   expect(textOf(ask('What is my meditation streak?'))).toMatch(/^Your current Meditate streak is \d+ days?/);
   const chessHabit = createHabit(sources().habits, {title: 'Chess', category: 'Learning', description: '', notes: '', schedule: {kind: 'daily'}, target: 1}, new Date(`${DAY}T08:00:00Z`));

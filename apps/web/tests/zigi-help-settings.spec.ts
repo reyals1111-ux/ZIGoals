@@ -101,9 +101,9 @@ test('Settings: ZIGi · your AI in five groups; ZIGi\'s reminders listed and rem
   const list = card.getByRole('list', {name: 'ZIGi’s weekly reminders'});
   await expect(list.getByRole('listitem')).toHaveCount(2);
   await expect(list).toContainText(`Weekly check-in: ${goal.name}`);
-  await expect(list).toContainText('Sunday at 18:00');
+  await expect(list).toContainText('Sunday at 6:00 PM');
   await expect(list).toContainText('A look at Wealth');
-  await expect(list).toContainText('Monday at 09:30');
+  await expect(list).toContainText('Monday at 9:30 AM');
   await expect(card).toContainText('ZIGi does not knock when a reminder is due');
   expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), ZIGI_REMINDERS_KEY))!)).toEqual(reminders);
   await card.getByRole('button', {name: 'Remove A look at Wealth'}).click();

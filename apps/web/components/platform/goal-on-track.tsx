@@ -5,6 +5,7 @@ import {formatGoalAmount} from '../../lib/goal-summary';
 import {onTrack, PACE_DAYS, whatIfMonths} from '../../lib/goals/on-track';
 import {addLocalDays} from '../../lib/local-date';
 import {amount} from './common';
+import {formatDate} from '../../lib/visual-format';
 
 /**
  * "On track?" (Session W Part 11): with zero return, what reaching the target by its date would take each week or
@@ -23,10 +24,10 @@ export function GoalOnTrack({goal, current, available, events, today}: {goal: Pr
     <h2>On track?</h2>
     <p>Still to go: <strong>{money(t.remaining)}</strong>, from what is counted now.</p>
     {goal.targetDate ? t.daysLeft !== null && t.daysLeft > 0 && t.perWeek !== null && t.perMonth !== null
-      ? <p>To reach it by <strong>{goal.targetDate}</strong> with no growth: about <strong>{money(t.perWeek)}</strong> a week, or <strong>{money(t.perMonth)}</strong> every 30 days.</p>
-      : <p>The target date ({goal.targetDate}) has passed; the rest is still {money(t.remaining)}.</p>
+      ? <p>To reach it by <strong>{formatDate(goal.targetDate)}</strong> with no growth: about <strong>{money(t.perWeek)}</strong> a week, or <strong>{money(t.perMonth)}</strong> every 30 days.</p>
+      : <p>The target date ({formatDate(goal.targetDate)}) has passed; the rest is still {money(t.remaining)}.</p>
       : <p>No target date: this Goal goes at your own pace.</p>}
-    {t.pace ? <p>Recorded here over the last {t.pace.windowDays} days: <strong>{money(t.pace.perMonth < 0n ? -t.pace.perMonth : t.pace.perMonth)}</strong> {t.pace.perMonth < 0n ? 'more out than in' : 'in'} every 30 days, net of withdrawals{t.pace.skipped ? ` (${t.pace.skipped} in another currency not counted, never converted)` : ''}. {t.projected ? <>At that pace, with no growth, about <strong>{t.projected}</strong>.</> : t.pace.perMonth > 0n ? 'At that pace it would take more than a lifetime.' : ''}</p>
+    {t.pace ? <p>Recorded here over the last {t.pace.windowDays} days: <strong>{money(t.pace.perMonth < 0n ? -t.pace.perMonth : t.pace.perMonth)}</strong> {t.pace.perMonth < 0n ? 'more out than in' : 'in'} every 30 days, net of withdrawals{t.pace.skipped ? ` (${t.pace.skipped} in another currency not counted, never converted)` : ''}. {t.projected ? <>At that pace, with no growth, about <strong>{formatDate(t.projected)}</strong>.</> : t.pace.perMonth > 0n ? 'At that pace it would take more than a lifetime.' : ''}</p>
       : <p>No pace yet: contributions recorded here over the last {PACE_DAYS} days show one (a Goal younger than two weeks has none).</p>}
     <details className="goal-what-if"><summary>What if it grew?</summary>
       <p className="fine">Your assumption, worked out on this page only; nothing here is stored or sent, and it is not a forecast.</p>

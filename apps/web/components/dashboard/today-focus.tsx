@@ -8,6 +8,7 @@ import {asleep, nightsIn} from '../../lib/sleep/engine';
 import {elapsedMs, formatFast} from '../../lib/fasting/engine';
 import type {GoalSummary} from '../../lib/goal-summary';
 import {formatGoalAmount} from '../../lib/goal-summary';
+import {formatDate} from '../../lib/visual-format';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {useFasting} from '../health/use-fasting';
@@ -69,7 +70,7 @@ export function TodayFocus({reminders, nextGoal, financial, showHabits, showHeal
         <span className="focus-label"><AppIcon name="goals" size={20} />Next step</span>
         {nextGoal ? <>
           <strong>{nextGoal.name}</strong>
-          <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${nextGoal.nextContributionDate}` : ''}</p>
+          <p>{nextGoal.progressBound === 'unavailable' ? 'Progress unknown until valued' : `${nextGoal.progressBound === 'at-least' ? 'At least ' : ''}${pct(nextGoal.progressPct)} of ${nextGoal.target ? formatGoalAmount(nextGoal.target, nextGoal.currency) : 'its target'}`}{nextGoal.nextContributionDate ? ` · next contribution ${formatDate(nextGoal.nextContributionDate)}` : ''}</p>
           <div className="focus-actions"><Link className="text-link" href={nextGoal.href}>Open Goal →</Link></div>
         </> : <>
           <strong>No active goal yet</strong>

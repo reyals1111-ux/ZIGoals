@@ -33,7 +33,7 @@ test("a date the reader chose stays as chosen across midnight", async ({ page })
   await page.getByRole("button", { name: "Previous day", exact: true }).click();
   await expect(journal).toHaveValue("2026-10-23");
   await page.clock.runFor(60_000);
-  await expect(page.getByText("Today in your Health journal · 2026-10-25").first()).toBeAttached();
+  await expect(page.getByText("Today in your Health journal · Oct 25, 2026").first()).toBeAttached();
   await expect(journal).toHaveValue("2026-10-23");
   await page.getByRole("button", { name: "Next day", exact: true }).click();
   await page.getByRole("button", { name: "Next day", exact: true }).click();

@@ -13,6 +13,7 @@ import type {BodyCompositionReading, WeightReading} from '../../../lib/bluetooth
 import {NebulaFlow} from '../../nebula-flow';
 import {HealthLinks} from './health-links';
 import './devices.css';
+import {formatDate} from '../../../lib/visual-format';
 
 /**
  * Health → Devices (Session W Part 8; /app/health?view=devices): what can reach the Health journal, honestly, platform by
@@ -93,7 +94,7 @@ function ScaleReader() {
     if (!weight) return;
     setError(''); setStatus('');
     if (isShowcase()) { setError('Showcase holds fictional records only, so readings are not saved here.'); return; }
-    try { await health.update(latest => saveWeight(latest, {id: latest.weights.find(w => w.date === today)?.id ?? newHealthId(), date: today, grams: Math.round(weight.kg * 1000)}, new Date().toISOString())); setStatus(`Saved as your weight for ${today}: ${shown(weight.kg)}.`); setWeight(null); setBody(null); }
+    try { await health.update(latest => saveWeight(latest, {id: latest.weights.find(w => w.date === today)?.id ?? newHealthId(), date: today, grams: Math.round(weight.kg * 1000)}, new Date().toISOString())); setStatus(`Saved as your weight for ${formatDate(today)}: ${shown(weight.kg)}.`); setWeight(null); setBody(null); }
     catch (cause) { setError(cause instanceof Error && cause.message ? cause.message : 'The weight was not saved.'); }
   }
   return <div className="devices-card" role="group" aria-label="Scale">
@@ -102,7 +103,7 @@ function ScaleReader() {
     {weight && <div className="devices-weight">
       <p className="devices-reading"><strong>{shown(weight.kg)}</strong>{body?.fatPct != null ? ` · body fat ${body.fatPct.toFixed(1)} %` : ''}</p>
       {body?.fatPct != null && <p className="fine">Body fat is shown, not saved: your Health journal has no place for it yet.</p>}
-      {existing && <p className="notice">You already have a weight for {today} ({formatHealthGrams(existing.grams)} kg); saving replaces it.</p>}
+      {existing && <p className="notice">You already have a weight for {formatDate(today)} ({formatHealthGrams(existing.grams)} kg); saving replaces it.</p>}
       <div className="actions"><button type="button" className="primary" onClick={() => void save()}>{existing ? 'Replace today’s weight' : 'Save as today’s weight'}</button><button type="button" className="quiet" onClick={() => { setWeight(null); setBody(null); }}>Not this one</button></div>
     </div>}
     <div className="actions">{name ? <button type="button" className="secondary" onClick={() => { connection.current?.stop(); connection.current = null; setName(null); }}>Disconnect</button> : <button type="button" className="secondary" disabled={busy || !health.loaded} onClick={() => void connect()}>{busy ? 'Connecting…' : 'Connect a scale'}</button>}</div>

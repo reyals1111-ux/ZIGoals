@@ -1,6 +1,7 @@
 import * as z from "zod";
 import { addLocalDays, localDate, localWeekday } from "./local-date";
 import { journalTimeZone } from "./journal-zone";
+import { formatDate } from "./visual-format";
 
 export const HABITS_KEY = "zigoals:habits:v1";
 const dateSchema = z.string().regex(/^20\d{2}-\d{2}-\d{2}$|^21\d{2}-\d{2}-\d{2}$/).refine((value) => {
@@ -482,6 +483,6 @@ export function getHabitActivities(data: HabitData): { id: string; category: "HA
     return !!rule && (rule.type !== "build" || entry.count > 0);
   }).map((entry) => {
     const rule = habitRuleOn(habit, entry.date)!; const outcome = individualSuccess(rule, entry.count) ? "completed" : "logged";
-    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${entry.date} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, href: "/app/habits" };
+    return { id: `habit:${habit.id}:${entry.date}`, category: "HABIT" as const, title: habit.title, detail: `${formatDate(entry.date)} · ${entry.count} / ${rule.target} ${outcome}`, at: entry.updatedAt, href: "/app/habits" };
   })).sort((a, b) => b.at.localeCompare(a.at));
 }

@@ -6,6 +6,7 @@ import type {PartSummary, PlannedPart, RestoreGroup, RestoreMode} from '../../li
 import type {OpenedBackup} from '../../lib/restore/read-backup';
 import type {RestoreOutcome} from '../../lib/restore/apply';
 import {useVaultControls} from '../vault-sync-controls';
+import {formatDate} from '../../lib/visual-format';
 import './restore-backup.css';
 
 /**
@@ -23,7 +24,7 @@ type Preview = {opened: OpenedBackup; rows: Row[]; groups: RestoreGroup[]; visio
 /** `note`: for a restore made before this page loaded (another visit or a reload), when it ran and until when it can be undone. */
 type UndoInfo = {afterReload: boolean; note: string | null};
 const MODE_LABEL: Record<RestoreMode, string> = {leave: 'Leave as it is', merge: 'Merge: add what is missing', replace: 'Replace with the backup'};
-const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.counts}${s.from ? ` · ${s.from === s.through ? s.from : `${s.from} to ${s.through}`}` : ''}`;
+const summaryText = (s: PartSummary | null) => !s ? 'Nothing here yet' : `${s.counts}${s.from ? ` · ${s.from === s.through ? formatDate(s.from) : `${formatDate(s.from)} to ${formatDate(s.through!)}`}` : ''}`;
 /** Photos in the file above the restore's size limit (Session AD item 11). */
 export const oversizedPhotosNote = (n: number) => `${n} ${n === 1 ? 'photo in this file is' : 'photos in this file are'} larger than ZIGoals restores, so ${n === 1 ? 'it is' : 'they are'} left out.`;
 const lib = () => Promise.all([import('../../lib/restore/read-backup'), import('../../lib/restore/plan'), import('../../lib/restore/apply')]);
@@ -95,7 +96,7 @@ export function RestoreBackup({showcase}: {showcase: boolean}) {
     {busy && <p className="fine" aria-live="polite">{restoring ? 'Restoring… You can stop between two parts.' : 'Working…'}</p>}
     {restoring && <div className="dh-actions"><button type="button" className="secondary" onClick={() => stop.current?.abort()}>Stop restoring</button></div>}
     {preview && <div className="rb-preview" role="group" aria-label="What this backup holds">
-      <p>Exported {preview.opened.json.exportedAt.slice(0, 10)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
+      <p>Exported {formatDate(preview.opened.json.exportedAt)}{preview.opened.json.app?.version ? ` by ZIGoals ${preview.opened.json.app.version}` : ''}. Choose what to do with each part; anything left as it is stays untouched.</p>
       {preview.opened.demo && <p className="alert" role="alert">This file holds the Showcase&rsquo;s fictional examples. Restoring them puts made-up records among your own.</p>}
       {!preview.rows.length && !preview.visionCount && !preview.progressCount && <p>This export holds nothing this version can restore.</p>}
       {preview.rows.length > 0 && <div className="dh-actions"><button type="button" className="secondary" onClick={mergeAll}>Merge every part</button></div>}

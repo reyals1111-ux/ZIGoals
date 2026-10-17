@@ -229,7 +229,7 @@ export default function AiChat({open, onClose, onOpen, sensitive, phone}: Props)
       // says when a spoken question's reply stays silent for the quiet hours.
       const last = [...session.chat.turns].reverse().find(t => t.role === 'assistant');
       const who = last?.source === 'local' ? 'ZIGi answered on this device.' : last?.source === 'on-device' ? 'Chrome’s on-device model replied.' : last?.source === 'hosted' ? 'ZIGoals AI replied.' : 'Your AI replied.';
-      setNote(open && !vprefs.muted && !data.voice.readAloud && spoken && vprefs.readSpoken && quiet ? `${who} Not read aloud between ${knock.quietFrom} and ${knock.quietTo}.` : who);
+      setNote(open && !vprefs.muted && !data.voice.readAloud && spoken && vprefs.readSpoken && quiet ? `${who} Not read aloud between ${formatClock(knock.quietFrom)} and ${formatClock(knock.quietTo)}.` : who);
       if (open && !vprefs.muted && (data.voice.readAloud || (spoken && vprefs.readSpoken && !quiet))) { if (last) reader.speak(plainText(parseBlocks((session.parsed.get(last.id) ?? parseReply(last.text)).text))); }
     }
     lastReplies.current = replies;
@@ -532,6 +532,7 @@ function InfoGlyph() {
   return <svg className="ai-info-glyph" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M12 11v5.5M12 7.6v.1" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>;
 }
 import {forwardRef} from 'react';
+import {formatClock} from '../../lib/visual-format';
 /** The microphone, drawn in the nebula stroke; a square while listening (tap to stop). */
 function MicGlyph({on}: {on: boolean}) {
   return <svg className="ai-mic-glyph" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">

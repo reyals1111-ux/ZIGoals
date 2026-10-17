@@ -37,7 +37,7 @@ test('Showcase: two exact sentences, how they were counted, dismiss one and it s
   expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await summary.click();
   await expect(cards.nth(0)).toContainText('With the first: 5 of 9 days. Without: 7 of 21 days.');
-  await expect(cards.nth(0)).toContainText(/Window: 2026-07-18 – 2026-09-15 · 30 days/);
+  await expect(cards.nth(0)).toContainText(/Window: Jul 18, 2026 – Sep 15, 2026 · 30 days/);
   await expect(cards.nth(0)).toContainText('Counts of your own records. Not a cause, not advice.');
   const dismiss = cards.nth(0).getByRole('button', {name: `Dismiss: ${PUSHUPS}`});
   expect((await dismiss.boundingBox())!.height).toBeGreaterThanOrEqual(44);

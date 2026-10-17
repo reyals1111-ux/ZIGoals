@@ -2,7 +2,7 @@
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import type {WeekSummary} from '../../lib/weekly-review/engine';
 import {REVIEW_NOTE_FIELDS, type Review, type ReviewNoteField} from '../../lib/weekly-review/schema';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {GUIDE_LABEL} from '../../lib/coach/copy';
 import '../coach/guide.css';
@@ -15,8 +15,8 @@ const count = (n: number, one: string, many: string) => n === 0 ? `no ${many}` :
 export function reviewSteps(summary: WeekSummary, financial: boolean, formatWealth: (subtotal: {currency: string; value: bigint}) => string): Step[] {
   const w = summary.wentWell;
   const steps: Step[] = [
-    {field: 'wentWell', title: 'What went well', lines: [`${count(w.habitCheckIns, 'habit check-in', 'habit check-ins')} · ${count(w.healthEntries, 'Health entry', 'Health entries')} · ${count(w.goalContributions, 'Goal contribution', 'Goal contributions')} this week`, ...(w.bestDay ? [`Your fullest day was ${w.bestDay}.`] : [])]},
-    {field: 'goals', title: 'Goals', lines: summary.goals.length ? summary.goals.map(g => `${g.name} · ${g.fundingHealth}${g.nextContributionDate ? ` · next ${g.nextContributionDate}` : ''} · ${g.progress}`) : ['No active goals.']},
+    {field: 'wentWell', title: 'What went well', lines: [`${count(w.habitCheckIns, 'habit check-in', 'habit check-ins')} · ${count(w.healthEntries, 'Health entry', 'Health entries')} · ${count(w.goalContributions, 'Goal contribution', 'Goal contributions')} this week`, ...(w.bestDay ? [`Your fullest day was ${formatDate(w.bestDay, {weekday: true})}.`] : [])]},
+    {field: 'goals', title: 'Goals', lines: summary.goals.length ? summary.goals.map(g => `${g.name} · ${g.fundingHealth}${g.nextContributionDate ? ` · next ${formatDate(g.nextContributionDate)}` : ''} · ${g.progress}`) : ['No active goals.']},
     {field: 'habits', title: 'Habits', lines: summary.habits.length ? summary.habits.map(h => `${h.title} · ${h.done} of ${h.scheduled}${h.skipped ? ` (${h.skipped} skipped)` : ''} · streak ${formatNumber(h.streak)} ${h.unit}`) : ['No habits were scheduled this week.']},
     {field: 'health', title: 'Health', lines: summary.health.length ? summary.health : ['Nothing in the Health journal this week.'], fine: 'Counts of your own entries. Not advice.'},
   ];
@@ -40,7 +40,7 @@ export function WeeklyReviewDialog({weekStart, weekEnd, summary, review, financi
   const step = steps[index]!;
   const save = async (fn: typeof onSaveNotes) => { setError(''); try { await fn(notes); return true; } catch (e) { setError(e instanceof Error ? e.message : 'Your words were not saved on this device.'); return false; } };
   const body = <div className="weekly-review" aria-label="Your week">
-    <p className="eyebrow">Your week · {weekStart} – {weekEnd}</p>
+    <p className="eyebrow">Your week · {formatDate(weekStart)} – {formatDate(weekEnd)}</p>
     <p className="weekly-review-step">Step {index + 1} of {steps.length}</p>
     <h3 ref={heading} tabIndex={-1}>{step.title}</h3>
     <div className="weekly-review-summary">{step.lines.map((line, i) => <p key={i}>{line}</p>)}{step.fine && <p className="fine">{step.fine}</p>}</div>

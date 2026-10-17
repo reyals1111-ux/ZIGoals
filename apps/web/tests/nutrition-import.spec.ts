@@ -37,7 +37,7 @@ test('fixture A: three entries on two days with an unknown serving measure, blan
   if (await isPhone(page)) expect(await panel.getByLabel(/^Food · required/).evaluate(el => getComputedStyle(el).fontSize)).toBe('16px');
   await panel.getByRole('button', {name: 'Next', exact: true}).click();
   await expect(panel.locator('.import-summary')).toHaveText('0 foods will be added to your library · 3 diary entries on 2 days · 3 entries without a serving measure · 0 rows refused');
-  await expect(panel.locator('.import-preview')).toContainText('2026-09-14 · Breakfast · Oats · 1 serving · 380 kcal · P 13 g · C 67 g · F Unknown g · serving measure unknown');
+  await expect(panel.locator('.import-preview')).toContainText('Sep 14, 2026 · Breakfast · Oats · 1 serving · 380 kcal · P 13 g · C 67 g · F Unknown g · serving measure unknown');
   await panel.getByRole('button', {name: 'Next', exact: true}).click();
   await panel.getByRole('button', {name: 'Import 3 entries', exact: true}).click();
   await expect(panel.getByRole('status')).toContainText('3 entries and 0 foods imported.');

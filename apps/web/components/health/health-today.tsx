@@ -10,7 +10,7 @@ import { useJournalZone } from "../use-journal-zone";
 import { useDeviceZone } from "../use-device-zone";
 import { GlassBar } from "../progress/glass-progress";
 import "./health.css";
-import { formatNumber } from "../../lib/visual-format";
+import { formatDate, formatNumber } from "../../lib/visual-format";
 
 export function HealthToday() {
   const { data, loaded, error } = useHealth();
@@ -28,7 +28,7 @@ export function HealthToday() {
       {data.targets.kcal && summary.nutrients.kcal!==null && <GlassBar identity="health-today-kcal" className="health-today-meter" role="progressbar" aria-label="Today's calorie target" aria-valuemin={0} aria-valuemax={data.targets.kcal} aria-valuenow={Math.min(data.targets.kcal, summary.nutrients.kcal)} value={summary.nutrients.kcal / data.targets.kcal}/>}
       {summary.nutrients.kcal===null&&<p className="fine">{nutritionSummaryText(summary,"kcal","kcal")}</p>}<div className="health-today-macros">{([["Protein", "proteinMg"], ["Carbs", "carbsMg"], ["Fat", "fatMg"]] as const).map(([label, key]) => <span key={key}><strong>{nutritionSummaryText(summary,key,"g",1000)}</strong>{label}{data.targets[key] ? ` / ${formatHealthGrams(data.targets[key]!)} g` : ""}</span>)}</div>
     </> : <p>{data.targets.kcal ? "Your targets are ready. Add your first meal for today." : "Make room for feeling good. Set your own targets and log your first meal."}</p>}
-    {loaded && !error && <div className="health-today-extra">{weight && <span>{weightText(weight.grams, dailyData(data).preferences.weightUnit)} · {weight.date}</span>}{summary && summary.steps > 0 && <span>{formatNumber(summary.steps)} steps today</span>}</div>}
+    {loaded && !error && <div className="health-today-extra">{weight && <span>{weightText(weight.grams, dailyData(data).preferences.weightUnit)} · {formatDate(weight.date)}</span>}{summary && summary.steps > 0 && <span>{formatNumber(summary.steps)} steps today</span>}</div>}
     <Link href="/app/health" className="text-link">Open Health →</Link>
   </section>;
 }

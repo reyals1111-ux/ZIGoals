@@ -105,7 +105,7 @@ test('Quick add: "slept 7h30" asks when you woke up, then becomes a night in Sle
   const save = line.getByRole('button', {name: 'Save', exact: true});
   await expect(save).toBeDisabled();
   await line.getByLabel('When did you wake up (today)?').fill('07:00');
-  await expect(line).toContainText('A night in Sleep: in bed from 23:30, worked out from your wake time and how long you slept.');
+  await expect(line).toContainText('A night in Sleep: in bed from 11:30 PM, worked out from your wake time and how long you slept.');
   await save.click();
   await expect(line.getByRole('status')).toContainText('Saved to Sleep: 7 h 30 min · woke 07:00 · today');
   const health = await stored(page) as HealthData & {sleep?: {nights: {kind: string; start: string; end: string; timeZone: string}[]}};

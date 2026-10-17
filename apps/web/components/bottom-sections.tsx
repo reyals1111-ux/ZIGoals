@@ -5,7 +5,7 @@ import {useId,useMemo,useState,type ReactNode} from 'react';
 import {usePhoneActive} from './phone/use-phone-layout';
 import {plural} from '../lib/plural';
 import type {LayoutAttrs} from './layout-edit';
-import {WEEKDAYS,goalTimeline,habitRhythm,healthWeek,wealthAllocation,weekAcross} from '../lib/bottom-insights';
+import {goalTimeline,habitRhythm,healthWeek,wealthAllocation,weekAcross} from '../lib/bottom-insights';
 import {ASSET_COLORS,type wealthOverview} from '../lib/wealth';
 import type {HabitData} from '../lib/habits';
 import type {HealthData} from '../lib/health';
@@ -14,11 +14,11 @@ import type {GoalSummary} from '../lib/goal-summary';
 import './bottom-sections.css';
 import {NebulaFlow} from './nebula-flow';
 import {GlassSegments} from './progress/glass-progress';
-import { formatNumber, progressPresentation } from '../lib/visual-format';
+import { formatDate, formatNumber, formatWeekday, progressPresentation } from '../lib/visual-format';
 import {ML_PER_US_FL_OZ,type WaterUnit} from '../lib/health-units';
 import {healthGroupIn} from '../lib/vault/w-homes';
 
-const dayLabel=(date:string)=>{const d=new Date(`${date}T12:00:00Z`);return {weekday:WEEKDAYS[(d.getUTCDay()+6)%7]!,day:d.getUTCDate()};};
+const dayLabel=(date:string)=>({weekday:formatWeekday(date),day:Number(date.slice(8))});
 function Shell({id,eyebrow,title,lede,children,layout,className=''}:{id:string;eyebrow:string;title:ReactNode;lede?:ReactNode;children:ReactNode;layout:LayoutAttrs;className?:string}){
  return <section {...layout} className={`bottom-section panel ${className}`.trim()} aria-labelledby={id}>
   <div className="bottom-section-heading"><p className="eyebrow">{eyebrow}</p><h2 id={id}><NebulaFlow identity={id}>{title}</NebulaFlow></h2>{lede&&<p className="bottom-section-lede">{lede}</p>}</div>
@@ -50,7 +50,7 @@ const fundedPill=(pct:string,bound?:GoalSummary['progressBound'])=>{const shown=
 export function GoalMilestones({goals,today,...layout}:LayoutAttrs&{goals:readonly GoalSummary[];today:string}){
  const t=goalTimeline(goals,today);
  return <Shell layout={layout} id="bottom-goal-milestones" eyebrow="YOUR TIMELINE" title={<>Milestones ahead.</>} lede="Target dates saved in your active Goals, soonest first.">
-  {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{g.targetDate}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{fundedPill(g.progressPct,goals.find(x=>x.key===g.key)?.progressBound)}</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
+  {t.dated.length?<ol className="bottom-timeline">{t.dated.map(g=><li key={g.key} data-past={g.past||undefined}><time dateTime={g.targetDate}>{formatDate(g.targetDate)}</time><span className="bottom-timeline-dot" aria-hidden="true"/><Link href={g.href} className="bottom-timeline-name">{g.name}</Link><span className="bottom-pill">{fundedPill(g.progressPct,goals.find(x=>x.key===g.key)?.progressBound)}</span>{g.past&&<span className="bottom-pill bottom-pill-muted">Target date passed</span>}</li>)}</ol>
   :<p className="bottom-empty">No active Goal has a target date yet. Add one in a Goal’s plan to see it here.</p>}
   {t.undated>0&&<p className="bottom-note">{t.undated} active Goal{t.undated===1?' has':'s have'} no target date.</p>}
  </Shell>;

@@ -1,6 +1,7 @@
 /** Manual statement evidence is a durable ledger, separate from live holdings and UI Activity. */
 import * as z from 'zod';
 import type {Platform} from './positions';
+import {formatDateTime} from './visual-format';
 const id=z.string().min(1).max(250),at=z.iso.datetime(),units=z.string().regex(/^(0|[1-9]\d*)$/).max(78),decimals=z.number().int().min(0).max(18);
 export const evidenceMoneySchema=z.object({value:units,decimals,currency:z.string().regex(/^[A-Z]{3}$/)}).strict();
 export type EvidenceMoney=z.infer<typeof evidenceMoneySchema>;
@@ -119,7 +120,7 @@ export function evaluateTwr(s:Evidence,portfolioId:string,startId:string,endId:s
  if(opening<=0n)return unavailable('ZERO_CAPITAL','A positive opening valuation is required; returns on zero capital are undefined.');
  for(const f of flows){
   const before=interval.filter(e=>e.kind==='valuation'&&e.flowId===f.id&&e.role==='before_flow'),after=interval.filter(e=>e.kind==='valuation'&&e.flowId===f.id&&e.role==='after_flow');
-  if(before.length!==1||after.length!==1)return unavailable('FLOW_BOUNDARY_MISSING',`Record exactly one complete valuation immediately before and after the flow at ${f.occurredAt}.`);
+  if(before.length!==1||after.length!==1)return unavailable('FLOW_BOUNDARY_MISSING',`Record exactly one complete valuation immediately before and after the flow at ${formatDateTime(f.occurredAt, {seconds: true, timeZone: 'UTC'})} UTC.`);
   const b=before[0]!,a=after[0]!;if(b.kind!=='valuation'||a.kind!=='valuation')return unavailable('INVALID_EVIDENCE','Flow valuations are invalid.');
   const net=normalize(f.amount)*(f.direction==='IN'?1n:-1n);
   if(normalize(a.amount)!==normalize(b.amount)+net)return unavailable('FLOW_BOUNDARY_MISMATCH','A post-flow valuation must equal the immediately preceding valuation plus the signed external flow. Resolve the evidence gap; no return is inferred.');

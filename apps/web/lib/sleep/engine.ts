@@ -1,5 +1,6 @@
 import {MAX_NIGHT_MINUTES, sleepGoalSchema, sleepNightSchema, sleepSchema, type Sleep, type SleepGoal, type SleepNight} from './schema';
 import {addDays, wallClock} from '../zone-time';
+import {formatDate} from '../visual-format';
 
 /**
  * Sleep, the engine (Session W Part 4). Every number here comes from the nights the person logged or imported; nothing
@@ -57,7 +58,7 @@ export function saveNight(s: Sleep, input: NightInput, at: Date): Sleep {
   if (input.end > at.getTime() + MIN) throw Error('A night cannot end in the future.');
   if (input.kind === 'night') {
     const clash = s.nights.find(n => n.id !== input.id && n.kind === 'night' && n.end !== null && overlaps({start: input.start, end: input.end}, {start: Date.parse(n.start), end: Date.parse(n.end)}));
-    if (clash) throw Error(`This overlaps the night that ended on ${nightDay(clash)}. Edit that one instead.`);
+    if (clash) throw Error(`This overlaps the night that ended on ${formatDate(nightDay(clash)!)}. Edit that one instead.`);
   }
   const tags = input.tags?.map(t => t.trim()).filter(Boolean);
   const night = sleepNightSchema.parse({

@@ -6,7 +6,7 @@ import {dailyData} from '../../lib/health-daily';
 import type {HabitHealthLinksV4 as HabitHealthLinks} from '../../lib/habit-health-links/schema';
 import {insightCards, type InsightCard} from '../../lib/insights/engine';
 import {hiddenInsights} from '../../lib/insights/store';
-import {formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber} from '../../lib/visual-format';
 import {isShowcase} from '../../lib/showcase-storage';
 import {useHealthToday} from '../health/use-health-today';
 import {useInsights} from './use-insights';
@@ -33,7 +33,7 @@ export function InsightsCard({cards, insights, today}: ReturnType<typeof useInsi
     {cards.map((card, index) => <article key={card.id} id={`insight-${card.id}`} tabIndex={-1} className="insight">
       <p className="insight-sentence">{card.sentence}</p>
       <div className="insight-row"><details className="insight-detail"><summary>How this is calculated</summary>
-        <p>Window: {card.detail.window.start} – {card.detail.window.end} · {formatNumber(card.detail.sampleDays)} days with the records this needs.</p>
+        <p>Window: {formatDate(card.detail.window.start)} – {formatDate(card.detail.window.end)} · {formatNumber(card.detail.sampleDays)} days with the records this needs.</p>
         <p>With the first: {formatNumber(card.detail.withA.yes)} of {formatNumber(card.detail.withA.total)} days. Without: {formatNumber(card.detail.withoutA.yes)} of {formatNumber(card.detail.withoutA.total)} days.</p>
         {card.detail.threshold && <p>{formatNumber(card.detail.threshold.value)} steps is {card.detail.threshold.source === 'target' ? 'your step target.' : 'your usual: the middle of your recorded days.'}</p>}
         <p>Paired by {card.detail.pairedBy}.</p><p>Counts of your own records. Not a cause, not advice.</p>

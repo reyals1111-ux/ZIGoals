@@ -2,7 +2,7 @@
 import {useId, useMemo, useState} from 'react';
 import type {WealthHistory} from '../../lib/wealth';
 import {wealthMoney} from '../platform/wealth-money';
-import {formatDateTime, formatNumber} from '../../lib/visual-format';
+import {formatDate, formatDateTime, formatNumber} from '../../lib/visual-format';
 import {useEntrance} from '../use-entrance';
 import {useChartWidth} from '../charts/use-chart-width';
 import {ChartGrid, ChartLegend, ChartXAxis} from '../charts/chart-kit';
@@ -57,7 +57,7 @@ export function WealthHistoryChart({history, showcase}: {history: WealthHistory;
       <path className="wealth-history-line" d={line} fill="none" stroke={`url(#${id}-line)`} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" pathLength={1}/>
       {points.map((pt, i) => <g key={pt.at} className="wealth-history-point" data-active={i === shown || undefined} tabIndex={0} role="button" aria-label={`${formatDateTime(pt.at)}: ${money(pt.value, history.currency)}`} onFocus={() => setActive(i)} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)}><circle cx={x(times[i]!)} cy={y(BigInt(pt.value))} r={i === shown ? 6 : 3.5}/><rect className="wealth-history-hit" x={x(times[i]!) - 14} y={T} width="28" height={H - T - B} fill="transparent"/></g>)}
       {active !== null && <line className="wealth-history-cursor" x1={x(times[shown]!)} x2={x(times[shown]!)} y1={T} y2={H - B}/>}
-      <ChartXAxis ticks={(W < 420 ? [dates[0]!, dates[2]!] : dates).map(d => ({x: x(d), label: new Date(d).toISOString().slice(0, 10)}))} y={H - 10}/>
+      <ChartXAxis ticks={(W < 420 ? [dates[0]!, dates[2]!] : dates).map(d => ({x: x(d), label: formatDate(d)}))} y={H - 10}/>
     </svg></div>
     <ChartLegend className="wealth-history-legend" items={[{label: 'Recorded total'}, ...bands.map(b => ({label: b.c, kind: 'area' as const, color: b.color}))]}/>
     <details><summary>View exact history</summary><div className="evidence-table-wrap"><table><caption>Original recorded values · {history.currency}</caption><thead><tr><th>Date</th><th>Amount ({history.currency})</th>{classes.map(c => <th key={c}>{c}</th>)}</tr></thead><tbody>{points.map(pt => <tr key={pt.at}><td><time dateTime={pt.at}>{formatDateTime(pt.at)}</time></td><td>{money(pt.value, history.currency)}</td>{classes.map(c => <td key={c}>{pt.classes?.[c] ? money(pt.classes[c]!, history.currency) : '—'}</td>)}</tr>)}</tbody></table></div></details>

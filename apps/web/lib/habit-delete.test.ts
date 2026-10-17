@@ -59,7 +59,7 @@ describe('Delete for good', () => {
   // Gate B security read (ADR-019 C44).
   it('needs the archive to be in effect, not only scheduled: a shell is never still due', () => {
     const data = journal(); // archived from 2026-09-21
-    expect(() => deleteHabitForGood(data, A, new Date('2026-09-20T12:00:00.000Z'))).toThrow('The archive starts on 2026-09-21; the habit can be deleted for good from then.');
+    expect(() => deleteHabitForGood(data, A, new Date('2026-09-20T12:00:00.000Z'))).toThrow('The archive starts on Sep 21, 2026; the habit can be deleted for good from then.');
     expect(() => deleteHabitForGood(data, A, new Date('2026-09-21T12:00:00.000Z'))).not.toThrow();
   });
   it('says what stays: the rules keep the type, unit, target and schedule, and nothing else names the habit', () => {

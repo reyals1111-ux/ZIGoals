@@ -49,7 +49,7 @@ test('the wrap-up: turned on in Settings, a calm card after 18:00 with the day i
   await expect(settings.getByLabel('Show the evening wrap-up on Today')).not.toBeChecked();
   await settings.getByLabel('Show the evening wrap-up on Today').check();
   await settings.getByRole('button', {name: 'Save wrap-up', exact: true}).click();
-  await expect(settings.getByRole('status')).toHaveText('The evening wrap-up shows on Today from 18:00.');
+  await expect(settings.getByRole('status')).toHaveText('The evening wrap-up shows on Today from 6:00 PM.');
   expect(await stored(page, SETTINGS)).toMatchObject({schemaVersion: 3, wrapUp: {version: 1, enabled: {v: true}, days: {}}});
   await page.goto('/app');
   await revealForYou(page);

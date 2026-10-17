@@ -1,6 +1,7 @@
 'use client';
 import {firstSeries, firstStat, seriesSummary, type Series, type Stat} from '../../lib/ai/viz';
 import type {ToolResult} from '../../lib/ai/tools/types';
+import {formatDate} from '../../lib/visual-format';
 import './chat-polish.css';
 
 /**
@@ -33,7 +34,7 @@ export function MiniChart({series}: {series: Series}) {
       {series.shape === 'line' ? <Line series={series}/> : <Bars series={series}/>}
     </svg>
     <figcaption className="ai-note">{summary}</figcaption>
-    <details className="ai-viz-table"><summary>Show the figures</summary><table><thead><tr><th scope="col">Day</th><th scope="col">{series.unit || 'Value'}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{p.date}</td><td>{p.value.toLocaleString('en-US')}</td></tr>)}</tbody></table></details>
+    <details className="ai-viz-table"><summary>Show the figures</summary><table><thead><tr><th scope="col">Day</th><th scope="col">{series.unit || 'Value'}</th></tr></thead><tbody>{series.points.map(p => <tr key={p.date}><td>{formatDate(p.date)}</td><td>{p.value.toLocaleString('en-US')}</td></tr>)}</tbody></table></details>
   </figure>;
 }
 /** A figure from the records, as a small card: the number, what it counts, and where it comes from. */

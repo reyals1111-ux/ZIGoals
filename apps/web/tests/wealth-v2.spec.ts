@@ -73,7 +73,7 @@ test('a contribution reminder: set on the Goal, a calm card on Today once due, "
   const reminder = plan.getByRole('form', {name: 'Contribution reminder'});
   await reminder.getByLabel('Remind me on this device at').fill('09:30');
   await reminder.getByRole('button', {name: 'Set reminder', exact: true}).click();
-  await expect(reminder.getByRole('status')).toHaveText('Reminder set for 09:30 on this device.');
+  await expect(reminder.getByRole('status')).toHaveText('Reminder set for 9:30 AM on this device.');
   expect((await stored(page, W_REMINDERS_KEY)).contributions).toEqual({'7': {time: '09:30'}});
   await page.clock.setFixedTime(new Date(`${TODAY}T07:45:00.000Z`)); // 09:45 in Brussels
   await page.goto('/app');
@@ -84,7 +84,7 @@ test('a contribution reminder: set on the Goal, a calm card on Today once due, "
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await sheet.getByRole('button', {name: /Fictional cash/}).click();
   await expect(sheet.getByLabel('Contribution quantity (EUR)')).toHaveValue('250');
-  await expect(sheet).toContainText('Filled in from your plan\'s amount for 2026-10-01. Check it before you preview; nothing moves money.');
+  await expect(sheet).toContainText('Filled in from your plan\'s amount for Oct 1, 2026. Check it before you preview; nothing moves money.');
   await sheet.getByRole('button', {name: 'Close dialog', exact: true}).click();
   await expect(sheet).toHaveCount(0);
   await page.goto('/app');

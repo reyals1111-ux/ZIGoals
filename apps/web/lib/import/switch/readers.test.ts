@@ -236,7 +236,7 @@ describe('preview, apply and undo', () => {
     expect(batch.counts).toEqual({sleep: 2, meditation: 1, vitals: 1, activity: 3, weights: 2});
     expect(undoPlan(next, batch)).toEqual({remove: 9, edited: []});
     const edited = {...next, weights: next.weights.map((w, i) => i === 0 ? {...w, grams: 71000, updatedAt: new Date(Date.now() + 60_000).toISOString()} : w)};
-    expect(undoPlan(edited, batch).edited).toEqual(['a weight on 2026-10-01']);
+    expect(undoPlan(edited, batch).edited).toEqual(['a weight on Oct 1, 2026']);
     const undone = undoImport(next, batch);
     expect([undone.weights.length, undone.activity.length, healthGroupIn(undone, 'sleep')!.nights.length, healthGroupIn(undone, 'vitals')!.days.length]).toEqual([0, 0, 0, 0]);
   });

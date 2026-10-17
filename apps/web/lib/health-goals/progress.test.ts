@@ -50,7 +50,7 @@ describe('healthGoalProgress', () => {
     const readings = (grams: number[]): HealthData => ({...createEmptyHealth(), weights: grams.map((g, i) => ({id: `health_weight-${String(i).padStart(3, '0')}`, date: `2026-09-${String(10 + i).padStart(2, '0')}`, grams: g, createdAt: AT, updatedAt: AT}))});
     const down = goal({measure: 'weight', direction: 'down', unit: 'kg', target: {value: '72', decimals: 0}});
     const high = healthGoalProgress(down, readings([74600, 74200, 73800, 73440]), DAY);
-    expect(high).toMatchObject({kind: 'value', current: 74.01, target: 72, unit: 'kg', percent: null, days: 4, done: false, detail: '30-day average of 4 readings · latest 73.44 kg on 2026-09-13'});
+    expect(high).toMatchObject({kind: 'value', current: 74.01, target: 72, unit: 'kg', percent: null, days: 4, done: false, detail: '30-day average of 4 readings · latest 73.44 kg on Sep 13, 2026'});
     expect(healthGoalLine(down, high)).toBe('74.01 towards 72 kg');
     expect(healthGoalProgress(down, readings([72000, 71900, 71800]), DAY)).toMatchObject({done: true, current: 71.9});
     const lb = goal({measure: 'weight', direction: 'down', unit: 'lb', target: {value: '1587', decimals: 1}});

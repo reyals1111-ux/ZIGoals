@@ -27,7 +27,7 @@ test('habit dashboard distinguishes recorded check-ins from target success and s
   expect(html).toContain('Your last 30 days.');
   expect(html).toContain('recorded check-ins');
   expect(html).toContain('partial progress');
-  expect(html).toContain('2026-08-23');
-  expect(html).toContain('2026-09-21');
+  expect(html).toContain('Aug 23, 2026');
+  expect(html).toContain('Sep 21, 2026');
   expect(html.match(/scope="row"/g)).toHaveLength(30);
 });

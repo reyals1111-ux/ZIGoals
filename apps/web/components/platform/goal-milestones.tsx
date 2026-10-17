@@ -16,6 +16,7 @@ import {showToast} from '../ui/undo-toast';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {GlassBar} from '../progress/glass-progress';
 import {amount} from './common';
+import {formatDate} from '../../lib/visual-format';
 
 /**
  * A Goal's milestones (Session W Part 11): each with an optional target value (where the Goal keeps it) and target date
@@ -64,7 +65,7 @@ export function GoalMilestonesModule({goal, current, update, run, today}: {goal:
           showToast({message: `“${m.title}” removed.`, undo: async () => { await update(s => withMilestones(s, goal.id, list => list.some(x => x.id === m.id) ? list : [...list.slice(0, Math.max(0, at)), m, ...list.slice(Math.max(0, at))])); if (before) { try { dates.update(d => setMilestoneDate(d, goal.id, m.id, before)); } catch { /* the milestone is back; its date can be set again */ } } }, undone: `“${m.title}” is back.`}); })}>Remove milestone</button></div>
       </form> : <div className="goal-milestone-row">
         <label className="checkbox"><input type="checkbox" checked={m.done} disabled={closed} onChange={e => { const done = e.target.checked; void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done} : x)))); }} />{m.title}</label>
-        <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${date}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : ''].filter(Boolean).join(' · ')}</small>
+        <small>{[m.target ? `at ${money(m.target)}` : '', date ? `by ${formatDate(date)}` : '', state === 'reached' ? 'reached by your recorded progress' : state === 'done' ? 'done' : ''].filter(Boolean).join(' · ')}</small>
         {!closed && <button type="button" className="quiet" aria-label={`Edit milestone ${m.title}`} onClick={() => setEditing(m.id)}>Edit</button>}
       </div>}
     </>; const done = () => void run(() => update(s => withMilestones(s, goal.id, list => list.map(x => x.id === m.id ? {...x, done: true} : x)))); return phone ? <Suspense key={m.id} fallback={<li>{row}</li>}><SwipeRow as="li" label={m.title} nameRow={false} completeLabel="Done" onComplete={!closed && !m.done ? done : undefined}>{row}</SwipeRow></Suspense> : <li key={m.id}>{row}</li>; })}</ul> : <p>No milestones yet.</p>}

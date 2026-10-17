@@ -7,6 +7,7 @@ import {applicationServerKey, clearPushRecord, postPush, pushRefusalMessage, rea
 import {DEFAULT_QUIET, deriveSchedules, type Derived, type QuietHours} from './schedule';
 import {deviceZone} from './support';
 import {isDurableMarker, readDurableStore} from '../vault/local';
+import {formatClock} from '../visual-format';
 
 /**
  * The browser side of push reminders (ADR-010): the one service worker at /push-sw.js, the browser's subscription,
@@ -39,7 +40,7 @@ export async function currentSchedules(quiet: QuietHours, now = new Date()): Pro
 /** Plain words for refused and dropped rows, or an empty string. */
 export function scheduleNote(derived: Derived, quiet: QuietHours): string {
   const parts: string[] = [];
-  if (derived.refused.length) parts.push(`${derived.refused.map(r => `${r.title} at ${r.time}`).join(', ')} ${derived.refused.length === 1 ? 'falls' : 'fall'} inside your quiet hours (${quiet.from}–${quiet.to}) and ${derived.refused.length === 1 ? 'is' : 'are'} not sent while ZIGoals is closed.`);
+  if (derived.refused.length) parts.push(`${derived.refused.map(r => `${r.title} at ${formatClock(r.time)}`).join(', ')} ${derived.refused.length === 1 ? 'falls' : 'fall'} inside your quiet hours (${formatClock(quiet.from)}–${formatClock(quiet.to)}) and ${derived.refused.length === 1 ? 'is' : 'are'} not sent while ZIGoals is closed.`);
   if (derived.dropped) parts.push(`Only the 20 earliest reminder times are sent while ZIGoals is closed; ${derived.dropped} later ${derived.dropped === 1 ? 'one is' : 'ones are'} left out.`);
   return parts.join(' ');
 }

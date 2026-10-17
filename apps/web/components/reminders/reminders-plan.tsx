@@ -12,6 +12,7 @@ import {WEEKDAY_NAMES} from '../../lib/ai/actions/schema';
 import {deviceSettingFailureMessage} from '../../lib/storage-error-copy';
 import {LayoutLockButton, LayoutPage} from '../layout-edit';
 import './reminders-plan.css';
+import {formatClock} from '../../lib/visual-format';
 
 const DAY_LABEL = (d: number) => WEEKDAY_NAMES[d]![0]!.toUpperCase() + WEEKDAY_NAMES[d]!.slice(1);
 /**
@@ -27,7 +28,7 @@ export function RemindersPlanPage() {
   return <LayoutPage page="reminders"><div className="reminders-plan">
     <section className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="reminders-eyebrow">SETTINGS · REMINDERS</NebulaFlow></p><h1><NebulaFlow identity="reminders-title">Every reminder, in one place.</NebulaFlow></h1><p className="page-lede">Times for each kind, and the quiet hours they all respect. Cards show on Today while ZIGoals is open.</p></div><LayoutLockButton /></section>
     <section className="panel reminders-push" aria-label="Delivery"><p className="eyebrow">Delivery</p><p><strong>In-app now.</strong> A reminder is a card on Today (and ZIGi may knock). <strong>Push delivery is off</strong> until the owner activates push for the Alpha; your times here will carry over then, unchanged.</p><p className="fine"><Link className="text-link" href="/app/settings">Back to Settings</Link></p></section>
-    <section className="panel reminders-group" aria-labelledby="reminders-quiet-title"><p className="eyebrow">Quiet hours</p><h2 id="reminders-quiet-title"><NebulaFlow identity="reminders-quiet">Nothing between {q.from} and {q.to}</NebulaFlow></h2>
+    <section className="panel reminders-group" aria-labelledby="reminders-quiet-title"><p className="eyebrow">Quiet hours</p><h2 id="reminders-quiet-title"><NebulaFlow identity="reminders-quiet">Nothing between {formatClock(q.from)} and {formatClock(q.to)}</NebulaFlow></h2>
       <form className="reminders-row" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); keep(() => plan.update(r => setQuietHours(r, {from: String(f.get('from')), to: String(f.get('to'))}))); }}><label className="field"><span>From</span><input type="time" name="from" defaultValue={q.from} required /></label><label className="field"><span>Until</span><input type="time" name="to" defaultValue={q.to} required /></label><div className="actions"><button type="submit" className="secondary">Save quiet hours</button></div></form>
       <p className="fine">Every reminder, the timer bell and ZIGi’s knock wait until the quiet hours end.</p></section>
     <section className="panel reminders-group" aria-labelledby="reminders-plan-title"><p className="eyebrow">Daily and weekly</p><h2 id="reminders-plan-title"><NebulaFlow identity="reminders-plan">Your reminders</NebulaFlow></h2>
