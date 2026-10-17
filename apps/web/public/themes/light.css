@@ -8455,3 +8455,7 @@
 /* Habits' 30-day map: a full day keeps its own light nebula fill under dark numerals (the mapping had darkened its first
    stop, so the numerals sat on near-black; Session AD design review). */
 :root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #7ec9df, #aaa4f0, #d7a7df); color: #161c36; }
+/* Gate C audit (Light, every route): the goal templates' area tags and the grocery list's aisle headings take their
+   colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
+:root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
+:root[data-theme=light] .health-grocery-aisle h3:not(#\-) { color: #0d6b5f; }
