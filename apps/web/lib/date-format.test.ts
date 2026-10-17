@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { activityTimeLabel } from "./activity-time";
-import { DEFAULT_DISPLAY_LOCALE, calendarDay, formatDate, formatDateTime, formatMonth, formatRelativeDay, formatTime, formatWeekday, setDisplayLocale } from "./visual-format";
+import { DEFAULT_DISPLAY_LOCALE, calendarDay, formatClock, formatDate, formatDateTime, formatMonth, formatRelativeDay, formatTime, formatWeekday, setDisplayLocale } from "./visual-format";
 
 // Session AD item 8 (ADR-026): one date format on every page, from the browser's locale.
 afterEach(() => setDisplayLocale(DEFAULT_DISPLAY_LOCALE));
@@ -38,6 +38,12 @@ describe("times follow the locale's hour cycle", () => {
     setDisplayLocale("de-DE");
     expect(formatTime(evening, utc)).toBe("21:05");
     expect(formatDateTime(evening, utc)).toBe("17 Oct 2026, 21:05");
+  });
+  it("a wall-clock time kept as HH:MM (a bedtime, quiet hours) reads the same way; anything else is left as it is", () => {
+    expect([formatClock("06:30"), formatClock("22:30"), formatClock("00:00")]).toEqual(["6:30 AM", "10:30 PM", "12:00 AM"]);
+    setDisplayLocale("en-GB");
+    expect([formatClock("06:30"), formatClock("22:30"), formatClock("00:00")]).toEqual(["06:30", "22:30", "00:00"]);
+    expect([formatClock("24:00"), formatClock("7:5"), formatClock("")]).toEqual(["24:00", "7:5", ""]);
   });
 });
 

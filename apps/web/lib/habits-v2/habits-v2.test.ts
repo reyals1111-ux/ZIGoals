@@ -31,7 +31,7 @@ describe('challenges', () => {
     for (const day of ['2026-10-01', '2026-10-02', '2026-10-04', '2026-10-05', '2026-10-06']) data = done(data, ids.walk, day);
     const c = challengeOf(data.habits[0]!, '2026-10-09')!;
     expect(c).toMatchObject({start: '2026-10-01', end: '2026-10-07', days: 7, done: 5, scheduled: 7, finished: true});
-    expect(finishedWords(data.habits[0]!, c)).toBe('Your 7-day Walk challenge ended on 2026-10-07: done on 5 of 7 scheduled days.');
+    expect(finishedWords(data.habits[0]!, c)).toBe('Your 7-day Walk challenge ended on Oct 7, 2026: done on 5 of 7 scheduled days.');
     expect(challengeNoteId(data.habits[0]!, c)).toBe(`challenge:${ids.walk}:2026-10-07`);
     const kept = keepGoing(data, ids.walk, at('2026-10-09'));
     expect(latestHabitRule(kept.habits[0]!)).toMatchObject({from: '2026-10-09', endCondition: {kind: 'none'}});

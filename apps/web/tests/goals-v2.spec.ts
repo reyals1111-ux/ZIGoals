@@ -40,7 +40,7 @@ test('milestones: a value reached by the recorded progress gets one calm note; a
   await add.getByLabel(/Target date/).fill('2027-01-31');
   await add.getByRole('button', {name: 'Add milestone', exact: true}).click();
   await expect(section.getByText('Half way')).toBeVisible();
-  await expect(section).toContainText('by 2027-01-31');
+  await expect(section).toContainText('by Jan 31, 2027');
   const saved = (await stored(page, PLATFORM_KEY)) as Platform;
   const halfWay = saved.goals[0]!.milestones.find(m => m.title === 'Half way')!;
   expect(halfWay.target).toBe('300000');
@@ -61,9 +61,9 @@ test('"On track?": what is left, what the date would take with no growth, the re
   await page.goto('/app/goals/tracked/7');
   const section = await open(page, 'on-track');
   await expect(section).toContainText('Still to go: €4,500.00, from what is counted now.');
-  await expect(section).toContainText('To reach it by 2026-12-30 with no growth: about €350.00 a week, or €1,500.00 every 30 days.');
+  await expect(section).toContainText('To reach it by Dec 30, 2026 with no growth: about €350.00 a week, or €1,500.00 every 30 days.');
   await expect(section).toContainText('Recorded here over the last 90 days: €266.66 in every 30 days, net of withdrawals.');
-  await expect(section).toContainText('At that pace, with no growth, about 2028-02-20.');
+  await expect(section).toContainText('At that pace, with no growth, about Feb 20, 2028.');
   await section.locator('summary', {hasText: 'What if it grew?'}).click();
   await section.getByLabel('Growth you assume, % a year').fill('0');
   await section.getByLabel(/Added every month/).fill('500');

@@ -78,7 +78,7 @@ describe('A2 save mapping', () => {
     const slept = (text: string, wake: string) => ({...known(text, stores.habits), wake}) as Extract<QuickAddKnown, {kind: 'sleep'}>;
     const lastNight = applyQuickAddSleep(slept('slept 7h', '07:15'), stores, at).health!;
     expect(healthGroupIn(lastNight, 'sleep')!.nights).toMatchObject([{kind: 'night', start: '2026-10-06T22:15:00.000Z', end: '2026-10-07T05:15:00.000Z', timeZone: 'Europe/Brussels'}]);
-    expect(() => applyQuickAddSleep(slept('slept 6h', '08:00'), {...stores, health: lastNight}, at)).toThrow(/overlaps the night that ended on 2026-10-07/);
+    expect(() => applyQuickAddSleep(slept('slept 6h', '08:00'), {...stores, health: lastNight}, at)).toThrow(/overlaps the night that ended on Oct 7, 2026/);
     expect(() => applyQuickAddSleep(slept('slept 7h', '12:30'), stores, at)).toThrow(/cannot end in the future/);
     const before = applyQuickAddSleep(slept('sleep 8 hours yesterday', '06:30'), stores, at).health!;
     expect(healthGroupIn(before, 'sleep')!.nights[0]).toMatchObject({end: '2026-10-06T04:30:00.000Z'});

@@ -28,7 +28,7 @@ const RULES: {id: string; pattern: RegExp}[] = [
 /** The machine uses that stay, each with its count in that file: a new one in the same file still fails. */
 const ALLOWED: {file: string; rule: string; count: number; reason: string}[] = [
   {file: 'components/ai/ai-chat.tsx', rule: 'Date#toDateString/toTimeString/toUTCString', count: 1, reason: 'the device clock as "HH:MM", compared with the quiet hours; never shown'},
-  {file: 'components/ai/zigi-reminders-panel.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the weekday of a weekly reminder ("Monday at 09:00"), a schedule, not a date'},
+  {file: 'components/ai/zigi-reminders-panel.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the weekday of a weekly reminder ("Monday at 9:00 AM"), a schedule, not a date'},
   {file: 'components/weekly-review/weekly-review-day.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the options of the weekly review day choice, a schedule, not a date'},
   {file: 'components/habits/habit-editor.tsx', rule: 'month or weekday names by hand', count: 1, reason: 'the weekday choices of a habit schedule, not a date'},
 ];

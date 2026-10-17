@@ -6,6 +6,7 @@ import {emptyMeditation, MAX_SESSIONS, type MeditationSession} from '../../medit
 import {emptyVitals, MAX_VITAL_DAYS, type VitalDay} from '../../vitals/schema';
 import {PRIVATE_MAX_BYTES} from '../../private-storage';
 import type {ImportBatch, ImportFormat} from '../batches-schema';
+import {formatDate} from '../../visual-format';
 
 /**
  * Bringing an export into the Health journal (Session W Part 7), the same for every format. The rules, chosen so an
@@ -155,11 +156,11 @@ export function undoPlan(health: HealthData, batch: ImportBatch): {remove: numbe
     const wanted = new Set(ids ?? []);
     for (const r of records) if (wanted.has(r.id)) { remove++; if (Date.parse(r.updatedAt) > since + 1000) edited.push(label(r)); }
   };
-  check(refs.sleep, healthGroupIn(health, 'sleep')?.nights ?? [], r => `a night (${(r as SleepNight).end?.slice(0, 10) ?? ''})`);
-  check(refs.meditation, healthGroupIn(health, 'meditation')?.sessions ?? [], r => `a meditation session (${(r as MeditationSession).startedAt.slice(0, 10)})`);
-  check(refs.vitals, healthGroupIn(health, 'vitals')?.days ?? [], r => `vitals for ${(r as VitalDay).date}`);
-  check(refs.activity, health.activity, r => `activity on ${(r as ActivityLine).date}`);
-  check(refs.weights, health.weights, r => `a weight on ${(r as WeightLine).date}`);
+  check(refs.sleep, healthGroupIn(health, 'sleep')?.nights ?? [], r => `a night (${(r as SleepNight).end ? formatDate((r as SleepNight).end!) : ''})`);
+  check(refs.meditation, healthGroupIn(health, 'meditation')?.sessions ?? [], r => `a meditation session (${formatDate((r as MeditationSession).startedAt)})`);
+  check(refs.vitals, healthGroupIn(health, 'vitals')?.days ?? [], r => `vitals for ${formatDate((r as VitalDay).date)}`);
+  check(refs.activity, health.activity, r => `activity on ${formatDate((r as ActivityLine).date)}`);
+  check(refs.weights, health.weights, r => `a weight on ${formatDate((r as WeightLine).date)}`);
   return {remove, edited};
 }
 /** The journal without the batch's records (those still there; edited ones too, once the person agreed). */

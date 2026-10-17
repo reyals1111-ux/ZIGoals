@@ -40,7 +40,7 @@ export function HealthGoalsSection({goals, health, healthLoaded}: {goals: Health
     return <li key={goal.id} className="health-goal-row" data-status={goal.status}>
       <div className="health-goal-row-copy"><strong>{goal.name}</strong><span className="health-goal-line">{line}{isShowcase() && goal.id.startsWith('92000000-') ? ' · Showcase example' : ''}</span>
         {progress.kind === 'value' && progress.percent !== null && <GlassBar identity={`health-goal:${goal.id}`} className="health-goal-track" aria-hidden="true" value={progress.percent / 100} />}
-        {progress.kind === 'value' && <small>{progress.ended ? `Ended ${progress.ended} · ` : ''}{progress.detail}</small>}
+        {progress.kind === 'value' && <small>{progress.ended ? `Ended ${formatDate(progress.ended)} · ` : ''}{progress.detail}</small>}
         {progress.kind === 'no-data' && progress.detail && <small>{progress.detail}</small>}
         {goal.status === 'closed' && <small>Ended {formatDate(goal.updatedAt)}</small>}
       </div>

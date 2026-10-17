@@ -6,6 +6,7 @@ import {ZIGI_MANIFEST, ZigiAvatar} from '../zigi/zigi-avatar';
 import {Switch} from './ai-switch';
 import {useDeviceRecord} from './use-device-record';
 import './zigi-customize.css';
+import {formatClock} from '../../lib/visual-format';
 
 /**
  * Customize ZIGi (Session V Part 12): the look (the original skin, and honest "Coming soon" tiles for the ones being
@@ -70,7 +71,7 @@ export function ZigiCustomize({footer, onNavigate}: {footer?: ReactNode; onNavig
     <Choice legend="Size" value={prefs.size} options={ZIGI_SIZES} labels={SIZE_LABELS} onChange={size => save(r => ({...r, size}))}/>
     <Choice legend="Greeting" value={prefs.greeting} options={ZIGI_GREETINGS} labels={GREETING_LABELS} notes={GREETING_NOTES} onChange={greeting => save(r => ({...r, greeting}))}/>
     <Switch checked={prefs.edgeTab} onChange={edgeTab => save(r => ({...r, edgeTab}))} label="Edge tab while ZIGi is hidden" note="A small “Show ZIGi” tab at the edge of the screen brings ZIGi back after you hide it. Off: Settings brings it back."/>
-    <Switch checked={prefs.knock.enabled} onChange={enabled => save(r => ({...r, knock: {...r.knock, enabled, offer: r.knock?.offer ?? (enabled ? 'accepted' : 'declined')}}))} label="Knock when a reminder is due" note={`ZIGi peeks out above its button and knocks once when a habit, water or one of its weekly check-ins is due: at most ${prefs.knock.maxPerDay} a day, never between ${prefs.knock.quietFrom} and ${prefs.knock.quietTo}, never on private screens or while ZIGi is hidden, and never on Today, where the reminder has its own card. No sound. Off by default.`}/>
+    <Switch checked={prefs.knock.enabled} onChange={enabled => save(r => ({...r, knock: {...r.knock, enabled, offer: r.knock?.offer ?? (enabled ? 'accepted' : 'declined')}}))} label="Knock when a reminder is due" note={`ZIGi peeks out above its button and knocks once when a habit, water or one of its weekly check-ins is due: at most ${prefs.knock.maxPerDay} a day, never between ${formatClock(prefs.knock.quietFrom)} and ${formatClock(prefs.knock.quietTo)}, never on private screens or while ZIGi is hidden, and never on Today, where the reminder has its own card. No sound. Off by default.`}/>
     {error && <p role="alert">{error}</p>}
     <p className="zigi-customize-links"><Link className="text-link" href="/app/zigi" onClick={onNavigate}>Meet ZIGi: every state and move →</Link></p>
     {footer}

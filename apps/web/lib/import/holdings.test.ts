@@ -53,7 +53,7 @@ describe('transactions', () => {
     expect(next.portfolios[0]!.coins.map(c => c.symbol)).toEqual(['BTC', 'ETH']);
     expect(next.portfolios[0]!.transactions[1]).toMatchObject({kind: 'transfer-in', createdAt: AT}); expect(next.portfolios[0]!.transactions[1]).not.toHaveProperty('price');
     const bad = planTransactionImport({rows: [['2026-09-01', 'Sell', 'BTC', '1', '60000', '', '']], mapping, numberStyle: 'point', dateFormat: 'iso', today: TODAY, resolveCoin: resolve});
-    expect(() => applyTransactionImport(data, 'p1', bad.ready, {importId: IMPORT, at: AT})).toThrow('Row 1 would sell more BTC than the portfolio holds on 2026-09-01. Nothing was imported.');
+    expect(() => applyTransactionImport(data, 'p1', bad.ready, {importId: IMPORT, at: AT})).toThrow('Row 1 would sell more BTC than the portfolio holds on Sep 1, 2026. Nothing was imported.');
     // Undo removes exactly the created ids; a later sale that needs them refuses.
     expect(addedCoinIds(data, next, 'p1')).toEqual(['coin:coingecko:coin:bitcoin', 'coin:coingecko:coin:ethereum']);
     const record = {id: IMPORT, kind: 'portfolio' as const, at: AT, label: 'test', portfolioId: 'p1', createdIds: [...next.portfolios[0]!.transactions.map(t => t.id), ...addedCoinIds(data, next, 'p1')], expiresAt: '2026-10-08T10:00:00.000Z'};
@@ -68,7 +68,7 @@ describe('transactions', () => {
     expect(undoImport(record, {portfolio: edited}).portfolio!.portfolios[0]!.coins.map(c => c.symbol)).toEqual(['ETH']);
     // An edited sale that needs the imported buy refuses the whole undo, with the sale named.
     const editedSale = {...next, portfolios: next.portfolios.map(p => ({...p, transactions: p.transactions.map(t => t.id === `imp_${IMPORT}_3` ? {...t, createdAt: '2026-10-02T10:00:00.000Z'} : t)}))};
-    expect(() => undoImport(record, {portfolio: editedSale})).toThrow('A later sale of coingecko:coin:bitcoin on 2026-09-03 needs what this import brought in. Remove the sale first.');
+    expect(() => undoImport(record, {portfolio: editedSale})).toThrow('A later sale of coingecko:coin:bitcoin on Sep 3, 2026 needs what this import brought in. Remove the sale first.');
   });
 });
 

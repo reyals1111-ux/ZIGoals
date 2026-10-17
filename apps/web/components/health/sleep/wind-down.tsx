@@ -4,6 +4,7 @@ import {useDeviceRecord} from '../../ai/use-device-record';
 import {W_REMINDERS} from '../../../lib/reminders/w-schema';
 import {setWindDown} from '../../../lib/reminders/wind-down';
 import {deviceSettingFailureMessage} from '../../../lib/storage-error-copy';
+import {formatClock} from '../../../lib/visual-format';
 
 /**
  * The wind-down reminder's setting (Session W Part 4): a time on this device. Today shows a card once it has passed, and
@@ -19,7 +20,7 @@ export function WindDownSetting() {
   return <form className="sleep-wind-down" onSubmit={submit} aria-label="Wind-down reminder">
     <label className="field">Wind-down reminder (this device)<input type="time" name="time" defaultValue={time ?? '22:00'} key={time ?? 'none'}/></label>
     <div className="actions"><button type="submit" className="secondary">{time ? 'Change' : 'Set reminder'}</button>{time && <button type="button" className="text-link" onClick={() => save(null, 'Wind-down reminder turned off.')}>Turn off</button>}</div>
-    <p className="fine">{time ? `Today shows a card from ${time} until you go to bed.` : 'Off.'} ZIGi can knock too if you turned knocking on, outside its quiet hours.</p>
+    <p className="fine">{time ? `Today shows a card from ${formatClock(time)} until you go to bed.` : 'Off.'} ZIGi can knock too if you turned knocking on, outside its quiet hours.</p>
     {note && <p role={note.failed ? 'alert' : 'status'}>{note.text}</p>}
   </form>;
 }

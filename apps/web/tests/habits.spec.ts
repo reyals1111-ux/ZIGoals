@@ -46,13 +46,13 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
   await openHabitDetails(card);
   await card.getByRole("button", { name: "Pause habit" }).click();
-  await expect(card).toContainText("Scheduled change from 2026-09-16: paused");
+  await expect(card).toContainText("Scheduled change from Sep 16, 2026: paused");
   await expect(card.locator(".habit-count")).toHaveText("3 / 3 times per day");
   await card.getByRole("button", { name: "Resume habit" }).click();
   await card.getByRole("button", { name: "Undo completion for Read a chapter" }).click();
   await expect(card.locator(".habit-count")).toHaveText("0 / 3 times per day");
   await card.getByRole("button", { name: "Archive habit" }).click();
-  await expect(card).toContainText("Scheduled change from 2026-09-16: archived");
+  await expect(card).toContainText("Scheduled change from Sep 16, 2026: archived");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
   await expect(card).toHaveCount(0);
   await page.getByRole("button", { name: "Archived", exact: true }).click();
@@ -62,7 +62,7 @@ test("habit counts, edit, pause, archive, notes and reload stay local and durabl
   await expect.poll(() => card.locator(".habit-more").evaluate(el => (el as HTMLDetailsElement).open)).toBe(true);
   await openHabitDetails(card);
   await card.getByRole("button", { name: "Restore habit" }).click();
-  await expect(card).toContainText("Scheduled change from 2026-09-17: active");
+  await expect(card).toContainText("Scheduled change from Sep 17, 2026: active");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
   await page.getByRole("button", { name: "All", exact: true }).click();
   await expect(card).toBeVisible();
@@ -141,7 +141,7 @@ test("selected weekdays and keyboard completion expose only scheduled habits", a
   await page.getByRole("checkbox", { name: "Tuesday", exact: true }).uncheck();
   await page.getByRole("checkbox", { name: "Monday", exact: true }).check();
   await page.getByRole("button", { name: "Save habit", exact: true }).click();
-  await expect(card).toContainText("Scheduled change from 2026-09-16");
+  await expect(card).toContainText("Scheduled change from Sep 16, 2026");
   await expect(card.getByRole("button", { name: "Undo completion for Tuesday ritual" })).toHaveAttribute("aria-pressed", "true");
   await page.clock.fastForward(24 * 60 * 60 * 1000);
   await expect(card.getByText("Not scheduled", { exact: true })).toBeVisible();

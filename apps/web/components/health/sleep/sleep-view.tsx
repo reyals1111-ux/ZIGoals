@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {asleep, clockFromMidnight, clockFromNoon, consistency, dailySeries, deleteNight, inBedMinutes, nightDay, shortNights, sleepDebt, summary} from '../../../lib/sleep/engine';
 import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
-import {formatMinutes, wallClock} from '../../../lib/zone-time';
+import {formatMinutes} from '../../../lib/zone-time';
 import {NebulaFlow} from '../../nebula-flow';
 import {SleepDurationChart, SleepQualityChart, SleepTimesChart} from './sleep-charts';
 import {NightForm, SleepGoalForm} from './sleep-forms';
@@ -14,10 +14,11 @@ import {WindDownSetting} from './wind-down';
 import {SleepScoreCard} from '../sleep-score-card';
 import './sleep.css';
 import {sourceName} from '../../../lib/health-sources';
+import {formatClock, formatDate, formatTime} from '../../../lib/visual-format';
 
 const nightLine = (n: SleepNight) => {
-  const s = wallClock(Date.parse(n.start), n.timeZone), e = wallClock(Date.parse(n.end!), n.timeZone), a = asleep(n)!;
-  return `${s.clock} → ${e.clock} · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''} · in bed ${formatMinutes(inBedMinutes(n))}`;
+  const a = asleep(n)!;
+  return `${formatTime(n.start, {timeZone: n.timeZone})} → ${formatTime(n.end!, {timeZone: n.timeZone})} · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''} · in bed ${formatMinutes(inBedMinutes(n))}`;
 };
 
 /**
@@ -52,7 +53,7 @@ export default function SleepView() {
       {week ? <dl className="sleep-stats">
         <div><dt>Asleep, on average</dt><dd>{formatMinutes(week.asleep)}{week.estimated ? ' (estimated)' : ''}</dd><small>{week.nights} {week.nights === 1 ? 'night' : 'nights'} logged</small></div>
         <div><dt>In bed, on average</dt><dd>{formatMinutes(week.inBed)}</dd></div>
-        <div><dt>Bedtime · wake time</dt><dd>{clockFromNoon(week.bed)} · {clockFromMidnight(week.wake)}</dd><small>averages</small></div>
+        <div><dt>Bedtime · wake time</dt><dd>{formatClock(clockFromNoon(week.bed))} · {formatClock(clockFromMidnight(week.wake))}</dd><small>averages</small></div>
         <div><dt>Your quality rating</dt><dd>{week.quality !== null ? `${week.quality} of 5` : 'Not rated'}</dd></div>
         <div className="sleep-stat-wide"><dt>Sleep debt</dt><dd>{debt ? debt.minutes > 0 ? formatMinutes(debt.minutes) : `${formatMinutes(-debt.minutes)} ahead` : 'Set a goal'}</dd><small>{debt ? `Your goal (${formatMinutes(debt.goal)}) minus time asleep, added up over the ${debt.nights} ${debt.nights === 1 ? 'night' : 'nights'} you logged in the last 7 days.` : 'Needs your own sleep goal (below).'}</small></div>
         <div className="sleep-stat-wide"><dt>Bedtime consistency</dt><dd>{steady ? `± ${formatMinutes(steady.minutes)}` : 'Not yet'}</dd><small>{steady ? `How much your bedtimes vary: the standard deviation of ${steady.nights} bedtimes in the last 14 days.` : 'Needs at least 4 logged nights in 14 days.'}</small></div>
@@ -69,7 +70,7 @@ export default function SleepView() {
     </section>
     <section className="panel sleep-patterns" aria-labelledby="sleep-patterns-title">
       <h2 id="sleep-patterns-title">Patterns in your log</h2>
-      {patterns.length ? <ul>{patterns.map(p => <li key={p.id}><p>{p.sentence}</p><details><summary>How this is worked out</summary><p className="fine">Average time asleep on the {p.withTag.nights} logged nights with the tag and the {p.without.nights} without it, from {p.window.start} to {p.window.end}. Shown only with at least 14 logged nights and 5 on each side.</p></details></li>)}</ul>
+      {patterns.length ? <ul>{patterns.map(p => <li key={p.id}><p>{p.sentence}</p><details><summary>How this is worked out</summary><p className="fine">Average time asleep on the {p.withTag.nights} logged nights with the tag and the {p.without.nights} without it, from {formatDate(p.window.start)} to {formatDate(p.window.end)}. Shown only with at least 14 logged nights and 5 on each side.</p></details></li>)}</ul>
         : <p className="fine">Patterns appear once you have logged at least 14 nights in 60 days, with a tag on at least 5 of them and missing from at least 5 others. They describe your log; they do not explain it.</p>}
     </section>
     <div className="sleep-columns">
@@ -80,11 +81,11 @@ export default function SleepView() {
       <h2 id="sleep-recent-title">Recent nights and naps</h2>
       {nights.length ? <ul className="sleep-nights">{nights.map(n => <li key={n.id}>
         {editing === n.id ? <NightForm store={store} night={n} onDone={done} onCancel={() => setEditing(null)}/> : <>
-          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {nightDay(n)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}</div>
+          <div><strong>{n.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(nightDay(n)!)}</strong><span>{nightLine(n)}</span>{(n.quality || n.tags?.length) && <span className="fine">{n.quality ? `Quality ${n.quality}/5` : ''}{n.quality && n.tags?.length ? ' · ' : ''}{n.tags?.join(', ')}</span>}{n.source !== 'manual' && n.source !== 'timer' && <span className="fine">From {sourceName(n.source)}</span>}</div>
           <div className="actions">
-            <button type="button" className="secondary" onClick={() => setEditing(n.id)} aria-label={`Edit the ${n.kind} ending ${nightDay(n)}`}>Edit</button>
+            <button type="button" className="secondary" onClick={() => setEditing(n.id)} aria-label={`Edit the ${n.kind} ending ${formatDate(nightDay(n)!)}`}>Edit</button>
             {confirm === n.id ? <><button type="button" className="secondary" onClick={() => void remove(n.id)}>Delete it</button><button type="button" className="quiet" onClick={() => setConfirm(null)}>Keep it</button></>
-              : <button type="button" className="quiet" onClick={() => setConfirm(n.id)} aria-label={`Delete the ${n.kind} ending ${nightDay(n)}`}>Delete</button>}
+              : <button type="button" className="quiet" onClick={() => setConfirm(n.id)} aria-label={`Delete the ${n.kind} ending ${formatDate(nightDay(n)!)}`}>Delete</button>}
           </div>
         </>}
       </li>)}</ul> : <p>No nights yet. Log one above, or tap “I’m going to bed” tonight.</p>}

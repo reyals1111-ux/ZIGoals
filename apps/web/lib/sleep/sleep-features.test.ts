@@ -119,7 +119,7 @@ describe('the Today widget (Health → Sleep)', () => {
   test('last night: time asleep, its day, estimated when the times in bed are all there is, and the quality', () => {
     let s = add(emptySleep(), '2026-10-21', '23:10', '06:40');
     s = sleepSchema.parse({...s, nights: s.nights.map(n => ({...n, quality: 4}))});
-    expect(widgetMetric(widget('last-night'), sources(s))).toMatchObject({value: '7 h 30 min asleep', detail: 'Night ending 2026-10-21 · estimated · quality 4/5'});
+    expect(widgetMetric(widget('last-night'), sources(s))).toMatchObject({value: '7 h 30 min asleep', detail: 'Night ending Oct 21, 2026 · estimated · quality 4/5'});
   });
   test('the week: the average over the nights logged, how many, and the goal', () => {
     let s = add(add(emptySleep(), '2026-10-20', '23:00', '07:00', {latencyMin: 0, awakeMin: 0}), '2026-10-21', '23:00', '06:00', {latencyMin: 0, awakeMin: 0});

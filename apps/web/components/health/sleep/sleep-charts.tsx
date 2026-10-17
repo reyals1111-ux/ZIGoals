@@ -4,7 +4,7 @@ import {useChartWidth} from '../../charts/use-chart-width';
 import type {DayPoint} from '../../../lib/sleep/engine';
 import {clockFromNoon, clockFromMidnight} from '../../../lib/sleep/engine';
 import {formatMinutes} from '../../../lib/zone-time';
-import {formatDate, formatWeekday} from '../../../lib/visual-format';
+import {formatClock, formatDate, formatWeekday} from '../../../lib/visual-format';
 
 /**
  * Sleep charts (Session W Part 4), hand-built SVG: one series each, so the title names it; a key under the title names
@@ -35,11 +35,11 @@ function Frame({title, summary, children, table, tip, plot, width, keys = []}: {
     <details className="sleep-chart-table"><summary>Show as a table</summary>{table}</details>
   </figure>;
 }
-const tipFor = (p: DayPoint) => p.asleep === null ? `${longDate(p.date)}: no night logged` : `${longDate(p.date)}: ${formatMinutes(p.asleep)} asleep${p.estimated ? ' (estimated)' : ''} · in bed ${formatMinutes(p.inBed!)} · ${clockFromNoon(p.bed!)}–${clockFromMidnight(p.wake!)}${p.quality !== null ? ` · quality ${p.quality}/5` : ''}`;
+const tipFor = (p: DayPoint) => p.asleep === null ? `${longDate(p.date)}: no night logged` : `${longDate(p.date)}: ${formatMinutes(p.asleep)} asleep${p.estimated ? ' (estimated)' : ''} · in bed ${formatMinutes(p.inBed!)} · ${formatClock(clockFromNoon(p.bed!))}–${formatClock(clockFromMidnight(p.wake!))}${p.quality !== null ? ` · quality ${p.quality}/5` : ''}`;
 function Table({points}: {points: DayPoint[]}) {
   return <div className="sleep-table-wrap"><table>
     <thead><tr><th scope="col">Night ending</th><th scope="col">Asleep</th><th scope="col">In bed</th><th scope="col">Bed → wake</th><th scope="col">Quality</th></tr></thead>
-    <tbody>{points.map(p => <tr key={p.date}><th scope="row">{longDate(p.date)}</th>{p.asleep === null ? <td colSpan={4}>No night logged</td> : <><td>{formatMinutes(p.asleep)}{p.estimated ? ' (estimated)' : ''}</td><td>{formatMinutes(p.inBed!)}</td><td>{clockFromNoon(p.bed!)} → {clockFromMidnight(p.wake!)}</td><td>{p.quality !== null ? `${p.quality} of 5` : 'Not rated'}</td></>}</tr>)}</tbody>
+    <tbody>{points.map(p => <tr key={p.date}><th scope="row">{longDate(p.date)}</th>{p.asleep === null ? <td colSpan={4}>No night logged</td> : <><td>{formatMinutes(p.asleep)}{p.estimated ? ' (estimated)' : ''}</td><td>{formatMinutes(p.inBed!)}</td><td>{formatClock(clockFromNoon(p.bed!))} → {formatClock(clockFromMidnight(p.wake!))}</td><td>{p.quality !== null ? `${p.quality} of 5` : 'Not rated'}</td></>}</tr>)}</tbody>
   </table></div>;
 }
 
@@ -69,8 +69,8 @@ export function SleepTimesChart({points, window}: {points: DayPoint[]; window: {
   const wakes = logged.map(p => p.wake! + 720), beds = logged.map(p => p.bed!), band = window ? [toNoon(window.from), toNoon(window.to)] as const : null;
   const lo = Math.max(0, Math.floor((Math.min(...beds, band?.[0] ?? 1440, 600) - 60) / 60) * 60), hi = Math.min(1440 * 1.5, Math.ceil((Math.max(...wakes, band?.[1] ?? 0, 1140) + 60) / 60) * 60);
   const y = (m: number) => PAD.top + (m - lo) / (hi - lo) * plotH, step = plotW / points.length, w = Math.max(2, Math.min(14, step - 4));
-  const summary = logged.length ? `Bedtimes and wake times, ${points.length} days: ${logged.length} nights logged.${window ? ` Bedtime window ${window.from} to ${window.to}.` : ''}` : `Bedtimes and wake times: no nights logged yet.`;
-  return <Frame title={`Bed and wake times · last ${points.length} days`} summary={summary} tip={hover === null ? null : tipFor(points[hover]!)} table={<Table points={points}/>} plot={plot} width={W} keys={window ? [{kind: 'window', label: `Bedtime window ${window.from}–${window.to}`}] : []}>
+  const summary = logged.length ? `Bedtimes and wake times, ${points.length} days: ${logged.length} nights logged.${window ? ` Bedtime window ${formatClock(window.from)} to ${formatClock(window.to)}.` : ''}` : `Bedtimes and wake times: no nights logged yet.`;
+  return <Frame title={`Bed and wake times · last ${points.length} days`} summary={summary} tip={hover === null ? null : tipFor(points[hover]!)} table={<Table points={points}/>} plot={plot} width={W} keys={window ? [{kind: 'window', label: `Bedtime window ${formatClock(window.from)}–${formatClock(window.to)}`}] : []}>
     {Array.from({length: Math.floor((hi - lo) / 180) + 1}, (_, i) => lo + i * 180).map(m => <g key={m} className="sleep-grid"><line x1={PAD.left} x2={W - PAD.right} y1={y(m)} y2={y(m)}/><text x={PAD.left - 4} y={y(m) + 5} textAnchor="end">{clockFromNoon(m % 1440)}</text></g>)}
     {band && band[1] > band[0] && <g className="sleep-window"><rect x={PAD.left} width={plotW} y={y(band[0])} height={y(band[1]) - y(band[0])}/></g>}
     {points.map((p, i) => <g key={p.date}>

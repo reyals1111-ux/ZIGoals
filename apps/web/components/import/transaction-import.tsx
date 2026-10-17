@@ -12,6 +12,7 @@ import {localDate} from '../../lib/local-date';
 import {saveFailureMessage, storageUiCode} from '../../lib/storage-error-copy';
 import {FileStep, MappingStep, RecentImports, RefusedRows, StepActions, StepHeading, setupFromText, type CsvFile, type CsvSetup, type SetupOptions} from './csv-import-steps';
 import type {ImportUndoStore} from './use-import-undo';
+import {formatDate} from '../../lib/visual-format';
 
 const loadCatalog = createCatalogLoader();
 const OPTIONS: SetupOptions = {fields: TRANSACTION_FIELDS, numberFields: ['quantity', 'price', 'fee'], dateField: 'date'};
@@ -81,7 +82,7 @@ export function TransactionImportPanel({data, update, imports, onUndo, onClose}:
         {picking === key && <CoinPicker value={null} onChange={coin => { setChoices({...choices, [key]: coin}); setPicking(null); }} />}
       </li>)}</ul>}
       {plan.ready.length > 0 && <div className="import-preview"><table><caption className="sr-only">The first rows that will be imported</caption><thead><tr><th scope="col">Row</th><th scope="col">Coin</th><th scope="col">Type</th><th scope="col">Quantity</th><th scope="col">Price per coin</th><th scope="col">Fee</th><th scope="col">Date</th><th scope="col">Note</th></tr></thead>
-        <tbody>{plan.ready.slice(0, 50).map(r => <tr key={r.row}><td className="num">{r.row}</td><td>{r.coin.name} <small>{r.coin.symbol}</small></td><td>{KIND_LABEL[r.kind]}</td><td className="num">{r.quantity}</td><td className="num">{r.price ?? (r.kind.startsWith('transfer') ? 'no price' : '')}</td><td className="num">{r.fee ?? ''}</td><td>{r.date}</td><td>{r.note.slice(0, 40)}</td></tr>)}</tbody></table>
+        <tbody>{plan.ready.slice(0, 50).map(r => <tr key={r.row}><td className="num">{r.row}</td><td>{r.coin.name} <small>{r.coin.symbol}</small></td><td>{KIND_LABEL[r.kind]}</td><td className="num">{r.quantity}</td><td className="num">{r.price ?? (r.kind.startsWith('transfer') ? 'no price' : '')}</td><td className="num">{r.fee ?? ''}</td><td>{formatDate(r.date)}</td><td>{r.note.slice(0, 40)}</td></tr>)}</tbody></table>
         {plan.ready.length > 50 && <p className="fine">… and {plan.ready.length - 50} more rows.</p>}</div>}
       {plan.ready.some(r => r.kind.startsWith('transfer') && !r.price) && <p className="fine">Transfers without a price: the cost of what they bring stays unknown.</p>}
       <RefusedRows refused={plan.refused} />

@@ -10,6 +10,7 @@ import { evaluateGoal } from "@zigoals/goal-engine";
 import { useGoals } from "./goal-provider";
 import { displayAmount } from "./goal-card";
 import { SceneArt } from "./scene-art";
+import { formatDate } from "../lib/visual-format";
 function defaults(): GoalMetadata {
   const d = new Date();
   d.setUTCFullYear(d.getUTCFullYear() + 1);
@@ -255,7 +256,7 @@ export function GoalWizard({ recoverId }: { recoverId?: string }) {
               </div>
               <div>
                 <dt>Target date</dt>
-                <dd>{plan.targetDate}</dd>
+                <dd>{formatDate(plan.targetDate)}</dd>
               </div>
               <div>
                 <dt>Planned monthly</dt>

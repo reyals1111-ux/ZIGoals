@@ -280,7 +280,7 @@ test('Wealth: an account\'s balance only pre-fills that account\'s balance form,
     expect(await accounts(), start).toBe(before);
     expect(await handOff(), start).toBeNull();
     await form.getByRole('button', {name: 'Save'}).click();
-    await expect(page.getByRole('status').filter({hasText: 'Everyday account: balance saved for 2026-09-20.'})).toBeVisible();
+    await expect(page.getByRole('status').filter({hasText: 'Everyday account: balance saved for Sep 20, 2026.'})).toBeVisible();
     await expect(form).toHaveCount(0);
     expect(JSON.parse((await accounts())!).items.find((a: {name: string}) => a.name === 'Everyday account').snapshots.some((b: {date: string; value: string}) => b.date === '2026-09-20' && b.value === '251240')).toBe(true);
   }

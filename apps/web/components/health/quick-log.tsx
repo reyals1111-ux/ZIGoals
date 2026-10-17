@@ -4,6 +4,7 @@ import {formatHealthGrams, newHealthId, type HealthData} from '../../lib/health'
 import {copyMealFromDayBefore, dayBefore, logAgain, pinnedItems, repeatDayBefore, resetWaterSizes, saveWaterSizes, usualForMeal, waterSizesText, quickIn, type Meal, type QuickItem} from '../../lib/health-quick/quick';
 import {dailyData} from '../../lib/health-daily';
 import {plural} from '../../lib/plural';
+import {formatDate} from '../../lib/visual-format';
 
 /**
  * Health quick logging on the diary (Session W Part 9): one tap repeats the day before's meal (or the whole day before)
@@ -21,9 +22,9 @@ export function RepeatDay({data, date, today, perform}: {data: HealthData; date:
   const before = dayBefore(data, date), operation = useRef<string | null>(null);
   if (!before.total || data.diary.some(e => e.date === date)) return null;
   const meals = Object.values(before.meals).filter(Boolean).length, when = dayWords(date, today, before.date);
-  return <div className="health-repeat-day"><p>{date === today ? 'Nothing logged yet today.' : `Nothing logged on ${date}.`}</p>
+  return <div className="health-repeat-day"><p>{date === today ? 'Nothing logged yet today.' : `Nothing logged on ${formatDate(date)}.`}</p>
     <button type="button" className="secondary" onClick={() => { operation.current ??= newHealthId(); const id = operation.current; void perform(latest => repeatDayBefore(latest, date, id, now()), `Copied ${before.total} ${plural(before.total, 'entry', 'entries')} from ${when}.`, () => { operation.current = null; }); }}>
-      {date === today ? 'Repeat yesterday' : `Repeat ${before.date}`} ({before.total} {plural(before.total, 'entry', 'entries')} in {meals} {plural(meals, 'meal')})
+      {date === today ? 'Repeat yesterday' : `Repeat ${formatDate(before.date)}`} ({before.total} {plural(before.total, 'entry', 'entries')} in {meals} {plural(meals, 'meal')})
     </button></div>;
 }
 
@@ -45,7 +46,7 @@ export function MealQuick({data, date, today, meal, perform}: {data: HealthData;
   }
   return <div className="health-meal-quick">
     {copy && <button type="button" className="secondary" onClick={() => { copyOperation.current ??= newHealthId(); const id = copyOperation.current; void perform(latest => copyMealFromDayBefore(latest, date, meal, id, now()), `Copied ${word} from ${dayWords(date, today, before.date)}: ${before.meals[meal]} ${plural(before.meals[meal], 'entry', 'entries')}.`, () => { copyOperation.current = null; }); }}>
-      {date === today ? `Copy yesterday’s ${word}` : `Copy ${word} from ${before.date}`} ({before.meals[meal]} {plural(before.meals[meal], 'entry', 'entries')})
+      {date === today ? `Copy yesterday’s ${word}` : `Copy ${word} from ${formatDate(before.date)}`} ({before.meals[meal]} {plural(before.meals[meal], 'entry', 'entries')})
     </button>}
     {chips.length > 0 && <div className="health-chips" role="group" aria-label={`One tap for ${word}`}>{chips.map(c => <button type="button" className="secondary health-chip" key={`${c.kind}:${c.id}`} aria-label={`Log ${c.name}, ${servings(c.quantityMilli)}, to ${word}`} onClick={() => log(c)}>
       <span aria-hidden="true">+ </span>{c.name}<small> · {formatHealthGrams(c.quantityMilli)}</small>

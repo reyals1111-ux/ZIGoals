@@ -86,7 +86,7 @@ test('your week and patterns, on the device; the reflection goes to the AI only 
   await sheetTab(page, 'Your day');
   await panel(page).getByRole('button', {name: 'Your week', exact: true}).click();
   const week = panel(page).getByRole('region', {name: 'Your week with ZIGi'});
-  await expect(week).toContainText(/Your review week, \d{4}-\d{2}-\d{2} to \d{4}-\d{2}-\d{2}, read on this device/);
+  await expect(week).toContainText(/Your review week, [A-Z][a-z]{2} \d{1,2}, \d{4} to [A-Z][a-z]{2} \d{1,2}, \d{4}, read on this device/);
   await expect(week).toContainText('habit check-ins');
   await expect(week.getByRole('table')).toBeVisible();
   await expect(week).toContainText('Health is not part of this review');

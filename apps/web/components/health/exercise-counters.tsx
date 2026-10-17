@@ -9,6 +9,7 @@ import {EXERCISE_ICONS,EXERCISE_ICON_LABELS,MAX_COUNTERS,addCounter,changeCount,
 import type {HealthData} from '../../lib/health';
 import './exercise-counters.css';
 import {updateRefusalMessage} from '../../lib/storage-error-copy';
+import {formatDate} from '../../lib/visual-format';
 
 type Update=(updater:(h:HealthData)=>HealthData)=>Promise<void>;
 const PATHS:Record<ExerciseIcon,ReactNode>={
@@ -69,7 +70,7 @@ export function ExerciseCounters({data,update}:{data:HealthData;update:Update}){
  };
  return <section className="exercise-counters" aria-labelledby="exercise-counters-title">
   <svg width="0" height="0" aria-hidden="true" focusable="false" style={{position:'absolute'}}><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5fe6f5"/><stop offset=".55" stopColor="#9d8cff"/><stop offset="1" stopColor="#f07fd8"/></linearGradient></defs></svg>
-  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">Today in your Health journal · <time dateTime={today}>{today}</time></p></div>
+  <div className="exercise-counters-heading"><div><p className="eyebrow">QUICK COUNTERS</p><h2 id="exercise-counters-title">Every repetition counts.</h2><p className="exercise-counters-day">Today in your Health journal · <time dateTime={today}>{formatDate(today)}</time></p></div>
    {/* Session AB-Design (owner request 22): one ⋯ in the card's corner manages the counters (add, rename or change icon, delete; reorder with the layout lock); the rows carry only the icon, the name and −/value/+. */}
    <div className="exercise-counters-tools"><button type="button" className="secondary" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>+ Add counter</button><CardOptions label="Quick counters"><button type="button" onClick={()=>setManaging(true)}>Manage counters…</button><button type="button" disabled={exercise.counters.length>=MAX_COUNTERS} onClick={()=>setEditor('new')}>Add counter</button></CardOptions></div></div>
   <div className="exercise-counter-grid"><LayoutRegion region="counters" grid items={exercise.counters.map(c=>({id:entityLayoutId(c.id),label:c.name,node:card(c)}))}/></div>

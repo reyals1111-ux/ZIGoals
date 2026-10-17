@@ -6,6 +6,7 @@ import {TIME, type QuietHours} from '../../lib/push/schedule';
 import {usePush} from './use-push';
 import './push.css';
 import {LoadBoundary} from '../load-boundary';
+import {formatClock, formatDate} from '../../lib/visual-format';
 
 /** The one line that says where this device stands, and whether Turn on is offered. */
 export function pushStateLine(p: Pick<ReturnType<typeof usePush>, 'support' | 'availability' | 'record' | 'permission' | 'account' | 'showcase'>): {text: string; canTurnOn: boolean; install?: boolean} {
@@ -15,7 +16,7 @@ export function pushStateLine(p: Pick<ReturnType<typeof usePush>, 'support' | 'a
   if (p.support === 'unsupported') return {text: 'Not supported in this browser.', canTurnOn: false};
   if (!p.record.loaded || p.availability === 'unknown') return {text: 'Checking…', canTurnOn: false};
   if (p.record.locked) return {text: 'Unlock your account records first.', canTurnOn: false};
-  if (p.record.data) return {text: `On · reminder times checked ${p.record.data.lastSyncDay === localDate() ? 'today' : `on ${p.record.data.lastSyncDay}`}.`, canTurnOn: false};
+  if (p.record.data) return {text: `On · reminder times checked ${p.record.data.lastSyncDay === localDate() ? 'today' : `on ${formatDate(p.record.data.lastSyncDay)}`}.`, canTurnOn: false};
   if (p.permission === 'denied') return {text: 'Blocked in your device settings.', canTurnOn: false};
   if (!p.account) return {text: 'Off. Sign in to your account first.', canTurnOn: false};
   return {text: 'Off.', canTurnOn: true};
@@ -46,7 +47,7 @@ export function PushRemindersPanel() {
       <label className="field"><span>Quiet until</span><input type="time" step={60} value={quiet.to} onChange={event => setDraft({...quiet, to: event.target.value})} disabled={push.busy} /></label>
       <button type="submit" className="secondary" disabled={push.busy || !draft || !validQuiet || (draft.from === push.record.data.quiet.from && draft.to === push.record.data.quiet.to)}>Save quiet hours</button>
     </form>}
-    {push.record.data && <p className="fine">Nothing is sent between {push.record.data.quiet.from} and {push.record.data.quiet.to}, in this device&rsquo;s time zone.</p>}
+    {push.record.data && <p className="fine">Nothing is sent between {formatClock(push.record.data.quiet.from)} and {formatClock(push.record.data.quiet.to)}, in this device&rsquo;s time zone.</p>}
     {push.record.data && <LoadBoundary label="The reminder names"><Suspense fallback={null}><ReminderNames/></Suspense></LoadBoundary>}
     <div className="actions">
       {state.canTurnOn && <button type="button" className="primary" disabled={push.busy} onClick={() => void push.turnOn()}>{push.busy ? 'Setting up…' : 'Turn on on this device'}</button>}

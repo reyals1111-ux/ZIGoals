@@ -14,7 +14,7 @@ test('food and meal widgets persist only selector identities, reject invalid sel
  expect(()=>saveWidget(health,widget('meal','Brunch'))).toThrow();expect(()=>saveWidget(health,widget('food-entry','renamed-food'))).toThrow();expect(saveWidget(health,widget('meal','Breakfast')).widgets.at(-1)?.entity).toBe('Breakfast');
 });
 test('food entries resolve canonical snapshot quantities and stable IDs without rebinding by name',()=>{
- const s=source(),w=widget('food-entry',entry().id),nutrients=scaleNutrition(s.health.diary[0]!.snapshot.nutrients,1500);expect(widgetMetric(w,s)).toMatchObject({title:'Fictional oats',value:`${nutrients.kcal} kcal`,detail:expect.stringContaining('2026-09-26')});
+ const s=source(),w=widget('food-entry',entry().id),nutrients=scaleNutrition(s.health.diary[0]!.snapshot.nutrients,1500);expect(widgetMetric(w,s)).toMatchObject({title:'Fictional oats',value:`${nutrients.kcal} kcal`,detail:expect.stringContaining('Sep 26, 2026')});
  s.health.diary[0]!.quantityMilli=2000;expect(widgetMetric(w,s).value).toBe('200 kcal');expect(widgetMetric({...w,metric:'macros'},s).value).toBe('10 g protein');
  s.health.diary=[{...entry(),id:'health_entry0002'}];expect(widgetMetric(w,s)).toMatchObject({missing:true,value:'Record unavailable'});
 });

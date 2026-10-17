@@ -91,7 +91,7 @@ test('a one-minute sitting: its bell, a pause, the end, how you feel, saved to H
   await done.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(note(page)).toHaveText('Saved: 1 min.');
   const recent = page.getByRole('region', {name: 'Recent sessions'});
-  await expect(recent).toContainText('Sitting · 2026-10-21');
+  await expect(recent).toContainText('Sitting · Oct 21, 2026');
   await expect(recent).toContainText('07:00 · 1 min · feeling 3 → 4 of 5');
   const health = await stored(page);
   expect(health!.schemaVersion).toBe(4);
@@ -190,9 +190,9 @@ test('mindful minutes by hand: logged, corrected, deleted; your weekly goal; you
   await manual.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(note(page)).toHaveText('Mindful minutes saved.');
   const recent = page.getByRole('region', {name: 'Recent sessions'});
-  await expect(recent).toContainText('Mindful minutes · 2026-10-21');
+  await expect(recent).toContainText('Mindful minutes · Oct 21, 2026');
   await expect(recent).toContainText('06:30 · 12 min');
-  await recent.getByRole('button', {name: 'Edit the session of 2026-10-21 at 06:30', exact: true}).click();
+  await recent.getByRole('button', {name: 'Edit the session of Oct 21, 2026 at 6:30 AM', exact: true}).click();
   const edit = page.getByRole('form', {name: 'Edit this session'});
   await edit.getByLabel('Minutes').fill('15');
   await edit.getByRole('button', {name: 'Save changes', exact: true}).click();
@@ -221,7 +221,7 @@ test('mindful minutes by hand: logged, corrected, deleted; your weekly goal; you
   await bell.getByRole('button', {name: 'Save bell', exact: true}).click();
   await expect(note(page)).toHaveText('Your bell is saved.');
   expect((await stored(page))!.meditation).toMatchObject({goal: {minutesPerWeek: 90}, bells: {sound: 'chime', volume: 60, intervalMin: 5}});
-  await recent.getByRole('button', {name: 'Delete the session of 2026-10-21 at 06:30', exact: true}).click();
+  await recent.getByRole('button', {name: 'Delete the session of Oct 21, 2026 at 6:30 AM', exact: true}).click();
   await recent.getByRole('button', {name: 'Delete it', exact: true}).click();
   await expect(note(page)).toHaveText('The session is deleted.');
   expect((await stored(page))!.meditation!.sessions).toEqual([]);

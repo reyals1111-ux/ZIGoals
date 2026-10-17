@@ -56,7 +56,7 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   await form.getByRole('button', {name: 'Save', exact: true}).click();
   await expect(note(page)).toHaveText('Night saved.');
   // Nine hours in bed (the clocks went back at 03:00), eight and a half asleep.
-  await expect(recent(page)).toContainText('Night ending 2026-10-25');
+  await expect(recent(page)).toContainText('Night ending Oct 25, 2026');
   await expect(recent(page)).toContainText('23:00 → 07:00 · 8 h 30 min asleep · in bed 9 h 00 min');
   await expect(recent(page)).toContainText('Quality 4/5 · caffeine');
   const week = page.getByRole('region', {name: 'Your last 7 days'});
@@ -67,7 +67,7 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   expect(stored!.schemaVersion).toBe(4);
   expect(stored!.sleep!.nights).toMatchObject([{kind: 'night', start: '2026-10-24T21:00:00.000Z', end: '2026-10-25T06:00:00.000Z', timeZone: BXL, latencyMin: 10, awakeMin: 20, quality: 4, tags: ['caffeine'], source: 'manual'}]);
   // Edit: up at 06:30 instead.
-  await recent(page).getByRole('button', {name: 'Edit the night ending 2026-10-25', exact: true}).click();
+  await recent(page).getByRole('button', {name: 'Edit the night ending Oct 25, 2026', exact: true}).click();
   const edit = page.getByRole('form', {name: 'Edit this night'});
   await edit.getByLabel('Woke up (time)').fill('06:30');
   await edit.getByRole('button', {name: 'Save changes', exact: true}).click();
@@ -75,10 +75,10 @@ test('log the night through the Brussels clock change, see it in the week, edit 
   await expect(recent(page)).toContainText('23:00 → 06:30 · 8 h 00 min asleep · in bed 8 h 30 min');
   expect((await storedSleep(page))!.sleep!.nights).toHaveLength(1);
   // Delete asks first.
-  await recent(page).getByRole('button', {name: 'Delete the night ending 2026-10-25', exact: true}).click();
+  await recent(page).getByRole('button', {name: 'Delete the night ending Oct 25, 2026', exact: true}).click();
   await recent(page).getByRole('button', {name: 'Keep it', exact: true}).click();
-  await expect(recent(page)).toContainText('Night ending 2026-10-25');
-  await recent(page).getByRole('button', {name: 'Delete the night ending 2026-10-25', exact: true}).click();
+  await expect(recent(page)).toContainText('Night ending Oct 25, 2026');
+  await recent(page).getByRole('button', {name: 'Delete the night ending Oct 25, 2026', exact: true}).click();
   await recent(page).getByRole('button', {name: 'Delete it', exact: true}).click();
   await expect(note(page)).toHaveText('The night is deleted.');
   await expect(recent(page)).toContainText('No nights yet.');
@@ -101,7 +101,7 @@ test('refusals: an overlap, a night ending in the future, a missing time, a minu
   await openSleep(page);
   const form = logForm(page);
   await form.getByRole('button', {name: 'Save', exact: true}).click();
-  await expect(form.getByRole('alert')).toHaveText('This overlaps the night that ended on 2026-10-25. Edit that one instead.');
+  await expect(form.getByRole('alert')).toHaveText('This overlaps the night that ended on Oct 25, 2026. Edit that one instead.');
   await form.getByLabel('Went to bed (date)').fill('2026-10-25');
   await form.getByLabel('Woke up (date)').fill('2026-10-26');
   await form.getByRole('button', {name: 'Save', exact: true}).click();
@@ -125,17 +125,17 @@ test('“I’m going to bed”, then “I woke up”; the Health card follows th
   const tonight = page.getByRole('region', {name: 'Tonight'});
   await tonight.getByRole('button', {name: 'I’m going to bed', exact: true}).click();
   await expect(note(page)).toHaveText('Good night. Tap “I woke up” in the morning.');
-  await expect(tonight.locator('.sleep-running')).toHaveText('In bed since 22:40 · 0 min');
+  await expect(tonight.locator('.sleep-running')).toHaveText('In bed since 10:40 PM · 0 min');
   expect((await storedSleep(page))!.sleep!.nights).toMatchObject([{end: null, timeZone: BXL, source: 'timer'}]);
   // Health shows the running night (on a phone the card stays open while it runs).
   await page.goto('/app/health');
   const card = page.getByRole('region', {name: 'Rest well.'});
-  await expect(card).toContainText('In bed since 22:40');
+  await expect(card).toContainText('In bed since 10:40 PM');
   await page.clock.fastForward(7 * 3_600_000 + 50 * 60_000);
-  await expect(card.locator('.sleep-running')).toHaveText('In bed since 22:40 · 7 h 50 min');
+  await expect(card.locator('.sleep-running')).toHaveText('In bed since 10:40 PM · 7 h 50 min');
   await card.getByRole('button', {name: 'I woke up', exact: true}).click();
   await expect(card.getByRole('status')).toHaveText('Good morning. Your night is saved.');
-  await expect(card).toContainText('7 h 50 min asleep (estimated) · 22:40–06:30, night ending 2026-10-21');
+  await expect(card).toContainText('7 h 50 min asleep (estimated) · 10:40 PM–6:30 AM, night ending Oct 21, 2026');
   await expect(card).toContainText('Last 7 days: 7 h 50 min a night on average over 1 night.');
   await card.getByRole('link', {name: 'Open Sleep →'}).click();
   await expect(page).toHaveURL(/\/app\/health\?view=sleep$/);
@@ -153,8 +153,8 @@ test('a night left running for more than a day asks when you woke up; nothing is
   await seed(page, {health: withSleep(running)});
   await openSleep(page);
   const tonight = page.getByRole('region', {name: 'Tonight'});
-  const ask = tonight.getByRole('form', {name: 'When did the night from 2026-10-23 23:15 end?'});
-  await expect(ask).toContainText('A night started on 2026-10-23 at 23:15 is still open. When did you wake up?');
+  const ask = tonight.getByRole('form', {name: 'When did the night from Oct 23, 2026 11:15 PM end?'});
+  await expect(ask).toContainText('A night started on Oct 23, 2026 at 11:15 PM is still open. When did you wake up?');
   await expect(tonight.getByRole('button', {name: 'I’m going to bed', exact: true})).toHaveCount(0);
   await ask.getByLabel('Woke up (date)').fill('2026-10-25');
   await ask.getByLabel('Woke up (time)').fill('07:00');
@@ -190,7 +190,7 @@ test('your goal: sleep debt and consistency with their formulas, the goal line, 
   const charts = page.getByRole('region', {name: 'Over time'});
   // The reference marks are named in a key under each title, never on top of the data.
   await expect(charts.getByRole('figure', {name: 'Time asleep · last 7 days'}).locator('.sleep-key')).toHaveText('Goal 7 h 30 min');
-  await expect(charts.getByRole('figure', {name: 'Bed and wake times · last 7 days'}).locator('.sleep-key')).toHaveText('Bedtime window 22:30–23:30');
+  await expect(charts.getByRole('figure', {name: 'Bed and wake times · last 7 days'}).locator('.sleep-key')).toHaveText('Bedtime window 10:30 PM–11:30 PM');
   await expect(charts.locator('.sleep-goal line')).toHaveCount(1);
   await expect(charts.getByRole('img').first()).toHaveAttribute('aria-label', /^Time asleep, 7 days: 6 nights logged, from .* to .*; goal 7 h 30 min\.$/);
   // The table holds every day: the missing night says so, never zero.
@@ -198,7 +198,7 @@ test('your goal: sleep debt and consistency with their formulas, the goal line, 
   const table = charts.getByRole('table').first();
   await expect(table.getByRole('row', {name: /Thu, Oct 22/})).toContainText('No night logged');
   // The night of the 24th–25th spans the clock change: 23:00 → 06:30 is 8 h 30 min in bed.
-  await expect(table.getByRole('row', {name: /Sun, Oct 25/})).toContainText('8 h 10 min8 h 30 min23:00 → 06:303 of 5');
+  await expect(table.getByRole('row', {name: /Sun, Oct 25/})).toContainText('8 h 10 min8 h 30 min11:00 PM → 6:30 AM3 of 5');
   await charts.getByRole('button', {name: '30 days', exact: true}).click();
   await expect(charts.locator('figcaption').first()).toHaveText('Time asleep · last 30 days');
   expect((await storedSleep(page))!.sleep!.goal).toMatchObject({minutes: 450, bedFrom: '22:30', bedTo: '23:30'});
@@ -226,7 +226,7 @@ test('Today: the Sleep widget shows last night, and the wind-down card goes away
   await openTodayWidgets(page);
   const card = page.getByRole('article', {name: 'Sleep', exact: true});
   await expect(card).toContainText('8 h 30 min asleep');
-  await expect(card).toContainText('Night ending 2026-10-25 · quality 4/5');
+  await expect(card).toContainText('Night ending Oct 25, 2026 · quality 4/5');
   const windDown = page.getByRole('article', {name: 'Reminder: Wind-down time'});
   await expect(windDown).toContainText('Time to wind down');
   await expect(windDown.getByRole('link', {name: 'Open Sleep'})).toHaveAttribute('href', '/app/health?view=sleep');
@@ -247,7 +247,7 @@ test('the wind-down setting is this device\'s own, and a night in bed ends the c
   await setting.getByLabel('Wind-down reminder (this device)').fill('21:15');
   await setting.getByRole('button', {name: 'Set reminder', exact: true}).click();
   await expect(setting.getByRole('status')).toHaveText('Wind-down reminder set for 21:15 on this device.');
-  await expect(setting).toContainText('Today shows a card from 21:15 until you go to bed.');
+  await expect(setting).toContainText('Today shows a card from 9:15 PM until you go to bed.');
   await page.goto('/app');
   await expect(page.getByRole('article', {name: 'Reminder: Wind-down time'})).toBeVisible();
   await openSleep(page);
@@ -282,7 +282,7 @@ test('Showcase: fictional nights with a pattern from their own tags, and nothing
   await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
   await page.waitForURL('**/app');
   await openSleep(page);
-  await expect(recent(page)).toContainText('Night ending 2026-10-25');
+  await expect(recent(page)).toContainText('Night ending Oct 25, 2026');
   await expect(page.getByRole('region', {name: 'Patterns in your log'})).toContainText('On nights you tagged “caffeine”');
   await expect(page.getByRole('region', {name: 'Patterns in your log'})).toContainText('A pattern in your own log, not proof of a cause.');
   await expect(page.getByRole('region', {name: 'Your last 7 days'})).toContainText('Your goal (8 h 00 min)');

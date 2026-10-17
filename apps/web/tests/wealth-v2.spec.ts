@@ -84,7 +84,7 @@ test('a contribution reminder: set on the Goal, a calm card on Today once due, "
   const sheet = page.getByRole('dialog', {name: 'Fund your Goal'});
   await sheet.getByRole('button', {name: /Fictional cash/}).click();
   await expect(sheet.getByLabel('Contribution quantity (EUR)')).toHaveValue('250');
-  await expect(sheet).toContainText('Filled in from your plan\'s amount for 2026-10-01. Check it before you preview; nothing moves money.');
+  await expect(sheet).toContainText('Filled in from your plan\'s amount for Oct 1, 2026. Check it before you preview; nothing moves money.');
   await sheet.getByRole('button', {name: 'Close dialog', exact: true}).click();
   await expect(sheet).toHaveCount(0);
   await page.goto('/app');

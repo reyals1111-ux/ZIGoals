@@ -28,7 +28,7 @@ test('next Goal milestone: the nearest future saved target date; none is said pl
  const s=source();expect(widgetMetric(widget('milestone','next'),s).value).toBe('No upcoming target date');
  s.goals=[goal('Later','2027-01-10'),goal('Past','2026-01-01'),goal('Sooner','2026-10-03'),goal('Undated',undefined),goal('Done','2026-09-30',{status:'completed'})];
  const m=widgetMetric(widget('milestone','next'),s);
- expect(m).toMatchObject({value:'Sooner',detail:expect.stringContaining('2026-10-03'),href:'/app/goals/tracked/Sooner',percent:'10'});
+ expect(m).toMatchObject({value:'Sooner',detail:expect.stringContaining('Oct 3, 2026'),href:'/app/goals/tracked/Sooner',percent:'10'});
  expect(m.facts).toEqual([{label:'Days to the target date',value:'10'},{label:'Remaining',value:'$900.00'}]);
 });
 

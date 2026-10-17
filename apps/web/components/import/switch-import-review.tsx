@@ -1,6 +1,6 @@
 'use client';
 import {useMemo, useState} from 'react';
-import {formatDate, formatNumber} from '../../lib/visual-format';
+import {formatDate, formatNumber, formatTime} from '../../lib/visual-format';
 import {wallClock, formatMinutes, zoneLabel} from '../../lib/zone-time';
 import {asleep} from '../../lib/sleep/engine';
 import {scheduleLabel, type HabitData} from '../../lib/habits';
@@ -41,7 +41,7 @@ export function HealthPreview({plan, health, limit, zone, onConfirm, onCancel}: 
     {GROUPS.filter(([g]) => chosen.preview[g].full > 0).map(([g]) => <p key={g} className="notice">{n(chosen.preview[g].full)} older {GROUP_LIMIT_WORDS[g]} stay out: your Health journal keeps at most {n(GROUP_LIMITS[g])}. The newest are imported.</p>)}
     {sample.length > 0 && <div className="switch-sample"><h4>A few nights to check against what you remember</h4><ul className="import-preview-lines">{sample.map(night => {
       const bed = wallClock(Date.parse(night.start), night.timeZone), up = night.end ? wallClock(Date.parse(night.end), night.timeZone) : null, a = asleep(night);
-      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {up?.date ?? bed.date}: in bed {bed.clock} → up {up?.clock ?? '—'}{night.timeZone !== zone ? ` (${zoneLabel(night.timeZone)})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
+      return <li key={night.id}>{night.kind === 'nap' ? 'Nap' : 'Night'} ending {formatDate(up?.date ?? bed.date)}: in bed {formatTime(night.start, {timeZone: night.timeZone})} → up {night.end ? formatTime(night.end, {timeZone: night.timeZone}) : '—'}{night.timeZone !== zone ? ` (${zoneLabel(night.timeZone)})` : ''}{a ? ` · ${formatMinutes(a.minutes)} asleep${a.estimated ? ' (estimated)' : ''}` : ''}</li>;
     })}</ul></div>}
     {plan.summarised.length > 0 && <div className="switch-summarised"><h4>Kept as summaries</h4><ul>{plan.summarised.map(s => <li key={s}>{s}</li>)}</ul></div>}
     {plan.warnings.length > 0 && <details className="import-warnings"><summary>{n(plan.warnings.length)} {plan.warnings.length === 1 ? 'note' : 'notes'} about this export</summary><ul>{plan.warnings.map(w => <li key={w}>{w}</li>)}</ul></details>}

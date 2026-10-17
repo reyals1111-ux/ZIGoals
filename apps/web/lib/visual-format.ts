@@ -171,6 +171,11 @@ const timeFields=({seconds}:TimeOptions):Intl.DateTimeFormatOptions=>({hour:twen
 export function formatDate(date:DateInput,options:DateOptions={}){return written(date,{...dateFields(options),...zoned(options.timeZone)});}
 /** A time in the locale's hour cycle: "14:05" (en-GB), "2:05 PM" (en-US). */
 export function formatTime(date:DateInput,options:TimeOptions={}){return written(date,{...timeFields(options),...zoned(options.timeZone)});}
+/** A wall-clock time kept as "HH:MM" (a bedtime, quiet hours, a reminder) in the locale's hour cycle: "22:30", "10:30 PM". */
+export function formatClock(clock:string){
+ const m=/^(\d{2}):(\d{2})$/.exec(clock);
+ return m&&Number(m[1])<24&&Number(m[2])<60?formatTime(Date.UTC(2000,0,1,Number(m[1]),Number(m[2])),{timeZone:'UTC'}):clock;
+}
 /** The medium date and the time: "17 Oct 2026, 14:05" (en-GB), "Oct 17, 2026, 2:05 PM" (en-US). */
 export function formatDateTime(date:DateInput,options:DateOptions&TimeOptions={}){return written(date,{...dateFields(options),...timeFields(options),...zoned(options.timeZone)});}
 /** A month and its year, for calendar headings: "Oct 2026" ("Oct" with year: false, a date tile's label). Takes a month key ("2026-10") too. */
