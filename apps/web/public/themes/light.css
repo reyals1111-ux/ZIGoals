@@ -8444,6 +8444,12 @@
 :root[data-theme=light] :is(.destination-panel, .account-panel, .stake-hero, .staking-card) { box-shadow: 0 18px 44px -26px #2a2f6680; }
 /* Focus rings stay visible on light surfaces. */
 :root[data-theme=light] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(:where(.today-hero, .site-footer, .app-sidebar) *) { outline-color: #4b3fd1; }
-/* The life rings' pillar names: by night the pillar's colour lifted with white; by day the same colour deepened with
-   night ink, so each name reads at ≥ 4.5:1 on the pale cards (Session AD audit, 2.3–3.7:1 before). */
-:root[data-theme=light] .life-ring-pillar:not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--pillar) 48%, #0b1230); }
+/* Pillar- and area-coloured labels (Session AD audit, 1.2–3.7:1 before): by night each colour is lifted with white; by
+   day the same colour is deepened with night ink, ≥ 4.5:1 on the pale cards and chips. The generated rules carry the sheet's
+   uniform weight (:not(#\-)), so these carry it too; the islands keep their night colours. */
+:root[data-theme=light] .life-ring-pillar:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--pillar) 38%, #0b1230); }
+:root[data-theme=light] .hall-area:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--area, #8fa6ff) 38%, #0b1230); }
+:root[data-theme=light] .health-hl-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--tone) 38%, #0b1230); }
+:root[data-theme=light] .activity-category-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--event-accent) 38%, #0b1230); }
+/* The line under the theme bar in Settings and More sits on the page itself, not on the bar's night glass. */
+:root[data-theme=light] .theme-switch-note:not(#\-):not(:where(.app-sidebar) *) { color: #3a4566; }
