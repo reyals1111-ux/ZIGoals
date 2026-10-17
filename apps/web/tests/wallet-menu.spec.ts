@@ -195,6 +195,8 @@ test('Today\'s wallet card: ZIG first; another currency without a price reads "u
   await expect(card).toContainText('Simulated balance · this browser');
   const currency = card.getByRole('group', {name: 'Show the balance in'});
   await expect(currency.getByRole('button', {name: 'ZIG', exact: true})).toHaveAttribute('aria-pressed', 'true');
+  // Measured once the page's entrance motions have ended (a card still settling from a scale reads 43.99997 px: CI run on 45e500c3).
+  await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined))));
   for (const c of ['ZIG', 'USD', 'EUR', 'BTC']) { const box = (await currency.getByRole('button', {name: c, exact: true}).boundingBox())!; expect(box.height).toBeGreaterThanOrEqual(44); expect(box.width).toBeGreaterThanOrEqual(44); }
   for (const c of ['USD', 'EUR', 'BTC'] as const) {
     await pick(card, c);
