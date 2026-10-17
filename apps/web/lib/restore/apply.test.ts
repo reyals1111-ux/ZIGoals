@@ -11,7 +11,7 @@ import {ZIGI_STORE_EVENT} from '../ai/store/keys';
 import {activateShowcase} from '../showcase-storage';
 import {planParts, type PlannedPart} from './plan';
 import {openBackup, type OpenedBackup} from './read-backup';
-import {RESTORE_KEYS, RESTORE_SHOWCASE_MESSAGE, applyRestore, canUndoRestore, forgetRestoreUndo, undoRestore} from './apply';
+import {RESTORE_KEYS, RESTORE_SHOWCASE_MESSAGE, RESTORE_UNDO_KEY, applyRestore, canUndoRestore, forgetRestoreUndo, undoRestore} from './apply';
 
 // Session AB-Cloud Part 5 (ADR-023 C22): writing a restore and undoing it, on this device's storage.
 const NOW = new Date('2026-10-14T09:00:00.000Z'), APP = {now: NOW, version: '0.0.0-test', commit: 'abc1234', localSimulation: null};
@@ -48,16 +48,20 @@ describe('applying a restore', () => {
     expect(JSON.parse(localStorage.getItem(HEALTH_STORAGE_KEY)!)).toEqual(opened.json.modules.health);
     expect(JSON.parse(localStorage.getItem(GOAL_EXTRAS_KEY)!)).toEqual(opened.json.device.goalExtras);
     expect(heard).toEqual([HABITS_KEY, HEALTH_STORAGE_KEY, GOAL_EXTRAS_KEY]);
-    // Only the chosen keys changed, plus the module's recovery copy of what it replaced; sync, consent and push untouched.
+    // Only the chosen keys changed, plus the module's recovery copy of what it replaced and the restore's own undo record
+    // (Session AD item 11: Undo survives a reload); sync, consent and push untouched.
     const after = snapshot();
     const changedKeys = Object.keys(after).filter(k => after[k] !== before[k]);
-    expect(changedKeys.filter(k => !k.includes(':recovery:')).sort()).toEqual([GOAL_EXTRAS_KEY, HABITS_KEY, HEALTH_STORAGE_KEY].sort());
+    expect(changedKeys.filter(k => !k.includes(':recovery:')).sort()).toEqual([GOAL_EXTRAS_KEY, HABITS_KEY, HEALTH_STORAGE_KEY, RESTORE_UNDO_KEY].sort());
+    // The undo record never holds a module's bytes (they are its recovery copy): here, not the Habits this device had.
+    expect(after[RESTORE_UNDO_KEY]).not.toContain(changed.slice(0, 200)); expect(after[RESTORE_UNDO_KEY]!.length).toBeLessThan(2_000);
     for (const [k, v] of Object.entries(UNTOUCHED)) expect(after[k]).toBe(v);
-    for (const k of changedKeys) expect(RESTORE_KEYS.includes(k) || k.startsWith(`${HABITS_KEY}:recovery:`), k).toBe(true);
+    for (const k of changedKeys) expect(RESTORE_KEYS.includes(k) || k === RESTORE_UNDO_KEY || k.startsWith(`${HABITS_KEY}:recovery:`), k).toBe(true);
     // Undo: the exact earlier bytes, and keys that did not exist are gone again.
     expect(canUndoRestore()).toBe(true);
-    expect(await undoRestore()).toEqual({failed: [], kept: []});
+    expect(await undoRestore()).toEqual({failed: [], kept: [], missing: []});
     const undone = snapshot();
+    expect(undone[RESTORE_UNDO_KEY]).toBeUndefined();
     expect(undone[HABITS_KEY]).toBe(changed);
     expect(undone[GOAL_EXTRAS_KEY]).toBeUndefined(); expect(undone[HEALTH_STORAGE_KEY]).toBeUndefined();
     for (const k of Object.keys(before)) expect(undone[k], k).toBe(before[k]);
@@ -101,7 +105,7 @@ describe('Undo never overwrites a later change (Gate B security read, finding 4)
     // After the restore, goal extras change (say, a sync brought another device's edit).
     const later = JSON.stringify({...JSON.parse(localStorage.getItem(GOAL_EXTRAS_KEY)!), areas: []});
     localStorage.setItem(GOAL_EXTRAS_KEY, later);
-    expect(await undoRestore()).toEqual({failed: [], kept: ['Goal plans, areas and visions']});
+    expect(await undoRestore()).toEqual({failed: [], kept: ['Goal plans, areas and visions'], missing: []});
     expect(localStorage.getItem(GOAL_EXTRAS_KEY)).toBe(later);
     expect(localStorage.getItem(HABITS_KEY)).toBeNull();
   });

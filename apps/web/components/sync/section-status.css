@@ -1,0 +1,10 @@
+/* Session AD item 11 (ADR-026): Settings → Sync, one row per section, in the Restore rows' card language. */
+:root .sync-sections { display: grid; gap: 8px; min-width: 0; margin-block: 12px; }
+:root .sync-sections h3 { margin: 0; font-size: 16px; }
+:root .ss-rows { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+:root .ss-rows li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 12px; min-height: 48px; padding: 8px 12px; border: 1px solid #8ab9ff14; border-radius: 14px; background: #8ab9ff0b; }
+:root .ss-rows li[data-tone='error'] { border-color: #ff9d8a66; }
+:root .ss-what { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; font-size: 15px; }
+:root .ss-what strong { font-size: 16px; }
+:root .ss-notice { font-size: 14px; color: var(--text-secondary); }
+:root .ss-rows button { min-height: 44px; min-width: 44px; }
