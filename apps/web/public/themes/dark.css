@@ -1334,7 +1334,7 @@
         box-shadow: 0 0 0 7px #020918d9, 0 0 42px -4px color-mix(in srgb, var(--pillar) 75%, transparent), inset 0 1px 0 #ffffff22, inset 0 -10px 20px color-mix(in srgb, var(--pillar) 22%, transparent)
     }
     .site-footer-star-veil:not(#\-) {
-        background: radial-gradient(closest-side, #000106d9 0%, #000106a6 42%, #00010640 70%, #00010600 100%)
+        background: radial-gradient(closest-side, #0001068c 0%, #00010666 42%, #00010626 70%, #00010600 100%)
     }
     .site-footer-social a:not(#\-), .site-footer-top:not(#\-) {
         border-radius: 999px;
@@ -3113,10 +3113,11 @@
 /* Session AE (Part 3, ADR-027): Dark's sidebar — the same sky as Nebula's, deeper: a near-black ground (never plain black)
    and the same vector stars dimmed by a veil of that ground, so they no longer outshine the page's dimmed starfield. */
 :root[data-theme=dark] .app-sidebar:not(#\-) {
-  background: linear-gradient(#03040b9e, #03040b9e) local,
+  background: linear-gradient(#0508159e, #0508159e) local,
     url('/art/v24/sidebar-stars.svg') center bottom / 240px 1100px no-repeat local,
-    linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #050614 700px, #03040b 930px) local,
-    #03040b;
-  /* At 768–900 px the sidebar is the page's header: one clean near-black, like the page's top. */
-  @media (max-width: 900px) { background: #03040b; }
+    linear-gradient(0deg, #03050e 0, #03050e 300px, #060718 560px, #070a1d 700px, #080c22 930px) local,
+    #080c22;
+  /* At 768–900 px the sidebar is the page's header: one clean deep navy, like the page's top. Gate C design review
+     (ADR-027 G22): the top is a deep navy, never plain black. */
+  @media (max-width: 900px) { background: #070a1d; }
 }

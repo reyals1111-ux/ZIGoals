@@ -411,7 +411,7 @@
         color: #106a59
     }
     .badge[data-health="BEHIND"]:not(#\-) {
-        color: #785306
+        color: #824c0e
     }
     .badge[data-health="COMPLETED"]:not(#\-) {
         color: #5f4a99
@@ -750,8 +750,8 @@
     }
     .goal-card .badge[data-health="BEHIND"]:not(#\-) {
         background: #f1ebe570;
-        color: #75540c;
-        border-color: #a4781963
+        color: #824c0e;
+        border-color: #b26e2763
     }
     .progress-stats:not(#\-) {
         border: 1px solid #0988ca37;
@@ -1794,8 +1794,8 @@
     }
     .ai-pack-warning:not(#\-) {
         border-radius: 12px;
-        border: 1px solid color-mix(in srgb,var(--gold,#9d7b29) 55%,var(--line,#2a325a));
-        background: color-mix(in srgb,var(--gold,#a78741) 10%,transparent)
+        border: 1px solid color-mix(in srgb,var(--gold,#b26e27) 55%,var(--line,#2a325a));
+        background: color-mix(in srgb,var(--gold,#bf7a35) 10%,transparent)
     }
     .ai-turn-deep:not(#\-) {
         color: var(--muted,#202332)
@@ -2556,14 +2556,14 @@
         stroke: #2c343d
     }
     :scope .calc-milestone-line:not(#\-) {
-        stroke: #a48030
+        stroke: #b9742e
     }
     :scope .calc-milestone rect:not(#\-) {
         fill: #3a2e14;
-        stroke: #a4803099
+        stroke: #b9742e99
     }
     :scope .calc-milestone text:not(#\-) {
-        fill: #9a8350
+        fill: #b9742e
     }
     :scope .calc-cursor line:not(#\-) {
         stroke: #333333aa
@@ -2651,7 +2651,7 @@
         background: #eff2f8b3
     }
     :scope .calc-milestones li[data-reached=true]:not(#\-) {
-        border-color: #9e7a28a7;
+        border-color: #b26e27a7;
         background: linear-gradient(140deg, #f1efeacc, #eff0f9cc)
     }
     :scope .calc-table-scroll:not(#\-) {
@@ -2727,7 +2727,7 @@
         fill: #283344
     }
     :scope .chart-guide:not(#\-) {
-        stroke: #9d8343;
+        stroke: #b9742e;
         fill: none
     }
     :scope .chart-cursor:not(#\-) {
@@ -2756,7 +2756,7 @@
         background: var(--key, #648dcb)
     }
     :scope .chart-key-dash:not(#\-) {
-        border-top: 2px dashed var(--key, #977d3d)
+        border-top: 2px dashed var(--key, #b26e27)
     }
     :scope .chart-key-area:not(#\-) {
         border-radius: 3px;
@@ -2949,7 +2949,7 @@
         outline-offset: 3px
     }
     .widget-library-unavailable:not(#\-) {
-        color: #74542c
+        color: #824c0e
     }
     .widget-library-advanced:not(#\-) {
         border-top: 1px solid #beccdf
@@ -3320,10 +3320,14 @@
         text-shadow: 0 1px 10px #313e5066
     }
     .site-footer-star-veil:not(#\-) {
-        background: radial-gradient(closest-side, #f2f5fad9 0%, #f2f5faa6 42%, #f2f5fa40 70%, #f2f5fa00 100%)
+        background: radial-gradient(closest-side, #f2f5fa8c 0%, #f2f5fa66 42%, #f2f5fa26 70%, #f2f5fa00 100%)
     }
     .site-footer-star-core:not(#\-) {
-        background: radial-gradient(closest-side, #c664a8 0 10%, #d256ab 18%, #c752d5cc 30%, #c052e5a3 42%, #ae70f74d 58%, #9177f61a 72%, #fcfcfc00 100%)
+        background: radial-gradient(closest-side, #ad799f 0 4%, #c664a8 9%, #d256ab 16%, #c752d5b3 26%, #c052e580 38%, #ae70f733 54%, #9177f612 70%, #fcfcfc00 100%)
+    }
+    .site-footer-star-core:not(#\-)::before, .site-footer-star-core:not(#\-)::after {
+        border-radius: 2px;
+        background: linear-gradient(90deg, #fcfcfc00, #e883c866 30%, #ad799f 50%, #e883c866 70%, #fcfcfc00)
     }
     .site-footer-star-pulse:not(#\-) {
         background: radial-gradient(closest-side, #c664a8d0 0, #c752d58c 30%, #d264f73d 58%, #fcfcfc00 100%)
@@ -3526,7 +3530,7 @@
         background: linear-gradient(160deg, #efedf999, #f2f1f766)
     }
     .journey-badge-grid li[data-earned] .journey-badge-symbol:not(#\-) {
-        box-shadow: inset -6px -4px 14px #3d3d3d29, inset 4px 3px 12px #9e9e9e1c, 0 0 24px -4px #c2973d54;
+        box-shadow: inset -6px -4px 14px #3d3d3d29, inset 4px 3px 12px #9e9e9e1c, 0 0 24px -4px #d38c4954;
         background: radial-gradient(circle at 35% 30%, #6a5ec9, #ededfc 70%)
     }
     .today-game-ring small:not(#\-) {
@@ -3633,9 +3637,9 @@
         color: var(--text-secondary, #09101a)
     }
     .badge[data-health="No_plan"]:not(#\-), .badge[data-health="NEEDS_REVIEW"]:not(#\-), .badge[data-health="Value_unknown"]:not(#\-) {
-        color: #75540c;
+        color: #824c0e;
         background: #f1ebe570;
-        border-color: #a4781963
+        border-color: #b26e2763
     }
 }
 /*  components/goal-creator.css  */
@@ -4079,7 +4083,7 @@
         color: #0b0e1c
     }
     .habit-section-morning .habit-section-mark:not(#\-) {
-        color: #705711
+        color: #824c0e
     }
     .habit-section-afternoon .habit-section-mark:not(#\-) {
         color: #1c6959
@@ -4299,10 +4303,10 @@
         color: #0c1015
     }
     .habit-section-morning > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #cca45555, transparent 70px), linear-gradient(100deg, #e9926633 0%, #f47eb026 32%, #9177f614 64%, transparent 92%)
+        background: radial-gradient(circle at 34px 50%, #e1995655, transparent 70px), linear-gradient(100deg, #e9926633 0%, #f47eb026 32%, #9177f614 64%, transparent 92%)
     }
     .habit-section-afternoon > .habit-section-summary:not(#\-)::before {
-        background: radial-gradient(circle at 34px 50%, #b7ac7655, transparent 70px), linear-gradient(100deg, #3db9ed33 0%, #65a4f824 38%, #27c6a114 70%, transparent 94%)
+        background: radial-gradient(circle at 34px 50%, #e1995655, transparent 70px), linear-gradient(100deg, #3db9ed33 0%, #65a4f824 38%, #27c6a114 70%, transparent 94%)
     }
     .habit-section-evening > .habit-section-summary:not(#\-)::before {
         background: radial-gradient(circle at 34px 50%, #f778bb44, transparent 70px), linear-gradient(100deg, #f9759133 0%, #af7bed2e 34%, #eae9fc26 68%, transparent 95%)
@@ -4311,10 +4315,10 @@
         background: radial-gradient(circle at 34px 50%, #a1a9cb33, transparent 70px), radial-gradient(1px 1px at 62% 30%, #24242499, transparent), radial-gradient(1px 1px at 78% 62%, #24242488, transparent), radial-gradient(1.5px 1.5px at 88% 24%, #242424aa, transparent), linear-gradient(100deg, #e8ebfa40 0%, #eceffb30 50%, transparent 95%)
     }
     .habit-section-morning .habit-section-mark:not(#\-) {
-        background: radial-gradient(circle at 40% 35%, #ac853488, #e9926633)
+        background: radial-gradient(circle at 40% 35%, #bf7a3588, #e9926633)
     }
     .habit-section-afternoon .habit-section-mark:not(#\-) {
-        background: radial-gradient(circle at 40% 35%, #978d5888, #3db9ed33)
+        background: radial-gradient(circle at 40% 35%, #bf7a3588, #3db9ed33)
     }
     .habit-section-evening .habit-section-mark:not(#\-) {
         background: radial-gradient(circle at 40% 35%, #f778bb77, #976fcb33)
@@ -4560,7 +4564,7 @@
         color: #1b6a51
     }
     .habit-type-limit:not(#\-) {
-        color: #755420
+        color: #824c0e
     }
     .habit-card-heading small:not(#\-), .habit-stack:not(#\-) {
         color: #322c3c
@@ -4732,7 +4736,7 @@
         --ha-glow: #fa5aa98c
     }
     .orbit-art[data-tone=wealth]:not(#\-) {
-        --ha-glow: #d58d0b8c
+        --ha-glow: #de86288c
     }
     .orbit-art[data-tone=journey]:not(#\-) {
         --ha-glow: #a86bff8c
@@ -4863,7 +4867,7 @@
 /*  components/health/fasting.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .fasting-safety:not(#\-) {
-        border: 1px solid #9d79477d;
+        border: 1px solid #b26e277d;
         border-radius: 12px
     }
 }
@@ -4875,10 +4879,10 @@
         background: linear-gradient(135deg, #ecf0f880, #eff2f899)
     }
     .health-estimate-tag:not(#\-) {
-        color: #705711;
+        color: #824c0e;
         border-radius: 99px;
-        border: 1px solid #977d3d5f;
-        background: #c1a86e12
+        border: 1px solid #b26e275f;
+        background: #e1995612
     }
     .health-trend-key .key-trend:not(#\-) {
         background: linear-gradient(90deg, #289dab, #a472cd)
@@ -4888,7 +4892,7 @@
         border-radius: 50%
     }
     .health-trend-key .key-goal:not(#\-) {
-        background: #a18950
+        background: #bf7a35
     }
     .health-trend-table th:not(#\-), .health-trend-table td:not(#\-) {
         border-top: 1px solid #677fb42b
@@ -4897,7 +4901,7 @@
         color: #126a59
     }
     .health-micro-unknown:not(#\-) {
-        color: #705711
+        color: #824c0e
     }
     .health-rich-row .quiet[aria-pressed="true"]:not(#\-) {
         background: #5cc0a51c;
@@ -4994,7 +4998,7 @@
         border: 1px solid #5581c31c
     }
     :scope .health-micro-unknown:not(#\-) {
-        color: #705711
+        color: #824c0e
     }
     :scope .health-micro-list > li > div:last-of-type > button.quiet:not(#\-) {
         border-radius: 999px;
@@ -5519,7 +5523,7 @@
         color: #322c3c
     }
     .import-ambiguous:not(#\-) {
-        color: #75541b
+        color: #824c0e
     }
     .import-preview:not(#\-) {
         border: 1px solid #8c71b24f;
@@ -5536,7 +5540,7 @@
         border-top: 1px solid #8c71b236
     }
     .import-unknown li:not(#\-) {
-        border: 1px solid #a4771877;
+        border: 1px solid #b26e2777;
         border-radius: 14px;
         background: #f2f1efaa
     }
@@ -5555,7 +5559,7 @@
         border-top: 1px solid #8c71b236
     }
     .switch-off:not(#\-) {
-        color: #75541b
+        color: #824c0e
     }
 }
 /*  components/insights/insights.css  */
@@ -5777,7 +5781,7 @@
         background: #eff2f880
     }
     :scope .life-wins:not(#\-) {
-        background: radial-gradient(90% 120% at 0% 0%, #cca4551f, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
+        background: radial-gradient(90% 120% at 0% 0%, #e199561f, transparent 60%), linear-gradient(150deg, #edf1f8f2, #eef0faf2)
     }
     :scope .cross-pending > summary:not(#\-)::before {
         border-right: 2px solid #03919f;
@@ -5853,7 +5857,7 @@
         color: #0d1724
     }
     .data-table td small[data-stale]:not(#\-) {
-        color: #765403
+        color: #824c0e
     }
     .data-table tr[data-closed]:not(#\-) {
         color: #0d1724
@@ -6026,7 +6030,7 @@
         accent-color: #6978ee
     }
     .music-problem:not(#\-) {
-        color: #755327
+        color: #824c0e
     }
     .music-footer:not(#\-) {
         color: #4b5980
@@ -6067,7 +6071,7 @@
 /*  components/offline-notice.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .offline-notice:not(#\-) {
-        border: 1px solid #a477188f;
+        border: 1px solid #b26e278f;
         border-radius: 16px;
         background: linear-gradient(150deg, #f2efecf2, #f1f1f4f2);
         color: #6c582d;
@@ -6075,9 +6079,9 @@
     }
     :scope .offline-pill:not(#\-) {
         border-radius: 999px;
-        border: 1px solid #9e7a28be;
+        border: 1px solid #b26e27be;
         background: #f0ede7cc;
-        color: #6d5824
+        color: #824c0e
     }
     :scope .offline-pill:not(#\-)::before {
         border-radius: 50%;
@@ -6180,8 +6184,8 @@
     }
     .onboarding-undo:not(#\-) {
         border-radius: 16px;
-        border: 1px solid #977d3d5f;
-        background: #c1a86e12
+        border: 1px solid #b26e275f;
+        background: #e1995612
     }
     .onboarding-pillars > li:not(#\-) {
         border-radius: 18px;
@@ -6715,7 +6719,7 @@
         color: #001317
     }
     .asset-orb[data-kind="Precious Metals"]:not(#\-) {
-        color: #715616;
+        color: #824c0e;
         background: linear-gradient(145deg,#ece8e3,#ebeff5)
     }
     .asset-orb[data-kind="Cash"]:not(#\-) {
@@ -6731,7 +6735,7 @@
         color: #15695e
     }
     .freshness-badge[data-state="stale"]:not(#\-), .freshness-badge[data-state="missing"]:not(#\-) {
-        color: #765418
+        color: #824c0e
     }
     .financial-metric:not(#\-) {
         border: 1px solid #1534543e;
@@ -6835,9 +6839,9 @@
         border-radius: 99px
     }
     .intelligence-status[data-status=BEHIND]:not(#\-) {
-        color: #74542a;
-        background: #d4a05413;
-        border-color: #aa74105f
+        color: #824c0e;
+        background: #e1995613;
+        border-color: #b36d255f
     }
     .intelligence-metrics div:not(#\-) {
         border-left: 2px solid #338ca768
@@ -7006,8 +7010,8 @@
     }
     .staking-placeholder-badge:not(#\-) {
         border-radius: 999px;
-        border: 1px solid #9d79418f;
-        color: #715624
+        border: 1px solid #b26e278f;
+        color: #824c0e
     }
     .staking-placeholder p:not(#\-) {
         color: #06101c
@@ -7048,11 +7052,11 @@
         box-shadow: 0 0 10px #24b1c638
     }
     .price-chart-dot.is-stale:not(#\-) {
-        background: #a68654;
+        background: #bf7a35;
         box-shadow: none
     }
     .price-chart-source .price-chart-stale:not(#\-) {
-        color: #75541a
+        color: #824c0e
     }
     .price-chart-quote small:not(#\-) {
         color: #121927
@@ -7291,7 +7295,7 @@
         background: none
     }
     .market-favourite[aria-pressed="true"]:not(#\-) {
-        color: #725609
+        color: #824c0e
     }
     .market-product-card footer:not(#\-) {
         border-top: 1px solid #6382ab47
@@ -7369,15 +7373,15 @@
         color: #2a675e
     }
     .agenda-status[data-overdue="true"]:not(#\-) {
-        color: #75541c
+        color: #824c0e
     }
     .needs-attention li:not(#\-) {
         border-top: 1px solid #18354e42
     }
     .attention-symbol:not(#\-) {
-        border: 1px solid #9c7b3373;
-        background: #a0814d1f;
-        color: #6f571e;
+        border: 1px solid #b26e2773;
+        background: #b9742e1f;
+        color: #824c0e;
         border-radius: 12px
     }
     .attention-count:not(#\-) {
@@ -7532,9 +7536,9 @@
         color: var(--text-secondary, #070f1c)
     }
     .wealth-base-switch > button[aria-pressed="true"]:not(#\-) {
-        background: color-mix(in srgb, var(--pillar, #ac8534) 22%, #e9f0f6);
+        background: color-mix(in srgb, var(--pillar, #bf7a35) 22%, #e9f0f6);
         color: #0f0f0f;
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar, #c2973d8c) 60%, transparent)
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pillar, #d38c498c) 60%, transparent)
     }
 }
 /*  components/platform/wealth.css  */
@@ -7593,8 +7597,8 @@
         box-shadow: 0 0 14px #3fb5998c
     }
     .evidence-signal[data-state="attention"]:not(#\-) {
-        background: #a78741;
-        box-shadow: 0 0 14px #bd994b8c
+        background: #bf7a35;
+        box-shadow: 0 0 14px #d38c498c
     }
     .wealth-history:not(#\-) {
         background: radial-gradient(circle at 100% 0,color-mix(in srgb,#8c75ea 12%,transparent),transparent 42%),var(--panel)
@@ -7624,9 +7628,9 @@
         -webkit-text-fill-color: transparent
     }
     .wealth-category-alert:not(#\-) {
-        border-left: 2px solid #9d7b29;
+        border-left: 2px solid #b26e27;
         color: #1b1304;
-        background: #c7a6600b
+        background: #e199560b
     }
     .wealth-category-empty>span:not(#\-) {
         color: #036771
@@ -7643,9 +7647,9 @@
         background: #94a6c30d
     }
     .valuation-chip[data-state="stale"]:not(#\-), .valuation-chip[data-state="missing"]:not(#\-) {
-        color: #705622;
-        border-color: #9d7b295f;
-        background: #c7a6600d
+        color: #824c0e;
+        border-color: #b26e275f;
+        background: #e199560d
     }
     .wealth-loading>span:not(#\-) {
         border-radius: 50%;
@@ -7765,7 +7769,7 @@
         box-shadow: 0 0 0 1px #3baecf38 inset
     }
     .portfolio-confirm:not(#\-) {
-        border: 1px solid #a4771877;
+        border: 1px solid #b26e2777;
         border-radius: 16px;
         background: #f2f1efcc
     }
@@ -7795,7 +7799,7 @@
         color: #0d1724
     }
     .portfolio-holding-facts small[data-stale]:not(#\-) {
-        color: #765403
+        color: #824c0e
     }
     .portfolio-transactions li:not(#\-) {
         border-top: 1px solid #3e87bb2b
@@ -7856,7 +7860,7 @@
         color: #06101c
     }
     .portfolio-coin-price small[data-stale]:not(#\-) {
-        color: #765403
+        color: #824c0e
     }
     .portfolio-coin-changes dt:not(#\-) {
         color: #06101c
@@ -7990,7 +7994,7 @@
 /*  components/reminders/reminders-plan.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .reminders-push:not(#\-) {
-        border-color: #977d3d47;
+        border-color: #b26e2747;
         background: linear-gradient(135deg, #f0ede844, #eff2f899)
     }
     .reminders-item:not(#\-) {
@@ -8612,6 +8616,14 @@
 /* Session AE (Part 3 audit, Light): a new goal's chosen source tile is one light tint of its own teal and violet (its two
    stops had mapped to dark teal and near white, so its words sat on the dark half at 4.33:1). */
 :root[data-theme=light] .goal-choice-tiles > label:has(input:checked):not(#\-) { background: linear-gradient(125deg, #dcf0f5, #ebe6f8); }
+/* Gate C design review (ADR-027 G22), Light: the calculator's 10k / 100k / 1M markers are light amber chips with deep
+   amber words (8:1; the mapping had left a dark olive chip with 3.6:1 words); the Health counters' medallions are clean
+   light tiles with a hairline (their two stops had mapped to navy and white: a smudge); Habits' week bars a deeper,
+   saturated violet (they read greyed at #9481ba). */
+:root[data-theme=light] .calc-milestone rect:not(#\-) { fill: #fbefd6; stroke: #b98326; }
+:root[data-theme=light] .calc-milestone text:not(#\-) { fill: #6b4508; }
+:root[data-theme=light] .exercise-medallion:not(#\-) { background: radial-gradient(circle at 30% 25%, #ffffff, #e8ebfb 72%); box-shadow: inset 0 0 0 1px #9aa4dc80, 0 2px 10px -4px #5a4fb84d; }
+:root[data-theme=light] .habit-week-bars i:not(#\-) { background: linear-gradient(0deg, #4f3fc4, #6d4fd6 55%, #9447c9); }
 /* apps/web/themes/light.headerart.css */
 /* Session AE (Part 4, ADR-027 G5): the page-header art by day. On Light's white-family sky the rings, planets and glyphs
    take deeper, matte versions of the same hues (never pale); every glyph colour is ≥ 3:1 against the sky (the worst, the
@@ -8636,13 +8648,10 @@
    their dark sky. The pool and the scene end above "What is due now" (its words are ink by day). */
 :root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: visible; border-radius: 0; background: none; box-shadow: none; }
 :root[data-theme=light] .today-hero:not(.today-hero-folded)::before { content: ''; position: absolute; inset: -14px -84px -8px -26px; z-index: -3; pointer-events: none; background: #040a1c;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 64px), transparent); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 64px), transparent); mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 110px), #0007 calc(100% - 50px), transparent); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 84px), transparent), linear-gradient(180deg, transparent, #0009 30px, #000 64px, #000 calc(100% - 110px), #0007 calc(100% - 50px), transparent); mask-composite: intersect;
   @media (min-width: 541px) and (max-width: 1100px) { inset-inline-start: -20px; } }
-/* The pool's left side fades in over the page's gutter, beside the sidebar: Today clips sideways at the workspace by day
-   (only sideways; the page never scrolls sideways), so the fade is not cut at the hero's own edge. */
-:root[data-theme=light] .today-page { overflow-x: visible; }
-:root[data-theme=light] .workspace:has(.today-page) { overflow-x: clip; }
+/* The pool's left side fades in over the page's gutter, beside the sidebar (the workspace clips sideways, hero-fold.css). */
 /* The copy's shade stays inside the pool (above it, by day, it would grey the status row). */
 :root[data-theme=light] .today-hero:not(.today-hero-folded)::after {
   @media (min-width: 541px) { -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%), linear-gradient(180deg, transparent 60px, #000 110px); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 8%), linear-gradient(180deg, transparent 60px, #000 110px); mask-composite: intersect; }
@@ -8653,8 +8662,13 @@
   --fade-x: linear-gradient(90deg, transparent 0, transparent calc((var(--w) - 100cqw) / 2), #000 calc((var(--w) - 100cqw) / 2 + 40px), #000 84%, #0008 93%, transparent 100%);
   @media (max-width: 540px) { --fade-x: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); } }
 :root[data-theme=light] .today-primary > .today-hero:not(.today-hero-folded) ~ .today-focus { margin-top: 30px; }
+/* Gate C design review (ADR-027 G22): the night pool's top is a 64 px fade, not a line under the status row: the copy moves
+   down 30 px to sit in the pool's full night; the pillars' own shade is not drawn by day (the pool is their night; the
+   shade's ellipse showed as a grey smudge past the pool's side). */
+:root[data-theme=light] .today-hero:not(.today-hero-folded) > .today-hero-copy { @media (min-width: 541px) { margin-top: 30px; } }
+:root[data-theme=light] .today-hero .hero-pillars::before { content: none; }
 :root[data-theme=light] .today-hero:not(.today-hero-folded)::before {
-  @media (max-width: 540px) { inset: -28px -16px -6px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 40px), transparent); }
+  @media (max-width: 540px) { inset: -28px -16px -40px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 96px), transparent); mask-image: linear-gradient(180deg, transparent, #000 34px, #000 calc(100% - 96px), transparent); }
 }
 /* apps/web/themes/light.sidebar.css */
 /* Session AE (Part 3, ADR-027 G7): Light's sidebar is no longer a night island beside the pale page. A soft lavender dawn:
@@ -8663,15 +8677,16 @@
    with its words and star (still an island: .sidebar-destination) and the theme bar sit on night as by night. The layers
    scroll with the content and are pinned to its end, like Nebula's, so the dusk always starts above the page mark. The
    words are the generated dark ink (≥ 4.5:1 on every stop above the foot); the chosen page is a white pill with the
-   nebula's border; focus rings are the day's violet. */
+   nebula's border; focus rings are the day's violet. Gate C design review (ADR-027 G22): the top is a soft lavender
+   (#f0ebfd), never plain white. */
 :root[data-theme=light] .app-sidebar:not(#\-) {
   color-scheme: light;
   background: url('/art/v24/sidebar-stars-dawn.svg') center bottom / 240px 1100px no-repeat local,
-    linear-gradient(0deg, #060a1d 0, #0a0d27 230px, #1b1847 300px, #43397f 350px, #8a76c2 398px, #c9b8e8 436px, #e4dcf8 476px, #ebe5fb 600px, #f3f0fd 760px, #faf8ff 930px) local,
-    #faf8ff;
+    linear-gradient(0deg, #060a1d 0, #0a0d27 230px, #1b1847 300px, #43397f 350px, #8a76c2 398px, #c9b8e8 436px, #e4dcf8 476px, #ebe5fb 600px, #eee9fc 760px, #f0ebfd 930px) local,
+    #f0ebfd;
   border-right-color: #ddd6f2;
   /* At 768–900 px the sidebar is the page's header: one clean dawn colour, like the page's top. */
-  @media (max-width: 900px) { background: #faf8ff; border-bottom: 1px solid #e6e0f6; }
+  @media (max-width: 900px) { background: #f0ebfd; border-bottom: 1px solid #e6e0f6; }
 }
 :root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"]:not(#\-) { color: #10163a; background: linear-gradient(110deg, #ffffff, #f5f1ff) padding-box, linear-gradient(120deg, #1aa7c4, #3b6fe0 43%, #7a5af0 70%, #c04fc0) border-box; border: 1px solid transparent; box-shadow: 0 6px 18px -8px #5b4fc873, inset 0 -2px 3px #c58cf040; }
 :root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"] svg:not(#\-) { color: #4b3fd1; filter: none; }

@@ -99,6 +99,9 @@
 .habit-routine-progress i { width: 22px; height: 6px; border-radius: 99px; background: #a184e22a; }
 .habit-routine-progress i[data-done] { background: linear-gradient(90deg, #6fe6f6, #c790f6); box-shadow: 0 0 8px #9e78ff66; }
 .habit-routine-list .actions, .habit-routine-templates .secondary { margin: 0; }
+/* Gate C design review (ADR-027 G22): in the Routines block the templates' intro lines up with its heading and cards (the
+   time-of-day sections' 18 px inset is theirs). */
+.habit-routine-templates > .habit-section-empty { padding-inline: 0; }
 .habit-routine-list .actions > button { min-height: 44px; }
 .habit-routines .habit-section-heading .quiet { min-height: 44px; }
 

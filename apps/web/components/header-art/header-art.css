@@ -72,7 +72,8 @@
   :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 132px; height: 132px; }
 }
 @media (max-width: 540px) {
-  :root .header-art-slot { height: min(112px, 100%); }
+  /* Gate C design review (ADR-027 G22): fainter on a phone, where the words run over it. */
+  :root .header-art-slot { height: min(112px, 100%); opacity: .28; }
   :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 112px; height: 112px; }
 }
 @media (forced-colors: active) { :root .orbit-art { display: none; } }
