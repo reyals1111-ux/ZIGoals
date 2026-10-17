@@ -16,7 +16,7 @@
 //   contrast  text below 4.5:1 (3:1 for large text) against the pixels actually behind it (one screenshot per state).
 // ZIGi's launcher, the music button and Point & tell float over content by the owner's decision and are left out.
 // Usage (from apps/web, a production build running):
-//   node tests/audit/layout-audit.mjs <base> <out-dir> [--only=<regex>] [--widths=320,390] [--engine=chrome|webkit] [--stress] [--touch]
+//   node tests/audit/layout-audit.mjs <base> <out-dir> [--only=<regex>] [--widths=320,390] [--engine=chrome|webkit] [--stress] [--touch] [--theme=light|dark]
 import {chromium, webkit, devices} from '@playwright/test';
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {inflateSync} from 'node:zlib';
@@ -29,6 +29,10 @@ const stress = flags.includes('--stress');
 // --touch (owner, 2026-10-14): tablets are touch devices. The same states at 768 and 1024 px with touch emulation (a coarse
 // primary pointer), where every target must be 44 × 44 px, as on phones.
 const touch = flags.includes('--touch');
+// --theme (Session AD, Part 3): the device's theme (zigoals:ui-prefs:v1 "theme") set before every page loads; Nebula by default.
+const theme = flag('theme') ?? 'nebula';
+if (!['nebula', 'light', 'dark'].includes(theme)) throw Error(`--theme=${theme}: nebula, light or dark`);
+const themeTag = theme === 'nebula' ? '' : `-${theme}`;
 // --muted (Session AC, item 9c): also report every muted text (the --muted / --text-muted tokens, or .fine / .muted /
 // .hint copy) with its measured contrast against its own pixels and its size, in muted-<tag>.json and a summary.
 const mutedReport = flags.includes('--muted'), mutedRows = [];
@@ -337,7 +341,7 @@ function contrast(pngs, samples) {
 const launcher = engine === 'webkit' ? webkit : chromium;
 const browser = await launcher.launch(engine === 'webkit' ? {} : {channel: 'chrome'});
 let currentKey = '';
-const report = {base, engine, widths: WIDTHS, at: new Date().toISOString(), states: {}, advisory: {}};
+const report = {base, engine, theme, widths: WIDTHS, at: new Date().toISOString(), states: {}, advisory: {}};
 for (const width of WIDTHS) {
   const phone = width < 768;
   for (const fresh of [false, true]) {
@@ -345,10 +349,11 @@ for (const width of WIDTHS) {
     if (!todo.length) continue;
     const ctx = await browser.newContext({...(phone ? devices['iPhone 13'] : {}), ...(touch ? {hasTouch: true} : {}), viewport: {width, height: phone ? 844 : 900}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
     await ctx.route('**/api/**', r => r.fulfill({status: 503, json: {error: 'audit fixture offline'}}));
+    if (theme !== 'nebula') await ctx.addInitScript(t => { try { const k = 'zigoals:ui-prefs:v1', v = JSON.parse(localStorage.getItem(k) ?? 'null') ?? {version: 1}; if (v.theme !== t) localStorage.setItem(k, JSON.stringify({...v, version: 1, theme: t})); } catch { /* storage refused */ } }, theme);
     const p = await ctx.newPage();
     if (!fresh) { await p.goto(base + '/app/settings'); await btn(p, 'Load Showcase Demo').click(); await p.waitForURL('**/app'); await p.waitForTimeout(800); if (stress) console.log('stress records rewritten:', JSON.stringify(await p.evaluate(stressRecords))); }
     for (const st of todo) {
-      const key = `${st.name}@${width}${engine === 'webkit' ? '-webkit' : ''}${touch ? '-touch' : ''}`;
+      const key = `${st.name}@${width}${engine === 'webkit' ? '-webkit' : ''}${touch ? '-touch' : ''}${themeTag}`;
       try {
         await p.goto(base + st.path, {waitUntil: 'domcontentloaded'}); await p.waitForLoadState('networkidle', {timeout: 8000}).catch(() => {}); await p.waitForTimeout(900);
         // Every lazy part on the way down, then back to the top.
@@ -374,7 +379,7 @@ for (const width of WIDTHS) {
         const every = [...found, ...contrast(pngs, samples)], all = every.filter(f => f.k !== 'advisory-target');
         report.states[key] = all; report.advisory[key] = every.filter(f => f.k === 'advisory-target').map(f => f.w);
         console.log(`${key}: ${all.length ? all.length + ' finding(s)' : 'clean'}`);
-        writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});
+        writeFileSync(`${out}/layout-audit-${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}${themeTag}.partial.jsonl`, JSON.stringify({key, findings: all}) + '\n', {flag: 'a'});
         if (st.after) await st.after(p).catch(() => {});
         await p.keyboard.press('Escape').catch(() => {});
       } catch (e) { report.states[key] = [{k: 'error', w: String(e).split('\n')[0]}]; console.log(`${key}: could not run (${String(e).split('\n')[0]})`); }
@@ -385,9 +390,9 @@ for (const width of WIDTHS) {
 await browser.close();
 const counts = {}; for (const list of Object.values(report.states)) for (const f of list) counts[f.k] = (counts[f.k] ?? 0) + 1;
 report.counts = counts;
-const tag = `${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}`;
+const tag = `${engine}${stress ? '-stress' : ''}${touch ? '-touch' : ''}${themeTag}`;
 writeFileSync(`${out}/layout-audit-${tag}.json`, JSON.stringify(report, null, 1));
-const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}${touch ? ', touch (coarse pointer)' : ''}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
+const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}${touch ? ', touch (coarse pointer)' : ''}${themeTag ? `, ${theme} theme` : ''}) — ${report.at}`, '', `Base: ${base}. Widths: ${WIDTHS.join(', ')}. States: ${Object.keys(report.states).length}.`, '', `Findings by kind: ${Object.entries(counts).map(([k, n]) => `${k} ${n}`).join(' · ') || 'none'}.`, '',
   ...Object.entries(report.states).filter(([, l]) => l.length).flatMap(([k, l]) => [`## ${k}`, ...l.map(f => `- **${f.k}** ${f.w}`), '']),
   ...(() => { const seen = new Map(); for (const [k, l] of Object.entries(report.advisory)) for (const w of l) { const id = w.replace(/\d+×\d+/, '#'); if (!seen.has(id)) seen.set(id, {w, k, n: 0}); seen.get(id).n++; }
     return seen.size ? ['## Advisory: pointer-layout controls between 24 and 44 px (not findings; owner item)', '', `${[...seen.values()].reduce((a, b) => a + b.n, 0)} occurrences of ${seen.size} distinct controls (WCAG 2.5.8 minimum met; 44 px is the touch layout's rule).`, '', ...[...seen.values()].map(v => `- ${v.w} (first at ${v.k}, ×${v.n})`), ''] : []; })()].join('\n');
