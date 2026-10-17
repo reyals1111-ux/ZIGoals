@@ -61,18 +61,18 @@
   :root :is(.page-header.has-art, .header-art-host) { padding-right: 166px; min-height: 120px; }
   :root .header-art-slot { height: clamp(120px, 100%, 150px); }
 }
-/* Phones: the words take the whole width; the art sits small and faint behind them at the top right (`data-phone=hide`
-   removes it where a header keeps its own buttons up there). */
+/* Phones: the words take the whole width; the art sits small and faint behind them at the top right, never below the
+   header (`data-phone=hide` removes it where a header keeps its own buttons up there). */
 @media (max-width: 767.98px) {
   :root :is(.page-header.has-art, .header-art-host) { padding-right: 0; min-height: 0; }
-  :root .header-art-slot { top: 0; right: 0; height: 132px; opacity: .36; z-index: 0; }
+  :root .header-art-slot { top: 0; right: 0; height: min(132px, 100%); opacity: .36; z-index: 0; }
   :root .header-art-slot[data-phone=hide] { display: none; }
   :root .page-header.has-art > :not(.header-art-slot), :where(.header-art-host) > :where(:not(.header-art-slot)) { position: relative; z-index: 1; }
   :root .pillar-hero > .pillar-hero-art:has(> .orbit-art) { top: 0; right: 0; opacity: .36; transform: none; }
   :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 132px; height: 132px; }
 }
 @media (max-width: 540px) {
-  :root .header-art-slot { height: 112px; }
+  :root .header-art-slot { height: min(112px, 100%); }
   :root .pillar-hero > .pillar-hero-art > .orbit-art { width: 112px; height: 112px; }
 }
 @media (forced-colors: active) { :root .orbit-art { display: none; } }

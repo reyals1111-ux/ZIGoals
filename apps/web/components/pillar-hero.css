@@ -8,7 +8,7 @@
 :root .pillar-hero-buttons { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 10px; }
 :root .pillar-hero-buttons > :is(a, button) { min-height: 44px; white-space: nowrap; }
 :root .pillar-hero-actions .page-minor-actions { justify-content: flex-end; }
-:root .pillar-hero > .pillar-hero-art { grid-area: art; align-self: center; justify-self: end; position: relative; }
+:root .pillar-hero > .pillar-hero-art { grid-area: art; align-self: center; justify-self: end; position: relative; pointer-events: none; }
 /* The art's glow and stars never widen the page at any width (horizontal clip only; the glow above and below stays). */
 :root .pillar-hero.has-art { overflow-x: clip; }
 :root .pillar-hero > :not(.pillar-hero-eyebrow, .pillar-hero-title, .pillar-hero-lede, .pillar-hero-actions, .pillar-hero-art) { grid-column: 1 / -1; }
