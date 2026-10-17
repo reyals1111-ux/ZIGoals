@@ -35,7 +35,7 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  await expect(page.getByLabel('Journal date')).toHaveCount(1);
  await open(page,'/app/habits');
  const items=(r:string)=>page.evaluate(r=>[...document.querySelectorAll<HTMLElement>(`[data-layout-region="${r}"]`)].map(e=>e.dataset.layoutItem),r);
- expect(await items('habits:body')).toEqual(['habits:overview','habits:list','habits:consistency','habits:rhythm']);
+ expect(await items('habits:body')).toEqual(['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm']); // Session AE Part 4 (deliberate, S4): Routines is its own block after your habits
  await open(page,'/app/wealth');
  // Session Z-Cloud Part 4.5 (deliberate): "What you have" follows the holdings on a phone (wealth-view.tsx PHONE_ORDER); it is a
  // layout card since Gate B (15c36a5), so it is counted here. As strict: the first six, in order.
@@ -43,10 +43,11 @@ test('phone default orders: Health title, date, counters; Habits check-ins befor
  // Session AC (the owner's decision of 2026-10-15): the three holdings lists are one item, wealth:holdings.
  expect((await items('wealth:body')).slice(0,6)).toEqual(['wealth:pulse','wealth:holdings','wealth:composition','wealth:mix','wealth:watchlist','wealth:history']);
  expect((await items('wealth:body')).at(-1)).toBe('wealth:calculator'); // Session AB-Design (owner request 26): the calculator is last
- // An order saved on this device wins over the phone default.
+ // An order saved on this device wins over the phone default. Session AE Part 4: this one was saved before Routines was its
+ // own block, so Routines takes its place right after your habits; the saved four keep their order.
  await page.evaluate(()=>sessionStorage.setItem('zigoals:layout:v1',JSON.stringify({version:1,pages:{habits:{body:{order:['habits:rhythm','habits:consistency','habits:overview','habits:list']}}}})));
  await open(page,'/app/habits');
- expect(await items('habits:body')).toEqual(['habits:rhythm','habits:consistency','habits:overview','habits:list']);
+ expect(await items('habits:body')).toEqual(['habits:rhythm','habits:consistency','habits:overview','habits:list','habits:routines']);
 });
 
 test('Settings on a phone: a grouped list under the title goes to every section; desktop keeps its chips',async({page})=>{

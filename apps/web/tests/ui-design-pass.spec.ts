@@ -157,10 +157,11 @@ test.describe('Part 2: personal layouts',()=>{
   await showcase(page);await page.goto('/app/habits');
   await expect(page.locator('.habit-overview')).toBeVisible();
   // A phone (Session E) starts with today's check-ins: Today's rhythm, your habits, then the charts. Moving the first card
-  // down swaps it with the second in either default order.
+  // down swaps it with the second in either default order. Session AE Part 4 (deliberate, the owner's S4): Routines is its
+  // own block, right after your habits, so each order has five items.
   const phone=await isPhone(page);
-  const initial=await order(page,'habits:body');expect(initial).toEqual(phone?['habits:overview','habits:list','habits:consistency','habits:rhythm']:['habits:overview','habits:consistency','habits:list','habits:rhythm']);
-  const moved=phone?['habits:list','habits:overview','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:rhythm'];
+  const initial=await order(page,'habits:body');expect(initial).toEqual(phone?['habits:overview','habits:list','habits:routines','habits:consistency','habits:rhythm']:['habits:overview','habits:consistency','habits:list','habits:routines','habits:rhythm']);
+  const moved=phone?['habits:list','habits:overview','habits:routines','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:routines','habits:rhythm'];
   // Locked by default: no controls, nothing marked.
   await expect(page.locator('.layout-controls')).toHaveCount(0);
   await page.getByRole('button',{name:'Unlock layout to rearrange',exact:true}).click();
@@ -169,7 +170,7 @@ test.describe('Part 2: personal layouts',()=>{
   const down=page.getByRole('button',{name:'Move Today’s rhythm down',exact:true});
   await down.focus();await page.keyboard.press('Enter');
   await expect.poll(()=>order(page,'habits:body')).toEqual(moved);
-  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 4.');
+  await expect(page.locator('[data-layout-announcer]')).toHaveText('Moved Today’s rhythm to position 2 of 5.');
   await expect(down).toBeFocused();
   expect(await page.evaluate(()=>sessionStorage.getItem('zigoals:layout:v1'))).toBe(`{"version":1,"pages":{"habits":{"body":{"order":${JSON.stringify(moved)}}}}}`);
   await page.reload();await expect(page.locator('.habit-overview')).toBeVisible();
@@ -266,7 +267,7 @@ test.describe('Part 2: personal layouts',()=>{
   await expect(page.locator('.layout-ghost')).toHaveCount(1);
   for(let i=1;i<=12;i++)await touch('touchMove',x,y+(to-y)*i/12);
   await touch('touchEnd',x,to);
-  await expect.poll(()=>order(page,'habits:body')).toEqual(await isPhone(page)?['habits:list','habits:overview','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:rhythm']);
+  await expect.poll(()=>order(page,'habits:body')).toEqual(await isPhone(page)?['habits:list','habits:overview','habits:routines','habits:consistency','habits:rhythm']:['habits:consistency','habits:overview','habits:list','habits:routines','habits:rhythm']); // Session AE Part 4: Routines follows your habits
  });
 });
 
