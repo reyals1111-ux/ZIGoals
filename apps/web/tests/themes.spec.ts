@@ -81,6 +81,25 @@ test('Light keeps the cosmic sections dark: the Today hero and the footer banner
   const heroText = await page.locator('.today-hero h1').first().evaluate(e => getComputedStyle(e).color);
   const [r, g, b] = heroText.match(/\d+/g)!.map(Number);
   expect(0.2126 * r! + 0.7152 * g! + 0.0722 * b!).toBeGreaterThan(180);
-  await page.locator('footer.site-footer').scrollIntoViewIfNeeded();
-  expect(await page.locator('footer.site-footer').evaluate(f => getComputedStyle(f).backgroundColor)).toBe('rgb(2, 9, 24)');
+  // Session AE (ADR-027 G7, G8): by day the page deepens into night at the banner (no edge) instead of a flat block of
+  // night: the footer's ground is a gradient whose last stop is the night (rgb(2, 9, 24)), the pixels behind the steps'
+  // words are night, and the words stay light.
+  const footer = page.locator('footer.site-footer');
+  await footer.scrollIntoViewIfNeeded();
+  expect(await footer.evaluate(f => getComputedStyle(f).backgroundImage)).toMatch(/^linear-gradient\(.*rgb\(2, 9, 24\)[^,]*\)$/);
+  const word = footer.locator('.site-footer-steps p').first();
+  const [wr, wg, wb] = (await word.evaluate(e => getComputedStyle(e).color)).match(/\d+/g)!.map(Number);
+  expect(0.2126 * wr! + 0.7152 * wg! + 0.0722 * wb!).toBeGreaterThan(150);
+  const box = (await footer.locator('.site-footer-steps').boundingBox())!;
+  const shot = await page.screenshot({clip: {x: box.x, y: box.y + box.height - 24, width: Math.min(box.width, 400), height: 20}});
+  const blank = await page.context().newPage();
+  const ground = await blank.evaluate(async data => {
+    const img = new Image(); img.src = `data:image/png;base64,${data}`; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d')!; x.drawImage(img, 0, 0);
+    const px = x.getImageData(0, 0, c.width, c.height).data, v: number[] = [];
+    for (let i = 0; i < px.length; i += 4) v.push((px[i]! + px[i + 1]! + px[i + 2]!) / 3);
+    v.sort((a, b) => a - b); return v[v.length >> 1]!;
+  }, shot.toString('base64'));
+  await blank.close();
+  expect(ground).toBeLessThan(40);
 });
