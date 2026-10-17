@@ -41,6 +41,8 @@ for(const w of ['d','t','m','p']){
 }
 jobs.push(['hero-d2',async()=>{const {c,page}=await ctx('d',{dpr:2});await settle(page);await shot(page,'hero-unfolded-d-2x');await c.close();}]);
 // The footer banner (Part 2)
+// Gate C: the hero and the banner in Light and Dark (themed versions of Parts 1 and 2)
+for(const theme of ['light','dark'])for(const w of ['d','t','m','p']){jobs.push([`themehero-${theme}-${w}`,async()=>{const {c,page}=await ctx(w,{theme});await settle(page);await shot(page,`hero-${theme}-${w}`);await c.close();}]);if(w!=='m')jobs.push([`themebanner-${theme}-${w}`,async()=>{const {c,page}=await ctx(w,{theme});await settle(page);await footer(page,`banner-${theme}-${w}`);await c.close();}]);}
 for(const w of ['d','t','p'])jobs.push([`banner-${w}`,async()=>{const {c,page}=await ctx(w);await settle(page);await footer(page,`banner-${w}`);await c.close();}]);
 jobs.push(['banner-d-motionoff',async()=>{const {c,page}=await ctx('d',{motionOff:true});await settle(page);await footer(page,'banner-d-motionoff');await c.close();}]);
 jobs.push(['banner-strip',async()=>{const {c,page}=await ctx('d');await settle(page);await page.evaluate(()=>sessionStorage.removeItem('zigoals-footer-intro-seen'));await page.reload();await settle(page);const f=page.locator('footer.site-footer');await f.scrollIntoViewIfNeeded();const t0=Date.now();for(let ms=0;ms<=7500;ms+=500){const wait=t0+ms-Date.now();if(wait>0)await page.waitForTimeout(wait);await f.screenshot({path:`${out}/banner-strip-${String(ms).padStart(4,'0')}ms.png`});}await c.close();}]);
