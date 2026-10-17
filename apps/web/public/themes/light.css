@@ -4688,6 +4688,29 @@
         border-radius: 14px
     }
 }
+/*  components/header-art/header-art.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
+    .orbit-art:not(#\-) {
+        --ha-dot-glow-a: #459dff8c;
+        --ha-dot-glow-b: #9273ff8c;
+        --ha-glow: #9a6bff8c
+    }
+    .orbit-art[data-tone=goals]:not(#\-) {
+        --ha-glow: #8a6bff8c
+    }
+    .orbit-art[data-tone=habits]:not(#\-) {
+        --ha-glow: #459dff8c
+    }
+    .orbit-art[data-tone=health]:not(#\-) {
+        --ha-glow: #fa5aa98c
+    }
+    .orbit-art[data-tone=wealth]:not(#\-) {
+        --ha-glow: #d58d0b8c
+    }
+    .orbit-art[data-tone=journey]:not(#\-) {
+        --ha-glow: #a86bff8c
+    }
+}
 /*  components/health-goals/health-goals.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art) {
     .health-goal-row:not(#\-) {
@@ -8485,6 +8508,24 @@
    colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
 :root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
 :root[data-theme=light] .health-grocery-aisle h3:not(#\-) { color: #0d6b5f; }
+/* apps/web/themes/light.headerart.css */
+/* Session AE (Part 4, ADR-027 G5): the page-header art by day. On Light's white-family sky the rings, planets and glyphs
+   take deeper, matte versions of the same hues (never pale); every glyph colour is ≥ 3:1 against the sky (the worst, the
+   deep cyan, 3.5:1 on the blue cloud); the glows become a faint wash and the bloom a soft shade. The generated rules carry
+   one id of weight (:not(#\-)); these carry it too, with the theme's root in front. */
+:root[data-theme=light] .orbit-art:not(#\-) {
+  --ha-ring-a: #0e8fb3; --ha-ring-b: #5b45d6; --ha-ring-c: #b23fc4; --ha-nebula: #8d7bff; --ha-twinkle: #6b5fd0;
+  --ha-dot-a: #0a9ec2; --ha-dot-b: #c23bd0; --ha-dot-c: #7a6ad8; --ha-dot-glow-a: #49b8ff; --ha-dot-glow-b: #b78cff;
+  --ha-glyph-a: #0b5f86; --ha-glyph-b: #0a7ea3; --ha-glyph-c: #5b45d6; --ha-glow: #8d7bff;
+  --ha-ring-o1: .42; --ha-ring-o2: .7; --ha-ring-o3: .62; --ha-nebula-o: .16; --ha-halo-o: .22; --ha-bloom-o: .22; --ha-fill-o: .14; --ha-dot-glow-o: .35;
+}
+:root[data-theme=light] .orbit-art[data-tone=goals]:not(#\-) { --ha-glyph-a: #3f2bb8; --ha-glyph-b: #5f45e6; --ha-glyph-c: #0a7ea3; --ha-glow: #7d68ff; }
+:root[data-theme=light] .orbit-art[data-tone=habits]:not(#\-) { --ha-glyph-a: #06657c; --ha-glyph-b: #0a7f9e; --ha-glyph-c: #7a46c9; --ha-glow: #49b8ff; }
+:root[data-theme=light] .orbit-art[data-tone=health]:not(#\-) { --ha-glyph-a: #9c1a5c; --ha-glyph-b: #c42f78; --ha-glyph-c: #7a46c9; --ha-glow: #ff8cc4; }
+:root[data-theme=light] .orbit-art[data-tone=wealth]:not(#\-) { --ha-glyph-a: #7d5200; --ha-glyph-b: #9a6200; --ha-glyph-c: #0b7a6f; --ha-glow: #f2b54b; }
+:root[data-theme=light] .orbit-art[data-tone=journey]:not(#\-) { --ha-glyph-a: #5f2aae; --ha-glyph-b: #8048cf; --ha-glyph-c: #0a7ea3; --ha-glow: #b48cff; }
+/* Phones: the faint copy behind the words stays a whisper on the light sky. */
+@media (max-width: 767.98px) { :root[data-theme=light] :is(.header-art-slot, .pillar-hero > .pillar-hero-art:has(> .orbit-art)):not(#\-) { opacity: .3; } }
 /* apps/web/themes/light.hero.css */
 /* Session AE (Part 1 in Light, ADR-027 G7): by day the hero keeps its own night — a soft pool of the nebula's night
    that dissolves into the day on every side (no card, no edge) — and the scene is painted on it, so the light words keep

@@ -3068,6 +3068,10 @@
 :root[data-theme=dark] .app-content::before { opacity: .62; }
 :root[data-theme=dark] :is(.account-panel, .destination-panel, .stake-hero, .staking-card)::before { filter: brightness(.82); }
 :root[data-theme=dark] .site-footer-art { filter: brightness(.8); }
+/* apps/web/themes/dark.headerart.css */
+/* Session AE (Part 4, ADR-027 G5): the page-header art in Dark — the same drawing on the near-black ground, its glows a
+   little dimmer (the halo, the glyph's bloom, the planets' light and the nebula disc). */
+:root[data-theme=dark] .orbit-art:not(#\-) { --ha-halo-o: .3; --ha-bloom-o: .58; --ha-dot-glow-o: .55; --ha-nebula-o: .15; }
 /* apps/web/themes/dark.hero.css */
 /* Session AE (Part 1 in Dark, ADR-027): the same scene on Dark's deeper ground, the artwork dimmed once (one layer, so
    nothing meets anything at a different brightness). */
