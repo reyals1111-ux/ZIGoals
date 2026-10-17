@@ -199,7 +199,8 @@ test('Today\'s wallet card: ZIG first; another currency without a price reads "u
   for (const c of ['USD', 'EUR', 'BTC'] as const) {
     await pick(card, c);
     await expect(card.locator('.account-value')).toHaveText(`${c} unavailable`);
-    await expect(card).toContainText('so nothing is estimated');
+    // Session AE (ADR-027 G16, TIER 3 public-safety labels): practice money is never shown in another currency, and says why.
+    await expect(card).toContainText('Practice money has no market value, so it is never shown in another currency.');
     await expect(card.locator('.account-value')).not.toContainText(/\d/);
   }
   expect((await stored(page))!.display).toBe('BTC');

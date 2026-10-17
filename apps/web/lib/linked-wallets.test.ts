@@ -1,5 +1,5 @@
 import {readdirSync, readFileSync, statSync} from 'node:fs';
-import {join} from 'node:path';
+import {join, relative} from 'node:path';
 import {describe, expect, test} from 'vitest';
 import {toBech32} from '@cosmjs/encoding';
 import {LINKED_WALLETS_KEY} from './linked-wallets-key';
@@ -47,7 +47,10 @@ describe('Session AE linked-wallets key (ADR-027): personal device data, exporte
     const files = (dir: string): string[] => readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? (name === 'node_modules' ? [] : files(path)) : /\.(ts|tsx|mjs|js)$/.test(name) ? [path] : []; });
     const sync = [...files(join(__dirname, 'vault')), ...files(join(__dirname, 'sync-offer')), join(__dirname, 'sync-homes-store.ts'), ...files(join(__dirname, '..', '..', '..', 'workers'))];
     expect(sync.length).toBeGreaterThan(20);
-    for (const file of sync) expect(readFileSync(file, 'utf8'), file).not.toMatch(/linked-wallets|LINKED_WALLETS/);
+    // One test file may name it: the frozen-reader proof (vault/frozen-fixtures.test.ts) writes a fictional record to show
+    // that older builds ignore the key (Session AE Gate C). It is a test, never shipped; nothing else may name the key.
+    const naming = sync.filter(file => /linked-wallets|LINKED_WALLETS/.test(readFileSync(file, 'utf8'))).map(file => relative(__dirname, file));
+    expect(naming).toEqual([join('vault', 'frozen-fixtures.test.ts')]);
   });
   test('a device holding it is not new; the account erase removes it', () => {
     const {m, storage} = memory();
