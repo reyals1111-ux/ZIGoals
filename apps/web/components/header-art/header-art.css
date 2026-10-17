@@ -125,3 +125,31 @@
    Reminders, the goal templates, a new goal, Sleep, Meditation, Devices) keeps its words at the top when the corner makes
    it taller (it centred them before). */
 :root .page-heading.header-art-host { align-items: flex-start; }
+/* Markets: the favourites card holds the hero's right, so on computers the constellation sits at the top right of the
+   words' column, between the title and the card, with that width kept free and sized so "Your markets." never wraps for
+   it (measured: 143 px beside the title at 1101, 191 at 1280, 240 at 1440). Tablets: the card stands right beside the
+   title, so no art (the corner is the card's). Phones: the card goes below and the art is the faint corner. */
+@media (min-width: 768px) and (max-width: 1099.98px) { :root .markets-hero > .header-art-host { padding-right: 0; min-height: 0; } :root .markets-hero > .header-art-host > .header-art-slot { display: none; } }
+@media (min-width: 1100px) {
+  :root .markets-hero > .header-art-host { padding-right: 132px; min-height: 0; }
+  :root .markets-hero > .header-art-host > .header-art-slot { height: 120px; }
+}
+@media (min-width: 1280px) {
+  :root .markets-hero > .header-art-host { padding-right: 170px; }
+  :root .markets-hero > .header-art-host > .header-art-slot { height: 156px; }
+}
+@media (min-width: 1440px) {
+  :root .markets-hero > .header-art-host { padding-right: 204px; }
+  :root .markets-hero > .header-art-host > .header-art-slot { height: 184px; }
+}
+/* The ecosystem's intro is a rounded panel: the art sits a little in from its corner, the words keep its width free. */
+:root .ecosystem-intro.header-art-host { padding-right: 264px; }
+:root .ecosystem-intro > .header-art-slot { top: 16px; right: 16px; }
+@media (max-width: 1099.98px) {
+  :root .ecosystem-intro.header-art-host { padding-right: 184px; }
+  :root .ecosystem-intro > .header-art-slot { top: 12px; right: 12px; }
+}
+@media (max-width: 767.98px) {
+  :root .ecosystem-intro.header-art-host { padding-right: 16px; }
+  :root .ecosystem-intro > .header-art-slot { top: 6px; right: 6px; }
+}
