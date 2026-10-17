@@ -8444,3 +8444,6 @@
 :root[data-theme=light] :is(.destination-panel, .account-panel, .stake-hero, .staking-card) { box-shadow: 0 18px 44px -26px #2a2f6680; }
 /* Focus rings stay visible on light surfaces. */
 :root[data-theme=light] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(:where(.today-hero, .site-footer, .app-sidebar) *) { outline-color: #4b3fd1; }
+/* The life rings' pillar names: by night the pillar's colour lifted with white; by day the same colour deepened with
+   night ink, so each name reads at ≥ 4.5:1 on the pale cards (Session AD audit, 2.3–3.7:1 before). */
+:root[data-theme=light] .life-ring-pillar:not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--pillar) 48%, #0b1230); }
