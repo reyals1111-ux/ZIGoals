@@ -136,3 +136,29 @@ test('Settings: the sticky index hides what scrolls under it, nothing paints ove
     }
   }
 });
+
+// 4. Journey's level ring: the figure's glyph box and the word's ("LEVEL") never meet, both sit on the ring's vertical
+// centre line, and the pair is centred in the ring, at a phone, a tablet and computer widths (the audit measured the
+// glyph boxes 4 px into each other at 1440).
+test('Journey: the level figure and its word stack apart, centred in the ring, at 390, 1024 and 1440 px', async ({page, isMobile}) => {
+  test.skip(isMobile, 'Widths are set here; the phone width runs in the computer project.');
+  await page.setViewportSize({width: 1440, height: 900});
+  await showcase(page);
+  for (const width of [390, 1024, 1440]) {
+    await page.setViewportSize({width, height: 900});
+    await page.goto('/app/journey');
+    const ring = page.locator('.journey-ring');
+    await expect(ring.locator('strong')).toHaveText(/^\d+$/);
+    const m = await ring.evaluate(el => {
+      const glyphs = (e: Element) => { const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect(); };
+      const box = el.getBoundingClientRect(), figure = glyphs(el.querySelector('strong')!), word = glyphs(el.querySelector('small')!);
+      const cx = box.left + box.width / 2, cy = box.top + box.height / 2;
+      return {gap: word.top - figure.bottom, figureDx: (figure.left + figure.right) / 2 - cx, wordDx: (word.left + word.right) / 2 - cx, pairDy: (Math.min(figure.top, word.top) + Math.max(figure.bottom, word.bottom)) / 2 - cy, word: word.width};
+    });
+    expect(m.word, `${width}: the word is drawn`).toBeGreaterThan(10);
+    expect(m.gap, `${width}: the figure's glyphs end above the word's`).toBeGreaterThanOrEqual(1);
+    expect(Math.abs(m.figureDx), `${width}: the figure on the ring's centre line`).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.wordDx), `${width}: the word on the ring's centre line`).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.pairDy), `${width}: the pair centred in the ring`).toBeLessThanOrEqual(3);
+  }
+});
