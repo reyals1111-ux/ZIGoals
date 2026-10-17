@@ -3,6 +3,8 @@ import {NebulaFlow} from './nebula-flow';
 import {PillarMark, type Pillar} from './pillars';
 import {PageMinorActions} from './page-actions';
 import './pillar-hero.css';
+// Session AE (Part 4, ADR-027 G5): the header art's placement and its one-time entrance, Habits' orbit included.
+import './header-art/header-art.css';
 
 /**
  * Session AB-Design Phase 2, Part 2a (owner requests 21, 28; critique 8, 12): the one header of the four pillar pages and
