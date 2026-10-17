@@ -5,6 +5,8 @@ import {useState} from 'react';
 import {BUILT_IN_AREAS, type BuiltInArea} from '../../lib/goal-extras/store';
 import {searchTemplates, type LibraryTemplate} from '../../lib/templates/goal-library';
 import {SectionHeading} from '../ui/section-heading';
+import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
+import {TemplatesGlyph} from '../header-art/glyphs/templates';
 import './goals.css';
 
 const KIND_LABEL: Record<LibraryTemplate['kind'], string> = {value: 'Savings goal', project: 'Milestones goal', average: 'Keep an average', 'health-weight': 'Health goal'};
@@ -20,11 +22,11 @@ export function TemplateLibrary() {
   const [query, setQuery] = useState(''), [area, setArea] = useState<BuiltInArea | null>(null);
   const results = searchTemplates(query, area);
   return <div className="template-library">
-    <div className="page-heading"><div>
+    <div className="page-heading header-art-host"><div>
       <p className="eyebrow page-eyebrow">Start from something proven</p>
       <h1>Goal templates</h1>
       <p className="page-lede">Forty-two ready goals for every part of life. Pick one; the name, steps and habits are yours to change.</p>
-    </div></div>
+    </div><HeaderArtCorner><OrbitArt glyph={TemplatesGlyph} tone="goals" spin={30}/></HeaderArtCorner></div>
     <div className="template-controls">
       <label className="field template-search"><span>Search templates</span><input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Run, savings, sleep, language…" /></label>
       <div className="area-filter" role="group" aria-label="Life areas">

@@ -6,6 +6,8 @@ import {sleepInsights} from '../../../lib/sleep/insights';
 import type {SleepNight} from '../../../lib/sleep/schema';
 import {formatMinutes} from '../../../lib/zone-time';
 import {NebulaFlow} from '../../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../../header-art/orbit-art';
+import {SleepGlyph} from '../../header-art/glyphs/sleep';
 import {SleepDurationChart, SleepQualityChart, SleepTimesChart} from './sleep-charts';
 import {NightForm, SleepGoalForm} from './sleep-forms';
 import {SleepTonight} from './sleep-tonight';
@@ -39,12 +41,12 @@ export default function SleepView() {
     try { await store.update(s => deleteNight(s, id)); setConfirm(null); setNote('The night is deleted.'); } catch (error) { setNote(error instanceof Error ? error.message : 'Could not delete.'); }
   }
   return <div className="sleep-view">
-    <div className="page-heading"><div>
+    <div className="page-heading header-art-host"><div>
       <p><Link className="text-link sleep-back" href="/app/health">← Health</Link></p>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="sleep-eyebrow">HEALTH · SLEEP</NebulaFlow></p>
       <h1><NebulaFlow identity="sleep-title">Your sleep, your rhythm.</NebulaFlow></h1>
       <p className="page-lede">Nights and naps you log or bring in. Private to your Health journal; it syncs only with Health, under the same consent.</p>
-    </div></div>
+    </div><HeaderArtCorner><OrbitArt glyph={SleepGlyph} tone="health" spin={6}/></HeaderArtCorner></div>
     {note && <p className="sleep-note" role="status">{note}</p>}
     <section className="panel sleep-tonight-panel" aria-labelledby="sleep-tonight-title"><h2 id="sleep-tonight-title">Tonight</h2><SleepTonight store={store} onDone={setNote}/><WindDownSetting/></section>
     {shortNights(sleep, today) && <section className="panel sleep-gentle" aria-label="A gentle word"><p>Your recent nights have been short. That happens, and small steps count. If sleeping stays hard for a while, a doctor or another health professional can help.</p></section>}

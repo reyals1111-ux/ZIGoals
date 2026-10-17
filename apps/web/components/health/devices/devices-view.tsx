@@ -11,6 +11,8 @@ import {connectMonitor, disconnectMonitor} from '../../../lib/bluetooth/monitor'
 import {heartSnapshot, SERVER_HEART, subscribeHeart} from '../../../lib/bluetooth/heart-store';
 import type {BodyCompositionReading, WeightReading} from '../../../lib/bluetooth/gatt';
 import {NebulaFlow} from '../../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../../header-art/orbit-art';
+import {DevicesGlyph} from '../../header-art/glyphs/devices';
 import {HealthLinks} from './health-links';
 import './devices.css';
 import {formatDate} from '../../../lib/visual-format';
@@ -27,12 +29,12 @@ export default function DevicesView() {
   const [support, setSupport] = useState<Support | null>(null);
   useEffect(() => { queueMicrotask(() => setSupport(bluetoothSupport())); }, []);
   return <div className="devices-view">
-    <div className="page-heading"><div>
+    <div className="page-heading header-art-host"><div>
       <p><Link className="text-link sleep-back" href="/app/health">← Health</Link></p>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="devices-eyebrow">HEALTH · DEVICES</NebulaFlow></p>
       <h1><NebulaFlow identity="devices-title">Your devices, honestly.</NebulaFlow></h1>
       <p className="page-lede">What can bring readings into your Health journal from here, and what cannot yet. Nothing connects until you ask.</p>
-    </div></div>
+    </div><HeaderArtCorner><OrbitArt glyph={DevicesGlyph} tone="health" spin={-14}/></HeaderArtCorner></div>
     <section className="panel devices-section" aria-labelledby="devices-bluetooth-title">
       <h2 id="devices-bluetooth-title">On this device, by Bluetooth</h2>
       {support === null ? <p>Checking this browser…</p>
