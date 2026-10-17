@@ -42,6 +42,16 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 5 Layout | done: four issues (L) + the blur-order fix (`39ebce78`) | `98d5b11f`, `39ebce78` |
 | 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
 
+## Resume here (2026-10-18 00:20 Brussels — Gate C, after the design round)
+- Done: design critique (fresh agent) and its fix round (`973b4328`, `6780570b`, ADR-027 G22); audits Nebula/Light/Dark at
+  390 and 1440 clean (Light after `90c1b18d`, `87780f88`); unit suite 5,110 passed (the sandbox-only pre-run11 test
+  apart); weights and key scans (`45e500c3`); wallet-menu spec waits for entrance motion (`576ea4a4`).
+- Running (`$SP/chain3.sh` on build `6780570b`): widths 320/768/1024/1920 (Nebula all; Light/Dark main pages), touch, stress.
+- Open: `goal-new@320` contrast 3.94:1 on a type card's small text (probe after the audits); WebKit `zigi-memory:54` closed
+  mid-click once (run 1002) — the next CI run re-tests it.
+- Next: audit fixes → rebuild → full browser suite once → local verifier → revert gate (during CI) → ADR outcomes → STATUS
+  final entry → PR ready.
+
 ## Resume here (2026-10-17 22:50 Brussels — Gate C under way)
 - Done: Preview removed (`b9855e3f`); Light audit at 390/1440 (fixes `90c1b18d`, `87780f88`); frozen readers #37–#43 PASS
   incl. `habits:routines` and linked wallets (`47f95b2f`, `docs/verification/session-ae/gate-c-frozen-readers.txt`);
