@@ -36,7 +36,7 @@
 @media (prefers-reduced-motion:reduce){.ai-card{transition:none}}
 
 /* ---- Chat panel ---- */
-.ai-chat{position:fixed;inset:auto 20px 20px auto;margin:0;width:min(440px,calc(100vw - 40px));max-width:none;height:min(72vh,760px);max-height:calc(100vh - 40px);padding:0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 36%,var(--line,#2a325a));border-radius:22px;background:linear-gradient(170deg,color-mix(in srgb,var(--panel,#0f1530) 94%,transparent),color-mix(in srgb,#07091c 96%,transparent));color:var(--text,#eef1ff);box-shadow:0 30px 80px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;z-index:48;display:none;flex-direction:column;overflow:clip;backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2)}
+.ai-chat{position:fixed;inset:auto 20px 20px auto;margin:0;width:min(440px,calc(100vw - 40px));max-width:none;height:min(72vh,760px);max-height:calc(100vh - 40px);padding:0;border:1px solid color-mix(in srgb,var(--violet,#8b7cff) 36%,var(--line,#2a325a));border-radius:22px;background:linear-gradient(170deg,color-mix(in srgb,var(--panel,#0f1530) 94%,transparent),color-mix(in srgb,#07091c 96%,transparent));color:var(--text,#eef1ff);box-shadow:0 30px 80px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.03) inset;z-index:48;display:none;flex-direction:column;overflow:clip;-webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2)}
 .ai-chat[open]{display:flex}
 /* Session V Part 12: with ZIGi on the left, the panel opens on the left too (past the sidebar on a computer). */
 :root[data-zigi-side=left] .ai-chat:not(.ai-chat-expanded):not(.ai-chat-phone){inset:auto auto 20px 20px}
