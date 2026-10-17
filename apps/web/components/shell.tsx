@@ -54,6 +54,7 @@ import { MusicLauncher } from "./music/music-launcher";
 import { PointTellMount } from "./point-tell/mount";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
+import { WalletMoreButton } from "./wallet/wallet-more-button";
 /** Session Z-Cloud Part 4.2: the phone's "Status" sheet, loaded on its first tap. */
 const PhoneStatusSheet = lazy(() => import("./phone/phone-status-sheet"));
 /** After a route change, focus that fell to <body> (its link or trigger was unmounted, e.g. Quick add on Today) moves to the page's main region. */
@@ -194,7 +195,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
             Session AE (Part 1, ADR-027; owner): the demo balance is no longer repeated here or in the phone's Status sheet; Today's wallet card shows the simulated balance. */}
         <div className="status-row">
         <ShowcaseChip/>
-        {banners&&<div className="wallet status-wallet">{walletButtons}</div>}
+        {/* Session AE (Part 6, ADR-027): the ▾ opens the other wallet choices (read-only links, Disconnect); its menu is a lazy chunk. */}
+        {banners&&<div className="wallet status-wallet">{walletButtons}<WalletMoreButton disabled={showcase}/></div>}
         <div className="page-tools-slot" id={PAGE_TOOLS_SLOT}/>
         <GamifyButton/>
         <div className="layout-lock-slot" id={LAYOUT_LOCK_SLOT}/>

@@ -28,6 +28,10 @@
 .status-row .status-wallet button { font-size: 14px; min-height: 40px; }
 .status-row .status-wallet .wallet-connect { gap: 10px; min-width: 0; padding-inline: 12px; }
 .status-row .status-wallet .wallet-identity small { display: none; }
+/* Session AE (Part 6, ADR-027): the ▾ beside Connect Keplr, a 44 px menu button (its menu: components/wallet/wallet.css). */
+.status-row .wallet-more { position: relative; display: inline-flex; flex: none; }
+.status-row .status-wallet .wallet-more-trigger { display: inline-grid; place-items: center; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; }
+.status-row .status-wallet .wallet-more-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
 .status-row .status-wallet + .page-tools-slot, .status-row .status-wallet + .gamify, .status-row .status-wallet + .layout-lock-slot { margin-left: 0; }
 .page-tools-slot { display: flex; flex: none; gap: 8px; }
 .page-tools-slot:empty { display: none; }
