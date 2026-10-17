@@ -11,7 +11,9 @@ import {describe, expect, test} from 'vitest';
 const WEB = join(__dirname, '..');
 const NEW_FILES = ['lib/wallet-link.ts', 'lib/wallet-address.ts', 'lib/linked-wallets.ts', 'lib/linked-wallets-key.ts',
   ...readdirSync(join(WEB, 'components/wallet')).filter(name => /\.(ts|tsx)$/.test(name) && !/\.test\./.test(name)).map(name => `components/wallet/${name}`)];
-const FORBIDDEN = /signAmino|signDirect|signArbitrary|eth_sign|personal_sign|eth_signTypedData|eth_sendTransaction|wallet_requestPermissions|wallet_switchEthereumChain|wallet_addEthereumChain|sendTx|broadcast/;
+// Gate C security review (ADR-027): every Keplr-API signing or sending method too (signEthereum, signICNSAdr36,
+// experimentalSignEIP712CosmosTx_v0, sendEthereumTx…), by shape rather than by a list that a new method could slip past.
+const FORBIDDEN = /signAmino|signDirect|signArbitrary|eth_sign|personal_sign|eth_signTypedData|eth_sendTransaction|wallet_requestPermissions|wallet_switchEthereumChain|wallet_addEthereumChain|sendTx|broadcast|\bsign[A-Z]\w*|experimentalSign|send\w*Tx\b/;
 const read = (file: string) => readFileSync(join(WEB, file), 'utf8');
 const sources = (dir: string): string[] => readdirSync(join(WEB, dir)).flatMap(name => {
   const path = `${dir}/${name}`;
@@ -28,6 +30,9 @@ describe('Session AE wallet guard', () => {
       const text = read(file);
       expect(text, file).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|navigator\.connection/);
       for (const method of text.match(/\b(?:eth|wallet|net|personal)_[A-Za-z]+/g) ?? []) expect(method, file).toBe('eth_requestAccounts');
+      // A method built at run time (`request({method: m})`, "eth_" + "send…") would pass the line above: every request call is
+      // written out, and asks for the accounts only.
+      for (const call of text.match(/\.request\([^)]*\)/g) ?? []) expect(call, file).toBe(".request({method: 'eth_requestAccounts'})");
     }
     // The Cosmos calls are exactly Keplr's connect (suggest, enable, getKey) and Keplr's own disable for Disconnect.
     const link = read('lib/wallet-link.ts');

@@ -45,7 +45,7 @@ test('with a linked wallet, the chooser shows it read-only: the address shortene
   localStorage.setItem(LINKED_WALLETS_KEY, JSON.stringify({version: 1, wallets: [{id: 'w1', kind: 'cosmos', wallet: 'cosmostation', label: 'Cosmostation', address: LINKED, addedAt: '2026-10-17T10:00:00.000Z'}]}));
   await act(async () => root.render(createElement(GoalProvider, null, createElement(WalletCard, {plainWords: true}))));
   const select = await vi.waitFor(async () => { await act(async () => {}); const s = card().querySelector('select'); expect(s).not.toBeNull(); return s!; });
-  expect([...select.options].map(o => o.textContent)).toEqual(['This app’s wallet (Demo records)', `Cosmostation · ${LINKED.slice(0, 8)}…${LINKED.slice(-4)}`]);
+  expect([...select.options].map(o => o.textContent)).toEqual(['This app’s wallet (Demo records)', `Linked · Cosmostation · ${LINKED.slice(0, 8)}…${LINKED.slice(-4)}`]);
   await act(async () => { select.value = 'w1'; select.dispatchEvent(new Event('change', {bubbles: true})); }); await settle();
   const value = card().querySelector('.account-value')!;
   expect(value.textContent).toBe(`${LINKED.slice(0, 8)}…${LINKED.slice(-4)}`); expect(value.getAttribute('title')).toBe(LINKED);

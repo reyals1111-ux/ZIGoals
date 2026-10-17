@@ -1,7 +1,7 @@
 import {describe, expect, test, vi} from 'vitest';
 import {toBech32} from '@cosmjs/encoding';
 import {TESTNET, keplrChainInfo} from '@zigoals/chain-config';
-import {COSMOS_LINK_ERROR, EVM_LINK_ERROR, EVM_SUGGESTIONS, KEPLR_SITE, MAX_EVM_WALLETS, MAX_WALLET_ICON, announcedWallet, discoverEvmWallets, forgetKeplrPermission, readCosmosAddress, readEvmAddress, safeWalletIcon, walletName} from './wallet-link';
+import {COSMOS_LINK_ERROR, COSMOS_WALLETS, EVM_LINK_ERROR, EVM_SUGGESTIONS, KEPLR_SITE, MAX_EVM_WALLETS, MAX_WALLET_ICON, announcedWallet, discoverEvmWallets, forgetKeplrPermission, readCosmosAddress, readEvmAddress, safeWalletIcon, walletName} from './wallet-link';
 
 // Session AE (Part 6, ADR-027): reading an address from another wallet, for display only. Test doubles record every call.
 const ZIG = toBech32('zig', new Uint8Array(20).fill(9));
@@ -78,5 +78,18 @@ describe('Disconnect and the official sites', () => {
     expect(KEPLR_SITE).toBe('https://www.keplr.app/');
     expect(EVM_SUGGESTIONS.map(s => s.href)).toEqual(['https://metamask.io/', 'https://rabby.io/', 'https://www.coinbase.com/wallet']);
     expect(JSON.stringify(EVM_SUGGESTIONS) + KEPLR_SITE).not.toMatch(/leap|cosmostation/i);
+  });
+  test('Gate C security review: hostile announcements and injected objects', () => {
+    const provider = {request: async () => []};
+    // A right-to-left override or a zero-width character never reaches the screen; the words stay.
+    expect(announcedWallet({info: {uuid: 'u3', rdns: 'io.example', name: 'Fake\u202eWallet\u200b'}, provider})?.name).toBe('FakeWallet');
+    // A uuid becomes part of element ids: a space (naming another element) or other punctuation is refused.
+    for (const uuid of ['a b', 'x" onmouseover="y', 'a'.repeat(65), '']) expect(announcedWallet({info: {uuid, rdns: 'io.example', name: 'X'}, provider}), uuid).toBeNull();
+    // An injected wallet whose properties throw reads as not installed instead of throwing into the page.
+    const hostile = new Proxy({}, {get() { throw Error('boom'); }});
+    vi.stubGlobal('window', {leap: hostile, cosmostation: {get providers() { throw Error('boom'); }}});
+    try {
+      for (const w of COSMOS_WALLETS) { expect(() => w.find(), w.id).not.toThrow(); expect(w.find(), w.id).toBeUndefined(); }
+    } finally { vi.unstubAllGlobals(); }
   });
 });

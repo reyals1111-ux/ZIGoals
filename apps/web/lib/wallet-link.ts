@@ -17,9 +17,13 @@ export type CosmosLinkProvider = {
   getKey(chainId: string): Promise<unknown>;
 };
 export type CosmosWalletId = 'leap' | 'cosmostation';
+// Gate C security review: an injected object is page-supplied; a property that throws on reading (an abandoned extension, a
+// Proxy) reads as "not installed" instead of taking the menu, and with it the page, down.
 const asCosmosProvider = (value: unknown): CosmosLinkProvider | undefined => {
-  const p = value as Partial<Record<keyof CosmosLinkProvider, unknown>> | null | undefined;
-  return p && typeof p === 'object' && typeof p.experimentalSuggestChain === 'function' && typeof p.enable === 'function' && typeof p.getKey === 'function' ? p as CosmosLinkProvider : undefined;
+  try {
+    const p = value as Partial<Record<keyof CosmosLinkProvider, unknown>> | null | undefined;
+    return p && typeof p === 'object' && typeof p.experimentalSuggestChain === 'function' && typeof p.enable === 'function' && typeof p.getKey === 'function' ? p as CosmosLinkProvider : undefined;
+  } catch { return undefined; }
 };
 /**
  * The Cosmos wallets that can reach ZIGChain besides Keplr. Both ended their wallets in 2026 (Leap on 28 May; Cosmostation
@@ -29,8 +33,10 @@ const asCosmosProvider = (value: unknown): CosmosLinkProvider | undefined => {
 export const COSMOS_WALLETS: readonly {id: CosmosWalletId; name: string; ended: string; find: () => CosmosLinkProvider | undefined}[] = [
   {id: 'leap', name: 'Leap', ended: 'Leap ended its wallet on 28 May 2026', find: () => asCosmosProvider(globalValue('leap'))},
   {id: 'cosmostation', name: 'Cosmostation', ended: 'Cosmostation has been winding down its wallet since 1 September 2026', find: () => {
-    const station = globalValue('cosmostation') as {providers?: {keplr?: unknown}} | undefined;
-    return asCosmosProvider(station && typeof station === 'object' ? station.providers?.keplr : undefined);
+    try {
+      const station = globalValue('cosmostation') as {providers?: {keplr?: unknown}} | undefined;
+      return asCosmosProvider(station && typeof station === 'object' ? station.providers?.keplr : undefined);
+    } catch { return undefined; }
   }},
 ];
 function globalValue(name: string): unknown { try { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); } catch { return undefined; } }
@@ -52,15 +58,17 @@ export const MAX_WALLET_ICON = 64 * 1024;
 const ICON_PATTERN = /^data:image\/(png|svg\+xml|webp|jpeg)[;,]/;
 /** An announced icon is shown only as a data: image of these four types under 64 kB; anything else gets the generic glyph. */
 export const safeWalletIcon = (icon: unknown): string | null => typeof icon === 'string' && icon.length < MAX_WALLET_ICON && ICON_PATTERN.test(icon) ? icon : null;
-/** An announced name as plain text: whitespace folded, at most 40 characters. */
-export const walletName = (name: unknown): string => typeof name === 'string' ? name.replace(/\s+/g, ' ').trim().slice(0, 40) : '';
+/** An announced name as plain text: control and format characters (e.g. a right-to-left override) removed, whitespace
+ *  folded, at most 40 characters. */
+export const walletName = (name: unknown): string => typeof name === 'string' ? name.replace(/[\p{Cc}\p{Cf}]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 40) : '';
 /** One EIP-6963 announcement, checked; null when any part is missing or malformed. */
 export function announcedWallet(detail: unknown): EvmWallet | null {
   const d = detail as {info?: {uuid?: unknown; rdns?: unknown; name?: unknown; icon?: unknown}; provider?: {request?: unknown}} | null | undefined;
   const info = d && typeof d === 'object' ? d.info : undefined, provider = d && typeof d === 'object' ? d.provider : undefined;
   if (!info || typeof info !== 'object' || !provider || typeof provider !== 'object' || typeof provider.request !== 'function') return null;
   const {uuid, rdns} = info, name = walletName(info.name);
-  if (typeof uuid !== 'string' || !uuid || uuid.length > 100 || typeof rdns !== 'string' || rdns.length > 100 || !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(rdns) || !name) return null;
+  // The uuid becomes part of element ids: letters, digits and hyphens only (a space would let it name other elements).
+  if (typeof uuid !== 'string' || !/^[A-Za-z0-9-]{1,64}$/.test(uuid) || typeof rdns !== 'string' || rdns.length > 100 || !/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(rdns) || !name) return null;
   return {uuid, rdns: rdns.toLowerCase(), name, icon: safeWalletIcon(info.icon), provider: provider as Eip1193Provider};
 }
 export const MAX_EVM_WALLETS = 8;

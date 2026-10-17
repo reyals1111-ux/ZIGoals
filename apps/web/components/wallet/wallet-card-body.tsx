@@ -24,7 +24,9 @@ export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
 
   const chooser = linked.wallets.length > 0 && <label className="wallet-card-choice"><span className="sr-only">Wallet shown on this card</span><select value={wallet ? wallet.id : 'app'} onChange={e => save(r => withSelected(r, e.target.value))}>
     <option value="app">This app’s wallet ({app.pill})</option>
-    {linked.wallets.map(w => <option key={w.id} value={w.id}>{`${w.label} · ${shortAddress(w.address)}`}</option>)}
+    {/* Gate C security review: a linked wallet's name is page-supplied, so each linked option says "Linked" first and can
+        never pass for the app's own wallet above it. */}
+    {linked.wallets.map(w => <option key={w.id} value={w.id}>{`Linked · ${w.label} · ${shortAddress(w.address)}`}</option>)}
   </select></label>;
   const currencies = !wallet && <div className="wallet-card-currency" role="group" aria-label="Show the balance in">
     {DISPLAY_CURRENCIES.map(c => <button key={c} type="button" aria-pressed={display === c} onClick={() => choose(c)}>{c}</button>)}
