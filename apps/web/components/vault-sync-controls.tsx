@@ -18,7 +18,6 @@ import {storageMessageOr} from '../lib/storage-error-copy';
 import {synchronize,cloudSnapshot,SyncJournal,RevisionConflict,OlderVaultError,OlderCloudError,type Domain,type SyncState} from '../lib/vault/cloud-sync';
 import {accountTransport} from '../lib/vault/account-transport';
 import type {StepUp} from '../lib/vault/step-up';
-import type {RevocationCheck} from '../lib/vault/revocation-check';
 // Session Z-Cloud Part 5 (A6): the step-up code loads when one of the five actions runs or a secret is entered.
 const stepUpModule=()=>import('../lib/vault/step-up');
 // Session Z-Cloud Part 5 (A7): the note that lets Export everything copy a deleted account's records loads when needed.
@@ -435,15 +434,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  // Session AD item 12 (ADR-026, Q-SYNC-05, owner amendment 4): the revocation check (lib/vault/revocation-check.ts) loads
  // only once this browser holds a remembered record, runs only while the page is visible, sends only the existing status
  // request, and stands down while the reopen above runs. A definitive denial goes through accessDenied, as a reopen's does.
- const revocation=useRef<Promise<RevocationCheck|null>|null>(null),deniedRef=useRef(accessDenied);
+ const deniedRef=useRef(accessDenied);
  useEffect(()=>{deniedRef.current=accessDenied;});
- useEffect(()=>{
-  if(isShowcase())return;
-  if(revocation.current){void revocation.current.then(check=>check?.refresh());return;}
-  if(!remembered)return;
-  revocation.current=import('../lib/vault/revocation-check').then(m=>m.startRevocationCheck({known:true,hasRecord:()=>readDevices().then(records=>records.length>0),denied:code=>deniedRef.current(code),paused:()=>reopening.current||isShowcase()}),()=>null);
- },[remembered]);
- useEffect(()=>()=>{const loaded=revocation.current;revocation.current=null;void loaded?.then(check=>check?.stop());},[]);
+ useEffect(()=>{if(!remembered||isShowcase())return;let live=true,stop:(()=>void)|undefined;void import('../lib/vault/revocation-check').then(m=>{if(live)stop=m.watchRevocation(code=>deniedRef.current(code),()=>reopening.current);},()=>{});return()=>{live=false;stop?.();};},[remembered]);
  return <Context.Provider value={{conflictReview,prepareConflict,confirmConflict,cancelConflict,forwardReview,prepareForward,confirmForward,cancelForward,domainReview,prepareDomain,confirmDomain,cancelDomain,eraseAccount,rotationKeys,stagedRotation,prepareRotation,resumeRotation,finishRotation,abortRotation,cancelRotation,attachPreview,prepareAttach,confirmAttach,cancelAttach,authenticated,forget,prepare,enroll,unlock,stepUp,remembered,deviceNote,forgetDevice,lockNow,registerAccess,accessEpoch,sync,preparePendingRecovery,pendingRecovery,clearPendingRecovery:()=>setPendingRecovery(null),setHealth,health,healthAsk,vaultGone,startOver,accessDenied,account,manifest,generated,cancel:()=>setGenerated(null),busy,opened,message,error,last,portfolio,syncPortfolioNow,deletePortfolioCloud,extras,setExtrasEnabled,removeExtrasCloud,sections,portfolioAt}}>{children}</Context.Provider>;
 }
 /** Public status only; keys, recovery material and private records never leave the provider. */

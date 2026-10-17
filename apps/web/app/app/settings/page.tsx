@@ -10,7 +10,7 @@ import Link from "next/link";
 import {VaultSyncControls} from "../../../components/vault-sync-panel";
 import {PrivateVaultTools} from "../../../components/private-vault-tools";
 import {MotionPreference} from "../../../components/motion-preference";
-import {ThemeSwitch} from "../../../components/shell/theme-switch";
+import {LazyThemeSwitch as ThemeSwitch} from "../../../components/shell/theme-switch-lazy";
 import {ShowcaseControls} from "../../../components/showcase-controls";
 import { PrivateBackups } from "../../../components/private-backups";
 import { ExportEverything } from "../../../components/export-everything";

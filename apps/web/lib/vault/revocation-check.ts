@@ -14,7 +14,25 @@
  *   when the page is shown or focused, and when the provider says this tab's remembered state changed.
  * Loaded by the provider only once this browser holds a remembered record, so pages without one never load it.
  */
-import {lastStatusCheck,sessionDenial,type AccountDenial} from './device-unlock';
+import {denialOf,lastStatusCheck,noteStatusCheck,readDevices,type AccountDenial} from './device-unlock';
+import {isShowcase} from '../showcase-storage';
+/**
+ * Session AD weights: here, not in device-unlock.ts (loaded on every page), since only this lazy check uses it. The
+ * revocation check's one request: the existing status GET, nothing else (no body, and no refresh is spent: a routine
+ * sign-in requirement simply keeps the record). The denial a 401 names, or null for anything else: a confirmed account,
+ * a routine sign-in requirement, a 5xx, an unknown body, a failed or aborted request. One tab at a time, like accountStatus.
+ */
+export async function sessionDenial(signal:AbortSignal):Promise<AccountDenial['denied']|null>{
+ const check=async():Promise<AccountDenial['denied']|null>=>{
+  noteStatusCheck();
+  try{
+   const response=await fetch('/api/private-account?action=status',{cache:'no-store',signal});
+   if(response.status===401)return (await denialOf(response))?.denied??null;
+   await response.body?.cancel();return null;
+  }catch{return null;}
+ };
+ return typeof globalThis.navigator?.locks?.request==='function'?navigator.locks.request('zigoals:account-status',check):check();
+}
 
 export const CHECK_EVERY_MS=15*60_000,CHECK_GAP_MS=30_000;
 export type RevocationCheckOptions={
@@ -62,4 +80,13 @@ export function startRevocationCheck(options:RevocationCheckOptions):RevocationC
   refresh,
   stop(){stopped=true;clear();if(idle)window.cancelIdleCallback(handle as number);else clearTimeout(handle as ReturnType<typeof setTimeout>);document.removeEventListener('visibilitychange',shown);window.removeEventListener('focus',soon);},
  };
+}
+
+/**
+ * The provider's one call (components/vault-sync-controls.tsx), kept here so the code every page loads stays small: a check
+ * for this browser's remembered record, standing down while the provider's own reopen runs and in the Showcase.
+ */
+export function watchRevocation(denied:RevocationCheckOptions['denied'],reopening:()=>boolean):()=>void{
+ const check=startRevocationCheck({known:true,hasRecord:()=>readDevices().then(records=>records.length>0),denied,paused:()=>reopening()||isShowcase()});
+ return ()=>check.stop();
 }

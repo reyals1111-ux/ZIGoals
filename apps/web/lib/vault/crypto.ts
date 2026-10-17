@@ -30,7 +30,7 @@ export function canonicalBase64(s:string):string|null{if(!/^[A-Za-z0-9_-]+$/.tes
 let nonCanonical=0;
 /** How many non-canonical values this page has read (for tests and diagnostics). */
 export const nonCanonicalReads=()=>nonCanonical;
-function noteNonCanonical(){if(nonCanonical++===0)console.info('ZIGoals: an encrypted value was stored in a non-canonical base64 spelling; it was read as its canonical form (FIX_PLAN B7). Nothing was refused or changed.');}
+function noteNonCanonical(){if(nonCanonical++===0)console.info('ZIGoals: a non-canonical base64 value was read as its canonical form (B7)');}
 /** Read side: the canonical spelling of a decodable value; a non-canonical one is accepted and noted once. */
 const read=(s:string)=>{const spelled=canonicalBase64(s);if(spelled!==null&&spelled!==s)noteNonCanonical();return spelled;};
 /** Write side: only the canonical spelling is ever written. */

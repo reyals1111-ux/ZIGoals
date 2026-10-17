@@ -206,7 +206,7 @@ export async function verifiedAccount(signal:AbortSignal):Promise<string|null>{c
 /** Session Y Part 5, FIX_PLAN A7 (Q-SYNC-05): the two answers that end a remembered device's record. */
 export type AccountDenial={denied:'SESSION_REVOKED'|'ACCOUNT_DELETED'};
 const deniedSchema=z.object({signedIn:z.literal(false),error:z.enum(['SESSION_REVOKED','ACCOUNT_DELETED'])});
-async function denialOf(response:Response):Promise<AccountDenial|null>{try{const parsed=deniedSchema.safeParse(await json(response,4096));return parsed.success?{denied:parsed.data.error}:null;}catch{return null;}}
+export async function denialOf(response:Response):Promise<AccountDenial|null>{try{const parsed=deniedSchema.safeParse(await json(response,4096));return parsed.success?{denied:parsed.data.error}:null;}catch{return null;}}
 /**
  * verifiedAccount, and also why not when the server says this session was revoked or the account deleted: those answers
  * come back as {denied}, read from the first status reply (a refresh is not spent on them; the next status call would no
@@ -233,22 +233,8 @@ export async function accountStatus(signal:AbortSignal):Promise<string|AccountDe
  */
 let statusAt=0;
 export const lastStatusCheck=()=>statusAt;
-/**
- * The revocation check's one request: the existing status GET, nothing else (no body, and no refresh is spent: a routine
- * sign-in requirement simply keeps the record). The denial a 401 names, or null for anything else: a confirmed account,
- * a routine sign-in requirement, a 5xx, an unknown body, a failed or aborted request. One tab at a time, like accountStatus.
- */
-export async function sessionDenial(signal:AbortSignal):Promise<AccountDenial['denied']|null>{
- const check=async():Promise<AccountDenial['denied']|null>=>{
-  statusAt=Date.now();
-  try{
-   const response=await fetch('/api/private-account?action=status',{cache:'no-store',signal});
-   if(response.status===401)return (await denialOf(response))?.denied??null;
-   await response.body?.cancel();return null;
-  }catch{return null;}
- };
- return typeof globalThis.navigator?.locks?.request==='function'?navigator.locks.request('zigoals:account-status',check):check();
-}
+/** Session AD item 12: the status check's start, recorded by the revocation check's own request too (revocation-check.ts). */
+export const noteStatusCheck=()=>{statusAt=Date.now();};
 /** This browser's server session id: it survives token refreshes but not a new sign-in. Null when not confirmed. */
 export async function currentSession(account:string,signal:AbortSignal):Promise<string|null>{
  try{

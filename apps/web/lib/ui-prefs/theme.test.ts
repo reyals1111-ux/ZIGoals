@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {UI_PREFS_KEY} from '../ab-design-keys';
-import {readTheme, writeTheme} from './theme';
-import {themeModeOf, themeOf, uiPrefsSchema} from './schema';
+import {readTheme, themeOf, writeTheme} from './theme';
+import {themeModeOf, uiPrefsSchema} from './schema';
 
 const memory = (initial: Record<string, string> = {}) => { const m = new Map(Object.entries(initial)); return {m, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }}; };
 
