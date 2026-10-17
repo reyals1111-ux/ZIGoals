@@ -83,3 +83,56 @@ test('Health on a phone: the journal date fits its field at 390 and 320 px, with
     expect(m.labelLines, `${width}: "Journal date" on one line`).toBe(1);
   }
 });
+
+// 3. Settings' sticky index (computers and tablets): nothing from the page paints over it while it is stuck at the top
+// (hit-tested across its box, inside its rounded corners, every 160 px of scroll down the page); its surface hides what
+// scrolls under it — opaque, or frosted with a real blur (the production build had dropped the blur, so the page's
+// words read through the 90 % bar in Chrome); and each section link lands its group's title below it.
+test('Settings: the sticky index hides what scrolls under it, nothing paints over it, and its links land below it', async ({page, isMobile}) => {
+  test.skip(isMobile, 'A phone has its own list of rows instead of the index.');
+  test.setTimeout(90_000);
+  for (const [width, height] of [[1024, 800], [1440, 900]] as const) {
+    await page.setViewportSize({width, height});
+    await page.goto('/app/settings');
+    const index = page.getByRole('navigation', {name: 'Settings sections'});
+    await expect(index).toBeVisible();
+    await expect(page.locator('#your-ai')).toContainText('Which setup fits me?');
+    const surface = await index.evaluate(el => {
+      const s = getComputedStyle(el), alpha = (text: string) => [...text.matchAll(/rgba?\(([^)]+)\)/g)].map(m => { const p = m[1].split(/[\s,/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3]) : 1; });
+      // The colour and the gradient's thinnest stop, layered: how much of what is behind still shows through.
+      const color = alpha(s.backgroundColor)[0] ?? 0, stops = alpha(s.backgroundImage), layer = stops.length ? Math.min(...stops) : 0;
+      return {blur: parseFloat(/blur\(([\d.]+)px\)/.exec(s.backdropFilter)?.[1] ?? '0'), alpha: +(1 - (1 - color) * (1 - layer)).toFixed(3)};
+    });
+    expect(surface.blur >= 8 || surface.alpha >= 0.99, `${width}: an opaque bar or one frosted with at least an 8 px blur (blur ${surface.blur}, alpha ${surface.alpha})`).toBe(true);
+    const over = await index.evaluate(async bar => {
+      const frame = () => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+      const found = new Set<string>(); let stuck = 0;
+      for (let y = 0; y < document.documentElement.scrollHeight - innerHeight; y += 160) {
+        scrollTo(0, y); await frame();
+        const b = bar.getBoundingClientRect(); if (Math.abs(b.top) > 1 || window.scrollY < 50) continue; stuck++;
+        for (let x = b.left + 16; x <= b.right - 16; x += 24) for (let yy = b.top + 2; yy <= b.bottom - 2; yy += 8) {
+          const hit = document.elementFromPoint(x, yy);
+          if (!hit || bar.contains(hit) || hit.closest('[data-testid="ai-launcher"], .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .aa-toast-region')) continue;
+          found.add(`${hit.tagName.toLowerCase()}.${String(hit.className).split(' ')[0]} "${(hit.textContent ?? '').trim().slice(0, 30)}"`);
+        }
+      }
+      scrollTo(0, 0);
+      return {stuck, found: [...found]};
+    });
+    expect(over.stuck, `${width}: the index was stuck at the top while measured`).toBeGreaterThan(5);
+    expect(over.found, `${width}: page content painted over the index`).toEqual([]);
+    for (const link of await index.getByRole('link').all()) {
+      const target = (await link.getAttribute('href'))!;
+      await link.click();
+      await expect(page).toHaveURL(new RegExp(`${target}$`));
+      await expect(page.locator(`${target}-title`)).toBeInViewport();
+      // Once the scroll has settled (the same position for five frames): the title's top against the index's bottom.
+      const clear = await index.evaluate(async (bar, id) => {
+        let last = -1, same = 0;
+        while (same < 5) { await new Promise(done => requestAnimationFrame(done)); if (scrollY === last) same++; else { same = 0; last = scrollY; } }
+        return document.getElementById(id)!.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
+      }, `${target.slice(1)}-title`);
+      expect(clear, `${width}: ${target}'s title lands below the index`).toBeGreaterThanOrEqual(0);
+    }
+  }
+});
