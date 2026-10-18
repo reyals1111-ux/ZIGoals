@@ -58,6 +58,9 @@ const MORE_NOTES: Record<string, string> = {
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };
 /** The top bar's title and back link for a path. Detail and creation pages step back to their list. */
+/** Session AF (ADR-028 H68): a phone tab is always one of the navigation's pages, never an extra another lane registers. */
+const isNavPage = (href: string) => NAV_ITEMS.some(([h]) => h === href);
+
 export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/goals/new") return { title: "New Goal", back: { href: "/app/goals", label: "Goals" } };
   if (/^\/app\/goals\/(tracked\/)?[^/]+$/.test(path) && ![LEGACY_STAKING_PATH, "/app/goals/tracked"].includes(path)) return { title: "Goal", back: { href: "/app/goals", label: "Goals" } };
@@ -124,7 +127,7 @@ export function PhoneTopBar() {
   const route = phoneRoute(path), onWealth = isNavActive(path, "/app/wealth");
   const wealthShortcut = isShown(view, "wealth") && isShown(view, "wealth-shortcut");
   // Session AB-Design (owner request 10, ADR-024 D2): More opens from the top bar; Settings and Help are its last rows.
-  const moreCurrent = phoneTabs(items).more.some(([href]) => isNavActive(path, href));
+  const moreCurrent = phoneTabs(items, isNavPage).more.some(([href]) => isNavActive(path, href));
   return <div ref={bar} className="phone-topbar">
     <div className="phone-topbar-row">
       {route.back
@@ -161,7 +164,7 @@ function useTabArrival(tabs: RefObject<HTMLDivElement | null>, path: string) {
 
 export function PhoneTabBar() {
   const show = usePhoneChrome(), path = usePathname(), sheet = useRef<HTMLDialogElement>(null), tabs = useRef<HTMLDivElement>(null), titleId = useId(), open = useMoreOpen(), setOpen = setMoreOpen;
-  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
+  const { items } = useVisibleNav(), { tabs: TABS, more: MORE } = phoneTabs(items, isNavPage), moreStarts = groupStarts(MORE, navGroupOf), gameOn = useGameEnabled();
   // Phase 2, Part 10 (owner request 10): the pages first, then the Journey (while Gamify is on), ZIGi and the soundtrack
   // when they are tucked away, Status & wallet — and Settings and Help always last.
   const LAST = ["/app/settings", "/app/help"], morePages = MORE.filter(([href]) => !LAST.includes(href)), moreLast = MORE.filter(([href]) => LAST.includes(href));

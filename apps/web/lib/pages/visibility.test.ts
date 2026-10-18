@@ -67,6 +67,19 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(startHref(viewOf(pages))).toBe('/app/settings');
     expect(homeHref(viewOf(pages))).toBe('/app/settings');
   });
+  test('Session AF (H68): an extra never becomes a phone tab; it stays in More, in order, before Settings and Help', () => {
+    const page = (href: string) => NAV_ITEMS.some(([h]) => h === href);
+    const items = [['/app/habits', 'Habits'], ['/app/health', 'Health'], ['/app/checklist', 'Checklist'], ['/app/settings', 'Settings'], ['/app/help', 'Help']] as const;
+    const {tabs, more} = phoneTabs(items, page);
+    expect(labels(tabs)).toEqual(['Habits', 'Health']);
+    expect(labels(more)).toEqual(['Checklist', 'Settings', 'Help']);
+    expect(labels(phoneTabs(items.filter(([h]) => h !== '/app/habits' && h !== '/app/health'), page).tabs)).toEqual([]);
+    // Without the predicate every entry may be a tab (the Settings preview lists pages only).
+    expect(labels(phoneTabs(items).tabs)).toEqual(['Habits', 'Health', 'Checklist']);
+    const many = [...NAV_ITEMS.slice(0, 6), ['/app/checklist', 'Checklist', 'checklist'] as const, ...NAV_ITEMS.slice(6)];
+    expect(labels(phoneTabs(many, page).tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health', 'Wealth']);
+    expect(labels(phoneTabs(many, page).more).slice(0, 3)).toEqual(['Earn', 'Checklist', 'Markets']);
+  });
   test('Session AF (H98): Earn has no switch of its own and follows Wealth\'s; no other page moves with it', () => {
     expect(FOLLOWS_PAGE).toEqual({'/app/earn': 'wealth'});
     expect(pageIdForHref('/app/earn')).toBeNull();

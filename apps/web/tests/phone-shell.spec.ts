@@ -7,7 +7,8 @@ import {ALPHA_LABEL,ALPHA_SENTENCE,aboutAlpha,alphaNotice,expectAlphaMode,openSt
 const PAGES=['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/ecosystem','/app/activity','/app/settings'];
 const LOCKED=new Set(['/app','/app/goals','/app/staking','/app/habits','/app/health','/app/wealth','/app/markets','/app/activity']);
 // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More opens from the top bar.
-const MORE=['Markets','Staking','Portfolio','Ecosystem','Activity','Settings','Help'];
+// Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More before Settings (H68).
+const MORE=['Earn','Markets','Staking','Portfolio','Ecosystem','Activity','Checklist','Settings','Help'];
 test.beforeEach(async({page})=>{await page.route('**/api/**',route=>route.fulfill({status:503,json:{error:'LOCAL_FIXTURE_ONLY'}}));});
 async function showcase(page:Page){await page.goto('/app/settings');await page.getByRole('button',{name:'Load Showcase Demo',exact:true}).click();await page.waitForURL('**/app');}
 
@@ -84,7 +85,7 @@ test('tabs, the More sheet, Settings and back links navigate with real links, ar
   const box=(await tab.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
   await tab.click();await page.waitForURL(url==='/app'?/\/app$/:`**${url}`);await expect(tab).toHaveAttribute('aria-current','page');
  }
- // More (the top bar's button, Session AB-Design) lists the other seven, in the sidebar's order; each is a real link that closes the sheet and marks More current.
+ // More (the top bar's button, Session AB-Design) lists the other nine, in the sidebar's order; each is a real link that closes the sheet and marks More current.
  const more=page.getByRole('button',{name:'More',exact:true});
  await expect(more).toHaveAttribute('aria-expanded','false');
  const sheet=await openMore(page);

@@ -88,10 +88,13 @@ export const PHONE_TAB_COUNT = 5;
  * and Help (always last), so More is never empty. More opens from the top bar. Each group's first entry (after the first
  * entry of the list) keeps the space before it.
  */
-export function phoneTabs<T extends readonly [string, ...unknown[]]>(items: readonly T[]): {tabs: T[]; more: T[]} {
+export function phoneTabs<T extends readonly [string, ...unknown[]]>(items: readonly T[], tabbable: (href: string) => boolean = () => true): {tabs: T[]; more: T[]} {
   // Settings and Help (Session Z-Cloud Part 4.11) are never tabs: they close the More sheet, in that order.
   const last = ['/app/settings', '/app/help'], pages = items.filter(item => !last.includes(item[0]));
-  return {tabs: pages.slice(0, PHONE_TAB_COUNT), more: [...pages.slice(PHONE_TAB_COUNT), ...last.flatMap(href => items.filter(item => item[0] === href))]};
+  // Session AF (ADR-028 H68): only what `tabbable` allows becomes a tab (the shell passes "a page", so a navigation extra
+  // such as the Checklist stays a row of More even when few pages show); everything else keeps its order in More.
+  const tabs = pages.filter(item => tabbable(item[0])).slice(0, PHONE_TAB_COUNT);
+  return {tabs, more: [...pages.filter(item => !tabs.includes(item)), ...last.flatMap(href => items.filter(item => item[0] === href))]};
 }
 /** The space before a group: on the first visible entry of each group, never on the list's first entry. */
 export function groupStarts(items: readonly (readonly [string, ...unknown[]])[], groupOf: (href: string) => number): Map<string, number> {
