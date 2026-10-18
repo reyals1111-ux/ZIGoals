@@ -4,8 +4,12 @@ import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent a
 import {useGoals} from '../goal-provider';
 import {SHOWCASE_WALLET_MESSAGE, useLinkedWallets} from './use-linked-wallets';
 import {LinkedWalletError, LINK_LIMIT_MESSAGE, LINK_UNREADABLE_MESSAGE, MAX_LINKED_WALLETS, withoutWallet, type LinkedWallet} from '../../lib/linked-wallets';
-import {COSMOS_LINK_ERROR, COSMOS_WALLETS, EVM_LINK_ERROR, EVM_SUGGESTIONS, KEPLR_SITE, discoverEvmWallets, forgetKeplrPermission, keplrInstalled, readCosmosAddress, readEvmAddress, type EvmWallet} from '../../lib/wallet-link';
+import {COSMOS_LINK_ERROR, COSMOS_WALLETS, EVM_LINK_ERROR, KEPLR_SITE, discoverEvmWallets, forgetKeplrPermission, keplrInstalled, readCosmosAddress, readEvmAddress, type EvmWallet} from '../../lib/wallet-link';
 import {shortAddress, verifyAddress, type AddressKind} from '../../lib/wallet-address';
+import {evmSuggestions} from '../../lib/wallets/eip6963';
+import {SOLANA_LINK_ERROR, discoverSolanaWallets, forgetSolanaConnection, readSolanaAddress, type SolanaWallet} from '../../lib/wallets/solana-link';
+import {l2bLink} from '../../lib/wallets/links';
+import {phoneWalletPaths} from './phone-wallet-paths';
 
 /**
  * Session AE (Part 6, ADR-027; `TIER 3 (wallet)`): the wallet choices beside "Connect Keplr". Keplr stays the app's own,
@@ -15,12 +19,17 @@ import {shortAddress, verifyAddress, type AddressKind} from '../../lib/wallet-ad
  * address never becomes the app's wallet. Wallets that are not installed get a link to their official site only.
  * Two forms: a menu under the ▾ button on computers (lazy chunk; arrows, Home/End, Escape and Tab as in a menu), and rows
  * in the phone's Status & wallet sheet (44 px each).
+ * Session AF (L2b, ADR-028 H40, H41, H87; `TIER 3 (wallet)`): working connections for the six EVM wallets R4 checked
+ * (MetaMask, Rabby, Coinbase Wallet, Trust, OKX, Phantom; any other EIP-6963 wallet still lists itself), Solana wallets
+ * through the Wallet Standard (`standard:connect` only: lib/wallets/solana-link.ts), and on phones the wallets' own
+ * in-app browsers plus the honest WalletConnect line (components/wallet/phone-wallet-paths.tsx). Keplr's own flow is
+ * unchanged (H87). Remove is each linked wallet's disconnect on this device.
  */
 type Item = {key: string; label: string; name?: string; detail?: string; title?: string; icon?: ReactNode; href?: string; onSelect?: () => void; busy?: boolean};
 type Group = {key: string; title: string; items: Item[]; note?: string};
 const LINK_REFUSED = 'The wallet did not share an address (it was refused or closed), so nothing was linked.';
 const BTC_INVALID = 'That is not a valid Bitcoin address (bc1…, 1… or 3…), so nothing was added.';
-const messageOf = (error: unknown) => error instanceof LinkedWalletError ? error.message : error instanceof Error && (error.message === COSMOS_LINK_ERROR || error.message === EVM_LINK_ERROR) ? error.message : LINK_REFUSED;
+const messageOf = (error: unknown) => error instanceof LinkedWalletError ? error.message : error instanceof Error && (error.message === COSMOS_LINK_ERROR || error.message === EVM_LINK_ERROR || error.message === SOLANA_LINK_ERROR) ? error.message : LINK_REFUSED;
 
 function WalletGlyph() {
   return <svg className="wallet-glyph" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M19 8V5H5a2 2 0 0 0 0 4h16v11H5a2 2 0 0 1-2-2V7m18 6h-6v4h6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>;
@@ -33,10 +42,12 @@ function WalletIcon({icon}: {icon: string | null}) {
 
 export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 'sheet'; id?: string; onClose?: (focusTrigger: boolean) => void}) {
   const s = useGoals(), linked = useLinkedWallets(), own = useId(), menuId = id ?? own;
-  const [evm, setEvm] = useState<EvmWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState('');
+  const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState('');
   const menu = useRef<HTMLDivElement>(null), focusNext = useRef<string | null>(null);
   // EIP-6963: the page's EVM wallets announce themselves when asked, each time the choices open.
   useEffect(() => discoverEvmWallets(setEvm), []);
+  // The Wallet Standard (Solana): wallets register through the two-event handshake, each time the choices open.
+  useEffect(() => discoverSolanaWallets(setSol), []);
   const connected = s.walletState === 'CONNECTED', sheet = variant === 'sheet';
   const blocked = linked.showcase ? SHOWCASE_WALLET_MESSAGE : linked.unreadable ? LINK_UNREADABLE_MESSAGE : linked.stored >= MAX_LINKED_WALLETS ? LINK_LIMIT_MESSAGE : '';
 
@@ -51,7 +62,11 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
     finally { setBusy(null); }
   }
   function remove(w: LinkedWallet, next: string | null) {
-    try { linked.write(record => withoutWallet(record, w.id)); setStatus(`${w.label} ${shortAddress(w.address)} removed from this device.`); focusNext.current = next; }
+    try {
+      linked.write(record => withoutWallet(record, w.id)); setStatus(`${w.label} ${shortAddress(w.address)} removed from this device.`); focusNext.current = next;
+      // A Solana wallet linked in this tab is also asked to forget this site, best effort (its own standard:disconnect).
+      if (w.kind === 'solana') forgetSolanaConnection(sol.find(x => x.key === w.wallet));
+    }
     catch (error) { setStatus(messageOf(error)); }
   }
   async function addBitcoin(event: FormEvent) {
@@ -81,9 +96,12 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
     note: cosmos.some(w => !w.provider) ? `${cosmos.filter(w => !w.provider).map(w => w.name).join(' and ')} ended ${cosmos.filter(w => !w.provider).length > 1 ? 'their wallets' : 'its wallet'} in 2026, so there is nothing to install. Keplr is the wallet for ZIGChain.` : undefined});
   groups.push({key: 'evm', title: 'EVM wallets · read-only', items: [
     ...evm.map(w => ({key: `evm:${w.uuid}`, label: `${w.name}: link address`, detail: 'Asks only for your account address', icon: <WalletIcon icon={w.icon}/>, busy: busy === `evm:${w.uuid}`, onSelect: () => void run(`evm:${w.uuid}`, 'evm', w.rdns, w.name, () => readEvmAddress(w))})),
-    ...EVM_SUGGESTIONS.filter(x => !evm.some(w => w.rdns === x.rdns)).map(x => ({key: `get:${x.rdns}`, label: `Get ${x.name}`, detail: `${new URL(x.href).host.replace(/^www\./, '')} · opens in a new tab`, href: x.href}))]});
+    ...evmSuggestions(evm).map(x => ({key: `get:${x.rdns}`, label: `Get ${x.name}`, detail: `${new URL(x.href).host.replace(/^www\./, '')} · opens in a new tab`, href: x.href}))]});
+  groups.push({key: 'solana', title: 'Solana wallets · read-only', items: sol.length
+    ? sol.map(w => ({key: `sol:${w.key}`, label: `${w.name}: link Solana address`, detail: 'Asks only for your Solana address', icon: <WalletIcon icon={w.icon}/>, busy: busy === `sol:${w.key}`, onSelect: () => void run(`sol:${w.key}`, 'solana', w.key, w.name, () => readSolanaAddress(w))}))
+    : [{key: 'get:solana', label: 'Get Phantom for Solana', detail: `${new URL(l2bLink('phantom-site').url).host} · opens in a new tab`, href: l2bLink('phantom-site').url}]});
   groups.push({key: 'btc', title: 'Bitcoin · watch-only', items: [{key: 'btc', label: 'Watch a Bitcoin address', detail: 'Checked on this device; nothing is sent', icon: <WalletGlyph/>, onSelect: () => { if (blocked) { setStatus(blocked); return; } setBtcOpen(true); setBtcError(''); }}]});
-  if (linked.wallets.length) groups.push({key: 'linked', title: 'Linked on this device', items: linked.wallets.map((w, i, all) => ({key: `remove:${w.id}`, label: `${w.label} · ${shortAddress(w.address)}`, name: `Remove ${w.label} ${shortAddress(w.address)}`, detail: 'Remove', title: w.address, onSelect: () => remove(w, all[i + 1] ? `remove:${all[i + 1]!.id}` : all[i - 1] ? `remove:${all[i - 1]!.id}` : 'btc')}))});
+  if (linked.wallets.length) groups.push({key: 'linked', title: 'Linked on this device', items: linked.wallets.map((w, i, all) => ({key: `remove:${w.id}`, label: `${w.label} · ${shortAddress(w.address)}`, name: `Remove ${w.label} ${shortAddress(w.address)}`, detail: 'Remove · disconnects it on this device', title: w.address, onSelect: () => remove(w, all[i + 1] ? `remove:${all[i + 1]!.id}` : all[i - 1] ? `remove:${all[i - 1]!.id}` : 'btc')}))});
 
   // Menu focus: the first item on open, the next one after a Remove, the Bitcoin item after its form closes.
   const items = () => [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
@@ -106,6 +124,8 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       ? <a {...common} href={item.href} target="_blank" rel="noopener noreferrer">{body}</a>
       : <button {...common} type="button" aria-busy={item.busy || undefined} onClick={item.onSelect}>{body}</button>;
   };
+  // Phones: the wallets' own in-app browsers and the honest WalletConnect line (the sheet only).
+  if (sheet) groups.push(phoneWalletPaths());
   const notes = groups.filter(g => g.note).map(g => g.note!);
   const bitcoinForm = <form className="wallet-btc-form" aria-label="Watch a Bitcoin address" onSubmit={e => void addBitcoin(e)}>
     <label htmlFor={`${menuId}-btc`}>Bitcoin address</label>

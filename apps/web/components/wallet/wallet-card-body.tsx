@@ -5,7 +5,7 @@ import {WalletCardFrame, useAppWallet} from './wallet-card';
 import {DISPLAY_CURRENCIES, LinkedWalletError, displayOf, selectedOf, withDisplay, withSelected, type DisplayCurrency} from '../../lib/linked-wallets';
 import {shortAddress} from '../../lib/wallet-address';
 
-const KIND_WORDS = {cosmos: 'ZIGChain address', evm: 'EVM address', btc: 'Bitcoin address'} as const;
+const KIND_WORDS = {cosmos: 'ZIGChain address', evm: 'EVM address', btc: 'Bitcoin address', solana: 'Solana address'} as const;
 /**
  * Session AE (Part 6, ADR-027): Today's wallet card with its two choices, kept in the linked-wallets record on this device:
  * which wallet it shows (the app's own, or one linked read-only) and the display currency (ZIG, USD, EUR or BTC) from the
