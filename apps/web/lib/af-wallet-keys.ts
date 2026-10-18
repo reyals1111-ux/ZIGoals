@@ -11,15 +11,18 @@
  */
 /** The last balances read for each linked wallet × chain (amounts, when, the reason a read failed). Personal. */
 export const WALLET_BALANCES_KEY = 'zigoals:wallet-balances:v1';
+/** Goal Vaults (Part 6): which Goal a linked wallet's stake is working toward, and the stake when it was linked. Personal. */
+export const GOAL_VAULTS_KEY = 'zigoals:goal-vaults:v1';
 /** For lib/onboarding.ts DEVICE_RECORD_KEYS (personal device records). */
-export const WALLET_PERSONAL_KEYS: readonly string[] = Object.freeze([WALLET_BALANCES_KEY]);
+export const WALLET_PERSONAL_KEYS: readonly string[] = Object.freeze([WALLET_BALANCES_KEY, GOAL_VAULTS_KEY]);
 /** For lib/export/everything.ts DEVICE_KEYS. */
-export const WALLET_EXPORT_KEYS = Object.freeze({walletBalances: WALLET_BALANCES_KEY} as const);
+export const WALLET_EXPORT_KEYS = Object.freeze({walletBalances: WALLET_BALANCES_KEY, goalVaults: GOAL_VAULTS_KEY} as const);
 /** For lib/data-health/catalog.ts DEVICE_LABELS, keyed like WALLET_EXPORT_KEYS: [what it holds, area]. */
 export const WALLET_CATALOG_LABELS = Object.freeze({
   walletBalances: ['Balances last read for your linked wallets', 'Wallets'],
+  goalVaults: ['Goal Vaults: stakes linked to your Goals', 'Wallets'],
 } as const);
 /** For lib/restore/plan.ts NEVER_RESTORED (words shown to the person). */
-export const WALLET_NEVER_RESTORED: readonly string[] = Object.freeze(['linked wallet balances']);
+export const WALLET_NEVER_RESTORED: readonly string[] = Object.freeze(['linked wallet balances', 'Goal Vault links']);
 /** For lib/aa-device-forget.ts: every wallet-lane key leaves with the account's erase. */
 export const WALLET_ERASE_KEYS: readonly string[] = Object.freeze([...WALLET_PERSONAL_KEYS]);

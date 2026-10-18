@@ -14,10 +14,11 @@ const ETH = {id: 'native', symbol: 'ETH', decimals: 18, amount: '150000000000000
 describe('the key: personal, device-only, never synced or restored, in Export, erased', () => {
   test('versioned; listed for every registry the lead wires', () => {
     expect(WALLET_BALANCES_KEY).toBe('zigoals:wallet-balances:v1');
-    expect(WALLET_PERSONAL_KEYS).toEqual([WALLET_BALANCES_KEY]);
-    expect(WALLET_EXPORT_KEYS).toEqual({walletBalances: WALLET_BALANCES_KEY});
+    // Exact lists: the balances record and (Part 6) the Goal Vaults record, lib/goal-vaults/store.ts.
+    expect(WALLET_PERSONAL_KEYS).toEqual([WALLET_BALANCES_KEY, 'zigoals:goal-vaults:v1']);
+    expect(WALLET_EXPORT_KEYS).toEqual({walletBalances: WALLET_BALANCES_KEY, goalVaults: 'zigoals:goal-vaults:v1'});
     expect(Object.keys(WALLET_CATALOG_LABELS)).toEqual(Object.keys(WALLET_EXPORT_KEYS));
-    expect(WALLET_ERASE_KEYS).toEqual([WALLET_BALANCES_KEY]);
+    expect(WALLET_ERASE_KEYS).toEqual([WALLET_BALANCES_KEY, 'zigoals:goal-vaults:v1']);
   });
   test('no sync module or Worker names it; the Showcase never writes it', () => {
     const files = (dir: string): string[] => readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? (name === 'node_modules' ? [] : files(path)) : /\.(ts|tsx|mjs|js)$/.test(name) ? [path] : []; });
