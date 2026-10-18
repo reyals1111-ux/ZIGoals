@@ -3,6 +3,7 @@ import {useCallback, useMemo, useState} from 'react';
 import {Path} from '../path/path';
 import {checklistMilestones, checklistPath, type DerivedDot} from '../../lib/checklist/derive';
 import {PATH_COLOURS} from '../../lib/path/colours';
+import {XP_RULES, checklistOrbitDays} from '../../lib/game/xp';
 import type {PathStep, StepIntent} from '../../lib/path/model';
 import {DotPanel} from './dot-panel';
 import {ValueStepper} from './value-stepper';
@@ -46,7 +47,9 @@ export function useDotPress(state: ChecklistState) {
 export function PathView({state}: {state: ChecklistState}) {
   const {panel, press, renderPanel} = useDotPress(state);
   const byId = useMemo(() => new Map(state.dots.map(d => [d.id, d])), [state.dots]);
-  const model = useMemo(() => checklistPath(state.record.data, state.dots, checklistMilestones({on: false, dayXp: 0})), [state.record.data, state.dots]);
+  // The chests' rewards (game layer on): the day's XP, and the First orbit badge while it has not been earned on an earlier day.
+  const firstOrbit = state.gameOn && !!state.date && checklistOrbitDays({checklist: state.days.data}, state.date).length === 0;
+  const model = useMemo(() => checklistPath(state.record.data, state.dots, checklistMilestones({on: state.gameOn, dayXp: XP_RULES.checklistDay, badge: firstOrbit ? 'First orbit' : null})), [state.record.data, state.dots, state.gameOn, firstOrbit]);
   const onStep = useCallback((step: PathStep, intent: StepIntent) => { const dot = byId.get(step.id); if (dot) void press(dot, intent); }, [byId, press]);
   const say = state.summary && state.summary.total > 0 && state.summary.done === 0 ? 'Tap a dot to begin' : state.summary?.next === null && (state.summary?.total ?? 0) > 0 ? 'All dots lit!' : undefined;
   return <Path model={model} ariaLabel="Today's path" onStep={onStep} panelFor={panel?.id ?? null} renderPanel={step => { const dot = byId.get(step.id); return dot ? renderPanel(dot) : null; }} zigi={say ? {say} : {}} className="checklist-path"/>;
