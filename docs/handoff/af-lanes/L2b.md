@@ -10,7 +10,7 @@ merged). Server port 3104 only. Every build, Playwright run and screenshot under
 | 1 | `TIER 3 (wallet)`: real read-only connections (EIP-6963 six wallets, Solana Wallet Standard, phones' in-app browsers, WalletConnect "available soon") | done |
 | 2 | `TIER 3 (storage)`: linked-wallets `chains`/`via`/kind `solana`; `zigoals:wallet-balances:v1` | done |
 | 3 | `TIER 3 (CSP)` + read-only tracking (browser-direct readers, pricing, What you have) | done |
-| 4 | Multi-asset Add money | pending |
+| 4 | Multi-asset Add money | done (codes/routes rows wait for the Part 0 docs, listed below) |
 | 5 | `TIER 3 (dependencies)`: `@walletconnect/sign-client` 2.26.0 | pending |
 | 6 | Goal Vaults | pending |
 
@@ -106,6 +106,52 @@ line now says where its balances are and links there (the card still reads nothi
 **Live check (one-off, not tests)**: the encoder against PublicNode on the six EVM chains (2026-10-18 22:38 UTC), owner = each
 chain's USDC contract: all six answered 200 with ACAO `*`; nonzero token balances decoded on Ethereum (USDT) and BNB Chain.
 
+## Step 4 — multi-asset Add money (owner amendment 2)
+- `lib/onramps/assets.ts`: the asset × network × provider table — USDC (Base recommended; Ethereum, Arbitrum, OP Mainnet,
+  Polygon, Solana), USDT (Solana recommended; Ethereum — only where Tether itself issues it), ETH (Base recommended;
+  Ethereum, Arbitrum, OP Mainnet), SOL (Solana), BTC (Bitcoin), ATOM (Cosmos Hub), ZIG via ATOM (Cosmos Hub, then IBC + swap).
+  Each network maps to a tracked chain (lib/wallets/balances/chains.ts) so the return page can watch the money arrive. Every
+  code has a status and source: Ramp `swapAsset` = CHAIN_SYMBOL from Ramp's live v3 list (2026-10-18 23:10 UTC; ETH_ETH,
+  BTC_BTC, BASE_USDC `documented` in Ramp's docs, the rest `inferred`), Banxa `coinType`/`blockchain` `documented` from
+  docs.banxa.com's table (2026-10-18 23:11 UTC: USDC on ETH/BASE/ARB/OPTIMISM/MATIC/SOL, USDT on ETH/SOL, ETH on
+  ETH/BASE/ARB/OPTIMISM, SOL/SOL, BTC/BTC, ATOM/ATOM). Nothing is `confirmed` (no checkout seen).
+- `lib/onramps/guard.ts` (network-mismatch guard): an address only from a linked wallet whose kind matches the network (EVM
+  wallets limited to their tracked chains), Cosmos Hub = the linked zig1 key's `cosmos1` twin; never typed, never `zig1`,
+  never a ZIGoals address (none exists; a test scans the files for any address literal).
+- `lib/onramps/urls.ts`: Ramp hosted (`hostApiKey`, `hostAppName`, `hostLogoUrl` = `<origin>/apple-touch-icon.png`,
+  `swapAsset` + `defaultAsset`, `userAddress`, `finalUrl`) and Banxa referral (`coinType`, `blockchain`, `walletAddress`,
+  `fiatType`, `returnUrl`); the return address carries provider, asset, network and the wallet's local id only — never the
+  address; with the committed empty IDs each provider links its plain site (`https://rampnetwork.com/`,
+  `https://banxa.com/`), nothing pre-filled, and the page says so; sandbox hosts only in tests.
+- `apps/web/config/public-integrations.json` + `lib/public-integrations.ts` (step 1): where the owner pastes
+  `rampHostApiKey`, `banxaPartnerRef` (and `reownProjectId`, step 5).
+- `GET /api/onramps/ramp-assets?currency=EUR|USD` (`TIER 3 (egress routes)`): server-only egress to
+  `https://api.rampnetwork.com` (one plain GET, no person's data), the offered assets' minimum, maximum and network fee plus
+  the global fee range, `source` and `asOf`; cached 1 h, last-good up to 24 h on failure, failure memory 60 s, 12 upstream
+  loads/h/instance, 30 requests/min/client (429 + Retry-After), strict query (400), HTTP 200 + `status:'unavailable'` +
+  reason on failure (H58). Recorded fixture `lib/onramps/fixtures/ramp-assets-2026-10-18.json` (one real read, reduced).
+- Pages `/app/wealth/add-money` (five steps: what to buy with plain words and "What's this?"; which network with the
+  recommendation in words, Ramp's own network fee where read, the big "your wallet must be on this network" warning; where
+  it arrives or "link a wallet for this network first"; Ramp with its live figures and "as of" / Banxa "fees shown on Banxa's
+  page", with each provider's ESMA register entry; the hand-off anchor, new tab, `rel="noopener noreferrer"`) and
+  `/app/wealth/add-money/back` (what happens next, in each provider's own published times; a balance watch on that one
+  wallet and network through the Part 3 readers — once a minute while visible, up to 2 h, "Read now" — until the amount
+  grows, then "It now shows in Wealth → What you have"; "What can I do with it now?"). The honest line on every step.
+- "What can I do with it now?" (`lib/onramps/next-steps.ts`): stablecoins — what one is, the issuer, depeg and network
+  risks (+ issuer link); swap (Uniswap / Jupiter); bring to ZIGChain — ATOM over IBC (channel-1555 ↔ channel-4) with ZIGChain
+  Hub's bridge (registry) or Skip Go, then the OroSwap swap (registry); USDC/USDT/ETH "no recommended route yet" with the
+  Noble wind-down and the 139.57-USDT pool said plainly; earn (`/app/earn`, `/app/staking`). Every link from the registry or
+  the lane rows.
+- Entry points: Wealth's holdings header ("Add money →"), the wallet holdings block ("+ Add money"), Today's wallet card for
+  a linked wallet ("+ Add money").
+
+**Rows waiting for docs/earn/af/ONRAMP_CODES.md and ROUTES_ONTO_ZIGCHAIN.md** (not on the feature branch when this was
+built): every Ramp code marked `inferred` (12 of 15: ETH_USDC, ARBITRUM_USDC, OPTIMISM_USDC, MATIC_USDC, SOLANA_USDC,
+SOLANA_USDT, ETH_USDT, BASE_ETH, ARBITRUM_ETH, OPTIMISM_ETH, SOLANA_SOL, COSMOS_ATOM) and all 32 Banxa values (`documented`
+from the public table, not seen in a checkout) — one edit of each `status` in `lib/onramps/assets.ts`; the `bridge` guides
+of USDC, USDT and ETH in `lib/onramps/next-steps.ts` ("no recommended route yet") — replace each with the recommended route,
+its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redirectUrl` naming (R3 §12.3).
+
 ## What the lead must wire
 - **Verified link registry rows** (L1's `packages/ecosystem-registry` providers.json + verified-links.ts; this lane keeps
   them in `apps/web/lib/wallets/links.ts` in the registry's record shape until moved): `metamask-site`, `rabby-site`,
@@ -135,6 +181,13 @@ chain's USDC contract: all six answered 200 with ACAO `*`; nonzero token balance
 - **Weight**: Wealth and Portfolio gain only a lazy chunk (`components/wallet/wallet-holdings.tsx`); report its gzip size
   beside the page figures (H54).
 - **Theme sheets**: regenerate (new `components/wallet/wallet-holdings.css`).
+- `scripts/sanitize-alpha-tail.mjs` `API_ROUTES`: add `/api/onramps/ramp-assets` (its test walks `app/api`; it already
+  fails on the feature branch for the four `/api/earn/*` routes).
+- `apps/web/lib/egress-policy.json` `serverOnly`: a note `rampAssets` — `https://api.rampnetwork.com`, reached only by
+  `/api/onramps/ramp-assets` (`lib/onramps/server/ramp-assets.ts`, `RAMP_EGRESS`). No CSP change (H89).
+- `scripts/weight-budgets.json`: lines for `/app/wealth/add-money` and `/app/wealth/add-money/back` (measured + 10 %).
+- Navigation / search / Help: `/app/wealth/add-money` ("Add money") under Wealth; the Earn path's step 3 links to it (L1).
+- Theme sheets: regenerate (new `components/add-money/add-money.css`).
 - After merging L2a: put L2a's "Open ZIGoals in Keplr" (`keplrMobileLink`) as the first item of
   `components/wallet/phone-wallet-paths.ts`'s group.
 
@@ -149,6 +202,10 @@ chain's USDC contract: all six answered 200 with ACAO `*`; nonzero token balance
   strength). Reason: the brief's six R4 wallets and the Solana group.
 
 ## Tests
+Step 4: unit — `lib/onramps/{onramp-assets,onramp-urls,ramp-assets-route}.test.ts` (20) + the wallet set: 11 files, 58
+passed before the last additions; browser (3104, dev) — `tests/add-money.spec.ts` + `tests/webkit-add-money.spec.ts` in
+Chrome (12 passed), `tests/webkit-add-money.spec.ts` in WebKit at 390 × 844 (2 passed). `scripts/sanitize-alpha-tail.test.mjs`
+fails until the lead adds the route to `API_ROUTES` (expected; it already failed for the Earn routes).
 Step 3: unit — `lib/wallets/balances/{hosts,readers,pricing,store}.test.ts` + the step 1–2 set + `public-safety`,
 `csp-compose`, `wallet-card`: 14 files, 104 passed. Browser (3104, dev, `--workers=2`, under the lock):
 `tests/wallet-tracking.spec.ts` + `tests/wallet-menu.spec.ts` (18: 15 passed, 3 skipped by design), then the Wealth/Portfolio

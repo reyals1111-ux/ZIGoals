@@ -36,7 +36,7 @@ export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
   const controls = <div className="wallet-card-controls">{chooser}{currencies}{error && <p className="wallet-card-error" role="alert">{error}</p>}</div>;
 
   if (wallet) return <WalletCardFrame pill="Read-only" value={<strong className="account-value wallet-card-address" title={wallet.address}>{shortAddress(wallet.address)}</strong>}
-    lines={<p>{wallet.label} · {KIND_WORDS[wallet.kind]}<br/>Its balances, read-only, are in <Link href="/app/wealth#holdings">Wealth → What you have</Link>.</p>} controls={controls}/>;
+    lines={<p>{wallet.label} · {KIND_WORDS[wallet.kind]}<br/>Its balances, read-only, are in <Link href="/app/wealth#holdings">Wealth → What you have</Link>. <Link href="/app/wealth/add-money">+ Add money</Link></p>} controls={controls}/>;
   if (display === 'ZIG') return <WalletCardFrame pill={app.pill} value={app.zig} lines={<p>{app.line}</p>} controls={controls}/>;
   const shown = <strong className="account-value wallet-card-unavailable" aria-describedby={`${id}-why`}>{display} unavailable</strong>;
   const why = app.local ? 'Practice money has no market value, so it is never shown in another currency.' : 'Testnet ZIG has no market price.';

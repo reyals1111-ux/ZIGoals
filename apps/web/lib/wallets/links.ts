@@ -24,6 +24,19 @@ const rows = {
   // outside a phone (the read had no MetaMask app); Trust's documented `open_url` form answers 200.
   'metamask-dapp': {kind: 'in-app-browser', url: 'https://link.metamask.io/dapp/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 307, source: 'https://docs.metamask.io/metamask-connect/', prefix: true},
   'trust-dapp': {kind: 'in-app-browser', url: 'https://link.trustwallet.com/open_url', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://developer.trustwallet.com/developer/develop-for-trust/deeplinking', prefix: true},
+  // Add money (Part 4, H18, H32, H34): the two providers' own sites (the plain consumer pages used while their public IDs
+  // are empty), Ramp's hosted-mode host (production; the demo host appears only in tests, never opened) and Banxa's partner
+  // pages (`<partnerRef>.banxa.com`, checked by its builder, not a fixed address). Read 2026-10-18 23:12 UTC.
+  'ramp-site': {kind: 'site', url: 'https://rampnetwork.com/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://docs.rampnetwork.com/'},
+  'banxa-site': {kind: 'site', url: 'https://banxa.com/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://docs.banxa.com/'},
+  'ramp-hosted': {kind: 'hosted', url: 'https://app.rampnetwork.com/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://docs.rampnetwork.com/', prefix: true},
+  // "What can I do with it now?": the stablecoins' issuers, a well-known exchange per network family, and Skip Go (it lists
+  // zigchain-1, R3 §9). ZIGChain's own (Hub bridge, OroSwap) come from the registry.
+  'circle-usdc': {kind: 'issuer', url: 'https://www.circle.com/usdc', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://www.circle.com/'},
+  'tether-site': {kind: 'issuer', url: 'https://tether.to/en/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://tether.to/en/supported-protocols/'},
+  'uniswap-app': {kind: 'swap', url: 'https://app.uniswap.org/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://uniswap.org/'},
+  'jupiter-app': {kind: 'swap', url: 'https://jup.ag/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://jup.ag/'},
+  'skip-go': {kind: 'bridge', url: 'https://go.skip.build/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://docs.skip.build/'},
 } as const satisfies Record<string, L2bLink>;
 export type L2bLinkId = keyof typeof rows;
 export const L2B_LINKS: {readonly [K in L2bLinkId]: L2bLink} = rows;
