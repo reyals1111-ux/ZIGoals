@@ -26,6 +26,14 @@ async function sign(page: Page, calls: string[], since = 0) {
   expect(after.filter(c => c === 'signer.signDirect'), 'exactly one signature').toHaveLength(1);
   return sheet;
 }
+/** The scripts a page requests, from the start (recorded by the test, not the page). */
+const scriptsOf = new WeakMap<Page, Set<string>>();
+function recordScripts(page: Page) { const set = new Set<string>(); scriptsOf.set(page, set); page.on('request', r => { if (r.resourceType() === 'script') set.add(r.url()); }); }
+/** Whether any script this page has requested holds CosmJS's transaction service (the signing client's chunk: simulation, signing, broadcast). */
+async function signingClientLoaded(page: Page) {
+  for (const url of scriptsOf.get(page) ?? []) if ((await (await page.request.get(url)).text()).includes('"cosmos.tx.v1beta1.Service"')) return true;
+  return false;
+}
 async function done(page: Page) {
   const progress = page.getByRole('region', {name: 'Confirmed on the network.'});
   await expect(progress).toContainText(/Positions refreshed at block \d+\./);
@@ -35,6 +43,7 @@ async function done(page: Page) {
 
 test('practice: delegate, undelegate, redelegate and claim all, each through the review screen; no signer before the press; one signature each', async ({page}) => {
   const calls = await fakeKeplr(page), chain = await fakeChain(page, 'practice'), asked = await relay(page, 'practice');
+  recordScripts(page);
   const panel = await openStaking(page);
   // Practice is the default and says so in big plain words.
   await expect(panel.getByRole('button', {name: /Practice network \(no real value\)/})).toHaveAttribute('aria-pressed', 'true');
@@ -44,6 +53,8 @@ test('practice: delegate, undelegate, redelegate and claim all, each through the
   expect(calls).toEqual(['keplr.enable', 'keplr.getKey']);
   expect(chain.methods.slice(0, 2).sort()).toEqual(['GET /abci_info', 'GET /status']);
 
+  // The signing client (CosmJS: simulation, signing, broadcast) is not loaded yet: not with the page, not on connect.
+  expect(await signingClientLoaded(page), 'the signing client loads on the first Review press, not before').toBe(false);
   // 1. Delegate 25 ZIG to Fictional Alpha: no default amount, the amount typed by the person.
   await expect(panel.getByLabel('Amount of ZIG')).toHaveValue('');
   await panel.getByRole('radio', {name: /Fictional Alpha/}).check();
@@ -60,6 +71,7 @@ test('practice: delegate, undelegate, redelegate and claim all, each through the
   await expect(sheet).toContainText('You will sign this in your wallet. ZIGoals never sees your keys and cannot sign for you.');
   await expect(sheet).toContainText('Your address, the validator and the amount are recorded on ZIGChain Testnet for anyone to see, forever.');
   await expect(sheet.locator('.staking-network-line').first()).toHaveText('PRACTICE · zig-test-2 · no real value');
+  expect(await signingClientLoaded(page), 'the Review press loaded the signing client').toBe(true);
   await sheet.getByText('Raw message', {exact: true}).click();
   await expect(sheet.locator('pre')).toContainText('"typeUrl": "/cosmos.staking.v1beta1.MsgDelegate"');
   expect(chain.methods).toContain('abci_query /cosmos.tx.v1beta1.Service/Simulate');

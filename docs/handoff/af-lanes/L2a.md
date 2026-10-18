@@ -7,16 +7,43 @@ assertion that changed (with the reason). Updated with every step's commit.
 ## Status by step (brief order)
 | # | Step | State | Commit |
 |---|---|---|---|
-| 1 | chain-config `mainnet.json` + `networks.ts`; zigchain-1 explorer entries | done | `14f0d9a7` |
+| 1 | chain-config `mainnet.json` + `networks.ts`; zigchain-1 explorer entries (+ fix keeping `buildExplorerUrl` testnet-only) | done | `14f0d9a7`, `92b14481` |
 | 2 | `zigoals:staking-prefs:v1` + `zigoals:staking-journal:v1` (loose v1 records, readers keep unknown fields) | done | `5c459ca8` |
-| 4 | `NATIVE_STAKING_SIGNING_ALLOWED` + `assertNativeStakingAllowed(messages)` (committed before 3: the signer starts with it) | done | see git log |
-| 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | `TIER 3 (wallet/signing): … Part 3` |
-| 5a | `apps/web/lib/chain/validators-wire.ts` (the wire schema L1 consumes), committed first | done | `TIER 3 (egress routes): … Part 5a` |
-| 5 | `/api/positions` mainnet on public builds + `minHeight` + stZIG; `GET /api/chain/validators` | done | `TIER 3 (egress routes): … Part 5` |
-| 6 | `https://rpc.zigchain.com` in `chainOrigins`; CSP tests' exact lists | done | `TIER 3 (CSP): … Part 6` |
-| 7 | Staking UI on `/app/staking` (lazy `StakingActions`), the gate hardened, four specs | done | `TIER 3 (wallet/signing): … Part 7` |
-| 8 | The honesty sentence (H62) in the shell (About panel and Alpha notice take it from there), the Help bullet, the verifier's identity stage, ab-shell + six specs | done (landing: see below) | `TIER 3 (public-safety labels): … Part 8` |
-| 9 | Deploy gate (H85): MANUAL_ALPHA_WORKFLOW's sentence; `build:alpha` + `check:alpha-artifact` + `check:alpha` proven locally | done | `TIER 3 (deploy workflow): … Part 9` |
+| 4 | `NATIVE_STAKING_SIGNING_ALLOWED` + `assertNativeStakingAllowed(messages)` (committed before 3: the signer starts with it) | done | `d1af7bd2` |
+| 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | `507e2781` |
+| 5a | `apps/web/lib/chain/validators-wire.ts` (the wire schema L1 consumes), committed first | done | `ec957803` |
+| 5 | `/api/positions` mainnet on public builds + `minHeight` + stZIG; `GET /api/chain/validators` | done | `3c2d0a7d` |
+| 6 | `https://rpc.zigchain.com` in `chainOrigins`; CSP tests' exact lists | done | `b82c9fd4` |
+| 7 | Staking UI on `/app/staking` (lazy `StakingActions`), the gate hardened, four specs | done | `94627c98` |
+| 8 | The honesty sentence (H62) in the shell (About panel and Alpha notice take it from there), the Help bullet, the verifier's identity stage, ab-shell + six specs | done (landing: see below) | `15ab5eaa` |
+| 9 | Deploy gate (H85): MANUAL_ALPHA_WORKFLOW's sentence; `build:alpha` + `check:alpha-artifact` + `check:alpha` proven locally | done | `c02d5a3b` |
+| 10 | Unit tests for every module; four Playwright specs run on this lane's production build (3102) | done | `94627c98` + the final commit |
+
+## Tests run (2026-10-18/19, this worktree; logs in `~/zigoals-af/logs/L2a-*.log`)
+- Unit (vitest, from the repo root): `pnpm test` → 5,278 passed, 56 skipped, **1 failed**: `scripts/sanitize-alpha-tail.test.mjs`
+  "the API buckets are exactly the app's route files" — it needs `/api/chain/validators` in `scripts/sanitize-alpha-tail.mjs`
+  `API_ROUTES` (a verifier/CI registry, the lead's; see wiring below). With the theme sheets regenerated locally
+  (`node scripts/themes/build-themes.mjs`, not committed) `scripts/themes/build-themes.test.mjs` passes; without, it fails
+  until the lead regenerates (staking.css is new CSS).
+- This lane's own unit files (test counts from the verbose reporter): chain-config networks 30, ecosystem-registry links 5,
+  staking storage 10, flag 8, messages 17, quote 6, sign-gate 13, execute 12, receipt 16, errors 16, decoy-guard 2,
+  refresh 2, prefill 2, view 3, staking-guard 7, keplr-session 8, validators-wire 14, chain-validators (+ the chain relay
+  and the route) 7 — 178 in all, passing; plus the extended wallet-guard, positions-relay, positions-route,
+  native-positions, mainnet-denomination, public-safety and csp-compose files.
+- Playwright on the production build (`rebuild.sh … 3102`, PUBLIC_ALPHA_UNDEPLOYED), 2 workers, Chrome desktop + mobile:
+  `staking-sign` (5 tests × 2), `staking-real-confirm` (2 × 2), `staking-errors` (5 × 2) → 24 passed (then staking-sign
+  again with the lazy-chunk check, 10 passed). WebKit (`-c playwright.webkit.config.ts`): `webkit-staking`, `webkit-smoke`,
+  `webkit-phone` → 9 passed, 3 skipped (project filters).
+- Existing specs that open /app/staking or assert the honesty sentence, on the same build: phone-shell, product-shell,
+  public-alpha, session-ac, send-feedback, honesty-banners, private-read-delay, persona-z → 128 passed, 4 skipped;
+  staking-page, page-order-aa, positions-layout, owner-preview, wallet-menu, wallet-reload, ecosystem, staking-tabs, platform,
+  hydration-zone, page-titles, a11y-wcag-x → 83 passed, 5 skipped; platform-visual, phone-form-sheets, phone-touch-targets,
+  phone-pages, header-art-ae, coherence, owner-polish, page-marks, brand-nav-polish, unified-goals, wealth,
+  run11-route-mobile-acceptance → 96 passed, 12 skipped. Not the full suite (the lead's Gate C).
+- Weights (`node scripts/check-weight-budget.mjs http://127.0.0.1:3102`): `/app/staking` 442.4 kB (budget 487.0), `/app`
+  516.5 kB (567.0), shell 397.9 kB (447.0) — all ok, no budget line changed. Lazy chunks (H54, gzip level 6): the
+  `StakingActions` chunk ≈ 14.9 kB; the CosmJS signing/query client chunk ≈ 129.1 kB, fetched on the first Review press
+  (asserted by staking-sign.spec.ts: not loaded on the page or on connect, loaded by Review).
 
 ### Step 9 — the deploy gates with the new flag (H85)
 - The "financial signing and broadcasts remain disabled" assertion exists in exactly one place: the last sentence of
@@ -49,8 +76,10 @@ assertion that changed (with the reason). Updated with every step's commit.
 - The browser never reaches `api.zigchain.com` (H16): `verifyNetworkFor` (REST) serves server code, scripts and the practice
   network; the signing path checks the same evidence (`assertNetworkEvidence`) over the RPC it signs through.
 - Mainnet explorers are a separate list (`mainnetExplorers`) so the Ecosystem page's "Open … testnet ↗" buttons
-  (`explorers`, asserted by ecosystem.spec and human-x J168) stay exactly as they are; `buildExplorerUrl` and the new
-  `explorerLinksFor` search both lists. New explorer kind `validator` (zigscan only; Range has no validator route).
+  (`explorers`, asserted by ecosystem.spec and human-x J168) stay exactly as they are. `buildExplorerUrl`/`explorerHome`
+  keep their testnet-only answers (the Goal Manager records' `ExplorerLinks` must show no link for a mainnet id,
+  `ecosystem-ui.test.ts`); the new `explorerLinksFor(chainId, kind, id)` searches both lists for the staking receipts. New
+  explorer kind `validator` (zigscan both networks; Range has no validator route).
 
 - **H4's file name.** ADR-028 H4 names the one signer `lib/wallet/sign.ts` / `signFromReview()`; the brief and the L2 design
   name it `lib/staking/execute.ts` / `executeSigned()` behind `issueSignTicket()`. Built as the brief says; every property
@@ -153,7 +182,26 @@ assertion that changed (with the reason). Updated with every step's commit.
 - H16 (e): the hosted verifier's origin allowlist (`scripts/verify-hosted-alpha.mjs` lines 69/72: `alphaRequestOrigins`,
   `requestOrigins`) is the lead's registry. No verifier stage reaches `rpc.zigchain.com` (the staking page requests it only
   after a Connect or Review press), so nothing fails without it; add it in the same merge if the verifier should accept it.
-- Weight budgets: no new route page; `/app/staking` gains the lazy `StakingActions` chunk (step 7) — sizes in step 7's notes.
+- Weight budgets: no new route page and no budget line changed; `/app/staking` gains the lazy `StakingActions` chunk (sizes
+  under "Tests run").
+
+### Other registries
+- `scripts/sanitize-alpha-tail.mjs` `API_ROUTES` += `"/api/chain/validators"` (its test fails until then).
+- Theme sheets: regenerate after the merge (`node scripts/themes/build-themes.mjs`; `components/staking/staking.css` is new).
+- Settings → Your data: a "Remove" for `zigoals:staking-prefs:v1` (the L2 design's way to be asked the first-real confirm
+  again) belongs to the lead's Settings registry; the account's erase covers it once the key is in the erase list.
+- PRIVACY.md (lead's): the relay now reads mainnet addresses too (H16 (a), as the Track-Wallet sentence says), the browser
+  reaches `rpc.zigchain.com` / `testnet-rpc.zigchain.com` for signed staking (account, simulation, broadcast, receipt) and
+  `/status` + `/abci_info` for the network check; the two sessionStorage hand-offs are tab-only.
+
+## Open items (for the lead; nothing here blocks a merge of steps 1–10)
+- Landing copy, Help's "Is any of this real money?", the social card and the local mode strip (step 8 notes): wording
+  decisions for the owner/lead.
+- `components/platform/staking-placeholder.tsx` still says stZIG is not tracked (step 7 notes).
+- Governance UI (votes) and Goal Vaults are this lane's later chunk; `vote()` and the v1beta1 `MsgVote` path (messages,
+  receipt event `proposal_vote`, the flag's allowlist) are already built and tested, with no UI.
+- Owner-only, never by an agent: a real Keplr run on zig-test-2 (delegate, claim, move, unstake) with faucet ZIG, and a REAL
+  delegate only if the owner chooses (L2 design's `owner-staking-evidence.md`).
 
 ## Assertions changed
 - `apps/web/lib/wallet-guard.test.ts`, third test ("the only signer stays in lib/wallet.ts's blocked execute path"): the
