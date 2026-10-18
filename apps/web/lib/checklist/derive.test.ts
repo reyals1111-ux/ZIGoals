@@ -25,7 +25,7 @@ describe('every dot is derived from its own page’s record', () => {
     expect(dots['Push-ups']).toMatchObject({intent: 'value', value: {unit: 'times', suggested: 100, min: 1, step: 1}});
     expect(dots.Water).toMatchObject({colour: 'blue', glyph: 'drop', intent: 'value', value: {current: null, suggested: 500, unit: 'ml'}});
     expect(dots['Vitamin D']).toMatchObject({glyph: 'pill', intent: 'tick', colour: 'pink'});
-    expect(dots['Open the account']).toMatchObject({colour: 'purple', note: 'Fictional reserve', href: '/app/goals/7'});
+    expect(dots['Open the account']).toMatchObject({colour: 'purple', note: 'Fictional reserve', href: '/app/goals/tracked/7'});
     expect(dots['Play piano 15 minutes']).toMatchObject({kind: 'custom', colour: 'gold'});
     expect(summarise(Object.values(dots), fresh())).toMatchObject({total: 11, done: 0, perfect: false});
   });
@@ -71,6 +71,15 @@ describe('every dot is derived from its own page’s record', () => {
     expect(byLabel(deriveDots(fullPath(), fresh(), TODAY, sources({platform: done})))['Open the account']).toMatchObject({state: 'done', counted: false, note: 'Fictional reserve · done earlier'});
     const ticked: ChecklistToday = {...fresh(), ticks: [{id: 'ck_6', at: NOW.toISOString()}]};
     expect(byLabel(deriveDots(fullPath(), ticked, TODAY, sources({platform: done})))['Open the account']).toMatchObject({state: 'done', counted: true});
+  });
+  test('a Goal on the path is its next open step; the step ticked here today stays lit; no open step is not counted', () => {
+    const r = addFavourite(emptyChecklist(), {kind: 'goal', goalId: '7'}, {id: 'g', at: NOW});
+    expect(deriveDots(r, fresh(), TODAY, sources())[0]).toMatchObject({kind: 'goal', label: 'Open the account', note: 'Fictional reserve · next step', milestoneId: 'm1', counted: true, state: 'undone'});
+    const done = platform(true), ticked: ChecklistToday = {...fresh(), ticks: [{id: 'g', at: NOW.toISOString(), record: {kind: 'goal-step', id: '7:m1'}}]};
+    expect(deriveDots(r, ticked, TODAY, sources({platform: done}))[0]).toMatchObject({label: 'Open the account', state: 'done', counted: true});
+    expect(deriveDots(r, fresh(), TODAY, sources({platform: done}))[0]).toMatchObject({label: 'First deposit', milestoneId: 'm2', state: 'undone'});
+    const finished = {...done, goals: done.goals.map(g => ({...g, milestones: g.milestones.map(m => ({...m, done: true}))}))};
+    expect(deriveDots(r, fresh(), TODAY, sources({platform: finished}))[0]).toMatchObject({label: 'Fictional reserve', counted: false, note: 'Every step is done', intent: 'open'});
   });
   test('a record gone from its page shows as missing (to take off the path), never counted', () => {
     const r = addFavourite(emptyChecklist(), {kind: 'habit', habitId: '99999999-9999-4999-8999-999999999999'}, {id: 'gone', at: NOW, label: 'Old habit'});

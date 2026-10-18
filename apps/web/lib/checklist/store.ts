@@ -24,11 +24,12 @@ export const sectionsOf = (record: Checklist): ChecklistSection[] => (record.sec
 
 /** What a favourite points at. A custom item is its own record. */
 export type HealthRef = {input: Exclude<HealthInput, 'diary' | 'meal'>} | {input: 'diary'; sourceKind: string; sourceId: string} | {input: 'meal'; meal: string};
-export type FavouriteRef = {kind: 'habit'; habitId: string} | {kind: 'goal-step'; goalId: string; milestoneId: string} | ({kind: 'health'} & HealthRef);
+export type FavouriteRef = {kind: 'habit'; habitId: string} | {kind: 'goal'; goalId: string} | {kind: 'goal-step'; goalId: string; milestoneId: string} | ({kind: 'health'} & HealthRef);
 export function isHealthItem(item: ChecklistItem | ChecklistHealthItem): item is ChecklistHealthItem { return item.kind === 'health' && typeof (item as {input?: unknown}).input === 'string'; }
 /** One stable name per favourite, so the same habit (or the same glass of water) is never on the path twice. */
 export function favouriteKey(ref: FavouriteRef): string {
   if (ref.kind === 'habit') return `habit:${ref.habitId}`;
+  if (ref.kind === 'goal') return `goal:${ref.goalId}`;
   if (ref.kind === 'goal-step') return `goal-step:${ref.goalId}:${ref.milestoneId}`;
   if (ref.input === 'diary') return `health:diary:${ref.sourceKind}:${ref.sourceId}`;
   if (ref.input === 'meal') return `health:meal:${ref.meal}`;
@@ -37,6 +38,7 @@ export function favouriteKey(ref: FavouriteRef): string {
 /** The same name for a stored item (null for a custom item or an item this build does not know). */
 export function itemKey(item: ChecklistItem | ChecklistHealthItem): string | null {
   if (item.kind === 'habit' && item.ref?.habitId) return `habit:${item.ref.habitId}`;
+  if (item.kind === 'goal' && item.ref?.goalId) return `goal:${item.ref.goalId}`;
   if (item.kind === 'goal-step' && item.ref?.goalId && item.ref.milestoneId) return `goal-step:${item.ref.goalId}:${item.ref.milestoneId}`;
   if (isHealthItem(item)) {
     if (item.input === 'diary') return item.ref?.sourceKind && item.ref.sourceId ? `health:diary:${item.ref.sourceKind}:${item.ref.sourceId}` : null;
@@ -66,7 +68,7 @@ export function addFavourite(record: Checklist, ref: FavouriteRef, options: AddO
     return save({...record, healthItems: [...record.healthItems, item], order: withOrder(record, options.id)});
   }
   if (record.items.length >= MAX_PATH_ITEMS) throw new ChecklistError(CHECKLIST_LIMIT_MESSAGE);
-  const refPart = ref.kind === 'habit' ? {habitId: ref.habitId} : {goalId: ref.goalId, milestoneId: ref.milestoneId};
+  const refPart = ref.kind === 'habit' ? {habitId: ref.habitId} : ref.kind === 'goal' ? {goalId: ref.goalId} : {goalId: ref.goalId, milestoneId: ref.milestoneId};
   const item: ChecklistItem = {id: options.id, kind: ref.kind, ref: refPart, ...(label ? {label} : {}), ...(options.colour ? {colour: options.colour} : {}), section: sectionOrDefault(record, options.section), ...(options.defaultValue !== undefined ? {defaultValue: options.defaultValue} : {}), addedAt: at};
   return save({...record, items: [...record.items, item], order: withOrder(record, options.id)});
 }

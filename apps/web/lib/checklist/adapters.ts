@@ -72,8 +72,8 @@ function habitPlan(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'value'):
 }
 
 function goalStepPlan(dot: DerivedDot, ctx: TickContext): TickPlan {
-  const ref = dot.item.ref as {goalId?: string; milestoneId?: string} | undefined; if (!ref?.goalId || !ref.milestoneId) throw new TickRefused('This goal step is no longer on its Goal.');
-  const {goalId, milestoneId} = ref;
+  const ref = dot.item.ref as {goalId?: string; milestoneId?: string} | undefined, goalId = ref?.goalId, milestoneId = dot.kind === 'goal' ? dot.milestoneId : ref?.milestoneId;
+  if (!goalId || !milestoneId) throw new TickRefused(dot.kind === 'goal' ? 'This Goal has no open step. Add one on its page.' : 'This goal step is no longer on its Goal.');
   const flip = (done: boolean) => (s: Platform): Platform => {
     const goal = s.goals.find(g => g.id === goalId);
     if (!goal || !goal.milestones.some(m => m.id === milestoneId)) throw new TickRefused('This goal step is no longer on its Goal.');
@@ -175,6 +175,6 @@ export function planTick(dot: DerivedDot, ctx: TickContext, intent: 'tick' | 'va
   }
   if (dot.state === 'done' && !(dot.kind === 'health' && (dot.input === 'water' || dot.input === 'sleep' || dot.input === 'fast' || (dot.input === 'meditation' && intent === 'value')))) throw new TickRefused(`${dot.label} is already done today.`);
   if (dot.kind === 'habit') return habitPlan(dot, ctx, intent);
-  if (dot.kind === 'goal-step') return goalStepPlan(dot, ctx);
+  if (dot.kind === 'goal' || dot.kind === 'goal-step') return goalStepPlan(dot, ctx);
   return healthPlan(dot, ctx, intent);
 }

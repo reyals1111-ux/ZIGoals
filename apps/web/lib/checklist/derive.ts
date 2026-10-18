@@ -29,7 +29,7 @@ export type DeriveSources = {
   zone: string;
   now: Date;
 };
-export type DotKind = 'habit' | 'goal-step' | 'custom' | 'health';
+export type DotKind = 'habit' | 'goal' | 'goal-step' | 'custom' | 'health';
 export type DerivedDot = {
   id: string; key: string | null; kind: DotKind; input?: HealthInput; section: string; label: string; colour: PathColour; glyph: string;
   state: StepState; counted: boolean; partial?: number; note?: string; href?: string; intent?: StepIntent; value?: StepValue; doneAt?: string;
@@ -39,11 +39,13 @@ export type DerivedDot = {
   missing?: boolean;
   /** Why ticking it here would be refused, in the page's own words. */
   refusal?: string;
+  /** A goal favourite: the milestone a tick completes (its next open step). */
+  milestoneId?: string;
   item: ChecklistItem | ChecklistHealthItem;
 };
 
-const DEFAULT_COLOUR: Record<string, PathColour> = {habit: 'cyan', 'goal-step': 'purple', custom: 'gold', water: 'blue', diary: 'pink', meal: 'pink', weight: 'pink', sleep: 'magenta', meditation: 'teal', fast: 'gold'};
-const GLYPH: Record<string, string> = {'goal-step': 'flag', custom: 'sparkle', water: 'drop', diary: 'leaf', meal: 'meal', weight: 'scale', sleep: 'moon', meditation: 'lotus', fast: 'hourglass'};
+const DEFAULT_COLOUR: Record<string, PathColour> = {habit: 'cyan', goal: 'purple', 'goal-step': 'purple', custom: 'gold', water: 'blue', diary: 'pink', meal: 'pink', weight: 'pink', sleep: 'magenta', meditation: 'teal', fast: 'gold'};
+const GLYPH: Record<string, string> = {goal: 'flag', 'goal-step': 'flag', custom: 'sparkle', water: 'drop', diary: 'leaf', meal: 'meal', weight: 'scale', sleep: 'moon', meditation: 'lotus', fast: 'hourglass'};
 const SUPPLEMENT = /vitamin|supplement|omega|magnesium|zinc|iron|calcium|probiotic|capsule|tablet|pill|creatine/i;
 const MEAL_WORDS: Record<string, string> = {Breakfast: 'Log breakfast', Lunch: 'Log lunch', Dinner: 'Log dinner', Snacks: 'Log a snack'};
 const LB = 453.59237;
@@ -85,15 +87,31 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
   return {...dot, state, counted: true, ...(progress ? {partial: progress} : {}), ...(note ? {note} : {}), ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
 }
 
+/** A private Goal's own page (lib/goal-summary.ts names it so). */
+export const goalHref = (id: string) => `/app/goals/tracked/${encodeURIComponent(id)}`;
+const milestoneChangedToday = (s: DeriveSources, goalId: string, date: string) => s.platform?.goalHistory.some(h => h.kind === 'milestone' && 'goalId' in h && h.goalId === goalId && 'capturedAt' in h && typeof h.capturedAt === 'string' && dayIn(h.capturedAt, s.zone) === date) ?? false;
+/** A Goal on the path is its next open step: ticking it completes that milestone; the one ticked here today stays lit. */
+function goalDot(item: ChecklistItem, base: Base, s: DeriveSources, today: ChecklistToday): DerivedDot {
+  const goal = s.platform?.goals.find(g => g.id === item.ref?.goalId);
+  if (!goal) return {...base, label: item.label ?? 'A Goal', state: 'undone', counted: false, missing: true, note: 'No longer on Goals', href: '/app/goals', intent: 'open'};
+  const href = goalHref(goal.id), ticked = today.ticks.filter(t => t.id === item.id && t.record?.kind === 'goal-step').map(t => t.record!.id.slice(t.record!.id.lastIndexOf(':') + 1));
+  const doneHere = goal.milestones.find(m => m.done && ticked.includes(m.id));
+  if (goal.status === 'closed') return {...base, label: goal.name, state: 'undone', counted: false, note: 'Closed', href, intent: 'open', refusal: 'This Goal is closed.'};
+  if (doneHere) return {...base, label: doneHere.title, state: 'done', counted: true, note: goal.name, href, intent: 'tick', milestoneId: doneHere.id};
+  const next = goal.milestones.find(m => !m.done);
+  if (!next) return {...base, label: goal.name, state: goal.milestones.length ? 'done' : 'undone', counted: false, note: goal.milestones.length ? 'Every step is done' : 'Add a step on its page', href, intent: 'open'};
+  return {...base, label: next.title, state: 'undone', counted: true, note: `${goal.name} · next step`, href, intent: 'tick', milestoneId: next.id};
+}
+
 function goalStepDot(item: ChecklistItem, base: Base, s: DeriveSources, date: string, receipts: Set<string>): DerivedDot {
   const goal = s.platform?.goals.find(g => g.id === item.ref?.goalId), milestone = goal?.milestones.find(m => m.id === item.ref?.milestoneId);
-  const href = goal ? `/app/goals/${encodeURIComponent(goal.id)}` : '/app/goals';
+  const href = goal ? goalHref(goal.id) : '/app/goals';
   if (!goal || !milestone) return {...base, label: item.label ?? 'A goal step', state: 'undone', counted: false, missing: true, note: 'No longer on its Goal', href, intent: 'open'};
   const dot = {...base, label: milestone.title, href};
   if (goal.status === 'closed') return {...dot, state: milestone.done ? 'done' : 'undone', counted: false, note: `${goal.name} · closed`, intent: 'open', refusal: 'This Goal is closed.'};
   // A step done before today stays lit, out of today's count: it is not today's work. Done today (here, or on the Goal:
   // its milestones changed today) it counts.
-  const changedToday = s.platform?.goalHistory.some(h => h.kind === 'milestone' && 'goalId' in h && h.goalId === goal.id && 'capturedAt' in h && typeof h.capturedAt === 'string' && dayIn(h.capturedAt, s.zone) === date) ?? false;
+  const changedToday = milestoneChangedToday(s, goal.id, date);
   const counted = !milestone.done || receipts.has(item.id) || changedToday;
   return {...dot, state: milestone.done ? 'done' : 'undone', counted, note: milestone.done && !counted ? `${goal.name} · done earlier` : goal.name, intent: 'tick'};
 }
@@ -158,6 +176,7 @@ export function deriveDots(record: Checklist, today: ChecklistToday, date: strin
     const base: Base = {id: item.id, key: itemKey(item), kind, ...(health ? {input: item.input as HealthInput} : {}), section: sectionOfItem(record, item), colour, glyph: GLYPH[sub] ?? 'sparkle', item};
     if (health) return healthDot(item, base, sources, date);
     if (item.kind === 'habit') return habitDot(item, base, sources, date);
+    if (item.kind === 'goal') return goalDot(item, base, sources, today);
     if (item.kind === 'goal-step') return goalStepDot(item, base, sources, date, receipts);
     return {...base, label: item.label ?? 'My item', state: custom.has(item.id) ? 'done' : 'undone', counted: true, intent: 'tick'} satisfies DerivedDot;
   });

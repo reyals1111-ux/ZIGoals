@@ -8,7 +8,8 @@ import {emptySleep} from '../sleep/schema';
 import {emptyMeditation, emptyMeditationRun} from '../meditation/schema';
 import {emptyFasting} from '../fasting/schema';
 import {startRun} from '../meditation/timer';
-import {emptyChecklistDays} from './schema';
+import {emptyChecklist, emptyChecklistDays} from './schema';
+import {addFavourite} from './store';
 import {TickRefused, fastPlan, meditationTimerPlan, planTick, sleepPlan, type Stores, type TickContext, type TickPlan} from './adapters';
 import {deriveDots, summarise, type DerivedDot} from './derive';
 import {ID, NOW, TODAY, VITAMIN, fullPath, habits, health, platform, sources} from './test-fixtures';
@@ -80,6 +81,14 @@ describe('a tick writes the real record through its page’s own function, and U
     expect(run(s1, plan.undo).platform.goals[0]!.milestones[0]!.done).toBe(false);
     const closed = {...s0, platform: {...s0.platform, goals: s0.platform.goals.map(g => ({...g, status: 'closed' as const}))}};
     expect(() => planTick(dot(closed, 'Open the account'), ctx())).toThrow('This Goal is closed.');
+  });
+  test('a Goal favourite completes its next open step; Undo opens it again', () => {
+    const s0 = stores(), r = addFavourite(emptyChecklist(), {kind: 'goal', goalId: '7'}, {id: 'g', at: NOW});
+    const goalDot = deriveDots(r, s0.days.today!, TODAY, {...sources(), platform: s0.platform})[0]!;
+    const plan = planTick(goalDot, ctx()), s1 = run(s0, plan.writes);
+    expect(s1.platform.goals[0]!.milestones.map(m => m.done)).toEqual([true, false]);
+    expect(s1.days.today?.ticks[0]?.record).toEqual({kind: 'goal-step', id: '7:m1'});
+    expect(run(s1, plan.undo).platform.goals[0]!.milestones.map(m => m.done)).toEqual([false, false]);
   });
   test('mindful minutes: a session that just ended, in the zone; Undo deletes it', () => {
     const s0 = stores(), plan = planTick(dot(s0, 'Meditate'), ctx({value: 10}), 'value'), s1 = run(s0, plan.writes);

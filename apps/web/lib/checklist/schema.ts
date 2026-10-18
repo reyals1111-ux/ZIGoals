@@ -23,7 +23,7 @@ const WORD = z.string().max(24);
 
 export const checklistItemSchema = z.looseObject({
   id: ID,
-  /** 'habit' | 'goal-step' | 'custom' (any other word: a newer build's kind, kept and not shown). */
+  /** 'habit' | 'goal' (its next open step) | 'goal-step' | 'custom' (any other word: a newer build's kind, kept and not shown). */
   kind: WORD,
   ref: z.looseObject({habitId: ID.optional(), goalId: ID.optional(), milestoneId: ID.optional()}).optional(),
   /** A custom item's own words; for a favourite, the label shown when its record cannot be read. */
@@ -91,7 +91,7 @@ export const emptyChecklistDays = (): ChecklistDays => ({version: 1, days: {}});
 export const CHECKLIST_DAYS: DeviceRecordSpec<ChecklistDays> = {key: CHECKLIST_DAYS_KEY, schema: checklistDaysSchema, empty: emptyChecklistDays};
 
 /** The kinds and inputs this build draws; anything else is kept and not shown. */
-export const ITEM_KINDS = ['habit', 'goal-step', 'custom'] as const;
+export const ITEM_KINDS = ['habit', 'goal', 'goal-step', 'custom'] as const;
 export const HEALTH_INPUTS = ['water', 'diary', 'meal', 'weight', 'sleep', 'meditation', 'fast'] as const;
 export type ItemKind = (typeof ITEM_KINDS)[number];
 export type HealthInput = (typeof HEALTH_INPUTS)[number];
