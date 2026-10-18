@@ -8,7 +8,9 @@ assertion that changed (with the reason). Updated with every step's commit.
 | # | Step | State | Commit |
 |---|---|---|---|
 | 1 | chain-config `mainnet.json` + `networks.ts`; zigchain-1 explorer entries | done | `14f0d9a7` |
-| 2 | `zigoals:staking-prefs:v1` + `zigoals:staking-journal:v1` (loose v1 records, readers keep unknown fields) | done | see git log |
+| 2 | `zigoals:staking-prefs:v1` + `zigoals:staking-journal:v1` (loose v1 records, readers keep unknown fields) | done | `5c459ca8` |
+| 4 | `NATIVE_STAKING_SIGNING_ALLOWED` + `assertNativeStakingAllowed(messages)` (committed before 3: the signer starts with it) | done | see git log |
+| 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | see git log |
 
 ## Facts read live for this lane (one GET each, 2026-10-18)
 - 20:52 UTC `https://api.zigchain.com` node_info: network `zigchain-1`, application_version `v5.1.2` on both nodes
@@ -30,6 +32,23 @@ assertion that changed (with the reason). Updated with every step's commit.
   (`explorers`, asserted by ecosystem.spec and human-x J168) stay exactly as they are; `buildExplorerUrl` and the new
   `explorerLinksFor` search both lists. New explorer kind `validator` (zigscan only; Range has no validator route).
 
+- **H4's file name.** ADR-028 H4 names the one signer `lib/wallet/sign.ts` / `signFromReview()`; the brief and the L2 design
+  name it `lib/staking/execute.ts` / `executeSigned()` behind `issueSignTicket()`. Built as the brief says; every property
+  H4 asks for holds (one signer file beside the blocked contract path, reachable only from the review screen's submit
+  handler, the type-URL allowlist, `signAndBroadcast`/`sendTransaction`/`eth_sendTransaction`/`signTransaction` forbidden
+  elsewhere, no import from `components/ai` or `lib/ai`). The lead may rename the H4 row's file names.
+- **No signer before the Sign press.** The quote simulates through CosmJS's read-only `StargateClient` with the account's
+  public key from `getKey` (`tx.simulate(messages, '', pubkey, sequence)`), so `getOfflineSignerAuto` is called only inside
+  `executeSigned` (after the trusted submit). This is stricter than the L2 design (whose quote held a signer for simulate):
+  the signer-using files are two (`lib/staking/execute.ts`, `lib/wallet.ts`), not three.
+- **The reviewed fee is the signed fee.** `getOfflineSignerAuto(chainId, {preferNoSetFee: true})` (Keplr's sign option) so
+  Keplr does not replace the 2.5 Gazig quote with its 25 Gazig "average"; the person can still raise it in Keplr, and the
+  review says so. The signed bytes are checked against the reviewed messages before broadcast (a wallet that changed a
+  message is refused) and again in the receipt; the fee is not compared (H61).
+- **A node's CheckTx refusal is a certain failure.** CosmJS's `BroadcastTxError` (insufficient fee 13, sequence 32,
+  insufficient funds 5) means the transaction never entered a block: the journal says FAILED with the code and the screen
+  says nothing moved, instead of lib/transaction.ts's generic "may have moved" (which still applies to a lost connection).
+
 ## What the lead must wire (shared registries)
 ### Storage keys (step 2; names in `apps/web/lib/af-signing-keys.ts`, a module with no imports)
 | Registry | Row to add |
@@ -45,4 +64,10 @@ assertion that changed (with the reason). Updated with every step's commit.
 | sessionStorage hand-offs (not records, never exported) | `WALLET_SESSION_KEY` `zigoals:wallet-session:v1`, `STAKING_PREFILL_KEY` `zigoals:ai:staking-prefill:v1` — PRIVACY.md "tab-only" sentence |
 
 ## Assertions changed
-- none so far
+- `apps/web/lib/wallet-guard.test.ts`, third test ("the only signer stays in lib/wallet.ts's blocked execute path"): the
+  files that may name `getOfflineSigner` go from `['lib/wallet.ts']` to `['lib/staking/execute.ts', 'lib/wallet.ts']`
+  (ADR-028 H4, the owner's rule change for native-staking signing). Equal or greater strength: lib/wallet.ts's checks are
+  unchanged; the new file's only calling function must be `executeSigned`, whose first statement must be
+  `assertNativeStakingAllowed(ticket.messages);`; `lib/wallets/keplr-session.ts` is added to the FORBIDDEN-shape check; and
+  `lib/staking/staking-guard.test.ts` adds the stricter gate (signer shapes in exactly those two files, each signer call once,
+  the review sheet's onSubmit as the only door, ZIGi's code never importing the pipeline, the type-URL allowlist).
