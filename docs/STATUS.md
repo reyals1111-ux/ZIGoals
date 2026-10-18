@@ -69,6 +69,7 @@ Before the raise Today had 18 bytes of room (Session AD).
 ## Known CI intermittents (this session)
 - `account-browser` b-first (CI run 1013 only): a sync race in code this PR does not touch (ADR-027 G24); its one re-run passed (run 1015: both cases, b-first in 75 s). Proposed for an auth/sync session: after a replayed write answers 409, `sync()` reconciles once, as `runPortfolio` already does.
 - WebKit `zigi-memory:54` (run 1002 only): the page closed mid-click (the target-closed family Session AD saw); passed in every later run.
+- WebKit navigation stall (the run on `c9b123c9`, [39092010942](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39092010942), only): three `page.goto` loads never finished (`webkit-zigi-freeze:112` and `zigi-act:80` on desktop, `zigi-voice-z:204` on mobile; no assertion failed); both WebKit shards passed on the same app code in runs 1013 and 1015. The known stall (AC's entry: one re-run; if it keeps a PR red, `f29eb964` is reverted to make WebKit advisory again); its one re-run is the final head's run, linked in the PR ([comment](https://github.com/reyals1111-ux/ZIGoals/pull/89#issuecomment-6245309030)).
 - `motion-polish` start sampling (run 1008), `run11-layout-stability` (run 1006) and `today-scene:156` (the run on `c9b123c9`): root-caused and fixed (`eca2a506`, `5093d0f4`, `040df29a`); no longer listed.
 ## Owner items
 - Leap (shut down 28 May 2026) and Cosmostation's wallet (from 1 Sep 2026) are ended: each shows only when its extension is still injected, labelled as ended, link-only (ADR-027 G15).
