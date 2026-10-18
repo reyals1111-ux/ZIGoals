@@ -30,6 +30,8 @@ const observationSchema = z.looseObject({
   /** The block (or slot) the amounts were read at, when the source says so. */
   height: z.string().regex(/^\d{1,20}$/).optional(),
   assets: z.array(assetSchema).max(MAX_ASSETS).optional(),
+  /** The symbols of the chain's tracked tokens this read could not get (shown as "not read", never as 0). */
+  missing: z.array(z.string().max(16)).max(MAX_ASSETS).optional(),
   error: z.string().max(200).optional(),
   errorAt: z.string().max(40).optional(),
 });
@@ -54,9 +56,9 @@ const sized = (record: WalletBalances, key: string) => {
   return observations;
 };
 /** A successful read: the amounts replace the previous ones and any earlier error goes. */
-export function withObservation(record: WalletBalances, read: {walletId: string; chainId: string; at: string; assets: readonly ObservedAsset[]; height?: string}): WalletBalances {
+export function withObservation(record: WalletBalances, read: {walletId: string; chainId: string; at: string; assets: readonly ObservedAsset[]; height?: string; missing?: readonly string[]}): WalletBalances {
   const key = observationKey(read.walletId, read.chainId), observations = sized(record, key);
-  const next: Observation = {walletId: read.walletId, chainId: read.chainId, at: read.at, assets: read.assets.slice(0, MAX_ASSETS).map(a => ({id: a.id, symbol: a.symbol, decimals: a.decimals, amount: a.amount})), ...(read.height ? {height: read.height} : {})};
+  const next: Observation = {walletId: read.walletId, chainId: read.chainId, at: read.at, assets: read.assets.slice(0, MAX_ASSETS).map(a => ({id: a.id, symbol: a.symbol, decimals: a.decimals, amount: a.amount})), ...(read.height ? {height: read.height} : {}), ...(read.missing?.length ? {missing: read.missing.slice(0, MAX_ASSETS)} : {})};
   return {...record, observations: {...observations, [key]: next}};
 }
 /** A failed read: the last good amounts stay with their own time; the reason is added. */

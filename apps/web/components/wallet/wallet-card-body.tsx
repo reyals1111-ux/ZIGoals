@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useId, useState} from 'react';
 import {useLinkedWallets} from './use-linked-wallets';
 import {WalletCardFrame, useAppWallet} from './wallet-card';
@@ -13,7 +14,8 @@ const KIND_WORDS = {cosmos: 'ZIGChain address', evm: 'EVM address', btc: 'Bitcoi
  * app's own wallet is practice money (the local demo) or testnet ZIG: neither has a market value, so in USD, EUR or BTC it
  * reads "unavailable" with that reason and no price is asked for (ADR-027: a dollar figure for practice money would
  * contradict "Practice money (no real value)"). The conversion itself (lib/wallet-display.ts) waits for the staking session's
- * real balances. A linked address shows itself, shortened (whole in its title); its balance is not read. The Showcase keeps
+ * real balances. A linked address shows itself, shortened (whole in its title); Session AF (L2b): its balances are read
+ * and shown in Wealth's "What you have" (the card links there; the card itself reads nothing). The Showcase keeps
  * its simulated wallet and its line; there the switch changes this view only (nothing is written) and no chooser shows.
  */
 export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
@@ -34,7 +36,7 @@ export default function WalletCardBody({plainWords}: {plainWords: boolean}) {
   const controls = <div className="wallet-card-controls">{chooser}{currencies}{error && <p className="wallet-card-error" role="alert">{error}</p>}</div>;
 
   if (wallet) return <WalletCardFrame pill="Read-only" value={<strong className="account-value wallet-card-address" title={wallet.address}>{shortAddress(wallet.address)}</strong>}
-    lines={<p>{wallet.label} · {KIND_WORDS[wallet.kind]}<br/>Balance tracking arrives with the staking session.</p>} controls={controls}/>;
+    lines={<p>{wallet.label} · {KIND_WORDS[wallet.kind]}<br/>Its balances, read-only, are in <Link href="/app/wealth#holdings">Wealth → What you have</Link>.</p>} controls={controls}/>;
   if (display === 'ZIG') return <WalletCardFrame pill={app.pill} value={app.zig} lines={<p>{app.line}</p>} controls={controls}/>;
   const shown = <strong className="account-value wallet-card-unavailable" aria-describedby={`${id}-why`}>{display} unavailable</strong>;
   const why = app.local ? 'Practice money has no market value, so it is never shown in another currency.' : 'Testnet ZIG has no market price.';

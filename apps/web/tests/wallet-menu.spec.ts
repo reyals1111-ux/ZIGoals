@@ -212,7 +212,10 @@ test('Today\'s wallet card: ZIG first; another currency without a price reads "u
   // The linked wallet, read-only: shortened, whole in its title, no balance and no currency switch.
   await card.getByLabel('Wallet shown on this card').selectOption('w1');
   await expect(card.locator('.account-value')).toHaveText(short(EVM)); await expect(card.locator('.account-value')).toHaveAttribute('title', EVM);
-  await expect(card).toContainText('Balance tracking arrives with the staking session.');
+  // Assertion changed (Session AF L2b, Part 3: balances are now read and shown in Wealth; equal strength, the card still
+  // shows no balance and no currency switch): the line names where the balances are, and links there.
+  await expect(card).toContainText('Its balances, read-only, are in Wealth → What you have.');
+  await expect(card.getByRole('link', {name: 'Wealth → What you have'})).toHaveAttribute('href', '/app/wealth#holdings');
   await expect(card.getByRole('group', {name: 'Show the balance in'})).toHaveCount(0);
   expect((await stored(page))!.selected).toBe('w1');
   await card.getByLabel('Wallet shown on this card').selectOption('app');
