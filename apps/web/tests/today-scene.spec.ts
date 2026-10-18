@@ -146,12 +146,15 @@ test('by day (Light): the scene keeps its own night, a pool with no edge, and th
 });
 
 /** The gap between the hero and the first piece of content after it that takes up room. */
-const gapAfterHero = (page: Page) => page.evaluate(() => {
+// Measured once the page's entrance motions have ended: on a new device the welcome panel that takes the folded hero's
+// place arrives from 8 px lower (its `arrive-card`), so a busy runner read 31.6 px mid-entrance for a gap that settles
+// at 24 (CI run on c9b123c9); the limit is unchanged.
+const gapAfterHero = async (page: Page) => { await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined)))); return page.evaluate(() => {
   const hero = document.querySelector<HTMLElement>('.today-primary > .today-hero')!;
   let next = hero.nextElementSibling;
   while (next && next.getBoundingClientRect().height < 1) next = next.nextElementSibling;
   return next ? next.getBoundingClientRect().top - hero.getBoundingClientRect().bottom : null;
-});
+}); };
 
 test('folded, the scene is gone and Today\'s focus moves up; the fold is saved; unfolding brings it back', async ({page}) => {
   // A used device (the Showcase): Today's focus follows the hero and moves up when it folds.
