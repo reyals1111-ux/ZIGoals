@@ -3,13 +3,15 @@ import './wallet.css';
 import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {useGoals} from '../goal-provider';
 import {SHOWCASE_WALLET_MESSAGE, useLinkedWallets} from './use-linked-wallets';
-import {LinkedWalletError, LINK_LIMIT_MESSAGE, LINK_UNREADABLE_MESSAGE, MAX_LINKED_WALLETS, withoutWallet, type LinkedWallet} from '../../lib/linked-wallets';
+import {LinkedWalletError, LINK_LIMIT_MESSAGE, LINK_UNREADABLE_MESSAGE, MAX_LINKED_WALLETS, withoutWallet, type LinkedWallet, type WalletVia} from '../../lib/linked-wallets';
 import {COSMOS_LINK_ERROR, COSMOS_WALLETS, EVM_LINK_ERROR, KEPLR_SITE, discoverEvmWallets, forgetKeplrPermission, keplrInstalled, readCosmosAddress, readEvmAddress, type EvmWallet} from '../../lib/wallet-link';
 import {shortAddress, verifyAddress, type AddressKind} from '../../lib/wallet-address';
 import {evmSuggestions} from '../../lib/wallets/eip6963';
 import {SOLANA_LINK_ERROR, discoverSolanaWallets, forgetSolanaConnection, readSolanaAddress, type SolanaWallet} from '../../lib/wallets/solana-link';
 import {l2bLink} from '../../lib/wallets/links';
 import {phoneWalletPaths} from './phone-wallet-paths';
+import {forgetWalletBalances} from '../../lib/wallets/balances/store';
+import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
  * Session AE (Part 6, ADR-027; `TIER 3 (wallet)`): the wallet choices beside "Connect Keplr". Keplr stays the app's own,
@@ -52,12 +54,12 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
   const blocked = linked.showcase ? SHOWCASE_WALLET_MESSAGE : linked.unreadable ? LINK_UNREADABLE_MESSAGE : linked.stored >= MAX_LINKED_WALLETS ? LINK_LIMIT_MESSAGE : '';
 
   /** One link at a time; true when the address was stored. */
-  async function run(key: string, kind: AddressKind, wallet: string, label: string, read: () => Promise<string>): Promise<boolean> {
+  async function run(key: string, kind: AddressKind, wallet: string, label: string, read: () => Promise<string>, via: WalletVia = 'extension'): Promise<boolean> {
     if (busy) return false;
     // The checks that need no wallet come first, so a full or unreadable record never opens a wallet's prompt.
     if (blocked) { setStatus(blocked); return false; }
     setBusy(key); setStatus(''); focusNext.current = key;
-    try { const entry = await linked.link({kind, wallet, label, address: await read()}); setStatus(`${entry.label} ${shortAddress(entry.address)} linked, read-only.`); return true; }
+    try { const entry = await linked.link({kind, wallet, label, address: await read(), via}); setStatus(`${entry.label} ${shortAddress(entry.address)} linked, read-only.`); return true; }
     catch (error) { setStatus(messageOf(error)); return false; }
     finally { setBusy(null); }
   }
@@ -66,6 +68,8 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       linked.write(record => withoutWallet(record, w.id)); setStatus(`${w.label} ${shortAddress(w.address)} removed from this device.`); focusNext.current = next;
       // A Solana wallet linked in this tab is also asked to forget this site, best effort (its own standard:disconnect).
       if (w.kind === 'solana') forgetSolanaConnection(sol.find(x => x.key === w.wallet));
+      // Its last read balances leave with it (lib/wallets/balances/store.ts).
+      forgetWalletBalances(getAppStorage(), w.id);
     }
     catch (error) { setStatus(messageOf(error)); }
   }
@@ -74,7 +78,7 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
     const address = btc.trim();
     if (!await verifyAddress('btc', address)) { setBtcError(BTC_INVALID); return; }
     setBtcError('');
-    if (!await run('btc', 'btc', 'bitcoin-watch', 'Bitcoin', async () => address)) return;
+    if (!await run('btc', 'btc', 'bitcoin-watch', 'Bitcoin', async () => address, 'typed')) return;
     setBtc(''); setBtcOpen(false); focusNext.current = 'btc';
   }
   function disconnect() {
