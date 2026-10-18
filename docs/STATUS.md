@@ -1,3 +1,86 @@
+# Session AE — "Stunning, finished" (ADR-027, Parts 0–6, Gate C) (2026-10-17/18, [PR #89](https://github.com/reyals1111-ux/ZIGoals/pull/89), not merged, not deployed)
+**Evidence labels:** local = the cloud sandbox, production builds on :3101, Playwright Chromium as the Chrome channel, at most 2 workers, builds and browser runs one at a time (owner rule B); CI = Milestone quality on the PR head; WebKit = CI's required WebKit job. No paid service, no secret, no deploy.
+**Base:** `main` `11d8408` (Alpha #43). **Rules (owner):** the brief; rule A (budgets +10 %, `57c8017a`) and rule B (CLAUDE.md's parallel wording, `TIER 3 (project rules)` `f1d91638`). Decisions without asking: ADR-027 G1–G24. Resume file: `docs/handoff/AE_RESUME.md`. Captures: orphan branch `review/session-ae-screens` (`before/` from `11d8408`, `after/`, the Part 1 and Part 2 variants, the capture tools).
+
+## Parts
+| Part | What | Tier | Commits | Evidence |
+|---|---|---|---|---|
+| 0 | Records (Alpha #43, Release identity), ADR-027, AE_RESUME; the generator's per-lane theme layers; the hosted verifier opens each stage's own page and runs locally with `ZIGOALS_VERIFY_BASE` (a spec runs its stages in order in CI) | 1 / 3 | `f1d91638` `57c8017a` `fd0d56ee` `b480412f` `37b140fb` (merge) | CI, local |
+| 1 | Today's hero as one seamless scene: the original artwork with an alpha channel (`art-src/scene-alpha.mjs`), no box, seam or edge; Light a feathered night pool, Dark the same scene dimmed | 2 | `1e21a079` `b0550055` `7a2b721b` `973b4328` | local (seam steps ≤ 4.5), CI |
+| 2 | The footer banner as a finale: see-through planet, the arc back into "= Wealth", the social row up, a 6.7 s once-per-visit finale (variant S2 of three), the music button as ZIGi's twin | 2 | `28c26393` `bd38ffe2` `973b4328` | local, CI |
+| 3 | Light and Dark final (white-family Light, deeper matte accents, translucent tints, amber golds; Dark deeper), the ZG monogram, the cross-fade, themed sidebars; "Preview" removed after the audits | 2 | `2f402fc3` (merge) `37f07128` `e4198fc2` `88b175db` `b9855e3f` `2fc18c94` `90c1b18d` `87780f88` `6780570b` | audits, local, CI |
+| 4 | The sidebar's crisp sky; the demo-balance line removed (`TIER 3 (public-safety labels)`); Habits' even group frame and Routines its own block (`TIER 3 (storage)`); header art on every other page header | 2 / 3 | `2f402fc3` `f5a94a7b` `6065d8b7` `f49a9a5a` `b7365f2e` `cdad35dd` (merges) | local, CI, frozen readers |
+| 5 | The four layout issues on `main` (floating buttons over the rail at 1024, Health's date at 390, Settings' sticky index, Journey's level badge); the blur-order bug in four more sheets with a guard; audit fixes | 2 | `98d5b11f` (merge) `39ebce78` `074c359e` | local, CI |
+| 6 | "Connect Keplr ▾" read-only linking, Disconnect, the wallet card's chooser and currency switch (`TIER 3 (wallet)`, `TIER 3 (storage)`); practice money never in fiat (`TIER 3 (public-safety labels)`); on-ramp research (docs only) | 3 | `f5a94a7b` (merge: `9cdccffc` `945a0fd4` `7de2ee2a` `8b30a731`) `f7435169` `b45e278a` | local, CI, security review |
+| What's new / Help | `2026-10-session-ae-stunning`, nine Help answers mirrored in search, AD's themes answer rewritten | 2 | `d71ef164` (merge) | local, CI |
+| Gate C | Frozen readers with both storage changes; the security review's fix round (`TIER 3 (wallet)`, `TIER 3 (public-safety labels)`); the design review's fix round; the audits and their fixes; weights; scans; CI causes fixed at the root (a wallet measurement mid-entrance, motion sampling, the welcome cards' layout shift); the verifier's capture race | 2 / 3 | `47f95b2f` `418b14b2` `419c781a` `0d5b5c2d` `973b4328` `6780570b` `90c1b18d` `87780f88` `074c359e` `9421f717` `118c2983` `576ea4a4` `eca2a506` `5093d0f4` `512d8f08` and the records commits | below |
+| — | This entry, PR ready for review | — | this commit | — |
+## Tier 3, in plain words (risk → rollback)
+- **Project rules (`f1d91638`, owner rule B):** CLAUDE.md now says builds and browser test runs go one at a time per machine (Playwright at most 2 workers), while helpers may write code, design and research in parallel. Rollback: revert.
+- **Public-safety labels (`9cdccffc`, `f7435169`, `0d5b5c2d`):** "1,000 ZIG demo balance" leaves the top bar and the phone Status sheet (the owner's request); the assertions that read it now read the wallet card's "Simulated balance" and value, at equal strength. The app's practice money (demo records or testnet ZIG) is never shown in USD, EUR or BTC: it reads "unavailable", with the reason. PRIVACY.md says so. Rollback: revert the three; the line returns and the card converts as before.
+- **Storage (`945a0fd4`):** `zigoals:linked-wallets:v1`, public addresses linked read-only, on this device only: never synced, included in Export, never restored from a backup. Older builds ignore it (frozen readers #37–#43). Rollback: revert; a stored record then sits unread.
+- **Storage (`3a0548b3`):** the Habits layout id `habits:routines`. Older builds ignore it on screen and keep it when they save (frozen readers #37–#43). Rollback: revert; Routines rejoins the habits block and a saved order keeps the unknown id harmlessly.
+- **Wallet (`7de2ee2a`, `8b30a731`, `419c781a`):** "Connect Keplr ▾": the main button is Keplr's flow, unchanged; the ▾ menu adds Disconnect, other wallets linked read-only (Keplr-compatible `enable`/`getKey`, EVM `eth_requestAccounts` only) and a watch-only Bitcoin address checked on the device. No signing, transaction, key, custody, new endpoint, dependency or CSP change; a guard test fails on any signing or sending call and on any EVM request other than `eth_requestAccounts`. The security review's fix round makes hostile wallet objects, names and ids harmless. Rollback: revert all three; Keplr's own flow is unchanged.
+- Nothing in auth, sync, CSP or headers, the deploy workflow or CI changed.
+## Owner-approved budget raise (rule A, `57c8017a`) and headroom
+Every budget ×1.1, rounded up to the next kB, in one commit. Measured on the final code (`gate-c-weights.txt`):
+
+| Page | Budget (kB) | Now (kB) | Headroom (kB) |
+|---|---|---|---|
+| /app | 567.0 | 516.0 | 51.0 |
+| /app/goals | 478.0 | 434.4 | 43.6 |
+| /app/habits | 504.0 | 458.3 | 45.7 |
+| /app/health | 531.0 | 483.7 | 47.3 |
+| /app/wealth | 512.0 | 453.6 | 58.4 |
+| /app/markets | 476.0 | 430.3 | 45.7 |
+| /app/portfolio | 500.0 | 452.3 | 47.7 |
+| /app/staking | 487.0 | 441.4 | 45.6 |
+| /app/activity | 457.0 | 409.1 | 47.9 |
+| /app/settings | 531.0 | 483.9 | 47.1 |
+| /app/help | 450.0 | 401.4 | 48.6 |
+| /app/chess | 459.0 | 412.1 | 46.9 |
+| shell (on every page) | 447.0 | 397.3 | 49.7 |
+
+Before the raise Today had 18 bytes of room (Session AD).
+## Tests and assertions changed (deliberate, equal strength unless said)
+- Replaced (ADR-027 G8): `today-hero-bleed` (AD's blurred continuation, deleted with its image) → `today-scene` (seam gradients at every former edge, the art under every control, folded shows none, no sideways scroll at 320–1440, asset sizes); the fold test measures the gap, not a direction (G20); a Light test for the hero by day.
+- `footer-motion`: "the banner as tall as its planet" → the arc reaches "= Wealth", the social row's gap, the banner ends after the row, the planet whole, the finale's order once per visit, still under reduced motion and Motion Off, the star stays pink.
+- `themes`: Light's footer `rgb(2, 9, 24)` flat → a gradient ending in it, the pixels behind the steps' words dark, the words light; no "preview" anywhere in the bar, its tips or its note (stricter).
+- The demo-balance line (owner, G6): `persona-z` and `goals` read the same value on the wallet card (`.account-value`); `phone-shell` checks the Status sheet no longer says "demo balance" and reads the amount and "Simulated balance · this browser" on the wallet card; `ui-design-pass` drops the balance's box (never asserted).
+- Routines its own block (`TIER 3 (storage)`): `phone-pages` and `page-layout` expect `habits:routines` after `habits:list` by default, and an order saved before it keeps its four in place with Routines after them.
+- `wallet-menu`: the practice-money reason's new wording; the 44 px buttons measured once the entrance motions end (the threshold unchanged).
+- `motion-polish`: each animation's start value read at its own start, as the half-way value already was (the assertions unchanged).
+- `ui-design-pass`, `logo-quickadd-goals-header`, `help-page`, `whats-new`, `zigi-help-settings`, `theme-polish-ae`: the theme names, the new release and its nine answers.
+- Unit: `page-layout` (the `habits:routines` id), `build-themes` (per-lane layers, Light's mapping), `theme`, `wallet-card`, `linked-wallets` (exactly one file may name the key: the frozen fixture), `frozen-fixtures` (both storage changes).
+- New: `today-scene`, `launcher-twins`, `header-art-ae`, `habits-routines-block`, `layout-fixes-ae`, `theme-polish-ae`, `wallet-menu`, `hosted-verifier-order` specs; `css-backdrop-order`, `wallet-guard`, `wallet-link`, `wallet-menu`, `wallet-display`, `wallet-card`, `linked-wallets`, `hosted-alpha-stages` unit tests.
+## Gate C evidence
+- Unit (local, `bbb31980`'s code): 5,110 tests passed (582 files), 44 skipped by design; 1 sandbox-only failure (`scripts/pre-run11-setup.test.mjs`: "Select pnpm 11.19.0" inside a spawned CLI; it passes in CI). CI's web checks run the whole suite on every head, the final one included.
+- Browser (local, the full suite once, 2 workers, nothing else running, on `118c2983`'s build): 2,277 passed, 5 failed, 574 skipped (2.4 h). The 5: the four intro-film specs (this sandbox's Chromium cannot play the film; CLAUDE.md) and `run11-layout-stability` (the welcome cards' layout shift, fixed after that build in `5093d0f4`). On the final code's build: `run11-layout-stability`, `motion-polish`, `today-scene`, `wallet-menu`, `onboarding`, `hydration-zone`, `flow-aa` 72 passed, 0 failed.
+- CI: run 1015 ([39089094826](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39089094826)) on `ba188c19` green on every job, both WebKit shards and the integration job included; later commits are the verifier's capture fix (`512d8f08`, its unit tests in CI's web checks) and records. The final head's run is linked in the PR.
+- Audits (`docs/verification/session-ae/gate-c-audits.md`): every state × Nebula/Light/Dark at 390 and 1440 (133 states each), every Nebula state and the main pages in Light and Dark at 320/768/1024/1920, touch at 768/1024, stress records; every finding fixed except the hero slogan's line boxes touching by 4–5 px at 768 and 1920, the same on `main` (Session AD's audit recorded them; protected baseline).
+- Weights (`gate-c-weights.txt`, the final code): every page within its budget; headroom above.
+- Hosted verifier, locally (`gate-c-verifier.txt`): every stage a local base can run PASS; 1,261 requests inspected, no capture error, no privacy match, only the app's and ZIGChain testnet's origins; no page or console error. Status "completed with findings": 44 requests its own navigations abort (39 Next link prefetches), counted by design. The first run found the verifier's capture race (fixed `512d8f08`).
+- Revert gate (`gate-c-revert-gate.txt`): every one of the 55 commits to `512d8f08` (merges with `-m 1`) reverts newest-first with typecheck green after each; the tree ends at `11d8408`. The commits after it are records only.
+- Frozen readers #37–#43 (`gate-c-frozen-readers.txt`): PASS each, with a Habits layout holding `habits:routines` (ignored on screen, kept on save) and a linked-wallets record (ignored).
+- Key scans (`gate-c-scans.txt`): `check-secrets` passed; `key-sweep` no pattern hit; the diff adds no e-mail address.
+- Reviews (fresh agents): security of every Tier 3 commit (no high; one medium, a unit guard, fixed `418b14b2`; the lows fixed `419c781a`, `0d5b5c2d`); design critique of the after captures in three themes and its one fix round (ADR-027 G22).
+- Captures: orphan branch `review/session-ae-screens` (`before/` from `11d8408`, `after/` in Nebula, Light and Dark, the Part 1 and Part 2 variants, the capture tool).
+## Known CI intermittents (this session)
+- `account-browser` b-first (CI run 1013 only): a sync race in code this PR does not touch (ADR-027 G24); its one re-run passed (run 1015: both cases, b-first in 75 s). Proposed for an auth/sync session: after a replayed write answers 409, `sync()` reconciles once, as `runPortfolio` already does.
+- WebKit `zigi-memory:54` (run 1002 only): the page closed mid-click (the target-closed family Session AD saw); passed in every later run.
+- `motion-polish` start sampling (run 1008) and `run11-layout-stability` (run 1006): root-caused and fixed (`eca2a506`, `5093d0f4`); no longer listed.
+## Owner items
+- Leap (shut down 28 May 2026) and Cosmostation's wallet (from 1 Sep 2026) are ended: each shows only when its extension is still injected, labelled as ended, link-only (ADR-027 G15).
+- Practice money (demo records, testnet ZIG) never shows in USD, EUR or BTC (G16); real conversion arrives with the staking session's real balances.
+- On-ramps (`docs/earn/ONRAMP_OPTIONS.md`, docs only, research and not legal advice): approach Banxa first, Ramp Network as the fallback, once the lawyer has answered the doc's open legal questions.
+- Kept, with reasons (G22): the rail's 64 px lane at 1001–1279 px wraps "ZIG reward / reserve"; the reward-reserve card stays an art island in Light; phones keep the banner without the arc.
+- The hero slogan's line boxes touch by 4–5 px at 768 and 1920 px in this sandbox's font, the same on `main` (protected baseline).
+- The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
+- Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
+- Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
 # Alpha deploy #43 — 2026-10-17, `11d8408` live
 Recorded by Session AE (2026-10-17).
 - **Source:** `11d8408280f4f7d5b32f12d17eeeaedd62b43b1f`, `main` after [PR #88](https://github.com/reyals1111-ux/ZIGoals/pull/88) (Merge #88, Session AD, "The final look", ADR-026).
