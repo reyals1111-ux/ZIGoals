@@ -1,6 +1,6 @@
 'use client';
 import './wallet.css';
-import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
+import {Suspense, lazy, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode} from 'react';
 import {useGoals} from '../goal-provider';
 import {SHOWCASE_WALLET_MESSAGE, useLinkedWallets} from './use-linked-wallets';
 import {LinkedWalletError, LINK_LIMIT_MESSAGE, LINK_UNREADABLE_MESSAGE, MAX_LINKED_WALLETS, withoutWallet, type LinkedWallet, type WalletVia} from '../../lib/linked-wallets';
@@ -10,7 +10,11 @@ import {evmSuggestions} from '../../lib/wallets/eip6963';
 import {SOLANA_LINK_ERROR, discoverSolanaWallets, forgetSolanaConnection, readSolanaAddress, type SolanaWallet} from '../../lib/wallets/solana-link';
 import {l2bLink} from '../../lib/wallets/links';
 import {phoneWalletPaths} from './phone-wallet-paths';
+import {LoadBoundary} from '../load-boundary';
+/** Session AF (L2b): the WalletConnect panel and, through it, the package load only when the person opens it. */
+const WalletConnectPanel = lazy(() => import('./walletconnect-panel'));
 import {forgetWalletBalances} from '../../lib/wallets/balances/store';
+import {stopWalletConnect} from '../../lib/wallets/walletconnect';
 import {getAppStorage} from '../../lib/showcase-storage';
 
 /**
@@ -44,7 +48,7 @@ function WalletIcon({icon}: {icon: string | null}) {
 
 export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 'sheet'; id?: string; onClose?: (focusTrigger: boolean) => void}) {
   const s = useGoals(), linked = useLinkedWallets(), own = useId(), menuId = id ?? own;
-  const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState('');
+  const [evm, setEvm] = useState<EvmWallet[]>([]), [sol, setSol] = useState<SolanaWallet[]>([]), [busy, setBusy] = useState<string | null>(null), [status, setStatus] = useState(''), [btcOpen, setBtcOpen] = useState(false), [btc, setBtc] = useState(''), [btcError, setBtcError] = useState(''), [wcOpen, setWcOpen] = useState(false);
   const menu = useRef<HTMLDivElement>(null), focusNext = useRef<string | null>(null);
   // EIP-6963: the page's EVM wallets announce themselves when asked, each time the choices open.
   useEffect(() => discoverEvmWallets(setEvm), []);
@@ -68,8 +72,9 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       linked.write(record => withoutWallet(record, w.id)); setStatus(`${w.label} ${shortAddress(w.address)} removed from this device.`); focusNext.current = next;
       // A Solana wallet linked in this tab is also asked to forget this site, best effort (its own standard:disconnect).
       if (w.kind === 'solana') forgetSolanaConnection(sol.find(x => x.key === w.wallet));
-      // Its last read balances leave with it (lib/wallets/balances/store.ts).
+      // Its last read balances leave with it (lib/wallets/balances/store.ts); a WalletConnect session of this tab ends.
       forgetWalletBalances(getAppStorage(), w.id);
+      if (w.via === 'walletconnect') void stopWalletConnect();
     }
     catch (error) { setStatus(messageOf(error)); }
   }
@@ -129,7 +134,7 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       : <button {...common} type="button" aria-busy={item.busy || undefined} onClick={item.onSelect}>{body}</button>;
   };
   // Phones: the wallets' own in-app browsers and the honest WalletConnect line (the sheet only).
-  if (sheet) groups.push(phoneWalletPaths());
+  if (sheet) groups.push(phoneWalletPaths(undefined, () => { if (blocked) { setStatus(blocked); return; } setWcOpen(true); }));
   const notes = groups.filter(g => g.note).map(g => g.note!);
   const bitcoinForm = <form className="wallet-btc-form" aria-label="Watch a Bitcoin address" onSubmit={e => void addBitcoin(e)}>
     <label htmlFor={`${menuId}-btc`}>Bitcoin address</label>
@@ -145,6 +150,7 @@ export default function WalletMenu({variant, id, onClose}: {variant: 'menu' | 's
       <h4>{g.title}</h4>
       {g.items.length > 0 && <ul>{g.items.map(item => <li key={item.key}>{control(item)}</li>)}</ul>}
       {g.key === 'btc' && btcOpen && bitcoinForm}
+      {g.key === 'phone' && wcOpen && <LoadBoundary label="WalletConnect"><Suspense fallback={<p className="wallet-choices-note">Loading WalletConnect…</p>}><WalletConnectPanel onDone={message => { setWcOpen(false); setStatus(message); }}/></Suspense></LoadBoundary>}
       {g.note && <p className="wallet-choices-note">{g.note}</p>}
     </div>)}
     {statusLine}

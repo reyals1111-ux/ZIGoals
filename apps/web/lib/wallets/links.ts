@@ -24,6 +24,9 @@ const rows = {
   // outside a phone (the read had no MetaMask app); Trust's documented `open_url` form answers 200.
   'metamask-dapp': {kind: 'in-app-browser', url: 'https://link.metamask.io/dapp/', checkedAt: '2026-10-18', check: 'ok', httpStatus: 307, source: 'https://docs.metamask.io/metamask-connect/', prefix: true},
   'trust-dapp': {kind: 'in-app-browser', url: 'https://link.trustwallet.com/open_url', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://developer.trustwallet.com/developer/develop-for-trust/deeplinking', prefix: true},
+  // WalletConnect (only once the owner's project ID is set): Trust's documented link that hands a `wc:` pairing link to the
+  // app (R4 §3; answered 200 on 2026-10-18 23:40 UTC).
+  'trust-wc': {kind: 'walletconnect', url: 'https://link.trustwallet.com/wc', checkedAt: '2026-10-18', check: 'ok', httpStatus: 200, source: 'https://developer.trustwallet.com/developer/develop-for-trust/deeplinking', prefix: true},
   // Add money (Part 4, H18, H32, H34): the two providers' own sites (the plain consumer pages used while their public IDs
   // are empty), Ramp's hosted-mode host (production; the demo host appears only in tests, never opened) and Banxa's partner
   // pages (`<partnerRef>.banxa.com`, checked by its builder, not a fixed address). Read 2026-10-18 23:12 UTC.

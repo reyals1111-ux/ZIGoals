@@ -7,6 +7,7 @@ import {metaMaskInAppLink, trustInAppLink} from './in-app-browser';
 import {L2B_LINKS, L2B_URLS, fromPrefix} from './links';
 import {WALLETCONNECT_SOON, phoneWalletPaths} from '../../components/wallet/phone-wallet-paths';
 import {PUBLIC_INTEGRATIONS} from '../public-integrations';
+import {WALLETCONNECT_CSP} from './walletconnect';
 
 // Session AF (L2b, ADR-028 H40, H41, H87, P3.1–P3.4): the wallets the menu names, the phones' in-app-browser links and the
 // outgoing-link rule for the L2b files.
@@ -56,7 +57,7 @@ describe('outgoing links and labels of the L2b wallet files', () => {
       // The list itself (its rows' sources) and the read hosts (pinned by lib/wallets/balances/hosts.test.ts) are not links.
       if (file === 'lib/wallets/links.ts' || file.startsWith('lib/wallets/balances/')) continue;
       for (const url of readFileSync(join(WEB, file), 'utf8').match(/https:\/\/[^\s'"`)<>\\]+/g) ?? []) {
-        const ok = L2B_URLS.has(url) || VERIFIED_URLS.has(url) || prefixes.some(p => url.startsWith(p)) || url === 'https://alpha.zigoals.app';
+        const ok = L2B_URLS.has(url) || VERIFIED_URLS.has(url) || prefixes.some(p => url.startsWith(p)) || url === 'https://alpha.zigoals.app' || (WALLETCONNECT_CSP.connect as readonly string[]).includes(url);
         expect(ok, `${file}: ${url}`).toBe(true);
       }
     }

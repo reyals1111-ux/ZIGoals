@@ -11,7 +11,7 @@ merged). Server port 3104 only. Every build, Playwright run and screenshot under
 | 2 | `TIER 3 (storage)`: linked-wallets `chains`/`via`/kind `solana`; `zigoals:wallet-balances:v1` | done |
 | 3 | `TIER 3 (CSP)` + read-only tracking (browser-direct readers, pricing, What you have) | done |
 | 4 | Multi-asset Add money | done (codes/routes rows wait for the Part 0 docs, listed below) |
-| 5 | `TIER 3 (dependencies)`: `@walletconnect/sign-client` 2.26.0 | pending |
+| 5 | `TIER 3 (dependencies)`: `@walletconnect/sign-client` 2.26.0 | done (dormant: no project ID) |
 | 6 | Goal Vaults | pending |
 
 ## Step 1 — real read-only connections (`TIER 3 (wallet)`)
@@ -152,6 +152,26 @@ from the public table, not seen in a checkout) — one edit of each `status` in 
 of USDC, USDT and ETH in `lib/onramps/next-steps.ts` ("no recommended route yet") — replace each with the recommended route,
 its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redirectUrl` naming (R3 §12.3).
 
+## Step 5 — `@walletconnect/sign-client` 2.26.0 (`TIER 3 (dependencies)`, owner-approved D1)
+- Added exact, `--ignore-scripts`; 68 packages in the lockfile (57 MIT, 3 ISC, 4 WalletConnect Community License —
+  sign-client, core, types, utils, identical licence files —, one each Apache-2.0, BlueOak-1.0.0, (Apache-2.0 AND MIT),
+  0BSD). Licence read from the installed `LICENSE.md` and recorded in plain words in `docs/dependencies/WALLETCONNECT.md`
+  (500 MAU / 2.5 M RPC monthly thresholds, the notice "Portions © 2025 Reown, Inc. All Rights Reserved", a copy of the
+  licence with the app, the Reown network requirement, modifications assigned to Reown, Delaware law, arbitration).
+  `apps/web/public/licenses/walletconnect.txt`: the notice line + every added package's licence text, unchanged.
+- `lib/wallets/walletconnect.ts`: one dynamic `import()` inside `startWalletConnect`, refused before loading with a null or
+  malformed ID; in-memory storage (nothing on the device), telemetry off; read-only namespaces (EVM and Solana with no
+  method, Cosmos `cosmos_getAccounts`), addresses read from the approved session (CAIP-10, checked); `cosmosMethods` and
+  `walletConnectSession()` for L2a's Keplr Mobile signer; `stopWalletConnect()` on Remove; Trust's `wc?uri=` link.
+- `components/wallet/walletconnect-panel.tsx` (lazy): "Connect by WalletConnect" first in the phone sheet's group **only when
+  the ID is set**; the pairing link (Trust's link, copy, the link as text) and the approved addresses linked read-only
+  (`via: 'walletconnect'`). Without the ID nothing changes: the "available soon on phones" line stays.
+- CSP: nothing now. `WALLETCONNECT_CSP` (connect `wss://relay.walletconnect.org`, `https://verify.walletconnect.org`,
+  `https://verify.walletconnect.com`; frame the two Verify hosts — read from the installed 2.26.0 dist with telemetry off)
+  must enter `csp.app` exactly when the ID is set (`lib/wallets/walletconnect.test.ts` asserts presence iff set).
+- Production build (PUBLIC_ALPHA_UNDEPLOYED, 2026-10-18): the package is its own lazy chunk, **129.6 kB gzip**; no page's
+  HTML loads it; `check-weight-budget.mjs` all ok (Wealth 454.9 kB / 512.0, Portfolio 453.6 / 500.0, shell 398.5 / 447.0).
+
 ## What the lead must wire
 - **Verified link registry rows** (L1's `packages/ecosystem-registry` providers.json + verified-links.ts; this lane keeps
   them in `apps/web/lib/wallets/links.ts` in the registry's record shape until moved): `metamask-site`, `rabby-site`,
@@ -188,6 +208,10 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
 - `scripts/weight-budgets.json`: lines for `/app/wealth/add-money` and `/app/wealth/add-money/back` (measured + 10 %).
 - Navigation / search / Help: `/app/wealth/add-money` ("Add money") under Wealth; the Earn path's step 3 links to it (L1).
 - Theme sheets: regenerate (new `components/add-money/add-money.css`).
+- **About panel** (licence §2a, for the lead): the line "Portions © 2025 Reown, Inc. All Rights Reserved" with a link to
+  `/licenses/walletconnect.txt` ("WalletConnect notices"), beside the app's other notices.
+- When the owner sets `reownProjectId` (one commit): the five WalletConnect hosts into `egress-policy.json` `csp.app`, the
+  exact-list tests, `public-safety.test.ts`'s "no websocket" narrowed to the relay socket, the hosted verifier's origins.
 - After merging L2a: put L2a's "Open ZIGoals in Keplr" (`keplrMobileLink`) as the first item of
   `components/wallet/phone-wallet-paths.ts`'s group.
 
@@ -202,6 +226,10 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
   strength). Reason: the brief's six R4 wallets and the Solana group.
 
 ## Tests
+Step 5: `lib/wallets/walletconnect.test.ts` (no static import anywhere, nothing loads with a null ID, CSP iff set, read-only
+namespaces, session accounts, Remove ends it) and `lib/wallets/walletconnect-panel.test.ts` (jsdom, a mocked ID and a fake
+client: the package is asked for only on the tap; addresses linked read-only; nothing else stored): with the wallet, on-ramp,
+CSP and guard sets, 20 files, 135 passed. Production build ok; weight check all ok.
 Step 4: unit — `lib/onramps/{onramp-assets,onramp-urls,ramp-assets-route}.test.ts` (20) + the wallet set: 11 files, 58
 passed before the last additions; browser (3104, dev) — `tests/add-money.spec.ts` + `tests/webkit-add-money.spec.ts` in
 Chrome (12 passed), `tests/webkit-add-money.spec.ts` in WebKit at 390 × 844 (2 passed). `scripts/sanitize-alpha-tail.test.mjs`
