@@ -35,6 +35,8 @@ Preconditions stand: a legal entity for KYB, the lawyer's answers (MiCA perimete
 
 ## Verification verdicts
 
+(Re-attributed 2026-10-19 from the Phase R journal by each verifier's own label, `verify:R3:<batch>`; the first Part 0 copy had attached the tables to the wrong tracks.)
+
 | Claim | Verdict | Evidence (verifier) | Corrected claim |
 |---|---|---|---|
 | LB1 | confirmed | Read 2026-10-18T20:40+02:00. https://docs.rampnetwork.com/web/quick-start-hosted: redirect to "https://app.rampnetwork.com/" with "mandatory configuration params"; example URL "https://app.rampnetwork.com?hostApiKey=your_host_apiKey&hostAppName=your_app_name&hostLogoUrl=https://example.com/logo.png" and "&userAddress=user blockchain address" as the prefill addition. https://docs.rampnetwork.com/configuration: hostLogoUrl "A required string parameter...", hostAppName "A required string parameter...", hostApiKey "A required string parameter that allows our system to properly recognize and count purchases", userAddress "An optional string parameter that pre-sets the address the crypto will be sent to." Neither page mentions signing, HMAC, a secret key or any server-side step (only optional webhook URL params). curl -I of app.rampnetwork.com with the three params returned HTTP/2 200, no redirect. Note: many other optional params exist (enabledFlows, defaultFlow, inAsset/outAsset, finalUrl, etc.); containerNode is required only for embedded variants. |  |
