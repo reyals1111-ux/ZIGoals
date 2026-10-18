@@ -8,7 +8,7 @@ import {HeaderArtCorner,OrbitArt} from '../header-art/orbit-art';
 import {StakingGlyph} from '../header-art/glyphs/staking';
 import './positions-layout.css';
 import { watchScope, readAprAssumption, saveAprAssumption } from '../../lib/owner-preview';
-import { lazy, Suspense, useMemo, useState, type FormEvent } from 'react';
+import { Component, lazy, Suspense, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {parseAmountInput} from '../../lib/amount-input';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
 import { usePlatform } from './use-platform';
@@ -29,6 +29,12 @@ import {StakingPlaceholder} from './staking-placeholder';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
 import {LoadBoundary} from '../load-boundary';
+// Session AF (L1, P1.2): while no position is observed, the empty state previews Earn with live figures; its own chunk, so
+// the Staking page's first load is unchanged, and the plain panel shows until it arrives (or if it cannot load).
+const StakingEmptyPreview=lazy(()=>import('../earn/staking-empty-preview').then(m=>({default:m.StakingEmptyPreview})));
+/** If the preview's chunk cannot load (offline, an old cached page), the plain panel stays: the sentence is never lost. */
+class KeepPanel extends Component<{children:ReactNode},{failed:boolean}>{state={failed:false};static getDerivedStateFromError(){return {failed:true};}render(){return this.state.failed?EMPTY_PANEL:this.props.children;}}
+const EMPTY_PANEL=<div className="panel positions-empty"><h3>A clear view of your wealth</h3><p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p></div>;
 // Session AF (ADR-028 H46, L2 design §4): stake, unstake, move and claim, signed in the person's own wallet. A lazy chunk:
 // its code (and, on the first Review press, the signing client) loads only on this page.
 const StakingActions=lazy(()=>import('../staking/staking-actions').then(m=>({default:m.StakingActions})));
@@ -75,7 +81,7 @@ export function PositionsView(){
  // Session AA-Cloud Part 1: the positions a person tracks come first, then the examples and Valdora's placeholder; on a
  // phone the wallet and scenario tools follow the positions (components/phone/phone-positions.css).
  const mainRegion=useMemo(()=><div className="positions-layout"><div className="positions-main"><LayoutRegion region="main" items={[
- {id:'positions:observed',label:'Positions and allocations',node:<section id="positions" aria-labelledby="observed-positions-title"><div className="positions-section-heading"><p className="eyebrow">Your observed wealth</p><h2 className="nebula-number" id="observed-positions-title">Positions &amp; allocations</h2><p className="fine">{network} · {scope?'Saved public snapshot. Refresh to verify current balances.':'Add a public wallet to see your positions.'}</p></div><div className="goal-grid" role="group" aria-label="Positions">{observed.map(renderPosition)}</div>{!observed.length&&<div className="panel positions-empty"><h3>A clear view of your wealth</h3><p>Track a public wallet to see liquid funds, stake and rewards together. Allocate existing wealth to your Goals without moving funds.</p></div>}</section>},
+ {id:'positions:observed',label:'Positions and allocations',node:<section id="positions" aria-labelledby="observed-positions-title"><div className="positions-section-heading"><p className="eyebrow">Your observed wealth</p><h2 className="nebula-number" id="observed-positions-title">Positions &amp; allocations</h2><p className="fine">{network} · {scope?'Saved public snapshot. Refresh to verify current balances.':'Add a public wallet to see your positions.'}</p></div><div className="goal-grid" role="group" aria-label="Positions">{observed.map(renderPosition)}</div>{!observed.length&&<KeepPanel><Suspense fallback={EMPTY_PANEL}><StakingEmptyPreview/></Suspense></KeepPanel>}</section>},
  {id:'positions:manual',label:'Tracked crypto',node:<section aria-labelledby="manual-positions-title"><div className="positions-section-heading"><p className="eyebrow">Wealth beyond your wallet</p><h2 className="nebula-number" id="manual-positions-title">Tracked crypto</h2></div><div className="goal-grid" role="group" aria-label="Manual positions">{store.data.positions.filter(p=>p.sourceType==='MANUAL'&&isCryptoPosition(p)).map(renderPosition)}</div> <p className="picker-mode-note">Wealth is home to all your assets. This view brings together crypto holdings and staking.</p><Link className="primary" href="/app/wealth">Add & manage assets in Wealth →</Link>{editing&&<Sheet title={`Edit ${editing.providerId}`} onClose={()=>setEditing(undefined)}><AssetEditor position={editing} platform={store.data} update={store.update} onSaved={()=>setEditing(undefined)}/></Sheet>}</section>},
  showcaseRewards.length>0&&{id:'positions:showcase',label:'Crypto reward examples',node:<section className="showcase-reward-positions" aria-label="Showcase crypto reward examples"><div className="positions-section-heading"><p className="eyebrow">Showcase · fictional</p><h2>Crypto reward examples</h2><p>Fictional recorded rewards, separate from the selected network’s observed stake and totals. No onchain rewards have been verified.</p></div><div className="goal-grid">{showcaseRewards.map(renderPosition)}</div></section>},
  {id:'positions:valdora',label:'Valdora liquid staking',node:<StakingPlaceholder/>},

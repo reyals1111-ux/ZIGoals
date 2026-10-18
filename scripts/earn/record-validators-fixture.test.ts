@@ -3,7 +3,7 @@ import {writeFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
 
 /**
- * Session AF (L1): records a fixture of GET /api/chain/validators?network=mainnet in lane L2a's wire shape, from one real
+ * Session AF (L1): records a fixture of GET /api/chain/validators?network=zigchain-1 in lane L2a's wire shape, from one real
  * read of ZIGChain's mainnet LCD, for the Earn page's browser tests until L2a's route merges. It never runs by itself:
  * `EARN_RECORD_FIXTURE=1 EARN_VALIDATORS_OUT=apps/web/lib/earn/fixtures/validators-<date>.json pnpm exec vitest run
  * scripts/earn/record-validators-fixture.test.ts`. Plain GETs at one block height; only public validator data.
@@ -42,13 +42,13 @@ describe.skipIf(!enabled)('record the validators fixture', () => {
       let selfBond: string | null = null;
       if (v.status === 'BOND_STATUS_BONDED') { try { selfBond = (await get(`/cosmos/staking/v1beta1/validators/${v.operator_address}/delegations/${self}`, h)).delegation_response.balance.amount; } catch { selfBond = null; } }
       const missed = info ? Number(info.missed_blocks_counter) : null;
-      return {operator: v.operator_address, moniker: v.description.moniker, website: v.description.website || null,
+      return {operator: v.operator_address, moniker: v.description.moniker, website: (v.description.website ?? '').slice(0, 300),
         status: v.status === 'BOND_STATUS_BONDED' ? 'bonded' : v.status === 'BOND_STATUS_UNBONDING' ? 'unbonding' : 'unbonded', jailed: v.jailed, tombstoned: info ? info.tombstoned : null,
         tokens: v.tokens, votingPowerShare: v.status === 'BOND_STATUS_BONDED' ? (Number(BigInt(v.tokens) * 1_000_000_000n / total) / 1e9).toString() : '0',
         commission: {rate: v.commission.commission_rates.rate, maxRate: v.commission.commission_rates.max_rate, maxChangeRate: v.commission.commission_rates.max_change_rate, updatedAt: v.commission.update_time},
         selfBond, uptime: info && missed !== null && v.status === 'BOND_STATUS_BONDED' ? {window, missed, signedShare: ((window - Math.min(window, missed)) / window).toString()} : null};
     }));
-    const answer = {version: 1, status: 'ok', network: 'mainnet', height: h, observedAt: new Date(latest.time.replace(/\.(\d{3})\d*Z$/, '.$1Z')).toISOString(), source: {name: 'ZIGChain mainnet LCD (official)', origin: LCD}, bondedTotal: pool.pool.bonded_tokens, validators};
+    const answer = {version: 1, status: 'ok', network: 'zigchain-1', height: h, observedAt: new Date(latest.time.replace(/\.(\d{3})\d*Z$/, '.$1Z')).toISOString(), source: 'https://api.zigchain.com', bondedTotal: pool.pool.bonded_tokens, validators};
     writeFileSync(out!, JSON.stringify({recordedAt: new Date().toISOString(), note: 'One real read of ZIGChain mainnet’s validator set at one block height, in lane L2a’s GET /api/chain/validators wire shape (scripts/earn/record-validators-fixture.test.ts). For the Earn page’s browser tests until that route is in the build.', answer}, null, 1) + '\n');
     expect(validators.filter(v => v.status === 'bonded').length).toBeGreaterThan(0);
   }, 300_000);
