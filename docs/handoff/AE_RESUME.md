@@ -42,6 +42,17 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 5 Layout | done: four issues (L) + the blur-order fix (`39ebce78`) | `98d5b11f`, `39ebce78` |
 | 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
 
+## Resume here (2026-10-18 03:40 Brussels — Gate C, the last checks)
+- Done since 00:20: the widths, touch and stress audits and their fixes (`074c359e`, `9421f717`, `118c2983`; record
+  `197f151f`); CI causes fixed at the root (`576ea4a4` wallet-menu, `eca2a506` motion-polish, `5093d0f4` the welcome
+  cards' layout shift; ADR-027 G23).
+- CI run 1013 on `8426c913`: the integration job failed once in `scripts/run10/account-browser.test.mjs` (b-first,
+  step L88): B's offline write was replayed against A's newer head (409, "Cloud changed … Retry to reconcile") before the
+  conflict review the test waits for. Sync code and that test are unchanged by this PR; this push is its one re-run.
+- Running: the full browser suite once on `118c2983`'s build (`$SP/final.sh`, `$SP/logs/full.log`).
+- Next: rebuild the head → the CLS, motion, wallet and Today specs again → the local verifier (a new output folder) →
+  weights → revert gate → ADR-027 outcomes → the STATUS entry (the last commit) → PR ready once CI is green.
+
 ## Resume here (2026-10-18 00:20 Brussels — Gate C, after the design round)
 - Done: design critique (fresh agent) and its fix round (`973b4328`, `6780570b`, ADR-027 G22); audits Nebula/Light/Dark at
   390 and 1440 clean (Light after `90c1b18d`, `87780f88`); unit suite 5,110 passed (the sandbox-only pre-run11 test
