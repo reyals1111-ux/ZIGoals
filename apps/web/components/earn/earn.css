@@ -1,0 +1,167 @@
+/* Session AF (L1): the Earn hub. Nebula panels, one figure style for every live number, a sticky chip index, the guide
+   panel, and the phone layout (chip rail under the top bar, cards for the validators, the guide as a bottom sheet, 44 px
+   targets). Colours come from the shared tokens and the wealth accent; the themes restyle them. Still under reduced
+   motion and Motion Off: nothing here animates. */
+.earn-page { --earn-accent: #ffd27a; --earn-glass: linear-gradient(160deg, #0d1a33f2, #0a1328f5 60%, #140f30f2); --earn-chip-top: 0px; }
+.earn-page .earn-hero { margin-bottom: 8px; }
+.earn-hero-note { max-width: 680px; margin: 0 0 18px; color: var(--text-meta); }
+.earn-sections { display: grid; gap: 24px; }
+.earn-sections > .panel { margin: 0; }
+
+/* The chip index */
+.earn-chips { position: sticky; top: var(--earn-chip-top); z-index: 20; margin: 0 -12px 20px; padding: 10px 12px; border-radius: 0 0 18px 18px; background: linear-gradient(180deg, #060b19f7, #0a1224ef); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); }
+.earn-chips-rail { display: flex; flex-wrap: wrap; gap: 8px; }
+.earn-chip { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #7fc8ff33; background: #101c33; color: var(--text-secondary); font-size: 15px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.earn-chip:hover { border-color: #7fc8ff66; color: var(--text-strong); }
+.earn-chip[aria-current="true"] { border-color: var(--earn-accent); color: #0b1328; background: linear-gradient(115deg, #ffe2a3, var(--earn-accent)); }
+.earn-chip:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+html:has(.earn-chips) { scroll-padding-top: 88px; }
+
+/* One option */
+.earn-option { display: grid; gap: 22px; background: var(--earn-glass); border-color: #7fc8ff2e; }
+.earn-option-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: start; }
+.earn-medallion { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #23365c, #0b142a 70%); border: 1px solid #ffd27a55; box-shadow: 0 0 0 4px #ffd27a12, 0 10px 30px #0008; overflow: hidden; }
+.earn-medallion img { width: 44px; height: 44px; object-fit: contain; }
+.earn-glyph-mark { width: 52px; height: 52px; }
+.earn-glyph-mark .ha-ink-c { fill: var(--accent-cyan); }
+.earn-option-title h2 { margin: 2px 0 8px; font-size: clamp(24px, 2.2vw + 10px, 32px); }
+.earn-option-lede { margin: 0 0 12px; color: var(--text-secondary); font-size: 17px; line-height: 1.5; max-width: 720px; }
+.earn-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.earn-tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 650; border: 1px solid #7fc8ff40; color: var(--text-secondary); background: #0f1a30; }
+.earn-tag[data-tone=live] { border-color: #86f0d680; color: var(--accent-teal); }
+.earn-tag[data-tone=keys] { border-color: #ffd27a80; color: var(--earn-accent); }
+.earn-tag[data-tone=contract] { border-color: #cbbfff70; color: var(--accent-violet); }
+.earn-tag[data-tone=paused] { border-color: #ffb27a90; color: #ffc59a; }
+.earn-tag[data-tone=beta] { border-color: #f3b0e670; color: var(--accent-magenta); }
+.earn-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px 20px; margin: 0; }
+.earn-facts > div { padding: 14px 16px; border-radius: 14px; background: #0b1428b3; border: 1px solid #7fc8ff1f; }
+.earn-facts dt, .earn-figure dt { margin: 0 0 4px; color: var(--text-meta); font-size: 14px; font-weight: 650; letter-spacing: .02em; }
+.earn-facts dd { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
+.earn-subhead { margin: 0 0 10px; font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: #d3e2f6; }
+
+/* Live figures */
+.earn-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; margin: 0; }
+.earn-figure { padding: 14px 16px; border-radius: 14px; background: #0a1226; border: 1px solid #7fc8ff26; min-width: 0; }
+.earn-figure[data-big] { grid-column: 1 / -1; background: linear-gradient(120deg, #13203c, #0b1328); border-color: #ffd27a40; }
+.earn-figure dd { margin: 0; display: grid; gap: 4px; }
+.earn-value { font-size: 20px; font-weight: 700; color: var(--text-strong); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.earn-figure[data-big] .earn-value { font-size: clamp(28px, 2.6vw + 12px, 40px); background-image: var(--nebula-figure); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.earn-value.is-unavailable, .earn-figure[data-big] .earn-value.is-unavailable { font-size: 17px; background: none; -webkit-text-fill-color: currentColor; color: #ffc59a; }
+.earn-unit { font-size: 15px; font-weight: 550; color: var(--text-meta); }
+.earn-source { color: var(--text-meta); font-size: 13px; line-height: 1.4; }
+.earn-source[data-stale] .earn-age { color: #ffc59a; font-weight: 650; }
+.earn-figure:has(.earn-source[data-stale]) { box-shadow: inset 0 0 0 1px #ffb27a66; }
+.earn-hint { color: var(--text-meta); font-size: 14px; line-height: 1.45; }
+.earn-unavailable { color: #ffc59a; }
+.earn-reason { font-weight: 500; color: var(--text-meta); }
+.earn-reading { color: var(--text-meta); }
+.earn-figures-note { display: grid; gap: 12px; margin-top: 12px; }
+.earn-commission { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; }
+.earn-commission legend { margin-bottom: 6px; color: var(--text-meta); font-size: 14px; font-weight: 600; }
+.earn-commission label { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #7fc8ff33; cursor: pointer; }
+.earn-commission label:has(input:checked) { border-color: var(--earn-accent); color: var(--earn-accent); }
+.earn-formula { border-radius: 14px; border: 1px solid #7fc8ff26; background: #0a1226; padding: 0 16px; }
+.earn-formula > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 650; color: #8bddeb; }
+.earn-formula ul { padding-left: 20px; }
+.earn-formula li { margin: 6px 0; color: var(--text-secondary); }
+
+/* Fees, lockups, minimums, risks */
+.earn-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px 24px; }
+.earn-column p { color: var(--text-secondary); margin: 0 0 8px; line-height: 1.5; }
+.earn-column:last-child { grid-column: 1 / -1; }
+.earn-column:last-child .earn-risks { columns: 2 320px; column-gap: 32px; display: block; }
+.earn-column:last-child .earn-risks li { break-inside: avoid; margin-bottom: 8px; }
+.earn-risks { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--text-secondary); line-height: 1.5; }
+
+/* Steps */
+.earn-steps ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: none; }
+.earn-steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; }
+.earn-steps li p { margin: 4px 0 0; color: var(--text-secondary); line-height: 1.5; }
+.earn-step-n { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ffd27a80; color: var(--earn-accent); font-weight: 700; }
+.earn-step-sign { font-size: 14px; color: var(--text-meta) !important; }
+.earn-option-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Validators */
+.earn-guidance { padding: 16px 18px; border-radius: 14px; background: #0b1428b3; border: 1px solid #ffd27a33; margin-bottom: 16px; }
+.earn-guidance ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--text-secondary); }
+.earn-filters { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin-bottom: 10px; }
+.earn-check { display: inline-flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; }
+:root .earn-page :is(.earn-check, .earn-commission label) input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--earn-accent); }
+.earn-select { display: grid; gap: 4px; font-size: 14px; color: var(--text-meta); }
+.earn-select select { min-height: 44px; }
+.earn-count { margin: 0 0 8px; font-size: 14px; }
+.earn-table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid #7fc8ff26; margin-bottom: 8px; }
+.earn-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.earn-table :is(th, td) { padding: 12px 14px; text-align: start; border-bottom: 1px solid #7fc8ff1a; vertical-align: top; color: var(--text-secondary); font-size: 15px; }
+.earn-table thead th { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-meta); background: #0d1a2e; }
+.earn-table tbody th { font-weight: 650; color: var(--text-strong); }
+.earn-table small { color: var(--text-meta); font-size: 13px; }
+.earn-moniker { display: block; }
+.earn-website { display: block; font-weight: 500; font-size: 13px; color: var(--text-meta); overflow-wrap: anywhere; }
+.earn-status { display: inline-flex; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 650; border: 1px solid #86f0d670; color: var(--accent-teal); }
+.earn-status:is([data-status=jailed], [data-status=tombstoned]) { border-color: #ffb27a90; color: #ffc59a; }
+.earn-status:is([data-status=unbonded], [data-status=unbonding]) { border-color: #7fc8ff40; color: var(--text-meta); }
+.earn-validators-more { margin: 12px 0 0; }
+
+/* Summary, calculator, safety */
+.earn-summary-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.earn-summary-who { margin: 0 0 8px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.earn-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; color: var(--text-meta); }
+.earn-calculator-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; }
+.earn-safety-tiles { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+.earn-safety-tiles li { padding: 16px 18px; border-radius: 16px; background: #0b1428; border: 1px solid #ffd27a33; }
+.earn-safety-tiles h3 { margin: 0 0 8px; font-size: 17px; color: var(--text-strong); }
+.earn-safety-tiles p { margin: 0; color: var(--text-secondary); line-height: 1.5; }
+.earn-denom { font-size: 13px; overflow-wrap: anywhere; word-break: break-all; color: var(--earn-accent); }
+
+/* Guide mode: a compact panel at the bottom right (not a dialog) */
+.earn-guide-panel { position: fixed; right: max(100px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); z-index: 60; box-sizing: border-box; width: min(380px, calc(100vw - 40px)); max-height: min(70vh, 560px); overflow: auto; padding: 16px 18px; border-radius: 20px; border: 1px solid #ffd27a55; background: linear-gradient(160deg, #0f1d38fa, #0a1328fa); box-shadow: 0 24px 80px #000c; color: var(--text-secondary); }
+.earn-guide-grabber { display: none; }
+.earn-guide-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.earn-guide-head h2 { margin: 2px 0 10px; font-size: 19px; }
+.earn-guide-head .eyebrow { font-size: 12px; letter-spacing: .12em; }
+.earn-guide-head .icon-button { min-width: 44px; min-height: 44px; }
+.earn-guide-steps { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 6px; }
+.earn-guide-steps button { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: inherit; text-align: start; font: inherit; line-height: 1.4; cursor: pointer; }
+.earn-guide-steps li[aria-current=step] button { border-color: #ffd27a66; background: #ffd27a12; color: var(--text-strong); }
+.earn-guide-steps li[data-done] .earn-guide-n { background: #86f0d633; }
+.earn-guide-n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid #ffd27a80; color: var(--earn-accent); font-weight: 700; font-size: 13px; }
+.earn-guide-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.earn-guide-actions .fine { margin: 0; }
+.earn-guide-note { margin: 10px 0 0; }
+
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .earn-page { --earn-chip-top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px)); }
+  .earn-chips { margin-inline: calc(-1 * var(--phone-gutter, 16px)); padding: 8px 0; border-radius: 0; }
+  .earn-chips-rail { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; padding: 0 var(--phone-gutter, 16px); scrollbar-width: none; }
+  .earn-chips-rail::-webkit-scrollbar { display: none; }
+  .earn-chip { scroll-snap-align: center; }
+  html:has(.earn-chips) { scroll-padding-top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px) + 72px); }
+  .earn-sections > .panel { padding: 20px 16px; }
+  .earn-option-head { grid-template-columns: minmax(0, 1fr); }
+  .earn-medallion { width: 56px; height: 56px; }
+  .earn-option-actions > * { flex: 1 1 100%; }
+  .earn-option-actions :is(.primary, .secondary) { width: 100%; }
+  .earn-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .earn-filters > * { min-width: 0; }
+  /* WebKit draws a select's text past its box: contained, with room for the focus ring. */
+  .earn-select { overflow: hidden; padding: 3px; margin: -3px; }
+  .earn-select select { width: 100%; max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+  .earn-table-wrap { border: 0; overflow: visible; }
+  .earn-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .earn-table, .earn-table tbody, .earn-table tr, .earn-table :is(th, td) { display: block; width: auto; }
+  .earn-table tr { margin-bottom: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid #7fc8ff26; background: #0a1226; }
+  .earn-table :is(th, td) { padding: 6px 0; border: 0; }
+  .earn-table td::before { content: attr(data-label); display: block; font-size: 13px; color: var(--text-meta); font-weight: 650; }
+  /* The guide is a bottom sheet over the tab bar. */
+  .earn-guide-panel { left: 0; right: 0; bottom: calc(var(--phone-tabs, 60px) + var(--safe-bottom, 0px)); width: auto; max-height: 55vh; border-radius: 22px 22px 0 0; padding: 8px 16px 16px; }
+  .earn-guide-grabber { display: block; width: 44px; height: 5px; margin: 0 auto 8px; border-radius: 3px; background: #7fc8ff55; }
+}
+@media (forced-colors: active) { .earn-chip[aria-current="true"] { outline: 2px solid Highlight; } }
+
+/* The Staking page's empty state that previews Earn (components/earn/staking-empty-preview.tsx). */
+.earn-preview { display: grid; gap: 14px; }
+.earn-preview h3 { margin: 0; }
+.earn-preview > p { margin: 0; }
+.earn-preview-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.earn-preview-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }

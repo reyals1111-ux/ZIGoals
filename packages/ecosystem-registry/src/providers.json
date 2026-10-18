@@ -233,7 +233,89 @@
         "supports": "Provider fee statements (read 2026-10-02)."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "stake",
+        "url": "https://valdora.finance/stake",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/"
+      },
+      {
+        "kind": "unstake",
+        "url": "https://valdora.finance/unstake",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/"
+      },
+      {
+        "kind": "vaults",
+        "url": "https://valdora.finance/vaults",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/"
+      },
+      {
+        "kind": "docs",
+        "url": "https://docs.valdora.finance/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/"
+      },
+      {
+        "kind": "security",
+        "url": "https://docs.valdora.finance/security",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.valdora.finance/"
+      },
+      {
+        "kind": "faq",
+        "url": "https://docs.valdora.finance/faqs",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.valdora.finance/"
+      },
+      {
+        "kind": "contracts",
+        "url": "https://docs.valdora.finance/smart-contracts",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.valdora.finance/"
+      },
+      {
+        "kind": "fees",
+        "url": "https://docs.valdora.finance/economics-and-incentives",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.valdora.finance/"
+      },
+      {
+        "kind": "unstaking",
+        "url": "https://docs.valdora.finance/liquid-staking/unstaking-and-redemption",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.valdora.finance/"
+      },
+      {
+        "kind": "defillama",
+        "url": "https://defillama.com/protocol/valdora-finance",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://api.llama.fi/protocol/valdora-finance"
+      }
+    ]
   },
   {
     "id": "oroswap",
@@ -381,7 +463,65 @@
         "supports": "Read 2026-10-02: a fee per pool type, a maker share of each fee, and new pools disabled for every type."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "swap",
+        "url": "https://app.oroswap.org/swap",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.oroswap.org/"
+      },
+      {
+        "kind": "pools",
+        "url": "https://app.oroswap.org/pools",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.oroswap.org/"
+      },
+      {
+        "kind": "docs",
+        "url": "https://docs.oroswap.org/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.oroswap.org/"
+      },
+      {
+        "kind": "docs-swap",
+        "url": "https://docs.oroswap.org/docs/getting-started/swap/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.oroswap.org/"
+      },
+      {
+        "kind": "docs-liquidity",
+        "url": "https://docs.oroswap.org/docs/standard-pool/add_remove_liquidity/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.oroswap.org/"
+      },
+      {
+        "kind": "docs-farms",
+        "url": "https://docs.oroswap.org/docs/incentive/incentives/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.oroswap.org/"
+      },
+      {
+        "kind": "defillama",
+        "url": "https://defillama.com/protocol/oroswap",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://api.llama.fi/protocol/oroswap"
+      }
+    ]
   },
   {
     "id": "permapod",
@@ -583,7 +723,41 @@
         "supports": "Non-primary incident research lead only; not accepted as verified fact."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "site",
+        "url": "https://www.permapod.xyz/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://permapod.xyz/"
+      },
+      {
+        "kind": "safety",
+        "url": "https://docs.permapod.xyz/safety",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.permapod.xyz/"
+      },
+      {
+        "kind": "defillama",
+        "url": "https://defillama.com/protocol/permapod",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://api.llama.fi/protocol/permapod"
+      },
+      {
+        "kind": "tracker-note",
+        "url": "https://github.com/DefiLlama/DefiLlama-Adapters/blob/main/projects/perma-pod/index.js",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 429,
+        "source": "https://api.llama.fi/protocol/permapod"
+      }
+    ]
   },
   {
     "id": "nawa",
@@ -664,7 +838,25 @@
         "supports": "Older EVM/CoreDAO diff-review scope and findings."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "site",
+        "url": "https://www.nawa.finance/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.nawa.finance/"
+      },
+      {
+        "kind": "defillama",
+        "url": "https://defillama.com/protocol/nawa-protocol",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://api.llama.fi/protocol/nawa-protocol"
+      }
+    ]
   },
   {
     "id": "zig-markets",
@@ -837,7 +1029,25 @@
         "supports": "Funds held in Binance; Fireblocks covers account wallets only (read 2026-10-02 on the help center's Intercom host)."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "closure-notice",
+        "url": "https://intercom.help/zignaly/en/articles/17613629-zignaly-is-closing-how-to-withdraw-your-funds",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://intercom.help/zignaly/en/collections/19783703-zignaly-platform-closure"
+      },
+      {
+        "kind": "closure-collection",
+        "url": "https://intercom.help/zignaly/en/collections/19783703-zignaly-platform-closure",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://zignaly.com/"
+      }
+    ]
   },
   {
     "id": "wme",
@@ -1017,7 +1227,25 @@
         "supports": "Invoice financing, borrower onboarding and risk-assessment positioning."
       }
     ],
-    "phase": "FUTURE_GATED"
+    "phase": "FUTURE_GATED",
+    "officialLinks": [
+      {
+        "kind": "site",
+        "url": "https://imdefa.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://imdefa.com/"
+      },
+      {
+        "kind": "defillama",
+        "url": "https://defillama.com/protocol/defa-by-invoicemate",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://api.llama.fi/protocol/defa-by-invoicemate"
+      }
+    ]
   },
   {
     "id": "beehive",
@@ -1582,5 +1810,157 @@
       }
     ],
     "phase": "READ_ONLY"
+  },
+  {
+    "id": "zig-finance",
+    "name": "ZIG Finance",
+    "roles": [
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://zig.finance/",
+    "documentation": [
+      "https://docs.zigchain.com/"
+    ],
+    "networks": [],
+    "contracts": [],
+    "capabilities": [
+      "HUB_LINKS",
+      "EXPLORER_HOME"
+    ],
+    "status": "VERIFIED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-10-18",
+    "risks": [
+      "Each site has its own terms and its own network setting; check the network before you sign anything there."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "UNKNOWN",
+      "jurisdiction": "Public information pages; each site’s own terms apply.",
+      "note": "ZIGoals needs no wallet or account to show these links."
+    },
+    "notes": "Holds the verified links ZIGoals shows that are not one ecosystem app’s own: the ZIG Finance and ZIGChain sites and docs, the Hub, the testnet faucet, the ZIGScan explorer, and Keplr’s site and staking page. It is a list of destinations, not an ecosystem app.",
+    "sources": [
+      {
+        "url": "https://zig.finance/what-is-zig-finance",
+        "title": "What is ZIG Finance",
+        "supports": "ZIG Finance names itself the ecosystem brand of ZIG Chain, ZIG Labs and ZIG Markets."
+      },
+      {
+        "url": "https://github.com/ZIGChain/docs/blob/main/docs/users/hub/index.md",
+        "title": "ZIGChain Hub overview (docs source)",
+        "supports": "Names the Hub and its staking, proposals and bridge pages."
+      },
+      {
+        "url": "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md",
+        "title": "ZIGChain block explorers (docs source)",
+        "supports": "Names ZIGScan as an explorer for ZIGChain."
+      },
+      {
+        "url": "https://github.com/chainapsis/keplr-chain-registry/blob/main/cosmos/zigchain.json",
+        "title": "Keplr chain registry: ZIGChain",
+        "supports": "Gives Keplr’s staking page for ZIGChain (walletUrlForStaking)."
+      }
+    ],
+    "phase": "READ_ONLY",
+    "officialLinks": [
+      {
+        "kind": "site",
+        "url": "https://zig.finance/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://zig.finance/what-is-zig-finance"
+      },
+      {
+        "kind": "about",
+        "url": "https://zig.finance/what-is-zig-finance",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://zig.finance/"
+      },
+      {
+        "kind": "docs",
+        "url": "https://docs.zigchain.com/",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://github.com/ZIGChain/docs"
+      },
+      {
+        "kind": "hub",
+        "url": "https://hub.zigchain.com/",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/hub/index.md"
+      },
+      {
+        "kind": "hub-staking",
+        "url": "https://hub.zigchain.com/staking",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/hub/index.md"
+      },
+      {
+        "kind": "hub-proposals",
+        "url": "https://hub.zigchain.com/proposals/",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://zig.finance/coin"
+      },
+      {
+        "kind": "hub-bridge",
+        "url": "https://hub.zigchain.com/bridge/",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/hub/index.md"
+      },
+      {
+        "kind": "faucet",
+        "url": "https://faucet.zigchain.com/",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://github.com/ZIGChain/docs"
+      },
+      {
+        "kind": "keplr",
+        "url": "https://www.keplr.app/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://github.com/chainapsis/keplr-chain-registry/blob/main/cosmos/zigchain.json"
+      },
+      {
+        "kind": "keplr-staking",
+        "url": "https://wallet.keplr.app/chains/zigchain?modal=staking&chain=zigchain-1&step_id=2",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://github.com/chainapsis/keplr-chain-registry/blob/main/cosmos/zigchain.json",
+        "allowQuery": true
+      },
+      {
+        "kind": "explorer",
+        "url": "https://zigscan.org/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md"
+      },
+      {
+        "kind": "explorer-validators",
+        "url": "https://zigscan.org/validators",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md"
+      }
+    ]
   }
 ]
