@@ -70,3 +70,7 @@
   /* The shade fades out at its foot too (it ended in a hard line under the pillars: invisible by night, a cut by day). */
   :root .today-hero:not(.today-hero-folded)::after { -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(180deg, transparent, #000 18%, #000 calc(100% - 56px), transparent); }
 }
+/* Session AE Gate C: the place a new device's welcome cards take while their chunks load (today-dashboard.tsx TodayReserve). */
+.today-reserve[data-reserve=welcome] { min-height: 260px; }
+.today-reserve[data-reserve=make] { min-height: 500px; }
+@media (max-width: 540px) { .today-reserve[data-reserve=welcome] { min-height: 300px; } .today-reserve[data-reserve=make] { min-height: 560px; } }
