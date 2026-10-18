@@ -34,7 +34,16 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', permissions: [] });
 const page = await context.newPage();
 const captures = [];
-page.on('request', request => captures.push(request.allHeaders().then(headers => ({ url: request.url(), method: request.method(), headers, body: request.postData() })).catch(error => ({ captureError: String(error) }))));
+page.on('request', request => captures.push(request.allHeaders().then(headers => ({ url: request.url(), method: request.method(), headers, body: request.postData() })).catch(error => ({ url: request.url(), method: request.method(), captureError: String(error) }))));
+// Session AE Gate C: a request the leaving page starts in the instant of a navigation (a link prefetch after the layout
+// samples resized the viewport) can lose its target before its headers are read; the capture check below then failed on
+// the verifier's own timing (a local run: 2 of 1,226 requests, right after Settings' samples), not on the site. So every
+// navigation and reload waits until the page has had no request in flight for half a second (at most 10 s). The check
+// itself is unchanged: a capture that still fails fails the run, now with its URL.
+const inFlight = new Set();
+page.on('request', r => inFlight.add(r)); page.on('requestfinished', r => inFlight.delete(r)); page.on('requestfailed', r => inFlight.delete(r));
+async function settled() { const end = Date.now() + 10000; let calm = 0; while (Date.now() < end) { calm = inFlight.size ? 0 : calm + 1; if (calm >= 5) return; await new Promise(r => setTimeout(r, 100)); } }
+for (const name of ['goto', 'reload']) { const original = page[name].bind(page); page[name] = async (...args) => { await settled(); return original(...args); }; }
 page.on('pageerror', e => report.pageErrors.push(e.message));
 page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push({message:m.text(),location:m.location(),pageUrl:page.url()}); });
 page.on('requestfailed', r => report.failedRequests.push({ url: r.url(), failure: r.failure() }));
