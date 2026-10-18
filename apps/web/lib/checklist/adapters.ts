@@ -10,6 +10,7 @@ import {endedSession, sessionFrom, startRun} from '../meditation/timer';
 import {logFastToHabit, removeFast, runningSession, startFast, stopFast} from '../fasting/engine';
 import type {Fasting} from '../fasting/schema';
 import {wallClock} from '../zone-time';
+import {discardHabitTimer, finishHabitTimer, startHabitTimer} from '../habit-timer-actions';
 import {addReceipt, dropReceipt, setCustomDone} from './day';
 import {mealAt, type DerivedDot} from './derive';
 import type {ChecklistDays} from './schema';
@@ -162,6 +163,17 @@ export function meditationTimerPlan(ctx: TickContext, minutes = 10): TickPlan {
       message: `Meditation saved on Health: ${Math.max(1, Math.round(ended.seconds / 60))} min.`, undone: 'The session is running again.', done: true, signal: 'checklist_tick'};
   }
   return {writes: [w('meditationRun', () => startRun({now: ctx.now, minutes}))], undo: [w('meditationRun', () => emptyMeditationRun())], message: `Meditation started: ${minutes} minutes.`, undone: 'Meditation not started.', done: false, signal: 'checklist_tick'};
+}
+
+/** Focus (the corner timer, shown when a duration habit is on the path): one tap starts that habit's own timer, the next
+ *  finishes it and logs the time on Habits (Habits' "Finish"). Undo cancels a start; a finished timer is changed on Habits
+ *  (its receipt is part of the habit's record), so that toast offers no Undo and says where to change it. */
+export function focusPlan(habit: Habit | undefined, ctx: TickContext): TickPlan {
+  if (!habit) throw new TickRefused('Star a habit you time (minutes or hours) to use Focus.');
+  const timer = habit.timer;
+  if (timer) return {writes: [w('habits', d => finishHabitTimer(d, habit.id, timer.id, ctx.now))], undo: [], message: `${habit.title}: your time is logged on Habits. Change it there if needed.`, undone: '', done: true, signal: 'checklist_tick'};
+  const timerId = crypto.randomUUID();
+  return {writes: [w('habits', d => startHabitTimer(d, habit.id, timerId, ctx.now))], undo: [w('habits', d => d.habits.find(h => h.id === habit.id)?.timer?.id === timerId ? discardHabitTimer(d, habit.id, timerId, new Date()) : d)], message: `Focus started: ${habit.title}.`, undone: 'Focus not started.', done: false, signal: 'checklist_tick'};
 }
 
 /** The plan for pressing a dot. A dot whose page would refuse (a rest day, a closed Goal, a record that is gone) is
