@@ -117,3 +117,5 @@ html[data-zigi-launcher="shown"] .habit-consistency-month{position:relative}
 .ai-launcher-ring>.zigi-waves{inset:-4px}
 /* Session AA-Local (ADR-022 B45): the launcher's picture when its file cannot load (offline, not cached): a nebula disc, never a broken-image icon. */
 .zigi-image-fallback{display:inline-block;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c9b4ff 0%,#9e78ff 38%,#6fe6f6 62%,#1a142a 100%);box-shadow:0 0 14px #9e78ff66}
+/* Session AF (L3, ADR-028 H65): ZIGi holds the right-edge stack's first slot, 0 px above its corner (music-launcher.css names the slots). */
+.ai-launcher:not(.ai-launcher-phone){bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + var(--launcher-slot-zigi,0px))}

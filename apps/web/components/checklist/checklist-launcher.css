@@ -1,0 +1,38 @@
+/* Session AF (L3; P7.19, ADR-028 H65): the Checklist button, ZIGi's and the music button's twin. It takes the slot just
+   above ZIGi (`--launcher-slot-checklist`, defined with the other slots in music-launcher.css); while it is on the page
+   (as a button or as its edge tab) the stack's flag below lifts Music one slot. Theme islands: the same nebula circle in
+   every theme. */
+:root:has(.checklist-launcher-stack, .checklist-edge-tab) { --launcher-has-checklist: 1; }
+.checklist-launcher-stack { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(max(4px, env(safe-area-inset-bottom, 0px)) + var(--launcher-slot-checklist, 118px)); z-index: 45; display: flex; flex-direction: column; align-items: center; gap: 0; }
+:root[data-zigi-side=left] .checklist-launcher-stack { right: auto; left: max(20px, env(safe-area-inset-left, 0px)); }
+@media (min-width: 901px) { :root[data-zigi-side=left] .checklist-launcher-stack { left: calc(var(--sidebar-width, 216px) + 20px); } }
+.checklist-launcher { --zigi-circle: 56px; position: relative; display: grid; place-items: center; box-sizing: border-box; width: var(--zigi-circle); height: var(--zigi-circle); padding: 0; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); box-shadow: 0 14px 34px -14px rgba(60, 40, 160, .8), 0 0 0 1px rgba(255, 255, 255, .04) inset; color: var(--text, #eef1ff); text-decoration: none; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+:root:has(.ai-launcher[data-size=s]) .checklist-launcher { --zigi-circle: 48px; }
+:root:has(.ai-launcher[data-size=l]) .checklist-launcher { --zigi-circle: 64px; }
+.checklist-launcher:hover, .checklist-launcher:focus-visible { transform: translateY(-2px); box-shadow: 0 18px 40px -14px rgba(90, 70, 200, .9); }
+.checklist-launcher:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+.checklist-launcher[data-here] { border-color: color-mix(in srgb, var(--cyan, #6fd3ff) 70%, transparent); }
+.checklist-launcher .checklist-mark { width: calc(var(--zigi-circle) * .54); height: calc(var(--zigi-circle) * .54); filter: drop-shadow(0 0 6px #b06bff8c) drop-shadow(0 0 2px #63e7ff66); }
+/* The check draws once, the first time the button is seen in a visit. */
+.checklist-mark[data-draw] .checklist-mark-check { stroke-dasharray: 1; animation: checklist-mark-draw 600ms var(--motion-glide, ease) 250ms both; }
+@keyframes checklist-mark-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.checklist-launcher-fold { position: relative; display: grid; place-items: center; width: 44px; height: 26px; margin: 0; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+.checklist-launcher-fold svg { transform: scale(.82); opacity: .8; transition: opacity .15s ease; }
+.checklist-launcher-fold:hover svg, .checklist-launcher-fold:focus-visible svg { opacity: 1; }
+.checklist-launcher-fold:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; }
+:root[data-zigi-side=left] .checklist-launcher-fold svg { transform: rotate(180deg) scale(.82); }
+.checklist-launcher-fold::after { content: attr(data-tip); position: absolute; top: 50%; right: calc(100% + 4px); translate: 0 -50%; padding: 5px 9px; border-radius: 8px; background: color-mix(in srgb, var(--panel, #0f1530) 94%, transparent); border: 1px solid var(--line, #2a325a); color: var(--text, #eef1ff); font-size: 14px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+:root[data-zigi-side=left] .checklist-launcher-fold::after { right: auto; left: calc(100% + 6px); }
+.checklist-launcher-fold:hover::after, .checklist-launcher-fold:focus-visible::after { opacity: 1; }
+/* Tucked: ZIGi's edge tab's twin, in the button's slot. */
+.checklist-edge-tab { position: fixed; right: 0; bottom: calc(max(4px, env(safe-area-inset-bottom, 0px)) + var(--launcher-slot-checklist, 118px) + 4px); z-index: 45; width: 44px; height: 52px; padding: 0 0 0 4px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); border-right: 0; border-radius: 16px 0 0 16px; background: radial-gradient(140% 120% at 30% 20%, #2b2a6e, #0d1230 75%); box-shadow: 0 10px 26px -12px rgba(60, 40, 160, .8); color: var(--text, #eef1ff); cursor: pointer; }
+:root[data-zigi-side=left] .checklist-edge-tab { right: auto; left: 0; padding: 0 4px 0 0; border-left: 0; border-right: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); border-radius: 0 16px 16px 0; }
+@media (min-width: 901px) { :root[data-zigi-side=left] .checklist-edge-tab { left: var(--sidebar-width, 216px); } }
+.checklist-edge-tab .checklist-mark { filter: drop-shadow(0 0 5px #b06bff8c); }
+.checklist-edge-tab:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+:root[data-keyboard=open] :is(.checklist-launcher-stack, .checklist-edge-tab) { display: none; }
+@media (prefers-reduced-motion: reduce) { .checklist-launcher, .checklist-launcher-fold svg, .checklist-launcher-fold::after { transition: none; } .checklist-launcher:hover, .checklist-launcher:focus-visible { transform: none; } .checklist-mark[data-draw] .checklist-mark-check { animation: none; } }
+:root[data-app-motion=off] .checklist-launcher { transition: none; }
+:root[data-app-motion=off] :is(.checklist-launcher:hover, .checklist-launcher:focus-visible) { transform: none; }
+:root[data-app-motion=off] .checklist-mark[data-draw] .checklist-mark-check { animation: none; }
+@media (forced-colors: active) { .checklist-launcher, .checklist-edge-tab { border-color: CanvasText; } .checklist-mark { filter: none; } }

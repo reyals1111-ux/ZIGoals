@@ -52,3 +52,13 @@
 :root[data-zigi-side=left] .music-edge-tab{padding:0 4px 0 0;border-radius:0 16px 16px 0}
 .music-edge-tab .music-note{width:24px;height:24px;filter:drop-shadow(0 0 5px #b06bff8c)}
 @media (forced-colors:active){.music-note{filter:none}}
+/* Session AF (L3, ADR-028 H65): the right-edge launcher stack, bottom to top ZIGi → Checklist → Music → (the Earn dock),
+   as slots: each launcher's offset above ZIGi's corner. A launcher that is not on the page (hidden, or on a phone) leaves
+   its flag at 0 and the ones above drop one slot; a tucked launcher keeps its slot for its edge tab. The pitch is one
+   button and its fold arrow, following ZIGi's size. With no Checklist button the music button sits exactly where it sat. */
+:root{--launcher-first:118px;--launcher-pitch:82px;--launcher-has-checklist:0;--launcher-has-music:0;--launcher-slot-zigi:0px;--launcher-slot-checklist:var(--launcher-first);--launcher-slot-music:calc(var(--launcher-first) + var(--launcher-pitch) * var(--launcher-has-checklist));--launcher-slot-earn:calc(var(--launcher-first) + var(--launcher-pitch) * (var(--launcher-has-checklist) + var(--launcher-has-music)))}
+:root:has(.ai-launcher[data-size=s]){--launcher-pitch:74px}
+:root:has(.ai-launcher[data-size=l]){--launcher-pitch:90px}
+:root:has(.music-launcher-stack,.music-edge-tab){--launcher-has-music:1}
+.music-launcher-stack{bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + var(--launcher-slot-music,118px))}
+.music-edge-tab{bottom:calc(max(4px,env(safe-area-inset-bottom,0px)) + var(--launcher-slot-music,118px) + 4px)}
