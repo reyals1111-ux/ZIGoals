@@ -22,8 +22,9 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
     [6, "aa-pages", "AA pages: calculator, Life review, Journey, Your data, Reminders and Share open"],
     [7, "landing", LANDING],
     [8, "recipe", "Recipe import refuses http, a private host and an oversized address"],
+    [10, "checklist", "Checklist: a fictional favourite habit ticks its own record, and Undo restores it"],
   ]);
-  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7]);
+  expect(VERIFIER_STAGES.filter(stage => stage.browser).map(stage => stage.number)).toEqual([2, 3, 4, 5, 6, 7, 10]);
   expect(VERIFIER_STAGES.filter(stage => stage.reportsItself).map(stage => stage.number)).toEqual([1]);
   expect(Object.isFrozen(VERIFIER_STAGES) && VERIFIER_STAGES.every(Object.isFrozen)).toBe(true);
 });
@@ -32,7 +33,7 @@ test("the stages, in the order the verifier runs them (the owner's numbering)", 
 // call on the page must be a goto to the page it needs, before anything else touches the page.
 test("every browser stage opens its own page first; stage 3 opens Today", async () => {
   const STOP = Symbol("stop");
-  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex };
+  const expected = { 2: `${LOCAL}/app`, 3: `${LOCAL}/app`, 4: `${LOCAL}/app/settings`, 5: `${LOCAL}/app/goals/1`, 6: `${LOCAL}/app/wealth/calculator`, 7: LIVE_ORIGINS.apex, 10: `${LOCAL}/app/habits` };
   for (const stage of VERIFIER_STAGES.filter(s => s.browser)) {
     const calls = [];
     const page = new Proxy({}, { get: (_, name) => (...args) => { calls.push([name, ...args]); throw STOP; } });
