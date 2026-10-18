@@ -20,6 +20,6 @@ export async function POST(request: Request): Promise<Response> {
   const client = marketClientGroup(request.headers.get('cf-connecting-ip')) ?? 'unknown';
   if (!allow(client)) return Response.json({error: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': '60'}});
   const result = await importRecipe(url);
-  if (isRefusal(result)) return Response.json({error: result.code}, {status: result.code === 'UPSTREAM' || result.code === 'TIMEOUT' ? 502 : result.code === 'NO_RECIPE' ? 404 : 400, headers});
+  if (isRefusal(result)) return Response.json({error: result.code}, {status: result.code === 'UPSTREAM' || result.code === 'TIMEOUT' || result.code === 'RESOLVER' ? 502 : result.code === 'NO_RECIPE' ? 404 : 400, headers});
   return Response.json(result, {headers});
 }

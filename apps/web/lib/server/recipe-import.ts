@@ -7,9 +7,10 @@
  * Nothing but the recipe's name, ingredients, yield and the count of steps leaves this function. No cookies, no
  * credentials, a fixed user agent, and a per-client limit in the route.
  */
+import {dohResolver, isPublicAddress, type Resolve} from './recipe-resolve';
 export const RECIPE_FETCH_TIMEOUT_MS = 8_000, RECIPE_MAX_BYTES = 1_000_000, RECIPE_MAX_INGREDIENTS = 100, RECIPE_MAX_TEXT = 200;
 export type RecipeImport = {name: string; ingredients: string[]; servings: number | null; steps: number; source: string};
-export type RecipeRefusal = {code: 'INVALID_URL' | 'NOT_HTTPS' | 'PRIVATE_HOST' | 'REDIRECT' | 'TOO_LARGE' | 'TIMEOUT' | 'WRONG_TYPE' | 'NO_RECIPE' | 'UPSTREAM'};
+export type RecipeRefusal = {code: 'INVALID_URL' | 'NOT_HTTPS' | 'PRIVATE_HOST' | 'REDIRECT' | 'TOO_LARGE' | 'TIMEOUT' | 'WRONG_TYPE' | 'NO_RECIPE' | 'UPSTREAM' | 'RESOLVER'};
 const PRIVATE_HOST = /^(localhost|.*\.(local|localhost|internal|home|lan|test|invalid|example))$|^[0-9.]+$|^\[?[0-9a-f:]*:[0-9a-f:]*\]?$/i;
 export function checkRecipeUrl(raw: string): URL | RecipeRefusal {
   let url: URL; try { url = new URL(raw.trim()); } catch { return {code: 'INVALID_URL'}; }
@@ -70,8 +71,13 @@ export function extractRecipe(html: string, source: string): RecipeImport | Reci
   }
   return {code: 'NO_RECIPE'};
 }
-export async function importRecipe(raw: string, fetchImpl: Fetch = fetch): Promise<RecipeImport | RecipeRefusal> {
+export async function importRecipe(raw: string, fetchImpl: Fetch = fetch, resolve: Resolve = dohResolver()): Promise<RecipeImport | RecipeRefusal> {
   const url = checkRecipeUrl(raw); if (isRefusal(url)) return url;
+  // Session AF Part 11 A10: resolve-then-check before the fetch (lib/server/recipe-resolve.ts); fail closed.
+  const resolved = await resolve(url.hostname.replace(/\.$/, ''));
+  if (!resolved.ok) return {code: 'RESOLVER'};
+  if (!resolved.addresses.length) return {code: 'UPSTREAM'};
+  if (!resolved.addresses.every(isPublicAddress)) return {code: 'PRIVATE_HOST'};
   const page = await fetchRecipePage(url, fetchImpl); if (isRefusal(page)) return page;
   return extractRecipe(page, url.href);
 }
