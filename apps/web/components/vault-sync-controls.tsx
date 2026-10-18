@@ -16,7 +16,8 @@ import {createVault,unlockVault,unlockVaultForDevice,createDeviceKey,openDeviceR
 import {readDevices,rememberDeviceRecord,forgetDevices,forgetCount,dropDevice,stillRemembered,rememberHealth,bindingOf,replaceDevice,confirmDevice,accountStatus,type AccountDenial,currentSession,type DeviceBinding,type DeviceRecordV1,type DeviceRecordV2} from '../lib/vault/device-unlock';
 import {StaleDeviceError,takeAccessDenial,deniesDevice} from '../lib/vault/stale-device';
 import {storageMessageOr} from '../lib/storage-error-copy';
-import {synchronize,cloudSnapshot,SyncJournal,RevisionConflict,OlderVaultError,OlderCloudError,type Domain,type SyncState} from '../lib/vault/cloud-sync';
+import {synchronize,cloudSnapshot,SyncJournal,OlderVaultError,OlderCloudError,type Domain,type SyncState} from '../lib/vault/cloud-sync';
+import {reconcileOnce} from '../lib/vault/reconcile-once';
 import {accountTransport} from '../lib/vault/account-transport';
 import type {StepUp} from '../lib/vault/step-up';
 // Session Z-Cloud Part 5 (A6): the step-up code loads when one of the five actions runs or a secret is entered.
@@ -197,7 +198,7 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
  async function stepUp(secret:string){const id=session.current?.account??account,m=session.current?.manifest??manifest;if(!id||!m)return undefined;return (await stepUpModule()).stepUpFor(secret,id,m);}
  async function runPortfolio(selected:Session,fence:()=>void,choice?:'keep-device'|'keep-cloud'){
   const storage=getAppStorage(),attempt=()=>syncPortfolio({transport:portfolioTransport(selected.account,fence),key:selected.key,manifest:selected.manifest,storage,fence,choice});
-  try{let outcome;try{outcome=await attempt();}catch(error){if(!(error instanceof RevisionConflict))throw error;fence();outcome=await attempt();}
+  try{const outcome=await reconcileOnce(attempt,fence);
    fence();if(outcome.state==='deleted')choosePortfolioSync(storage,false);setPortfolio(outcome);setPortfolioAt(formatTime(new Date()));}
   catch(error){fence();setPortfolio({state:'error',message:error instanceof Error?error.message:'Portfolio sync was not confirmed. Your Portfolio on this device was preserved.'});}
  }
@@ -244,7 +245,9 @@ export function VaultSyncProvider({children}:{children:ReactNode}){
    // a failure leaves them on this device for the next sync and never stops the sync itself.
    await financeHomes().then(m=>m.reconcileFinanceHomesNow(storage)).catch(()=>{});fence();
    const capturedPending=(await localDatabase.pending(`account:${selected.account}`)).filter(p=>domains.some(d=>modules[d].key===p.domain));
-   const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);
+   // Session AF Part 11 A4: a replayed or staged write that answers 409 is reconciled once, as runPortfolio does; each
+   // attempt captures the local records again, so the merge always sees what is on this device now.
+   const {local,result}=await reconcileOnce(async()=>{const local=await captureData(storage,domains);fence();const result=await synchronize(accountTransport(selected.account,fence),new SyncJournal(selected.account),selected.key,selected.manifest,local,validateData,fence,domains);return {local,result};},fence);
    fence();try{await applyData(storage,local,result.data,fence);}catch(error){
     // A local edit landed during this sync. The upload is recorded, nothing was overwritten: not a
     // conflict, so automatic sync stays on and one follow-up uploads the newer edit.
