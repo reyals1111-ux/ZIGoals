@@ -34,10 +34,10 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | Lane | Branch / worktree | Owner | State |
 |---|---|---|---|
 | L6 lead (records, verifier, sync, security, words, merges, Gate C) | `feature/session-af-wealth-unlocked` (this checkout) | lead | Part 0 done; A2/A3/A4/A10 done |
-| L2a chain + signing + staking UI + governance + validator health | `af/signing` (an agent worktree) | helper (port 3102) | running since 22:30 Sun: Part 2 steps 1–10 |
-| L1 Earn hub + data routes + Academy + dock + Today card | `af/earn` (an agent worktree) | helper (port 3104) | running since 22:30 Sun: Part 1 core steps 1–7 |
-| L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper (port 3103) | running since 22:30 Sun: Part 7 steps 1–11 (path model first) |
-| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` → `../ZIGoals-af-wallet` | helper | waits for a slot |
+| L2a chain + signing + staking UI + governance + validator health | `af/signing` (an agent worktree) | helper (port 3102) | running since 22:30 Sun: Part 2 steps 1–10 (Parts 1–8 committed by 00:30 Mon); chunk 3 (governance, validator health, rewards sweep) after its merge |
+| L1 Earn hub + data routes + Academy + dock + Today card | `af/earn` (an agent worktree) | helper | chunk 1 (Part 1 core) merged `a444c5ae`, wired; chunk 2 (Start-here, Academy, Today EARN card, dock, every option in depth, stablecoins, illustrations, stage 9, live-check, the APR measured figure H97) waits for a slot |
+| L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
+| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` (an agent worktree) | helper (port 3104) | running since 00:15 Mon |
 | L5a UI changes + theme parity | `af/ui` → `../ZIGoals-af-ui` | helper | waits for a slot |
 | L4 ZIGi | `af/zigi` → `../ZIGoals-af-zigi` | helper | waits for a slot |
 | L5b My Universe, Day Timeline, Stories | `af/extras` → `../ZIGoals-af-extras` | helper | waits for a slot |
@@ -48,19 +48,34 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | Part | State | Commits |
 |---|---|---|
 | 0 Records, setup | done except the reference captures + route/asset checks (the next free helper slot, H93) | `5e4f909d` `59e44be9` `5c015f2c`; captures `c438f25b` on `review/session-af-screens` |
-| 1 Earn hub | not started | — |
+| 1 Earn hub | core merged and wired; chunk 2 pending | merge `a444c5ae`; wiring `a3cbc5c3` `acd71be2` `8bb65419` `64942576` |
 | 2 Native staking | not started | — |
 | 3 Wallets | not started | — |
 | 4 Add money (multi-asset) | not started | — |
 | 5 Earn dock | not started | — |
 | 6 Goal Vaults + governance | not started | — |
-| 7 Checklist | not started | — |
+| 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
 | 8 ZIGi | not started | — |
 | 9 My Universe, Day Timeline, Stories | not started | — |
 | 10 UI changes + theme parity | not started | — |
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | not started | — |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 00:45 Brussels — L1 chunk 1 and L3 merged and wired)
+- Done since 22:45: merges `a444c5ae` (af/earn) and `206a26c4` (af/checklist); wiring commits `a3cbc5c3` (TIER 3 storage:
+  the five keys in every registry + `lib/af-lead-registries.test.ts`), `acd71be2` (TIER 3 shell navigation: Earn first in the
+  money group following Wealth's switch H98, icons, More notes, search, Settings section, Today's Checklist card H95, game
+  layer), `8bb65419` (TIER 3 verifier/CI: stage 10 appended, sentinel, order spec, workflow doc, sanitizer routes),
+  `64942576` (theme sheets), `cc5d9d79` (PRIVACY Checklist paragraph; ADR H95–H98), `16d69ce9` (research verdict tables
+  re-attributed). Unit suite: 5333 passed before the visibility fix, the 4 failures fixed in `acd71be2`. Lint 0 errors.
+- Running: L2a (signing, port 3102), the Part 0 helper (reference captures + route/code checks), L2b (wallets, port 3104).
+  The lead's build serves on 3101; the focused browser set's log is `$SP/logs/lead-focused.log`.
+- Next: when the focused set is green, push. When a helper reports: merge, wire from its lane file, regenerate themes,
+  lint/typecheck/unit/focused, push. Slot order after these: L1 chunk 2, L5a, L4, L5b, then L2a chunk 3. At L2a's merge:
+  align the Earn page's `/api/chain/validators?network=mainnet` to `zigchain-1`, mount `StakingEmptyPreview` in
+  `positions-view.tsx`, add the serverOnly `earnLive` and `recipeResolver` notes to `egress-policy.json`, prove
+  `build:alpha` + `check:alpha-artifact` (amendment 7). Daily PR comment ~18:00 Brussels.
 
 ## Resume here (2026-10-18 22:45 Brussels — Part 0 done, three lanes running)
 - Done: Part 0 records (`5e4f909d`), the lane rules (`59e44be9`), the frozen-reader releases #37–#44 (`5c015f2c`); the
