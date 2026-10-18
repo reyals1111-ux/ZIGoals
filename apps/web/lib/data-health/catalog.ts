@@ -1,5 +1,7 @@
 import {DEVICE_KEYS, MODULE_KEYS} from '../export/everything';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
+import {EARN_CATALOG_LABELS} from '../af-earn-keys';
+import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -31,6 +33,9 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   healthVitamins: ['Vitamins of your foods and their targets', 'Health'], pointTell: ['Point & tell notes', 'Settings'],
   // Session AE (Part 6, ADR-027): the wallets linked read-only.
   linkedWallets: ['Linked wallet addresses (read-only)', 'Wallet'],
+  // Session AF (ADR-028): the Earn and Checklist device records (lib/af-earn-keys.ts, lib/af-checklist-keys.ts).
+  earnPath: [EARN_CATALOG_LABELS.earnPath[0], EARN_CATALOG_LABELS.earnPath[1]], earnAcademy: [EARN_CATALOG_LABELS.earnAcademy[0], EARN_CATALOG_LABELS.earnAcademy[1]], earnPrefs: [EARN_CATALOG_LABELS.earnPrefs[0], EARN_CATALOG_LABELS.earnPrefs[1]],
+  checklist: [AF_CHECKLIST_CATALOG_LABELS.checklist[0], AF_CHECKLIST_CATALOG_LABELS.checklist[1]], checklistDays: [AF_CHECKLIST_CATALOG_LABELS.checklistDays[0], AF_CHECKLIST_CATALOG_LABELS.checklistDays[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

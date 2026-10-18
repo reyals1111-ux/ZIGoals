@@ -10,6 +10,8 @@ import {EXTRAS_SECTIONS} from './extras-sections';
 import {applySection, collectSection, mergeSection} from './extras-sync';
 import {LAYOUT_KEY, emptyLayout, serializeLayout, setRegionOrder} from '../page-layout';
 import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
+import {EARN_ACADEMY_KEY, EARN_PATH_KEY, EARN_PREFS_KEY} from '../af-earn-keys';
+import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
 import {linkedWalletsSchema} from '../linked-wallets';
 
 /**
@@ -72,6 +74,18 @@ export function frozenFixture() {
   const linked = linkedWalletsSchema.parse({version: 1, display: 'USD', wallets: [{kind: 'btc', address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4', label: 'BIP-173 test vector', addedAt: '2026-10-17T08:00:00.000Z'}]});
   records[LINKED_WALLETS_KEY] = JSON.stringify(linked);
   checks.push({key: LINKED_WALLETS_KEY, module: './linked-wallets', spec: 'LINKED_WALLETS', expect: {display: 'USD'}});
+  // Session AF (ADR-028, TIER 3 storage): the Earn and Checklist device records (fictional). No release before AF has a
+  // reader: each key is ignored there (ABSENT); this build reads its own.
+  records[EARN_PATH_KEY] = JSON.stringify({version: 1, steps: {wallet: {done: true, at: '2026-10-18T20:00:00.000Z'}}, todayCard: 'auto', visited: ['native']});
+  checks.push({key: EARN_PATH_KEY, module: './earn/records', spec: 'EARN_PATH', expect: {'steps.wallet.done': true}});
+  records[EARN_ACADEMY_KEY] = JSON.stringify({version: 1, lessons: {'what-is-staking': {read: true, score: 3, passedAt: '2026-10-18T20:05:00.000Z', attempts: 1}}});
+  checks.push({key: EARN_ACADEMY_KEY, module: './earn/records', spec: 'EARN_ACADEMY', expect: {'lessons.what-is-staking.score': 3}});
+  records[EARN_PREFS_KEY] = JSON.stringify({version: 1, pageShown: true, dockShown: true, dockFolded: false});
+  checks.push({key: EARN_PREFS_KEY, module: './earn/records', spec: 'EARN_PREFS', expect: {dockShown: true}});
+  records[CHECKLIST_KEY] = JSON.stringify({version: 1, items: [{id: 'c1', kind: 'custom', label: 'Fictional piano 15 minutes', colour: 'gold', section: 'evening', addedAt: '2026-10-17T07:00:00.000Z'}]});
+  checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1}});
+  records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}}});
+  checks.push({key: CHECKLIST_DAYS_KEY, module: './checklist/schema', spec: 'CHECKLIST_DAYS', expect: {'days.2026-10-17.perfect': true}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -81,7 +95,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');

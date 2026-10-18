@@ -90,7 +90,7 @@ export const DEVICE_PARTS: readonly DevicePart[] = [
   dev('measurementsCustom', 'Custom measurements', 'Health', MEASUREMENTS_CUSTOM, true),
 ];
 /** What a file may hold and this never restores, said in the preview. */
-export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, notes, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes and legacy simulation Goals (use an encrypted copy for those).';
+export const NEVER_RESTORED = 'Never restored: keys and secrets (Export everything never holds them), notifications, ZIGi’s settings, notes, usage and conversations, an import’s undo, a timer or routine in progress, the welcome’s setup, display choices, recent searches, linked wallet addresses, Point & tell notes, Earn progress and choices, Checklist favourites and day history and legacy simulation Goals (use an encrypted copy for those).';
 export const NEWER_PART_MESSAGE = 'Saved by a newer ZIGoals. Update the app on this device, then restore this part.';
 export const INVALID_PART_MESSAGE = 'This part did not read as a valid record, so it is left out.';
 export const MERGE_REFUSED_MESSAGE = 'These records cannot be merged safely. Choose Replace, or leave them as they are.';
