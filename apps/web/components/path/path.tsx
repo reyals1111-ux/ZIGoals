@@ -1,0 +1,133 @@
+'use client';
+import {Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
+import {milestoneState, nextStep, normalisePath, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
+import {entranceAllowed} from '../use-entrance';
+import {PathChest} from './path-milestone';
+import {PathDot} from './path-dot';
+import {PathLine} from './path-line';
+import {PathBanner} from './path-section';
+import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
+import {usePathGeometry} from './use-path-geometry';
+import './path.css';
+
+/**
+ * The shared path renderer (Session AF, ADR-028; P7.4–P7.11): any `PathModel` drawn as large glowing dots in their own
+ * colours, joined by the footer's neon flow line, grouped in orbits with banners, with reward chests, ZIGi beside the next
+ * dot and a "Jump to next" bubble. The Checklist, the Earn lane's Start-here path and the Academy's mini path draw with it
+ * unchanged. It never decides a state: the caller derives every step from the real record and handles `onStep`.
+ *
+ * - `onStep(step, intent)`: pressing a dot; `intent` is tick, open (a link step, after navigation starts) or value.
+ * - `panelFor` / `renderPanel`: the caller's inline panel (the value stepper, a done dot's details) under one step.
+ * - `zigi`: false hides ZIGi; `state` overrides the mood's state (e.g. sleepy late at night); `say` is a short line.
+ * Motion is one-time per occurrence: a dot that has just become done fills and bursts, its line lights along its length,
+ * a chest that has just been reached opens, ZIGi cheers for a moment. Nothing loops. Reduced motion and Motion Off show
+ * every final state at once (CSS). Keyboard: the dots are buttons in path order; Home/End and the arrow keys move
+ * between them; the bubble scrolls the next dot into view and focuses it.
+ */
+export type PathProps = {
+  model: PathModel;
+  ariaLabel: string;
+  layout?: 'snake' | 'straight';
+  density?: 'full' | 'compact';
+  onStep?: (step: PathStep, intent: StepIntent) => void;
+  panelFor?: string | null;
+  renderPanel?: (step: PathStep) => ReactNode;
+  zigi?: false | {state?: string; say?: string};
+  jumpLabel?: string;
+  className?: string;
+};
+
+const JUST_MS = 1100, CHEER_MS = 1600;
+const sideOf = (offset: number): 'left' | 'right' => offset > 0 ? 'left' : 'right';
+
+/** Steps (and chests) that have just changed into done / reached since the last render, for their one-time motion. */
+function useJust(ids: string[], key: string): Set<string> {
+  const previous = useRef<Set<string> | null>(null), [just, setJust] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    const now = new Set(ids), before = previous.current; previous.current = now;
+    if (!before) return;
+    const fresh = ids.filter(id => !before.has(id));
+    if (!fresh.length) return;
+    setJust(new Set(fresh));
+    const t = window.setTimeout(() => setJust(new Set()), JUST_MS);
+    return () => window.clearTimeout(t);
+    // `key` carries the ids' identity; the array itself is new on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return just;
+}
+
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className}: PathProps) {
+  const model = useMemo(() => normalisePath(raw), [raw]);
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
+  const steps = useMemo(() => pathSteps(model), [model]), segments = useMemo(() => pathSegments(model), [model]);
+  const milestones = useMemo(() => milestoneState(model), [model]), next = nextStep(model), anchor = zigiAnchor(model);
+  const doneIds = steps.filter(s => s.state === 'done').map(s => s.id), reachedIds = milestones.filter(m => m.reached).map(m => `m:${m.id}`);
+  const just = useJust([...doneIds, ...reachedIds], [...doneIds, ...reachedIds].join('|'));
+  const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}`;
+  const geo = usePathGeometry(stage, geometryKey);
+
+  // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood.
+  const [cheer, setCheer] = useState(false);
+  const ticked = steps.some(s => just.has(s.id));
+  useEffect(() => { if (!ticked) return; setCheer(true); const t = window.setTimeout(() => setCheer(false), CHEER_MS); return () => window.clearTimeout(t); }, [ticked]);
+  const zigiState = zigi === false ? null : zigi.state ?? (cheer && anchor.mood !== 'done' ? ZIGI_PATH_STATES.tick : ZIGI_PATH_STATES[anchor.mood]);
+
+  // "Jump to next": shown while the next dot is out of view (always, where the browser cannot tell).
+  const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
+  const nextId = next?.id ?? null;
+  useEffect(() => {
+    const el = nextId ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(nextId)}"]`) : null;
+    if (!el) { setNextVisible(true); return; }
+    if (typeof IntersectionObserver === 'undefined') { setNextVisible(false); return; }
+    const io = new IntersectionObserver(entries => { for (const e of entries) { setNextVisible(e.isIntersecting); setNextAbove(e.boundingClientRect.top < 0); } }, {threshold: .6});
+    io.observe(el);
+    return () => io.disconnect();
+  }, [nextId, geometryKey]);
+  const jump = useCallback(() => {
+    const el = next ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`) : null; if (!el) return;
+    el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
+    el.focus({preventScroll: true});
+  }, [next]);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const dots = [...(stage.current?.querySelectorAll<HTMLElement>('button.path-dot, a.path-dot') ?? [])], at = dots.indexOf(event.target as HTMLElement);
+    if (at < 0) return;
+    const to = event.key === 'Home' ? 0 : event.key === 'End' ? dots.length - 1 : event.key === 'ArrowDown' ? Math.min(dots.length - 1, at + 1) : event.key === 'ArrowUp' ? Math.max(0, at - 1) : -1;
+    if (to < 0) return;
+    event.preventDefault(); dots[to]?.focus();
+  };
+
+  const chestsAfter = new Map<string, PlacedMilestone[]>();
+  for (const m of milestones) if (m.afterStepId) chestsAfter.set(m.afterStepId, [...(chestsAfter.get(m.afterStepId) ?? []), m]);
+  const zigiAtEnd = zigiState && !next && steps.length > 0;
+  let index = 0;
+  return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined}>
+    {geo && <PathLine geo={geo} segments={segments}/>}
+    {model.sections.map((section, si) => {
+      const p = sectionProgress(section), heading = `path-${uid}-${si}`;
+      return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
+        <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading}/>
+        <ol className="path-steps">
+          {section.steps.map(step => {
+            const i = index++, offset = layout === 'snake' ? snakeOffset(i) : 0, side = sideOf(offset), intent = stepIntent(step);
+            const chests = chestsAfter.get(step.id) ?? [];
+            return <Fragment key={step.id}>
+              <li className="path-step" data-state={step.state} data-next={next?.id === step.id ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} style={{'--offset': offset} as CSSProperties}>
+                <div className="path-node">
+                  <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)}/>
+                  <span className="path-label" data-side={side}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  {zigiState && next?.id === step.id && <PathZigi state={zigiState} side={side === 'left' ? 'right' : 'left'} say={zigi === false ? undefined : zigi.say}/>}
+                </div>
+                {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
+              </li>
+              {chests.map(m => { const around = offset + (layout === 'snake' ? snakeOffset(i + 1) : 0); return <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={around >= 0 ? 'left' : 'right'} uid={uid}/>; })}
+            </Fragment>;
+          })}
+        </ol>
+      </section>;
+    })}
+    {zigiAtEnd && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false ? undefined : zigi.say}/></div>}
+    {next && !nextVisible && <button type="button" className="path-jump" onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>}
+  </div>;
+}

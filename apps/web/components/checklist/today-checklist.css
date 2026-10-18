@@ -1,0 +1,12 @@
+/* Session AF (L3; P7.21): Today's Checklist card. */
+.today-checklist-card { display: grid; gap: 10px; }
+.today-checklist-head { display: flex; align-items: center; gap: 10px; }
+.today-checklist-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.today-checklist-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); }
+.today-checklist-streak { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 18px; font-weight: 750; }
+.today-checklist-streak .checklist-flame { width: 22px; height: 22px; }
+.today-checklist-title { margin: 0; font-size: 22px; line-height: 1.2; }
+.today-checklist-bar { height: 12px; }
+.today-checklist-line { margin: 0; font-size: 16px; }
+.today-checklist-nudge { margin: 0; font-size: 15px; color: var(--muted, #a4b2cd); }
+.today-checklist-open { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 650; }

@@ -51,6 +51,7 @@ import { GameRegistrar } from "./game/registrar"; // Session AA-Local, merged se
 import { LoadBoundary } from "./load-boundary";
 import { AmbientPill } from "./audio/ambient-pill";
 import { MusicLauncher } from "./music/music-launcher";
+import { ChecklistLauncher } from "./checklist/checklist-launcher"; // Session AF (L3): the Checklist button between Music and ZIGi, and its navigation entry
 import { PointTellMount } from "./point-tell/mount";
 import { formatPlainDecimal } from "../lib/visual-format";
 import { HealthDocumentLinks } from "./health-document-links";
@@ -274,7 +275,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
         <OfflineNotice />
         <SearchHost/><ShortcutHost/><UndoToastHost /><GameRegistrar />
         {hiddenPage&&!isShown(pagesView,hiddenPage)&&<HiddenPageBanner page={hiddenPage}/>}
-        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
+        <main id="main" data-pillar={pillarOfHref(pathname ?? "") ?? undefined} style={slowRead&&settingsPending?{display:"none"}:undefined}><Fragment key={localeKey}><AlphaFacts value={alphaFacts}>{startHold?null:children}</AlphaFacts></Fragment></main><PageArrival key={localeKey} /><LiquidGlass /><LoadBoundary quiet><AiLauncher /></LoadBoundary><LoadBoundary quiet><AmbientPill /></LoadBoundary><LoadBoundary quiet><MusicLauncher /></LoadBoundary><LoadBoundary quiet><ChecklistLauncher /></LoadBoundary><LoadBoundary quiet><PointTellMount /></LoadBoundary>
       </div>
       {/* Session AB-Design (owner request 2): one full-width footer banner, outside the workspace's 1600 px column. */}
       {/* Phase 2 (weights; no-JavaScript honesty): the footer banner is a server component from the app layout. Session AC:

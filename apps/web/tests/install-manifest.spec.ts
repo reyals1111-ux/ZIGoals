@@ -15,6 +15,8 @@ const SHORTCUTS = [
   shortcut('Log water', 'Water', 'Today\'s one-tap water, ready to log', '/app?shortcut=water', 'water'),
   shortcut('Check in a habit', 'Habits', 'Today\'s habits, ready to check in', '/app/habits', 'habit'),
   shortcut('Ask ZIGi', 'ZIGi', 'Open ZIGi with an empty question', '/app?shortcut=ask', 'ask'),
+  // Session AF (L3; P7.20): the Checklist, today's path, a fifth shortcut with its own 96 px icon.
+  shortcut('Checklist', 'Checklist', 'Today\'s path of starred dots', '/app/checklist', 'checklist'),
 ];
 /** The exact bytes main 72ad872's metadata route served (Session X Part 5a); every later manifest begins with them. */
 const MANIFEST_72AD872_SHA256 = '0d18e73e3b0b5d1a4dac1181820b5db35029e14ae0ffeab14ee505758d51eb92';
@@ -57,7 +59,8 @@ test('the static manifest keeps 72ad872\'s bytes first, at the same address, and
   expect(response.status()).toBe(200);
   const body = await response.body(), text = body.toString('utf8'), prefix = text.slice(0, text.indexOf(',"shortcuts":'));
   expect(createHash('sha256').update(`${prefix}}`).digest('hex')).toBe(MANIFEST_72AD872_SHA256);
-  expect(createHash('sha256').update(body).digest('hex')).toBe('29957d7933da2ad24469c5f4c73241ad03be34cecd361ed7565b6e0a1498e6c3');
+  // Session AF (L3): the whole file re-pinned after the Checklist shortcut was appended (72ad872's prefix is unchanged).
+  expect(createHash('sha256').update(body).digest('hex')).toBe('db76a85f0cf583c8dc990c011d8dc34876df2bfaa71e699795614abf203f8733');
   expect(response.headers()['content-type']).toContain('application/manifest+json');
   expect(response.headers()['content-security-policy']).toBeUndefined();
   expect(response.headers()['cache-control'] ?? '').not.toContain('no-store');
