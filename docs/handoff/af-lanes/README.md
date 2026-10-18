@@ -19,6 +19,8 @@ branch; you never merge into the feature branch, never push, never deploy, never
   `$HOME/zigoals-af/bin/with-lock.sh` and give it a timeout with `$HOME/zigoals-af/bin/tmo.sh <seconds>`; logs in
   `$HOME/zigoals-af/logs/<lane>-*.log`. Playwright `--workers=2` at most; never the full suite (the lead runs it at Gate C).
   `next start`/`next dev` servers run outside the lock on your slot's port only (given in your brief); kill by port when done.
+- Your own scratch scripts and notes go in `$HOME/zigoals-af/<lane>/` only (create it); never write into another lane's
+  folder or a shared file name in `$HOME/zigoals-af/bin/` (one lane overwrote another's helper script mid-run).
 - Before every commit: `pnpm lint`, `pnpm typecheck` and the focused unit tests (`pnpm exec vitest run <files>` from the
   repo root; `.tsx` tests from the root). Commit often; messages `Session AF (<lane>) Part <n> — <what>`; Tier 3 areas
   (wallet/signing, CSP, egress routes, storage, data formats, sync, public-safety labels, dependencies, verifier/CI,
