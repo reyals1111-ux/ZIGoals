@@ -8,7 +8,9 @@ import {isPhone,navLink,openMore} from './phone-nav';
  * helpers assert the same facts at their new places, as strictly.
  */
 export const ALPHA_LABEL='PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA';
-export const ALPHA_SENTENCE='Simulation + wallet connection only. No blockchain transactions or financial signatures.';
+// Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): the sentence changed with native-staking signing (it was
+// "Simulation + wallet connection only. No blockchain transactions or financial signatures.").
+export const ALPHA_SENTENCE='Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.';
 export const MODE_LOCAL='LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions';
 /** The compact notice at the top of every page (until closed on this device). */
 export const alphaNotice=(page:Page)=>page.getByRole('complementary',{name:'Alpha notice'});

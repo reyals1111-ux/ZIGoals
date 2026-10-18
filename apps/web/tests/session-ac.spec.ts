@@ -97,7 +97,7 @@ test.describe('item 3 (Session AD: the page ends with the footer\'s social row);
     await page.goto('/app/settings/data'); await settled(page);
     const about = aboutAlpha(page);
     await expect(about.locator('.network-banner strong')).toHaveText(ALPHA_LABEL);
-    await expect(about.locator('.network-banner')).toContainText('No blockchain transactions or financial signatures.');
+    await expect(about.locator('.network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
     await expect(about.locator('.mode-strip')).toContainText('LOCAL SIMULATION · Mode: this tab');
     for (const fact of ['Financial execution is disabled on this Alpha.', 'Browser storage is not a backup.', 'Independent project · Unaudited alpha · Idle strategy only.', 'Never share secrets, private backups or wallet details.'])
       await expect(about).toContainText(fact);

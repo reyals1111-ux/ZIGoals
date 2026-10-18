@@ -114,7 +114,8 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const [statusOpen, setStatusOpen] = useState(false);
   useEffect(() => { const open = () => setStatusOpen(true); window.addEventListener(PHONE_STATUS_EVENT, open); return () => window.removeEventListener(PHONE_STATUS_EVENT, open); }, []);
   const networkLabel = plain ? "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
-  const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Simulation + wallet connection only. No blockchain transactions or financial signatures.";
+  // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): native staking signs in the person's own wallet on both networks.
+  const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
   const modeText = s.mode === "local"
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;

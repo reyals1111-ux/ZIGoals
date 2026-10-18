@@ -22,13 +22,14 @@ const ZIG=(whole:string,decimals:number)=>whole+'0'.repeat(decimals);
 function chain(chainId:string,legacy=false):typeof fetch{
  const denom=legacy?'uzig':'azig';
  return (async(url,init)=>{
-  const path=new URL(String(url)).pathname;
+  const path=new URL(String(url)).pathname,asked=new URL(String(url)).searchParams.get('denom');
   if(!path.includes('/blocks/latest'))expect(new Headers(init?.headers).get('x-cosmos-block-height')).toBe('12632388');
   const value=path.includes('/blocks/latest')?{block:{header:{height:'12632388',chain_id:chainId,time:'2026-10-03T16:14:58.255411936Z'}}}
    :path.includes('node_info')?{default_node_info:{network:chainId}}
    :path.includes('denoms_metadata')?(legacy?LEGACY_UZIG:LIVE_AZIG)
    :path.endsWith('/params')?{params:{bond_denom:denom}}
-   :path.includes('by_denom')?{balance:{denom,amount:ZIG('263000',legacy?6:18)}}
+   // Session AF: the stZIG balance is read beside the ZIG one (lib/native-positions.ts STZIG); this address holds none.
+   :path.includes('by_denom')?(asked&&asked!==denom?{balance:{denom:asked,amount:'0'}}:{balance:{denom,amount:ZIG('263000',legacy?6:18)}})
    :path.includes('/rewards')?{rewards:[{validator_address:validator,reward:[{denom,amount:ZIG('12',legacy?6:18)+'.5'}]}]}
    :path.includes('unbonding_delegations')?{unbonding_responses:[{delegator_address:account,validator_address:validator,entries:[{creation_height:'5',completion_time:'2026-10-24T00:00:00Z',balance:ZIG('20',legacy?6:18)}]}],pagination:{next_key:null}}
    :path.endsWith('/staking/v1beta1/validators')?{validators:[{operator_address:validator,description:{moniker:'Fixture validator'},status:'BOND_STATUS_BONDED',commission:{commission_rates:{rate:'0.100000000000000000'}},tokens:'100000'}],pagination:{next_key:null}}

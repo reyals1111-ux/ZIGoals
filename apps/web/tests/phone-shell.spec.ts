@@ -115,7 +115,7 @@ test('More → Status & wallet opens the Status sheet: every notice in full, the
  await expect(alphaNotice(page).locator('strong')).toHaveText(ALPHA_LABEL);
  const sheet=await openStatusSheet(page);
  await expect(sheet).toContainText('PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA');
- await expect(sheet).toContainText('Simulation + wallet connection only. No blockchain transactions or financial signatures.');
+ await expect(sheet).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
  await expect(sheet).toContainText('LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions');
  await expect(sheet.getByRole('button',{name:'Demo records',exact:true})).toBeVisible();await expect(sheet.getByRole('button',{name:'Connect Keplr',exact:true})).toBeVisible();
  for(const button of await sheet.getByRole('button').all()){const b=(await button.boundingBox())!;expect(b.height).toBeGreaterThanOrEqual(44);}
