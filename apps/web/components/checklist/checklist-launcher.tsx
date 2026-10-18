@@ -28,7 +28,7 @@ export function ChecklistLauncher() {
   const shown = ready && prefs.launcher && !phone && pathname.startsWith('/app');
   useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
   // In the navigation (the sidebar, the phone's More sheet, search) on every device: the page is always reachable.
-  useEffect(() => registerNavExtra([CHECKLIST_ROUTE, 'Checklist', 'star']), []);
+  useEffect(() => registerNavExtra([CHECKLIST_ROUTE, 'Checklist', 'checklist']), []);
   useEffect(() => {
     if (!shown || prefs.folded) return;
     let seen = true; try { seen = sessionStorage.getItem(SEEN) === '1'; sessionStorage.setItem(SEEN, '1'); } catch { seen = true; }

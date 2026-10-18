@@ -22,6 +22,8 @@ export const NAV_GROUPS = [
     ["/app/wealth", "Wealth", "wallet"],
   ],
   [
+    // Session AF (ADR-028, L1): Earn opens the money group — every way to earn in the ZIG Finance ecosystem.
+    ["/app/earn", "Earn", "earn"],
     ["/app/markets", "Markets", "activity"],
     ["/app/staking", "Staking", "future"],
     ["/app/portfolio", "Portfolio", "portfolio"],

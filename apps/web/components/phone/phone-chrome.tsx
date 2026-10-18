@@ -43,6 +43,7 @@ import { useSheetDrag } from "./use-sheet-drag";
 // four destinations and the other seven, as before (eight with Chess, Session W Part 14, once it is shown).
 const MORE_NOTES: Record<string, string> = {
   "/app/wealth": "Every asset, with its source",
+  "/app/earn": "Every way to earn, with live numbers and risks",
   "/app/markets": "Prices you follow · watch-only",
   "/app/staking": "Public ZIG staking and positions · read-only",
   "/app/portfolio": "Coins you hold or plan · on this device",
@@ -52,6 +53,7 @@ const MORE_NOTES: Record<string, string> = {
   "/app/settings": "Backups, privacy, motion and Showcase",
   "/app/help": "Answers, feedback and the Alpha's facts",
   "/app/journey": "Your XP, quests and badges",
+  "/app/checklist": "Today's path of starred dots",
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };
@@ -65,6 +67,8 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/zigi") return { title: "Meet ZIGi", back: { href: "/app/settings", label: "Settings" } };
   // Session W Part 20: where Spotify sends the person back after connecting.
   if (path === "/app/music/spotify") return { title: "Spotify", back: { href: "/app/settings", label: "Settings" } };
+  // Session AF (L3): the Checklist is a nav extra, not a NAV_ITEMS page; on a phone it is reached from Today and More.
+  if (path === "/app/checklist") return { title: "Checklist", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : "ZIGoals" };
 }

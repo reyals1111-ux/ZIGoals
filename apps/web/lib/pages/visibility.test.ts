@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {NAV_GROUP_START, NAV_ITEMS, navGroupOf} from '../../components/app-nav';
 import {pagesSchema, type Pages} from './schema';
-import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, defaultView, everythingView, groupStarts, homeHref, hrefShown, isShown, pageIdForPath, phoneTabs, sameView, showEverything, startHref, startPage, viewOf, visiblePages, withChoice, withStart} from './visibility';
+import {AVAILABLE_BUTTONS, AVAILABLE_PAGES, FOLLOWS_PAGE, defaultView, everythingView, groupStarts, homeHref, hrefShown, isShown, pageIdForHref, pageIdForPath, phoneTabs, sameView, showEverything, startHref, startPage, viewOf, visiblePages, withChoice, withStart} from './visibility';
 
 const AT = '2026-10-07T10:00:00.000Z', LATER = '2026-10-07T11:00:00.000Z';
 const empty = (): Pages => ({version: 1, items: {}});
@@ -22,9 +22,10 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     const {tabs, more} = phoneTabs(everyday);
     // Session AB-Design (owner request 10, ADR-024 D2): Wealth is the fifth tab; More (from the top bar) holds the rest.
     expect(labels(tabs)).toEqual(['Today', 'Goals', 'Habits', 'Health', 'Wealth']);
-    expect(labels(more)).toEqual(['Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
+    // Session AF (ADR-028, L1): Earn opens the money group, so it leads More.
+    expect(labels(more)).toEqual(['Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings', 'Help']);
     expect(groupStarts(more, navGroupOf)).toEqual(new Map([['/app/ecosystem', 3]]));
-    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
+    expect(labels(phoneTabs(NAV_ITEMS).more)).toEqual(['Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings', 'Help']);
     expect(startHref(viewOf(undefined))).toBe('/app');
     expect(homeHref(viewOf(undefined))).toBe('/app');
   });
@@ -65,6 +66,15 @@ describe('Your pages & buttons: the visible set (Session W Part 2)', () => {
     expect(startPage(viewOf(pages))).toBeNull();
     expect(startHref(viewOf(pages))).toBe('/app/settings');
     expect(homeHref(viewOf(pages))).toBe('/app/settings');
+  });
+  test('Session AF (H98): Earn has no switch of its own and follows Wealth\'s; no other page moves with it', () => {
+    expect(FOLLOWS_PAGE).toEqual({'/app/earn': 'wealth'});
+    expect(pageIdForHref('/app/earn')).toBeNull();
+    expect(hrefShown(viewOf(undefined), '/app/earn')).toBe(true);
+    expect(hrefShown(viewOf(hide('wealth')), '/app/earn')).toBe(false);
+    expect(labels(nav(hide('wealth')))).not.toContain('Earn');
+    expect(labels(nav(hide('markets', 'staking', 'portfolio')))).toContain('Earn');
+    expect(hrefShown(viewOf(hide('wealth')), '/app/markets')).toBe(true);
   });
   test('Settings and every address that is no page always show; Chess shows once switched on (Part 14)', () => {
     const view = viewOf(hide(...AVAILABLE_PAGES));
