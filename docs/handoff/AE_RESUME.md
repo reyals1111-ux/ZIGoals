@@ -29,7 +29,7 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 4.1 sidebar, 3.1 icon, 3.5 cross-fade | `ae/sidebar` | helper S | merged |
 | 4.5 header art | `ae/header-art`, `ae/header-art-2` | helpers H1, H2 | merged (`f49a9a5a`, `cdad35dd`) |
 | What's new + Help | `ae/whats-new` | helper N | merged (`d71ef164`) |
-| Parts 1, 2, 3, integration, builds, captures, Gate C | this branch | lead | Part 3 audits |
+| Parts 1, 2, 3, integration, builds, captures, Gate C | this branch | lead | Gate C done |
 
 ## Parts
 | Part | State | Commits |
@@ -41,6 +41,13 @@ plan mode again (the plan was approved once: ADR-027 and the PR description).
 | 4 | done: 4.1 (S), 4.2 (W), 4.3/4.4 (B), 4.5 (H1, H2) | merges `f49a9a5a`, `cdad35dd` et al. |
 | 5 Layout | done: four issues (L) + the blur-order fix (`39ebce78`) | `98d5b11f`, `39ebce78` |
 | 6 Wallets, on-ramp | merged (W, R); practice money never in fiat (`TIER 3 (public-safety labels)`) | merges + wallet-card commit |
+
+## Resume here (2026-10-18 05:00 Brussels — Gate C done; the STATUS entry next)
+- Done: the full browser suite once (2,277 passed; the 5 failures: four intro-film specs, sandbox-only, and
+  `run11-layout-stability` on the build before its fix); on the final build the focused specs 72 passed; weights
+  (`0e027d89`); the local verifier (its capture race fixed `512d8f08`; record `04dc74bb`); the revert gate (55 commits,
+  typecheck green after each, the tree ends at `11d8408`); ADR-027 G24 (the CI sync race; its re-run passed in run 1015).
+- Next: the STATUS entry as the final commit → CI on that head → PR description and out of Draft → the short report.
 
 ## Resume here (2026-10-18 03:40 Brussels — Gate C, the last checks)
 - Done since 00:20: the widths, touch and stress audits and their fixes (`074c359e`, `9421f717`, `118c2983`; record
