@@ -5,7 +5,7 @@ import {addWater} from '../health-daily';
 import {startNight, endNight} from '../sleep/engine';
 import {saveManual} from '../meditation/engine';
 import {startFast} from '../fasting/engine';
-import {checklistMilestones, checklistPath, deriveDots, mealAt, summarise} from './derive';
+import {checklistMilestones, checklistPath, deriveDots, mealAt, summarise, unitFor} from './derive';
 import {emptyChecklist, type ChecklistToday} from './schema';
 import {FOOD, ID, NOW, TODAY, VITAMIN, fullPath, platform, sources} from './test-fixtures';
 import {addFavourite, removeItem} from './store';
@@ -114,6 +114,9 @@ describe('Perfect orbit and the path model', () => {
     expect(model.sections[1]?.steps[1]).toMatchObject({label: 'Monday plan', counted: false, href: '/app/habits', intent: 'open'});
     expect(model.milestones.map(m => m.reward ?? null)).toEqual([null, {xp: 15, badge: 'First orbit'}]);
     expect(checklistMilestones({on: false, dayXp: 15}).every(m => !m.reward)).toBe(true);
+  });
+  test('one is singular: 1 time, 1 glass, 1 minute; anything else as written', () => {
+    expect([unitFor(1, 'times'), unitFor(1, 'glasses'), unitFor(1, 'minutes'), unitFor(2, 'times'), unitFor(1, 'ml'), unitFor(1, 'grass')]).toEqual(['time', 'glass', 'minute', 'times', 'ml', 'grass']);
   });
   test('a one-tap diary favourite logs to the meal of the hour where it is lived', () => {
     expect(['06:00', '12:30', '16:00', '19:00', '23:30'].map(t => mealAt(new Date(`${TODAY}T${t}:00.000Z`), 'UTC'))).toEqual(['Breakfast', 'Lunch', 'Snacks', 'Dinner', 'Snacks']);

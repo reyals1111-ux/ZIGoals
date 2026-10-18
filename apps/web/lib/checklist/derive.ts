@@ -52,6 +52,8 @@ const LB = 453.59237;
 const clock = (iso: string, zone: string) => wallClock(Date.parse(iso), zone).clock;
 const dayIn = (iso: string, zone: string) => wallClock(Date.parse(iso), zone).date;
 const forDay = (writesFor: string, date: string) => writesFor !== date ? {writesFor} : {};
+/** "1 time", "1 glass", "2 times": a unit word in the singular for exactly one. */
+export const unitFor = (count: number, unit: string) => count !== 1 || !unit.endsWith('s') || unit.endsWith('ss') ? unit : /(ss|sh|ch|x)es$/.test(unit) ? unit.slice(0, -2) : unit.slice(0, -1);
 /** The meal a one-tap diary favourite logs to, by the hour where it is lived. */
 export function mealAt(now: Date, zone: string): (typeof HEALTH_MEALS)[number] {
   const h = Math.floor(wallClock(now.getTime(), zone).minutes / 60);
@@ -82,7 +84,7 @@ function habitDot(item: ChecklistItem, base: Base, s: DeriveSources, date: strin
     : undefined;
   const state: StepState = day.status === 'complete' ? 'done' : running ? 'running' : 'undone';
   const progress = day.status === 'partial' && day.target > 0 ? Math.min(.99, Math.max(.01, day.count / day.target)) : undefined;
-  const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? 'Done' : `${day.count} ${measurementUnit(rule)}`.trim())
+  const note = day.status === 'complete' ? (rule.type === 'quit' ? 'Stayed clear' : rule.measurement.kind === 'boolean' ? undefined : `${day.count} ${unitFor(day.count, measurementUnit(rule))}`.trim())
     : day.status === 'failed' ? 'Marked missed today' : running ? 'Timer running' : day.status === 'partial' ? `${day.count} of ${day.target} ${measurementUnit(rule)}`.trim() : undefined;
   return {...dot, state, counted: true, ...(progress ? {partial: progress} : {}), ...(note ? {note} : {}), ...(value ? {value, intent: 'value'} : {intent: 'tick'}), ...(state === 'done' && entry ? {doneAt: entry.updatedAt} : {})};
 }

@@ -4,6 +4,9 @@
    A dot's colour comes from its step (`--dot`, a pillar or brand token set on the element), never from a local token an
    ancestor defines. Every motion is one-time (a dot that has just been done, a line that has just lit, a chest just
    reached, ZIGi's one move per state); nothing loops, and reduced motion and Motion Off show each final state at once. */
+/* The deep night colours of the art, as :root tokens of the "ink" family, which the Light and Dark sheets carry unchanged
+   (a dark surface colour written in a rule would be deepened in Dark): the dots and banners are the same in every theme. */
+:root { --path-ink-glass-hi: #1c2a58; --path-ink-glass: #0b1433; --path-ink-glass-lo: #070d24; --path-ink-deep: #020614; --path-ink-locked: #0a1128; --path-ink-band-a: #0d1838f5; --path-ink-band-b: #060e24f5; --path-ink-say: #101a3ef0; --path-ink-jump-a: #12224af5; --path-ink-jump-b: #1a1446f5; }
 .path-stage { --dot-size: 72px; --label-gap: 16px; position: relative; isolation: isolate; container-type: inline-size; overflow-x: clip; display: grid; gap: 30px; padding: 6px 0 28px; }
 .path-stage[data-density=compact] { --dot-size: 56px; --label-gap: 12px; gap: 20px; }
 @media (max-width: 640px) { .path-stage { --dot-size: 64px; --label-gap: 12px; gap: 26px; } .path-stage[data-density=compact] { --dot-size: 52px; } }
@@ -19,8 +22,8 @@
 
 /* An orbit: its banner, then its dots. */
 .path-section { position: relative; display: grid; gap: 22px; }
-.path-banner { position: relative; z-index: 1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 66px; padding: 12px 16px 12px 14px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--banner) 46%, transparent); background: radial-gradient(130% 180% at 0% 50%, color-mix(in srgb, var(--banner) 30%, transparent), transparent 62%), linear-gradient(100deg, #0d1838f5, #060e24f5); box-shadow: 0 16px 36px -22px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffff17; color: #eef4ff; }
-.path-banner-planet { position: relative; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ffffffc0 0, color-mix(in srgb, var(--banner) 70%, #fff) 18%, var(--banner) 52%, color-mix(in srgb, var(--banner) 42%, #020614) 100%); box-shadow: 0 0 20px color-mix(in srgb, var(--banner) 55%, transparent); }
+.path-banner { position: relative; z-index: 1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; min-height: 66px; padding: 12px 16px 12px 14px; border-radius: 22px; border: 1px solid color-mix(in srgb, var(--banner) 46%, transparent); background: radial-gradient(130% 180% at 0% 50%, color-mix(in srgb, var(--banner) 30%, transparent), transparent 62%), linear-gradient(100deg, var(--path-ink-band-a), var(--path-ink-band-b)); box-shadow: 0 16px 36px -22px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffff17; color: #eef4ff; }
+.path-banner-planet { position: relative; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ffffffc0 0, color-mix(in srgb, var(--banner) 70%, #fff) 18%, var(--banner) 52%, color-mix(in srgb, var(--banner) 42%, var(--path-ink-deep)) 100%); box-shadow: 0 0 20px color-mix(in srgb, var(--banner) 55%, transparent); }
 .path-banner-planet i { position: absolute; left: -11px; right: -11px; top: 15px; bottom: 15px; border: 1.5px solid color-mix(in srgb, var(--banner) 70%, #ffffff40); border-radius: 50%; transform: rotate(-16deg); }
 .path-banner-text { display: grid; gap: 1px; min-width: 0; }
 .path-banner-eyebrow { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--banner) 62%, #ffffff); }
@@ -44,17 +47,17 @@
 @media (max-width: 640px) { .path-label { font-size: 15px; } }
 
 /* A dot: a pressable planet in its own colour. */
-.path-dot { position: relative; display: grid; place-items: center; box-sizing: border-box; width: var(--dot-size); height: var(--dot-size); min-width: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #eef4ff; text-decoration: none; cursor: pointer; background: radial-gradient(circle at 50% 32%, #1c2a58 0, #0b1433 62%, #070d24 100%); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dot) 72%, transparent), 0 6px 0 #040918, 0 0 24px color-mix(in srgb, var(--dot) 30%, transparent); transition: transform var(--motion-press, 90ms) ease, box-shadow 220ms ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.path-dot { position: relative; display: grid; place-items: center; box-sizing: border-box; width: var(--dot-size); height: var(--dot-size); min-width: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #eef4ff; text-decoration: none; cursor: pointer; background: radial-gradient(circle at 50% 32%, var(--path-ink-glass-hi) 0, var(--path-ink-glass) 62%, var(--path-ink-glass-lo) 100%); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--dot) 72%, transparent), 0 6px 0 #040918, 0 0 24px color-mix(in srgb, var(--dot) 30%, transparent); transition: transform var(--motion-press, 90ms) ease, box-shadow 220ms ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .path-dot-core { display: grid; place-items: center; color: var(--dot); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--dot) 65%, transparent)); }
 .path-dot-core svg { width: calc(var(--dot-size) * .42); height: calc(var(--dot-size) * .42); }
 :is(button, a).path-dot:hover { box-shadow: inset 0 0 0 3px var(--dot), 0 6px 0 #040918, 0 0 34px color-mix(in srgb, var(--dot) 48%, transparent); }
 :is(button, a).path-dot:active { transform: translateY(3px); box-shadow: inset 0 0 0 3px var(--dot), 0 3px 0 #040918, 0 0 24px color-mix(in srgb, var(--dot) 40%, transparent); }
 .path-dot:focus-visible { outline: 3px solid #ffffff; outline-offset: 5px; }
-.path-dot[data-state=done] { background: radial-gradient(circle at 36% 28%, color-mix(in srgb, var(--dot) 34%, #ffffff) 0, var(--dot) 44%, color-mix(in srgb, var(--dot) 68%, #020614) 100%); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--dot) 58%, #020614), 0 6px 0 color-mix(in srgb, var(--dot) 34%, #020614), 0 0 30px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 72px color-mix(in srgb, var(--dot) 26%, transparent); }
+.path-dot[data-state=done] { background: radial-gradient(circle at 36% 28%, color-mix(in srgb, var(--dot) 34%, #ffffff) 0, var(--dot) 44%, color-mix(in srgb, var(--dot) 68%, var(--path-ink-deep)) 100%); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--dot) 58%, #020614), 0 6px 0 color-mix(in srgb, var(--dot) 34%, #020614), 0 0 30px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 72px color-mix(in srgb, var(--dot) 26%, transparent); }
 .path-dot[data-state=done] .path-dot-core { color: #04101f; filter: none; }
 .path-dot[data-state=done] .path-dot-core svg { width: calc(var(--dot-size) * .46); height: calc(var(--dot-size) * .46); }
 .path-dot[data-state=running] { box-shadow: inset 0 0 0 5px var(--dot), 0 6px 0 #040918, 0 0 34px color-mix(in srgb, var(--dot) 55%, transparent); }
-.path-dot[data-state=locked] { cursor: default; background: #0a1128; box-shadow: inset 0 0 0 2px #ffffff22, 0 6px 0 #040918; }
+.path-dot[data-state=locked] { cursor: default; background: var(--path-ink-locked); box-shadow: inset 0 0 0 2px #ffffff22, 0 6px 0 #040918; }
 .path-dot[data-state=locked] .path-dot-core { color: #8d9cbf; filter: none; }
 .path-dot-ring { position: absolute; inset: -7px; width: calc(100% + 14px); height: calc(100% + 14px); rotate: -90deg; pointer-events: none; overflow: visible; }
 .path-dot-ring circle { fill: none; stroke: var(--dot); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--partial, 0)); transition: stroke-dashoffset 420ms var(--motion-glide, ease); }
@@ -103,7 +106,7 @@
 .path-zigi-figure img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .path-zigi-arrow { width: 14px; height: 14px; border-radius: 3px; background: linear-gradient(135deg, #63e7ff, #826cff 55%, #ff74be); clip-path: polygon(0 0, 100% 50%, 0 100%, 26% 50%); filter: drop-shadow(0 0 6px #826cffaa); }
 .path-zigi[data-side=right] .path-zigi-arrow { rotate: 180deg; }
-.path-zigi-say { position: absolute; bottom: 100%; left: 50%; translate: -50% -4px; width: max-content; max-width: 180px; padding: 6px 10px; border-radius: 12px; background: #101a3ef0; border: 1px solid #826cff66; color: #eef4ff; font-size: 14px; line-height: 1.25; text-align: center; }
+.path-zigi-say { position: absolute; bottom: 100%; left: 50%; translate: -50% -4px; width: max-content; max-width: 180px; padding: 6px 10px; border-radius: 12px; background: var(--path-ink-say); border: 1px solid #826cff66; color: #eef4ff; font-size: 14px; line-height: 1.25; text-align: center; }
 .path-end { position: relative; z-index: 2; display: grid; justify-items: center; min-height: 76px; }
 .path-end .path-zigi { position: relative; top: auto; translate: none; right: auto; left: auto; }
 @media (max-width: 640px) { .path-zigi-figure { width: 44px; height: 58px; } }
@@ -112,11 +115,11 @@
 .path-panel { position: relative; z-index: 3; width: min(100%, 440px); margin-top: 16px; }
 
 /* "Jump to next": a glass bubble that stays in view while the next dot is not. */
-.path-jump { position: sticky; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px); z-index: 4; justify-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid #8cc8ff66; background: linear-gradient(100deg, #12224af5, #1a1446f5); box-shadow: 0 14px 30px -12px #000c, 0 0 24px #4f8dff40; color: #f2f7ff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.path-jump { position: sticky; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px); z-index: 4; justify-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid #8cc8ff66; background: linear-gradient(100deg, var(--path-ink-jump-a), var(--path-ink-jump-b)); box-shadow: 0 14px 30px -12px #000c, 0 0 24px #4f8dff40; color: #f2f7ff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
 .path-jump:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
 .path-jump-arrow { font-size: 18px; }
 @media (max-width: 640px) { .path-jump { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 84px); } }
 
 /* Stills: reduced motion and Motion Off paint every final state at once. */
 @media (prefers-reduced-motion: reduce) { .path-stage, .path-stage *, .path-stage *::before, .path-stage *::after { animation: none !important; transition: none !important; } }
-:root[data-app-motion=off] :is(.path-stage, .path-stage *, .path-stage *::before, .path-stage *::after) { animation: none !important; transition: none !important; }
+:root[data-app-motion=off] .path-stage, :root[data-app-motion=off] .path-stage *, :root[data-app-motion=off] .path-stage *::before, :root[data-app-motion=off] .path-stage *::after { animation: none !important; transition: none !important; }

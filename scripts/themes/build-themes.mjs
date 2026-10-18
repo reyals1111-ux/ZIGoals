@@ -26,7 +26,10 @@ const postcss = require(require.resolve('postcss', {paths: [require.resolve('nex
 const GLOBAL_ORDER = ['app/globals.css', 'app/visual-theme.css', 'app/product-v2.css', 'app/visual-v21.css', 'app/product-beta.css', 'components/motion.css', 'components/design-system.css', 'components/ui/ui.css', 'components/ui/touch-targets.css', 'components/ui/premium.css'];
 /** Light keeps these dark: cosmic artwork with light text on it. Session AE (Part 3, ADR-027): the sidebar and the theme bar
  *  take Light's own colours (apps/web/themes/light.sidebar.css draws its dawn sky); only its planet foot stays night. */
-export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art'];
+export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art',
+  // Session AF (L3; P7.18): the Checklist's dots, lines, orbit banners, chests, ZIGi on the path, the jump bubble, the sky,
+  // the launcher and its edge tab, the corner timers and the history keep the Nebula colours in every theme.
+  '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-timer', '.checklist-history'];
 
 export function sourceFiles() {
   const out = [];

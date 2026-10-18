@@ -43,7 +43,7 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(CHECKLIST_PATH).toBe('/app/checklist');
   });
   test('a done dot is named by its label, its note and "done" (the path engine’s words)', () => {
-    expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: 1 times: done')).toBe(true);
+    expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: 1 time: done')).toBe(true);
     expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: done')).toBe(true);
     expect(doneName('Verifier orbit sip 7f3e').test('Verifier orbit sip 7f3e: not done yet')).toBe(false);
     expect(doneName('a.b (c)').test('a.b (c): done')).toBe(true);
