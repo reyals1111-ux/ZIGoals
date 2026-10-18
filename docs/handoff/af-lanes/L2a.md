@@ -16,6 +16,21 @@ assertion that changed (with the reason). Updated with every step's commit.
 | 6 | `https://rpc.zigchain.com` in `chainOrigins`; CSP tests' exact lists | done | `TIER 3 (CSP): … Part 6` |
 | 7 | Staking UI on `/app/staking` (lazy `StakingActions`), the gate hardened, four specs | done | `TIER 3 (wallet/signing): … Part 7` |
 | 8 | The honesty sentence (H62) in the shell (About panel and Alpha notice take it from there), the Help bullet, the verifier's identity stage, ab-shell + six specs | done (landing: see below) | `TIER 3 (public-safety labels): … Part 8` |
+| 9 | Deploy gate (H85): MANUAL_ALPHA_WORKFLOW's sentence; `build:alpha` + `check:alpha-artifact` + `check:alpha` proven locally | done | `TIER 3 (deploy workflow): … Part 9` |
+
+### Step 9 — the deploy gates with the new flag (H85)
+- The "financial signing and broadcasts remain disabled" assertion exists in exactly one place: the last sentence of
+  `docs/deployment/MANUAL_ALPHA_WORKFLOW.md` line 9 (no workflow step, script or test states it; `deploy-alpha.yml` sets
+  `NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED` and runs `pnpm test`, which now includes
+  `lib/staking/flag.test.ts` and `lib/staking/staking-guard.test.ts`). It now reads "Contract execution stays disabled
+  (`FINANCIAL_EXECUTION_ALLOWED` false); native staking signing only through the review screen (…)". The workflow file and
+  the owner approval gate are untouched; `PUBLIC_ALPHA_UNDEPLOYED` stays the required build mode (the smoke's
+  `/PUBLIC_ALPHA_UNDEPLOYED/` check and `alpha-deployment.mjs`'s build identity unchanged).
+- Proven locally on 2026-10-19 (Brussels night) under the lock, on `15ab5eaa` + the doc edit:
+  `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build:alpha` → "OpenNext build complete." exit 0;
+  `pnpm check:alpha-artifact` → "Alpha artifact check passed: empty compiled environment, no env file copies, no secret
+  markers, no configured names." exit 0; `pnpm check:alpha` (wrangler dry-run) → exit 0. Logs:
+  `~/zigoals-af/logs/L2a-build-alpha.log`, `~/zigoals-af/logs/L2a-check-alpha.log`.
 
 ## Facts read live for this lane (one GET each, 2026-10-18)
 - 20:52 UTC `https://api.zigchain.com` node_info: network `zigchain-1`, application_version `v5.1.2` on both nodes
