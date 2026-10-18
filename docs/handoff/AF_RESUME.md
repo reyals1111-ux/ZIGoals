@@ -34,11 +34,11 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | Lane | Branch / worktree | Owner | State |
 |---|---|---|---|
 | L6 lead (records, verifier, sync, security, words, merges, Gate C) | `feature/session-af-wealth-unlocked` (this checkout) | lead | Part 0 done; A2/A3/A4/A10 done |
-| L2a chain + signing + staking UI + governance + validator health | `af/signing` (an agent worktree) | helper (port 3102) | running since 22:30 Sun: Part 2 steps 1–10 (Parts 1–8 committed by 00:30 Mon); chunk 3 (governance, validator health, rewards sweep) after its merge |
-| L1 Earn hub + data routes + Academy + dock + Today card | `af/earn` (an agent worktree) | helper | chunk 1 (Part 1 core) merged `a444c5ae`, wired; chunk 2 (Start-here, Academy, Today EARN card, dock, every option in depth, stablecoins, illustrations, stage 9, live-check, the APR measured figure H97) waits for a slot |
+| L2a chain + signing + staking UI + governance + validator health | `af/signing` (an agent worktree) | helper | Part 2 done: merged `df19ef40` 01:25 Mon, wired; chunk 3 (governance UI, validator health, rewards sweep, Settings "Remove" for staking prefs) waits for a slot |
+| L1 Earn hub + data routes + Academy + dock + Today card | chunk 1 `af/earn`; chunk 2 `af/earn2` (agent worktrees) | helper (port 3103) | chunk 1 merged `a444c5ae`, wired; chunk 2 (Start-here, every option in depth, measured APR H97, Academy, illustrations, Today EARN card, dock, stage 9, live-check) running since 01:42 Mon |
 | L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
 | L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` (an agent worktree) | helper (port 3104) | running since 00:15 Mon |
-| L5a UI changes + theme parity | `af/ui` → `../ZIGoals-af-ui` | helper | waits for a slot |
+| L5a UI changes + theme parity | `af/ui` (an agent worktree) | helper (port 3102) | running since 01:40 Mon: P10.1–P10.13 |
 | L4 ZIGi | `af/zigi` → `../ZIGoals-af-zigi` | helper | waits for a slot |
 | L5b My Universe, Day Timeline, Stories | `af/extras` → `../ZIGoals-af-extras` | helper | waits for a slot |
 
@@ -49,7 +49,7 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 |---|---|---|
 | 0 Records, setup | done except the reference captures + route/asset checks (the next free helper slot, H93) | `5e4f909d` `59e44be9` `5c015f2c`; captures `c438f25b` on `review/session-af-screens` |
 | 1 Earn hub | core merged and wired; chunk 2 pending | merge `a444c5ae`; wiring `a3cbc5c3` `acd71be2` `8bb65419` `64942576` |
-| 2 Native staking | not started | — |
+| 2 Native staking | done (merged, wired); owner's real-wallet checks after deploy | merge `df19ef40`; wiring `f2388078` `602f7bfb` `15f0d9af` `1518b802` |
 | 3 Wallets | not started | — |
 | 4 Add money (multi-asset) | not started | — |
 | 5 Earn dock | not started | — |
@@ -61,6 +61,23 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | not started | — |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 01:50 Brussels — L2a and Part 0 merged; L5a and L1 chunk 2 started)
+- Done since 00:45: nav fixes `59c61ea1` (phone tabs never take a navigation extra, H68; specs moved), `4df00252`;
+  `8f09dc5f` (merge af/part0-research: routes onto ZIGChain, on-ramp codes, the 10-19 re-check); reference captures
+  `bf342394` on `review/session-af-screens` (pushed); `df19ef40` (merge af/signing) + wiring `f2388078` (TIER 3 storage),
+  `602f7bfb` (TIER 3 egress: server-only origins named + guard), `15f0d9af` (Earn ↔ validators wire contract; Staking
+  empty preview mounted lazily; sanitizer route), `1518b802` (themes, PRIVACY); `b988e4a1` (lane scratch rule, H99).
+  Unit 5529 passed; lint 0 errors. Pushed to `b988e4a1`.
+- In progress (uncommitted when written): the TIER 3 public-safety labels of H100 (mode strip, Help answer, stZIG card,
+  their specs); the integration spec set on 3101 (`$SP/logs/lead-integ.log`).
+- Running helpers (3): L2b (port 3104, told about the codes and L2a), L5a (3102), L1 chunk 2 (3103). Ids in `$SP/lanes.txt`.
+- Known local-only failure: `hosted-verifier-order` throws React #418 on `/app/review` between 00:00 and 02:00 Brussels
+  (Life review's `useLocalToday` starts from the server's UTC date; CI is all-UTC); rerun it after 02:00. Pre-existing on
+  `main`; recorded for STATUS, not fixed here.
+- Next slots, in order: L2a chunk 3 (governance UI, validator health, rewards sweep, staking-prefs Remove), L4 (ZIGi),
+  L5b (extras). Before Gate C: `build:alpha` + `check:alpha-artifact` on this branch (amendment 7; L2a proved it on its
+  branch), the social card re-render (Part 12), the owner's landing wording (owner item).
 
 ## Resume here (2026-10-19 00:45 Brussels — L1 chunk 1 and L3 merged and wired)
 - Done since 22:45: merges `a444c5ae` (af/earn) and `206a26c4` (af/checklist); wiring commits `a3cbc5c3` (TIER 3 storage:
