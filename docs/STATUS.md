@@ -1,4 +1,4 @@
-# Session AE — "Stunning, finished" (ADR-027, Parts 0–6, Gate C) (2026-10-17/18, [PR #89](https://github.com/reyals1111-ux/ZIGoals/pull/89), not merged, not deployed)
+# Session AE — "Stunning, finished" (ADR-027, Parts 0–6, Gate C) (2026-10-17/18, [PR #89](https://github.com/reyals1111-ux/ZIGoals/pull/89), merged into `main` as `4f92495` and deployed as Alpha #44)
 **Evidence labels:** local = the cloud sandbox, production builds on :3101, Playwright Chromium as the Chrome channel, at most 2 workers, builds and browser runs one at a time (owner rule B); CI = Milestone quality on the PR head; WebKit = CI's required WebKit job. No paid service, no secret, no deploy.
 **Base:** `main` `11d8408` (Alpha #43). **Rules (owner):** the brief; rule A (budgets +10 %, `57c8017a`) and rule B (CLAUDE.md's parallel wording, `TIER 3 (project rules)` `f1d91638`). Decisions without asking: ADR-027 G1–G24. Resume file: `docs/handoff/AE_RESUME.md`. Captures: orphan branch `review/session-ae-screens` (`before/` from `11d8408`, `after/`, the Part 1 and Part 2 variants, the capture tools).
 
@@ -81,6 +81,20 @@ Before the raise Today had 18 bytes of room (Session AD).
 - The sync race above (G24) is for an auth/sync session; the hosted verifier's findings count requests its own navigations abort (a filter would be an owner decision).
 - Sandbox-only: `pre-run11-setup.test.mjs` and the four intro-film specs fail here and pass in CI.
 - Carried, unchanged: the ZIGi real-model round, DMARC (28 Oct), the market-policy renewal (ends 31 Oct 16:00 UTC), the private-sync Worker redeploy for `/v1/extras`; Inter and Customize stay owner decisions.
+
+---
+
+# Alpha deploy #44 — 2026-10-18, `4f92495` live
+Recorded by Session AF (2026-10-18).
+- **Source:** `4f9249561736fbe19305b426de82f5c91a24763d`, `main` after [PR #89](https://github.com/reyals1111-ux/ZIGoals/pull/89) (Merge #89, Session AE, "Stunning, finished", ADR-027), merged 2026-10-18 08:29:39 UTC. Verified: GitHub API.
+- **CI:** Milestone quality #1024 ([run 39111652354](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39111652354)) on `4f92495` (push to `main`): success on attempt 1. Verified: Actions API.
+- **Deployment:** Manual Alpha deployment, run number 46 ([run 39121639375](https://github.com/reyals1111-ux/ZIGoals/actions/runs/39121639375)), dispatched 2026-10-18 11:02:37 UTC from `main`, exact source `4f92495`; the deploy job finished 11:25:04 UTC: success on attempt 1. Verified: Actions API.
+- **Result:** `VERIFIED`; the new version answered on every route, confirmed after 3 reads; live prices `VERIFIED` (the market policy period ends 2026-10-31 16:00 UTC, 13 days left). Owner-reported. The live `x-zigoals-build` header read `4f9249561736fbe19305b426de82f5c91a24763d` at 2026-10-18 19:29:53 UTC (Session AF, `curl -I https://alpha.zigoals.app/app`).
+- **Alpha Worker `zigoals-alpha`:** new version `24d86173-c7ac-457c-affd-b35ecd02b6ac`; rollback `5ee8241e-047f-4cf1-93d8-c688b4a71f29` (#43). Owner-reported.
+- **Owner's hosted verifier on #44** (observed 2026-10-18 15:11:39 UTC, ops checkout at `4f92495`, expected build `4f92495` on all three samples; evidence `~/zigoals-evidence/alpha-44-2026-10-18/HOSTED_SMOKE.json`, outside the repository): all 8 stages PASS — the first full live pass, including stage 6 (Reminders and Share open), stage 7 (the landing) and stage 8 (the recipe-import refusals). Overall `FAIL` only on the final HTTP-error check: 5 × 503 from `GET /api/push` (3) and `GET /api/private-account?action=status` (2) — the public Alpha's designed "not configured on this installation" answers (no push, no accounts) — with their 5 matching console lines; plus 21 requests the verifier's own navigations aborted (17 Next link prefetches, 3 `private-account` status reads, 1 `push` read), counted as findings by design. A verifier bug, not a site bug: fixed in Session AF Part 11 (A2, A3; ADR-028). Owner-reported; the counts read from the evidence file.
+- **What went live:** Session AE (ADR-027) on top of AD (#43).
+- **Release identity:** live #44, previous #43. **Rollback floor:** stays #32.
+- **Record note:** run number 46 is Alpha #44 (the run number runs two ahead of the Alpha count).
 
 ---
 
