@@ -585,6 +585,8 @@ All six are built (the owner asked for at least three); 7 is the stretch. Everyt
 
 No claim was refuted. Every "partially" is a precision fix already folded into sections 3–10.
 
+> Note added 2026-10-19 (Phase B lead; the approved text above is kept as approved): the per-track counts in this table were read from verdict tables attached to the wrong tracks. Re-attributed by each verifier's own label in the Phase R journal, they are R1 13 confirmed / 1 partially, R2 10 / 4, R3 11 / 3, R4 5 / 9, R5 11 / 3, R6 7 / 7, R7 11 / 2 / 1 unreachable (98 claims in all). Still no claim refuted; each track's "Verification verdicts" section holds the corrected table.
+
 ## 11. Architecture
 
 ### 11.1 New routes and navigation

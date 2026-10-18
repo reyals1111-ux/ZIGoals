@@ -142,28 +142,30 @@ test('navigation groups: life areas, money tools, the rest; spaced not divided, 
   const sheet=await openMore(page),rows=sheet.locator('.phone-more-list > li');
   // Phase 2, Part 10 (deliberate, owner request 10; ADR-024 "Phase 2 — assertions changed"): with Gamify on (the Showcase),
   // the Journey follows the pages, and Settings and Help stay last. As strict: the exact list.
-  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Journey','Settings','Help']);
+  // Session AF (ADR-028): Earn opens the money group in More; the Checklist is a row before the Journey (H68).
+  expect(await sheet.getByRole('link').allTextContents()).toEqual(['Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Journey','Settings','Help']);
   const gaps=await rows.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
   const gap=(i:number)=>gaps[i]!;
-  // Session AB-Design: Wealth is a tab, so More opens with the money group (Markets, Staking, Portfolio); the one group gap is before Ecosystem (3).
-  expect(gap(3)).toBeGreaterThan(gap(1)+8);expect(Math.abs(gap(1)-gap(2))).toBeLessThan(1);expect(Math.abs(gap(4)-gap(1))).toBeLessThan(1);
+  // Session AB-Design: Wealth is a tab, so More opens with the money group (Earn since Session AF, Markets, Staking, Portfolio); the one group gap is before Ecosystem (4).
+  expect(gap(4)).toBeGreaterThan(gap(1)+8);expect(Math.abs(gap(1)-gap(2))).toBeLessThan(1);expect(Math.abs(gap(3)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(5)-gap(1))).toBeLessThan(1);
   await expect(sheet.locator('hr, [role=separator]')).toHaveCount(0);
   return;
  }
  const links=nav.getByRole('link');
  // The Showcase's visible set (Chess included, Session W Part 14) applies once the page knows it is the Showcase.
- await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
+ // Session AF (ADR-028): Earn opens the money group; the Checklist sits before Settings, in the last group.
+ await expect.poll(()=>links.allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  const gaps=await links.evaluateAll(items=>items.map((item,i)=>i?item.getBoundingClientRect().top-items[i-1]!.getBoundingClientRect().bottom:0));
  const gap=(i:number)=>gaps[i]!;
- // Space, not a line: the gap before Markets and before Ecosystem is clearly larger than inside a group.
- // With Portfolio in the money group (Session I, Part 11), Ecosystem is item 8.
- expect(gap(5)).toBeGreaterThan(gap(1)+15);expect(gap(8)).toBeGreaterThan(gap(1)+15);expect(Math.abs(gap(6)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(7)-gap(1))).toBeLessThan(1);
+ // Space, not a line: the gap before the money group (Earn since Session AF) and before Ecosystem is clearly larger than inside a group.
+ // With Portfolio in the money group (Session I, Part 11) and Earn first in it (Session AF), Ecosystem is item 9.
+ expect(gap(5)).toBeGreaterThan(gap(1)+15);expect(gap(9)).toBeGreaterThan(gap(1)+15);expect(Math.abs(gap(6)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(7)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(8)-gap(1))).toBeLessThan(1);expect(Math.abs(gap(12)-gap(1))).toBeLessThan(1);
  await expect(nav.locator('hr, [role=separator], .nav-divider')).toHaveCount(0);
  // Keyboard order follows the visual order.
  await page.getByRole('link',{name:'ZIGoals home',exact:true}).focus();
  const order:string[]=[];
- for(let i=0;i<13;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
- expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Settings','Help']);
+ for(let i=0;i<15;i++){await page.keyboard.press('Tab');order.push(await page.evaluate(()=>document.activeElement?.textContent?.trim()??''));}
+ expect(order).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  // The narrow-tablet header: the last group starts its own row, and Quick add (below the nav) follows it in tab order.
  await page.setViewportSize({width:820,height:1180});await page.goto('/app/goals');await expect(page.locator('main h1')).toBeVisible();
  const today=await box(page,'.app-nav a[href="/app"]'),ecosystem=await box(page,'.app-nav a[href="/app/ecosystem"]'),staking=await box(page,'.app-nav a[href="/app/staking"]');

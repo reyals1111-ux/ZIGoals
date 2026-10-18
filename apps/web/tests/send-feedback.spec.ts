@@ -94,7 +94,9 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   await expect(section).toContainText('Your last backup isn’t recorded: Settings → Your data says “Not recorded”');
   await expect(section).toContainText('Goals count in US dollars or euros.');
   await expect(items.first()).toContainText('Accounts and sync aren’t open yet on alpha.zigoals.app.');
-  await expect(section).toContainText('No real money moves.');
+  // Session AF (ADR-028 H19): the bullet changed with native-staking signing (it was "No real money moves.").
+  await expect(section).toContainText('Only staking moves ZIG, and only in your own wallet.');
+  await expect(section).toContainText('ZIGoals never holds keys');
   await expect(section).toContainText('never zero');
   await expect(section).toContainText('Photos stay on the device where you added them; another device shows the goal’s colours.');
   await expect(section).toContainText('After a new vault key, your extras wait until the device that synced them last syncs once; nothing is lost meanwhile.');

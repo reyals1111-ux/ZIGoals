@@ -38,9 +38,20 @@ describe('Session AE wallet guard', () => {
     const link = read('lib/wallet-link.ts');
     expect([...new Set(link.match(/provider\.(\w+)\(/g))].sort()).toEqual(['provider.enable(', 'provider.experimentalSuggestChain(', 'provider.getKey(', 'provider.request(']);
   });
-  test('the only signer stays in lib/wallet.ts\'s blocked execute path', () => {
+  // Assertion changed (Session AF, ADR-028 H4, `TIER 3 (wallet/signing)`; owner rule change "native-staking signing on
+  // practice and real networks"): the one signer had one file; now exactly two may name it — this contract path (still
+  // blocked on the Alpha) and native staking's one signer, lib/staking/execute.ts, whose only function that calls it starts
+  // with assertNativeStakingAllowed. Every other file, the AE wallet files above included, still names no signer at all;
+  // lib/staking/staking-guard.test.ts pins who may reach execute.ts (the review sheet's submit handler only).
+  test('the only signers stay in lib/wallet.ts\'s blocked execute path and lib/staking/execute.ts\'s staking path', () => {
     const uses = [...sources('lib'), ...sources('components'), ...sources('app')].filter(file => /getOfflineSigner/.test(read(file)));
-    expect(uses).toEqual(['lib/wallet.ts']);
+    expect(uses).toEqual(['lib/staking/execute.ts', 'lib/wallet.ts']);
+    const staking = read('lib/staking/execute.ts').split(/(?=export (?:async )?function )/);
+    const stakingCalls = staking.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(body => body.match(/^export (?:async )?function (\w+)/)?.[1] ?? 'outside a function');
+    expect(stakingCalls).toEqual(['executeSigned']);
+    expect(staking.find(body => body.startsWith('export async function executeSigned('))!.replace(/^[^{]*\{/, '').trimStart().startsWith('assertNativeStakingAllowed(ticket.messages);')).toBe(true);
+    // The staking wallet session (Session AF) is held to the same no-signing shapes as the AE wallet files.
+    expect(read('lib/wallets/keplr-session.ts')).not.toMatch(FORBIDDEN);
     const wallet = read('lib/wallet.ts');
     // The interface declares it once; each call sits in quoteExecute or executeQuote, which start with the Alpha's block.
     const functions = wallet.split(/(?=export (?:async )?function )/);

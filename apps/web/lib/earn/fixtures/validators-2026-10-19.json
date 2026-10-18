@@ -1,16 +1,13 @@
 {
  "recordedAt": "2026-10-18T22:00:13.663Z",
- "note": "One real read of ZIGChain mainnet’s validator set at one block height, in lane L2a’s GET /api/chain/validators wire shape (scripts/earn/record-validators-fixture.test.ts). For the Earn page’s browser tests until that route is in the build.",
+ "note": "One real read of ZIGChain mainnet’s validator set at one block height, in lane L2a’s GET /api/chain/validators wire shape (scripts/earn/record-validators-fixture.test.ts). For the Earn page’s browser tests until that route is in the build. Aligned by the lead at L2a's merge (network \"zigchain-1\", source the LCD's origin), so it parses with lib/chain/validators-wire.ts.",
  "answer": {
   "version": 1,
   "status": "ok",
-  "network": "mainnet",
+  "network": "zigchain-1",
   "height": "13046134",
   "observedAt": "2026-10-18T22:00:08.673Z",
-  "source": {
-   "name": "ZIGChain mainnet LCD (official)",
-   "origin": "https://api.zigchain.com"
-  },
+  "source": "https://api.zigchain.com",
   "bondedTotal": "425559497761956330156508434",
   "validators": [
    {
@@ -396,7 +393,7 @@
    {
     "operator": "zigvaloper1vc3gvvttje3upm7hfpnt47uhjz7ya8zt30pedr",
     "moniker": "Leonoor's Cryptoman",
-    "website": null,
+    "website": "",
     "status": "unbonded",
     "jailed": false,
     "tombstoned": null,

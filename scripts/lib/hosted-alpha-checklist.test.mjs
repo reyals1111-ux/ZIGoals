@@ -14,14 +14,16 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(CHECKLIST_STAGE).toMatchObject({number: 10, key: 'checklist', browser: true, liveOnly: false, reportsItself: false});
     expect(CHECKLIST_STAGE.run).toBe(checklistStage);
     expect(Object.isFrozen(CHECKLIST_STAGE)).toBe(true);
+    // Wired by the lead (Session AF): appended last, exactly once, and stages 1–8 keep their numbers and order.
     const numbers = VERIFIER_STAGES.map(s => s.number);
-    expect(numbers).not.toContain(10);
-    expect(Math.max(...numbers)).toBeLessThan(10);
-    expect(VERIFIER_STAGES.map(s => s.key)).not.toContain('checklist');
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 10]);
+    expect(VERIFIER_STAGES.filter(s => s.key === 'checklist')).toEqual([CHECKLIST_STAGE]);
+    expect(VERIFIER_STAGES.at(-1)).toBe(CHECKLIST_STAGE);
   });
   test('the sentinel is fictional, unique and never a secret-like value', () => {
     expect(CHECKLIST_SENTINELS.habit).toBe('Verifier orbit sip 7f3e');
-    expect(SENTINELS).not.toContain(CHECKLIST_SENTINELS.habit);
+    // Wired by the lead: the privacy check looks for it in every captured request, exactly once in the list.
+    expect(SENTINELS.filter(value => value === CHECKLIST_SENTINELS.habit)).toHaveLength(1);
     expect(CHECKLIST_SENTINELS.habit).not.toMatch(/@|https?:|key|token|secret/i);
   });
   test('browser-local only: no request of its own, no wallet, no import.meta or top-level await', () => {

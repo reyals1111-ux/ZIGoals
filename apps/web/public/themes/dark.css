@@ -1070,6 +1070,69 @@
         box-shadow: 0 12px 30px -16px #000c
     }
 }
+/*  components/checklist/checklist-launcher.css  */
+@scope (:root[data-theme=dark]) {
+    .checklist-launcher:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent);
+        background: radial-gradient(120% 120% at 30% 20%, #0d0934, #020313 70%);
+        box-shadow: 0 14px 34px -14px rgba(60, 40, 160, .8), 0 0 0 1px rgba(255, 255, 255, .04) inset;
+        color: var(--text, #eef1ff)
+    }
+    .checklist-launcher-fold:not(#\-)::after {
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--panel, #020412) 94%, transparent);
+        border: 1px solid var(--line, #2a325a);
+        color: var(--text, #eef1ff)
+    }
+    .checklist-edge-tab:not(#\-) {
+        border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent);
+        border-right: 0;
+        border-radius: 16px 0 0 16px;
+        background: radial-gradient(140% 120% at 30% 20%, #0d0934, #020313 75%);
+        box-shadow: 0 10px 26px -12px rgba(60, 40, 160, .8);
+        color: var(--text, #eef1ff)
+    }
+}
+/*  components/checklist/checklist.css  */
+@scope (:root[data-theme=dark]) {
+    :scope[data-theme=dark] .checklist-sky:not(#\-) {
+        background: #000002
+    }
+    .checklist-stepper:not(#\-), .checklist-dot-panel:not(#\-) {
+        border-radius: 18px;
+        border: 1px solid color-mix(in srgb, var(--dot, #9273ff) 45%, transparent);
+        background: var(--panel, #010412f2);
+        box-shadow: 0 18px 40px -24px #000d
+    }
+    .checklist-stepper-field:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid var(--line, #ffffff2a);
+        background: var(--field, #010209)
+    }
+    .checklist-pill:not(#\-) {
+        border-radius: 18px;
+        border: 1px solid var(--line, #ffffff22);
+        background: var(--panel, #010412e6)
+    }
+    .checklist-edit-list li:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid var(--line, #ffffff22);
+        background: var(--panel, #010412)
+    }
+    .checklist-edit-orbits li:not(#\-) {
+        border-radius: 16px;
+        border-left: 4px solid var(--dot);
+        background: var(--panel, #010412)
+    }
+}
+/*  components/checklist/today-checklist.css  */
+@scope (:root[data-theme=dark]) {
+    .today-checklist-mark:not(#\-) {
+        border-radius: 12px;
+        background: radial-gradient(120% 120% at 30% 20%, #0d0934, #020313 70%)
+    }
+}
 /*  components/chess/chess.css  */
 @scope (:root[data-theme=dark]) {
     .chess-chart-tip:not(#\-) {
@@ -1258,6 +1321,81 @@
         border-radius: 14px;
         border: 1px solid #6c9cc533;
         background: #01050f99
+    }
+}
+/*  components/earn/earn.css  */
+@scope (:root[data-theme=dark]) {
+    .earn-page:not(#\-) {
+        --earn-glass: linear-gradient(160deg, #010514f2, #01030ef5 60%, #040213f2)
+    }
+    .earn-chips:not(#\-) {
+        border-radius: 0 0 18px 18px;
+        background: linear-gradient(180deg, #010207f7, #01030cef)
+    }
+    .earn-chip:not(#\-) {
+        border-radius: 999px;
+        border: 1px solid #7fc8ff33;
+        background: #020614;
+        color: var(--text-secondary)
+    }
+    .earn-medallion:not(#\-) {
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #071229, #01040f 70%);
+        border: 1px solid #ffd27a55;
+        box-shadow: 0 0 0 4px #ffd27a12, 0 10px 30px #0008
+    }
+    .earn-tag:not(#\-) {
+        border-radius: 999px;
+        border: 1px solid #7fc8ff40;
+        color: var(--text-secondary);
+        background: #020512
+    }
+    .earn-facts > div:not(#\-) {
+        border-radius: 14px;
+        background: #01040eb3;
+        border: 1px solid #7fc8ff1f
+    }
+    .earn-figure:not(#\-) {
+        border-radius: 14px;
+        background: #01030d;
+        border: 1px solid #7fc8ff26
+    }
+    .earn-figure[data-big]:not(#\-) {
+        background: linear-gradient(120deg, #030718, #01030e);
+        border-color: #ffd27a40
+    }
+    .earn-formula:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid #7fc8ff26;
+        background: #01030d
+    }
+    .earn-guidance:not(#\-) {
+        border-radius: 14px;
+        background: #01040eb3;
+        border: 1px solid #ffd27a33
+    }
+    .earn-table thead th:not(#\-) {
+        color: var(--text-meta);
+        background: #010511
+    }
+    .earn-safety-tiles li:not(#\-) {
+        border-radius: 16px;
+        background: #01040e;
+        border: 1px solid #ffd27a33
+    }
+    .earn-guide-panel:not(#\-) {
+        border-radius: 20px;
+        border: 1px solid #ffd27a55;
+        background: linear-gradient(160deg, #020616fa, #01030efa);
+        box-shadow: 0 24px 80px #000c;
+        color: var(--text-secondary)
+    }
+    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+        .earn-table tr:not(#\-) {
+            border-radius: 14px;
+            border: 1px solid #7fc8ff26;
+            background: #01030d
+        }
     }
 }
 /*  components/ecosystem-directory.css  */
@@ -3012,6 +3150,21 @@
         border: 1px solid transparent;
         background: linear-gradient(150deg, #01030cf2, #03020cf2) padding-box, linear-gradient(120deg, #7bddff4d, #5a91c233 34%, #9775ed4d, #c98fff59) border-box;
         box-shadow: inset 0 1px 0 #ffffff0d, 0 10px 28px -18px #000c
+    }
+}
+/*  components/staking/staking.css  */
+@scope (:root[data-theme=dark]) {
+    .staking-network-option:not(#\-) {
+        border-radius: 14px;
+        border: 2px solid var(--line,#6b91c846);
+        background: var(--surface-1,#020613);
+        color: var(--text,#eef4ff)
+    }
+    .staking-tabs button:not(#\-) {
+        border-radius: 40px;
+        border: 1px solid var(--line,#6b91c846);
+        background: var(--surface-1,#020613);
+        color: var(--text,#eef4ff)
     }
 }
 /*  components/swipe/swipe.css  */

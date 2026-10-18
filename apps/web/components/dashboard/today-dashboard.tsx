@@ -43,6 +43,7 @@ import {useHealth} from '../health/use-health';
 import {useAutoCheckIns} from '../habits/use-auto-checkins';
 import {TodayForYou,type ForYouParts} from '../for-you/today-for-you';
 import {TodayFocus} from './today-focus';
+import {TodayChecklistCard} from '../checklist/today-checklist-card';
 import {ProgressSlot,Slot} from '../progress/slot';
 import {HealthLinkContext} from '../habits/health-link-context';
 import {exerciseData} from '../../lib/health-counters';
@@ -261,6 +262,8 @@ export function TodayDashboard(){
    {integrityWarning&&<p role="alert" className="notice">{integrityWarning} <Link href="/app/wealth">Review saved sources →</Link></p>}
    {!showcase&&makeToday}
    {!brandNew&&<TodayFocus habitsWidget={habitsWidgetShown} reminders={<>{habits.loaded&&health.loaded&&<ReminderCards habits={habits.error?undefined:habits.data} health={health.error?undefined:health.data}/>}{parts.focus}<div className="for-you-place" ref={setFocusPlace}/></>} nextGoal={nextGoal} financial={financial} showHabits={domains.includes('habits')&&isShown(pagesView,'habits')} showHealth={domains.includes('health')&&showHealth} healthDate={sources.healthDate}/>}
+   {/* Session AF (L3, P7.21): the Checklist's progress card after Today's focus — a fixed card (Today's main order lives in the strict synced dashboard placement, ADR-028 H95); hidden when the Checklist is off on this device. */}
+   {!brandNew&&<TodayChecklistCard/>}
    <section aria-label="Your Today widgets" className="dashboard-widget-area">
     {customize&&<div className="section-heading dashboard-layout-heading"><h2>Arrange your daily space</h2><div className="dashboard-actions"><button className="primary" disabled={busy||settings.data.widgets.length>=24} onClick={()=>{setInsertAt(null);setEditor('new');}}>Add widget</button><button className="secondary" onClick={()=>setPreset(settings.data.preset)}>Choose preset</button></div></div>}
     <p role="status" className="dashboard-save-status">{status}</p>{error&&<p role="alert">{error}</p>}

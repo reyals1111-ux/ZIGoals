@@ -14,11 +14,13 @@ import {connectSources, frameSources} from '../../apps/web/lib/csp-compose.mjs';
 import {probeAlphaMarket} from './alpha-market-probe.mjs';
 import {appNonceFindings, priceFinding, reviewReason, reviewedRestPattern} from './hosted-alpha-review.mjs';
 import {readPolicyWindow, policyWindowNote} from './market-policy-window.mjs';
+import {CHECKLIST_SENTINELS, CHECKLIST_STAGE} from './hosted-alpha-checklist.mjs';
 import {GOAL_SENTINELS, LOCAL_SIMULATION_METADATA_KEY, createFictionalGoal, depositAndWithdraw, openDiagnostics, previewSafeDiagnostics, closeFictionalGoal, todayQuickAdd} from './hosted-alpha-goal-stage.mjs';
 
 export const LIVE_ORIGINS = Object.freeze({alpha: 'https://alpha.zigoals.app', fallback: 'https://zigoals-alpha.reyals1111.workers.dev', apex: 'https://zigoals.app'});
 /** The fictional values no request may carry (the privacy check) and no safe diagnostic summary may show. */
-export const SENTINELS = Object.freeze([GOAL_SENTINELS.name, GOAL_SENTINELS.target, GOAL_SENTINELS.targetUnits, GOAL_SENTINELS.date, GOAL_SENTINELS.note]);
+// Session AF (ADR-028 H57): the Checklist stage's fictional habit title joins the privacy sentinels.
+export const SENTINELS = Object.freeze([GOAL_SENTINELS.name, GOAL_SENTINELS.target, GOAL_SENTINELS.targetUnits, GOAL_SENTINELS.date, GOAL_SENTINELS.note, CHECKLIST_SENTINELS.habit]);
 
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]']);
 /**
@@ -106,13 +108,13 @@ async function identity(page, {base, expect, report}) {
   await page.goto(base + '/app'); await page.waitForLoadState('networkidle');
   // Session AC (owner finding 3 on #41): the page ends after the footer's link columns. The first-visit notice carries
   // the label and the sentence on /app; Settings' facts block carries the sentence, the mode and the build environment.
-  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
   await expect(page.locator('footer .network-banner, footer .mode-strip')).toHaveCount(0);
   report.initialPerformance = await page.evaluate(() => ({navigation: performance.getEntriesByType('navigation').map(x => x.toJSON()), resources: performance.getEntriesByType('resource').map(x => x.toJSON())}));
   await recordLayouts(page, report, 'alpha-dashboard');
   await page.goto(base + '/app/settings');
   await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
-  await expect(page.locator('.about-alpha .network-banner')).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.locator('.about-alpha .network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
 }
 
 /**
@@ -222,6 +224,8 @@ export const VERIFIER_STAGES = Object.freeze([
   {number: 6, key: 'aa-pages', name: 'AA pages: calculator, Life review, Journey, Your data, Reminders and Share open', browser: true, liveOnly: false, reportsItself: false, run: aaPages},
   {number: 7, key: 'landing', name: LANDING, browser: true, liveOnly: true, reportsItself: false, run: landing},
   {number: 8, key: 'recipe', name: 'Recipe import refuses http, a private host and an oversized address', browser: false, liveOnly: false, reportsItself: false, run: recipeRefusals},
+  // Session AF (ADR-028 H57): new stages are appended, never inserted; 9 (Earn) arrives with the Earn lane's second chunk.
+  CHECKLIST_STAGE,
 ].map(stage => Object.freeze(stage)));
 
 /**

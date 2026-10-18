@@ -47,7 +47,7 @@ export function CelebrationHost({game, fasting}: {game: GameState; fasting?: Par
     <section className="celebration-card">
       {!still && <div className="celebration-particles" aria-hidden="true">{Array.from({length: PARTICLES}, (_, i) => <i key={i} style={{'--i': i, '--a': `${(i * 137) % 360}deg`, '--d': `${70 + (i * 53) % 90}px`, '--t': `${900 + (i * 97) % 500}ms`} as React.CSSProperties} />)}</div>}
       <span className="celebration-symbol" aria-hidden="true">{current.symbol}</span>
-      <p className="eyebrow">{current.kind === 'level' ? 'Level up' : current.kind === 'badge' ? 'A new badge' : current.kind === 'streak' ? 'A streak' : current.kind === 'fast' ? 'Fasting' : 'A goal'}</p>
+      <p className="eyebrow">{current.kind === 'level' ? 'Level up' : current.kind === 'badge' ? 'A new badge' : current.kind === 'streak' ? 'A streak' : current.kind === 'fast' ? 'Fasting' : current.kind === 'checklist' ? 'Your orbit' : 'A goal'}</p>
       <h2 id="celebration-title"><NebulaFlow identity={`celebration:${current.id}`}>{current.title}</NebulaFlow></h2>
       <p className="celebration-line">{current.line}</p>
       <button type="button" className="primary" autoFocus onClick={() => setQueue(q => q.slice(1))}>{queue.length > 1 ? 'Next' : 'Lovely'}</button>

@@ -48,7 +48,9 @@ test('the list, its guidance and its filters and sorts, from facts only', async 
 test('an unavailable validator list says so with the reason; the native rate falls back to before commission', async ({page}) => {
   await page.unrouteAll({behavior: 'ignoreErrors'});
   await earnRoutes(page, {unavailable: {validators: 'TIMEOUT'}});
-  await page.goto('/app/earn#validators');
+  // A reload, not a goto: the address is beforeEach's own, so a goto is a same-document jump that keeps the first load's
+  // state (its late fetch, sent after the unroute, reached the build itself and read "not in this build").
+  await page.reload();
   await expect(page.locator('#validators [data-live-figure="validators"]')).toHaveAttribute('data-reason', 'TIMEOUT');
   await expect(page.locator('#validators')).toContainText('unavailable (the source took too long to answer)');
   await expect(page.locator('[data-live-figure="native-commission"]')).toHaveAttribute('data-state', 'unavailable');

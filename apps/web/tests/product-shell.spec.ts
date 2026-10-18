@@ -17,9 +17,9 @@ test("unified shell exposes all eight destinations and preserves Alpha controls"
   // Session AC (owner finding 3): the footer's line moved to Settings' facts block; on a computer the notice carries the
   // sentence on this page, and the facts block carries it in Settings on every width.
   const phone = await page.getByRole("dialog", { name: "Status" }).isVisible();
-  await expect(phone ? status : alphaNotice(page)).toContainText("No blockchain transactions or financial signatures.");
+  await expect(phone ? status : alphaNotice(page)).toContainText("Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.");
   if (phone) await page.keyboard.press("Escape");
-  await inAboutAlpha(page, about => expect(about.locator(".network-banner")).toContainText("No blockchain transactions or financial signatures."));
+  await inAboutAlpha(page, about => expect(about.locator(".network-banner")).toContainText("Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys."));
   for (const width of [1440, 1280, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 800 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

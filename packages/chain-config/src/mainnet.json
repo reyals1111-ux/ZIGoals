@@ -1,0 +1,14 @@
+{
+  "network": "mainnet",
+  "chainId": "zigchain-1",
+  "rpcUrl": "https://rpc.zigchain.com",
+  "restUrl": "https://api.zigchain.com",
+  "addressPrefix": "zig",
+  "nativeAsset": {
+    "symbol": "ZIG",
+    "displayDenom": "ZIG",
+    "baseDenom": "azig",
+    "decimals": 18
+  },
+  "gasPrice": "2500000000"
+}

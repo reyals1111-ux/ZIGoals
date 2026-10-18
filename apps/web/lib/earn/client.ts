@@ -11,7 +11,7 @@ export const EARN_FAMILIES = Object.freeze({
   valdora: {path: '/api/earn/valdora', pollMs: 120_000},
   oroswap: {path: '/api/earn/oroswap', pollMs: 120_000},
   defillama: {path: '/api/earn/defillama', pollMs: 600_000},
-  validators: {path: '/api/chain/validators?network=mainnet', pollMs: 120_000},
+  validators: {path: '/api/chain/validators?network=zigchain-1', pollMs: 120_000},
 } as const);
 export type EarnFamily = keyof typeof EARN_FAMILIES;
 export type FamilyData = {chain: ChainData; valdora: ValdoraData; oroswap: OroswapData; defillama: DefillamaData; validators: ValidatorsAnswer};
@@ -58,20 +58,23 @@ const validatorSchema = z.object({
   selfBond: amount.nullable(), uptime: z.object({window: count, missed: count, signedShare: share}).nullable(),
 });
 const validatorsSchema = z.object({
-  version: z.literal(1), status: z.enum(['ok', 'unavailable']), reason: z.string().max(40).optional(), network: z.string().max(20),
+  // The route's reason is a plain sentence (lane L2a, up to 300 characters); an unknown reason reads as UPSTREAM_DOWN below.
+  version: z.literal(1), status: z.enum(['ok', 'unavailable']), reason: z.string().max(300).optional(), network: z.string().max(20),
   height: z.union([z.string(), z.number()]).optional(), observedAt: z.string().max(40).optional(),
   source: z.union([z.string().max(120), z.object({name: z.string().max(120), origin: z.string().max(200).optional(), url: z.string().max(200).optional()})]),
   bondedTotal: amount.optional(), validators: z.array(validatorSchema).max(500),
 });
 export type Validator = z.infer<typeof validatorSchema>;
 export type ValidatorsAnswer = z.infer<typeof validatorsSchema> & {fetchedAt: string};
+const LCD_NAMES: Readonly<Record<string, string>> = {'https://api.zigchain.com': 'ZIGChain mainnet LCD (official)', 'https://testnet-api.zigchain.com': 'ZIGChain testnet LCD (official)'};
 export async function readValidators(): Promise<LiveState<ValidatorsAnswer>> {
   let got: {status: number; body: unknown};
   try { got = await get(EARN_FAMILIES.validators.path); } catch { return plain('UPSTREAM_DOWN'); }
   if (got.status === 404) return plain('NOT_IN_THIS_BUILD');
   const parsed = validatorsSchema.safeParse(got.body);
   if (!parsed.success) return plain(got.status === 429 ? 'RATE_LIMITED' : 'MALFORMED');
-  const sourceName = typeof parsed.data.source === 'string' ? parsed.data.source : parsed.data.source.name;
+  // L2a's route names its source by the LCD's origin; the page shows the plain name of that official service.
+  const sourceName = typeof parsed.data.source === 'string' ? (LCD_NAMES[parsed.data.source] ?? parsed.data.source) : parsed.data.source.name;
   if (parsed.data.status === 'unavailable') return {phase: 'unavailable', reason: (UNAVAILABLE_REASONS as readonly string[]).includes(parsed.data.reason ?? '') ? parsed.data.reason as UnavailableReason : 'UPSTREAM_DOWN', source: {name: sourceName}};
   const fetchedAt = new Date().toISOString();
   return {phase: 'ok', answer: {source: {name: sourceName}, ...(parsed.data.height !== undefined ? {height: String(parsed.data.height)} : {}), ...(parsed.data.observedAt ? {observedAt: parsed.data.observedAt} : {}), fetchedAt, stale: false, data: {...parsed.data, fetchedAt}}};

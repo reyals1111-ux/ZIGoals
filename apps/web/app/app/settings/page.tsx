@@ -38,6 +38,7 @@ import { ChessSettings } from "../../../components/settings/chess-settings";
 import { LinksSettings } from "../../../components/links/links-settings";
 import { MusicSettings } from "../../../components/music/music-settings";
 import { PagesSettings } from "../../../components/settings/pages-settings";
+import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -167,6 +168,7 @@ export default function Settings() {
       <SettingsGroup id="settings-app" title="Your app">
         <ShowcaseControls/>
         <PagesSettings/>
+        <AfChecklistSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>

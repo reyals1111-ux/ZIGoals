@@ -5,6 +5,16 @@ import { positionSchema, units, type Position } from './positions';
 export {READ_NETWORKS,type ReadMode} from './position-reader';
 import {READ_NETWORKS,publicZigAddress,type ReadMode} from './position-reader';
 const coin=z.object({denom:z.string(),amount:units});
+/**
+ * Session AF (ADR-028 H16): Valdora's stZIG token per network, 6 decimals. Mainnet: the stZIG token contract of the
+ * ecosystem registry (packages/ecosystem-registry providers.json, Valdora; LIVE_READ_VERIFIED; bank metadata read 2026-10-18:
+ * display stZIG at exponent 6); testnet: the denom Valdora's pinned testnet reader names. Read as a plain bank balance
+ * (no contract call).
+ */
+export const STZIG=Object.freeze({
+ 'zigchain-1':Object.freeze({denom:'coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig',decimals:6}),
+ 'zig-test-2':Object.freeze({denom:'coin.zig18dgnfnv0sxjn4r9wtfj2zhvfewy2tk69m9j5zlhy3xgmahcgf20s6anrnr.stzig',decimals:6}),
+});
 const validatorAddress=z.string().max(100).refine(v=>{try{const b=fromBech32(v,90);return b.prefix==='zigvaloper'&&b.data.length===20;}catch{return false;}});
 const delegation=z.object({delegation:z.object({delegator_address:publicZigAddress,validator_address:validatorAddress}),balance:coin});
 const unbonding=z.object({delegator_address:publicZigAddress,validator_address:validatorAddress,entries:z.array(z.object({creation_height:units,completion_time:z.iso.datetime({offset:true}),balance:units})).max(100)});
@@ -50,17 +60,24 @@ export async function readNativePositions(mode:ReadMode,account:string,fetcher:t
   }throw Error('Position query exceeds pagination limit; no partial total was saved.');
  }
  const encoded=encodeURIComponent(account);
- const [bank,delegations,unbondings,rewardsRaw]=await Promise.all([
+ const stZig=STZIG[network.chainId as keyof typeof STZIG];
+ const [bank,delegations,unbondings,rewardsRaw,stZigRaw]=await Promise.all([
   read(`/cosmos/bank/v1beta1/balances/${encoded}/by_denom?denom=${network.denom}`),
   pages(`/cosmos/staking/v1beta1/delegations/${encoded}`,'delegation_responses',delegation),
   pages(`/cosmos/staking/v1beta1/delegators/${encoded}/unbonding_delegations`,'unbonding_responses',unbonding),
   read(`/cosmos/distribution/v1beta1/delegators/${encoded}/rewards`),
+  read(`/cosmos/bank/v1beta1/balances/${encoded}/by_denom?denom=${encodeURIComponent(stZig.denom)}`),
  ]);
  const balance=z.object({balance:coin}).parse(bank).balance;if(balance.denom!==network.denom)throw Error('Wrong liquid denomination.');
+ const stZigBalance=z.object({balance:coin}).parse(stZigRaw).balance;if(stZigBalance.denom!==stZig.denom)throw Error('Wrong stZIG denomination.');
  const rewards=z.object({rewards:z.array(reward).max(1000)}).parse(rewardsRaw).rewards;
  const base={providerId:'native-zig',network:network.chainId,account,asset:'ZIG',denom:network.denom,decimals:network.decimals,verification:'VERIFIED_READ_ONLY',sync:'CURRENT',observedAt,provenance,executionAuthority:'NONE'};
  const make=(suffix:string,fields:Record<string,unknown>)=>positionSchema.parse({...base,id:`${network.chainId}:${account}:${suffix}`,...fields});
  const result:Position[]=[make('liquid',{sourceType:'WALLET_LIQUID',quantity:balance.amount,liquidity:'LIQUID'})];
+ // Session AF (ADR-028 H16, H44): Valdora's stZIG, read at the same block, shown in stZIG units only (never as ZIG: its ZIG
+ // value follows H44's two-source rule elsewhere). Listed only when the address holds some, so a wallet without it
+ // shows no empty card; a holding that later goes to zero is kept at zero by replaceObservation like any other.
+ if(stZigBalance.amount!=='0')result.push(make('stzig',{sourceType:'LIQUID_STAKING',asset:'stZIG',denom:stZig.denom,decimals:stZig.decimals,quantity:stZigBalance.amount,liquidity:'LIQUID',notes:'Valdora liquid staking token (stZIG), in stZIG units. Its ZIG value is not converted here.',risk:'A liquid staking token: smart-contract, operator and price risks apply. Unstaking through Valdora is not instant.'}));
  const validatorIds=[...new Set([...delegations.map(d=>d.delegation.validator_address),...rewards.map(r=>r.validator_address),...unbondings.map(u=>u.validator_address)])];
  if(validatorIds.length>100)throw Error('Too many validators for one observation.');
  const validators=new Map<string,Position['validator']>();

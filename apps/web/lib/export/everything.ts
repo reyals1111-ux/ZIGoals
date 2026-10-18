@@ -29,6 +29,9 @@ import {AA_DISPLAY_KEYS, AA_PERSONAL_KEYS} from '../aa-device-keys';
 import {AB_DESIGN_DISPLAY_KEYS} from '../ab-design-keys';
 import {AB_CLOUD_PERSONAL_KEYS} from '../ab-cloud-device-keys';
 import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
+import {EARN_EXPORT_KEYS} from '../af-earn-keys';
+import {AF_CHECKLIST_EXPORT_KEYS} from '../af-checklist-keys';
+import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY} from '../af-signing-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -72,7 +75,9 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AB-Cloud (lib/ab-cloud-device-keys.ts): vitamins (Part 4) and Point & tell's pins (Part 6).
   ...Object.fromEntries(AB_CLOUD_PERSONAL_KEYS.map(k => [k.slice(8, -3).replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase()), k])) as Record<'healthVitamins' | 'pointTell', string>,
   // Session AE (Part 6, ADR-027): the wallets linked read-only (public addresses, personal): exported, never synced, never restored.
-  linkedWallets: LINKED_WALLETS_KEY} as const;
+  linkedWallets: LINKED_WALLETS_KEY,
+  // Session AF (ADR-028): Earn's progress and choices, the Checklist's two records; exported, never synced, never restored.
+  ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

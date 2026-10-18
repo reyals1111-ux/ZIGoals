@@ -18,6 +18,7 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:wealth', kind: 'page', title: 'Wealth', href: '/app/wealth', keywords: ['assets', 'net worth', 'accounts', 'debts']},
   {id: 'page:calculator', kind: 'page', title: 'Compound interest calculator', subtitle: 'Wealth', href: '/app/wealth/calculator', keywords: ['interest', 'savings', 'growth', 'compound', 'invest']},
   {id: 'page:markets', kind: 'page', title: 'Markets', href: '/app/markets', keywords: ['prices', 'crypto', 'stocks', 'watchlist']},
+  {id: 'page:earn', kind: 'page', title: 'Earn', href: '/app/earn', keywords: ['earn', 'staking', 'stake', 'apr', 'yield', 'valdora', 'stzig', 'oroswap', 'liquidity', 'validators', 'zig finance']},
   {id: 'page:staking', kind: 'page', title: 'Staking', href: '/app/staking', keywords: ['zig', 'validators', 'rewards']},
   {id: 'page:portfolio', kind: 'page', title: 'Portfolio', href: '/app/portfolio', keywords: ['returns', 'performance']},
   {id: 'page:ecosystem', kind: 'page', title: 'Ecosystem', href: '/app/ecosystem', keywords: ['zigchain', 'apps']},
@@ -27,6 +28,7 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:help', kind: 'page', title: 'Help', href: '/app/help', keywords: ['questions', 'faq', 'support']},
   // Session AA-Local's pages and views (merged second, ADR-022 B52).
   {id: 'page:journey', kind: 'page', title: 'Journey', href: '/app/journey', keywords: ['game', 'level', 'quests', 'badges', 'xp', 'freeze']},
+  {id: 'page:checklist', kind: 'page', title: 'Checklist', href: '/app/checklist', keywords: ['path', 'dots', 'favourites', 'favorites', 'daily', 'orbit', 'star', 'checklist']},
   {id: 'page:reminders', kind: 'page', title: 'Reminders', subtitle: 'Settings', href: '/app/settings/reminders', keywords: ['quiet hours', 'bedtime', 'water', 'weekly review', 'fasting']},
   {id: 'page:habits-routines', kind: 'page', title: 'Routines', subtitle: 'Habits', href: '/app/habits#routines', keywords: ['morning routine', 'stack', 'player']},
   {id: 'page:habits-year', kind: 'page', title: 'Year view', subtitle: 'Habits', href: '/app/habits#year', keywords: ['calendar', 'year', 'heatmap']},

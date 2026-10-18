@@ -5,9 +5,12 @@ import {isPhone, mainNav, openMore} from './phone-nav';
 
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
-const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
+// Session AF (ADR-028 H98): Earn follows Wealth's switch, so it is listed only where Wealth is.
+const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
 /** Every page, Chess included (Session W Part 14): what "Show everything again" and the Showcase show. */
-const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
+const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
+/** Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. */
+const withChecklist = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, 'Checklist'] : [...labels.slice(0, at), 'Checklist', ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
 const settingsWith = (p?: object) => ({...presetSettings('balanced'), onboarded: true, ...(p ? {schemaVersion: 3, pages: p} : {})});
 async function seed(page: Page, records: Record<string, unknown>) {
@@ -25,14 +28,14 @@ const navLabels = (page: Page) => mainNav(page).getByRole('link').allTextContent
 /** The sidebar on a larger screen; on a phone the tabs, then (opened) the More sheet's links after them. */
 async function expectNav(page: Page, visible: string[], journey = false) {
   // Help is always shown, last (Session Z-Cloud Part 4.11).
-  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...visible, 'Help']); return; }
+  if (!await isPhone(page)) { await expect.poll(() => navLabels(page)).toEqual([...withChecklist(visible), 'Help']); return; }
   const pagesOnly = visible.filter(label => label !== 'Settings');
   // Five tabs since Session AB-Design (owner request 10); More, from the top bar, holds the rest, then Settings and Help.
   await expect.poll(() => navLabels(page)).toEqual(pagesOnly.slice(0, 5));
   await openMore(page);
   // Session AB-Design Phase 2 (deliberate, ADR-024 "Phase 2 — assertions changed"): while Gamify is on (the Showcase), the
   // Journey is a row of More after the pages, since it is no longer a tab.
-  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
+  await expect.poll(() => navLabels(page)).toEqual([...pagesOnly.slice(0, 5), ...pagesOnly.slice(5), 'Checklist', ...(journey ? ['Journey'] : []), 'Settings', 'Help']);
   await page.keyboard.press('Escape');
 }
 const section = (page: Page) => page.getByRole('region', {name: 'Your pages & buttons', exact: true});
@@ -54,8 +57,8 @@ test('hiding a page saves a stamped settings v3 choice; the navigation, preview 
   expect(record.schemaVersion).toBe(3);
   expect(record.pages.items).toEqual({goals: {v: 'hidden', at: expect.stringMatching(/^20\d\d-\d\d-\d\dT/)}});
   await expectNav(page, ALL.filter(label => label !== 'Goals'));
-  await expect(card.locator('.pages-preview .sr-only')).toContainText('Sidebar: Today, Habits, Health, Wealth, Markets');
-  await expect(card.locator('.pages-preview .sr-only')).toContainText('Phone tab bar: Today, Habits, Health, Wealth, Markets; More (in the top bar) holds'); // five tabs (Session AB-Design)
+  await expect(card.locator('.pages-preview .sr-only')).toContainText('Sidebar: Today, Habits, Health, Wealth, Earn, Markets'); // Session AF: Earn follows Wealth (H98)
+  await expect(card.locator('.pages-preview .sr-only')).toContainText('Phone tab bar: Today, Habits, Health, Wealth, Earn; More (in the top bar) holds'); // five tabs (Session AB-Design); Earn before Markets since Session AF
   expect(await stored(page, MIRROR)).toEqual({version: 1, hidden: ['goals', 'chess', 'music']});
   await page.reload();
   await expectNav(page, ALL.filter(label => label !== 'Goals'));
@@ -255,8 +258,8 @@ test('while the settings are still opening, the device mirror already shapes the
   await expect(page.getByTestId('ai-launcher')).toBeAttached();
   await expect(page.locator('.workspace')).toHaveAttribute('aria-busy', 'true');
   const expected = [...ALL.filter(label => label !== 'Goals'), 'Help'];
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(expected);
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
   await page.evaluate(() => (window as unknown as {__vault: {release(): void}}).__vault.release());
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
-  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(expected);
+  if (await isPhone(page)) await expect.poll(() => navLabels(page)).toEqual(expected.slice(0, 5)); else await expect.poll(() => navLabels(page)).toEqual(withChecklist(expected));
 });
