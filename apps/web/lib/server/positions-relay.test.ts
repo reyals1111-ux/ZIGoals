@@ -18,7 +18,8 @@ function chain(){
    :path.includes('node_info')?{default_node_info:{network:'zig-test-2'}}
    :path.includes('denoms_metadata')?{metadata:{base:'azig',display:'zig',denom_units:[{denom:'azig',exponent:0},{denom:'zig',exponent:18}]}}
    :path.endsWith('/params')?{params:{bond_denom:'azig'}}
-   :path.includes('by_denom')?{balance:{denom:'azig',amount:'5'}}
+   // Session AF: the stZIG balance is read beside the ZIG one (lib/native-positions.ts STZIG); this address holds none.
+   :path.includes('by_denom')?(u.searchParams.get('denom')==='azig'?{balance:{denom:'azig',amount:'5'}}:{balance:{denom:u.searchParams.get('denom'),amount:'0'}})
    :path.includes('unbonding_delegations')?{unbonding_responses:[{delegator_address:address,validator_address:v[2],entries:[{creation_height:'70',completion_time:'2026-10-30T00:00:00Z',balance:'9'}]}],pagination:{next_key:null}}
    :path.includes('rewards')?{rewards:[{validator_address:v[0],reward:[{denom:'azig',amount:'1.5'}]},{validator_address:v[1],reward:[{denom:'azig',amount:'2'}]}]}
    :path.endsWith('/staking/v1beta1/validators')?{validators:v.map((a,i)=>({operator_address:a,description:{moniker:'Fictional '+i},status:'BOND_STATUS_BONDED',tokens:'1000',commission:{commission_rates:{rate:'0.05'}}})),pagination:{next_key:null}}
@@ -54,18 +55,36 @@ it('a client may start 10 chain reads a minute; answers from the cache are free'
  expect(await relay('TESTNET_READ_ONLY',addresses.at(-1)!,'another client')).toEqual({positions:[]});
  t+=60_000;expect(await relay('TESTNET_READ_ONLY',toBech32('zig',new Uint8Array(20).fill(99)),'client')).toEqual({positions:[]});
 });
-it('the public builds refuse mainnet with a plain sentence and read nothing; a local demo build still reads it',async()=>{
+// Assertion changed (Session AF, ADR-028 H16, owner amendment 6; `TIER 3 (egress routes)`): Session Z-Cloud's C4 refusal is
+// lifted. The public builds now read mainnet through this relay; the strength moves to what the read may do: only GETs,
+// only to the official mainnet LCD, nothing else asked, the same strict query, and an upstream failure still a 502.
+it('Session AF: every build reads mainnet through the relay, GET only, to api.zigchain.com only; the query stays strict',async()=>{
  const {GET}=await import('../../app/api/positions/route');
- for(const environment of ['PUBLIC_ALPHA_UNDEPLOYED','TESTNET_DEPLOYED']){
-  vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT',environment);const calls:string[]=[];vi.stubGlobal('fetch',async(url:unknown)=>{calls.push(String(url));throw Error('must not fetch');});
-  const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${address}`));
-  expect(response.status).toBe(403);expect(await response.json()).toEqual({error:MAINNET_REFUSED,code:'MAINNET_NOT_ON_PUBLIC_ALPHA'});expect(calls).toEqual([]);
-  expect(response.headers.get('cache-control')).toContain('no-store');
+ const mainnet=()=>{const {calls,fetcher}=chain();return {calls,fetcher:(async(url:string,init?:RequestInit)=>{expect(new URL(url).origin).toBe('https://api.zigchain.com');expect(init?.method).toBe('GET');const answer=await (fetcher as unknown as (u:string)=>Promise<Response>)(url);return new Response((await answer.text()).replaceAll('zig-test-2','zigchain-1'),{headers:answer.headers});}) as unknown as typeof fetch};};
+ for(const [i,environment] of ['PUBLIC_ALPHA_UNDEPLOYED','TESTNET_DEPLOYED','LOCAL_DEMO'].entries()){
+  vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT',environment);const {calls,fetcher}=mainnet();vi.stubGlobal('fetch',fetcher);
+  const response=await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${address}`,{headers:{'cf-connecting-ip':`198.51.100.${i+1}`}}));
+  expect(response.status,environment).toBe(200);expect(response.headers.get('cache-control')).toContain('no-store');
+  const {positions}=await response.json() as {positions:{network:string}[]};
+  expect(positions.length).toBeGreaterThan(0);expect(positions.every(p=>p.network==='zigchain-1')).toBe(true);
+  if(i===0)expect(calls.length).toBeGreaterThan(5); // the first build's read; the others share its 60 s answer
  }
- vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT','PUBLIC_ALPHA_UNDEPLOYED');
- const {fetcher}=chain();vi.stubGlobal('fetch',fetcher);
- const testnet=await GET(new Request(`http://localhost/api/positions?network=TESTNET_READ_ONLY&address=${address}`));expect(testnet.status).toBe(200);
- vi.stubEnv('NEXT_PUBLIC_APP_ENVIRONMENT','LOCAL_DEMO');vi.stubGlobal('fetch',async()=>{throw Error('offline');});
- expect((await GET(new Request(`http://localhost/api/positions?network=MAINNET_READ_ONLY&address=${address}`))).status).toBe(502);
+ for(const bad of ['network=MAINNET_READ_ONLY',`network=MAINNET_READ_ONLY&address=${address}&x=1`,`network=MAINNET_READ_ONLY&address=${address}&minHeight=0`,`network=MAINNET_READ_ONLY&address=${address}&minHeight=12a`,`network=MAINNET_READ_ONLY&address=${address}&minHeight=${'9'.repeat(21)}`,`network=MAINNET_READ_ONLY&address=${address}&minHeight=1&minHeight=2`])
+  expect((await GET(new Request(`http://localhost/api/positions?${bad}`))).status,bad).toBe(400);
+ vi.stubGlobal('fetch',async()=>{throw Error('offline');});
+ expect((await GET(new Request(`http://localhost/api/positions?network=TESTNET_READ_ONLY&address=${address}`))).status).toBe(502);
  expect(READS_LIMITED).toMatch(/^Too many reads just now/);
+ // The sentence stays exported for readers of older snapshots' notes; no route answers it any more.
+ expect(MAINNET_REFUSED).toMatch(/^Mainnet addresses are not read/);
+});
+it('Session AF: minHeight skips a kept answer from a lower block (and counts as a read); a kept answer at or above it is reused',async()=>{
+ let t=9_000_000,height=100,reads=0;
+ const relay=positionsRelay({now:()=>t,read:async()=>{reads++;return [{provenance:`https://testnet-api.zigchain.com · block ${height}`}] as never;}});
+ await relay('TESTNET_READ_ONLY',address,'a');expect(reads).toBe(1);
+ await relay('TESTNET_READ_ONLY',address,'a','100');expect(reads).toBe(1);
+ height=105;await relay('TESTNET_READ_ONLY',address,'a','103');expect(reads).toBe(2);
+ await relay('TESTNET_READ_ONLY',address,'b','104');expect(reads).toBe(2);
+ await relay('TESTNET_READ_ONLY',address,'b');expect(reads).toBe(2);
+ t+=1;for(let i=0;i<CLIENT_READS_PER_MINUTE-2;i++)await relay('TESTNET_READ_ONLY',address,'a',String(200+i));
+ expect(await relay('TESTNET_READ_ONLY',address,'a','999')).toMatchObject({retryAfter:expect.any(Number)});
 });

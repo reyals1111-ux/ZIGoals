@@ -10,7 +10,9 @@ assertion that changed (with the reason). Updated with every step's commit.
 | 1 | chain-config `mainnet.json` + `networks.ts`; zigchain-1 explorer entries | done | `14f0d9a7` |
 | 2 | `zigoals:staking-prefs:v1` + `zigoals:staking-journal:v1` (loose v1 records, readers keep unknown fields) | done | `5c459ca8` |
 | 4 | `NATIVE_STAKING_SIGNING_ALLOWED` + `assertNativeStakingAllowed(messages)` (committed before 3: the signer starts with it) | done | see git log |
-| 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | see git log |
+| 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | `TIER 3 (wallet/signing): … Part 3` |
+| 5a | `apps/web/lib/chain/validators-wire.ts` (the wire schema L1 consumes), committed first | done | `TIER 3 (egress routes): … Part 5a` |
+| 5 | `/api/positions` mainnet on public builds + `minHeight` + stZIG; `GET /api/chain/validators` | done | `TIER 3 (egress routes): … Part 5` |
 
 ## Facts read live for this lane (one GET each, 2026-10-18)
 - 20:52 UTC `https://api.zigchain.com` node_info: network `zigchain-1`, application_version `v5.1.2` on both nodes
@@ -49,6 +51,16 @@ assertion that changed (with the reason). Updated with every step's commit.
   insufficient funds 5) means the transaction never entered a block: the journal says FAILED with the code and the screen
   says nothing moved, instead of lib/transaction.ts's generic "may have moved" (which still applies to a lost connection).
 
+- **stZIG in the platform record.** The relay adds an stZIG position (`providerId 'native-zig'`, `sourceType
+  'LIQUID_STAKING'`, `asset 'stZIG'`, 6 decimals, id `<chain>:<address>:stzig`) only when the address holds some; its value
+  is never converted (Wealth reads it as "unavailable" until H44's two-source rate exists). The Staking page's ZIG totals
+  now count `asset === 'ZIG'` only. Mainnet stZIG metadata read live 2026-10-18 (display stZIG at exponent 6).
+- **`/api/chain/validators`** reads, per network, at one block: the paged validator list, signing infos (`zigvalcons` =
+  SHA-256 of the ed25519 consensus key, first 20 bytes), slashing params (window 35,000), the staking pool, and each
+  validator's self-delegation (eight at a time; the chain's 404 code 5 = "0"). Checked live once on 2026-10-18 21:30 UTC:
+  19 mainnet / 39 testnet validators answered the wire schema. Sorted by name, never by rate. Errors: 400 bad query, 429
+  too many reads, otherwise 200 (`status: 'unavailable'` with a reason, H58).
+
 ## What the lead must wire (shared registries)
 ### Storage keys (step 2; names in `apps/web/lib/af-signing-keys.ts`, a module with no imports)
 | Registry | Row to add |
@@ -71,3 +83,13 @@ assertion that changed (with the reason). Updated with every step's commit.
   `assertNativeStakingAllowed(ticket.messages);`; `lib/wallets/keplr-session.ts` is added to the FORBIDDEN-shape check; and
   `lib/staking/staking-guard.test.ts` adds the stricter gate (signer shapes in exactly those two files, each signer call once,
   the review sheet's onSubmit as the only door, ZIGi's code never importing the pipeline, the type-URL allowlist).
+- `apps/web/lib/server/positions-relay.test.ts`, "the public builds refuse mainnet with a plain sentence and read nothing":
+  replaced by "every build reads mainnet through the relay, GET only, to api.zigchain.com only; the query stays strict"
+  (ADR-028 H16, owner amendment 6 lifted Session Z-Cloud's C4). The refusal it pinned no longer exists by the owner's
+  decision; the new test pins what the read may do (only GET, only the official mainnet LCD, every build), the strict query
+  including the new `minHeight` (0, letters, 21 digits, a repeat → 400) and a 502 on upstream failure. A new test pins the
+  `minHeight` cache rule (a lower kept block is re-read and counts toward the 10/min limit).
+- Fixtures only (no assertion changed): `lib/native-positions.test.ts`, `lib/mainnet-denomination.test.ts`,
+  `lib/positions-route.test.ts` and `lib/server/positions-relay.test.ts` answer the new stZIG `by_denom` read with a zero
+  stZIG balance, so every existing quantity list and count is unchanged (the relay's "≤ 10 upstream calls" bound now
+  measures 10, at its limit).

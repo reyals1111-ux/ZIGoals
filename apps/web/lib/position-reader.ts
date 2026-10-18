@@ -24,6 +24,12 @@ export class PositionReadRefused extends Error {}
 export const MAINNET_REFUSED='Mainnet addresses are not read on the public Alpha. Add your mainnet ZIG as a manual asset instead; snapshots you saved before stay.';
 /** Session AF (ADR-028 H16, H63): a block height a fresh answer must reach, right after a signed transaction (digits, ≤ 20). */
 export const MIN_HEIGHT=/^[1-9]\d{0,19}$/;
+/** The block a relay answer was read at: every position the reader makes says "<LCD> · block N" (lib/native-positions.ts). */
+export function snapshotHeight(positions:readonly Position[]):bigint|undefined{
+ let best:bigint|undefined;
+ for(const p of positions){const m=/ · block ([1-9]\d{0,19})$/.exec(p.provenance??'');if(m){const h=BigInt(m[1]!);best=best===undefined||h>best?h:best;}}
+ return best;
+}
 /** Browser sends only a validated public address and a fixed network selector (and, after a signed staking action, the block height it confirmed at). */
 export async function readPublicPositions(mode:ReadMode,account:string,options:{minHeight?:string}={}):Promise<Position[]> {
  publicZigAddress.parse(account);if(!Object.hasOwn(READ_NETWORKS,mode))throw Error('Unsupported network.');

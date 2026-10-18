@@ -88,7 +88,8 @@ describe('Session AF staking guard', () => {
   test('only the five native message types (and the contract path\'s one) are named anywhere', () => {
     const allowed = new Set([...NATIVE_STAKING_TYPE_URLS]);
     const contract = '/cosmwasm.wasm.v1.MsgExecuteContract';
-    for (const file of ALL) for (const literal of read(file).match(/["'`]\/(cosmos|cosmwasm|ibc|zigchain|osmosis|ethermint)\.[A-Za-z0-9_.]+["'`]/g) ?? []) {
+    // A message type URL ("/<module path>.Msg…"); key types such as /cosmos.crypto.ed25519.PubKey are not messages.
+    for (const file of ALL) for (const literal of read(file).match(/["'`]\/[a-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*\.Msg[A-Za-z0-9_]*["'`]/g) ?? []) {
       const url = literal.slice(1, -1);
       if (url === contract) expect(['lib/wallet.ts', 'lib/receipt-reconciliation.ts'], file).toContain(file);
       else expect(allowed.has(url), `${file}: ${url}`).toBe(true);
