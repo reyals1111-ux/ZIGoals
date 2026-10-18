@@ -27,7 +27,8 @@ export type PathStep = {
   note?: string;
   colour: PathColour;
   state: StepState;
-  /** An `AppIcon` name drawn inside the dot. */
+  /** The mark inside the dot: a path glyph (components/path/path-glyphs.tsx: drop, moon, lotus, hourglass, scale, leaf,
+   *  flag, sparkle, heart, meal, pill, focus) or any `AppIcon` name. A done dot shows a check; a locked one a lock. */
   glyph?: string;
   /** A step that opens a page (an Earn lesson, an "Open goal" dot). */
   href?: string;
