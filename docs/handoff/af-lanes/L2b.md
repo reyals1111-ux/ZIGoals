@@ -12,7 +12,7 @@ merged). Server port 3104 only. Every build, Playwright run and screenshot under
 | 3 | `TIER 3 (CSP)` + read-only tracking (browser-direct readers, pricing, What you have) | done |
 | 4 | Multi-asset Add money | done; codes and routes finalised from the Part 0 docs after the merge of `b988e4a1` |
 | 5 | `TIER 3 (dependencies)`: `@walletconnect/sign-client` 2.26.0 | done (dormant: no project ID) |
-| 6 | Goal Vaults | pending |
+| 6 | Goal Vaults | done |
 
 ## Step 1 — real read-only connections (`TIER 3 (wallet)`)
 - `lib/wallets/eip6963.ts`: the six R4 wallets by rdns (MetaMask `io.metamask`, Rabby `io.rabby`, Coinbase Wallet
@@ -188,6 +188,30 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
 - Production build (PUBLIC_ALPHA_UNDEPLOYED, 2026-10-18): the package is its own lazy chunk, **129.6 kB gzip**; no page's
   HTML loads it; `check-weight-budget.mjs` all ok (Wealth 454.9 kB / 512.0, Portfolio 453.6 / 500.0, shell 398.5 / 447.0).
 
+## Step 6 — Goal Vaults (Part 6)
+- `zigoals:goal-vaults:v1` (`TIER 3 (storage)`, `lib/goal-vaults/store.ts`, key in `lib/af-wallet-keys.ts`): `{version:1,
+  links?:[{id, goalId, walletId, parts:['delegations'|'stzig'], linkedAt, baseline:{stakedAzig, rewardsAzig, stzigUnits,
+  zigPerStZig?, height?}}]}`, at most 50, one per Goal and wallet; loose (unknown fields and parts kept and ignored);
+  unreadable bytes never overwritten; personal, device-only, never synced, never restored, in Export, erased.
+- `lib/goal-vaults/progress.ts`: the stake from the wallet's ZIGChain observation (the relay `/api/positions`, mainnet
+  only — practice stake never counts, H11): staked ZIG (every delegation), rewards waiting, Valdora stZIG; stZIG in ZIG only
+  at the H44 two-source rate (`/api/earn/valdora`'s `rate`, Valdora within 2 % of OroSwap), else in stZIG units with
+  "value unavailable (… disagree by more than 2 %)"; progress = staked + rewards waiting (+ stZIG's ZIG value); "since you
+  linked" = now − the stored baseline, part by part (H8), negative when rewards were claimed out; "Rewards you claimed and
+  moved out since linking are not counted back" on every card. Exact integer arithmetic. The share of a Goal counted in ZIG.
+- `lib/goal-vaults/illustration.ts`: "Illustration, not a promise" — months to the Goal at a monthly-compounded rate, the
+  person's own assumption or the chain's rate before commission (`/api/earn/chain`, with its block); never added to
+  progress; none past 50 years.
+- `components/goal-vaults/{goal-vault-section,vault-link-form,vault-orbit}.tsx` (lazy chunk): the module "Goal Vault" in a
+  Goal's detail (closed by default; nothing is read until it is opened, then at most every 15 min): the link form (the
+  ZIGChain wallets linked on this device; what counts; "Read the stake"; "Link this stake to the Goal"), each link's card
+  (the orbit: the Goal as a planet, the stake as a moon on a ring filled to the share, sparks once — still under reduced
+  motion and Motion Off; the figures with read time, block and source; the illustration; "↻ Read again"; "Unlink this
+  stake"), "Your money is working toward this goal: the ZIG you staked keeps earning on ZIGChain, and it never leaves your
+  wallet." No message is built anywhere (a test scans the files).
+- **The one edit outside this lane's files:** `components/platform/tracked-detail.tsx` gains a lazy import and one
+  `GoalModule` line (`id="goal-vault"`) after Milestones — the mount the brief asks for ("lazy inside the goal's detail").
+
 ## What the lead must wire
 - **Verified link registry rows** (L1's `packages/ecosystem-registry` providers.json + verified-links.ts; this lane keeps
   them in `apps/web/lib/wallets/links.ts` in the registry's record shape until moved): `metamask-site`, `rabby-site`,
@@ -228,6 +252,10 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
   `/licenses/walletconnect.txt` ("WalletConnect notices"), beside the app's other notices.
 - When the owner sets `reownProjectId` (one commit): the five WalletConnect hosts into `egress-policy.json` `csp.app`, the
   exact-list tests, `public-safety.test.ts`'s "no websocket" narrowed to the relay socket, the hosted verifier's origins.
+- Goal Vaults' key is in the same `lib/af-wallet-keys.ts` lists (`WALLET_PERSONAL_KEYS`, `WALLET_EXPORT_KEYS.goalVaults`,
+  `WALLET_CATALOG_LABELS.goalVaults`, `WALLET_ERASE_KEYS`, `WALLET_NEVER_RESTORED`); frozen fixture: a
+  `zigoals:goal-vaults:v1` record (schema `goalVaultsSchema`, `lib/goal-vaults/store.ts`).
+- Theme sheets: regenerate (new `components/goal-vaults/goal-vaults.css`).
 - After merging L2a: put L2a's "Open ZIGoals in Keplr" (`keplrMobileLink`) as the first item of
   `components/wallet/phone-wallet-paths.ts`'s group.
 
@@ -242,6 +270,12 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
   strength). Reason: the brief's six R4 wallets and the Solana group.
 
 ## Tests
+Step 6: `lib/goal-vaults/goal-vaults.test.ts` (keys, record, progress maths, stZIG at the rate and without it, the
+illustration, no message or request in the files) + the balances store test; browser (3104, dev): `tests/goal-vaults.spec.ts`
+(4 passed: link, figures, +11 ZIG since linking after the chain changes, the illustration from the chain's rate and from an
+own assumption, unlink; stZIG "value unavailable" when the sources disagree; nothing read while the module is closed; no
+chain host reached from the browser), then the Goal-detail neighbours `owner-preview`, `goals-v2`, `platform-habits`,
+`phone-touch-targets`, `qa-decisions`, `unified-goals` (52: 50 passed, 2 skipped by design).
 Step 5: `lib/wallets/walletconnect.test.ts` (no static import anywhere, nothing loads with a null ID, CSP iff set, read-only
 namespaces, session accounts, Remove ends it) and `lib/wallets/walletconnect-panel.test.ts` (jsdom, a mocked ID and a fake
 client: the package is asked for only on the tap; addresses linked read-only; nothing else stored): with the wallet, on-ramp,
