@@ -3152,6 +3152,21 @@
         box-shadow: inset 0 1px 0 #ffffff0d, 0 10px 28px -18px #000c
     }
 }
+/*  components/staking/staking.css  */
+@scope (:root[data-theme=dark]) {
+    .staking-network-option:not(#\-) {
+        border-radius: 14px;
+        border: 2px solid var(--line,#6b91c846);
+        background: var(--surface-1,#020613);
+        color: var(--text,#eef4ff)
+    }
+    .staking-tabs button:not(#\-) {
+        border-radius: 40px;
+        border: 1px solid var(--line,#6b91c846);
+        background: var(--surface-1,#020613);
+        color: var(--text,#eef4ff)
+    }
+}
 /*  components/swipe/swipe.css  */
 @scope (:root[data-theme=dark]) {
     .swipe-indicator i:not(#\-) {

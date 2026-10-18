@@ -8762,6 +8762,67 @@
         color: #0e1624
     }
 }
+/*  components/staking/staking.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .staking-network-option:not(#\-) {
+        border-radius: 14px;
+        border: 2px solid var(--line,#5c82b762);
+        background: var(--surface-1,#eef1f8);
+        color: var(--text,#0c0f17)
+    }
+    .staking-network-option.is-practice .staking-network-badge:not(#\-) {
+        border-radius: 8px;
+        border: 1px dashed #d0cabc;
+        background: var(--staking-practice);
+        color: #1d1400
+    }
+    .staking-network-chain:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+    .staking-network-line:not(#\-) {
+        border-left: 4px solid var(--line,#5c82b7)
+    }
+    .staking-network-line.is-practice:not(#\-) {
+        border-left: 4px dashed var(--staking-practice,#b66c1a)
+    }
+    .staking-network-line.is-real:not(#\-) {
+        border-left: 4px solid var(--staking-real,#b26e27)
+    }
+    .staking-tabs button:not(#\-) {
+        border-radius: 40px;
+        border: 1px solid var(--line,#5c82b762);
+        background: var(--surface-1,#eef1f8);
+        color: var(--text,#0c0f17)
+    }
+    .staking-tabs button.is-active:not(#\-) {
+        border-color: #03919f
+    }
+    .staking-validator:not(#\-) {
+        border: 1px solid var(--line,#5c82b762);
+        border-radius: 14px
+    }
+    .staking-validator:has(input:checked):not(#\-) {
+        border-color: #03919f
+    }
+    .staking-validator-address:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+    .staking-sheet.is-real:not(#\-) {
+        border: 2px solid #b26e27
+    }
+    .staking-sheet.is-practice:not(#\-) {
+        border: 2px dashed #b66c1a
+    }
+    .staking-sheet.is-practice .staking-network-line:not(#\-) {
+        border-left: 4px dashed #b66c1a
+    }
+    .staking-sheet.is-real .staking-network-line:not(#\-) {
+        border-left: 4px solid #b26e27
+    }
+    .staking-review-facts dt:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+}
 /*  components/swipe/swipe.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
     .swipe-indicator:not(#\-) {
