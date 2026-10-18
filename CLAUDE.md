@@ -15,7 +15,7 @@ Project rules: `apps/web/AGENTS.md` (imported above), CONTRIBUTING.md, SECURITY.
 - `pnpm typecheck`, `pnpm lint`, `pnpm test`
 - Browser tests against a running server: `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3101 pnpm --filter @zigoals/web exec playwright test --workers=2`
 - Production check: `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build`, then `pnpm --filter @zigoals/web start`, then the browser tests against it.
-- Playwright uses at most 2 workers. Never run builds or test suites in parallel.
+- Builds and browser test runs run one at a time per machine (Playwright at most 2 workers); subagents may write code, design and research in parallel.
 
 ## Hard rules
 - No new dependencies (runtime, dev or GitHub Actions) without owner approval.

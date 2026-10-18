@@ -6,6 +6,8 @@ import { INVISIBLE_NAME, visibleName } from "../../lib/visible-text";
 import { ExerciseCounters } from "./exercise-counters";
 import { NebulaFlow } from "../nebula-flow";
 import {PillarHero} from "../pillar-hero";
+import {OrbitArt} from "../header-art/orbit-art";
+import {HealthGlyph} from "../header-art/glyphs/health";
 import { fastingHistory } from "../../lib/fasting/engine";
 import "./health-aa.css";
 import { SwipeRow } from "../swipe/swipe-row";
@@ -226,7 +228,7 @@ function HealthWorkspace({ data, update }: { data: HealthData; update: Update })
   const dateControl = <div className="health-date"><button className="quiet" aria-label="Previous day" disabled={date <= "1900-01-01"} onClick={() => chooseDate(addLocalDays(date, -1))}>←</button><label className="field"><span>Journal date</span><input type="date" min="1900-01-01" max="2199-12-31" value={date} onChange={e => { if (e.target.value >= "1900-01-01" && e.target.value <= "2199-12-31") chooseDate(e.target.value); }} /></label><button className="quiet" aria-label="Next day" disabled={date >= "2199-12-31"} onClick={() => chooseDate(addLocalDays(date, 1))}>→</button><button className="quiet" onClick={() => chooseDate(today)}>Today</button></div>;
   return <LayoutPage page="health"><div className="health-page" onSubmitCapture={event => { lastForm.current = event.target instanceof HTMLFormElement ? event.target : null; }}>
     {/* Session AB-Design (owner request 21): the shared header pattern — eyebrow, title, slogan, then the page's actions in the same style as Goals, Habits and Wealth; the old care card is this header. */}
-    <PillarHero pillar="health" className="health-heading" titleId="health-title" eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button></>}/><LayoutLockButton/>
+    <PillarHero pillar="health" className="health-heading" titleId="health-title" art={<OrbitArt glyph={HealthGlyph} tone="health" spin={14}/>} eyebrow="Your everyday wellbeing" title="A little care, every day." lede="Your food, water, movement and progress. Your private journal." about="health" buttons={<><Link className="secondary health-privacy-link" href="/app/settings">Privacy &amp; backups</Link><button type="button" className="primary" onClick={() => { setView("Diary"); requestAnimationFrame(() => document.getElementById("health-entry-action")?.scrollIntoView({ block: "start", behavior: "instant" })); }}>Log food or water</button></>}/><LayoutLockButton/>
     {!phone && <ExerciseCounters data={data} update={update} />}
     {/* On a phone the title comes first, then the journal date it drives, then the quick counters (desktop keeps
         the counters at the top, Part 18.6, and the date beside the views). */}

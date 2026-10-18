@@ -69,3 +69,8 @@
 :root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center; }
 :root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) > :not(svg) { margin: 0; line-height: 1.05; max-width: 72%; }
 :root :is(.sleep-score-ring, .water-ring, .routine-ring, .journey-ring, .today-game-ring) > small { line-height: 1.2; }
+/* Session AE (Part 5, ADR-027): Journey's level figure (up to 64 px) drew its glyphs 5 px past its 1.05 line, onto "level"
+   (Session AD's audit: 4 px at 1440). The figure's line now holds its glyphs and the word sits 6 px below it, the pair
+   still centred in the ring. */
+:root .journey-ring { gap: 6px; }
+:root .journey-ring > strong { line-height: 1.2; }

@@ -25,7 +25,9 @@ async function watch(page:Page,properties:Record<string,Watched>){
    // read it after the end): the running animation is paused, set to half its duration, read, and put back where it was.
    const animation=target.getAnimations().find(a=>a instanceof CSSAnimation&&a.animationName===event.animationName);
    if(animation?.effect){const timing=animation.effect.getComputedTiming(),was=animation.currentTime,running=animation.playState==='running';
-    animation.pause();animation.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;sample.mid=read();animation.currentTime=was;if(running)animation.play();}
+    // Session AE Gate C: the start value is read the same way, at the animation's own start (an animationstart event that
+    // reached a starved runner late read a cell already at 0.992 of its rise: CI run 1008).
+    animation.pause();animation.currentTime=Number(timing.delay)||0;sample.start=read();animation.currentTime=(Number(timing.delay)||0)+Number(timing.duration)/2;sample.mid=read();animation.currentTime=was;if(running)animation.play();}
    target.addEventListener('animationend',end=>{if(end.target===target&&(end as AnimationEvent).animationName===sample.name)sample.end=read();});
   },true);
  },properties);

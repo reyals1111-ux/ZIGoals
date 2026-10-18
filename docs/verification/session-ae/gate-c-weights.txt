@@ -1,0 +1,15 @@
+Session AE Gate C — page weights on the Gate C build (87780f88's app code), node scripts/check-weight-budget.mjs, gzip level 6; budgets after the owner-approved +10 % (57c8017a)
+Page weight (gzip level 6 of the scripts each page loads) at http://127.0.0.1:3101
+ok    /app                      515.9 kB  budget  567.0 kB  main  616.9 kB
+ok    /app/goals                434.4 kB  budget  478.0 kB  main  515.1 kB
+ok    /app/habits               458.3 kB  budget  504.0 kB  main  525.6 kB
+ok    /app/health               483.7 kB  budget  531.0 kB  main  550.8 kB
+ok    /app/wealth               453.6 kB  budget  512.0 kB  main  542.5 kB
+ok    /app/markets              430.3 kB  budget  476.0 kB  main  512.3 kB
+ok    /app/portfolio            452.3 kB  budget  500.0 kB  main  515.8 kB
+ok    /app/staking              441.4 kB  budget  487.0 kB  main  534.7 kB
+ok    /app/activity             409.1 kB  budget  457.0 kB  main  497.6 kB
+ok    /app/settings             483.9 kB  budget  531.0 kB  main  525.9 kB
+ok    /app/help                 401.4 kB  budget  450.0 kB  main  493.6 kB
+ok    /app/chess                412.1 kB  budget  459.0 kB  main         —
+ok    shell (on every page)     397.3 kB  budget  447.0 kB  main  491.6 kB

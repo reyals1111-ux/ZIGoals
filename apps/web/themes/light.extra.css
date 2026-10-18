@@ -4,25 +4,27 @@
    their light words keep their own dark sky behind them. */
 :root[data-theme=light] { color-scheme: light; }
 :root[data-theme=light] :is(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature) { color-scheme: dark; }
-:root[data-theme=light] body { background: #f6f5fc; }
+:root[data-theme=light] body { background: #f7f7fb; }
+/* Session AE (Part 3, ADR-027 G7): a white-family day — the nebula's clouds only a breath of tint on a near-white ground. */
 :root[data-theme=light] .app-content::before {
   background:
-    radial-gradient(1200px 700px at 12% 6%, #e4dcff 0, #e4dcff00 70%),
-    radial-gradient(1000px 640px at 88% 16%, #d6efff 0, #d6efff00 70%),
-    radial-gradient(1100px 800px at 64% 82%, #ffe0f1 0, #ffe0f100 70%),
-    radial-gradient(900px 600px at 20% 92%, #dff6f8 0, #dff6f800 70%),
-    #f6f5fc;
+    radial-gradient(1200px 700px at 12% 6%, #eeeafd 0, #eeeafd00 70%),
+    radial-gradient(1000px 640px at 88% 16%, #e6f3fd 0, #e6f3fd00 70%),
+    radial-gradient(1100px 800px at 64% 82%, #fbedf5 0, #fbedf500 70%),
+    radial-gradient(900px 600px at 20% 92%, #eaf7f8 0, #eaf7f800 70%),
+    #f7f7fb;
 }
+/* Cards stand off the day sky: a hairline of their own and a soft shadow (ADR-026 F23's "card separation"). */
+:root[data-theme=light] .panel:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature) *):not(:is(.destination-panel, .account-panel, .stake-hero, .staking-card)) { box-shadow: 0 1px 2px #1d214a14, 0 12px 30px -18px #2a2f6652; }
 /* A few faint stars over the sky: the starfield artwork itself, darkened to a whisper. */
 :root[data-theme=light] .app-content { --light-stars: .14; }
 /* The starfield's veils (Session AC) were the night's own colour; by day the sky shows through. */
 :root[data-theme=light] .app-content::after { display: none; }
-/* Islands: night-dark cards and bands with clean edges by day. */
-:root[data-theme=light] .today-hero:not(.today-hero-folded) { overflow: hidden; border-radius: 24px; background: #040a1c; box-shadow: 0 24px 60px -30px #2a2f6680; }
-:root[data-theme=light] .today-hero:not(.today-hero-folded) > .hero-pillars::after { display: none; }
+/* Islands: night-dark cards by day (the hero's own night is in light.hero.css; the folded strip keeps a small night card). */
 :root[data-theme=light] .today-hero-folded { border-radius: 18px; background: #040a1c; }
-:root[data-theme=light] .site-footer { background: #020918; }
-:root[data-theme=light] .site-footer-art { -webkit-mask-image: linear-gradient(180deg, #000 0, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 84%, transparent 100%); }
+/* Session AE (Part 2 in Light): the day deepens into the night at the banner — a soft dusk over its top, no edge — and the
+   planet rises on it; the page ends at night. */
+:root[data-theme=light] .site-footer { background: linear-gradient(180deg, #f7f7fb00 0, #d9d3f566 36px, #6d63b8b3 110px, #1a1d4af2 190px, #020918 280px); }
 :root[data-theme=light] :is(.destination-panel, .account-panel, .stake-hero, .staking-card) { box-shadow: 0 18px 44px -26px #2a2f6680; }
 /* Focus rings stay visible on light surfaces. */
 :root[data-theme=light] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(:where(.today-hero, .site-footer, .app-sidebar) *) { outline-color: #4b3fd1; }
@@ -42,8 +44,22 @@
 :root[data-theme=light] .wealth-hero-scene:not(#\-) { opacity: .08; }
 /* Habits' 30-day map: a full day keeps its own light nebula fill under dark numerals (the mapping had darkened its first
    stop, so the numerals sat on near-black; Session AD design review). */
-:root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #7ec9df, #aaa4f0, #d7a7df); color: #161c36; }
+:root[data-theme=light] .habit-month-grid > span[data-level=full]:not(#\-) { background: linear-gradient(135deg, #3aa7c4, #7d72e0, #c475c9); color: #0b1020; }
+/* Session AE (Part 3 audit, Light): the days with some or many check-ins keep their deep matte fill (the white-family
+   mapping's fills), so their numerals stay white on it (7.6:1 and 6.5:1); the mapping had made them dark ink (3.05:1). */
+:root[data-theme=light] .habit-month-grid > span:is([data-level=some], [data-level=many]):not(#\-) { color: #ffffff; }
 /* Gate C audit (Light, every route): the goal templates' area tags and the grocery list's aisle headings take their
    colour from a runtime variable, so they are deepened here too (1.2–2.0:1 before). */
 :root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 38%, #0b1230); }
 :root[data-theme=light] .health-grocery-aisle h3:not(#\-) { color: #0d6b5f; }
+/* Session AE (Part 3 audit, Light): a new goal's chosen source tile is one light tint of its own teal and violet (its two
+   stops had mapped to dark teal and near white, so its words sat on the dark half at 4.33:1). */
+:root[data-theme=light] .goal-choice-tiles > label:has(input:checked):not(#\-) { background: linear-gradient(125deg, #dcf0f5, #ebe6f8); }
+/* Gate C design review (ADR-027 G22), Light: the calculator's 10k / 100k / 1M markers are light amber chips with deep
+   amber words (8:1; the mapping had left a dark olive chip with 3.6:1 words); the Health counters' medallions are clean
+   light tiles with a hairline (their two stops had mapped to navy and white: a smudge); Habits' week bars a deeper,
+   saturated violet (they read greyed at #9481ba). */
+:root[data-theme=light] .calc-milestone rect:not(#\-) { fill: #fbefd6; stroke: #b98326; }
+:root[data-theme=light] .calc-milestone text:not(#\-) { fill: #6b4508; }
+:root[data-theme=light] .exercise-medallion:not(#\-) { background: radial-gradient(circle at 30% 25%, #ffffff, #e8ebfb 72%); box-shadow: inset 0 0 0 1px #9aa4dc80, 0 2px 10px -4px #5a4fb84d; }
+:root[data-theme=light] .habit-week-bars i:not(#\-) { background: linear-gradient(0deg, #4f3fc4, #6d4fd6 55%, #9447c9); }

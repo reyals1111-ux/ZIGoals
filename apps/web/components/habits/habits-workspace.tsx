@@ -13,9 +13,10 @@ import { useHabits } from "./use-habits";
 // Session AB-Design Phase 2 (ADR-024): the chunk is fetched as soon as this page's code runs, and the section renders in
 // the page's own pass once it is there (through React.lazy it showed ~0.3 s after everything else, inside the first
 // screen); a chunk that fails to load shows nothing, as the quiet boundary did.
-// Gate C: Habit stacks and Routines, the two sections above the filter bar, load the same way. Through React.lazy the
+// Gate C: Habit stacks and Routines, the two sections then above the filter bar, load the same way. Through React.lazy the
 // Routines list arrived ~0.5 s late under load and pushed the filter bar off the screen while a keyboard user was on it
 // (a11y-wcag-x, "All" not on screen when focused; Phase 1's "Afternoon"/"Evening" intermittent was the same shift).
+// Session AE (Part 4, ADR-027): they are their own block after the groups now, so they can no longer push the filters.
 function withPage<P extends object>(load: () => Promise<React.ComponentType<P>>) {
   let ready: React.ComponentType<P> | null = null;
   const loading = typeof window === "undefined" ? null : load().then((view) => (ready = view)).catch(() => null);
@@ -90,8 +91,8 @@ function useStackSuggestions(data: HabitData, today: string) {
 }
 const PRIVATE_SCOPE = { chainId: "private", owner: "local" };
 type Filter = "Today" | "All" | "Completed" | "Morning" | "Afternoon" | "Evening" | "Goal linked" | "Archived";
-/** On a phone, today's check-ins come first: Today's rhythm, your habits, then the charts. */
-const PHONE_ORDER = ["habits:overview", "habits:list", "habits:consistency", "habits:rhythm"]; // ADR-022 B49: the game card and the year view are not layout items
+/** On a phone, today's check-ins come first: Today's rhythm, your habits, your routines, then the charts. */
+const PHONE_ORDER = ["habits:overview", "habits:list", "habits:routines", "habits:consistency", "habits:rhythm"]; // ADR-022 B49: the game card and the year view are not layout items
 /** The filters whose habits are shown in the four time-of-day sections (H1); the others are flat lists. */
 const SECTIONED: readonly Filter[] = ["Today", "All", "Completed", "Goal linked"];
 /**
@@ -242,13 +243,17 @@ export function HabitsWorkspace() {
           {vacation && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><VacationPanel data={store.data} today={store.today} onMark={(range) => store.setVacation(range)} onClear={(range) => store.clearVacation(range)} onClose={() => setVacation(false)} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Vacation days" onClose={() => setVacation(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {ideas && (() => { const panel = <LoadBoundary quiet><Suspense fallback={null}><HabitIdeas data={store.data} today={store.today} onClose={() => setIdeas(false)} onAdd={async (input, words) => { const id = crypto.randomUUID(); try { await store.create(input, id); setMessage(words); setFilter("All"); } catch (error) { setMessage(error instanceof Error && error.message ? error.message : "The habit was not added."); } }} /></Suspense></LoadBoundary>; return phone ? <PhoneFormSheet title="Habit ideas" onClose={() => setIdeas(false)}>{panel}</PhoneFormSheet> : panel; })()}
           {phone && <div className="habit-phone-ideas"><button className="quiet habit-ideas-button" disabled={!store.loaded || !!store.error} aria-expanded={ideas} onClick={() => { setIdeas((open) => !open); setMessage(""); }}>Habit ideas</button></div>}
-          <LoadBoundary quiet><Suspense fallback={null}><HabitStacks data={store.data} today={store.today} onView={viewStack} /></Suspense></LoadBoundary>
-          <LoadBoundary quiet><Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setMessage(""); }} onView={viewStack} /></Suspense></LoadBoundary>
           <div className="habit-filter-bar" role="group" aria-label="Filter habits">{(["Today", "All", "Completed", "Morning", "Afternoon", "Evening", "Goal linked", "Archived"] as const).map((item) => <button className="quiet" key={item} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item}</button>)}</div>
           {usedAreas.length > 0 && <div className="habit-area-bar" role="group" aria-label="Filter by area"><span className="eyebrow">Area</span><button className="quiet" aria-pressed={area === "all"} onClick={() => setArea("all")}>All areas</button>{usedAreas.map((a) => <button className="quiet" key={a.id} aria-pressed={area === a.id} onClick={() => setArea(a.id)}>{a.label}</button>)}</div>}
           {visible.length && sectioned ? <section className="habit-grid-sections" aria-label={`${filter} habits`}><HabitSections sections={groupByTimeOfDay(visible, store.today)} extras={extras} hour={new Date().getHours()} onNew={() => { setEditor("new"); setMessage(""); }} render={(section) => <section className="habit-grid" aria-label={`${section.label} habits`}><LayoutRegion region={`cards:${section.id}`} grid allIds={section.habits.map((h) => entityLayoutId(h.id))} items={section.habits.map(cardEntry)} /></section>} /></section>
           : visible.length ? <section className="habit-grid" aria-label={`${filter} habits`}><LayoutRegion region="cards" grid allIds={store.data.habits.map(h => entityLayoutId(h.id))} items={visible.map(cardEntry)}/></section> : <EmptyState as="section" level={2} className="panel habit-empty" zigi="encouraging" title={store.data.habits.length === 0 ? "Every rhythm begins with one step." : filter === "Completed" ? "Your next check-in is waiting." : filter === "Archived" ? "No archived habits." : "A little breathing room."} action={filter === "Today" && store.data.habits.length > 0 ? <button className="secondary" onClick={() => setFilter("All")}>View all habits</button> : <button className="primary" disabled={!!store.error} onClick={() => setEditor("new")}>Create a habit</button>}>{store.data.habits.length === 0 ? "Choose a small action you want to return to. Keep it simple, make it yours." : filter === "Today" ? "Nothing is scheduled today. View all habits to review your routine or resume a paused habit." : filter === "Completed" ? "Completed habits for today will appear here." : "Your habits stay available for history and future returns."}</EmptyState>}
           {store.data.habits.length > 0 && <LoadBoundary quiet>{yearOpen ? <Suspense fallback={<section className="panel habit-year"><Skeleton label="Opening the year view…" block/></section>}><YearView habits={store.data.habits} today={store.today} /></Suspense> : <section className="panel habit-year habit-year-closed" aria-labelledby="habit-year-title"><div className="habit-section-heading"><div><p className="eyebrow">The long view</p><h2 id="habit-year-title"><NebulaFlow identity="habit-year-title">Year view</NebulaFlow></h2><p className="fine">A full year per habit, and every habit at once.</p></div><button type="button" className="secondary" onClick={() => setYearOpen(true)}>Open the year view</button></div></section>}</LoadBoundary>}
+        </div>},
+        // Session AE (Part 4, ADR-027): the owner's S4. Routines and your stacks (the same chains, played or listed) are their own
+        // movable block, by default right after the groups; the filters, the groups and the year view stay one block.
+        {id: "habits:routines", label: "Routines", node: <div className="habit-routines-block">
+          <LoadBoundary quiet><Suspense fallback={null}><HabitStacks data={store.data} today={store.today} onView={viewStack} /></Suspense></LoadBoundary>
+          <LoadBoundary quiet><Suspense fallback={null}><RoutinesPanel store={store} onPlay={(id) => { setRoutine(id); setMessage(""); }} onView={viewStack} /></Suspense></LoadBoundary>
         </div>},
         {id: "habits:rhythm", label: "Consistency by weekday", node: <HabitRhythmSection habits={store.data} today={store.today} />},
       ], PHONE_ORDER)}/>

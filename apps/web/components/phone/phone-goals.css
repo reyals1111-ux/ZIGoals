@@ -72,6 +72,9 @@
   :root .unified-wizard .wizard-content { padding: 16px; }
   :root .unified-wizard .goal-type-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   :root .unified-wizard .goal-type-cards label { min-height: 88px; padding: 12px; }
+  /* Session AE (Part 5 audit, 320 px): two cards side by side leave a card's words no room ("meaningful" ran over the card's
+     edge); below 360 px they stack. */
+  @media (max-width: 359.98px) { :root .unified-wizard .goal-type-cards { grid-template-columns: minmax(0, 1fr); } }
   :root .unified-wizard .form-grid small { font-size: 15px; }
   :root .unified-wizard .wizard-actions { position: sticky; bottom: calc(var(--phone-tabs) + var(--safe-bottom) + var(--keyboard-inset, 0px)); z-index: 5; display: flex; gap: 10px; margin: 16px -16px -16px; padding: 12px 16px; background: linear-gradient(180deg, #071228e6, #050c1ef7); border-top: 1px solid #7fc8ff2e; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
   :root[data-keyboard] .unified-wizard .wizard-actions { bottom: var(--keyboard-inset, 0px); }

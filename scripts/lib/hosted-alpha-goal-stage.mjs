@@ -14,6 +14,11 @@ export const GOAL_SENTINELS = Object.freeze({
 /** Where the Local Demo keeps the local simulation goals' private metadata (the backup round trip reads it). */
 export const LOCAL_SIMULATION_METADATA_KEY = 'zigoals:metadata:v1:local-simulation:local-demo-user';
 
+/** Today's own "+ Quick add" (the hero's button), where the goal steps begin; the verifier's goal stage opens Today first. */
+export function todayQuickAdd(page) {
+  return page.locator('.today-hero').getByRole('button', {name: '+ Quick add', exact: true});
+}
+
 /** The goal page's simulation controls sit in a folded module; open it when its amount field is not shown. */
 async function openLocalSimulation(page) {
   if (!await page.getByLabel('Amount in ZIG').isVisible()) await page.locator('#local-simulation > summary').click();
@@ -25,7 +30,7 @@ async function openLocalSimulation(page) {
  * choice on the second step, then two more steps and "Create goal" with the simulation's own confirmation.
  */
 export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.name, target = GOAL_SENTINELS.target} = {}) {
-  await page.locator('.today-hero').getByRole('button', {name: '+ Quick add', exact: true}).click();
+  await todayQuickAdd(page).click();
   await page.getByRole('navigation', {name: 'Quick add actions'}).getByRole('link').filter({hasText: 'Goal'}).click();
   await page.getByText('Personalize artwork and notes (optional)', {exact: true}).click();
   await page.getByRole('group', {name: 'Category / artwork'}).getByRole('radio', {name: 'Travel', exact: true}).check();
@@ -40,13 +45,18 @@ export async function createFictionalGoal(page, expect, {name = GOAL_SENTINELS.n
   await expect(page.locator('.goal-detail-heading .eyebrow')).toHaveText('Travel · Local simulation');
 }
 
-/** Ten simulated ZIG in and out again, each with the simulation's confirmation. */
+/**
+ * Ten simulated ZIG in and out again, each with the simulation's confirmation. Session AE (Part 0b, ADR-027): each step
+ * returns only once its review dialog has closed. The confirmation is saved asynchronously (under a storage lock) while
+ * the button reads "Processing…", and the next verifier stage now opens its own page, which would cut it short.
+ */
 export async function depositAndWithdraw(page) {
   for (const name of ['Add funds', 'Withdraw']) {
     await openLocalSimulation(page);
     await page.getByLabel('Amount in ZIG').fill('10');
     await page.getByRole('button', {name, exact: true}).click();
     await page.getByRole('button', {name: 'Confirm simulation', exact: true}).click();
+    await page.getByRole('dialog', {name: /^Review\b/}).waitFor({state: 'hidden'});
   }
 }
 

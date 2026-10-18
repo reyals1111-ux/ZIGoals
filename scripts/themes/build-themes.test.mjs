@@ -23,7 +23,9 @@ describe('Session AD Part 3: the generated theme sheets (ADR-026 F13)', () => {
     }
   });
   it('Light keeps the cosmic islands dark: the scope stops at them and they keep the nebula tokens', () => {
-    expect(sheets.light).toMatch(/@scope \(:root\[data-theme=light\]\) to \(\.today-hero, \.site-footer, \.app-sidebar/);
+    // Session AE (Part 3.3, ADR-027): the sidebar and the theme bar take Light's colours; the sidebar's planet foot stays night.
+    expect(sheets.light).toMatch(/@scope \(:root\[data-theme=light\]\) to \(\.today-hero, \.site-footer, \.sidebar-destination/);
+    expect(sheets.light).not.toMatch(/@scope \(:root\[data-theme=light\]\) to \([^)]*(\.app-sidebar|\.theme-switch-wrap)/);
     expect(sheets.light).toMatch(/:root\[data-theme=light\] :is\(\.today-hero[^)]*\) \{[^}]*--text: #f/);
   });
   it('one weight for every override, before any pseudo-element', () => {

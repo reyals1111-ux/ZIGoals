@@ -13,9 +13,8 @@
 .theme-switch-compact .theme-option > span { display: inline; }
 .theme-switch-compact .theme-option:hover { color: var(--text); }
 .theme-switch-compact .theme-option[aria-checked="true"] { color: #ffffff; }
-.theme-switch-compact .theme-option small { display: inline-grid; place-items: center; height: 16px; padding: 0 6px; border-radius: 999px; font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: #0a1428; background: linear-gradient(90deg, #cfe3ff, #a9c9ff); }
 @media (max-width: 900px) { .app-sidebar .theme-switch { display: none; } }
-@media (max-width: 767.98px) { .theme-switch-compact .theme-option { grid-auto-flow: row; grid-template-columns: auto auto; justify-content: center; align-content: center; gap: 2px 6px; padding: 6px 0; } .theme-switch-compact .theme-option small { grid-column: 1 / -1; justify-self: center; } }
+@media (max-width: 767.98px) { .theme-switch-compact .theme-option { grid-auto-flow: row; grid-template-columns: auto auto; justify-content: center; align-content: center; gap: 2px 6px; padding: 6px 0; } }
 @media (prefers-reduced-motion: reduce) { .theme-option { transition: none; } }
 :root[data-app-motion=off] .theme-option { transition: none; }
 @media (forced-colors: active) { .theme-switch, .theme-option[aria-checked="true"] { border: 1px solid CanvasText; } }
@@ -34,3 +33,9 @@
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
 @media (max-width: 767.98px) { .theme-switch-slot-compact { min-height: 148px; } }
 @media (max-width: 900px) { .app-sidebar .theme-switch-slot { display: none; } }
+/* Session AE (Part 3.5, ADR-027): a theme switch is one short colour cross-fade of the whole page (lib/ui-prefs/theme.ts
+   starts it only where the browser has view transitions and motion is welcome, and only once the new sheet is in). This
+   sheet loads with the bar, the only place a switch starts. Opacity only; none under reduced motion or Motion Off. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
+:root[data-app-motion=off]::view-transition-old(root), :root[data-app-motion=off]::view-transition-new(root) { animation: none; }

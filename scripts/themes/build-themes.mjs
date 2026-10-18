@@ -6,7 +6,8 @@
 // rule (OKLCH: lightness remapped by the colour's role, hue kept, chroma tempered), in the same @media/@supports blocks,
 // with the same !important. Light keeps the cosmic artwork sections dark ("islands": the Today hero, the footer banner,
 // the sidebar and the art cards stay in the nebula colours, so their light text stays on dark art). The hand-written art
-// layers (starfield sky, the islands' frames) come from apps/web/themes/<theme>.extra.css and are appended.
+// layers (starfield sky, the islands' frames) come from apps/web/themes/<theme>.extra.css and are appended, then any
+// apps/web/themes/<theme>.<part>.css in name order (Session AE).
 //
 // Usage: node scripts/themes/build-themes.mjs          writes apps/web/public/themes/{light,dark}.css and the hashes
 //        node scripts/themes/build-themes.mjs --check  exits 1 when the committed files are not what this builds
@@ -23,8 +24,9 @@ const postcss = require(require.resolve('postcss', {paths: [require.resolve('nex
 
 /** The global sheets in the order app/layout.tsx imports them; every other sheet follows in path order. */
 const GLOBAL_ORDER = ['app/globals.css', 'app/visual-theme.css', 'app/product-v2.css', 'app/visual-v21.css', 'app/product-beta.css', 'components/motion.css', 'components/design-system.css', 'components/ui/ui.css', 'components/ui/touch-targets.css', 'components/ui/premium.css'];
-/** Light keeps these dark: cosmic artwork with light text on it. */
-export const ISLANDS = ['.today-hero', '.site-footer', '.app-sidebar', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.theme-switch-wrap', '.goal-card-art'];
+/** Light keeps these dark: cosmic artwork with light text on it. Session AE (Part 3, ADR-027): the sidebar and the theme bar
+ *  take Light's own colours (apps/web/themes/light.sidebar.css draws its dawn sky); only its planet foot stays night. */
+export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art'];
 
 export function sourceFiles() {
   const out = [];
@@ -71,13 +73,23 @@ const formatColor = ([r, g, b, a]) => `#${hex2(r)}${hex2(g)}${hex2(b)}${a >= 0.9
 
 // ---- the themes' mappings, by the colour's role ----
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+// Gate C design review (ADR-027 G22): a gold or yellow (hue 70°–105°) made deeper by day reads olive; it keeps its warmth
+// as amber (hue 62°, chroma at least 0.12). Light golds (L ≥ 0.75) are left as they are.
+const DEG = Math.PI / 180;
+const amber = c => c.C >= 0.07 && c.L < 0.75 && c.h >= 70 * DEG && c.h <= 105 * DEG ? {...c, h: 62 * DEG, C: Math.max(c.C, 0.12)} : c;
+const byDay = map => c => amber(map(c));
 export const MAPS = {
   light: {
-    text: c => c.L < 0.58 ? c : c.C < 0.06 ? {...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)} : {...c, L: 0.47, C: Math.min(c.C, 0.17)},
-    surface: c => c.C >= 0.09 && c.L >= 0.55 ? {...c, L: Math.min(c.L, 0.74)} : c.L >= 0.62 && c.C < 0.09 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.985 - c.L * 0.2, C: c.C * 0.32},
-    border: c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.6), a: Math.min(1, c.a * 1.4)} : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5},
-    shadow: c => c.L < 0.42 ? {...c, L: 0.36, C: Math.min(c.C, 0.05), a: c.a * 0.4} : {...c, L: Math.min(c.L, 0.7), a: c.a * 0.55},
-    graphic: c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.62)} : c.L >= 0.6 ? {...c, L: 0.32} : c,
+    text: byDay(c => c.L < 0.58 ? c : c.C < 0.06 ? {...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)} : {...c, L: 0.47, C: Math.min(c.C, 0.17)}),
+    // Session AE (Part 3, ADR-027 G7): white-family surfaces (near white, a faint tint of their hue) and accent fills a deeper,
+    // matte version of their hue (L ≤ 0.64: bars, rings, trackers and chips reach 3:1 on white; dark ink on them ≥ 5:1).
+    // A mid-tone or light colour with a hue (C ≥ 0.05, L ≥ 0.4) is a mark or a fill (a bar, a ring, a chip), never a panel:
+    // Nebula's panels are dark (L < 0.4). Translucent (alpha < 0.5: a glow, a wash, a selected chip's tint), such a colour
+    // tints the day in its own hue (L 0.62–0.74); kept dark it would grey the white under it.
+    surface: byDay(c => c.C >= 0.05 && c.L >= 0.4 ? {...c, L: c.a < 0.5 ? clamp(c.L, 0.62, 0.74) : Math.min(c.L, 0.64), C: c.C * 0.92} : c.L >= 0.62 && c.C < 0.05 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.99 - c.L * 0.14, C: c.C * 0.2}),
+    border: byDay(c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.6), a: Math.min(1, c.a * 1.4)} : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5}),
+    shadow: byDay(c => c.L < 0.42 ? {...c, L: 0.36, C: Math.min(c.C, 0.05), a: c.a * 0.4} : {...c, L: Math.min(c.L, 0.7), a: c.a * 0.55}),
+    graphic: byDay(c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.62)} : c.L >= 0.6 ? {...c, L: 0.32} : c),
     accent: c => c,
   },
   dark: {
@@ -210,9 +222,16 @@ export function buildTheme(theme, files = sourceFiles()) {
     const restore = [...tokens].filter(([prop, value]) => roleOf(prop, {}) !== 'accent' && mapValue(value, roleOf(prop, {}), theme) !== null);
     if (restore.length) { const r = postcss.rule({selector: `:root[data-theme=light] :is(${ISLANDS.join(', ')})`}); r.append(restore.map(([prop, value]) => postcss.decl({prop, value}))); r.append(postcss.decl({prop: 'color', value: 'var(--text)'})); out.append(postcss.comment({text: ' the islands keep the nebula tokens '})); out.append(r); }
   }
-  const extra = join(WEB, 'themes', `${theme}.extra.css`);
   const head = `/* Generated by scripts/themes/build-themes.mjs (Session AD, ADR-026 F13) from the app's own CSS. Do not edit: change\n   the mapping there or apps/web/themes/${theme}.extra.css, then run it again. */\n`;
-  return head + out.toString().replace(/\n{3,}/g, '\n\n') + '\n' + (existsSync(extra) ? `/* ${relative(ROOT, extra)} */\n` + readFileSync(extra, 'utf8') : '');
+  return head + out.toString().replace(/\n{3,}/g, '\n\n') + '\n' + handLayers(theme).map(file => `/* ${relative(ROOT, file)} */\n` + readFileSync(file, 'utf8')).join('');
+}
+
+/** The theme's hand-written layers: <theme>.extra.css first, then any <theme>.<part>.css (Session AE: one file per area, so
+ *  parallel work never shares a file), in name order. */
+export function handLayers(theme) {
+  const dir = join(WEB, 'themes'), extra = join(dir, `${theme}.extra.css`);
+  const parts = existsSync(dir) ? readdirSync(dir).filter(name => name.startsWith(`${theme}.`) && name.endsWith('.css') && name !== `${theme}.extra.css`).sort().map(name => join(dir, name)) : [];
+  return [...(existsSync(extra) ? [extra] : []), ...parts];
 }
 
 /**
