@@ -17,7 +17,10 @@ const modes = {'prod-https': [false, true], 'prod-http': [false, false], 'dev-ht
 // APIs after the shared origins and frame exactly their four pages; every other document keeps main's policy.
 // Session W Part 20 (Music, [TIER 3] (egress + tokens)): then Spotify's accounts service and Web API, and Spotify's
 // artwork host in img-src, on /app documents only.
-const APP_CONNECT = ' https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com', CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/';
+// Session AF (ADR-028 H16 (c)/(d), `TIER 3 (CSP)`, lane L2b): then the linked wallets' browser-direct balance hosts, on
+// /app documents only (site documents keep main's policy).
+const AF_BALANCES = ' https://cosmos-rest.publicnode.com https://ethereum-rpc.publicnode.com https://arbitrum-one-rpc.publicnode.com https://base-rpc.publicnode.com https://optimism-rpc.publicnode.com https://polygon-bor-rpc.publicnode.com https://bsc-rpc.publicnode.com https://solana-rpc.publicnode.com https://mempool.space';
+const APP_CONNECT = ` https://api.chess.com https://lichess.org https://accounts.spotify.com https://api.spotify.com${AF_BALANCES}`, CHESS_FRAMES = 'frame-src https://www.chess.com/daily_puzzle https://lichess.org/training/frame https://lichess.org/tv/ https://lichess.org/embed/game/';
 const APP_AFTER = (mode: string) => BEFORE[mode]!.replace(/(connect-src [^;]*?http:\/\/127\.0\.0\.1:\*)/, `$1${APP_CONNECT}`).replace("frame-src 'none'", CHESS_FRAMES).replace("img-src 'self' data: blob:", "img-src 'self' data: blob: https://i.scdn.co");
 test('every mode sends main 1063765\'s policy on every site document, and on /app documents that policy with the Part 14 and Part 20 sources only', () => {
   for (const [mode, [development, https]] of Object.entries(modes)) {
