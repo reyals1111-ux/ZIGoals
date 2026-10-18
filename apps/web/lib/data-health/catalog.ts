@@ -36,6 +36,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   // Session AF (ADR-028): the Earn and Checklist device records (lib/af-earn-keys.ts, lib/af-checklist-keys.ts).
   earnPath: [EARN_CATALOG_LABELS.earnPath[0], EARN_CATALOG_LABELS.earnPath[1]], earnAcademy: [EARN_CATALOG_LABELS.earnAcademy[0], EARN_CATALOG_LABELS.earnAcademy[1]], earnPrefs: [EARN_CATALOG_LABELS.earnPrefs[0], EARN_CATALOG_LABELS.earnPrefs[1]],
   checklist: [AF_CHECKLIST_CATALOG_LABELS.checklist[0], AF_CHECKLIST_CATALOG_LABELS.checklist[1]], checklistDays: [AF_CHECKLIST_CATALOG_LABELS.checklistDays[0], AF_CHECKLIST_CATALOG_LABELS.checklistDays[1]],
+  // Session AF (L2a): native staking's two device records.
+  stakingJournal: ['Staking and vote transactions', 'Wallet'], stakingPrefs: ['Staking choices: practice or real', 'Wallet'],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {AF_CHECKLIST_CATALOG_LABELS, AF_CHECKLIST_EXPORT_KEYS, AF_CHECKLIST_NEVER_RESTORED, AF_CHECKLIST_PERSONAL_KEYS} from './af-checklist-keys';
 import {EARN_CATALOG_LABELS, EARN_DISPLAY_KEYS, EARN_ERASE_KEYS, EARN_EXPORT_KEYS, EARN_PERSONAL_KEYS} from './af-earn-keys';
+import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY} from './af-signing-keys';
 import {DEVICE_RECORD_KEYS, NON_PERSONAL_KEYS, noExistingData} from './onboarding';
 import {DEVICE_KEYS, EVERYTHING_KEYS, MODULE_KEYS} from './export/everything';
 import {DEVICE_ONLY, SYNCED} from './data-health/catalog';
@@ -14,6 +15,7 @@ import {NEVER_RESTORED} from './restore/plan';
 const memory = () => { const m = new Map<string, string>(); return {m, storage: {get length() { return m.size; }, key: (i: number) => [...m.keys()][i] ?? null, getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); }, clear: () => m.clear()} as Storage}; };
 const lanes = [
   {lane: 'Checklist (L3)', personal: [...AF_CHECKLIST_PERSONAL_KEYS], display: [] as string[], exportKeys: AF_CHECKLIST_EXPORT_KEYS as Record<string, string>, labels: AF_CHECKLIST_CATALOG_LABELS as Record<string, readonly [string, string]>, erase: [...AF_CHECKLIST_PERSONAL_KEYS]},
+  {lane: 'Native staking (L2a)', personal: [STAKING_JOURNAL_KEY], display: [STAKING_PREFS_KEY], exportKeys: {stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY} as Record<string, string>, labels: {stakingJournal: ['Staking and vote transactions', 'Wallet'], stakingPrefs: ['Staking choices: practice or real', 'Wallet']} as Record<string, readonly [string, string]>, erase: [STAKING_JOURNAL_KEY, STAKING_PREFS_KEY]},
   {lane: 'Earn (L1)', personal: [...EARN_PERSONAL_KEYS], display: [...EARN_DISPLAY_KEYS], exportKeys: EARN_EXPORT_KEYS as Record<string, string>, labels: EARN_CATALOG_LABELS as Record<string, readonly [string, string]>, erase: [...EARN_ERASE_KEYS]},
 ];
 
@@ -64,5 +66,6 @@ describe('Session AF lanes: every device key is wired into the shared registries
   test('the restore plan says neither lane\'s records come back', () => {
     expect(NEVER_RESTORED).toContain(AF_CHECKLIST_NEVER_RESTORED);
     expect(NEVER_RESTORED).toContain('Earn progress and choices');
+    expect(NEVER_RESTORED).toContain('the staking journal and the practice/real choice');
   });
 });

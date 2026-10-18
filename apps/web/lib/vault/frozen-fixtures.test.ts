@@ -11,6 +11,7 @@ import {applySection, collectSection, mergeSection} from './extras-sync';
 import {LAYOUT_KEY, emptyLayout, serializeLayout, setRegionOrder} from '../page-layout';
 import {LINKED_WALLETS_KEY} from '../linked-wallets-key';
 import {EARN_ACADEMY_KEY, EARN_PATH_KEY, EARN_PREFS_KEY} from '../af-earn-keys';
+import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY} from '../af-signing-keys';
 import {CHECKLIST_DAYS_KEY, CHECKLIST_KEY} from '../af-checklist-keys';
 import {linkedWalletsSchema} from '../linked-wallets';
 
@@ -86,6 +87,11 @@ export function frozenFixture() {
   checks.push({key: CHECKLIST_KEY, module: './checklist/schema', spec: 'CHECKLIST', expect: {version: 1}});
   records[CHECKLIST_DAYS_KEY] = JSON.stringify({version: 1, days: {'2026-10-17': {total: 6, done: 6, perfect: true}}});
   checks.push({key: CHECKLIST_DAYS_KEY, module: './checklist/schema', spec: 'CHECKLIST_DAYS', expect: {'days.2026-10-17.perfect': true}});
+  // Session AF (L2a): native staking's choices and journal (fictional address and hash).
+  records[STAKING_PREFS_KEY] = JSON.stringify({version: 1, network: 'real', realConfirmedAt: '2026-10-18T21:00:00.000Z', lastValidator: {'zigchain-1': 'zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl'}});
+  checks.push({key: STAKING_PREFS_KEY, module: './staking/prefs', spec: 'STAKING_PREFS', expect: {network: 'real'}});
+  records[STAKING_JOURNAL_KEY] = JSON.stringify({version: 1, entries: [{operationId: '00000000-0000-4000-8000-000000000001', chainId: 'zig-test-2', wallet: 'zig1qvpsxqcrqvpsxqcrqvpsxqcrqvpsxqcrrdrgwr', action: 'delegate', validator: 'zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl', amount: '25000000000000000000', state: 'CONFIRMED', hash: 'AB'.repeat(32), height: '8290600', code: 0, at: '2026-10-18T21:00:00.000Z'}]});
+  checks.push({key: STAKING_JOURNAL_KEY, module: './staking/journal', spec: 'STAKING_JOURNAL', expect: {version: 1}});
   return {records, checks, finance: {accounts: 1, dates: 1}, layout: {key: LAYOUT_KEY, page: 'habits', region: 'body', added: 'habits:routines', older: ['habits:overview', 'habits:consistency', 'habits:list', 'habits:rhythm']}};
 }
 
@@ -95,7 +101,7 @@ test('the frozen-reader fixture is read by this build', () => {
   // a record missing from the fixture fails here instead of dropping out of both sides).
   const carried = EXTRAS_SECTIONS.flatMap(x => x.records.map(r => r.spec.key));
   expect(carried.filter(k => k !== GOAL_EXTRAS_KEY && !fixture.records[k])).toEqual([]);
-  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY].sort());
+  expect(fixture.checks.map(c => c.key.replace('#merged', '')).sort()).toEqual([...carried, GOAL_EXTRAS_KEY, LINKED_WALLETS_KEY, EARN_PATH_KEY, EARN_ACADEMY_KEY, EARN_PREFS_KEY, CHECKLIST_KEY, CHECKLIST_DAYS_KEY, STAKING_PREFS_KEY, STAKING_JOURNAL_KEY].sort());
   // Session AE: the layout record holds the new block, and the linked-wallets record is this build's own.
   expect(JSON.parse(fixture.records[LAYOUT_KEY]!).pages.habits.body.order).toContain('habits:routines');
   expect(linkedWalletsSchema.parse(JSON.parse(fixture.records[LINKED_WALLETS_KEY]!)).display).toBe('USD');
