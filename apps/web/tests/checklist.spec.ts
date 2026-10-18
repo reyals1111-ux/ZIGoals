@@ -120,3 +120,17 @@ test('an empty path says how to build one; Jump to next focuses the first waitin
   await jump.click();
   await expect(page.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeFocused();
 });
+
+test('midnight in the person’s zone: a fresh path, and yesterday sealed into the history (P7.15)', async ({page}) => {
+  await page.clock.install({time: new Date(2026, 9, 20, 23, 58, 0)});
+  await seedChecklist(page);
+  await page.goto('/app/checklist'); await settled(page);
+  await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 4 dots today');
+  await page.clock.fastForward('03:00');
+  await expect(page.locator('.checklist-head .eyebrow')).toContainText('Oct 21');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 4 dots today');
+  await expect.poll(() => stored<{days: Record<string, {total: number; done: number}>; today: {date: string; ticks: unknown[]}}>(page, CHECKLIST_DAYS_KEY)).toMatchObject({days: {'2026-10-20': {total: 4, done: 1}}, today: {date: '2026-10-21', ticks: []}});
+  await page.getByText('Your last twelve weeks', {exact: true}).click();
+  await expect(page.locator('.checklist-heat-cell[title*="1 of 4 dots"]')).toHaveAttribute('data-level', 'some');
+});

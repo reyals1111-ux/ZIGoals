@@ -168,7 +168,9 @@
   .checklist-head h1 { font-size: 34px; }
   .checklist-progress { grid-template-columns: minmax(0, 1fr) auto; }
   .checklist-progress-line { font-size: 15px; }
-  .checklist-tools > .quiet { margin-left: auto; }
+  .checklist-tools { gap: 8px; }
+  .checklist-view-switch button { min-width: 60px; padding: 0 12px; }
+  .checklist-tools > button { padding-inline: 12px; }
   .checklist-heat-cell { width: 16px; height: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .checklist-page *:not(.checklist-mist) { transition: none !important; } }
