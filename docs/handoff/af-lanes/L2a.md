@@ -75,6 +75,15 @@ assertion that changed (with the reason). Updated with every step's commit.
 | Showcase | nothing: the staking actions refuse in the Showcase ("Exit the Showcase to stake") and write nothing |
 | sessionStorage hand-offs (not records, never exported) | `WALLET_SESSION_KEY` `zigoals:wallet-session:v1`, `STAKING_PREFILL_KEY` `zigoals:ai:staking-prefill:v1` — PRIVACY.md "tab-only" sentence |
 
+### CSP and the hosted verifier (step 6)
+- `apps/web/lib/egress-policy.json` `chainOrigins` gains `https://rpc.zigchain.com` (after the testnet RPC), as the brief
+  says; it therefore reaches every document class (site and app), like the two testnet hosts. The L2 design had put it in
+  `csp.app.connect` (app documents only); the lead may move it there (one line, and the two tests' expectations).
+- H16 (e): the hosted verifier's origin allowlist (`scripts/verify-hosted-alpha.mjs` lines 69/72: `alphaRequestOrigins`,
+  `requestOrigins`) is the lead's registry. No verifier stage reaches `rpc.zigchain.com` (the staking page requests it only
+  after a Connect or Review press), so nothing fails without it; add it in the same merge if the verifier should accept it.
+- Weight budgets: no new route page; `/app/staking` gains the lazy `StakingActions` chunk (step 7) — sizes in step 7's notes.
+
 ## Assertions changed
 - `apps/web/lib/wallet-guard.test.ts`, third test ("the only signer stays in lib/wallet.ts's blocked execute path"): the
   files that may name `getOfflineSigner` go from `['lib/wallet.ts']` to `['lib/staking/execute.ts', 'lib/wallet.ts']`
