@@ -12,9 +12,9 @@ test("the Ecosystem page's testnet list is unchanged: Range and ZIGScan on zig-t
     ["range", "zig-test-2", "https://app.range.org/zigchain-testnet/general"],
     ["zigscan", "zig-test-2", "https://testnet.zigscan.org/"],
   ]);
-  expect(mainnetExplorers.map((p) => [p.id, p.chainId, p.lastVerified])).toEqual([
-    ["range", "zigchain-1", "2026-10-18"],
-    ["zigscan", "zigchain-1", "2026-10-18"],
+  expect(mainnetExplorers.map((p) => [p.id, p.chainId, p.homepage, p.lastVerified])).toEqual([
+    ["range", "zigchain-1", "https://app.range.org/zigchain/general", "2026-10-18"],
+    ["zigscan", "zigchain-1", "https://zigscan.org/", "2026-10-18"],
   ]);
   for (const p of mainnetExplorers) {
     expect(Object.isFrozen(p) && Object.isFrozen(p.routes)).toBe(true);
@@ -22,30 +22,34 @@ test("the Ecosystem page's testnet list is unchanged: Range and ZIGScan on zig-t
     for (const route of Object.values(p.routes)) expect(isSafeReferenceUrl(route.prefix) && isSafeReferenceUrl(route.evidence), route.prefix).toBe(true);
   }
 });
-test("mainnet links: zigscan tx (upper case), address, validator; Range tx and address", () => {
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "transaction", hash.toLowerCase())).toBe(`https://zigscan.org/tx/${hash}`);
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "account", account)).toBe(`https://zigscan.org/address/${account}`);
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "validator", validator)).toBe(`https://zigscan.org/validators/${validator}`);
-  expect(buildExplorerUrl("range", "zigchain-1", "transaction", hash)).toBe(`https://app.range.org/tx/zigchain/${hash}`);
-  expect(buildExplorerUrl("range", "zigchain-1", "account", account)).toBe(`https://app.range.org/address/zigchain/${account}`);
-  expect(explorerHome("zigscan", "zigchain-1")).toBe("https://zigscan.org/");
-  expect(explorerLinksFor("zigchain-1", "transaction", hash)).toEqual([
+test("the existing builders keep their testnet-only answers (Goal Manager records, the Ecosystem page)", () => {
+  expect(buildExplorerUrl("zigscan", "zigchain-1", "transaction", hash)).toBeNull();
+  expect(buildExplorerUrl("range", "zigchain-1", "account", account)).toBeNull();
+  expect(explorerHome("zigscan", "zigchain-1")).toBeNull();
+  expect(buildExplorerUrl("zigscan", "zig-test-2", "transaction", hash)).toBe(`https://testnet.zigscan.org/tx/${hash}`);
+});
+test("mainnet links for staking receipts: zigscan tx (upper case), address, validator; Range tx and address", () => {
+  expect(explorerLinksFor("zigchain-1", "transaction", hash.toLowerCase())).toEqual([
     { name: "Range", url: `https://app.range.org/tx/zigchain/${hash}` },
     { name: "ZIGScan", url: `https://zigscan.org/tx/${hash}` },
+  ]);
+  expect(explorerLinksFor("zigchain-1", "account", account)).toEqual([
+    { name: "Range", url: `https://app.range.org/address/zigchain/${account}` },
+    { name: "ZIGScan", url: `https://zigscan.org/address/${account}` },
   ]);
   expect(explorerLinksFor("zigchain-1", "validator", validator)).toEqual([{ name: "ZIGScan", url: `https://zigscan.org/validators/${validator}` }]);
 });
 test("testnet: the validator route on testnet zigscan; Range testnet still has no detail routes", () => {
   expect(buildExplorerUrl("zigscan", "zig-test-2", "validator", validator)).toBe(`https://testnet.zigscan.org/validators/${validator}`);
   expect(explorerLinksFor("zig-test-2", "transaction", hash)).toEqual([{ name: "ZIGScan", url: `https://testnet.zigscan.org/tx/${hash}` }]);
+  expect(explorerLinksFor("zig-test-2", "validator", validator)).toEqual([{ name: "ZIGScan", url: `https://testnet.zigscan.org/validators/${validator}` }]);
 });
 test("no cross-network, unverified or malformed link is ever built", () => {
-  expect(buildExplorerUrl("range", "zigchain-1", "validator", validator)).toBeNull();
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "block", "12")).toBeNull();
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "contract", toBech32("zig", new Uint8Array(32)))).toBeNull();
-  expect(buildExplorerUrl("zigscan", "zigchain-2", "transaction", hash)).toBeNull();
+  expect(explorerLinksFor("zigchain-1", "block", "12")).toEqual([]);
+  expect(explorerLinksFor("zigchain-1", "contract", toBech32("zig", new Uint8Array(32)))).toEqual([]);
+  expect(explorerLinksFor("zigchain-2", "transaction", hash)).toEqual([]);
   for (const bad of [account, validator.toUpperCase(), toBech32("zigvaloper", new Uint8Array(32)), toBech32("cosmosvaloper", new Uint8Array(20)), `${validator}?x=1`, "../x"])
-    expect(buildExplorerUrl("zigscan", "zigchain-1", "validator", bad), bad).toBeNull();
-  expect(buildExplorerUrl("zigscan", "zigchain-1", "account", validator)).toBeNull();
+    expect(explorerLinksFor("zigchain-1", "validator", bad), bad).toEqual([]);
+  expect(explorerLinksFor("zigchain-1", "account", validator)).toEqual([]);
   expect(explorerLinksFor("zigchain-1", "transaction", "ab")).toEqual([]);
 });

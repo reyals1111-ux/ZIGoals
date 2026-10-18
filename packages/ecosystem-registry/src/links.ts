@@ -133,7 +133,7 @@ export function explorerHome(
   chainId: string,
 ): string | null {
   return (
-    everyExplorer.find((p) => p.id === providerId && p.chainId === chainId)
+    explorers.find((p) => p.id === providerId && p.chainId === chainId)
       ?.homepage ?? null
   );
 }
@@ -152,13 +152,27 @@ function validAddress(value: string, kind: ExplorerKind): boolean {
     return false;
   }
 }
+/**
+ * A verified link from the testnet catalogue (`explorers`), as every build since Session X built them: the Goal Manager's
+ * records and the Ecosystem page use this one, so a mainnet chain id still gets no link here. The staking receipts use
+ * explorerLinksFor below, which also knows the mainnet catalogue.
+ */
 export function buildExplorerUrl(
   providerId: string,
   chainId: string,
   kind: ExplorerKind,
   identifier: string,
 ): string | null {
-  const route = everyExplorer.find(
+  return buildFrom(explorers, providerId, chainId, kind, identifier);
+}
+function buildFrom(
+  list: readonly ExplorerProvider[],
+  providerId: string,
+  chainId: string,
+  kind: ExplorerKind,
+  identifier: string,
+): string | null {
+  const route = list.find(
     (p) => p.id === providerId && p.chainId === chainId,
   )?.routes[kind];
   if (!route || typeof identifier !== "string" || identifier.length > 100)
@@ -186,7 +200,7 @@ export function explorerLinksFor(
 ): { name: string; url: string }[] {
   return everyExplorer.flatMap((p) => {
     if (p.chainId !== chainId) return [];
-    const url = buildExplorerUrl(p.id, chainId, kind, identifier);
+    const url = buildFrom(everyExplorer, p.id, chainId, kind, identifier);
     return url ? [{ name: p.name, url }] : [];
   });
 }
