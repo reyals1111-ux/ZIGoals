@@ -106,13 +106,13 @@ async function identity(page, {base, expect, report}) {
   await page.goto(base + '/app'); await page.waitForLoadState('networkidle');
   // Session AC (owner finding 3 on #41): the page ends after the footer's link columns. The first-visit notice carries
   // the label and the sentence on /app; Settings' facts block carries the sentence, the mode and the build environment.
-  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.getByRole('complementary', {name: 'Alpha notice'})).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
   await expect(page.locator('footer .network-banner, footer .mode-strip')).toHaveCount(0);
   report.initialPerformance = await page.evaluate(() => ({navigation: performance.getEntriesByType('navigation').map(x => x.toJSON()), resources: performance.getEntriesByType('resource').map(x => x.toJSON())}));
   await recordLayouts(page, report, 'alpha-dashboard');
   await page.goto(base + '/app/settings');
   await expect(page.locator('.about-alpha')).toContainText('PUBLIC_ALPHA_UNDEPLOYED');
-  await expect(page.locator('.about-alpha .network-banner')).toContainText('No blockchain transactions or financial signatures');
+  await expect(page.locator('.about-alpha .network-banner')).toContainText('Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.');
 }
 
 /**

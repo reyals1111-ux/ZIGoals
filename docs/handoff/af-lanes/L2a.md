@@ -15,6 +15,7 @@ assertion that changed (with the reason). Updated with every step's commit.
 | 5 | `/api/positions` mainnet on public builds + `minHeight` + stZIG; `GET /api/chain/validators` | done | `TIER 3 (egress routes): … Part 5` |
 | 6 | `https://rpc.zigchain.com` in `chainOrigins`; CSP tests' exact lists | done | `TIER 3 (CSP): … Part 6` |
 | 7 | Staking UI on `/app/staking` (lazy `StakingActions`), the gate hardened, four specs | done | `TIER 3 (wallet/signing): … Part 7` |
+| 8 | The honesty sentence (H62) in the shell (About panel and Alpha notice take it from there), the Help bullet, the verifier's identity stage, ab-shell + six specs | done (landing: see below) | `TIER 3 (public-safety labels): … Part 8` |
 
 ## Facts read live for this lane (one GET each, 2026-10-18)
 - 20:52 UTC `https://api.zigchain.com` node_info: network `zigchain-1`, application_version `v5.1.2` on both nodes
@@ -85,6 +86,36 @@ assertion that changed (with the reason). Updated with every step's commit.
 - **ZIGi's pre-fill.** `lib/staking/prefill.ts` `takeStakingPrefill()` reads and deletes sessionStorage
   `zigoals:ai:staking-prefill:v1` once when the actions open (≤ 10 min old, plain fields only) and fills the form; a
   real-network pre-fill without the first-real confirm stays on practice and says so. Never reviews or signs.
+
+### Step 8 — public-safety labels: done, and three questions for the lead (not guessed)
+- Changed: `components/shell.tsx`'s `networkSentence` (the About panel `components/alpha/about-this-alpha.tsx` and the Alpha
+  notice `components/shell/alpha-notice.tsx` receive it as a prop, so neither file needed an edit) → exactly H62's sentence;
+  Help's Known-limitations bullet → "**Only staking moves ZIG, and only in your own wallet.** Stake, unstake, move stake
+  and claim rewards are signed in Keplr after a review screen, on the practice network (no real value) or the real one,
+  as you choose; ZIGoals never holds keys, nothing is bought, sold or sent by ZIGoals, and Wealth and Portfolio show what
+  you enter and public data." (votes are not built yet, so the bullet does not claim them); the hosted verifier's stage 2
+  (identity) now expects the whole new sentence (it expected a fragment of the old one).
+- `lib/search/static.ts` has no copy of the bullet (only the topic title "Known limitations"), so nothing changed there.
+- **Landing (owner-deployed, H62's "the two copies may differ").** `landing/index.html` does not contain the old sentence;
+  its own honesty lines are "Financial signing and broadcasting are disabled, and the Goal Manager contract is not
+  deployed. Mainnet financial execution is disabled.", the FAQ answer "No financial execution is enabled in the public
+  Alpha … financial signing and broadcasting remain disabled." and the status "Public Alpha / Financial execution
+  disabled". They are asserted by `tests/landing.spec.ts` AND by the hosted verifier's stage 7 (live only), which is not the
+  identity stage named in the brief. Changing them changes stage 7 too, and the live verifier then fails against the
+  landing that is live until the owner redeploys it. Left unchanged; proposed text for the owner/lead: "The public Alpha is
+  unaudited. Staking and votes sign in your own wallet (practice or real, your choice); nothing else moves, and ZIGoals
+  never holds keys. The Goal Manager contract is not deployed." (+ the same idea in the FAQ; status "Public Alpha / Only
+  native staking signs").
+- **Other honesty texts outside this lane's files that the change makes inaccurate:** Help's FAQ "Is any of this real
+  money?" (`components/help/help-page.tsx` line 120: "No. … nothing is bought, sold or sent"); `public/social-card.svg`/`.png`
+  ("Local simulation + wallet connection only."); the shell's local mode strip "LOCAL SIMULATION · … · No blockchain
+  transactions" (`MODE_LOCAL`, asserted by phone-shell and persona-z) — true of the demo records, but staking now sends
+  transactions from the same page. Each needs the owner's or lead's wording.
+- Specs moved at equal strength (the same assertion, the new words): `tests/ab-shell.ts` `ALPHA_SENTENCE` (used by
+  honesty-banners, private-read-delay, persona-z through `expectAlphaFacts`/imports), `tests/phone-shell.spec.ts:117`,
+  `tests/product-shell.spec.ts:20,22`, `tests/public-alpha.spec.ts:127`, `tests/session-ac.spec.ts:100` (each the whole
+  new sentence; two of them had asserted only a fragment of the old one), `tests/send-feedback.spec.ts:97` (the bullet's
+  new bold phrase plus "ZIGoals never holds keys"); `scripts/lib/hosted-alpha-stages.mjs:109,115`.
 
 ## What the lead must wire (shared registries)
 ### Storage keys (step 2; names in `apps/web/lib/af-signing-keys.ts`, a module with no imports)
