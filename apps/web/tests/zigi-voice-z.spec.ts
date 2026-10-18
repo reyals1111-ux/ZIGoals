@@ -58,6 +58,10 @@ async function seed(page: Page, {ai = null as Partial<AiSettings> | null, voice 
   if (ai) values[AI_SETTINGS_KEY] = JSON.stringify({...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...ai});
   if (voice) values[ZIGI_VOICE_KEY] = JSON.stringify({version: 1, ...voice});
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
+  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
+  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
+  // c9b123c9 and c1db750e hit it after this seed in four specs).
+  await page.waitForLoadState('networkidle');
 }
 const SEEN = {disclosed: {chrome: '2026-09-01T00:00:00.000Z', safari: '2026-09-01T00:00:00.000Z', other: '2026-09-01T00:00:00.000Z'}};
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');

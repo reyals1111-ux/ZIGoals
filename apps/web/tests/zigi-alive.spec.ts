@@ -19,6 +19,10 @@ async function seed(page: Page, extra: Record<string, unknown> = {}) {
   const values = {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}),
     ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]))};
   await page.evaluate(v => { localStorage.clear(); sessionStorage.clear(); for (const [k, x] of Object.entries(v)) localStorage.setItem(k, x); }, values);
+  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
+  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
+  // c9b123c9 and c1db750e hit it after this seed in four specs).
+  await page.waitForLoadState('networkidle');
 }
 const launcher = (page: Page) => page.getByTestId('ai-launcher');
 const openButton = (page: Page) => page.getByRole('button', {name: /Open ZIGi/});
