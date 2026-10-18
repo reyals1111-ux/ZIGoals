@@ -71,6 +71,8 @@ describe('Earn links come only from the verified link registry', () => {
     }
   });
   it('the guard reads the files it guards', () => {
+    expect(pageFiles).toEqual(expect.arrayContaining(['components/earn/earn-view.tsx', 'components/earn/guide-panel.tsx', 'components/earn/validators-section.tsx', 'app/app/earn/page.tsx']));
+    expect(allFiles).toEqual(expect.arrayContaining(['lib/server/earn/upstream.ts', 'lib/earn/client.ts', 'app/api/earn/chain/route.ts']));
     expect(relative(WEB, join(WEB, 'components/links/verified-link.tsx'))).toBe('components/links/verified-link.tsx');
     expect(code(readFileSync(join(WEB, 'components/links/verified-link.tsx'), 'utf8'))).not.toMatch(/https?:\/\//);
     expect(code(readFileSync(join(WEB, 'components/links/verified-link.tsx'), 'utf8'))).not.toMatch(/window\s*\.\s*open|<iframe/);

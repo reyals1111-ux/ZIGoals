@@ -11,7 +11,9 @@ import './verified-link.css';
  * checks away says so in the mark's description, with the official page the address came from.
  */
 export function VerifiedLink<P extends VerifiedProvider>({provider, kind, children, className = '', mark = 'full', onOpen}: {
-  provider: P; kind: VerifiedKind<P>; children: ReactNode; className?: string;
+  provider: P; kind: VerifiedKind<P>; children: ReactNode;
+  /** The link's own look (`primary`, `secondary`, `text-link`); the mark always sits after it. */
+  className?: string;
   /** 'full' writes "verified link · <date>" after the link; 'compact' keeps the shield and says the words to screen readers only. */
   mark?: 'full' | 'compact';
   /** Guide mode: called as the new tab opens (the click is never prevented). */
@@ -22,8 +24,8 @@ export function VerifiedLink<P extends VerifiedProvider>({provider, kind, childr
   const detail = link.check === 'ok'
     ? `ZIGoals opened this address on ${day}. It opens the site's own page in a new tab.`
     : `This site turns away automated checks, so ZIGoals took the address from ${from} on ${day}. It opens the site's own page in a new tab.`;
-  return <span className={`verified-link ${className}`.trim()} data-mark={mark}>
-    <a href={link.url} target="_blank" rel="noopener noreferrer" aria-describedby={id} data-verified-link={`${provider}:${String(kind)}`} onClick={onOpen}>
+  return <span className="verified-link" data-mark={mark}>
+    <a className={className || undefined} href={link.url} target="_blank" rel="noopener noreferrer" aria-describedby={id} data-verified-link={`${provider}:${String(kind)}`} onClick={onOpen}>
       {children}<span aria-hidden="true" className="verified-link-arrow">↗</span>
     </a>
     <small className="verified-mark" id={id} title={detail} data-check={link.check}>

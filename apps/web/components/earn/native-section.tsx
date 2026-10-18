@@ -1,0 +1,96 @@
+'use client';
+import Link from 'next/link';
+import {useMemo, useState} from 'react';
+import {aprAtCommission} from '../../lib/earn/apr';
+import type {LiveState, ValidatorsAnswer} from '../../lib/earn/client';
+import {decimal, duration, pct, pctShort, zig} from '../../lib/earn/format';
+import type {ChainData} from '../../lib/earn/live/types';
+import {VerifiedLink} from '../links/verified-link';
+import {EarnGlyphMark} from './earn-glyph';
+import {GuideLink, type Guide} from './guide-panel';
+import {LiveFigure, Unavailable, shown} from './live-figure';
+import {OptionSection} from './option-section';
+
+/**
+ * Session AF (L1, ADR-028 H9, H51): native validator staking, the chain's own way to earn. The APR is computed from the
+ * chain's figures at one block height (lib/earn/apr.ts), shown before and at a validator's commission, with the formula
+ * and every input one tap away. The commission choices are the rates live validators charge now, never a number ZIGoals
+ * picked. Signing happens in the person's own wallet: on ZIGoals' Staking page, in Keplr or on the ZIGChain Hub.
+ */
+export const NATIVE_GUIDE: Guide<'zig-finance'> = {id: 'native-keplr', app: 'Keplr', title: 'Stake ZIG in Keplr', provider: 'zig-finance', kind: 'keplr-staking', open: 'Open Keplr staking',
+  steps: ['In Keplr’s staking page, make sure ZIGChain is the chain shown.', 'Choose a validator. Compare commission, uptime and how much stake it already holds (the list on this page has all three).', 'Enter an amount. Keep a little ZIG for network fees.', 'Review in Keplr: you sign one delegation that moves ZIG from your balance into your stake. Nothing else.', 'Come back to ZIGoals: your stake shows on the Staking page once it is read.']};
+export function commissionChoices(validators: LiveState<ValidatorsAnswer>): string[] {
+  if (validators.phase !== 'ok') return [];
+  const active = validators.answer.data.validators.filter(v => v.status === 'bonded' && !v.jailed);
+  return [...new Set(active.map(v => v.commission.rate))].sort((a, b) => a - b).map(r => r.toFixed(6));
+}
+export function NativeSection({chain, validators, now}: {chain: LiveState<ChainData>; validators: LiveState<ValidatorsAnswer>; now: number}) {
+  const choices = useMemo(() => commissionChoices(validators), [validators]);
+  const [picked, setPicked] = useState<string | null>(null);
+  const commission = picked && choices.includes(picked) ? picked : choices[0] ?? null;
+  const data = chain.phase === 'ok' ? chain.answer.data : null;
+  const atCommission = data && commission ? aprAtCommission(data.apr, commission) : null;
+  const range = validators.phase === 'ok' && choices.length ? `${pctShort(choices[0]!)} to ${pctShort(choices.at(-1)!)}` : null;
+  return <OptionSection id="native-staking" eyebrow="ZIGChain · the network’s own staking" title="Stake ZIG with a validator"
+    lede="Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block."
+    logo={{alt: '', glyph: <EarnGlyphMark/>}}
+    tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'keys', text: 'You keep the keys'}]}
+    facts={[
+      {label: 'Best for', value: 'Holding ZIG for the long run and earning the network’s own rewards, with no app in between.'},
+      {label: 'Who runs it', value: 'The ZIGChain network itself, and the validator you choose to delegate to.'},
+      {label: 'Who holds the funds', value: 'You do. Your ZIG stays in your own account, delegated; only you can move it.'},
+      {label: 'Who can use it', value: 'Anyone with a ZIGChain wallet. The rules of the country you live in still apply to you.'},
+    ]}
+    figures={<>
+      <LiveFigure id="native-apr" big label={commission ? <>Yearly rate at a {pctShort(commission)} validator commission</> : 'Yearly rate before the validator’s commission'} now={now}
+        figure={shown(chain, d => commission ? pct(aprAtCommission(d.apr, commission)) : pct(d.apr.beforeCommission))}
+        hint={<>A simple yearly rate (APR), measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block.</>}/>
+      <LiveFigure id="native-apr-before" label="Before any commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
+      <LiveFigure id="native-bonded" label="ZIG staked on the network" now={now} figure={shown(chain, d => <>{zig(d.staking.bondedTokens, {compact: true})} <span className="earn-unit">({pct(d.staking.bondedShare, 1)} of all ZIG)</span></>)}/>
+      <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))}/>
+      <LiveFigure id="native-commission" label="Commission validators charge now" now={now} figure={validators.phase === 'ok' && range ? {kind: 'ok', value: range, answer: validators.answer} : validators.phase === 'ok' ? {kind: 'unavailable', reason: 'MALFORMED'} : shown(validators, () => null)}/>
+      <LiveFigure id="native-inflation" label="New ZIG a year (inflation)" now={now} figure={shown(chain, d => pct(d.mint.inflation))}/>
+    </>}
+    figuresNote={<>
+      {choices.length > 1 && <fieldset className="earn-commission"><legend>See the rate at a commission validators charge now</legend>{choices.map(c => <label key={c}><input type="radio" name="earn-commission" checked={c === commission} onChange={() => setPicked(c)}/><span>{pctShort(c)}</span></label>)}</fieldset>}
+      <details className="earn-formula">
+        <summary>How this is computed</summary>
+        {data ? <div>
+          <p><b>APR = annual provisions ÷ ZIG staked × (1 − community tax) × (real blocks a year ÷ the mint module’s blocks a year) × (1 − the validator’s commission).</b></p>
+          <ul>
+            <li>Annual provisions: {zig(data.mint.annualProvisions, {compact: true})} a year; ZIG staked: {zig(data.staking.bondedTokens, {compact: true})}. Divided: {pct(data.apr.gross)} gross.</li>
+            <li>The network keeps a community tax of {pctShort(data.distribution.communityTax)}: {pct(data.apr.afterTax)} after it.</li>
+            <li>The mint module pays per block and counts {decimal(data.mint.blocksPerYear, 0)} blocks a year ({decimal(String(31_536_000 / Number(data.mint.blocksPerYear)), 2)} seconds each over 365 days). Over the last {decimal(data.apr.windowBlocks, 0)} blocks a block took {decimal(data.apr.blockSeconds, 3)} seconds, so a year has about {decimal(data.apr.realBlocksPerYear, 0)} blocks: × {decimal(data.apr.factor, 4)} = {pct(data.apr.beforeCommission)}.</li>
+            <li>{commission && atCommission ? <>At a {pctShort(commission)} commission: {pct(atCommission)}.</> : 'Your validator then keeps its commission from that.'} Transaction fees, which also reach stakers, are not counted.</li>
+          </ul>
+          <p className="fine">Read from the chain at block {data.blocks.latest.height}, with the earlier block {data.blocks.earlier.height}. This is the chain’s arithmetic, not a promise: the rate changes as more or less ZIG is staked.</p>
+        </div> : <p>The inputs are <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now, so no rate is shown.</p>}
+      </details>
+    </>}
+    columns={[
+      {title: 'Fees', body: <p>A small network fee for each step you sign, paid in ZIG. Your wallet shows it before you sign. The validator keeps its commission from your rewards ({range ?? 'see the validator list'}).</p>},
+      {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile. Moving to another validator is instant.</p>},
+      {title: 'Minimums', body: <p>No minimum set by the network: any amount above the fee. Keep a little ZIG in your wallet for fees.</p>},
+      {title: 'Risks', body: <ul className="earn-risks">
+        <li>If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it and removes it for good.</li>
+        <li>If it is offline too long (signing fewer than {data ? pctShort(data.slashing.minSignedPerWindow) : 'the set share'} of the last {data ? decimal(data.slashing.signedBlocksWindow, 0) : ''} blocks), the network takes {data ? pct(data.slashing.slashFractionDowntime) : 'a part'} and pauses it for {data ? duration(data.slashing.downtimeJailSeconds) : 'a while'}.</li>
+        <li>ZIG’s price moves; staking does not protect you from that.</li>
+        <li>Most stake sits with a few validators; spreading yours helps the network (see the list below).</li>
+        <li>The rules: <VerifiedLink provider="zig-finance" kind="docs" className="text-link" mark="compact">ZIGChain docs</VerifiedLink>.</li>
+      </ul>},
+    ]}
+    steps={[
+      {text: 'Choose where to sign: ZIGoals’ Staking page with your connected wallet, Keplr’s staking page, or the ZIGChain Hub.'},
+      {text: 'Pick a validator from the list on this page. Look at its commission, its uptime and how much stake it already holds.'},
+      {text: 'Enter an amount, keeping a little ZIG for network fees.'},
+      {text: 'Review in your wallet and sign.', sign: 'one delegation (MsgDelegate) that moves ZIG from your balance into your stake. Nothing else.'},
+      {text: 'Rewards start right away. Claim them whenever you like, or stake them again.'},
+      {text: <>To leave, undelegate: your ZIG comes back after {data ? duration(data.staking.unbondingSeconds) : 'the unbonding time'}.</>},
+    ]}
+    actions={<>
+      <Link className="primary" href="/app/staking">Go to Staking</Link>
+      <GuideLink guide={NATIVE_GUIDE} className="secondary"/>
+      <VerifiedLink provider="zig-finance" kind="hub-staking" className="secondary">Open the ZIGChain Hub</VerifiedLink>
+    </>}
+  />;
+}
