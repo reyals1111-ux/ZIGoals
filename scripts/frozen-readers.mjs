@@ -2,7 +2,8 @@
 // Session AB-Cloud (ADR-023): runs the frozen-reader proof against older releases.
 //   node scripts/frozen-readers.mjs [--out docs/verification/ab-cloud/frozen-readers.txt] [sha …]
 // 1. Writes this build's fixture records (apps/web/lib/vault/frozen-fixtures.test.ts with FROZEN_OUT set).
-// 2. For each release (default #37 32cb9c5, #38 e3fa408, #39 6c1052b): a throwaway `git worktree` at that commit, this
+// 2. For each release (default #37 32cb9c5, #38 e3fa408, #39 6c1052b, and since Session AF #40 985720e, #41 9e41f0d,
+//    #42 61204c3, #43 11d8408, #44 4f92495): a throwaway `git worktree` at that commit, this
 //    checkout's node_modules linked in (the lockfile's packages; nothing installed), scripts/frozen-readers/reader.frozen.ts
 //    copied in as apps/web/lib/frozen-reader.test.ts, run with that release's vitest config, the worktree removed.
 // Exit 0 only when every release passes. Nothing in this checkout changes.
@@ -15,7 +16,7 @@ const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const args = process.argv.slice(2), outAt = args.indexOf('--out');
 const out = outAt >= 0 ? resolve(args[outAt + 1]) : null;
 const shas = args.filter((a, i) => !a.startsWith('--') && i !== outAt + 1);
-const releases = shas.length ? shas.map(s => [s, s]) : [['#37', '32cb9c5addedf6dfcd2c68887c7ded6ecf81b730'], ['#38', 'e3fa408db9dee4fc6c255d574c52e2baa7b5458e'], ['#39', '6c1052b291812982f65875b86ea65001026125b5']];
+const releases = shas.length ? shas.map(s => [s, s]) : [['#37', '32cb9c5addedf6dfcd2c68887c7ded6ecf81b730'], ['#38', 'e3fa408db9dee4fc6c255d574c52e2baa7b5458e'], ['#39', '6c1052b291812982f65875b86ea65001026125b5'], ['#40', '985720ee2fef2d2868fc0ef87a43d95d52dd0242'], ['#41', '9e41f0d14284657819e53a78c2515cf58a94db40'], ['#42', '61204c3fb1e959763ecbe81ef402c76990ad1f14'], ['#43', '11d8408280f4f7d5b32f12d17eeeaedd62b43b1f'], ['#44', '4f9249561736fbe19305b426de82f5c91a24763d']];
 const work = mkdtempSync(join(tmpdir(), 'zigoals-frozen-')), fixture = join(work, 'fixture.json'), log = [];
 const say = line => { log.push(line); console.log(line); };
 
