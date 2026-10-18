@@ -93,11 +93,14 @@ test('the return page: what happens next, a balance watch on that one address un
   expect(sent.length).toBeGreaterThan(0);
   for (const s of sent) { expect(s.startsWith('base-rpc.publicnode.com'), s).toBe(true); expect(s, s).toContain(EVM.slice(2).toLowerCase()); }
   expect(page.url()).not.toContain(EVM);
-  // What can I do with it now: hold (issuer, depeg, network), swap, no recommended route yet, earn; links verified.
+  // What can I do with it now: hold (issuer, depeg, network), the USDC.inj route (never Noble's USDC.n), swap where it is, earn.
   const next = view.getByRole('region', {name: 'What can I do with it now?'});
   await expect(next.locator('[data-guide]')).toHaveCount(4);
   await expect(next.locator('[data-guide="hold"]')).toContainText('depeg');
-  await expect(next.locator('[data-guide="bridge"]')).toContainText('does not recommend a route for USDC onto ZIGChain yet');
+  await expect(next.locator('[data-guide="bridge"]')).toContainText('The recommended route arrives as USDC.inj');
+  await expect(next.locator('[data-guide="bridge"]')).toContainText('Do not use Noble’s USDC.n');
+  await expect(next.locator('[data-guide="bridge"]')).toContainText('ZIGChain takes its fees in ZIG only');
+  await expect(next.getByRole('link', {name: /Skip Go/})).toHaveAttribute('href', 'https://go.skip.build/');
   for (const a of await next.locator('a[target="_blank"]').all()) { await expect(a).toHaveAttribute('rel', 'noopener noreferrer'); }
   await expect(next.getByRole('link', {name: /Circle: about this stablecoin/})).toHaveAttribute('href', 'https://www.circle.com/usdc');
   await expect(next.getByRole('link', {name: 'Open Earn →'})).toHaveAttribute('href', '/app/earn');

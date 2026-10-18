@@ -5,8 +5,11 @@ import {checkedAddress} from './guard';
 
 /**
  * Session AF (L2b, Part 4, ADR-028 H18, H22, H34, H52, H83, H90; A2.6): the hand-off addresses. Public parameters only, each
- * `encodeURIComponent`-ed: Ramp's hosted mode (`hostApiKey`, `hostAppName`, `hostLogoUrl`, `swapAsset` + `defaultAsset`,
- * `userAddress`, `finalUrl`) and Banxa's referral page (`{partnerRef}.banxa.com/?coinType=&blockchain=&walletAddress=&fiatType=&returnUrl=`).
+ * `encodeURIComponent`-ed: Ramp's hosted mode (`hostApiKey`, `hostAppName`, `hostLogoUrl`, `enabledCryptoAssets` + `outAsset`
+ * — Ramp's current names; amendment 2's `swapAsset`/`defaultAsset` are now deprecated by Ramp (docs/earn/af/ONRAMP_CODES.md),
+ * and the owner's intent, the asset pre-selected, is kept —, `userAddress`, `finalUrl`) and Banxa's referral page
+ * (`{partnerRef}.banxa.com/?coinType=&blockchain=&walletAddress=&fiatType=&returnUrl=`; `returnUrl` is the referral
+ * parameter, `redirectUrl` is only for API-created orders).
  * No secret exists in either; the IDs come only from apps/web/config/public-integrations.json. While an ID is empty, the
  * provider's plain consumer site is linked instead, with nothing pre-filled (and the page says so). The address passes the
  * network-mismatch guard first; the return address carries the purchase's asset, network and the linked wallet's local
@@ -39,7 +42,7 @@ export function handOffUrl(input: HandOffInput): HandOff {
     if (!offer.ramp) throw Error('Ramp does not offer this here.');
     if (!config.rampHostApiKey) return {provider: 'ramp', url: l2bLink('ramp-site').url, prefilled: false};
     const host = environment === 'production' ? l2bLink('ramp-hosted').url : 'https://app.demo.rampnetwork.com/';
-    const url = `${host}?${query({hostApiKey: config.rampHostApiKey, hostAppName: config.rampHostAppName, hostLogoUrl: `${ownOrigin(input.origin)}/apple-touch-icon.png`, swapAsset: offer.ramp.value, defaultAsset: offer.ramp.value, userAddress: address, finalUrl: back})}`;
+    const url = `${host}?${query({hostApiKey: config.rampHostApiKey, hostAppName: config.rampHostAppName, hostLogoUrl: `${ownOrigin(input.origin)}/apple-touch-icon.png`, enabledCryptoAssets: offer.ramp.value, outAsset: offer.ramp.value, userAddress: address, finalUrl: back})}`;
     return {provider: 'ramp', url: environment === 'production' ? fromPrefix('ramp-hosted', url) : url, prefilled: true};
   }
   if (!offer.banxa) throw Error('Banxa does not offer this here.');

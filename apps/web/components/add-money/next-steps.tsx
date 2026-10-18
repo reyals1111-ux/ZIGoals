@@ -10,6 +10,7 @@ export function NextSteps({asset, headingId}: {asset: BuyAssetId; headingId: str
       <h3>{g.title}</h3><p>{g.body}</p>
       {g.steps && <ol className="add-money-guide-steps">{g.steps.map(s => <li key={s}>{s}</li>)}</ol>}
       {g.links.length > 0 && <p className="add-money-actions">{g.links.map(l => <GuideLinkOut key={l.label} link={l}/>)}</p>}
+      {g.note && <p className="fine">{g.note}</p>}
     </li>)}</ol>
   </section>;
 }

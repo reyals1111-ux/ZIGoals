@@ -46,8 +46,10 @@ describe('the hand-off addresses (sandbox hosts; built, never opened)', () => {
       const url = new URL(r.url);
       expect(r.prefilled).toBe(true);
       expect(url.origin).toBe('https://app.demo.rampnetwork.com');
-      expect([...url.searchParams.keys()]).toEqual(['hostApiKey', 'hostAppName', 'hostLogoUrl', 'swapAsset', 'defaultAsset', 'userAddress', 'finalUrl']);
-      expect(url.searchParams.get('swapAsset')).toBe(o.ramp!.value); expect(url.searchParams.get('defaultAsset')).toBe(o.ramp!.value);
+      // Ramp's current names (ONRAMP_CODES.md); the deprecated swapAsset/defaultAsset/fiatCurrency are never sent.
+      expect([...url.searchParams.keys()]).toEqual(['hostApiKey', 'hostAppName', 'hostLogoUrl', 'enabledCryptoAssets', 'outAsset', 'userAddress', 'finalUrl']);
+      expect(url.searchParams.get('enabledCryptoAssets')).toBe(o.ramp!.value); expect(url.searchParams.get('outAsset')).toBe(o.ramp!.value);
+      for (const old of ['swapAsset', 'defaultAsset', 'fiatCurrency', 'fiatValue', 'swapAmount']) expect(url.searchParams.has(old), old).toBe(false);
       expect(url.searchParams.get('userAddress')).toBe(d.address);
       expect(url.searchParams.get('hostLogoUrl')).toBe(`${ORIGIN}/apple-touch-icon.png`);
       const back = new URL(url.searchParams.get('finalUrl')!);
@@ -56,7 +58,7 @@ describe('the hand-off addresses (sandbox hosts; built, never opened)', () => {
       expect(back.toString()).not.toContain(d.address);
     }
     const one = handOffUrl({provider: 'ramp', asset: 'usdc', network: 'base', address: EVM, walletId: 'w-evm', origin: ORIGIN, currency: 'EUR', config: SANDBOX, environment: 'sandbox'});
-    expect(one.url).toBe(`https://app.demo.rampnetwork.com/?hostApiKey=demoHostKey_123&hostAppName=ZIGoals&hostLogoUrl=${encodeURIComponent(`${ORIGIN}/apple-touch-icon.png`)}&swapAsset=BASE_USDC&defaultAsset=BASE_USDC&userAddress=${EVM}&finalUrl=${encodeURIComponent(`${ORIGIN}/app/wealth/add-money/back?provider=ramp&asset=usdc&network=base&wallet=w-evm`)}`);
+    expect(one.url).toBe(`https://app.demo.rampnetwork.com/?hostApiKey=demoHostKey_123&hostAppName=ZIGoals&hostLogoUrl=${encodeURIComponent(`${ORIGIN}/apple-touch-icon.png`)}&enabledCryptoAssets=BASE_USDC&outAsset=BASE_USDC&userAddress=${EVM}&finalUrl=${encodeURIComponent(`${ORIGIN}/app/wealth/add-money/back?provider=ramp&asset=usdc&network=base&wallet=w-evm`)}`);
   });
   test('Banxa referral, every asset × network: coinType, blockchain, walletAddress, fiatType, returnUrl on the partner\'s sandbox page', () => {
     for (const asset of BUY_ASSETS) for (const o of asset.offers) {

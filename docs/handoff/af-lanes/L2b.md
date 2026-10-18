@@ -10,7 +10,7 @@ merged). Server port 3104 only. Every build, Playwright run and screenshot under
 | 1 | `TIER 3 (wallet)`: real read-only connections (EIP-6963 six wallets, Solana Wallet Standard, phones' in-app browsers, WalletConnect "available soon") | done |
 | 2 | `TIER 3 (storage)`: linked-wallets `chains`/`via`/kind `solana`; `zigoals:wallet-balances:v1` | done |
 | 3 | `TIER 3 (CSP)` + read-only tracking (browser-direct readers, pricing, What you have) | done |
-| 4 | Multi-asset Add money | done (codes/routes rows wait for the Part 0 docs, listed below) |
+| 4 | Multi-asset Add money | done; codes and routes finalised from the Part 0 docs after the merge of `b988e4a1` |
 | 5 | `TIER 3 (dependencies)`: `@walletconnect/sign-client` 2.26.0 | done (dormant: no project ID) |
 | 6 | Goal Vaults | pending |
 
@@ -145,7 +145,23 @@ chain's USDC contract: all six answered 200 with ACAO `*`; nonzero token balance
 - Entry points: Wealth's holdings header ("Add money →"), the wallet holdings block ("+ Add money"), Today's wallet card for
   a linked wallet ("+ Add money").
 
-**Rows waiting for docs/earn/af/ONRAMP_CODES.md and ROUTES_ONTO_ZIGCHAIN.md** (not on the feature branch when this was
+**Finalised after merging the feature branch (`b988e4a1`, the Part 0 docs):**
+- Every code checked against `docs/earn/af/onramp-codes.json` (a unit test reads it): all 15 Ramp codes are in Ramp's own
+  assets table and enabled; all 16 Banxa pairs are buyable rows (coinType = Code, blockchain = Network; ATOM/ATOM). Every
+  code is now `documented` with ONRAMP_CODES.md as its source; none is `confirmed` (no checkout can be seen without the
+  owner's keys: Ramp answers "INTEGRATION ISSUE DETECTED", Banxa's partner subdomains do not resolve).
+- **Ramp parameter names (a recorded change to amendment 2's wording):** amendment 2 names `swapAsset`/`defaultAsset`;
+  Ramp now marks both deprecated (with `fiatCurrency`, `fiatValue`, `swapAmount`, `offrampAsset`). The builder sends Ramp's
+  current `enabledCryptoAssets` + `outAsset` (the owner's intent, the asset pre-selected, is kept) and keeps `userAddress`;
+  the test asserts no deprecated name is sent. Banxa keeps `returnUrl` (the referral parameter; `redirectUrl` is API-only).
+- "What can I do with it now?" now follows ROUTES_ONTO_ZIGCHAIN.md: USDC — the recommended route to USDC.inj (Base → Skip Go,
+  CCTP V2 to Injective, IBC to ZIGChain; two signatures, about 18.5 min by Skip's estimate, needs a little INJ; the
+  USDC.inj/ZIG pool figures) and "do not use Noble's USDC.n" (Circle's dates); USDT and ETH — "hold", not "swap" or
+  "earn" (they can travel by IBC Eureka, about 20.5 min, but the pools are very thin: the figures said plainly); ATOM — one
+  IBC send, about 30 s, then OroSwap's ATOM/ZIG pool (6 ATOM → 205.22 ZIG, 0.26 % below mid); every route that ends in a
+  ZIGChain swap says ZIGChain takes fees in ZIG only, so a fresh address cannot pay for its first swap.
+
+**Rows that waited for docs/earn/af/ONRAMP_CODES.md and ROUTES_ONTO_ZIGCHAIN.md** (before the merge; now done as above) (not on the feature branch when this was
 built): every Ramp code marked `inferred` (12 of 15: ETH_USDC, ARBITRUM_USDC, OPTIMISM_USDC, MATIC_USDC, SOLANA_USDC,
 SOLANA_USDT, ETH_USDT, BASE_ETH, ARBITRUM_ETH, OPTIMISM_ETH, SOLANA_SOL, COSMOS_ATOM) and all 32 Banxa values (`documented`
 from the public table, not seen in a checkout) — one edit of each `status` in `lib/onramps/assets.ts`; the `bridge` guides

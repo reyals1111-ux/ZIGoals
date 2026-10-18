@@ -4,12 +4,13 @@ import {chainById} from '../wallets/balances/chains';
 /**
  * Session AF (L2b, Part 4, ADR-028 H83, owner amendment 2): the one asset × network × provider table that drives Add money.
  * Each asset is bought to the person's own address on its own network (never a ZIGoals address: none exists), from the
- * matching linked wallet only. Every provider code carries its status and source so one data edit finalises it:
- * - `documented`: the code itself is in the provider's own published material (Ramp's docs name ETH_ETH, BTC_BTC and
- *   BASE_USDC as examples; Banxa's coin/blockchain table, docs.banxa.com, read 2026-10-18 23:11 UTC);
- * - `inferred`: built from Ramp's documented CHAIN_SYMBOL pattern and the chain + symbol of Ramp's live v3 asset list (read
- *   2026-10-18 23:10 UTC), not yet seen working in Ramp's checkout;
- * - `confirmed`: seen in the provider's checkout (none yet: docs/earn/af/ONRAMP_CODES.md, by the Part 0 helper, will say).
+ * matching linked wallet only. Every provider code carries its status and source:
+ * - `documented`: the code itself is in the provider's own published table, as docs/earn/af/ONRAMP_CODES.md and
+ *   onramp-codes.json record it (Part 0, read 2026-10-18 22:34–22:41 UTC): Ramp's CHAIN_SYMBOL codes column (every code here
+ *   is in it; Ramp's v3 list agrees) and Banxa's coin table (coinType = its Code column, blockchain = its Network column);
+ * - `inferred`: built from a pattern only (none left);
+ * - `confirmed`: seen working in the provider's checkout (none: without the owner's hostApiKey Ramp's pages answer
+ *   "INTEGRATION ISSUE DETECTED", and Banxa's partner subdomains do not resolve before onboarding).
  * The networks per asset are the ones both providers list AND ZIGoals can watch (lib/wallets/balances/chains.ts), so the
  * return page can show the money arriving. USDT only where Tether itself issues it (Ethereum, Solana).
  */
@@ -29,13 +30,9 @@ export const NETWORKS: {readonly [N in NetworkId]: Network} = Object.freeze({
   bitcoin: {id: 'bitcoin', name: 'Bitcoin', chainId: 'bitcoin', walletKind: 'btc', rampChain: 'BTC', banxaChain: 'BTC', plain: 'Bitcoin\'s own network.'},
   'cosmos-hub': {id: 'cosmos-hub', name: 'Cosmos Hub', chainId: 'cosmoshub-4', walletKind: 'cosmos', rampChain: 'COSMOS', banxaChain: 'ATOM', plain: 'The Cosmos Hub. Your Keplr key\'s cosmos1… address; from here ATOM can move to ZIGChain.'},
 });
-const RAMP_DOCUMENTED = new Set(['ETH_ETH', 'BTC_BTC', 'BASE_USDC']);
-const RAMP_SOURCE = 'Ramp hosted-mode docs (CHAIN_SYMBOL) + api.rampnetwork.com v3 assets, read 2026-10-18 23:10 UTC';
-const BANXA_SOURCE = 'docs.banxa.com supported cryptocurrencies and blockchains, read 2026-10-18 23:11 UTC';
-const rampCode = (network: NetworkId, symbol: string): ProviderCode => {
-  const value = `${NETWORKS[network].rampChain}_${symbol}`;
-  return {value, status: RAMP_DOCUMENTED.has(value) ? 'documented' : 'inferred', source: RAMP_SOURCE};
-};
+const RAMP_SOURCE = 'docs/earn/af/ONRAMP_CODES.md: Ramp\'s assets table (docs.rampnetwork.com/assets, read 2026-10-18 22:39 UTC) and v3 list (22:34 UTC)';
+const BANXA_SOURCE = 'docs/earn/af/ONRAMP_CODES.md: Banxa\'s coin table (docs.banxa.com, read 2026-10-18 22:40 UTC)';
+const rampCode = (network: NetworkId, symbol: string): ProviderCode => ({value: `${NETWORKS[network].rampChain}_${symbol}`, status: 'documented', source: RAMP_SOURCE});
 const banxaCode = (network: NetworkId, symbol: string) => ({coinType: {value: symbol, status: 'documented' as const, source: BANXA_SOURCE}, blockchain: {value: NETWORKS[network].banxaChain, status: 'documented' as const, source: BANXA_SOURCE}});
 export type Offer = {network: NetworkId; ramp: ProviderCode | null; banxa: {coinType: ProviderCode; blockchain: ProviderCode} | null};
 const offer = (network: NetworkId, symbol: string, providers: {ramp?: boolean; banxa?: boolean} = {}): Offer => ({network, ramp: providers.ramp === false ? null : rampCode(network, symbol), banxa: providers.banxa === false ? null : banxaCode(network, symbol)});

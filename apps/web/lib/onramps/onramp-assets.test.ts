@@ -42,11 +42,14 @@ describe('the table', () => {
     expect(watchedAssetId(BUY_ASSETS.find(a => a.id === 'usdc')!, 'base')).toBe('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
     expect(watchedAssetId(BUY_ASSETS.find(a => a.id === 'zig-via-atom')!, 'cosmos-hub')).toBe('uatom');
   });
-  test('every provider code has a status and a source; nothing is marked confirmed before a checkout has shown it', () => {
+  test('every provider code is the one docs/earn/af/onramp-codes.json records, documented, with its source; none marked confirmed before a checkout has shown it', () => {
     const codes = providerCodes();
     expect(codes.length).toBe(16 + 2 * 16);
-    for (const c of codes) { expect(['documented', 'inferred'], `${c.provider} ${c.asset} ${c.network}`).toContain(c.code.status); expect(c.code.source).toMatch(/read 2026-10-18/); }
-    expect(codes.filter(c => c.provider === 'ramp').map(c => `${c.code.value}:${c.code.status}`)).toEqual(expect.arrayContaining(['BASE_USDC:documented', 'ETH_ETH:documented', 'BTC_BTC:documented', 'COSMOS_ATOM:inferred', 'MATIC_USDC:inferred', 'SOLANA_USDT:inferred']));
+    for (const c of codes) { expect(c.code.status, `${c.provider} ${c.asset} ${c.network}`).toBe('documented'); expect(c.code.source).toMatch(/ONRAMP_CODES\.md.*read 2026-10-18/); }
+    // The Part 0 record (onramp-codes.json): each Ramp code is in Ramp's own table; each Banxa pair is a buyable row.
+    const recorded = JSON.parse(readFileSync(join(WEB, '..', '..', 'docs/earn/af/onramp-codes.json'), 'utf8')) as {ramp: {assets: {code: string; codeInDocsTable: boolean; enabled: boolean}[]}; banxa: {assets: {coinType: string; blockchain: string; buy: boolean}[]}};
+    for (const c of codes.filter(c => c.provider === 'ramp')) expect(recorded.ramp.assets.find(a => a.code === c.code.value), c.code.value).toMatchObject({codeInDocsTable: true, enabled: true});
+    for (const a of BUY_ASSETS) for (const o of a.offers) expect(recorded.banxa.assets.find(r => r.coinType === o.banxa!.coinType.value && r.blockchain === o.banxa!.blockchain.value), `${a.id} ${o.network}`).toMatchObject({buy: true});
     expect(codes.filter(c => c.provider === 'banxa' && c.field === 'blockchain').map(c => `${c.asset}@${c.code.value}`)).toEqual(['usdc@BASE', 'usdc@ETH', 'usdc@ARB', 'usdc@OPTIMISM', 'usdc@MATIC', 'usdc@SOL', 'usdt@SOL', 'usdt@ETH', 'eth@BASE', 'eth@ETH', 'eth@ARB', 'eth@OPTIMISM', 'sol@SOL', 'btc@BTC', 'atom@ATOM', 'zig-via-atom@ATOM']);
     expect([...OFFERED_RAMP_CODES].sort()).toEqual(['ARBITRUM_ETH', 'ARBITRUM_USDC', 'BASE_ETH', 'BASE_USDC', 'BTC_BTC', 'COSMOS_ATOM', 'ETH_ETH', 'ETH_USDC', 'ETH_USDT', 'MATIC_USDC', 'OPTIMISM_ETH', 'OPTIMISM_USDC', 'SOLANA_SOL', 'SOLANA_USDC', 'SOLANA_USDT']);
   });
@@ -80,15 +83,22 @@ describe('A2.9: no ZIGoals address, no payment code, every outgoing link verifie
   test('"What can I do with it now?": a guide per asset; every link from a verified list or ZIGoals\' own pages; route claims sourced', () => {
     for (const a of BUY_ASSETS) {
       const guides = NEXT_STEPS[a.id];
-      expect(guides.length, a.id).toBeGreaterThan(1);
-      expect(guides.at(-1)!.id, a.id).toBe('earn');
+      expect(guides.length, a.id).toBeGreaterThan(0);
       for (const link of guides.flatMap(g => g.links)) {
         if (link.source === 'l2b') expect(L2B_LINKS[link.id]).toBeDefined();
         if (link.source === 'app') expect(link.href).toMatch(/^\/app\/[a-z/-]+$/);
       }
     }
     for (const id of ['usdc', 'usdt'] as const) expect(NEXT_STEPS[id][0]!.body).toMatch(/issuer.*depeg.*wrong network/s);
+    // The Part 0 route check (ROUTES_ONTO_ZIGCHAIN.md): USDC.inj via Skip Go, never Noble's USDC.n; ATOM in one IBC send.
+    expect(NEXT_STEPS.usdc.find(g => g.id === 'bridge')!.body).toMatch(/arrives as USDC\.inj.*Skip Go.*Do not use Noble’s USDC\.n/s);
     expect(NEXT_STEPS.atom.find(g => g.id === 'bridge')!.body).toContain('channel-1555');
-    expect(NEXT_STEPS.usdc.find(g => g.id === 'bridge')!.body).toMatch(/does not recommend a route.*Noble/s);
+    // USDT and ETH: "hold", not "swap" or "earn" (no market on ZIGChain), and the thin pools said plainly.
+    for (const id of ['usdt', 'eth'] as const) {
+      expect(NEXT_STEPS[id].map(g => g.id), id).toEqual(['hold', 'bridge']);
+      expect(NEXT_STEPS[id][1]!.body, id).toMatch(/almost no market.*holding it where it is/s);
+    }
+    // ZIGChain's fees are in ZIG: every route that ends in a ZIGChain swap says a fresh address cannot pay for it.
+    for (const id of ['usdc', 'atom', 'zig-via-atom'] as const) expect(JSON.stringify(NEXT_STEPS[id]), id).toContain('fees in ZIG only');
   });
 });
