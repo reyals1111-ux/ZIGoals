@@ -117,7 +117,7 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): native staking signs in the person's own wallet on both networks.
   const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
   const modeText = s.mode === "local"
-    ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · No blockchain transactions"
+    ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet"
     : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
   const alphaFacts = {network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners};
   const walletButtons = <>
