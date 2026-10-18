@@ -3,6 +3,7 @@ import type {Locator, Page} from '@playwright/test';
 type Expect = typeof import('@playwright/test').expect;
 export const GOAL_SENTINELS: Readonly<{name: string; target: string; targetUnits: string; date: string; note: string}>;
 export const LOCAL_SIMULATION_METADATA_KEY: string;
+export function todayQuickAdd(page: Page): Locator;
 export function createFictionalGoal(page: Page, expect: Expect, options?: {name?: string; target?: string}): Promise<void>;
 export function depositAndWithdraw(page: Page): Promise<void>;
 export function openDiagnostics(page: Page): Promise<Locator>;

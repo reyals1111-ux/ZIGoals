@@ -1,0 +1,3 @@
+/* Session AE (Part 1 in Dark, ADR-027): the same scene on Dark's deeper ground, the artwork dimmed once (one layer, so
+   nothing meets anything at a different brightness). */
+:root[data-theme=dark] .today-scene::before { filter: brightness(.84); }

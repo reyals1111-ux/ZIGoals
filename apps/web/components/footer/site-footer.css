@@ -4,20 +4,31 @@
    two lines, the three steps on their constellation line; at the very bottom the social row and Back to top between two
    dividers. Every line sits on a calm, darkened part of the art (contrast ≥ 4.5:1). */
 .site-footer { position: relative; isolation: isolate; display: block; container-type: inline-size; margin: 64px 0 0; padding: 0; border: 0; color: var(--text); font-size: 15px; overflow: hidden; }
-/* The planet, whole: full width at the top, its own height (1000 × 689); faded in at its top edge into the starfield and
-   out at its foot into the page's end colour. */
-.site-footer-art { position: absolute; left: 0; right: 0; top: 0; z-index: -4; aspect-ratio: 1000 / 689; pointer-events: none; background: var(--cosmic-destination) 50% 0 / 100% auto no-repeat;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 6%, #000 84%, transparent 100%); }
-/* A soft scrim: clear over the planet's rim where the wordmark sits, deepening behind the steps' text and the social row. */
+/* The planet, whole: full width at the top. Session AE (Part 2, ADR-027): the artwork's dark space is see-through
+   (public/art/v27/destination-scene, art-src/scene-alpha.mjs: the original pixels with an alpha channel), so the app's
+   starfield shows through it on every side and no edge of the picture shows; the planet, its glow, the blue mist and the
+   pink star stay as they are. On wider screens the banner ends shortly after the social row, so the picture fills the
+   banner and dissolves into the page's end colour well before its foot (the arc always whole). */
+.site-footer { --cosmic-destination-scene: image-set(url('/art/v27/destination-scene.avif') type('image/avif'), url('/art/v27/destination-scene.webp') type('image/webp')); }
+.site-footer-art { position: absolute; left: 0; right: 0; top: 0; z-index: -4; aspect-ratio: 1000 / 689; pointer-events: none; background: var(--cosmic-destination-scene) 50% 0 / 100% auto no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #0008 3%, #000 9%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #0008 3%, #000 9%, #000 84%, transparent 100%); }
+@media (min-width: 768px) {
+  .site-footer-art { bottom: 0; aspect-ratio: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0, #0008 3%, #000 9%, #000 calc(100% - 300px), #0000 100%); mask-image: linear-gradient(180deg, transparent 0, #0008 3%, #000 9%, #000 calc(100% - 300px), #0000 100%); }
+}
+/* A soft scrim: clear over the planet's rim where the wordmark sits, deepening behind the steps' text and the social row
+   into the page's own end colour at the banner's foot (no edge where the page ends). */
 .site-footer::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;
-  background:
-    radial-gradient(ellipse 34% 22% at 80% 30%, #f06dff1f, transparent 70%),
-    radial-gradient(ellipse 36% 26% at 14% 36%, #23eaff17, transparent 70%),
-    linear-gradient(180deg, #02091800 0, #0209182e 26%, #0209188c 50%, #020918c4 72%, #020918eb 100%); }
-.site-footer-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 1240px; min-height: calc(100cqw * 689 / 1000); margin: 0 auto; padding: clamp(60px, 6.4cqw, 132px) 26px 28px; }
+  background: linear-gradient(180deg, #02091800 0, #0209182e 26%, #0209188c 50%, #020918c4 70%, #020918e6 86%, #020918 100%); }
+/* The blue mist and the horizon's pink glow, their own layer so the finale can let them drift and settle. */
+.site-footer-glow { position: absolute; inset: 0; z-index: -3; pointer-events: none; }
+.site-footer-glow > i { position: absolute; border-radius: 50%; }
+.site-footer-glow > i[data-glow=horizon] { left: 46%; top: 8%; width: 68%; height: 44%; background: radial-gradient(closest-side, #f06dff1f, transparent 100%); }
+.site-footer-glow > i[data-glow=mist] { left: -22%; top: 10%; width: 72%; height: 52%; background: radial-gradient(closest-side, #23eaff17, transparent 100%); }
+/* Session AE: the banner ends shortly after the social row (no longer as tall as the planet; the owner's S1 pointer 4). */
+.site-footer-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 1240px; margin: 0 auto; padding: clamp(60px, 6.4cqw, 132px) 26px 56px; }
 
 /* The centrepiece. */
-.site-footer-stage { position: relative; width: 100%; display: grid; justify-items: center; gap: clamp(52px, 5cqw, 84px); margin-bottom: auto; padding-bottom: 48px; }
+.site-footer-stage { position: relative; width: 100%; display: grid; justify-items: center; gap: clamp(52px, 5cqw, 84px); padding-bottom: 40px; }
 .site-footer-brand { position: relative; z-index: 2; display: grid; justify-items: center; gap: 0; text-align: center; }
 /* The owner's wordmark (components/brand/igoals-wordmark.tsx): its box is reserved, so nothing moves when it arrives. */
 .site-footer-logo { position: relative; isolation: isolate; display: block; width: 360px; max-width: 100%; aspect-ratio: 360 / 112; }
@@ -64,8 +75,15 @@
 /* The planet's flare (footer-path.tsx): the Today header star's layer (motion.css .hero-star), in pink and magenta. */
 .site-footer-star-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .site-footer-star-layer > span { position: absolute; left: 0; top: 0; opacity: 0; border-radius: 50%; }
-.site-footer-star-veil { background: radial-gradient(closest-side, #020918d9 0%, #020918a6 42%, #02091840 70%, #02091800 100%); }
-.site-footer-star-core { background: radial-gradient(closest-side, #ffb0ea 0 9%, #ff8fdc 16%, #f06dffcc 28%, #d65cffa3 40%, #b06bff4d 56%, #9273ff1a 72%, #0000 100%); mix-blend-mode: screen; }
+/* Gate C design review (ADR-027 G22): the veil only softens the artwork's own flare under the rising star (at d9 it
+   blacked it out for a second and a half, then the flare popped back). */
+.site-footer-star-veil { background: radial-gradient(closest-side, #0209188c 0%, #02091866 42%, #02091826 70%, #02091800 100%); }
+/* Session AE: the core stays pink and magenta to its centre (never white or yellow), and one pulse follows the bloom. */
+.site-footer-star-core { background: radial-gradient(closest-side, #ffc2ee 0 4%, #ff8fdc 9%, #ff74d2 16%, #f06dffb3 26%, #d65cff80 38%, #b06bff33 54%, #9273ff12 70%, #0000 100%); mix-blend-mode: screen; }
+/* A crisp star, not a blur: four thin pink spikes through a small bright pink core (never white or yellow). */
+.site-footer-star-core::before, .site-footer-star-core::after { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 2px; margin-top: -1px; border-radius: 2px; background: linear-gradient(90deg, #0000, #ff8fdc66 30%, #ffc2ee 50%, #ff8fdc66 70%, #0000); }
+.site-footer-star-core::after { transform: rotate(90deg) scaleX(.72); }
+.site-footer-star-pulse { background: radial-gradient(closest-side, #ff8fdcd0 0, #f06dff8c 30%, #d65cff3d 58%, #0000 100%); mix-blend-mode: screen; }
 
 /* The opening moment (footer-path.tsx sets data-intro: "ready" before it plays, "play" while it runs, "done" after).
    Only transform and opacity animate. */
@@ -88,29 +106,71 @@
 .site-footer[data-intro=play] .site-footer-steps li[data-step="0"] :is(strong, p) { animation-delay: calc(var(--sf-at0, .4s) + .1s); }
 .site-footer[data-intro=play] .site-footer-steps li[data-step="1"] :is(strong, p) { animation-delay: calc(var(--sf-at1, .9s) + .1s); }
 .site-footer[data-intro=play] .site-footer-steps li[data-step="2"] :is(strong, p) { animation-delay: calc(var(--sf-at2, 1.4s) + .1s); }
-.site-footer[data-intro=play] .site-footer-result { animation: sf-arrive .8s cubic-bezier(.2, .7, .2, 1) var(--sf-wealth, 1.85s) both; }
-.site-footer[data-intro=play] .site-footer-tagline { animation: sf-rise .6s ease-out calc(var(--sf-wealth, 1.85s) + .3s) both; }
-.site-footer[data-intro=play] .site-footer-shine { animation: sf-shine-on .95s ease-in-out var(--sf-wealth, 1.85s) both; }
-.site-footer[data-intro=play] .site-footer-shine > i { animation: sf-shine .95s cubic-bezier(.45, 0, .3, 1) var(--sf-wealth, 1.85s) both; }
-.site-footer[data-intro=play] .site-footer-logo::before { animation: sf-glow 1.4s ease-in-out var(--sf-wealth, 1.85s) both; }
+.site-footer[data-intro=play] .site-footer-result { animation: sf-emerge 1.1s cubic-bezier(.2, .7, .2, 1) var(--sf-wealth, 3.9s) both; }
+.site-footer[data-intro=play] .site-footer-tagline { animation: sf-rise .7s ease-out calc(var(--sf-wealth, 3.9s) + .55s) both; }
+.site-footer[data-intro=play] .site-footer-shine { animation: sf-shine-on 1.1s ease-in-out calc(var(--sf-wealth, 3.9s) + .4s) both; }
+.site-footer[data-intro=play] .site-footer-shine > i { animation: sf-shine 1.1s cubic-bezier(.45, 0, .3, 1) calc(var(--sf-wealth, 3.9s) + .4s) both; }
+.site-footer[data-intro=play] .site-footer-logo::before { animation: sf-glow 1.6s ease-in-out calc(var(--sf-wealth, 3.9s) + .35s) both; }
 @keyframes sf-reveal-out { from { transform: translateX(-100%); } to { transform: none; } }
 @keyframes sf-reveal-in { from { transform: translateX(100%); } to { transform: none; } }
 @keyframes sf-reveal-down-out { from { transform: translateY(-100%); } to { transform: none; } }
 @keyframes sf-reveal-down-in { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sf-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes sf-arrive { from { opacity: 0; transform: translateY(12px) scale(.94); } 60% { opacity: 1; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 @keyframes sf-ignite { from { opacity: .25; transform: scale(.86); } 55% { opacity: 1; transform: scale(1.06); } to { opacity: 1; transform: none; } }
 @keyframes sf-pulse { from { opacity: .9; transform: scale(.85); } to { opacity: 0; transform: scale(1.45); } }
 @keyframes sf-shine-on { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes sf-shine { from { transform: translateX(0); } to { transform: translateX(267%); } }
 @keyframes sf-glow { 0% { opacity: .8; } 35% { opacity: 1; transform: scale(1.12); } 100% { opacity: .8; transform: none; } }
+/* Session AE (Part 2, ADR-027): the finale's added beats — the pink arc rises from Health and returns into "= Wealth"
+   (each half revealed by a sliding box from the corner where it starts: transform only), "= Wealth" emerges from a soft
+   burst of nebula mist (blurred brand-colour puffs that only scale and fade), the planet's rim stars twinkle, and the blue
+   mist and the horizon glow drift a few pixels and settle. Their resting state is the composed banner. Of three variants
+   (S1 balanced puffs, S2 "aurora", S3 no mist; frame strips on review/session-ae-screens), S2 is kept: its larger, slower
+   cloud reads as nebula mist the words sharpen out of, where S1's puffs read as smudges and S3 loses the moment. */
+.site-footer-arc { position: absolute; z-index: 1; overflow: hidden; pointer-events: none; }
+.site-footer-arc-in { position: absolute; inset: 0; }
+.site-footer-arc .site-footer-line { position: absolute; max-width: none; }
+.site-footer[data-intro=ready] .site-footer-arc[data-part=rise], .site-footer[data-intro=play] .site-footer-arc[data-part=rise] { transform: translate(-100%, 100%); }
+.site-footer[data-intro=ready] .site-footer-arc[data-part=rise] > .site-footer-arc-in, .site-footer[data-intro=play] .site-footer-arc[data-part=rise] > .site-footer-arc-in { transform: translate(100%, -100%); }
+.site-footer[data-intro=ready] .site-footer-arc[data-part=return], .site-footer[data-intro=play] .site-footer-arc[data-part=return] { transform: translate(100%, 100%); }
+.site-footer[data-intro=ready] .site-footer-arc[data-part=return] > .site-footer-arc-in, .site-footer[data-intro=play] .site-footer-arc[data-part=return] > .site-footer-arc-in { transform: translate(-100%, -100%); }
+.site-footer[data-intro=play] .site-footer-arc[data-part=rise] { animation: sf-corner-in .6s cubic-bezier(.45, .05, .55, .95) var(--sf-arc-rise, 2.1s) both; --sf-from: translate(-100%, 100%); }
+.site-footer[data-intro=play] .site-footer-arc[data-part=rise] > .site-footer-arc-in { animation: sf-corner-in .6s cubic-bezier(.45, .05, .55, .95) var(--sf-arc-rise, 2.1s) both; --sf-from: translate(100%, -100%); }
+.site-footer[data-intro=play] .site-footer-arc[data-part=return] { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(100%, 100%); }
+.site-footer[data-intro=play] .site-footer-arc[data-part=return] > .site-footer-arc-in { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(-100%, -100%); }
+@keyframes sf-corner-in { from { transform: var(--sf-from); } to { transform: none; } }
+.site-footer-burst { position: absolute; z-index: 1; width: 0; height: 0; pointer-events: none; }
+.site-footer-burst > i { position: absolute; left: -170px; top: -95px; width: 340px; height: 190px; border-radius: 50%; opacity: 0; filter: blur(20px); background: radial-gradient(closest-side, var(--mist), #0000 72%); }
+.site-footer-burst > i:nth-child(1) { --mist: #23eaff8c; --dx: -70px; --dy: 6px; }
+.site-footer-burst > i:nth-child(2) { --mist: #9273ffa0; --dx: -12px; --dy: -10px; }
+.site-footer-burst > i:nth-child(3) { --mist: #f06dff8c; --dx: 66px; --dy: 4px; }
+.site-footer-burst > i:nth-child(4) { --mist: #ff74be5c; --dx: 26px; --dy: 18px; width: 180px; height: 110px; left: -90px; top: -55px; }
+.site-footer-burst > i:nth-child(5) { --mist: #8fa6ff5c; --dx: -34px; --dy: -22px; width: 200px; height: 120px; left: -100px; top: -60px; }
+.site-footer[data-intro=play] .site-footer-burst > i { animation: sf-mist 2.8s cubic-bezier(.2, .7, .2, 1) calc(var(--sf-wealth, 3.9s) - .12s) both; }
+.site-footer[data-intro=play] .site-footer-burst > i:nth-child(even) { animation-delay: calc(var(--sf-wealth, 3.9s) - .02s); }
+@keyframes sf-mist { from { opacity: 0; transform: translate(calc(var(--dx) * .3), var(--dy)) scale(.3); } 28% { opacity: .95; } to { opacity: 0; transform: translate(calc(var(--dx) * 1.7), calc(var(--dy) * 1.5 - 14px)) scale(1.55); } }
+@keyframes sf-emerge { from { opacity: 0; transform: translateY(6px) scale(.9); filter: blur(10px) drop-shadow(0 2px 14px #020918d9); } 55% { opacity: 1; transform: scale(1.03); filter: blur(0) drop-shadow(0 2px 14px #020918d9); } to { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 2px 14px #020918d9); } }
+.site-footer-twinkle { position: absolute; z-index: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; opacity: 0; pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(closest-side, #ffffff 0 10%, #d6f4ffaa 22%, #0000 62%), linear-gradient(90deg, #0000 47%, #e6f8ffd9 50%, #0000 53%), linear-gradient(0deg, #0000 47%, #e6f8ffd9 50%, #0000 53%); }
+.site-footer[data-intro=play] .site-footer-twinkle { animation: sf-twinkle 1.2s ease-in-out calc(var(--sf-wealth, 3.9s) + .5s) both; }
+.site-footer[data-intro=play] .site-footer-twinkle[data-twinkle="1"] { animation-delay: calc(var(--sf-wealth, 3.9s) + .72s); }
+.site-footer[data-intro=play] .site-footer-twinkle[data-twinkle="2"] { animation-delay: calc(var(--sf-wealth, 3.9s) + .58s); }
+.site-footer[data-intro=play] .site-footer-twinkle[data-twinkle="3"] { animation-delay: calc(var(--sf-wealth, 3.9s) + .9s); }
+.site-footer[data-intro=play] .site-footer-twinkle[data-twinkle="4"] { animation-delay: calc(var(--sf-wealth, 3.9s) + 1.05s); }
+@keyframes sf-twinkle { 0% { opacity: 0; transform: scale(.3) rotate(0deg); } 40% { opacity: 1; transform: scale(1.15) rotate(20deg); } 70% { opacity: .55; transform: scale(.85) rotate(28deg); } 100% { opacity: 0; transform: scale(.6) rotate(35deg); } }
+.site-footer[data-intro=play] .site-footer-glow > i[data-glow=mist] { animation: sf-drift-mist 4.6s cubic-bezier(.3, .1, .3, 1) var(--sf-t0, .3s) both; }
+.site-footer[data-intro=play] .site-footer-glow > i[data-glow=horizon] { animation: sf-drift-horizon 5.2s cubic-bezier(.3, .1, .3, 1) calc(var(--sf-t0, .3s) + .4s) both; }
+@keyframes sf-drift-mist { from { opacity: .2; transform: translate(-70px, 20px) scale(.9); } 60% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes sf-drift-horizon { from { opacity: .25; transform: translate(48px, -16px) scale(.88); } 55% { opacity: 1; transform: translate(-6px, 3px) scale(1.03); } to { opacity: 1; transform: none; } }
 /* Reduced motion and Motion Off: the resting state only (the script also never prepares the moment there). */
 @media (prefers-reduced-motion: reduce) {
   .site-footer[data-intro] :is(.site-footer-reveal, .site-footer-reveal-in, .site-footer-word, .site-footer-dot, .site-footer-result, .site-footer-tagline, .site-footer-node, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-logo::before) { animation: none; opacity: 1; transform: none; }
-  .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer) { animation: none; display: none; }
+  .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer, .site-footer-burst, .site-footer-twinkle) { animation: none; display: none; }
+  .site-footer[data-intro] :is(.site-footer-arc, .site-footer-arc-in, .site-footer-glow > i) { animation: none; transform: none; opacity: 1; }
 }
 :root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-reveal, .site-footer-reveal-in, .site-footer-word, .site-footer-dot, .site-footer-result, .site-footer-tagline, .site-footer-node, .site-footer-steps li strong, .site-footer-steps li p, .site-footer-logo::before) { animation: none; opacity: 1; transform: none; }
-:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer) { animation: none; display: none; }
+:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-shine, .site-footer-node::after, .site-footer-star-layer, .site-footer-burst, .site-footer-twinkle) { animation: none; display: none; }
+:root[data-app-motion=off] .site-footer[data-intro] :is(.site-footer-arc, .site-footer-arc-in, .site-footer-glow > i) { animation: none; transform: none; opacity: 1; }
 .site-footer-logo::before { opacity: .8; }
 
 /* The social row, at the very bottom between two dividers: X and the website with their icons, Back to top at the right.
@@ -166,4 +226,4 @@
   .site-footer-social .site-footer-top { margin-left: auto; }
 }
 @media (max-width: 359px) { .site-footer-logo { width: 210px; } .site-footer-line1 { font-size: 21px; } .site-footer-result { font-size: 32px; } }
-@media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer::before, .site-footer-shine, .site-footer-logo::before { display: none; } .site-footer-word, .site-footer-result { -webkit-text-fill-color: CanvasText; background: none; filter: none; } }
+@media (forced-colors: active) { .site-footer-node, .site-footer-social a, .site-footer-top { border: 1px solid CanvasText; } .site-footer-art, .site-footer::before, .site-footer-glow, .site-footer-burst, .site-footer-twinkle, .site-footer-shine, .site-footer-logo::before { display: none; } .site-footer-word, .site-footer-result { -webkit-text-fill-color: CanvasText; background: none; filter: none; } }

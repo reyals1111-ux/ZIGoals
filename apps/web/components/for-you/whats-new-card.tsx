@@ -3,9 +3,24 @@ import Link from 'next/link';
 import {useState} from 'react';
 
 export type WhatsNewLink = {href: string; label: string};
-/** Session AD (release `2026-10-session-ad-final-look`, ADR-026): the final look, and three ways to see it. Each link opens its Help answer. */
+/** Session AE (release `2026-10-session-ae-stunning`, ADR-027): stunning, finished. Each link opens its Help answer. */
 export const WHATS_NEW_LINKS: WhatsNewLink[] = [
-  {href: '/app/help#help-ad-themes', label: 'Three looks: Light and Dark previews beside Nebula'},
+  {href: '/app/help#help-ae-scene', label: 'Today’s welcome header: one scene, with no box or edge'},
+  {href: '/app/help#help-ae-finale', label: 'Each page ends in a finale: Goals → Habits → Health = Wealth'},
+  {href: '/app/help#help-ae-themes', label: 'Three finished looks: Nebula, Light and Dark'},
+  {href: '/app/help#help-ae-sidebar', label: 'A cleaner sky in the sidebar'},
+  {href: '/app/help#help-ae-header-art', label: 'Small orbit drawings in the page headers'},
+  {href: '/app/help#help-ae-wallets', label: 'Disconnect Keplr, and link other wallets read-only'},
+  {href: '/app/help#help-ae-wallet-card', label: 'Today’s wallet card: choose the wallet and the currency'},
+  {href: '/app/help#help-ae-habits', label: 'Habits: even room in each group, and Routines as its own block'},
+  {href: '/app/help#help-ae-music', label: 'The music button, ZIGi’s twin'},
+];
+/**
+ * Session AD (release `2026-10-session-ad-final-look`, ADR-026): the final look, and three ways to see it; Session AE
+ * followed it, so these lead "Earlier updates". Session AE made Light and Dark final, so the first label no longer says "previews".
+ */
+const SESSION_AD_LINKS: WhatsNewLink[] = [
+  {href: '/app/help#help-ad-themes', label: 'Three looks: Light and Dark beside Nebula'},
   {href: '/app/help#help-ad-banner', label: 'The footer banner, final, with every link still close'},
   {href: '/app/help#help-ad-hero', label: 'Today’s planets flow softly into the page'},
   {href: '/app/help#help-ad-dates', label: 'One date style everywhere, in your own clock'},
@@ -111,6 +126,7 @@ const SESSION_W_LINKS: WhatsNewLink[] = [
 ];
 /** The earlier releases' links (Session Z-Local, Z-Cloud, Y, X-Local, W, V), folded under "Earlier updates". */
 export const EARLIER_LINKS: WhatsNewLink[] = [
+  ...SESSION_AD_LINKS,
   ...SESSION_AC_LINKS,
   ...SESSION_AB_DESIGN_LINKS,
   ...SESSION_AB_CLOUD_LINKS,

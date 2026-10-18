@@ -2,8 +2,9 @@ import {expect, test, type Page} from '@playwright/test';
 
 /**
  * Session AD (the owner's brief Part 3, ADR-026 F4/F5/F13): the theme bar is real. Nebula (today's look) is the default for
- * everyone and loads nothing; Light and Dark are previews with their own stylesheet. The choice is this device's, applied
- * before the first paint on every later page, the same in the Showcase; the early script carries the page's CSP nonce.
+ * everyone and loads nothing; Light and Dark have their own stylesheet. The choice is this device's, applied before the first
+ * paint on every later page, the same in the Showcase; the early script carries the page's CSP nonce. Session AE (Part 3,
+ * ADR-027 G7): Light and Dark are final; the bar and its note no longer say "preview" anywhere.
  */
 const KEY = 'zigoals:ui-prefs:v1';
 async function firstPaintTheme(page: Page) {
@@ -24,7 +25,10 @@ test('Nebula is the default: no theme attribute, no theme sheet, the middle choi
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('aria-checked', 'true');
   await expect(group.getByRole('radio', {name: 'Nebula theme'})).toHaveAttribute('title', /Customize — coming later/);
   await expect(page.locator('#appearance')).toContainText('Customize — coming later');
-  for (const name of ['Light theme (preview)', 'Dark theme (preview)']) await expect(group.getByRole('radio', {name})).toContainText('Preview');
+  // Session AE: final themes. Each is named plainly, and nothing in the bar, its tips or its note says "preview".
+  for (const name of ['Light theme', 'Dark theme']) await expect(group.getByRole('radio', {name, exact: true})).toHaveCount(1);
+  await expect(page.locator('#appearance .theme-switch-wrap')).not.toContainText(/preview/i);
+  for (const title of await group.getByRole('radio').evaluateAll(els => els.map(e => e.getAttribute('title') ?? ''))) expect(title).not.toMatch(/preview/i);
 });
 
 for (const theme of ['light', 'dark'] as const) {
@@ -32,7 +36,7 @@ for (const theme of ['light', 'dark'] as const) {
     await violations(page); await firstPaintTheme(page);
     await page.goto('/app/settings');
     await expect(page.locator('html[data-app-hydrated]')).toBeAttached();
-    await page.locator('#appearance').getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme (preview)`}).click();
+    await page.locator('#appearance').getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme`, exact: true}).click();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     await expect(page.locator('#zigoals-theme-sheet')).toHaveAttribute('href', new RegExp(`^/themes/${theme}\\.css\\?v=[0-9a-f]{12}$`));
     expect(JSON.parse((await page.evaluate(k => localStorage.getItem(k), KEY))!)).toMatchObject({version: 1, theme});
@@ -51,7 +55,7 @@ for (const theme of ['light', 'dark'] as const) {
     expect(tag).not.toMatch(/\b(async|defer)\b/);
     expect(await page.evaluate(() => Reflect.get(window, '__csp'))).toEqual([]);
     // The theme bar says the same on the next page (the sidebar's; on a phone it is in More and Settings, checked above).
-    if ((page.viewportSize()?.width ?? 0) > 900) await expect(bar(page).getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme (preview)`})).toHaveAttribute('aria-checked', 'true');
+    if ((page.viewportSize()?.width ?? 0) > 900) await expect(bar(page).getByRole('radio', {name: `${theme === 'light' ? 'Light' : 'Dark'} theme`, exact: true})).toHaveAttribute('aria-checked', 'true');
   });
 }
 
@@ -77,6 +81,25 @@ test('Light keeps the cosmic sections dark: the Today hero and the footer banner
   const heroText = await page.locator('.today-hero h1').first().evaluate(e => getComputedStyle(e).color);
   const [r, g, b] = heroText.match(/\d+/g)!.map(Number);
   expect(0.2126 * r! + 0.7152 * g! + 0.0722 * b!).toBeGreaterThan(180);
-  await page.locator('footer.site-footer').scrollIntoViewIfNeeded();
-  expect(await page.locator('footer.site-footer').evaluate(f => getComputedStyle(f).backgroundColor)).toBe('rgb(2, 9, 24)');
+  // Session AE (ADR-027 G7, G8): by day the page deepens into night at the banner (no edge) instead of a flat block of
+  // night: the footer's ground is a gradient whose last stop is the night (rgb(2, 9, 24)), the pixels behind the steps'
+  // words are night, and the words stay light.
+  const footer = page.locator('footer.site-footer');
+  await footer.scrollIntoViewIfNeeded();
+  expect(await footer.evaluate(f => getComputedStyle(f).backgroundImage)).toMatch(/^linear-gradient\(.*rgb\(2, 9, 24\)[^,]*\)$/);
+  const word = footer.locator('.site-footer-steps p').first();
+  const [wr, wg, wb] = (await word.evaluate(e => getComputedStyle(e).color)).match(/\d+/g)!.map(Number);
+  expect(0.2126 * wr! + 0.7152 * wg! + 0.0722 * wb!).toBeGreaterThan(150);
+  const box = (await footer.locator('.site-footer-steps').boundingBox())!;
+  const shot = await page.screenshot({clip: {x: box.x, y: box.y + box.height - 24, width: Math.min(box.width, 400), height: 20}});
+  const blank = await page.context().newPage();
+  const ground = await blank.evaluate(async data => {
+    const img = new Image(); img.src = `data:image/png;base64,${data}`; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d')!; x.drawImage(img, 0, 0);
+    const px = x.getImageData(0, 0, c.width, c.height).data, v: number[] = [];
+    for (let i = 0; i < px.length; i += 4) v.push((px[i]! + px[i + 1]! + px[i + 2]!) / 3);
+    v.sort((a, b) => a - b); return v[v.length >> 1]!;
+  }, shot.toString('base64'));
+  await blank.close();
+  expect(ground).toBeLessThan(40);
 });

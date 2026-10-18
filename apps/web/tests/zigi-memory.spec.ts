@@ -35,6 +35,10 @@ async function seed(page: Page, settings: Partial<AiSettings> | null, extra: Rec
   await page.goto('/app/settings');
   const ai = settings ? {[AI_SETTINGS_KEY]: JSON.stringify({...defaultAiSettings(), enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, ...settings}), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach'})} : {};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), ...ai, ...extra});
+  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
+  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
+  // c9b123c9 and c1db750e hit it after this seed in four specs).
+  await page.waitForLoadState('networkidle');
 }
 const stored = (page: Page, key: string) => page.evaluate(k => { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v) as Record<string, any>; }, key); // eslint-disable-line @typescript-eslint/no-explicit-any
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');

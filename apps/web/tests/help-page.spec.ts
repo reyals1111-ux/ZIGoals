@@ -17,14 +17,17 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AC (ADR-025, deliberate): this release's topic, after AB-Design's.
   ['ac', 'Each thing once, and a calmer page'],
   // Session AD (ADR-026, deliberate): this release's topic, after AC's.
-  ['ad', 'The final look, and three ways to see it'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['ad', 'The final look, and three ways to see it'],
+  // Session AE (ADR-027, deliberate): this release's topic, after AD's.
+  ['ae', 'One scene from top to end, and three finished looks'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'New: stunning, finished', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
-test('Help has one title and sixteen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
+test('Help has one title and seventeen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -291,5 +294,37 @@ test('Session AD: the final-look answers open from a hash, and nothing is writte
   await expect(page.locator('#help-ad-banner').getByRole('link', {name: 'Send feedback', exact: true})).toHaveAttribute('href', '#feedback');
   await expect(page.locator('#help-ad-banner').getByRole('link', {name: 'Settings', exact: true})).toHaveAttribute('href', '/app/settings');
   await expect(page.locator('#help-ad-zigi').getByRole('link', {name: 'Meet ZIGi', exact: true})).toHaveAttribute('href', '/app/zigi');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AE (ADR-027): this release's answers open from their hash, each saying what the code does; Light and Dark are
+// finished, so neither this section nor AD's themes answer calls them previews; the wallet answers keep the Alpha's
+// safety facts (read-only, nothing signed or sent, on this device only); nothing is written.
+test('Session AE: the stunning-finished answers open from a hash, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  // As above: every answer is listed and closed once the page has loaded (the workspace shows after its stores are read).
+  const ids = ['ae-scene', 'ae-finale', 'ae-themes', 'ae-sidebar', 'ae-header-art', 'ae-wallets', 'ae-wallet-card', 'ae-habits', 'ae-music'];
+  const section = page.getByRole('region', {name: 'One scene from top to end, and three finished looks', exact: true});
+  await expect(section.locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  await expect(section).not.toContainText(/preview/i);
+  await expect(page.locator('#help-ad-themes')).not.toContainText(/preview/i);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [['ae-scene', 'painted straight onto the starfield'], ['ae-finale', 'It plays once per visit and then rests; with reduced motion or Motion Off it is simply there, still'], ['ae-themes', 'its button now shows a small ZG mark'], ['ae-sidebar', 'a near-black sky with dimmer stars in Dark'], ['ae-header-art', 'Goals a lotus opening in a target'], ['ae-wallets', 'Nothing is signed or sent, and a linked address never becomes the app’s wallet'], ['ae-wallet-card', 'testnet ZIG have no market value'], ['ae-habits', 'Routines, together with Your stacks, is its own block'], ['ae-music', 'It is ZIGi’s twin now']] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(words);
+  }
+  // The wallet answer keeps the device-only, read-only facts.
+  await expect(page.locator('#help-ae-wallets')).toContainText('read-only');
+  await expect(page.locator('#help-ae-wallets')).toContainText('Linked addresses stay on this device: they are in Export everything, never synced and never restored from a backup');
+  // The themes answer points to Settings → Appearance and to AD's answer, which now describes the finished looks.
+  await page.goto('/app/help#help-ae-themes');
+  await expect(page.locator('#help-ae-themes').getByRole('link', {name: 'Settings → Appearance', exact: true})).toHaveAttribute('href', '/app/settings#appearance');
+  await page.locator('#help-ae-themes').getByRole('link', {name: 'What are Light, Nebula and Dark?', exact: true}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-ad-themes$/);
+  await expect(page.locator('#help-ad-themes')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-ad-themes')).toContainText('white-family surfaces');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });

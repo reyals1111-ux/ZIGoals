@@ -2,6 +2,8 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
+import {RemindersGlyph} from '../header-art/glyphs/reminders';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {useReminders} from './use-reminders';
 import {useHabits} from '../habits/use-habits';
@@ -26,7 +28,7 @@ export function RemindersPlanPage() {
   const keep = (what: () => void) => { try { what(); setError(''); } catch (e) { setError(`Not saved on this device. ${deviceSettingFailureMessage(e)}`); } };
   const habitRows = habits.data.habits.filter(h => h.rules[h.rules.length - 1]!.state === 'active').map(h => ({id: h.id, title: h.title, time: reminders.data.habits[h.id]?.time ?? ''}));
   return <LayoutPage page="reminders"><div className="reminders-plan">
-    <section className="page-heading"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="reminders-eyebrow">SETTINGS · REMINDERS</NebulaFlow></p><h1><NebulaFlow identity="reminders-title">Every reminder, in one place.</NebulaFlow></h1><p className="page-lede">Times for each kind, and the quiet hours they all respect. Cards show on Today while ZIGoals is open.</p></div><LayoutLockButton /></section>
+    <section className="page-heading header-art-host"><div><p className="eyebrow page-eyebrow"><NebulaFlow identity="reminders-eyebrow">SETTINGS · REMINDERS</NebulaFlow></p><h1><NebulaFlow identity="reminders-title">Every reminder, in one place.</NebulaFlow></h1><p className="page-lede">Times for each kind, and the quiet hours they all respect. Cards show on Today while ZIGoals is open.</p></div><LayoutLockButton /><HeaderArtCorner><OrbitArt glyph={RemindersGlyph} spin={-6}/></HeaderArtCorner></section>
     <section className="panel reminders-push" aria-label="Delivery"><p className="eyebrow">Delivery</p><p><strong>In-app now.</strong> A reminder is a card on Today (and ZIGi may knock). <strong>Push delivery is off</strong> until the owner activates push for the Alpha; your times here will carry over then, unchanged.</p><p className="fine"><Link className="text-link" href="/app/settings">Back to Settings</Link></p></section>
     <section className="panel reminders-group" aria-labelledby="reminders-quiet-title"><p className="eyebrow">Quiet hours</p><h2 id="reminders-quiet-title"><NebulaFlow identity="reminders-quiet">Nothing between {formatClock(q.from)} and {formatClock(q.to)}</NebulaFlow></h2>
       <form className="reminders-row" onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); keep(() => plan.update(r => setQuietHours(r, {from: String(f.get('from')), to: String(f.get('to'))}))); }}><label className="field"><span>From</span><input type="time" name="from" defaultValue={q.from} required /></label><label className="field"><span>Until</span><input type="time" name="to" defaultValue={q.to} required /></label><div className="actions"><button type="submit" className="secondary">Save quiet hours</button></div></form>

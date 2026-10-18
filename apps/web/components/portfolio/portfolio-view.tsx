@@ -2,6 +2,8 @@
 import {useState} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
+import {PortfolioGlyph} from '../header-art/glyphs/portfolio';
 import {usePortfolios} from './use-portfolios';
 import {usePortfolioMarket, type CoinMarket} from './use-portfolio-market';
 import {AllTransactions, AllocationDonut, CoinSearch, HoldingsTable, KIND_LABEL, PortfolioSummary, rowsFor} from './portfolio-sections';
@@ -61,12 +63,13 @@ export function PortfolioView() {
   const importPanel = importing && <TransactionImportPanel data={store.data} update={store.update} imports={imports} onUndo={undoRecord} onClose={() => setImporting(false)} />;
   const noPrices = live && selected!.coins.length > 0 && !market.loading && selected!.coins.every(c => !market.of(c).price);
   return <div className="dashboard portfolio-page">
-    <section className="portfolio-hero" aria-labelledby="portfolio-title">
+    <section className="portfolio-hero header-art-host" aria-labelledby="portfolio-title">
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="portfolio-eyebrow">On this device</NebulaFlow></p>
       <h1 id="portfolio-title"><NebulaFlow identity="portfolio-title">Portfolio</NebulaFlow></h1>
       <p className="page-lede">Keep track of coins you hold, or a portfolio you are only considering. It stays apart from your Wealth and Goals.</p>
       {store.showcase && <p className="portfolio-note" role="note">Showcase: a fictional portfolio with fixture prices. These are not market prices.</p>}
       {noPrices && <p className="portfolio-note" role="status">No live price is available right now. Values and results stay unknown until one is.</p>}
+      <HeaderArtCorner><OrbitArt glyph={PortfolioGlyph} tone="wealth" spin={36}/></HeaderArtCorner>
     </section>
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}

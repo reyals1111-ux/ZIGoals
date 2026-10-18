@@ -31,9 +31,11 @@
 .health-views button:hover { color: #f0fff8; background: #9bffd009; }
 .health-views button[aria-pressed=true] { background: #82eacb12; color: #a4f2d9; border-color: #a9f4d626; box-shadow: 0 2px 12px #0002; }
 .health-date { display: flex; align-items: flex-end; gap: 4px; }
-.health-date .field { margin: 0; width: 145px; }
+/* Session AE (Part 5, ADR-027): the date field is never narrower than the date it shows (the browser's own width for it,
+   in the field's font: 147 px at 16 px where the field had 145); it fills a wider field. */
+.health-date .field { margin: 0; width: max-content; min-width: 145px; }
 .health-date .field>span { font-size: .875rem; color: var(--health-muted); }
-.health-date .field input { min-width: 0; min-height: 42px; padding: 7px 9px; font-size: .875rem; color-scheme: dark; }
+.health-date .field input { width: auto; min-width: 100%; min-height: 42px; padding: 7px 9px; font-size: .875rem; color-scheme: dark; }
 .health-date .quiet { min-width: 34px; min-height: 42px; padding: 6px; }
 .health-feedback { min-height: 1.2rem; font-size: .875rem; color: var(--health-mint); margin: 12px 0; }
 .health-error { border: 1px solid #ffaebb50; background: #7e294424; padding: 14px; border-radius: 10px; color: #ffd7de; }

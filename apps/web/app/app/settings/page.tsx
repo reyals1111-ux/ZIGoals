@@ -28,6 +28,8 @@ import { ConnectionDiagnostics } from "../../../components/connection-diagnostic
 import { shortAccount } from "../../../lib/diagnostics";
 import { loadMetadata } from "../../../lib/storage";
 import { NebulaFlow } from "../../../components/nebula-flow";
+import { HeaderArtCorner, OrbitArt } from "../../../components/header-art/orbit-art";
+import { SettingsGlyph } from "../../../components/header-art/glyphs/settings";
 import { PhoneSettingsList } from "../../../components/phone/phone-settings";
 import { TimeZoneSettings } from "../../../components/settings/time-zone-settings";
 import { KeepSettingsJump } from "../../../components/settings/keep-jump";
@@ -75,7 +77,7 @@ export default function Settings() {
   }
   return (
     <div className="settings-page">
-      <div className="page-heading">
+      <div className="page-heading header-art-host">
         <div>
           <p className="eyebrow page-eyebrow"><NebulaFlow identity="settings-eyebrow">Keep your plans with you</NebulaFlow></p>
           <h1><NebulaFlow identity="settings-title">Your data. Your control.</NebulaFlow></h1>
@@ -84,6 +86,7 @@ export default function Settings() {
           </p>
           <p><Link className="text-link" href="/app/help" style={{display: "inline-flex", alignItems: "center", minHeight: 44}}>Help: install on iPhone, keep your data safe, send feedback →</Link></p>
         </div>
+        <HeaderArtCorner><OrbitArt glyph={SettingsGlyph} spin={12}/></HeaderArtCorner>
       </div>
       <PhoneSettingsList/>
       <KeepSettingsJump/>

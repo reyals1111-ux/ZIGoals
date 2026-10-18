@@ -3,30 +3,34 @@ import {useEffect, useId, useLayoutEffect, useRef, useState, type RefObject} fro
 import {entranceAllowed} from '../use-entrance';
 
 /**
- * Session AB-Design Phase 2 → Session AD (ADR-026 Part 1): the footer's constellation line and its opening moment, loaded
- * with the footer. The line is measured from the page itself — a short lead-in, through the three step nodes (Goals →
- * Habits → Health), a short lead-out — so it fits every width; on phones, where the steps stack, it runs down through them.
+ * Session AB-Design Phase 2 → Session AD (ADR-026 Part 1) → Session AE (Part 2, ADR-027): the footer's constellation line
+ * and its finale, loaded with the footer. The line is measured from the page itself — a short lead-in, through the three
+ * step nodes (Goals → Habits → Health), then on wider screens one pink arc that runs on past Health, turns up and sweeps
+ * back into "= Wealth"; on phones, where the steps stack, it runs down through them.
  *
- * The first time the banner is seen in a visit (≥ 35 % in view; the session flag below), one sequence of about 3.7 s:
- * the line is revealed from its start, and each word of the slogan appears together with its step's bubble as the line
- * reaches it (Goals with 01, Habits with 02, Health with 03); then "= Wealth" arrives, the wordmark shines once in the
- * brand colours, and the bright flare on the planet's right rim rises along the rim and blooms, as the Today header's
- * star does (hero-star.tsx: the same rise, bloom and veil), but in pink and magenta. Only transform and opacity move: the
- * reveal is a clipped box sliding over a counter-sliding line, timed by CSS; nothing runs per frame in script. Reduced
- * motion, Motion Off, already seen in this visit, or no script: the final, resting state, still.
+ * The first time the banner is seen in a visit (≥ 35 % in view; the session flag below), one sequence of about 6–7 s:
+ * the line draws Goals → Habits → Health, each word appearing with its bubble; the arc rises and returns to "= Wealth"; as
+ * it touches, "= Wealth" emerges from a soft burst of nebula mist; the wordmark shines; the planet's rim stars twinkle;
+ * the pink star on the rim rises, flares and pulses once (the Today header star's motion, in pink and magenta); the blue
+ * mist and the horizon glow drift a little and settle. Only transform, opacity and filter move, timed by CSS; script
+ * only measures (on resize, never per frame) and starts the flare. Reduced motion, Motion Off, already seen in this
+ * visit, or no script: the final, resting state, still.
  */
 type Pt = {x: number; y: number};
 type Seg = [Pt, Pt, Pt, Pt];
 const SEEN = 'zigoals-footer-intro-seen';
-/** The sequence's clock, in seconds: the line starts at T0 and takes REVEAL to cross; "= Wealth" follows the last word. */
-export const FOOTER_TIMING = {T0: .15, REVEAL: 1.5, WEALTH_AFTER: .45, SETTLE: 1.9} as const;
+/** The sequence's clock, in seconds: the line starts at T0 and takes REVEAL to cross; the arc rises and returns after
+ *  Health (wider screens) or "= Wealth" follows the last word (phones); the flare starts FLARE_AFTER the touch. */
+export const FOOTER_TIMING = {T0: .3, REVEAL: 2.2, ARC_RISE: .6, ARC_RETURN: .8, WEALTH_AFTER: .45, FLARE_AFTER: .9, SETTLE: 3.2} as const;
+/** The rim stars of the footer artwork that twinkle in the finale, in its own pixels (the brightest points on its rim). */
+export const FOOTER_RIM_STARS = [[19, 235], [116, 157], [272, 83], [386, 31], [558, 31]] as const;
 
 const f = (n: number) => n.toFixed(1);
 /** The footer's moment state, on its root ("ready" before it plays, "play" while it runs, "done" after). */
 const intro = (el: HTMLElement, value?: 'ready' | 'play' | 'done') => { if (value) el.dataset.intro = value; else delete el.dataset.intro; };
 
 /** The line: a lead-in, node to node, a lead-out; across on wider screens, down through the stacked steps on phones. */
-function segments(nodes: Pt[], stacked: boolean, w: number): Seg[] {
+function segments(nodes: Pt[], stacked: boolean): Seg[] {
   const segs: Seg[] = [];
   if (stacked) {
     const first = nodes[0]!, last = nodes[nodes.length - 1]!, lead = {x: first.x, y: first.y - 56}, tail = {x: last.x, y: last.y + 56};
@@ -35,11 +39,22 @@ function segments(nodes: Pt[], stacked: boolean, w: number): Seg[] {
     segs.push([last, {x: last.x + 10, y: last.y + 20}, {x: tail.x - 10, y: tail.y - 20}, tail]);
     return segs;
   }
-  const first = nodes[0]!, last = nodes[nodes.length - 1]!, reach = Math.min(150, Math.max(40, first.x - 8)), lead = {x: first.x - reach, y: first.y + 14}, tail = {x: Math.min(w - 8, last.x + reach), y: last.y + 14};
+  const first = nodes[0]!, reach = Math.min(150, Math.max(40, first.x - 8)), lead = {x: first.x - reach, y: first.y + 14};
   segs.push([lead, {x: lead.x + reach * .47, y: lead.y + 4}, {x: first.x - reach * .47, y: first.y}, first]);
   for (let i = 0; i < nodes.length - 1; i++) { const a = nodes[i]!, b = nodes[i + 1]!, dx = b.x - a.x; segs.push([a, {x: a.x + dx * .38, y: a.y - 30}, {x: b.x - dx * .38, y: b.y + 30}, b]); }
-  segs.push([last, {x: last.x + reach * .47, y: last.y}, {x: tail.x - reach * .47, y: tail.y + 4}, tail]);
   return segs;
+}
+/** Wider screens: the pink arc from Health into "= Wealth" — on past Health's bubble, up, and back left into the word's
+ *  right end — as two cubic pieces that meet at the turn with one vertical tangent (one smooth curve). The first piece only
+ *  moves right and the second only left, so each can be revealed by a sliding box. */
+function arc(last: Pt, wealth: Pt, w: number): [Seg, Seg] {
+  const reach = Math.max(36, Math.min(150, w - last.x - 16)), rise = Math.max(60, last.y - wealth.y);
+  const turn = {x: last.x + reach * .92, y: last.y - rise * .52};
+  return [
+    [last, {x: last.x + reach * .55, y: last.y + 2}, {x: turn.x, y: last.y - rise * .16}, turn],
+    // Gate C design review (ADR-027 G22): the return comes down into the word (not along it), ending at a small glowing node.
+    [turn, {x: turn.x, y: turn.y - rise * .36}, {x: wealth.x + (turn.x - wealth.x) * .45, y: wealth.y - rise * .14}, wealth],
+  ];
 }
 const at = (s: Seg, t: number): Pt => {
   const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
@@ -68,53 +83,73 @@ export function footerArtFrame(art: HTMLElement, within: HTMLElement) {
   return {scale, map: (x: number, y: number) => [x0 + x * scale, y0 + y * scale] as const};
 }
 
-/** The flare's rise and bloom: the Today header star's motion exactly (hero-star.tsx), in pink and magenta. */
+/** The flare's rise and bloom: the Today header star's motion (hero-star.tsx), in pink and magenta, a little slower; then
+ *  one pulse at the flare (Session AE: the owner found the flare too short). */
 function playFlare(layer: HTMLElement, frame: NonNullable<ReturnType<typeof footerArtFrame>>, done: () => void) {
-  const core = layer.querySelector<HTMLElement>('.site-footer-star-core'), veil = layer.querySelector<HTMLElement>('.site-footer-star-veil');
-  if (!core || !veil || typeof core.animate !== 'function') { done(); return () => {}; }
+  const core = layer.querySelector<HTMLElement>('.site-footer-star-core'), veil = layer.querySelector<HTMLElement>('.site-footer-star-veil'), pulse = layer.querySelector<HTMLElement>('.site-footer-star-pulse');
+  if (!core || !veil || !pulse || typeof core.animate !== 'function') { done(); return () => {}; }
   const {scale, map} = frame, [cx, cy] = map(FOOTER_ART.rim[0], FOOTER_ART.rim[1]), radius = FOOTER_ART.rim[2] * scale, [sx, sy] = map(FOOTER_ART.star[0], FOOTER_ART.star[1]);
-  const end = Math.atan2(sy - cy, sx - cx), start = end + 14 * Math.PI / 180, size = 150 * scale, shade = 420 * scale;
+  const end = Math.atan2(sy - cy, sx - cx), start = end + 14 * Math.PI / 180, size = 150 * scale, shade = 420 * scale, glow = 260 * scale;
   core.style.width = core.style.height = `${size}px`;
   Object.assign(veil.style, {width: `${shade}px`, height: `${shade}px`, left: `${sx - shade / 2}px`, top: `${sy - shade / 2}px`});
+  Object.assign(pulse.style, {width: `${glow}px`, height: `${glow}px`, left: `${sx - glow / 2}px`, top: `${sy - glow / 2}px`});
   const place = (angle: number, grow: number) => `translate(${cx + radius * Math.cos(angle) - size / 2}px,${cy + radius * Math.sin(angle) - size / 2}px) scale(${grow})`;
-  const steps = 24, rise = core.animate(Array.from({length: steps + 1}, (_, i) => ({transform: place(start + (end - start) * i / steps, .55 + .45 * i / steps), opacity: Math.min(1, i / 4)})), {duration: 1150, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards'});
-  const bloom = core.animate([{transform: place(end, 1), opacity: 1}, {transform: place(end, 2.3), opacity: 0}], {duration: 650, delay: 1080, easing: 'ease-out', fill: 'forwards'});
-  const lift = veil.animate([{opacity: 0}, {opacity: 1, offset: .08}, {opacity: 1, offset: .55}, {opacity: 0}], {duration: 1800, easing: 'ease-in-out', fill: 'forwards'});
+  const steps = 24, rise = core.animate(Array.from({length: steps + 1}, (_, i) => ({transform: place(start + (end - start) * i / steps, .55 + .45 * i / steps), opacity: Math.min(1, i / 4)})), {duration: 1500, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards'});
+  const bloom = core.animate([{transform: place(end, 1), opacity: 1}, {transform: place(end, 2.4), opacity: 0}], {duration: 900, delay: 1400, easing: 'ease-out', fill: 'forwards'});
+  const lift = veil.animate([{opacity: 0}, {opacity: 1, offset: .08}, {opacity: 1, offset: .6}, {opacity: 0}], {duration: 2400, easing: 'ease-in-out', fill: 'forwards'});
+  const beat = pulse.animate([{opacity: 0, transform: 'scale(.7)'}, {opacity: .95, transform: 'scale(1.18)', offset: .38}, {opacity: 0, transform: 'scale(1)'}], {duration: 1100, delay: 2000, easing: 'ease-in-out', fill: 'forwards'});
   let active = true;
-  Promise.all([rise.finished, bloom.finished, lift.finished]).then(() => { if (active) done(); }, () => {});
-  return () => { active = false; for (const a of [rise, bloom, lift]) a.cancel(); };
+  Promise.all([rise.finished, bloom.finished, lift.finished, beat.finished]).then(() => { if (active) done(); }, () => {});
+  return () => { active = false; for (const a of [rise, bloom, lift, beat]) a.cancel(); };
 }
+
+type Box = {l: number; t: number; w: number; h: number};
+type Geo = {w: number; h: number; d: string; stars: Pt[]; stacked: boolean; arcs: {d: string; box: Box; end?: Pt}[]; arcY: [number, number]; burst: Pt | null; twinkles: Pt[]};
+const boxOf = (s: Seg, pad: number): Box => { const xs = [s[0].x, s[1].x, s[2].x, s[3].x], ys = [s[0].y, s[1].y, s[2].y, s[3].y], l = Math.min(...xs) - pad, t = Math.min(...ys) - pad; return {l, t, w: Math.max(...xs) + pad - l, h: Math.max(...ys) + pad - t}; };
+const pathOf = (segs: Seg[]) => `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
+const sameGeo = (a: Geo, b: Geo) => a.w === b.w && a.h === b.h && a.d === b.d && a.arcs.map(x => x.d).join() === b.arcs.map(x => x.d).join() && a.twinkles.length === b.twinkles.length;
 
 export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivElement | null>; footer: RefObject<HTMLElement | null>}) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, ''), starLayer = useRef<HTMLDivElement>(null);
-  const [geo, setGeo] = useState<{w: number; h: number; d: string; stars: Pt[]; stacked: boolean} | null>(null), [flare, setFlare] = useState(false);
-  // Measure from the page: the nodes' centres relative to the stage; time each word and bubble to the moment the line reaches it.
+  const [geo, setGeo] = useState<Geo | null>(null), [flare, setFlare] = useState(false);
+  // Measure from the page: the nodes' centres and "= Wealth" relative to the stage; time each word and bubble to the
+  // moment the line reaches it, then the arc and the touch.
   useLayoutEffect(() => {
     const el = stage.current, root = footer.current; if (!el || !root) return;
     const measure = () => {
       const base = el.getBoundingClientRect();
       const nodes = [...el.querySelectorAll<HTMLElement>('[data-footer-node]')].map(n => { const r = n.getBoundingClientRect(); return {x: r.left + r.width / 2 - base.left, y: r.top + r.height / 2 - base.top}; });
       if (nodes.length < 3) return;
-      const stacked = Math.abs(nodes[0]!.x - nodes[2]!.x) < 60, segs = segments(nodes, stacked, base.width);
-      const {T0, REVEAL, WEALTH_AFTER} = FOOTER_TIMING, extent = stacked ? base.height : base.width;
+      const stacked = Math.abs(nodes[0]!.x - nodes[2]!.x) < 60, segs = segments(nodes, stacked);
+      const wr = root.querySelector<HTMLElement>('[data-footer-wealth]')?.getBoundingClientRect();
+      const wealth = wr && wr.width > 0 ? {x: wr.right - base.left + 8, y: wr.top - base.top + wr.height * .56} : null;
+      const arcs = !stacked && wealth ? arc(nodes[2]!, wealth, base.width) : null;
+      const {T0, REVEAL, ARC_RISE, ARC_RETURN, WEALTH_AFTER, FLARE_AFTER} = FOOTER_TIMING, extent = stacked ? base.height : base.width;
       const arrive = nodes.map(n => T0 + REVEAL * Math.min(1, Math.max(0, (stacked ? n.y : n.x) / extent)));
+      const touch = arcs ? arrive[2]! + ARC_RISE + ARC_RETURN : arrive[2]! + WEALTH_AFTER;
       arrive.forEach((t, i) => root.style.setProperty(`--sf-at${i}`, `${t.toFixed(2)}s`));
       root.style.setProperty('--sf-t0', `${T0}s`);
       root.style.setProperty('--sf-reveal', `${REVEAL}s`);
-      root.style.setProperty('--sf-wealth', `${(arrive[2]! + WEALTH_AFTER).toFixed(2)}s`);
-      const d = `M${f(segs[0]![0].x)} ${f(segs[0]![0].y)}` + segs.map(s => ` C${f(s[1].x)} ${f(s[1].y)} ${f(s[2].x)} ${f(s[2].y)} ${f(s[3].x)} ${f(s[3].y)}`).join('');
+      root.style.setProperty('--sf-arc-rise', `${arrive[2]!.toFixed(2)}s`);
+      root.style.setProperty('--sf-arc-return', `${(arrive[2]! + ARC_RISE).toFixed(2)}s`);
+      root.style.setProperty('--sf-wealth', `${touch.toFixed(2)}s`);
+      root.style.setProperty('--sf-flare', `${(touch + FLARE_AFTER).toFixed(2)}s`);
       // Constellation stars: small points beside the line, between the nodes.
-      const stars = segs.flatMap((s, i) => i === 0 || i === segs.length - 1 ? [] : [.33, .66].map(t => { const p = at(s, t); return {x: p.x + (i % 2 ? 7 : -7), y: p.y + (t < .5 ? -8 : 9)}; }));
+      const stars = segs.flatMap((s, i) => i === 0 ? [] : [.33, .66].map(t => { const p = at(s, t); return {x: p.x + (i % 2 ? 7 : -7), y: p.y + (t < .5 ? -8 : 9)}; }));
+      // The rim stars that twinkle, mapped from the artwork into the stage.
+      const art = root.querySelector<HTMLElement>('.site-footer-art'), frame = art ? footerArtFrame(art, el) : null;
+      const twinkles = frame ? FOOTER_RIM_STARS.map(([x, y]) => { const [px, py] = frame.map(x, y); return {x: px, y: py}; }).filter(p => p.x > 4 && p.x < base.width - 4 && p.y > -200) : [];
+      const next: Geo = {w: base.width, h: base.height, d: pathOf(segs), stars, stacked, arcs: arcs ? arcs.map((a, i) => ({d: pathOf([a]), box: boxOf(a, 10), end: i === 1 ? a[3] : undefined})) : [], arcY: [nodes[2]!.y, wealth?.y ?? 0], burst: wealth ? {x: wealth.x - 16 - (wr!.width / 2), y: wealth.y} : null, twinkles};
       // Same geometry → same state object (no re-render, so nothing resizes inside a ResizeObserver delivery).
-      setGeo(g => g && g.w === base.width && g.h === base.height && g.d === d ? g : {w: base.width, h: base.height, d, stars, stacked});
+      setGeo(g => g && sameGeo(g, next) ? g : next);
     };
     measure();
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure); ro?.observe(el);
     window.addEventListener('resize', measure);
     return () => { ro?.disconnect(); window.removeEventListener('resize', measure); };
   }, [stage, footer]);
-  // The opening moment, once per visit, when the banner is well in view. It depends only on the line having been measured
-  // once (a later re-measure must not cancel a moment that is playing).
+  // The finale, once per visit, when the banner is well in view. It depends only on the line having been measured once
+  // (a later re-measure must not cancel a finale that is playing).
   const measured = geo !== null;
   useEffect(() => {
     const root = footer.current, el = stage.current; if (!root || !el || !measured) return;
@@ -126,11 +161,11 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
     const io = new IntersectionObserver(entries => {
       if (!entries.some(e => e.isIntersecting)) return;
       io.disconnect();
-      try { sessionStorage.setItem(SEEN, '1'); } catch { /* the moment simply plays again next time */ }
+      try { sessionStorage.setItem(SEEN, '1'); } catch { /* the finale simply plays again next time */ }
       intro(root, 'play');
-      const wealth = parseFloat(root.style.getPropertyValue('--sf-wealth')) || 1.9;
-      timers.push(window.setTimeout(() => setFlare(true), wealth * 1000));
-      timers.push(window.setTimeout(() => intro(root, 'done'), (wealth + FOOTER_TIMING.SETTLE) * 1000));
+      const touch = parseFloat(root.style.getPropertyValue('--sf-wealth')) || 4;
+      timers.push(window.setTimeout(() => setFlare(true), (touch + FOOTER_TIMING.FLARE_AFTER) * 1000));
+      timers.push(window.setTimeout(() => intro(root, 'done'), (touch + FOOTER_TIMING.SETTLE) * 1000));
     }, {threshold: .35});
     io.observe(el);
     return () => { io.disconnect(); timers.forEach(t => window.clearTimeout(t)); if (root.dataset.intro === 'play') intro(root, 'done'); else intro(root); };
@@ -145,19 +180,32 @@ export default function FooterPath({stage, footer}: {stage: RefObject<HTMLDivEle
     return playFlare(layer, frame, () => setFlare(false));
   }, [flare, footer, stage]);
   if (!geo) return null;
-  const grad = `sf-g-${id}`;
+  const grad = `sf-g-${id}`, arcGrad = `sf-a-${id}`, glow = `sf-glow-${id}`;
+  // The arc's colour runs from Health's pink at its foot to the magenta of "= Wealth" at its end (top to bottom in the stage).
+  const arcSvg = (d: string, box: Box, i: number, end?: Pt) => <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false" style={{left: `${f(-box.l)}px`, top: `${f(-box.t)}px`}}>
+    <defs>
+      <linearGradient id={`${arcGrad}-${i}`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={f(geo.arcY[0])} y2={f(geo.arcY[1])}><stop offset="0" stopColor="#ff74be"/><stop offset=".5" stopColor="#ff7fd6"/><stop offset="1" stopColor="#d77cff"/></linearGradient>
+      <filter id={`${glow}-${i}`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+    </defs>
+    <path className="site-footer-path site-footer-path-glow" d={d} fill="none" stroke={`url(#${arcGrad}-${i})`} strokeWidth="7" strokeLinecap="round" filter={`url(#${glow}-${i})`}/>
+    <path className="site-footer-path" d={d} fill="none" stroke={`url(#${arcGrad}-${i})`} strokeWidth="2" strokeLinecap="round"/>
+    {end && <><circle cx={f(end.x)} cy={f(end.y)} r="5.5" fill="#f06dff" opacity=".75" filter={`url(#${glow}-${i})`}/><circle cx={f(end.x)} cy={f(end.y)} r="2.4" fill="#ffd1f0"/></>}
+  </svg>;
   return <>
-    {flare && <div ref={starLayer} className="site-footer-star-layer" aria-hidden="true"><span className="site-footer-star-veil"/><span className="site-footer-star-core"/></div>}
+    {flare && <div ref={starLayer} className="site-footer-star-layer" aria-hidden="true"><span className="site-footer-star-veil"/><span className="site-footer-star-pulse"/><span className="site-footer-star-core"/></div>}
     <div className="site-footer-reveal" data-stacked={geo.stacked || undefined} aria-hidden="true"><div className="site-footer-reveal-in">
       <svg className="site-footer-line" width={geo.w} height={geo.h} viewBox={`0 0 ${f(geo.w)} ${f(geo.h)}`} focusable="false">
         <defs>
           <linearGradient id={grad} gradientUnits="userSpaceOnUse" x1="0" x2={f(geo.w)} y1="0" y2="0"><stop offset="0" stopColor="#9273ff"/><stop offset=".45" stopColor="#23eaff"/><stop offset=".8" stopColor="#ff74be"/><stop offset="1" stopColor="#f06dff"/></linearGradient>
-          <filter id={`sf-glow-${id}`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+          <filter id={glow} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
         </defs>
-        <path className="site-footer-path site-footer-path-glow" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth="7" strokeLinecap="round" filter={`url(#sf-glow-${id})`}/>
+        <path className="site-footer-path site-footer-path-glow" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth="7" strokeLinecap="round" filter={`url(#${glow})`}/>
         <path className="site-footer-path" d={geo.d} fill="none" stroke={`url(#${grad})`} strokeWidth="2" strokeLinecap="round"/>
         {geo.stars.map((s, i) => <circle key={i} className="site-footer-star" cx={f(s.x)} cy={f(s.y)} r={i % 3 ? 1.3 : 1.9}/>)}
       </svg>
     </div></div>
+    {geo.arcs.map((a, i) => <div key={i} className="site-footer-arc" data-part={i ? 'return' : 'rise'} aria-hidden="true" style={{left: `${f(a.box.l)}px`, top: `${f(a.box.t)}px`, width: `${f(a.box.w)}px`, height: `${f(a.box.h)}px`}}><div className="site-footer-arc-in">{arcSvg(a.d, a.box, i, a.end)}</div></div>)}
+    {geo.burst && <div className="site-footer-burst" aria-hidden="true" style={{left: `${f(geo.burst.x)}px`, top: `${f(geo.burst.y)}px`}}><i/><i/><i/><i/><i/></div>}
+    {geo.twinkles.map((t, i) => <span key={i} className="site-footer-twinkle" data-twinkle={i} aria-hidden="true" style={{left: `${f(t.x)}px`, top: `${f(t.y)}px`}}/>)}
   </>;
 }

@@ -5,6 +5,8 @@ import {directoryEntries,directoryResources,directoryCategories,directoryReviewe
 import {EcosystemCard} from './ecosystem-card';
 import './ecosystem-directory.css';
 import {NebulaFlow} from './nebula-flow';
+import {HeaderArtCorner,OrbitArt} from './header-art/orbit-art';
+import {EcosystemGlyph} from './header-art/glyphs/ecosystem';
 import {formatDate} from '../lib/visual-format';
 export function EcosystemDirectory(){
  const [query,setQuery]=useState(''),[category,setCategory]=useState('All');const visible=filterDirectory(directoryEntries,query,category);
@@ -17,7 +19,7 @@ export function EcosystemDirectory(){
  },[]);
  function clear(){setQuery('');setCategory('All');}
  return <section className="ecosystem-directory" aria-labelledby="ecosystem-directory-title">
-  <div className="ecosystem-intro"><p className="eyebrow page-eyebrow"><NebulaFlow identity="ecosystem-eyebrow">ZIG Chain ecosystem</NebulaFlow></p><h1 id="ecosystem-directory-title"><NebulaFlow identity="ecosystem-title">Explore the ZIGChain ecosystem.</NebulaFlow></h1><p className="page-lede">Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources reviewed <time dateTime={directoryReviewedAt}>{formatDate(directoryReviewedAt)}</time></span><span>No external execution in ZIGoals</span></div></div>
+  <div className="ecosystem-intro header-art-host"><p className="eyebrow page-eyebrow"><NebulaFlow identity="ecosystem-eyebrow">ZIG Chain ecosystem</NebulaFlow></p><h1 id="ecosystem-directory-title"><NebulaFlow identity="ecosystem-title">Explore the ZIGChain ecosystem.</NebulaFlow></h1><p className="page-lede">Discover projects, understand their role, and follow official sources. Your plan stays yours.</p><div className="ecosystem-review"><span>{directoryEntries.length} research records</span><span>Sources reviewed <time dateTime={directoryReviewedAt}>{formatDate(directoryReviewedAt)}</time></span><span>No external execution in ZIGoals</span></div><HeaderArtCorner><OrbitArt glyph={EcosystemGlyph} spin={4}/></HeaderArtCorner></div>
   <p className="ecosystem-context">An ecosystem listing is not a ZIGoals partnership, endorsement or security audit. Descriptions summarize project or network sources. External sites set their own network, access rules and terms.</p>
   <div className="ecosystem-controls"><label>Search projects<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Name, role or topic"/></label><label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{directoryCategories.map(c=><option key={c}>{c}</option>)}</select></label><button type="button" className="quiet" onClick={clear} disabled={!query&&category==='All'}>Clear filters</button></div>
   <p className="ecosystem-result" role="status">{visible.length} of {directoryEntries.length} projects{category!=='All'?` · ${category}`:''}</p>

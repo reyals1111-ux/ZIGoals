@@ -9,6 +9,7 @@ import {LIFE_REVIEW_KEY} from './life-review/store';
 import {VISION_DATABASE} from './vision/store';
 import {AB_DESIGN_DISPLAY_KEYS} from './ab-design-keys';
 import {AB_CLOUD_PERSONAL_KEYS} from './ab-cloud-device-keys';
+import {LINKED_WALLETS_KEY} from './linked-wallets-key';
 
 /** AA-Cloud's personal device keys (ADR-021), erased with the account by the second merger (ADR-022 B52); Today's cards are a display choice and stay. */
 const CLOUD_PERSONAL_KEYS: readonly string[] = [GOAL_EXTRAS_KEY, AVERAGE_GOALS_KEY, CALCULATOR_KEY, SEARCH_RECENT_KEY, LIFE_REVIEW_KEY];
@@ -20,7 +21,8 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   let target = storage;
   try { target ??= getAppStorage(); } catch { return; }
   // Session AB-Cloud (ADR-023 C8): AB-Design's display preferences and AB-Cloud's own records go with the account too.
-  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS];
+  // Session AE (Part 6, ADR-027): and the wallets linked read-only (public addresses, personal).
+  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY];
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).

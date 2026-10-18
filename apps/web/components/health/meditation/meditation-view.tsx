@@ -7,6 +7,8 @@ import {meditationSummary, minutesText, sessionDay, weeklyBars} from '../../../l
 import type {MeditationSession as Session} from '../../../lib/meditation/schema';
 import {formatDate, formatTime} from '../../../lib/visual-format';
 import {NebulaFlow} from '../../nebula-flow';
+import {HeaderArtCorner, OrbitArt} from '../../header-art/orbit-art';
+import {MeditationGlyph} from '../../header-art/glyphs/meditation';
 import {MeditationWeeksChart} from './meditation-chart';
 import {BeginForm, BellsForm, ManualForm, MeditationGoalForm} from './meditation-forms';
 import {MeditationSession} from './meditation-session';
@@ -44,12 +46,12 @@ export default function MeditationView() {
     try { await store.update(m => deleteSession(m, id)); setConfirm(null); setNote('The session is deleted.'); } catch (error) { setNote(error instanceof Error ? error.message : 'Could not delete.'); }
   }
   return <div className="meditation-view">
-    <div className="page-heading"><div>
+    <div className="page-heading header-art-host"><div>
       <p><Link className="text-link sleep-back" href="/app/health">← Health</Link></p>
       <p className="eyebrow page-eyebrow"><NebulaFlow identity="meditation-eyebrow">HEALTH · MEDITATION</NebulaFlow></p>
       <h1><NebulaFlow identity="meditation-title">Breathe. Be here.</NebulaFlow></h1>
       <p className="page-lede">A quiet timer, a breathing guide and your mindful minutes. Private to your Health journal; it syncs only with Health, under the same consent.</p>
-    </div></div>
+    </div><HeaderArtCorner><OrbitArt glyph={MeditationGlyph} tone="health" spin={28}/></HeaderArtCorner></div>
     {note && <p className="sleep-note" role="status">{note}</p>}
     {store.runUnreadable && <p className="notice" role="alert">This device’s running session could not be read. It was not changed; a new session replaces it.</p>}
     <section className="panel" aria-labelledby="meditation-begin-title"><h2 id="meditation-begin-title">Begin</h2><BeginForm key={`begin-${saves}`} store={store} onStarted={() => setNote('')}/></section>

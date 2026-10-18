@@ -30,6 +30,10 @@ async function seed(page: Page, options: Record<string, unknown>, settings: Part
   const base = defaultAiSettings();
   const ai = {...base, enabled: true, mode: 'local', provider: 'local', model: 'mock-chat', localServer: 'openai-compatible', baseUrl: BASE, includeHealth: true, pageShare: {...base.pageShare, health: true}, ...settings};
   await page.evaluate(values => { localStorage.clear(); sessionStorage.clear(); for (const [k, v] of Object.entries(values)) localStorage.setItem(k, v); }, {...buildShowcase(DAY).records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('habits-health'), onboarded: true}), [WHATS_NEW_KEY]: JSON.stringify({version: 1, dismissed: [WHATS_NEW_RELEASE]}), [AI_SETTINGS_KEY]: JSON.stringify(ai), [AI_OPTIONS_KEY]: JSON.stringify({version: 1, toolMode: 'attach', ...options})});
+  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
+  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
+  // c9b123c9 and c1db750e hit it after this seed in four specs).
+  await page.waitForLoadState('networkidle');
 }
 const panel = (page: Page) => page.locator('dialog.ai-chat[open]');
 async function openChat(page: Page) { await page.getByRole('button', {name: /Open ZIGi/}).click(); await expect(panel(page)).toBeVisible(); }

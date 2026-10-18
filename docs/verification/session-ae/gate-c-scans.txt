@@ -1,0 +1,7 @@
+Session AE Gate C — key scans on 4af1a04b (local)
+- scripts/check-secrets.mjs: "Tracked-file credential pattern check passed (0 allowlisted test values)."
+- scripts/zigi/key-sweep.mjs: no pattern hit. Its one note: the owner's Mac runs worktree (/Users/AIUSER/Documents/ZIGoals-Claude-z-runs)
+  is absent here, so its history was not swept (as in Sessions AC and AD). A first sweep also flagged a Playwright Chromium
+  profile left in /tmp by an interrupted local run (no secret value; removed; the second sweep is clean of it).
+- The diff 11d8408..4af1a04b adds no e-mail address. The security review (ADR-027 Gate C) found no key, token or personal data;
+  the only addresses in tests are fictional or published test vectors (BIP-173's bc1qw508d6…, generated ZIG test keys).

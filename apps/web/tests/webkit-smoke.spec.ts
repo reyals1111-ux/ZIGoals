@@ -29,6 +29,10 @@ async function seed(page: Page, extra: Record<string, string> = {}) {
   // push and music checks now start a moment later (their code loads on use, ADR-019 C39), and leaving while WebKit still
   // had them in flight was reported as page errors although nothing failed (the same S64 shape, an API address).
   await settled(page);
+  // Session AE Gate C: the next `goto` waits until this page's prefetches are done (WebKit's navigation stall, Session
+  // AC's 8e930e93: "internal error" or a load that never ends when a navigation starts while they are in flight; CI on
+  // c9b123c9 and c1db750e hit it after this seed in four specs).
+  await page.waitForLoadState('networkidle');
 }
 test.beforeEach(async ({page}) => { await page.route('**/api/**', route => route.fulfill({status: 503, json: {error: 'offline fixture'}})); });
 

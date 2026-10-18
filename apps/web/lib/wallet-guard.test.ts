@@ -1,0 +1,52 @@
+import {readdirSync, readFileSync, statSync} from 'node:fs';
+import {join, relative} from 'node:path';
+import {describe, expect, test} from 'vitest';
+
+/**
+ * Session AE (Part 6, ADR-027; `TIER 3 (wallet)`): the wallets linked read-only stay read-only. This guard reads the new
+ * wallet files and fails on any signing, sending, permission or network-switching method, on any network request, and
+ * on any EVM method other than `eth_requestAccounts`. It also keeps the one signer the app has (`getOfflineSigner*`) inside
+ * the existing execute path of lib/wallet.ts, which assertFinancialExecutionAllowed blocks in the public Alpha.
+ */
+const WEB = join(__dirname, '..');
+const NEW_FILES = ['lib/wallet-link.ts', 'lib/wallet-address.ts', 'lib/linked-wallets.ts', 'lib/linked-wallets-key.ts',
+  ...readdirSync(join(WEB, 'components/wallet')).filter(name => /\.(ts|tsx)$/.test(name) && !/\.test\./.test(name)).map(name => `components/wallet/${name}`)];
+// Gate C security review (ADR-027): every Keplr-API signing or sending method too (signEthereum, signICNSAdr36,
+// experimentalSignEIP712CosmosTx_v0, sendEthereumTx…), by shape rather than by a list that a new method could slip past.
+const FORBIDDEN = /signAmino|signDirect|signArbitrary|eth_sign|personal_sign|eth_signTypedData|eth_sendTransaction|wallet_requestPermissions|wallet_switchEthereumChain|wallet_addEthereumChain|sendTx|broadcast|\bsign[A-Z]\w*|experimentalSign|send\w*Tx\b/;
+const read = (file: string) => readFileSync(join(WEB, file), 'utf8');
+const sources = (dir: string): string[] => readdirSync(join(WEB, dir)).flatMap(name => {
+  const path = `${dir}/${name}`;
+  return statSync(join(WEB, path)).isDirectory() ? sources(path) : /\.(ts|tsx|mjs)$/.test(name) && !/\.test\.|\.spec\./.test(name) ? [path] : [];
+});
+
+describe('Session AE wallet guard', () => {
+  test('the new wallet files exist and name no signing, sending or permission method', () => {
+    expect(NEW_FILES).toEqual(expect.arrayContaining(['components/wallet/wallet-menu.tsx', 'components/wallet/wallet-more-button.tsx', 'components/wallet/use-linked-wallets.ts']));
+    for (const file of NEW_FILES) expect(read(file), file).not.toMatch(FORBIDDEN);
+  });
+  test('they make no network request and ask an EVM wallet for nothing but its accounts', () => {
+    for (const file of NEW_FILES) {
+      const text = read(file);
+      expect(text, file).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|navigator\.connection/);
+      for (const method of text.match(/\b(?:eth|wallet|net|personal)_[A-Za-z]+/g) ?? []) expect(method, file).toBe('eth_requestAccounts');
+      // A method built at run time (`request({method: m})`, "eth_" + "send…") would pass the line above: every request call is
+      // written out, and asks for the accounts only.
+      for (const call of text.match(/\.request\([^)]*\)/g) ?? []) expect(call, file).toBe(".request({method: 'eth_requestAccounts'})");
+    }
+    // The Cosmos calls are exactly Keplr's connect (suggest, enable, getKey) and Keplr's own disable for Disconnect.
+    const link = read('lib/wallet-link.ts');
+    expect([...new Set(link.match(/provider\.(\w+)\(/g))].sort()).toEqual(['provider.enable(', 'provider.experimentalSuggestChain(', 'provider.getKey(', 'provider.request(']);
+  });
+  test('the only signer stays in lib/wallet.ts\'s blocked execute path', () => {
+    const uses = [...sources('lib'), ...sources('components'), ...sources('app')].filter(file => /getOfflineSigner/.test(read(file)));
+    expect(uses).toEqual(['lib/wallet.ts']);
+    const wallet = read('lib/wallet.ts');
+    // The interface declares it once; each call sits in quoteExecute or executeQuote, which start with the Alpha's block.
+    const functions = wallet.split(/(?=export (?:async )?function )/);
+    const calling = functions.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(body => body.match(/^export (?:async )?function (\w+)/)?.[1] ?? 'outside a function');
+    expect(calling.sort()).toEqual(['executeQuote', 'quoteExecute']);
+    for (const name of calling) expect(functions.find(body => body.startsWith(`export async function ${name}(`))!.replace(/^[^{]*\{/, '').trimStart().startsWith('assertFinancialExecutionAllowed();'), name).toBe(true);
+    expect(relative(WEB, join(WEB, 'lib/wallet.ts'))).toBe('lib/wallet.ts');
+  });
+});

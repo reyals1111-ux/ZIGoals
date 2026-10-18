@@ -1,0 +1,23 @@
+Session AE Gate C — the hosted verifier run locally (ZIGOALS_VERIFY_BASE=http://127.0.0.1:3101 node scripts/verify-hosted-alpha.mjs <new folder>)
+against the final code's production build (`next start`, build commit c816fc5e = 5093d0f4's app code), Chrome channel, nothing else running.
+
+Run 1 (before 512d8f08): FAIL — every stage that runs on a local base passed, then the request-capture check failed: 2 of 1,226
+  requests had no readable headers ("Target page, context or browser has been closed"), started by the leaving Settings page
+  in the instant of the navigation to /app/goals/1 (beside its link prefetches). The same step is on main's verifier.
+  Fixed in 512d8f08: each navigation and reload waits until no request has been in flight for 0.5 s (at most 10 s); the check unchanged.
+
+Run 2 (512d8f08): COMPLETED_WITH_FINDINGS (exit 2), evidence source LOCAL_BASE_SMOKE.
+  SKIPPED  Live BTC/USD price through the market coordinator
+  PASS     Live Alpha identity, initial resources and navigation
+  PASS     Fictional local create, deposit and withdraw
+  PASS     Local backup export/import and live read-only diagnostics
+  PASS     Reload retention, close empty goal and navigation
+  PASS     AA pages: calculator, Life review, Journey, Your data, Reminders and Share open
+  SKIPPED  Live landing CTA, safety copy, social links and responsiveness
+  PASS     Recipe import refuses http, a private host and an oversized address
+  Requests inspected: 1261; capture errors: 0; privacy sentinel matches: [].
+  Request origins: http://127.0.0.1:3101, https://testnet-rpc.zigchain.com, https://testnet-api.zigchain.com.
+  Page errors: 0; console errors: 0; HTTP errors: 0 (the base's own unbound /api 503s are set aside on a local base, as designed).
+  Layouts: 36 of 36 without sideways scroll (320, 390, 768, 1280).
+  The findings: 44 requests aborted by the verifier's own navigations (net::ERR_ABORTED): 39 Next link prefetches (_rsc), 4 app API calls (/api/private-account, /api/push), 1 image. Not a site error; the verifier counts every failed request as a finding by design (unchanged).
+  Skipped as live only (a local base is never evidence of the live Alpha): the live BTC/USD price and its header samples, the landing stage.
