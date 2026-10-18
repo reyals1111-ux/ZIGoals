@@ -55,6 +55,14 @@ export interface QuoteChain {
 export type KeplrKeyReader = {getKey(chainId: string): Promise<{bech32Address?: unknown; pubKey?: unknown; algo?: unknown; isNanoLedger?: unknown}>};
 export class QuoteRefused extends Error {}
 
+/** The node's application version from its own `/abci_info` (CosmJS's Comet client drops that field); a plain GET. */
+async function abciVersion(rpcUrl: string): Promise<unknown> {
+  const response = await fetch(`${rpcUrl}/abci_info`, {method: 'GET', credentials: 'omit', referrerPolicy: 'no-referrer', redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(12_000)});
+  if (!response.ok) throw new QuoteRefused('The network did not answer just now. Nothing was signed.');
+  const text = await response.text();
+  if (text.length > 100_000) throw new QuoteRefused('The network answer was too large. Nothing was signed.');
+  return (JSON.parse(text) as {result?: {response?: {version?: unknown}}} | null)?.result?.response?.version;
+}
 async function cosmjsQuoteChain(rpcUrl: string): Promise<QuoteChain> {
   const [{StargateClient, defaultRegistryTypes}, {Registry}] = await Promise.all([import('@cosmjs/stargate'), import('@cosmjs/proto-signing')]);
   const client = await StargateClient.connect(rpcUrl);
@@ -65,16 +73,15 @@ async function cosmjsQuoteChain(rpcUrl: string): Promise<QuoteChain> {
       staking: {params(): Promise<{params?: {bondDenom: string; unbondingTime?: {seconds: bigint}}}>};
       tx: {simulate(messages: readonly unknown[], memo: string, signer: {type: string; value: string}, sequence: number): Promise<{gasInfo?: {gasUsed: bigint}}>};
     };
-    forceGetCometClient(): {abciInfo(): Promise<{version?: string}>};
   };
   const registry = new Registry(defaultRegistryTypes);
   return {
     getChainId: () => client.getChainId(),
     async evidence() {
       const query = inner.forceGetQueryClient();
-      const [info, params, metadata] = await Promise.all([inner.forceGetCometClient().abciInfo(), query.staking.params(), query.bank.denomMetadata('azig')]);
+      const [version, params, metadata] = await Promise.all([abciVersion(rpcUrl), query.staking.params(), query.bank.denomMetadata('azig')]);
       const seconds = params.params?.unbondingTime?.seconds;
-      return {version: info.version, bondDenom: params.params?.bondDenom, unbondingSeconds: typeof seconds === 'bigint' ? Number(seconds) : Number.NaN,
+      return {version, bondDenom: params.params?.bondDenom, unbondingSeconds: typeof seconds === 'bigint' ? Number(seconds) : Number.NaN,
         metadata: {base: metadata.base, display: metadata.display, denom_units: metadata.denomUnits.map(u => ({denom: u.denom, exponent: u.exponent}))}};
     },
     getSequence: async address => (await client.getSequence(address)).sequence,

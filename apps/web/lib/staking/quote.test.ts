@@ -82,6 +82,7 @@ describe('quoteStaking', () => {
     vi.useFakeTimers({now: new Date('2026-10-18T21:00:00Z')});
     const quote = await quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: [delegate({delegator: ME, validator: A, amount: '1'})], keplr: recordingKeplr().keplr, revision: 0}, chain().connect);
     vi.setSystemTime(quote.expiresAt);
-    expect(() => issueSignTicket(quote, {isTrusted: true, type: 'submit'})).toThrow('no longer current');
+    const button = {contains: () => false};
+    expect(() => issueSignTicket(quote, {submit: {isTrusted: true, type: 'submit', timeStamp: 2, submitter: button}, activation: {isTrusted: true, type: 'click', timeStamp: 1, target: button}})).toThrow('no longer current');
   });
 });

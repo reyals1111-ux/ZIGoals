@@ -58,8 +58,9 @@ describe('Session AF staking guard', () => {
     expect(callers('redeemSignTicket').sort()).toEqual(['lib/staking/execute.ts', 'lib/staking/sign-gate.ts']);
     const sheet = 'components/staking/review-sheet.tsx';
     const issuers = callers('issueSignTicket').filter(f => f !== 'lib/staking/sign-gate.ts'), executors = callers('executeSigned').filter(f => f !== 'lib/staking/execute.ts');
-    expect(issuers.every(f => f === sheet) && executors.every(f => f === sheet), [...issuers, ...executors].join(' ')).toBe(true);
-    if (issuers.length || executors.length) {
+    expect(issuers).toEqual([sheet]);
+    expect(executors).toEqual([sheet]);
+    {
       const text = read(sheet);
       const handler = /<form[^>]*\sonSubmit=\{(\w+)\}/.exec(text)?.[1];
       expect(handler, 'the review sheet\'s form names its submit handler').toBeTruthy();
@@ -70,9 +71,14 @@ describe('Session AF staking guard', () => {
       for (const name of ['issueSignTicket', 'executeSigned']) expect(text.split(`${name}(`).length - 1, name).toBe(1);
       const issue = body.indexOf('issueSignTicket('), execute = body.indexOf('executeSigned(');
       expect(issue).toBeGreaterThan(0); expect(execute).toBeGreaterThan(issue);
-      // The ticket is made from the handler's own event, nothing else.
-      expect(body).toMatch(/issueSignTicket\(\w+, (\w+)\)/);
-      expect(body.match(/issueSignTicket\(\w+, (\w+)\)/)![1]).toBe(/const \w+ = async \((\w+): FormEvent/.exec(text.slice(at))![1]);
+      // The ticket is made from the handler's own submit event and the Sign button's own click, nothing else: the one
+      // submit button records its native click into `press`, which the handler reads (and clears) for the gate.
+      const param = /const \w+ = async \((\w+): FormEvent/.exec(text.slice(at))![1];
+      expect(body).toMatch(new RegExp(`issueSignTicket\\(quote, \\{submit: ${param}\\.nativeEvent as SubmitEvent, activation\\}\\)`));
+      expect(body).toMatch(/const activation = press\.current;\s*press\.current = null;/);
+      expect(text.match(/type="submit"/g)).toHaveLength(1);
+      expect(text).toMatch(/<button type="submit"[^>]*onClick=\{event => \{ press\.current = event\.nativeEvent; \}\}/);
+      expect(text.match(/press\.current = /g)).toHaveLength(2);
     }
   });
   test('ZIGi\'s code never reaches the pipeline', () => {

@@ -13,6 +13,8 @@ assertion that changed (with the reason). Updated with every step's commit.
 | 3 | `lib/staking/` pipeline + `lib/wallets/keplr-session.ts` + `staking-guard.test.ts`; `wallet-guard.test.ts` re-scoped | done | `TIER 3 (wallet/signing): … Part 3` |
 | 5a | `apps/web/lib/chain/validators-wire.ts` (the wire schema L1 consumes), committed first | done | `TIER 3 (egress routes): … Part 5a` |
 | 5 | `/api/positions` mainnet on public builds + `minHeight` + stZIG; `GET /api/chain/validators` | done | `TIER 3 (egress routes): … Part 5` |
+| 6 | `https://rpc.zigchain.com` in `chainOrigins`; CSP tests' exact lists | done | `TIER 3 (CSP): … Part 6` |
+| 7 | Staking UI on `/app/staking` (lazy `StakingActions`), the gate hardened, four specs | done | `TIER 3 (wallet/signing): … Part 7` |
 
 ## Facts read live for this lane (one GET each, 2026-10-18)
 - 20:52 UTC `https://api.zigchain.com` node_info: network `zigchain-1`, application_version `v5.1.2` on both nodes
@@ -60,6 +62,29 @@ assertion that changed (with the reason). Updated with every step's commit.
   validator's self-delegation (eight at a time; the chain's 404 code 5 = "0"). Checked live once on 2026-10-18 21:30 UTC:
   19 mainnet / 39 testnet validators answered the wire schema. Sorted by name, never by rate. Errors: 400 bad query, 429
   too many reads, otherwise 200 (`status: 'unavailable'` with a reason, H58).
+
+- **The sign gate needs the click, not only the submit (found in this lane's first Chrome run).** `form.requestSubmit()`
+  makes the browser fire a *trusted* submit event, and under a submit-only gate it reached the signer. The gate now
+  requires both: the form's submit naming the Sign button as its `submitter`, and a trusted `click` on that button at most
+  1 s before (recorded by the button's own onClick). `button.click()`, `requestSubmit()` (with or without the button) and a
+  dispatched submit are refused (unit-tested, and in `staking-sign.spec.ts` against the real page); a mouse press, a tap
+  or Enter/Space on the focused button sign. `staking-guard.test.ts` pins the exact wiring.
+- **Where the actions sit.** `StakingActions` is mounted between the observed totals and the page's own layout region,
+  not as a layout item, so `page-order-aa.spec.ts`'s exact `positions:` item list stays as it is and the tracked positions
+  stay the region's first block. The lead may make it a movable item (`positions:actions`) and extend that list.
+- **Staking's reader follows the staked network.** After a connect, a refresh or a confirmed action, the page's own
+  "Read-only network" reader switches to the network just read (`onObserved`), so the Staking totals show what changed;
+  nothing changes for a person who never connects.
+- **Valdora placeholder.** `components/platform/staking-placeholder.tsx` (not in this lane's files) still says "ZIGoals does
+  not track stZIG yet" (asserted by `tests/staking-page.spec.ts`), while the relay now reads stZIG balances (step 5). The
+  lead or L1 should reword it with the Earn hub's Valdora work.
+- **Phones (H87).** Without `window.keplr` on a phone: "Open ZIGoals in Keplr" (`keplrwallet://web-browser?url=<origin>/app
+  /staking`; Android `intent://…#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;`), built in
+  `lib/wallets/keplr-session.ts` (`keplrMobileLink`). It is a deep link, not a web URL, so it is not in L1's verified link
+  registry; the lead may move it there once that registry exists. Desktop without Keplr: "Get Keplr ↗" (`KEPLR_SITE`).
+- **ZIGi's pre-fill.** `lib/staking/prefill.ts` `takeStakingPrefill()` reads and deletes sessionStorage
+  `zigoals:ai:staking-prefill:v1` once when the actions open (≤ 10 min old, plain fields only) and fills the form; a
+  real-network pre-fill without the first-real confirm stays on practice and says so. Never reviews or signs.
 
 ## What the lead must wire (shared registries)
 ### Storage keys (step 2; names in `apps/web/lib/af-signing-keys.ts`, a module with no imports)

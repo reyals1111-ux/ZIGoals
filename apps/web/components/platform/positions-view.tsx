@@ -8,7 +8,7 @@ import {HeaderArtCorner,OrbitArt} from '../header-art/orbit-art';
 import {StakingGlyph} from '../header-art/glyphs/staking';
 import './positions-layout.css';
 import { watchScope, readAprAssumption, saveAprAssumption } from '../../lib/owner-preview';
-import { useMemo, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useMemo, useState, type FormEvent } from 'react';
 import {parseAmountInput} from '../../lib/amount-input';
 import {normalizeDecimalInput} from '../../lib/decimal-input';
 import { usePlatform } from './use-platform';
@@ -28,6 +28,10 @@ import {storageMessageOr} from '../../lib/storage-error-copy';
 import {StakingPlaceholder} from './staking-placeholder';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {PhoneFormSheet} from '../phone/phone-form-sheet';
+import {LoadBoundary} from '../load-boundary';
+// Session AF (ADR-028 H46, L2 design §4): stake, unstake, move and claim, signed in the person's own wallet. A lazy chunk:
+// its code (and, on the first Review press, the signing client) loads only on this page.
+const StakingActions=lazy(()=>import('../staking/staking-actions').then(m=>({default:m.StakingActions})));
 const providerResearch:Readonly<Record<string,string>>={'Valdora stZIG':'valdora','Valdora vaults':'valdora','OroSwap LP':'oroswap',PermaPod:'permapod',WME:'wme','Zignaly external account':'zignaly',Nawa:'nawa'};
 export type ManualPositionEditorInput={name:string;asset?:string;quantity:string;value:string;currency:string;notes:string};
 /** Preserve provider identity on quantity/note edits; entering a total is an explicit manual valuation override. */
@@ -90,5 +94,7 @@ export function PositionsView(){
  {/* While a phone sheet is open its own alert says this; the page's shows once it closes. */}
  {!(phone&&sheet)&&<>{(error||store.error)&&<p role="alert" className="notice">{error||store.error}</p>}{message&&<p role="status">{message}</p>}</>}
  {!!accounts.length&&<label className="field">Snapshot account<select value={scope?.account??''} onChange={e=>{const selected=e.target.value;void store.update(s=>({...s,watchScope:{network,account:selected}})).catch(()=>setError('Could not save account selection.'));}}><option value="" disabled>Choose an observed account</option>{accounts.map(a=><option key={a} value={a}>{a}</option>)}</select></label>}
+{/* Session AF: the staking actions follow the observed totals; the tracked positions stay the first block of the page's own layout (PAGE_ORDER_AA). */}
+ <LoadBoundary label="Staking actions"><Suspense fallback={<section className="panel staking-actions-loading" aria-busy="true"><p>Loading staking actions…</p></section>}><StakingActions onObserved={chainId=>setMode(chainId==='zig-test-2'?'TESTNET_READ_ONLY':'MAINNET_READ_ONLY')}/></Suspense></LoadBoundary>
 {mainRegion}{phone&&rail}</div></LayoutPage>;
 }

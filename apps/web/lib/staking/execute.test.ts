@@ -15,7 +15,7 @@ const ME = toBech32('zig', new Uint8Array(20).fill(1)), A = toBech32('zigvaloper
 const registry = new Registry(defaultRegistryTypes);
 const txOf = (messages: readonly StakingMessage[]) => TxRaw.encode(TxRaw.fromPartial({bodyBytes: TxBody.encode(TxBody.fromPartial({messages: messages.map(m => registry.encodeAsAny(m)), memo: ''})).finish(), authInfoBytes: new Uint8Array([9]), signatures: [new Uint8Array(64)]})).finish();
 class Memory { map = new Map<string, string>(); getItem(k: string) { return this.map.get(k) ?? null; } setItem(k: string, v: string) { this.map.set(k, v); } }
-const press = {isTrusted: true, type: 'submit'};
+const button = {contains: () => false}, press = {submit: {isTrusted: true, type: 'submit', timeStamp: 2, submitter: button}, activation: {isTrusted: true, type: 'click', timeStamp: 1, target: button}};
 const metadata = {base: 'azig', display: 'zig', denom_units: [{denom: 'azig', exponent: 0}, {denom: 'zig', exponent: 18}]};
 const quoteChain = (chainId: string) => async (): Promise<QuoteChain> => ({getChainId: async () => chainId, evidence: async () => ({version: 'v5.1.2', bondDenom: 'azig', unbondingSeconds: 1814400, metadata}), getSequence: async () => 1, getBalance: async () => '100000000000000000000', simulate: async () => 100000, disconnect: () => undefined});
 /** Keplr double: records every call; the signer it hands out records its own. */
