@@ -16,6 +16,8 @@ const config = [
       "target/**",
       ".toolchain/**",
       ".superpowers/**",
+      // Session AF: agent worktrees (.claude/worktrees/*) are other checkouts of this repository, never sources of this one.
+      ".claude/**",
       "landing/**",
     ],
   },
