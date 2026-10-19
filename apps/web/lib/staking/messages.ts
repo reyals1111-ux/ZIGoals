@@ -72,7 +72,9 @@ export function vote(input: {voter: string; proposalId: string; option: VoteChoi
   if (!Object.hasOwn(VOTE_OPTIONS, input.option) || !option) throw new StakingInputError('Choose Yes, No, Abstain or No with veto.');
   return freeze({typeUrl: STAKING_TYPE_URLS.vote, value: {proposalId: BigInt(input.proposalId), voter: delegator(input.voter), option}});
 }
-export type StakingActionKind = 'delegate' | 'undelegate' | 'redelegate' | 'claim' | 'vote';
+/** `sweep` (Session AF chunk 3, H60): one MsgDelegate of the rewards waiting with a validator, to that validator (the
+ *  chain pays the rewards out first, so they are staked straight back). */
+export type StakingActionKind = 'delegate' | 'undelegate' | 'redelegate' | 'claim' | 'vote' | 'sweep';
 /** The ZIG this signature moves out of the liquid balance (delegate only; the rest move nothing liquid). */
 export function liquidSpend(messages: readonly StakingMessage[]): bigint {
   return messages.reduce((total, m) => m.typeUrl === STAKING_TYPE_URLS.delegate ? total + BigInt(m.value.amount.amount) : total, 0n);

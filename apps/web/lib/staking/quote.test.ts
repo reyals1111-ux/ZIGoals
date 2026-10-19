@@ -78,6 +78,18 @@ describe('quoteStaking', () => {
     for (const gas of [0, -1, 1.5, 20_000_000, Number.NaN]) await expect(quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: msgs, keplr: recordingKeplr().keplr, revision: 0}, chain({gas}).connect), String(gas)).rejects.toThrow('gas estimate');
     await expect(quoteStaking({network: 'practice', address: toBech32('zig', new Uint8Array(20).fill(8)), action: 'delegate', messages: msgs, keplr: recordingKeplr().keplr, revision: 0}, chain().connect)).rejects.toThrow('your own');
   });
+  test('a rewards sweep (H60): one delegation, the balance covers only the fee (the rewards pay the amount), anything else refused', async () => {
+    const {keplr} = recordingKeplr();
+    const fee = 244012n * 2500000000n;
+    const restake = [delegate({delegator: ME, validator: A, amount: (25n * ZIG).toString()})];
+    const quote = await quoteStaking({network: 'practice', address: ME, action: 'sweep', messages: restake, keplr, revision: 0}, chain({balance: fee.toString()}).connect);
+    expect(quote).toMatchObject({action: 'sweep', spend: '0', safeMax: '0'});
+    await expect(quoteStaking({network: 'practice', address: ME, action: 'sweep', messages: restake, keplr, revision: 0}, chain({balance: (fee - 1n).toString()}).connect)).rejects.toThrow(/Keep enough ZIG/);
+    await expect(quoteStaking({network: 'practice', address: ME, action: 'sweep', messages: claim({delegator: ME, validators: [A]}), keplr, revision: 0}, chain().connect)).rejects.toThrow('one delegation');
+    await expect(quoteStaking({network: 'practice', address: ME, action: 'sweep', messages: [...restake, delegate({delegator: ME, validator: A, amount: '1'})], keplr, revision: 0}, chain().connect)).rejects.toThrow('one delegation');
+    // A plain delegation of the same amount still needs the amount in the balance.
+    await expect(quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: restake, keplr, revision: 0}, chain({balance: fee.toString()}).connect)).rejects.toThrow(/Keep enough ZIG/);
+  });
   test('a quote can be ticketed only while fresh (60 s)', async () => {
     vi.useFakeTimers({now: new Date('2026-10-18T21:00:00Z')});
     const quote = await quoteStaking({network: 'practice', address: ME, action: 'delegate', messages: [delegate({delegator: ME, validator: A, amount: '1'})], keplr: recordingKeplr().keplr, revision: 0}, chain().connect);

@@ -1,7 +1,7 @@
 import {formatUnits, safeMaximum} from '@zigoals/chain-config';
 import {STAKING_NETWORKS, UNBONDING_SECONDS, assertNetworkEvidence, type StakingNetwork} from '@zigoals/chain-config/networks';
 import {toBase64} from '@cosmjs/encoding';
-import {assertStakingMessages, liquidSpend, type StakingActionKind, type StakingMessage} from './messages';
+import {STAKING_TYPE_URLS, assertStakingMessages, liquidSpend, type StakingActionKind, type StakingMessage} from './messages';
 import {registerQuote} from './sign-gate';
 
 /**
@@ -98,6 +98,8 @@ export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) 
   const config = STAKING_NETWORKS[input.network];
   if (!config) throw new QuoteRefused('Choose the practice or the real network first.');
   assertStakingMessages(input.messages, input.address);
+  // Session AF chunk 3 (H60): a rewards sweep is exactly one delegation, to a validator the rewards wait with.
+  if (input.action === 'sweep' && (input.messages.length !== 1 || input.messages[0]!.typeUrl !== STAKING_TYPE_URLS.delegate)) throw new QuoteRefused('A restake of rewards is one delegation. Nothing was signed.');
   const key = await input.keplr.getKey(config.chainId);
   if (key?.bech32Address !== input.address) throw new QuoteRefused('Your wallet switched accounts. Connect again before reviewing.');
   if (!(key.pubKey instanceof Uint8Array) || key.pubKey.length !== 33 || (key.algo !== undefined && key.algo !== 'secp256k1')) throw new QuoteRefused('This wallet account cannot sign ZIGChain staking here.');
@@ -113,7 +115,9 @@ export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) 
     const feeAmount = (BigInt(gasLimit) * BigInt(config.gasPrice)).toString();
     const balance = await chain.getBalance(input.address);
     if (!/^\d{1,78}$/.test(balance)) throw new QuoteRefused('The balance read was not usable. Nothing was signed.');
-    const spend = liquidSpend(input.messages);
+    // A sweep's ZIG comes from the rewards the chain pays out in the same transaction (the delegation claims them first),
+    // so only the fee must be in the balance; the simulation above already ran the whole transaction against the chain.
+    const spend = input.action === 'sweep' ? 0n : liquidSpend(input.messages);
     const decimals = config.nativeAsset.decimals;
     if (BigInt(balance) < BigInt(feeAmount) + spend)
       throw new QuoteRefused(`Keep enough ZIG for this and its network fee. Network fee: about ${formatUnits(feeAmount, decimals)} ZIG. Available after the fee: ${formatUnits(safeMaximum(balance, feeAmount), decimals)} ZIG.`);
