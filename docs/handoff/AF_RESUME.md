@@ -34,13 +34,13 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | Lane | Branch / worktree | Owner | State |
 |---|---|---|---|
 | L6 lead (records, verifier, sync, security, words, merges, Gate C) | `feature/session-af-wealth-unlocked` (this checkout) | lead | Part 0 done; A2/A3/A4/A10 done |
-| L2a chain + signing + staking UI + governance + validator health | chunk 1–2 `af/signing`; chunk 3 `af/signing3` (agent worktrees) | helper (port 3104) | Part 2 merged `df19ef40`, wired; chunk 3 (governance, validator health, rewards sweep, grants panel, testnet memo attestations, Settings section, Keplr phone path) running since 02:10 Mon |
-| L1 Earn hub + data routes + Academy + dock + Today card | chunk 1 `af/earn`; chunk 2 `af/earn2` (agent worktrees) | helper (port 3103) | chunk 1 merged `a444c5ae`, wired; chunk 2 (Start-here, every option in depth, measured APR H97, Academy, illustrations, Today EARN card, dock, stage 9, live-check) running since 01:42 Mon |
+| L2a chain + signing + staking UI + governance + validator health | `af/signing`, `af/signing3` | helper | done: Part 2 merged `df19ef40`; chunk 3 (Part 6) merged and wired (`8443a1e3`) |
+| L1 Earn hub + data routes + Academy + dock + Today card | `af/earn`, `af/earn2` | helper | done: both chunks merged (`a444c5ae`, `b205460a`) and wired (stage 9, Today EARN card in For you H104, dock, Settings, game) |
 | L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
-| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` (an agent worktree) | helper | done: merged 02:05 Mon, wired (`d19e8188` `c0f424d8` `043946f7`); open: move its link rows into the verified registry after L1 chunk 2 merges (L1 owns the registry now) |
+| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` | helper | done: merged and wired; its links now in the registry (H103) |
 | L5a UI changes + theme parity | `af/ui` (an agent worktree) | helper (port 3102) | running since 01:40 Mon: P10.1–P10.13 |
-| L4 ZIGi | `af/zigi` → `../ZIGoals-af-zigi` | helper | waits for a slot |
-| L5b My Universe, Day Timeline, Stories | `af/extras` → `../ZIGoals-af-extras` | helper | waits for a slot |
+| L4 ZIGi | `af/zigi` (an agent worktree) | helper (port 3103) | running since 02:45 Mon: Part 8, six seeds |
+| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper (port 3104) | running since 03:35 Mon: Part 9 |
 
 Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner per file).
 
@@ -48,12 +48,12 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | Part | State | Commits |
 |---|---|---|
 | 0 Records, setup | done except the reference captures + route/asset checks (the next free helper slot, H93) | `5e4f909d` `59e44be9` `5c015f2c`; captures `c438f25b` on `review/session-af-screens` |
-| 1 Earn hub | core merged and wired; chunk 2 pending | merge `a444c5ae`; wiring `a3cbc5c3` `acd71be2` `8bb65419` `64942576` |
+| 1 Earn hub | done (merged, wired); critique round at Gate C | `a444c5ae` `b205460a` + wiring |
 | 2 Native staking | done (merged, wired); owner's real-wallet checks after deploy | merge `df19ef40`; wiring `f2388078` `602f7bfb` `15f0d9af` `1518b802` |
 | 3 Wallets | done (merged, wired) | merge of af/wallet; `68aa69b0` (no e-mail addresses, H101) |
 | 4 Add money (multi-asset) | done (merged, wired); owner IDs pending | merge of af/wallet; `c0f424d8` |
-| 5 Earn dock | not started | — |
-| 6 Goal Vaults + governance | Goal Vaults done (merged); governance, validator health, sweep, grants, attestations running (L2a chunk 3) | merge of af/wallet |
+| 5 Earn dock | done (merged, wired) | in `b205460a`; islands asked of L5a |
+| 6 Goal Vaults + governance | done (merged, wired) | af/wallet merge; af/signing3 merge; `8443a1e3` |
 | 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
 | 8 ZIGi | not started | — |
 | 9 My Universe, Day Timeline, Stories | not started | — |
@@ -61,6 +61,21 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | not started | — |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 04:00 Brussels — L1 and L2a finished; L5a, L4, L5b running)
+- Done since 02:20: social card + metadata labels; L1 chunk 2 merged `b205460a` and wired (stage 9 `15a5a83b`; registry
+  move H103 `288e037b`; Earn wiring + Today EARN card in For you H104 `20572134`); CI run 39180668121 (on `cb40492a`)
+  failures fixed: Checklist "viewing writes nothing" `cbc8ce4f`, goal card menu under the sidebar `85f33940`, Staking reads
+  no Valdora `eae1043e`, pinned counts/hash `e8b982f8`; L2a chunk 3 merged and wired (`8443a1e3`: storage, egress,
+  Governance nav H108, Help, PRIVACY, ADR H105–H108). Unit 5707; lint 0 errors / 19 warnings; integration specs green.
+  Pushed `8443a1e3`; CI running on it. The WebKit Earn ChunkLoadError/TrustedHTML from that CI run did not reproduce
+  locally (3/3) on the newer page: if it recurs on `8443a1e3`, investigate (not a known intermittent).
+- Running helpers (3, the cap): L5a (3102, also asked to add the Earn dock to ISLANDS), L4 ZIGi (3103), L5b extras (3104).
+  No lane waits for a slot any more.
+- Next: merge each as it reports (L5a: theme regeneration + parity; L4: zigi-plans key rows, Help; L5b: Today cards —
+  keep Today ≤ 5.8 screens on a phone, nav/search for Timeline and Stories, keys, budgets). Then Part 12 (What's new,
+  remaining Help, Known limitations), the budgets commit (H96), the daily PR comment ~18:00 Mon, freeze Fri 22:00, Gate C
+  Sat 08:00.
 
 ## Resume here (2026-10-19 02:20 Brussels — L2b merged and wired; L2a chunk 3 started)
 - Done since 01:50: Help's first AF answers `7ed163bc`; the L2b merge, then `68aa69b0` (WalletConnect notices without
