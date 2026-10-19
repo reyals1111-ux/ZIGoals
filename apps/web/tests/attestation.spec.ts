@@ -44,7 +44,9 @@ test('off by default; turned on, a commitment: only its salted code is sent, pub
   await expect(sheet).toContainText('Amount1 azig (0.000000000000000001 ZIG, the smallest amount the chain accepts)');
   const memo = (await sheet.locator('.staking-memo').textContent())!;
   expect(memo).toMatch(/^zigoals:att:v1:c:[0-9a-f]{64}$/);
-  await expect(sheet).toContainText('Your address, the time and this memo are public on ZIGChain Testnet forever. The memo holds only a code: your note never leaves this device.');
+  // Gate C security review S6: the review also says the memo marks the address as a ZIGoals user, and that with Keplr
+  // the practice address is the real-network one (stricter: the whole sentence, plus the two new facts).
+  await expect(sheet).toContainText('Your address, the time and this memo are public on ZIGChain Testnet forever. The memo holds only a code (your note never leaves this device), but it starts with “zigoals”, so it shows anyone that this address uses ZIGoals — and with Keplr this address is the same as your address on the real network.');
   await expect(sheet.locator('.staking-network-line').first()).toHaveText('PRACTICE · zig-test-2 · no real value');
   await expect(sheet).not.toContainText('thirty days');
   await sheet.getByText('Raw message', {exact: true}).click();

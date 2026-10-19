@@ -110,7 +110,7 @@ export function planAfAction(action: Action, env: Env, h: AfHelpers): PlanResult
       const verb = {delegate: 'Stake', undelegate: 'Unstake', redelegate: 'Move stake', claim: 'Claim rewards'}[action.action];
       const who = validator ? (byName[0]?.moniker ?? `${validator.slice(0, 16)}…${validator.slice(-6)}`) : named ? `you choose (no validator named “${named}” in the list the Earn page read)` : 'you choose on the review';
       const lines = [
-        `${verb}${amount ? ` ${amount} ZIG` : ''} · ${action.network === 'practice' ? 'practice network (no real value)' : 'real network (real ZIG; the review asks you to confirm the real network first)'}`,
+        `${verb}${amount ? ` ${amount} ZIG` : ''} · ${action.network === 'practice' ? 'practice network (no real value)' : 'real network (real ZIG; you switch the form to the real network yourself, and the first time it asks you to confirm)'}`,
         `Validator: ${who}`,
         'Opens the Staking page with these fields filled in; nothing is signed or sent until you review it there and sign in your own wallet',
         'ZIGi never signs, sends or holds keys',

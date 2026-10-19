@@ -128,7 +128,7 @@ describe('prefill-staking (ADR-028 D7, H47): the staking review, filled in; noth
     expect(unknown.staking).toEqual({network: 'practice', action: 'delegate'}); expect(unknown.card.lines[1]).toMatch(/you choose \(no validator named “The best one”/);
     expect(plan({kind: 'prefill-staking', validator: VALOPER}).staking?.validator).toBe(VALOPER);
     expect(plan({kind: 'prefill-staking', action: 'claim', amount: '5'}).staking).toEqual({network: 'practice', action: 'claim'});
-    expect(plan({kind: 'prefill-staking', network: 'real'}).card.lines[0]).toMatch(/real network \(real ZIG; the review asks you to confirm the real network first\)/);
+    expect(plan({kind: 'prefill-staking', network: 'real'}).card.lines[0]).toMatch(/real network \(real ZIG; you switch the form to the real network yourself, and the first time it asks you to confirm\)/);
     expect(actionSchema.safeParse({kind: 'prefill-staking', amount: '1e9'}).success).toBe(false);
     expect(actionSchema.safeParse({kind: 'prefill-staking', action: 'transfer'}).success).toBe(false);
   });

@@ -7,7 +7,7 @@ import {STAKING_TYPE_URLS, type StakingMessage} from '../../lib/staking/messages
 import {GAS_MULTIPLIER, type StakingQuote} from '../../lib/staking/quote';
 import {issueSignTicket, PRESS_SIGN} from '../../lib/staking/sign-gate';
 import {shortAddress} from '../../lib/staking/address';
-import {daysText, feeText, groupDigits, zigText} from '../../lib/staking/view';
+import {daysText, feeText, groupDigits, percentText, zigText} from '../../lib/staking/view';
 import {NO_KEPLR} from '../../lib/wallets/keplr-session';
 import {CHOICE_OF_OPTION, CHOICE_WORDS, VOTE_IS_PUBLIC} from '../../lib/governance/plain-words';
 import {actWords} from '../../lib/staking/grants';
@@ -32,6 +32,8 @@ const json = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'b
 export type ReviewProps = {
   quote: StakingQuote;
   names: ReadonlyMap<string, string>;
+  /** Gate C security review S1: each validator's status and commission, shown beside its name (staking only). */
+  facts?: ReadonlyMap<string, {active: boolean; commission: string}>;
   rewards?: ReadonlyMap<string, string>;
   expired: boolean;
   /** While the signature is under way, its progress shows here, inside the sheet. */
@@ -42,10 +44,11 @@ export type ReviewProps = {
   onFailed: (failure: StakingFailure | Error) => void;
   about?: ReviewAbout;
 };
-function ValidatorLine({operator, names}: {operator: string; names: ReadonlyMap<string, string>}) {
-  return <span title={operator}>{names.get(operator) ?? shortAddress(operator)} · <span className="staking-validator-address">{shortAddress(operator)}</span></span>;
+function ValidatorLine({operator, names, facts}: {operator: string; names: ReadonlyMap<string, string>; facts?: ReviewProps['facts']}) {
+  const fact = facts?.get(operator);
+  return <span title={operator}>{names.get(operator) ?? shortAddress(operator)} · <span className="staking-validator-address">{shortAddress(operator)}</span>{fact && <> · {fact.active ? 'active' : <strong>not active (earns nothing)</strong>} · commission {percentText(fact.commission)}</>}</span>;
 }
-export function ReviewSheet({quote, names, rewards, expired, progress, onBack, onProgress, onDone, onFailed, about}: ReviewProps) {
+export function ReviewSheet({quote, names, facts, rewards, expired, progress, onBack, onProgress, onDone, onFailed, about}: ReviewProps) {
   const ref = useRef<HTMLDialogElement>(null), [signing, setSigning] = useState(false), [error, setError] = useState('');
   // The Sign button's own click, kept for the submit that follows it (lib/staking/sign-gate.ts checks both belong together).
   const press = useRef<MouseEvent | null>(null);
@@ -80,12 +83,12 @@ export function ReviewSheet({quote, names, rewards, expired, progress, onBack, o
       <dl className="staking-review-facts">
         <div><dt>Action</dt><dd>{ACTIONS[quote.action]}{messages.length > 1 ? ` · one signature, ${messages.length} withdrawals` : ''}{ACTION_WORDS[quote.action] && <> <WhatsThis term={ACTION_WORDS[quote.action]!}/></>}</dd></div>
         {first.typeUrl === STAKING_TYPE_URLS.redelegate ? <>
-          <div><dt>From</dt><dd><ValidatorLine operator={first.value.validatorSrcAddress} names={names}/></dd></div>
-          <div><dt>To</dt><dd><ValidatorLine operator={first.value.validatorDstAddress} names={names}/></dd></div>
+          <div><dt>From</dt><dd><ValidatorLine operator={first.value.validatorSrcAddress} names={names} facts={facts}/></dd></div>
+          <div><dt>To</dt><dd><ValidatorLine operator={first.value.validatorDstAddress} names={names} facts={facts}/></dd></div>
         </> : first.typeUrl === STAKING_TYPE_URLS.claim ? <div><dt>{messages.length > 1 ? 'Validators' : 'Validator'}</dt><dd><ul className="staking-claim-list">{messages.map(m => {
           const operator = (m.value as {validatorAddress: string}).validatorAddress, pending = rewards?.get(operator);
-          return <li key={operator}><ValidatorLine operator={operator} names={names}/>{pending !== undefined && <> · about {zigText(pending)} waiting</>}</li>;
-        })}</ul></dd></div> : 'validatorAddress' in first.value ? <div><dt>Validator</dt><dd><ValidatorLine operator={first.value.validatorAddress} names={names}/> <WhatsThis term="validator"/></dd></div> : null}
+          return <li key={operator}><ValidatorLine operator={operator} names={names} facts={facts}/>{pending !== undefined && <> · about {zigText(pending)} waiting</>}</li>;
+        })}</ul></dd></div> : 'validatorAddress' in first.value ? <div><dt>Validator</dt><dd><ValidatorLine operator={first.value.validatorAddress} names={names} facts={facts}/> <WhatsThis term="validator"/></dd></div> : null}
         {first.typeUrl === STAKING_TYPE_URLS.vote && (() => {
           const choice = CHOICE_OF_OPTION[String(first.value.option)];
           return <>
@@ -114,7 +117,7 @@ export function ReviewSheet({quote, names, rewards, expired, progress, onBack, o
         <div><dt>What happens</dt><dd>You will sign this in your wallet. ZIGoals never sees your keys and cannot sign for you.{quote.isLedger ? ' Your Ledger signs it through Keplr: confirm on the device.' : ''}</dd></div>
         <div><dt>What becomes public</dt><dd>{quote.action === 'vote' ? <>{VOTE_IS_PUBLIC} It is recorded on {words.name}.</>
           : quote.action === 'revoke' ? <>Your address, the address that had the permission and the permission you end are recorded on {words.name} for anyone to see, forever.</>
-          : quote.action === 'attest' ? <>Your address, the time and this memo are public on {words.name} forever. The memo holds only a code: your note never leaves this device.</>
+          : quote.action === 'attest' ? <>Your address, the time and this memo are public on {words.name} forever. The memo holds only a code (your note never leaves this device), but it starts with “zigoals”, so it shows anyone that this address uses ZIGoals — and with Keplr this address is the same as your address on the real network.</>
           : <>Your address, the validator and the amount are recorded on {words.name} for anyone to see, forever.</>}</dd></div>
       </dl>
       <details className="staking-raw"><summary>Raw message</summary><pre>{json({messages: messages.map(m => ({typeUrl: m.typeUrl, value: m.value})), fee: quote.fee, memo: quote.memo})}</pre></details>

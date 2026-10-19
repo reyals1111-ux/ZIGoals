@@ -64,6 +64,10 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   // reviews' own errors (shown in their own panels); a re-read of the permissions after a revoke confirms.
   const [fromVault, setFromVault] = useState(false), [otherError, setOtherError] = useState<{action: 'revoke' | 'attest'; message: string} | null>(null), [grantsRead, setGrantsRead] = useState(0);
   const revision = useRef(0);
+  // Gate C security review S2 (ADR-028 H133): a pre-fill never switches the network by itself; when ZIGi meant the other
+  // network, the form stays where it is and offers the switch (the real network's first-time confirm still applies).
+  const [prefillNetwork, setPrefillNetwork] = useState<StakingNetwork | null>(null), networkNow = useRef(network);
+  networkNow.current = network;
   // True while a signature or broadcast is under way: a pre-fill arriving then waits in the tab for the next opening.
   const signing = useRef(false);
   signing.current = !!progress && ['AWAITING_SIGNATURE', 'BROADCASTING', 'CONFIRMING'].includes(progress.state);
@@ -75,18 +79,20 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     setAndroid(/Android/i.test(navigator.userAgent)); setOrigin(window.location.origin); setFromVault(window.location.hash === '#rewards-sweep');
     if (showcase) return;
     const prefs = storage() ? readStakingPrefs(storage()!).data : {version: 1 as const};
-    setNetwork(networkChoiceOf(prefs) === 'real' && !realConfirmedAtOf(prefs) ? 'practice' : networkChoiceOf(prefs));
+    const opened = networkChoiceOf(prefs) === 'real' && !realConfirmedAtOf(prefs) ? 'practice' : networkChoiceOf(prefs);
+    setNetwork(opened);
     // ZIGi's pre-fill, read once on opening and again whenever ZIGi writes one while this form is open (the window event):
     // it fills the plain fields and drops a review already open, so the person reviews the new values from the start.
     const take = (opening: boolean) => {
       if (!opening && signing.current) return;
       const prefill = takeStakingPrefill(session());
       if (!prefill) return;
-      const current = storage() ? readStakingPrefs(storage()!).data : prefs;
-      setNetwork(prefill.network === 'real' && !realConfirmedAtOf(current) ? 'practice' : prefill.network);
-      if (!opening) { setQuote(null); setError(''); setValidator(''); setAmount(''); }
+      const here = opening ? opened : networkNow.current;
+      revision.current++; // a review being prepared for the old fields is dropped (security review S11)
+      if (!opening) { setQuote(null); setError(''); setValidator(''); setDestination(''); setAmount(''); }
       setAction(prefill.action); if (prefill.validator) setValidator(prefill.validator); if (prefill.amount) setAmount(prefill.amount);
-      setNote(prefill.network === 'real' && !realConfirmedAtOf(current) ? 'ZIGi filled this in for the real network. Switch to the real network to use it; nothing is signed until you review and sign.' : 'ZIGi filled this in. Check every field; nothing is signed until you review and sign.');
+      setPrefillNetwork(prefill.network === here ? null : prefill.network);
+      setNote(prefill.network === here ? 'ZIGi filled this in. Check every field; nothing is signed until you review and sign.' : `ZIGi filled this in for the ${prefill.network === 'real' ? 'real' : 'practice'} network; this form is on the ${here === 'real' ? 'real' : 'practice'} network. Switch networks to use it; nothing is signed until you review and sign.`);
     };
     take(true);
     const onPrefill = () => take(false);
@@ -110,6 +116,15 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       .catch(cause => { if (live) setValidatorsError(cause instanceof Error && cause.message.length < 200 ? cause.message : 'Validator facts are unavailable just now.'); });
     return () => { live = false; };
   }, [wallet, config.chainId, showcase]);
+  // Gate C security review S1 (H133): only an active validator (bonded, not jailed: what the picker offers) can be staked
+  // with or moved to. One remembered, pre-filled or carried over that is not active is unchosen, and the person is told.
+  const activeSet = useMemo(() => validators?.status === 'ok' ? new Set(validators.validators.filter(v => v.status === 'bonded' && !v.jailed).map(v => v.operator)) : null, [validators]);
+  useEffect(() => {
+    if (!activeSet) return;
+    if (action === 'delegate' && validator && !activeSet.has(validator)) { setValidator(''); setNote('The validator chosen before is not active right now (jailed or outside the active set), so it earns nothing and is not chosen. Choose one from the list.'); }
+    if (action === 'redelegate' && destination && !activeSet.has(destination)) { setDestination(''); setNote('The validator to move to is not active right now, so it is not chosen. Choose one from the list.'); }
+  }, [activeSet, action, validator, destination]);
+  const facts = useMemo(() => new Map((validators?.status === 'ok' ? validators.validators : []).map(v => [v.operator, {active: v.status === 'bonded' && !v.jailed, commission: v.commission.rate}])), [validators]);
   // A review re-reads its fee when the estimate expires (every 60 s while it is open).
   useEffect(() => {
     if (!quote) return;
@@ -159,6 +174,12 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       return claim({delegator: connected.address, validators: claimAll ? withRewards : validator ? [validator] : []});
     }
     if (!validator) throw new StakingInputError(action === 'redelegate' ? 'Choose the validator to move stake from.' : 'Choose a validator.');
+    const mustBeActive = (operator: string) => {
+      if (!activeSet) throw new StakingInputError('The validators are not read yet, so none can be chosen. Try again in a moment.');
+      if (!activeSet.has(operator)) throw new StakingInputError('That validator is not active right now (jailed or outside the active set), so it earns nothing. Choose one from the list.');
+    };
+    if (action === 'delegate') mustBeActive(validator);
+    if ((action === 'undelegate' || action === 'redelegate') && !holdings?.delegations.some(d => d.validator === validator)) throw new StakingInputError('Choose one of the validators you stake with.');
     let azig: bigint;
     try { azig = parseAmountInput(amount.trim(), 18); } catch { throw new StakingInputError('Enter an amount of ZIG, for example 25 or 0.5.'); }
     if (azig <= 0n) throw new StakingInputError('Enter an amount of ZIG above zero.');
@@ -168,6 +189,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     if (action === 'delegate') return [delegate(input)];
     if (action === 'undelegate') return [undelegate(input)];
     if (!destination) throw new StakingInputError('Choose the validator to move your stake to.');
+    mustBeActive(destination);
     return [redelegate({delegator: connected.address, source: validator, destination, amount: azig.toString()})];
   }
   const review = useCallback(async (event?: FormEvent) => {
@@ -175,10 +197,13 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     if (!wallet || quoting) return;
     setError(''); setProgress(null); setQuoting(true);
     try {
-      const messages = messagesFor(wallet);
+      const messages = messagesFor(wallet), asked = revision.current;
       // The signing client loads here, on the first Review press, never with the page.
       const {quoteStaking} = await import('../../lib/staking/quote');
-      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action, messages, keplr: window.keplr!, revision: revision.current}));
+      const read = await quoteStaking({network: wallet.network, address: wallet.address, action, messages, keplr: window.keplr!, revision: asked});
+      // Security review S11: the form changed (a pre-fill, the network) while this review was read: it is not shown.
+      if (asked !== revision.current) { setQuote(null); setNote('The form changed while its review was being prepared. Press Review again.'); return; }
+      setQuote(read);
     } catch (cause) {
       setQuote(null);
       setError(cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message);
@@ -190,9 +215,11 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     if (!wallet || quoting) return;
     setError(''); setProgress(null); setQuoting(true); sweep.current = {validator: target, amount: rewardsAzig};
     try {
-      const messages = [delegate({delegator: wallet.address, validator: target, amount: rewardsAzig})];
+      const messages = [delegate({delegator: wallet.address, validator: target, amount: rewardsAzig})], asked = revision.current;
       const {quoteStaking} = await import('../../lib/staking/quote');
-      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action: 'sweep', messages, keplr: window.keplr!, revision: revision.current}));
+      const read = await quoteStaking({network: wallet.network, address: wallet.address, action: 'sweep', messages, keplr: window.keplr!, revision: asked});
+      if (asked !== revision.current) { setQuote(null); sweep.current = null; setNote('The form changed while its review was being prepared. Press Review again.'); return; }
+      setQuote(read);
     } catch (cause) {
       setQuote(null); sweep.current = null;
       setError(cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|restake/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message);
@@ -250,6 +277,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     <p className="whats-this-row"><WhatsThis term="practice-network"/> <WhatsThis term="staking"/></p>
     {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}
     {note && <p role="status" className="fine">{note}</p>}
+    {prefillNetwork && prefillNetwork !== network && <p><button type="button" className="secondary" onClick={() => { const next = prefillNetwork; setPrefillNetwork(null); choose(next); }}>Switch to the {prefillNetwork === 'real' ? 'real' : 'practice'} network</button></p>}
     {!wallet ? <div className="staking-connect">
       {fromVault && <p role="status" className="fine">From your Goal Vault: connect Keplr to restake its rewards. Goal Vaults count your stake on the real network.</p>}
       {hasKeplr ? <>
@@ -269,7 +297,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
         <button type="button" className="text-link" onClick={() => { void readPositions(wallet).catch(() => setNote('Your stake could not be read just now.')); }}>Refresh</button>
         <button type="button" className="text-link" onClick={disconnect}>Disconnect</button></p>
       <div className="staking-tabs" role="tablist" aria-label="Staking action">
-        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} className={action === id ? 'is-active' : ''} onClick={() => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); }}>{label}</button>)}
+        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} className={action === id ? 'is-active' : ''} onClick={() => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); setValidator(''); setDestination(''); revision.current++; }}>{label}</button>)}
       </div>
       {action !== 'delegate' && <p className="whats-this-row"><WhatsThis key={action} term={action === 'undelegate' ? 'unbonding' : action === 'redelegate' ? 'redelegate' : 'rewards'}/></p>}
       <form className="staking-form" onSubmit={review} noValidate>
@@ -300,7 +328,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       {network === 'practice' && <AttestationCard wallet={wallet} busy={quoting || !!quote} error={otherError?.action === 'attest' ? otherError.message : undefined} onReview={reviewBadge}/>}
     </div>}
     {progress && !quote && <TxProgress progress={progress} network={network} chainId={config.chainId} onClose={() => setProgress(null)}/>}
-    {quote && <ReviewSheet quote={quote} names={names} rewards={rewards} expired={expired && !progress} progress={progress} onBack={() => { setQuote(null); setProgress(null); }} onProgress={setProgress} onDone={done} onFailed={failed}/>}
+    {quote && <ReviewSheet quote={quote} names={names} facts={facts} rewards={rewards} expired={expired && !progress} progress={progress} onBack={() => { setQuote(null); setProgress(null); }} onProgress={setProgress} onDone={done} onFailed={failed}/>}
   </section>;
 }
 export default StakingActions;

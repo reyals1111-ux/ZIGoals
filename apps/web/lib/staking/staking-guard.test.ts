@@ -18,7 +18,10 @@ const sources = (dir: string): string[] => !existsSync(join(WEB, dir)) ? [] : re
   return statSync(join(WEB, path)).isDirectory() ? sources(path) : /\.(ts|tsx|mjs)$/.test(name) && !/\.test\.|\.spec\./.test(name) ? [path] : [];
 });
 const ALL = [...sources('lib'), ...sources('components'), ...sources('app')];
-const SIGNER = /getOfflineSigner|connectWithSigner|createWithSigner|broadcastTx|signAndBroadcast|signDirect|signAmino|sendTransaction|eth_sendTransaction|signTransaction|SigningStargateClient|SigningCosmWasmClient/;
+// Gate C security review S5 (ADR-028 H133): every other way a wallet signs or sends is named too — Keplr's sendTx,
+// signArbitrary, signEthereum and experimental signing, EVM personal_sign / eth_sign / eth_signTypedData, Solana's and the
+// Wallet Standard's sign features — so a call to one anywhere outside the two signer files fails here.
+const SIGNER = /getOfflineSigner|connectWithSigner|createWithSigner|broadcastTx|signAndBroadcast|signDirect|signAmino|sendTransaction|eth_sendTransaction|signTransaction|SigningStargateClient|SigningCosmWasmClient|\bsendTx\b|signArbitrary|signEthereum|experimentalSign|personal_sign|eth_sign|solana:sign|signMessage|signAllTransactions|signAndSendTransaction/;
 const callers = (name: string) => ALL.filter(file => new RegExp(`\\b${name}(<[^>]*>)?\\(`).test(read(file)));
 /** The body of `{…}` starting at `open` (the index of its opening brace), by brace count. */
 function block(text: string, open: number): string {
