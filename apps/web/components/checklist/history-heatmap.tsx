@@ -25,10 +25,10 @@ export function HistoryHeatmap({days, today, todaySummary}: {days: ChecklistDays
   const style = {'--heat-some': PATH_COLOURS.blue.token, '--heat-all': PATH_COLOURS.cyan.token, '--heat-perfect': PATH_COLOURS.gold.token} as CSSProperties;
   const results = cells.filter(c => c.level !== 'none' && c.level !== 'future');
   return <div className="checklist-history">
-    <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with dots done`} style={style}>
+    <div className="checklist-heat-grid" role="img" aria-label={`The last ${WEEKS} weeks: ${results.length} days with planets lit`} style={style}>
       {cells.map(c => <span key={c.date} className="checklist-heat-cell" data-level={c.level} data-today={c.date === today || undefined} title={c.label}/>)}
     </div>
-    <ul className="checklist-heat-legend" style={style}><li data-level="none">Nothing</li><li data-level="some">Some dots</li><li data-level="all">All dots</li><li data-level="perfect">Perfect orbit</li></ul>
+    <ul className="checklist-heat-legend" style={style}><li data-level="none">Nothing</li><li data-level="some">Some planets</li><li data-level="all">All planets</li><li data-level="perfect">Perfect orbit</li></ul>
     <ul className="sr-only">{results.map(c => <li key={c.date}>{c.label}</li>)}</ul>
   </div>;
 }

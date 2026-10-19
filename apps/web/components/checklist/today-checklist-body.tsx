@@ -38,15 +38,15 @@ export default function TodayChecklistBody() {
     <div className="today-checklist-head"><span className="today-checklist-mark" aria-hidden="true"><ChecklistMark size={26}/></span><p className="eyebrow" id="today-checklist-title">Checklist</p>
       {!empty && <span className="today-checklist-streak" role="img" aria-label={`${streak?.current ?? 0}-day streak`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streak?.current ?? 0}</span></span>}</div>
     {empty ? <>
-      <h2 className="today-checklist-title">Your day as a path of dots</h2>
+      <h2 className="today-checklist-title">Your day as a path of planets</h2>
       <p className="today-checklist-line">Star a habit, a glass of water or a goal step on its page, and tick it here each day.</p>
     </> : <>
-      <h2 className="today-checklist-title">{summary.total ? `${summary.done} of ${summary.total} ${summary.total === 1 ? 'dot' : 'dots'} today` : 'Nothing counted today'}</h2>
-      <GlassBar identity="today-checklist" className="today-checklist-bar" value={summary.total ? summary.done / summary.total : 0} role="progressbar" aria-label="Checklist dots done today" aria-valuemin={0} aria-valuemax={summary.total} aria-valuenow={summary.done}/>
-      {steps.length > 0 && <ol className="today-checklist-dots" aria-label="Today’s dots, in path order">{steps.map(step => <li key={step.id} data-state={step.state} data-next={next?.id === step.id || undefined} data-counted={step.counted === false ? 'no' : undefined} data-colour={step.colour} style={{'--dot': PATH_COLOURS[step.colour].token} as CSSProperties}>
+      <h2 className="today-checklist-title">{summary.total ? `${summary.done} of ${summary.total} ${summary.total === 1 ? 'planet' : 'planets'} today` : 'Nothing counted today'}</h2>
+      <GlassBar identity="today-checklist" className="today-checklist-bar" value={summary.total ? summary.done / summary.total : 0} role="progressbar" aria-label="Checklist planets lit today" aria-valuemin={0} aria-valuemax={summary.total} aria-valuenow={summary.done}/>
+      {steps.length > 0 && <ol className="today-checklist-dots" aria-label="Today’s planets, in path order">{steps.map(step => <li key={step.id} data-state={step.state} data-next={next?.id === step.id || undefined} data-counted={step.counted === false ? 'no' : undefined} data-colour={step.colour} style={{'--dot': PATH_COLOURS[step.colour].token} as CSSProperties}>
         <span className="sr-only">{step.label}: {step.state === 'done' ? 'done' : step.counted === false ? 'not counted today' : 'not done yet'}{next?.id === step.id ? ' (next)' : ''}</span>
       </li>)}</ol>}
-      <p className="today-checklist-line">{next ? <>Next: <strong data-next-step={next.id}>{next.label}</strong></> : summary.total && summary.done >= summary.total ? 'All dots lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every dot rests today.'}</p>
+      <p className="today-checklist-line">{next ? <>Next: <strong data-next-step={next.id}>{next.label}</strong></> : summary.total && summary.done >= summary.total ? 'All planets lit. See you tomorrow.' : summary.total ? 'Nothing to tick here now: open your path.' : 'Every dot rests today.'}</p>
       {slot && <p className="today-checklist-nudge" role="status">{nudgeText(waiting)}</p>}
     </>}
     <Link className="text-link today-checklist-open" href={CHECKLIST_ROUTE} onClick={seen}>{empty ? 'Build your path →' : 'Open your path →'}</Link>

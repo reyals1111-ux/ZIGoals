@@ -203,7 +203,7 @@ export function summarise(dots: DerivedDot[], today: ChecklistToday): DaySummary
 export function checklistMilestones(game: {on: boolean; dayXp: number; badge?: string | null}): PathMilestone[] {
   return [
     {id: 'half', at: 'half', label: 'Half way', reachedLabel: 'Half way. The orbit is warming up.'},
-    {id: 'end', at: 'end', label: 'All dots lit', reachedLabel: 'All dots lit. See you tomorrow.', ...(game.on ? {reward: {xp: game.dayXp, ...(game.badge ? {badge: game.badge} : {})}} : {})},
+    {id: 'end', at: 'end', label: 'All planets lit', reachedLabel: 'All planets lit. See you tomorrow.', ...(game.on ? {reward: {xp: game.dayXp, ...(game.badge ? {badge: game.badge} : {})}} : {})},
   ];
 }
 /** The path engine's model of today's path: the person's orbits in their order (empty orbits left out), dots in order. */

@@ -1,5 +1,5 @@
 'use client';
-import {useEffect, useRef, type CSSProperties} from 'react';
+import {useEffect, useRef, useState, type CSSProperties} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {useEscapeLayer} from './escape-layers';
@@ -15,7 +15,7 @@ import './day-celebration.css';
  * Motion Off show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
  */
 const CONFETTI = 56, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
-export default function DayCelebration({streak, xp, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
+export default function DayCelebration({streak, xp, xpFrom = null, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; xpFrom?: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
   const ref = useRef<HTMLDialogElement>(null), button = useRef<HTMLButtonElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   useEscapeLayer(true, onClose);
   useEffect(() => {
@@ -47,11 +47,24 @@ export default function DayCelebration({streak, xp, perfect, total, colours = []
       <h2 id="checklist-celebration-title"><NebulaFlow identity="checklist-celebration">All {total} {total === 1 ? 'planet' : 'planets'} lit!</NebulaFlow></h2>
       <p id="checklist-celebration-line" className="checklist-celebration-line">{perfect ? 'A Perfect orbit: every planet in path order.' : 'Every planet today, in your own order.'}</p>
       <ul className="checklist-celebration-stats">
-        <li><FlameMark lit/><strong>{streak}</strong><span>day streak</span></li>
-        {xp !== null && <li><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg><strong>{xp}</strong><span>XP today</span></li>}
+        <li><FlameMark lit/><strong><Rise from={Math.max(0, streak - 1)} to={streak} delay={700}/></strong><span>day streak</span></li>
+        {xp !== null && <li><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg><strong><Rise from={xpFrom ?? 0} to={xp} delay={950}/></strong><span>XP today</span></li>}
       </ul>
-      <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Lovely</button>
+      <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Continue</button>
     </section>
     <div ref={toastSlot} className="checklist-toast-slot"/>
   </dialog>;
+}
+
+/** A number counting up from `from` to `to` after `delay` (at once under reduced motion or Motion Off). */
+function Rise({from, to, delay}: {from: number; to: number; delay: number}) {
+  const [shown, setShown] = useState(from);
+  useEffect(() => {
+    const root = document.documentElement, still = root.getAttribute('data-app-motion') === 'off' || !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (still || to <= from) { setShown(to); return; }
+    let frame = 0; const start = performance.now() + delay, ms = 700;
+    const step = (t: number) => { const k = Math.max(0, Math.min(1, (t - start) / ms)); setShown(Math.round(from + (to - from) * (1 - (1 - k) ** 3))); if (k < 1) frame = requestAnimationFrame(step); };
+    frame = requestAnimationFrame(step); return () => cancelAnimationFrame(frame);
+  }, [from, to, delay]);
+  return <span data-rise={shown === to ? 'done' : 'running'}>{shown}</span>;
 }

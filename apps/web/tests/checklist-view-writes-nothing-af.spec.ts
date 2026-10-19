@@ -17,7 +17,7 @@ test('an empty path: viewing Today and the Checklist writes no Checklist record'
     {...records, [DASHBOARD_SETTINGS_KEY]: JSON.stringify({...presetSettings('balanced'), onboarded: true})});
   const keys = () => page.evaluate(([a, b]) => [a, b].filter(k => localStorage.getItem(k!) !== null), [CHECKLIST_KEY, CHECKLIST_DAYS_KEY]);
   await page.goto('/app');
-  await expect(page.locator('.today-checklist-card .today-checklist-title')).toHaveText('Your day as a path of dots');
+  await expect(page.locator('.today-checklist-card .today-checklist-title')).toHaveText('Your day as a path of planets');
   await page.waitForTimeout(1500);
   expect(await keys()).toEqual([]);
   await page.goto('/app/checklist');

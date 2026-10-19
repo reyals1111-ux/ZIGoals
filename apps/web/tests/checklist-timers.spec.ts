@@ -12,11 +12,20 @@ import {ID, TITLE, fixturePath, seedChecklist, stored} from './checklist-fixture
  */
 type Health = {sleep?: {nights: {start: string; end: string | null}[]}; meditation?: {sessions: {seconds: number}[]}; fasting?: {sessions: {endedAt: string | null}[]}};
 const timer = (page: Page, name: string) => page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: new RegExp(`^${name}:`)});
+/** Session AF (L3b): on a phone or tablet the timers fold into one corner button; it is opened first (a computer shows them). */
+async function openTimers(page: Page) {
+  const fab = page.getByRole('button', {name: /^Timers:/});
+  await expect(page.locator('.checklist-timers-wrap')).toBeAttached();
+  if (await fab.isVisible() && await fab.getAttribute('aria-expanded') !== 'true') await fab.click();
+  await expect(page.getByRole('group', {name: 'Quick timers'})).toBeVisible();
+}
 const fasts = async (page: Page) => (await stored<{sessions: {endedAt: string | null}[]}>(page, FASTING_KEY))?.sessions ?? (await stored<Health>(page, HEALTH_STORAGE_KEY))?.fasting?.sessions ?? [];
 
 test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next ends it on its page', async ({page}) => {
   await seedChecklist(page);
   await page.goto('/app/checklist');
+  await openTimers(page);
+  await expect(timer(page, 'Sleep')).toBeVisible();
   await expect(timer(page, 'Focus')).toHaveCount(0);
   // Sleep.
   await timer(page, 'Sleep').click();
@@ -48,8 +57,12 @@ test('Sleep, Meditate and Fast: one tap starts the page’s own timer, the next 
 test('Focus shows with a timed habit on the path: its own timer starts, then the time is logged on Habits', async ({page}) => {
   await seedChecklist(page, {path: fixturePath({piano: true})});
   await page.goto('/app/checklist');
+  await openTimers(page);
   const focus = timer(page, 'Focus');
-  await expect(focus).toContainText(TITLE.piano);
+  // Session AF (L3b), moved at equal strength: the timer's card no longer carries a second line (the critique's "no
+  // sub-lines"); its name still says which habit it times.
+  await expect(focus).toContainText('Focus');
+  await expect(focus).toHaveAccessibleName(new RegExp(`^Focus: ${TITLE.piano}\\.`));
   await focus.click();
   await expect.poll(async () => (await stored<{habits: {id: string; timer?: {state: string}}[]}>(page, HABITS_KEY))?.habits.find(h => h.id === ID.piano)?.timer?.state).toBe('running');
   await expect(focus).toHaveAttribute('aria-pressed', 'true');
