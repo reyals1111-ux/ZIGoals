@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {Suspense, lazy, useState} from 'react';
 import Link from 'next/link';
 import {NebulaFlow} from '../nebula-flow';
 import {HeaderArtCorner, OrbitArt} from '../header-art/orbit-art';
@@ -42,6 +42,9 @@ function failure(error: unknown, fallback: string) {
  * hypothetical. Prices come only from the shared public quotes (or the Showcase's labelled fixture); without one, a
  * value is unknown, never zero. Nothing here is read by Wealth, Goals, Positions, Allocation, Activity or Today.
  */
+// Session AF (L2b, Part 3, ADR-028 H16): "From your wallets", the linked wallets' balances read-only, in their own chunk
+// (nothing renders until a wallet is linked); the same component as Wealth's.
+const WalletHoldings = lazy(() => import('../wallet/wallet-holdings'));
 export function PortfolioView() {
   const store = usePortfolios();
   const [selectedId, setSelectedId] = useState<string | null>(null), [creating, setCreating] = useState(false);
@@ -74,6 +77,7 @@ export function PortfolioView() {
     {message && <p role="status" className="portfolio-message">{message}</p>}
     {error && <p role="alert" className="notice">{error}</p>}
     <ImportBanner imports={imports} kind="portfolio" onUndo={undoRecord} />
+    {!store.showcase && <Suspense fallback={null}><WalletHoldings variant="portfolio" /></Suspense>}
     {!store.loaded ? <p role="status">Loading your portfolios…</p>
       : store.unreadable ? <Unreadable onStartOver={() => run(() => ({version: 1, portfolios: []}), 'Started over. The unreadable portfolios were replaced.', 'Could not start over.', {replaceUnreadable: true})} />
       : <>

@@ -49,7 +49,10 @@ test('with a linked wallet, the chooser shows it read-only: the address shortene
   await act(async () => { select.value = 'w1'; select.dispatchEvent(new Event('change', {bubbles: true})); }); await settle();
   const value = card().querySelector('.account-value')!;
   expect(value.textContent).toBe(`${LINKED.slice(0, 8)}…${LINKED.slice(-4)}`); expect(value.getAttribute('title')).toBe(LINKED);
-  expect(card().textContent).toContain('Balance tracking arrives with the staking session.');
+  // Assertion changed (Session AF L2b, Part 3; equal strength): the card still reads nothing (requests stay empty below) and
+  // now names where the balances are, with the link.
+  expect(card().textContent).toContain('Its balances, read-only, are in Wealth → What you have.');
+  expect(card().querySelector('a[href="/app/wealth#holdings"]')?.textContent).toBe('Wealth → What you have');
   expect(card().querySelector('.pill')!.textContent).toBe('Read-only');
   expect(card().querySelector('.wallet-card-currency')).toBeNull();
   expect(JSON.parse(localStorage.getItem(LINKED_WALLETS_KEY)!).selected).toBe('w1');
