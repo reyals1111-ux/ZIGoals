@@ -15,6 +15,9 @@ const HOSTS = [
   "docs.permapod.xyz", "imdefa.com", "intercom.help", "defillama.com", "github.com",
   // Session AF chunk 2 (L1): Skip Go's public bridge page and Circle's own notice about USDC on Noble.
   "go.skip.build", "www.circle.com",
+  // Session AF (L2b's rows, moved by the lead): wallets' sites and phone links, Ramp and Banxa, the stablecoins' issuers, two swaps.
+  "metamask.io", "rabby.io", "www.coinbase.com", "trustwallet.com", "web3.okx.com", "phantom.com", "link.metamask.io", "link.trustwallet.com",
+  "rampnetwork.com", "app.rampnetwork.com", "banxa.com", "tether.to", "app.uniswap.org", "jup.ag",
 ];
 const trackingKey = /^(?:ref|refid|ref_id|referral|referrer|affiliate|aff|aff_id|affid|invite|promo|promocode|campaign|partner|click_?id|gclid|fbclid|utm_\w+)$/i;
 const all = Object.entries(VERIFIED_LINKS).flatMap(([provider, links]) => links.map((link) => ({provider, ...link})));
@@ -67,16 +70,21 @@ describe("verified link registry", () => {
     expect(VERIFIED_URLS.size).toBe(all.length);
     expect(() => verifiedLink("valdora", "nope" as "stake")).toThrow();
   });
-  it("the link-only record is never an ecosystem provider or a directory entry", () => {
-    expect(LINK_REGISTRY_ONLY).toEqual(["zig-finance"]);
-    expect(registryRecords.map((r) => r.id)).toContain("zig-finance");
-    expect(ecosystemProviders.map((r) => r.id)).not.toContain("zig-finance");
-    expect(directoryEntries.map((r) => r.id)).not.toContain("zig-finance");
-    expect(registryRecords.length).toBe(ecosystemProviders.length + 1);
+  it("the link-only records are never ecosystem providers or directory entries", () => {
+    // Session AF: the wallet lane's links joined as a second link-only record (one registry, ADR-028 H25).
+    expect(LINK_REGISTRY_ONLY).toEqual(["zig-finance", "wallets-and-money"]);
+    for (const id of LINK_REGISTRY_ONLY) {
+      expect(registryRecords.map((r) => r.id)).toContain(id);
+      expect(ecosystemProviders.map((r) => r.id)).not.toContain(id);
+      expect(directoryEntries.map((r) => r.id)).not.toContain(id);
+    }
+    expect(registryRecords.length).toBe(ecosystemProviders.length + 2);
   });
   it("no rendered registry text calls anyone a partner", () => {
     for (const record of registryRecords.filter((r) => r.officialLinks?.length)) expect(JSON.stringify(record.officialLinks)).not.toMatch(/partner/i);
-    const zig = registryRecords.find((r) => r.id === "zig-finance")!;
-    expect([zig.notes, ...zig.risks, zig.eligibility.note, zig.eligibility.jurisdiction].join(" ")).not.toMatch(/\bpartner/i);
+    for (const id of LINK_REGISTRY_ONLY) {
+      const only = registryRecords.find((r) => r.id === id)!;
+      expect([only.notes, ...only.risks, only.eligibility.note, only.eligibility.jurisdiction].join(" "), id).not.toMatch(/\bpartner/i);
+    }
   });
 });

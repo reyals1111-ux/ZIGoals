@@ -2010,5 +2010,187 @@
         "source": "https://www.circle.com/blog"
       }
     ]
+  },
+  {
+    "id": "wallets-and-money",
+    "name": "Wallets, on-ramps and bridges",
+    "roles": [
+      "ECOSYSTEM_TOOL"
+    ],
+    "website": "https://rampnetwork.com/",
+    "documentation": [
+      "https://docs.rampnetwork.com/",
+      "https://docs.banxa.com/"
+    ],
+    "networks": [],
+    "contracts": [],
+    "capabilities": [],
+    "status": "VERIFIED",
+    "verification": "PRIMARY_SOURCES_REVIEWED",
+    "lastVerified": "2026-10-19",
+    "risks": [
+      "Each site has its own terms, fees and identity checks; ZIGoals never sees a payment and never signs anything there.",
+      "A wallet or app link opens the provider's own page in a new tab; check the network and the address before you confirm anything there."
+    ],
+    "audits": [],
+    "eligibility": {
+      "kyc": "PRODUCT_DEPENDENT",
+      "jurisdiction": "Each provider's own terms and the countries it serves apply.",
+      "note": "ZIGoals needs no account with any of them to show these links."
+    },
+    "notes": "Holds the verified links of the wallet menu, the phones' in-app-browser paths, Add money and its \"What can I do with it now?\" guides: wallets' official sites, Ramp Network and Banxa, the stablecoins' issuers, Uniswap and Jupiter (Skip Go's page is the zig-finance record's own). It is a list of destinations, not an ecosystem app. The MetaMask in-app-browser link answers a redirect to MetaMask's download page outside a phone; its 200 is the answer after the redirect (read 2026-10-19).",
+    "sources": [
+      {
+        "url": "https://docs.rampnetwork.com/",
+        "title": "Ramp Network documentation",
+        "supports": "Names the hosted mode at app.rampnetwork.com."
+      },
+      {
+        "url": "https://docs.banxa.com/",
+        "title": "Banxa documentation",
+        "supports": "Names Banxa's referral checkout."
+      },
+      {
+        "url": "https://developer.trustwallet.com/developer/develop-for-trust/deeplinking",
+        "title": "Trust Wallet deep linking",
+        "supports": "Gives the open_url and wc links."
+      },
+      {
+        "url": "https://docs.metamask.io/metamask-connect/",
+        "title": "MetaMask Connect",
+        "supports": "Gives the link.metamask.io dapp link."
+      }
+    ],
+    "phase": "READ_ONLY",
+    "officialLinks": [
+      {
+        "kind": "metamask-site",
+        "url": "https://metamask.io/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://metamask.io/"
+      },
+      {
+        "kind": "rabby-site",
+        "url": "https://rabby.io/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://rabby.io/"
+      },
+      {
+        "kind": "coinbase-wallet-site",
+        "url": "https://www.coinbase.com/wallet",
+        "checkedAt": "2026-10-18",
+        "check": "unreadable-by-automation",
+        "httpStatus": 403,
+        "source": "https://www.coinbase.com/"
+      },
+      {
+        "kind": "trust-site",
+        "url": "https://trustwallet.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://trustwallet.com/"
+      },
+      {
+        "kind": "okx-wallet-site",
+        "url": "https://web3.okx.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.okx.com/web3"
+      },
+      {
+        "kind": "phantom-site",
+        "url": "https://phantom.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://phantom.com/"
+      },
+      {
+        "kind": "metamask-dapp",
+        "url": "https://link.metamask.io/dapp/",
+        "checkedAt": "2026-10-19",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.metamask.io/metamask-connect/"
+      },
+      {
+        "kind": "trust-dapp",
+        "url": "https://link.trustwallet.com/open_url",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://developer.trustwallet.com/developer/develop-for-trust/deeplinking"
+      },
+      {
+        "kind": "trust-wc",
+        "url": "https://link.trustwallet.com/wc",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://developer.trustwallet.com/developer/develop-for-trust/deeplinking"
+      },
+      {
+        "kind": "ramp-site",
+        "url": "https://rampnetwork.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.rampnetwork.com/"
+      },
+      {
+        "kind": "banxa-site",
+        "url": "https://banxa.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.banxa.com/"
+      },
+      {
+        "kind": "ramp-hosted",
+        "url": "https://app.rampnetwork.com/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.rampnetwork.com/"
+      },
+      {
+        "kind": "circle-usdc",
+        "url": "https://www.circle.com/usdc",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.circle.com/"
+      },
+      {
+        "kind": "tether-site",
+        "url": "https://tether.to/en/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://tether.to/en/supported-protocols/"
+      },
+      {
+        "kind": "uniswap-app",
+        "url": "https://app.uniswap.org/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://uniswap.org/"
+      },
+      {
+        "kind": "jupiter-app",
+        "url": "https://jup.ag/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://jup.ag/"
+      }
+    ]
   }
 ]
