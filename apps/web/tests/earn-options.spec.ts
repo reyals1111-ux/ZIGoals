@@ -28,10 +28,17 @@ test('every way to earn has the full anatomy; vault, pool and app figures are li
       const kinds = (await risk.getAttribute('data-risk-source') ?? '').split(' ').filter(Boolean);
       expect(kinds.length, `${id}: a risk without its source`).toBeGreaterThan(0);
       const source = risk.locator('.earn-risk-source');
-      await expect(source, id).toHaveText(/^Source: \S.*\.$/);
+      // Critique round 2 (L5c), equal strength: "Source:" is now glued to what it names by a no-break space, so the
+      // separator is any space (\s, which includes U+00A0) instead of a plain one; the rest of the pattern is unchanged.
+      await expect(source, id).toHaveText(/^Source:\s\S.*\.$/);
       const hrefs = await source.locator('a[href]').evaluateAll(els => els.map(a => a.getAttribute('href')!));
-      if (kinds.includes('link')) expect(hrefs.length, id).toBeGreaterThan(0);
-      for (const href of hrefs) expect(VERIFIED_URLS.has(href), `${id}: ${href}`).toBe(true);
+      // Critique round 2 (L5c), equal strength: a chain source may now point at a section of this same page (native
+      // staking's "see the list below" → #validators). Every link that leaves the page must still be a verified one, a
+      // "link" source must still carry one, and an in-page link must name a section that exists here.
+      const outside = hrefs.filter(href => !href.startsWith('#'));
+      if (kinds.includes('link')) expect(outside.length, id).toBeGreaterThan(0);
+      for (const href of outside) expect(VERIFIED_URLS.has(href), `${id}: ${href}`).toBe(true);
+      for (const href of hrefs.filter(h => h.startsWith('#'))) await expect(page.locator(href), `${id}: ${href}`).toHaveCount(1);
       if (kinds.includes('chain')) await expect(source, id).toContainText(/ZIGChain|the chain/);
     }
     expect(await s.locator('.earn-steps li').count(), id).toBeGreaterThanOrEqual(2);

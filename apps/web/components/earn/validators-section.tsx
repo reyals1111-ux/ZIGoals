@@ -14,7 +14,10 @@ import {WhatsThis} from './whats-this';
  * uptime), never on an "expected return". A validator's own website is shown as text, never a link (it is unchecked
  * chain data); the one outgoing link is ZIGScan's validator list from the verified registry.
  */
-type Sort = 'power' | 'commission' | 'uptime';
+// Critique round 2 (L5c): the list opens in a neutral order, by name, right under the advice to spread stake; every sort
+// option stays (most voting power, lowest commission, best uptime).
+type Sort = 'name' | 'power' | 'commission' | 'uptime';
+const byName = (a: Validator, b: Validator) => (a.moniker || '').localeCompare(b.moniker || '', 'en') || a.operator.localeCompare(b.operator, 'en');
 const share = (n: number, digits = 1) => `${formatNumber(n * 100, {maximumFractionDigits: digits})} %`;
 export function foundationShare(validators: readonly Validator[]): number | null {
   const named = validators.filter(v => v.status === 'bonded' && /foundation/i.test(v.moniker));
@@ -22,11 +25,11 @@ export function foundationShare(validators: readonly Validator[]): number | null
 }
 export function filterValidators(list: readonly Validator[], {active, hideJailed, maxCommission, sort}: {active: boolean; hideJailed: boolean; maxCommission: number | null; sort: Sort}): Validator[] {
   const out = list.filter(v => (!active || v.status === 'bonded') && (!hideJailed || !v.jailed) && (maxCommission === null || v.commission.rate <= maxCommission + 1e-12));
-  const key: Record<Sort, (v: Validator) => number> = {power: v => -v.votingPowerShare, commission: v => v.commission.rate, uptime: v => -(v.uptime?.signedShare ?? -1)};
-  return out.sort((a, b) => key[sort](a) - key[sort](b) || a.moniker.localeCompare(b.moniker));
+  const key: Record<Exclude<Sort, 'name'>, (v: Validator) => number> = {power: v => -v.votingPowerShare, commission: v => v.commission.rate, uptime: v => -(v.uptime?.signedShare ?? -1)};
+  return out.sort((a, b) => sort === 'name' ? byName(a, b) : key[sort](a) - key[sort](b) || byName(a, b));
 }
 export function ValidatorsSection({validators, now}: {validators: LiveState<ValidatorsAnswer>; now: number}) {
-  const [active, setActive] = useState(true), [hideJailed, setHideJailed] = useState(true), [maxCommission, setMax] = useState<number | null>(null), [sort, setSort] = useState<Sort>('power');
+  const [active, setActive] = useState(true), [hideJailed, setHideJailed] = useState(true), [maxCommission, setMax] = useState<number | null>(null), [sort, setSort] = useState<Sort>('name');
   const list = useMemo(() => validators.phase === 'ok' ? validators.answer.data.validators : [], [validators]);
   const rates = useMemo(() => [...new Set(list.filter(v => v.status === 'bonded').map(v => v.commission.rate))].sort((a, b) => a - b), [list]);
   const rows = useMemo(() => filterValidators(list, {active, hideJailed, maxCommission, sort}), [list, active, hideJailed, maxCommission, sort]);
@@ -50,7 +53,7 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
           <label className="earn-check"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)}/><span>Active only</span></label>
           <label className="earn-check"><input type="checkbox" checked={hideJailed} onChange={e => setHideJailed(e.target.checked)}/><span>Hide jailed</span></label>
           <label className="earn-select"><span>Commission at most</span><select value={maxCommission === null ? '' : String(maxCommission)} onChange={e => setMax(e.target.value === '' ? null : Number(e.target.value))}><option value="">Any</option>{rates.map(r => <option key={r} value={String(r)}>{share(r, 2)}</option>)}</select></label>
-          <label className="earn-select"><span>Sort by</span><select value={sort} onChange={e => setSort(e.target.value as Sort)}><option value="power">Most voting power</option><option value="commission">Lowest commission</option><option value="uptime">Best uptime</option></select></label>
+          <label className="earn-select"><span>Sort by</span><select value={sort} onChange={e => setSort(e.target.value as Sort)}><option value="name">Name (A to Z)</option><option value="power">Most voting power</option><option value="commission">Lowest commission</option><option value="uptime">Best uptime</option></select></label>
         </form>
         {/* Session AF chunk 2: the figure is the list with its count and its source line, so the source sits inside it (verifier stage 9). */}
         <div className="earn-validators-live" data-live-figure="validators" data-state="ok">

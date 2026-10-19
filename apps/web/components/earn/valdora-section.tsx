@@ -10,6 +10,7 @@ import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection, type Tag} from './option-section';
 import {IllustrationSlot} from './illustrations/slot';
 import {Risk} from './risk';
+import {continueSentence} from './words';
 import type {PositionRead} from './use-earn-positions';
 import {WhatsThis} from './whats-this';
 import {YourPosition} from './your-position';
@@ -42,7 +43,8 @@ export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: Live
     ]}
     figures={<>
       <LiveFigure id="valdora-rate" big label="1 stZIG is worth" now={now} figure={shown(valdora, d => d.rate.status === 'ok' ? <>{decimal(d.rate.zigPerStZig, 4)} ZIG</> : {unavailable: d.rate.reason})}
-        hint={<>{data?.rate.status === 'ok' ? <>Valdora’s contract rate ({data.rate.basis}). OroSwap’s pool says {decimal(data.rate.dexZigPerStZig, 4)} ZIG; shown only while the two agree within 2 %.</> : 'Shown only while Valdora’s contract and OroSwap’s pool agree within 2 %.'} <WhatsThis term="exchange-rate"/></>}/>
+        hint={<>{data?.rate.status === 'ok' ? <>Valdora’s own rate, asked of its staking contract. OroSwap’s pool says {decimal(data.rate.dexZigPerStZig, 4)} ZIG; shown only while the two agree within 2 %.</> : 'Shown only while Valdora’s contract and OroSwap’s pool agree within 2 %.'} <WhatsThis term="exchange-rate"/></>}
+        how={data?.rate.status === 'ok' ? <p>The contract’s answer, as ZIGoals reads it: {data.rate.basis}.</p> : undefined}/>
       <LiveFigure id="valdora-fee" label="Valdora’s fee" now={now} figure={shown(valdora, d => <>{pctShort(d.feeOfRewards)} of the staking rewards</>)}/>
       <LiveFigure id="valdora-minimum" label="Minimum to stake" now={now} figure={shown(valdora, d => zig(d.minDepositAzig))}/>
       <LiveFigure id="valdora-supply" label="stZIG in circulation" now={now} figure={shown(valdora, d => tokenAmount(d.stZigSupplyUnits, d.stZigDecimals, 'stZIG', {compact: true}))}/>
@@ -54,7 +56,7 @@ export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: Live
     mine={<YourPosition reads={reads} kind="valdora"/>}
     columns={[
       {title: 'Fees', body: <><p>{data ? <>Valdora keeps {pctShort(data.feeOfRewards)} of the rewards (read from its contract).</> : <>Valdora’s fee is <Unavailable reason={unavailable} short/> right now.</>} Plus a small network fee for each step you sign. <WhatsThis term="gas"/></p><p className="fine">{PROVIDER_CLAIMS.valdoraUnstakeFee.text} <VerifiedLink provider="valdora" kind="fees" className="text-link" mark="compact">Economics page</VerifiedLink> · <VerifiedLink provider="valdora" kind="faq" className="text-link" mark="compact">FAQ</VerifiedLink></p></>},
-      {title: 'Lockups', body: <><p>None while you hold stZIG. To turn stZIG back into ZIG through Valdora: {PROVIDER_CLAIMS.valdoraRedemption.text.charAt(0).toLowerCase() + PROVIDER_CLAIMS.valdoraRedemption.text.slice(1)} <span className="fine">(Valdora’s FAQ, read {day})</span> <WhatsThis term="unbonding"/></p><p><b>The faster way out:</b> sell stZIG for ZIG on OroSwap right away at the pool’s price, usually a little below the contract’s rate.</p></>},
+      {title: 'Lockups', body: <><p>None while you hold stZIG. To turn stZIG back into ZIG through Valdora: {continueSentence(PROVIDER_CLAIMS.valdoraRedemption.text)} <span className="fine">(Valdora’s FAQ, read {day})</span> <WhatsThis term="unbonding"/></p><p><b>The faster way out:</b> sell stZIG for ZIG on OroSwap right away at the pool’s price, usually a little below the contract’s rate.</p></>},
       {title: 'Minimums', body: <p>{data ? <>At least {zig(data.minDepositAzig)} to stake (read from the contract).</> : <>The minimum is <Unavailable reason={unavailable} short/> right now.</>}</p>},
       // Session AF (L1c, N5): each risk with its source (R2 §2, plan section 5): a verified link, or the chain read in words.
       {title: 'Risks', body: <ul className="earn-risks">
@@ -64,7 +66,7 @@ export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: Live
         <Risk link={<VerifiedLink provider="valdora" kind="faq" className="text-link" mark="compact">Valdora’s FAQ</VerifiedLink>}>Leaving through Valdora takes weeks and cannot be cancelled once it starts.</Risk>
         <Risk link={<><VerifiedLink provider="valdora" kind="faq" className="text-link" mark="compact">Valdora’s FAQ</VerifiedLink> and <VerifiedLink provider="valdora" kind="fees" className="text-link" mark="compact">its economics page</VerifiedLink></>}>Valdora’s own pages disagree on whether leaving costs a fee: its FAQ says unstaking may include one, its economics page says there is none on redemption.</Risk>
         <Risk chain="OroSwap’s stZIG / ZIG pool and Valdora’s contract, both read from the chain (the rate above)">Selling stZIG on OroSwap is quick, but usually gets a little less ZIG than the contract’s rate, and less again in a large sale.</Risk>
-        <Risk chain="Valdora’s ledgers on ZIGChain, which stake with validators under the chain’s slashing rules">If a validator Valdora stakes with is slashed, the loss passes on to what stZIG is worth. <WhatsThis term="validator"/> <WhatsThis term="slashing"/></Risk>
+        <Risk chain="Valdora’s ledgers on ZIGChain, which stake with validators under the chain’s slashing rules" tap={<><WhatsThis term="validator"/> <WhatsThis term="slashing"/></>}>If a validator Valdora stakes with is slashed, the loss passes on to what stZIG is worth.</Risk>
         <Risk chain="ZIG’s price in OroSwap’s ZIG / USDC pools, read from the chain (the OroSwap section)">ZIG’s price moves, and stZIG moves with it.</Risk>
       </ul>},
     ]}
@@ -80,7 +82,7 @@ export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: Live
     actions={<>
       <GuideLink guide={VALDORA_GUIDE}/>
       <VerifiedLink provider="valdora" kind="docs" className="secondary">Valdora’s docs</VerifiedLink>
-      <VerifiedLink provider="valdora" kind="defillama" className="secondary" mark="compact">On DefiLlama</VerifiedLink>
+      <VerifiedLink provider="valdora" kind="defillama" className="secondary" mark="full">On DefiLlama</VerifiedLink>
     </>}
   />;
 }

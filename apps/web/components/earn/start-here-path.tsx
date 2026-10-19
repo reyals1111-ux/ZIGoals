@@ -9,6 +9,7 @@ import {START_STEPS, STEP_WORDS, startHereModel, type StartStepId, type StartSte
 import {formatDate} from '../../lib/visual-format';
 import {VerifiedLink} from '../links/verified-link';
 import {Path} from '../path/path';
+import {HowRead} from './how-read';
 import {Unavailable} from './live-figure';
 import {WhatsThis} from './whats-this';
 
@@ -30,8 +31,8 @@ function Seen({state, onMark, error}: {state: StartStepState; onMark: (done: boo
     {error && <p role="alert" className="fine">{error}</p>}
   </div>;
 }
-function Steps({items}: {items: {text: ReactNode; sign?: ReactNode}[]}) {
-  return <ol className="earn-start-steps">{items.map((s, i) => <li key={i}><span className="earn-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.sign && <p className="earn-step-sign"><b>What you sign:</b> {s.sign}</p>}</div></li>)}</ol>;
+function Steps({items}: {items: {text: ReactNode; sign?: ReactNode; how?: ReactNode}[]}) {
+  return <ol className="earn-start-steps">{items.map((s, i) => <li key={i}><span className="earn-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.sign && <p className="earn-step-sign"><b>What you sign:</b> {s.sign}</p>}{s.how && <HowRead>{s.how}</HowRead>}</div></li>)}</ol>;
 }
 function poolFee(oroswap: LiveState<OroswapData>, id: string | null): ReactNode {
   if (!id) return null;
@@ -91,8 +92,8 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
       <p>Your first stake on the real network: the same steps as your practice round, with real ZIG.</p>
       <Steps items={[
         {text: <>Open <Link className="text-link" href="/app/staking">Staking</Link> and switch the network to Real. ZIGoals asks you to confirm that once.</>},
-        {text: 'Connect Keplr, choose a validator (the list on this page shows commission, uptime and how much stake each holds) and enter an amount. Keep some ZIG for fees.'},
-        {text: 'Press Review, read the review screen, then sign in Keplr.', sign: 'one delegation (MsgDelegate) on ZIGChain (zigchain-1) that moves ZIG from your balance into your stake.'},
+        {text: <>Connect Keplr, choose a validator (<a className="text-link" href="#validators">the list on this page</a> shows commission, uptime and how much stake each holds) and enter an amount. Keep some ZIG for fees.</>},
+        {text: 'Press Review, read the review screen, then sign in Keplr.', sign: 'one delegation on ZIGChain (zigchain-1) that moves ZIG from your balance into your stake.', how: <p>Keplr names this message <code>MsgDelegate</code> (ZIGChain’s staking module): one message, from your address to the validator you chose.</p>},
         {text: <>Rewards start right away. To leave later, your ZIG is locked for {unbonding ?? <Unavailable reason={live.chain.phase === 'unavailable' ? live.chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile. <WhatsThis term="unbonding"/></>},
       ]}/>
       <p className="fine">About 5 minutes. Only you can sign; ZIGoals never sees your keys.</p>

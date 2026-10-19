@@ -19,9 +19,15 @@ test('the list, its guidance and its filters and sorts, from facts only', async 
   await expect(section.getByText(`${bonded.filter(v => !v.jailed).length} of ${all.length} validators shown`)).toBeVisible();
   await expect(rows).toHaveCount(bonded.filter(v => !v.jailed).length);
   await expect(section).toContainText(`Validators named “Foundation” hold ${fmt(foundation * 100, 1)} % of all stake right now.`);
-  // Largest first by default; the first row is the validator with the most voting power.
+  // Critique round 2 (L5c), moved at greater strength: the list opens in a neutral order, by name (the whole shown order is
+  // checked, not only the first row), and "Most voting power" still puts the largest first.
+  const shownByName = bonded.filter(v => !v.jailed).map(v => v.moniker || '').sort((a, b) => a.localeCompare(b, 'en'));
+  await expect(section.getByLabel('Sort by')).toHaveValue('name');
+  await expect(rows.locator('th .earn-moniker')).toHaveText(shownByName.map(n => n || 'Unnamed validator'));
+  await section.getByLabel('Sort by').selectOption('power');
   const largest = [...bonded].sort((a, b) => Number(b.votingPowerShare) - Number(a.votingPowerShare))[0]!;
   await expect(rows.first().locator('th .earn-moniker')).toHaveText(largest.moniker);
+  await section.getByLabel('Sort by').selectOption('name');
   // Every validator, active or not.
   await section.getByLabel('Active only').uncheck();
   await expect(rows).toHaveCount(all.filter(v => !v.jailed).length);

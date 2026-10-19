@@ -28,10 +28,13 @@ export function PlanetBody({planet, x, y, r, idPrefix}: {planet: Planet; x: numb
   const ringRx = (k: number) => r + 7 + k * 4.2;
   return <g className="universe-planet" data-pillar={planet.pillar} data-lit={planet.lit || undefined} style={{'--planet': colour} as CSSProperties}>
     <circle className="universe-planet-glow" cx={x} cy={y} r={r * 2.1} fill={`url(#${idPrefix}-glow-${planet.pillar})`} opacity={0.18 + light * 0.62} />
-    {planet.lit && <circle className="universe-planet-halo" cx={x} cy={y} r={r + 5} fill="none" stroke={colour} strokeWidth={1.4} opacity={0.9} />}
+    {/* Critique round 2 (L5c): a lit planet reads as lit — a soft corona and a firm halo in its own colour, and its body at
+        full strength (a 1.4 px ring alone did not show). Still: no motion beyond the scene's one entrance. */}
+    {planet.lit && <circle className="universe-planet-corona" cx={x} cy={y} r={r + 8} fill="none" stroke={colour} strokeWidth={7} opacity={0.3} />}
+    {planet.lit && <circle className="universe-planet-halo" cx={x} cy={y} r={r + 4.5} fill="none" stroke={colour} strokeWidth={2.6} opacity={1} />}
     {Array.from({length: planet.faintRings}, (_, k) => <ellipse key={`f${k}`} className="universe-ring is-faint" cx={x} cy={y} rx={ringRx(planet.rings + k)} ry={ringRx(planet.rings + k) * 0.34} fill="none" stroke={colour} strokeWidth={1} strokeDasharray="2 4" opacity={0.3} />)}
     {Array.from({length: planet.rings}, (_, k) => <ellipse key={`r${k}`} className="universe-ring" cx={x} cy={y} rx={ringRx(k)} ry={ringRx(k) * 0.34} fill="none" stroke={colour} strokeWidth={1.6} opacity={0.82} />)}
-    <circle className="universe-planet-core" cx={x} cy={y} r={r} fill={`url(#${idPrefix}-core-${planet.pillar})`} opacity={Math.min(1, depth)} />
+    <circle className="universe-planet-core" cx={x} cy={y} r={r} fill={`url(#${idPrefix}-core-${planet.pillar})`} opacity={planet.lit ? 1 : Math.min(1, depth)} />
     {planet.staked && <circle className="universe-staked" cx={x} cy={y} r={r + 2.5} fill="none" stroke="#ffe6a8" strokeWidth={1} strokeDasharray="1 3" />}
     {Array.from({length: planet.moons}, (_, k) => { const a = (-90 + k * 45) * Math.PI / 180, d = r + 16; return <circle key={`m${k}`} className="universe-moon" cx={x + d * Math.cos(a)} cy={y + d * 0.62 * Math.sin(a)} r={3.1} fill="#eef3ff" stroke={colour} strokeWidth={1} />; })}
   </g>;
@@ -58,13 +61,17 @@ export function UniverseScene({planets, idPrefix = 'universe'}: {planets: readon
   </div>;
 }
 
-/** Four planets in a row for Today's compact card: the same bodies, smaller, no orbits. */
+/**
+ * Four planets in a row for Today's compact card: the same bodies, smaller, no orbits. Critique round 2 (L5c): one small
+ * picture per planet in a four-column grid — the same columns as the names under them (.today-universe-names) — so each
+ * name sits under its planet at every width (one 320-wide picture, centred, drifted away from a full-width row of names).
+ */
 export function UniverseRow({planets, idPrefix = 'universe-row'}: {planets: readonly Planet[]; idPrefix?: string}) {
   const ref = useEntrance<HTMLDivElement>(`universe-row:${idPrefix}`, planets.length > 0);
   return <div ref={ref} className="universe-row" aria-hidden="true">
-    <svg viewBox="0 0 320 84" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" focusable="false">
-      <Gradients idPrefix={idPrefix} planets={planets} />
-      {planets.map((p, i) => <PlanetBody key={p.pillar} planet={p} x={40 + i * 80} y={42} r={Math.min(16, 9 + p.rings)} idPrefix={idPrefix} />)}
-    </svg>
+    {planets.map(p => <svg key={p.pillar} viewBox="0 0 80 84" preserveAspectRatio="xMidYMid meet" focusable="false" data-pillar={p.pillar}>
+      <Gradients idPrefix={`${idPrefix}-${p.pillar}`} planets={[p]} />
+      <PlanetBody planet={p} x={40} y={42} r={Math.min(16, 9 + p.rings)} idPrefix={`${idPrefix}-${p.pillar}`} />
+    </svg>)}
   </div>;
 }

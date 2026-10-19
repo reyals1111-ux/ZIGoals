@@ -10,6 +10,7 @@ import {IllustrationSlot} from './illustrations/slot';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
 import {Risk} from './risk';
+import {continueSentence} from './words';
 import {WhatsThis} from './whats-this';
 
 /**
@@ -52,7 +53,7 @@ export function VaultsSection({vaults, valdora, now}: {vaults: LiveState<VaultsD
     </>}
     facts={[
       {label: 'Best for', value: 'People who hold USDC, accept that a borrower may not repay, and can wait weeks to get their money back.'},
-      {label: 'Who runs it', value: <>Valdora, through vault contracts on ZIGChain; {VALDORA_VAULT_PAGE.curated.charAt(0).toLowerCase() + VALDORA_VAULT_PAGE.curated.slice(1)}</>},
+      {label: 'Who runs it', value: <>Valdora, through vault contracts on ZIGChain; {continueSentence(VALDORA_VAULT_PAGE.curated)}</>},
       {label: 'Who holds the funds', value: <>The vault contract issues your shares; the USDC itself is lent out by the curator, away from the chain. You hold the shares in your own wallet. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Valdora’s terms ask that you are allowed to use it where you live. The vault pages state no other rule; ZIGoals has not checked that for you.'},
     ]}
@@ -91,7 +92,7 @@ export function VaultsSection({vaults, valdora, now}: {vaults: LiveState<VaultsD
       <GuideLink guide={VAULT_GUIDES['stablecoin-yield']}/>
       <GuideLink guide={VAULT_GUIDES['private-credit']} className="secondary"/>
       <GuideLink guide={VAULT_GUIDES['core-income']} className="secondary"/>
-      <VerifiedLink provider="valdora" kind="vaults" className="secondary" mark="compact">All of Valdora’s vaults</VerifiedLink>
+      <VerifiedLink provider="valdora" kind="vaults" className="secondary" mark="full">All of Valdora’s vaults</VerifiedLink>
     </>}
   />;
 }

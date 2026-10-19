@@ -26,6 +26,15 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-glyph-mark .ha-ink-c { fill: var(--accent-cyan); }
 /* crit1: `:root` lifts the section titles above the app's `.panel h2 { font-size: 20px }`, so each section starts at its designed size. */
 :root .earn-option-title h2 { margin: 2px 0 8px; font-size: clamp(24px, 2.2vw + 10px, 32px); }
+/* Critique round 2 (L5c): the title still drew at 20 px — the lift above lost to a later sheet's rule — so the option's own
+   path names it in full (four classes beat any page-wide `.panel h2`, `.aa-section-heading h2` or phone rule), and the
+   eyebrow above it balances its lines instead of leaving one word alone ("PAUSED AFTER AN / EXPLOIT"). */
+:root .earn-page .earn-option > .earn-option-head .earn-option-title > h2 { margin: 2px 0 8px; font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
+/* Earn's other sections (Start here, the validators, the Academy, the calculator, safety, the summary) are the options'
+   peers: their titles take the same size, over the app's smaller in-panel heading (`:root .panel :is(.aa-section-heading,
+   …) h2`, 19–22 px). */
+:root .earn-page .earn-sections > .panel > .aa-section-heading h2 { font-size: clamp(24px, 2.2vw + 10px, 32px); line-height: 1.15; }
+:root .earn-page .earn-option-title > .eyebrow { text-wrap: balance; }
 .earn-option-lede { margin: 0 0 12px; color: var(--text-secondary); font-size: 17px; line-height: 1.5; max-width: 720px; }
 .earn-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .earn-tag { display: inline-flex; align-items: center; min-height: 28px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 650; border: 1px solid #7fc8ff40; color: var(--text-secondary); background: #0f1a30; }
@@ -78,6 +87,10 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-mine > .fine { margin: 10px 0 0; }
 /* Session AF (L1c, N5): where each risk comes from, after its words. */
 .earn-risk-source { font-size: 14px; color: var(--text-meta); }
+/* Critique round 2 (L5c): a risk's last link keeps its mark and the closing stop on one line (no line starts with "."),
+   while the link's own words still wrap. */
+.earn-risk-end { white-space: nowrap; }
+.earn-risk-end a { white-space: normal; }
 
 /* Steps */
 .earn-steps ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: none; }
@@ -118,7 +131,13 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-safety-tiles li { padding: 16px 18px; border-radius: 16px; background: #0b1428; border: 1px solid #ffd27a33; }
 .earn-safety-tiles h3 { margin: 0 0 8px; font-size: 17px; color: var(--text-strong); }
 .earn-safety-tiles p { margin: 0; color: var(--text-secondary); line-height: 1.5; }
-.earn-denom { font-size: 14px; overflow-wrap: anywhere; word-break: break-all; color: var(--earn-accent); }
+/* Critique round 2 (L5c): no `word-break: break-all` (it cut "azig" and the decoy's words anywhere): the decoy's denom
+   breaks after its dots (<wbr> in safety-block.tsx); only an address wider than the whole line (a phone's tile) wraps
+   inside, at the line's end, rather than scrolling the page sideways. With room for it, the four tiles sit two by two, so
+   each is wide enough for the decoy's 42-character address on one line (they sat three and one before). */
+.earn-denom { font-size: 14px; overflow-wrap: anywhere; color: var(--earn-accent); }
+.earn-safety { container-type: inline-size; }
+@container (min-width: 820px) { .earn-safety-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Guide mode: a compact panel at the bottom right (not a dialog) */
 .earn-guide-panel { position: fixed; right: max(100px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); z-index: 60; box-sizing: border-box; width: min(380px, calc(100vw - 40px)); max-height: min(70vh, 560px); overflow: auto; padding: 16px 18px; border-radius: 20px; border: 1px solid #ffd27a55; background: linear-gradient(160deg, #0f1d38fa, #0a1328fa); box-shadow: 0 24px 80px #000c; color: var(--text-secondary); }
@@ -276,3 +295,32 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 @media (prefers-reduced-motion: reduce) { :is(.earn-formula, .earn-illustration-slot) > summary::after { transition: none; } }
 :root[data-app-motion=off] :is(.earn-formula, .earn-illustration-slot) > summary::after { transition: none; }
 .earn-unit { white-space: nowrap; }
+
+/* ---- Critique round 2 (L5c) ---- */
+/* A link inside a sentence stays in the sentence. The phone sheet turns every `main a.text-link` into a 44 px inline-flex
+   box, which cannot break, so a long link sat on a line of its own with "(" and ")" left behind (Stablecoins' "What
+   exists"). On Earn, a link that is a child of a sentence (p, li, dd, span, small) — and a verified link's own link in
+   one — stays inline everywhere; on phones and touch screens its 44 px comes from block padding, which grows the hit area
+   without moving a line (components/ui/touch-targets.css does the same on tablets). Links on their own (a card's row, a
+   button) keep their boxes. */
+:root .earn-page :is(p, li, dd, span, small) > a.text-link,
+:root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) { display: inline; min-height: 0; }
+:root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) .verified-link-arrow { margin-inline-start: 3px; }
+:root .earn-page :is(p, li, dd, span, small) > .verified-link:has(> a.text-link) > .verified-mark { margin-inline-start: 6px; vertical-align: -2px; }
+@media (max-width: 767.98px), (pointer: coarse) {
+  :root .earn-page :is(p, li, dd, span, small) > a.text-link { padding-block: 15px; }
+}
+/* "How this is read": the method and message names behind one tap, like "How this is computed". */
+.earn-how-read { margin-top: 8px; font-size: 15px; }
+.earn-how-read > summary { font-size: 15px; }
+.earn-how-read > div { padding-bottom: 12px; color: var(--text-secondary); line-height: 1.5; }
+.earn-how-read p { margin: 0 0 6px; }
+.earn-how-read code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; overflow-wrap: anywhere; color: var(--text-strong); }
+.earn-figure .earn-how-read { margin-top: 4px; background: #0b1428; }
+.earn-steps li .earn-how-read, .earn-start-steps li .earn-how-read { margin-top: 6px; }
+/* A caution beside a link (Permapod's site while it is halted). */
+.earn-caution { flex: 1 1 260px; margin: 0; padding: 8px 12px; border-radius: 12px; border: 1px solid #ffb27a66; background: #2a1a1f66; color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
+/* The calculator's rate with its source line under it. */
+.earn-calculator-live { display: grid; gap: 8px; }
+/* A box whose figure lives on another page says where it is and why it is not here: never a blank box. */
+.earn-figure-elsewhere .earn-value { font-size: 17px; }
