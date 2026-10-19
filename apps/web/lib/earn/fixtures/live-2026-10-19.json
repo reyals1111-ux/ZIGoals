@@ -1,6 +1,6 @@
 {
  "version": 1,
- "recordedAt": "2026-10-18T22:00:10.639Z",
+ "recordedAt": "2026-10-18T23:55:40.815Z",
  "note": "One real read of each Earn upstream (plain GETs through the routes’ own readers). Large bodies are cut to the fields the readers use and marked reduced. Replay: apps/web/lib/server/earn/fixture-fetcher.ts.",
  "answers": {
   "chainMainnet": {
@@ -10,9 +10,9 @@
     "name": "ZIGChain mainnet LCD (official)",
     "origin": "https://api.zigchain.com"
    },
-   "height": "13046133",
-   "observedAt": "2026-10-18T22:00:05.538Z",
-   "fetchedAt": "2026-10-18T22:00:11.062Z",
+   "height": "13048319",
+   "observedAt": "2026-10-18T23:55:36.646Z",
+   "fetchedAt": "2026-10-18T23:55:41.270Z",
    "stale": false,
    "data": {
     "network": "mainnet",
@@ -21,19 +21,19 @@
     "bondDenom": "azig",
     "decimals": 18,
     "mint": {
-     "inflation": "0.010453725500936836",
+     "inflation": "0.010453281357216456",
      "inflationMin": "0.010000000000000000",
      "inflationMax": "0.020000000000000000",
      "goalBonded": "0.150000000000000000",
      "inflationRateChange": "0.010000000000000000",
      "blocksPerYear": "10512000",
-     "annualProvisions": "24438332273527372776395305.774150936347821796"
+     "annualProvisions": "24437347093503540240083765.247430546141162824"
     },
     "staking": {
      "bondedTokens": "425559497761956330156508434",
      "notBondedTokens": "6271137301649159338990472",
-     "supply": "2337762962652896118173755363",
-     "bondedShare": "0.182037060455021889",
+     "supply": "2337768044570424129108444261",
+     "bondedShare": "0.182036664736836579",
      "unbondingSeconds": 1814400,
      "maxValidators": 14,
      "maxEntries": 7,
@@ -51,24 +51,24 @@
     },
     "blocks": {
      "latest": {
-      "height": "13046133",
-      "time": "2026-10-18T22:00:05.538353240Z"
+      "height": "13048319",
+      "time": "2026-10-18T23:55:36.646219773Z"
      },
      "earlier": {
-      "height": "13036133",
-      "time": "2026-10-18T13:11:39.530359555Z"
+      "height": "13038319",
+      "time": "2026-10-18T15:07:06.707089924Z"
      }
     },
     "apr": {
-     "gross": "0.057426358481129127",
-     "afterTax": "0.056277831311506544",
+     "gross": "0.05742404345813231",
+     "afterTax": "0.056275562588969663",
      "windowBlocks": "10000",
-     "windowSeconds": "31706.007993685",
-     "blockSeconds": "3.1706007993685",
-     "realBlocksPerYear": "9953192.469479425175340981",
+     "windowSeconds": "31709.939129849",
+     "blockSeconds": "3.1709939129849",
+     "realBlocksPerYear": "9951958.554942289028033094",
      "mintBlocksPerYear": "10512000",
-     "factor": "0.946840988344694175",
-     "beforeCommission": "0.053286157420882832"
+     "factor": "0.946723606824799184",
+     "beforeCommission": "0.053277403590324093"
     }
    }
   },
@@ -79,9 +79,9 @@
     "name": "ZIGChain testnet LCD (official)",
     "origin": "https://testnet-api.zigchain.com"
    },
-   "height": "8292610",
-   "observedAt": "2026-10-18T22:00:05.106Z",
-   "fetchedAt": "2026-10-18T22:00:11.437Z",
+   "height": "8293846",
+   "observedAt": "2026-10-18T23:55:33.883Z",
+   "fetchedAt": "2026-10-18T23:55:41.632Z",
    "stale": false,
    "data": {
     "network": "testnet",
@@ -90,19 +90,19 @@
     "bondDenom": "azig",
     "decimals": 18,
     "mint": {
-     "inflation": "0.019289292023374470",
+     "inflation": "0.019290551382410119",
      "inflationMin": "0.009000000000000000",
      "inflationMax": "0.020000000000000000",
      "goalBonded": "0.150000000000000000",
      "inflationRateChange": "0.020000000000000000",
      "blocksPerYear": "12614400",
-     "annualProvisions": "45039523751807217225257358.632947223592571500"
+     "annualProvisions": "45042549425982885949755880.234460136763550436"
     },
     "staking": {
      "bondedTokens": "125162785015304446833202778",
      "notBondedTokens": "108758038423000000000000",
-     "supply": "2334949554711553608284976426",
-     "bondedShare": "0.053604063849150841",
+     "supply": "2334953967979147362968271579",
+     "bondedShare": "0.05360396253277325",
      "unbondingSeconds": 1814400,
      "maxValidators": 14,
      "maxEntries": 7,
@@ -120,24 +120,24 @@
     },
     "blocks": {
      "latest": {
-      "height": "8292610",
-      "time": "2026-10-18T22:00:05.106272365Z"
+      "height": "8293846",
+      "time": "2026-10-18T23:55:33.883101871Z"
      },
      "earlier": {
-      "height": "8282610",
-      "time": "2026-10-18T06:24:52.163656374Z"
+      "height": "8283846",
+      "time": "2026-10-18T08:20:35.218763269Z"
      }
     },
     "apr": {
-     "gross": "0.359847567679961334",
-     "afterTax": "0.352650616326362107",
+     "gross": "0.359871741592161344",
+     "afterTax": "0.352674306760318117",
      "windowBlocks": "10000",
-     "windowSeconds": "56112.942615991",
-     "blockSeconds": "5.6112942615991",
-     "realBlocksPerYear": "5623943.163338354757304357",
+     "windowSeconds": "56098.664338602",
+     "blockSeconds": "5.6098664338602",
+     "realBlocksPerYear": "5625374.573897819002054143",
      "mintBlocksPerYear": "12614400",
-     "factor": "0.44583516959493553",
-     "beforeCommission": "0.15722404733762219"
+     "factor": "0.445948643922645468",
+     "beforeCommission": "0.157274628846122941"
     }
    }
   },
@@ -148,9 +148,9 @@
     "name": "ZIGChain mainnet LCD (official)",
     "origin": "https://api.zigchain.com"
    },
-   "height": "13046133",
-   "observedAt": "2026-10-18T22:00:05.538Z",
-   "fetchedAt": "2026-10-18T22:00:11.628Z",
+   "height": "13048319",
+   "observedAt": "2026-10-18T23:55:36.646Z",
+   "fetchedAt": "2026-10-18T23:55:41.793Z",
    "stale": false,
    "data": {
     "pins": {
@@ -177,8 +177,8 @@
     "rate": {
      "status": "ok",
      "zigPerStZig": "1.072841",
-     "dexZigPerStZig": "1.066606",
-     "difference": "0.005812",
+     "dexZigPerStZig": "1.066753",
+     "difference": "0.005675",
      "basis": "reverse_st_zig_price, read as 18-decimal ZIG in and 6-decimal stZIG out (the reading DefiLlama’s tracker uses)"
     }
    }
@@ -190,9 +190,9 @@
     "name": "ZIGChain mainnet LCD (official)",
     "origin": "https://api.zigchain.com"
    },
-   "height": "13046133",
-   "observedAt": "2026-10-18T22:00:05.538Z",
-   "fetchedAt": "2026-10-18T22:00:11.862Z",
+   "height": "13048319",
+   "observedAt": "2026-10-18T23:55:36.646Z",
+   "fetchedAt": "2026-10-18T23:55:41.981Z",
    "stale": false,
    "data": {
     "pairTypes": [
@@ -254,7 +254,7 @@
     "pools": [
      {
       "id": "zig-usdc",
-      "label": "ZIG / USDC",
+      "label": "ZIG / USDC.n (Noble)",
       "contract": "zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h",
       "pairType": "xyk_25",
       "feeBps": 25,
@@ -264,20 +264,48 @@
         "symbol": "ZIG",
         "denom": "azig",
         "decimals": 18,
-        "amount": "851180213503397962188001"
+        "amount": "848563479607015813480308"
        },
        {
-        "symbol": "USDC",
+        "symbol": "USDC.n",
         "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
         "decimals": 6,
-        "amount": "42158523948"
+        "amount": "42288790194"
        }
       ],
       "totalShare": "172884308073",
       "price": {
        "base": "ZIG",
-       "quote": "USDC",
-       "value": "0.04952949"
+       "quote": "USDC.n",
+       "value": "0.04983574"
+      }
+     },
+     {
+      "id": "zig-usdc-inj",
+      "label": "ZIG / USDC.inj (Injective)",
+      "contract": "zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3",
+      "pairType": "xyk_25",
+      "feeBps": 25,
+      "makerFeeBps": 2000,
+      "reserves": [
+       {
+        "symbol": "ZIG",
+        "denom": "azig",
+        "decimals": 18,
+        "amount": "212238774742113690214478"
+       },
+       {
+        "symbol": "USDC.inj",
+        "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B",
+        "decimals": 6,
+        "amount": "10590993840"
+       }
+      ],
+      "totalShare": "11000000001000",
+      "price": {
+       "base": "ZIG",
+       "quote": "USDC.inj",
+       "value": "0.04990131"
       }
      },
      {
@@ -320,20 +348,20 @@
         "symbol": "stZIG",
         "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig",
         "decimals": 6,
-        "amount": "34100361441566"
+        "amount": "34098047064734"
        },
        {
         "symbol": "ZIG",
         "denom": "azig",
         "decimals": 18,
-        "amount": "36371656031092077785286645"
+        "amount": "36374182445645275269697931"
        }
       ],
       "totalShare": "12848555110414",
       "price": {
        "base": "stZIG",
        "quote": "ZIG",
-       "value": "1.06660617"
+       "value": "1.06675266"
       }
      }
     ],
@@ -350,7 +378,7 @@
     "name": "DefiLlama (third party)",
     "origin": "https://api.llama.fi"
    },
-   "fetchedAt": "2026-10-18T22:00:12.664Z",
+   "fetchedAt": "2026-10-18T23:55:44.498Z",
    "stale": false,
    "data": {
     "thirdParty": true,
@@ -358,25 +386,25 @@
      "valdora-finance": {
       "status": "ok",
       "name": "Valdora Finance",
-      "tvlUsd": 77461400.66297,
+      "tvlUsd": 77463214.30851,
       "incidents": []
      },
      "oroswap": {
       "status": "ok",
       "name": "OroSwap",
-      "tvlUsd": 3995617.54268,
+      "tvlUsd": 3995509.17885,
       "incidents": []
      },
      "nawa-protocol": {
       "status": "ok",
       "name": "Nawa Protocol",
-      "tvlUsd": 3458960.72558,
+      "tvlUsd": 3458861.05965,
       "incidents": []
      },
      "defa-by-invoicemate": {
       "status": "ok",
       "name": "Defa By InvoiceMate",
-      "tvlUsd": 2099626.62859,
+      "tvlUsd": 2099688.86816,
       "incidents": []
      },
      "permapod": {
@@ -399,9 +427,9 @@
        "project": "valdora-finance",
        "symbol": "STZIG",
        "label": null,
-       "tvlUsd": 9641662,
-       "apy": 4.81185,
-       "apyBase": 4.81185,
+       "tvlUsd": 9647107,
+       "apy": 4.81165,
+       "apyBase": 4.81165,
        "apyReward": null
       },
       {
@@ -409,12 +437,150 @@
        "project": "nawa-protocol",
        "symbol": "USDC",
        "label": "n1USDC Vault",
-       "tvlUsd": 3458954,
-       "apy": 9.32779,
-       "apyBase": 9.32779,
+       "tvlUsd": 3459044,
+       "apy": 9.32684,
+       "apyBase": 9.32684,
        "apyReward": null
       }
      ]
+    }
+   }
+  },
+  "vaults": {
+   "version": 1,
+   "status": "ok",
+   "source": {
+    "name": "ZIGChain mainnet LCD (official)",
+    "origin": "https://api.zigchain.com"
+   },
+   "height": "13048320",
+   "observedAt": "2026-10-18T23:55:39.885Z",
+   "fetchedAt": "2026-10-18T23:55:44.898Z",
+   "stale": false,
+   "data": {
+    "vaults": {
+     "stablecoin-yield": {
+      "status": "ok",
+      "label": "Stablecoin Yield",
+      "operator": "valdora",
+      "contract": "zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp",
+      "codeId": "146",
+      "contractVersion": "1.0.1",
+      "aumUnits": "39814918612708",
+      "decimals": 6,
+      "pricePerShare": "1",
+      "totalShares": "39803585572676",
+      "pendingRedemptionUnits": "3701053478",
+      "paused": false,
+      "assetDenom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+      "asset": "USDC.n",
+      "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx"
+     },
+     "private-credit": {
+      "status": "ok",
+      "label": "Private Credit (Opportunistic Credit)",
+      "operator": "valdora",
+      "contract": "zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq",
+      "codeId": "146",
+      "contractVersion": "1.0.1",
+      "aumUnits": "16679659912876",
+      "decimals": 6,
+      "pricePerShare": "1",
+      "totalShares": "15689092953504",
+      "pendingRedemptionUnits": "0",
+      "paused": false,
+      "assetDenom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+      "asset": "USDC.n",
+      "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx"
+     },
+     "core-income": {
+      "status": "ok",
+      "label": "Core Income",
+      "operator": "valdora",
+      "contract": "zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk",
+      "codeId": "146",
+      "contractVersion": "1.0.1",
+      "aumUnits": "11329634239012",
+      "decimals": 6,
+      "pricePerShare": "1",
+      "totalShares": "11327142888262",
+      "pendingRedemptionUnits": "200043989",
+      "paused": false,
+      "assetDenom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+      "asset": "USDC.n",
+      "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx"
+     },
+     "nawa-usdc": {
+      "status": "ok",
+      "label": "Nawa n1USDC vault",
+      "operator": "nawa",
+      "contract": "zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd",
+      "codeId": "132",
+      "contractVersion": "1.0.0",
+      "aumUnits": "3459575165040",
+      "decimals": 6,
+      "pricePerShare": "1",
+      "totalShares": "3321673751254",
+      "pendingRedemptionUnits": "0",
+      "paused": false,
+      "assetDenom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+      "asset": "USDC.n",
+      "admin": "zig1mnc228d7stnmcdp4k9e2fgxa46czzj6cw7hzx9"
+     }
+    },
+    "nawaZig": {
+     "status": "ok",
+     "contract": "zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33",
+     "totalAumUnits": "15852176413",
+     "feeNumber": 1000,
+     "oroswapPool": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
+     "admin": "zig1qza8akty5uc6mqy4xwxu5jemql7travtteamxh"
+    },
+    "defa": {
+     "status": "ok",
+     "contract": "zig19pp9rxhqktgpf2yqkwwx6yekmgvnu3hvj0c4e5rlpw88l0shh3qs9qcdyg",
+     "activeTvlUnits": "2099999600000"
+    }
+   }
+  },
+  "measured": {
+   "version": 1,
+   "status": "ok",
+   "source": {
+    "name": "ZIGChain mainnet LCD (official)",
+    "origin": "https://api.zigchain.com"
+   },
+   "height": "13048320",
+   "observedAt": "2026-10-18T23:55:39.885Z",
+   "fetchedAt": "2026-10-18T23:55:45.065Z",
+   "stale": false,
+   "data": {
+    "validator": {
+     "operator": "zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+     "moniker": "ZIG Sentinel - Foundation 1",
+     "commission": "0.050000000000000000",
+     "jailed": false,
+     "status": "BOND_STATUS_BONDED"
+    },
+    "delegator": "zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx",
+    "latest": {
+     "height": "13048320",
+     "time": "2026-10-18T23:55:39.885156115Z",
+     "pendingRewards": "903087439279836000000.000000000000000000",
+     "selfBond": "100000000000000000000000"
+    },
+    "earlier": {
+     "height": "13038320",
+     "time": "2026-10-18T15:07:09.915873969Z",
+     "pendingRewards": "897855448439100500000.000000000000000000",
+     "selfBond": "100000000000000000000000"
+    },
+    "measured": {
+     "status": "ok",
+     "accrued": "5231990840735500000",
+     "windowBlocks": "10000",
+     "windowSeconds": "31709.969282146",
+     "rate": "0.052068506496017871"
     }
    }
   }
@@ -424,23 +590,23 @@
    "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
    "height": null,
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "reduced": true,
    "body": {
     "block": {
      "header": {
       "chain_id": "zigchain-1",
-      "height": "13046133",
-      "time": "2026-10-18T22:00:05.538353240Z"
+      "height": "13048319",
+      "time": "2026-10-18T23:55:36.646219773Z"
      }
     }
    }
   },
   {
    "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "reduced": true,
    "body": {
     "default_node_info": {
@@ -454,66 +620,10 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmos/mint/v1beta1/inflation",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "inflation": "0.010453725500936836"
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmos/slashing/v1beta1/params",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "params": {
-     "signed_blocks_window": "35000",
-     "min_signed_per_window": "0.800000000000000000",
-     "downtime_jail_duration": "600s",
-     "slash_fraction_double_sign": "0.000500000000000000",
-     "slash_fraction_downtime": "0.000100000000000000"
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/13036133",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "reduced": true,
-   "body": {
-    "block": {
-     "header": {
-      "chain_id": "zigchain-1",
-      "height": "13036133",
-      "time": "2026-10-18T13:11:39.530359555Z"
-     }
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "params": {
-     "unbonding_time": "1814400s",
-     "max_validators": 14,
-     "max_entries": 7,
-     "historical_entries": 10000,
-     "bond_denom": "azig",
-     "min_commission_rate": "0.000000000000000000"
-    }
-   }
-  },
-  {
    "url": "https://api.zigchain.com/cosmos/mint/v1beta1/params",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "params": {
      "mint_denom": "azig",
@@ -526,43 +636,55 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/pool",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmos/slashing/v1beta1/params",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
-    "pool": {
-     "not_bonded_tokens": "6271137301649159338990472",
-     "bonded_tokens": "425559497761956330156508434"
+    "params": {
+     "signed_blocks_window": "35000",
+     "min_signed_per_window": "0.800000000000000000",
+     "downtime_jail_duration": "600s",
+     "slash_fraction_double_sign": "0.000500000000000000",
+     "slash_fraction_downtime": "0.000100000000000000"
     }
    }
   },
   {
    "url": "https://api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=azig",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "amount": {
      "denom": "azig",
-     "amount": "2337762962652896118173755363"
+     "amount": "2337768044570424129108444261"
     }
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmos/mint/v1beta1/annual_provisions",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmos/mint/v1beta1/inflation",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
-    "annual_provisions": "24438332273527372776395305.774150936347821796"
+    "inflation": "0.010453281357216456"
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/mint/v1beta1/annual_provisions",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "annual_provisions": "24437347093503540240083765.247430546141162824"
    }
   },
   {
    "url": "https://api.zigchain.com/cosmos/distribution/v1beta1/params",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "params": {
      "community_tax": "0.020000000000000000",
@@ -573,26 +695,70 @@
    }
   },
   {
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/params",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "params": {
+     "unbonding_time": "1814400s",
+     "max_validators": 14,
+     "max_entries": 7,
+     "historical_entries": 10000,
+     "bond_denom": "azig",
+     "min_commission_rate": "0.000000000000000000"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/pool",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "pool": {
+     "not_bonded_tokens": "6271137301649159338990472",
+     "bonded_tokens": "425559497761956330156508434"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/13038319",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "reduced": true,
+   "body": {
+    "block": {
+     "header": {
+      "chain_id": "zigchain-1",
+      "height": "13038319",
+      "time": "2026-10-18T15:07:06.707089924Z"
+     }
+    }
+   }
+  },
+  {
    "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
    "height": null,
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "reduced": true,
    "body": {
     "block": {
      "header": {
       "chain_id": "zig-test-2",
-      "height": "8292610",
-      "time": "2026-10-18T22:00:05.106272365Z"
+      "height": "8293846",
+      "time": "2026-10-18T23:55:33.883101871Z"
      }
     }
    }
   },
   {
    "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/node_info",
-   "height": "8292610",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "reduced": true,
    "body": {
     "default_node_info": {
@@ -607,9 +773,9 @@
   },
   {
    "url": "https://testnet-api.zigchain.com/cosmos/mint/v1beta1/params",
-   "height": "8292610",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "body": {
     "params": {
      "mint_denom": "azig",
@@ -622,10 +788,44 @@
    }
   },
   {
-   "url": "https://testnet-api.zigchain.com/cosmos/staking/v1beta1/pool",
-   "height": "8292610",
+   "url": "https://testnet-api.zigchain.com/cosmos/mint/v1beta1/annual_provisions",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
+   "body": {
+    "annual_provisions": "45042549425982885949755880.234460136763550436"
+   }
+  },
+  {
+   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/8283846",
+   "height": "8293846",
+   "status": 200,
+   "responseHeight": "8293846",
+   "reduced": true,
+   "body": {
+    "block": {
+     "header": {
+      "chain_id": "zig-test-2",
+      "height": "8283846",
+      "time": "2026-10-18T08:20:35.218763269Z"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://testnet-api.zigchain.com/cosmos/mint/v1beta1/inflation",
+   "height": "8293846",
+   "status": 200,
+   "responseHeight": "8293846",
+   "body": {
+    "inflation": "0.019290551382410119"
+   }
+  },
+  {
+   "url": "https://testnet-api.zigchain.com/cosmos/staking/v1beta1/pool",
+   "height": "8293846",
+   "status": 200,
+   "responseHeight": "8293846",
    "body": {
     "pool": {
      "not_bonded_tokens": "108758038423000000000000",
@@ -635,9 +835,9 @@
   },
   {
    "url": "https://testnet-api.zigchain.com/cosmos/staking/v1beta1/params",
-   "height": "8292610",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "body": {
     "params": {
      "unbonding_time": "1814400s",
@@ -650,19 +850,22 @@
    }
   },
   {
-   "url": "https://testnet-api.zigchain.com/cosmos/mint/v1beta1/inflation",
-   "height": "8292610",
+   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=azig",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "body": {
-    "inflation": "0.019289292023374470"
+    "amount": {
+     "denom": "azig",
+     "amount": "2334953967979147362968271579"
+    }
    }
   },
   {
    "url": "https://testnet-api.zigchain.com/cosmos/distribution/v1beta1/params",
-   "height": "8292610",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "body": {
     "params": {
      "community_tax": "0.020000000000000000",
@@ -673,47 +876,10 @@
    }
   },
   {
-   "url": "https://testnet-api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/8282610",
-   "height": "8292610",
-   "status": 200,
-   "responseHeight": "8292610",
-   "reduced": true,
-   "body": {
-    "block": {
-     "header": {
-      "chain_id": "zig-test-2",
-      "height": "8282610",
-      "time": "2026-10-18T06:24:52.163656374Z"
-     }
-    }
-   }
-  },
-  {
-   "url": "https://testnet-api.zigchain.com/cosmos/bank/v1beta1/supply/by_denom?denom=azig",
-   "height": "8292610",
-   "status": 200,
-   "responseHeight": "8292610",
-   "body": {
-    "amount": {
-     "denom": "azig",
-     "amount": "2334949554711553608284976426"
-    }
-   }
-  },
-  {
-   "url": "https://testnet-api.zigchain.com/cosmos/mint/v1beta1/annual_provisions",
-   "height": "8292610",
-   "status": 200,
-   "responseHeight": "8292610",
-   "body": {
-    "annual_provisions": "45039523751807217225257358.632947223592571500"
-   }
-  },
-  {
    "url": "https://testnet-api.zigchain.com/cosmos/slashing/v1beta1/params",
-   "height": "8292610",
+   "height": "8293846",
    "status": 200,
-   "responseHeight": "8292610",
+   "responseHeight": "8293846",
    "body": {
     "params": {
      "signed_blocks_window": "35000",
@@ -728,46 +894,23 @@
    "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
    "height": null,
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "reduced": true,
    "body": {
     "block": {
      "header": {
       "chain_id": "zigchain-1",
-      "height": "13046133",
-      "time": "2026-10-18T22:00:05.538353240Z"
+      "height": "13048319",
+      "time": "2026-10-18T23:55:36.646219773Z"
      }
     }
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJwYXVzZWQiOnt9fQ==",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "paused": false
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "version": "1.1.0",
-     "contract": "stzig-staker"
-    }
-   }
-  },
-  {
    "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "address": "zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55",
     "contract_info": {
@@ -785,76 +928,10 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJ0b3RhbF9zdXBwbHkiOnt9fQ==",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "total_supply": "181660424460329"
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwb29sIjp7fX0=",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "assets": [
-      {
-       "info": {
-        "native_token": {
-         "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
-        }
-       },
-       "amount": "34100361441566"
-      },
-      {
-       "info": {
-        "native_token": {
-         "denom": "azig"
-        }
-       },
-       "amount": "36371656031092077785286645"
-      }
-     ],
-     "total_share": "12848555110414"
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJlbWVyZ2VuY3lfc3RhdHVzIjp7fX0=",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "emergency_mode": false,
-     "initiated_by": null,
-     "initiated_at": null,
-     "emergency_unbonded_ledgers": []
-    }
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJkYWlseV9yZXdhcmRzX2FuZF9mZWVzIjp7fX0=",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": {
-     "rewards_earned_today": "27839107139434788434074",
-     "fees_minted_today": "2595229376"
-    }
-   }
-  },
-  {
    "url": "https://api.zigchain.com/cosmwasm/wasm/v1/code-info/179",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "code_id": "179",
     "creator": "zig1w22ujeyravz4zhz7kxvmrjca3lvu8d3gtpczxl",
@@ -866,10 +943,33 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJwcm90b2NvbF9pbmZvIjp7fX0=",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJ0b3RhbF9zdXBwbHkiOnt9fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "total_supply": "181660424460329"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "version": "1.1.0",
+     "contract": "stzig-staker"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJwcm90b2NvbF9pbmZvIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "token_name": "stzig",
@@ -885,10 +985,24 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJyZXZlcnNlX3N0X3ppZ19wcmljZSI6eyJhbW91bnQiOiIxMDAwMDAwMDAwMDAwMDAwMDAwMDAwIn19",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJlbWVyZ2VuY3lfc3RhdHVzIjp7fX0=",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "emergency_mode": false,
+     "initiated_by": null,
+     "initiated_at": null,
+     "emergency_unbonded_ledgers": []
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJyZXZlcnNlX3N0X3ppZ19wcmljZSI6eyJhbW91bnQiOiIxMDAwMDAwMDAwMDAwMDAwMDAwMDAwIn19",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "stzig_amount": "932104511",
@@ -897,10 +1011,62 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmos/auth/v1beta1/accounts/zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJwYXVzZWQiOnt9fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig18nnde5tpn76xj3wm53n0tmuf3q06nruj3p6kdemcllzxqwzkpqzqk7ue55/smart/eyJkYWlseV9yZXdhcmRzX2FuZF9mZWVzIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "rewards_earned_today": "27839107139434788434074",
+     "fees_minted_today": "2595229376"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwb29sIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "assets": [
+      {
+       "info": {
+        "native_token": {
+         "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+        }
+       },
+       "amount": "34098047064734"
+      },
+      {
+       "info": {
+        "native_token": {
+         "denom": "azig"
+        }
+       },
+       "amount": "36374182445645275269697931"
+      }
+     ],
+     "total_share": "12848555110414"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/auth/v1beta1/accounts/zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
    "body": {
     "account": {
      "@type": "/cosmos.auth.v1beta1.BaseAccount",
@@ -918,52 +1084,32 @@
    "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
    "height": null,
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "reduced": true,
    "body": {
     "block": {
      "header": {
       "chain_id": "zigchain-1",
-      "height": "13046133",
-      "time": "2026-10-18T22:00:05.538353240Z"
+      "height": "13048319",
+      "time": "2026-10-18T23:55:36.646219773Z"
      }
     }
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h/smart/eyJwb29sIjp7fX0=",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig10v0hrjvwwlqwvk2yhwagm9m9h385spxa4s54f4aekhap0lxyekysf2ekwz/smart/eyJhY3RpdmVfcG9vbHMiOnt9fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
-    "data": {
-     "assets": [
-      {
-       "info": {
-        "native_token": {
-         "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
-        }
-       },
-       "amount": "42158523948"
-      },
-      {
-       "info": {
-        "native_token": {
-         "denom": "azig"
-        }
-       },
-       "amount": "851180213503397962188001"
-      }
-     ],
-     "total_share": "172884308073"
-    }
+    "data": []
    }
   },
   {
    "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJjb25maWciOnt9fQ==",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "owner": "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
@@ -1086,20 +1232,20 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwb29sIjp7fX0=",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h/smart/eyJwb29sIjp7fX0=",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "assets": [
       {
        "info": {
         "native_token": {
-         "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+         "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
         }
        },
-       "amount": "34100361441566"
+       "amount": "42288790194"
       },
       {
        "info": {
@@ -1107,81 +1253,185 @@
          "denom": "azig"
         }
        },
-       "amount": "36371656031092077785286645"
+       "amount": "848563479607015813480308"
       }
      ],
-     "total_share": "12848555110414"
+     "total_share": "172884308073"
     }
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig10v0hrjvwwlqwvk2yhwagm9m9h385spxa4s54f4aekhap0lxyekysf2ekwz/smart/eyJhY3RpdmVfcG9vbHMiOnt9fQ==",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYWlyc19ieV9hc3NldHMiOnsiYXNzZXRfaW5mb3MiOlt7Im5hdGl2ZV90b2tlbiI6eyJkZW5vbSI6ImF6aWcifX0seyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJpYmMvNkM2RjVBMDE1NjA4Q0YzOTUxREZFNkExMTczOTAyMTBBQjgyNUJGMENDMUFEMzNCMkIxMDBCMDU1MjlBOUI2QiJ9fV19fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
-   "body": {
-    "data": []
-   }
-  },
-  {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwYWlyIjp7fX0=",
-   "height": "13046133",
-   "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
-     "asset_infos": [
+     "pairs": [
       {
-       "native_token": {
-        "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B"
+         }
+        }
+       ],
+       "contract_addr": "zig14mg3050jlvr6eju60rur92hkrng9nvuq2urnfp28wtz0xckzflqsmvr7nc",
+       "liquidity_token": "coin.zig14mg3050jlvr6eju60rur92hkrng9nvuq2urnfp28wtz0xckzflqsmvr7nc.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_10"
        }
       },
       {
-       "native_token": {
-        "denom": "azig"
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3",
+       "liquidity_token": "coin.zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_25"
        }
       }
-     ],
-     "contract_addr": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
-     "liquidity_token": "coin.zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq.oroswaplptoken",
-     "pair_type": {
-      "xyk": {}
-     }
+     ]
     }
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45/smart/eyJwYWlyIjp7fX0=",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYWlyc19ieV9hc3NldHMiOnsiYXNzZXRfaW5mb3MiOlt7Im5hdGl2ZV90b2tlbiI6eyJkZW5vbSI6ImF6aWcifX0seyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJpYmMvNjQ5MEE3RUFCNjEwNTlCRkMxQ0RERUIwNTkxN0RENzBCREYzQTYxMTY1NDE2MkExQTQ3REI5MzBENDBEOEFGNCJ9fV19fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
-     "asset_infos": [
+     "pairs": [
       {
-       "native_token": {
-        "denom": "azig"
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "uzig"
+         }
+        }
+       ],
+       "contract_addr": "zig1jusndv49thn5flmz6ejmmal5ch0j2fdvs5474m974zlsvn55lfjq923aul",
+       "liquidity_token": "coin.zig1jusndv49thn5flmz6ejmmal5ch0j2fdvs5474m974zlsvn55lfjq923aul.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_10"
        }
       },
       {
-       "native_token": {
-        "denom": "ibc/EF48E6B1A1A19F47ECAEA62F5670C37C0580E86A9E88498B7E393EB6F49F33C0"
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "uzig"
+         }
+        }
+       ],
+       "contract_addr": "zig1y9m8ftqnjdf9ttvlfmz8kzey8d9hyn7acahq2ajepr74fft3duyqhzpwxe",
+       "liquidity_token": "coin.zig1y9m8ftqnjdf9ttvlfmz8kzey8d9hyn7acahq2ajepr74fft3duyqhzpwxe.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_100"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h",
+       "liquidity_token": "coin.zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_25"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928",
+       "liquidity_token": "coin.zig1kt33w2ztud5duv0e6sc05y2xk046dtv4n8tfg38h4x2ryj5td9kq804928.oroswaplptoken",
+       "pair_type": {
+        "xyk": {}
        }
       }
+     ]
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3/smart/eyJwb29sIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "assets": [
+      {
+       "info": {
+        "native_token": {
+         "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B"
+        }
+       },
+       "amount": "10590993840"
+      },
+      {
+       "info": {
+        "native_token": {
+         "denom": "azig"
+        }
+       },
+       "amount": "212238774742113690214478"
+      }
      ],
-     "contract_addr": "zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45",
-     "liquidity_token": "coin.zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45.oroswaplptoken",
-     "pair_type": {
-      "xyk": {}
-     }
+     "total_share": "11000000001000"
     }
    }
   },
   {
    "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45/smart/eyJwb29sIjp7fX0=",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "assets": [
@@ -1207,10 +1457,37 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h/smart/eyJwYWlyIjp7fX0=",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3/smart/eyJwYWlyIjp7fX0=",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "asset_infos": [
+      {
+       "native_token": {
+        "denom": "ibc/6C6F5A015608CF3951DFE6A117390210AB825BF0CC1AD33B2B100B05529A9B6B"
+       }
+      },
+      {
+       "native_token": {
+        "denom": "azig"
+       }
+      }
+     ],
+     "contract_addr": "zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3",
+     "liquidity_token": "coin.zig1ewkl2peqhupyfhm6pm7xlufucde7le9zer0wa867u08cveuts2asm0l2z3.oroswaplptoken",
+     "pair_type": {
+      "custom": "xyk_25"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig186ucx5mtdq6ams8rsvvcu7yfw5lhtxue8ykdkyqvlnk3gpc77lasw8373h/smart/eyJwYWlyIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "asset_infos": [
@@ -1234,24 +1511,174 @@
    }
   },
   {
-   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJmZWVfaW5mbyI6eyJwYWlyX3R5cGUiOnsiY3VzdG9tIjoieHlrXzI1In19fQ==",
-   "height": "13046133",
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45/smart/eyJwYWlyIjp7fX0=",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
-     "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
-     "total_fee_bps": 25,
-     "maker_fee_bps": 2000,
-     "pool_creation_fee": "100000000000000000000"
+     "asset_infos": [
+      {
+       "native_token": {
+        "denom": "azig"
+       }
+      },
+      {
+       "native_token": {
+        "denom": "ibc/EF48E6B1A1A19F47ECAEA62F5670C37C0580E86A9E88498B7E393EB6F49F33C0"
+       }
+      }
+     ],
+     "contract_addr": "zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45",
+     "liquidity_token": "coin.zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45.oroswaplptoken",
+     "pair_type": {
+      "xyk": {}
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYWlyc19ieV9hc3NldHMiOnsiYXNzZXRfaW5mb3MiOlt7Im5hdGl2ZV90b2tlbiI6eyJkZW5vbSI6ImF6aWcifX0seyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJpYmMvRUY0OEU2QjFBMUExOUY0N0VDQUVBNjJGNTY3MEMzN0MwNTgwRTg2QTlFODg0OThCN0UzOTNFQjZGNDlGMzNDMCJ9fV19fQ==",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "pairs": [
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "ibc/EF48E6B1A1A19F47ECAEA62F5670C37C0580E86A9E88498B7E393EB6F49F33C0"
+         }
+        }
+       ],
+       "contract_addr": "zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45",
+       "liquidity_token": "coin.zig1wvqk2tm38dn3yp9ry7h5zzjqv3tytzpwpkkg55w3j58cdhvqrnfq78fe45.oroswaplptoken",
+       "pair_type": {
+        "xyk": {}
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwb29sIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "assets": [
+      {
+       "info": {
+        "native_token": {
+         "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+        }
+       },
+       "amount": "34098047064734"
+      },
+      {
+       "info": {
+        "native_token": {
+         "denom": "azig"
+        }
+       },
+       "amount": "36374182445645275269697931"
+      }
+     ],
+     "total_share": "12848555110414"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq/smart/eyJwYWlyIjp7fX0=",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "asset_infos": [
+      {
+       "native_token": {
+        "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+       }
+      },
+      {
+       "native_token": {
+        "denom": "azig"
+       }
+      }
+     ],
+     "contract_addr": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
+     "liquidity_token": "coin.zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq.oroswaplptoken",
+     "pair_type": {
+      "xyk": {}
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJwYWlyc19ieV9hc3NldHMiOnsiYXNzZXRfaW5mb3MiOlt7Im5hdGl2ZV90b2tlbiI6eyJkZW5vbSI6ImNvaW4uemlnMTA5ZjdnMnJ6bDJhcWVlN3o2Z2ZmbjhrZmU5Y3BxeDBtamtrN2V0aG14OG0yaHE0eHBlOXNubWFhbTIuc3R6aWcifX0seyJuYXRpdmVfdG9rZW4iOnsiZGVub20iOiJhemlnIn19XX19",
+   "height": "13048319",
+   "status": 200,
+   "responseHeight": "13048319",
+   "body": {
+    "data": {
+     "pairs": [
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig1yuuu8pq2as36glenaax0vr5t7dgsslnkgvk9lphcqz8y8qae30dqrnpsa4",
+       "liquidity_token": "coin.zig1yuuu8pq2as36glenaax0vr5t7dgsslnkgvk9lphcqz8y8qae30dqrnpsa4.oroswaplptoken",
+       "pair_type": {
+        "custom": "xyk_10"
+       }
+      },
+      {
+       "asset_infos": [
+        {
+         "native_token": {
+          "denom": "coin.zig109f7g2rzl2aqee7z6gffn8kfe9cpqx0mjkk7ethmx8m2hq4xpe9snmaam2.stzig"
+         }
+        },
+        {
+         "native_token": {
+          "denom": "azig"
+         }
+        }
+       ],
+       "contract_addr": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq",
+       "liquidity_token": "coin.zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq.oroswaplptoken",
+       "pair_type": {
+        "xyk": {}
+       }
+      }
+     ]
     }
    }
   },
   {
    "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJmZWVfaW5mbyI6eyJwYWlyX3R5cGUiOnsieHlrIjp7fX19fQ==",
-   "height": "13046133",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": "13046133",
+   "responseHeight": "13048319",
    "body": {
     "data": {
      "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
@@ -1262,17 +1689,17 @@
    }
   },
   {
-   "url": "https://api.llama.fi/protocol/oroswap",
-   "height": null,
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1xx3aupmgv3ce537c0yce8zzd3sz567syaltr2tdehu3y803yz6gsc6tz85/smart/eyJmZWVfaW5mbyI6eyJwYWlyX3R5cGUiOnsiY3VzdG9tIjoieHlrXzI1In19fQ==",
+   "height": "13048319",
    "status": 200,
-   "responseHeight": null,
-   "reduced": true,
+   "responseHeight": "13048319",
    "body": {
-    "name": "OroSwap",
-    "currentChainTvls": {
-     "ZIGChain": 3995617.54268
-    },
-    "hacks": []
+    "data": {
+     "fee_address": "zig1hyja4uyjktpeh0fxzuw2fmjudr85rk2qu98fa6nuh6d4qru9l0ss0j233h",
+     "total_fee_bps": 25,
+     "maker_fee_bps": 2000,
+     "pool_creation_fee": "100000000000000000000"
+    }
    }
   },
   {
@@ -1284,9 +1711,23 @@
    "body": {
     "name": "Defa By InvoiceMate",
     "currentChainTvls": {
-     "Stellar": 4014246.78118,
-     "ZIGChain": 2099626.62859,
-     "Starknet": 1074804.17799
+     "Stellar": 4014365.77614,
+     "ZIGChain": 2099688.86816,
+     "Starknet": 1074836.03858
+    },
+    "hacks": []
+   }
+  },
+  {
+   "url": "https://api.llama.fi/protocol/valdora-finance",
+   "height": null,
+   "status": 200,
+   "responseHeight": null,
+   "reduced": true,
+   "body": {
+    "name": "Valdora Finance",
+    "currentChainTvls": {
+     "ZIGChain": 77463214.30851
     },
     "hacks": []
    }
@@ -1333,23 +1774,23 @@
    "body": {
     "name": "Nawa Protocol",
     "currentChainTvls": {
-     "Ethereum": 559739.93342,
-     "CORE": 0.09267,
-     "ZIGChain": 3458960.72558
+     "Ethereum": 559739.59242,
+     "CORE": 0.09306,
+     "ZIGChain": 3458861.05965
     },
     "hacks": []
    }
   },
   {
-   "url": "https://api.llama.fi/protocol/valdora-finance",
+   "url": "https://api.llama.fi/protocol/oroswap",
    "height": null,
    "status": 200,
    "responseHeight": null,
    "reduced": true,
    "body": {
-    "name": "Valdora Finance",
+    "name": "OroSwap",
     "currentChainTvls": {
-     "ZIGChain": 77461400.66297
+     "ZIGChain": 3995509.17885
     },
     "hacks": []
    }
@@ -1367,7 +1808,7 @@
       "chain": "Ethereum",
       "project": "lido",
       "symbol": "STETH",
-      "tvlUsd": 22677117896,
+      "tvlUsd": 23102349661,
       "apyBase": 2.204,
       "apyReward": null,
       "apy": 2.204,
@@ -1394,7 +1835,7 @@
       ],
       "il7d": null,
       "apyBase7d": null,
-      "apyMean30d": 2.23956,
+      "apyMean30d": 2.23943,
       "volumeUsd1d": null,
       "volumeUsd7d": null,
       "apyBaseInception": null
@@ -1403,7 +1844,7 @@
       "chain": "Ethereum",
       "project": "binance-staked-eth",
       "symbol": "WBETH",
-      "tvlUsd": 8268239806,
+      "tvlUsd": 8427180510,
       "apyBase": 2.18963,
       "apyReward": null,
       "apy": 2.18963,
@@ -1430,7 +1871,7 @@
       ],
       "il7d": null,
       "apyBase7d": null,
-      "apyMean30d": 2.2333,
+      "apyMean30d": 2.23314,
       "volumeUsd1d": null,
       "volumeUsd7d": null,
       "apyBaseInception": null
@@ -1439,27 +1880,27 @@
       "chain": "Ethereum",
       "project": "ether.fi-stake",
       "symbol": "WEETH",
-      "tvlUsd": 5170418383,
-      "apyBase": 2.27247,
+      "tvlUsd": 5281328411,
+      "apyBase": 2.21607,
       "apyReward": 0,
-      "apy": 2.27247,
+      "apy": 2.21607,
       "rewardTokens": [
        "0x8F08B70456eb22f6109F57b8fafE862ED28E6040"
       ],
       "pool": "46bd2bdf-6d92-4066-b482-e885ee172264",
-      "apyPct1D": 0.05618,
-      "apyPct7D": 0.01332,
-      "apyPct30D": -0.03758,
+      "apyPct1D": -0.05701,
+      "apyPct7D": -0.04263,
+      "apyPct30D": -0.15258,
       "stablecoin": false,
       "ilRisk": "no",
       "exposure": "single",
       "predictions": {
        "predictedClass": "Stable/Up",
-       "predictedProbability": 62,
-       "binnedConfidence": 2
+       "predictedProbability": 60,
+       "binnedConfidence": 1
       },
       "poolMeta": null,
-      "mu": 3.04466,
+      "mu": 3.04459,
       "sigma": 0.085,
       "count": 865,
       "outlier": false,
@@ -1467,8 +1908,8 @@
        "0x0000000000000000000000000000000000000000"
       ],
       "il7d": null,
-      "apyBase7d": 2.27247,
-      "apyMean30d": 2.29502,
+      "apyBase7d": 2.21607,
+      "apyMean30d": 2.29468,
       "volumeUsd1d": null,
       "volumeUsd7d": null,
       "apyBaseInception": null
@@ -1477,15 +1918,15 @@
       "chain": "ZIGChain",
       "project": "valdora-finance",
       "symbol": "STZIG",
-      "tvlUsd": 9641662,
-      "apyBase": 4.81185,
+      "tvlUsd": 9647107,
+      "apyBase": 4.81165,
       "apyReward": null,
-      "apy": 4.81185,
+      "apy": 4.81165,
       "rewardTokens": null,
       "pool": "7a3bb4ae-9f3c-5e14-84bc-d7970edb60f6",
-      "apyPct1D": -0.00267,
-      "apyPct7D": -0.02144,
-      "apyPct30D": -0.2924,
+      "apyPct1D": -0.00266,
+      "apyPct7D": -0.02147,
+      "apyPct30D": -0.29238,
       "stablecoin": false,
       "ilRisk": "no",
       "exposure": "single",
@@ -1504,7 +1945,7 @@
       ],
       "il7d": null,
       "apyBase7d": null,
-      "apyMean30d": 4.92503,
+      "apyMean30d": 4.92416,
       "volumeUsd1d": null,
       "volumeUsd7d": null,
       "apyBaseInception": null
@@ -1513,15 +1954,15 @@
       "chain": "ZIGChain",
       "project": "nawa-protocol",
       "symbol": "USDC",
-      "tvlUsd": 3458954,
-      "apyBase": 9.32779,
+      "tvlUsd": 3459044,
+      "apyBase": 9.32684,
       "apyReward": null,
-      "apy": 9.32779,
+      "apy": 9.32684,
       "rewardTokens": null,
       "pool": "103d36c4-5d6a-5630-ad40-234a773f79b2",
-      "apyPct1D": 0.00251,
-      "apyPct7D": 0.03895,
-      "apyPct30D": -1.36611,
+      "apyPct1D": 0.00276,
+      "apyPct7D": 0.03914,
+      "apyPct30D": -1.36525,
       "stablecoin": true,
       "ilRisk": "no",
       "exposure": "single",
@@ -1531,7 +1972,7 @@
        "binnedConfidence": 2
       },
       "poolMeta": "n1USDC Vault",
-      "mu": 9.1111,
+      "mu": 9.11109,
       "sigma": 0.18131,
       "count": 82,
       "outlier": false,
@@ -1539,11 +1980,556 @@
        "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4"
       ],
       "il7d": null,
-      "apyBase7d": 9.32779,
-      "apyMean30d": 10.46052,
+      "apyBase7d": 9.32684,
+      "apyMean30d": 10.45667,
       "volumeUsd1d": null,
       "volumeUsd7d": null,
       "apyBaseInception": null
+     }
+    ]
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
+   "height": null,
+   "status": 200,
+   "responseHeight": "13048320",
+   "reduced": true,
+   "body": {
+    "block": {
+     "header": {
+      "chain_id": "zigchain-1",
+      "height": "13048320",
+      "time": "2026-10-18T23:55:39.885156115Z"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp",
+    "contract_info": {
+     "code_id": "146",
+     "creator": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "label": "Valdora Vault (mainnet)",
+     "created": {
+      "block_height": "8183702",
+      "tx_index": "1003511"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq/smart/eyJwYXVzZWQiOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp/smart/eyJwYXVzZWQiOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp/smart/eyJwZW5kaW5nX3JlZGVtcHRpb25fYXVtIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "aum": "3701053478"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "version": "1.0.1",
+     "contract": "valdora-vault"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp/smart/eyJwcmljZV9wZXJfZnVsbF9zaGFyZSI6e319",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "price": "1",
+     "total_shares": "39803585572676",
+     "aum": "39814918612708"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq/raw/YXNzZXRfZGVub20=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": "ImliYy82NDkwQTdFQUI2MTA1OUJGQzFDRERFQjA1OTE3REQ3MEJERjNBNjExNjU0MTYyQTFBNDdEQjkzMEQ0MEQ4QUY0Ig=="
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "version": "1.0.1",
+     "contract": "valdora-vault"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk",
+    "contract_info": {
+     "code_id": "146",
+     "creator": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "label": "Valdora Vault (mainnet / usdc-core-income)",
+     "created": {
+      "block_height": "8775438",
+      "tx_index": "303949"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq",
+    "contract_info": {
+     "code_id": "146",
+     "creator": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "admin": "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+     "label": "Valdora Vault (mainnet / usdc-opportunistic-credit)",
+     "created": {
+      "block_height": "8697930",
+      "tx_index": "303935"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq/smart/eyJwcmljZV9wZXJfZnVsbF9zaGFyZSI6e319",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "price": "1",
+     "total_shares": "15689092953504",
+     "aum": "16679659912876"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1mayx7wkzensav40j3qc8c5lh6s884jlhsu0c0js058t4u9xcg0mql58gkq/smart/eyJwZW5kaW5nX3JlZGVtcHRpb25fYXVtIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "aum": "0"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1h3au5n3lsyqm32ydz3usgy7r9z7wpx4gttcxmypfecz29adtu64svluenp/raw/YXNzZXRfZGVub20=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": "ImliYy82NDkwQTdFQUI2MTA1OUJGQzFDRERFQjA1OTE3REQ3MEJERjNBNjExNjU0MTYyQTFBNDdEQjkzMEQ0MEQ4QUY0Ig=="
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "version": "1.0.1",
+     "contract": "valdora-vault"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk/smart/eyJwcmljZV9wZXJfZnVsbF9zaGFyZSI6e319",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "price": "1",
+     "total_shares": "11327142888262",
+     "aum": "11329634239012"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk/smart/eyJwYXVzZWQiOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk/raw/YXNzZXRfZGVub20=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": "ImliYy82NDkwQTdFQUI2MTA1OUJGQzFDRERFQjA1OTE3REQ3MEJERjNBNjExNjU0MTYyQTFBNDdEQjkzMEQ0MEQ4QUY0Ig=="
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1m526fltgrf70qdsufx9k9fdl4x07usjlydcn32jn83fs6za9c5cswd9grk/smart/eyJwZW5kaW5nX3JlZGVtcHRpb25fYXVtIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "aum": "200043989"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd/smart/eyJwZW5kaW5nX3JlZGVtcHRpb25fYXVtIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "aum": "0"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd/smart/eyJjb250cmFjdF92ZXJzaW9uIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "version": "1.0.0",
+     "contract": "valdora-vault"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd",
+    "contract_info": {
+     "code_id": "132",
+     "creator": "zig1mnc228d7stnmcdp4k9e2fgxa46czzj6cw7hzx9",
+     "admin": "zig1mnc228d7stnmcdp4k9e2fgxa46czzj6cw7hzx9",
+     "label": "nawa-vault",
+     "created": {
+      "block_height": "8149745",
+      "tx_index": "557579"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd/smart/eyJwYXVzZWQiOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "paused": false
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd/smart/eyJwcmljZV9wZXJfZnVsbF9zaGFyZSI6e319",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "price": "1",
+     "total_shares": "3321673751254",
+     "aum": "3459575165040"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fn4rrr5knlg93nf3wyme9fzmgve3fftxu5l7wv90llp77mwg7ctq2lfwtd/raw/YXNzZXRfZGVub20=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": "ImliYy82NDkwQTdFQUI2MTA1OUJGQzFDRERFQjA1OTE3REQ3MEJERjNBNjExNjU0MTYyQTFBNDdEQjkzMEQ0MEQ4QUY0Ig=="
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33",
+    "contract_info": {
+     "code_id": "60",
+     "creator": "zig10rtasvh7xd7df9tf980x56xjx73qz8cggumkux",
+     "admin": "zig1qza8akty5uc6mqy4xwxu5jemql7travtteamxh",
+     "label": "Nawa Vault",
+     "created": {
+      "block_height": "3325333",
+      "tx_index": "567184"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33/smart/eyJ0b3RhbF9hdW0iOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "total_aum": "15852176413"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33/smart/eyJmZWVfcGVyY2VudGFnZSI6e319",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "fee_percentage": 1000
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig1fqxfjv54zavyr9464vj6n2jgw9fxgdnxucf866spedunntw0skcsq9gz33/smart/eyJvcm9zd2FwX3Bvb2wiOnt9fQ==",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": {
+     "pool_addr": "zig1h72z8ptvcdqvuvy2lqanupwtextjmjmktj2ejgne2padxk0z8zds48shzq"
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig19pp9rxhqktgpf2yqkwwx6yekmgvnu3hvj0c4e5rlpw88l0shh3qs9qcdyg",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "address": "zig19pp9rxhqktgpf2yqkwwx6yekmgvnu3hvj0c4e5rlpw88l0shh3qs9qcdyg",
+    "contract_info": {
+     "code_id": "109",
+     "creator": "zig1sewps82xyc7neay2nkfn8q7uw6erj330etrmj8",
+     "admin": "",
+     "label": "tvl-logger-contract-1773913793",
+     "created": {
+      "block_height": "7278273",
+      "tx_index": "122190"
+     },
+     "ibc_port_id": "",
+     "extension": null
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmwasm/wasm/v1/contract/zig19pp9rxhqktgpf2yqkwwx6yekmgvnu3hvj0c4e5rlpw88l0shh3qs9qcdyg/smart/eyJhY3RpdmVfdHZsIjp7fX0=",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "data": "2099999600000"
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/latest",
+   "height": null,
+   "status": 200,
+   "responseHeight": "13048320",
+   "reduced": true,
+   "body": {
+    "block": {
+     "header": {
+      "chain_id": "zigchain-1",
+      "height": "13048320",
+      "time": "2026-10-18T23:55:39.885156115Z"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/validators/zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "validator": {
+     "operator_address": "zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+     "consensus_pubkey": {
+      "@type": "/cosmos.crypto.ed25519.PubKey",
+      "key": "9YgITxKfSbAHfAxPWgt+cB7tG7VbtO5mbFCcgBeV0i0="
+     },
+     "jailed": false,
+     "status": "BOND_STATUS_BONDED",
+     "tokens": "84174084119054635855933299",
+     "delegator_shares": "84174084119054635855933299.000000000000000000",
+     "description": {
+      "moniker": "ZIG Sentinel - Foundation 1",
+      "identity": "E43F375DA6367EB2",
+      "website": "https://zigchain.com",
+      "security_contact": "",
+      "details": "The guardian of ZIGChain. ZIG Sentinel ensures network integrity, stability, and high-performance validation, empowering a decentralized future where every transaction is secure and seamless."
+     },
+     "unbonding_height": "0",
+     "unbonding_time": "1970-01-01T00:00:00Z",
+     "commission": {
+      "commission_rates": {
+       "rate": "0.050000000000000000",
+       "max_rate": "0.200000000000000000",
+       "max_change_rate": "0.010000000000000000"
+      },
+      "update_time": "2025-09-18T14:00:11.135665363Z"
+     },
+     "min_self_delegation": "1000000000000000000000",
+     "unbonding_on_hold_ref_count": "0",
+     "unbonding_ids": []
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/validators/zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl/delegations/zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "delegation_response": {
+     "delegation": {
+      "delegator_address": "zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx",
+      "validator_address": "zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+      "shares": "100000000000000000000000.000000000000000000"
+     },
+     "balance": {
+      "denom": "azig",
+      "amount": "100000000000000000000000"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/distribution/v1beta1/delegators/zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx/rewards/zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "body": {
+    "rewards": [
+     {
+      "denom": "azig",
+      "amount": "903087439279836000000.000000000000000000"
+     }
+    ]
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/base/tendermint/v1beta1/blocks/13038320",
+   "height": "13048320",
+   "status": 200,
+   "responseHeight": "13048320",
+   "reduced": true,
+   "body": {
+    "block": {
+     "header": {
+      "chain_id": "zigchain-1",
+      "height": "13038320",
+      "time": "2026-10-18T15:07:09.915873969Z"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/staking/v1beta1/validators/zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl/delegations/zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx",
+   "height": "13038320",
+   "status": 200,
+   "responseHeight": "13038320",
+   "body": {
+    "delegation_response": {
+     "delegation": {
+      "delegator_address": "zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx",
+      "validator_address": "zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+      "shares": "100000000000000000000000.000000000000000000"
+     },
+     "balance": {
+      "denom": "azig",
+      "amount": "100000000000000000000000"
+     }
+    }
+   }
+  },
+  {
+   "url": "https://api.zigchain.com/cosmos/distribution/v1beta1/delegators/zig18vykgjgcmp2z4xzkt6mh74glrpd7qda8u8ntzx/rewards/zigvaloper18vykgjgcmp2z4xzkt6mh74glrpd7qda8fqldrl",
+   "height": "13038320",
+   "status": 200,
+   "responseHeight": "13038320",
+   "body": {
+    "rewards": [
+     {
+      "denom": "azig",
+      "amount": "897855448439100500000.000000000000000000"
      }
     ]
    }

@@ -8,6 +8,7 @@ import {VerifiedLink} from '../links/verified-link';
 import {GuideLink, type Guide} from './guide-panel';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection, type Tag} from './option-section';
+import {IllustrationSlot} from './illustrations/slot';
 
 /**
  * Session AF (L1, ADR-028 H26, H44, H88): Valdora's liquid staking. The contract figures are read live from its pinned
@@ -62,6 +63,8 @@ export function ValdoraSection({valdora, llama, now}: {valdora: LiveState<Valdor
       {text: 'Your stZIG grows in ZIG value as rewards come in; you do not need to claim anything.'},
       {text: 'To leave: Unstake (wait, then Claim), or swap stZIG for ZIG on OroSwap.'},
     ]}
+    stepsTime="about 5 minutes to stake; leaving through Valdora takes the unbonding time plus 2 days."
+    illustration={<IllustrationSlot set="valdora-stake"/>}
     actions={<>
       <GuideLink guide={VALDORA_GUIDE}/>
       <VerifiedLink provider="valdora" kind="docs" className="secondary">Valdora’s docs</VerifiedLink>

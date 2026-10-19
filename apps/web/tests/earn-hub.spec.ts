@@ -108,7 +108,8 @@ test('the chip index stays at the top while the page scrolls and marks the secti
   await earnRoutes(page);
   await page.goto('/app/earn');
   const chips = page.getByRole('navigation', {name: 'On this page'});
-  await expect(chips.getByRole('link')).toHaveText(['Native staking', 'Valdora stZIG', 'OroSwap', 'Validators', 'Calculator', 'Safety']);
+  // Session AF chunk 2: every way to earn has its own section and chip (the same exact-list check, the new list).
+  await expect(chips.getByRole('link')).toHaveText(['Start here', 'Native staking', 'Valdora stZIG', 'USDC vaults', 'OroSwap', 'Nawa', 'DeFa', 'Permapod', 'Zignaly', 'Governance', 'Goal Vaults', 'Stablecoins', 'Validators', 'Academy', 'Calculator', 'Safety']);
   for (const chip of await chips.getByRole('link').all()) expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await chips.getByRole('link', {name: 'Validators'}).click();
   await expect(page).toHaveURL(/#validators$/);

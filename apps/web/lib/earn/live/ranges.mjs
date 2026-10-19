@@ -24,6 +24,9 @@ export const RANGES = Object.freeze({
   zigPerAtom: [0.01, 1_000_000],
   tvlUsd: [0, 1e12],
   apy: [0, 200],
+  // Session AF chunk 2: a vault's share price (it starts at 1 and moves with the vault's results) and the measured staking rate.
+  sharePrice: [0.5, 10],
+  measuredApr: [0, 0.5],
 });
 const num = value => (typeof value === 'number' ? value : typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value) ? Number(value) : NaN);
 /** True when `value` (a number or a plain decimal string) is a finite number inside the named range. */
@@ -65,7 +68,8 @@ export function oroswapFailures(d) {
   for (const p of d.pools) {
     if (!p.reserves.every(r => positive(r.amount))) out.push(`reserves:${p.id}`);
     if (!inRange('feeBps', p.feeBps)) out.push(`fee:${p.id}`);
-    const range = p.id === 'zig-usdc' ? 'usdcPerZig' : p.id === 'zig-atom' ? 'zigPerAtom' : 'stZigRatio';
+    // Both USDC pools (USDC.n and, since chunk 2, USDC.inj) price ZIG in USDC.
+    const range = p.id.startsWith('zig-usdc') ? 'usdcPerZig' : p.id === 'zig-atom' ? 'zigPerAtom' : 'stZigRatio';
     if (!inRange(range, p.price.value)) out.push(`price:${p.id}`);
   }
   return out;
@@ -77,5 +81,25 @@ export function defillamaFailures(d) {
     if (p.tvlUsd !== null && !inRange('tvlUsd', p.tvlUsd)) out.push(`poolTvl:${p.pool}`);
     for (const key of ['apy', 'apyBase', 'apyReward']) if (p[key] !== null && !inRange('apy', p[key])) out.push(`${key}:${p.pool}`);
   }
+  return out;
+}
+/** Session AF chunk 2: the USDC vaults, Nawa's stZIG vault and DeFa's counter; each failing figure is withdrawn on its own. */
+export function vaultsFailures(d) {
+  const out = [];
+  for (const [id, v] of Object.entries(d.vaults)) {
+    if (v.status !== 'ok') continue;
+    if (!/^\d+$/.test(v.aumUnits) || !/^\d+$/.test(v.totalShares) || !/^\d+$/.test(v.pendingRedemptionUnits)) out.push(`vault:${id}`);
+    else if (!inRange('sharePrice', v.pricePerShare)) out.push(`vault:${id}`);
+  }
+  if (d.nawaZig.status === 'ok' && !/^\d+$/.test(d.nawaZig.totalAumUnits)) out.push('nawaZig');
+  if (d.defa.status === 'ok' && !/^\d+$/.test(d.defa.activeTvlUnits)) out.push('defa');
+  return out;
+}
+/** Session AF chunk 2 (H97): the measured rate, and the commission of the validator it is measured on. */
+export function measuredFailures(d) {
+  const out = [];
+  if (!inRange('commission', d.validator.commission)) out.push('commission');
+  if (!positive(d.latest.selfBond)) out.push('selfBond');
+  if (d.measured.status === 'ok' && !inRange('measuredApr', d.measured.rate)) out.push('measuredApr');
   return out;
 }

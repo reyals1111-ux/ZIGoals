@@ -4,7 +4,9 @@ import {useMemo, useState} from 'react';
 import {aprAtCommission} from '../../lib/earn/apr';
 import type {LiveState, ValidatorsAnswer} from '../../lib/earn/client';
 import {decimal, duration, pct, pctShort, zig} from '../../lib/earn/format';
-import type {ChainData} from '../../lib/earn/live/types';
+import type {ChainData, MeasuredData} from '../../lib/earn/live/types';
+import {aprAgreement} from '../../lib/earn/live/measured.mjs';
+import {IllustrationSlot} from './illustrations/slot';
 import {VerifiedLink} from '../links/verified-link';
 import {EarnGlyphMark} from './earn-glyph';
 import {GuideLink, type Guide} from './guide-panel';
@@ -24,13 +26,20 @@ export function commissionChoices(validators: LiveState<ValidatorsAnswer>): stri
   const active = validators.answer.data.validators.filter(v => v.status === 'bonded' && !v.jailed);
   return [...new Set(active.map(v => v.commission.rate))].sort((a, b) => a - b).map(r => r.toFixed(6));
 }
-export function NativeSection({chain, validators, now}: {chain: LiveState<ChainData>; validators: LiveState<ValidatorsAnswer>; now: number}) {
+/** Session AF chunk 2 (H97): the measured figure beside the issuance figure, compared at the measured validator's own commission. */
+export function aprComparison(chain: LiveState<ChainData>, measured: LiveState<MeasuredData>) {
+  if (chain.phase !== 'ok' || measured.phase !== 'ok' || measured.answer.data.measured.status !== 'ok') return null;
+  const issuance = aprAtCommission(chain.answer.data.apr, measured.answer.data.validator.commission);
+  return {issuance, measured: measured.answer.data.measured.rate, ...aprAgreement(issuance, measured.answer.data.measured.rate)};
+}
+export function NativeSection({chain, validators, measured, now}: {chain: LiveState<ChainData>; validators: LiveState<ValidatorsAnswer>; measured: LiveState<MeasuredData>; now: number}) {
   const choices = useMemo(() => commissionChoices(validators), [validators]);
   const [picked, setPicked] = useState<string | null>(null);
   const commission = picked && choices.includes(picked) ? picked : choices[0] ?? null;
   const data = chain.phase === 'ok' ? chain.answer.data : null;
   const atCommission = data && commission ? aprAtCommission(data.apr, commission) : null;
   const range = validators.phase === 'ok' && choices.length ? `${pctShort(choices[0]!)} to ${pctShort(choices.at(-1)!)}` : null;
+  const m = measured.phase === 'ok' ? measured.answer.data : null, compare = aprComparison(chain, measured);
   return <OptionSection id="native-staking" eyebrow="ZIGChain · the network’s own staking" title="Stake ZIG with a validator"
     lede="Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block."
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
@@ -44,7 +53,10 @@ export function NativeSection({chain, validators, now}: {chain: LiveState<ChainD
     figures={<>
       <LiveFigure id="native-apr" big label={commission ? <>Yearly rate at a {pctShort(commission)} validator commission</> : 'Yearly rate before the validator’s commission'} now={now}
         figure={shown(chain, d => commission ? pct(aprAtCommission(d.apr, commission)) : pct(d.apr.beforeCommission))}
-        hint={<>A simple yearly rate (APR), measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block.</>}/>
+        hint={<>The issuance figure: a simple yearly rate (APR) from the new ZIG the network pays out, block time measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block.</>}/>
+      <LiveFigure id="native-apr-measured" big label={m ? <>Measured: what {m.validator.moniker}’s own stake earned, at its {pctShort(m.validator.commission)} commission</> : 'Measured on one validator’s own stake'} now={now}
+        figure={shown(measured, d => d.measured.status === 'ok' ? pct(d.measured.rate) : {unavailable: d.measured.reason})}
+        hint={m ? <>The rewards waiting on that validator’s own stake of {zig(m.latest.selfBond)}, read at block {m.latest.height} and {m.measured.status === 'ok' ? decimal(m.measured.windowBlocks, 0) : '10,000'} blocks earlier (block {m.earlier.height}), over the real time between them; it includes what the issuance figure leaves out (transaction fees). One validator, one window: a check, not a promise.</> : 'What one named validator’s own stake earned over the last 10,000 blocks, read from the chain at two heights.'}/>
       <LiveFigure id="native-apr-before" label="Before any commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="native-bonded" label="ZIG staked on the network" now={now} figure={shown(chain, d => <>{zig(d.staking.bondedTokens, {compact: true})} <span className="earn-unit">({pct(d.staking.bondedShare, 1)} of all ZIG)</span></>)}/>
       <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))}/>
@@ -52,6 +64,9 @@ export function NativeSection({chain, validators, now}: {chain: LiveState<ChainD
       <LiveFigure id="native-inflation" label="New ZIG a year (inflation)" now={now} figure={shown(chain, d => pct(d.mint.inflation))}/>
     </>}
     figuresNote={<>
+      {compare && <p className="earn-agreement" data-apr-agreement={compare.disagree ? 'disagree' : 'agree'}>{compare.disagree
+        ? <><b>The two figures disagree</b>: at the same {pctShort(m!.validator.commission)} commission the issuance arithmetic gives {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}, more than 10 % apart. Both stay here; neither is a promise.</>
+        : <>At the same {pctShort(m!.validator.commission)} commission the issuance arithmetic gives {pct(compare.issuance)} and the measured stake earned {pct(compare.measured)}: within 10 % of each other.</>}</p>}
       {choices.length > 1 && <fieldset className="earn-commission"><legend>See the rate at a commission validators charge now</legend>{choices.map(c => <label key={c}><input type="radio" name="earn-commission" checked={c === commission} onChange={() => setPicked(c)}/><span>{pctShort(c)}</span></label>)}</fieldset>}
       <details className="earn-formula">
         <summary>How this is computed</summary>
@@ -87,6 +102,8 @@ export function NativeSection({chain, validators, now}: {chain: LiveState<ChainD
       {text: 'Rewards start right away. Claim them whenever you like, or stake them again.'},
       {text: <>To leave, undelegate: your ZIG comes back after {data ? duration(data.staking.unbondingSeconds) : 'the unbonding time'}.</>},
     ]}
+    stepsTime="about 5 minutes to stake; rewards start with the next block."
+    illustration={<IllustrationSlot set="keplr-staking"/>}
     actions={<>
       <Link className="primary" href="/app/staking">Go to Staking</Link>
       <GuideLink guide={NATIVE_GUIDE} className="secondary"/>

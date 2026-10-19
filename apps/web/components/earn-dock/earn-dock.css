@@ -1,0 +1,53 @@
+/* Session AF chunk 2 (Part 5; ADR-028 H12, H65): the Earn dock, on top of the right-edge stack (Earn dock → Music →
+   Checklist → ZIGi) through `--launcher-slot-earn` (music-launcher.css). ZIGi's, the music and the Checklist button's twin:
+   the same circle, rim, glass and glow, following ZIGi's size. The fan opens up and to the side in a quarter arc, once per
+   opening; still under reduced motion and Motion Off. Theme islands: the same nebula circle in every theme. */
+.earn-dock-stack { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(max(4px, env(safe-area-inset-bottom, 0px)) + var(--launcher-slot-earn, 200px)); z-index: 46; display: flex; flex-direction: column; align-items: center; gap: 0; }
+:root[data-zigi-side=left] .earn-dock-stack { right: auto; left: max(20px, env(safe-area-inset-left, 0px)); }
+@media (min-width: 901px) { :root[data-zigi-side=left] .earn-dock-stack { left: calc(var(--sidebar-width, 216px) + 20px); } }
+.earn-dock-button { --zigi-circle: 56px; position: relative; z-index: 2; display: grid; place-items: center; box-sizing: border-box; width: var(--zigi-circle); height: var(--zigi-circle); padding: 0; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); background: radial-gradient(120% 120% at 30% 20%, #2b2a6e, #0d1230 70%); box-shadow: 0 14px 34px -14px rgba(60, 40, 160, .8), 0 0 0 1px rgba(255, 255, 255, .04) inset; color: var(--text, #eef1ff); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+:root:has(.ai-launcher[data-size=s]) .earn-dock-button { --zigi-circle: 48px; }
+:root:has(.ai-launcher[data-size=l]) .earn-dock-button { --zigi-circle: 64px; }
+.earn-dock-button:hover, .earn-dock-button:focus-visible { transform: translateY(-2px); box-shadow: 0 18px 40px -14px rgba(90, 70, 200, .9); }
+.earn-dock-button:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+.earn-dock-button[aria-expanded=true] { border-color: color-mix(in srgb, #ffd27a 70%, transparent); }
+.earn-dock-button .earn-dock-mark { width: calc(var(--zigi-circle) * .56); height: calc(var(--zigi-circle) * .56); filter: drop-shadow(0 0 6px #b06bff8c) drop-shadow(0 0 2px #ffd27a66); }
+.earn-dock-fold { position: relative; display: grid; place-items: center; width: 44px; height: 26px; margin: 0; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+.earn-dock-fold svg { transform: scale(.82); opacity: .8; transition: opacity .15s ease; }
+.earn-dock-fold:hover svg, .earn-dock-fold:focus-visible svg { opacity: 1; }
+.earn-dock-fold:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: -2px; }
+:root[data-zigi-side=left] .earn-dock-fold svg { transform: rotate(180deg) scale(.82); }
+.earn-dock-fold::after { content: attr(data-tip); position: absolute; top: 50%; right: calc(100% + 4px); translate: 0 -50%; padding: 5px 9px; border-radius: 8px; background: color-mix(in srgb, var(--panel, #0f1530) 94%, transparent); border: 1px solid var(--line, #2a325a); color: var(--text, #eef1ff); font-size: 14px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+:root[data-zigi-side=left] .earn-dock-fold::after { right: auto; left: calc(100% + 6px); }
+.earn-dock-fold:hover::after, .earn-dock-fold:focus-visible::after { opacity: 1; }
+.earn-dock-edge { position: fixed; right: 0; bottom: calc(max(4px, env(safe-area-inset-bottom, 0px)) + var(--launcher-slot-earn, 200px) + 4px); z-index: 46; width: 44px; height: 52px; padding: 0 0 0 4px; display: grid; place-items: center; border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); border-right: 0; border-radius: 16px 0 0 16px; background: radial-gradient(140% 120% at 30% 20%, #2b2a6e, #0d1230 75%); box-shadow: 0 10px 26px -12px rgba(60, 40, 160, .8); color: var(--text, #eef1ff); cursor: pointer; }
+:root[data-zigi-side=left] .earn-dock-edge { right: auto; left: 0; padding: 0 4px 0 0; border-left: 0; border-right: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent); border-radius: 0 16px 16px 0; }
+@media (min-width: 901px) { :root[data-zigi-side=left] .earn-dock-edge { left: var(--sidebar-width, 216px); } }
+.earn-dock-edge:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+
+/* The fan: five round buttons on a quarter arc around the dock button (up, then towards the page). */
+.earn-dock-fan { position: absolute; top: 0; left: 50%; width: 0; height: var(--zigi-circle, 56px); z-index: 1; }
+.earn-dock-app { --r: 138px; --sx: -1; position: absolute; top: calc(50% - 23px); left: -23px; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 1px solid color-mix(in srgb, #ffd27a 45%, transparent); background: radial-gradient(120% 120% at 30% 20%, #23365c, #0b142a 72%); box-shadow: 0 10px 26px -12px rgba(255, 210, 122, .55), 0 0 0 4px #ffd27a10; color: var(--text, #eef1ff); text-decoration: none; transform: translate(calc(var(--sx) * var(--dx)), var(--dy)); animation: earn-dock-out 280ms var(--motion-glide, cubic-bezier(.2, .8, .2, 1)) both; }
+:root[data-zigi-side=left] .earn-dock-app { --sx: 1; }
+.earn-dock-app[data-i="0"] { --dx: 0px; --dy: calc(-1 * var(--r)); animation-delay: 0ms; }
+.earn-dock-app[data-i="1"] { --dx: calc(var(--r) * .383); --dy: calc(-.924 * var(--r)); animation-delay: 40ms; }
+.earn-dock-app[data-i="2"] { --dx: calc(var(--r) * .707); --dy: calc(-.707 * var(--r)); animation-delay: 80ms; }
+.earn-dock-app[data-i="3"] { --dx: calc(var(--r) * .924); --dy: calc(-.383 * var(--r)); animation-delay: 120ms; }
+.earn-dock-app[data-i="4"] { --dx: var(--r); --dy: 0px; animation-delay: 160ms; }
+@keyframes earn-dock-out { from { transform: translate(0, 0) scale(.4); opacity: 0; } }
+.earn-dock-app:hover, .earn-dock-app:focus-visible { border-color: #ffd27a; box-shadow: 0 12px 30px -10px rgba(255, 210, 122, .75); }
+.earn-dock-app:focus-visible { outline: 2px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+.earn-dock-app-face { display: grid; place-items: center; width: 30px; height: 30px; overflow: hidden; border-radius: 50%; }
+.earn-dock-app-face img { width: 30px; height: 30px; object-fit: contain; }
+.earn-dock-app-face .earn-glyph-mark { width: 34px; height: 34px; }
+.earn-dock-app-face .earn-glyph-mark .ha-ink-c { fill: var(--accent-cyan, #63e7ff); }
+.earn-dock-app-label { position: absolute; right: calc(100% + 8px); top: 50%; translate: 0 -50%; padding: 4px 9px; border-radius: 8px; background: color-mix(in srgb, var(--panel, #0f1530) 94%, transparent); border: 1px solid var(--line, #2a325a); font-size: 13px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s ease; }
+:root[data-zigi-side=left] .earn-dock-app-label { right: auto; left: calc(100% + 8px); }
+.earn-dock-app:hover .earn-dock-app-label, .earn-dock-app:focus-visible .earn-dock-app-label { opacity: 1; }
+.earn-dock-badge { position: absolute; bottom: -9px; left: 50%; translate: -50% 0; padding: 1px 6px; border-radius: 999px; background: #0b1328; border: 1px solid #ffd27a80; color: #ffd27a; font-size: 11px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+:root[data-keyboard=open] :is(.earn-dock-stack, .earn-dock-edge) { display: none; }
+@media (prefers-reduced-motion: reduce) { .earn-dock-app { animation: none; } .earn-dock-button, .earn-dock-fold svg, .earn-dock-fold::after, .earn-dock-app-label { transition: none; } .earn-dock-button:hover, .earn-dock-button:focus-visible { transform: none; } }
+:root[data-app-motion=off] .earn-dock-app { animation: none; }
+:root[data-app-motion=off] .earn-dock-button { transition: none; }
+:root[data-app-motion=off] :is(.earn-dock-button:hover, .earn-dock-button:focus-visible) { transform: none; }
+@media (forced-colors: active) { .earn-dock-button, .earn-dock-edge, .earn-dock-app { border-color: CanvasText; } .earn-dock-mark { filter: none; } }
