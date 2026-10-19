@@ -143,6 +143,8 @@ test.runIf(enabled)('the packaged Alpha serves the web app manifest from the ass
   expect(response.headers.get('x-frame-options')).toBe('DENY');
   // Session AA-Cloud Part 7 (deliberate, as strict): the manifest gained its shortcuts and share target; tests/install-manifest.spec.ts checks
   // that 72ad872's bytes still come first. The packaged asset is pinned as a whole.
-  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('29957d7933da2ad24469c5f4c73241ad03be34cecd361ed7565b6e0a1498e6c3');
+  // Session AF (L3, deliberate, as strict): the manifest gained the Checklist shortcut (install-manifest.spec.ts moved to the
+  // same hash in L3's commit); the packaged asset is still pinned as a whole.
+  expect(createHash('sha256').update(new Uint8Array(await response.arrayBuffer())).digest('hex')).toBe('db76a85f0cf583c8dc990c011d8dc34876df2bfaa71e699795614abf203f8733');
  }finally{await mf.dispose();}
 },60000);

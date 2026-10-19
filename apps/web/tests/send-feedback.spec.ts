@@ -88,7 +88,12 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   const items = section.getByRole('listitem');
   // Session AB-Cloud Part 10 (ADR-023 C31): three more, each checked by its words below (was 10).
   // Session AC (friends pack): three more again (was 13), each checked by its words and its link below.
-  await expect(items).toHaveCount(16);
+  // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
+  await expect(items).toHaveCount(18);
+  await expect(section).toContainText('The Checklist stays on this device: your path, your own items and the day history aren’t synced yet');
+  await expect(section).toContainText('Ecosystem apps open in their own tab: ZIGoals shows their live numbers and steps but never frames their sites, and signs nothing for them');
+  await expect(section.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
+  await expect(section.getByRole('link', {name: 'What is the Earn page?', exact: true})).toHaveAttribute('href', '#help-af-earn');
   await expect(section).toContainText('Safari on iPhone and iPad offers no Home Screen shortcuts and no Share sheet entry for ZIGoals');
   await expect(section).toContainText('Push notifications are switched off in this Alpha: nothing reaches your phone while ZIGoals is closed');
   await expect(section).toContainText('Your last backup isn’t recorded: Settings → Your data says “Not recorded”');
