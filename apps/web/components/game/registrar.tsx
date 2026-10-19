@@ -17,7 +17,9 @@ const SLOT_PAGES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/we
 const hasSlots = (path: string | null) => !!path && SLOT_PAGES.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p + '?'));
 export function GameRegistrar() {
   const path = usePathname(), slots = hasSlots(path);
-  useEffect(() => { if (!slots) return; let on = true; void import('./register').then(m => { if (on) m.registerGameCards(); }); return () => { on = false; }; }, [slots]);
+  // Session AF (CI's WebKit, webkit-earn): a navigation can cancel this chunk's stylesheet mid-load; WebKit then rejects the
+  // import, and the next page registers again, so a cancelled load is not an error.
+  useEffect(() => { if (!slots) return; let on = true; void import('./register').then(m => { if (on) m.registerGameCards(); }).catch(() => undefined); return () => { on = false; }; }, [slots]);
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
     const read = () => setEnabled(gameOn()); read();

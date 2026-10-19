@@ -44,6 +44,13 @@ export async function openIn(page: Page, route: string, theme: Theme) {
   await page.waitForLoadState('networkidle');
   for (let y = 0; y < 40_000; y += 700) { const max = await page.evaluate(top => { scrollTo(0, top); return document.documentElement.scrollHeight - innerHeight; }, y); await page.waitForTimeout(40); if (y > max) break; }
   await page.waitForLoadState('networkidle');
-  await page.evaluate(async () => { scrollTo(0, 0); await document.fonts.ready; });
+  await page.evaluate(async () => { scrollTo({top: 0, left: 0, behavior: 'instant'}); await document.fonts.ready; });
+  // Session AF (CI's WebKit job on bf72baa0): the phone bar's title, ZIGi's resting spot and Earn's chip rail follow the
+  // page's scroll a few frames late (the rail by a smooth scroll of its own), and WebKit took longer than the wait above, so
+  // one theme was collected mid-way. Every theme is now collected in the same resting state: the page at the top, and every
+  // scroll position and the launcher unchanged over 300 ms (up to 10 s; past that the comparison reports what it finds).
+  const rest = () => page.evaluate(() => JSON.stringify([scrollX, scrollY, document.querySelector('.ai-launcher')?.getBoundingClientRect().top ?? null,
+    [...document.querySelectorAll('body *')].filter(e => e.scrollLeft || e.scrollTop).map(e => [e.scrollLeft, e.scrollTop])]));
+  for (let i = 0, last = await rest(); i < 30; i++) { await page.waitForTimeout(300); const now = await rest(); if (now === last) break; last = now; }
   await page.waitForTimeout(500);
 }
