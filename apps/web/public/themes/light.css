@@ -4168,6 +4168,19 @@
         background-image: radial-gradient(120% 120% at 30% 20%, #e9ebfc, #f0f2fb 70%);
         background-color: transparent
     }
+    .today-checklist-dots > li:not(#\-) {
+        border-color: var(--dot);
+        background-image: none;
+        background-color: transparent
+    }
+    .today-checklist-dots > li[data-state=done]:not(#\-) {
+        background: var(--dot);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--dot) 55%, transparent)
+    }
+    .today-checklist-dots > li[data-state=running]:not(#\-) {
+        background-image: none;
+        background-color: color-mix(in srgb, var(--dot) 40%, transparent)
+    }
     .today-checklist-nudge:not(#\-) {
         color: var(--muted, #1e2635)
     }
@@ -5031,6 +5044,22 @@
     :is(.earn-formula, .earn-illustration-slot) > summary:not(#\-)::after {
         border-right-color: currentColor;
         border-bottom-color: currentColor
+    }
+    .earn-how-read > div:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .earn-how-read code:not(#\-) {
+        color: var(--text-strong)
+    }
+    .earn-figure .earn-how-read:not(#\-) {
+        background-image: none;
+        background-color: #f0f3f9
+    }
+    .earn-caution:not(#\-) {
+        border-color: #ffb27a66;
+        background-image: none;
+        background-color: #f4eff066;
+        color: var(--text-secondary)
     }
 }
 /*  components/earn/today-earn-card.css  */
@@ -12461,8 +12490,39 @@
     .timeline-replan-list small:not(#\-) {
         color: var(--text-secondary)
     }
-    .today-timeline-next li span:not(#\-) {
+    .today-timeline-next:not(#\-)::before {
+        background-image: linear-gradient(#6fe6f6aa, #c790f6aa, #f08bd6aa);
+        background-color: transparent
+    }
+    .today-timeline-next > li[data-block]:not(#\-)::before {
+        background-image: none;
+        background-color: #f0f3fc;
+        border-color: #9fb3ff
+    }
+    .today-timeline-next > li[data-pillar=habits]:not(#\-)::before {
+        border-color: var(--pillar-habits)
+    }
+    .today-timeline-next > li[data-pillar=health]:not(#\-)::before {
+        border-color: var(--pillar-health)
+    }
+    .today-timeline-next > li[data-pillar=goals]:not(#\-)::before {
+        border-color: var(--pillar-goals)
+    }
+    .today-timeline-next > li[data-pillar=wealth]:not(#\-)::before {
+        border-color: var(--pillar-wealth)
+    }
+    .today-timeline-next > li .today-timeline-time:not(#\-) {
         color: var(--text-secondary)
+    }
+    .today-timeline-now-row:not(#\-)::before {
+        background-image: linear-gradient(90deg, #f08bd6, #ffd27a);
+        background-color: transparent;
+        box-shadow: 0 0 10px #f08bd688
+    }
+    .today-timeline-now-row > span:not(#\-) {
+        color: #0b1020;
+        background-image: linear-gradient(90deg, #f08bd6, #ffd27a);
+        background-color: transparent
     }
     .today-timeline-skeleton:not(#\-) {
         background-image: none;
