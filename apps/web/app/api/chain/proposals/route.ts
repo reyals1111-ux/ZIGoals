@@ -11,6 +11,7 @@ import {CHAIN_READS_LIMITED, chainRelay} from '../../../../lib/server/chain-rela
 import {isChainNetwork, type ChainNetwork} from '../../../../lib/server/chain-lcd';
 import {proposalsTtl, readProposals, unavailableProposals} from '../../../../lib/server/chain-governance';
 import type {ProposalsWire} from '../../../../lib/governance/wire';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<ProposalsWire>({read: key => readProposals(key as ChainNetwork), ttl: proposalsTtl});
@@ -19,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
   if ([...query.keys()].some(k => k !== 'network') || query.getAll('network').length !== 1 || !isChainNetwork(network))
     return Response.json({error: 'A supported network is required: zigchain-1 or zig-test-2.'}, {status: 400, headers});
   try {
-    const answer = await relay(network, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(network, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {

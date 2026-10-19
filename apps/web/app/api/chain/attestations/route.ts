@@ -10,6 +10,7 @@ import {CHAIN_READS_LIMITED, chainRelay} from '../../../../lib/server/chain-rela
 import {readAttestations, unavailableAttestations} from '../../../../lib/server/chain-attestations';
 import {ATTESTATION_CHAIN_ID, type AttestationsWire} from '../../../../lib/staking/attestation';
 import {isZigAccount} from '../../../../lib/staking/address';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<AttestationsWire>({read: address => readAttestations(address), entries: 500});
@@ -19,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({error: 'The practice network (zig-test-2) and a public ZIG address are required.'}, {status: 400, headers});
   if (network !== ATTESTATION_CHAIN_ID) return Response.json({error: 'Practice badges are on the practice network (zig-test-2) only.'}, {status: 400, headers});
   try {
-    const answer = await relay(address!, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(address!, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {

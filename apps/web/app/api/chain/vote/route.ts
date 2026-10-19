@@ -12,6 +12,7 @@ import {isChainNetwork, type ChainNetwork} from '../../../../lib/server/chain-lc
 import {readVote, unavailableVote} from '../../../../lib/server/chain-governance';
 import {isZigAccount} from '../../../../lib/staking/address';
 import type {VoteWire} from '../../../../lib/governance/wire';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<VoteWire>({read: key => { const [network, id, voter] = key.split(':'); return readVote(network as ChainNetwork, id!, voter!); }, entries: 500});
@@ -21,7 +22,7 @@ export async function GET(request: Request): Promise<Response> {
     || !isChainNetwork(network) || !id || !/^[1-9]\d{0,18}$/.test(id) || !isZigAccount(voter))
     return Response.json({error: 'A supported network, a proposal number and a public ZIG address are required.'}, {status: 400, headers});
   try {
-    const answer = await relay(`${network}:${id}:${voter}`, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(`${network}:${id}:${voter}`, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {

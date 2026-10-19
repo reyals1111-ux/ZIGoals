@@ -8,6 +8,7 @@
 import {CHAIN_READS_LIMITED, chainRelay} from '../../../../lib/server/chain-relay';
 import {VALIDATOR_LCDS, readValidators, unavailableValidators, type ValidatorNetwork} from '../../../../lib/server/chain-validators';
 import type {ValidatorsWire} from '../../../../lib/chain/validators-wire';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<ValidatorsWire>({read: key => readValidators(key as ValidatorNetwork)});
@@ -16,7 +17,7 @@ export async function GET(request: Request): Promise<Response> {
   if ([...query.keys()].some(k => k !== 'network') || query.getAll('network').length !== 1 || !network || !Object.hasOwn(VALIDATOR_LCDS, network))
     return Response.json({error: 'A supported network is required: zigchain-1 or zig-test-2.'}, {status: 400, headers});
   try {
-    const answer = await relay(network, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(network, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {

@@ -11,6 +11,7 @@ import {isChainNetwork, type ChainNetwork} from '../../../../lib/server/chain-lc
 import {readGrants, unavailableGrants} from '../../../../lib/server/chain-grants';
 import {isZigAccount} from '../../../../lib/staking/address';
 import type {GrantsWire} from '../../../../lib/staking/grants';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<GrantsWire>({read: key => { const [network, address] = key.split(':'); return readGrants(network as ChainNetwork, address!); }, entries: 500});
@@ -19,7 +20,7 @@ export async function GET(request: Request): Promise<Response> {
   if ([...query.keys()].some(k => k !== 'network' && k !== 'address') || query.getAll('network').length !== 1 || query.getAll('address').length !== 1 || !isChainNetwork(network) || !isZigAccount(address))
     return Response.json({error: 'A supported network and a public ZIG address are required.'}, {status: 400, headers});
   try {
-    const answer = await relay(`${network}:${address}`, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(`${network}:${address}`, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {

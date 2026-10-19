@@ -10,6 +10,7 @@ import {CHAIN_READS_LIMITED, chainRelay} from '../../../../lib/server/chain-rela
 import {isChainNetwork, type ChainNetwork} from '../../../../lib/server/chain-lcd';
 import {proposalsTtl, readProposal, unavailableProposals} from '../../../../lib/server/chain-governance';
 import type {ProposalsWire} from '../../../../lib/governance/wire';
+import {marketClientGroup} from '../../../../lib/server/market-client-address';
 export const dynamic = 'force-dynamic';
 const headers = {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff'};
 const relay = chainRelay<ProposalsWire>({read: key => { const [network, id] = key.split(':'); return readProposal(network as ChainNetwork, id!); }, ttl: proposalsTtl});
@@ -18,7 +19,7 @@ export async function GET(request: Request): Promise<Response> {
   if ([...query.keys()].some(k => k !== 'network' && k !== 'id') || query.getAll('network').length !== 1 || query.getAll('id').length !== 1 || !isChainNetwork(network) || !id || !/^[1-9]\d{0,18}$/.test(id))
     return Response.json({error: 'A supported network (zigchain-1 or zig-test-2) and a proposal number are required.'}, {status: 400, headers});
   try {
-    const answer = await relay(`${network}:${id}`, request.headers.get('cf-connecting-ip') ?? '');
+    const answer = await relay(`${network}:${id}`, marketClientGroup(request.headers.get('cf-connecting-ip')) ?? '');
     if ('retryAfter' in answer) return Response.json({error: CHAIN_READS_LIMITED, code: 'TRY_LATER'}, {status: 429, headers: {...headers, 'Retry-After': String(answer.retryAfter)}});
     return Response.json(answer.value, {headers});
   } catch {
