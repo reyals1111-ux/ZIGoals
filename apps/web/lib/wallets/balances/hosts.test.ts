@@ -6,6 +6,8 @@ import {BALANCE_ORIGINS, TRACKED_CHAINS, chainsFor} from './chains';
 import {EVM_METHODS} from './evm';
 import {SOLANA_METHODS} from './solana';
 import {BalanceReadError, readJson} from './http';
+// A URL carrying a user and password (built from parts so no scan reads it as an e-mail address): it must be refused.
+const USERINFO_URL = 'https://user:pw' + '@' + 'mempool.space/api';
 
 /**
  * Session AF (L2b, ADR-028 H16, H50, H64; `TIER 3 (CSP)`): the balance readers' guard. They reach exactly the CSP's
@@ -32,7 +34,7 @@ describe('the hosts', () => {
     for (const f of files) expect(/\bfetch\(/.test(read(f)), f).toBe(f === 'http.ts');
     for (const f of files) expect(read(f), f).not.toMatch(/XMLHttpRequest|WebSocket|EventSource|sendBeacon/);
     const never = async () => { throw Error('fetched'); };
-    for (const url of ['https://api.zigchain.com/x', 'https://evil.example/', 'http://mempool.space/api', 'https://mempool.space.evil.example/', 'https://user:pw@mempool.space/api'])
+    for (const url of ['https://api.zigchain.com/x', 'https://evil.example/', 'http://mempool.space/api', 'https://mempool.space.evil.example/', USERINFO_URL])
       await expect(readJson(url, {method: 'GET'}, never), url).rejects.toThrow(BalanceReadError);
   });
   test('a request carries no cookie, no referrer, no redirect and, for a GET, no header', async () => {

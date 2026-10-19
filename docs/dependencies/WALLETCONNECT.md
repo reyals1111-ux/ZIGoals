@@ -68,3 +68,5 @@ ZIGoals uses it.
    `apps/web/lib/egress-policy.json` (`csp.app.connect`, `csp.app.frame`) with the exact-list tests; the hosted verifier's
    origin list (lead).
 3. Watch Reown's MAU and RPC counts against the §3 thresholds.
+
+**Author contact addresses (lead, at the merge; ADR-028 H101).** The bundled notices in `apps/web/public/licenses/walletconnect.txt` keep every copyright line, licence text and author name; the authors' e-mail addresses inside them read "(e-mail omitted)", because this session's rule keeps e-mail addresses out of the repository. The complete original texts ship inside each package (`LICENSE` in `node_modules/<package>/`) and at each project's source; the owner may restore the addresses.

@@ -88,7 +88,7 @@ PLEASE READ THE FOLLOWING SECTION CAREFULLY BECAUSE IT REQUIRES YOU TO SUBMIT TO
 
 **d. Confidentiality.** The arbitrator, You and We must maintain the confidentiality of any proceedings, including but not limited to, any and all information gathered, prepared, and presented for purposes of the arbitration or related to the Dispute(s) therein. The arbitrator has the authority to make appropriate rulings to safeguard that confidentiality, unless the law provides to the contrary.
 
-**e. Process.** Our goal is to resolve claims fairly and quickly. Accordingly, for any Dispute that you have against Us, you must first contact Us and attempt to resolve the claim informally by sending a written notice of your claim (“**Notice**”) to Us. The Notice to Us must be sent by certified mail addressed to: Reown Inc., 200 Continental Drive, 401, Newark, DE 19713 USA and a copy must be sent on the same day via email to Legal@walletconnect.com. The Notice must (a) include Your name, residence address, projectID and the email address and/or mobile telephone number associated with your account; (b) describe the nature and basis of the claim; and (c) set forth the specific relief sought. If You and We cannot reach an agreement to resolve the claim within 30 days after such Notice is received, then either party may, as appropriate in accordance with this Section 10, commence an arbitration proceeding or file a claim in small claims court.
+**e. Process.** Our goal is to resolve claims fairly and quickly. Accordingly, for any Dispute that you have against Us, you must first contact Us and attempt to resolve the claim informally by sending a written notice of your claim (“**Notice**”) to Us. The Notice to Us must be sent by certified mail addressed to: Reown Inc., 200 Continental Drive, 401, Newark, DE 19713 USA and a copy must be sent on the same day via email to (e-mail omitted). The Notice must (a) include Your name, residence address, projectID and the email address and/or mobile telephone number associated with your account; (b) describe the nature and basis of the claim; and (c) set forth the specific relief sought. If You and We cannot reach an agreement to resolve the claim within 30 days after such Notice is received, then either party may, as appropriate in accordance with this Section 10, commence an arbitration proceeding or file a claim in small claims court.
 
 **f. Binding Arbitration.** In the event that You and We cannot resolve a Dispute and do not pursue the matter through small claims court, You or We must promptly submit the Dispute to binding arbitration before the American Arbitration Association (“**AAA**”). In the event AAA declines or is unable to administer the arbitration, You and We agree to use an arbitration forum or arbitrator that You and We mutually agree upon. If, after making a reasonable effort, You and We are not able to agree upon an arbitration forum or arbitrator, AAA or a court having proper jurisdiction will appoint an arbitration forum or arbitrator. The arbitration will be conducted in accordance with the AAA Consumer Arbitration Rules (“**AAA Rules**”) then in effect. The AAA Rules and other information about AAA and arbitration are readily available at [http://www.adr.org](http://www.adr.org/), by calling 1-800-778-7879, or by mail at 120 Broadway, Floor 21, New York, NY 10271\. By entering into this License, you either (1) acknowledge that you have read and understand the AAA Rules or (2) waive reading the AAA Rules and waive any claim that the AAA Rules are unfair in any way. You and We agree that the terms of this License govern the arbitration, and that the applicable AAA Rules are subject to changes in procedures that AAA may make from time to time.
 
@@ -780,14 +780,14 @@ unjs/cookie-es
 
 MIT License
 
-Cookie-es copyright (c) Pooya Parsa <pooya@pi0.io>
+Cookie-es copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Cookie parsing based on https://github.com/jshttp/cookie
-Copyright (c) 2012-2014 Roman Shtylman <shtylman@gmail.com>
-Copyright (c) 2015 Douglas Christopher Wilson <doug@somethingdoug.com>
+Copyright (c) 2012-2014 Roman Shtylman <(e-mail omitted)>
+Copyright (c) 2015 Douglas Christopher Wilson <(e-mail omitted)>
 
 Set-Cookie parsing based on https://github.com/nfriedly/set-cookie-parser
-Copyright (c) 2015 Nathan Friedly <nathan@nfriedly.com> (http://nfriedly.com/)
+Copyright (c) 2015 Nathan Friedly <(e-mail omitted)> (http://nfriedly.com/)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -813,7 +813,7 @@ h3js/crossws
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -837,7 +837,7 @@ SOFTWARE.
 
 Bundled with https://github.com/websockets/ws
 
-Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
+Copyright (c) 2011 Einar Otto Stangvik <(e-mail omitted)>
 Copyright (c) 2013 Arnout Kazemier and contributors
 Copyright (c) 2016 Luigi Pinca and contributors
 
@@ -864,7 +864,7 @@ unjs/defu
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -890,7 +890,7 @@ unjs/destr
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -916,7 +916,7 @@ https://github.com/DamonOehlman/detect-browser
 
 The MIT License (MIT)
 
-Copyright (c) 2019 Damon Oehlman <damon.oehlman@gmail.com>
+Copyright (c) 2019 Damon Oehlman <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1025,7 +1025,7 @@ h3js/h3
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1206,7 +1206,7 @@ unjs/node-fetch-native
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1272,7 +1272,7 @@ https://github.com/TooTallNate/proxy-agents
 
 (The MIT License)
 
-Copyright (c) 2013 Nathan Rajlich <nathan@tootallnate.net>
+Copyright (c) 2013 Nathan Rajlich <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -1377,7 +1377,7 @@ unjs/ofetch
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1571,7 +1571,7 @@ unjs/radix3
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1725,7 +1725,7 @@ SOFTWARE.
 split2 4.2.0 — ISC
 https://github.com/mcollina/split2
 
-Copyright (c) 2014-2018, Matteo Collina <hello@matteocollina.com>
+Copyright (c) 2014-2018, Matteo Collina <(e-mail omitted)>
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -1788,7 +1788,7 @@ unjs/ufo
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1812,7 +1812,7 @@ SOFTWARE.
 uint8arrays 3.1.1 — MIT
 https://github.com/achingbrain/uint8arrays
 
-(No license file in the distribution; package.json declares MIT, author Alex Potsides <alex@achingbrain.net>.)
+(No license file in the distribution; package.json declares MIT, author Alex Potsides <(e-mail omitted)>.)
 
 ==============================================================================
 uncrypto 0.1.3 — MIT
@@ -1820,7 +1820,7 @@ unjs/uncrypto
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1846,7 +1846,7 @@ unjs/unstorage
 
 MIT License
 
-Copyright (c) Pooya Parsa <pooya@pi0.io>
+Copyright (c) Pooya Parsa <(e-mail omitted)>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
