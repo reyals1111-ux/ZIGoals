@@ -20,7 +20,8 @@ import './sidebar-sky.css';
  */
 export function SidebarSky() {
   useEffect(() => {
-    const el = document.querySelector<HTMLElement>('aside.app-sidebar'); if (!el) return;
+    // Nothing to drive without the sidebar or media queries (a test document, an engine without matchMedia).
+    const el = document.querySelector<HTMLElement>('aside.app-sidebar'); if (!el || typeof window.matchMedia !== 'function') return;
     const root = document.documentElement, desktop = matchMedia('(min-width: 901px)'), reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const driver = skyDriver(typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('animation-timeline: scroll()'));
     let on = false, frame = 0, settle = 0;
