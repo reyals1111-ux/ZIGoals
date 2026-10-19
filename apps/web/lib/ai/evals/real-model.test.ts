@@ -31,6 +31,8 @@ import type {ChatEvent, ChatMessage, ChatRequest} from '../types';
 import {SPOKEN} from './corpus-spoken';
 import {CORPUS, IMPORTANT, type ModelCase} from './corpus';
 import {AA} from './corpus-aa';
+import {AF} from './corpus-af';
+import {todayView, withChecklist, withEarn, withPage} from './fixtures-af';
 import {goldenSources} from './run';
 import {factNumbers, score, type Call, type Observed, type Score} from './score';
 
@@ -79,9 +81,9 @@ function pageFor(c: ModelCase, sources: ToolSources, health: boolean): PageConte
 /** The key for the real-Claude mode, read once from this process's environment; never printed, never stored. */
 const KEY = PROVIDER === 'anthropic' ? env.ANTHROPIC_TEST_KEY ?? null : null;
 /** Session Z-Local Part 4: `ZIGI_SET=spoken` runs the held-out spoken corpus instead of the typed one (same scorer, same harness). */
-const SET: readonly ModelCase[] = env.ZIGI_SET === 'spoken' ? SPOKEN : env.ZIGI_SET === 'aa' ? AA : CORPUS; // Session AA-Local Part 5: ZIGI_SET=aa is the new-features set
+const SET: readonly ModelCase[] = env.ZIGI_SET === 'spoken' ? SPOKEN : env.ZIGI_SET === 'aa' ? AA : env.ZIGI_SET === 'af' ? AF : CORPUS; // Session AA-Local Part 5: ZIGI_SET=aa is the new-features set; Session AF (L4): ZIGI_SET=af
 const selected = (): ModelCase[] => {
-  const all = FILTER === 'all' ? [...SET] : FILTER === 'important' ? [...(env.ZIGI_SET === 'spoken' ? SPOKEN.filter(c => c.important) : env.ZIGI_SET === 'aa' ? AA.filter(c => c.important) : IMPORTANT)] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => SET.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : SET.filter(c => new RegExp(FILTER).test(c.id));
+  const all = FILTER === 'all' ? [...SET] : FILTER === 'important' ? [...(env.ZIGI_SET === 'spoken' ? SPOKEN.filter(c => c.important) : env.ZIGI_SET === 'aa' ? AA.filter(c => c.important) : env.ZIGI_SET === 'af' ? AF.filter(c => c.important) : IMPORTANT)] : FILTER.startsWith('ids:') ? FILTER.slice(4).split(',').map(id => id.trim()).filter(Boolean).map(id => SET.find(c => c.id === id)).filter((c): c is ModelCase => !!c) : SET.filter(c => new RegExp(FILTER).test(c.id));
   return LIMIT > 0 ? all.slice(0, LIMIT) : all;
 };
 export type Tokens = {input: number | null; output: number | null; cacheWrite: number | null; cacheRead: number | null};
@@ -95,7 +97,9 @@ function addUsage(total: Tokens, event: Extract<ChatEvent, {type: 'usage'}>): To
 function sourcesFor(c: ModelCase): ToolSources {
   let s = withPortfolios(withHandHealth(showcaseSources()));
   if (c.sentinels) s = withSentinels(s);
-  return goldenSources(s);
+  const golden = goldenSources(s);
+  // Session AF (L4): this session's records for the cases that name them (fixtures-af.ts).
+  return c.records === 'af' ? withPage(withEarn(withChecklist(golden)), todayView(c.health !== 'closed')) : c.records === 'af-bare' ? withChecklist(golden) : golden;
 }
 async function runTurn(c: ModelCase, ask: string, history: ChatMessage[], sources: ToolSources, page: PageContext | null): Promise<{observed: Observed; reply: string; repaired: boolean; firstTokenMs: number | null; totalMs: number; tokens: Tokens; requests: number; error: string | null}> {
   const health = c.health !== 'closed', gates = gatesFor(health, c.page, `/app/${c.page === 'today' ? '' : c.page}`, {settings: settingsWith(health)});
@@ -231,7 +235,11 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
     const runs: CaseRun[] = [], startedAt = new Date().toISOString();
     let batchId: string | null = null;
     if (BATCH) { const b = await runBatch(cases); runs.push(...b.runs); batchId = b.batchId; }
-    else for (const c of cases) for (let repeat = 1; repeat <= REPEAT; repeat++) {
+    // Session AF (L4): ZIGI_MAX_USD also caps a turn-by-turn run: once the turns' summed cost reaches it, no further turn
+    // is sent and the summary says where it stopped (the batch path refuses over the cap before submitting, as before).
+    const cap = PROVIDER === 'anthropic' ? Number(env.ZIGI_MAX_USD ?? '0') : 0;
+    let spent = 0, capped: string | null = null;
+    if (!BATCH) all: for (const c of cases) for (let repeat = 1; repeat <= REPEAT; repeat++) {
       const sources = sourcesFor(c), history: ChatMessage[] = [], page = PAGE ? pageFor(c, sources, c.health !== 'closed') : null;
       const turns = [{ask: c.ask, expect: c.expect}, ...(c.turns ?? [])];
       for (let t = 0; t < turns.length; t++) {
@@ -243,11 +251,13 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
           runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass, checks: s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: 0, totalMs: 0, tokens: {input: 0, output: 0, cacheWrite: 0, cacheRead: 0}, requests: 0, costUsd: 0, calls: [], reply: reply.kind === 'none' ? '' : reply.text, error: null});
           continue;
         }
+        if (cap > 0 && spent >= cap) { capped = `stopped before ${c.id}${t ? `/t${t}` : ''}: $${spent.toFixed(4)} spent, cap $${cap.toFixed(2)}`; console.info(capped); break all; }
         const r = await runTurn(c, turn.ask, history, sources, page);
         // Attach mode has no tools to call: the expected-tool checks do not apply there (the records are in the prompt).
         const {tools: _tools, toolsNot: _toolsNot, ...withoutTools} = turn.expect; void _tools; void _toolsNot;
         const s = score(MODE === 'attach' ? withoutTools : turn.expect, r.observed);
         const costUsd = PROVIDER === 'anthropic' ? estimateCost(MODEL, r.tokens) : null;
+        spent += costUsd ?? 0;
         runs.push({id: c.id, repeat, kind: c.kind, area: c.area, lang: c.lang, turn: t, pass: s.pass && !r.error, checks: r.error ? [...s.checks, {name: 'error', pass: false, detail: r.error}] : s.checks, cards: s.cards, rejected: s.rejected, hint: s.hint, refused: s.refused, firstTokenMs: r.firstTokenMs, totalMs: r.totalMs, tokens: r.tokens, requests: r.requests, costUsd, calls: [...r.observed.calls], reply: r.reply.slice(0, 4000), repaired: r.repaired, error: r.error});
         history.push({role: 'user', content: turn.ask}, {role: 'assistant', content: r.reply});
         console.info(`${s.pass && !r.error ? 'PASS' : 'FAIL'} ${c.id}${t ? `/t${t}` : ''}${REPEAT > 1 ? ` #${repeat}` : ''} ${r.totalMs} ms${costUsd !== null ? ` $${costUsd.toFixed(4)}` : ''}${r.error ? ` ERROR ${r.error.slice(0, 80)}` : ''}${s.pass ? '' : ` [${s.checks.filter(x => !x.pass).map(x => `${x.name}${x.detail ? `: ${x.detail.slice(0, 60)}` : ''}`).join('; ')}]`}`);
@@ -257,12 +267,12 @@ describe.skipIf(!enabled || !MODEL)('ZIGi against a real model (owner machines o
     for (const r of runs) { byKind[r.kind] ??= {passed: 0, total: 0}; byKind[r.kind]!.total++; if (r.pass) byKind[r.kind]!.passed++; }
     const timed = runs.filter(r => r.totalMs > 0), median = (xs: number[]) => xs.length ? [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]! : null;
     const sumOf = (pick: (r: CaseRun) => number | null) => timed.reduce((s, r) => s + (pick(r) ?? 0), 0);
-    const summary = {provider: PROVIDER, model: MODEL, host: HOST, mode: MODE, think: THINK, cache: PROVIDER === 'anthropic' ? !NO_CACHE : null, base: 'redacted', pageContext: PAGE, set: env.ZIGI_SET === 'spoken' ? 'spoken' : 'typed', ...(BATCH ? {batch: true, batchId} : {}), startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
+    const summary = {provider: PROVIDER, model: MODEL, host: HOST, mode: MODE, think: THINK, cache: PROVIDER === 'anthropic' ? !NO_CACHE : null, base: 'redacted', pageContext: PAGE, set: env.ZIGI_SET === 'spoken' ? 'spoken' : env.ZIGI_SET === 'af' ? 'af' : 'typed', ...(BATCH ? {batch: true, batchId} : {}), ...(capped ? {capped} : {}), startedAt, finishedAt: new Date().toISOString(), cases: cases.length, repeat: REPEAT, runs: runs.length, passed, rate: runs.length ? passed / runs.length : 0, byKind,
       latency: {firstTokenMedianMs: median(timed.map(r => r.firstTokenMs ?? 0)), totalMedianMs: median(timed.map(r => r.totalMs))},
       tokens: {input: sumOf(r => r.tokens.input), output: sumOf(r => r.tokens.output), cacheWrite: sumOf(r => r.tokens.cacheWrite), cacheRead: sumOf(r => r.tokens.cacheRead)}, requests: sumOf(r => r.requests),
       costUsd: PROVIDER === 'anthropic' ? sumOf(r => r.costUsd) : null, pricesAsOf: PROVIDER === 'anthropic' ? PRICES_AS_OF : null, unreported: timed.filter(r => r.tokens.input === null && r.tokens.output === null && !r.error).length};
     mkdirSync(OUT, {recursive: true});
-    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}${THINK ? '-think' : ''}${NO_CACHE ? '-nocache' : ''}${PAGE ? '-page' : ''}${env.ZIGI_SET === 'spoken' ? '-spoken' : ''}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}${LIMIT ? `-${LIMIT}` : ''}-${stamp}.json`);
+    const stamp = startedAt.replace(/[:.]/g, '-'), file = join(OUT, `${HOST.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${MODEL.replace(/[^a-z0-9.]+/gi, '-')}-${MODE}${THINK ? '-think' : ''}${NO_CACHE ? '-nocache' : ''}${PAGE ? '-page' : ''}${env.ZIGI_SET === 'spoken' ? '-spoken' : env.ZIGI_SET === 'af' ? '-af' : ''}-${FILTER === 'all' ? 'all' : FILTER === 'important' ? 'important' : 'subset'}${LIMIT ? `-${LIMIT}` : ''}-${stamp}.json`);
     writeFileSync(file, JSON.stringify({summary, runs}, null, 1));
     console.info(`ZIGi real model: ${passed}/${runs.length} (${(summary.rate * 100).toFixed(1)}%) on ${MODEL} @ ${HOST}; first token median ${summary.latency.firstTokenMedianMs} ms, total median ${summary.latency.totalMedianMs} ms${summary.costUsd !== null ? `; cost $${summary.costUsd.toFixed(4)}` : ''}; written to ${file}`);
     expect(runs.length).toBeGreaterThan(0);

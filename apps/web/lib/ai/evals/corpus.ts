@@ -51,6 +51,8 @@ export type ModelCase = {
   important?: boolean;
   /** Sentinel Health values are planted (privacy cases). */
   sentinels?: boolean;
+  /** Session AF (L4): the golden records plus this session's (`af`: a Checklist path, the Earn snapshot, Today's page view; `af-bare`: the Checklist only). */
+  records?: 'af' | 'af-bare';
 };
 type Base = Omit<ModelCase, 'id' | 'ask' | 'expect' | 'kind' | 'lang'> & {lang?: Lang};
 const make = (kind: CorpusKind, base: Base) => (id: string, ask: string, expect: Expect, extra: Partial<ModelCase> = {}): ModelCase => ({id, kind, lang: 'en', ...base, ask, expect, ...extra});

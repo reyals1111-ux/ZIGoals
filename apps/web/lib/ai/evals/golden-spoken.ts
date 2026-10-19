@@ -1,5 +1,6 @@
 import type {Intent} from '../intent';
 import type {LocalCase} from './golden-set';
+import {GOLDEN_SPOKEN_AF} from './golden-spoken-af';
 
 /**
  * Session Z-Local Part 4 (ADR-020 L6, L15): the spoken golden set, run on every CI run (`golden-spoken.test.ts`) against
@@ -14,8 +15,10 @@ export type SpokenCase =
   | {id: string; category: 'day'; input: string; today: string; expect: string | null}
   | {id: string; category: 'quantity'; reply: string; message: string; expect: Record<string, unknown>[]}
   | {id: string; category: 'navigate'; input: string; expect: {page: string; view?: string} | null}
-  | ({category: 'local'} & Omit<LocalCase, 'category'>);
-export const SPOKEN_CATEGORIES = ['normalize', 'intent', 'day', 'quantity', 'navigate', 'local'] as const;
+  | ({category: 'local'} & Omit<LocalCase, 'category'>)
+  // Session AF (L4, P8.6): a spoken Checklist command and the one card it must become (null: no card at all), golden-spoken-af.ts.
+  | {id: string; category: 'command'; input: string; expect: Record<string, unknown> | null; health?: 'open' | 'closed'};
+export const SPOKEN_CATEGORIES = ['normalize', 'intent', 'day', 'quantity', 'navigate', 'local', 'command'] as const;
 
 const cases: SpokenCase[] = [];
 let n = 0;
@@ -134,4 +137,5 @@ nav('open the meal planner', {page: 'health', view: 'planner'}); nav('open de ma
 nav('show me my food insights', {page: 'health', view: 'insights'}); nav('open mijn inzichten', {page: 'health', view: 'insights'}); nav('open the recipe import', {page: 'health', view: 'import'});
 nav('open my reminders', {page: 'settings', view: 'reminders'}); nav('ga naar herinneringen', {page: 'settings', view: 'reminders'});
 nav('what is my journey so far', null); nav('log my morning routine', null); // a question or a log is never navigation
-export const GOLDEN_SPOKEN: readonly SpokenCase[] = cases;
+// ---- Session AF (L4): this session's spoken cases (golden-spoken-af.ts); the cases above are unchanged ----
+export const GOLDEN_SPOKEN: readonly SpokenCase[] = [...cases, ...GOLDEN_SPOKEN_AF];
