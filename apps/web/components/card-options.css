@@ -15,3 +15,5 @@
 .card-options:has(> .card-options-panel){z-index:40}
 /* Phase 2 closing pass: a card whose ⋯ sits in its top-right corner keeps its first eyebrow clear of it. */
 .health-summary .eyebrow, .health-water .eyebrow, .health-weight-overview .eyebrow, .health-activity-overview .eyebrow, .nutrition-trend .eyebrow, .owned-asset-card .eyebrow { padding-right: 3.2rem; }
+/* Session AF (the lead): a card's top-row tools (the Checklist star, the options) stay one group at the row's end. */
+.card-top-tools{display:inline-flex;align-items:start;gap:4px;margin-left:auto;flex:none}

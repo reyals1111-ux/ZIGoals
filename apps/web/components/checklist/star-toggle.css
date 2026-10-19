@@ -24,7 +24,7 @@
 :root .habit-card-heading > .star-toggle { grid-column: 3; grid-row: 1; }
 :root .habit-card-heading:has(> .star-toggle) > .pin-to-today { grid-column: 4; }
 /* The goal card: the star sits beside "⋯" at the top right. */
-.unified-goal-card .card-top > .star-toggle { margin: -6px 0 -6px auto; }
-.unified-goal-card .card-top > .star-toggle + .pin-to-today { margin-left: 0; }
+/* Session AF (the lead): the star sits with the options in the row's end group (card-options.css .card-top-tools). */
+.unified-goal-card .card-top-tools > .star-toggle { margin: -6px 0; }
 /* Water and the weight journal keep "⋯" in their top corner: the star sits just left of it. */
 :is(.health-water, .health-weight-overview) > .star-toggle { position: absolute; top: 1rem; right: calc(1rem + 48px); z-index: 4; }
