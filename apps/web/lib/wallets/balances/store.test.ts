@@ -23,7 +23,10 @@ describe('the key: personal, device-only, never synced or restored, in Export, e
   test('no sync module or Worker names it; the Showcase never writes it', () => {
     const files = (dir: string): string[] => readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? (name === 'node_modules' ? [] : files(path)) : /\.(ts|tsx|mjs|js)$/.test(name) ? [path] : []; });
     const lib = join(__dirname, '..', '..');
-    const sync = [...files(join(lib, 'vault')), ...files(join(lib, 'sync-offer')), join(lib, 'sync-homes-store.ts'), ...files(join(lib, '..', '..', '..', 'workers'))];
+    // The lead's frozen-reader fixture test is the one exception (it proves older builds read the record; it syncs nothing),
+    // as in the other lanes' guards (Session AF, at the merge).
+    const fixture = join(lib, 'vault', 'frozen-fixtures.test.ts');
+    const sync = [...files(join(lib, 'vault')).filter(f => f !== fixture), ...files(join(lib, 'sync-offer')), join(lib, 'sync-homes-store.ts'), ...files(join(lib, '..', '..', '..', 'workers'))];
     expect(sync.length).toBeGreaterThan(20);
     expect(sync.filter(file => /wallet-balances|WALLET_BALANCES|af-wallet-keys/.test(readFileSync(file, 'utf8'))).map(file => relative(lib, file))).toEqual([]);
     for (const aa of [false, true]) expect(Object.keys(buildShowcase('2026-10-19', 'UTC', {aa}).records)).not.toContain(WALLET_BALANCES_KEY);
