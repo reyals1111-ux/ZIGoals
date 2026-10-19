@@ -54,8 +54,10 @@ body { background: var(--cosmic-dark); }
 /* Session AE (Part 4, ADR-027): the sidebar's sky in the pages' manner (it was a 700 px raster stretched to the window's
    height): one clean colour behind the logo and the first buttons, crisp vector stars easing in from the middle down, a
    calm foot behind the page mark, the planet and the theme bar. Every layer scrolls with the sidebar's content and is
-   pinned to its end, so the stars sit behind the same buttons at every window height (art-src/sidebar-sky.mjs). */
-.app-sidebar { background: url('/art/v24/sidebar-stars.svg') center bottom / 240px 1100px no-repeat local, linear-gradient(0deg, #030a1b 0, #030a1b 300px, #060b23 560px, #050a20 700px, #020916 930px) local, #020916; border-right-color: var(--cosmic-edge); }
+   pinned to its end, so the stars sit behind the same buttons at every window height (art-src/sidebar-sky.mjs).
+   Session AF (L5a, ADR-028 H28): as the sidebar scrolls, the stars layer drifts back by --sky-y (components/shell/
+   sidebar-sky.tsx/.css), a parallax at 45 % of the content's speed; 0 at the top, under reduced motion and Motion Off. */
+.app-sidebar { background: url('/art/v24/sidebar-stars.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local, linear-gradient(0deg, #030a1b 0, #030a1b 300px, #060b23 560px, #050a20 700px, #020916 930px) local, #020916; border-right-color: var(--cosmic-edge); }
 .app-sidebar .brand .brand-wordmark, .brand-wordmark { display: inline-block; color: transparent; background: var(--nebula-emphasis); background-clip: text; -webkit-background-clip: text; font-size: 37px; font-weight: 750; letter-spacing: -2px; filter: drop-shadow(0 0 10px #4897ff30); }
 .app-sidebar .brand .brand-wordmark > span, .brand-wordmark > span { color: inherit; font-weight: inherit; }
 .product-descriptor { color: #b3cff2; font-size: 14px; padding-top: 12px; letter-spacing: .065em; }

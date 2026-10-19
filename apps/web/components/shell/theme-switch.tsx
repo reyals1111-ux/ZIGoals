@@ -2,6 +2,7 @@
 import {useSyncExternalStore} from 'react';
 import {THEME_EVENT, chooseTheme, readTheme} from '../../lib/ui-prefs/theme';
 import type {Theme} from '../../lib/ui-prefs/theme';
+import {SidebarSky} from './sidebar-sky';
 /** The line under the bar. */
 const THEME_NOTE = {compact: 'Nebula is the look you know, for everyone. Customize — coming later. Light and Dark are the same app by day and by night.', sidebar: 'Saved on this device'} as const;
 
@@ -33,5 +34,7 @@ export function ThemeSwitch({compact}: {compact?: boolean}) {
       {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)}><o.icon/><span>{o.word}</span></button>)}
     </div>
     <p className="theme-switch-note">{compact ? THEME_NOTE.compact : THEME_NOTE.sidebar}</p>
+    {/* Session AF (L5a, Part 10.1): the sidebar's bar also drives the sidebar sky's parallax (renders nothing). */}
+    {!compact && <SidebarSky/>}
   </div>;
 }

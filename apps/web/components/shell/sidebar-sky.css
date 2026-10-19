@@ -1,0 +1,15 @@
+/* Session AF (L5a, Part 10.1, ADR-028 H28): the sidebar sky's parallax (sidebar-sky.tsx). Each theme's sky draws its stars
+   layer at `center calc(100% + var(--sky-y, 0px))` (app/visual-v21.css, apps/web/themes/{light,dark}.sidebar.css): the
+   drift is that one custom property, registered so the scroll-driven animation can move it. While the sidebar scrolls it
+   follows the sidebar's own scroll timeline (0 at the top, the measured range at the end, so 55 % of every scrolled
+   pixel); at rest it is the value the script wrote, so nothing keeps running. Only on the computer's sidebar, never under
+   reduced motion or Motion Off (the script writes nothing there either). Positions only: no colour, so the theme
+   generator emits nothing for this file. */
+@property --sky-y { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@keyframes sidebar-sky-drift { from { --sky-y: 0px; } to { --sky-y: var(--sky-range, 0px); } }
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  :root:not([data-app-motion=off]) .app-sidebar[data-sky] { --sky-y: var(--sky-rest, 0px); }
+  @supports (animation-timeline: scroll()) {
+    :root:not([data-app-motion=off]) .app-sidebar[data-sky=timeline] { animation: sidebar-sky-drift linear both; animation-timeline: scroll(self block); }
+  }
+}

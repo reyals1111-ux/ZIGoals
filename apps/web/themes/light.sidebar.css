@@ -8,7 +8,7 @@
    (#f0ebfd), never plain white. */
 :root[data-theme=light] .app-sidebar:not(#\-) {
   color-scheme: light;
-  background: url('/art/v24/sidebar-stars-dawn.svg') center bottom / 240px 1100px no-repeat local,
+  background: url('/art/v24/sidebar-stars-dawn.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
     linear-gradient(0deg, #060a1d 0, #0a0d27 230px, #1b1847 300px, #43397f 350px, #8a76c2 398px, #c9b8e8 436px, #e4dcf8 476px, #ebe5fb 600px, #eee9fc 760px, #f0ebfd 930px) local,
     #f0ebfd;
   border-right-color: #ddd6f2;
