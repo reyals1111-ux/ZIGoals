@@ -176,18 +176,49 @@ export function roleOf(prop, rule) {
   }
   return null;
 }
-/** Session AF (L5a): the properties a theme rule carries. Every declaration of a colour property (or of a shorthand that
- *  resets one: background, border, outline, mask) and every longhand such a shorthand resets (background-clip, -size,
- *  -position…, border-width/-style/-image, outline-width/-style, mask-*) is carried into the theme's sheet, mapped or as
- *  it is, and every rule that has one is carried whole: among the sheet's rules (all of one weight) the cascade is then
- *  Nebula's own — a rule the theme leaves alone (a var()-only rule, a later chip state, a `background-clip: text`) still
- *  wins over the rules it won over by night. Radii and layout are never carried. */
-const COLOUR_PROPS = /^(color|-webkit-text-fill-color|caret-color|text-decoration-color|-webkit-text-stroke-color|column-rule-color|fill|stroke|stop-color|flood-color|lighting-color|accent-color|box-shadow|text-shadow|filter|-webkit-filter)$/;
-const SHORTHAND_FAMILY = /^(-webkit-)?(background|mask)(-[a-z-]+)?$|^border(-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end))?(-(color|style|width))?$|^border-image(-[a-z]+)?$|^outline(-(color|style|width))?$/;
+/** Session AF (L5a): the properties a theme rule carries — colours only. A colour shorthand is carried as its colour
+ *  longhands (background → background-image + background-color, border[-side] → border[-side]-color, outline →
+ *  outline-color; see colourLonghands), so a carried rule never sets, nor resets, a width, a style, a position, a size or
+ *  a clip that Nebula sets elsewhere (a `background-clip: text` word stays a word). */
+const COLOUR_PROPS = /^(color|-webkit-text-fill-color|caret-color|text-decoration-color|-webkit-text-stroke-color|column-rule-color|fill|stroke|stop-color|flood-color|lighting-color|accent-color|box-shadow|text-shadow|filter|-webkit-filter|background|background-color|background-image|border|border-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end)|border(-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end))?-color|outline|outline-color)$/;
 const ANY_COLOR = new RegExp(COLOR_RE.source);
 export const hasColour = value => ANY_COLOR.test(value);
-export const carriedProp = prop => { const p = prop.toLowerCase(); return COLOUR_PROPS.test(p) || SHORTHAND_FAMILY.test(p); };
+export const carriedProp = prop => COLOUR_PROPS.test(prop.toLowerCase());
 export const carriesColour = (prop, value) => prop.startsWith('--') ? /var\(/.test(value) || hasColour(value) : carriedProp(prop);
+const WIDE = /^(inherit|initial|unset|revert|revert-layer)$/i;
+const IMAGE = /^(url|image-set|-webkit-image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient|-webkit-(repeating-)?(linear|radial)-gradient|-webkit-gradient)\(/i;
+const COLOUR_TOKEN = new RegExp(`^(${COLOR_RE.source}|transparent|currentcolor|(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\\(.*\\))$`, 'i');
+/** Splits a value at its top-level spaces and slashes. */
+const words = text => { const out = []; let depth = 0, cur = ''; for (const ch of text.trim()) { if (ch === '(') depth++; else if (ch === ')') depth--; if (!depth && (/\s/.test(ch) || ch === '/')) { if (cur) out.push(cur); cur = ''; continue; } cur += ch; } if (cur) out.push(cur); return out; };
+/**
+ * A colour shorthand as its colour longhands: [[prop, value], …], or null where the value cannot be read without the page
+ * (a var() that is not a known :root colour, gradient or image is left whole). `kind(word)` names a var() word 'colour',
+ * 'image' or null.
+ */
+export function colourLonghands(prop, value, kind = () => null) {
+  const p = prop.toLowerCase(), v = value.trim();
+  const side = /^border-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end)$/.exec(p)?.[1];
+  if (p === 'border' || side || p === 'outline') {
+    const target = p === 'outline' ? 'outline-color' : side ? `border-${side}-color` : 'border-color';
+    if (WIDE.test(v)) return [[target, v]];
+    const colour = words(v).find(w => COLOUR_TOKEN.test(w) || (/^var\(/i.test(w) && kind(w) !== 'image'));
+    return [[target, colour ?? 'currentcolor']];
+  }
+  if (p !== 'background') return [[prop, value]];
+  if (WIDE.test(v)) return [['background-image', v], ['background-color', v]];
+  const layers = topLevel(v), images = [];
+  let colour = 'transparent';
+  for (const [i, layer] of layers.entries()) {
+    let image = 'none';
+    for (const w of words(layer)) {
+      if (IMAGE.test(w) || w === 'none') image = w;
+      else if (COLOUR_TOKEN.test(w)) { if (i !== layers.length - 1) return null; colour = w; }
+      else if (/^var\(/i.test(w)) { const k = kind(w); if (k === 'image') image = w; else if (k === 'colour' && i === layers.length - 1) colour = w; else return null; }
+    }
+    images.push(image);
+  }
+  return [['background-image', images.join(', ')], ['background-color', colour]];
+}
 /** The top-level comma-separated parts of a string (commas inside parentheses kept). */
 const topLevel = text => { const out = []; let depth = 0, from = 0; for (let i = 0; i < text.length; i++) { const ch = text[i]; if (ch === '(') depth++; else if (ch === ')') depth--; else if (ch === ',' && !depth) { out.push(text.slice(from, i)); from = i + 1; } } out.push(text.slice(from)); return out; };
 /** Each color-mix() in a value, in order: [start, end] (end exclusive). */
@@ -267,8 +298,8 @@ export function buildTheme(theme, files = sourceFiles()) {
   TEXT_CLIP_CLASSES.clear();
   for (const [, ast] of parsed) ast.walkDecls(/^(-webkit-)?background-clip$/, d => { if (/text/.test(d.value) && d.parent?.type === 'rule') for (const c of subjectClasses(d.parent.selector)) TEXT_CLIP_CLASSES.add(c); });
   // The :root colour tokens (last top-level definition wins) and the tokens something redefines outside :root.
-  const tokens = new Map(), local = new Set();
-  for (const [, ast] of parsed) ast.walkDecls(d => { if (!d.prop.startsWith('--')) return; const rule = d.parent; if (rule?.type === 'rule' && rule.selector.trim() === ':root' && rule.parent?.type === 'root') tokens.set(d.prop, d.value.trim()); else local.add(d.prop); });
+  const tokens = new Map(), local = new Set(), localValues = new Map();
+  for (const [, ast] of parsed) ast.walkDecls(d => { if (!d.prop.startsWith('--')) return; const rule = d.parent; if (rule?.type === 'rule' && rule.selector.trim() === ':root' && rule.parent?.type === 'root') tokens.set(d.prop, d.value.trim()); else { local.add(d.prop); localValues.set(d.prop, [...(localValues.get(d.prop) ?? []), d.value.trim()]); } });
   // Session AF (L5a, ADR-028 H13): an accent token (brand, pillar…) keeps its nebula value in every role; used for a word
   // it is written as its ink twin (`--<name>-ink`, equal to the token in Nebula and Dark: components/shell/theme-switch.css)
   // where the token has one, else as the deeper shade itself. A neutral accent value (a white) flips like any neutral.
@@ -291,34 +322,50 @@ export function buildTheme(theme, files = sourceFiles()) {
   const fillColours = value => { let out = '', i = 0; for (const [a, b] of mixesOf(value)) { const parts = topLevel(value.slice(a + 'color-mix('.length, b - 1)); out += value.slice(i, a); if (parts.length >= 3) { const pct = part => { const m = /\s(\d+(?:\.\d+)?)%\s*$/.exec(part); return m ? Number(m[1]) / 100 : null; }; const [p1, p2] = [pct(parts[1]), pct(parts[2])], s1 = p1 ?? (p2 === null ? 0.5 : 1 - p2); out += ' ' + (s1 >= 0.5 ? parts[1] : parts[2]) + ' '; } i = b; } return out + value.slice(i); };
   const ownFill = rule => (rule.nodes ?? []).some(d => d.type === 'decl' && /^background(-color|-image)?$/.test(d.prop) && [...fillColours(resolve(d.value)).matchAll(COLOR_RE)].some(m => { const rgba = parseColor(m[0].toLowerCase()); if (rgba.some(v => Number.isNaN(v))) return false; const c = toOklch(rgba); return !flips(c) && c.a >= 0.5; }));
   const scope = theme === 'light' ? `(:root[data-theme=light]) to (${ISLANDS.join(', ')})` : '(:root[data-theme=dark])';
-  const out = postcss.root();
-  for (const [file, ast] of parsed) {
-    const block = postcss.atRule({name: 'scope', params: scope}); let any = false;
-    ast.walkRules(rule => {
-      if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
-      if (theme === 'light' && touchesIsland(rule.selector)) return;
-      const decls = []; let coloured = false;
-      const keepWords = theme === 'light' && ownFill(rule);
-      for (const d of rule.nodes ?? []) {
-        if (d.type !== 'decl') continue;
-        const role = roleOf(d.prop, rule) ?? (carriedProp(d.prop) ? 'surface' : null); if (!role || !carriesColour(d.prop, d.value)) continue;
-        coloured = true;
-        const isToken = d.prop.startsWith('--'), atRoot = rule.selector.trim() === ':root';
-        if (keepWords && role === 'text' && !isToken) { decls.push(postcss.decl({prop: d.prop, value: d.value, important: d.important})); continue; }
+  // What a var() word in a background or border shorthand stands for, read from the :root tokens.
+  // (A token redefined per element is read from every value it is given: all images, or all colours.)
+  const kindOf = value => { const full = resolve(value).trim(); if (/var\(/.test(full)) return null; return IMAGE.test(full) || topLevel(full).length > 1 || full === 'none' ? 'image' : COLOUR_TOKEN.test(full) ? 'colour' : null; };
+  const kind = word => { const direct = kindOf(word); if (direct) return direct; const m = /^var\(\s*(--[\w-]+)\s*(?:,(.*))?\)$/s.exec(word.trim()); if (!m) return null; const kinds = new Set([tokens.get(m[1]), ...(localValues.get(m[1]) ?? []), m[2]].filter(Boolean).map(v => kindOf(v.trim()))); return kinds.size === 1 ? [...kinds][0] : null; };
+  /** A rule's colour declarations as the theme writes them, and whether any of them changed. */
+  const colourDecls = rule => {
+    const decls = []; let mapped = false;
+    const keepWords = theme === 'light' && ownFill(rule);
+    for (const d of rule.nodes ?? []) {
+      if (d.type !== 'decl') continue;
+      const role0 = roleOf(d.prop, rule); if (!role0 || !carriesColour(d.prop, d.value)) continue;
+      const isToken = d.prop.startsWith('--'), atRoot = rule.selector.trim() === ':root';
+      // A shorthand that cannot be read is kept whole, followed by the rule's own longhands it would reset (its clip, size…).
+      const parts = isToken ? [[d.prop, d.value]] : colourLonghands(d.prop, d.value, kind) ?? [[d.prop, d.value], ...(rule.nodes ?? []).filter(n => n.type === 'decl' && n !== d && new RegExp(`^(-webkit-)?${d.prop}-`).test(n.prop) && !carriedProp(n.prop)).map(n => [n.prop, n.value])];
+      for (const [prop, value] of parts) {
+        const role = roleOf(prop, rule) ?? role0;
+        if (keepWords && role === 'text' && !isToken) { decls.push(postcss.decl({prop, value, important: d.important})); continue; }
         // The value's own colours are mapped first, then its accent tokens are written out (each mapped once). Inside a
         // color-mix() of a word-less role a token that has a day value of its own (a line, a panel) is written as its
         // Nebula colour, so mapValue's mix rule decides for it too.
-        const pinned = theme === 'light' && role !== 'text' && role !== 'gradientText' ? pinMixTokens(d.value) : d.value;
-        const literal = mapValue(pinned, role, theme) ?? pinned, swapped = isToken && !atRoot ? literal : substitute(literal, role, d.prop), v = swapped !== d.value ? swapped : null;
-        decls.push(postcss.decl({prop: d.prop, value: v ?? d.value, important: d.important}));
+        const pinned = theme === 'light' && role !== 'text' && role !== 'gradientText' ? pinMixTokens(value) : value;
+        const literal = mapValue(pinned, role, theme) ?? pinned, swapped = isToken && !atRoot ? literal : substitute(literal, role, prop);
+        if (swapped !== value) mapped = true;
+        decls.push(postcss.decl({prop, value: swapped, important: d.important}));
       }
-      // Every rule with a carried property is carried, mapped or not (see COLOUR_PROPS): the sheet's cascade is Nebula's.
-      if (!coloured) return;
-      let node = postcss.rule({selector: boostSelector(rule.selector)}); node.append(decls);
-      for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) { const wrap = postcss.atRule({name: p.name, params: p.params}); wrap.append(node); node = wrap; }
-      block.append(node); any = true;
-    });
-    if (any) { out.append(postcss.comment({text: ` ${file} `})); out.append(block); }
+    }
+    return {decls, mapped};
+  };
+  // Every rule with a colour declaration is carried, changed or not, each with the same one id of weight: among the
+  // sheet's rules the cascade is then Nebula's own (a chosen chip's colour still wins over its base rule's day colour; a
+  // var()-only rule still wins over a literal one). Colour longhands only, so nothing else Nebula sets is overruled.
+  const rules = [];
+  for (const [file, ast] of parsed) ast.walkRules(rule => {
+    if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
+    if (theme === 'light' && touchesIsland(rule.selector)) return;
+    const {decls, mapped} = colourDecls(rule); if (decls.length) rules.push({file, rule, decls, mapped});
+  });
+  const out = postcss.root();
+  let block = null, blockFile = null;
+  for (const {file, rule, decls} of rules) {
+    if (blockFile !== file) { block = postcss.atRule({name: 'scope', params: scope}); blockFile = file; out.append(postcss.comment({text: ` ${file} `})); out.append(block); }
+    let node = postcss.rule({selector: boostSelector(rule.selector)}); node.append(decls);
+    for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) { const wrap = postcss.atRule({name: p.name, params: p.params}); wrap.append(node); node = wrap; }
+    block.append(node);
   }
   // Light: the islands keep the nebula's own token values (tokens are inherited, so the scope's limit alone would not),
   // the ink twins included (inside an island a word keeps its night colour).

@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {buildAll, boostSelector, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST} from './build-themes.mjs';
+import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST} from './build-themes.mjs';
 import * as parity from '../../apps/web/tests/parity/classify.ts';
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'apps', 'web');
@@ -113,6 +113,20 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
     expect(literal).toBeGreaterThan(-1);
     // The literal purple of habits.css is no longer a day colour of its own (it stays #b397e6), and loses to the tone rule.
     expect(sheets.light).not.toMatch(/\.habit-dot\.habit-day-complete:not\(#\\-\) \{[^}]*#967dc3/);
+  });
+  it('a carried rule sets colours only: shorthands become their colour longhands, so no width, size, position or clip moves', () => {
+    expect(colourLonghands('background', "url('/a.svg') center / cover no-repeat, #020918")).toEqual([['background-image', "url('/a.svg'), none"], ['background-color', '#020918']]);
+    expect(colourLonghands('background', 'linear-gradient(90deg, #fff, #000) padding-box, linear-gradient(#23eaff, #9273ff) border-box')).toEqual([['background-image', 'linear-gradient(90deg, #fff, #000), linear-gradient(#23eaff, #9273ff)'], ['background-color', 'transparent']]);
+    expect(colourLonghands('background', 'none')).toEqual([['background-image', 'none'], ['background-color', 'transparent']]);
+    expect(colourLonghands('background', 'var(--x) center')).toBeNull(); // unknown: kept whole, with its rule's own longhands
+    expect(colourLonghands('background', 'var(--x) center', () => 'image')).toEqual([['background-image', 'var(--x)'], ['background-color', 'transparent']]);
+    expect(colourLonghands('border', '1px solid #ffffff1a')).toEqual([['border-color', '#ffffff1a']]);
+    expect(colourLonghands('border-top', '0')).toEqual([['border-top-color', 'currentcolor']]);
+    expect(colourLonghands('outline', '2px solid var(--cyan, #6fd3ff)')).toEqual([['outline-color', 'var(--cyan, #6fd3ff)']]);
+    for (const theme of ['light', 'dark']) {
+      const generated = sheets[theme].split('/* apps/web/themes/')[0];
+      expect(generated).not.toMatch(/^\s+(border(-[a-z]+)?-(width|style)|background-(size|position|repeat|origin|attachment)|mask(-image)?|-webkit-mask(-image)?|border-radius):/m);
+    }
   });
   it('Light’s hand layers keep no layout rule (a theme switch never moves a box) and no matte patch', () => {
     const hand = ['extra', 'hero', 'headerart', 'sidebar'].map(part => readFileSync(join(WEB, 'themes', `light.${part}.css`), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')).join('\n');
