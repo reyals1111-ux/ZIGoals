@@ -9,7 +9,7 @@ import {readPublicPositions} from '../../lib/position-reader';
 import {validatorsWireSchema, type ValidatorsWire} from '../../lib/chain/validators-wire';
 import {parseAmountInput} from '../../lib/amount-input';
 import {KEPLR_SITE} from '../../lib/wallet-link';
-import {claim, delegate, redelegate, undelegate, StakingInputError, type StakingMessage} from '../../lib/staking/messages';
+import {attest, claim, delegate, redelegate, revoke, undelegate, StakingInputError, type StakingMessage} from '../../lib/staking/messages';
 import {lastValidatorOf, networkChoiceOf, readStakingPrefs, realConfirmedAtOf, updateStakingPrefs, withLastValidator, withNetworkChoice, withRealConfirmed} from '../../lib/staking/prefs';
 import {takeStakingPrefill} from '../../lib/staking/prefill';
 import {READ_MODE, readPositionsAfter, withStakingObservation} from '../../lib/staking/refresh';
@@ -25,6 +25,12 @@ import {TxProgress, type Progress} from './tx-progress';
 import {ValidatorPicker} from './validator-picker';
 import {RewardsSweep} from './rewards-sweep';
 import {ValidatorHealthPanel} from './validator-health';
+import {GrantsPanel} from './grants-panel';
+import {AttestationCard} from './attestation-card';
+import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import {STAKING_JOURNAL} from '../../lib/staking/journal';
+import type {Attestation} from '../../lib/staking/attestation';
+import type {Grant} from '../../lib/staking/grants';
 import './staking.css';
 
 /**
@@ -52,8 +58,9 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   const [quote, setQuote] = useState<StakingQuote | null>(null), [quoting, setQuoting] = useState(false), [expired, setExpired] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null), [error, setError] = useState(''), [note, setNote] = useState('');
   const [hasKeplr, setHasKeplr] = useState(false), [android, setAndroid] = useState(false), [origin, setOrigin] = useState('');
-  // Session AF chunk 3: arriving from a Goal Vault's "Put your rewards to work" (#rewards-sweep).
-  const [fromVault, setFromVault] = useState(false);
+  // Session AF chunk 3: arriving from a Goal Vault's "Put your rewards to work" (#rewards-sweep); the revoke and badge
+  // reviews' own errors (shown in their own panels); a re-read of the permissions after a revoke confirms.
+  const [fromVault, setFromVault] = useState(false), [otherError, setOtherError] = useState<{action: 'revoke' | 'attest'; message: string} | null>(null), [grantsRead, setGrantsRead] = useState(0);
   const revision = useRef(0);
   const config = STAKING_NETWORKS[network];
 
@@ -176,9 +183,27 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       setError(cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|restake/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message);
     } finally { setQuoting(false); }
   }, [wallet, quoting]);
-  useEffect(() => { if (expired && quote && !progress) void (quote.action === 'sweep' && sweep.current ? reviewSweep(sweep.current.validator, sweep.current.amount) : review()); }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
+  // Session AF chunk 3 (H45, D4): end a grant the person gave (MsgRevoke, direct signers), or a practice badge (testnet).
+  const other = useRef<{action: 'revoke' | 'attest'; messages: StakingMessage[]; memo?: string; attestation?: StakingQuote['attestation']} | null>(null);
+  const reviewOther = useCallback(async (next: NonNullable<typeof other.current>) => {
+    if (!wallet || quoting) return;
+    setError(''); setOtherError(null); setProgress(null); setQuoting(true); other.current = next;
+    try {
+      const {quoteStaking} = await import('../../lib/staking/quote');
+      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action: next.action, messages: next.messages, keplr: window.keplr!, revision: revision.current, ...(next.memo ? {memo: next.memo} : {}), ...(next.attestation ? {attestation: next.attestation} : {})}));
+    } catch (cause) {
+      setQuote(null); other.current = null;
+      setOtherError({action: next.action, message: cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|practice badge|Ledger|Nothing to sign/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message});
+    } finally { setQuoting(false); }
+  }, [wallet, quoting]);
+  const revokeGrant = (grant: Grant) => { if (!wallet || !grant.msgTypeUrl) return; try { void reviewOther({action: 'revoke', messages: [revoke({granter: wallet.address, grantee: grant.grantee, msgTypeUrl: grant.msgTypeUrl})]}); } catch (cause) { setOtherError({action: 'revoke', message: cause instanceof Error ? cause.message : 'This permission cannot be revoked here.'}); } };
+  const reviewBadge = (badge: Attestation) => { if (!wallet) return; void reviewOther({action: 'attest', messages: [attest({address: wallet.address})], memo: badge.memo, attestation: {kind: badge.kind, note: badge.note, ...(badge.salt ? {salt: badge.salt} : {})}}); };
+  useEffect(() => { if (expired && quote && !progress) void (quote.action === 'sweep' && sweep.current ? reviewSweep(sweep.current.validator, sweep.current.amount) : (quote.action === 'revoke' || quote.action === 'attest') && other.current ? reviewOther(other.current) : review()); }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
   async function done(receipt: StakingReceipt) {
+    const finished = quote?.action;
     setQuote(null);
+    window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: STAKING_JOURNAL.key}));
+    if (finished === 'revoke') setGrantsRead(n => n + 1);
     setProgress({state: 'SUCCESS', hash: receipt.hash, height: receipt.height, refreshed: 'Reading your positions again at this block…'});
     setAmount(''); revision.current++;
     try { const s = storage(); if (s && action !== 'claim' && validator) updateStakingPrefs(s, p => withLastValidator(p, receipt.chainId, validator)); } catch { /* remembered next time */ }
@@ -192,6 +217,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   }
   function failed(failure: StakingFailure | Error) {
     setQuote(null);
+    window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: STAKING_JOURNAL.key}));
     if (failure instanceof StakingFailure) setProgress({state: failure.state === 'REJECTED' ? 'REJECTED' : 'FAILED', hash: failure.plain.hash, message: failure.plain.message, uncertain: failure.uncertain});
     else setProgress({state: 'FAILED', message: plainWords(failure, {chainId: config.chainId}).message});
   }
@@ -252,6 +278,8 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       <RewardsSweep rewards={holdings?.rewards ?? []} delegations={delegations} names={names} busy={quoting || !!quote} onReview={(v, a) => void reviewSweep(v, a)}
         note={fromVault && network === 'practice' ? 'From your Goal Vault: Goal Vaults count your stake on the real network. Choose the real network above, connect, and restake its rewards here.' : undefined}/>
       <ValidatorHealthPanel chainId={config.chainId} operators={delegations.map(d => d.validator)} validators={validators}/>
+      <GrantsPanel wallet={wallet} busy={quoting || !!quote} refresh={grantsRead} error={otherError?.action === 'revoke' ? otherError.message : undefined} onRevoke={revokeGrant}/>
+      {network === 'practice' && <AttestationCard wallet={wallet} busy={quoting || !!quote} error={otherError?.action === 'attest' ? otherError.message : undefined} onReview={reviewBadge}/>}
     </div>}
     {progress && !quote && <TxProgress progress={progress} network={network} chainId={config.chainId} onClose={() => setProgress(null)}/>}
     {quote && <ReviewSheet quote={quote} names={names} rewards={rewards} expired={expired && !progress} progress={progress} onBack={() => { setQuote(null); setProgress(null); }} onProgress={setProgress} onDone={done} onFailed={failed}/>}

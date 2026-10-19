@@ -96,3 +96,19 @@
 .staking-health-name{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .staking-health-alerts{margin:0;padding-left:20px;display:grid;gap:4px}
 .staking-health-alerts .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer;text-decoration:underline}
+.staking-grants,.staking-badges{display:grid;gap:10px;min-width:0;padding-top:12px;border-top:1px solid var(--line,#6b91c846)}
+.staking-grants h3,.staking-badges h3{margin:0;font-size:18px}
+.staking-grants p,.staking-badges p{margin:0}
+.staking-grants-list,.staking-badges-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staking-grants-list li,.staking-badges-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846)}
+.staking-badges-list li{display:grid;justify-content:stretch}
+.staking-grants .secondary,.staking-badges .secondary,.staking-badges .primary{min-height:44px;justify-self:start}
+.staking-badges .text-link,.staking-grants .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer;text-decoration:underline}
+.staking-badges-form{display:grid;gap:10px}
+.staking-memo{overflow-wrap:anywhere;word-break:break-all}
+.staking-choices{display:grid;gap:8px;border:0;margin:0;padding:0;min-width:0}
+.staking-choices legend{font-weight:700;margin-bottom:6px}
+.staking-choice{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846);cursor:pointer}
+.staking-choice input{margin-top:4px;width:20px;height:20px;flex:none}
+.staking-choice span{display:grid;gap:2px}
+.staking-choice span span{font-size:14px;color:var(--text-secondary,#b7c8de)}
