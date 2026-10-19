@@ -124,9 +124,11 @@
 /* What floats at the foot of the overlay sits above the dock: the Undo toast and the jump button. */
 /* The toast's place in the open layer: no box of its own (the region inside is fixed). */
 .checklist-toast-slot { position: absolute; width: 0; height: 0; }
-/* The Undo toast drops in under the top bar, where it never covers the next planet (just below the one tapped) or the dock. */
-:root .checklist-toast-slot .aa-toast-region { z-index: 30; top: calc(max(10px, env(safe-area-inset-top, 0px)) + 72px); bottom: auto; }
+/* The Undo toast sits at the foot, in thumb's reach, above the timers' dock on a phone or tablet (it never covers the orbit
+   banner a tick may complete, nor the dock). */
+:root .checklist-toast-slot .aa-toast-region { z-index: 30; bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
 @media (max-width: 1179.98px) {
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   .checklist-overlay .path-jump-dock { bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 1180px) {
