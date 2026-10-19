@@ -36,6 +36,9 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
 - [ ] G2 full browser suite once, Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
 - [ ] G3 the WebKit set: **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
 - [ ] G4 layout audits in Nebula, Light and Dark at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
+- [ ] G4b Today's market watch (owner decision of 19 Oct, H131): `tests/market-watch-af.spec.ts` (320–1920 px, three themes, with and
+  without prices) in the Gate C run, and its captures at 320/390/768/1024/1440/1920 × Nebula/Light/Dark in the Gate C capture set
+  (`$SP/lead/probe-today-figures.mjs <base> <out>` with `SHOTS=1 THEMES=nebula,light,dark`, plus `QUOTES=1` for prices).
 - [ ] G5 theme parity (`theme-parity-af.spec.ts` in Chromium; `webkit-theme-parity` in CI).
 - [ ] G6 weights: existing budgets unchanged; the new lines (H96) and each lazy chunk's gzip size (H54); theme sheets' gzip sizes (H112).
 - [ ] G7 revert gate: every commit newest-first with typecheck green, in a scratch worktree.
@@ -81,6 +84,19 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 17:45 Brussels — the owner's two decisions being built; L5c running)
+- Owner decisions of 19 Oct (no reply needed): (1) deepen Light's gradient words → `d4760ce8` + `dee2c2f6` (the
+  token set was too wide: `--nebula-pink` and `--text` slipped in and deepened the phone quick-add's fill; the islands did
+  not restore `--nebula-headline`); ADR-028 H130; parity class `gradient-word`. (2) Today's market watch: no mid-word breaks
+  (word-boundary wrap, two-line names with an ellipsis and a hover title, one-line prices scaled to their card, cards ≥ 230 px
+  from 768 px), each figure of a card once → H131, `market-watch-af` green (6/6, 320–1920, three themes, with/without prices).
+  Today's other repeats (wealth total ×4, kcal ×3–4, active Goals ×2–4, the featured goal, next contributions) are left as
+  they are and listed for the owner: the decision names the card, and Today is the protected baseline (H131).
+- Running: rebuild of 3101 + `market-watch-af`, `light-redo-af`, `theme-parity-af` and the watch specs (`$SP/logs/h130-mw-specs.log`).
+- CI on `6c4ae382`: every job still queued at 17:40 (GitHub's jobs API answered 502).
+- L5c (`af/polish2`, port 3104) still running round-2 items 1–22.
+- 18:00: the PR comment (draft `pr-comment-mon19.md` in the scratchpad, updated for the owner's decisions).
 
 ## Resume here (2026-10-19 16:40 Brussels — L1c merged; CI on five shards; critique round 2 running)
 - Merged `af/earn3` (`f84076d7`: N1 glossary taps, N5 sourced risks, P1.19 ZIGi in guide mode, P1.23 your position) and

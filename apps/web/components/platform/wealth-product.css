@@ -63,3 +63,16 @@
 :root .wealth-split .split-figure { white-space: nowrap; font-size: min(1em, calc(55cqi / (var(--chars, 12) * .6))); }
 /* Stress audit (40+ character Goal names): an "Allocate to …" button wraps its long name inside itself. */
 :root .asset-detail-actions a.secondary { white-space: normal; text-align: left; max-width: 100%; overflow-wrap: anywhere; height: auto; }
+
+/* Session AF (the owner's decision of 19 Oct, ADR-028 H131): a market watch card never breaks a word. Words wrap only at
+   their spaces; a name keeps two lines at most (an ellipsis after that, the full name on hover and on the asset's page);
+   a price stays on one line and scales down from its own length (--chars) when its card is narrow; "Price unavailable"
+   wraps between its two words. On larger screens Today's watch gives each card at least 230 px (four 190 px columns
+   broke "Ethereum" and "unavailable" at 1440). */
+:root .watch-card, :root .watch-card * { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+:root .watch-card .owned-asset-heading h3 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+:root .watch-card-link { container-type: inline-size; }
+:root .watch-card .watch-price:not([data-missing]) { white-space: nowrap; font-size: min(var(--watch-price-size, 30px), calc(100cqi / (var(--chars, 12) * .6))); }
+:root .compact-watch .watch-card .watch-price { --watch-price-size: 23px; }
+:root .watch-card .watch-price[data-missing] { font-size: 20px; line-height: 1.25; }
+@media (min-width: 768px) { :root .market-watch.compact-watch .watchlist-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); } }
