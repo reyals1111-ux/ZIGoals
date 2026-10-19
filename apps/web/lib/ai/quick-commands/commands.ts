@@ -29,6 +29,9 @@ export function commandText(text: string): string {
   return t;
 }
 const SECOND_CLAUSE = /[,;]|\b(?:and|then|also|after that|en|dan|daarna|ook)\b/;
+const QUESTION_WORD = /^(?:what|how|who|where|when|which|why|did|do|does|have|has|wat|hoe|wie|waar|wanneer|welke|waarom|heb|ben|is)\b/;
+/** Names joined in the command's own language ("Push-ups en Water"). */
+const names = (list: readonly string[], lang: CommandLang, shown = 3) => { const t = listNames(list, shown); return lang === 'nl' ? t.replace(/ and (\d+ more)$/, (_, more: string) => ` en nog ${more.replace(' more', '')}`).replace(/ and ([^,]+)$/, ' en $1') : t; };
 /** A day other than today is the other routes' (the day cue, the person's AI): a command is for now. */
 const OTHER_DAY = /\b(?:yesterday|tomorrow|last|next|ago|monday|tuesday|wednesday|thursday|friday|saturday|sunday|week|gisteren|eergisteren|morgen|vorige|volgende|geleden|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)\b|\d{4}-\d{2}-\d{2}/;
 type Template = {lang: CommandLang; re: RegExp; make: (m: RegExpExecArray) => Parsed | null};
@@ -45,7 +48,9 @@ const TEMPLATES: readonly Template[] = [
   T('en', /^(?:stop|end|break) (?:my |the )?fast(?:ing)?$/, () => ({verb: 'fast-stop'})),
   T('en', /^(?:start|begin) (?:the |my )?timer (?:for|on) (.{2,40})$/, m => ({verb: 'timer-start', item: item(m[1])})),
   T('en', /^(?:start|begin) (?:the |my )?(.{2,40}?) timer$/, m => ({verb: 'timer-start', item: item(m[1])})),
-  T('en', /^(?:stop|end|finish) (?:the |my )?(?:(.{2,40}?) )?timer$/, m => ({verb: 'timer-stop', item: item(m[1])})),
+  // (Never a Dutch article as the habit's name: "stop de timer" is the Dutch template's. Stopping logs the time, so
+  // "… and log it" says the same thing.)
+  T('en', /^(?:stop|end|finish) (?:the |my )?(?:(?!(?:de|het|mijn|m'n) timer$)(.{2,40}?) )?timer(?: and (?:log|save) it| and log)?$/, m => ({verb: 'timer-stop', item: item(m[1])})),
   T('en', /^what(?:'s| is) (?:left |still )?on my (?:checklist|check list|list|path)(?: today)?$|^(?:show|read) (?:me )?my (?:checklist|check list)$/, () => ({verb: 'list'})),
   T('en', /^(?:add|put) (.{2,60}?) (?:to|on|onto) (?:my |the )?(?:checklist|check list|list|path|orbit)(?: for today| today)?$/, m => ({verb: 'add', item: item(m[1])})),
   T('en', /^(?:favou?rite|star|pin) (.{2,60}?)(?: (?:on|to) (?:my |the )?(?:checklist|check list|list|path))?$/, m => ({verb: 'favourite', item: item(m[1])})),
@@ -63,7 +68,7 @@ const TEMPLATES: readonly Template[] = [
   T('nl', /^start (?:een |mijn )?(?:vasten|vast|vastenperiode) van (\d{1,2}) uur$|^start (?:een )?(\d{1,2})[- ]?uurs?[- ]?vast(?:en)?$/, m => ({verb: 'fast-start', hours: Number(m[1] ?? m[2])})),
   T('nl', /^stop (?:met )?(?:mijn |het )?vasten$/, () => ({verb: 'fast-stop'})),
   T('nl', /^start (?:de |mijn )?timer (?:voor|van) (.{2,40})$/, m => ({verb: 'timer-start', item: item(m[1])})),
-  T('nl', /^stop (?:de |mijn )?timer(?: (?:voor|van) (.{2,40}))?$/, m => ({verb: 'timer-stop', item: item(m[1])})),
+  T('nl', /^stop (?:de |mijn )?timer(?: (?:voor|van) (.{2,40}?))?(?: en (?:log|bewaar) (?:het|hem|die))?$/, m => ({verb: 'timer-stop', item: item(m[1])})),
   T('nl', /^wat staat er (?:nog )?op mijn (?:checklist|lijst|lijstje|pad)(?: vandaag)?$/, () => ({verb: 'list'})),
   T('nl', /^voeg (.{2,60}?) toe aan (?:mijn |de |m'n )?(?:checklist|lijst|lijstje|pad)$/, m => ({verb: 'add', item: item(m[1])})),
   T('nl', /^(?:zet|voeg) (.{2,60}?) (?:op|aan|bij) (?:mijn |de |m'n )?(?:checklist|lijst|lijstje|pad)(?: toe)?$/, m => ({verb: 'add', item: item(m[1])})),
@@ -71,6 +76,8 @@ const TEMPLATES: readonly Template[] = [
   T('nl', /^vink (.{2,60}?) uit$|^(?:maak|zet) (.{2,60}?) (?:weer )?(?:ongedaan|open)$|^(.{2,60}?) niet gedaan$/, m => ({verb: 'uncheck', item: item(m[1] ?? m[2] ?? m[3])})),
   T('nl', /^vink (.{2,60}?) af(?: voor vandaag| vandaag)?$/, m => ({verb: 'check', item: item(m[1])})),
   T('nl', /^markeer (.{2,60}?) als (?:gedaan|klaar|af)$/, m => ({verb: 'check', item: item(m[1])})),
+  // "Kun je push-ups afvinken": the politeness is taken off first, the verb comes last.
+  T('nl', /^(.{2,60}?) afvinken(?: voor vandaag| vandaag)?$/, m => ({verb: 'check', item: item(m[1])})),
   T('nl', /^(.{2,60}?) (?:is )?(?:gedaan|klaar)(?: voor vandaag| vandaag)?$/, m => ({verb: 'check', item: item(m[1])})),
 ];
 const fence = (action: Record<string, unknown>) => `\`\`\`zigoals-action\n${JSON.stringify(action)}\n\`\`\``;
@@ -109,7 +116,7 @@ const SAY: Record<CommandLang, Words> = {
 function listAnswer(env: ToolEnv, lang: CommandLang): QuickReply {
   const list = checklistToday(env);
   if (!list || !list.total) return {kind: 'answer', command: 'list', text: lang === 'nl' ? 'Je Checklist heeft vandaag nog geen stippen. Zet er iets op met “zet … op mijn lijst”, of open de Checklist.' : 'Your Checklist has no dots today yet. Add one with “add … to my checklist”, or open the Checklist.'};
-  const open = list.open.length ? (lang === 'nl' ? ` Nog open: ${listNames(list.open, 5)}.` : ` Still open: ${listNames(list.open, 5)}.`) : (lang === 'nl' ? ' Alles is af.' : ' Everything is done.');
+  const open = list.open.length ? (lang === 'nl' ? ` Nog open: ${names(list.open, lang, 5)}.` : ` Still open: ${names(list.open, lang, 5)}.`) : (lang === 'nl' ? ' Alles is af.' : ' Everything is done.');
   return {kind: 'answer', command: 'list', text: `${lang === 'nl' ? `Op je Checklist vandaag: ${list.done} van ${list.total} af.` : `On your Checklist today: ${list.done} of ${list.total} done.`}${open}${list.healthHidden ? (lang === 'nl' ? ' Health-stippen worden niet met ZIGi gedeeld.' : ' Health dots are not shared with ZIGi.') : ''}`};
 }
 /** The device's card for a command, or null when the message is not one (the stop rule). */
@@ -121,8 +128,9 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
     const m = template.re.exec(t); if (!m) continue;
     const parsed = template.make(m); if (!parsed) continue;
     const lang = template.lang, say = SAY[lang];
-    // No second clause; an item of a check or a timer names no amount (an amount is a log for the other routes).
-    if (parsed.item && SECOND_CLAUSE.test(parsed.item)) return null;
+    // No second clause; an item of a check or a timer names no amount (an amount is a log for the other routes); a question
+    // word is a question ("wat heb ik vandaag gedaan" is the recap's, not an item called "wat heb ik vandaag").
+    if (parsed.item && (SECOND_CLAUSE.test(parsed.item) || QUESTION_WORD.test(parsed.item))) return null;
     if ((parsed.verb === 'check' || parsed.verb === 'uncheck' || parsed.verb === 'timer-start' || parsed.verb === 'timer-stop' || parsed.verb === 'favourite') && parsed.item && /\d/.test(parsed.item)) return null;
     const card = (title: string, action: Record<string, unknown>, verb: string): QuickReply => ({kind: 'answer', command: verb, text: `${title}. ${say.confirm}\n\n${fence(action)}`});
     switch (parsed.verb) {
@@ -140,7 +148,7 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
       case 'favourite': {
         const found = resolve(candidates(env).filter(n => n.kind === 'habit'), parsed.item!);
         if (!found) return null;
-        if ('ambiguous' in found) return {kind: 'refusal', command: 'favourite', text: `${say.which}: ${listNames(found.ambiguous.map(n => shortName(n.label)))}. ${say.say}`};
+        if ('ambiguous' in found) return {kind: 'refusal', command: 'favourite', text: `${say.which}: ${names(found.ambiguous.map(n => shortName(n.label)), lang)}. ${say.say}`};
         return card(`${say.favourite} · ${shortName(found.one.label)}`, {kind: 'checklist-add-favourite', item: found.one.label}, 'favourite');
       }
       case 'timer-start': case 'timer-stop': {
@@ -148,13 +156,13 @@ export function quickCommand(text: string, env: ToolEnv): QuickReply | null {
         const pool = parsed.verb === 'timer-stop' && !parsed.item ? durations.filter(h => h.timer) : durations;
         const found = parsed.item ? resolve(pool.map(h => ({kind: 'habit' as const, label: h.title, habit: h})), parsed.item) : pool.length === 1 ? {one: {kind: 'habit' as const, label: pool[0]!.title, habit: pool[0]!}} : null;
         if (!found) return null;
-        if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${listNames(found.ambiguous.map(n => shortName(n.label)))}. ${say.say}`};
+        if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${names(found.ambiguous.map(n => shortName(n.label)), lang)}. ${say.say}`};
         return card(`${say[parsed.verb]} · ${shortName(found.one.label)}`, {kind: parsed.verb === 'timer-start' ? 'start-timer' : 'stop-timer', habit: found.one.label}, parsed.verb);
       }
       case 'check': case 'uncheck': {
         const found = resolve(candidates(env), parsed.item!);
         if (!found) return null;
-        if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${listNames(found.ambiguous.map(n => shortName(n.label)))}. ${say.say}`};
+        if ('ambiguous' in found) return {kind: 'refusal', command: parsed.verb, text: `${say.which}: ${names(found.ambiguous.map(n => shortName(n.label)), lang)}. ${say.say}`};
         return card(`${say[parsed.verb]} · ${shortName(found.one.label)} · ${say.today}`, {kind: 'checklist-tick', item: found.one.label, ...(parsed.verb === 'uncheck' ? {done: false} : {})}, parsed.verb);
       }
     }

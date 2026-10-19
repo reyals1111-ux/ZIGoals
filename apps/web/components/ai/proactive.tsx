@@ -1,7 +1,9 @@
 'use client';
 import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import {wealthView} from '../../lib/ai/context/pages';
-import {BRIEF_LABEL, briefForAi, morningBrief, SAY_IT_NICER, type Brief} from '../../lib/ai/proactive/brief';
+import {BRIEF_LABEL, briefForAi, eveningRecap, morningBrief, recapDue, SAY_IT_NICER, type Brief} from '../../lib/ai/proactive/brief';
+import {briefPrefs} from '../../lib/ai/store/records';
+import {BriefSections, localClock, ReadAloudButton, useBriefClock} from './brief-parts';
 import {chipsFor, type Chip, type ChipView} from '../../lib/ai/proactive/chips';
 import {dismissedOn, dismissFor} from '../../lib/ai/proactive/dismiss';
 import {INSIGHT_RULES, PATTERN_NOT_PROOF, sampleLine, usesHealth, zigiInsights} from '../../lib/ai/proactive/insights';
@@ -42,11 +44,27 @@ function AiSees({label, instruction, data}: {label: string; instruction: string;
 }
 export function BriefBlock({context, connected, session}: {context: Context; connected: boolean; session: ChatSession}) {
   const zigi = useDeviceRecord(ZIGI), options = useDeviceRecord(AI_OPTIONS), local = useEnv(context, connected ? 'provider' : 'local');
-  const brief = useMemo(() => local ? morningBrief(local) : null, [local]);
-  if (!zigi.loaded || zigiPrefs(zigi.data).greeting === 'quiet' || !brief) return null;
+  // Session AF (L4, P8.2): Daily Briefing v2 (its sections from the day's records) and, once its time has come, the evening recap.
+  const prefs = briefPrefs(zigi.data), now = useBriefClock();
+  const brief = useMemo(() => local ? morningBrief(local, {snapshot: local.earn, earning: prefs.earning}) : null, [local, prefs.earning]);
+  const recap = useMemo(() => local && prefs.evening && now && recapDue(localClock(now), prefs.eveningTime) ? eveningRecap(local, {snapshot: local.earn, earning: prefs.earning}) : null, [local, prefs.evening, prefs.eveningTime, prefs.earning, now]);
+  if (!zigi.loaded || zigiPrefs(zigi.data).greeting === 'quiet' || (!brief && !recap)) return null;
   // Session V Part 15: with no AI connected, Chrome's on-device model can reword it, when the person turned it on.
   const onDevice = !connected && options.data.onDevice === true && languageModel() !== null;
-  return <BriefLines brief={brief} footer={connected ? <SayItNicer brief={brief} session={session}/> : onDevice ? <SayItNicerOnDevice brief={brief}/> : null}/>;
+  return <>
+    {brief && <BriefLines brief={brief} footer={<>{connected ? <SayItNicer brief={brief} session={session}/> : onDevice ? <SayItNicerOnDevice brief={brief}/> : null}<ReadAloudButton brief={brief} intro="Your morning brief."/></>}/>}
+    {recap && <RecapLines recap={recap}/>}
+  </>;
+}
+/** Session AF (L4, P8.2): the evening recap, made on this device like the brief; read aloud only on a tap. */
+export function RecapLines({recap, footer}: {recap: Brief; footer?: ReactNode}) {
+  return <section className="ai-brief ai-recap" aria-label="Your evening recap">
+    <p className="ai-brief-title">Your evening, from your records</p>
+    <BriefSections brief={recap}/>
+    <p className="ai-note ai-brief-label ai-one-line" title={BRIEF_LABEL}><span aria-hidden="true">On this device · no AI used</span><span className="ai-sr-only">{BRIEF_LABEL}</span></p>
+    <ReadAloudButton brief={recap} intro="Your evening recap."/>
+    {footer}
+  </section>;
 }
 /**
  * "Say it nicer" with Chrome's on-device model (Session V Part 15), from the person's click: the brief's lines (made on
@@ -74,6 +92,8 @@ export function BriefLines({brief, footer}: {brief: Brief; footer?: ReactNode}) 
   return <section className="ai-brief" aria-label="Your morning brief">
     <p className="ai-brief-title">Your day, from your records</p>
     <ul className="ai-brief-lines">{brief.lines.map(line => <li key={line}>{line}</li>)}</ul>
+    {/* Session AF (L4): the v2 sections, each with its name (the Checklist, meals, timers, goals, earning, a note). */}
+    <BriefSections brief={brief}/>
     {/* Panel polish round 2: one short line; the full label is its tooltip and what a screen reader reads. */}
     <p className="ai-note ai-brief-label ai-one-line" title={BRIEF_LABEL}><span aria-hidden="true">On this device · no AI used</span><span className="ai-sr-only">{BRIEF_LABEL}</span></p>
     {footer}

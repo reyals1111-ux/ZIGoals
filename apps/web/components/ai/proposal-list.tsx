@@ -150,7 +150,7 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
       // Each write first takes its slot under today's cap from the stored count (F2); no slot, no write.
       const slot = autoAccept?.reserve(chosen[i]!.action.kind) ?? {ok: false, reason: 'off'};
       if (!slot.ok) { if (slot.reason === 'cap') setCapNote(AUTO_ACCEPT_REASONS.cap); break; }
-      try { after.push(await runner.apply(plan, true)); }
+      try { after.push(await runner.apply(plan, true, after.at(-1))); }
       catch (e) { error = e instanceof Error ? e.message : 'A proposal could not be written.'; break; }
     }
     const done = chosen.slice(0, after.length), failed = chosen[after.length];

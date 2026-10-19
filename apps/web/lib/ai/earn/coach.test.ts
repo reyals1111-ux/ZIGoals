@@ -71,11 +71,11 @@ describe('the glossary, English and Dutch, plain words; numbers only from the sn
     const base = showcaseSources(), open = (s = base) => toolEnv(s, gatesFor(true), 'provider');
     const none = runTool('earn_rates', {}, open());
     expect(none.ok).toBe(true); expect(JSON.stringify(none)).not.toMatch(/\d+(?:\.\d+)? %/);
-    expect((none as {data: {unavailable: string}}).data.unavailable).toMatch(/^Not read yet in this visit/);
+    expect((none as unknown as {data: {unavailable: string}}).data.unavailable).toMatch(/^Not read yet in this visit/);
     const read = runTool('earn_rates', {option: 'native-staking'}, open({...base, earn: snapshot}));
-    const figures = (read as {data: {figures: {value: string; source: string; asOf: string}[]}}).data.figures;
+    const figures = (read as unknown as {data: {figures: {value: string; source: string; asOf: string}[]}}).data.figures;
     expect(figures.length).toBeGreaterThan(3);
     for (const f of figures) { expect(f.source).toBeTruthy(); expect(f.asOf).toMatch(/^2026-10-18T/); }
-    expect((read as {data: {rule: string}}).data.rule).toMatch(/not ZIGoals' and not advice/);
+    expect((read as unknown as {data: {rule: string}}).data.rule).toMatch(/not ZIGoals' and not advice/);
   });
 });

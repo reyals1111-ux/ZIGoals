@@ -59,7 +59,7 @@ export type ProposalRunner = {
   stores: Stores;
   plan: (action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>) => PlanResult;
   /** Applies one plan; resolves with the stores as the write left them (the baseline for its undo). `auto`: added by ZIGi under auto-accept. */
-  apply: (plan: Plan, auto?: boolean) => Promise<Stores>;
+  apply: (plan: Plan, auto?: boolean, prior?: Stores) => Promise<Stores>;
   /** Applies several plans in order on the latest stores; stops at the first failure. */
   applyAll: (plans: readonly Plan[]) => Promise<{after: Stores[]; error: string | null}>;
   /** Undoes plans newest first, each as the inverse through the normal path; refused as a whole when a record moved. */
@@ -104,7 +104,10 @@ export function useProposals(): ProposalRunner {
     await update(latest => { const base = {...stores, [key]: latest}; after = change(base); return after[key]; });
     return after;
   }, [stores]);
-  const run = useCallback((p: Plan, change: (base: Stores) => Stores): Promise<Stores> => {
+  const run = useCallback((p: Plan, write: (base: Stores) => Stores, prior?: Stores): Promise<Stores> => {
+    // Session AF (L4): within one batch the next write sees what the one before it left (a plan's new habit, then its
+    // reminder), with its own record still read fresh from its store; without `prior`, the render's stores as before.
+    const change = prior && p.target !== 'form' ? (base: Stores) => write({...prior, [p.target]: base[p.target as Written]}) : write;
     switch (p.target) {
       case 'health': return through('health', health.update, change);
       case 'habits': return through('habits', habits.update, change);
@@ -115,14 +118,14 @@ export function useProposals(): ProposalRunner {
       case 'weekly': return through('weekly', weekly.update, change);
       case 'memory': return through('memory', memory.update, change);
       case 'settings': return through('settings', settings.update, change);
-      case 'form': return Promise.resolve(stores);
+      case 'form': return Promise.resolve(prior ?? stores);
     }
   }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, memory.update, settings.update, days, stores]);
-  const apply = useCallback(async (p: Plan, auto = false) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true, auto); return after; }, [note, run]);
+  const apply = useCallback(async (p: Plan, auto = false, prior?: Stores) => { const after = await run(p, base => ({...base, ...p.write(base)}), prior); note(p, true, auto); return after; }, [note, run]);
   const applyAll = useCallback(async (plans: readonly Plan[]) => {
     const after: Stores[] = [];
     for (const p of plans) {
-      try { after.push(await apply(p)); }
+      try { after.push(await apply(p, false, after.at(-1))); }
       catch (error) { return {after, error: error instanceof Error ? error.message : 'A proposal could not be written.'}; }
     }
     return {after, error: null};

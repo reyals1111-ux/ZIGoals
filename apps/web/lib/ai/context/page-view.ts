@@ -21,7 +21,12 @@ export function cleanLabel(text: string): string {
   for (let i = 0; i < 3; i++) t = t.replace(/(?:^|\s*)[·•:,;–—-]+\s*$/, '').replace(/^\s*[·•:,;–—-]+\s*/, '').trim();
   return t.slice(0, 60).trim();
 }
-export const isHealthCard = (id: string, label: string) => HEALTH_WORDS.test(id) || HEALTH_WORDS.test(label);
+/**
+ * A Health card by its id or its title. A widget's id from a Today preset carries the preset's name ("preset-habits-health-0"),
+ * which says nothing about the widget, so that part is left out and its title decides ("Daily Habits" is shown, "Water
+ * today" is not).
+ */
+export const isHealthCard = (id: string, label: string) => HEALTH_WORDS.test(id.replace(/preset-[a-z0-9-]*?-\d+$/i, 'preset')) || HEALTH_WORDS.test(label);
 /** The page's own name for the route ("Today", "Wealth", "Earn", "Checklist"). */
 export function pageName(pathname: string): string {
   const path = pathname.replace(/\/+$/, '') || '/app', seg = path.split('/')[2] ?? '';
@@ -71,23 +76,42 @@ export function cardOnPage(view: PageView, phrase: string): PageCard | null {
 }
 
 // ---- The browser side: read the page's markers (the chat chunk calls it; nothing here runs on the server) ----
-const SELECTORS = '[data-module], [data-card], [data-layout-item], main section[id], main article[id]';
+// The page's own markers, then the parts a page names (a section with an id, a named region such as Today's "Checklist").
+// A named part inside a marked card is that card's own content and is not listed again.
+const MARKERS = '[data-module], [data-card], [data-layout-item]';
+const SELECTORS = `${MARKERS}, main section[id], main article[id], main section[aria-label], main section[aria-labelledby], main [role="region"][aria-label], main [role="region"][aria-labelledby]`;
 let lastCard: string | null = null, tracking = false;
-const idOf = (el: Element): string | null => {
-  const m = el.getAttribute('data-module'); if (m) return `${el.getAttribute('data-kind') === 'widget' ? 'widget' : 'today'}:${m}`;
-  const c = el.getAttribute('data-card'); if (c) return `card:${c}`;
-  const l = el.getAttribute('data-layout-item'); if (l) return l;
-  return el.id ? `#${el.id}` : null;
-};
 const textOf = (el: Element): string => {
   const own = el.getAttribute('aria-label'); if (own) return own;
   const by = el.getAttribute('aria-labelledby'); const named = by ? el.ownerDocument.getElementById(by.split(/\s+/)[0]!)?.textContent : null; if (named) return named;
   return el.querySelector('h1, h2, h3, h4, [role="heading"]')?.textContent ?? '';
 };
+/** A named region's id from its title without figures ("Today’s focus" is `region:today-s-focus`). */
+const regionId = (el: Element): string | null => { const slug = cleanLabel(textOf(el)).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40); return slug ? `region:${slug}` : null; };
+const idOf = (el: Element): string | null => {
+  const m = el.getAttribute('data-module'); if (m) return `${el.getAttribute('data-kind') === 'widget' ? 'widget' : 'today'}:${m}`;
+  const c = el.getAttribute('data-card'); if (c) return `card:${c}`;
+  const l = el.getAttribute('data-layout-item'); if (l) return l;
+  if (el.id) return `#${el.id}`;
+  return regionId(el);
+};
+/**
+ * Listed on its own: a marked card always; a section with an id unless it sits inside a marked card (the card's own
+ * content, listed once); a named region only outside every other part, and never the page's own head (its h1).
+ */
+const listed = (el: Element): boolean => {
+  if (el.matches(MARKERS)) return true;
+  if (el.id) return !el.parentElement?.closest(MARKERS);
+  return !el.parentElement?.closest(SELECTORS) && !el.querySelector('h1');
+};
 /** Remembers the last card the person pointed at or focused (for "explain this card"); installed once, passive. */
 export function trackCardFocus(doc: Document = document): void {
   if (tracking) return; tracking = true;
-  const note = (event: Event) => { const el = event.target instanceof Element ? event.target.closest(SELECTORS) : null; const id = el ? idOf(el) : null; if (id) lastCard = id; };
+  const note = (event: Event) => {
+    let el = event.target instanceof Element ? event.target.closest(SELECTORS) : null;
+    while (el && !listed(el)) el = el.parentElement?.closest(SELECTORS) ?? null; // the card it belongs to, as the page view lists it
+    const id = el ? idOf(el) : null; if (id) lastCard = id;
+  };
   doc.addEventListener('pointerdown', note, {capture: true, passive: true}); doc.addEventListener('focusin', note, {capture: true});
 }
 export function readPageView(doc: Document, pathname: string, options: {healthOpen: boolean; sensitive: boolean}): PageView | null {
@@ -95,7 +119,7 @@ export function readPageView(doc: Document, pathname: string, options: {healthOp
   const height = doc.defaultView?.innerHeight ?? 800, width = doc.defaultView?.innerWidth ?? 1200;
   const found: Found[] = [];
   for (const el of Array.from(doc.querySelectorAll(SELECTORS))) {
-    if (el.closest('dialog, [data-ai-dialog], .ai-chat, [aria-hidden="true"], [hidden]')) continue;
+    if (el.closest('dialog, [data-ai-dialog], .ai-chat, [aria-hidden="true"], [hidden]') || !listed(el)) continue;
     const id = idOf(el); if (!id) continue;
     const rect = el.getBoundingClientRect(), shown = rect.width > 0 && rect.height > 0;
     if (!shown) continue;

@@ -6,7 +6,7 @@ import {runTool} from '../tools/registry';
 import {localAnswer} from '../local-answers/engine';
 import {questionCalls} from './question';
 import {todayView, withPage} from '../evals/fixtures-af';
-import {cardOnPage, cleanLabel, MAX_PAGE_CARDS, pageViewOf, pageViewText, PAGE_VIEW_CHARS, readPageView} from './page-view';
+import {cardOnPage, cleanLabel, MAX_PAGE_CARDS, pageViewOf, pageViewText, PAGE_VIEW_CHARS, readPageView, trackCardFocus} from './page-view';
 import {CARD_HELP, cardHelp} from './card-help';
 
 // Session AF (L4, P8.7): page awareness sends the route and the cards' ids and titles, never a value.
@@ -36,6 +36,23 @@ describe('what the person is looking at', () => {
     expect(view.cards.map(c => [c.id, c.label])).toEqual([['today:funding', 'Funding rhythm'], ['card:wrap-up', 'Evening wrap-up'], ['#start-here', 'Start here']]);
     expect(readPageView(document, '/app/settings', {healthOpen: true, sensitive: false})).toBeNull();
   });
+  test('Today as it is built: named regions count, once; a preset widget is judged by its title; a tap inside a card names the card', () => {
+    document.body.innerHTML = '<main><section aria-labelledby="hero"><h1 id="hero">Today\'s Goals, Habits &amp; Health</h1></section>'
+      + '<section aria-label="Checklist"><h2>Your day as a path of dots</h2><p>2 of 5</p></section>'
+      + '<section aria-labelledby="focus"><h2 id="focus">Today’s focus</h2><section aria-label="Your coach"><h2>Your coach</h2></section></section>'
+      + '<div class="placed-module" data-kind="widget" data-module="preset-habits-health-0"><article id="dashboard-widget-preset-habits-health-0"><h3>Daily Habits</h3><section aria-label="Morning"><button id="tap">Read</button></section></article></div>'
+      + '<div class="placed-module" data-kind="widget" data-module="preset-habits-health-1"><article id="dashboard-widget-preset-habits-health-1"><h3>Water today 1.2 L</h3></article></div></main>';
+    for (const el of Array.from(document.querySelectorAll('main *'))) (el as HTMLElement).getBoundingClientRect = () => ({width: 100, height: 40, top: 10, bottom: 50, left: 0, right: 100, x: 0, y: 10, toJSON: () => ({})});
+    const view = readPageView(document, '/app', {healthOpen: false, sensitive: false})!;
+    // The page's head (its h1) is not a card; "Your coach" and "Morning" are parts of a card; a widget's own article is the widget.
+    expect(view.cards.map(c => [c.id, c.label])).toEqual([['region:checklist', 'Checklist'], ['region:today-s-focus', 'Today’s focus'], ['widget:preset-habits-health-0', 'Daily Habits']]);
+    expect(view.healthHidden).toBe(1); // "Water today": its title, not the preset's name, makes it a Health card
+    expect(cardHelp('region:checklist', 'en')).toBe(CARD_HELP['today:checklist']!.en);
+    trackCardFocus(document);
+    document.getElementById('tap')!.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+    expect(readPageView(document, '/app', {healthOpen: false, sensitive: false})!.focused).toBe('widget:preset-habits-health-0');
+    expect(pageViewText(view)).not.toMatch(/1\.2|2 of 5|Water/); // no value, and nothing of the Health card
+  });
   test('"explain this card" and "what am I looking at" are answered on the device from the cards\' plain-words notes, never a value', () => {
     const env = toolEnv(withPage(showcaseSources()), gatesFor(true), 'local');
     const looking = localAnswer('What am I looking at?', env);
@@ -59,6 +76,6 @@ describe('what the person is looking at', () => {
     expect(r.ok).toBe(true); expect(JSON.stringify(r)).not.toMatch(/\d+(?:\.\d+)? ?(?:L|kg|%|€|\$)/);
     expect(questionCalls('Explain this card to me', sources, gatesFor(true)).map(c => c.tool)).toContain('page_view');
     expect(questionCalls('How many minutes did I meditate this month?', sources, gatesFor(true)).map(c => c.tool)).not.toContain('page_view');
-    expect((runTool('page_view', {}, toolEnv(showcaseSources(), gatesFor(true), 'provider')) as {data: {page: string}}).data.page).toMatch(/^not shared/);
+    expect((runTool('page_view', {}, toolEnv(showcaseSources(), gatesFor(true), 'provider')) as unknown as {data: {page: string}}).data.page).toMatch(/^not shared/);
   });
 });

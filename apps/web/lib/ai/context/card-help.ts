@@ -55,6 +55,7 @@ export const CARD_HELP: Readonly<Record<string, Help>> = {
   '#academy': H('Earn Academy', 'The Earn Academy is eight short lessons with three questions each; your answers stay on this device.', 'De Earn Academy is acht korte lessen met elk drie vragen; je antwoorden blijven op dit apparaat.'),
   '#validators': H('Validators', 'This list shows each validator\'s facts — commission, uptime, status — read live, sorted by name, never by rate.', 'Deze lijst toont de feiten van elke validator — commissie, uptime, status — live gelezen, op naam gesorteerd, nooit op rendement.'),
 };
-const normal = (id: string) => id.replace(/^widget:/, 'today:');
+// Today's Checklist region is the Checklist card; a widget is read as the Today module it shows.
+const normal = (id: string) => id === 'region:checklist' ? 'today:checklist' : id.replace(/^widget:/, 'today:');
 export const cardName = (id: string): string | null => CARD_HELP[normal(id)]?.name ?? null;
 export const cardHelp = (id: string, lang: 'en' | 'nl'): string | null => CARD_HELP[normal(id)]?.[lang] ?? null;
