@@ -21,6 +21,13 @@ describe('what the person is looking at', () => {
     expect(open.cards.find(c => c.id === 'today:health')!.label).toBe('Daily Health');
     expect(shut.cards.map(c => c.id)).not.toContain('today:health'); expect(shut.healthHidden).toBe(1);
     expect(pageViewOf('/app/settings', [{id: 'today:habits', text: 'x', inView: true}], {healthOpen: true, sensitive: false})).toBeNull();
+    // Gate C security review S3: on the Health page with the gate closed, no card is shared, whatever its title (a section
+    // that shows only after short nights, "A gentle word", says something about them); with the gate open it is.
+    const sleepPage = [{id: 'health:gentle-word', text: 'A gentle word', inView: true}, {id: 'health:tools', text: 'Your tools', inView: true}];
+    const closed = pageViewOf('/app/health', sleepPage, {healthOpen: false, sensitive: false})!;
+    expect(closed.cards).toEqual([]); expect(closed.healthHidden).toBe(2);
+    expect(pageViewText(closed)).not.toMatch(/gentle|tools/i);
+    expect(pageViewOf('/app/health', sleepPage, {healthOpen: true, sensitive: false})!.cards.map(c => c.id)).toEqual(['health:gentle-word', 'health:tools']);
     expect(pageViewOf('/app', [{id: 'today:habits', text: 'x', inView: true}], {healthOpen: true, sensitive: true})).toBeNull();
     // The cards in view come first; at most 40; the text stays within 1,500 characters and carries no figure of a card.
     const many = pageViewOf('/app/wealth', Array.from({length: 80}, (_, i) => ({id: `wealth:part-${i}`, text: `Part ${i} · $${i * 100}`, inView: i % 2 === 0})), {healthOpen: true, sensitive: false})!;

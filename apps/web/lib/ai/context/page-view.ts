@@ -44,7 +44,10 @@ export function pageViewOf(pathname: string, found: readonly Found[], options: {
     seen.add(f.id);
     const label = cardName(f.id) ?? (cleanLabel(f.text) || cleanLabel(f.id.replace(/^[#a-z-]*:/, '').replace(/[-_]/g, ' ')));
     if (!label) continue;
-    const health = isHealthCard(f.id, label);
+    // Gate C security review S3 (ADR-028 H133): on the Health page itself every card is Health's (a section shown only
+    // because recent nights were short says something about them), so with the gate closed none is shared, whatever its
+    // title; elsewhere a card is held back by its id or title.
+    const health = pageArea((pathname.replace(/\/+$/, '') || '/app')) === 'health' || isHealthCard(f.id, label);
     if (health && !options.healthOpen) { healthHidden++; continue; }
     cards.push({id: f.id.slice(0, 80), label, inView: f.inView, health});
     if (cards.length >= MAX_PAGE_CARDS) break;
