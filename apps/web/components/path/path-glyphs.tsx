@@ -20,6 +20,13 @@ const GLYPHS: Record<string, string> = {
   pill: 'M9.2 18.8 18.8 9.2a3.9 3.9 0 0 0-5.5-5.5L3.7 13.3a3.9 3.9 0 0 0 5.5 5.5M8.5 8.5l7 7',
   focus: 'M12 7v5l3 2M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0',
   chest: 'M4 10.5h16v9H4zM4 10.5c0-3.6 2-5.5 8-5.5s8 1.9 8 5.5M10.5 13h3v2.5h-3z',
+  // Session AF (L3b): marks the Checklist gives an item from its own words (lib/checklist/glyphs.ts).
+  book: 'M4 5.5c2.8-.9 5.6-.6 8 1.2 2.4-1.8 5.2-2.1 8-1.2v13c-2.8-.9-5.6-.6-8 1.2-2.4-1.8-5.2-2.1-8-1.2zM12 6.7v13',
+  note: 'M9 18.5V6.2l10-2.2v12.2M9 18.5a2.6 2.6 0 1 1-5.2 0 2.6 2.6 0 0 1 5.2 0M19 16.2a2.6 2.6 0 1 1-5.2 0 2.6 2.6 0 0 1 5.2 0M9 10l10-2.2',
+  dumbbell: 'M3.5 9.5v5M6.5 7.5v9M17.5 7.5v9M20.5 9.5v5M6.5 12h11',
+  run: 'M14.5 5.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6M9 21l2.6-5.2 2.9 2.4V22M7 11.5l2.6-3.2 3.7.4 1.8 3.3 3 1M11.6 15.8l1.6-7.1M6 18.5l3-3',
+  pen: 'M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17zM14.5 6.5l3 3',
+  sun: 'M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4',
 };
 export const PATH_GLYPH_NAMES = Object.keys(GLYPHS);
 export function PathGlyph({name, size = 28}: {name: string; size?: number}) {
