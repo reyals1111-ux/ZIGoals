@@ -30,7 +30,8 @@ branch; you never merge into the feature branch, never push, never deploy, never
   repo root; `.tsx` tests from the root). Commit often; messages `Session AF (<lane>) Part <n> — <what>`; Tier 3 areas
   (wallet/signing, CSP, egress routes, storage, data formats, sync, public-safety labels, dependencies, verifier/CI,
   deploy workflow, project rules) as separate commits starting `TIER 3 (<area>): …`, behaviour-preserving unless stated.
-  End every commit message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+  End every commit message with the session's Co-Authored-By trailer for Claude Opus 5.5 (its address is never written into a
+  file: H101).
 - Never weaken or delete an assertion to get green; if you must change one, say why in your lane file (it goes into STATUS).
 - Next.js is 16.3.8 with breaking changes: read the relevant guide in `apps/web/node_modules/next/dist/docs/` before writing Next code.
 - Non-negotiables: plain words for every term; nothing personal on-chain; ZIGoals and ZIGi never sign, hold keys or

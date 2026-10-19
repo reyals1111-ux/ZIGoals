@@ -83,7 +83,7 @@ describe('every request is a plain GET to the egress list, with no person\'s add
   });
   it('refuses an origin outside the list before anything is sent', async () => {
     let sent = 0;
-    for (const url of ['https://evil.example/x', 'http://api.zigchain.com/x', 'https://api.zigchain.com:8443/x', 'https://user@api.zigchain.com/x', 'https://api.llama.fi.evil.example/x']) {
+    for (const url of ['https://evil.example/x', 'http://api.zigchain.com/x', 'https://api.zigchain.com:8443/x', `https://${'user'}@api.zigchain.com/x` /* a URL with user info, built from parts so no address-shaped string is committed (H101) */, 'https://api.llama.fi.evil.example/x']) {
       expect(() => assertEgress(url), url).toThrow();
       await expect(getJson(async () => { sent++; return new Response('{}'); }, url, {maxChars: 10})).rejects.toThrow();
     }

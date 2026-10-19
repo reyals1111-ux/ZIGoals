@@ -31,7 +31,7 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
 - Times: `TZ=Europe/Brussels date`. Gate C starts by Sat 24 Oct 08:00; code freeze Fri 23 Oct 22:00; PR out of Draft with CI
   green by Sun 25 Oct 11:00 Brussels.
 
-## Gate C checklist (Sat 24 Oct from 08:00 Brussels; tick as done, with the evidence file)
+## Gate C checklist (started Mon 19 Oct 19:04 Brussels on `49433538`, the owner's word: "start Gate C now"; tick as done, with the evidence file)
 - [ ] G1 full unit suite (`pnpm test`).
 - [ ] G2 full browser suite once, Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
 - [ ] G3 the WebKit set: **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
@@ -84,6 +84,16 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 19:05 Brussels — Gate C started on 49433538; code frozen)
+- The owner started Gate C early (all parts built, both polish rounds merged). Order: G1 unit, G9 scans, a fresh
+  production build on 3101 → G6 weights → G2 the full Chromium suite (nohup, polled) → G4/G4b audits and the after
+  captures (orphan branch `review/session-af-screens`) → G5 parity report → G8 frozen readers → G7 revert gate (scratch
+  worktree) → G10 live check → G13 build:alpha + check:alpha-artifact → G11 hosted verifier → G12 the three reviews one
+  after another (security first, with depth on wallet/signing, CSP, egress, privacy; then design on the after captures;
+  then the test audit), one fix round each → CI green on the final head → STATUS entry with the ledger → PR out of Draft.
+- Evidence files: `docs/verification/session-af/gate-c-*.{md,txt}` (AE's format).
+- Only fixes from Gate C findings land from here; every fix gets its focused re-run and a line in the evidence file.
 
 ## Resume here (2026-10-19 18:30 Brussels — L5c merged and wired; no helper running)
 - Merged `af/polish2` (`2c30c9dd`, critique round 2 findings 1–22) and wired it (`199770ff`: theme sheets; the round-2
