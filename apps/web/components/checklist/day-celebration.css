@@ -1,0 +1,35 @@
+/* Session AF (L3b): the day's full-screen celebration. A night island (scripts/themes/build-themes.mjs ISLANDS): the same
+   cosmic moment in Nebula, Light and Dark. The trophy rises, rays turn once, confetti flies once, ZIGi celebrates; the
+   card's words stay on the night. Reduced motion and Motion Off: the same card, still. Transform and opacity only. */
+:root { --checklist-ink-celebration-a: #1b1550; --checklist-ink-celebration-b: #070b22; --checklist-ink-celebration-card: #0b1233f2; }
+.checklist-celebration { position: fixed; inset: 0; z-index: 2147483001; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 16px; border: 0; display: grid; place-items: center; overflow: hidden auto; color: #f2f6ff; background: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%); }
+.checklist-celebration::backdrop { background: #02040dcc; }
+.checklist-celebration-burst { position: fixed; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; }
+.checklist-celebration-rays { position: absolute; left: -48vmin; top: -48vmin; width: 96vmin; height: 96vmin; border-radius: 50%; background: repeating-conic-gradient(from 0deg, #ffd27a2e 0 8deg, #ffd27a00 8deg 22deg); -webkit-mask: radial-gradient(closest-side, #000 30%, #0000); mask: radial-gradient(closest-side, #000 30%, #0000); animation: checklist-rays 2600ms ease-out both; }
+@keyframes checklist-rays { from { opacity: 0; transform: rotate(-30deg) scale(.6); } 30% { opacity: 1; } to { opacity: .8; transform: rotate(20deg) scale(1); } }
+.checklist-celebration-burst i { position: absolute; left: -5px; top: -7px; width: 10px; height: 14px; border-radius: 3px; background: var(--c); opacity: 0; animation: checklist-confetti var(--t, 1400ms) cubic-bezier(.12, .7, .3, 1) 120ms both; }
+.checklist-celebration-burst i[data-shape='1'] { width: 9px; height: 9px; border-radius: 50%; }
+.checklist-celebration-burst i[data-shape='2'] { width: 6px; height: 16px; }
+@keyframes checklist-confetti { 0% { opacity: 1; transform: rotate(var(--a)) translateY(0) rotate(0deg); } 70% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(-1 * var(--d))) rotate(var(--r)); } }
+.checklist-celebration-card { position: relative; display: grid; justify-items: center; gap: 12px; width: min(460px, 100%); padding: 28px 24px 26px; border-radius: 32px; border: 1px solid #ffd27a59; background: var(--checklist-ink-celebration-card); box-shadow: 0 9px 0 #04081a, 0 40px 90px -30px #000, 0 0 80px #9273ff40; text-align: center; animation: checklist-card-in 640ms cubic-bezier(.2, .9, .25, 1.15) both; }
+@keyframes checklist-card-in { from { opacity: 0; transform: translateY(30px) scale(.9); } }
+.checklist-celebration-stage { position: relative; display: grid; place-items: center; width: 220px; height: 170px; margin-top: -86px; }
+.checklist-celebration-trophy { width: 170px; height: 170px; overflow: visible; filter: drop-shadow(0 0 30px #ffd27acc) drop-shadow(0 12px 18px #0009); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
+@keyframes checklist-trophy-rise { from { opacity: 0; transform: translateY(40px) scale(.6) rotate(-10deg); } }
+.checklist-celebration-zigi { position: absolute; right: -54px; bottom: -14px; width: 104px; height: 136px; animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
+.checklist-celebration-zigi .zigi { width: 100%; height: 100%; }
+@keyframes checklist-zigi-hop { from { opacity: 0; transform: translateY(26px) scale(.8); } }
+.checklist-celebration-eyebrow { margin: 0; color: #ffd27a; font-size: 14px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.checklist-celebration h2 { margin: 0; font-size: clamp(30px, 6vw, 40px); line-height: 1.08; letter-spacing: -.02em; }
+.checklist-celebration-line { margin: 0; font-size: 16px; color: #c9d5ee; }
+.checklist-celebration-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 4px 0 6px; padding: 0; list-style: none; }
+.checklist-celebration-stats li { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 16px 0 10px; border-radius: 999px; border: 1px solid #ffffff26; background: #ffffff0f; font-size: 15px; color: #dfe8fb; }
+.checklist-celebration-stats strong { font-size: 24px; font-weight: 850; color: #ffffff; }
+.checklist-celebration-stats .checklist-flame { width: 28px; height: 28px; }
+.checklist-celebration-go { min-width: 200px; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: linear-gradient(100deg, #23eaff, #9273ff 55%, #ff74be); color: #050b1f; font: inherit; font-size: 17px; font-weight: 850; letter-spacing: .02em; cursor: pointer; box-shadow: 0 5px 0 #4b3aa8, 0 16px 30px -12px #9273ffaa; }
+.checklist-celebration-go:active { transform: translateY(4px); box-shadow: 0 1px 0 #4b3aa8; }
+.checklist-celebration-go:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
+@media (max-width: 480px) { .checklist-celebration-zigi { right: -30px; width: 88px; height: 115px; } .checklist-celebration-stage { width: 190px; height: 150px; } .checklist-celebration-trophy { width: 150px; height: 150px; } }
+@media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; } .checklist-celebration-burst i { display: none; } }
+:root[data-app-motion=off] :is(.checklist-celebration *) { animation: none !important; }
+:root[data-app-motion=off] .checklist-celebration-burst i { display: none; }

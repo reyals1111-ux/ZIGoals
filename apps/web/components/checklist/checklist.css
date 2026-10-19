@@ -1,51 +1,106 @@
-/* Session AF (L3; P7.1, P7.9, P7.16–P7.18, P7.23): the Checklist page. Full-bleed inside the app shell: the sky spans the
-   viewport behind the page; the path is centred; the corner timers keep a column of their own on wide screens and a
-   sticky strip on narrow ones. Labels are 14 px and up, body 15–16 px, every target 44 px. The sky (an island, so the
-   theme sheets leave it to the rules below), the timers' rings and the heatmap keep the same colours in every theme; the
-   page's text and panels follow the theme. The one loop on the page is the Nebula mist's slow drift. */
+/* Session AF (L3 → L3b; P7.1, P7.9, P7.16–P7.18, P7.23 and the owner's full-screen brief): the Checklist as a stand-alone
+   daily app. It is a modal dialog in the browser's top layer covering the whole screen (sidebar, header, footer banner,
+   tab bar and launchers are behind it, inert); its own top bar holds the close, today's progress, the streak and today's
+   XP; the path of planets is centred, with the title and tools beside it and the corner timers and history on the other
+   side on a wide screen, and the timers in a dock at the foot of a phone or tablet. Labels are 14 px and up, body 15–16 px,
+   every target 44 px. The sky, planets, lines, banners, timers' rings and the heatmap keep Nebula's colours in every theme
+   (islands); the overlay's ground, its glass and its words follow the theme (white by day, black for Dark). The loops are
+   the sky's slow drift (Nebula) and the next planet's pulse; everything else plays once; reduced motion and Motion Off are
+   still. */
 /* The timers' glass and the history's plate: "ink" tokens, unchanged by the Light and Dark sheets (as the path's). */
 :root { --checklist-ink-timer-a: #0d1838ee; --checklist-ink-timer-b: #070e25ee; --checklist-ink-history: #0a1430; }
-.checklist-page { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; max-width: 1180px; margin: 0 auto; padding-bottom: 32px; }
-@media (min-width: 1100px) { .checklist-page { grid-template-columns: minmax(0, 1fr) 232px; column-gap: 28px; } .checklist-page > :not(.checklist-timers, .checklist-sky) { grid-column: 1; } .checklist-timers { grid-column: 2; grid-row: 1 / span 6; } }
 
-/* The sky: fixed behind the page, over the app's starfield. */
-.checklist-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.checklist-mist { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(40px); opacity: .5; }
-.checklist-mist-a { left: -18vmax; top: 6vh; background: radial-gradient(closest-side, #826cff38, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
-.checklist-mist-b { right: -22vmax; top: 34vh; background: radial-gradient(closest-side, #23eaff26, #ff74be14 60%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
-.checklist-stars { position: absolute; inset: 0; background: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0); }
-@keyframes checklist-mist-drift { from { translate: 0 0; } to { translate: 6vmax 4vmax; } }
+/* The overlay: the whole screen, its own scroller. The server's page draws it open (so the first paint already shows only
+   the Checklist); in the page it becomes modal. Until then, and as a guard, the shell's own parts are not drawn. */
+.checklist-overlay { position: fixed; inset: 0; z-index: 2147483000; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: 0; overflow: hidden auto; overscroll-behavior: contain; visibility: visible; color: var(--text, #f0f5ff); background: radial-gradient(130% 60% at 50% -6%, #1a154a 0%, #0b1031 40%, #050a1c 74%, #02040d 100%); font: inherit; -webkit-tap-highlight-color: transparent; }
+.checklist-overlay::backdrop { background: #02040d; }
+.checklist-overlay:focus { outline: none; }
+:root:has(.checklist-overlay[open]) { overflow: hidden; }
+:root:has(.checklist-overlay[open]) :is(.skip, .phone-topbar, .app-sidebar, .phone-tabbar) { display: none !important; }
+:root:has(.checklist-overlay[open]) .app-content > :not(.workspace, .private-read-delay) { display: none !important; }
+:root:has(.checklist-overlay[open]) .workspace > :not(main, .aa-toast-region) { display: none !important; }
+/* Opening: the overlay rises once (a few frames; none under reduced motion or Motion Off). */
+.checklist-overlay[open] > .checklist-shell { animation: checklist-arrive 420ms var(--motion-glide, cubic-bezier(.2, .8, .2, 1)) both; }
+@keyframes checklist-arrive { from { opacity: 0; transform: translateY(18px) scale(.985); } }
+
+/* The sky: fixed behind everything in the overlay. Nebula: drifting mists, two star layers, a ringed world and a moon. */
+.checklist-sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.checklist-mist { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(40px); opacity: .55; }
+.checklist-mist-a { left: -18vmax; top: 4vh; background: radial-gradient(closest-side, #826cff4d, #826cff00); animation: checklist-mist-drift 60s ease-in-out infinite alternate; }
+.checklist-mist-b { right: -22vmax; top: 34vh; background: radial-gradient(closest-side, #23eaff33, #ff74be1a 60%, #ff74be00); animation: checklist-mist-drift 72s ease-in-out -20s infinite alternate-reverse; }
+.checklist-mist-c { left: 20vw; bottom: -40vmax; background: radial-gradient(closest-side, #f06dff2e, #f06dff00); animation: checklist-mist-drift 84s ease-in-out -40s infinite alternate; }
+.checklist-stars { position: absolute; inset: -12%; background: radial-gradient(1.2px 1.2px at 18% 22%, #ffffffb0, #fff0), radial-gradient(1px 1px at 72% 14%, #ffffff90, #fff0), radial-gradient(1.4px 1.4px at 84% 58%, #ffffffa0, #fff0), radial-gradient(1px 1px at 32% 76%, #ffffff80, #fff0), radial-gradient(1.2px 1.2px at 56% 44%, #ffffff70, #fff0), radial-gradient(1px 1px at 8% 64%, #ffffff8c, #fff0), radial-gradient(1.3px 1.3px at 44% 8%, #ffffffa6, #fff0), radial-gradient(1px 1px at 92% 86%, #ffffff7a, #fff0); background-size: 520px 520px; animation: checklist-stars-drift 160s linear infinite; }
+.checklist-stars-near { background: radial-gradient(1.8px 1.8px at 12% 40%, #ffffffd9, #fff0), radial-gradient(2px 2px at 66% 30%, #c9f7ffcc, #fff0), radial-gradient(1.6px 1.6px at 38% 88%, #ffd9f2cc, #fff0), radial-gradient(2.2px 2.2px at 88% 12%, #ffffffe0, #fff0), radial-gradient(1.6px 1.6px at 52% 60%, #e7e1ffcc, #fff0); background-size: 760px 760px; animation-duration: 95s; }
+@keyframes checklist-stars-drift { to { transform: translate3d(-60px, -120px, 0); } }
+@keyframes checklist-mist-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(6vmax, 4vmax, 0); } }
+.checklist-world { position: absolute; right: -60px; bottom: 6vh; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #8f7bff 0, #4b3aa8 34%, #1b1450 70%, #0b0a26 100%); box-shadow: inset -26px -20px 60px #0009, 0 0 80px #826cff33; opacity: .42; animation: checklist-world-turn 240s linear infinite; }
+.checklist-world-ring { position: absolute; left: -46%; right: -46%; top: 42%; height: 16%; border-radius: 50%; border: 6px solid #c7b8ff40; border-top-color: #c7b8ff14; rotate: -14deg; }
+.checklist-moon-orbit { position: absolute; left: 4vw; top: 62vh; width: 220px; height: 220px; border-radius: 50%; border: 1px dashed #ffffff14; animation: checklist-world-turn 70s linear infinite; }
+.checklist-moon { position: absolute; left: 50%; top: -9px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffffff, #23eaff 55%, #0b3a5a); box-shadow: 0 0 14px #23eaff99; }
+@keyframes checklist-world-turn { to { transform: rotate(360deg); } }
+@media (max-width: 767.98px) { .checklist-world { width: 170px; height: 170px; right: -80px; bottom: 18vh; opacity: .34; } .checklist-moon-orbit { width: 150px; height: 150px; left: -70px; top: 58vh; } }
+/* By day: a calm white sky with a light colour mist; for Dark, black with a subtle mist. Both still. */
 :root[data-theme=light] .checklist-sky .checklist-mist { opacity: .9; animation: none; }
 :root[data-theme=light] .checklist-mist-a { background: radial-gradient(closest-side, #e9e3fd, #e9e3fd00); }
 :root[data-theme=light] .checklist-mist-b { background: radial-gradient(closest-side, #e2f6fb, #fbe9f3 60%, #fbe9f300); }
-:root[data-theme=light] .checklist-stars { display: none; }
+:root[data-theme=light] .checklist-mist-c { background: radial-gradient(closest-side, #fbe6fb, #fbe6fb00); }
+:root[data-theme=light] :is(.checklist-stars, .checklist-moon-orbit) { display: none; }
+:root[data-theme=light] .checklist-world { opacity: .14; animation: none; box-shadow: none; }
 :root[data-theme=dark] .checklist-sky { background: #010208; }
 :root[data-theme=dark] .checklist-sky .checklist-mist { opacity: .3; animation: none; }
-@media (prefers-reduced-motion: reduce) { .checklist-mist { animation: none !important; } }
-:root[data-app-motion=off] .checklist-mist { animation: none !important; }
+:root[data-theme=dark] :is(.checklist-stars, .checklist-world, .checklist-moon-orbit) { animation: none; }
+:root[data-theme=dark] .checklist-world { opacity: .3; }
 
-/* The header: the date, the title, today's progress with the streak, the tools. */
-.checklist-head { display: grid; gap: 14px; padding: 8px 0 4px; }
-.checklist-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
-.checklist-head h1 { margin: 0; font-size: var(--type-h1, clamp(32px, 4vw, 47px)); line-height: 1.05; letter-spacing: -.02em; }
-.checklist-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'bar streak' 'line streak'; align-items: center; column-gap: 18px; row-gap: 8px; }
-.checklist-progress-bar { grid-area: bar; height: 14px; }
-.checklist-progress-line { grid-area: line; margin: 0; font-size: 16px; }
+/* The top bar: close, today's progress, the streak's flame, today's XP. */
+.checklist-topbar { position: sticky; top: 0; z-index: 20; padding: max(10px, env(safe-area-inset-top, 0px)) 16px 10px; background: linear-gradient(180deg, #050a1ef2, #050a1ee0); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-bottom: 1px solid #ffffff17; box-shadow: 0 12px 30px -24px #000; }
+.checklist-topbar-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto auto; align-items: center; column-gap: 14px; max-width: 1180px; margin: 0 auto; }
+.checklist-close { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
+.checklist-close:hover { background: #ffffff1f; }
+.checklist-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #00000059; }
+.checklist-close:focus-visible { outline: 3px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+.checklist-progress { display: grid; gap: 4px; min-width: 0; }
+.checklist-progress-bar { height: 18px; }
+.checklist-progress-line { margin: 0; font-size: 14px; line-height: 1.2; color: var(--muted, #a4b2cd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-progress-line strong { color: var(--text, #f0f5ff); font-weight: 700; }
 .checklist-perfect { color: var(--muted, #a4b2cd); font-weight: 600; }
-.checklist-streak { grid-area: streak; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; margin: 0; padding: 4px 14px 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--muted, #a4b2cd) 35%, transparent); color: var(--muted, #a4b2cd); font-size: 22px; font-weight: 750; }
-.checklist-streak small { font-size: 14px; font-weight: 600; }
+.checklist-progress-shine { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--glass-value, 0) * 100%); border-radius: inherit; overflow: hidden; pointer-events: none; }
+.checklist-progress-shine::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 46%; background: linear-gradient(100deg, #ffffff00, #ffffffd9 50%, #ffffff00); transform: translateX(-120%); animation: checklist-shine 900ms ease-in-out 420ms both; }
+@keyframes checklist-shine { from { transform: translateX(-120%); } to { transform: translateX(330%); } }
+.checklist-streak, .checklist-xp { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; margin: 0; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid #ffffff1f; background: #ffffff0d; color: var(--muted, #a4b2cd); font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .checklist-streak[data-lit] { color: var(--text, #f0f5ff); border-color: #ffad8780; box-shadow: 0 0 22px #ff74be30; }
-.checklist-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.checklist-tools > button { min-height: 44px; }
-.checklist-view-switch { display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--muted, #a4b2cd) 35%, transparent); }
-.checklist-view-switch button { min-width: 72px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; }
-.checklist-view-switch button[aria-pressed=true] { background: linear-gradient(100deg, #23eaff33, #9273ff40); box-shadow: inset 0 0 0 1px #9273ff80; }
-.checklist-view-switch button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.checklist-xp { color: var(--text, #f0f5ff); }
+.checklist-xp small { font-size: 14px; font-weight: 700; color: var(--muted, #a4b2cd); }
+.checklist-streak .checklist-flame { width: 30px; height: 30px; }
+.checklist-count { display: inline-block; }
+.checklist-count[data-pop] { animation: checklist-pop-a 520ms cubic-bezier(.2, .9, .25, 1.3) both; }
+.checklist-count[data-pop=b] { animation-name: checklist-pop-b; }
+@keyframes checklist-pop-a { 0% { transform: scale(1); } 35% { transform: scale(1.35) translateY(-2px); } 100% { transform: none; } }
+@keyframes checklist-pop-b { 0% { transform: scale(1); } 35% { transform: scale(1.35) translateY(-2px); } 100% { transform: none; } }
 
-/* The corner timers. */
-.checklist-timers { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-self: start; position: sticky; top: 12px; z-index: 5; }
-@media (min-width: 1100px) { .checklist-timers { grid-template-columns: 1fr; top: 24px; } }
-.checklist-timer { --timer: var(--pillar-habits, #23eaff); display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; padding: 6px 12px 6px 6px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--timer) 40%, transparent); background: linear-gradient(120deg, var(--checklist-ink-timer-a), var(--checklist-ink-timer-b)); color: #eef4ff; font: inherit; text-align: start; cursor: pointer; box-shadow: 0 12px 28px -18px #000c; }
+/* The body: title and tools, the path, the timers and the history. */
+.checklist-shell { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; max-width: 720px; margin: 0 auto; padding: 18px 16px calc(132px + env(safe-area-inset-bottom, 0px)); }
+.checklist-head { display: grid; gap: 10px; padding: 0; }
+.checklist-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted, #a4b2cd); }
+.checklist-head h1 { margin: 0; font-size: clamp(30px, 3.4vw, 46px); line-height: 1.05; letter-spacing: -.02em; }
+.checklist-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.checklist-tool { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #ffffff2b; background: #ffffff0f; color: var(--text, #f0f5ff); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #0000004d; }
+.checklist-tool:hover { background: #ffffff1a; }
+.checklist-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 #0000004d; }
+.checklist-tool[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
+.checklist-tool:focus-visible { outline: 3px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+.checklist-tool-about { justify-content: center; width: 44px; padding: 0; font-size: 19px; font-weight: 850; }
+.checklist-view-switch { display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid #ffffff2b; background: #00000026; }
+.checklist-view-switch button { min-width: 64px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.checklist-view-switch button[aria-pressed=true] { background: linear-gradient(100deg, #23eaff40, #9273ff59); box-shadow: inset 0 0 0 1px #9273ff99; }
+.checklist-view-switch button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.checklist-stage { min-width: 0; }
+.checklist-stage .checklist-path { max-width: 680px; margin: 0 auto; }
+.checklist-side { display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+/* The corner timers: a dock at the foot of a phone or tablet, always in reach; on a wide screen, the side column's top. */
+.checklist-timers { display: grid; gap: 10px; }
+.checklist-timer { --timer: var(--pillar-habits, #23eaff); display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 64px; padding: 6px 12px 6px 6px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--timer) 40%, transparent); background: linear-gradient(120deg, var(--checklist-ink-timer-a), var(--checklist-ink-timer-b)); color: #eef4ff; font: inherit; text-align: start; cursor: pointer; box-shadow: 0 4px 0 #02061499, 0 12px 28px -18px #000c; }
+.checklist-timer:active { transform: translateY(2px); box-shadow: 0 2px 0 #02061499; }
 .checklist-timer:focus-visible { outline: 3px solid var(--timer); outline-offset: 3px; }
 .checklist-timer:disabled { cursor: progress; }
 .checklist-timer[data-running] { border-color: var(--timer); box-shadow: 0 0 0 1px var(--timer), 0 0 26px color-mix(in srgb, var(--timer) 40%, transparent); }
@@ -56,23 +111,39 @@
 .checklist-timer-text { display: grid; gap: 1px; min-width: 0; }
 .checklist-timer-text strong { font-size: 16px; }
 .checklist-timer-text small { font-size: 14px; color: #c5d3ea; overflow-wrap: anywhere; }
-.checklist-timers-message { grid-column: 1 / -1; margin: 0; font-size: 15px; }
-@media (max-width: 767.98px) {
-  .checklist-timers { top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px) + 6px); grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
-  .checklist-timer { grid-template-columns: 1fr; justify-items: center; min-height: 72px; padding: 6px 4px; border-radius: 16px; text-align: center; }
-  .checklist-timer-ring { width: 44px; height: 44px; }
+.checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
+@media (max-width: 1179.98px) {
+  .checklist-timers { position: fixed; left: 50%; bottom: max(10px, env(safe-area-inset-bottom, 0px)); z-index: 15; translate: -50% 0; box-sizing: border-box; width: min(560px, calc(100% - 20px)); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; padding: 6px; border-radius: 28px; border: 1px solid #ffffff1f; background: #050a1eeb; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 18px 40px -16px #000; }
+  .checklist-timer { grid-template-columns: 1fr; justify-items: center; gap: 2px; min-height: 68px; padding: 6px 4px; border-radius: 22px; text-align: center; }
+  .checklist-timer-ring { width: 40px; height: 40px; }
   .checklist-timer-text small { display: none; }
   .checklist-timer-text strong { font-size: 14px; }
+  .checklist-timers-message { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); }
   :root[data-keyboard=open] .checklist-timers { display: none; }
 }
+/* What floats at the foot of the overlay sits above the dock: the Undo toast and the jump button. */
+.checklist-toast-slot .aa-toast-region { z-index: 30; }
+@media (max-width: 1179.98px) {
+  :root .checklist-toast-slot .aa-toast-region { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-overlay .path-jump-dock { bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (min-width: 1180px) {
+  .checklist-shell { max-width: 1360px; grid-template-columns: minmax(230px, 1fr) minmax(0, 660px) minmax(280px, 1fr); column-gap: 36px; align-items: start; padding-top: 28px; padding-bottom: 64px; }
+  .checklist-head { grid-column: 1; grid-row: 1; align-self: start; margin: 0; position: sticky; top: 104px; padding-top: 8px; }
+  .checklist-stage { grid-column: 2; grid-row: 1; }
+  .checklist-side { grid-column: 3; grid-row: 1; align-self: start; position: sticky; top: 104px; }
+  .checklist-tools { flex-direction: column; align-items: stretch; }
+  .checklist-tools > .checklist-view-switch { align-self: flex-start; }
+  .checklist-tools > .checklist-tool { justify-content: flex-start; }
+  .checklist-tools > .checklist-tool-about { width: 44px; align-self: flex-start; justify-content: center; }
+  .checklist-overlay .path-jump-dock { bottom: 28px; }
+}
 
-/* The stage. */
-.checklist-stage { min-width: 0; }
-.checklist-stage .checklist-path { max-width: 760px; margin: 0 auto; }
-.checklist-loading { display: grid; justify-items: center; gap: 28px; padding: 24px 0; }
-.checklist-loading span { width: 64px; height: 64px; border-radius: 50%; background: #ffffff10; box-shadow: inset 0 0 0 2px #ffffff18; translate: calc(sin(var(--i) * 45deg) * 90px) 0; }
-.checklist-empty { max-width: 640px; margin: 24px auto; text-align: center; }
-.checklist-empty h2 { margin: 6px 0 8px; font-size: 24px; }
+/* The stage's other states. */
+.checklist-loading { display: grid; justify-items: center; gap: 56px; padding: 40px 0; }
+.checklist-loading span { width: 76px; height: 76px; border-radius: 50%; background: #ffffff10; box-shadow: inset 0 0 0 3px #ffffff18, 0 7px 0 #ffffff0a; translate: calc(sin(var(--i) * 60deg) * 80px) 0; }
+.checklist-empty { max-width: 560px; margin: 24px auto; text-align: center; }
+.checklist-empty h2 { margin: 6px 0 8px; font-size: 26px; }
 /* crit1: the empty path's faint picture (still; the same in every theme). */
 .checklist-ghost-path { display: block; width: min(100%, 320px); height: auto; margin: 0 auto 10px; overflow: visible; }
 .checklist-ghost-line { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 7; opacity: .55; }
@@ -80,12 +151,29 @@
 .checklist-ghost-dot { fill: currentColor; opacity: .5; stroke: currentColor; stroke-width: 2; stroke-opacity: .9; fill-opacity: .35; }
 .checklist-empty p { font-size: 16px; }
 
-/* The inline stepper and a dot's details (inside the path's panel or under a list row). */
-.checklist-stepper, .checklist-dot-panel { display: grid; gap: 12px; padding: 16px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--dot, #9273ff) 45%, transparent); background: var(--panel, #0b1530f2); box-shadow: 0 18px 40px -24px #000d; }
-.checklist-stepper-row { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; gap: 10px; align-items: center; }
-.checklist-stepper-bump { min-width: 48px; min-height: 48px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--dot, #9273ff) 60%, transparent); background: transparent; color: var(--text, #f0f5ff); font-size: 24px; line-height: 1; cursor: pointer; }
-.checklist-stepper-field { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid var(--line, #ffffff2a); background: var(--field, #050b1d); }
-.checklist-stepper-field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 22px; font-weight: 700; text-align: center; }
+/* Sheets over the path: Edit path, Options, How it works. From the side on a wide screen, from the foot on a phone. */
+.checklist-sheet { position: fixed; inset: 0; z-index: 40; display: grid; justify-items: end; }
+.checklist-sheet-scrim { position: absolute; inset: 0; background: #02040db3; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); cursor: pointer; }
+.checklist-sheet-panel { position: relative; box-sizing: border-box; width: min(480px, 100%); height: 100%; overflow: auto; overscroll-behavior: contain; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(24px, env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, #0b1230, #060b1f); border-left: 1px solid #ffffff1f; box-shadow: -30px 0 60px -30px #000; animation: checklist-sheet-in 280ms var(--motion-glide, ease) both; }
+.checklist-sheet[data-wide] .checklist-sheet-panel { width: min(640px, 100%); }
+.checklist-sheet-panel:focus { outline: none; }
+.checklist-sheet-panel > .panel { margin: 0; border: 0; background: none; box-shadow: none; padding: 4px 0; }
+@keyframes checklist-sheet-in { from { transform: translateX(40px); opacity: 0; } }
+@media (max-width: 767.98px) {
+  .checklist-sheet { align-items: end; justify-items: stretch; }
+  .checklist-sheet-panel { width: 100%; height: auto; max-height: 88dvh; border-left: 0; border-top: 1px solid #ffffff1f; border-radius: 26px 26px 0 0; padding-top: 18px; animation-name: checklist-sheet-up; }
+  .checklist-sheet[data-wide] .checklist-sheet-panel { width: 100%; }
+}
+@keyframes checklist-sheet-up { from { transform: translateY(60px); opacity: 0; } }
+.checklist-about ul { display: grid; gap: 10px; margin: 0 0 14px; padding-left: 20px; font-size: 16px; line-height: 1.4; }
+.checklist-about li::marker { color: var(--pillar-habits, #23eaff); }
+
+/* The inline stepper and a planet's details (under its caption on the path, or under a list row). */
+.checklist-stepper, .checklist-dot-panel { display: grid; gap: 12px; padding: 16px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--dot, #9273ff) 55%, transparent); background: var(--panel, #0b1530f5); box-shadow: 0 5px 0 color-mix(in srgb, var(--dot, #9273ff) 30%, #040a1e), 0 18px 40px -20px #000d; }
+.checklist-stepper-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; gap: 10px; align-items: center; }
+.checklist-stepper-bump { min-width: 52px; min-height: 52px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--dot, #9273ff) 70%, transparent); background: transparent; color: var(--text, #f0f5ff); font-size: 26px; line-height: 1; cursor: pointer; }
+.checklist-stepper-field { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; min-height: 52px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--line, #ffffff2a); background: var(--field, #050b1d); }
+.checklist-stepper-field input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 24px; font-weight: 800; text-align: center; }
 .checklist-stepper-field input:focus { outline: none; }
 .checklist-stepper-field:focus-within { outline: 2px solid var(--dot, #9273ff); outline-offset: 2px; }
 .checklist-stepper-unit { font-size: 15px; color: var(--muted, #a4b2cd); }
@@ -96,10 +184,10 @@
 .checklist-dot-panel-actions a { display: inline-flex; align-items: center; }
 
 /* The List view: pills. */
-.checklist-list { --accent: var(--pillar-habits, #23eaff); list-style: none; display: grid; gap: 8px; max-width: 640px; margin: 0 auto; padding: 0; }
-.checklist-pill { border-radius: 18px; border: 1px solid var(--line, #ffffff22); background: var(--panel, #0b1530e6); }
+.checklist-list { --accent: var(--pillar-habits, #23eaff); list-style: none; display: grid; gap: 10px; max-width: 640px; margin: 0 auto; padding: 0; }
+.checklist-pill { border-radius: 20px; border: 1px solid var(--line, #ffffff22); background: var(--panel, #0b1530e6); }
 .checklist-pill[data-counted=no] { opacity: .78; }
-.checklist-pill-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 56px; padding: 6px 12px 6px 8px; }
+.checklist-pill-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px 8px 10px; }
 .checklist-pill-check { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2.5px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; text-decoration: none; }
 .checklist-pill-check[data-state=done] { background: var(--accent); color: #04101f; box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); }
 .checklist-pill-check[data-state=running] { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent); }
@@ -111,8 +199,8 @@
 .checklist-pill-tag { max-width: 9.5em; padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--tag) 55%, transparent); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-pill-panel { padding: 0 12px 12px; }
 
-/* Options and Edit path. */
-.checklist-options, .checklist-edit { display: grid; gap: 14px; max-width: 760px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+/* Options and Edit path (inside their sheets). */
+.checklist-options, .checklist-edit, .checklist-about { display: grid; gap: 14px; width: 100%; box-sizing: border-box; }
 .checklist-options-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .checklist-options-head h2 { margin: 0; font-size: 24px; }
 .checklist-options-head button { min-height: 44px; }
@@ -150,8 +238,8 @@
 .checklist-edit-orbits .field { flex: 1 1 160px; margin: 0; }
 
 /* The history: twelve weeks. */
-.checklist-history-fold { max-width: 760px; width: 100%; margin: 8px auto 0; }
-.checklist-history-fold > summary { display: flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.checklist-history-fold { width: 100%; margin: 0 auto; }
+.checklist-history-fold > summary { display: flex; align-items: center; min-height: 48px; padding: 0 16px; border-radius: 18px; border: 1px solid #ffffff1f; background: #ffffff0a; font-size: 16px; font-weight: 700; cursor: pointer; }
 /* crit2: the fold says it opens: a "Show" hint and a chevron that turns, as the app's other folds do. */
 .checklist-history-fold > summary { list-style: none; justify-content: space-between; gap: 12px; }
 .checklist-history-fold > summary::-webkit-details-marker { display: none; }
@@ -159,7 +247,7 @@
 .checklist-history-fold > summary::before { content: ""; order: 2; width: 9px; height: 9px; margin: -4px 4px 0 -18px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); color: var(--muted, #a4b2cd); }
 .checklist-history-fold[open] > summary::after { content: "Hide"; }
 .checklist-history-fold[open] > summary::before { transform: rotate(225deg); margin-top: 4px; }
-.checklist-history { display: grid; gap: 10px; padding: 16px; border-radius: 20px; background: var(--checklist-ink-history); }
+.checklist-history { display: grid; gap: 10px; margin-top: 10px; padding: 16px; border-radius: 20px; background: var(--checklist-ink-history); }
 .checklist-heat-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 4px; justify-content: start; overflow-x: auto; }
 .checklist-heat-cell { width: 18px; height: 18px; border-radius: 5px; background: #ffffff12; }
 .checklist-heat-cell[data-level=some] { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
@@ -173,17 +261,32 @@
 .checklist-heat-legend li[data-level=some]::before { background: color-mix(in srgb, var(--heat-some) 55%, transparent); }
 .checklist-heat-legend li[data-level=all]::before { background: var(--heat-all); }
 .checklist-heat-legend li[data-level=perfect]::before { background: var(--heat-perfect); }
-.checklist-limits { max-width: 760px; margin: 0 auto; font-size: 14px; }
+.checklist-limits { margin: 0; font-size: 14px; }
+.checklist-alpha { margin: 8px 0 0; color: var(--muted, #a4b2cd); font-size: 14px; font-weight: 650; letter-spacing: .08em; text-align: center; }
+@media (min-width: 1180px) { .checklist-alpha { grid-column: 2; } }
+@media (min-width: 1180px) and (max-width: 1360px) { .checklist-heat-cell { width: 15px; height: 15px; } }
 
 @media (max-width: 767.98px) {
-  .checklist-page { gap: 14px; }
-  .checklist-head h1 { font-size: 34px; }
-  .checklist-progress { grid-template-columns: minmax(0, 1fr) auto; }
-  .checklist-progress-line { font-size: 15px; }
-  .checklist-tools { gap: 8px; }
-  .checklist-view-switch button { min-width: 60px; padding: 0 12px; }
-  .checklist-tools > button { padding-inline: 12px; }
+  .checklist-topbar { padding-inline: 12px; }
+  .checklist-topbar-row { grid-template-columns: 44px minmax(0, 1fr) auto auto; column-gap: 8px; }
+  .checklist-close { width: 44px; height: 44px; }
+  .checklist-progress-bar { height: 16px; }
+  .checklist-streak, .checklist-xp { padding: 0 9px 0 5px; font-size: 18px; gap: 3px; }
+  .checklist-streak .checklist-flame { width: 24px; height: 24px; }
+  .checklist-xp small { display: none; }
+  .checklist-xp-mark { width: 20px; height: 20px; }
+  .checklist-shell { gap: 14px; padding: 14px 12px calc(128px + env(safe-area-inset-bottom, 0px)); }
+  .checklist-head { gap: 6px; }
+  .checklist-head h1 { font-size: 30px; }
+  .checklist-tools { gap: 6px; }
+  .checklist-view-switch button { min-width: 56px; padding: 0 12px; }
+  .checklist-tool { padding: 0 12px; }
+  .checklist-tool-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .checklist-tool:has(.checklist-tool-text) { width: 44px; padding: 0; justify-content: center; }
   .checklist-heat-cell { width: 16px; height: 16px; }
 }
-@media (prefers-reduced-motion: reduce) { .checklist-page *:not(.checklist-mist) { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .checklist-mist, .checklist-stars, .checklist-world, .checklist-moon-orbit { animation: none !important; } .checklist-page *:not(.checklist-mist) { transition: none !important; } }
+:root[data-app-motion=off] :is(.checklist-mist, .checklist-stars, .checklist-world, .checklist-moon-orbit) { animation: none !important; }
 :root[data-app-motion=off] .checklist-page *:not(.checklist-mist) { transition: none !important; }
+@media (prefers-reduced-motion: reduce) { .checklist-page *, .checklist-page *::before, .checklist-page *::after { animation: none !important; } }
+:root[data-app-motion=off] .checklist-page *, :root[data-app-motion=off] .checklist-page *::before, :root[data-app-motion=off] .checklist-page *::after { animation: none !important; }

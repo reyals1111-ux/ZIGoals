@@ -7,6 +7,7 @@ import {addCustom, addFavourite, addSection, customToHabit, isFavourite, moveIte
 import type {DerivedDot} from '../../lib/checklist/derive';
 import {storageMessageOr} from '../../lib/storage-error-copy';
 import {PathGlyph} from '../path/path-glyphs';
+import {itemGlyph} from '../../lib/checklist/glyphs';
 import type {ChecklistState} from './use-checklist';
 
 /**
@@ -78,7 +79,7 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
       const dragging = drag?.id === item.id, mates = pathOrder.filter(i => sectionOfItem(record.data, i) === section), mate = mates.findIndex(i => i.id === item.id), orbitLabel = sections.find(x => x.id === section)?.label ?? 'its orbit';
       return <li key={item.id} data-edit-row data-dragging={dragging || undefined} style={{'--dot': PATH_COLOURS[colour].token, ...(dragging ? {transform: `translateY(${drag!.dy}px)`} : {})} as CSSProperties}>
         <button type="button" className="checklist-edit-handle" data-edit-handle={item.id} aria-label={`Move ${label}: drag, or use the arrow keys`} onPointerDown={e => onPointerDown(e, item.id)} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => setDrag(null)} onKeyDown={e => onHandleKey(e, item.id, label)}><span aria-hidden="true">⋮⋮</span></button>
-        <span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot?.glyph ?? 'sparkle'} size={18}/></span>
+        <span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot ? itemGlyph(dot) : 'sparkle'} size={18}/></span>
         <span className="checklist-edit-label"><strong>{label}</strong>{dot?.missing && <small>{dot.note}</small>}</span>
         <div className="checklist-edit-controls">
           <button type="button" className="quiet" aria-label={`Move ${label} up`} disabled={mate === 0} onClick={() => write(r => moveWithinSection(r, item.id, -1), `${label} moved up in ${orbitLabel}.`)}>↑</button>

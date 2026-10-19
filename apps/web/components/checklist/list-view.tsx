@@ -4,6 +4,7 @@ import {useMemo, type CSSProperties} from 'react';
 import {PATH_COLOURS, pathColour} from '../../lib/path/colours';
 import {sectionsOf} from '../../lib/checklist/store';
 import {PathGlyph} from '../path/path-glyphs';
+import {itemGlyph} from '../../lib/checklist/glyphs';
 import {useDotPress} from './path-view';
 import type {ChecklistState} from './use-checklist';
 
@@ -19,8 +20,8 @@ export function ListView({state}: {state: ChecklistState}) {
     {state.dots.map(dot => {
       const done = dot.state === 'done', label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
       const check = dot.intent === 'open' && dot.href
-        ? <Link className="checklist-pill-check" href={dot.href} aria-label={label} data-state={dot.state}><PathGlyph name={dot.glyph} size={18}/></Link>
-        : <button type="button" className="checklist-pill-check" aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} onClick={() => void press(dot, dot.intent ?? 'tick')}>{done ? <PathGlyph name="check" size={18}/> : dot.state === 'running' ? <PathGlyph name={dot.glyph} size={18}/> : null}</button>;
+        ? <Link className="checklist-pill-check" href={dot.href} aria-label={label} data-state={dot.state}><PathGlyph name={itemGlyph(dot)} size={18}/></Link>
+        : <button type="button" className="checklist-pill-check" aria-label={label} aria-pressed={done} aria-expanded={dot.intent === 'value' ? panel?.id === dot.id : undefined} aria-busy={busy === dot.id || undefined} data-state={dot.state} data-step={dot.id} onClick={() => void press(dot, dot.intent ?? 'tick')}>{done ? <PathGlyph name="check" size={18}/> : dot.state === 'running' ? <PathGlyph name={itemGlyph(dot)} size={18}/> : null}</button>;
       return <li key={dot.id} className="checklist-pill" data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>
         <div className="checklist-pill-row">
           {check}

@@ -5,6 +5,7 @@ import {useEffect, useState} from 'react';
 import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
+import {notePath} from '../../lib/checklist/return-path';
 import {registerNavExtra} from '../nav-extras';
 import {registerTimelineSource} from '../../lib/timeline/sources';
 import {usePhoneActive} from '../phone/use-phone-layout';
@@ -28,6 +29,8 @@ export function ChecklistLauncher() {
   const prefs = checklistPrefsOf(prefsRecord.data), ready = mounted && prefsRecord.loaded && !prefsRecord.unreadable;
   const shown = ready && prefs.launcher && !phone && pathname.startsWith('/app');
   useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
+  // Session AF (L3b): every route the shell shows, so the full-screen Checklist's close returns to where the person was.
+  useEffect(() => { notePath(pathname); }, [pathname]);
   // In the navigation (the sidebar, the phone's More sheet, search) on every device: the page is always reachable.
   useEffect(() => registerNavExtra([CHECKLIST_ROUTE, 'Checklist', 'checklist']), []);
   // Session AF (L5b; P9.2): the Checklist's dots on the Day Timeline — a loader only; its code loads when the timeline asks.
