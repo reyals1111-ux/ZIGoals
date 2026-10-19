@@ -32,6 +32,7 @@ import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {STAKING_JOURNAL} from '../../lib/staking/journal';
 import type {Attestation} from '../../lib/staking/attestation';
 import type {Grant} from '../../lib/staking/grants';
+import {WhatsThis} from '../earn/whats-this';
 import './staking.css';
 
 /**
@@ -245,6 +246,8 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       <NetworkSwitch network={network} onChoose={choose} disabled={quoting || !!quote}/>
     </div>
     <p className={`staking-network-banner is-${network}`}><strong>{NETWORK_WORDS[network].label}</strong> · {NETWORK_WORDS[network].name} ({NETWORK_WORDS[network].chainId})</p>
+    {/* Session AF (L1c, N1): the plain words of what this panel does, one tap away. */}
+    <p className="whats-this-row"><WhatsThis term="practice-network"/> <WhatsThis term="staking"/></p>
     {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}
     {note && <p role="status" className="fine">{note}</p>}
     {!wallet ? <div className="staking-connect">
@@ -268,6 +271,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       <div className="staking-tabs" role="tablist" aria-label="Staking action">
         {TABS.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={action === id} className={action === id ? 'is-active' : ''} onClick={() => { setAction(id); setQuote(null); setError(''); setAmount(''); setProgress(null); }}>{label}</button>)}
       </div>
+      {action !== 'delegate' && <p className="whats-this-row"><WhatsThis key={action} term={action === 'undelegate' ? 'unbonding' : action === 'redelegate' ? 'redelegate' : 'rewards'}/></p>}
       <form className="staking-form" onSubmit={review} noValidate>
         {action === 'delegate' && (validators?.status === 'ok' ? <ValidatorPicker validators={validators.validators} value={validator} onChange={setValidator} legend="Validator to stake with" name="staking-validator"/> : <p className="notice">{validatorsError || 'Reading the validators…'}</p>)}
         {(action === 'undelegate' || action === 'redelegate') && (delegations.length ? <fieldset className="staking-validators"><legend>{action === 'undelegate' ? 'Unstake from' : 'Move stake from'}</legend>
@@ -282,7 +286,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
           <label className="field">Amount of ZIG<input value={amount} onChange={event => setAmount(event.target.value)} inputMode="decimal" autoComplete="off" placeholder="0.0" aria-describedby="staking-amount-network"/></label>
           {max !== undefined && <button type="button" className="secondary" onClick={() => setAmount(zigText(max).replace(/ ZIG$/, '').replaceAll(',', ''))}>Max</button>}
           <div id="staking-amount-network"><NetworkLine network={network}/></div>
-          {action === 'delegate' && <p className="fine">The network fee is kept back from your balance; the review shows the exact fee.</p>}
+          {action === 'delegate' && <p className="fine">The network fee is kept back from your balance; the review shows the exact fee. <WhatsThis term="gas"/></p>}
         </div>}
         {(action === 'undelegate' || action === 'delegate') && <details className="staking-explainer"><summary>What unstaking means</summary><p>Unstaking takes {daysText(1814400)} (the chain&rsquo;s unbonding time, checked again before every review). During that time the ZIG earns nothing and cannot move. A validator allows at most 7 unstakings from you at a time.</p></details>}
         {error && <p role="alert" className="notice">{error}</p>}
