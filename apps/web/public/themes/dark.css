@@ -2833,6 +2833,18 @@
     .ai-your-questions:not(#\-) {
         border-top-color: var(--line,#2a325a)
     }
+    .ai-brief-section dt:not(#\-) {
+        color: var(--muted,#aab2d9)
+    }
+    .ai-recap:not(#\-) {
+        border-color: color-mix(in srgb,var(--brand-magenta,#c86bff) 35%,var(--line,#2a325a))
+    }
+    .ai-bundle-head:not(#\-) {
+        border-color: color-mix(in srgb,var(--cyan,#6fd3ff) 35%,var(--line,#2a325a))
+    }
+    .ai-card-first-note:not(#\-) {
+        border-left-color: color-mix(in srgb,var(--cyan,#6fd3ff) 60%,transparent)
+    }
 }
 /*  components/ai/care-note.css  */
 @scope (:root[data-theme=dark]) {
@@ -12610,6 +12622,95 @@
         color: var(--text-secondary,#b7c8de)
     }
 }
+/*  components/stories/stories.css  */
+@scope (:root[data-theme=dark]) {
+    .stories-style:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .story-player:not(#\-) {
+        background-image: none;
+        background-color: #010105f2
+    }
+    .story-progress li:not(#\-) {
+        background-image: none;
+        background-color: #ffffff2e
+    }
+    .story-progress li[data-state=seen]:not(#\-), .story-progress li[data-state=current]:not(#\-) {
+        background-image: linear-gradient(90deg, #6fe6f6, #c790f6);
+        background-color: transparent
+    }
+    .story-close:not(#\-) {
+        border-color: #ffffff33;
+        background-image: none;
+        background-color: #ffffff10;
+        color: #fff
+    }
+    .story-stage:not(#\-) {
+        outline-color: currentcolor;
+        background-image: radial-gradient(ellipse at 70% 10%, #1d093eaa, #02030a 70%), none;
+        background-color: #02030a;
+        box-shadow: inset 0 0 0 1px #c3a8f944
+    }
+    .story-stage:focus-visible:not(#\-) {
+        box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .story-zone:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent
+    }
+    .story-card:not(#\-) {
+        color: #f4f8ff
+    }
+    .story-card .eyebrow:not(#\-) {
+        color: #c2d0e5
+    }
+    .story-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #6fe6f6 55%, #c790f6);
+        background-color: transparent;
+        color: transparent
+    }
+    .story-card[data-pillar=health] .story-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #ff74be 55%, #c790f6)
+    }
+    .story-card[data-pillar=goals] .story-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #9273ff 55%, #f08bd6)
+    }
+    .story-card[data-pillar=wealth] .story-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #ffd27a 55%, #f08bd6)
+    }
+    .story-lines:not(#\-) {
+        color: #dde7f7
+    }
+    .story-fine:not(#\-) {
+        color: #c2d0e5
+    }
+    .story-note:not(#\-) {
+        color: #f4f8ff
+    }
+}
+/*  components/stories/today-stories-card.css  */
+@scope (:root[data-theme=dark]) {
+    .today-stories-mark:not(#\-) {
+        background-image: radial-gradient(120% 120% at 30% 20%, #0d0934, #020313 70%);
+        background-color: transparent
+    }
+    .today-stories-mark i:not(#\-) {
+        background-image: linear-gradient(#6fe6f6, #c790f6);
+        background-color: transparent
+    }
+    .today-stories-mark i:nth-child(2):not(#\-) {
+        background-image: linear-gradient(#c790f6, #f08bd6);
+        background-color: transparent
+    }
+    .today-stories-mark i:nth-child(3):not(#\-) {
+        background-image: linear-gradient(#f08bd6, #ffd27a);
+        background-color: transparent
+    }
+    .today-stories-line:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
 /*  components/swipe/swipe.css  */
 @scope (:root[data-theme=dark]) {
     .swipe-indicator:not(#\-) {
@@ -12650,6 +12751,110 @@
         color: var(--text-secondary)
     }
 }
+/*  components/timeline/timeline.css  */
+@scope (:root[data-theme=dark]) {
+    .timeline-band > h2 small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .timeline-list:not(#\-)::before {
+        background-image: linear-gradient(#6fe6f6aa, #c790f6aa, #f08bd6aa);
+        background-color: transparent
+    }
+    .timeline-row[data-moving] .timeline-block:not(#\-) {
+        box-shadow: 0 10px 30px #00000066, 0 0 0 2px var(--brand-cyan, #6fe6f6)
+    }
+    .timeline-row:not(#\-)::before {
+        background-image: none;
+        background-color: #020213;
+        border-color: #9fb3ff
+    }
+    .timeline-row[data-done]:not(#\-)::before {
+        background-image: none;
+        background-color: #6fe6f6;
+        border-color: #6fe6f6
+    }
+    .timeline-row[data-pillar=habits]:not(#\-)::before {
+        border-color: var(--pillar-habits)
+    }
+    .timeline-row[data-pillar=health]:not(#\-)::before {
+        border-color: var(--pillar-health)
+    }
+    .timeline-row[data-pillar=goals]:not(#\-)::before {
+        border-color: var(--pillar-goals)
+    }
+    .timeline-row[data-pillar=wealth]:not(#\-)::before {
+        border-color: var(--pillar-wealth)
+    }
+    .timeline-time:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .timeline-block:not(#\-) {
+        border-color: var(--border-subtle, #ffffff1f);
+        background-image: none;
+        background-color: #ffffff0a
+    }
+    .timeline-row[data-kind=reminder] .timeline-block:not(#\-), .timeline-row[data-kind=checklist] .timeline-block:not(#\-) {
+        background-image: none;
+        background-color: transparent
+    }
+    .timeline-row[data-kind=fast] .timeline-block:not(#\-), .timeline-row[data-kind=sleep] .timeline-block:not(#\-), .timeline-row[data-kind=timer] .timeline-block:not(#\-), .timeline-row[data-kind=meditation] .timeline-block:not(#\-) {
+        background-image: linear-gradient(135deg, #6fe6f60f, #c790f612);
+        background-color: transparent
+    }
+    .timeline-row[data-done] .timeline-title strong:not(#\-) {
+        text-decoration-color: #ffffff66
+    }
+    .timeline-state:not(#\-) {
+        border-color: currentColor;
+        color: var(--brand-cyan, #6fe6f6)
+    }
+    .timeline-meta:not(#\-), .timeline-note:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .timeline-moving:not(#\-) {
+        color: var(--brand-cyan, #6fe6f6)
+    }
+    .timeline-handle:not(#\-) {
+        border-color: #9fb3ff55;
+        background-image: none;
+        background-color: #ffffff0d;
+        color: inherit
+    }
+    .timeline-handle:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .timeline-lock:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .timeline-now:not(#\-)::before {
+        background-image: linear-gradient(90deg, #f08bd6, #ffd27a);
+        background-color: transparent;
+        box-shadow: 0 0 10px #f08bd688
+    }
+    .timeline-now span:not(#\-) {
+        color: #0b1020;
+        background-image: linear-gradient(90deg, #f08bd6, #ffd27a);
+        background-color: transparent
+    }
+    .timeline-picker:not(#\-) {
+        border-color: #9fb3ff44;
+        background-image: none;
+        background-color: #020213cc
+    }
+    .timeline-replan-list > li:not(#\-) {
+        border-top-color: var(--border-subtle, #ffffff1f)
+    }
+    .timeline-replan-list small:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-timeline-next li span:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .today-timeline-skeleton:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d
+    }
+}
 /*  components/ui/card-header.css  */
 @scope (:root[data-theme=dark]) {
     :scope :is(.aa-section-heading, .section-heading, .wealth-section-heading, .health-section-heading, .habit-section-heading, .positions-section-heading, .portfolio-section-head, .portfolio-panel-head) > :first-child > p:not(.eyebrow):not(#\-) {
@@ -12660,6 +12865,92 @@
         background-color: #ffffff0d;
         border-color: #ffffff14;
         color: var(--text-secondary, #c9d6ea)
+    }
+}
+/*  components/universe/extras-setting.css  */
+@scope (:root[data-theme=dark]) {
+    .af-extras-row:not(#\-) {
+        border-top-color: var(--border-subtle, #ffffff1f)
+    }
+    .af-extras-row small:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
+/*  components/universe/universe.css  */
+@scope (:root[data-theme=dark]) {
+    .universe-lede:not(#\-) {
+        color: var(--text-secondary)
+    }
+    .universe-stage:not(#\-) {
+        background-image: radial-gradient(ellipse at 50% 48%, #0d042a 0%, #030214 42%, #010108 78%), none;
+        background-color: #010108;
+        box-shadow: inset 0 0 0 1px #9fb3ff22
+    }
+    .universe-planet-button:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #eef3ff
+    }
+    .universe-planet-button:focus-visible:not(#\-) {
+        outline-color: var(--brand-cyan, #6fe6f6)
+    }
+    .universe-planet-button[aria-pressed=true]:not(#\-) {
+        box-shadow: 0 0 0 2px #ffffff55
+    }
+    .universe-planet-name:not(#\-) {
+        background-image: none;
+        background-color: #010108cc
+    }
+    .universe-planets > li:not(#\-) {
+        border-color: var(--border-subtle, #ffffff1f);
+        background-image: none;
+        background-color: #ffffff08
+    }
+    .universe-planets > li[data-selected]:not(#\-) {
+        border-color: currentColor;
+        box-shadow: 0 0 0 1px currentColor inset
+    }
+    .universe-planets > li[data-pillar=habits]:not(#\-) {
+        color: var(--pillar-habits)
+    }
+    .universe-planets > li[data-pillar=health]:not(#\-) {
+        color: var(--pillar-health)
+    }
+    .universe-planets > li[data-pillar=goals]:not(#\-) {
+        color: var(--pillar-goals)
+    }
+    .universe-planets > li[data-pillar=wealth]:not(#\-) {
+        color: var(--pillar-wealth)
+    }
+    .universe-planets p:not(#\-), .universe-facts:not(#\-) {
+        color: var(--text-primary)
+    }
+    .universe-planet-title strong:not(#\-) {
+        color: inherit
+    }
+    .universe-lit:not(#\-) {
+        border-color: currentColor;
+        color: inherit
+    }
+    .universe-planet-light:not(#\-) {
+        color: var(--text-secondary) !important
+    }
+    .universe-discovery:not(#\-) {
+        border-color: #c790f655;
+        background-image: linear-gradient(135deg, #6fe6f612, #c790f614);
+        background-color: transparent
+    }
+    .universe-celebration[data-still] .celebration-symbol:not(#\-) {
+        box-shadow: none
+    }
+    .universe-row:not(#\-) {
+        background-image: radial-gradient(ellipse at 50% 50%, #0a0325, #02020c 80%);
+        background-color: transparent
+    }
+    .today-universe-skeleton:not(#\-) {
+        background-image: none;
+        background-color: #ffffff0d
     }
 }
 /*  components/wallet/wallet-card.css  */

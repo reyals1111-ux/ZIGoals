@@ -338,7 +338,7 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
 // ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
 test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
+  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-start-here', 'af-academy', 'af-earn-dock', 'af-validator-alerts', 'af-wallets', 'af-add-money', 'af-goal-vaults', 'af-brief', 'af-zigi-checklist', 'af-plans', 'af-page-awareness', 'af-earn-coach', 'af-zigi-memory', 'af-universe', 'af-timeline', 'af-stories', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
   const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
@@ -350,6 +350,22 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
     ['af-staking', 'you sign it in Keplr. ZIGoals never sees your keys and sends nothing on its own'],
     ['af-governance', 'A vote is public and tied to your address forever, and the review screen says so before you sign'],
     ['af-practice-badges', 'ZIGoals never does this on the real network'],
+    ['af-start-here', "Practice never ticks a real step"],
+    ['af-academy', "a lesson you pass earns XP once"],
+    ['af-earn-dock', "Phones have no extra floating button"],
+    ['af-validator-alerts', "ZIGoals sends no notifications"],
+    ['af-wallets', "Keplr stays the wallet that signs"],
+    ['af-add-money', "ZIGoals never sees either and never holds the money"],
+    ['af-goal-vaults', "Nothing moves and nothing is signed"],
+    ['af-brief', "made on this device without an AI"],
+    ['af-zigi-checklist', "nothing changes until you add it"],
+    ['af-plans', "Forget removes a plan, not what you added"],
+    ['af-page-awareness', "never a number"],
+    ['af-earn-coach', "ZIGi never signs, sends or broadcasts anything"],
+    ['af-zigi-memory', "Notes stay on this device"],
+    ['af-universe', "Nothing is ever taken away"],
+    ['af-timeline', "Times you move stay on this device"],
+    ['af-stories', "never an amount, a price or a return"],
     ['af-checklist', 'It starts fresh at local midnight'],
     ['af-checklist-star', 'Edit path'],
     ['af-checklist-tick', 'Undo puts that record back exactly'],

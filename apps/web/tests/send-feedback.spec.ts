@@ -89,7 +89,12 @@ test('Help: Known limitations in plain words, with working links', async ({page}
   // Session AB-Cloud Part 10 (ADR-023 C31): three more, each checked by its words below (was 10).
   // Session AC (friends pack): three more again (was 13), each checked by its words and its link below.
   // Session AF (ADR-028, deliberate): two more (was 16), each checked by its words and its link below.
-  await expect(items).toHaveCount(18);
+  // Session AF, at the ZIGi and extras merges (deliberate): three more (was 18), each checked by its words and link below.
+  await expect(items).toHaveCount(21);
+  await expect(section).toContainText('ZIGi never stakes, signs or moves money');
+  await expect(section).toContainText('Timeline times stay on this device');
+  await expect(section).toContainText('Add money opens the providers’ plain sites');
+  await expect(section.getByRole('link', {name: 'How do I add money?', exact: true})).toHaveAttribute('href', '#help-af-add-money');
   await expect(section).toContainText('The Checklist stays on this device: your path, your own items and the day history aren’t synced yet');
   await expect(section).toContainText('Ecosystem apps open in their own tab: ZIGoals shows their live numbers and steps but never frames their sites, and signs nothing for them');
   await expect(section.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
