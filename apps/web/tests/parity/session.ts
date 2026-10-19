@@ -9,12 +9,13 @@ export type Theme = 'nebula' | 'light' | 'dark';
 export const THEMES: readonly Theme[] = ['nebula', 'light', 'dark'];
 const KEY = 'zigoals:ui-prefs:v1';
 
-/** A new device with Motion Off and the first-visit notice dismissed; with `showcase`, the Showcase loaded. Every page
- *  sees one fixed clock and no server answers (every /api read is "unavailable"), so each theme shows the same page and
- *  nothing reaches a third party. */
+/** A new device with Motion Off and the first-visit notice dismissed; with `showcase`, the Showcase loaded. The page's
+ *  clock stands still at the test's start (the server's day, so a server-rendered date never disagrees with the page's),
+ *  and no server answers (every /api read is "unavailable"), so each theme shows the same page and nothing reaches a
+ *  third party. */
 export async function openDevice(page: Page, {showcase = true}: {showcase?: boolean} = {}) {
   await page.route('**/api/**', route => route.fulfill({status: 503, contentType: 'application/json', body: '{}'}));
-  await page.clock.setFixedTime(new Date('2026-10-16T09:30:00Z'));
+  await page.clock.setFixedTime(new Date());
   await page.goto('/app/settings');
   await page.evaluate(k => { localStorage.setItem(k, JSON.stringify({version: 1, dismissed: {alphaNotice: true}})); localStorage.setItem('zigoals:motion:v1', 'off'); }, KEY);
   if (showcase) {
