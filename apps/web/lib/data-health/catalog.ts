@@ -2,6 +2,7 @@ import {DEVICE_KEYS, MODULE_KEYS} from '../export/everything';
 import {PORTFOLIO_KEY} from '../portfolio/schema';
 import {EARN_CATALOG_LABELS} from '../af-earn-keys';
 import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
+import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -38,6 +39,8 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   checklist: [AF_CHECKLIST_CATALOG_LABELS.checklist[0], AF_CHECKLIST_CATALOG_LABELS.checklist[1]], checklistDays: [AF_CHECKLIST_CATALOG_LABELS.checklistDays[0], AF_CHECKLIST_CATALOG_LABELS.checklistDays[1]],
   // Session AF (L2a): native staking's two device records.
   stakingJournal: ['Staking and vote transactions', 'Wallet'], stakingPrefs: ['Staking choices: practice or real', 'Wallet'],
+  // Session AF (L2b): linked wallets' last balances and Goal Vault links.
+  walletBalances: [WALLET_CATALOG_LABELS.walletBalances[0], WALLET_CATALOG_LABELS.walletBalances[1]], goalVaults: [WALLET_CATALOG_LABELS.goalVaults[0], WALLET_CATALOG_LABELS.goalVaults[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

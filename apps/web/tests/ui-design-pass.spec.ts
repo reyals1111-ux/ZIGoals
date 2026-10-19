@@ -493,7 +493,7 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   await expect(footer.locator('.site-footer-slogan .site-footer-wealth')).toHaveText('Wealth');
   // PUBLIC_ALPHA_UNDEPLOYED and LOCAL_DEMO both keep financial execution disabled. Session AC (owner finding 3): the
   // page ends after the link columns; these facts moved to Settings' facts block (asserted at the end of this test).
-  await expect(footer).not.toContainText('Financial execution is disabled on this Alpha.');
+  await expect(footer).not.toContainText('Contract execution is disabled on this Alpha.'); // Session AF (H100): the same fact, its new words
   await expect(footer).not.toContainText('Browser storage is not a backup.');
   // Session AD (deliberate, the owner's brief Part 1.1): the link columns are gone; every link stays reachable in two taps
   // (footer-links-moved.spec.ts walks each one). As strict: no link column is left, and the backup sits on Settings' first screen.
@@ -510,7 +510,7 @@ test.describe('Part 6: the footer banner (Session AB-Design, owner request 2: th
   await page.goto('/app/settings');
   await expect(page.locator('#privacy')).toContainText('Keep a copy of your progress.'); // Session AD: the footer's "Make a backup in Settings" lands here
   const about=page.locator('.about-alpha');
-  await expect(about).toContainText('Financial execution is disabled on this Alpha.');
+  await expect(about).toContainText('Contract execution is disabled on this Alpha.');
   await expect(about).toContainText('Browser storage is not a backup.');
   for(const el of await about.locator('p, span').all())expect(parseFloat(await el.evaluate(e=>getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(14);
  });

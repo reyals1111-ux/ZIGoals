@@ -15,7 +15,7 @@ import * as z from 'zod';
  * chain's base units unless a field says otherwise; rates are decimal fractions ("0.0574" is 5.74 %).
  */
 export const LIVE_VERSION = 1 as const;
-export const UNAVAILABLE_REASONS = ['UPSTREAM_DOWN', 'TIMEOUT', 'TOO_LARGE', 'MALFORMED', 'OUT_OF_RANGE', 'WRONG_NETWORK', 'PIN_MISMATCH', 'RATE_LIMITED', 'SOURCES_DISAGREE', 'NOT_PUBLISHED'] as const;
+export const UNAVAILABLE_REASONS = ['UPSTREAM_DOWN', 'TIMEOUT', 'TOO_LARGE', 'MALFORMED', 'OUT_OF_RANGE', 'WRONG_NETWORK', 'PIN_MISMATCH', 'RATE_LIMITED', 'SOURCES_DISAGREE', 'NOT_PUBLISHED', 'HISTORY_NOT_KEPT', 'REWARDS_CLAIMED'] as const;
 export type UnavailableReason = (typeof UNAVAILABLE_REASONS)[number];
 /** The reason in plain words, for the page and the verifier. */
 export const REASON_WORDS: Readonly<Record<UnavailableReason, string>> = Object.freeze({
@@ -29,6 +29,9 @@ export const REASON_WORDS: Readonly<Record<UnavailableReason, string>> = Object.
   RATE_LIMITED: 'too many reads just now; try again in a minute',
   SOURCES_DISAGREE: 'two independent sources disagree by more than 2 %',
   NOT_PUBLISHED: 'no public source publishes this figure',
+  // Session AF chunk 2 (H97): the measured staking figure needs an older block's state and an undisturbed window.
+  HISTORY_NOT_KEPT: 'no source answering now keeps the older block this figure is measured from',
+  REWARDS_CLAIMED: 'the validator claimed its rewards or changed its stake during the window, so nothing can be measured from it',
 });
 export type LiveSource = {name: string; origin: string};
 export type LiveOk<T> = {version: 1; status: 'ok'; source: LiveSource; height?: string; observedAt?: string; fetchedAt: string; stale: boolean; reason?: UnavailableReason; data: T};

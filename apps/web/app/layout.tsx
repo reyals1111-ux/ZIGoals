@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     robots: { index: false, follow: false, nocache: true },
     openGraph: {
       title: "ZIGoals Alpha",
-      description: "Local simulation and connection-only testnet preview. No financial actions.",
+      description: "Local first. Staking signs in your own wallet; nothing else moves, and ZIGoals never holds keys.",
       ...(origin ? { images: [{ url: "/social-card.png", width: 1200, height: 630 }] } : {}),
     },
     // Session X Part 12 (WCAG 2.4.2): every page names itself ("Goals · ZIGoals Alpha"); a page without its own title

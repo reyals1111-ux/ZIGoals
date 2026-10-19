@@ -15,14 +15,15 @@ import {VerifiedLink} from '../../components/links/verified-link';
  * is components/links/verified-link.tsx, whose URL is the registry's.
  */
 const WEB = join(__dirname, '..', '..');
-const DIRS = ['components/earn', 'app/app/earn', 'app/api/earn', 'lib/earn', 'lib/server/earn'];
+// Session AF chunk 2: the Earn dock (mounted on every app page) is guarded like the Earn page.
+const DIRS = ['components/earn', 'components/earn-dock', 'app/app/earn', 'app/api/earn', 'lib/earn', 'lib/server/earn'];
 const sources = (dir: string): string[] => !existsSync(join(WEB, dir)) ? [] : readdirSync(join(WEB, dir)).flatMap(name => {
   const path = `${dir}/${name}`;
   return statSync(join(WEB, path)).isDirectory() ? sources(path) : /\.(ts|tsx|mjs)$/.test(name) && !/\.test\.|\.spec\.|\.d\.mts$/.test(name) ? [path] : [];
 });
 // Comments may describe what they refuse; only code counts.
 const code = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
-const PAGE_DIRS = ['components/earn', 'app/app/earn'];
+const PAGE_DIRS = ['components/earn', 'components/earn-dock', 'app/app/earn'];
 const pageFiles = PAGE_DIRS.flatMap(sources), allFiles = DIRS.flatMap(sources);
 // The link's text as createElement's third argument (react/no-children-prop); the props are the registry pair only.
 const Link = VerifiedLink as unknown as (props: {provider: string; kind: string}) => ReactElement;
@@ -71,7 +72,8 @@ describe('Earn links come only from the verified link registry', () => {
     }
   });
   it('the guard reads the files it guards', () => {
-    expect(pageFiles).toEqual(expect.arrayContaining(['components/earn/earn-view.tsx', 'components/earn/guide-panel.tsx', 'components/earn/validators-section.tsx', 'app/app/earn/page.tsx']));
+    expect(pageFiles).toEqual(expect.arrayContaining(['components/earn/earn-view.tsx', 'components/earn/guide-panel.tsx', 'components/earn/validators-section.tsx', 'app/app/earn/page.tsx',
+      'components/earn/start-here-path.tsx', 'components/earn/apps-sections.tsx', 'components/earn/illustrations/valdora.tsx', 'components/earn-dock/earn-dock.tsx', 'components/earn-dock/earn-dock-fan.tsx']));
     expect(allFiles).toEqual(expect.arrayContaining(['lib/server/earn/upstream.ts', 'lib/earn/client.ts', 'app/api/earn/chain/route.ts']));
     expect(relative(WEB, join(WEB, 'components/links/verified-link.tsx'))).toBe('components/links/verified-link.tsx');
     expect(code(readFileSync(join(WEB, 'components/links/verified-link.tsx'), 'utf8'))).not.toMatch(/https?:\/\//);

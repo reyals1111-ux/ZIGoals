@@ -4,6 +4,8 @@ import {readChain} from '../../apps/web/lib/server/earn/chain';
 import {readDefillama} from '../../apps/web/lib/server/earn/defillama';
 import {readOroswap} from '../../apps/web/lib/server/earn/oroswap';
 import {readValdora} from '../../apps/web/lib/server/earn/valdora';
+import {readVaults} from '../../apps/web/lib/server/earn/vaults';
+import {readMeasured} from '../../apps/web/lib/server/earn/measured';
 import type {Fetcher} from '../../apps/web/lib/server/earn/upstream';
 
 /**
@@ -64,6 +66,9 @@ describe.skipIf(!enabled)('record the live Earn fixture', () => {
       valdora: await readValdora(recorder),
       oroswap: await readOroswap(recorder),
       defillama: await readDefillama(recorder),
+      // Session AF chunk 2: the vaults and the measured staking figure (H97).
+      vaults: await readVaults(recorder),
+      measured: await readMeasured(recorder),
     };
     writeFileSync(out!, JSON.stringify({version: 1, recordedAt: startedAt, note: 'One real read of each Earn upstream (plain GETs through the routes’ own readers). Large bodies are cut to the fields the readers use and marked reduced. Replay: apps/web/lib/server/earn/fixture-fetcher.ts.', answers, requests}, null, 1) + '\n');
     for (const [name, answer] of Object.entries(answers)) expect(answer.status, name).toBe('ok');

@@ -85,11 +85,25 @@ export async function isBitcoinBase58(text: string): Promise<boolean> {
   } catch { return false; }
 }
 export const isEvmAddress = (text: string) => typeof text === 'string' && /^0x[0-9a-fA-F]{40}$/.test(text);
+/**
+ * Session AF (L2b, ADR-028 H40; `TIER 3 (wallet)`): a Solana account address, base58 (Bitcoin's alphabet, no checksum) of
+ * exactly 32 bytes (an ed25519 public key), 32 to 44 characters. Like the others, a check of shape only.
+ */
+export function isSolanaAddress(text: string): boolean {
+  if (typeof text !== 'string' || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(text)) return false;
+  let n = 0n;
+  for (const c of text) n = n * 58n + BigInt(BASE58.indexOf(c));
+  let bytes = 0;
+  while (n > 0n) { bytes++; n >>= 8n; }
+  for (const c of text) { if (c !== '1') break; bytes++; }
+  return bytes === 32;
+}
 
-export type AddressKind = 'cosmos' | 'evm' | 'btc';
+/** Session AF (L2b): 'solana' joins the three AE kinds (a kind an older build does not know is kept and not shown there). */
+export type AddressKind = 'cosmos' | 'evm' | 'btc' | 'solana';
 /** The checks that need no hashing (every write runs them): a base58 address is checked for shape here, its checksum by verifyAddress. */
 export function addressShapeOk(kind: AddressKind, address: string): boolean {
-  return kind === 'cosmos' ? isZigAddress(address) : kind === 'evm' ? isEvmAddress(address) : isBitcoinSegwit(address) || base58Payload(address) !== null;
+  return kind === 'cosmos' ? isZigAddress(address) : kind === 'evm' ? isEvmAddress(address) : kind === 'solana' ? isSolanaAddress(address) : isBitcoinSegwit(address) || base58Payload(address) !== null;
 }
 /** Every check, the base58 checksum included: what an address must pass before it is linked. */
 export async function verifyAddress(kind: AddressKind, address: string): Promise<boolean> {

@@ -4,8 +4,7 @@ import {useDeviceRecord} from '../ai/use-device-record';
 import {useShowcase} from '../showcase-controls';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
-import {LINKED_WALLETS, LinkedWalletError, linkWallet, linkedWalletsOf, writeLinkedWallets, type LinkedWallet, type LinkedWallets} from '../../lib/linked-wallets';
-import type {AddressKind} from '../../lib/wallet-address';
+import {LINKED_WALLETS, LinkedWalletError, linkWallet, linkedWalletsOf, writeLinkedWallets, type LinkInput, type LinkedWallet, type LinkedWallets} from '../../lib/linked-wallets';
 
 export const SHOWCASE_WALLET_MESSAGE = 'The Showcase keeps its simulated wallet. Exit the Showcase to link a wallet.';
 /**
@@ -21,7 +20,7 @@ export function useLinkedWallets() {
     if (isShowcase()) throw new LinkedWalletError(SHOWCASE_WALLET_MESSAGE);
     const next = writeLinkedWallets(getAppStorage(), change); told(); return next;
   }, []);
-  const link = useCallback(async (input: {kind: AddressKind; wallet: string; label: string; address: string}): Promise<LinkedWallet> => {
+  const link = useCallback(async (input: LinkInput): Promise<LinkedWallet> => {
     if (isShowcase()) throw new LinkedWalletError(SHOWCASE_WALLET_MESSAGE);
     const entry = await linkWallet(getAppStorage(), input); told(); return entry;
   }, []);

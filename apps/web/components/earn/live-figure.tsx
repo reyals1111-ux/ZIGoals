@@ -32,7 +32,8 @@ export function SourceLine({answer, now, third = false}: {answer: LiveAnswer<unk
   const old = answer.stale || now - Date.parse(answer.fetchedAt) > STALE_AFTER_MS;
   return <small className="earn-source" data-stale={old || undefined}>
     {third && !/third party/i.test(answer.source.name) ? <><b>third party</b> · </> : null}{answer.source.name}{answer.height ? <> · block {answer.height}</> : null} · <span className="earn-age">{old ? updatedAgo(answer.fetchedAt, now).replace('updated', 'last read') : updatedAgo(answer.fetchedAt, now)}</span>
-    {answer.observedAt ? <> · as of <time dateTime={answer.observedAt}>{formatDateTime(answer.observedAt)}</time></> : null}
+    {/* Session AF chunk 2: every figure says "as of": the block's time when the source has blocks, else the time of the read. */}
+    <> · as of <time dateTime={answer.observedAt ?? answer.fetchedAt}>{formatDateTime(answer.observedAt ?? answer.fetchedAt)}</time></>
     {answer.stale && answer.reason ? <> · the latest read failed: {reasonWords(answer.reason)}</> : null}
   </small>;
 }

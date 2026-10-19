@@ -13,6 +13,8 @@ const HOSTS = [
   "zig.finance", "docs.zigchain.com", "hub.zigchain.com", "faucet.zigchain.com", "www.keplr.app", "wallet.keplr.app", "zigscan.org",
   "valdora.finance", "docs.valdora.finance", "app.oroswap.org", "docs.oroswap.org", "www.nawa.finance", "www.permapod.xyz",
   "docs.permapod.xyz", "imdefa.com", "intercom.help", "defillama.com", "github.com",
+  // Session AF chunk 2 (L1): Skip Go's public bridge page and Circle's own notice about USDC on Noble.
+  "go.skip.build", "www.circle.com",
 ];
 const trackingKey = /^(?:ref|refid|ref_id|referral|referrer|affiliate|aff|aff_id|affid|invite|promo|promocode|campaign|partner|click_?id|gclid|fbclid|utm_\w+)$/i;
 const all = Object.entries(VERIFIED_LINKS).flatMap(([provider, links]) => links.map((link) => ({provider, ...link})));

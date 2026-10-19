@@ -11,8 +11,9 @@ test('Valdora liquid staking is named, honestly not tracked, and leads to its re
   await expect(page.getByText('Track Wallet', {exact: true})).toBeVisible();
   const card = page.getByRole('region', {name: 'Valdora liquid staking (stZIG)'});
   await expect(card).toBeVisible();
-  await expect(card.getByText('Not tracked yet', {exact: true})).toBeVisible();
-  await expect(card).toContainText('ZIGoals does not track stZIG yet.');
+  // Session AF (L2a reads stZIG): the card says it is read only and how it is shown, at equal strength.
+  await expect(card.getByText('Read only', {exact: true})).toBeVisible();
+  await expect(card).toContainText('When a wallet you track holds stZIG, its balance appears with your positions, in stZIG, read from the chain. It is never added to your ZIG totals.');
   await expect(card).toContainText('More ways to stake may appear here once they can be verified.');
   // No balance, rate, estimate or promise, and nothing about other networks' products.
   const text = await card.innerText();

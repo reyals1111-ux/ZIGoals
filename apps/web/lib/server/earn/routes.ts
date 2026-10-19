@@ -6,10 +6,12 @@ import {chainSource, readChain} from './chain';
 import {readDefillama} from './defillama';
 import {readOroswap} from './oroswap';
 import {readValdora} from './valdora';
+import {readVaults} from './vaults';
+import {readMeasured} from './measured';
 import type {Fetcher, LcdNetwork} from './upstream';
 
 /**
- * Session AF (ADR-028 H16, H58; `TIER 3 (egress routes)`): the four /api/earn/* GET handlers, on the positions relay's
+ * Session AF (ADR-028 H16, H58; `TIER 3 (egress routes)`): the /api/earn/* GET handlers (four, and two more in chunk 2), on the positions relay's
  * pattern. The query is strict (only the named key, once, from its list; anything else is 400). A source that fails is a
  * 200 `unavailable` body (H58); too many requests from one client is 429 with Retry-After; only a fault of the route
  * itself is 500. Every answer is `no-store` with no referrer. The client group (cf-connecting-ip) is only counted in
@@ -35,8 +37,10 @@ export function earnGet<T>({allowed, relay: options, key, source, read}: EarnRou
   };
 }
 const MIN = 60_000;
-/** TTLs: chain parameters, Valdora and OroSwap 2 minutes (stale up to 10); DefiLlama 5 minutes (stale up to 60). */
-export const EARN_TTLS = Object.freeze({chain: 2 * MIN, valdora: 2 * MIN, oroswap: 2 * MIN, defillama: 5 * MIN});
+/** TTLs: chain parameters, Valdora and OroSwap 2 minutes (stale up to 10); DefiLlama 5 minutes (stale up to 60). Chunk 2:
+ *  the vaults 5 minutes (stale up to 30); the measured figure, a window of 10,000 blocks (about 9 hours), 10 minutes (stale
+ *  up to 60). */
+export const EARN_TTLS = Object.freeze({chain: 2 * MIN, valdora: 2 * MIN, oroswap: 2 * MIN, defillama: 5 * MIN, vaults: 5 * MIN, measured: 10 * MIN});
 export function chainRoute(fetcher: Fetcher = (input, init) => fetch(input, init), now?: () => number) {
   return earnGet({allowed: {network: ['mainnet', 'testnet']}, relay: {ttlMs: EARN_TTLS.chain, staleMs: 10 * MIN, now}, key: q => `chain:${q.network}`, source: q => chainSource(q.network as LcdNetwork), read: q => readChain(fetcher, q.network as LcdNetwork, now)});
 }
@@ -48,4 +52,12 @@ export function oroswapRoute(fetcher: Fetcher = (input, init) => fetch(input, in
 }
 export function defillamaRoute(fetcher: Fetcher = (input, init) => fetch(input, init), now?: () => number) {
   return earnGet({allowed: {}, relay: {ttlMs: EARN_TTLS.defillama, staleMs: 60 * MIN, failMs: 60_000, now}, key: () => 'defillama', source: () => ({name: 'DefiLlama (third party)', origin: 'https://api.llama.fi'}), read: () => readDefillama(fetcher, now)});
+}
+/** Session AF chunk 2: the USDC vaults, Nawa's stZIG vault and DeFa's counter (lib/server/earn/vaults.ts). */
+export function vaultsRoute(fetcher: Fetcher = (input, init) => fetch(input, init), now?: () => number) {
+  return earnGet({allowed: {}, relay: {ttlMs: EARN_TTLS.vaults, staleMs: 30 * MIN, now}, key: () => 'vaults', source: () => chainSource('mainnet'), read: () => readVaults(fetcher, now)});
+}
+/** Session AF chunk 2 (H97): the measured native staking figure (lib/server/earn/measured.ts). */
+export function measuredRoute(fetcher: Fetcher = (input, init) => fetch(input, init), now?: () => number) {
+  return earnGet({allowed: {}, relay: {ttlMs: EARN_TTLS.measured, staleMs: 60 * MIN, failMs: 60_000, now}, key: () => 'measured', source: () => chainSource('mainnet'), read: () => readMeasured(fetcher, now)});
 }

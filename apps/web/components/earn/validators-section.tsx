@@ -51,7 +51,9 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
           <label className="earn-select"><span>Commission at most</span><select value={maxCommission === null ? '' : String(maxCommission)} onChange={e => setMax(e.target.value === '' ? null : Number(e.target.value))}><option value="">Any</option>{rates.map(r => <option key={r} value={String(r)}>{share(r, 2)}</option>)}</select></label>
           <label className="earn-select"><span>Sort by</span><select value={sort} onChange={e => setSort(e.target.value as Sort)}><option value="power">Most voting power</option><option value="commission">Lowest commission</option><option value="uptime">Best uptime</option></select></label>
         </form>
-        <p className="earn-count" aria-live="polite" data-live-figure="validators" data-state="ok">{rows.length} of {list.length} validators shown</p>
+        {/* Session AF chunk 2: the figure is the list with its count and its source line, so the source sits inside it (verifier stage 9). */}
+        <div className="earn-validators-live" data-live-figure="validators" data-state="ok">
+        <p className="earn-count" aria-live="polite">{rows.length} of {list.length} validators shown</p>
         <div className="earn-table-wrap" role="region" aria-label="Validators" tabIndex={0}>
           <table className="earn-table">
             <thead><tr><th scope="col">Validator</th><th scope="col">Commission</th><th scope="col">Voting power</th><th scope="col">Uptime</th><th scope="col">Self-bond</th><th scope="col">Status</th></tr></thead>
@@ -66,6 +68,7 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
           </table>
         </div>
         <SourceLine answer={validators.answer} now={now}/>
+        </div>
       </>}
     <p className="earn-validators-more"><VerifiedLink provider="zig-finance" kind="explorer-validators" className="text-link">See every validator on ZIGScan</VerifiedLink></p>
   </section>;

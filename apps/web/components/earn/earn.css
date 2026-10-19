@@ -165,3 +165,88 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-preview > p { margin: 0; }
 .earn-preview-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .earn-preview-cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* ---- Session AF chunk 2 ---- */
+/* Sixteen sections: the chip index is one row that scrolls sideways on every screen, the current chip kept in view. */
+.earn-chips-rail { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent); padding-inline: 8px; }
+.earn-chips-rail::-webkit-scrollbar { display: none; }
+.earn-chip { scroll-snap-align: center; }
+/* A fact read before anything else (a closure, a wind-down, a pause) with its source and date. */
+.earn-notice { display: grid; gap: 8px; padding: 16px 18px; border-radius: 16px; border: 1px solid #ffb27a66; background: linear-gradient(120deg, #2a1a1f99, #10182fd9); }
+.earn-notice p { margin: 0; color: var(--text-secondary); line-height: 1.55; }
+.earn-notice b { color: var(--text-strong); }
+.earn-dates { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--text-secondary); }
+.earn-dates time { font-weight: 700; color: var(--earn-accent); }
+.earn-steps-time { margin: 10px 0 0 48px; }
+.earn-figure-elsewhere { background: transparent; border-style: dashed; }
+/* The two native staking figures side by side: issuance and measured (H97). */
+@media (min-width: 768px) { #native-staking .earn-figures > :is([data-live-figure="native-apr"], [data-live-figure="native-apr-measured"]) { grid-column: span 2; } }
+.earn-agreement { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid #86f0d655; color: var(--text-secondary); line-height: 1.5; }
+.earn-agreement[data-apr-agreement="disagree"] { border-color: #ffb27a90; background: #2a1a1f66; }
+
+/* Start here and the Academy: the path engine draws the dots; these are the words around them. */
+.earn-start, .earn-academy { display: grid; gap: 16px; background: var(--earn-glass); border-color: #ffd27a33; }
+.earn-start-progress { margin: 0; color: var(--text-secondary); }
+.earn-start-progress b { color: var(--earn-accent); }
+.earn-start-list { margin: 0; padding-left: 22px; display: grid; gap: 8px; color: var(--text-secondary); }
+.earn-start-list li[data-done] b { color: var(--accent-teal); }
+.earn-start-panel, .earn-lesson { display: grid; gap: 12px; padding: 16px 18px; border-radius: 16px; background: #0a1226f2; border: 1px solid #ffd27a40; color: var(--text-secondary); line-height: 1.55; text-align: start; }
+.earn-start-panel p, .earn-lesson p { margin: 0; }
+.earn-start-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.earn-start-steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; align-items: start; }
+.earn-start-warn { padding: 10px 12px; border-radius: 12px; border: 1px solid #ffb27a66; background: #2a1a1f66; }
+.earn-start-routes, .earn-start-explore { margin: 0; padding-left: 18px; display: grid; gap: 10px; }
+.earn-start-seen { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding-top: 10px; border-top: 1px solid #7fc8ff26; }
+.earn-start-seen[data-how="seen"] b, .earn-start-seen[data-how="marked"] b { color: var(--accent-teal); }
+.earn-start-today { margin: 0; }
+.earn-quiz { display: grid; gap: 12px; }
+.earn-quiz h4 { margin: 4px 0 0; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; color: #d3e2f6; }
+.earn-quiz fieldset { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid #7fc8ff26; display: grid; gap: 6px; }
+.earn-quiz fieldset[data-right] { border-color: #86f0d680; }
+.earn-quiz fieldset[data-wrong] { border-color: #ffb27a90; }
+.earn-quiz legend { padding: 0 4px; font-weight: 650; color: var(--text-strong); }
+.earn-quiz label { display: flex; flex-direction: row; gap: 10px; align-items: center; min-height: 44px; cursor: pointer; }
+:root .earn-page .earn-quiz label input { width: 20px; height: 20px; margin: 0; flex: 0 0 auto; accent-color: var(--earn-accent); }
+.earn-quiz-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.earn-quiz-score { margin: 0; }
+
+/* What you'll see: the redrawn screens (components/earn/illustrations). */
+.earn-illustration-slot { border-radius: 14px; border: 1px solid #7fc8ff26; background: #0a1226; padding: 0 16px; }
+.earn-illustration-slot + .earn-illustration-slot { margin-top: 12px; }
+.earn-illustration-slot > summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 650; color: #8bddeb; }
+.earn-illustration-screens { margin: 4px 0 12px; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.earn-illustration-screens li { display: grid; gap: 8px; }
+.earn-illustration-screens p { margin: 0; color: var(--text-secondary); line-height: 1.5; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 8px; align-items: start; }
+.earn-illustration-svg { width: 100%; height: auto; display: block; }
+.earn-illustration-note { margin: 0 0 14px; }
+.earn-illustration-svg .il-host { font-size: 7.5px; fill: #8fa3c4; }
+.earn-illustration-svg .il-box { stroke-width: 1; }
+.earn-illustration-svg .il-card { fill: #101c36; stroke: #7fc8ff33; }
+.earn-illustration-svg .il-field { fill: #0b1428; stroke: #7fc8ff40; }
+.earn-illustration-svg .il-dim { fill: #0d152a; stroke: #7fc8ff1a; opacity: .7; }
+.earn-illustration-svg .il-t { font-family: inherit; }
+.earn-illustration-svg .il-text { fill: #c9d6ee; }
+.earn-illustration-svg .il-muted { fill: #8fa3c4; }
+.earn-illustration-svg .il-strong { fill: #f2f6ff; font-weight: 700; }
+.earn-illustration-svg .il-gold { fill: #ffd27a; font-weight: 700; }
+.earn-illustration-svg .il-btn rect { fill: #17264a; stroke: #7fc8ff55; }
+.earn-illustration-svg .il-btn text { fill: #dbe7ff; font-weight: 650; }
+.earn-illustration-svg .il-hot rect { fill: #3a2a12; stroke: #ffd27a; stroke-width: 1.4; }
+.earn-illustration-svg .il-hot text { fill: #ffe2a3; }
+.earn-illustration-svg .il-ring { fill: none; stroke: #ffd27a; stroke-width: 1.4; }
+.earn-illustration-svg .il-mark circle { fill: #ffd27a; }
+.earn-illustration-svg .il-mark text { fill: #1a1206; font-weight: 800; }
+.earn-illustration-svg .il-lines rect { fill: #7fc8ff30; }
+
+/* Phones: the dock's apps as a strip at the top of the page (the floating dock is for computers, H68). */
+.earn-apps-strip { display: none; }
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+  .earn-apps-strip { display: block; margin: 0 calc(-1 * var(--phone-gutter, 16px)) 12px; }
+  .earn-apps-strip ul { display: flex; gap: 12px; margin: 0; padding: 4px var(--phone-gutter, 16px); list-style: none; overflow-x: auto; scrollbar-width: none; }
+  .earn-apps-strip ul::-webkit-scrollbar { display: none; }
+  .earn-apps-strip-app { display: grid; justify-items: center; gap: 6px; min-width: 72px; min-height: 44px; color: var(--text-secondary); font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; }
+  .earn-apps-strip .earn-dock-app-face { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid #ffd27a66; background: radial-gradient(120% 120% at 30% 20%, #23365c, #0b142a 72%); overflow: hidden; }
+  .earn-apps-strip .earn-dock-app-face img { width: 30px; height: 30px; object-fit: contain; }
+  .earn-apps-strip .earn-glyph-mark { width: 36px; height: 36px; }
+  .earn-steps-time { margin-left: 0; }
+}

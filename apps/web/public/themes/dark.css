@@ -649,6 +649,21 @@
         background: linear-gradient(110deg, #1e051651, #02081790)
     }
 }
+/*  components/add-money/add-money.css  */
+@scope (:root[data-theme=dark]) {
+    .add-money-tile button:not(#\-), .add-money-options button:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid var(--border-subtle, #9fc8ff2e);
+        background: var(--surface-raised, #010512);
+        color: var(--text, #f0f5ff)
+    }
+    .add-money-warning:not(#\-) {
+        border-radius: 12px;
+        border: 2px solid var(--warning, #ffcf5a);
+        background: var(--warning-surface, #150d00);
+        color: var(--text-strong, #fff7e0)
+    }
+}
 /*  components/ai/agent-tools.css  */
 @scope (:root[data-theme=dark]) {
     .zigi-agent-result pre:not(#\-) {
@@ -1641,6 +1656,14 @@
         border: 1px solid #536b89;
         border-radius: 16px;
         background: linear-gradient(135deg,#030d1b,#0a0716)
+    }
+}
+/*  components/goal-vaults/goal-vaults.css  */
+@scope (:root[data-theme=dark]) {
+    .goal-vault-card:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid var(--border-subtle, #9fc8ff2e);
+        background: var(--surface-raised, #010512)
     }
 }
 /*  components/goals/goal-art-picker.css  */
@@ -3196,6 +3219,14 @@
         border-radius: 14px;
         border: 1px solid #5de5e324;
         background: #01030bc9
+    }
+}
+/*  components/wallet/wallet-holdings.css  */
+@scope (:root[data-theme=dark]) {
+    .wallet-holding:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid var(--border-subtle, #9fc8ff2e);
+        background: var(--surface-raised, #010512)
     }
 }
 /*  components/wallet/wallet.css  */

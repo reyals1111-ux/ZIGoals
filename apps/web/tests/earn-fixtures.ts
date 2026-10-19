@@ -14,7 +14,7 @@ import {WHATS_NEW_KEY, WHATS_NEW_RELEASE} from '../lib/whats-new';
 const FIXTURES = join(__dirname, '..', 'lib', 'earn', 'fixtures');
 export const live = JSON.parse(readFileSync(join(FIXTURES, 'live-2026-10-19.json'), 'utf8')) as {answers: Record<string, {source: unknown; data: unknown}>};
 export const validatorsFixture = JSON.parse(readFileSync(join(FIXTURES, 'validators-2026-10-19.json'), 'utf8')) as {answer: {validators: {operator: string; moniker: string; status: string; jailed: boolean; votingPowerShare: string; commission: {rate: string}; website: string | null}[]}};
-export type Family = 'chain' | 'valdora' | 'oroswap' | 'defillama' | 'validators';
+export type Family = 'chain' | 'valdora' | 'oroswap' | 'defillama' | 'validators' | 'vaults' | 'measured';
 export const DAY = '2026-10-19';
 export async function seedShowcase(page: Page) {
   await page.goto('/app/settings');
@@ -35,6 +35,9 @@ export async function earnRoutes(page: Page, {unavailable = {}, missingValidator
   await page.route(url => url.pathname === '/api/earn/valdora', route => route.fulfill({json: answer('valdora', 'valdora')}));
   await page.route(url => url.pathname === '/api/earn/oroswap', route => route.fulfill({json: answer('oroswap', 'oroswap')}));
   await page.route(url => url.pathname === '/api/earn/defillama', route => route.fulfill({json: answer('defillama', 'defillama')}));
+  // Session AF chunk 2: the vault products and the measured staking figure (the same recorded read).
+  await page.route(url => url.pathname === '/api/earn/vaults', route => route.fulfill({json: answer('vaults', 'vaults')}));
+  await page.route(url => url.pathname === '/api/earn/measured', route => route.fulfill({json: answer('measured', 'measured')}));
   await page.route(url => url.pathname === '/api/chain/validators', route => missingValidators ? route.fulfill({status: 404, body: 'Not found'})
     : unavailable.validators ? route.fulfill({json: {version: 1, status: 'unavailable', reason: unavailable.validators, network: 'mainnet', source: {name: 'ZIGChain mainnet LCD (official)'}, validators: []}})
     : route.fulfill({json: validatorsFixture.answer}));

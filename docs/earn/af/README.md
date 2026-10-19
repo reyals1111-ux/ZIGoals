@@ -13,7 +13,9 @@ and the helper's full notes. Research only: not legal, tax or financial advice, 
 | [R4_WALLETS.md](R4_WALLETS.md) | Who can sign ZIGChain, read-only linking, WalletConnect, balance endpoints, pricing, privacy |
 | [R5_ONCHAIN_PURPOSE.md](R5_ONCHAIN_PURPOSE.md) | What the chain allows without a contract; the ranked on-chain ideas |
 | [OWNER_ACCOUNTS.md](OWNER_ACCOUNTS.md) | The owner's account checklist (public identifiers only) |
-| `ROUTES_ONTO_ZIGCHAIN.md`, `RECHECK_2026-10-19.md` | Part 0's checks for the multi-asset Add money and the new earning options (owner amendments 2 and 3) |
+| [ROUTES_ONTO_ZIGCHAIN.md](ROUTES_ONTO_ZIGCHAIN.md) | Part 0 (2026-10-19): the routes onto ZIGChain for USDC, USDT, ETH, ATOM and native ZIG, each with its arriving denom, time, fees, pool depth and swap simulations (owner amendment 2) |
+| [ONRAMP_CODES.md](ONRAMP_CODES.md), [onramp-codes.json](onramp-codes.json) | Part 0: Ramp's and Banxa's asset codes and hosted-mode parameters for every asset and network of the Add money sheet; Ramp's deprecated parameter names; Banxa's `returnUrl` (owner amendment 2) |
+| [RECHECK_2026-10-19.md](RECHECK_2026-10-19.md) | Part 0: the re-check for earning options launched since Phase R (none new; four facts newly recorded) (owner amendment 3) |
 
 The ZIGi and competitor research, the code audits, the critic, the lane designs and the approved plan are in
 [docs/research/session-af/](../../research/session-af/README.md).

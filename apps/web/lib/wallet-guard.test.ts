@@ -61,3 +61,38 @@ describe('Session AE wallet guard', () => {
     expect(relative(WEB, join(WEB, 'lib/wallet.ts'))).toBe('lib/wallet.ts');
   });
 });
+
+/**
+ * Session AF (L2b, ADR-028 H40; `TIER 3 (wallet)`): the Solana side, held to the same rules. The read-only wallet files of
+ * lib/wallets (every file there except lane L2a's staking session and the balance readers, which have their own guard in
+ * lib/wallets/balances/hosts.test.ts) name no signing, sending or permission method, make no request, ask an EVM wallet
+ * for its accounts only, and call exactly two Wallet Standard features: `standard:connect` (the address) and
+ * `standard:disconnect` (Remove). No `solana:sign…` feature is named anywhere in the wallet files or components.
+ */
+describe('Session AF wallet guard: the Solana side and lib/wallets', () => {
+  const LANE_FILES = sources('lib/wallets').filter(file => !file.startsWith('lib/wallets/balances/') && file !== 'lib/wallets/keplr-session.ts');
+  const ALL = [...NEW_FILES, ...LANE_FILES];
+  test('the lane\'s wallet files exist and name no signing, sending or permission method', () => {
+    expect(LANE_FILES).toEqual(expect.arrayContaining(['lib/wallets/solana-link.ts', 'lib/wallets/eip6963.ts', 'lib/wallets/in-app-browser.ts', 'lib/wallets/links.ts']));
+    for (const file of LANE_FILES) expect(read(file), file).not.toMatch(FORBIDDEN);
+  });
+  test('they make no request and ask an EVM wallet for its accounts only', () => {
+    for (const file of LANE_FILES) {
+      const text = read(file);
+      expect(text, file).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|navigator\.connection/);
+      for (const method of text.match(/\b(?:eth|wallet|net|personal)_[A-Za-z]+/g) ?? []) expect(method, file).toBe('eth_requestAccounts');
+      for (const call of text.match(/\.request\([^)]*\)/g) ?? []) expect(call, file).toBe(".request({method: 'eth_requestAccounts'})");
+    }
+  });
+  test('exactly standard:connect and standard:disconnect; no solana:sign… feature, no signing feature by any spelling', () => {
+    for (const file of ALL) {
+      const text = read(file);
+      expect(text, file).not.toMatch(/solana:sign|signAndSend|signTransaction|signMessage|signIn\b/i);
+      for (const name of text.match(/['"`](?:standard|solana):[A-Za-z]+['"`]/g) ?? []) expect(['standard:connect', 'standard:disconnect', 'solana:mainnet'], `${file}: ${name}`).toContain(name.slice(1, -1));
+    }
+    const link = read('lib/wallets/solana-link.ts');
+    expect([...new Set(link.match(/feature\(wallet, '[^']+'\)/g))].sort()).toEqual(["feature(wallet, 'standard:connect')", "feature(wallet, 'standard:disconnect')"]);
+    // Only the two features' own methods are read off a wallet.
+    expect([...new Set(link.match(/\?\.(?:connect|disconnect)\b/g))].sort()).toEqual(['?.connect', '?.disconnect']);
+  });
+});

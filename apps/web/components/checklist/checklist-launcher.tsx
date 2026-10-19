@@ -30,9 +30,11 @@ export function ChecklistLauncher() {
   // In the navigation (the sidebar, the phone's More sheet, search) on every device: the page is always reachable.
   useEffect(() => registerNavExtra([CHECKLIST_ROUTE, 'Checklist', 'checklist']), []);
   useEffect(() => {
-    if (!shown || prefs.folded) return;
+    // Under reduced motion or Motion Off the mark never draws, so nothing is remembered either (like the logo intro's flag):
+    // viewing a page then writes nothing (help-page.spec "viewing Help … writes nothing").
+    if (!shown || prefs.folded || !entranceAllowed()) return;
     let seen = true; try { seen = sessionStorage.getItem(SEEN) === '1'; sessionStorage.setItem(SEEN, '1'); } catch { seen = true; }
-    if (!seen && entranceAllowed()) { setDraw(true); const t = window.setTimeout(() => setDraw(false), 1400); return () => window.clearTimeout(t); }
+    if (!seen) { setDraw(true); const t = window.setTimeout(() => setDraw(false), 1400); return () => window.clearTimeout(t); }
   }, [shown, prefs.folded]);
   const setFolded = (folded: boolean) => { try { prefsRecord.update(p => ({...p, checklist: {...(p.checklist ?? {}), folded}})); } catch { /* storage refused: stays as it is */ } };
   if (!shown) return null;

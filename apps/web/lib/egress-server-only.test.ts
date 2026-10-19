@@ -4,6 +4,7 @@ import {connectSources} from './csp-compose.mjs';
 import {EARN_EGRESS} from './server/earn/upstream';
 import {RECIPE_RESOLVER} from './server/recipe-resolve';
 import {VALIDATOR_LCDS} from './server/chain-validators';
+import {RAMP_EGRESS} from './onramps/server/ramp-assets';
 
 // Session AF (the lead, ADR-028 H16, H71): the server-only list names every fixed public origin the app's server reads, and
 // none of them reaches the browser's connect-src on any document class, except the testnet LCD, which the browser has also
@@ -15,6 +16,7 @@ describe('server-only egress', () => {
   test('every fixed origin the Earn routes, the chain relay and the recipe resolver reach is named', () => {
     for (const origin of EARN_EGRESS) expect(named, origin).toContain(origin);
     expect(named).toContain(new URL(RECIPE_RESOLVER).origin);
+    expect(named).toContain(RAMP_EGRESS);
     expect(egress.serverOnly).toHaveProperty('chainRelay');
     for (const host of Object.values(VALIDATOR_LCDS)) expect(named, host).toContain(host);
   });

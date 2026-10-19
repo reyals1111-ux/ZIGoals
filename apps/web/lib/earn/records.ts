@@ -56,6 +56,8 @@ export function markStep(record: EarnPath, stepId: string, done: boolean, at = n
   return {...record, steps};
 }
 export const dismissTodayCard = (record: EarnPath): EarnPath => ({...record, todayCard: 'dismissed'});
+/** Session AF chunk 2: the Today card's choice as a change (dismissed from Today; `auto` brings it back). */
+export const setTodayCard = (value: 'auto' | 'dismissed') => (record: EarnPath): EarnPath => ({...record, todayCard: value});
 /** Remembers a section the person opened (most recent last), at most 24. */
 export function markVisited(record: EarnPath, section: string): EarnPath {
   id.parse(section);

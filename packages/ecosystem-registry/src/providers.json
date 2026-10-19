@@ -314,6 +314,30 @@
         "check": "unreadable-by-automation",
         "httpStatus": 403,
         "source": "https://api.llama.fi/protocol/valdora-finance"
+      },
+      {
+        "kind": "vault-stablecoin-yield",
+        "url": "https://valdora.finance/vault/stablecoin-yield",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/vaults"
+      },
+      {
+        "kind": "vault-private-credit",
+        "url": "https://valdora.finance/vault/private-credit",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/vaults"
+      },
+      {
+        "kind": "vault-core-income",
+        "url": "https://valdora.finance/vault/core-income",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://valdora.finance/vaults"
       }
     ]
   },
@@ -1960,6 +1984,30 @@
         "check": "ok",
         "httpStatus": 200,
         "source": "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md"
+      },
+      {
+        "kind": "keplr-get",
+        "url": "https://www.keplr.app/get",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.keplr.app/"
+      },
+      {
+        "kind": "skip-go",
+        "url": "https://go.skip.build/",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://docs.skip.build/"
+      },
+      {
+        "kind": "circle-noble",
+        "url": "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-and-cctp-v1-on-noble",
+        "checkedAt": "2026-10-18",
+        "check": "ok",
+        "httpStatus": 200,
+        "source": "https://www.circle.com/blog"
       }
     ]
   }
