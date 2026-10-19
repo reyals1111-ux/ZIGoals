@@ -1,6 +1,7 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {EARN_FAMILIES, readEarn, readValidators, type EarnFamily, type FamilyData, type LiveState} from '../../lib/earn/client';
+import {recordEarnSnapshot} from '../../lib/earn/snapshot';
 
 /**
  * Session AF (L1): one live family on the Earn page. Read on mount, then again every `pollMs` (2 minutes for the chain
@@ -18,7 +19,8 @@ export function useEarnLive<F extends EarnFamily>(family: F): LiveState<FamilyDa
       busy = true; last.current = Date.now();
       try {
         const next = (family === 'validators' ? await readValidators() : await readEarn(family as Exclude<EarnFamily, 'validators'>)) as LiveState<FamilyData[F]>;
-        if (alive) setState(current => next.phase === 'unavailable' && current.phase === 'ok' && Date.now() - Date.parse(current.answer.fetchedAt) < 10 * 60_000 ? {phase: 'ok', answer: {...current.answer, stale: true, reason: next.reason === 'NOT_IN_THIS_BUILD' ? undefined : next.reason}} : next);
+        // Session AF (L4, H69): what the page shows also goes into the device-side snapshot ZIGi quotes (memory only).
+        if (alive) setState(current => recordEarnSnapshot(family, next.phase === 'unavailable' && current.phase === 'ok' && Date.now() - Date.parse(current.answer.fetchedAt) < 10 * 60_000 ? {phase: 'ok', answer: {...current.answer, stale: true, reason: next.reason === 'NOT_IN_THIS_BUILD' ? undefined : next.reason}} : next));
       } finally { busy = false; }
     };
     const schedule = () => { window.clearTimeout(timer); timer = window.setTimeout(async () => { await read(); if (alive) schedule(); }, pollMs); };
