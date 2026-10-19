@@ -1,6 +1,7 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
 import {VOTING_ID, governanceRelay, openGovernance} from './governance-chain';
 import {ME, SIGNER_CALLS, fakeChain, fakeKeplr} from './staking-chain';
+import {openStatusSheet} from './ab-shell';
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H87; P6.5, P6.6): /app/governance on a phone in WebKit (iPhone 15, 390 × 844):
@@ -62,5 +63,19 @@ test('a phone in Keplr\'s browser: 44 px choices, the review sheet fits, Sign in
   await sign.click();
   await expect(page.getByRole('heading', {name: 'Confirmed on the network.'})).toBeVisible({timeout: 20_000});
   expect(calls.filter(c => c === 'signer.signDirect')).toHaveLength(1);
+  expect(await noSideways(page)).toBeLessThanOrEqual(0);
+});
+
+test('the Status & wallet sheet on a phone: "Open ZIGoals in Keplr" first, before MetaMask and Trust Wallet, 44 px', async ({page}) => {
+  await page.route(url => url.pathname.startsWith('/api/') && url.hostname === '127.0.0.1', route => route.fulfill({status: 503, json: {error: 'LOCAL_FIXTURE_ONLY'}}));
+  await page.goto('/app');
+  await expect(page.locator('html')).toHaveAttribute('data-app-hydrated', '');
+  await settled(page);
+  const choices = (await openStatusSheet(page)).locator('.wallet-choices');
+  const links = choices.getByRole('link', {name: /^Open ZIGoals in /});
+  await expect(links).toHaveText([/^Open ZIGoals in Keplr/, /^Open ZIGoals in MetaMask/, /^Open ZIGoals in Trust Wallet/]);
+  const origin = new URL(page.url()).origin;
+  await expect(choices.getByRole('link', {name: /^Open ZIGoals in Keplr/})).toHaveAttribute('href', `keplrwallet://web-browser?url=${encodeURIComponent(`${origin}/app`)}`);
+  await at44(links);
   expect(await noSideways(page)).toBeLessThanOrEqual(0);
 });
