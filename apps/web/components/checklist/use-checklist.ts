@@ -60,12 +60,20 @@ export function useChecklist({commands = false}: {commands?: boolean} = {}) {
   useEffect(() => {
     if (!loaded || !date || days.unreadable || record.unreadable || days.data.today?.date === date || sealing.current === date) return;
     sealing.current = date;
+    const summariser = (day: Parameters<Parameters<typeof sealDay>[2]>[0], {receipts}: {receipts: boolean}) => {
+      const all = deriveDots(record.data, receipts ? day : {...day, ticks: [], custom: []}, day.date, sourcesFor(day.date));
+      const counted = receipts ? all : all.filter(dot => dot.kind !== 'custom');
+      const s = summarise(counted, day); return {total: s.total, done: s.done, ...(s.perfect ? {perfect: true} : {})};
+    };
+    // Viewing writes nothing (the project's rule; help-page and guide specs): seal only when it changes the history or the
+    // held day carries ticks, custom items or nudges to clear. An empty path's first read stores no record at all, and the
+    // tick writers start today's entry themselves (todayOf).
+    const held = days.data.today, next = sealDay(days.data, date, summariser);
+    const historyChanged = JSON.stringify(next.days ?? {}) !== JSON.stringify(days.data.days ?? {});
+    const heldHasContent = !!held && (held.ticks.length > 0 || held.custom.length > 0 || held.nudged.length > 0);
+    if (!historyChanged && !heldHasContent) return;
     try {
-      days.update(d => sealDay(d, date, (day, {receipts}) => {
-        const all = deriveDots(record.data, receipts ? day : {...day, ticks: [], custom: []}, day.date, sourcesFor(day.date));
-        const counted = receipts ? all : all.filter(dot => dot.kind !== 'custom');
-        const s = summarise(counted, day); return {total: s.total, done: s.done, ...(s.perfect ? {perfect: true} : {})};
-      }));
+      days.update(d => sealDay(d, date, summariser));
     } catch { /* sealing waits for the next read; the path still shows today */ }
   }, [loaded, date, days, record.data, record.unreadable, sourcesFor]);
 
