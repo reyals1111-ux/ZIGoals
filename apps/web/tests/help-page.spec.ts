@@ -328,7 +328,8 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
   await page.locator('#help-ae-themes').getByRole('link', {name: 'What are Light, Nebula and Dark?', exact: true}).click();
   await expect(page).toHaveURL(/\/app\/help#help-ad-themes$/);
   await expect(page.locator('#help-ad-themes')).toHaveAttribute('open', '');
-  await expect(page.locator('#help-ad-themes')).toContainText('white-family surfaces');
+  // Session AF (ADR-028 H13, the Light redo; deliberate, as strict): the answer describes the redone Light.
+  await expect(page.locator('#help-ad-themes')).toContainText('Nebula by day: a white page with a light colour mist and dark words');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
 
