@@ -166,6 +166,15 @@ Questions for the planned "earn and staking" features in [EARN_DESIGN.md](../ear
 ### 6.8 Authorisation status of the providers
 1. The MiCA transitional period ended EU-wide on 1 July 2026 (ESMA statement ESMA75-113276571-1679). Before any hand-off, how should ZIGoals check a provider's authorisation, and is ESMA's interim register (CASPS.csv) enough?
 
+### 6.9 Session AF: questions the build raises (ADR-028 H36; questions, not conclusions; none of them gates the build, O4)
+1. Ramp Swaps (Ireland) Ltd is authorised for service c (exchange of crypto-assets for funds) without service j (transfer): does delivering ATOM, USDC or another asset to the person's own self-hosted address fit that authorisation, and which Ramp entity would contract with a Belgian partner? (docs/earn/af/R3_ONRAMPS.md)
+2. Banxa's referral mode: what the partner review (KYB) asks of ZIGoals' legal entity, and whether a referral-only partner with no webhooks and no partner spread changes ZIGoals' own position (reception and transmission, introducing).
+3. The person's own public address travels in the provider's URL when Add money fills it in (the app sends no referrer, `rel="noopener noreferrer"`): is that a transfer of personal data needing words beyond PRIVACY.md's paragraph, and does the provider's privacy policy suffice from the hand-off on?
+4. ZIGoals now lets a person sign native staking, claims and votes on ZIGChain's real network in their own wallet (no custody, no fee to ZIGoals, ADR-028 O1, H46): does showing and building those transactions, with live yields beside them, count as promoting staking under ESMA Q&A 2067 or the FSMA's advertising rules, and which statements must accompany it?
+5. Earn shows third-party figures side by side (DefiLlama's value locked and yields, each with its source and time, never ranked; H17): under UCPD and ESMA Q&A 2882 (references vs advice), is "provider's claim · source · time read" enough, and must anything be said about the figures' own provider?
+6. A vote and a practice badge are public on-chain forever, at the person's own action after a review that says so (H48): is that review enough for GDPR purposes, given ZIGoals cannot erase it?
+7. Closure and wind-down notices (Zignaly's closing, Noble's USDC wind-down, Permapod after an exploit) are shown as facts with their sources: is a "how to withdraw" pointer a form of assistance that needs any words beyond the source link?
+
 **Read first** (opened 2026-10-02 unless marked):
 - MiCA, Regulation (EU) 2023/1114: <https://eur-lex.europa.eu/eli/reg/2023/1114/oj> (EUR-Lex, not opened: bot wall); read at <https://publications.europa.eu/resource/celex/32023R1114>.
 - PSD2, Directive (EU) 2015/2366: <https://eur-lex.europa.eu/eli/dir/2015/2366/oj> (not opened); read at <https://publications.europa.eu/resource/celex/32015L2366>. PSD3 and the PSR are not adopted: <https://oeil.secure.europarl.europa.eu/oeil/en/procedure-file?reference=2023/0209(COD)> and <https://oeil.secure.europarl.europa.eu/oeil/en/procedure-file?reference=2023/0210(COD)>.

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {GuideLinkOut} from './out-link';
 import {NEXT_STEPS} from '../../lib/onramps/next-steps';
 import type {BuyAssetId} from '../../lib/onramps/assets';
@@ -12,5 +13,7 @@ export function NextSteps({asset, headingId}: {asset: BuyAssetId; headingId: str
       {g.links.length > 0 && <p className="add-money-actions">{g.links.map(l => <GuideLinkOut key={l.label} link={l}/>)}</p>}
       {g.note && <p className="fine">{g.note}</p>}
     </li>)}</ol>
+    {/* Ledger N7: where a route ends in a swap into ZIG, the look-alike "ZIG" is named before the person swaps. */}
+    {NEXT_STEPS[asset].some(g => /\bZIG\b/.test(`${g.title} ${g.body} ${(g.steps ?? []).join(' ')}`)) && <p className="fine add-money-decoy">When you swap into ZIG, choose native ZIG: a token that only calls itself “ZIG” is not ZIG (<Link className="text-link" href="/app/earn#safety">the decoy “ZIG”</Link>).</p>}
   </section>;
 }
