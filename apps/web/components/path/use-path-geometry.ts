@@ -6,6 +6,11 @@ import {useLayoutEffect, useState, type RefObject} from 'react';
  * resize of the stage or of any orbit, banner, dot or chest in it, when the fonts settle, and once more as the page settles
  * after its first paint, up to 2.5 s; never per frame). `key` names the dots in order, so a reorder or a new dot measures
  * again. The same geometry keeps the same object, so nothing re-renders inside a ResizeObserver delivery.
+ *
+ * Session AF (L3b; CI on 42ec357c: a line end 3.01 px from its dot, read while the page was still settling): once that last
+ * scheduled measure has run, the stage carries `data-settled` — the path's own "the line now matches the dots" signal,
+ * which a test (or anything reading the geometry from outside) waits for. A new key measures again and clears it until
+ * the new geometry has settled in turn.
  */
 export type PathPoint = {x: number; y: number};
 export type PathGeometry = {w: number; h: number; points: Record<string, PathPoint>};
@@ -26,6 +31,7 @@ export function usePathGeometry(stage: RefObject<HTMLElement | null>, key: strin
   useLayoutEffect(() => {
     const el = stage.current; if (!el) return;
     let live = true;
+    el.removeAttribute('data-settled');
     const measure = () => { if (!live) return; const next = measurePath(el); setGeo(g => g && same(g, next) ? g : next); };
     measure();
     // The stage, and each orbit and chest inside it: a banner that shrinks while a chest grows (a font settling) moves
@@ -39,7 +45,10 @@ export function usePathGeometry(stage: RefObject<HTMLElement | null>, key: strin
     // And once the page has settled after it first paints (late styles and images can move a dot without resizing
     // anything observed): the next frame, then a quarter second and a second later.
     const frame = requestAnimationFrame(measure), timers = [250, 1000, 2500].map(ms => window.setTimeout(measure, ms));
-    return () => { live = false; ro?.disconnect(); window.removeEventListener('resize', measure); cancelAnimationFrame(frame); timers.forEach(t => window.clearTimeout(t)); };
+    // (Marked two frames after that measure, so a geometry it changed has reached the line first.)
+    let mark = 0;
+    timers.push(window.setTimeout(() => { if (!live) return; measure(); mark = requestAnimationFrame(() => { mark = requestAnimationFrame(() => { if (live) el.setAttribute('data-settled', ''); }); }); }, 2600));
+    return () => { live = false; ro?.disconnect(); window.removeEventListener('resize', measure); cancelAnimationFrame(frame); cancelAnimationFrame(mark); timers.forEach(t => window.clearTimeout(t)); };
   }, [stage, key]);
   return geo;
 }

@@ -9,14 +9,17 @@ import {PathZigi} from './path-zigi';
  *
  * Session AF (L3b), the Checklist's orbit look (`onPath`): the chest stands on the path itself, half way between its two
  * dots, and the day's end is a trophy planet in the middle of the path, dim until every dot is lit, then gold and
- * glowing with ZIGi celebrating beside it.
+ * glowing with ZIGi celebrating beside it. `inline` (round 3: a learning path's density): the chest takes no row of its own —
+ * it rides its planet's node, on the line just below it, with no name on the path (its name and state stay for screen
+ * readers).
  */
-export type ChestOnPath = {offset: number; trophy: boolean; zigi: string | null};
+export type ChestOnPath = {offset: number; trophy: boolean; zigi: string | null; inline?: boolean};
 export function PathChest({milestone, just, side, uid, onPath}: {milestone: PlacedMilestone; just: boolean; side: 'left' | 'right'; uid: string; onPath?: ChestOnPath}) {
   const gold = `path-chest-gold-${uid}-${milestone.id.replace(/[^a-zA-Z0-9]/g, '')}`;
   const reward = [milestone.reward?.badge ? `Badge: ${milestone.reward.badge}` : null, milestone.reward?.xp ? `+${milestone.reward.xp} XP` : null].filter(Boolean).join(' · ');
   const text = onPath ? milestone.label : milestone.reached ? milestone.reachedLabel ?? milestone.label : milestone.label;
-  return <li className="path-chest" data-reached={milestone.reached || undefined} data-just={just ? '' : undefined} data-side={side} data-milestone={milestone.id} data-on-path={onPath ? '' : undefined} data-trophy={onPath?.trophy || undefined} style={onPath ? {'--offset': onPath.offset} as CSSProperties : undefined}>
+  const Root = onPath?.inline ? 'div' : 'li';
+  return <Root className="path-chest" data-reached={milestone.reached || undefined} data-just={just ? '' : undefined} data-side={side} data-milestone={milestone.id} data-on-path={onPath ? '' : undefined} data-trophy={onPath?.trophy || undefined} data-inline={onPath?.inline || undefined} style={onPath && !onPath.inline ? {'--offset': onPath.offset} as CSSProperties : undefined}>
     <span className="path-chest-art" aria-hidden="true">
       {onPath?.trophy ? <TrophyPlanet gold={gold}/> : <svg viewBox="0 0 64 56" focusable="false">
         <defs><linearGradient id={gold} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe6a8"/><stop offset=".55" stopColor="#ffd27a"/><stop offset="1" stopColor="#f0a24b"/></linearGradient></defs>
@@ -28,9 +31,9 @@ export function PathChest({milestone, just, side, uid, onPath}: {milestone: Plac
       </svg>}
       <span className="path-chest-sparks"><i/><i/><i/><i/><i/><i/></span>
     </span>
-    <span className="path-chest-text"><strong>{text}</strong>{milestone.reached && reward ? <small>{reward}</small> : null}<span className="sr-only">{milestone.reached ? ' (reached)' : ' (not reached yet)'}</span></span>
+    <span className={onPath?.inline ? 'path-chest-text sr-only' : 'path-chest-text'}><strong>{text}</strong>{milestone.reached && reward ? <small>{reward}</small> : null}<span className="sr-only">{milestone.reached ? ' (reached)' : ' (not reached yet)'}</span></span>
     {onPath?.zigi && <PathZigi state={onPath.zigi} side="right" alive/>}
-  </li>;
+  </Root>;
 }
 
 /** The day's trophy planet: a gold world with a ring and a cup on it (decorative; the text beside it names it). */

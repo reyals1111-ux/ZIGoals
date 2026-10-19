@@ -1,11 +1,12 @@
 'use client';
 import {Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
+import {createPortal} from 'react-dom';
 import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
 import {PATH_COLOURS} from '../../lib/path/colours';
 import {PathChest} from './path-milestone';
 import {PathDot} from './path-dot';
-import {PathLine} from './path-line';
+import {PathComets, PathLine} from './path-line';
 import {PathBanner} from './path-section';
 import {PathZigi, ZIGI_PATH_STATES} from './path-zigi';
 import {usePathGeometry} from './use-path-geometry';
@@ -34,6 +35,13 @@ import './path.css';
  * the day's end is a trophy planet, and ZIGi is a large figure beside the next dot. The owner allowed that motion inside
  * the Checklist only; reduced motion and Motion Off still show every final state at once. The default look (Earn's
  * Start-here path and Academy) is unchanged.
+ *
+ * Round 3 (a learning path's density): each planet's name and the next one's NEXT bubble stand beside it, off the line,
+ * on the side toward the path's middle; ZIGi stands on the other side, and cheers (arms up, hops, sparkles) beside a
+ * planet just ticked; a chest rides its orbit's last planet instead of taking a row; the comet runs on from the planet
+ * just ticked to the next one, and that stretch then breathes softly. `jumpDock`: an element of the caller's to hold the
+ * "Jump to next" button (the full-screen Checklist's own bottom bar on a phone or tablet), where it never covers the path.
+ * The "is the next dot on screen" reading leaves out the scroller's own scroll padding (a sticky bar's height).
  */
 export type PathProps = {
   model: PathModel;
@@ -48,6 +56,8 @@ export type PathProps = {
   className?: string;
   /** 'orbit': the Checklist's full-screen path (see above). Default: the shared look. */
   variant?: 'default' | 'orbit';
+  /** Where the "Jump to next" button goes instead of riding the path (see above). */
+  jumpDock?: HTMLElement | null;
 };
 
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
@@ -80,7 +90,7 @@ function useJust(ids: string[], key: string): Set<string> {
   return just;
 }
 
-export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default'}: PathProps) {
+export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full', onStep, panelFor = null, renderPanel, zigi = {}, jumpLabel = 'Jump to next', className, variant = 'default', jumpDock = null}: PathProps) {
   const orbit = variant === 'orbit', swingOf = orbit ? orbitOffset : snakeOffset;
   const model = useMemo(() => normalisePath(raw), [raw]);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, ''), stage = useRef<HTMLDivElement>(null);
@@ -98,17 +108,17 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // planet just ticked (celebrating when it completes an orbit), then goes on to stand by the next one.
   const [cheer, setCheer] = useState(false);
   const tickedId = steps.find(s => just.has(s.id))?.id ?? null, ticked = tickedId !== null;
-  const completed = orbit ? model.sections.some(s => just.has(`s:${s.id}`)) : false;
   const [cheerAt, setCheerAt] = useState<{id: string; state: string} | null>(null);
   useEffect(() => { if (!ticked) return; setCheer(true); const t = window.setTimeout(() => setCheer(false), CHEER_MS); return () => window.clearTimeout(t); }, [ticked]);
   // (Its own timer: the tick's `just` mark ends sooner than the cheer, and must not cut the cheer short.)
   const cheerTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!orbit || !tickedId || !next) return;
-    setCheerAt({id: tickedId, state: completed ? ZIGI_PATH_STATES.done : ZIGI_PATH_STATES.tick});
+    // (Round 3: a tick's cheer is ZIGi's celebrate pose — arms up — with its hops; the plain success frame read as no change.)
+    setCheerAt({id: tickedId, state: ZIGI_PATH_STATES.done});
     window.clearTimeout(cheerTimer.current);
     cheerTimer.current = window.setTimeout(() => setCheerAt(null), ORBIT_CHEER_MS);
-    // the tick's identity is enough; `next` and `completed` are read at that moment
+    // the tick's identity is enough; `next` is read at that moment
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orbit, tickedId]);
   useEffect(() => () => window.clearTimeout(cheerTimer.current), []);
@@ -127,8 +137,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const scroller = scrollerOf(s);
     const go = (glide: boolean) => {
       // (The part of the scroller a sticky bar does not cover: its scroll-padding-top, as the browser's own scrolling reads it.)
-      const box = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight}, pad = scroller ? parseFloat(getComputedStyle(scroller).scrollPaddingTop) || 0 : 0;
-      const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad};
+      const box = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight}, cs = scroller ? getComputedStyle(scroller) : null;
+      const pad = cs ? parseFloat(cs.scrollPaddingTop) || 0 : 0, padBottom = cs ? parseFloat(cs.scrollPaddingBottom) || 0 : 0;
+      const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad - padBottom};
       const at = (r.top + r.height / 2 - view.top) / view.height;
       if (glide && at >= .12 && at <= .7) return;
       const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * .4;
@@ -146,7 +157,10 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     const el = nextId ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(nextId)}"]`) : null;
     if (!el) { setNextVisible(true); return; }
     if (typeof IntersectionObserver === 'undefined') { setNextVisible(false); return; }
-    const io = new IntersectionObserver(entries => { for (const e of entries) { setNextVisible(e.isIntersecting); setNextAbove(e.boundingClientRect.top < 0); } }, {threshold: .6});
+    // (A sticky bar over the scroller is not "on screen": its scroll padding, top and bottom, is left out of the view.)
+    const sc = stage.current ? scrollerOf(stage.current) : null, cs = sc ? getComputedStyle(sc) : null;
+    const padTop = cs ? parseFloat(cs.scrollPaddingTop) || 0 : 0, padBottom = cs ? parseFloat(cs.scrollPaddingBottom) || 0 : 0;
+    const io = new IntersectionObserver(entries => { for (const e of entries) { setNextVisible(e.isIntersecting); setNextAbove(e.boundingClientRect.top < padTop); } }, {threshold: .6, rootMargin: `-${padTop}px 0px -${padBottom}px 0px`});
     io.observe(el);
     return () => io.disconnect();
   }, [nextId, geometryKey]);
@@ -155,9 +169,9 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   // panel — so it never parks on the first banner's count, never hangs over the page around the path, and never leaves
   // an empty band at the path's end. Measured on scroll and resize, once a frame at most.
   const bubble = useRef<HTMLButtonElement>(null), [jumpClear, setJumpClear] = useState(false);
-  const wantJump = !!next && !nextVisible;
+  const wantJump = !!next && !nextVisible, docked = !!jumpDock;
   useEffect(() => {
-    if (!wantJump) return;
+    if (!wantJump || docked) return;
     let frame = 0;
     const measure = () => {
       frame = 0;
@@ -171,12 +185,15 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     schedule();
     document.addEventListener('scroll', schedule, {passive: true, capture: true}); window.addEventListener('resize', schedule);
     return () => { cancelAnimationFrame(frame); document.removeEventListener('scroll', schedule, {capture: true}); window.removeEventListener('resize', schedule); setJumpClear(false); };
-  }, [wantJump, geometryKey]);
+  }, [wantJump, geometryKey, docked]);
   const jump = useCallback(() => {
     const el = next ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`) : null; if (!el) return;
-    el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
+    // (The orbit look brings it to the same place as its landing: about 40 % of the part of the screen its bars leave.)
+    const sc = orbit && stage.current ? scrollerOf(stage.current) : null;
+    if (sc) { const box = sc.getBoundingClientRect(), cs = getComputedStyle(sc), pad = parseFloat(cs.scrollPaddingTop) || 0, padB = parseFloat(cs.scrollPaddingBottom) || 0, r = el.getBoundingClientRect(); sc.scrollTo({top: Math.max(0, sc.scrollTop + r.top + r.height / 2 - box.top - pad - (box.height - pad - padB) * .4), behavior: entranceAllowed() ? 'smooth' : 'auto'}); }
+    else el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
     el.focus({preventScroll: true});
-  }, [next]);
+  }, [next, orbit]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const dots = [...(stage.current?.querySelectorAll<HTMLElement>('button.path-dot, a.path-dot') ?? [])], at = dots.indexOf(event.target as HTMLElement);
@@ -190,28 +207,38 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   for (const m of milestones) if (m.afterStepId) chestsAfter.set(m.afterStepId, [...(chestsAfter.get(m.afterStepId) ?? []), m]);
   const zigiAtEnd = zigiState && !next && steps.length > 0;
   // The orbit look: a comet runs along each line a tick has just lit, and from the dot just done on to the next one.
-  const comets = orbit ? new Set(segments.filter(s => (just.has(s.from) && (s.lit || s.to === next?.id)) || (just.has(s.to) && s.lit)).map(s => s.id)) : undefined;
+  // Round 3: the comet runs on from the planet just ticked to the next one; with no such stretch (the next is elsewhere), along
+  // the stretch the tick lit.
+  const onward = orbit ? segments.filter(s => just.has(s.from) && s.to === next?.id) : [];
+  const comets = orbit ? new Set((onward.length ? onward : segments.filter(s => (just.has(s.from) || just.has(s.to)) && s.lit)).map(s => s.id)) : undefined;
   // …and the way on from the last planet done to the next one stays faintly lit in the next planet's colour.
   const doneSet = new Set(doneIds), lead = orbit && next ? segments.find(s => s.to === next.id && doneSet.has(s.from))?.id : undefined;
   const tones = orbit ? Object.fromEntries(segments.map(s => [s.id, PATH_COLOURS[steps.find(x => x.id === s.to)?.colour ?? 'cyan'].token])) : undefined;
   const endTrophy = orbit && milestones.some(m => m.at === 'end' && m.afterStepId);
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined}>
-    {geo && <PathLine geo={geo} segments={segments} comets={comets} rail={orbit} lead={lead} tones={tones}/>}
+    {geo && <PathLine geo={geo} segments={segments} rail={orbit} lead={lead} tones={tones}/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
         <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
         <ol className="path-steps">
-          {section.steps.map(step => {
+          {section.steps.map((step, j) => {
             const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = orbit ? orbitZigiSide(i, swingOf) : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
-            const chests = chestsAfter.get(step.id) ?? [];
+            // The orbit look: ZIGi (on the side away from the name) leans away from the neighbour that winds toward it, and
+            // from the banner over an orbit's first planet or the chest and banner after its last.
+            const towardZigi = (k: number) => (swingOf(k) - offset) * (side === 'left' ? 1 : -1) > 0, first = j === 0, last = j === section.steps.length - 1;
+            const lean = !orbit || (first && last) ? undefined : first ? 'down' : last ? 'up' : towardZigi(i - 1) ? 'down' : towardZigi(i + 1) ? 'up' : undefined;
+            const all = chestsAfter.get(step.id) ?? [];
+            // The orbit look: a chest rides this planet's node (no row of its own); the day's trophy keeps its row at the end.
+            const riding = orbit ? all.filter(m => m.at !== 'end') : [], chests = orbit ? all.filter(m => m.at === 'end') : all;
             return <Fragment key={step.id}>
-              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
+              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} data-chest={riding.length ? '' : undefined} data-lean={lean} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
                 <div className="path-node">
                   <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext}} : {})}/>
                   <span className={orbit && isNext ? 'path-label path-label-bubble' : 'path-label'} data-side={side}>{orbit && isNext && <span className="path-label-cue">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}<span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit ? side : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit}/>}
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} cheer={orbit && cheerAt?.id === step.id}/>}
+                  {riding.map(m => <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={side} uid={uid} onPath={{offset, trophy: false, zigi: null, inline: true}}/>)}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
               </li>
@@ -226,9 +253,12 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
         </ol>
       </section>;
     })}
+    {geo && comets && comets.size > 0 && <PathComets geo={geo} segments={segments} comets={comets} tones={tones}/>}
     {zigiAtEnd && !endTrophy && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false || orbit ? undefined : zigi.say} alive={orbit}/></div>}
-    {next && wantJump && <div className="path-jump-track"><div className="path-jump-dock">
-      <button ref={bubble} type="button" className="path-jump" data-clear={jumpClear || undefined} data-direction={nextAbove ? 'up' : 'down'} onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>
-    </div></div>}
+    {next && wantJump && (() => {
+      // (Docked, it is the dock's own button and follows its theme; on the path it is the path's night bubble.)
+      const button = <button ref={bubble} type="button" className={jumpDock ? 'path-dock-jump' : 'path-jump'} data-clear={(docked || jumpClear) || undefined} data-direction={nextAbove ? 'up' : 'down'} onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>;
+      return jumpDock ? createPortal(<div className="path-jump-docked">{button}</div>, jumpDock) : <div className="path-jump-track"><div className="path-jump-dock">{button}</div></div>;
+    })()}
   </div>;
 }

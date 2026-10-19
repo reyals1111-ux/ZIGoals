@@ -1,4 +1,5 @@
 'use client';
+import type {CSSProperties} from 'react';
 import {SHELL_FRAME} from '../../lib/ai/zigi-look';
 import type {ZigiMood} from '../../lib/path/model';
 import {useZigiFrames} from '../zigi/bus';
@@ -20,15 +21,18 @@ export const ZIGI_PATH_STATES: Record<ZigiMood | 'tick', string> = {empty: 'enco
  *
  * Session AF (L3b): `alive` (the Checklist's full-screen path, where the owner allowed motion) draws ZIGi as a large
  * figure with its animated clips (ZigiFigure: the clip only while motion is allowed, else the still), standing in the
- * open sky beside the next dot (`centred`: a dot in the middle of the path, ZIGi stands a little higher).
+ * open sky beside the next dot (`centred`: a dot in the middle of the path, ZIGi stands a little higher). `cheer` (a tick
+ * just landed beside it): arms up, two hops and a ring of sparkles, once (CSS; a still under reduced motion / Motion Off).
  */
-export function PathZigi({state, side, say, alive = false, centred = false}: {state: string; side: 'left' | 'right'; say?: string; alive?: boolean; centred?: boolean}) {
+const CHEER_SPARKS = 10;
+export function PathZigi({state, side, say, alive = false, centred = false, cheer = false}: {state: string; side: 'left' | 'right'; say?: string; alive?: boolean; centred?: boolean; cheer?: boolean}) {
   const frames = useZigiFrames(), frame = frames?.[state] ?? frames?.idle;
   const poster = frame ? {src: frame.poster.x1, srcSet: `${frame.poster.x1} 1x, ${frame.poster.x2} 2x`} : {src: SHELL_FRAME.x1, srcSet: `${SHELL_FRAME.x1} 1x, ${SHELL_FRAME.x2} 2x`};
-  return <span className="path-zigi" data-side={side} data-zigi-state={state} data-alive={alive || undefined} data-centred={centred || undefined} aria-hidden="true">
+  return <span className="path-zigi" data-side={side} data-zigi-state={state} data-alive={alive || undefined} data-centred={centred || undefined} data-cheer={alive && cheer ? '' : undefined} aria-hidden="true">
     {alive ? <span key={state} className="path-zigi-figure"><ZigiFigure state={state}/></span>
       : <span key={state} className={`zigi zigi-${state} path-zigi-figure`} data-state={state}><ZigiImage poster={poster} width={SHELL_FRAME.width} height={SHELL_FRAME.height} alt="" decorative/></span>}
     {alive ? <span className="path-zigi-ground"/> : <span className="path-zigi-arrow"/>}
+    {alive && cheer && <span className="path-zigi-cheer">{Array.from({length: CHEER_SPARKS}, (_, n) => <i key={n} data-tone={n % 3} style={{'--a': `${Math.round(n * 360 / CHEER_SPARKS)}deg`, '--d': `${48 + (n * 29) % 34}px`} as CSSProperties}/>)}</span>}
     {say && <span className="path-zigi-say">{say}</span>}
   </span>;
 }
