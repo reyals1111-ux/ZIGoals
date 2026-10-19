@@ -10,6 +10,8 @@ import {EarnGlyphMark} from './earn-glyph';
 import {IllustrationSlot} from './illustrations/slot';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
+import {Risk} from './risk';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF chunk 2 (amendment 3, H8, H84): three more ways your money works on ZIGChain, each with the same anatomy:
@@ -21,7 +23,7 @@ const day = (iso: string) => formatDate(`${iso}T12:00:00Z`, {timeZone: 'UTC'});
 
 export function GovernanceSection() {
   return <OptionSection id="governance" eyebrow="ZIGChain · governance" title="Have a say: governance"
-    lede="Proposals change how ZIGChain runs: its rules, its upgrades, which teams may upload contracts. Staked ZIG votes, and you can vote yourself instead of letting your validator vote for you."
+    lede={<>Proposals change how ZIGChain runs: its rules, its upgrades, which teams may upload contracts. Staked ZIG votes, and you can vote yourself instead of letting your validator vote for you. <WhatsThis term="proposal"/> <WhatsThis term="staking"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'keys', text: 'You keep the keys'}]}
     facts={[
@@ -32,13 +34,16 @@ export function GovernanceSection() {
     ]}
     figures={<div className="earn-figure earn-figure-elsewhere"><dt>Open proposals and their tallies</dt><dd><span className="earn-hint">Read live on the Governance page, with each proposal in plain words and when its vote ends.</span></dd></div>}
     columns={[
-      {title: 'Fees', body: <p>A small network fee in ZIG for each vote you sign.</p>},
+      {title: 'Fees', body: <p>A small network fee in ZIG for each vote you sign. Voting does not earn rewards by itself; it protects what you hold by shaping the rules. <WhatsThis term="gas"/></p>},
       {title: 'Lockups', body: <p>None: voting locks nothing. Only staked ZIG counts, and staking has its own unbonding time.</p>},
-      {title: 'Minimums', body: <p>Any amount of staked ZIG; your vote weighs as much as your stake.</p>},
+      {title: 'Minimums', body: <p>Any amount of staked ZIG; your vote weighs as much as your stake. <WhatsThis term="voting-power"/></p>},
+      // Session AF (L1c, N5): each risk with its source: ZIGChain's own governance rules (R5 §5 and LB5; docs/earn/af/ONCHAIN.md).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>A vote is public on the chain forever, tied to your address.</li>
-        <li>Voting does not earn rewards by itself; it protects what you hold by shaping the rules.</li>
-        <li>Read the whole proposal: a short title can hide a large change.</li>
+        <Risk chain="ZIGChain’s governance records, which keep each vote with its address">A vote is public on the chain forever, tied to your address.</Risk>
+        <Risk chain="ZIGChain’s tally rules">If you do not vote, your validator’s vote counts for your stake, whichever way it votes.</Risk>
+        <Risk chain="ZIGChain’s tally and staking rules">Only staked ZIG counts: a vote from an address with no stake weighs nothing, and staked ZIG takes the unbonding time to leave.</Risk>
+        <Risk chain="each proposal’s own messages on ZIGChain, which the Governance page puts in plain words">Read the whole proposal: a short title can hide a large change, and ZIGoals does not check the proposer’s own text.</Risk>
+        <Risk chain="ZIGChain’s governance rules, read live on the Governance page">A proposal passes or fails by the chain’s own quorum and thresholds whether you vote or not, and enough “No with veto” votes also burn its deposit. <WhatsThis term="quorum"/></Risk>
       </ul>},
     ]}
     steps={[
@@ -57,7 +62,7 @@ export function GovernanceSection() {
 
 export function GoalVaultsSection() {
   return <OptionSection id="goal-vaults" eyebrow="ZIGoals · Goal Vaults" title="Put your stake to work for a goal"
-    lede="Link stake or stZIG you already hold to one of your goals, and see the goal move with it: what you staked, the rewards waiting, and the growth since you linked it."
+    lede={<>Link stake or stZIG you already hold to one of your goals, and see the goal move with it: what you staked, the rewards waiting, and the growth since you linked it. <WhatsThis term="rewards"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'live', text: 'In ZIGoals'}, {tone: 'keys', text: 'You keep the keys'}]}
     facts={[
@@ -69,11 +74,15 @@ export function GoalVaultsSection() {
     figures={<div className="earn-figure earn-figure-elsewhere"><dt>Your Goal Vaults</dt><dd><span className="earn-hint">Each goal shows its linked stake, read live at one block, with where it comes from and when.</span></dd></div>}
     columns={[
       {title: 'Fees', body: <p>None from ZIGoals. The stake keeps its own fees: your validator’s commission, or Valdora’s.</p>},
-      {title: 'Lockups', body: <p>The stake’s own: unstaking takes the network’s unbonding time.</p>},
+      {title: 'Lockups', body: <p>The stake’s own: unstaking takes the network’s unbonding time. <WhatsThis term="unbonding"/></p>},
       {title: 'Minimums', body: <p>None.</p>},
+      // Session AF (L1c, N5): a Goal Vault is a view of a stake, so its risks are the stake's own (R5 rank 1, R2 §1–2), each with its source.
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>The goal moves with ZIG’s price and with your stake: it can go down.</li>
-        <li>Rewards you claimed and moved away are not counted back in: the chain keeps rewards waiting, not their history.</li>
+        <Risk chain="ZIG’s price in OroSwap’s ZIG / USDC pools, read from the chain (the OroSwap section)">The goal moves with ZIG’s price and with your stake: it can go down.</Risk>
+        <Risk chain="ZIGChain’s distribution records, which keep the rewards waiting">Rewards you claimed and moved away are not counted back in: the chain keeps rewards waiting, not their history.</Risk>
+        <Risk chain="ZIGChain’s staking rules (the unbonding time), read live">To spend the money, the stake must be unstaked first, and it takes the unbonding time to come back.</Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live">If the validator behind the stake is slashed, the stake, and the goal with it, shrinks.</Risk>
+        <Risk link={<VerifiedLink provider="valdora" kind="security" className="text-link" mark="compact">Valdora’s security page</VerifiedLink>}>A goal linked to stZIG also carries Valdora’s contract risks (see Valdora above).</Risk>
       </ul>},
     ]}
     steps={[
@@ -90,18 +99,18 @@ export function StablecoinsSection({oroswap, vaults, now}: {oroswap: LiveState<O
   const pool = (id: string) => shown(oroswap, d => { const p = d.pools.find(x => x.id === id); return p ? p.reserves.map(r => tokenAmount(r.amount, r.decimals, r.symbol, {compact: true})).join(' + ') : null; });
   const hint = (id: string) => { const p = oroswap.phase === 'ok' ? oroswap.answer.data.pools.find(x => x.id === id) : null; return p ? <>1 {p.price.base} = {decimal(p.price.value, 5)} {p.price.quote} · fee {bps(p.feeBps)} a swap</> : undefined; };
   return <OptionSection id="stablecoins" eyebrow="USDC and USDT on ZIGChain" title="Earn with stablecoins"
-    lede="What exists on ZIGChain for USDC and USDT today, in plain words. It is not much yet, and every network fee is paid in ZIG."
+    lede={<>What exists on ZIGChain for USDC and USDT today, in plain words. It is not much yet, and every network fee is paid in ZIG. <WhatsThis term="gas"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'beta', text: 'Honestly thin today'}, {tone: 'paused', text: 'Fees in ZIG only'}]}
     notice={<>
-      <p><b>Two kinds of USDC reach ZIGChain.</b> USDC.inj comes from Injective and is the one Circle and the bridges point new money to. USDC on Noble (USDC.n) still arrives, but {NOBLE_USDC.text.charAt(0).toLowerCase() + NOBLE_USDC.text.slice(1)} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)})</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink></p>
+      <p><b>Two kinds of USDC reach ZIGChain.</b> USDC.inj comes from Injective and is the one Circle and the bridges point new money to. USDC on Noble (USDC.n) still arrives, but {NOBLE_USDC.text.charAt(0).toLowerCase() + NOBLE_USDC.text.slice(1)} <span className="fine">({NOBLE_USDC.source}, read {day(NOBLE_USDC.readOn)})</span> <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink> <WhatsThis term="bridge"/></p>
       <p>{ZIG_ROUTES.fees}</p>
     </>}
     facts={[
       {label: 'Best for', value: 'People who hold USDC and want to see their options on ZIGChain before moving anything.'},
       {label: 'What exists', value: <>Valdora’s USDC vaults (<a className="text-link" href="#valdora-vaults">above</a>: USDC.n only, credit risk, up to 60 days to leave); Nawa’s USDC vault (<a className="text-link" href="#nawa">depends on Zignaly</a>); OroSwap pools pairing USDC with ZIG (<a className="text-link" href="#oroswap">swap fees, and half your money becomes ZIG</a>).</>},
       {label: 'USDT', value: ZIG_ROUTES.thin},
-      {label: 'Who holds the funds', value: 'In a pool, the pool’s contract (you hold LP tokens); in a vault, its curator, away from the chain.'},
+      {label: 'Who holds the funds', value: <>In a pool, the pool’s contract (you hold LP tokens); in a vault, its curator, away from the chain. <WhatsThis term="custody"/></>},
     ]}
     figures={<>
       <LiveFigure id="stable-usdc-inj" label="OroSwap ZIG / USDC.inj pool" now={now} figure={pool('zig-usdc-inj')} hint={hint('zig-usdc-inj')}/>
@@ -112,11 +121,14 @@ export function StablecoinsSection({oroswap, vaults, now}: {oroswap: LiveState<O
       {title: 'Fees', body: <p>A pool’s swap fee (live above), the vaults’ own fees, and the network fee in ZIG for every step.</p>},
       {title: 'Lockups', body: <p>Pools: none. Vaults: withdrawals are requests, up to 60 days.</p>},
       {title: 'Minimums', body: <p>None set by the apps; you need a little ZIG for fees.</p>},
+      // Session AF (L1c, N5): each risk with its source (RECHECK A and B, ROUTES_ONTO_ZIGCHAIN.md).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>A pool with ZIG is not a stablecoin position: half of it follows ZIG’s price (impermanent loss, in the OroSwap section).</li>
-        <li>Vaults lend to businesses: they may not repay.</li>
-        <li>USDC on Noble is being wound down by Circle; its pause is on {day(NOBLE_USDC.fullyPaused)}.</li>
-        <li>Bridges: each hop between networks is software that can fail or be paused.</li>
+        <Risk link={<VerifiedLink provider="oroswap" kind="docs-liquidity" className="text-link" mark="compact">OroSwap on liquidity</VerifiedLink>}>A pool with ZIG is not a stablecoin position: half of it follows ZIG’s price (impermanent loss, in the OroSwap section). <WhatsThis term="impermanent-loss"/></Risk>
+        <Risk link={<VerifiedLink provider="valdora" kind="vault-private-credit" className="text-link" mark="compact">The vault page</VerifiedLink>}>Vaults lend to businesses: they may not repay.</Risk>
+        <Risk link={<VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink>}>USDC on Noble is being wound down by Circle; its pause is on {day(NOBLE_USDC.fullyPaused)}.</Risk>
+        <Risk link={<>the routes, hop by hop, as <VerifiedLink provider="zig-finance" kind="skip-go" className="text-link" mark="compact">Skip Go</VerifiedLink> quoted them on {day(ZIG_ROUTES.readOn)}</>}>Bridges: each hop between networks is software that can fail or be paused.</Risk>
+        <Risk chain="ZIGChain, which takes its network fees in ZIG only">Fees: with only USDC in your wallet you cannot move it on ZIGChain; you need a little ZIG first.</Risk>
+        <Risk chain={`the pool’s own record on ZIGChain (created ${day('2026-10-09')}) and its depth above, read from the chain`}>The USDC.inj pool is young and was small when ZIGoals read it: check its depth above, since a large swap moves a small pool’s price a lot. <WhatsThis term="pool-depth"/></Risk>
       </ul>},
     ]}
     steps={[

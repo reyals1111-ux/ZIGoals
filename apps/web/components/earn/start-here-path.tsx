@@ -10,6 +10,7 @@ import {formatDate} from '../../lib/visual-format';
 import {VerifiedLink} from '../links/verified-link';
 import {Path} from '../path/path';
 import {Unavailable} from './live-figure';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF chunk 2 (P1.7–P1.11): the Start-here path itself, its own chunk (loaded after the page's first paint): six dots
@@ -51,11 +52,11 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
         {text: 'Keplr asks you to type a few words back: that proves the paper copy is right.'},
         {text: 'Then come back: on Staking, “Connect Keplr” adds ZIGChain to Keplr and connects. Or link the address read-only in your wallet menu.'},
       ]}/>
-      <p className="earn-start-warn"><b>Your recovery phrase is your money.</b> Anyone who has the words can take everything, from anywhere. Keplr, ZIGoals and real support never ask for it. If you lose your device, the words bring your wallet back; if you lose the words and the device, nobody can.</p>
+      <p className="earn-start-warn"><b>Your recovery phrase is your money.</b> Anyone who has the words can take everything, from anywhere. Keplr, ZIGoals and real support never ask for it. If you lose your device, the words bring your wallet back; if you lose the words and the device, nobody can. <WhatsThis term="seed-phrase"/></p>
       <p className="fine">About 10 minutes. You sign nothing in this step.</p>
     </>;
     case 'practice': return <>
-      <p>ZIGChain has a practice network where test ZIG has no value. Staking there works exactly like the real thing, so a first mistake costs nothing.</p>
+      <p>ZIGChain has a practice network where test ZIG has no value. Staking there works exactly like the real thing, so a first mistake costs nothing. <WhatsThis term="practice-network"/></p>
       <Steps items={[
         {text: <>Get free test ZIG for your address from ZIGChain’s faucet (a new tab): <VerifiedLink provider="zig-finance" kind="faucet" className="text-link" mark="compact">ZIGChain faucet</VerifiedLink>.</>},
         {text: <>Open <Link className="text-link" href="/app/staking">Staking</Link>: it starts on the practice network. Press “Connect Keplr”.</>},
@@ -77,12 +78,12 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
       <p><Link className="primary" href="/app/wealth/add-money">Add money</Link></p>
     </>;
     case 'get-zig': return <>
-      <p>ZIG is what you stake, and every ZIGChain fee is paid in it. These are the ways onto ZIGChain that worked when ZIGoals checked ({day(ZIG_ROUTES.readOn)}, {ZIG_ROUTES.source}):</p>
+      <p>ZIG is what you stake, and every ZIGChain fee is paid in it. These are the ways onto ZIGChain that worked when ZIGoals checked ({day(ZIG_ROUTES.readOn)}, {ZIG_ROUTES.source}): <WhatsThis term="bridge"/></p>
       <ul className="earn-start-routes">{ZIG_ROUTES.routes.map(r => <li key={r.id} data-route={r.id}>
         <p><b>From {r.from}</b>: {r.how}</p>
         <p className="fine">{r.signatures === 1 ? 'One approval' : `${r.signatures} approvals`} · {r.time} (Skip Go’s estimate on {day(ZIG_ROUTES.readOn)}). {r.note}{poolFee(live.oroswap, r.pool)}</p>
       </li>)}</ul>
-      <p className="earn-start-warn">{ZIG_ROUTES.fees}</p>
+      <p className="earn-start-warn">{ZIG_ROUTES.fees} <WhatsThis term="gas"/></p>
       <p className="fine">{ZIG_ROUTES.thin} {ZIG_ROUTES.noble}</p>
       <p className="earn-option-actions"><VerifiedLink provider="zig-finance" kind="skip-go" className="secondary">Open Skip Go</VerifiedLink> <VerifiedLink provider="zig-finance" kind="hub-bridge" className="secondary">ZIGChain Hub bridge</VerifiedLink> <VerifiedLink provider="oroswap" kind="swap" className="secondary">Swap on OroSwap</VerifiedLink></p>
     </>;
@@ -92,7 +93,7 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
         {text: <>Open <Link className="text-link" href="/app/staking">Staking</Link> and switch the network to Real. ZIGoals asks you to confirm that once.</>},
         {text: 'Connect Keplr, choose a validator (the list on this page shows commission, uptime and how much stake each holds) and enter an amount. Keep some ZIG for fees.'},
         {text: 'Press Review, read the review screen, then sign in Keplr.', sign: 'one delegation (MsgDelegate) on ZIGChain (zigchain-1) that moves ZIG from your balance into your stake.'},
-        {text: <>Rewards start right away. To leave later, your ZIG is locked for {unbonding ?? <Unavailable reason={live.chain.phase === 'unavailable' ? live.chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile.</>},
+        {text: <>Rewards start right away. To leave later, your ZIG is locked for {unbonding ?? <Unavailable reason={live.chain.phase === 'unavailable' ? live.chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile. <WhatsThis term="unbonding"/></>},
       ]}/>
       <p className="fine">About 5 minutes. Only you can sign; ZIGoals never sees your keys.</p>
       <p><Link className="primary" href="/app/staking">Stake on Staking</Link></p>
@@ -100,9 +101,9 @@ export function StepGuide({id, live}: {id: StartStepId; live: StartLive}) {
     case 'explore': return <>
       <p>Once you know staking, the other ways to earn on ZIGChain build on it. Each is explained below with its risks, in plain words.</p>
       <ul className="earn-start-explore">
-        <li><a className="text-link" href="#valdora">Liquid staking (stZIG)</a>: stake through Valdora and keep a token you can move.</li>
-        <li><a className="text-link" href="#oroswap">Liquidity pools</a>: put two tokens in a pool on OroSwap and share its swap fees, with impermanent loss as the risk.</li>
-        <li><a className="text-link" href="#governance">Governance</a>: your stake gives you a vote on ZIGChain’s proposals. <Link className="text-link" href="/app/governance">Open Governance</Link></li>
+        <li><a className="text-link" href="#valdora">Liquid staking (stZIG)</a>: stake through Valdora and keep a token you can move. <WhatsThis term="liquid-staking"/></li>
+        <li><a className="text-link" href="#oroswap">Liquidity pools</a>: put two tokens in a pool on OroSwap and share its swap fees, with impermanent loss as the risk. <WhatsThis term="pool"/></li>
+        <li><a className="text-link" href="#governance">Governance</a>: your stake gives you a vote on ZIGChain’s proposals. <Link className="text-link" href="/app/governance">Open Governance</Link> <WhatsThis term="proposal"/></li>
       </ul>
       <p className="fine">The Academy below explains each in five minutes, with a short quiz.</p>
     </>;

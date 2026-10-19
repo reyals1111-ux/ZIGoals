@@ -6,6 +6,7 @@ import {zig} from '../../lib/earn/format';
 import {VerifiedLink} from '../links/verified-link';
 import {SourceLine, Unavailable} from './live-figure';
 import {SectionHeading} from '../ui/section-heading';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF (L1): the validators of ZIGChain mainnet, live from GET /api/chain/validators (lane L2a's route; until it is
@@ -32,13 +33,13 @@ export function ValidatorsSection({validators, now}: {validators: LiveState<Vali
   const foundation = foundationShare(list), jailed = list.filter(v => v.jailed).length;
   return <section id="validators" className="earn-validators panel" aria-labelledby="validators-title">
     <SectionHeading id="validators-title" eyebrow="Native staking · who you delegate to" title="Choose a validator from facts"
-      lede="A validator runs part of ZIGChain and keeps a commission from the rewards of the ZIG delegated to it. Your ZIG never leaves your account."/>
+      lede={<>A validator runs part of ZIGChain and keeps a commission from the rewards of the ZIG delegated to it. Your ZIG never leaves your account. <WhatsThis term="validator"/></>}/>
     <div className="earn-guidance" role="note">
       <h3 className="earn-subhead">In plain words</h3>
       <ul>
-        <li><b>Spread the stake.</b> {foundation !== null ? <>Validators named “Foundation” hold {share(foundation)} of all stake right now.</> : validators.phase === 'ok' ? null : <>Who holds how much is <Unavailable reason={validators.phase === 'unavailable' ? validators.reason : 'UPSTREAM_DOWN'} short/>.</>} Delegating to a smaller validator helps keep the network in many hands.</li>
-        <li><b>Avoid jailed validators.</b> A jailed validator earns nothing for you until it is back.{validators.phase === 'ok' ? jailed ? ` ${jailed} ${jailed === 1 ? 'is' : 'are'} jailed now.` : ' None is jailed now.' : ''}</li>
-        <li><b>Mind the commission.</b> A lower commission leaves you more of the reward; it can change, up to the validator’s own limit per day.</li>
+        <li><b>Spread the stake.</b> {foundation !== null ? <>Validators named “Foundation” hold {share(foundation)} of all stake right now.</> : validators.phase === 'ok' ? null : <>Who holds how much is <Unavailable reason={validators.phase === 'unavailable' ? validators.reason : 'UPSTREAM_DOWN'} short/>.</>} Delegating to a smaller validator helps keep the network in many hands. <WhatsThis term="voting-power"/></li>
+        <li><b>Avoid jailed validators.</b> A jailed validator earns nothing for you until it is back.{validators.phase === 'ok' ? jailed ? ` ${jailed} ${jailed === 1 ? 'is' : 'are'} jailed now.` : ' None is jailed now.' : ''} <WhatsThis term="jailed"/></li>
+        <li><b>Mind the commission.</b> A lower commission leaves you more of the reward; it can change, up to the validator’s own limit per day. <WhatsThis term="commission"/></li>
         <li><b>Look at uptime.</b> A validator that misses many blocks can be paused, and then its delegators earn nothing for a while.</li>
       </ul>
     </div>

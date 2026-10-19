@@ -73,6 +73,8 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-column:last-child .earn-risks { columns: 2 320px; column-gap: 32px; display: block; }
 .earn-column:last-child .earn-risks li { break-inside: avoid; margin-bottom: 8px; }
 .earn-risks { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--text-secondary); line-height: 1.5; }
+/* Session AF (L1c, N5): where each risk comes from, after its words. */
+.earn-risk-source { font-size: 14px; color: var(--text-meta); }
 
 /* Steps */
 .earn-steps ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: none; }
@@ -130,12 +132,12 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-guide-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .earn-guide-actions .fine { margin: 0; }
 .earn-guide-note { margin: 10px 0 0; }
-
-@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
 /* Session AF (L1c, P1.19): "Ask ZIGi about this", a 44 px button with its one-line promise. */
 .earn-guide-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 12px 0 0; }
 .earn-guide-ask button { min-height: 44px; }
 .earn-guide-ask .fine { margin: 0; }
+
+@media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
   .earn-page { --earn-chip-top: calc(var(--phone-bar, 52px) + var(--safe-top, 0px)); }
   .earn-chips { margin-inline: calc(-1 * var(--phone-gutter, 16px)); padding: 8px 0; border-radius: 0; }
   .earn-chips-rail { flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; padding: 0 var(--phone-gutter, 16px); scrollbar-width: none; }

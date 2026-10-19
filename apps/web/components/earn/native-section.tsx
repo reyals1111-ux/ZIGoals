@@ -12,6 +12,8 @@ import {EarnGlyphMark} from './earn-glyph';
 import {GuideLink, type Guide} from './guide-panel';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
+import {Risk} from './risk';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF (L1, ADR-028 H9, H51): native validator staking, the chain's own way to earn. The APR is computed from the
@@ -41,25 +43,25 @@ export function NativeSection({chain, validators, measured, now}: {chain: LiveSt
   const range = validators.phase === 'ok' && choices.length ? `${pctShort(choices[0]!)} to ${pctShort(choices.at(-1)!)}` : null;
   const m = measured.phase === 'ok' ? measured.answer.data : null, compare = aprComparison(chain, measured);
   return <OptionSection id="native-staking" eyebrow="ZIGChain · the network’s own staking" title="Stake ZIG with a validator"
-    lede="Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block."
+    lede={<>Lend your ZIG’s weight to a validator that helps run ZIGChain, and share in the new ZIG the network pays out every block. <WhatsThis term="validator"/></>}
     logo={{alt: '', glyph: <EarnGlyphMark/>}}
     tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'keys', text: 'You keep the keys'}]}
     facts={[
-      {label: 'Best for', value: 'Holding ZIG for the long run and earning the network’s own rewards, with no app in between.'},
-      {label: 'Who runs it', value: 'The ZIGChain network itself, and the validator you choose to delegate to.'},
-      {label: 'Who holds the funds', value: 'You do. Your ZIG stays in your own account, delegated; only you can move it.'},
+      {label: 'Best for', value: <>Holding ZIG for the long run and earning the network’s own rewards, with no app in between. <WhatsThis term="rewards"/></>},
+      {label: 'Who runs it', value: <>The ZIGChain network itself, and the validator you choose to delegate to. <WhatsThis term="staking"/></>},
+      {label: 'Who holds the funds', value: <>You do. Your ZIG stays in your own account, delegated; only you can move it. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Anyone with a ZIGChain wallet. The rules of the country you live in still apply to you.'},
     ]}
     figures={<>
       <LiveFigure id="native-apr" big label={commission ? <>Yearly rate at a {pctShort(commission)} validator commission</> : 'Yearly rate before the validator’s commission'} now={now}
         figure={shown(chain, d => commission ? pct(aprAtCommission(d.apr, commission)) : pct(d.apr.beforeCommission))}
-        hint={<>The issuance figure: a simple yearly rate (APR) from the new ZIG the network pays out, block time measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block.</>}/>
+        hint={<>The issuance figure: a simple yearly rate (APR) from the new ZIG the network pays out, block time measured over {data ? <>the last {decimal(data.apr.windowBlocks, 0)} blocks</> : 'recent blocks'}; rewards are not compounded unless you stake them again. Rates move every block. <WhatsThis term="apr"/> <WhatsThis term="commission"/></>}/>
       <LiveFigure id="native-apr-measured" big label={m ? <>Measured: what {m.validator.moniker}’s own stake earned, at its {pctShort(m.validator.commission)} commission</> : 'Measured on one validator’s own stake'} now={now}
         figure={shown(measured, d => d.measured.status === 'ok' ? pct(d.measured.rate) : {unavailable: d.measured.reason})}
         hint={m ? <>The rewards waiting on that validator’s own stake of {zig(m.latest.selfBond)}, read at block {m.latest.height} and {m.measured.status === 'ok' ? decimal(m.measured.windowBlocks, 0) : '10,000'} blocks earlier (block {m.earlier.height}), over the real time between them; it includes what the issuance figure leaves out (transaction fees). One validator, one window: a check, not a promise.</> : 'What one named validator’s own stake earned over the last 10,000 blocks, read from the chain at two heights.'}/>
       <LiveFigure id="native-apr-before" label="Before any commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="native-bonded" label="ZIG staked on the network" now={now} figure={shown(chain, d => <>{zig(d.staking.bondedTokens, {compact: true})} <span className="earn-unit">({pct(d.staking.bondedShare, 1)} of all ZIG)</span></>)}/>
-      <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))}/>
+      <LiveFigure id="native-unbonding" label="Unbonding time when you leave" now={now} figure={shown(chain, d => duration(d.staking.unbondingSeconds))} hint={<WhatsThis term="unbonding"/>}/>
       <LiveFigure id="native-commission" label="Commission validators charge now" now={now} figure={validators.phase === 'ok' && range ? {kind: 'ok', value: range, answer: validators.answer} : validators.phase === 'ok' ? {kind: 'unavailable', reason: 'MALFORMED'} : shown(validators, () => null)}/>
       <LiveFigure id="native-inflation" label="New ZIG a year (inflation)" now={now} figure={shown(chain, d => pct(d.mint.inflation))}/>
     </>}
@@ -83,15 +85,18 @@ export function NativeSection({chain, validators, measured, now}: {chain: LiveSt
       </details>
     </>}
     columns={[
-      {title: 'Fees', body: <p>A small network fee for each step you sign, paid in ZIG. Your wallet shows it before you sign. The validator keeps its commission from your rewards ({range ?? 'see the validator list'}).</p>},
-      {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>} with no rewards meanwhile. Moving to another validator is instant.</p>},
+      {title: 'Fees', body: <p>A small network fee for each step you sign, paid in ZIG. Your wallet shows it before you sign. The validator keeps its commission from your rewards ({range ?? 'see the validator list'}). <WhatsThis term="gas"/></p>},
+      {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>} with no rewards meanwhile. Moving to another validator is instant. <WhatsThis term="redelegate"/></p>},
       {title: 'Minimums', body: <p>No minimum set by the network: any amount above the fee. Keep a little ZIG in your wallet for fees.</p>},
+      // Session AF (L1c, N5): each risk with its source: the chain's own rules read live, or a verified link.
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it and removes it for good.</li>
-        <li>If it is offline too long (signing fewer than {data ? pctShort(data.slashing.minSignedPerWindow) : 'the set share'} of the last {data ? decimal(data.slashing.signedBlocksWindow, 0) : ''} blocks), the network takes {data ? pct(data.slashing.slashFractionDowntime) : 'a part'} and pauses it for {data ? duration(data.slashing.downtimeJailSeconds) : 'a while'}.</li>
-        <li>ZIG’s price moves; staking does not protect you from that.</li>
-        <li>Most stake sits with a few validators; spreading yours helps the network (see the list below).</li>
-        <li>The rules: <VerifiedLink provider="zig-finance" kind="docs" className="text-link" mark="compact">ZIGChain docs</VerifiedLink>.</li>
+        <Risk chain="ZIGChain’s staking rules (the unbonding time), read live">Leaving takes time: after you unstake, your ZIG stays locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>}, earning nothing and unable to move. Stake only what you can leave alone that long.</Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live">If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it (slashing) and removes it for good. <WhatsThis term="slashing"/></Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live">If it is offline too long (signing fewer than {data ? pctShort(data.slashing.minSignedPerWindow) : 'the set share'} of the last {data ? decimal(data.slashing.signedBlocksWindow, 0) : ''} blocks), the network takes {data ? pct(data.slashing.slashFractionDowntime) : 'a part'} and pauses it (jails it) for {data ? duration(data.slashing.downtimeJailSeconds) : 'a while'}; meanwhile your stake with it earns nothing. <WhatsThis term="jailed"/></Risk>
+        <Risk chain="each validator’s commission record on ZIGChain (its rate, its maximum and its daily change), read live">Your validator can raise its commission, up to the maximum and the daily change it set on the chain, so the share of rewards you keep can change.</Risk>
+        <Risk chain="the validator list read from ZIGChain (see the list below)">Most stake sits with a few validators, so the network depends on them; spreading yours helps. <WhatsThis term="voting-power"/></Risk>
+        <Risk chain="ZIG’s price in OroSwap’s ZIG / USDC pools, read from the chain (the OroSwap section)">ZIG’s price moves, and staking does not protect you from that: your stake can be worth less when you leave than when you started.</Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live" link={<VerifiedLink provider="zig-finance" kind="docs" className="text-link" mark="compact">ZIGChain docs</VerifiedLink>}>The docs and the chain can disagree: ZIGChain’s docs gave a different double-sign penalty from the one the chain applies (read 2 October 2026). ZIGoals shows the chain’s own rules.</Risk>
       </ul>},
     ]}
     steps={[

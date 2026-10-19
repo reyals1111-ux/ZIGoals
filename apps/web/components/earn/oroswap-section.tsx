@@ -8,6 +8,8 @@ import {GuideLink, type Guide} from './guide-panel';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
 import {IllustrationSlot} from './illustrations/slot';
+import {Risk} from './risk';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF (L1, ADR-028 H84): OroSwap, ZIGChain's exchange: swaps, and pools that share the swap fees. Each pool's
@@ -22,13 +24,13 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
   const data = oroswap.phase === 'ok' ? oroswap.answer.data : null;
   const unavailable = oroswap.phase === 'unavailable' ? oroswap.reason : 'UPSTREAM_DOWN';
   return <OptionSection id="oroswap" eyebrow="OroSwap · exchange and pools" title="Swap, or earn swap fees in a pool"
-    lede="Swap tokens on ZIGChain’s exchange, or put two tokens into a pool and earn a share of the fee on every swap through it."
+    lede={<>Swap tokens on ZIGChain’s exchange, or put two tokens into a pool and earn a share of the fee on every swap through it. <WhatsThis term="swap"/> <WhatsThis term="pool"/></>}
     logo={{src: '/ecosystem-logos/oroswap.png', alt: 'OroSwap site icon'}}
     tags={[{tone: 'live', text: 'Live on mainnet'}, {tone: 'contract', text: 'Pools hold the tokens'}]}
     facts={[
-      {label: 'Best for', value: 'Swapping; and, for pools, people who already hold both tokens and understand impermanent loss.'},
+      {label: 'Best for', value: <>Swapping; and, for pools, people who already hold both tokens and understand impermanent loss. <WhatsThis term="impermanent-loss"/></>},
       {label: 'Who runs it', value: 'OroSwap, through contracts on ZIGChain.'},
-      {label: 'Who holds the funds', value: 'For a swap, you, before and after. In a pool, the pool’s contract holds the tokens; you hold LP tokens, your share.'},
+      {label: 'Who holds the funds', value: <>For a swap, you, before and after. In a pool, the pool’s contract holds the tokens; you hold LP tokens, your share. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Anyone with a ZIGChain wallet, under OroSwap’s terms and the rules where you live.'},
     ]}
     figures={<>
@@ -40,14 +42,17 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
     </>}
     figuresNote={<p className="fine">{PROVIDER_CLAIMS.oroswapDocsFee.text} <VerifiedLink provider="oroswap" kind="docs-swap" className="text-link" mark="compact">OroSwap’s swap guide</VerifiedLink></p>}
     columns={[
-      {title: 'Fees', body: <p>{data ? <>Each pool charges its own fee on every swap ({[...new Set(data.pools.map(p => bps(p.feeBps)))].join(', ')} in the pools above). Of that fee, {bps(data.pools[0]!.makerFeeBps)} goes to OroSwap’s fee collector; the rest stays with the pool’s providers. Fee tiers a new pool can choose: {[...new Set(data.pairTypes.filter(p => !p.disabled).map(p => p.totalFeeBps))].sort((x, y) => x - y).map(bps).join(', ')} (from OroSwap’s factory contract).</> : <>The fees are <Unavailable reason={unavailable} short/> right now.</>} Plus a small network fee for each step you sign.</p>},
+      {title: 'Fees', body: <p>{data ? <>Each pool charges its own fee on every swap ({[...new Set(data.pools.map(p => bps(p.feeBps)))].join(', ')} in the pools above). Of that fee, {bps(data.pools[0]!.makerFeeBps)} goes to OroSwap’s fee collector; the rest stays with the pool’s providers. Fee tiers a new pool can choose: {[...new Set(data.pairTypes.filter(p => !p.disabled).map(p => p.totalFeeBps))].sort((x, y) => x - y).map(bps).join(', ')} (from OroSwap’s factory contract).</> : <>The fees are <Unavailable reason={unavailable} short/> right now.</>} Plus a small network fee for each step you sign. <WhatsThis term="gas"/></p>},
       {title: 'Lockups', body: <p>None. You can swap any time and take your share out of a pool any time.{data?.farms.active ? ' A farm may set its own rules.' : ''}</p>},
       {title: 'Minimums', body: <p>None set by OroSwap for a swap or a pool share; the network fee still applies.</p>},
+      // Session AF (L1c, N5): each risk with its source (R2 §3, plan section 5 row 3, RECHECK B): OroSwap's docs, or the chain read in words.
       {title: 'Risks', body: <ul className="earn-risks">
-        <li><b>Impermanent loss, in plain words:</b> when one token’s price moves against the other, the pool sells some of the rising token for you as people swap. When you take your share out, you can have less value than if you had simply kept both tokens. The fees you earn can make up for it, or not. <VerifiedLink provider="oroswap" kind="docs-liquidity" className="text-link" mark="compact">OroSwap on liquidity</VerifiedLink></li>
-        <li>Small pools: a large swap moves the price a lot. Check the price impact before you sign.</li>
-        <li>Contract risk: a fault in a pool contract could lose its tokens.</li>
-        <li>Token risk: both tokens’ prices move. Check every token is the real one (see Safety below).</li>
+        <Risk link={<VerifiedLink provider="oroswap" kind="docs-liquidity" className="text-link" mark="compact">OroSwap on liquidity</VerifiedLink>}><b>Impermanent loss, in plain words:</b> when one token’s price moves against the other, the pool sells some of the rising token for you as people swap. When you take your share out, you can have less value than if you had simply kept both tokens. The fees you earn can make up for it, or not.</Risk>
+        <Risk chain="each pool’s depth above, read from the chain">Small pools: a large swap moves the price a lot. Check the price impact and the slippage limit before you sign. <WhatsThis term="pool-depth"/> <WhatsThis term="slippage"/></Risk>
+        <Risk chain="the pool contracts on ZIGChain, each one listed by OroSwap’s factory contract">Contract risk: a fault in a pool contract could lose its tokens.</Risk>
+        <Risk chain="OroSwap’s factory contract on ZIGChain, read 18 October 2026">OroSwap’s factory can pause a pool. Its owner is a multi-signature account on which two of three keys must agree.</Risk>
+        <Risk chain="the pools’ own prices, read from the chain">Price risk: both tokens’ prices move, and a pool with ZIG in it moves with ZIG.</Risk>
+        <Risk chain="each token’s full name (its denom) in ZIGChain’s own records; see Safety below">Token risk: a copy can carry a real token’s name. Check every token is the real one by its full denom before you swap or add it. <WhatsThis term="decoy"/></Risk>
       </ul>},
     ]}
     steps={[

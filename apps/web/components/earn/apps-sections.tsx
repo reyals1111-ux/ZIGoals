@@ -8,7 +8,9 @@ import {VerifiedLink} from '../links/verified-link';
 import {IllustrationSlot} from './illustrations/slot';
 import {LiveFigure, Unavailable, shown, type Shown} from './live-figure';
 import {OptionSection} from './option-section';
+import {Risk} from './risk';
 import {vaultHint} from './vaults-section';
+import {WhatsThis} from './whats-this';
 
 /**
  * Session AF chunk 2 (amendment 3, D8, H43, H84, H88): the ecosystem apps that are not a way to earn for most people today,
@@ -34,7 +36,7 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
     facts={[
       {label: 'Best for', value: 'Understanding a Nawa vault you already hold. Joining now means depending on an off-chain route that is closing.'},
       {label: 'Who runs it', value: 'Nawa Finance, through vault contracts on ZIGChain (its USDC vault runs on the same vault code as Valdora’s).'},
-      {label: 'Who holds the funds', value: 'Your vault shares sit in your wallet; the USDC vault’s money is deployed away from the chain via Zignaly, as DefiLlama describes it.'},
+      {label: 'Who holds the funds', value: <>Your vault shares sit in your wallet; the USDC vault’s money is deployed away from the chain via Zignaly, as DefiLlama describes it. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Nawa’s site did not show its eligibility or identity-check rules to ZIGoals (read 18 Oct 2026); its app shows its vaults only once a wallet is connected.'},
     ]}
     figures={<>
@@ -51,11 +53,14 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
       {title: 'Fees', body: <p>{vaults.phase === 'ok' && vaults.answer.data.nawaZig.status === 'ok' ? <>The stZIG vault reports a fee number of {formatNumber(vaults.answer.data.nawaZig.feeNumber)}; Nawa does not publish its unit (on Valdora’s contract the same number means 10 % of rewards).</> : <>The fee number is <Unavailable reason={vaults.phase === 'unavailable' ? vaults.reason : 'UPSTREAM_DOWN'} short/> right now.</>} Plus a small network fee in ZIG.</p>},
       {title: 'Lockups', body: <p>Leaving is a withdrawal request, paid out later; Nawa does not publish how long that takes.</p>},
       {title: 'Minimums', body: <p>Not published where ZIGoals could read them.</p>},
+      // Session AF (L1c, N5): each risk with its source (R2 §5.2, plan section 5 row 5, RECHECK A).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>Off-chain custody: the USDC vault’s money is with Zignaly’s private credit route, which is closing (above).</li>
-        <li>Credit risk: the businesses financed may repay late or not at all.</li>
-        <li>The asset: the USDC vault holds USDC on Noble, which Circle is winding down ({day(NOBLE_USDC.fullyPaused)} full pause). <VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink></li>
-        <li>Who can change the vaults: each has an admin account; when ZIGoals read the chain on {day('2026-10-18')}, each was a single key.</li>
+        <Risk link={<><VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">DefiLlama’s Nawa tracker</VerifiedLink> and <VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink></>}>Off-chain custody: the USDC vault’s money is with Zignaly’s private credit route, which is closing (above).</Risk>
+        <Risk link={<VerifiedLink provider="nawa" kind="defillama" className="text-link" mark="compact">DefiLlama’s Nawa tracker</VerifiedLink>}>Credit risk: the private credit it finances may be repaid late or not at all.</Risk>
+        <Risk link={<VerifiedLink provider="zig-finance" kind="circle-noble" className="text-link" mark="compact">Circle’s notice</VerifiedLink>}>The asset: the USDC vault holds USDC on Noble, which Circle is winding down ({day(NOBLE_USDC.fullyPaused)} full pause).</Risk>
+        <Risk chain={`each vault’s admin account on ZIGChain, read ${day('2026-10-18')}`}>Who can change the vaults: each has an admin account; when ZIGoals read the chain on {day('2026-10-18')}, each was a single key.</Risk>
+        <Risk link={<VerifiedLink provider="nawa" kind="site" className="text-link" mark="compact">Nawa’s site</VerifiedLink>}>Who may use it is unclear: Nawa’s site did not show its eligibility or identity-check rules when ZIGoals read it ({day('2026-10-18')}).</Risk>
+        <Risk chain={`the vault contracts on ZIGChain, which take withdrawal requests (read ${day('2026-10-18')})`}>Leaving is a request that Nawa pays out later, and how long that takes is not published.</Risk>
       </ul>},
     ]}
     stepsTitle="What you can do"
@@ -95,10 +100,13 @@ export function DefaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
       {title: 'Fees', body: <p>No fee is published in a form ZIGoals can check.</p>},
       {title: 'Lockups', body: <p>The site lists products of 7 to 180 days; its own figures do not agree with each other.</p>},
       {title: 'Minimums', body: <p>Not published.</p>},
+      // Session AF (L1c, N5): each risk with its source (R2 §5.4, plan section 5 row 7, RECHECK).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>Private: its terms, docs and audit were “coming soon” on the site when ZIGoals read it.</li>
-        <li>Credit risk: businesses may not pay their invoices.</li>
-        <li>Off-chain: the pools and the businesses are away from the chain; only a counter is on it.</li>
+        <Risk link={<VerifiedLink provider="defa-invoicemate" kind="site" className="text-link" mark="compact">DeFa’s site</VerifiedLink>}>Private: its terms, docs and audit were “coming soon” on the site when ZIGoals read it ({day(DEFA_SITE.readOn)}).</Risk>
+        <Risk link={<VerifiedLink provider="valdora" kind="vault-private-credit" className="text-link" mark="compact">Valdora’s Private Credit vault page</VerifiedLink>}>Credit risk: businesses may not pay their invoices. The vault deployed with DeFa says: “Capital is at risk.”</Risk>
+        <Risk chain={`DeFa’s counter contract on ZIGChain, which has no admin and reports one figure (read ${day('2026-10-18')})`}>Off-chain: the pools and the businesses are away from the chain; only a counter is on it, and nobody else checks it.</Risk>
+        <Risk link={<VerifiedLink provider="defa-invoicemate" kind="site" className="text-link" mark="compact">DeFa’s site</VerifiedLink>}>Its own figures disagree: the site lists products and yearly figures that do not match each other.</Risk>
+        <Risk link={<VerifiedLink provider="defa-invoicemate" kind="defillama" className="text-link" mark="compact">DeFa on DefiLlama</VerifiedLink>}>DefiLlama flags DeFa’s value as counted in tokens it may not price correctly.</Risk>
       </ul>},
     ]}
     stepsTitle="What you can do"
@@ -140,9 +148,13 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
       {title: 'Fees', body: <p>Not relevant while the app is halted.</p>},
       {title: 'Lockups', body: <p>Not relevant while the app is halted.</p>},
       {title: 'Minimums', body: <p>Not relevant while the app is halted.</p>},
+      // Session AF (L1c, N5): each risk with its source (R2 §5.3, plan section 5 row 6, RECHECK).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>The exploit: no post-mortem was found, so what went wrong and what was lost is not known to ZIGoals.</li>
-        <li>Lending in general: if your collateral falls in value, it can be sold (liquidated) to repay your loan. <VerifiedLink provider="permapod" kind="safety" className="text-link" mark="compact">Permapod’s safety page</VerifiedLink></li>
+        <Risk link={<VerifiedLink provider="permapod" kind="tracker-note" className="text-link" mark="compact">DefiLlama’s tracker note</VerifiedLink>}>The exploit: no post-mortem was found, so what went wrong and what was lost is not known to ZIGoals.</Risk>
+        <Risk link={<VerifiedLink provider="permapod" kind="safety" className="text-link" mark="compact">Permapod’s safety page</VerifiedLink>}>Lending in general: if your collateral falls in value, it can be sold (liquidated) to repay your loan.</Risk>
+        <Risk link={<VerifiedLink provider="permapod" kind="tracker-note" className="text-link" mark="compact">DefiLlama’s tracker note</VerifiedLink>}>Its main market was moved to a “residual sweeper” after the exploit; what is left in it is the value above, as DefiLlama counts it.</Risk>
+        <Risk chain={`its contracts’ admin account on ZIGChain, read ${day('2026-10-18')}`}>Who can change it: its contracts’ admin was a single key when ZIGoals read the chain.</Risk>
+        <Risk link={<VerifiedLink provider="permapod" kind="site" className="text-link" mark="compact">Permapod’s site</VerifiedLink>}>Its site still showed large figures of its own when ZIGoals read it ({day('2026-10-18')}), far from what DefiLlama counted that day.</Risk>
       </ul>},
     ]}
     stepsTitle="What you can do"
@@ -160,7 +172,7 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
 
 export function ZignalySection({now}: {now: number}) {
   return <OptionSection id="zignaly" eyebrow="Zignaly · closing" title="Zignaly is closing: how to withdraw"
-    lede="Zignaly is a copy-trading platform: traders invest your money for you and share the profit. It is closing, so nothing can be joined; if you still have money there, this is how to take it out before 1 December 2026."
+    lede={<>Zignaly is a copy-trading platform: traders invest your money for you and share the profit. It is closing, so nothing can be joined; if you still have money there, this is how to take it out before 1 December 2026. <WhatsThis term="copy-trading"/></>}
     logo={{src: '/ecosystem-logos/zignaly.png', alt: 'Zignaly site icon'}}
     tags={[{tone: 'paused', text: 'Closing'}, {tone: 'third', text: 'Zignaly holds the funds'}]}
     notice={<>
@@ -171,7 +183,7 @@ export function ZignalySection({now}: {now: number}) {
     facts={[
       {label: 'Best for', value: 'People who still have money on Zignaly. Nobody new: sign-ups stopped on 15 October 2026.'},
       {label: 'Who runs it', value: 'Zignaly, a company, off the chain.'},
-      {label: 'Who holds the funds', value: 'Zignaly does: it is custodial. Your money is in your Zignaly account, not in your own wallet.'},
+      {label: 'Who holds the funds', value: <>Zignaly does: it is custodial. Your money is in your Zignaly account, not in your own wallet. <WhatsThis term="custody"/></>},
       {label: 'Who can use it', value: 'Existing users only, to withdraw. Zignaly checks identity for large withdrawals.'},
     ]}
     figures={<LiveFigure id="zignaly-figures" label="Live figures" now={now} figure={{kind: 'unavailable', reason: 'NOT_PUBLISHED'}} hint="Zignaly publishes no public figures ZIGoals can read."/>}
@@ -179,10 +191,13 @@ export function ZignalySection({now}: {now: number}) {
       {title: 'Fees', body: <p>Zignaly’s own fees apply until it closes; see its notice.</p>},
       {title: 'Lockups', body: <p>Private Credit needs a withdrawal request by {day('2026-11-01')} and takes about a month to settle; the rest can be withdrawn until {day('2026-12-01')}.</p>},
       {title: 'Minimums', body: <p>As Zignaly’s withdrawal screen shows them.</p>},
+      // Session AF (L1c, N5): each risk with its source: Zignaly's own closure notice (R2 LB12 and §4, read 18 October 2026).
       {title: 'Risks', body: <ul className="earn-risks">
-        <li>Deadline: after {day('2026-12-01')} at 23:59 UTC the app closes.</li>
-        <li>Network: withdrawals are USDT on BNB Smart Chain (BEP20) only. Send them to an address on that network that your own wallet controls; the wrong network can lose them.</li>
-        <li>Custody: until you withdraw, Zignaly holds the money, not you.</li>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Deadline: after {day('2026-12-01')} at 23:59 UTC the app closes.</Risk>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>An earlier deadline for Private Credit: its withdrawal must be requested by {day('2026-11-01')}, and it takes about a month to settle.</Risk>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Network: withdrawals are USDT on BNB Smart Chain (BEP20) only. Send them to an address on that network that your own wallet controls; the wrong network can lose them.</Risk>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-notice" className="text-link" mark="compact">Zignaly’s notice</VerifiedLink>}>Custody: until you withdraw, Zignaly holds the money, not you.</Risk>
+        <Risk link={<VerifiedLink provider="zignaly" kind="closure-collection" className="text-link" mark="compact">Zignaly’s closure articles</VerifiedLink>}>Delays: a withdrawal of 10,000 USDT or more needs an identity check, and changing a password or two-factor setting pauses withdrawals for 24 hours, so leave time before the deadline.</Risk>
       </ul>},
     ]}
     stepsTitle="How to withdraw"

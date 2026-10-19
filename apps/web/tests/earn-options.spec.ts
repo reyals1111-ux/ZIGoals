@@ -20,7 +20,20 @@ test('every way to earn has the full anatomy; vault, pool and app figures are li
     await expect(s, id).toHaveAttribute('data-option', id);
     await expect(s.locator('.earn-facts > div'), id).toHaveCount(4);
     await expect(s.locator('.earn-columns .earn-subhead'), id).toHaveText(['Fees', 'Lockups', 'Minimums', 'Risks']);
-    expect(await s.locator('.earn-risks li').count(), id).toBeGreaterThanOrEqual(2);
+    // Session AF (L1c, N5; moved at greater strength, was "at least 2"): at least five risks in plain words, each with
+    // its source — a verified link the notes record as checked, or the on-chain read named in words.
+    const risks = s.locator('.earn-risks li');
+    expect(await risks.count(), id).toBeGreaterThanOrEqual(5);
+    for (const risk of await risks.all()) {
+      const kinds = (await risk.getAttribute('data-risk-source') ?? '').split(' ').filter(Boolean);
+      expect(kinds.length, `${id}: a risk without its source`).toBeGreaterThan(0);
+      const source = risk.locator('.earn-risk-source');
+      await expect(source, id).toHaveText(/^Source: \S.*\.$/);
+      const hrefs = await source.locator('a[href]').evaluateAll(els => els.map(a => a.getAttribute('href')!));
+      if (kinds.includes('link')) expect(hrefs.length, id).toBeGreaterThan(0);
+      for (const href of hrefs) expect(VERIFIED_URLS.has(href), `${id}: ${href}`).toBe(true);
+      if (kinds.includes('chain')) await expect(source, id).toContainText(/ZIGChain|the chain/);
+    }
     expect(await s.locator('.earn-steps li').count(), id).toBeGreaterThanOrEqual(2);
     await expect(s.locator('.earn-steps-time'), id).toContainText('How long:');
   }
