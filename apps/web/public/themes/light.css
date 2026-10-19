@@ -997,10 +997,10 @@
         --brand-blue: #459dff;
         --brand-violet: #9273ff;
         --brand-magenta: #f06dff;
-        --nebula-pink: #bc3583;
+        --nebula-pink: #ff74be;
         --nebula-warm: #ffad87;
         --nebula-emphasis: linear-gradient(105deg, var(--brand-cyan) 3%, var(--brand-blue) 32%, var(--brand-violet) 54%, var(--brand-magenta) 80%, var(--nebula-pink));
-        --nebula-headline: linear-gradient(100deg, #0e7783, #186dc3 31%, #7451da 49%, #b12ac0 70%, var(--nebula-pink) 91%, #a35935);
+        --nebula-headline: linear-gradient(100deg, #0e7783, #186dc3 31%, #7451da 49%, #b12ac0 70%, #bc3583 91%, #a35935);
         --cosmic-dark: #f2f5fa;
         --cosmic-glass: #f0f4f9eb;
         --cosmic-edge: #70cfff47;
@@ -5274,7 +5274,7 @@
         background-image: linear-gradient(100deg, #186dc3, #7451da)
     }
     .site-footer-word[data-pillar=health]:not(#\-) {
-        background-image: linear-gradient(100deg, #7451da, #b12ac0 70%, var(--nebula-pink, #bc3583))
+        background-image: linear-gradient(100deg, #7451da, #b12ac0 70%, #bc3583)
     }
     .site-footer-dot:not(#\-) {
         color: #4f5a8a
@@ -12062,7 +12062,7 @@
         --brand-blue-ink: #0f5daa;
         --brand-violet-ink: #6741c9;
         --brand-magenta-ink: #9f09ae;
-        --nebula-pink-ink: var(--nebula-pink);
+        --nebula-pink-ink: #a92073;
         --nebula-warm-ink: #904823;
         --cyan-ink: #026671;
         --violet-ink: #6741c9;
@@ -12807,7 +12807,7 @@
     --space-purple: #201945;
     --garden-dark: #0d2734;
     --surface-glass: #071020e8;
-    --nebula-pink: #ff74be;
+    --nebula-headline: linear-gradient(100deg, var(--brand-cyan), var(--brand-blue) 31%, var(--brand-violet) 49%, var(--brand-magenta) 70%, var(--nebula-pink) 91%, var(--nebula-warm));
     --cosmic-dark: #020918;
     --cosmic-glass: #031020eb;
     --text-strong: #f4f8ff;
@@ -12824,6 +12824,7 @@
     --brand-blue-ink: var(--brand-blue);
     --brand-violet-ink: var(--brand-violet);
     --brand-magenta-ink: var(--brand-magenta);
+    --nebula-pink-ink: var(--nebula-pink);
     --nebula-warm-ink: var(--nebula-warm);
     --cyan-ink: var(--cyan);
     --violet-ink: var(--violet);

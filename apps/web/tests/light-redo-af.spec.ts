@@ -34,8 +34,11 @@ test('by day: a white ground with a light mist, ink words, and the nebula’s fi
   await openDevice(page);
   const read = () => page.evaluate(() => {
     const cs = (sel: string) => { const el = document.querySelector(sel); return el ? getComputedStyle(el) : null; };
+    // A gradient heading on the day's ground, and one inside the night island of Today's hero.
+    const flows = [...document.querySelectorAll('main .nebula-flow:not(.is-figure)')], styleOf = (el?: Element) => el ? getComputedStyle(el) : null;
+    const day = styleOf(flows.find(el => !el.closest('.today-hero, .site-footer, .sidebar-destination'))), night = styleOf(flows.find(el => el.closest('.today-hero')));
     const sky = getComputedStyle(document.querySelector('.app-content')!, '::before');
-    return {body: getComputedStyle(document.body).backgroundColor, sky: sky.backgroundImage, h1: cs('.today-focus h2')!.color, quick: cs('.today-hero .primary, .hero-actions .primary')?.backgroundImage ?? '', heading: cs('main .nebula-flow:not(.is-figure)')?.backgroundImage ?? '', headingColor: cs('main .nebula-flow:not(.is-figure)')?.color ?? '',
+    return {body: getComputedStyle(document.body).backgroundColor, sky: sky.backgroundImage, h1: cs('.today-focus h2')!.color, quick: cs('.today-hero .primary, .hero-actions .primary')?.backgroundImage ?? '', heading: day?.backgroundImage ?? '', headingColor: day?.color ?? '', hero: night?.backgroundImage ?? '', heroColor: night?.color ?? '',
       focus: (document.querySelector('.today-focus') as HTMLElement).getBoundingClientRect().top + scrollY, copy: (document.querySelector('.today-hero-copy') as HTMLElement).getBoundingClientRect().top + scrollY};
   });
   await openIn(page, '/app', 'nebula'); const nebula = await read();
@@ -55,6 +58,9 @@ test('by day: a white ground with a light mist, ink words, and the nebula’s fi
   expect(n.length).toBeGreaterThanOrEqual(3);
   expect(l).toHaveLength(n.length);
   n.forEach((c, i) => expect(deeperSameHue(c, l[i]!), `${c} → ${l[i]}`).toBe(true));
+  // Inside a night island (Today's hero) the heading keeps Nebula's own flow.
+  expect(nebula.hero).not.toBe('');
+  expect(light.hero.replaceAll(light.heroColor, 'WORD')).toBe(nebula.hero.replaceAll(nebula.heroColor, 'WORD'));
   // A theme switch moves no box: the hero copy and "What is due now" stay where they are by night.
   expect(Math.abs(light.copy - nebula.copy)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(light.focus - nebula.focus)).toBeLessThanOrEqual(0.5);

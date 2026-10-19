@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST} from './build-themes.mjs';
+import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST, GRADIENT_TEXT_TOKENS} from './build-themes.mjs';
 import * as parity from '../../apps/web/tests/parity/classify.ts';
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'apps', 'web');
@@ -103,6 +103,14 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
       expect(rule, pillar).not.toBeNull();
       for (const hex of stops(rule[1])) expect(onWhite(hex), `${pillar} ${hex}`).toBeGreaterThanOrEqual(GRADIENT_TEXT_CONTRAST - 0.05);
     }
+    // only gradient tokens that paint nothing but gradient words take the role: a colour token used inside a gradient word
+    // (the pink of a flow) keeps its Nebula colour, so a fill built from it (the phone's quick-add button) is untouched
+    expect([...GRADIENT_TEXT_TOKENS].sort()).toEqual(['--nebula-figure', '--nebula-flow-mid', '--nebula-headline', '--slogan-gradient']);
+    expect(sheets.light).not.toMatch(/--nebula-pink: #(?!ff74be)[0-9a-f]{6}/);
+    // every gradient-word token defined at the root is given back its Nebula value inside the night islands
+    const islands = sheets.light.slice(sheets.light.indexOf(`:root[data-theme=light] :is(${ISLANDS.join(', ')})`));
+    for (const token of ['--nebula-flow-mid', '--nebula-figure', '--nebula-headline']) expect(islands, token).toMatch(new RegExp(`\\n\\s+${token}: linear-gradient\\(`));
+    expect(islands).toContain(`--nebula-flow-mid: ${flow};`);
     // the ZIGoals logo is a mark, not a gradient word: no day rule repaints its letters
     const logo = sheets.light.slice(sheets.light.indexOf('.logo-wordmark-letters:not'), sheets.light.indexOf('}', sheets.light.indexOf('.logo-wordmark-letters:not')));
     expect(logo).not.toContain('background');
