@@ -33,7 +33,7 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
 
 ## Gate C checklist (started Mon 19 Oct 19:04 Brussels on `49433538`, the owner's word: "start Gate C now"; tick as done, with the evidence file)
 - [ ] G1 full unit suite (`pnpm test`).
-- [ ] G2 full browser suite once, Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
+- [ ] G2 full browser suite once (after the L3b Checklist merge, H132), Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
 - [ ] G3 the WebKit set: **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
 - [ ] G4 layout audits in Nebula, Light and Dark at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
 - [ ] G4b Today's market watch (owner decision of 19 Oct, H131): `tests/market-watch-af.spec.ts` (320–1920 px, three themes, with and
@@ -84,6 +84,18 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 19:30 Brussels — the owner's Checklist redesign round before Gate C's final steps)
+- The owner's verdict (H132): the Checklist becomes a full-screen, Duolingo-style overlay with living motion. Helper lane
+  L3b (`af/checklist2`, its own worktree, port 3104, scratch `$SP/l3b/`) builds it; after each iteration a fresh design
+  critic compares its captures (`$SP/l3b/iter-<n>/`) with Duolingo's path; at least two iterations, until "stand-alone
+  premium app" quality; then merge, regenerate the theme sheets, and continue Gate C with the new Checklist in the suite,
+  audits, captures and reviews; the after captures go to `review/session-af-screens`.
+- Gate C so far (on 196fa934): G1 unit, G9 scans, G6 weights, G10 live check — all green (re-run on the final head). The
+  full suite was stopped at 476 of 3,290 (none failed) for the redesign. The security review and the ledger pass (both
+  read-only) keep running; their Checklist-related points are re-checked after the merge.
+- CI: webkit-earn's diagnostics pushed (`859648d4`); the WebKit Checklist parity (one extra element in the first
+  snapshot, probably the jump bubble) is read on the run that includes L5c.
 
 ## Resume here (2026-10-19 19:05 Brussels — Gate C started on 49433538; code frozen)
 - The owner started Gate C early (all parts built, both polish rounds merged). Order: G1 unit, G9 scans, a fresh
