@@ -82,6 +82,33 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-19 15:35 Brussels — suite findings fixed; push after the last check)
+- Full Chromium suite on `5fdad4ac`: 2,584 passed / 17 failed / 645 skipped (1.4 h; `$SP/logs/full-1.log`); every failure
+  fixed or moved (`05f339c2`, `66609d71`), two were local-time-zone only (local runs now use `TZ=UTC` like CI:
+  `$SP/bin/full-suite.sh`). Rerun of failed + touched specs: 251 passed.
+- CI on `c224bbe1` (run 39249750766): fixed in `66609d71` (Settings switch rows as grids — the diagnostic named "Validator
+  alerts"; star colour; timeline handle; Wealth door; zigi-local-answers settle; parity collector) and `1620f626`
+  (TIER 3 CI: web checks 10 → 15 min, H127). Open: webkit-earn's Trusted Types report during Earn's load — the spec now
+  prints the browser's violation reports; read them on the next CI run.
+- Running: `$SP/logs/lead-integ9.log` (the last edits). Then push; then the PR comment at 18:00 (draft in the scratchpad
+  `pr-comment-mon19.md`, update with the suite numbers).
+- Helper L1c still running (`af/earn3`).
+
+## Resume here (2026-10-19 14:25 Brussels — ledger triage; full suite still running; L1c helper running)
+- Pushed `c224bbe1` (cancelled `70f76578`'s superseded CI run so the latest head runs next). Since 13:45: `05f339c2`
+  (streak role, path geometry, QA-27 moved, Stories covers, Staking CTA), `07984cd8` (TIER 3 labels: threat model AF rows,
+  LEGAL §6.9, decoy "ZIG" beside wallet lists, H126), `c224bbe1` (Wealth's door to Earn).
+- Ledger draft (all 236 rows, read-only helper): done 190 / partly 16 / not done 0 / Gate C 28 / owner 2; triage in
+  `$SP/ledger/README.txt`; the full tables are in the session transcript (re-run the helper on the final head for F1).
+- Helper L1c (`af/earn3`, agent `aad578dbf00b11d3a`, port 3104): N1 glossary taps, N5 five sourced risks, P1.19 ZIGi in
+  guide mode, P1.23 optional. Merge when it reports, then regenerate the theme sheets.
+- Full Chromium suite on `5fdad4ac` (`$SP/logs/full-1.log`): failures so far a11y streak role (fixed `05f339c2`),
+  QA-27 and motion-polish (H113's goal with no contribution; both moved at equal strength, uncommitted motion-polish),
+  earn-hub chip spy (fixed in `earn-chips.tsx`, uncommitted), theme-parity stars (`--star` collided with the root token;
+  renamed `--checklist-star`, uncommitted) and stories (my own contamination: theme sheets regenerated mid-run; never touch
+  `apps/web/public/` while a run uses the checkout's server).
+- After the suite: regenerate theme sheets, rebuild 3101, rerun every failed spec plus the touched ones, commit, push.
+
 ## Resume here (2026-10-19 13:45 Brussels — CI's WebKit findings fixed; design critique round 1 done; full Chromium suite running)
 - Pushed `5fdad4ac`: `c1a273c3` (staking form re-reads a pre-fill, H120), `eec7c6e3` (CI run 39237963419's WebKit
   failures: uncaught chunk import H122, parity collected at rest H123, Settings rows; zigi-oneline-z's diagnostic now names
