@@ -33,6 +33,10 @@ const registry = {
     {kind: "keplr-staking", url: "https://wallet.keplr.app/chains/zigchain?modal=staking&chain=zigchain-1&step_id=2", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://github.com/chainapsis/keplr-chain-registry/blob/main/cosmos/zigchain.json", allowQuery: true},
     {kind: "explorer", url: "https://zigscan.org/", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md"},
     {kind: "explorer-validators", url: "https://zigscan.org/validators", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://github.com/ZIGChain/docs/blob/main/docs/users/tools/block-explorers.md"},
+    // Session AF chunk 2 (L1): read once each with a plain GET on 2026-10-18 at 23:58 UTC.
+    {kind: "keplr-get", url: "https://www.keplr.app/get", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://www.keplr.app/"},
+    {kind: "skip-go", url: "https://go.skip.build/", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://docs.skip.build/"},
+    {kind: "circle-noble", url: "https://www.circle.com/blog/circle-is-discontinuing-support-for-usdc-and-cctp-v1-on-noble", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://www.circle.com/blog"},
   ],
   valdora: [
     {kind: "stake", url: "https://valdora.finance/stake", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://valdora.finance/"},
@@ -45,6 +49,10 @@ const registry = {
     {kind: "fees", url: "https://docs.valdora.finance/economics-and-incentives", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://docs.valdora.finance/"},
     {kind: "unstaking", url: "https://docs.valdora.finance/liquid-staking/unstaking-and-redemption", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://docs.valdora.finance/"},
     {kind: "defillama", url: "https://defillama.com/protocol/valdora-finance", checkedAt: "2026-10-18", check: "unreadable-by-automation", httpStatus: 403, source: "https://api.llama.fi/protocol/valdora-finance"},
+    // Session AF chunk 2 (L1): the three USDC vault pages on Valdora's site, read once each on 2026-10-18 at 23:58 UTC.
+    {kind: "vault-stablecoin-yield", url: "https://valdora.finance/vault/stablecoin-yield", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://valdora.finance/vaults"},
+    {kind: "vault-private-credit", url: "https://valdora.finance/vault/private-credit", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://valdora.finance/vaults"},
+    {kind: "vault-core-income", url: "https://valdora.finance/vault/core-income", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://valdora.finance/vaults"},
   ],
   oroswap: [
     {kind: "swap", url: "https://app.oroswap.org/swap", checkedAt: "2026-10-18", check: "ok", httpStatus: 200, source: "https://www.oroswap.org/"},
