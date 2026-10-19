@@ -7,6 +7,7 @@ import {VerifiedLink} from '../links/verified-link';
 import {GuideLink, type Guide} from './guide-panel';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
+import {IllustrationSlot} from './illustrations/slot';
 
 /**
  * Session AF (L1, ADR-028 H84): OroSwap, ZIGChain's exchange: swaps, and pools that share the swap fees. Each pool's
@@ -31,7 +32,7 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
       {label: 'Who can use it', value: 'Anyone with a ZIGChain wallet, under OroSwap’s terms and the rules where you live.'},
     ]}
     figures={<>
-      {(data?.pools ?? [{id: 'zig-usdc', label: 'ZIG / USDC'}, {id: 'zig-atom', label: 'ZIG / ATOM'}, {id: 'stzig-zig', label: 'stZIG / ZIG'}] as {id: string; label: string}[]).map(p => <LiveFigure key={p.id} id={`oroswap-${p.id}`} label={`${p.label} pool`} now={now}
+      {(data?.pools ?? [{id: 'zig-usdc', label: 'ZIG / USDC.n (Noble)'}, {id: 'zig-usdc-inj', label: 'ZIG / USDC.inj (Injective)'}, {id: 'zig-atom', label: 'ZIG / ATOM'}, {id: 'stzig-zig', label: 'stZIG / ZIG'}] as {id: string; label: string}[]).map(p => <LiveFigure key={p.id} id={`oroswap-${p.id}`} label={`${p.label} pool`} now={now}
         figure={shown(oroswap, d => { const pool = d.pools.find(x => x.id === p.id); return pool ? pool.reserves.map(r => tokenAmount(r.amount, r.decimals, r.symbol, {compact: true})).join(' + ') : null; })}
         hint={(() => { const pool = data?.pools.find(x => x.id === p.id); return pool ? <>Pool price: 1 {pool.price.base} = {decimal(pool.price.value, pool.price.value.startsWith('0.') ? 5 : 3)} {pool.price.quote}. Fee on each swap: {bps(pool.feeBps)}.</> : undefined; })()}/>)}
       <LiveFigure id="oroswap-farms" label="Farms (extra rewards for pools)" now={now} figure={shown(oroswap, d => d.farms.active ? `${d.farms.activePools} running now` : 'None running now')}/>
@@ -56,6 +57,8 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
       {text: data?.farms.active ? 'A farm is running: you can stake your LP tokens in it for extra rewards, as OroSwap shows.' : 'No farm is running right now, so pools earn swap fees only.'},
       {text: 'To leave a pool: Portfolio, Remove liquidity, choose how much.'},
     ]}
+    stepsTime="about 3 minutes for a swap; about 5 to add to a pool. A first visit shows OroSwap’s terms, which you accept or not yourself."
+    illustration={<><IllustrationSlot set="oroswap-swap"/><IllustrationSlot set="oroswap-pools"/></>}
     actions={<>
       <GuideLink guide={OROSWAP_GUIDE}/>
       <GuideLink guide={OROSWAP_POOL_GUIDE} className="secondary"/>

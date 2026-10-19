@@ -1,6 +1,6 @@
 import * as z from 'zod';
 import {UNAVAILABLE_REASONS, liveEnvelopeSchema, type UnavailableReason} from './live/envelope';
-import type {ChainData, DefillamaData, OroswapData, ValdoraData} from './live/types';
+import type {ChainData, DefillamaData, MeasuredData, OroswapData, ValdoraData, VaultsData} from './live/types';
 
 /**
  * Session AF (L1): the Earn page's reads, all same-origin (the app's own /api routes; the browser never talks to an LCD
@@ -12,9 +12,12 @@ export const EARN_FAMILIES = Object.freeze({
   oroswap: {path: '/api/earn/oroswap', pollMs: 120_000},
   defillama: {path: '/api/earn/defillama', pollMs: 600_000},
   validators: {path: '/api/chain/validators?network=zigchain-1', pollMs: 120_000},
+  // Session AF chunk 2: the vault products, and the measured staking figure (a 10,000-block window: read every 10 minutes).
+  vaults: {path: '/api/earn/vaults', pollMs: 300_000},
+  measured: {path: '/api/earn/measured', pollMs: 600_000},
 } as const);
 export type EarnFamily = keyof typeof EARN_FAMILIES;
-export type FamilyData = {chain: ChainData; valdora: ValdoraData; oroswap: OroswapData; defillama: DefillamaData; validators: ValidatorsAnswer};
+export type FamilyData = {chain: ChainData; valdora: ValdoraData; oroswap: OroswapData; defillama: DefillamaData; validators: ValidatorsAnswer; vaults: VaultsData; measured: MeasuredData};
 /** A good answer as the page shows it: its source (a name; the host that answered when the route names it), block and times. */
 export type LiveAnswer<T> = {source: {name: string; origin?: string}; height?: string; observedAt?: string; fetchedAt: string; stale: boolean; reason?: UnavailableReason; data: T};
 /** What the page knows about a family right now. `reason` comes from the route, or from the page when the route itself failed. */
@@ -32,7 +35,7 @@ async function get(url: string): Promise<{status: number; body: unknown}> {
   try { return {status: response.status, body: JSON.parse(text)}; } catch { return {status: response.status, body: null}; }
 }
 const envelope = liveEnvelopeSchema(z.record(z.string(), z.unknown()));
-/** One of the four /api/earn/* families, as a page state. */
+/** One of the /api/earn/* families, as a page state. */
 export async function readEarn<F extends Exclude<EarnFamily, 'validators'>>(family: F): Promise<LiveState<FamilyData[F]>> {
   let got: {status: number; body: unknown};
   try { got = await get(EARN_FAMILIES[family].path); } catch (error) { return plain(error instanceof Error && error.name === 'TimeoutError' ? 'TIMEOUT' : 'UPSTREAM_DOWN'); }
