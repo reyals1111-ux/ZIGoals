@@ -18,13 +18,18 @@ import './today-earn-card.css';
  * dismissed on this device (`zigoals:earn-path:v1` todayCard) and brought back from the Earn page or Settings. One DOM
  * root, carrying `hidden` whenever it does not show, so Today's layout never shifts. Exported for the lead to mount.
  */
-export function TodayEarnCard(layout: Partial<LayoutAttrs>) {
+/** Whether the card shows now (and the records it reads): Today's "For you" list adds the card only while it shows. */
+export function useTodayEarnCard() {
   const path = useDeviceRecord(EARN_PATH), journal = useDeviceRecord(STAKING_JOURNAL), platform = usePlatform();
-  const [error, setError] = useState('');
   const state = useMemo(() => todayCardState({
     loaded: path.loaded && journal.loaded && platform.loaded, unreadable: path.unreadable, record: path.data,
     positions: platform.error ? [] : platform.data.positions, journal: journal.unreadable ? [] : stakingEntriesOf(journal.data),
   }), [path.loaded, path.unreadable, path.data, journal.loaded, journal.unreadable, journal.data, platform.loaded, platform.error, platform.data]);
+  return {state, path};
+}
+export function TodayEarnCard(layout: Partial<LayoutAttrs>) {
+  const {state, path} = useTodayEarnCard();
+  const [error, setError] = useState('');
   const shown = state === 'shown';
   const dismiss = () => { try { path.update(setTodayCard('dismissed')); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
   return <section {...layout} className="panel today-earn-card" aria-labelledby="today-earn-title" data-earn-card={state} hidden={!shown || undefined}>
@@ -33,9 +38,9 @@ export function TodayEarnCard(layout: Partial<LayoutAttrs>) {
       <div className="today-earn-body">
         <p className="eyebrow">Earn · start here</p>
         <h2 id="today-earn-title">Learn to stake, earn and swap — in 30 minutes</h2>
-        <p>Six steps from no wallet to your first stake, with a free practice round first. You sign in your own wallet; ZIGoals never holds your keys.</p>
+        <p className="today-earn-lede">Six steps from no wallet to your first stake, with a free practice round first. You sign in your own wallet; ZIGoals never holds your keys.</p>
         <p className="today-earn-actions"><Link className="primary" href="/app/earn#start-here">Start here</Link> <button type="button" className="secondary" onClick={dismiss}>Not now</button></p>
-        <p className="fine">“Not now” hides this card on this device; Earn’s Start-here brings it back.</p>
+        <p className="fine today-earn-note">“Not now” hides this card on this device; Earn’s Start-here brings it back.</p>
         {error && <p role="alert" className="fine">{error}</p>}
       </div>
     </>}

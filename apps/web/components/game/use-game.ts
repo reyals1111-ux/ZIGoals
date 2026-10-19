@@ -2,6 +2,7 @@
 import {useMemo} from 'react';
 import {useDeviceRecord} from '../ai/use-device-record';
 import {CHECKLIST_DAYS} from '../../lib/checklist/schema';
+import {EARN_ACADEMY} from '../../lib/earn/records';
 import {useHabits} from '../habits/use-habits';
 import {useHealth} from '../health/use-health';
 import {usePlatform} from '../platform/use-platform';
@@ -17,13 +18,13 @@ import {CELEBRATIONS} from '../../lib/celebrations';
 
 /** Everything the Journey page and the cards show, derived from the journals on every render (nothing stored but the switch and what was seen). */
 export function useGame() {
-  const game = useDeviceRecord(GAME), celebrations = useDeviceRecord(CELEBRATIONS), checklistDays = useDeviceRecord(CHECKLIST_DAYS);
+  const game = useDeviceRecord(GAME), celebrations = useDeviceRecord(CELEBRATIONS), checklistDays = useDeviceRecord(CHECKLIST_DAYS), earnAcademy = useDeviceRecord(EARN_ACADEMY);
   const habits = useHabits(), health = useHealth(), platform = usePlatform(), weekly = useWeeklyReview(), view = usePagesView();
   const enabled = game.loaded && !game.unreadable && game.data.enabled;
   const loaded = habits.loaded && health.loaded && game.loaded;
   const today = habits.today;
   // Session AF (L3): the Checklist's sealed days feed its XP, badges and celebrations (lib/game reads `checklist`).
-  const stores = useMemo(() => ({habits: habits.data, health: health.data, platform: platform.data, weekly: weekly.data, ...(checklistDays.loaded && !checklistDays.unreadable ? {checklist: checklistDays.data} : {})}), [habits.data, health.data, platform.data, weekly.data, checklistDays.loaded, checklistDays.unreadable, checklistDays.data]);
+  const stores = useMemo(() => ({habits: habits.data, health: health.data, platform: platform.data, weekly: weekly.data, ...(checklistDays.loaded && !checklistDays.unreadable ? {checklist: checklistDays.data} : {}), ...(earnAcademy.loaded && !earnAcademy.unreadable ? {earnAcademy: earnAcademy.data} : {})}), [habits.data, health.data, platform.data, weekly.data, checklistDays.loaded, checklistDays.unreadable, checklistDays.data, earnAcademy.loaded, earnAcademy.unreadable, earnAcademy.data]);
   const pages = useMemo(() => ['habits', 'health', 'goals', 'wealth', 'today'].filter(p => !view.hidden.includes(p as never)), [view.hidden]);
   const derived = useMemo(() => {
     if (!loaded) return null;

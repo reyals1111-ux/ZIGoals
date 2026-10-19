@@ -10,3 +10,12 @@
 .today-checklist-line { margin: 0; font-size: 16px; }
 .today-checklist-nudge { margin: 0; font-size: 15px; color: var(--muted, #a4b2cd); }
 .today-checklist-open { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 650; }
+/* Session AF (the lead, today-screens ceiling): tighter on a phone — the same parts, closer together, the link beside the
+   next dot's line — so Today stays short. */
+@media (max-width: 767.98px) {
+  .today-checklist-card { gap: 6px; padding-block: 14px; }
+  .today-checklist-mark { width: 30px; height: 30px; }
+  .today-checklist-title { font-size: 18px; }
+  .today-checklist-line { font-size: 15px; }
+  .today-checklist-open { min-height: 44px; justify-self: start; }
+}

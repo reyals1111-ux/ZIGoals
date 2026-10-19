@@ -7,4 +7,15 @@
 .today-earn-body h2 { margin: 2px 0 8px; font-size: clamp(20px, 1.6vw + 10px, 26px); }
 .today-earn-body p { margin: 0 0 10px; color: var(--text-secondary); line-height: 1.5; }
 .today-earn-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-@media (max-width: 767.98px) { .today-earn-card { grid-template-columns: minmax(0, 1fr); } .today-earn-actions > * { flex: 1 1 100%; } }
+/* Session AF (the lead, today-screens ceiling): on a phone the card is one compact block — the mark beside the title and
+   both buttons; the lede and the note stay on larger screens and on the Earn page itself, so Today stays short. */
+@media (max-width: 767.98px) {
+  .today-earn-card { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding-block: 14px; }
+  .today-earn-mark { width: 40px; height: 40px; }
+  .today-earn-mark .earn-glyph-mark { width: 30px; height: 30px; }
+  .today-earn-body h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.25; }
+  .today-earn-body .eyebrow { margin-bottom: 2px; }
+  .today-earn-lede, .today-earn-note { display: none; }
+  .today-earn-actions { margin: 0; gap: 8px; }
+  .today-earn-actions > * { flex: 1 1 0; min-height: 44px; }
+}

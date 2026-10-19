@@ -1338,6 +1338,48 @@
         background: #01050f99
     }
 }
+/*  components/earn-dock/earn-dock.css  */
+@scope (:root[data-theme=dark]) {
+    .earn-dock-button:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent);
+        background: radial-gradient(120% 120% at 30% 20%, #0d0934, #020313 70%);
+        box-shadow: 0 14px 34px -14px rgba(60, 40, 160, .8), 0 0 0 1px rgba(255, 255, 255, .04) inset;
+        color: var(--text, #eef1ff)
+    }
+    .earn-dock-fold:not(#\-)::after {
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--panel, #020412) 94%, transparent);
+        border: 1px solid var(--line, #2a325a);
+        color: var(--text, #eef1ff)
+    }
+    .earn-dock-edge:not(#\-) {
+        border: 1px solid color-mix(in srgb, var(--violet, #8b7cff) 55%, transparent);
+        border-right: 0;
+        border-radius: 16px 0 0 16px;
+        background: radial-gradient(140% 120% at 30% 20%, #0d0934, #020313 75%);
+        box-shadow: 0 10px 26px -12px rgba(60, 40, 160, .8);
+        color: var(--text, #eef1ff)
+    }
+    .earn-dock-app:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, #ffd27a 45%, transparent);
+        background: radial-gradient(120% 120% at 30% 20%, #071229, #01040f 72%);
+        box-shadow: 0 10px 26px -12px rgba(255, 210, 122, .55), 0 0 0 4px #ffd27a10;
+        color: var(--text, #eef1ff)
+    }
+    .earn-dock-app-label:not(#\-) {
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--panel, #020412) 94%, transparent);
+        border: 1px solid var(--line, #2a325a)
+    }
+    .earn-dock-badge:not(#\-) {
+        border-radius: 999px;
+        background: #01030e;
+        border: 1px solid #ffd27a80;
+        color: #ffd27a
+    }
+}
 /*  components/earn/earn.css  */
 @scope (:root[data-theme=dark]) {
     .earn-page:not(#\-) {
@@ -1411,6 +1453,50 @@
             border: 1px solid #7fc8ff26;
             background: #01030d
         }
+    }
+    .earn-notice:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid #ffb27a66;
+        background: linear-gradient(120deg, #0e050799, #020512d9)
+    }
+    .earn-agreement[data-apr-agreement="disagree"]:not(#\-) {
+        border-color: #ffb27a90;
+        background: #0e050766
+    }
+    .earn-start-panel:not(#\-), .earn-lesson:not(#\-) {
+        border-radius: 16px;
+        background: #01030df2;
+        border: 1px solid #ffd27a40;
+        color: var(--text-secondary)
+    }
+    .earn-start-warn:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #ffb27a66;
+        background: #0e050766
+    }
+    .earn-illustration-slot:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid #7fc8ff26;
+        background: #01030d
+    }
+    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+        .earn-apps-strip .earn-dock-app-face:not(#\-) {
+            border-radius: 50%;
+            border: 1px solid #ffd27a66;
+            background: radial-gradient(120% 120% at 30% 20%, #071229, #01040f 72%)
+        }
+    }
+}
+/*  components/earn/today-earn-card.css  */
+@scope (:root[data-theme=dark]) {
+    .today-earn-card:not(#\-) {
+        border-color: #ffd27a40;
+        background: linear-gradient(150deg, #030718f2, #01030ef5 60%, #060217f2)
+    }
+    .today-earn-mark:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid #ffd27a55;
+        background: radial-gradient(circle at 35% 30%, #071229, #01040f 70%)
     }
 }
 /*  components/ecosystem-directory.css  */

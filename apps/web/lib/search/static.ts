@@ -18,7 +18,7 @@ export const PAGES: readonly SearchItem[] = [
   {id: 'page:wealth', kind: 'page', title: 'Wealth', href: '/app/wealth', keywords: ['assets', 'net worth', 'accounts', 'debts']},
   {id: 'page:calculator', kind: 'page', title: 'Compound interest calculator', subtitle: 'Wealth', href: '/app/wealth/calculator', keywords: ['interest', 'savings', 'growth', 'compound', 'invest']},
   {id: 'page:markets', kind: 'page', title: 'Markets', href: '/app/markets', keywords: ['prices', 'crypto', 'stocks', 'watchlist']},
-  {id: 'page:earn', kind: 'page', title: 'Earn', href: '/app/earn', keywords: ['earn', 'staking', 'stake', 'apr', 'yield', 'valdora', 'stzig', 'oroswap', 'liquidity', 'validators', 'zig finance']},
+  {id: 'page:earn', kind: 'page', title: 'Earn', href: '/app/earn', keywords: ['earn', 'staking', 'stake', 'apr', 'yield', 'valdora', 'stzig', 'oroswap', 'liquidity', 'validators', 'zig finance', 'start here', 'academy', 'vault', 'usdc', 'stablecoin', 'governance', 'zignaly', 'permapod', 'nawa']},
   {id: 'page:staking', kind: 'page', title: 'Staking', href: '/app/staking', keywords: ['zig', 'validators', 'rewards']},
   {id: 'page:portfolio', kind: 'page', title: 'Portfolio', href: '/app/portfolio', keywords: ['returns', 'performance']},
   {id: 'page:ecosystem', kind: 'page', title: 'Ecosystem', href: '/app/ecosystem', keywords: ['zigchain', 'apps']},

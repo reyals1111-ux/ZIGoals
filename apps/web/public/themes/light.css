@@ -3371,6 +3371,85 @@
         background: #eff2f899
     }
 }
+/*  components/earn-dock/earn-dock.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .earn-dock-button:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, #8362ec 55%, transparent);
+        background: radial-gradient(120% 120% at 30% 20%, #e9ebfc, #f0f2fb 70%);
+        box-shadow: 0 14px 34px -14px #393a5752, 0 0 0 1px #9e9e9e06 inset;
+        color: var(--text, #0d0f18)
+    }
+    .earn-dock-button:hover:not(#\-), .earn-dock-button:focus-visible:not(#\-) {
+        box-shadow: 0 18px 40px -14px #5a46c87e
+    }
+    .earn-dock-button:focus-visible:not(#\-) {
+        outline: 2px solid #03919f;
+        outline-offset: 3px
+    }
+    .earn-dock-button[aria-expanded=true]:not(#\-) {
+        border-color: color-mix(in srgb, #b26e27 70%, transparent)
+    }
+    .earn-dock-button .earn-dock-mark:not(#\-) {
+        filter: drop-shadow(0 0 6px #b06bff4d) drop-shadow(0 0 2px #d38c4938)
+    }
+    .earn-dock-fold:focus-visible:not(#\-) {
+        outline: 2px solid #03919f;
+        outline-offset: -2px
+    }
+    .earn-dock-fold:not(#\-)::after {
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--panel, #eff2fa) 94%, transparent);
+        border: 1px solid var(--line, #2a325a);
+        color: var(--text, #0d0f18)
+    }
+    .earn-dock-edge:not(#\-) {
+        border: 1px solid color-mix(in srgb, #8362ec 55%, transparent);
+        border-right: 0;
+        border-radius: 16px 0 0 16px;
+        background: radial-gradient(140% 120% at 30% 20%, #e9ebfc, #f0f2fb 75%);
+        box-shadow: 0 10px 26px -12px #393a5752;
+        color: var(--text, #0d0f18)
+    }
+    :scope[data-zigi-side=left] .earn-dock-edge:not(#\-) {
+        border-left: 0;
+        border-right: 1px solid color-mix(in srgb, #8362ec 55%, transparent);
+        border-radius: 0 16px 16px 0
+    }
+    .earn-dock-edge:focus-visible:not(#\-) {
+        outline: 2px solid #03919f;
+        outline-offset: 2px
+    }
+    .earn-dock-app:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid color-mix(in srgb, #b26e27 45%, transparent);
+        background: radial-gradient(120% 120% at 30% 20%, #e7ecf6, #f0f3f9 72%);
+        box-shadow: 0 10px 26px -12px #d38c494d, 0 0 0 4px #d38c4909;
+        color: var(--text, #0d0f18)
+    }
+    .earn-dock-app:hover:not(#\-), .earn-dock-app:focus-visible:not(#\-) {
+        border-color: #b26e27;
+        box-shadow: 0 12px 30px -10px #d38c4969
+    }
+    .earn-dock-app:focus-visible:not(#\-) {
+        outline: 2px solid #03919f;
+        outline-offset: 3px
+    }
+    .earn-dock-app-face .earn-glyph-mark .ha-ink-c:not(#\-) {
+        fill: #4992a1
+    }
+    .earn-dock-app-label:not(#\-) {
+        border-radius: 8px;
+        background: color-mix(in srgb, var(--panel, #eff2fa) 94%, transparent);
+        border: 1px solid var(--line, #2a325a)
+    }
+    .earn-dock-badge:not(#\-) {
+        border-radius: 999px;
+        background: #f0f3f9;
+        border: 1px solid #b26e27b3;
+        color: #824c0e
+    }
+}
 /*  components/earn/earn.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
     .earn-page:not(#\-) {
@@ -3558,6 +3637,138 @@
             border-radius: 3px;
             background: #71b2e455
         }
+    }
+    .earn-notice:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid #b36c348f;
+        background: linear-gradient(120deg, #f4eff099, #eff2f8d9)
+    }
+    .earn-agreement:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #1b957e77;
+        color: var(--text-secondary)
+    }
+    .earn-agreement[data-apr-agreement="disagree"]:not(#\-) {
+        border-color: #b36c34ca;
+        background: #f4eff066
+    }
+    .earn-start:not(#\-), .earn-academy:not(#\-) {
+        background: var(--earn-glass);
+        border-color: #b26e2747
+    }
+    .earn-start-list li[data-done] b:not(#\-) {
+        color: #126a59
+    }
+    .earn-start-panel:not(#\-), .earn-lesson:not(#\-) {
+        border-radius: 16px;
+        background: #f0f3f9f2;
+        border: 1px solid #b26e275a;
+        color: var(--text-secondary)
+    }
+    .earn-start-warn:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #b36c348f;
+        background: #f4eff066
+    }
+    .earn-start-seen:not(#\-) {
+        border-top: 1px solid #3e87bb35
+    }
+    .earn-start-seen[data-how="seen"] b:not(#\-), .earn-start-seen[data-how="marked"] b:not(#\-) {
+        color: #126a59
+    }
+    .earn-quiz h4:not(#\-) {
+        color: #07101c
+    }
+    .earn-quiz fieldset:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid #3e87bb35
+    }
+    .earn-quiz fieldset[data-right]:not(#\-) {
+        border-color: #1b957eb3
+    }
+    .earn-quiz fieldset[data-wrong]:not(#\-) {
+        border-color: #b36c34ca
+    }
+    .earn-illustration-slot:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid #3e87bb35;
+        background: #f0f3f9
+    }
+    .earn-illustration-slot > summary:not(#\-) {
+        color: #136672
+    }
+    .earn-illustration-svg .il-host:not(#\-) {
+        fill: #23334e
+    }
+    .earn-illustration-svg .il-card:not(#\-) {
+        fill: #101c36;
+        stroke: #448dc133
+    }
+    .earn-illustration-svg .il-field:not(#\-) {
+        fill: #0b1428;
+        stroke: #448dc140
+    }
+    .earn-illustration-svg .il-dim:not(#\-) {
+        fill: #0d152a;
+        stroke: #448dc11a
+    }
+    .earn-illustration-svg .il-text:not(#\-) {
+        fill: #293346
+    }
+    .earn-illustration-svg .il-muted:not(#\-) {
+        fill: #23334e
+    }
+    .earn-illustration-svg .il-strong:not(#\-) {
+        fill: #30333a
+    }
+    .earn-illustration-svg .il-gold:not(#\-) {
+        fill: #b9742e
+    }
+    .earn-illustration-svg .il-btn rect:not(#\-) {
+        fill: #17264a;
+        stroke: #448dc155
+    }
+    .earn-illustration-svg .il-btn text:not(#\-) {
+        fill: #2a3345
+    }
+    .earn-illustration-svg .il-hot rect:not(#\-) {
+        fill: #3a2a12;
+        stroke: #b9742e
+    }
+    .earn-illustration-svg .il-hot text:not(#\-) {
+        fill: #b9742e
+    }
+    .earn-illustration-svg .il-ring:not(#\-) {
+        fill: none;
+        stroke: #b9742e
+    }
+    .earn-illustration-svg .il-mark circle:not(#\-) {
+        fill: #b9742e
+    }
+    .earn-illustration-svg .il-lines rect:not(#\-) {
+        fill: #448dc130
+    }
+    @media (max-width: 767.98px), (pointer: coarse) and (max-height: 500px) {
+        .earn-apps-strip .earn-dock-app-face:not(#\-) {
+            border-radius: 50%;
+            border: 1px solid #b26e278f;
+            background: radial-gradient(120% 120% at 30% 20%, #e7ecf6, #f0f3f9 72%)
+        }
+    }
+}
+/*  components/earn/today-earn-card.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .today-earn-card:not(#\-) {
+        border-color: #b26e275a;
+        background: linear-gradient(150deg, #ecf0f8f2, #f0f3f9f5 60%, #f1f0fbf2)
+    }
+    .today-earn-mark:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid #b26e2777;
+        background: radial-gradient(circle at 35% 30%, #e7ecf6, #f0f3f9 70%)
+    }
+    .today-earn-mark .earn-glyph-mark .ha-ink-c:not(#\-) {
+        fill: #4992a1
     }
 }
 /*  components/ecosystem-directory.css  */
