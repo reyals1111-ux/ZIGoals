@@ -85,6 +85,20 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-19 19:55 Brussels — security fix round done; ledger closures done; L3b iterating)
+- Security review (G12 1/3) done: no critical/high; S1–S11 fixed (`d6a09eca` `83ca5838` `9807eb91` `0441cd7d` `6563cb19`),
+  record `docs/verification/session-af/gate-c-security-review.md`, ADR-028 H133. Staking/governance/badge/ZIGi specs 85 + 8 green.
+- Ledger pass done (260 rows; scratch `ledger-af.md`); closed since: N1 (vault taps), P1.16 (`visible-poll.ts` + test),
+  P1.23 and P8.4 (H134, the sections say where your own share is seen), P11.7 (live check 12/12, re-recorded), N11
+  (`gate-c-inventory.txt`). G8 frozen readers PASS (`gate-c-frozen-readers.txt`). CI's checks-job timeout fixed (`d64ac738`).
+- L3b (the Checklist redesign, H132 + the owner's addendum with references in `$SP/owner-refs/checklist/`, never committed)
+  is on iteration 1; the owner's full brief was passed on. After each iteration: a fresh design critic scores the six
+  acceptance lines with the references beside the captures → `docs/verification/session-af/checklist-redesign-critique.md`.
+- Still to run on the final head (after the L3b merge): G2 full suite, G4/G4b audits (the audit now covers AF's pages and
+  measures gradient words), after captures (+ a linked-wallet Earn state for P1.29, + 768/1024 for W9) pushed to
+  `review/session-af-screens`, G5 parity report, G6 weights, G7 revert gate (`$SP/lead/revert-gate.zsh`), G9 scans, G11
+  verifier, G13 alpha checks, G12 design critique (with the copy audit) and test audit, CI, STATUS, PR ready.
+
 ## Resume here (2026-10-19 19:30 Brussels — the owner's Checklist redesign round before Gate C's final steps)
 - The owner's verdict (H132): the Checklist becomes a full-screen, Duolingo-style overlay with living motion. Helper lane
   L3b (`af/checklist2`, its own worktree, port 3104, scratch `$SP/l3b/`) builds it; after each iteration a fresh design
