@@ -337,7 +337,7 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
 // ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
 test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
   await page.goto('/app/help');
-  const ids = ['af-earn', 'af-staking', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
+  const ids = ['af-earn', 'af-staking', 'af-governance', 'af-practice-badges', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
   const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
   await expect(section.locator('details.help-question')).toHaveCount(ids.length);
   for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
@@ -347,6 +347,8 @@ test('Session AF: the wealth-unlocked answers open from a hash, and nothing is w
   for (const [id, words] of [
     ['af-earn', 'ZIGoals never ranks them by rate, never holds your money and never signs for you'],
     ['af-staking', 'you sign it in Keplr. ZIGoals never sees your keys and sends nothing on its own'],
+    ['af-governance', 'A vote is public and tied to your address forever, and the review screen says so before you sign'],
+    ['af-practice-badges', 'ZIGoals never does this on the real network'],
     ['af-checklist', 'It starts fresh at local midnight'],
     ['af-checklist-star', 'Edit path'],
     ['af-checklist-tick', 'Undo puts that record back exactly'],

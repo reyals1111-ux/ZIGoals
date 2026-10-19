@@ -4751,6 +4751,51 @@
         background: #f1f3f8cc
     }
 }
+/*  components/governance/governance.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .governance-proposal.is-voting:not(#\-) {
+        border: 2px solid #b26e27
+    }
+    .governance-state:not(#\-) {
+        border-radius: 8px;
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .governance-state.is-voting:not(#\-) {
+        background: #bb7c3f;
+        color: #1d1400;
+        border-color: transparent
+    }
+    .governance-bar:not(#\-) {
+        border-radius: 7px;
+        background: var(--surface-1,#eef1f8);
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .governance-bar .is-yes:not(#\-), .governance-shares .is-yes:not(#\-)::before {
+        background: #25a470
+    }
+    .governance-bar .is-no:not(#\-), .governance-shares .is-no:not(#\-)::before {
+        background: #d6645b
+    }
+    .governance-bar .is-abstain:not(#\-), .governance-shares .is-abstain:not(#\-)::before {
+        background: #7b8da9
+    }
+    .governance-bar .is-noWithVeto:not(#\-), .governance-shares .is-noWithVeto:not(#\-)::before {
+        background: #af60d0
+    }
+    .governance-facts dt:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+    .governance-vote:not(#\-) {
+        border-top: 1px solid var(--line,#5c82b762)
+    }
+    .governance-choice:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .governance-choice span span:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
     .habit-section:not(#\-) {
@@ -8878,6 +8923,12 @@
         }
     }
 }
+/*  components/settings/af-signing-section.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .af-signing-setting-row small:not(#\-) {
+        color: var(--muted, #1e2635)
+    }
+}
 /*  components/settings/pages-settings.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
     .pages-switches:not(#\-) {
@@ -9107,6 +9158,33 @@
         border-left: 4px solid #b26e27
     }
     .staking-review-facts dt:not(#\-) {
+        color: var(--text-secondary,#0d1724)
+    }
+    .staking-sweep:not(#\-), .staking-health:not(#\-) {
+        border-top: 1px solid var(--line,#5c82b762)
+    }
+    .staking-health-item:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .staking-health-item.is-medium:not(#\-) {
+        border-color: var(--staking-practice,#b66c1a)
+    }
+    .staking-health-item.is-high:not(#\-) {
+        border: 2px solid #ce524b
+    }
+    .staking-grants:not(#\-), .staking-badges:not(#\-) {
+        border-top: 1px solid var(--line,#5c82b762)
+    }
+    .staking-grants-list li:not(#\-), .staking-badges-list li:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .staking-choice:not(#\-) {
+        border-radius: 12px;
+        border: 1px solid var(--line,#5c82b762)
+    }
+    .staking-choice span span:not(#\-) {
         color: var(--text-secondary,#0d1724)
     }
 }

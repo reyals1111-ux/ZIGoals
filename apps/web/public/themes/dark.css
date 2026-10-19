@@ -1911,6 +1911,14 @@
         background: #01030acc
     }
 }
+/*  components/governance/governance.css  */
+@scope (:root[data-theme=dark]) {
+    .governance-bar:not(#\-) {
+        border-radius: 7px;
+        background: var(--surface-1,#020613);
+        border: 1px solid var(--line,#6b91c846)
+    }
+}
 /*  components/habits/habits-aa.css  */
 @scope (:root[data-theme=dark]) {
     .habit-section:not(#\-) {
