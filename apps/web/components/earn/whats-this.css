@@ -1,0 +1,10 @@
+/* Session AF (L1c, N1): the "What's this?" tap and its plain words, inline. A 44 px target with a 14 px label, the
+   explanation at 15 px; nothing animates or fades (no transition at all), so reduced motion and Motion Off need no rule. */
+.whats-this { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; margin: 0 0 0 2px; padding: 0 10px; border: 0; border-radius: 999px; background: transparent; color: #8bddeb; font-size: 14px; font-weight: 650; line-height: 1.25; text-align: start; text-decoration: underline dotted; text-underline-offset: 3px; vertical-align: middle; cursor: pointer; transition: none; }
+.whats-this:hover { background: #8bddeb14; }
+.whats-this[aria-expanded="true"] { text-decoration-style: solid; }
+.whats-this-def { display: block; margin: 4px 0 10px; padding: 10px 14px; border-radius: 12px; border-left: 3px solid #8bddeb88; background: #0b1428; color: var(--text-secondary); font-size: 15px; font-weight: 400; line-height: 1.5; text-align: start; letter-spacing: normal; text-transform: none; white-space: normal; }
+.whats-this-def[hidden] { display: none; }
+/* A row of taps of their own (the Staking actions and the validator choice). */
+.whats-this-row { margin: 0 0 6px; }
+.whats-this-row > .whats-this:first-child { margin-left: -10px; }
