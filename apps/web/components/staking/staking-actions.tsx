@@ -23,6 +23,8 @@ import {RealConfirm} from './real-confirm';
 import {ReviewSheet} from './review-sheet';
 import {TxProgress, type Progress} from './tx-progress';
 import {ValidatorPicker} from './validator-picker';
+import {RewardsSweep} from './rewards-sweep';
+import {ValidatorHealthPanel} from './validator-health';
 import './staking.css';
 
 /**
@@ -50,13 +52,15 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   const [quote, setQuote] = useState<StakingQuote | null>(null), [quoting, setQuoting] = useState(false), [expired, setExpired] = useState(false);
   const [progress, setProgress] = useState<Progress | null>(null), [error, setError] = useState(''), [note, setNote] = useState('');
   const [hasKeplr, setHasKeplr] = useState(false), [android, setAndroid] = useState(false), [origin, setOrigin] = useState('');
+  // Session AF chunk 3: arriving from a Goal Vault's "Put your rewards to work" (#rewards-sweep).
+  const [fromVault, setFromVault] = useState(false);
   const revision = useRef(0);
   const config = STAKING_NETWORKS[network];
 
   // The device's choice of network, the tab's staking session, ZIGi's pre-fill (read once) and whether Keplr is here.
   useEffect(() => {
     setHasKeplr(typeof window.keplr === 'object' && window.keplr !== null);
-    setAndroid(/Android/i.test(navigator.userAgent)); setOrigin(window.location.origin);
+    setAndroid(/Android/i.test(navigator.userAgent)); setOrigin(window.location.origin); setFromVault(window.location.hash === '#rewards-sweep');
     if (showcase) return;
     const prefs = storage() ? readStakingPrefs(storage()!).data : {version: 1 as const};
     const prefill = takeStakingPrefill(session());
@@ -158,7 +162,21 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
       setError(cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message);
     } finally { setQuoting(false); }
   }, [wallet, quoting, action, validator, destination, amount, claimAll, holdings]); // eslint-disable-line react-hooks/exhaustive-deps -- messagesFor reads exactly these
-  useEffect(() => { if (expired && quote && !progress) void review(); }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
+  // Session AF chunk 3 (H60): restake one validator's waiting rewards — one MsgDelegate of that amount to it.
+  const sweep = useRef<{validator: string; amount: string} | null>(null);
+  const reviewSweep = useCallback(async (target: string, rewardsAzig: string) => {
+    if (!wallet || quoting) return;
+    setError(''); setProgress(null); setQuoting(true); sweep.current = {validator: target, amount: rewardsAzig};
+    try {
+      const messages = [delegate({delegator: wallet.address, validator: target, amount: rewardsAzig})];
+      const {quoteStaking} = await import('../../lib/staking/quote');
+      setQuote(await quoteStaking({network: wallet.network, address: wallet.address, action: 'sweep', messages, keplr: window.keplr!, revision: revision.current}));
+    } catch (cause) {
+      setQuote(null); sweep.current = null;
+      setError(cause instanceof StakingInputError || (cause instanceof Error && /Keep enough ZIG|switched accounts|cannot sign|restake/.test(cause.message)) ? (cause as Error).message : plainWords(cause, {chainId: wallet.chainId}).message);
+    } finally { setQuoting(false); }
+  }, [wallet, quoting]);
+  useEffect(() => { if (expired && quote && !progress) void (quote.action === 'sweep' && sweep.current ? reviewSweep(sweep.current.validator, sweep.current.amount) : review()); }, [expired]); // eslint-disable-line react-hooks/exhaustive-deps -- re-quote once per expiry
   async function done(receipt: StakingReceipt) {
     setQuote(null);
     setProgress({state: 'SUCCESS', hash: receipt.hash, height: receipt.height, refreshed: 'Reading your positions again at this block…'});
@@ -190,6 +208,7 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     {askReal && <RealConfirm onConfirm={confirmReal} onCancel={() => { setAskReal(false); setRealError(''); }} error={realError}/>}
     {note && <p role="status" className="fine">{note}</p>}
     {!wallet ? <div className="staking-connect">
+      {fromVault && <p role="status" className="fine">From your Goal Vault: connect Keplr to restake its rewards. Goal Vaults count your stake on the real network.</p>}
       {hasKeplr ? <>
         <p>Connect Keplr for the {network === 'real' ? 'real' : 'practice'} network to stake from your own wallet. ZIGoals reads your address only; every action asks you to sign in Keplr.</p>
         <button type="button" className="primary" onClick={connect} disabled={connecting}>{connecting ? 'Waiting for Keplr…' : `Connect Keplr for ${network === 'real' ? 'REAL' : 'PRACTICE'}`}</button>
@@ -230,6 +249,9 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
         <button type="submit" className="primary" disabled={quoting || (action !== 'claim' && !validator)}>{quoting ? 'Estimating the fee…' : 'Review'}</button>
       </form>
       {holdings?.unbonding.length ? <p className="fine">{holdings.unbonding.length} unstaking{holdings.unbonding.length === 1 ? '' : 's'} in progress; see them in Positions below.</p> : null}
+      <RewardsSweep rewards={holdings?.rewards ?? []} delegations={delegations} names={names} busy={quoting || !!quote} onReview={(v, a) => void reviewSweep(v, a)}
+        note={fromVault && network === 'practice' ? 'From your Goal Vault: Goal Vaults count your stake on the real network. Choose the real network above, connect, and restake its rewards here.' : undefined}/>
+      <ValidatorHealthPanel chainId={config.chainId} operators={delegations.map(d => d.validator)} validators={validators}/>
     </div>}
     {progress && !quote && <TxProgress progress={progress} network={network} chainId={config.chainId} onClose={() => setProgress(null)}/>}
     {quote && <ReviewSheet quote={quote} names={names} rewards={rewards} expired={expired && !progress} progress={progress} onBack={() => { setQuote(null); setProgress(null); }} onProgress={setProgress} onDone={done} onFailed={failed}/>}

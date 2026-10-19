@@ -83,3 +83,16 @@
   .staking-sheet-actions button{flex:1 1 140px}
 }
 @media (prefers-reduced-motion:reduce){.staking-actions *{transition:none!important;animation:none!important}}
+/* Session AF chunk 3 (lane L2a): rewards sweep and validator health inside the staking actions; plain, no motion. */
+.staking-sweep,.staking-health{display:grid;gap:10px;min-width:0;padding-top:12px;border-top:1px solid var(--line,#6b91c846)}
+.staking-sweep h3,.staking-health h3{margin:0;font-size:18px}
+.staking-sweep p,.staking-health p{margin:0}
+.staking-sweep-list,.staking-health-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.staking-sweep-list li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px}
+.staking-sweep-list .secondary{min-height:44px}
+.staking-health-item{display:grid;gap:4px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#6b91c846)}
+.staking-health-item.is-medium{border-color:var(--staking-practice,#e8a33d)}
+.staking-health-item.is-high{border:2px solid #e5675e}
+.staking-health-name{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.staking-health-alerts{margin:0;padding-left:20px;display:grid;gap:4px}
+.staking-health-alerts .text-link{min-height:44px;background:none;border:0;padding:0 4px;cursor:pointer;text-decoration:underline}
