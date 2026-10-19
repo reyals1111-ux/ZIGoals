@@ -20,9 +20,9 @@ import {OptionSection} from './option-section';
 const day = (iso: string) => formatDate(`${iso}T12:00:00Z`, {timeZone: 'UTC'});
 const steps = ['Read the vault page first: “Strategy Details”, “Withdrawal Mechanics” and “Risk Information”.', 'Press Connect Wallet and choose your wallet.', 'Open the Supply tab and type the USDC to supply. The vault takes USDC on Noble (USDC.n) only.', 'Press Supply and approve one deposit in your wallet: USDC goes to the vault, vault shares come back to you.', 'To leave: the Withdraw tab files a request; the vault pays it out later (the page says up to 60 days).'];
 export const VAULT_GUIDES = {
-  'stablecoin-yield': {id: 'vault-stablecoin-yield', app: 'Valdora', title: 'Supply USDC: Stablecoin Yield', provider: 'valdora', kind: 'vault-stablecoin-yield', open: 'Open Stablecoin Yield', steps},
-  'private-credit': {id: 'vault-private-credit', app: 'Valdora', title: 'Supply USDC: Private Credit', provider: 'valdora', kind: 'vault-private-credit', open: 'Open Private Credit', steps},
-  'core-income': {id: 'vault-core-income', app: 'Valdora', title: 'Supply USDC: Core Income', provider: 'valdora', kind: 'vault-core-income', open: 'Open Core Income', steps},
+  'stablecoin-yield': {id: 'vault-stablecoin-yield', app: 'Valdora', title: 'Supply USDC: Stablecoin Yield', provider: 'valdora', kind: 'vault-stablecoin-yield', open: 'Open Stablecoin Yield', option: 'valdora-vaults', steps},
+  'private-credit': {id: 'vault-private-credit', app: 'Valdora', title: 'Supply USDC: Private Credit', provider: 'valdora', kind: 'vault-private-credit', open: 'Open Private Credit', option: 'valdora-vaults', steps},
+  'core-income': {id: 'vault-core-income', app: 'Valdora', title: 'Supply USDC: Core Income', provider: 'valdora', kind: 'vault-core-income', open: 'Open Core Income', option: 'valdora-vaults', steps},
 } as const satisfies Record<Exclude<VaultId, 'nawa-usdc'>, Guide<'valdora'>>;
 const VALDORA_VAULTS = ['stablecoin-yield', 'private-credit', 'core-income'] as const;
 const ASSET_WORDS = {'USDC.n': 'USDC on Noble (USDC.n)', 'USDC.inj': 'USDC from Injective (USDC.inj)', other: 'another asset'} as const;

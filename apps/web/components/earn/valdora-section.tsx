@@ -16,7 +16,7 @@ import {IllustrationSlot} from './illustrations/slot';
  * pool agrees within 2 %. DefiLlama's figures are labelled third party. The single-admin-key fact is the chain's, stated
  * with the block it was read at, beside what Valdora's own security page says, without judgement.
  */
-export const VALDORA_GUIDE: Guide<'valdora'> = {id: 'valdora-stake', app: 'Valdora', title: 'Stake ZIG on Valdora for stZIG', provider: 'valdora', kind: 'stake', open: 'Open Valdora',
+export const VALDORA_GUIDE: Guide<'valdora'> = {id: 'valdora-stake', app: 'Valdora', title: 'Stake ZIG on Valdora for stZIG', provider: 'valdora', kind: 'stake', open: 'Open Valdora', option: 'valdora',
   steps: ['On Valdora’s Stake page, press Connect Wallet and choose your wallet (Keplr, for example).', 'Enter the ZIG you want to stake: at least the minimum shown here.', 'Check “You will get … stZIG”, then press Stake.', 'In your wallet, review and sign: ZIG goes to Valdora’s staking contract and stZIG comes back to you.', 'To leave later: the Unstake tab, then Claim once the waiting time has passed. Or sell stZIG on OroSwap.']};
 // crit1: written at render, so it follows the person's date style like every other "read" date on Earn.
 const readDay = () => formatDate(`${READ_ON}T12:00:00Z`, {timeZone: 'UTC'});

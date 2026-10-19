@@ -19,7 +19,7 @@ import {OptionSection} from './option-section';
  * and every input one tap away. The commission choices are the rates live validators charge now, never a number ZIGoals
  * picked. Signing happens in the person's own wallet: on ZIGoals' Staking page, in Keplr or on the ZIGChain Hub.
  */
-export const NATIVE_GUIDE: Guide<'zig-finance'> = {id: 'native-keplr', app: 'Keplr', title: 'Stake ZIG in Keplr', provider: 'zig-finance', kind: 'keplr-staking', open: 'Open Keplr staking',
+export const NATIVE_GUIDE: Guide<'zig-finance'> = {id: 'native-keplr', app: 'Keplr', title: 'Stake ZIG in Keplr', provider: 'zig-finance', kind: 'keplr-staking', open: 'Open Keplr staking', option: 'native-staking',
   steps: ['In Keplr’s staking page, make sure ZIGChain is the chain shown.', 'Choose a validator. Compare commission, uptime and how much stake it already holds (the list on this page has all three).', 'Enter an amount. Keep a little ZIG for network fees.', 'Review in Keplr: you sign one delegation that moves ZIG from your balance into your stake. Nothing else.', 'Come back to ZIGoals: your stake shows on the Staking page once it is read.']};
 export function commissionChoices(validators: LiveState<ValidatorsAnswer>): string[] {
   if (validators.phase !== 'ok') return [];

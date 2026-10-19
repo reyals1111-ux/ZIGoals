@@ -14,9 +14,9 @@ import {IllustrationSlot} from './illustrations/slot';
  * depth and fee come from the chain (its own `fee_info` per pair type, not a fee from the docs), farms appear only when
  * the incentives contract lists an active pool, and impermanent loss is explained in plain words before any step.
  */
-export const OROSWAP_GUIDE: Guide<'oroswap'> = {id: 'oroswap-swap', app: 'OroSwap', title: 'Swap on OroSwap', provider: 'oroswap', kind: 'swap', open: 'Open OroSwap',
+export const OROSWAP_GUIDE: Guide<'oroswap'> = {id: 'oroswap-swap', app: 'OroSwap', title: 'Swap on OroSwap', provider: 'oroswap', kind: 'swap', open: 'Open OroSwap', option: 'oroswap',
   steps: ['On OroSwap, connect your wallet (Keplr or Leap, for example) and check ZIGChain is selected.', 'Choose the token you give and the token you get, and the amount.', 'Check the price impact and the slippage limit before you go on: in a small pool a large swap moves the price.', 'Press Swap and review in your wallet: you sign one swap and nothing else.', 'The new token lands in your wallet. ZIGoals shows it once your wallet is read.']};
-export const OROSWAP_POOL_GUIDE: Guide<'oroswap'> = {id: 'oroswap-pool', app: 'OroSwap', title: 'Add liquidity on OroSwap', provider: 'oroswap', kind: 'pools', open: 'Open OroSwap pools',
+export const OROSWAP_POOL_GUIDE: Guide<'oroswap'> = {id: 'oroswap-pool', app: 'OroSwap', title: 'Add liquidity on OroSwap', provider: 'oroswap', kind: 'pools', open: 'Open OroSwap pools', option: 'oroswap',
   steps: ['On OroSwap’s Pools page, connect your wallet and choose a pool.', 'Enter amounts of both tokens of equal value (the page fills in the second one).', 'Review in your wallet: you sign one transaction that sends both tokens to the pool and returns LP tokens, your share.', 'Your share earns part of every swap’s fee in that pool.', 'To leave: Portfolio, Remove liquidity, then choose how much.']};
 export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<OroswapData>; llama: LiveState<DefillamaData>; now: number}) {
   const data = oroswap.phase === 'ok' ? oroswap.answer.data : null;
