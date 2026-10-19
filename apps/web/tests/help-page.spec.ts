@@ -19,15 +19,18 @@ const SECTIONS: [id: string, title: string][] = [
   // Session AD (ADR-026, deliberate): this release's topic, after AC's.
   ['ad', 'The final look, and three ways to see it'],
   // Session AE (ADR-027, deliberate): this release's topic, after AD's.
-  ['ae', 'One scene from top to end, and three finished looks'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
+  ['ae', 'One scene from top to end, and three finished looks'],
+  // Session AF (ADR-028, deliberate): this release's topic, after AE's.
+  ['af', 'Earn, stake in your own wallet, and your day as one path'], ['whats-new-alpha', 'New in this Alpha, in your own words'],
   // Session X Part 11 (deliberate): Known limitations, before Send feedback.
   ['known-limitations', 'What the Alpha can’t do yet'], ['feedback', 'Tell us what you think'],
 ];
-const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'New: stunning, finished', 'What\'s new', 'Known limitations', 'Send feedback'];
+const TOPICS = ['Getting started', 'Your data and sync', 'Your recovery secret', 'Install on iPhone', 'Optional backups', 'ZIGi · Your Personal AI Companion', 'Questions', 'New: your whole life', 'New: habits, health and the game layer', 'New: sync, restore and Point & tell', 'New: one 4-in-1 look', 'New: polish', 'New: the final look', 'New: stunning, finished', 'New: wealth, unlocked', 'What\'s new', 'Known limitations', 'Send feedback'];
 
 // Session AD (ADR-026, deliberate): sixteen topics (was fifteen), AD's after AC's.
 // Session AE (ADR-027, deliberate): seventeen topics, AE's after AD's.
-test('Help has one title and seventeen topics, listed before them, each linking to its section', async ({page}) => {
+// Session AF (ADR-028, deliberate): eighteen topics, AF's after AE's.
+test('Help has one title and eighteen topics, listed before them, each linking to its section', async ({page}) => {
   await page.goto('/app/help');
   await expect(page.getByRole('heading', {level: 1})).toHaveText('Help.');
   const nav = page.getByRole('navigation', {name: 'Help topics'}), topics = nav.getByRole('link');
@@ -326,5 +329,38 @@ test('Session AE: the stunning-finished answers open from a hash, and nothing is
   await expect(page).toHaveURL(/\/app\/help#help-ad-themes$/);
   await expect(page.locator('#help-ad-themes')).toHaveAttribute('open', '');
   await expect(page.locator('#help-ad-themes')).toContainText('white-family surfaces');
+  expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
+});
+
+// Session AF (ADR-028): this release's answers open from their hash, each saying what the code does; the staking answer
+// keeps the safety facts (your own wallet, a review screen first, ZIGoals never sees keys); the Earn answer says nothing is
+// ranked or signed; the Checklist answers say what a tick writes and that the path stays on this device; nothing is written.
+test('Session AF: the wealth-unlocked answers open from a hash, and nothing is written', async ({page}) => {
+  await page.goto('/app/help');
+  const ids = ['af-earn', 'af-staking', 'af-checklist', 'af-checklist-star', 'af-checklist-tick', 'af-checklist-streak', 'af-checklist-timers', 'af-checklist-launcher'];
+  const section = page.getByRole('region', {name: 'Earn, stake in your own wallet, and your day as one path', exact: true});
+  await expect(section.locator('details.help-question')).toHaveCount(ids.length);
+  for (const id of ids) await expect(page.locator(`#help-${id} > summary`), id).toBeVisible();
+  await expect(page.locator('details[open]')).toHaveCount(0);
+  await expect(section).not.toContainText(/partner/i);
+  const before = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  for (const [id, words] of [
+    ['af-earn', 'ZIGoals never ranks them by rate, never holds your money and never signs for you'],
+    ['af-staking', 'you sign it in Keplr. ZIGoals never sees your keys and sends nothing on its own'],
+    ['af-checklist', 'It starts fresh at local midnight'],
+    ['af-checklist-star', 'Edit path'],
+    ['af-checklist-tick', 'Undo puts that record back exactly'],
+    ['af-checklist-streak', 'Rest days (not scheduled, paused or skipped) are left out, never failed'],
+    ['af-checklist-timers', 'the whole night lands on Health'],
+    ['af-checklist-launcher', 'Your path stays on this device: it is not synced yet'],
+  ] as const) {
+    await page.goto(`/app/help#help-${id}`);
+    await expect(page.locator(`#help-${id}`), id).toHaveAttribute('open', '');
+    await expect(page.locator(`#help-${id}`), id).toContainText(words);
+  }
+  // Known limitations point to the answers.
+  const limits = page.getByRole('region', {name: 'What the Alpha can’t do yet', exact: true});
+  await expect(limits.getByRole('link', {name: 'What is the Checklist?', exact: true})).toHaveAttribute('href', '#help-af-checklist');
+  await expect(limits.getByRole('link', {name: 'What is the Earn page?', exact: true})).toHaveAttribute('href', '#help-af-earn');
   expect(await page.evaluate(() => JSON.stringify(Object.entries(localStorage)))).toBe(before);
 });
