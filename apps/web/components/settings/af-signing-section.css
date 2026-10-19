@@ -8,3 +8,7 @@ label.af-signing-setting-row { cursor: pointer; }
 .af-signing-setting-row strong { font-size: 16px; }
 .af-signing-setting-row small { font-size: 15px; color: var(--muted, #a4b2cd); }
 .af-signing-setting-row .secondary { min-height: 44px; }
+/* Session AF (the lead): the app's buttons do not wrap (white-space: nowrap); at 320 px with wider system fonts (CI's
+   Linux WebKit) "Forget my staking choices" overflowed the row and the page scrolled sideways (zigi-oneline-z). Here a
+   button wraps and never exceeds its row. */
+.af-signing-setting .secondary, .af-signing-setting .primary { white-space: normal; max-width: 100%; text-align: center; }

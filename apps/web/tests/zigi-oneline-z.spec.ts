@@ -265,7 +265,10 @@ test('Settings: ZIGi\'s name is one line at every width, and wraps instead of wi
     const {height, line, wrap} = await title.evaluate(e => { const cs = getComputedStyle(e); return {height: e.getBoundingClientRect().height, line: parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2, wrap: cs.whiteSpace}; });
     expect(height, `one line at ${width}`).toBeLessThanOrEqual(line * 1.2);
     expect(wrap, 'wraps under text spacing rather than overflowing').not.toBe('nowrap');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth), `no sideways scroll at ${width}`).toBeLessThanOrEqual(width);
+    // Session AF (diagnostic only; WebKit cannot run on the owner's Mac, ADR-028 H114): name what sticks out past the
+    // viewport outside any clipping box, so CI's WebKit job says which element widened the page.
+    const wide = await page.evaluate(w => [...document.querySelectorAll('body *')].filter(el => { const r = el.getBoundingClientRect(); if (r.right <= w + 0.5 || r.width === 0) return false; for (let n = el.parentElement; n; n = n.parentElement) if (/(hidden|clip|auto|scroll)/.test(getComputedStyle(n).overflowX)) return false; return getComputedStyle(el).position !== 'fixed'; }).slice(0, 6).map(el => `${el.tagName.toLowerCase()}.${String((el as HTMLElement).className?.toString?.() ?? '').split(' ')[0]}:${Math.round(el.getBoundingClientRect().right)}`).join(', '), width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `no sideways scroll at ${width}${wide ? ` (past the edge: ${wide})` : ''}`).toBeLessThanOrEqual(width);
   }
   await page.addStyleTag({content: '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }'});
   expect(await page.evaluate(() => document.documentElement.scrollWidth), 'text spacing widens nothing').toBeLessThanOrEqual(page.viewportSize()!.width);
