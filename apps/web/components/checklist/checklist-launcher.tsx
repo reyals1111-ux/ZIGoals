@@ -6,6 +6,7 @@ import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {registerNavExtra} from '../nav-extras';
+import {registerTimelineSource} from '../../lib/timeline/sources';
 import {usePhoneActive} from '../phone/use-phone-layout';
 import {entranceAllowed} from '../use-entrance';
 import {ChecklistMark} from './checklist-marks';
@@ -29,6 +30,8 @@ export function ChecklistLauncher() {
   useEffect(() => { queueMicrotask(() => setMounted(true)); }, []);
   // In the navigation (the sidebar, the phone's More sheet, search) on every device: the page is always reachable.
   useEffect(() => registerNavExtra([CHECKLIST_ROUTE, 'Checklist', 'checklist']), []);
+  // Session AF (L5b; P9.2): the Checklist's dots on the Day Timeline — a loader only; its code loads when the timeline asks.
+  useEffect(() => registerTimelineSource('checklist', () => import('../../lib/timeline/checklist-source').then(m => m.checklistTimelineSource)), []);
   useEffect(() => {
     // Under reduced motion or Motion Off the mark never draws, so nothing is remembered either (like the logo intro's flag):
     // viewing a page then writes nothing (help-page.spec "viewing Help … writes nothing").

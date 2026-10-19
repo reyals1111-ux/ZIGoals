@@ -20,10 +20,24 @@ import {hoursMinutes} from '../insights/cross-pillar';
  * nothing recorded is "not recorded", never zero; money stays in its own currency, never converted.
  */
 export type Period = 'week' | 'month';
-export type Window = {period: Period; start: string; end: string; prevStart: string; prevEnd: string; key: string};
+/**
+ * Session AF (L5b; P9.3, ADR-028 H78): the engine's own periods add the year for Stories. The year is engine-only: the
+ * Life review's stored period (`zigoals:life-review:v1`) stays week | month, so older builds keep reading its record.
+ */
+export type EnginePeriod = Period | 'year';
+export type Window = {period: EnginePeriod; start: string; end: string; prevStart: string; prevEnd: string; key: string};
 
-/** This week (the seven days ending today) or this month so far, and the period before it of the same length. */
-export function reviewPeriod(period: Period, today: string): Window {
+/**
+ * This week (the seven days ending today), this month so far or (for Stories) this year so far, and the period before
+ * it of the same length (last year's same span: 1 January to the same day, 28 February for a 29th).
+ */
+export function reviewPeriod(period: EnginePeriod, today: string): Window {
+  if (period === 'year') {
+    const year = Number(today.slice(0, 4)), last = year - 1, md = today.slice(5, 10);
+    const leap = (y: number) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+    const prevEnd = md === '02-29' && !leap(last) ? `${last}-02-28` : `${last}-${md}`;
+    return {period, start: `${year}-01-01`, end: today, prevStart: `${last}-01-01`, prevEnd, key: `year:${year}`};
+  }
   if (period === 'week') {
     const start = addLocalDays(today, -6);
     return {period, start, end: today, prevStart: addLocalDays(start, -7), prevEnd: addLocalDays(start, -1), key: `week:${start}`};

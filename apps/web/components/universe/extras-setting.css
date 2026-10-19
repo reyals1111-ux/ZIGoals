@@ -1,0 +1,7 @@
+/* Session AF (L5b): the extras' Settings rows (components/settings/af-extras-section.tsx). */
+.af-extras-setting { display: grid; gap: 12px; }
+.af-extras-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 0; border-top: 1px solid var(--border-subtle, #ffffff1f); }
+.af-extras-row > p { display: grid; gap: 2px; flex: 1 1 280px; margin: 0; font-size: 16px; }
+.af-extras-row small { font-size: 15px; color: var(--text-secondary); }
+.af-extras-row button { min-height: 44px; }
+.af-extras-row .fine, .af-extras-row [role=alert] { flex-basis: 100%; margin: 0; }
