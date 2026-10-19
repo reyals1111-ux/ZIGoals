@@ -18,7 +18,7 @@
 // Usage (from apps/web, a production build running):
 //   node tests/audit/layout-audit.mjs <base> <out-dir> [--only=<regex>] [--widths=320,390] [--engine=chrome|webkit] [--stress] [--touch] [--theme=light|dark]
 import {chromium, webkit, devices} from '@playwright/test';
-import {mkdirSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {inflateSync} from 'node:zlib';
 
 const [base, out, ...flags] = process.argv.slice(2);
@@ -36,6 +36,8 @@ const themeTag = theme === 'nebula' ? '' : `-${theme}`;
 // --muted (Session AC, item 9c): also report every muted text (the --muted / --text-muted tokens, or .fine / .muted /
 // .hint copy) with its measured contrast against its own pixels and its size, in muted-<tag>.json and a summary.
 const mutedReport = flags.includes('--muted'), mutedRows = [];
+// Session AF (Gate C): every gradient word measured (its weakest solid stop), written to gradient-words-<tag>.json.
+const gradientRows = [];
 const WIDTHS = (flag('widths') ?? (touch ? '768,1024' : engine === 'webkit' ? '390' : '320,390,430,768,1024,1280,1440,1920')).split(',').map(Number);
 mkdirSync(out, {recursive: true});
 
@@ -70,6 +72,15 @@ const click = async (p, loc) => { await loc.first().click({timeout: 5000}); awai
 const btn = (p, name) => p.getByRole('button', {name, exact: true});
 const healthView = name => async p => { await click(p, p.getByRole('navigation', {name: 'Health views'}).getByRole('button', {name, exact: true})); await p.waitForTimeout(800); };
 const firstHref = (prefix) => async p => { const href = await p.locator(`a[href^="${prefix}"]`).first().getAttribute('href'); if (href) { await p.goto(base + href); await p.waitForTimeout(1500); } };
+// Session AF: Earn's recorded live answers (the fixtures the Earn specs use), served in place of the offline /api.
+const EARN_FIXTURES = new URL('../../lib/earn/fixtures/', import.meta.url);
+const liveEarn = async p => {
+  const live = JSON.parse(readFileSync(new URL('live-2026-10-19.json', EARN_FIXTURES), 'utf8')), validators = JSON.parse(readFileSync(new URL('validators-2026-10-19.json', EARN_FIXTURES), 'utf8'));
+  const ans = key => ({...live.answers[key], fetchedAt: new Date().toISOString(), stale: false});
+  for (const [path, key] of [['/api/earn/valdora', 'valdora'], ['/api/earn/oroswap', 'oroswap'], ['/api/earn/defillama', 'defillama'], ['/api/earn/vaults', 'vaults'], ['/api/earn/measured', 'measured']]) await p.route(u => u.pathname === path, r => r.fulfill({json: ans(key)}));
+  await p.route(u => u.pathname === '/api/earn/chain', r => r.fulfill({json: ans(new URL(r.request().url()).searchParams.get('network') === 'testnet' ? 'chainTestnet' : 'chainMainnet')}));
+  await p.route(u => u.pathname === '/api/chain/validators', r => r.fulfill({json: validators.answer}));
+};
 const STATES = [
   // Today
   {name: 'today', path: '/app'},
@@ -128,6 +139,19 @@ const STATES = [
   {name: 'chess', path: '/app/chess'},
   // The rest
   {name: 'journey', path: '/app/journey'},
+  // Session AF (Gate C, G4): the new pages and their main states. Earn is read twice: with every source unavailable (the
+  // audit's offline /api) and with the recorded live answers (lib/earn/fixtures), as the page shows them on the real network.
+  {name: 'earn', path: '/app/earn'},
+  {name: 'earn-live', path: '/app/earn', steps: async p => { await liveEarn(p); await p.reload({waitUntil: 'domcontentloaded'}); await p.waitForLoadState('networkidle', {timeout: 8000}).catch(() => {}); await p.evaluate(async () => { for (let y = 0; y < document.documentElement.scrollHeight; y += 700) { scrollTo(0, y); await new Promise(r => setTimeout(r, 90)); } scrollTo(0, 0); }); await p.waitForTimeout(900); }, after: async p => p.unrouteAll({behavior: 'ignoreErrors'})}, // the context's offline /api stays
+  {name: 'earn-whats-this', path: '/app/earn', steps: async p => click(p, p.locator('button.whats-this').filter({visible: true}))},
+  {name: 'checklist', path: '/app/checklist'},
+  {name: 'checklist-list', path: '/app/checklist', steps: async p => click(p, p.getByRole('group', {name: 'View'}).getByRole('button', {name: 'List', exact: true}))},
+  {name: 'checklist-edit', path: '/app/checklist', steps: async p => click(p, btn(p, 'Edit path'))},
+  {name: 'governance', path: '/app/governance'},
+  {name: 'add-money', path: '/app/wealth/add-money'},
+  {name: 'add-money-back', path: '/app/wealth/add-money/back'},
+  {name: 'timeline', path: '/app/timeline'},
+  {name: 'stories', path: '/app/stories'},
   {name: 'review-week', path: '/app/review'},
   {name: 'review-month', path: '/app/review', steps: async p => click(p, p.getByRole('button', {name: 'This month'}))},
   {name: 'settings', path: '/app/settings'},
@@ -146,6 +170,12 @@ const STATES = [
   {name: 'empty-wealth', path: '/app/wealth', fresh: true},
   {name: 'empty-portfolio', path: '/app/portfolio', fresh: true},
   {name: 'empty-journey', path: '/app/journey', fresh: true},
+  {name: 'empty-earn', path: '/app/earn', fresh: true},
+  {name: 'empty-checklist', path: '/app/checklist', fresh: true},
+  {name: 'empty-governance', path: '/app/governance', fresh: true},
+  {name: 'empty-add-money', path: '/app/wealth/add-money', fresh: true},
+  {name: 'empty-timeline', path: '/app/timeline', fresh: true},
+  {name: 'empty-stories', path: '/app/stories', fresh: true},
   {name: 'empty-review', path: '/app/review', fresh: true},
 ];
 
@@ -297,7 +327,13 @@ function inspect() {
   for (const el of texts) {
     if (covered(el)) continue;
     const s = getComputedStyle(el); if (el.closest('button:disabled, [aria-disabled="true"], .site-footer-art')) continue;
-    if (s.webkitTextFillColor === 'rgba(0, 0, 0, 0)' || s.color === 'rgba(0, 0, 0, 0)' || s.backgroundClip === 'text') continue; // gradient text: checked by eye
+    // Gradient text (Session AF, Gate C: the owner asked for the deepened Light gradient words in the audit): every solid
+    // stop of the gradient painted through the glyphs is measured against the pixels behind the words, as plain text is.
+    // Translucent stops (a one-time shine sweep laid over the word) are not the word's colour and are left out.
+    const gradientWord = /\btext\b/.test(s.backgroundClip + ' ' + (s.webkitBackgroundClip ?? ''));
+    if (!gradientWord && (s.webkitTextFillColor === 'rgba(0, 0, 0, 0)' || s.color === 'rgba(0, 0, 0, 0)')) continue;
+    const stops = gradientWord ? (s.backgroundImage.match(/rgba?\([^)]*\)|color\(srgb [^)]*\)/g) ?? []).map(c => { const v = c.replace(/^color\(srgb/, '').match(/[\d.]+/g).map(Number); const a = v[3] === undefined ? 1 : v[3]; return c.startsWith('color(') ? [v[0] * 255, v[1] * 255, v[2] * 255, a] : [v[0], v[1], v[2], a]; }).filter(v => v[3] >= 0.99).map(v => v.slice(0, 3).map(Math.round)) : null;
+    if (gradientWord && !stops.length) continue;
     // rgb()/rgba() give 0–255 channels; color(srgb r g b / a) (what color-mix computes to) gives 0–1.
     const srgb = s.color.startsWith('color(srgb'), m = s.color.replace(/^color\(srgb/, '').match(/[\d.]+/g); if (!m) continue;
     const alpha = m[3] === undefined ? 1 : +m[3]; if (srgb) for (let i = 0; i < 3; i++) m[i] = String(Math.round(+m[i] * 255));
@@ -310,7 +346,7 @@ function inspect() {
     let clipBox = null; for (let e = el.parentElement; e; e = e.parentElement) { const ox = getComputedStyle(e).overflowX; if (ox === 'auto' || ox === 'scroll' || ox === 'hidden' || ox === 'clip') { clipBox = e.getBoundingClientRect(); break; } }
     for (const r of rects) { if (r.width < 4 || r.height < 6) continue;
       if (clipBox && (r.left < clipBox.left - 1 || r.right > clipBox.right + 1)) continue;
-      samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66), muted, size}); }
+      samples.push({d: desc(el), c: [+m[0], +m[1], +m[2]], a: alpha * +s.opacity, ...(stops ? {stops} : {}), x: r.left + (modal ? 0 : scrollX), y: r.top + (modal ? 0 : scrollY), w: r.width, h: r.height, large: size >= 24 || (bold && size >= 18.66), muted, size}); }
   }
   // Gradient text paints its background through the glyphs: marked so the background capture can leave it out.
   for (const el of texts) { const cs = getComputedStyle(el); if (/\btext\b/.test(cs.backgroundClip + ' ' + (cs.webkitBackgroundClip ?? ''))) el.setAttribute('data-audit-text-clip', ''); }
@@ -328,6 +364,13 @@ function contrast(pngs, samples) {
     const pts = [];
     for (const fx of [.06, .2, .35, .5, .65, .8, .94]) for (const fy of [.25, .5, .75]) pts.push(png.at(Math.round(s.x + s.w * fx), Math.round(s.y + s.h * fy)));
     if (!pts.length) continue;
+    if (s.stops) { // a gradient word: its weakest solid stop against the background read the same way
+      const need = s.large ? 3 : 4.5; let worst = null;
+      for (const stop of s.stops) { const bg = [...pts].sort((a, b) => ratio(a, stop) - ratio(b, stop))[Math.floor(pts.length * .1)], r = ratio(stop, bg); if (!worst || r < worst.r) worst = {r, stop}; }
+      gradientRows.push({at: currentKey, d: s.d, ratio: +worst.r.toFixed(2), stop: `rgb(${worst.stop.join(', ')})`, large: s.large});
+      if (worst.r < need) found.push({k: 'contrast', w: `${s.d} (gradient word, weakest stop rgb(${worst.stop.join(', ')})) ${worst.r.toFixed(2)}:1 (needs ${need}:1)`});
+      continue;
+    }
     const text = s.c;
     const bg = pts.sort((a, b) => ratio(a, text) - ratio(b, text))[Math.floor(pts.length * .1)];
     const mix = text.map((v, i) => v * s.a + bg[i] * (1 - s.a));
@@ -397,6 +440,9 @@ const md = [`# Layout audit (${engine}${stress ? ', stress records' : ''}${touch
   ...(() => { const seen = new Map(); for (const [k, l] of Object.entries(report.advisory)) for (const w of l) { const id = w.replace(/\d+×\d+/, '#'); if (!seen.has(id)) seen.set(id, {w, k, n: 0}); seen.get(id).n++; }
     return seen.size ? ['## Advisory: pointer-layout controls between 24 and 44 px (not findings; owner item)', '', `${[...seen.values()].reduce((a, b) => a + b.n, 0)} occurrences of ${seen.size} distinct controls (WCAG 2.5.8 minimum met; 44 px is the touch layout's rule).`, '', ...[...seen.values()].map(v => `- ${v.w} (first at ${v.k}, ×${v.n})`), ''] : []; })()].join('\n');
 writeFileSync(`${out}/layout-audit-${tag}.md`, md);
+{ const sorted = [...gradientRows].sort((a, b) => a.ratio - b.ratio), below = sorted.filter(r => r.ratio < (r.large ? 3 : 4.5));
+  writeFileSync(`${out}/gradient-words-${tag}.json`, JSON.stringify({measured: gradientRows.length, lowest: sorted.slice(0, 15), below}, null, 1));
+  console.log(`gradient words measured: ${gradientRows.length}; lowest ${sorted[0]?.ratio ?? '—'}:1; below their floor: ${below.length}`); }
 if (mutedReport) {
   const below = mutedRows.filter(r => r.ratio < 4.5 || r.size < 14), ratios = mutedRows.map(r => r.ratio), sizes = mutedRows.map(r => r.size);
   writeFileSync(`${out}/muted-${tag}.json`, JSON.stringify({texts: mutedRows.length, minRatio: Math.min(...ratios), minSize: Math.min(...sizes), below}, null, 1));
