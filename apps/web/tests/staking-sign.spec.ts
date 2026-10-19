@@ -66,7 +66,7 @@ test('practice: delegate, undelegate, redelegate and claim all, each through the
   await expect(sheet).toContainText('Fictional Alpha');
   await expect(sheet).toContainText('25 ZIG');
   await expect(sheet).toContainText('(25000000000000000000 azig)');
-  await expect(sheet).toContainText(/about 0\.00061 ZIG \(187,701 gas simulated × 1\.3 × 2\.5 Gazig per gas; your wallet may let you raise it\)/);
+  await expect(sheet).toContainText(/about 0\.00061\sZIG \(187,701 gas simulated × 1\.3 × 2\.5 Gazig per gas; your wallet may let you raise it\)/);
   await expect(sheet).toContainText('Getting this ZIG back takes 21 days after you unstake; it earns nothing and cannot move meanwhile.');
   await expect(sheet).toContainText('You will sign this in your wallet. ZIGoals never sees your keys and cannot sign for you.');
   await expect(sheet).toContainText('Your address, the validator and the amount are recorded on ZIGChain Testnet for anyone to see, forever.');

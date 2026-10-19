@@ -20,10 +20,10 @@ test('live figures carry their source and age; every outgoing link is a verified
     await expect(figure, id).toHaveAttribute('data-state', 'ok');
     await expect(figure, id).toContainText(/updated just now|updated \d+ min ago/);
   }
-  await expect(page.locator('[data-live-figure="native-apr"] .earn-value')).toHaveText(/^\d+\.\d{2} %$/);
+  await expect(page.locator('[data-live-figure="native-apr"] .earn-value')).toHaveText(/^\d+\.\d{2}\s%$/);
   await expect(page.locator('[data-live-figure="native-apr"]')).toContainText('ZIGChain mainnet LCD (official)');
   await expect(page.locator('[data-live-figure="native-unbonding"] .earn-value')).toHaveText('21 days');
-  await expect(page.locator('[data-live-figure="valdora-rate"] .earn-value')).toHaveText(/^1\.0\d{3} ZIG$/);
+  await expect(page.locator('[data-live-figure="valdora-rate"] .earn-value')).toHaveText(/^1\.0\d{3}\sZIG$/);
   await expect(page.locator('[data-live-figure="valdora-fee"] .earn-value')).toHaveText('10 % of the staking rewards');
   await expect(page.locator('[data-live-figure="valdora-minimum"] .earn-value')).toHaveText('50 ZIG');
   await expect(page.locator('[data-live-figure="oroswap-farms"] .earn-value')).toHaveText('None running now');
@@ -61,7 +61,7 @@ test('a source that fails says "unavailable" with its reason; the explanations, 
   // OroSwap still answered, so its figures stay.
   await expect(page.locator('[data-live-figure="oroswap-zig-usdc"]')).toHaveAttribute('data-state', 'ok');
   // Unknown is never zero, and the calculator falls back to the person's own numbers.
-  await expect(page.locator('#native-staking .earn-value').filter({hasText: /^0(\.0+)? %$/})).toHaveCount(0);
+  await expect(page.locator('#native-staking .earn-value').filter({hasText: /^0(\.0+)?\s%$/})).toHaveCount(0);
   await expect(page.locator('[data-live-figure="calculator"]')).toHaveAttribute('data-state', 'unavailable');
   await expect(page.locator('#native-staking .earn-steps li')).toHaveCount(6);
   // Session AF (L1c, N5): moved at equal strength (still the exact count, now of the longer list, 5 → 7) and Valdora's

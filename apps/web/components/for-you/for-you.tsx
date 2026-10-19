@@ -50,7 +50,7 @@ export function ForYou({cards, status = '', note = null, label = 'For you', open
     {shown.map(card => <div key={card.id} id={`for-you-${card.id}`} className="for-you-slot" data-card={card.id}>{card.node}</div>)}
     {folded.length > 0 && <div className="phone-fold for-you-fold" data-open={open || undefined}>
       <button type="button" className="phone-fold-toggle" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
-        <span>{open ? 'Hide' : `Show more (${folded.length})`}</span><span className="phone-fold-hint" aria-hidden="true">{open ? 'Hide' : 'Show'}<AppIcon name="chevron" size={18} /></span>
+        <span>{open ? 'Hide' : `Show more (${folded.length})`}</span><span className="phone-fold-hint" aria-hidden="true">{open ? null : 'Show'}<AppIcon name="chevron" size={18} /></span>
       </button>
       {open && <div id={id} className="phone-fold-body">{folded.map(card => <div key={card.id} id={`for-you-${card.id}`} className="for-you-slot" data-card={card.id}>{card.node}</div>)}</div>}
     </div>}

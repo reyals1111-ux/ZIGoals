@@ -67,7 +67,7 @@ test('link a real stake to a Goal: read-only, the figures, the change since link
   await page.route('**/api/positions?**', route => route.fulfill({json: {positions: [position('s1', 'NATIVE_STAKING', stake.staked.toString()), position('r1', 'NATIVE_REWARDS', stake.rewards.toString()), position('st', 'LIQUID_STAKING', '100000000', {asset: 'stZIG', denom: STZIG, decimals: 6})]}}));
   await card.getByRole('button', {name: '↻ Read again'}).click();
   await expect(card).toContainText('Staked now410 ZIG');
-  await expect(card).toContainText(/Since you linked on .*\+11 ZIG/);
+  await expect(card).toContainText(/Since you linked on .*\+11\sZIG/);
   // The projection: labelled, from the chain's rate with its block, or the person's own assumption.
   const ill = card.getByRole('group', {name: 'Illustration, not a promise'});
   await expect(ill).toContainText('5.33 % a year (the chain’s rate before a validator’s commission, ZIGoals’ read of ZIGChain at block 13046000)');

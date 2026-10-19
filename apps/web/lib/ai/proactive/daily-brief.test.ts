@@ -35,10 +35,10 @@ test('the Checklist dots, a running timer, a note the person keeps, and the earn
   expect(by.note).toBe('You said: I train in the morning.');
   // The earning line: the person's tracked staking (practice labelled) and the Earn page's two figures side by side (H97).
   expect(by.earning).toMatch(/your tracked records, as of /);
-  expect(by.earning).toMatch(/Native staking APR: issuance figure \d+\.\d\d % and measured figure \d+\.\d\d % at the same commission \(ZIGChain mainnet LCD \(official\), as of 2026-10-18 \d\d:\d\d UTC; measured: ZIGChain mainnet LCD \(official\), as of 2026-10-18 \d\d:\d\d UTC\)\./);
+  expect(by.earning).toMatch(/Native staking APR: issuance figure \d+\.\d\d\s% and measured figure \d+\.\d\d\s% at the same commission \(ZIGChain mainnet LCD \(official\), as of 2026-10-18 \d\d:\d\d UTC; measured: ZIGChain mainnet LCD \(official\), as of 2026-10-18 \d\d:\d\d UTC\)\./);
   // Every percentage in the brief is one of the snapshot's own values (ZIGi wrote none of its own).
   const quoted = new Set(sources.earn!.figures.map(f => f.value));
-  for (const pct of briefLines(brief).join(' ').match(/\d+(?:\.\d+)? %/g) ?? []) expect(quoted.has(pct), pct).toBe(true);
+  for (const pct of briefLines(brief).join(' ').match(/\d+(?:\.\d+)?\s%/g) ?? []) expect(quoted.has(pct), pct).toBe(true);
 });
 test('no snapshot read in this visit: the earning line says where the figure is, and states none', () => {
   const e = env(withChecklist(showcaseSources()));

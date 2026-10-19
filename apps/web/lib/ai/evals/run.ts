@@ -29,8 +29,9 @@ function check(c: GoldenCase, envs: GoldenEnvs): string | null {
       const env = envOf(c, envs); if (!env) return `needs the ${c.env} records, which this run does not have`;
       const r = localAnswer(c.question, env), text = 'text' in r ? r.text : '';
       if (r.kind !== c.expect.reply) return `expected ${c.expect.reply}, got ${r.kind}${text ? `: "${text.slice(0, 80)}"` : ''}`;
-      for (const words of c.expect.includes ?? []) if (!text.includes(words)) return `missing "${words}" in "${text.slice(0, 120)}"`;
-      for (const words of c.expect.excludes ?? []) if (text.includes(words)) return `must not say "${words}"`;
+      // Session AF (crit2): a number and its unit may be joined by a no-break space; the words are compared whatever the space.
+      for (const words of c.expect.includes ?? []) if (!text.replace(/\u00a0/g, ' ').includes(words.replace(/\u00a0/g, ' '))) return `missing "${words}" in "${text.slice(0, 120)}"`;
+      for (const words of c.expect.excludes ?? []) if (text.replace(/\u00a0/g, ' ').includes(words.replace(/\u00a0/g, ' '))) return `must not say "${words}"`;
       const tools = r.kind === 'none' ? [] : r.calls.map(call => call.tool);
       for (const tool of c.expect.tools ?? []) if (!tools.includes(tool)) return `expected the ${tool} tool, used ${tools.join(', ') || 'none'}`;
       if (c.expect.choices) { const offered = (r.kind === 'choices' || r.kind === 'refusal' ? (r.choices ?? []).map(choice => choice.label) : []).sort(); if (JSON.stringify(offered) !== JSON.stringify([...c.expect.choices].sort())) return `expected choices ${c.expect.choices.join(', ')}, got ${offered.join(', ') || 'none'}`; }

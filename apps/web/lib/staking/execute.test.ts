@@ -128,7 +128,7 @@ describe('executeSigned', () => {
     expect(error.plain.links[0]?.url).toMatch(/^https:\/\/testnet\.zigscan\.org\/tx\/[0-9A-F]{64}$/);
     expect(chain.calls.filter(c => c === 'broadcast')).toHaveLength(1);
     expect(stakingEntriesOf(JSON.parse(storage.getItem(STAKING_JOURNAL.key)!))[0]!.state).toBe('UNKNOWN_AFTER_BROADCAST');
-  });
+  }, 20_000); // CI on da6b42dc: ~40 fake-clock polls with real hashing between them took 5.01 s on a slow runner; a time budget, every check unchanged
   test('an account switch after signing stops before broadcast', async () => {
     let n = 0;
     const keplr = {getKey: async () => ({bech32Address: n++ < 1 ? ME : toBech32('zig', new Uint8Array(20).fill(7))}), getOfflineSignerAuto: async () => ({getAccounts: async () => [{address: ME}]}) as never};

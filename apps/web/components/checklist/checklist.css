@@ -152,6 +152,13 @@
 /* The history: twelve weeks. */
 .checklist-history-fold { max-width: 760px; width: 100%; margin: 8px auto 0; }
 .checklist-history-fold > summary { display: flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 700; cursor: pointer; }
+/* crit2: the fold says it opens: a "Show" hint and a chevron that turns, as the app's other folds do. */
+.checklist-history-fold > summary { list-style: none; justify-content: space-between; gap: 12px; }
+.checklist-history-fold > summary::-webkit-details-marker { display: none; }
+.checklist-history-fold > summary::after { content: "Show"; padding-right: 22px; font-size: 15px; font-weight: 600; color: var(--muted, #a4b2cd); }
+.checklist-history-fold > summary::before { content: ""; order: 2; width: 9px; height: 9px; margin: -4px 4px 0 -18px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); color: var(--muted, #a4b2cd); }
+.checklist-history-fold[open] > summary::after { content: "Hide"; }
+.checklist-history-fold[open] > summary::before { transform: rotate(225deg); margin-top: 4px; }
 .checklist-history { display: grid; gap: 10px; padding: 16px; border-radius: 20px; background: var(--checklist-ink-history); }
 .checklist-heat-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 4px; justify-content: start; overflow-x: auto; }
 .checklist-heat-cell { width: 18px; height: 18px; border-radius: 5px; background: #ffffff12; }

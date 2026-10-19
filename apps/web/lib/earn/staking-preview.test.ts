@@ -13,7 +13,7 @@ describe('the Staking empty preview', () => {
     expect(html.match(/data-live-figure="preview-[a-z]+"/g)).toEqual(['data-live-figure="preview-native"', 'data-live-figure="preview-oroswap"']);
     expect(html).not.toMatch(/valdora/i);
     expect(html.match(/data-state="loading"/g)).toHaveLength(2); // one per figure, as before
-    expect(html).not.toMatch(/\d %/);
+    expect(html).not.toMatch(/\d(?:\s|&nbsp;|&#160;)%/); // any space kind, as written in HTML
     expect(html).toContain('href="/app/earn#start-here"'); // ledger P1.2: the CTA opens Earn's Start-here path
     expect(html).not.toMatch(/https?:\/\//);
   });

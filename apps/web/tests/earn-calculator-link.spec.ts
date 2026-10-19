@@ -14,7 +14,7 @@ test.beforeEach(async ({page}) => { await seedShowcase(page); await earnRoutes(p
 
 test('the Earn page opens the calculator at the live rate, labelled an illustration, until a field is touched', async ({page}) => {
   await page.goto('/app/earn#calculator');
-  const link = page.locator('#calculator').getByRole('link', {name: /^Open the calculator at \d+\.\d{2} %$/});
+  const link = page.locator('#calculator').getByRole('link', {name: /^Open the calculator at \d+\.\d{2}\s%$/});
   const rate = await link.getAttribute('data-rate');
   expect(rate).toMatch(/^\d+\.\d{2}$/);
   expect(await link.getAttribute('href')).toBe(`/app/wealth/calculator?from=earn&rate=${rate}&label=illustration`);

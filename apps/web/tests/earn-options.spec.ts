@@ -44,7 +44,7 @@ test('every way to earn has the full anatomy; vault, pool and app figures are li
     await expect(f, id).toHaveAttribute('data-state', 'ok');
     await expect(f.locator('.earn-source'), id).toContainText(/as of /);
   }
-  await expect(page.locator('[data-live-figure="vault-stablecoin-yield"] .earn-value')).toHaveText(/million USDC\.n$/);
+  await expect(page.locator('[data-live-figure="vault-stablecoin-yield"] .earn-value')).toHaveText(/million\sUSDC\.n$/);
   await expect(page.locator('[data-live-figure="vault-stablecoin-yield"]')).toContainText('it holds USDC on Noble (USDC.n)');
   // A yield no checked source publishes is "unavailable" with its reason, never copied from a page.
   await expect(page.locator('[data-live-figure="vaults-yield"]')).toHaveAttribute('data-reason', 'NOT_PUBLISHED');
@@ -83,7 +83,7 @@ test('the measured figure stands beside the issuance figure; past 10 % apart bot
   await earnRoutes(page);
   await page.goto('/app/earn#native-staking');
   await expect(page.locator('[data-live-figure="native-apr-measured"] dt')).toContainText(`Measured: what ${measured.data.validator.moniker}’s own stake earned, at its 5 % commission`);
-  await expect(page.locator('[data-live-figure="native-apr-measured"] .earn-value')).toHaveText(/^5\.\d\d %$/);
+  await expect(page.locator('[data-live-figure="native-apr-measured"] .earn-value')).toHaveText(/^5\.\d\d\s%$/);
   await expect(page.locator('[data-apr-agreement]')).toHaveAttribute('data-apr-agreement', 'agree');
   // The same read with the measured accrual halved: the two figures disagree, and both stay.
   await page.route(url => url.pathname === '/api/earn/measured', route => route.fulfill({json: {...live.answers.measured, fetchedAt: new Date().toISOString(), stale: false, data: {...measured.data, measured: {...measured.data.measured, rate: String(Number(measured.data.measured.rate) / 2)}}}}));

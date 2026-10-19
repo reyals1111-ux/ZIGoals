@@ -49,10 +49,10 @@ describe('the glossary, English and Dutch, plain words; numbers only from the sn
     const unbonding = earnCoachAnswer('What is unbonding?', snapshot)!.text;
     expect(unbonding).toMatch(/Unbonding time on ZIGChain \(how long unstaked ZIG stays locked\): 21 days \(source: ZIGChain mainnet LCD \(official\), as of 2026-10-18 \d\d:\d\d UTC\)\./);
     const apr = earnCoachAnswer('What is APR?', snapshot)!.text;
-    expect(apr).toMatch(/the issuance figure at the same \d+ % commission \(APR\): \d+\.\d\d %/); expect(apr).toMatch(/the measured figure, what .+’s own stake earned/);
+    expect(apr).toMatch(/the issuance figure at the same \d+\s% commission \(APR\): \d+\.\d\d\s%/); expect(apr).toMatch(/the measured figure, what .+’s own stake earned/);
     // Every percentage said is the snapshot's own (a figure's value, or the commission in its label): none is ZIGi's.
-    const quoted = new Set(snapshot.figures.flatMap(f => `${f.value} ${f.label}`.match(/\d+(?:[.,]\d+)? %/g) ?? []));
-    for (const text of [unbonding, apr, earnCoachAnswer('wat is APR', snapshot)!.text]) for (const pct of text.match(/\d+(?:[.,]\d+)? %/g) ?? []) expect(quoted.has(pct), pct).toBe(true);
+    const quoted = new Set(snapshot.figures.flatMap(f => `${f.value} ${f.label}`.match(/\d+(?:[.,]\d+)?\s%/g) ?? []));
+    for (const text of [unbonding, apr, earnCoachAnswer('wat is APR', snapshot)!.text]) for (const pct of text.match(/\d+(?:[.,]\d+)?\s%/g) ?? []) expect(quoted.has(pct), pct).toBe(true);
     expect(earnCoachAnswer('Wat is unbonding?', snapshot)!.text).toMatch(/\(bron: ZIGChain mainnet LCD \(official\), stand 2026-10-18 \d\d:\d\d UTC\)\.\n\nMeer in Earn → Academy: “Unbonding: the way out”\.\n\nUitgelegd door ZIGoals · geen advies$/);
   });
   test('the ways to earn in the Earn page\'s order with a risk each (never ranked by rate); Start here; a signing request refused', () => {
@@ -70,7 +70,7 @@ describe('the glossary, English and Dutch, plain words; numbers only from the sn
   test('earn_rates: the snapshot\'s figures as {value, source, asOf}; none read yet says so and states no figure', () => {
     const base = showcaseSources(), open = (s = base) => toolEnv(s, gatesFor(true), 'provider');
     const none = runTool('earn_rates', {}, open());
-    expect(none.ok).toBe(true); expect(JSON.stringify(none)).not.toMatch(/\d+(?:\.\d+)? %/);
+    expect(none.ok).toBe(true); expect(JSON.stringify(none)).not.toMatch(/\d+(?:\.\d+)?(?:\s|\\u00a0)%/);
     expect((none as unknown as {data: {unavailable: string}}).data.unavailable).toMatch(/^Not read yet in this visit/);
     const read = runTool('earn_rates', {option: 'native-staking'}, open({...base, earn: snapshot}));
     const figures = (read as unknown as {data: {figures: {value: string; source: string; asOf: string}[]}}).data.figures;

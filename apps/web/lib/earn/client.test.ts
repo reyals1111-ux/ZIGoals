@@ -53,17 +53,17 @@ describe('the page reads only its own routes and shows nothing it cannot check',
 
 describe('number formats', () => {
   it('writes amounts and rates plainly', () => {
-    expect(zig('50000000000000000000')).toBe('50 ZIG');
-    expect(zig('425559497761956330156508434', {compact: true})).toBe('425.6 million ZIG');
-    expect(zig('24438865427046207987769200.159838743647053428', {compact: true})).toBe('24.4 million ZIG');
-    expect(tokenAmount('181660424460329', 6, 'stZIG', {compact: true})).toBe('181.7 million stZIG');
-    expect(tokenAmount('42158523948', 6, 'USDC', {compact: true})).toBe('42,159 USDC');
-    expect(large(2_337_760_212)).toBe('2.3 billion');
-    expect(pct('0.057427611310690302')).toBe('5.74 %');
-    expect(pctShort('0.075000')).toBe('7.5 %');
-    expect(pctShort('0.050000000000000000')).toBe('5 %');
-    expect(bps(25)).toBe('0.25 %');
-    expect(bps(2000)).toBe('20 %');
+    expect(zig('50000000000000000000')).toBe('50\u00a0ZIG');
+    expect(zig('425559497761956330156508434', {compact: true})).toBe('425.6\u00a0million\u00a0ZIG');
+    expect(zig('24438865427046207987769200.159838743647053428', {compact: true})).toBe('24.4\u00a0million\u00a0ZIG');
+    expect(tokenAmount('181660424460329', 6, 'stZIG', {compact: true})).toBe('181.7\u00a0million\u00a0stZIG');
+    expect(tokenAmount('42158523948', 6, 'USDC', {compact: true})).toBe('42,159\u00a0USDC');
+    expect(large(2_337_760_212)).toBe('2.3\u00a0billion');
+    expect(pct('0.057427611310690302')).toBe('5.74\u00a0%');
+    expect(pctShort('0.075000')).toBe('7.5\u00a0%');
+    expect(pctShort('0.050000000000000000')).toBe('5\u00a0%');
+    expect(bps(25)).toBe('0.25\u00a0%');
+    expect(bps(2000)).toBe('20\u00a0%');
     expect(duration(1_814_400)).toBe('21 days');
     expect(duration(600)).toBe('10 minutes');
     const now = Date.parse('2026-10-19T08:00:00Z');

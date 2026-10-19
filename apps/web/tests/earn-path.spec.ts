@@ -36,7 +36,7 @@ test('six steps, each opening its guide with the right links; mark as done is ke
   await dot(page, 'Get ZIG').click();
   await expect(panel('get-zig').locator('[data-route]')).toHaveCount(3);
   await expect(panel('get-zig')).toContainText('fees in ZIG only');
-  await expect(panel('get-zig')).toContainText(/OroSwap’s fee on that pool, read live: 0\.01 % a swap/);
+  await expect(panel('get-zig')).toContainText(/OroSwap’s fee on that pool, read live: 0\.01\s% a swap/);
   await expect(panel('get-zig').getByRole('link', {name: /Open Skip Go/})).toHaveAttribute('href', verifiedLink('zig-finance', 'skip-go').url);
   await dot(page, 'Your first real stake').click();
   await expect(panel('first-stake').getByRole('link', {name: 'Stake on Staking'})).toHaveAttribute('href', '/app/staking');
