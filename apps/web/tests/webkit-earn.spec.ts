@@ -22,7 +22,11 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   // WebKit sent no violation event (CI on d7684949), so the HTML sinks themselves note each string assigned to them, with
   // the element and the first frames of the caller, before the browser refuses it (diagnostic only; nothing is changed).
   await page.addInitScript(() => {
-    const note = (where: string, value: unknown) => { if (typeof value !== 'string') return; const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`${where} ← "${value.slice(0, 60)}" @ ${(new Error().stack ?? '').split('\n').slice(2, 6).map(l => l.trim().slice(0, 90)).join(' < ')}`); };
+    // CI on 1251d142: the probes were installed on Earn and caught nothing there, while the page error was recorded — it can
+    // come from the page before (the Showcase lands on Today, and the test leaves it at once). Every note is therefore also
+    // kept in this tab's sessionStorage with the page it came from, so the last read sees the earlier document's notes too.
+    const keep = (line: string) => { try { const all = JSON.parse(sessionStorage.getItem('afViolations') ?? '[]') as string[]; all.push(`${location.pathname}: ${line}`); sessionStorage.setItem('afViolations', JSON.stringify(all.slice(-40))); } catch { /* storage refused */ } };
+    const note = (where: string, value: unknown) => { if (typeof value !== 'string') return; keep(`${where} ← "${value.slice(0, 60)}"`); const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`${where} ← "${value.slice(0, 60)}" @ ${(new Error().stack ?? '').split('\n').slice(2, 6).map(l => l.trim().slice(0, 90)).join(' < ')}`); };
     for (const [proto, prop] of [[Element.prototype, 'innerHTML'], [Element.prototype, 'outerHTML'], [ShadowRoot.prototype, 'innerHTML']] as const) {
       const d = Object.getOwnPropertyDescriptor(proto, prop); if (!d?.set) continue;
       Object.defineProperty(proto, prop, {...d, set(this: Element, v: unknown) { note(`${(this as Element).tagName ?? 'shadow'}.${prop}`, v); return d.set!.call(this, v); }});
@@ -43,7 +47,9 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
     wrapMethod(Document.prototype, 'writeln', 'document.writeln');
     const srcdoc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'srcdoc'); if (srcdoc?.set) Object.defineProperty(HTMLIFrameElement.prototype, 'srcdoc', {...srcdoc, set(this: HTMLIFrameElement, v: unknown) { note('IFRAME.srcdoc', v); return srcdoc.set!.call(this, v); }});
     const report = window.reportError?.bind(window);
-    if (report) window.reportError = (e: unknown) => { const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`reportError ← ${(e instanceof Error ? `${e.name}: ${e.message} @ ${(e.stack ?? '').split('\n').slice(0, 8).join(' | ')}` : String(e)).slice(0, 900)}`); return report(e); };
+    if (report) window.reportError = (e: unknown) => { const w = window as unknown as {afViolations?: string[]}; keep(`reportError ← ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`); (w.afViolations ??= []).push(`reportError ← ${(e instanceof Error ? `${e.name}: ${e.message} @ ${(e.stack ?? '').split('\n').slice(0, 8).join(' | ')}` : String(e)).slice(0, 900)}`); return report(e); };
+    window.addEventListener('error', e => keep(`error event ← ${e.message} @ ${e.filename}:${e.lineno}:${e.colno}`), true);
+    window.addEventListener('pagehide', () => keep('pagehide'));
     (window as unknown as {afProbes?: string}).afProbes = 'installed';
   });
   const origin = new URL(baseURL!).origin;
@@ -76,6 +82,6 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   for (const button of await sheet.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await sheet.getByRole('button', {name: 'Close the guide'}).click();
   await expect(sheet).toHaveCount(0);
-  const {violations, probes} = await page.evaluate(() => { const w = window as unknown as {afViolations?: string[]; afProbes?: string}; return {violations: w.afViolations ?? [], probes: w.afProbes ?? 'missing'}; }).catch(e => ({violations: [] as string[], probes: `unreadable (${String(e).slice(0, 80)})`}));
+  const {violations, probes} = await page.evaluate(() => { const w = window as unknown as {afViolations?: string[]; afProbes?: string}; let kept: string[] = []; try { kept = JSON.parse(sessionStorage.getItem('afViolations') ?? '[]') as string[]; } catch { /* storage refused */ } return {violations: [...kept, ...(w.afViolations ?? [])], probes: w.afProbes ?? 'missing'}; }).catch(e => ({violations: [] as string[], probes: `unreadable (${String(e).slice(0, 80)})`}));
   expect(errors, `probes ${probes}; Trusted Types reports, HTML assignments and reported errors: ${violations.length ? violations.join(' ;; ') : 'none'}`).toEqual([]);
 });
