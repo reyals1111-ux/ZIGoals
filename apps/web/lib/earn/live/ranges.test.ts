@@ -30,8 +30,9 @@ describe('sane ranges', () => {
     const chain = copy(a.chainMainnet!.data) as {mint: {inflation: string}; staking: {bondedTokens: string; supply: string}; apr: {blockSeconds: string; gross: string}};
     chain.mint.inflation = '0.9'; chain.staking.bondedTokens = chain.staking.supply; chain.apr.blockSeconds = '0'; chain.apr.gross = '0';
     expect(chainFailures(chain)).toEqual(expect.arrayContaining(['inflation', 'bondedTokens', 'blockSeconds', 'grossApr']));
-    const oro = copy(a.oroswap!.data) as {pools: {reserves: {amount: string}[]; price: {value: string}; feeBps: number}[]};
-    oro.pools[0]!.reserves[0]!.amount = '0'; oro.pools[0]!.price.value = '1000'; oro.pools[1]!.feeBps = 20_000;
+    const oro = copy(a.oroswap!.data) as {pools: {id: string; reserves: {amount: string}[]; price: {value: string}; feeBps: number}[]};
+    // The pools by their id (chunk 2 put the USDC.inj pool second; the same three failures are asserted).
+    oro.pools[0]!.reserves[0]!.amount = '0'; oro.pools[0]!.price.value = '1000'; oro.pools.find(p => p.id === 'zig-atom')!.feeBps = 20_000;
     expect(oroswapFailures(oro)).toEqual(expect.arrayContaining(['reserves:zig-usdc', 'price:zig-usdc', 'fee:zig-atom']));
     const llama = copy(a.defillama!.data) as {protocols: Record<string, {tvlUsd: number}>; pools: {rows: {apy: number}[]}};
     llama.protocols.oroswap!.tvlUsd = -5; llama.pools.rows[0]!.apy = 900;
