@@ -83,7 +83,7 @@ describe('read-only pairing with a fake client', () => {
   });
   test('lane L2a may add Cosmos methods for its signer; nothing else can be added', () => {
     expect(readOnlyNamespaces(['cosmos_getAccounts', 'cosmos_getAccounts']).cosmos.methods).toEqual(['cosmos_getAccounts']);
-    for (const bad of [['eth_sendTransaction'], ['personal_sign'], ['solana_signTransaction'], ['cosmos_'], ['wallet_switchEthereumChain']]) expect(() => readOnlyNamespaces(bad), bad[0]).toThrow();
+    for (const bad of [['eth_sendTransaction'], ['personal_sign'], ['solana_signTransaction'], ['cosmos_'], ['wallet_switchEthereumChain'], ['cosmos_signDirect'], ['cosmos_signAmino'], ['cosmos_getAccounts', 'cosmos_signDirect']]) expect(() => readOnlyNamespaces(bad), bad.join()).toThrow(); // S9: signing methods refused too
   });
   test('only well-formed accounts of the tracked chains are read from a session', () => {
     expect(accountsOf({x: {accounts: [`eip155:1:${EVM}`, `eip155:1:${EVM.toLowerCase()}`, `eip155:999:${EVM}`, `eip155:1:0x12`, `${WC_SOLANA_MAINNET}:${SOL}`, `solana:devnet:${SOL}`, 'cosmos:zigchain-1:cosmos1abc', `cosmos:zig-test-2:${ZIG}`, 7, 'nonsense']}}))

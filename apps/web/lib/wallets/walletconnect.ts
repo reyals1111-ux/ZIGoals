@@ -30,7 +30,10 @@ export const WC_SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 export const WC_ZIGCHAIN = 'cosmos:zigchain-1';
 export type WcNamespace = {chains: string[]; methods: string[]; events: string[]};
 export function readOnlyNamespaces(cosmosMethods: readonly string[] = ['cosmos_getAccounts']): Record<'eip155' | 'solana' | 'cosmos', WcNamespace> {
-  if (cosmosMethods.some(m => !/^cosmos_[A-Za-z]{3,40}$/.test(m))) throw Error('Only Cosmos methods may be added.');
+  // Gate C security review S9 (ADR-028 H133): read-only means exactly that — the one Cosmos method that reads accounts.
+  // Signing over WalletConnect (Keplr Mobile's two Cosmos signing methods) is not built; adding it needs its own
+  // review and its own change here, never a caller's argument.
+  if (cosmosMethods.some(m => m !== 'cosmos_getAccounts')) throw Error('Only the read-only Cosmos method cosmos_getAccounts may be asked for.');
   return {
     eip155: {chains: [...EVM_CHAIN_IDS], methods: [], events: []},
     solana: {chains: [WC_SOLANA_MAINNET], methods: [], events: []},
