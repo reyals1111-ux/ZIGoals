@@ -36,7 +36,7 @@ const EVERY_ROUTE: [path: string, title: string][] = [
   ['/app/wealth/calculator', 'Compound interest calculator'], ['/app/zigi', 'Meet ZIGi'], ['/app/no-such-page', 'Page not found'],
   // Session AF (ADR-028): the new pages, each with its own title.
   ['/app/earn', 'Earn'], ['/app/checklist', 'Checklist'], ['/app/governance', 'Governance'], ['/app/wealth/add-money', 'Add money'],
-  ['/app/wealth/add-money/back', 'Add money: what happens next'],
+  ['/app/wealth/add-money/back', 'Add money: what happens next'], ['/app/timeline', 'Timeline'], ['/app/stories', 'Stories'],
 ];
 test('every route under /app carries the " · ZIGoals Alpha" title', async ({page}) => {
   test.setTimeout(180_000);

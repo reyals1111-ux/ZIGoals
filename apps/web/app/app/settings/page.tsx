@@ -41,6 +41,7 @@ import { PagesSettings } from "../../../components/settings/pages-settings";
 import { AfChecklistSection } from "../../../components/settings/af-checklist-section";
 import { AfEarnSection } from "../../../components/settings/af-earn-section";
 import { AfSigningSection } from "../../../components/settings/af-signing-section";
+import { AfExtrasSection } from "../../../components/settings/af-extras-section";
 /**
  * Session W Part 24: Settings in six labelled groups, Data & privacy first (backups stay on a phone's first screen, as
  * Session E chose). The chips and the phone's list jump to them; every section keeps its own id and content.
@@ -173,6 +174,7 @@ export default function Settings() {
         <AfChecklistSection/>
         <AfEarnSection/>
         <AfSigningSection/>
+        <AfExtrasSection/>
         {/* Session AA-Cloud: a named place for Session AA-Local's game-layer switch (components/progress/slot.tsx). */}
         <Slot place="settings:your-app"/>
         <TimeZoneSettings/>

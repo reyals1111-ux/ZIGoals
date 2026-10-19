@@ -50,6 +50,9 @@ import {isShown} from '../../lib/pages/visibility';
 import {LoadBoundary} from '../load-boundary';
 import {everyHalfMinute} from '../half-minute';
 import {TodayEarnCard, useTodayEarnCard} from '../earn/today-earn-card';
+import {TodayStoriesCard, useTodayStoriesCard} from '../stories/today-stories-card';
+import {TodayTimelineCard} from '../timeline/today-timeline-card';
+import {TodayUniverseCard} from '../universe/today-universe-card';
 
 /** The key, in Session W's reminders record, that remembers "Not now" for the time zone card (lib/reminders/w-schema.ts). */
 const JOURNAL_ZONE_PROMPT = 'journal-zone';
@@ -103,11 +106,17 @@ export function TodayForYou({habits, health, platform, localGoals, metadata, quo
   // Session AF (L1, P1.30; ADR-028 H104): the newcomer's "Learn to stake, earn and swap" card is a For you card, added
   // only while it shows (no position yet, not dismissed), so on a phone it folds behind the one open card like the others.
   const earnCard = useTodayEarnCard();
+  // Session AF (L5b, H104's rule for Today on a phone): the Day Timeline and My Universe are For you cards, and Stories' door
+  // joins only while the week's story is ready and unopened; on a phone they wait behind "Show more" like every For you card.
+  const storiesCard = useTodayStoriesCard({habits, health, platform, today});
   const cards: ForYouCard[] = [];
   if (fasting.loaded && fasting.running) cards.push({id: 'fasting', priority: 1, node: <FastingLine running={fasting.running} now={fasting.now} />});
   if (whatsNew) cards.push({id: 'whats-new', priority: 2, node: <LoadBoundary quiet><Suspense fallback={null}><WhatsNewCard onDismiss={dismissNew} /></Suspense></LoadBoundary>});
   if (review.loaded && !review.unreadable) { const state = reviewOpen; if (state === 'due' || state === 'draft') cards.push({id: 'weekly-review', priority: 3, node: <WeeklyReviewCard store={review} weekStart={window.weekStart} weekEnd={window.weekEnd} summary={summary} financial={financial} formatWealth={formatWealth} onDone={setReviewNote} guideNote={guideNote} />}); }
   if (earnCard.state === 'shown') cards.push({id: 'earn-start', priority: 4.5, node: <TodayEarnCard />});
+  cards.push({id: 'timeline', priority: 3.5, node: <TodayTimelineCard />});
+  if (storiesCard.state === 'shown') cards.push({id: 'stories', priority: 4.6, node: <TodayStoriesCard loggedDays={storiesCard.loggedDays} />});
+  cards.push({id: 'universe', priority: 6.5, node: <TodayUniverseCard />});
   if (nudge) cards.push({id: 'guide', priority: 4, node: <GuideCard nudge={nudge} today={habitCalendarDay(habits, new Date(now))} onNotToday={guide.dismiss} />});
   if (healthGoals.loaded && !healthGoals.unreadable && healthGoals.data.goals.some(g => g.status === 'active')) cards.push({id: 'health-goals', priority: 5, node: <HealthGoalsCard goals={healthGoals.data} health={health} />});
   if (insights.cards.length) cards.push({id: 'insights', priority: 6, node: <InsightsCard {...insights} />});

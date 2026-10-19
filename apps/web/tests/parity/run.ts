@@ -14,7 +14,7 @@ import {isKnown} from './known';
  * route · state · element · property · Nebula → theme.
  */
 export type State = 'showcase' | 'empty' | 'quick-add' | 'more' | 'folded';
-export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new'] as const;
+export const ROUTES = ['/app', '/app/goals', '/app/habits', '/app/health', '/app/wealth', '/app/wealth/calculator', '/app/markets', '/app/portfolio', '/app/staking', '/app/activity', '/app/settings', '/app/settings/data', '/app/help', '/app/chess', '/app/ecosystem', '/app/review', '/app/journey', '/app/earn', '/app/checklist', '/app/zigi', '/app/goals/new', '/app/timeline', '/app/stories'] as const;
 export const STATES: readonly [string, State][] = [...ROUTES.map(r => [r, 'showcase'] as [string, State]), ['/app', 'empty'], ['/app/goals', 'empty'], ['/app', 'quick-add'], ['/app', 'more'], ['/app', 'folded']];
 
 async function enter(page: Page, route: string, state: State, theme: Theme) {
