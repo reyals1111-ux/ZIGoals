@@ -1,0 +1,10 @@
+Session AF Gate C — key scans on 49433538 (local), Mon 19 Oct 2026 19:05 Brussels; the two fixes in 196fa934
+- scripts/check-secrets.mjs: "Tracked-file credential pattern check passed (0 allowlisted test values). This is a limited pattern scan, not a complete secret audit."
+- scripts/zigi/key-sweep.mjs: "Key sweep clean: 5 pattern(s) over the diff, both histories and 7 folders."
+- E-mail addresses in the added lines of origin/main..HEAD (git diff -U0, the address pattern [A-Za-z0-9._%+-]+@domain.tld):
+    git@github.com ×3 — ssh:// repository URLs inside the WalletConnect licence notices (public/licenses/walletconnect.txt);
+      not addresses, kept (ADR-028 H101).
+    user@api.zigchain.com ×1 — a negative-test URL with user info in lib/server/earn/routes.test.ts; now built from parts
+      (196fa934).
+    the commit trailer's address ×1 — quoted in docs/handoff/af-lanes/README.md; now named, not quoted (196fa934).
+  After 196fa934: none left besides the licence notices' repository URLs.
