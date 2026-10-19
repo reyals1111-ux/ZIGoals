@@ -26,7 +26,7 @@
 
 /* The theme bar is no longer an island either (Settings, More and the sidebar): white glass, ink icons and words, the
    chosen theme the same solid nebula pill as by night (white on every stop ≥ 4.5:1), the "Preview" tag as by night. In the
-   sidebar it rests on the dusk foot, so the line under it is light. */
+   sidebar it rests on the dusk foot (Session AF: with no line under it). */
 :root[data-theme=light] .theme-switch:not(#\-) { background: linear-gradient(150deg, #fffffff5, #f6f3fff5) padding-box, linear-gradient(120deg, #7bc6e6, #9db3e8 34%, #b49cf0, #d29ae8) border-box; box-shadow: inset 0 1px 0 #ffffff, 0 10px 28px -18px #2a2f6680; }
 :root[data-theme=light] .theme-option:not(#\-) { color: #3a4566; }
 :root[data-theme=light] .theme-option:hover:not(#\-) { color: #10163a; }
@@ -34,4 +34,3 @@
 :root[data-theme=light] .theme-option:focus-visible:not(#\-) { outline-color: #4b3fd1; }
 :root[data-theme=light] .theme-switch-compact .theme-option:not(#\-) { color: #2a3352; }
 :root[data-theme=light] .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) { color: #ffffff; }
-:root[data-theme=light] .app-sidebar .theme-switch-note:not(#\-) { color: #dcd6f6; }

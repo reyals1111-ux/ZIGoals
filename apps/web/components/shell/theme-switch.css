@@ -20,14 +20,13 @@
 @media (forced-colors: active) { .theme-switch, .theme-option[aria-checked="true"] { border: 1px solid CanvasText; } }
 /* The artwork ends above the bar (its bleed into the sidebar's bottom padding is gone); the bar keeps the padding and the safe area to the edge. */
 @media (min-width: 901px) { .app-sidebar .sidebar-destination { margin-bottom: 0; } .app-sidebar { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }
-/* Session AD (Part 3): the line under the bar — in the sidebar "Light and Dark: preview", on phones and in Settings what
-   Nebula is and that Customize comes later. Readable size, the sidebar's secondary text colour. */
+/* Session AD (Part 3): the line under the bar — on phones and in Settings what Nebula is and that Customize comes later.
+   Readable size, the secondary text colour. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no line. */
 .theme-switch-note { margin: 8px 2px 0; font-size: 14px; line-height: 1.45; color: #b9c8e2; }
 .app-sidebar .theme-switch-wrap { flex: none; }
-.app-sidebar .theme-switch-note { text-align: center; }
 @media (max-width: 900px) { .app-sidebar .theme-switch-wrap { display: none; } }
 /* The lazy bar's slot keeps the bar's measured height while its chunk loads (Session AD weights). */
-.theme-switch-slot { min-height: 98px; }
+.theme-switch-slot { min-height: 70px; } /* the sidebar's bar: 14 px above it, 56 px of bar (Session AF: no line under it) */
 .app-sidebar .theme-switch-slot { flex: none; }
 .theme-switch-slot-compact { min-height: 94px; }
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
