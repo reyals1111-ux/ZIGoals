@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST} from './build-themes.mjs';
+import {buildAll, boostSelector, colourLonghands, mapValue, MAPS, ISLANDS, NEUTRAL_CHROMA, NIGHT_L, NIGHT_CHROMA, TEXT_CONTRAST, GRADIENT_TEXT_CONTRAST} from './build-themes.mjs';
 import * as parity from '../../apps/web/tests/parity/classify.ts';
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'apps', 'web');
@@ -81,9 +81,32 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
     }
     expect(mapValue('#4b3fd1', 'text', 'light')).toBeNull(); // already deep enough: unchanged
   });
-  it('gradient words keep their nebula stops; only their white part becomes ink', () => {
-    expect(mapValue('linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%)', 'gradientText', 'light')).toBeNull();
-    expect(mapValue('linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b9c6ff 78%)', 'gradientText', 'light')).toMatch(/^linear-gradient\(100deg, #[0-3][0-9a-f]{5} 0%, #[0-3][0-9a-f]{5} 30%, #b9c6ff 78%\)$/);
+  it('gradient words: their white part becomes ink and, by the owner’s decision of 19 Oct (H130), their tails take deeper shades of the same hues; Dark, the night islands and the wordmark keep Nebula’s', () => {
+    const flow = 'linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%)';
+    const day = mapValue(flow, 'gradientText', 'light'), stops = (v) => [...v.matchAll(/#[0-9a-f]{6}/g)].map(m => m[0]);
+    expect(day).toMatch(/^linear-gradient\(100deg, currentColor 0%, currentColor 42%, #[0-9a-f]{6} 72%, #[0-9a-f]{6} 84%, #[0-9a-f]{6} 93%, #[0-9a-f]{6} 100%\)$/);
+    stops(flow).forEach((hex, i) => {
+      const out = stops(day)[i], before = oklch(hex), after = oklch(out);
+      expect(onWhite(out), `${hex} → ${out}`).toBeGreaterThanOrEqual(GRADIENT_TEXT_CONTRAST - 0.05);
+      expect(onWhite(out), `${hex} → ${out}: the owner's floor`).toBeGreaterThanOrEqual(4.5);
+      expect(Math.abs(after.h - before.h), `${hex} → ${out}: same hue`).toBeLessThan(2.5);
+      expect(after.L).toBeLessThan(before.L);
+      expect(parity.deeperSameHue(`rgb(${[1, 3, 5].map(j => parseInt(hex.slice(j, j + 2), 16)).join(', ')})`, `rgb(${[1, 3, 5].map(j => parseInt(out.slice(j, j + 2), 16)).join(', ')})`)).toBe(true);
+    });
+    expect(mapValue('linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b9c6ff 78%)', 'gradientText', 'light')).toMatch(/^linear-gradient\(100deg, #[0-3][0-9a-f]{5} 0%, #[0-3][0-9a-f]{5} 30%, #[0-9a-f]{6} 78%\)$/);
+    expect(mapValue(flow, 'gradientText', 'dark')).toBeNull();
+    // the root flow and every pillar's flow by day are the deep ones; the night islands restore Nebula's own flow
+    expect(sheets.light).toContain(`--nebula-flow-mid: ${day};`);
+    expect(sheets.light).toContain(`--nebula-flow-mid: ${flow};`);
+    for (const pillar of ['goals', 'habits', 'health', 'wealth']) {
+      const rule = sheets.light.match(new RegExp(`main\\[data-pillar=${pillar}\\][^{]*\\{[^}]*?--nebula-flow-mid: ([^;\\n]+)`));
+      expect(rule, pillar).not.toBeNull();
+      for (const hex of stops(rule[1])) expect(onWhite(hex), `${pillar} ${hex}`).toBeGreaterThanOrEqual(GRADIENT_TEXT_CONTRAST - 0.05);
+    }
+    // the ZIGoals logo is a mark, not a gradient word: no day rule repaints its letters
+    const logo = sheets.light.slice(sheets.light.indexOf('.logo-wordmark-letters:not'), sheets.light.indexOf('}', sheets.light.indexOf('.logo-wordmark-letters:not')));
+    expect(logo).not.toContain('background');
+    expect(sheets.dark).not.toContain(day);
     // AE's deeper day stops for the gradient headings are gone.
     expect(sheets.light).not.toMatch(/#0b6f80 68%, #3f4fc0 82%/);
   });

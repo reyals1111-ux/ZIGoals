@@ -13,7 +13,7 @@ const args = process.argv.slice(2), flag = name => args.find(a => a.startsWith(`
 const dirs = args.filter(a => !a.startsWith('--'));
 if (!dirs.length) dirs.push(join(ROOT, 'apps', 'web', 'test-results', 'theme-parity'));
 const out = flag('out') ?? join(ROOT, 'docs', 'verification', 'session-af', 'theme-parity.md');
-const CLASSES = ['text', 'neutral', 'art-calm', 'theme-bar', 'DISALLOWED'];
+const CLASSES = ['text', 'neutral', 'art-calm', 'theme-bar', 'gradient-word', 'DISALLOWED'];
 
 export function fold(files) {
   const rows = [], disallowed = [], mismatches = [];
@@ -32,7 +32,7 @@ export function render({rows, disallowed, mismatches}, label = '') {
   const total = cls => rows.reduce((n, r) => n + (r.counts[cls] ?? 0), 0);
   return [
     '# Theme parity (Session AF, ADR-028 H75)', '',
-    `Results of \`tests/theme-parity-af.spec.ts\`${rows.some(r => r.project === 'mobile') ? ' (computer and phone layouts)' : ''} and \`tests/webkit-theme-parity.spec.ts\`, folded by \`scripts/parity-report.mjs\`${label ? ` on ${label}` : ''}. Each row compares a route in a state with Nebula: the allowed classes are words (text), neutral and night surfaces, lines and shades (neutral; and the page's own ground), the calm of the named art layers (art-calm) and the theme bar; anything else, and any box that moves by more than half a pixel, is DISALLOWED.`, '',
+    `Results of \`tests/theme-parity-af.spec.ts\`${rows.some(r => r.project === 'mobile') ? ' (computer and phone layouts)' : ''} and \`tests/webkit-theme-parity.spec.ts\`, folded by \`scripts/parity-report.mjs\`${label ? ` on ${label}` : ''}. Each row compares a route in a state with Nebula: the allowed classes are words (text), neutral and night surfaces, lines and shades (neutral; and the page's own ground), the calm of the named art layers (art-calm), the theme bar, and by day a gradient word's stops in deeper shades of the same hues (gradient-word, H130); anything else, and any box that moves by more than half a pixel, is DISALLOWED.`, '',
     `Rows: ${rows.length}. Totals — ${CLASSES.map(c => `${c} ${total(c)}`).join(' · ')}.`, '',
     '| Route | State | Project | Theme | Elements | ' + CLASSES.join(' | ') + ' |', '|---|---|---|---|---|' + CLASSES.map(() => '---').join('|') + '|',
     ...rows.map(r => `| ${r.route} | ${r.state} | ${r.project} | ${r.theme} | ${r.elements} | ${CLASSES.map(c => r.counts[c] ?? 0).join(' | ')} |`), '',

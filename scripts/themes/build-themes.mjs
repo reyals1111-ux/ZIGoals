@@ -109,6 +109,13 @@ export const contrastOnWhite = c => 1.05 / (relLum(fromOklch({...c, a: 1})) + 0.
  *  panels and on the light tints the nebula's glows leave on them (Session AE's day words sat at OKLCH L 0.47, about the
  *  same). */
 export const TEXT_CONTRAST = 6.6;
+/** Session AF (the owner's decision of 19 Oct, ADR-028 H130): by day a gradient word keeps its flow in deeper shades of its own
+ *  hues, every coloured stop at least this contrast on white, so the whole word reads at least 4.5:1 on the day's
+ *  near-white panels and their light mist (the owner's floor; 3:1 would do for large headings, every heading gets 4.5).
+ *  Nebula and Dark are unchanged; the night islands keep their own flow. */
+export const GRADIENT_TEXT_CONTRAST = 5.2;
+/** A brand mark (the ZIGoals wordmark) keeps its own colours in every theme: a logotype is not a gradient word. */
+export const BRAND_MARK_RE = /\.logo-wordmark/;
 /** A word in a run-time colour by day: the colour mixed with black, this share kept (the same hue, deeper; ≥ 5:1 on white
  *  for every pillar and area colour, so ≥ 4.5:1 on the day's panels). A colour-mix computes to an sRGB colour every tool
  *  reads (a relative oklch() colour does not parse in the layout audit). */
@@ -128,13 +135,14 @@ export function deepen(c, target = TEXT_CONTRAST) {
  *  So only neutral colours flip: white-family words become ink, the night's neutral panels and lines become their day
  *  versions, white glass and white icon lines become ink glass and ink lines. A colour with a hue is identity in every role
  *  (fills, chips, tools, charts, rings, pillar colours, glows, gradients, borders, shadows), except a word: a coloured word
- *  that fails on white takes a deeper shade of its own hue (deepen). Gradient words keep their nebula stops; only their
- *  white-family stops become ink ("its white part becomes black, the flow to the right stays"). */
+ *  that fails on white takes a deeper shade of its own hue (deepen). Gradient words: their white-family stops become ink ("its
+ *  white part becomes black, the flow to the right stays") and, by the owner's decision of 19 Oct (H130), their coloured
+ *  stops take deeper shades of the same hues (GRADIENT_TEXT_CONTRAST). */
 const flipText = c => ({...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)});
 export const MAPS = {
   light: {
     text: c => isNeutral(c) ? (c.L < 0.58 ? c : flipText(c)) : deepen(c),
-    gradientText: c => isNeutral(c) && c.L >= 0.58 ? flipText(c) : c,
+    gradientText: c => isNeutral(c) ? (c.L >= 0.58 ? flipText(c) : c) : deepen(c, GRADIENT_TEXT_CONTRAST),
     // Neutral and night only: white glass (light, translucent) becomes ink glass; the night's panels become near-white.
     surface: c => !flips(c) ? c : c.L >= 0.62 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.99 - c.L * 0.14, C: c.C * 0.2},
     border: c => !flips(c) ? c : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5},
@@ -159,10 +167,14 @@ const GRAPHIC_PROPS = new Set(['fill', 'stroke', 'stop-color', 'flood-color', 'l
 const SHADOW_PROPS = new Set(['box-shadow', 'text-shadow', 'filter', '-webkit-filter']);
 /** Classes whose background is clipped to their text somewhere in the CSS (filled by buildTheme). */
 const TEXT_CLIP_CLASSES = new Set();
+/** Session AF (H130): tokens that only ever paint gradient words (a background of a clipped-to-text rule, never a fill), so
+ *  their own declarations, at the root and where a page redefines them (a pillar's flow), take the gradient-word role. */
+const GRADIENT_TEXT_TOKENS = new Set();
 const subjectClasses = selector => selector.split(/,(?![^(]*\))/).flatMap(part => { const last = part.trim().split(/[\s>+~]+/).pop() ?? ''; return [...last.matchAll(/\.([\w-]+)/g)].map(m => m[1]); });
 export function roleOf(prop, rule) {
   const p = prop.toLowerCase();
   if (p.startsWith('--')) {
+    if (GRADIENT_TEXT_TOKENS.has(p)) return 'gradientText';
     const parts = new Set(p.slice(2).split('-')), has = (...words) => words.some(w => parts.has(w));
     if (has('shadow', 'glow')) return 'shadow';
     if (has('text', 'muted', 'ink', 'meta', 'strong', 'secondary', 'fg', 'label', 'copy')) return 'text';
@@ -302,6 +314,10 @@ export function buildTheme(theme, files = sourceFiles()) {
   const parsed = files.map(file => [file, postcss.parse(readFileSync(join(WEB, file), 'utf8'), {from: file})]);
   TEXT_CLIP_CLASSES.clear();
   for (const [, ast] of parsed) ast.walkDecls(/^(-webkit-)?background-clip$/, d => { if (/text/.test(d.value) && d.parent?.type === 'rule') for (const c of subjectClasses(d.parent.selector)) TEXT_CLIP_CLASSES.add(c); });
+  GRADIENT_TEXT_TOKENS.clear();
+  { const inClip = new Set(), elsewhere = new Set(), isClip = rule => (rule.nodes ?? []).some(n => n.type === 'decl' && /^(-webkit-)?background-clip$/.test(n.prop) && /text/.test(n.value)) || subjectClasses(rule.selector ?? '').some(c => TEXT_CLIP_CLASSES.has(c));
+    for (const [, ast] of parsed) ast.walkDecls(d => { if (!/^background(-image)?$/.test(d.prop) || d.parent?.type !== 'rule') return; const into = isClip(d.parent) ? inClip : elsewhere; replaceVars(d.value, (name, _f, whole) => { into.add(name); return whole; }); });
+    for (const name of inClip) if (!elsewhere.has(name)) GRADIENT_TEXT_TOKENS.add(name); }
   // The :root colour tokens (last top-level definition wins) and the tokens something redefines outside :root.
   const tokens = new Map(), local = new Set(), localValues = new Map();
   for (const [, ast] of parsed) ast.walkDecls(d => { if (!d.prop.startsWith('--')) return; const rule = d.parent; if (rule?.type === 'rule' && rule.selector.trim() === ':root' && rule.parent?.type === 'root') tokens.set(d.prop, d.value.trim()); else { local.add(d.prop); localValues.set(d.prop, [...(localValues.get(d.prop) ?? []), d.value.trim()]); } });
@@ -343,12 +359,13 @@ export function buildTheme(theme, files = sourceFiles()) {
       const parts = isToken ? [[d.prop, d.value]] : colourLonghands(d.prop, d.value, kind) ?? [[d.prop, d.value], ...(rule.nodes ?? []).filter(n => n.type === 'decl' && n !== d && new RegExp(`^(-webkit-)?${d.prop}-`).test(n.prop) && !carriedProp(n.prop)).map(n => [n.prop, n.value])];
       for (const [prop, value] of parts) {
         const role = roleOf(prop, rule) ?? role0;
+        if (theme === 'light' && role === 'gradientText' && BRAND_MARK_RE.test(rule.selector ?? '')) continue; // H130: the wordmark keeps its colours
         if (keepWords && role === 'text' && !isToken) { decls.push(postcss.decl({prop, value, important: d.important})); continue; }
         // The value's own colours are mapped first, then its accent tokens are written out (each mapped once). Inside a
         // color-mix() of a word-less role a token that has a day value of its own (a line, a panel) is written as its
         // Nebula colour, so mapValue's mix rule decides for it too.
         const pinned = theme === 'light' && role !== 'text' && role !== 'gradientText' ? pinMixTokens(value) : value;
-        const literal = mapValue(pinned, role, theme) ?? pinned, swapped = isToken && !atRoot ? literal : substitute(literal, role, prop);
+        const literal = mapValue(pinned, role, theme) ?? pinned, swapped = isToken && !atRoot && role !== 'gradientText' ? literal : substitute(literal, role, prop);
         if (swapped !== value) mapped = true;
         decls.push(postcss.decl({prop, value: swapped, important: d.important}));
       }

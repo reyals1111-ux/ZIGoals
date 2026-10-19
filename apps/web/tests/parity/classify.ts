@@ -10,13 +10,16 @@
  *                    The page's own ground (body, the content's sky, the ground under the footer banner) is neutral too.
  *   art-calm       — opacity or filter on a named art layer (the heavy backgrounds calmed by day), and the sidebar sky's
  *                    dawn stars and night veil;
- *   theme-bar      — the theme bar itself (it shows which theme is chosen).
+ *   theme-bar      — the theme bar itself (it shows which theme is chosen);
+ *   gradient-word  — by day only, a coloured stop of a gradient word (a background clipped to its text) in a deeper shade of
+ *                    the same hue (within 12°, lower lightness) that reaches 4.5:1 on white (the owner's decision of 19 Oct,
+ *                    ADR-028 H130: "their tails use deeper shades of the same colours on white").
  * Everything else — any coloured fill, chart paint, ring, glow, gradient, pillar colour, image — must be equal, and every
  * box must be equal within half a pixel.
  */
 export const NEUTRAL_CHROMA = 0.07, NIGHT_L = 0.4, NIGHT_CHROMA = 0.14;
 export const BOX_TOLERANCE = 0.5;
-export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'DISALLOWED';
+export type Klass = 'text' | 'neutral' | 'art-calm' | 'theme-bar' | 'gradient-word' | 'DISALLOWED';
 export type Item = {path: string; desc: string; text: boolean; clip: boolean; art: boolean; ground: boolean; bar: boolean; svgText: boolean; props: Record<string, string>; box: [number, number, number, number]};
 export type Diff = {path: string; desc: string; prop: string; nebula: string; other: string; klass: Klass};
 
@@ -25,7 +28,7 @@ export function oklch([r, g, b]: number[]) {
   const R = lin(r!), G = lin(g!), B = lin(b!);
   const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B), m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B), s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B);
   const L = 0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s, A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s, Bb = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
-  return {L, C: Math.hypot(A, Bb)};
+  return {L, C: Math.hypot(A, Bb), h: (Math.atan2(Bb, A) * 180 / Math.PI + 360) % 360};
 }
 /** The computed colours in a value (rgb()/rgba(), color(srgb …) from a color-mix(), oklch()/oklab() from a relative
  *  colour), in order. */
@@ -34,8 +37,8 @@ const numbers = (c: string) => c.match(/-?[\d.]+(e-?\d+)?/g)!.map(Number);
 /** OKLCH lightness, chroma and alpha of a computed colour. */
 export function lca(c: string) {
   const n = numbers(c);
-  if (c.startsWith('oklch(')) return {L: n[0]!, C: n[1]!, a: n[3] ?? 1};
-  if (c.startsWith('oklab(')) return {L: n[0]!, C: Math.hypot(n[1]!, n[2]!), a: n[3] ?? 1};
+  if (c.startsWith('oklch(')) return {L: n[0]!, C: n[1]!, h: n[2]!, a: n[3] ?? 1};
+  if (c.startsWith('oklab(')) return {L: n[0]!, C: Math.hypot(n[1]!, n[2]!), h: (Math.atan2(n[2]!, n[1]!) * 180 / Math.PI + 360) % 360, a: n[3] ?? 1};
   const rgb = c.startsWith('color(') ? [n[0]! * 255, n[1]! * 255, n[2]! * 255] : [n[0]!, n[1]!, n[2]!];
   return {...oklch(rgb), a: n[3] ?? 1};
 }
@@ -69,6 +72,13 @@ function rgbOf(c: string) {
 }
 /** Within one step per channel: color-mix() and relative colours round differently from the colour they came from. */
 const sameRgb = (x: string, y: string) => { if (!x || !y) return false; const p = rgbOf(x).split(',').map(Number), q = rgbOf(y).split(',').map(Number); return p.every((v, i) => Math.abs(v - q[i]!) <= 1); };
+/** H130: a gradient word's coloured stop by day: the same hue (within 12°), deeper, and at least 4.5:1 on white. */
+export const GRADIENT_WORD_HUE = 12, GRADIENT_WORD_CONTRAST = 4.5;
+const onWhite = (c: string) => { const [r, g, b] = rgbOf(c).split(',').map(Number); return 1.05 / (0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!) + 0.05); };
+export function deeperSameHue(nebula: string, day: string) {
+  const x = lca(nebula), y = lca(day), turn = Math.abs(x.h - y.h) % 360;
+  return x.C >= NEUTRAL_CHROMA && y.C >= NEUTRAL_CHROMA && Math.min(turn, 360 - turn) <= GRADIENT_WORD_HUE && y.L < x.L && onWhite(day) >= GRADIENT_WORD_CONTRAST;
+}
 const TEXT_PROPS = new Set(['color', '-webkit-text-fill-color', 'caret-color']);
 const CALM_PROPS = new Set(['opacity', 'filter']);
 /** A filter whose only change is the colour of its drop shadows is a shade, not a calm. */
@@ -97,6 +107,7 @@ export function classify(prop: string, nebula: Item, other: Item): Klass {
     // A paint or a gradient stop that is the element's own word colour (currentColor) follows the word.
     const fromText = (prop !== 'background-image' || nebula.clip) && (ca[i] === ownA && cb[i] === ownB || sameRgb(ca[i]!, ownA) && sameRgb(cb[i]!, ownB));
     if (fromText || (nebula.svgText && prop === 'fill')) { klass = klass === 'neutral' ? 'text' : klass; continue; }
+    if (prop === 'background-image' && nebula.clip && deeperSameHue(ca[i]!, cb[i]!)) { klass = 'gradient-word'; continue; }
     if (!flips(ca[i]!)) return 'DISALLOWED';
   }
   return klass;

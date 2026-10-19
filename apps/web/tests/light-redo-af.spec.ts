@@ -1,10 +1,12 @@
 import {expect, test, type Page} from '@playwright/test';
 import {openDevice, openIn, type Theme} from './parity/session';
+import {colours, deeperSameHue, skeleton} from './parity/classify';
 
 /**
  * Session AF (L5a, Parts 10.2–10.6 and 10.12, ADR-028 D9, H13, H75): Light is Nebula by day, Dark keeps everything but
  * its sky. By day the page's ground is white with a light mist, words are ink, and every coloured fill keeps Nebula's
- * exact colour; Habits' 28-day blocks keep each card's own colour; gradient headings keep the nebula's stops; small
+ * exact colour; Habits' 28-day blocks keep each card's own colour; gradient headings keep the nebula's flow in deeper shades of
+ * the same hues (the owner's decision of 19 Oct, H130); small
  * coloured words take a deeper shade of their own hue; the reward-reserve card follows the theme; a theme switch moves no
  * box. By night the star-system background is black with a very subtle colour mist.
  */
@@ -45,9 +47,14 @@ test('by day: a white ground with a light mist, ink words, and the nebula’s fi
   expect(lum(light.h1)).toBeLessThan(0.06);
   expect(light.quick).not.toBe('');
   expect(light.quick).toBe(nebula.quick);
-  // A gradient heading keeps the nebula's stops; only its own word colour (the white part by night) is ink by day.
+  // A gradient heading keeps the nebula's flow: its own word colour (the white part by night) is ink by day and, by the
+  // owner's decision of 19 Oct (H130), every coloured stop is a deeper shade of the same hue at 4.5:1 or more on white.
   expect(nebula.heading).toContain(nebula.headingColor);
-  expect(light.heading.replaceAll(light.headingColor, 'WORD')).toBe(nebula.heading.replaceAll(nebula.headingColor, 'WORD'));
+  const word = (v: string, c: string) => v.replaceAll(c, 'WORD'), n = colours(word(nebula.heading, nebula.headingColor)), l = colours(word(light.heading, light.headingColor));
+  expect(skeleton(word(light.heading, light.headingColor))).toBe(skeleton(word(nebula.heading, nebula.headingColor)));
+  expect(n.length).toBeGreaterThanOrEqual(3);
+  expect(l).toHaveLength(n.length);
+  n.forEach((c, i) => expect(deeperSameHue(c, l[i]!), `${c} → ${l[i]}`).toBe(true));
   // A theme switch moves no box: the hero copy and "What is due now" stay where they are by night.
   expect(Math.abs(light.copy - nebula.copy)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(light.focus - nebula.focus)).toBeLessThanOrEqual(0.5);

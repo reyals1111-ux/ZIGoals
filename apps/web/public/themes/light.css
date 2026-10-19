@@ -433,7 +433,7 @@
         background-color: var(--surface-0)
     }
     .nebula-text:not(#\-) {
-        background-image: var(--nebula);
+        background-image: linear-gradient(110deg, #0e7783, #186dc3 36%, #7451da 68%, #b12ac0);
         background-color: transparent;
         color: transparent
     }
@@ -957,7 +957,7 @@
         color: var(--muted)
     }
     .nebula-text:not(#\-) {
-        background-image: var(--nebula-emphasis)
+        background-image: linear-gradient(105deg, #0e7783 3%, #186dc3 32%, #7451da 54%, #b12ac0 80%, #bc3583)
     }
     .primary:not(#\-) {
         background-image: var(--nebula-emphasis);
@@ -997,10 +997,10 @@
         --brand-blue: #459dff;
         --brand-violet: #9273ff;
         --brand-magenta: #f06dff;
-        --nebula-pink: #ff74be;
+        --nebula-pink: #bc3583;
         --nebula-warm: #ffad87;
         --nebula-emphasis: linear-gradient(105deg, var(--brand-cyan) 3%, var(--brand-blue) 32%, var(--brand-violet) 54%, var(--brand-magenta) 80%, var(--nebula-pink));
-        --nebula-headline: linear-gradient(100deg, var(--brand-cyan), var(--brand-blue) 31%, var(--brand-violet) 49%, var(--brand-magenta) 70%, var(--nebula-pink) 91%, var(--nebula-warm));
+        --nebula-headline: linear-gradient(100deg, #0e7783, #186dc3 31%, #7451da 49%, #b12ac0 70%, var(--nebula-pink) 91%, #a35935);
         --cosmic-dark: #f2f5fa;
         --cosmic-glass: #f0f4f9eb;
         --cosmic-edge: #70cfff47;
@@ -1050,7 +1050,7 @@
     }
     .app-sidebar .brand .brand-wordmark:not(#\-), .brand-wordmark:not(#\-) {
         color: transparent;
-        background-image: var(--nebula-emphasis);
+        background-image: linear-gradient(105deg, #0e7783 3%, #186dc3 32%, #7451da 54%, #b12ac0 80%, #bc3583);
         background-color: transparent;
         filter: drop-shadow(0 0 10px #4897ff30)
     }
@@ -1440,7 +1440,7 @@
         color: #051029
     }
     .nebula-text:not(#\-), .nebula-number:not(#\-) {
-        background-image: linear-gradient(105deg,#1bd7e8,#4c9cf8 30%,#ad75f4 58%,#ee79d5 82%,#ffa59d)
+        background-image: linear-gradient(105deg,#057882,#166dc5 30%,#874ec9 58%,#af3e9a 82%,#a6544f)
     }
     .panel small:not(#\-), .card-footer small:not(#\-), .goal-progress-caption span:not(#\-), .goal-progress-caption strong:not(#\-), .health-page .fine:not(#\-), .habit-card .fine:not(#\-) {
         color: #101a27
@@ -1557,7 +1557,7 @@
         background-color: transparent
     }
     main [data-arrive=tint]:not(#\-) {
-        background-image: linear-gradient(100deg,currentColor 38%,var(--brand-cyan) 45%,var(--brand-violet) 50%,var(--brand-magenta) 55%,currentColor 62%) !important;
+        background-image: linear-gradient(100deg,currentColor 38%,#0e7783 45%,#7451da 50%,#b12ac0 55%,currentColor 62%) !important;
         -webkit-text-fill-color: transparent !important
     }
     main [data-arrive=shine]:not(#\-) {
@@ -1578,8 +1578,8 @@
         --accent-cyan: #9ee8f8;
         --accent-violet: #cbbfff;
         --accent-magenta: #f3b0e6;
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%);
-        --nebula-figure: linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b8ecfb 55%, #b9c6ff 78%, #dcb8fb 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #147782 72%, #5467ba 84%, #8a54b5 93%, #a84992 100%);
+        --nebula-figure: linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #5f6a9d 78%, #805e9b 100%)
     }
     :scope .text-secondary:not(#\-) {
         color: var(--text-secondary)
@@ -1718,10 +1718,10 @@
         color: #121927
     }
     :scope .nebula-flow.is-figure:not(#\-), :scope .nebula-number:not(#\-) {
-        background-image: linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #b9c6ff 78%, #dcb8fb 100%)
+        background-image: var(--nebula-figure)
     }
     :scope .nebula-flow.is-figure[data-entrance=once]:not(#\-) {
-        background-image: linear-gradient(100deg, transparent 40%, #0f0f0fb0 50%, transparent 60%), linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #b9c6ff 78%, #dcb8fb 100%)
+        background-image: linear-gradient(100deg, transparent 40%, #0f0f0fb0 50%, transparent 60%), var(--nebula-figure)
     }
 }
 /*  components/ui/ui.css  */
@@ -3474,7 +3474,6 @@
         background-color: transparent
     }
     .logo-wordmark-letters:not(#\-) {
-        background-image: linear-gradient(100deg, #45c4f2 0%, #5ea4ff 18%, #8a86ff 40%, #b177f4 60%, #e06cdc 80%, #ff6fae 100%);
         -webkit-text-fill-color: transparent;
         color: #b48cff;
         filter: drop-shadow(0 0 14px #7b5cff59)
@@ -3482,8 +3481,6 @@
     @media (forced-colors: active) {
         .logo-wordmark-letters:not(#\-) {
             -webkit-text-fill-color: CanvasText;
-            background-image: none;
-            background-color: transparent;
             filter: none
         }
     }
@@ -3508,7 +3505,7 @@
         border-color: #8fe6f455
     }
     :scope .calc-figures .calc-final dd:not(#\-) {
-        background-image: linear-gradient(90deg, #0f0f0f 0 45%, #9fe9f7 70%, #d9a4ff);
+        background-image: linear-gradient(90deg, #0f0f0f 0 45%, #2a7683 70%, #8956aa);
         background-color: transparent;
         color: transparent
     }
@@ -4666,7 +4663,7 @@
         color: var(--text-strong)
     }
     .earn-figure[data-big] .earn-value:not(#\-) {
-        background-image: linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #b9c6ff 78%, #dcb8fb 100%);
+        background-image: var(--nebula-figure);
         -webkit-text-fill-color: transparent
     }
     .earn-value.is-unavailable:not(#\-), .earn-figure[data-big] .earn-value.is-unavailable:not(#\-) {
@@ -5271,19 +5268,19 @@
         filter: drop-shadow(0 2px 14px #313e5057)
     }
     .site-footer-word[data-pillar=goals]:not(#\-) {
-        background-image: linear-gradient(100deg, var(--brand-cyan, #23eaff), var(--brand-blue, #459dff))
+        background-image: linear-gradient(100deg, #0e7783, #186dc3)
     }
     .site-footer-word[data-pillar=habits]:not(#\-) {
-        background-image: linear-gradient(100deg, var(--brand-blue, #459dff), var(--brand-violet, #9273ff))
+        background-image: linear-gradient(100deg, #186dc3, #7451da)
     }
     .site-footer-word[data-pillar=health]:not(#\-) {
-        background-image: linear-gradient(100deg, var(--brand-violet, #9273ff), var(--brand-magenta, #f06dff) 70%, var(--nebula-pink, #ff74be))
+        background-image: linear-gradient(100deg, #7451da, #b12ac0 70%, var(--nebula-pink, #bc3583))
     }
     .site-footer-dot:not(#\-) {
         color: #4f5a8a
     }
     .site-footer-result:not(#\-) {
-        background-image: var(--nebula-headline, linear-gradient(100deg, #6fe6f6, #8fa6ff 35%, #c790f6 65%, #f08bd6))
+        background-image: var(--nebula-headline, linear-gradient(100deg, #147782, #5467ba 35%, #8a54b5 65%, #a84992))
     }
     .site-footer-tagline:not(#\-) {
         color: #02111b;
@@ -8651,7 +8648,7 @@
         color: var(--text-secondary)
     }
     :scope .life-cover-kicker:not(#\-) {
-        background-image: linear-gradient(100deg, #0d0f14 0%, #0d0f14 40%, #8fa6ff 62%, #f08bd6 100%);
+        background-image: linear-gradient(100deg, #0d0f14 0%, #0d0f14 40%, #5467ba 62%, #a84992 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -9864,19 +9861,19 @@
     }
     :scope main[data-pillar=goals]:not(#\-), :scope .pillar-hero[data-pillar=goals]:not(#\-) {
         --pillar: var(--pillar-goals);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fd3ff 72%, #8fa6ff 80%, var(--pillar-goals) 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #1a7495 72%, #5467ba 80%, #7451da 100%)
     }
     :scope main[data-pillar=habits]:not(#\-), :scope .pillar-hero[data-pillar=habits]:not(#\-) {
         --pillar: var(--pillar-habits);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #c790f6 72%, #8fa6ff 78%, var(--pillar-habits) 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8a54b5 72%, #5467ba 78%, #0e7783 100%)
     }
     :scope main[data-pillar=health]:not(#\-), :scope .pillar-hero[data-pillar=health]:not(#\-) {
         --pillar: var(--pillar-health);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #c790f6 78%, var(--pillar-health) 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #147782 72%, #8a54b5 78%, #bc3583 100%)
     }
     :scope main[data-pillar=wealth]:not(#\-), :scope .pillar-hero[data-pillar=wealth]:not(#\-) {
         --pillar: var(--pillar-wealth);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8fa6ff 72%, #f08bd6 78%, var(--pillar-wealth) 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #5467ba 72%, #a84992 78%, #8b6605 100%)
     }
     :scope .pillar-hero[data-pillar=journey]:not(#\-) {
         --pillar: #c790f6
@@ -10227,7 +10224,7 @@
         background-color: var(--surface-0,#f1f4f9)
     }
     .goal-detail-workspace .goal-detail-current:not(#\-) {
-        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#23eaff 60%,#459dff 73%,#9273ff 85%,#ff74be 100%);
+        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#0e7783 60%,#186dc3 73%,#7451da 85%,#bc3583 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -10388,7 +10385,7 @@
     }
     .nebula-number:not(#\-) {
         color: var(--text);
-        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#23eaff 60%,#459dff 73%,#9273ff 85%,#ff74be 100%);
+        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#0e7783 60%,#186dc3 73%,#7451da 85%,#bc3583 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -10678,7 +10675,7 @@
         color: #0b1622
     }
     .slogan-gradient:not(#\-) {
-        --slogan-gradient: linear-gradient(100deg,#1cd9ee 0%,#459df7 23%,#936eff 48%,#e665e9 72%,#ffa59e 100%);
+        --slogan-gradient: linear-gradient(100deg,#1a7681 0%,#026ec4 23%,#784fde 48%,#b330b7 72%,#a65450 100%);
         background-image: var(--slogan-gradient);
         background-color: transparent;
         color: transparent
@@ -11185,7 +11182,7 @@
         color: var(--muted)
     }
     .wealth-category-heading h2>span:last-child:not(#\-) {
-        background-image: linear-gradient(110deg,var(--text) 25%,var(--brand-cyan) 68%,var(--brand-violet));
+        background-image: linear-gradient(110deg,var(--text) 25%,#0e7783 68%,#7451da);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -11786,7 +11783,7 @@
         border-top-color: #6c9cc526
     }
     :scope .search-row.is-ask .search-row-title:not(#\-) {
-        background-image: var(--nebula-flow-mid, linear-gradient(90deg, #9fe9f7, #d9a4ff));
+        background-image: var(--nebula-flow-mid, linear-gradient(90deg, #2a7683, #8956aa));
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -12065,7 +12062,7 @@
         --brand-blue-ink: #0f5daa;
         --brand-violet-ink: #6741c9;
         --brand-magenta-ink: #9f09ae;
-        --nebula-pink-ink: #a92073;
+        --nebula-pink-ink: var(--nebula-pink);
         --nebula-warm-ink: #904823;
         --cyan-ink: #026671;
         --violet-ink: #6741c9;
@@ -12228,18 +12225,18 @@
         border-color: #c3a8f944
     }
     :scope .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #6fe6f6 55%, #c790f6);
+        background-image: linear-gradient(90deg, #0d0f14, #147782 55%, #8a54b5);
         background-color: transparent;
         color: transparent
     }
     .stories-cover[data-pillar=health] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #ff74be 55%, #c790f6)
+        background-image: linear-gradient(90deg, #0d0f14, #bc3583 55%, #8a54b5)
     }
     .stories-cover[data-pillar=goals] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #9273ff 55%, #f08bd6)
+        background-image: linear-gradient(90deg, #0d0f14, #7451da 55%, #a84992)
     }
     .stories-cover[data-pillar=wealth] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #ffd27a 55%, #f08bd6)
+        background-image: linear-gradient(90deg, #0d0f14, #8b6605 55%, #a84992)
     }
     .stories-style:not(#\-) {
         color: var(--text-secondary)
@@ -12283,18 +12280,18 @@
         color: #08111e
     }
     .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #6fe6f6 55%, #c790f6);
+        background-image: linear-gradient(90deg, #0d0f14, #147782 55%, #8a54b5);
         background-color: transparent;
         color: transparent
     }
     .story-card[data-pillar=health] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #ff74be 55%, #c790f6)
+        background-image: linear-gradient(90deg, #0d0f14, #bc3583 55%, #8a54b5)
     }
     .story-card[data-pillar=goals] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #9273ff 55%, #f08bd6)
+        background-image: linear-gradient(90deg, #0d0f14, #7451da 55%, #a84992)
     }
     .story-card[data-pillar=wealth] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #ffd27a 55%, #f08bd6)
+        background-image: linear-gradient(90deg, #0d0f14, #8b6605 55%, #a84992)
     }
     .story-lines:not(#\-) {
         color: #09101a
@@ -12810,12 +12807,15 @@
     --space-purple: #201945;
     --garden-dark: #0d2734;
     --surface-glass: #071020e8;
+    --nebula-pink: #ff74be;
     --cosmic-dark: #020918;
     --cosmic-glass: #031020eb;
     --text-strong: #f4f8ff;
     --text-secondary: #dde7f7;
     --text-meta: #c2d0e5;
     --text-muted: #bccadf;
+    --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #6fe6f6 72%, #8fa6ff 84%, #c790f6 93%, #f08bd6 100%);
+    --nebula-figure: linear-gradient(100deg, #f6f5ff 0%, #e4f6ff 30%, #b8ecfb 55%, #b9c6ff 78%, #dcb8fb 100%);
     --pillar-goals-ink: var(--pillar-goals);
     --pillar-habits-ink: var(--pillar-habits);
     --pillar-health-ink: var(--pillar-health);
@@ -12824,7 +12824,6 @@
     --brand-blue-ink: var(--brand-blue);
     --brand-violet-ink: var(--brand-violet);
     --brand-magenta-ink: var(--brand-magenta);
-    --nebula-pink-ink: var(--nebula-pink);
     --nebula-warm-ink: var(--nebula-warm);
     --cyan-ink: var(--cyan);
     --violet-ink: var(--violet);
