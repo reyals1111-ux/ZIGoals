@@ -55,6 +55,8 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
         <Risk chain="each token’s full name (its denom) in ZIGChain’s own records; see Safety below" tap={<WhatsThis term="decoy"/>}>Token risk: a copy can carry a real token’s name. Check every token is the real one by its full denom before you swap or add it.</Risk>
       </ul>},
     ]}
+    // Session AF Gate C (ADR-028 H134, ledger P1.23): your own share here is not read this session; the section says where it is seen.
+    mine={<p className="fine earn-your-share">Your own pool share: OroSwap&rsquo;s Portfolio page shows it once you connect there. ZIGoals reads your stake and stZIG on this page, not pool shares yet.</p>}
     steps={[
       {text: 'Open OroSwap (a new tab) and connect your wallet.'},
       {text: 'To swap: choose the two tokens and the amount, check the price impact and slippage, and press Swap.', sign: 'one swap through the pool. Nothing else.'},

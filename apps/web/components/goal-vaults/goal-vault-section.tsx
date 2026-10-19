@@ -17,6 +17,8 @@ import {readEarn} from '../../lib/earn/client';
 import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage, isShowcase} from '../../lib/showcase-storage';
 import {formatDateTime} from '../../lib/visual-format';
+// Session AF Gate C (ledger N1): the card's staking words, one tap away, as on Earn and Staking.
+import {WhatsThis} from '../earn/whats-this';
 import type {LinkedWallet} from '../../lib/linked-wallets';
 
 /**
@@ -87,8 +89,8 @@ export default function GoalVaultSection({goal}: {goal: {id: string; name: strin
               : !now ? <p role="status">{state.busy ? 'Reading your stake…' : state.error ? `Couldn't read the chain just now: ${state.error}` : 'Reading your stake…'}</p>
               : <>
                 <dl>
-                  {p!.parts.includes('delegations') && <><div><dt>Staked now</dt><dd>{zig(p!.stakedAzig)}</dd></div><div><dt>Rewards waiting</dt><dd>{zig(p!.rewardsAzig)}</dd></div></>}
-                  {p!.stzig && <div><dt>Valdora stZIG</dt><dd>{shownUnits(p!.stzig.units.toString(), 6, 4)} stZIG{p!.stzig.valueAzig !== null ? ` ≈ ${zig(p!.stzig.valueAzig)}` : ''}{p!.stzig.valueAzig === null && <small> · value unavailable ({rates.stzig.phase === 'unavailable' ? rates.stzig.reason : 'reading the rate'})</small>}</dd></div>}
+                  {p!.parts.includes('delegations') && <><div><dt>Staked now <WhatsThis term="staking"/></dt><dd>{zig(p!.stakedAzig)}</dd></div><div><dt>Rewards waiting <WhatsThis term="rewards"/></dt><dd>{zig(p!.rewardsAzig)}</dd></div></>}
+                  {p!.stzig && <div><dt>Valdora stZIG <WhatsThis term="liquid-staking"/> <WhatsThis term="exchange-rate"/></dt><dd>{shownUnits(p!.stzig.units.toString(), 6, 4)} stZIG{p!.stzig.valueAzig !== null ? ` ≈ ${zig(p!.stzig.valueAzig)}` : ''}{p!.stzig.valueAzig === null && <small> · value unavailable ({rates.stzig.phase === 'unavailable' ? rates.stzig.reason : 'reading the rate'})</small>}</dd></div>}
                   <div><dt>Working toward “{goal.name}”</dt><dd><strong>{zig(p!.totalAzig)}</strong>{!p!.complete && ' (stZIG not counted)'}{share !== null && ` · ${share.toFixed(2)} % of the Goal`}</dd></div>
                   <div><dt>Since you linked on {formatDateTime(link.linkedAt)}</dt><dd>{p!.since.azig >= 0n ? '+' : ''}{zig(p!.since.azig)}{!p!.since.complete && p!.since.stzigUnits !== null && ` · stZIG ${p!.since.stzigUnits >= 0n ? '+' : '−'}${shownUnits((p!.since.stzigUnits < 0n ? -p!.since.stzigUnits : p!.since.stzigUnits).toString(), 6, 4)}`}</dd></div>
                 </dl>

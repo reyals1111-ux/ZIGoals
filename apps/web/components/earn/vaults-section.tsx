@@ -79,6 +79,8 @@ export function VaultsSection({vaults, valdora, now}: {vaults: LiveState<VaultsD
         <Risk chain={vaults.phase === 'ok' ? <>each vault’s admin account on ZIGChain, read live at block {vaults.answer.height}</> : 'each vault’s admin account on ZIGChain'} link={<VerifiedLink provider="valdora" kind="security" className="text-link" mark="compact">Valdora’s security page</VerifiedLink>}>{data && staker ? sameAdmin ? <>Who can change the vaults: their admin is the same account as Valdora’s staking contract{staker.key === 'single-key' ? ', a single key' : ''} (read live at block {vaults.phase === 'ok' ? vaults.answer.height : ''}).</> : <>Who can change the vaults: each vault has an admin account, read live.</> : <>Who can change the vaults is <Unavailable reason={unavailable} short/> right now.</>}</Risk>
       </ul>},
     ]}
+    // Session AF Gate C (ADR-028 H134, ledger P1.23): your own share here is not read this session; the section says where it is seen.
+    mine={<p className="fine earn-your-share">Your own vault shares: each vault&rsquo;s page on Valdora shows them once you connect there. ZIGoals does not read vault shares yet.</p>}
     steps={[
       {text: 'Open the vault’s page on Valdora (a new tab) and read its strategy, withdrawal and risk sections.'},
       {text: 'Connect your wallet with Valdora’s own Connect Wallet button.'},
