@@ -32,6 +32,15 @@ describe('stripDeclinedBlocks (ADR-017 S75): a decline sends no card', () => {
     expect(isMoneyAsk('Please move everything into bitcoin')).toBe(true);
     expect(isMoneyAsk('Stake my ETH')).toBe(true);
   });
+  test('Session AF (H47): a staking ask keeps the staking review card beside a decline; every other block of it still goes', () => {
+    const review = block('{"kind":"prefill-staking","action":"delegate","network":"practice","amount":"100"}');
+    const reply = `I can’t stake for you. Here is the staking review, filled in; you review it and sign it in your own wallet.\n\n${review}\n\n${PREFILL}`;
+    const out = stripDeclinedBlocks(reply, 'Stake 100 ZIG for me');
+    expect(out).toContain(review); expect(out).not.toContain('prefill-holding');
+    expect(parseReply(out).proposals.map(p => p.kind)).toEqual(['prefill-staking']);
+    // Not a staking ask: the review card goes like any other block.
+    expect(stripDeclinedBlocks(`I can’t move money.\n\n${review}`, 'Move everything into bitcoin now')).toBe('I can’t move money.');
+  });
   test('several blocks all go; the prose around them is kept clean', () => {
     const reply = `I can’t move money.\n\n${PREFILL}\n\nAnd:\n\n${block('{"kind":"update-account-balance","account":"a1","balance":1}')}\n\nAsk from Wealth.`;
     expect(stripDeclinedBlocks(reply, 'Swap my stocks for gold')).toBe('I can’t move money.\n\nAnd:\n\nAsk from Wealth.');
