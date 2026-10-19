@@ -19,4 +19,6 @@ Deliberate removals the owner asked for (each moved, not lost):
 - "Saved on this device" under the sidebar's three buttons (P10.7, H31): the fact stays in Settings → Your data and Help.
 - Session AE's matte accents, translucent tints and amber golds in Light, and its deeper day stops for gradient headings
   (the owner's Light redo, H13, H111; then deeper same-hue gradient words by the owner's decision, H130).
-- "1,000 ZIG demo balance"-style practice words that were untrue beside real staking (H124): replaced by true labels.
+- The Alpha notice's "practice money (no real value)" and "Simulation + wallet connection only. No blockchain transactions
+  or financial signatures." — untrue once real-network staking signs (H62, H124): replaced by true sentences in the same
+  places ("PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN"; "Staking and votes sign in your own wallet …").
