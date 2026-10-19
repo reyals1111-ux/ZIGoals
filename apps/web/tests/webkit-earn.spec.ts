@@ -48,7 +48,13 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
     const srcdoc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'srcdoc'); if (srcdoc?.set) Object.defineProperty(HTMLIFrameElement.prototype, 'srcdoc', {...srcdoc, set(this: HTMLIFrameElement, v: unknown) { note('IFRAME.srcdoc', v); return srcdoc.set!.call(this, v); }});
     const report = window.reportError?.bind(window);
     if (report) window.reportError = (e: unknown) => { const w = window as unknown as {afViolations?: string[]}; keep(`reportError ← ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`); (w.afViolations ??= []).push(`reportError ← ${(e instanceof Error ? `${e.name}: ${e.message} @ ${(e.stack ?? '').split('\n').slice(0, 8).join(' | ')}` : String(e)).slice(0, 900)}`); return report(e); };
-    window.addEventListener('error', e => keep(`error event ← ${e.message} @ ${e.filename}:${e.lineno}:${e.colno}`), true);
+    // CI on 42ec357c: on /app/settings, five load failures (error events without a message), then the framework's own error
+    // screen writing its styles through innerHTML (refused by Trusted Types). Each failed load now names its element and
+    // address, and console.error (where the framework logs an error a boundary caught) is noted, so the first error is named.
+    window.addEventListener('error', e => { const t = e.target as (Element & {src?: string; href?: string}) | null; keep(e.message === undefined && t && t !== (window as unknown) ? `load failed ← <${t.tagName?.toLowerCase()}> ${(t.src || t.href || '').slice(0, 120)}` : `error event ← ${e.message} @ ${e.filename}:${e.lineno}:${e.colno}`); }, true);
+    window.addEventListener('unhandledrejection', e => { const r = e.reason as Error | undefined; keep(`unhandled rejection ← ${r instanceof Error ? `${r.name}: ${r.message} @ ${(r.stack ?? '').split('\n').slice(0, 4).join(' | ')}` : String(r)}`); });
+    const consoleError = console.error.bind(console);
+    console.error = (...args: unknown[]) => { const first = args[0]; keep(`console.error ← ${first instanceof Error ? `${first.name}: ${first.message} @ ${(first.stack ?? '').split('\n').slice(0, 5).join(' | ')}` : String(first).slice(0, 300)}`); consoleError(...args); };
     window.addEventListener('pagehide', () => keep('pagehide'));
     (window as unknown as {afProbes?: string}).afProbes = 'installed';
   });
