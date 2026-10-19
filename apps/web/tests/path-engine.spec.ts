@@ -54,6 +54,8 @@ test('the layout holds from a phone to a wide screen: no sideways scroll, labels
     await page.goto('/app/checklist'); await settled(page);
     await expect(page.locator('.path-dot').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), `${width}px: nothing scrolls sideways`).toBeLessThanOrEqual(0);
+    // Session AF (L3b): the full-screen Checklist scrolls in its own layer; nothing scrolls sideways there either.
+    expect(await page.locator('dialog.checklist-overlay').evaluate(d => d.scrollWidth - d.clientWidth), `${width}px: nothing scrolls sideways in the Checklist`).toBeLessThanOrEqual(0);
     const overlap = await page.locator('.path-step').evaluateAll(steps => steps.some(s => { const dot = s.querySelector('.path-dot')!.getBoundingClientRect(), label = s.querySelector('.path-label')!.getBoundingClientRect(); return label.left < dot.right && label.right > dot.left && label.top < dot.bottom && label.bottom > dot.top; }));
     expect(overlap, `${width}px: no label covers its dot`).toBe(false);
   }

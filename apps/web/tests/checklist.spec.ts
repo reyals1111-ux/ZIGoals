@@ -122,12 +122,15 @@ test('an empty path says how to build one; Jump to next focuses the first waitin
   const stage = page.getByRole('group', {name: "Today's path"});
   await expect(stage.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeInViewport();
   await expect(jump).toHaveCount(0);
-  const box = (await stage.boundingBox())!, top = box.y + await page.evaluate(() => scrollY);
+  // Session AF (L3b), moved at equal strength: the Checklist is a full-screen layer with its own scroller (the window no
+  // longer moves the path), so the sweep scrolls that scroller; each step now waits up to 500 ms for the bubble (CI's
+  // slower phone runner measured after the old fixed 120 ms) instead of reading it once.
+  const scroller = page.locator('dialog.checklist-overlay');
+  const box = (await stage.boundingBox())!, top = box.y + await scroller.evaluate(d => d.scrollTop);
   let shown = false;
   for (let y = top; y < top + box.height && !shown; y += 60) {
-    await page.evaluate(v => window.scrollTo(0, v), y);
-    await page.waitForTimeout(120);
-    shown = await jump.isVisible();
+    await scroller.evaluate((d, v) => d.scrollTo(0, v), y);
+    shown = await page.waitForFunction(() => { const b = document.querySelector('.path-jump[data-clear]'); return !!b && getComputedStyle(b).visibility === 'visible'; }, null, {timeout: 500}).then(() => true, () => false);
   }
   expect(shown, 'the bubble shows while Water is off screen').toBe(true);
   await expect(jump).toBeInViewport();

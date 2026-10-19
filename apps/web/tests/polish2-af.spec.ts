@@ -164,13 +164,15 @@ test.describe('Earn', () => {
 
 /** The jump bubble's rules, read while sweeping the page past a path: shown only whole on the screen, inside its path,
  *  over no banner or chest, pointing at the next dot; and the path keeps no room for it at its end. */
-async function sweepJump(page: Page, stage: Locator) {
+/** Session AF (L3b): `scroller` names the element that scrolls the path when it is not the window (the full-screen
+ *  Checklist has its own); the sweep and every check are the same either way. */
+async function sweepJump(page: Page, stage: Locator, scroller?: string) {
   const tail = await stage.evaluate(s => { const b = s.getBoundingClientRect(), kids = [...s.children].filter(k => getComputedStyle(k).position !== 'absolute'); return b.bottom - kids.at(-1)!.getBoundingClientRect().bottom - parseFloat(getComputedStyle(s).paddingBottom); });
   expect(tail, 'nothing below the last orbit but the stage’s own padding').toBeLessThanOrEqual(1);
-  const box = (await stage.boundingBox())!, y0 = await page.evaluate(() => scrollY), seen: string[] = [];
+  const box = (await stage.boundingBox())!, y0 = await page.evaluate(s => s ? document.querySelector(s)!.scrollTop : scrollY, scroller ?? null), seen: string[] = [];
   for (let y = box.y + y0 - 900; y < box.y + y0 + box.height + 300; y += 90) {
-    await page.evaluate(v => window.scrollTo(0, v), y);
-    await page.waitForTimeout(90);
+    await page.evaluate(([v, s]) => { if (s) document.querySelector(s as string)!.scrollTo(0, v as number); else window.scrollTo(0, v as number); }, [y, scroller ?? null] as const);
+    await page.waitForTimeout(scroller ? 160 : 90);
     const state = await stage.evaluate(s => {
       const b = s.querySelector<HTMLElement>('.path-jump'), next = s.querySelector('[data-next] [data-path-point]');
       if (!b) return {shown: false};
@@ -221,7 +223,8 @@ test.describe('the path engine', () => {
     // With the next dot on screen, no bubble.
     await stage.locator('[data-next] [data-path-point]').scrollIntoViewIfNeeded();
     await expect(page.getByRole('button', {name: /^Jump to next/})).toHaveCount(0);
-    expect((await sweepJump(page, stage)).length, 'the bubble shows somewhere while the next dot is off screen').toBeGreaterThan(0);
+    // Session AF (L3b): the full-screen Checklist scrolls its own layer (moved at equal strength).
+    expect((await sweepJump(page, stage, 'dialog.checklist-overlay')).length, 'the bubble shows somewhere while the next dot is off screen').toBeGreaterThan(0);
   });
 });
 

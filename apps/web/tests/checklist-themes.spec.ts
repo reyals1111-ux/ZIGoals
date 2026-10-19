@@ -9,7 +9,10 @@ import {TITLE, seedChecklist, settled} from './checklist-fixtures';
  * day, black with a subtle mist for Dark) and the page's own text differ. Under reduced motion and Motion Off nothing
  * moves on the path, even right after a tick: every state is a still. The only loop on the page is the Nebula mist.
  */
-const paint = async (page: Page) => { await page.locator('.path-stage').evaluate(el => Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => undefined)))); return page.evaluate(() => {
+// Session AF (L3b), moved at equal strength: the full-screen Checklist's next planet pulses, its moon orbits and its bubble
+// bobs for as long as it waits (the owner's motion exception), and those loops never finish; every one-time motion is still
+// waited out before the colours are read, and the loops move only transform and opacity, never a colour read here.
+const paint = async (page: Page) => { await page.locator('.path-stage').evaluate(el => Promise.all(el.getAnimations({subtree: true}).filter(a => a.effect?.getComputedTiming().iterations !== Infinity).map(a => a.finished.catch(() => undefined)))); return page.evaluate(() => {
   const css = (sel: string, props: string[]) => { const el = document.querySelector(sel); if (!el) return null; const s = getComputedStyle(el); return Object.fromEntries(props.map(p => [p, s.getPropertyValue(p)])); };
   return {
     doneDot: css('.path-dot[data-state=done]', ['background-image', 'box-shadow', '--dot']),
