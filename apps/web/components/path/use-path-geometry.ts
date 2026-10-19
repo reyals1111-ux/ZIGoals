@@ -4,7 +4,7 @@ import {useLayoutEffect, useState, type RefObject} from 'react';
 /**
  * Where each dot's centre sits inside the path's stage, measured from the page (the footer line's rule: on mount, on a
  * resize of the stage or of any orbit, banner, dot or chest in it, when the fonts settle, and once more as the page settles
- * after its first paint; never per frame). `key` names the dots in order, so a reorder or a new dot measures
+ * after its first paint, up to 2.5 s; never per frame). `key` names the dots in order, so a reorder or a new dot measures
  * again. The same geometry keeps the same object, so nothing re-renders inside a ResizeObserver delivery.
  */
 export type PathPoint = {x: number; y: number};
@@ -31,12 +31,14 @@ export function usePathGeometry(stage: RefObject<HTMLElement | null>, key: strin
     // The stage, and each orbit and chest inside it: a banner that shrinks while a chest grows (a font settling) moves
     // the dots without changing the stage's own size.
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure); ro?.observe(el);
-    for (const part of el.querySelectorAll('.path-section, .path-banner, .path-step, .path-chest, .path-end')) ro?.observe(part);
+    // Session AF (CI on bf72baa0, path-engine: a line end 2.01 px from its dot): the dots themselves too, since a dot that
+    // grows or settles late moves its own centre without resizing anything around it.
+    for (const part of el.querySelectorAll('.path-section, .path-banner, .path-step, .path-chest, .path-end, [data-path-point]')) ro?.observe(part);
     window.addEventListener('resize', measure);
     document.fonts?.ready.then(measure, () => undefined);
     // And once the page has settled after it first paints (late styles and images can move a dot without resizing
     // anything observed): the next frame, then a quarter second and a second later.
-    const frame = requestAnimationFrame(measure), timers = [250, 1000].map(ms => window.setTimeout(measure, ms));
+    const frame = requestAnimationFrame(measure), timers = [250, 1000, 2500].map(ms => window.setTimeout(measure, ms));
     return () => { live = false; ro?.disconnect(); window.removeEventListener('resize', measure); cancelAnimationFrame(frame); timers.forEach(t => window.clearTimeout(t)); };
   }, [stage, key]);
   return geo;

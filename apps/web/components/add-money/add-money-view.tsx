@@ -91,7 +91,7 @@ export default function AddMoneyView() {
 
     {asset && network && destination && handOff && <section className="add-money-step panel" aria-labelledby={`${id}-s5`}>
       <h2 id={`${id}-s5`}><span className="add-money-n">5</span> Continue on {provider === 'ramp' ? 'Ramp' : 'Banxa'}’s page</h2>
-      <p>{handOff.prefilled ? `It opens in a new tab with ${asset.symbol} on ${NETWORKS[network].name} and your address ${shortAddress(destination.address)} filled in. Check both there before you pay.` : `It opens ${provider === 'ramp' ? 'Ramp' : 'Banxa'}’s own site with nothing filled in (ZIGoals’ partner ID is not set up yet): choose ${asset.symbol} on ${NETWORKS[network].name} there and paste your address.`}</p>
+      <p>{handOff.prefilled ? `It opens in a new tab with ${asset.symbol} on ${NETWORKS[network].name} and your address ${shortAddress(destination.address)} filled in. Check both there before you pay.` : `It opens ${provider === 'ramp' ? 'Ramp' : 'Banxa'}’s own site with nothing filled in (ZIGoals’ own identifier with that provider is not set up yet): choose ${asset.symbol} on ${NETWORKS[network].name} there and paste your address.`}</p>
       {!handOff.prefilled && <p className="add-money-address"><span>Your {NETWORKS[network].name} address</span> <code>{destination.address}</code></p>}
       <p className="add-money-warning"><strong>{NETWORKS[network].name} only.</strong> On the provider’s page, the network must say {NETWORKS[network].name}.</p>
       <div className="add-money-actions">

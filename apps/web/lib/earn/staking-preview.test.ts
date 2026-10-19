@@ -14,7 +14,7 @@ describe('the Staking empty preview', () => {
     expect(html).not.toMatch(/valdora/i);
     expect(html.match(/data-state="loading"/g)).toHaveLength(2); // one per figure, as before
     expect(html).not.toMatch(/\d %/);
-    expect(html).toContain('href="/app/earn"');
+    expect(html).toContain('href="/app/earn#start-here"'); // ledger P1.2: the CTA opens Earn's Start-here path
     expect(html).not.toMatch(/https?:\/\//);
   });
 });

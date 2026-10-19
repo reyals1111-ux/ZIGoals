@@ -49,7 +49,7 @@ export function ChecklistPage() {
       <div className="checklist-progress">
         <GlassBar identity="checklist-progress" ready={loaded} className="checklist-progress-bar" value={total ? done / total : 0} role="progressbar" aria-label="Dots done today" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-valuetext={progressText}/>
         <p className="checklist-progress-line"><strong>{progressText}</strong>{summary?.perfect && <span className="checklist-perfect"> · Perfect orbit: every dot, in order</span>}</p>
-        <p className="checklist-streak" data-lit={streak?.todayComplete || undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streakDays}</span><small aria-hidden="true">{streakDays === 1 ? 'day' : 'days'}</small></p>
+        <p className="checklist-streak" role="img" data-lit={streak?.todayComplete || undefined} aria-label={`${streakDays}-day streak${streak?.todayComplete ? ', today complete' : ''}`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streakDays}</span><small aria-hidden="true">{streakDays === 1 ? 'day' : 'days'}</small></p>
       </div>
       <div className="checklist-tools">
         <div className="checklist-view-switch" role="group" aria-label="View">

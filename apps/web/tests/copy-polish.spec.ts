@@ -28,6 +28,19 @@ test("a Goal's next and latest contributions use one date format (QA-27)", async
   await page.waitForURL("**/app");
   const dates = page.locator(".today-contribution-dates").first();
   await expect(dates).toContainText(/Next contribution\s*[A-Z][a-z]{2} \d{1,2}, \d{4}/);
+  // Session AF (ADR-028 H113, deliberate): "What matters today" now shows the most urgent *other* goal, which in the
+  // Showcase has no contribution yet ("Nothing recorded yet"); one is recorded on that goal's own page (the same tab, so
+  // the Showcase stays), and the same card then shows both dates in the one format, as before.
+  await expect(dates).toContainText("Latest contribution");
+  const goalPage = await page.locator("section", { has: dates }).getByRole("link", { name: "Open Goal intelligence →" }).getAttribute("href");
+  await page.goto(goalPage!);
+  await page.getByRole("button", { name: "Record contribution", exact: true }).click();
+  await page.getByRole("button", { name: "Record history only", exact: true }).click();
+  await page.getByLabel(/^Actual amount in /).fill("25");
+  await page.getByRole("button", { name: "Save history only", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Goal timeline" })).toContainText("Contribution recorded");
+  await page.goto("/app");
+  await expect(dates).toContainText(/Next contribution\s*[A-Z][a-z]{2} \d{1,2}, \d{4}/);
   await expect(dates).toContainText(/Latest contribution\s*.* · [A-Z][a-z]{2} \d{1,2}, \d{4}$/);
   await expect(dates).not.toContainText(/\d{1,2}\/\d{1,2}\/\d{4}/);
 });

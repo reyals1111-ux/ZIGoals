@@ -12650,6 +12650,25 @@
 }
 /*  components/stories/stories.css  */
 @scope (:root[data-theme=dark]) {
+    .stories-cover:not(#\-) {
+        background-image: radial-gradient(ellipse at 85% 0%, #1d093e88, transparent 62%), radial-gradient(ellipse at 0% 100%, #02153955, transparent 58%), linear-gradient(160deg, #030518, #02030c);
+        background-color: transparent;
+        border-color: #c3a8f944
+    }
+    .stories-cover-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #6fe6f6 55%, #c790f6);
+        background-color: transparent;
+        color: transparent
+    }
+    .stories-cover[data-pillar=health] .stories-cover-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #ff74be 55%, #c790f6)
+    }
+    .stories-cover[data-pillar=goals] .stories-cover-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #9273ff 55%, #f08bd6)
+    }
+    .stories-cover[data-pillar=wealth] .stories-cover-big:not(#\-) {
+        background-image: linear-gradient(90deg, #f4f8ff, #ffd27a 55%, #f08bd6)
+    }
     .stories-style:not(#\-) {
         color: var(--text-secondary)
     }

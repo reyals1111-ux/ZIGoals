@@ -41,6 +41,7 @@ export function StoriesPage() {
         return <li key={period} className="panel stories-cover" data-period={period} data-ready={s.enough || undefined} data-pillar={s.style?.pillar ?? undefined}>
           <p className="eyebrow">{rangeLabel(s.start, s.end, period)}</p>
           <h2>{NAME[period]}</h2>
+          <p className="stories-cover-big" aria-hidden="true">{formatNumber(s.loggedDays)}</p>
           <p className="stories-count">{s.enough ? `${plural(s.loggedDays, 'logged day')} · ${plural(s.cards.length, 'card')}` : `${plural(s.loggedDays, 'logged day')} of the ${STORY_MIN_DAYS} a story needs`}</p>
           {s.style && <p className="stories-style">Your style: {s.style.label}</p>}
           <button type="button" className={s.enough ? 'primary' : 'secondary'} ref={el => { openers.current[period] = el; }} onClick={() => start(period)} aria-label={`Open ${NAME[period].toLowerCase()}’s story`}>Open the story</button>

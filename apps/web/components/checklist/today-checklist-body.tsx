@@ -27,7 +27,7 @@ export default function TodayChecklistBody() {
   const empty = state.dots.length === 0, next = summary.next;
   return <>
     <div className="today-checklist-head"><span className="today-checklist-mark" aria-hidden="true"><ChecklistMark size={26}/></span><p className="eyebrow" id="today-checklist-title">Checklist</p>
-      {!empty && <span className="today-checklist-streak" aria-label={`${streak?.current ?? 0}-day streak`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streak?.current ?? 0}</span></span>}</div>
+      {!empty && <span className="today-checklist-streak" role="img" aria-label={`${streak?.current ?? 0}-day streak`}><FlameMark lit={!!streak?.todayComplete}/><span aria-hidden="true">{streak?.current ?? 0}</span></span>}</div>
     {empty ? <>
       <h2 className="today-checklist-title">Your day as a path of dots</h2>
       <p className="today-checklist-line">Star a habit, a glass of water or a goal step on its page, and tick it here each day.</p>

@@ -22,6 +22,6 @@ export function StakingEmptyPreview() {
       <LiveFigure id="preview-native" label="Native staking · yearly rate before a validator’s commission" now={now} figure={shown(chain, d => pct(d.apr.beforeCommission))}/>
       <LiveFigure id="preview-oroswap" label="Liquidity · ZIG / USDC pool fee per swap" now={now} figure={shown(oroswap, d => { const p = d.pools.find(x => x.id === 'zig-usdc'); return p ? bps(p.feeBps) : null; })}/>
     </dl>
-    <p className="earn-preview-cta"><Link className="primary" href="/app/earn">Learn and start on Earn →</Link> <span className="fine">Live figures, the risks of each, and the steps in plain words.</span></p>
+    <p className="earn-preview-cta"><Link className="primary" href="/app/earn#start-here">Learn and start on Earn →</Link> <span className="fine">Live figures, the risks of each, and the steps in plain words.</span></p>
   </div>;
 }
