@@ -18,12 +18,14 @@ export function AboutThisAlpha() {
   return <div className="about-alpha" role="group" aria-label="This Alpha's facts">
     <p className="about-alpha-facts alpha-disclaimer">
       {facts?.financial && <><span className="network-banner"><strong>{facts.network.label}</strong> {facts.network.sentence}</span> <span className="mode-strip">{facts.mode}</span> </>}
-      {!FINANCIAL_EXECUTION_ALLOWED && <span>Financial execution is disabled on this Alpha.</span>}
+      {!FINANCIAL_EXECUTION_ALLOWED && <span>Contract execution is disabled on this Alpha.</span>}
       <span>Browser storage is not a backup.</span>
       <span>Independent project · Unaudited alpha · Idle strategy only.</span>
       <span>Never share secrets, private backups or wallet details.</span>
     </p>
     <div className="about-alpha-status">{showcase ? <p>{SHOWCASE_FOOTER}</p> : <WorkspaceStatus/>}</div>
     <p className="about-alpha-build">Build environment <span className="about-alpha-env">{APP_ENVIRONMENT}</span></p>
+    {/* Session AF (L2b; the WalletConnect licence's distribution notice, docs/dependencies/WALLETCONNECT.md). */}
+    <p className="about-alpha-notices fine">Portions © 2025 Reown, Inc. All Rights Reserved. <a className="text-link" href="/licenses/walletconnect.txt">WalletConnect notices</a></p>
   </div>;
 }

@@ -29,6 +29,7 @@ export const PAGES: readonly SearchItem[] = [
   // Session AA-Local's pages and views (merged second, ADR-022 B52).
   {id: 'page:journey', kind: 'page', title: 'Journey', href: '/app/journey', keywords: ['game', 'level', 'quests', 'badges', 'xp', 'freeze']},
   {id: 'page:checklist', kind: 'page', title: 'Checklist', href: '/app/checklist', keywords: ['path', 'dots', 'favourites', 'favorites', 'daily', 'orbit', 'star', 'checklist']},
+  {id: 'page:add-money', kind: 'page', title: 'Add money', href: '/app/wealth/add-money', keywords: ['buy', 'card', 'on-ramp', 'onramp', 'ramp', 'banxa', 'usdc', 'atom', 'deposit', 'add money']},
   {id: 'page:reminders', kind: 'page', title: 'Reminders', subtitle: 'Settings', href: '/app/settings/reminders', keywords: ['quiet hours', 'bedtime', 'water', 'weekly review', 'fasting']},
   {id: 'page:habits-routines', kind: 'page', title: 'Routines', subtitle: 'Habits', href: '/app/habits#routines', keywords: ['morning routine', 'stack', 'player']},
   {id: 'page:habits-year', kind: 'page', title: 'Year view', subtitle: 'Habits', href: '/app/habits#year', keywords: ['calendar', 'year', 'heatmap']},

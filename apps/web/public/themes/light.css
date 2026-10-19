@@ -1385,6 +1385,46 @@
         background: linear-gradient(110deg, #f5e9f051, #ecf0f790)
     }
 }
+/*  components/add-money/add-money.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .add-money-n:not(#\-) {
+        border-radius: 50%;
+        border: 1px solid var(--border-subtle, #5c82b577)
+    }
+    .add-money-tile button:not(#\-), .add-money-options button:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid var(--border-subtle, #5c82b540);
+        background: var(--surface-raised, #eef2f8);
+        color: var(--text, #0c0f16)
+    }
+    .add-money-tile button[aria-pressed="true"]:not(#\-), .add-money-options button[aria-pressed="true"]:not(#\-) {
+        border-color: #03919f;
+        box-shadow: inset 0 0 0 1px #29b2c14d
+    }
+    .add-money-tile button span:not(#\-), .add-money-options button span:not(#\-) {
+        color: var(--text-secondary, #09101a)
+    }
+    .add-money-options button small:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .add-money-tile details summary:not(#\-) {
+        color: #036771
+    }
+    .add-money-tile details p:not(#\-) {
+        color: var(--text-secondary, #09101a)
+    }
+    .add-money-badge:not(#\-) {
+        border-radius: 999px;
+        border: 1px solid #03919f;
+        color: #036771
+    }
+    .add-money-warning:not(#\-) {
+        border-radius: 12px;
+        border: 2px solid var(--warning, #b76b14);
+        background: var(--warning-surface, #f1ede6);
+        color: var(--text-strong, #140f02)
+    }
+}
 /*  components/ai/agent-tools.css  */
 @scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
     .zigi-agent-result pre:not(#\-) {
@@ -4110,6 +4150,42 @@
     .goal-idea:not(#\-) {
         border: 1px solid #677fb435;
         border-radius: 14px
+    }
+}
+/*  components/goal-vaults/goal-vaults.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .goal-vault-card:not(#\-) {
+        border-radius: 16px;
+        border: 1px solid var(--border-subtle, #5c82b540);
+        background: var(--surface-raised, #eef2f8)
+    }
+    .goal-vault-figures dt:not(#\-) {
+        color: var(--text-meta, #08111e)
+    }
+    .goal-vault-illustration:not(#\-) {
+        border-radius: 12px;
+        border: 1px dashed var(--border-subtle, #5c82b577)
+    }
+    .vault-link-form fieldset:not(#\-) {
+        border: 1px solid var(--border-subtle, #5c82b540);
+        border-radius: 12px
+    }
+    .vault-orbit-ring:not(#\-) {
+        fill: none;
+        stroke: var(--border-subtle, #6288bc33)
+    }
+    .vault-orbit-fill:not(#\-) {
+        fill: none;
+        stroke: #1697a5
+    }
+    .vault-orbit-planet:not(#\-) {
+        fill: #b9742e
+    }
+    .vault-orbit-moon:not(#\-) {
+        fill: var(--text-strong, #303338)
+    }
+    .vault-orbit-sparks circle:not(#\-) {
+        fill: #1697a5
     }
 }
 /*  components/goals/goal-art-picker.css  */
@@ -8870,6 +8946,23 @@
         background: #2424240d;
         border: 1px solid #3333331e;
         color: var(--text-secondary, #070f1c)
+    }
+}
+/*  components/wallet/wallet-holdings.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .staking-card, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history) {
+    .wallet-holdings-total:not(#\-) {
+        color: var(--text-secondary, #09101a)
+    }
+    .wallet-holdings-total strong:not(#\-) {
+        color: var(--text-strong, #0d0f14)
+    }
+    .wallet-holding:not(#\-) {
+        border-radius: 14px;
+        border: 1px solid var(--border-subtle, #5c82b540);
+        background: var(--surface-raised, #eef2f8)
+    }
+    .wallet-holding-main span:not(#\-), .wallet-holding-amount span:not(#\-) {
+        color: var(--text-meta, #08111e)
     }
 }
 /*  components/wallet/wallet.css  */
