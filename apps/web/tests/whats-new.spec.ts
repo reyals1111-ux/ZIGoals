@@ -68,6 +68,16 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AD (ADR-026, deliberate): this release's seven links are the card's own; AC's eight lead "Earlier updates".
   // Session AE (ADR-027, deliberate): this release's nine links are the card's own; AD's seven lead "Earlier updates",
   // so AD's banner link is no longer on the card itself and opens its answer from there (its own assertions, kept).
+  // Session AF (ADR-028, deliberate): this release's eight links are the card's own; AE's nine lead "Earlier updates", so
+  // AE's finale link is no longer on the card itself and opens its answer from there (its own assertions, kept).
+  await card.getByRole('link', {name: 'Earn: every way to earn in the ZIG Finance ecosystem, with live numbers and risks'}).click();
+  await expect(page).toHaveURL(/\/app\/help#help-af-earn$/);
+  await expect(page.locator('#help-af-earn')).toHaveAttribute('open', '');
+  await expect(page.locator('#help-af-earn')).toContainText('ZIGoals never ranks them by rate, never holds your money and never signs for you.');
+  await page.goto('/app');
+  await revealUpdates(page);
+  await expect(card.getByRole('link', {name: 'Each page ends in a finale: Goals → Habits → Health = Wealth'})).toHaveCount(0);
+  await card.getByText('Earlier updates', {exact: true}).click();
   await card.getByRole('link', {name: 'Each page ends in a finale: Goals → Habits → Health = Wealth'}).click();
   await expect(page).toHaveURL(/\/app\/help#help-ae-finale$/);
   await expect(page.locator('#help-ae-finale')).toHaveAttribute('open', '');
@@ -106,18 +116,20 @@ test('a link opens its Help answer; the earlier release\'s links wait under "Ear
   // Session AC (ADR-025, deliberate): AB-Design's eight links now lead, so every pinned position moves by eight more.
   // Session AD (ADR-026, deliberate): AC's eight links now lead, so every pinned position moves by eight more again.
   // Session AE (ADR-027, deliberate): AD's seven links now lead, so every pinned position moves by seven.
-  await expect(earlier.first()).toHaveText('Three looks: Light and Dark beside Nebula');
-  await expect(earlier.nth(7)).toHaveText('Habit cards show their last 28 days under the counter');
-  await expect(earlier.nth(15)).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
-  await expect(earlier.nth(23)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
-  await expect(earlier.nth(29)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
-  await expect(earlier.nth(36)).toHaveText('Every page starts with what matters most');
-  await expect(earlier.nth(44)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
-  await expect(earlier.nth(48)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
-  await expect(earlier.nth(55)).toHaveText('End a vacation early');
-  await expect(earlier.nth(59)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
+  // Session AF (ADR-028, deliberate): AE's nine links now lead, so every pinned position moves by nine.
+  await expect(earlier.first()).toHaveText('Today’s welcome header: one scene, with no box or edge');
+  await expect(earlier.nth(9)).toHaveText('Three looks: Light and Dark beside Nebula');
+  await expect(earlier.nth(16)).toHaveText('Habit cards show their last 28 days under the counter');
+  await expect(earlier.nth(24)).toHaveText('One calm look across Goals, Habits, Health and Wealth, and a Life overview on Today');
+  await expect(earlier.nth(32)).toHaveText('Your goal plans, habit extras, routines and more now sync, encrypted');
+  await expect(earlier.nth(38)).toHaveText('Habits by time of day, a one-tap timer finish, days since for a quit habit, skip with a reason, routines');
+  await expect(earlier.nth(45)).toHaveText('Every page starts with what matters most');
+  await expect(earlier.nth(53)).toHaveText('Say it the way you say it: numbers, times, “no wait, three”');
+  await expect(earlier.nth(57)).toHaveText('ZIGi’s cleaner panel and your own suggestions');
+  await expect(earlier.nth(64)).toHaveText('End a vacation early');
+  await expect(earlier.nth(68)).toHaveText('ZIGi comes alive: the real art, idle, emotions');
   // AA-Local's release follows AB-Cloud's (its own assertions, kept): the habits answer.
-  await earlier.nth(29).click();
+  await earlier.nth(38).click();
   await expect(page).toHaveURL(/\/app\/help#help-aa-habits$/);
   await expect(page.locator('#help-aa-habits')).toHaveAttribute('open', '');
   await expect(page.locator('#help-aa-habits')).toContainText('the section the clock is in opens first');

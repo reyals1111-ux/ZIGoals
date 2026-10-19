@@ -14,6 +14,12 @@ what the owner fills in. Until a field is filled, the app says honestly what is 
 Until a field is filled: phones show "available soon on phones" for WalletConnect and the "Open ZIGoals in Keplr" path
 works on day one; an on-ramp without its ID links to the provider's own consumer page.
 
+`reownProjectId` alone does not switch WalletConnect on: its relay hosts must also enter the app's Content-Security-Policy,
+which is a code change, not a value. Send the ID with a request for that one commit (`TIER 3 (CSP)`: the five WalletConnect
+hosts in `apps/web/lib/egress-policy.json`, the exact-list tests, the hosted verifier's origins; listed in
+`docs/handoff/af-lanes/L2b.md`). `rampHostApiKey` and `banxaPartnerRef` need no code change: the Add money page reads them as
+they are.
+
 ## One-time checks the research helpers could not do (bot-walled pages or accounts)
 1. Ask Ramp (through the contact on its partner docs) and Banxa onboarding whether the hosted/referral checkout validates the
    Referer or Origin header; ZIGoals sends none (ADR-028 H52).

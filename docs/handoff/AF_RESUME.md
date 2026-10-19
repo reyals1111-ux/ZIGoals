@@ -59,8 +59,8 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
 | L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` | helper | done: merged and wired; its links now in the registry (H103) |
 | L5a UI changes + theme parity | `af/ui` | helper | done: merged `3d507e9a` (Part 10); wiring: themes, Help Light answers, ADR H109–H113 |
-| L4 ZIGi | `af/zigi` (an agent worktree) | helper (port 3103) | running; stopped by the 06:10 session exit, resumed 12:15 Mon (5 commits + uncommitted work kept) |
-| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper (port 3104) | running; stopped by the 06:10 session exit, resumed 12:15 Mon (uncommitted work kept) |
+| L4 ZIGi | `af/zigi` (an agent worktree) | helper | done: merged `bf60a398`, wired (`8537487b`, Part 12 `be68a4f7`; the staking form re-reads a pre-fill while open) |
+| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper | done: merged `35afad0e`, wired (`8537487b`, `133f8420`) |
 
 Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner per file).
 
@@ -75,12 +75,25 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 5 Earn dock | done (merged, wired) | in `b205460a`; islands asked of L5a |
 | 6 Goal Vaults + governance | done (merged, wired) | af/wallet merge; af/signing3 merge; `8443a1e3` |
 | 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
-| 8 ZIGi | not started | — |
-| 9 My Universe, Day Timeline, Stories | not started | — |
+| 8 ZIGi | done (merged, wired); the real-model round after 25 Oct (owner) | merge `bf60a398`; `8537487b` |
+| 9 My Universe, Day Timeline, Stories | done (merged, wired); critique round at Gate C | merge `35afad0e`; `8537487b` `133f8420` |
 | 10 UI changes + theme parity | done (merged, wired); parity Chrome 51/51, WebKit 6/6; Gate C audits in three themes still to run | `3d507e9a` |
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
-| 12 Words and help | not started | — |
+| 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 13:00 Brussels — every lane merged and wired; no helper running)
+- Done since 12:15: L4 merged `bf60a398` and L5b merged `35afad0e`, wired (`8537487b` TIER 3 storage, `133f8420`);
+  Part 12 `be68a4f7` (pushed 12:37); the owner-approved budget lines `33193870` (H96: eight routes measured on `be68a4f7`
+  + 10 %; a unit guard pins AE's thirteen budgets as never raised); the staking form re-reads ZIGi's pre-fill when already
+  open (L4's optional item; event name in `lib/af-signing-keys.ts`, spec in `zigi-earn-coach-af`); OWNER_ACCOUNTS says the
+  WalletConnect ID also needs one CSP commit.
+- Local Chromium integration run on `be68a4f7` (`$SP/logs/lead-integ5.log`, 244 cases): only `whats-new` failed (AE's
+  links now under "Earlier updates"; moved at equal strength by nine positions).
+- CI: `be68a4f7`'s Milestone quality queued behind `bf72baa0`'s; read its WebKit job (zigi-oneline-z diagnostic at 320 px,
+  webkit-earn, webkit-smoke timing) before pushing over it, and push by 13:37 at the latest (hourly rule).
+- Next: rebuild 3101, rerun the moved specs, push; the daily PR comment ~18:00; then the full Chromium suite in the
+  background (H86) and the Gate C preparation (captures in three themes for the critique round; frozen readers; live-check).
 
 ## Resume here (2026-10-19 12:15 Brussels — after a session restart; L5a merged; L4 and L5b resumed)
 - The Claude Code process exited at about 06:10 Brussels; L4 and L5b were stopped mid-task and resumed at 12:15 from their
