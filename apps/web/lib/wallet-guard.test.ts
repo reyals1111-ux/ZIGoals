@@ -49,7 +49,9 @@ describe('Session AE wallet guard', () => {
     const staking = read('lib/staking/execute.ts').split(/(?=export (?:async )?function )/);
     const stakingCalls = staking.filter(body => /\.getOfflineSigner\w*\(/.test(body)).map(body => body.match(/^export (?:async )?function (\w+)/)?.[1] ?? 'outside a function');
     expect(stakingCalls).toEqual(['executeSigned']);
-    expect(staking.find(body => body.startsWith('export async function executeSigned('))!.replace(/^[^{]*\{/, '').trimStart().startsWith('assertNativeStakingAllowed(ticket.messages);')).toBe(true);
+    // Session AF chunk 3: the first statement passes the ticket as the signature's context (chain id, memo, Ledger), so
+    // the practice-badge and revoke rules run there too; it is still the first statement (equal strength).
+    expect(staking.find(body => body.startsWith('export async function executeSigned('))!.replace(/^[^{]*\{/, '').trimStart().startsWith('assertNativeStakingAllowed(ticket.messages, ticket);')).toBe(true);
     // The staking wallet session (Session AF) is held to the same no-signing shapes as the AE wallet files.
     expect(read('lib/wallets/keplr-session.ts')).not.toMatch(FORBIDDEN);
     const wallet = read('lib/wallet.ts');

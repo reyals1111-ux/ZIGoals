@@ -10,6 +10,7 @@ import {shortAddress} from '../../lib/staking/address';
 import {daysText, feeText, groupDigits, zigText} from '../../lib/staking/view';
 import {NO_KEPLR} from '../../lib/wallets/keplr-session';
 import {CHOICE_OF_OPTION, CHOICE_WORDS, VOTE_IS_PUBLIC} from '../../lib/governance/plain-words';
+import {actWords} from '../../lib/staking/grants';
 import {NetworkLine} from './network-switch';
 import {TxProgress, type Progress} from './tx-progress';
 
@@ -20,7 +21,7 @@ import {TxProgress, type Progress} from './tx-progress';
  * keys, what becomes public, and the raw message. Its form's own submit — the person's press of "Sign in Keplr" — is the
  * one place a sign ticket is issued and the signer is called (lib/staking/staking-guard.test.ts pins it).
  */
-const ACTIONS: Record<StakingQuote['action'], string> = {delegate: 'Stake (delegate)', undelegate: 'Unstake (undelegate)', redelegate: 'Move stake (redelegate)', claim: 'Claim rewards', vote: 'Vote', sweep: 'Put rewards to work (restake)'};
+const ACTIONS: Record<StakingQuote['action'], string> = {delegate: 'Stake (delegate)', undelegate: 'Unstake (undelegate)', redelegate: 'Move stake (redelegate)', claim: 'Claim rewards', vote: 'Vote', sweep: 'Put rewards to work (restake)', revoke: 'End a permission you gave (revoke)', attest: 'Practice badge (1 azig to yourself)'};
 /** Session AF chunk 3 (lane L2a): what the person is acting on, beyond the messages (a vote's proposal title). */
 export type ReviewAbout = {kind: 'vote'; proposalTitle: string};
 const json = (value: unknown) => JSON.stringify(value, (_, v) => typeof v === 'bigint' ? v.toString() : v, 2);
@@ -89,7 +90,16 @@ export function ReviewSheet({quote, names, rewards, expired, progress, onBack, o
             <div><dt>How it counts</dt><dd>Your vote counts with the ZIG you have staked on this network, and replaces your validator&rsquo;s vote for that stake. You can vote again until voting ends; the last vote counts. Nothing is spent but the network fee.</dd></div>
           </>;
         })()}
-        {'amount' in first.value && <div><dt>Amount</dt><dd><strong>{zigText(first.value.amount.amount)}</strong> <span className="fine">({first.value.amount.amount} azig)</span><NetworkLine network={quote.network}/></dd></div>}
+        {first.typeUrl === STAKING_TYPE_URLS.revoke && <>
+          <div><dt>Who had the permission</dt><dd><span className="staking-validator-address" title={first.value.grantee}>{first.value.grantee}</span></dd></div>
+          <div><dt>What ends</dt><dd>They may no longer {actWords(first.value.msgTypeUrl)} (<code>{first.value.msgTypeUrl}</code>). Nothing else changes; no ZIG moves.</dd></div>
+        </>}
+        {first.typeUrl === STAKING_TYPE_URLS.attest && <>
+          <div><dt>To</dt><dd>Your own address <span className="staking-validator-address">{shortAddress(first.value.toAddress)}</span>: the 1 azig comes straight back.</dd></div>
+          <div><dt>Amount</dt><dd><strong>1 azig</strong> <span className="fine">(0.000000000000000001 ZIG, the smallest amount the chain accepts)</span><NetworkLine network={quote.network}/></dd></div>
+          <div><dt>Memo</dt><dd><code className="staking-memo">{quote.memo}</code> <span className="fine">{quote.memo.startsWith('zigoals:att:v1:c:') ? 'A salted code of your note: the note and the salt stay on this device, so nobody can read or guess it from the chain, and you can prove it later.' : 'A random badge number: what it stands for stays on this device.'}</span></dd></div>
+        </>}
+        {'amount' in first.value && first.typeUrl !== STAKING_TYPE_URLS.attest && <div><dt>Amount</dt><dd><strong>{zigText(first.value.amount.amount)}</strong> <span className="fine">({first.value.amount.amount} azig)</span><NetworkLine network={quote.network}/></dd></div>}
         <div><dt>Network fee</dt><dd>{feeText(quote.feeAmount)} <span className="fine">({groupDigits(quote.gasUsed)} gas simulated × {GAS_MULTIPLIER} × 2.5 Gazig per gas; your wallet may let you raise it)</span></dd></div>
         {quote.action === 'sweep' && <div><dt>How it works</dt><dd>One message: staking more with this validator first pays out the rewards waiting with it to your wallet (the chain does this by itself), then stakes this amount, so the rewards go straight back to work. If those rewards were already claimed, or go to another address you set, this amount is staked from your balance instead.</dd></div>}
         {(quote.action === 'delegate' || quote.action === 'sweep') && <div><dt>Unstaking later</dt><dd>Getting this ZIG back takes {daysText(quote.unbondingSeconds)} after you unstake; it earns nothing and cannot move meanwhile.</dd></div>}
@@ -98,9 +108,12 @@ export function ReviewSheet({quote, names, rewards, expired, progress, onBack, o
         {quote.action === 'claim' && <div><dt>Rewards</dt><dd>Rewards waiting are paid to your wallet&rsquo;s liquid ZIG; the exact amount is the chain&rsquo;s at the block it is included.</dd></div>}
         <div><dt>Balance</dt><dd>{zigText(quote.balance)} liquid · after the fee{quote.action === 'delegate' ? ' and this amount' : ''}: {zigText((BigInt(quote.balance) - BigInt(quote.feeAmount) - BigInt(quote.spend)).toString())}</dd></div>
         <div><dt>What happens</dt><dd>You will sign this in your wallet. ZIGoals never sees your keys and cannot sign for you.{quote.isLedger ? ' Your Ledger signs it through Keplr: confirm on the device.' : ''}</dd></div>
-        <div><dt>What becomes public</dt><dd>{quote.action === 'vote' ? <>{VOTE_IS_PUBLIC} It is recorded on {words.name}.</> : <>Your address, the validator and the amount are recorded on {words.name} for anyone to see, forever.</>}</dd></div>
+        <div><dt>What becomes public</dt><dd>{quote.action === 'vote' ? <>{VOTE_IS_PUBLIC} It is recorded on {words.name}.</>
+          : quote.action === 'revoke' ? <>Your address, the address that had the permission and the permission you end are recorded on {words.name} for anyone to see, forever.</>
+          : quote.action === 'attest' ? <>Your address, the time and this memo are public on {words.name} forever. The memo holds only a code: your note never leaves this device.</>
+          : <>Your address, the validator and the amount are recorded on {words.name} for anyone to see, forever.</>}</dd></div>
       </dl>
-      <details className="staking-raw"><summary>Raw message</summary><pre>{json({messages: messages.map(m => ({typeUrl: m.typeUrl, value: m.value})), fee: quote.fee, memo: ''})}</pre></details>
+      <details className="staking-raw"><summary>Raw message</summary><pre>{json({messages: messages.map(m => ({typeUrl: m.typeUrl, value: m.value})), fee: quote.fee, memo: quote.memo})}</pre></details>
       {progress && <TxProgress progress={progress} network={quote.network} chainId={quote.chainId}/>}
       {expired && <p role="status" className="notice">The fee estimate expired. A fresh one is being read…</p>}
       {error && <p role="alert" className="notice">{error}</p>}

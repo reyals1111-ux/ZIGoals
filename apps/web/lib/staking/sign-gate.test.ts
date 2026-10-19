@@ -4,7 +4,7 @@ import {PRESS_SIGN, REVIEW_AGAIN, issueSignTicket, redeemSignTicket, registerQuo
 
 // Session AF (ADR-028 H4): a ticket only from a registered, fresh quote and the person's own press of the Sign button
 // (a trusted click on it, then the form's submit naming it), used once.
-const make = (expiresIn = 60_000): StakingQuote => Object.freeze({network: 'practice', chainId: 'zig-test-2', messages: Object.freeze([]), expiresAt: Date.now() + expiresIn} as unknown as StakingQuote);
+const make = (expiresIn = 60_000): StakingQuote => Object.freeze({network: 'practice', chainId: 'zig-test-2', messages: Object.freeze([]), memo: '', isLedger: false, expiresAt: Date.now() + expiresIn} as unknown as StakingQuote);
 const button = {contains: (x: unknown) => x === label}, label = {};
 const personPress = (over: {submit?: object; activation?: object} = {}): SignPress => ({
   submit: {isTrusted: true, type: 'submit', timeStamp: 1000.5, submitter: button, ...over.submit},
@@ -15,7 +15,8 @@ afterEach(() => vi.useRealTimers());
 test('a registered quote and the person\'s press give one ticket; it redeems once to the same quote', () => {
   const quote = registerQuote(make());
   const ticket = issueSignTicket(quote, personPress());
-  expect(ticket).toEqual({kind: 'zigoals-sign-ticket', network: 'practice', messages: [], expiresAt: quote.expiresAt});
+  // Session AF chunk 3: the ticket carries the signature's context too (chain id, memo, Ledger), exactly.
+  expect(ticket).toEqual({kind: 'zigoals-sign-ticket', network: 'practice', chainId: 'zig-test-2', messages: [], memo: '', isLedger: false, expiresAt: quote.expiresAt});
   expect(Object.isFrozen(ticket)).toBe(true);
   expect(redeemSignTicket(ticket)).toBe(quote);
   expect(() => redeemSignTicket(ticket)).toThrow(PRESS_SIGN);
@@ -52,7 +53,7 @@ test('a forged, copied or expired ticket never redeems', () => {
   vi.useFakeTimers({now: new Date('2026-10-18T21:00:00Z')});
   const quote = registerQuote(make());
   const ticket = issueSignTicket(quote, personPress());
-  const forged = Object.freeze({kind: 'zigoals-sign-ticket', network: 'practice', messages: [], expiresAt: quote.expiresAt}) as SignTicket;
+  const forged = Object.freeze({kind: 'zigoals-sign-ticket', network: 'practice', chainId: 'zig-test-2', messages: [], memo: '', isLedger: false, expiresAt: quote.expiresAt}) as SignTicket;
   expect(() => redeemSignTicket(forged)).toThrow(PRESS_SIGN);
   expect(() => redeemSignTicket({...ticket})).toThrow(PRESS_SIGN);
   expect(() => redeemSignTicket(structuredClone(ticket))).toThrow(PRESS_SIGN);
