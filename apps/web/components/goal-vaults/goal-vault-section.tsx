@@ -100,6 +100,8 @@ export default function GoalVaultSection({goal}: {goal: {id: string; name: strin
               </>}
             <div className="goal-vault-actions">
               {wallet && <button type="button" className="secondary" disabled={state.busy} onClick={() => void read(wallet)}>{state.busy ? 'Reading…' : '↻ Read again'}</button>}
+              {/* Session AF chunk 3 (lane L2a, H60): the rewards sweep's one action here — it opens Staking's restake, which reviews and signs there. */}
+              {p && p.rewardsAzig > 0n && <Link className="secondary" href="/app/staking#rewards-sweep">Put your rewards to work →</Link>}
               <button type="button" className="text-link" onClick={() => remove(link)}>Unlink this stake</button>
             </div>
           </div>

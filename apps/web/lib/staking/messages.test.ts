@@ -2,7 +2,7 @@ import {toBech32} from '@cosmjs/encoding';
 import {Registry} from '@cosmjs/proto-signing';
 import {AminoTypes, createDefaultAminoConverters, defaultRegistryTypes} from '@cosmjs/stargate';
 import {describe, expect, test} from 'vitest';
-import {NATIVE_STAKING_TYPE_URLS} from '../app-environment';
+import {ATTESTATION_TYPE_URL, NATIVE_STAKING_TYPE_URLS} from '../app-environment';
 import {MAX_CLAIM_VALIDATORS, STAKING_TYPE_URLS, StakingInputError, assertStakingMessages, claim, delegate, liquidSpend, redelegate, undelegate, validatorsOf, vote} from './messages';
 
 // Session AF (ADR-028 H46, H60): the five builders.
@@ -11,8 +11,8 @@ const registry = new Registry(defaultRegistryTypes), amino = new AminoTypes(crea
 const ZIG25 = '25000000000000000000';
 
 describe('builders', () => {
-  test('exactly the five type URLs, the same list the build flag allows', () => {
-    expect(Object.values(STAKING_TYPE_URLS).sort()).toEqual([...NATIVE_STAKING_TYPE_URLS].sort());
+  test('exactly the build flag\'s type URLs, plus the testnet practice badge\'s bank send (Session AF chunk 3)', () => {
+    expect(Object.values(STAKING_TYPE_URLS).sort()).toEqual([...NATIVE_STAKING_TYPE_URLS, ATTESTATION_TYPE_URL].sort());
   });
   test('delegate, undelegate and redelegate carry azig only, as typed', () => {
     expect(delegate({delegator: ME, validator: A, amount: ZIG25})).toEqual({typeUrl: '/cosmos.staking.v1beta1.MsgDelegate', value: {delegatorAddress: ME, validatorAddress: A, amount: {denom: 'azig', amount: ZIG25}}});

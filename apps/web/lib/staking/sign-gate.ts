@@ -15,7 +15,10 @@ import type {StakingQuote} from './quote';
  * what: registerQuote only quote.ts, issueSignTicket only the review sheet's onSubmit handler, redeemSignTicket only
  * execute.ts.
  */
-export type SignTicket = Readonly<{kind: 'zigoals-sign-ticket'; network: StakingQuote['network']; messages: StakingQuote['messages']; expiresAt: number}>;
+/** Session AF chunk 3: the ticket also carries what the signature is for beyond its messages — the chain id, the memo
+ *  (empty for every staking action; a practice badge's code) and whether a Ledger signs — so the signer's first check
+ *  (assertNativeStakingAllowed(ticket.messages, ticket)) sees all of it. */
+export type SignTicket = Readonly<{kind: 'zigoals-sign-ticket'; network: StakingQuote['network']; chainId: string; messages: StakingQuote['messages']; memo: string; isLedger: boolean; expiresAt: number}>;
 export class SignGateRefused extends Error {}
 const quotes = new WeakSet<object>();
 const tickets = new WeakMap<object, StakingQuote>();
@@ -48,7 +51,7 @@ export function issueSignTicket(quote: StakingQuote, press: SignPress): SignTick
   if (!pressedByPerson(press)) throw new SignGateRefused(PRESS_SIGN);
   if (!quotes.has(quote) || Date.now() >= quote.expiresAt) throw new SignGateRefused(REVIEW_AGAIN);
   quotes.delete(quote);
-  const ticket: SignTicket = Object.freeze({kind: 'zigoals-sign-ticket', network: quote.network, messages: quote.messages, expiresAt: quote.expiresAt});
+  const ticket: SignTicket = Object.freeze({kind: 'zigoals-sign-ticket', network: quote.network, chainId: quote.chainId, messages: quote.messages, memo: quote.memo, isLedger: quote.isLedger, expiresAt: quote.expiresAt});
   tickets.set(ticket, quote);
   return ticket;
 }

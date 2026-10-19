@@ -1,4 +1,4 @@
-import {assertNativeStakingAllowed} from '../app-environment';
+import {REVOKE_NEEDS_DIRECT, assertNativeStakingAllowed} from '../app-environment';
 import {STAKING_NETWORKS} from '@zigoals/chain-config/networks';
 import type {OfflineSigner} from '@cosmjs/proto-signing';
 import {runTransaction, TransactionFailure, type Confirmed, type TransactionUpdate} from '../transaction';
@@ -19,6 +19,10 @@ import type {StakingQuote} from './quote';
  * the reviewed fee kept), the account and chain are re-checked, the signed bytes must be the reviewed messages, the
  * transaction is broadcast once (`broadcastTxSync`), and its receipt is polled for up to 60 seconds and verified. The
  * steps run through lib/transaction.ts's runTransaction, the pattern of lib/wallet.ts's executeQuote; nothing is retried.
+ *
+ * Session AF chunk 3: every check passes the transaction's own context (its chain id, its memo — empty for staking, a
+ * practice badge's code — and whether a Ledger signs), so a bank send can be signed only as a testnet practice badge and a
+ * revoke only by a direct signer; the signed bytes and the receipt must carry the reviewed memo exactly.
  */
 export const CONFIRM_TIMEOUT_MS = 60_000;
 export const CONFIRM_POLL_MS = 1_500;
@@ -30,7 +34,7 @@ export type KeplrSigner = {
 /** The signing client the default factory builds: CosmJS's SigningStargateClient over the network's RPC. */
 export interface SigningChain {
   getChainId(): Promise<string>;
-  sign(address: string, messages: readonly StakingMessage[], fee: StakingQuote['fee']): Promise<Uint8Array>;
+  sign(address: string, messages: readonly StakingMessage[], fee: StakingQuote['fee'], memo: string): Promise<Uint8Array>;
   broadcastTxSync(bytes: Uint8Array): Promise<string>;
   getTx(hash: string): Promise<ChainTx | null>;
   disconnect(): void;
@@ -40,7 +44,7 @@ async function cosmjsSigningChain(rpcUrl: string, signer: OfflineSigner): Promis
   const client = await SigningStargateClient.connectWithSigner(rpcUrl, signer);
   return {
     getChainId: () => client.getChainId(),
-    sign: async (address, messages, fee) => TxRaw.encode(await client.sign(address, [...messages], {amount: [...fee.amount], gas: fee.gas}, '')).finish(),
+    sign: async (address, messages, fee, memo) => TxRaw.encode(await client.sign(address, [...messages], {amount: [...fee.amount], gas: fee.gas}, memo)).finish(),
     broadcastTxSync: bytes => client.broadcastTxSync(bytes),
     getTx: async hash => { const tx = await client.getTx(hash); return tx ? {hash: tx.hash, height: tx.height, code: tx.code, tx: tx.tx, events: tx.events} : null; },
     disconnect: () => client.disconnect(),
@@ -61,13 +65,15 @@ function journalFields(quote: StakingQuote): NewStakingEntry {
     case STAKING_TYPE_URLS.redelegate: return {...base, validator: first.value.validatorSrcAddress, destination: first.value.validatorDstAddress, amount: first.value.amount.amount};
     case STAKING_TYPE_URLS.claim: return {...base, amount: '0', validators: validatorsOf(quote.messages), ...(quote.messages.length === 1 ? {validator: first.value.validatorAddress} : {})};
     case STAKING_TYPE_URLS.vote: return {...base, amount: '0', proposalId: first.value.proposalId.toString(), option: String(first.value.option)};
+    case STAKING_TYPE_URLS.revoke: return {...base, amount: '0', grantee: first.value.grantee, msgTypeUrl: first.value.msgTypeUrl};
+    case STAKING_TYPE_URLS.attest: return {...base, amount: '1', memo: quote.memo, ...(quote.attestation ? {attestation: {...quote.attestation}} : {})};
   }
 }
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onState: TransactionUpdate, deps: StakingDeps): Promise<StakingReceipt> {
-  assertNativeStakingAllowed(ticket.messages);
+  assertNativeStakingAllowed(ticket.messages, ticket);
   const quote = redeemSignTicket(ticket);
-  assertNativeStakingAllowed(quote.messages);
+  assertNativeStakingAllowed(quote.messages, quote);
   const config = STAKING_NETWORKS[quote.network];
   if (!config || config.chainId !== quote.chainId) throw new StakingFailure(plainWords(Error('Network or denomination changed.'), {chainId: quote.chainId}), 'FAILED', false);
   const storage = deps.storage();
@@ -77,9 +83,11 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
   let signer: OfflineSigner, chain: SigningChain;
   try {
     signer = await keplr.getOfflineSignerAuto(quote.chainId, {preferNoSetFee: true});
+    // A revoke has no Ledger (amino) format in CosmJS 0.38: only a direct signer may sign it (H45).
+    if (quote.messages.some(m => m.typeUrl === STAKING_TYPE_URLS.revoke) && typeof (signer as {signDirect?: unknown}).signDirect !== 'function') throw new StakingFailure({kind: 'other', message: REVOKE_NEEDS_DIRECT, links: []}, 'FAILED', false);
     chain = await (deps.connect ?? cosmjsSigningChain)(config.rpcUrl, signer);
   } catch (error) {
-    const plain = plainWords(error, {chainId: quote.chainId});
+    const plain = error instanceof StakingFailure ? error.plain : plainWords(error, {chainId: quote.chainId});
     try { updateStakingJournal(storage, record => withStakingTransition(record, entry.operationId, {state: plain.kind === 'rejected' ? 'REJECTED' : 'FAILED'})); } catch { /* the entry stays awaiting; nothing was signed */ }
     throw new StakingFailure(plain, plain.kind === 'rejected' ? 'REJECTED' : 'FAILED', false);
   }
@@ -92,19 +100,19 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
   try {
     const confirmed = await runTransaction({
       assertFresh: fresh,
-      hash: async bytes => { await verifySignedMessages(quote.messages, bytes); return (signedHash = await txHash(bytes)); },
+      hash: async bytes => { await verifySignedMessages(quote.messages, bytes, quote.memo); return (signedHash = await txHash(bytes)); },
       persist: async (state, details) => {
         if (state === 'AWAITING_SIGNATURE') return;
         const saved = updateStakingJournal(storage, record => withStakingTransition(record, entry.operationId, {state, ...(details?.hash ? {hash: details.hash} : {}), ...(details?.height ? {height: String(details.height)} : {}), ...(details?.code !== undefined ? {code: details.code} : {})}));
         if (state === 'BROADCASTING' && saved.entries?.find(e => e.operationId === entry.operationId)?.state !== 'BROADCASTING') throw Error('This action cannot be broadcast again.');
       },
       sign: async () => {
-        assertNativeStakingAllowed(quote.messages);
+        assertNativeStakingAllowed(quote.messages, quote);
         if (Date.now() >= quote.expiresAt) throw Error('The fee estimate expired before signing. Review again; nothing was signed.');
-        return chain.sign(quote.address, quote.messages, quote.fee);
+        return chain.sign(quote.address, quote.messages, quote.fee, quote.memo);
       },
       broadcast: async bytes => {
-        assertNativeStakingAllowed(quote.messages);
+        assertNativeStakingAllowed(quote.messages, quote);
         try { return await chain.broadcastTxSync(bytes); }
         catch (error) {
           // The node's own check refused it (CosmJS BroadcastTxError: a code and a log): it never entered a block, so the
@@ -119,7 +127,7 @@ export async function executeSigned(ticket: SignTicket, keplr: KeplrSigner, onSt
         const end = Date.now() + CONFIRM_TIMEOUT_MS;
         while (Date.now() < end) {
           const tx = await chain.getTx(hash);
-          if (tx) { if ((await chain.getChainId()) !== quote.chainId) throw Error('Wrong RPC network during confirmation.'); return (outcome = await verifyStakingReceipt(quote.messages, hash, tx)); }
+          if (tx) { if ((await chain.getChainId()) !== quote.chainId) throw Error('Wrong RPC network during confirmation.'); return (outcome = await verifyStakingReceipt(quote.messages, hash, tx, quote.memo)); }
           await sleep(CONFIRM_POLL_MS);
         }
         throw Error('Still confirming. Check the transaction on the explorer before trying again.');

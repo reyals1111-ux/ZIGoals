@@ -1,3 +1,4 @@
+import {ATTESTATION_TYPE_URL} from '../app-environment';
 import {isValoper, isZigAccount} from './address';
 
 /**
@@ -9,6 +10,9 @@ import {isValoper, isZigAccount} from './address';
  * - ZIG only, by base denom: every amount is `{denom: 'azig', amount: <positive integer string>}`; no builder takes a
  *   denom, so a look-alike token can never be staked from here (lib/staking/decoy-guard.ts).
  * - Addresses are checked: the delegator a `zig1…` account, every validator a `zigvaloper1…` operator (20 bytes).
+ * - Session AF chunk 3: authz **MsgRevoke** (end a grant the person gave; direct signers only, H45) and, as a practice
+ *   badge on ZIGChain Testnet only, a **MsgSend of 1 azig to the sender's own address** (D4, H48; every rule enforced
+ *   again by assertNativeStakingAllowed with the transaction's chain id and memo).
  */
 export const STAKING_TYPE_URLS = Object.freeze({
   delegate: '/cosmos.staking.v1beta1.MsgDelegate',
@@ -16,6 +20,8 @@ export const STAKING_TYPE_URLS = Object.freeze({
   redelegate: '/cosmos.staking.v1beta1.MsgBeginRedelegate',
   claim: '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
   vote: '/cosmos.gov.v1beta1.MsgVote',
+  revoke: '/cosmos.authz.v1beta1.MsgRevoke',
+  attest: ATTESTATION_TYPE_URL,
 } as const);
 export const ZIG_DENOM = 'azig';
 /** Claim all: at most this many validators in one signature (the chain bonds at most 14 today). */
@@ -26,7 +32,9 @@ export type UndelegateMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.unde
 export type RedelegateMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.redelegate; readonly value: {readonly delegatorAddress: string; readonly validatorSrcAddress: string; readonly validatorDstAddress: string; readonly amount: Coin}};
 export type ClaimMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.claim; readonly value: {readonly delegatorAddress: string; readonly validatorAddress: string}};
 export type VoteMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.vote; readonly value: {readonly proposalId: bigint; readonly voter: string; readonly option: number}};
-export type StakingMessage = DelegateMessage | UndelegateMessage | RedelegateMessage | ClaimMessage | VoteMessage;
+export type RevokeMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.revoke; readonly value: {readonly granter: string; readonly grantee: string; readonly msgTypeUrl: string}};
+export type AttestMessage = {readonly typeUrl: typeof STAKING_TYPE_URLS.attest; readonly value: {readonly fromAddress: string; readonly toAddress: string; readonly amount: readonly Coin[]}};
+export type StakingMessage = DelegateMessage | UndelegateMessage | RedelegateMessage | ClaimMessage | VoteMessage | RevokeMessage | AttestMessage;
 /** gov v1beta1 VoteOption numbers (cosmos-sdk gov.proto). */
 export const VOTE_OPTIONS = Object.freeze({yes: 1, abstain: 2, no: 3, no_with_veto: 4} as const);
 export type VoteChoice = keyof typeof VOTE_OPTIONS;
@@ -72,10 +80,25 @@ export function vote(input: {voter: string; proposalId: string; option: VoteChoi
   if (!Object.hasOwn(VOTE_OPTIONS, input.option) || !option) throw new StakingInputError('Choose Yes, No, Abstain or No with veto.');
   return freeze({typeUrl: STAKING_TYPE_URLS.vote, value: {proposalId: BigInt(input.proposalId), voter: delegator(input.voter), option}});
 }
-export type StakingActionKind = 'delegate' | 'undelegate' | 'redelegate' | 'claim' | 'vote';
+/** `sweep` (Session AF chunk 3, H60): one MsgDelegate of the rewards waiting with a validator, to that validator (the
+ *  chain pays the rewards out first, so they are staked straight back). */
+export type StakingActionKind = 'delegate' | 'undelegate' | 'redelegate' | 'claim' | 'vote' | 'sweep' | 'revoke' | 'attest';
+/** A grantee may be an account (20 bytes) or a contract (32 bytes). */
+const GRANTEE = /^zig1([02-9ac-hj-np-z]{38}|[02-9ac-hj-np-z]{58})$/;
+/** End one authz grant the person (the granter) gave: the grantee and the message type of the grant, as the chain read it. */
+export function revoke(input: {granter: string; grantee: string; msgTypeUrl: string}): RevokeMessage {
+  if (typeof input.grantee !== 'string' || !GRANTEE.test(input.grantee)) throw new StakingInputError('That grantee is not a ZIGChain address.');
+  if (typeof input.msgTypeUrl !== 'string' || !/^\/[A-Za-z0-9_.]{1,199}$/.test(input.msgTypeUrl)) throw new StakingInputError('That permission cannot be named, so it cannot be revoked here.');
+  return Object.freeze({typeUrl: STAKING_TYPE_URLS.revoke, value: Object.freeze({granter: delegator(input.granter), grantee: input.grantee, msgTypeUrl: input.msgTypeUrl})});
+}
+/** A practice badge: 1 azig from the address to itself (its memo is the transaction's, set by the quote). */
+export function attest(input: {address: string}): AttestMessage {
+  const self = delegator(input.address);
+  return Object.freeze({typeUrl: STAKING_TYPE_URLS.attest, value: Object.freeze({fromAddress: self, toAddress: self, amount: Object.freeze([Object.freeze({denom: ZIG_DENOM, amount: '1'})])})});
+}
 /** The ZIG this signature moves out of the liquid balance (delegate only; the rest move nothing liquid). */
 export function liquidSpend(messages: readonly StakingMessage[]): bigint {
-  return messages.reduce((total, m) => m.typeUrl === STAKING_TYPE_URLS.delegate ? total + BigInt(m.value.amount.amount) : total, 0n);
+  return messages.reduce((total, m) => m.typeUrl === STAKING_TYPE_URLS.delegate ? total + BigInt(m.value.amount.amount) : m.typeUrl === STAKING_TYPE_URLS.attest ? total + 1n : total, 0n);
 }
 /** The validators a set of messages names, in order, each once (for the review screen and the journal). */
 export function validatorsOf(messages: readonly StakingMessage[]): string[] {
@@ -86,12 +109,18 @@ export function validatorsOf(messages: readonly StakingMessage[]): string[] {
   }
   return [...seen];
 }
-/** Every message must be one of the five, signed by the one delegator given, in ZIG only. */
+/** Every message must be one of the allowed kinds, signed by the one address given, in ZIG only. */
 export function assertStakingMessages(messages: readonly StakingMessage[], signer: string): void {
   if (!messages.length || messages.length > MAX_CLAIM_VALIDATORS) throw new StakingInputError('Nothing to sign.');
+  if (messages.some(m => m.typeUrl === STAKING_TYPE_URLS.attest)) {
+    const [m] = messages, v = m!.value as {fromAddress?: unknown; toAddress?: unknown; amount?: unknown};
+    const coins = v.amount as {denom?: unknown; amount?: unknown}[] | undefined;
+    if (messages.length !== 1 || v.fromAddress !== signer || v.toAddress !== signer || !Array.isArray(coins) || coins.length !== 1 || coins[0]?.denom !== ZIG_DENOM || coins[0]?.amount !== '1') throw new StakingInputError('A practice badge is 1 azig sent to your own address, alone.');
+    return;
+  }
   for (const m of messages) {
     const v = m.value as Record<string, unknown>;
-    const who = m.typeUrl === STAKING_TYPE_URLS.vote ? v.voter : v.delegatorAddress;
+    const who = m.typeUrl === STAKING_TYPE_URLS.vote ? v.voter : m.typeUrl === STAKING_TYPE_URLS.revoke ? v.granter : v.delegatorAddress;
     if (!(Object.values(STAKING_TYPE_URLS) as string[]).includes(m.typeUrl) || who !== signer) throw new StakingInputError('Only your own staking actions can be signed here.');
     const amount = v.amount as {denom?: unknown; amount?: unknown} | undefined;
     if (amount !== undefined && (amount.denom !== ZIG_DENOM || typeof amount.amount !== 'string' || !/^[1-9]\d{0,77}$/.test(amount.amount))) throw new StakingInputError('Only ZIG can be staked here.');

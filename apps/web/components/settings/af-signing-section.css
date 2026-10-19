@@ -1,0 +1,10 @@
+/* Session AF chunk 3 (lane L2a): staking and voting choices in Settings (components/settings/af-signing-section.tsx), the
+   Checklist switch's row shape. */
+.af-signing-setting { display: grid; gap: 10px; }
+.af-signing-setting-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; min-height: 44px; }
+label.af-signing-setting-row { cursor: pointer; }
+.af-signing-setting-row input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; }
+.af-signing-setting-row span { display: grid; gap: 4px; flex: 1 1 260px; min-width: 0; }
+.af-signing-setting-row strong { font-size: 16px; }
+.af-signing-setting-row small { font-size: 15px; color: var(--muted, #a4b2cd); }
+.af-signing-setting-row .secondary { min-height: 44px; }

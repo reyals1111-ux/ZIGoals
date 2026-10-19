@@ -74,10 +74,13 @@ export function onKeystoreChange(callback: () => void): () => void {
 }
 /**
  * Keplr Mobile's in-app browser (H87): `keplrwallet://web-browser?url=…` (iOS and the default) and Android's intent form
- * with Keplr's package, the two forms Keplr documents. The page opened is this app's own staking page.
+ * with Keplr's package, the two forms Keplr documents. The page opened is this app's own staking page, or (Session AF
+ * chunk 3) another of the app's own signing pages: Governance, or the app's start page.
  */
-export function keplrMobileLink(origin: string, android: boolean): string {
-  const url = new URL('/app/staking', origin);
+export const KEPLR_OPEN_PATHS = Object.freeze(['/app/staking', '/app/governance', '/app'] as const);
+export function keplrMobileLink(origin: string, android: boolean, path: typeof KEPLR_OPEN_PATHS[number] = '/app/staking'): string {
+  if (!(KEPLR_OPEN_PATHS as readonly string[]).includes(path)) throw Error('Only this app\'s own pages can be opened in Keplr.');
+  const url = new URL(path, origin);
   if (url.protocol !== 'https:' && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') throw Error('Only this app\'s own address can be opened in Keplr.');
   const target = encodeURIComponent(url.toString());
   return android ? `intent://web-browser?url=${target}#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;` : `keplrwallet://web-browser?url=${target}`;

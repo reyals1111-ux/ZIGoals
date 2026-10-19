@@ -39,10 +39,12 @@ describe('phones: the wallets\' own in-app browsers (H87), WalletConnect said ho
     expect(() => fromPrefix('trust-site', 'https://trustwallet.com/x')).toThrow();
     expect(() => fromPrefix('metamask-dapp', 'https://evil.example/dapp/')).toThrow();
   });
-  test('the sheet group: two links, and the "available soon" line while the project ID is empty', () => {
+  test('the sheet group: three links (L2a\'s Keplr first), and the "available soon" line while the project ID is empty', () => {
     expect(PUBLIC_INTEGRATIONS.reownProjectId).toBeNull();
-    const group = phoneWalletPaths('https://alpha.zigoals.app');
-    expect(group.items.map(i => [i.label, i.href])).toEqual([['Open ZIGoals in MetaMask', 'https://link.metamask.io/dapp/alpha.zigoals.app/app'], ['Open ZIGoals in Trust Wallet', 'https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Falpha.zigoals.app%2Fapp']]);
+    const group = phoneWalletPaths('https://alpha.zigoals.app', undefined, false);
+    expect(group.items.map(i => [i.label, i.href])).toEqual([['Open ZIGoals in Keplr', 'keplrwallet://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp'], ['Open ZIGoals in MetaMask', 'https://link.metamask.io/dapp/alpha.zigoals.app/app'], ['Open ZIGoals in Trust Wallet', 'https://link.trustwallet.com/open_url?coin_id=60&url=https%3A%2F%2Falpha.zigoals.app%2Fapp']]);
+    // Android opens Keplr Mobile by its intent form (Keplr's package), the same page.
+    expect(phoneWalletPaths('https://alpha.zigoals.app', undefined, true).items[0]!.href).toBe('intent://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;');
     expect(group.note).toBe(WALLETCONNECT_SOON);
     expect(phoneWalletPaths('http://preview.example').items).toEqual([]);
   });

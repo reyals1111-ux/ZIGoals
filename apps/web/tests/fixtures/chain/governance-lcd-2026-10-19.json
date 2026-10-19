@@ -1,0 +1,1018 @@
+{
+ "_note": "Session AF chunk 3 (lane L2a): one real GET per LCD path, recorded 2026-10-19 00:15-00:16 UTC (the answers verbatim; public chain data, no personal data). Used by the chain governance, grants and attestation unit tests and the governance specs. Voting-period answers are not in it: no proposal was in its voting period on either network at the read, so the tests build a fictional one in the same shape.",
+ "mainnet": {
+  "proposals": {
+   "proposals": [
+    {
+     "id": "43",
+     "messages": [
+      {
+       "@type": "/cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "addresses": [
+        "zig1hwar85utjvwr0p8kkf9s9x3asaarrlzg0jdatk"
+       ]
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "332734190843669966300468389",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-10-02T13:52:34.396288436Z",
+     "deposit_end_time": "2026-10-16T13:52:34.396288436Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-10-02T13:52:34.396288436Z",
+     "voting_end_time": "2026-10-06T13:52:34.396288436Z",
+     "metadata": "",
+     "title": "Memesdotfun Whitelist address for Wasm uploads",
+     "summary": "This proposal requests governance approval to whitelist the wallet address zig1hwar85utjvwr0p8kkf9s9x3asaarrlzg0jdatk for uploading and deploying the Memesdotfun smart contract on ZIG Chain mainnet.",
+     "proposer": "zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "42",
+     "messages": [
+      {
+       "@type": "/cosmwasm.wasm.v1.MsgUpdateParams",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "params": {
+        "code_upload_access": {
+         "permission": "AnyOfAddresses",
+         "addresses": [
+          "zig1vjfv368k3g4tn8qjtkvrv6mce6w06qhpje8fsd",
+          "zig1gy5zketezrfdea9g80we02663r2gjz3z0002kx",
+          "zig1kctvwjfqg6fmx3s2n7y297ut5304kfzy4x7ted",
+          "zig1kvh0vxc2lym4jxmpc7m52r34dljfa99wl9rx42",
+          "zig1qj8as36zhnd0ae4lsafqyduc56w8tszn6ctmlg",
+          "zig1c7kzlxmmrl0zthrxnnlc25epzyrf9acgus0pnr",
+          "zig1w22ujeyravz4zhz7kxvmrjca3lvu8d3gtpczxl",
+          "zig1z3z4ghkkkwmp6k0fkcfqeu0gs63r36wlys20qr",
+          "zig1sewps82xyc7neay2nkfn8q7uw6erj330etrmj8",
+          "zig1mnc228d7stnmcdp4k9e2fgxa46czzj6cw7hzx9",
+          "zig16epl9658zwz77znek7dc3h0wnxjrmj390jdukg",
+          "zig1sdef8pk3v9z687usg7vn93xmlew0x8qke99nu7",
+          "zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug",
+          "zig1e09fr4rwyg6j6nq90gm5pu3wvct6j8n6dvv0jz"
+         ]
+        },
+        "instantiate_default_permission": "Everybody"
+       }
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "287894679611605712291611450",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-29T11:16:41.435028197Z",
+     "deposit_end_time": "2026-10-13T11:16:41.435028197Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-29T11:16:41.435028197Z",
+     "voting_end_time": "2026-10-03T11:16:41.435028197Z",
+     "metadata": "",
+     "title": "Whitelist erc7518-cosmos address to Upload Contracts",
+     "summary": "This proposal seeks approval to whitelist the wallet zig1e09fr4rwyg6j6nq90gm5pu3wvct6j8n6dvv0jz for smart contract deployments on ZIGChain Mainnet. The wallet is controlled by erc7518-cosmos team, an external team building on ZIGChain.\n\n## About erc7518-cosmos\n\nEquivalent standard for ERC-7518 (multi-partition/semi-fungible security token standard) implemented as a CosmWasm smart contract on ZIGChain.",
+     "proposer": "zig1e09fr4rwyg6j6nq90gm5pu3wvct6j8n6dvv0jz",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "41",
+     "messages": [
+      {
+       "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "plan": {
+        "name": "v5",
+        "time": "0001-01-01T00:00:00Z",
+        "height": "12549000",
+        "info": "{\"binaries\":{\"linux/amd64\":\"https://github.com/ZIGChain/networks/raw/refs/heads/main/binaries/v5.1.0/zigchaind-v5.1.0-linux-amd64.tar.gz?checksum=sha256:93f2be769ebafb369ed6fee03a0159ee6699e5aaae27d5ca165bc2b88b42d914\"}}",
+        "upgraded_client_state": null
+       }
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "287628546518715",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-25T11:00:36.500113752Z",
+     "deposit_end_time": "2026-10-09T11:00:36.500113752Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-25T11:00:36.500113752Z",
+     "voting_end_time": "2026-09-29T11:00:36.500113752Z",
+     "metadata": "{\"title\":\"Software Upgrade to v5.1\",\"authors\":[\"ZIGChain Core Team\"],\"summary\":\"Upgrade to v5.1 at height 12549000 (~Wed 2026-09-30 09:00 UTC): uzig -> azig redenomination, base denomination moves from 6 to 18 decimals.\"}",
+     "title": "Software Upgrade to v5.1",
+     "summary": "Upgrade to v5.1 at height 12549000 (~Wed 2026-09-30 09:00 UTC): uzig -> azig redenomination, base denomination moves from 6 to 18 decimals.",
+     "proposer": "zig1kky5mlgymuuc9ku8zmwj0n32u9gcehyp599hdz",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "40",
+     "messages": [
+      {
+       "@type": "/cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "addresses": [
+        "zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug"
+       ]
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "264085648088371",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-24T09:08:18.635244261Z",
+     "deposit_end_time": "2026-10-08T09:08:18.635244261Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-24T09:08:18.635244261Z",
+     "voting_end_time": "2026-09-28T09:08:18.635244261Z",
+     "metadata": "",
+     "title": "Permapod Whitelist address for Wasm uploads",
+     "summary": "This proposal requests governance approval to whitelist the wallet address zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug for uploading and deploying the Permapod smart contract on ZIG Chain mainnet.",
+     "proposer": "zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "39",
+     "messages": [
+      {
+       "@type": "/cosmos.distribution.v1beta1.MsgCommunityPoolSpend",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "recipient": "zig14har2kjzze5adwprvwjtruf2lzvfta53wflpml",
+       "amount": [
+        {
+         "denom": "uzig",
+         "amount": "925000000000"
+        }
+       ]
+      }
+     ],
+     "status": "PROPOSAL_STATUS_REJECTED",
+     "final_tally_result": {
+      "yes_count": "30522806139625",
+      "abstain_count": "0",
+      "no_count": "246400588537852",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-21T16:48:58.496211640Z",
+     "deposit_end_time": "2026-10-05T16:48:58.496211640Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "10000000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-21T16:48:58.496211640Z",
+     "voting_end_time": "2026-09-25T16:48:58.496211640Z",
+     "metadata": "",
+     "title": "Community Pool Spend - Retire 925,000 ZIG (Cycle 3, September 2026)",
+     "summary": "> **TL;DR**: This proposal permanently retires **925,000 $ZIG** from circulation, funded by ZIG Markets revenue from September 2026. **YES** = retire. **NO** = funds stay in the Community Pool.\n\n \n\n## **1) Summary**\n\n \n\nThis proposal requests a Community Pool spend to retire **925,000 $ZIG** from the **Community Pool** to the **Retirement Wallet**, as part of the September 2026 $ZIG tokenomics cycle. Retired $ZIG is permanently removed from active ecosystem circulation. Full execution details below.\n\n---\n\n \n\n## **2) Background**\n\n \n\nThe $ZIG tokenomics establishes a recurring monthly cycle:\n\n- $ZIG is market-acquired and settled into the onchain **Community Pool**.\n- A portion of the acquired $ZIG is designated for Retirement (permanent removal from active ecosystem circulation), subject to validator governance approval. The remainder is designated for the Ecosystem Pool.\n\nThis proposal covers the Retirement portion for the September 2026 cycle.\n\n---\n\n \n\n## **3) Proposed Action**\n\n \n\nIf this proposal passes, a ***MsgCommunityPoolSpend*** will transfer:\n\n**Amount:** **925,000 $ZIG** (**925000000000** uzig)\n**From:** **Community Pool** (***zig1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8x4pwth***)\n**To:** **Retirement Wallet** (***zig14har2kjzze5adwprvwjtruf2lzvfta53wflpml***)\n\nExecution is automatic upon passing, at the end of the voting period (block level). No individual signs or triggers the transfer manually.\n\n---\n\n \n\n## **4) Rationale**\n\n \n\n- Retirement permanently removes the specified $ZIG from active ecosystem circulation, supporting the value-accrual mechanism described in the $ZIG tokenomics.\n- Routing the action through the **Community Pool** and onchain governance keeps it transparent, validator-approved, and independently verifiable — no privileged manual transfer.\n\n---\n\n \n\n## **5) Transparency & Verification**\n\n \n\n- **Classification by destination:** Retirement is determined by destination address, not by label. Any Community Pool spend to the **Retirement Wallet** counts as a Retirement regardless of how the proposal is titled.\n- After execution, anyone can independently verify that the **Retirement Wallet** balance increased by **925,000 $ZIG** and view the onchain transfer.\n\n---\n\n \n\n## **6) Voting**\n\n \n\nEligible voters: ZIGChain validators (stake-weighted). This proposal follows the standard governance path — deposit period, discussion, and a 96-hour voting window — with no expedited process used.\n\n**YES** — Approve the Retirement of **925,000 $ZIG** from the **Community Pool** for the September 2026 cycle.\n**NO** — Reject. The funds remain in the **Community Pool** (designated to the Ecosystem Pool).\n**NO WITH VETO** — Strong objection to the proposal.\n**ABSTAIN** — No explicit position; contributes to quorum.\n\n---\n\n \n\n## **7) References**\n\n \n\n[$ZIG Tokenomics paper](https://whitepaper.zigchain.com/zig-tokenomics.pdf)\n**Community Pool Wallet:** ***zig1jv65s3grqf6v6jl3dp4t6c9t9rk99cd8x4pwth***\n**Retirement Wallet:** ***zig14har2kjzze5adwprvwjtruf2lzvfta53wflpml***",
+     "proposer": "zig13tr0axv0h8z2jgzsfw3ee0w25lpwturl2mak88",
+     "expedited": false,
+     "failed_reason": "proposal did not get enough votes to pass"
+    }
+   ],
+   "pagination": {
+    "next_key": "AAAAAAAAACY=",
+    "total": "0"
+   }
+  },
+  "paramsTallying": {
+   "voting_params": null,
+   "deposit_params": null,
+   "tally_params": {
+    "quorum": "0.334",
+    "threshold": "0.51",
+    "veto_threshold": "0.334"
+   },
+   "params": {
+    "min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "max_deposit_period": "1209600s",
+    "voting_period": "345600s",
+    "quorum": "0.334",
+    "threshold": "0.51",
+    "veto_threshold": "0.334",
+    "min_initial_deposit_ratio": "0.04",
+    "proposal_cancel_ratio": "0.5",
+    "proposal_cancel_dest": "",
+    "expedited_voting_period": "86400s",
+    "expedited_threshold": "0.667",
+    "expedited_min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "5000000000000000000000000"
+     }
+    ],
+    "burn_vote_quorum": false,
+    "burn_proposal_deposit_prevote": false,
+    "burn_vote_veto": true,
+    "min_deposit_ratio": "0.0"
+   }
+  },
+  "proposalsVoting": {
+   "proposals": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "proposal43": {
+   "proposal": {
+    "id": "43",
+    "messages": [
+     {
+      "@type": "/cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses",
+      "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+      "addresses": [
+       "zig1hwar85utjvwr0p8kkf9s9x3asaarrlzg0jdatk"
+      ]
+     }
+    ],
+    "status": "PROPOSAL_STATUS_PASSED",
+    "final_tally_result": {
+     "yes_count": "332734190843669966300468389",
+     "abstain_count": "0",
+     "no_count": "0",
+     "no_with_veto_count": "0"
+    },
+    "submit_time": "2026-10-02T13:52:34.396288436Z",
+    "deposit_end_time": "2026-10-16T13:52:34.396288436Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "10000000000000000000000"
+     }
+    ],
+    "voting_start_time": "2026-10-02T13:52:34.396288436Z",
+    "voting_end_time": "2026-10-06T13:52:34.396288436Z",
+    "metadata": "",
+    "title": "Memesdotfun Whitelist address for Wasm uploads",
+    "summary": "This proposal requests governance approval to whitelist the wallet address zig1hwar85utjvwr0p8kkf9s9x3asaarrlzg0jdatk for uploading and deploying the Memesdotfun smart contract on ZIG Chain mainnet.",
+    "proposer": "zig129dd7hzxpujtqlnp2wtgtfuyq2xk026yg4exug",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "tally43": {
+   "tally": {
+    "yes_count": "332734190843669966300468389",
+    "abstain_count": "0",
+    "no_count": "0",
+    "no_with_veto_count": "0"
+   }
+  },
+  "vote43NotFound": {
+   "status": 400,
+   "body": {
+    "code": 3,
+    "message": "voter: zig1qgfjl9kktvkerfkwccx6qp6zml98aygsu6zgl5 not found for proposal: 43",
+    "details": []
+   }
+  },
+  "proposalNotFound": {
+   "status": 404,
+   "body": {
+    "code": 5,
+    "message": "proposal 999999 doesn't exist",
+    "details": []
+   }
+  },
+  "grantsGranterEmpty": {
+   "grants": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "grantsGranteeWithGrants": {
+   "grants": [
+    {
+     "granter": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+     "grantee": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+     "authorization": {
+      "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+      "msg": "/cosmos.bank.v1beta1.MsgSend"
+     },
+     "expiration": null
+    },
+    {
+     "granter": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+     "grantee": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+     "authorization": {
+      "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+      "msg": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+     },
+     "expiration": null
+    },
+    {
+     "granter": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+     "grantee": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+     "authorization": {
+      "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+      "msg": "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission"
+     },
+     "expiration": null
+    }
+   ],
+   "pagination": {
+    "next_key": null,
+    "total": "3"
+   }
+  },
+  "feegrantIssuedEmpty": {
+   "allowances": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "txSearchPolkachu": {
+   "txs": [
+    {
+     "body": {
+      "messages": [
+       {
+        "@type": "/cosmos.authz.v1beta1.MsgExec",
+        "grantee": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+        "msgs": [
+         {
+          "@type": "/cosmos.bank.v1beta1.MsgSend",
+          "from_address": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+          "to_address": "zig1chn7mkkfx57hawxp7yfk642xjh69c8uqjrwet2",
+          "amount": [
+           {
+            "denom": "azig",
+            "amount": "870382436787727033811"
+           }
+          ]
+         }
+        ]
+       }
+      ],
+      "memo": "",
+      "timeout_height": "0",
+      "unordered": false,
+      "timeout_timestamp": null,
+      "extension_options": [],
+      "non_critical_extension_options": []
+     },
+     "auth_info": {
+      "signer_infos": [
+       {
+        "public_key": {
+         "@type": "/cosmos.crypto.secp256k1.PubKey",
+         "key": "A7VdspiLvjfIzkI15MRcTUXrfslJWc90FRGnxsc0yvbC"
+        },
+        "mode_info": {
+         "single": {
+          "mode": "SIGN_MODE_DIRECT"
+         }
+        },
+        "sequence": "18"
+       }
+      ],
+      "fee": {
+       "amount": [
+        {
+         "denom": "azig",
+         "amount": "1000000000000000"
+        }
+       ],
+       "gas_limit": "200000",
+       "payer": "",
+       "granter": ""
+      },
+      "tip": null
+     },
+     "signatures": [
+      "mWGPht9GVwuIJt/MDuM8Hg7t/x93WVdrr8bd74ZKEAob/DOJ12Cxks1/GHh8ByoLFLvrYjx9qP/hPF0M2HQtzg=="
+     ]
+    }
+   ],
+   "tx_responses": [
+    {
+     "height": "12819987",
+     "txhash": "F17B596FF22CA8194529CFCE60D47DA5504AC71327050B37D127A2B16DFC80F4",
+     "codespace": "",
+     "code": 0,
+     "data": "122B0A252F636F736D6F732E617574687A2E763162657461312E4D736745786563526573706F6E736512020A00",
+     "raw_log": "",
+     "logs": [],
+     "info": "",
+     "gas_wanted": "200000",
+     "gas_used": "78544",
+     "tx": {
+      "@type": "/cosmos.tx.v1beta1.Tx",
+      "body": {
+       "messages": [
+        {
+         "@type": "/cosmos.authz.v1beta1.MsgExec",
+         "grantee": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "msgs": [
+          {
+           "@type": "/cosmos.bank.v1beta1.MsgSend",
+           "from_address": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+           "to_address": "zig1chn7mkkfx57hawxp7yfk642xjh69c8uqjrwet2",
+           "amount": [
+            {
+             "denom": "azig",
+             "amount": "870382436787727033811"
+            }
+           ]
+          }
+         ]
+        }
+       ],
+       "memo": "",
+       "timeout_height": "0",
+       "unordered": false,
+       "timeout_timestamp": null,
+       "extension_options": [],
+       "non_critical_extension_options": []
+      },
+      "auth_info": {
+       "signer_infos": [
+        {
+         "public_key": {
+          "@type": "/cosmos.crypto.secp256k1.PubKey",
+          "key": "A7VdspiLvjfIzkI15MRcTUXrfslJWc90FRGnxsc0yvbC"
+         },
+         "mode_info": {
+          "single": {
+           "mode": "SIGN_MODE_DIRECT"
+          }
+         },
+         "sequence": "18"
+        }
+       ],
+       "fee": {
+        "amount": [
+         {
+          "denom": "azig",
+          "amount": "1000000000000000"
+         }
+        ],
+        "gas_limit": "200000",
+        "payer": "",
+        "granter": ""
+       },
+       "tip": null
+      },
+      "signatures": [
+       "mWGPht9GVwuIJt/MDuM8Hg7t/x93WVdrr8bd74ZKEAob/DOJ12Cxks1/GHh8ByoLFLvrYjx9qP/hPF0M2HQtzg=="
+      ]
+     },
+     "timestamp": "2026-10-10T14:30:04Z",
+     "events": [
+      {
+       "type": "coin_spent",
+       "attributes": [
+        {
+         "key": "spender",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "1000000000000000azig",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "coin_received",
+       "attributes": [
+        {
+         "key": "receiver",
+         "value": "zig17xpfvakm2amg962yls6f84z3kell8c5l3nxjf4",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "1000000000000000azig",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "transfer",
+       "attributes": [
+        {
+         "key": "recipient",
+         "value": "zig17xpfvakm2amg962yls6f84z3kell8c5l3nxjf4",
+         "index": true
+        },
+        {
+         "key": "sender",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "1000000000000000azig",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "message",
+       "attributes": [
+        {
+         "key": "sender",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "tx",
+       "attributes": [
+        {
+         "key": "fee",
+         "value": "1000000000000000azig",
+         "index": true
+        },
+        {
+         "key": "fee_payer",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "tx",
+       "attributes": [
+        {
+         "key": "acc_seq",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn/18",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "tx",
+       "attributes": [
+        {
+         "key": "signature",
+         "value": "mWGPht9GVwuIJt/MDuM8Hg7t/x93WVdrr8bd74ZKEAob/DOJ12Cxks1/GHh8ByoLFLvrYjx9qP/hPF0M2HQtzg==",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "message",
+       "attributes": [
+        {
+         "key": "action",
+         "value": "/cosmos.authz.v1beta1.MsgExec",
+         "index": true
+        },
+        {
+         "key": "sender",
+         "value": "zig1uyuvtqfherykslxwtx7jrhsklst7n4fwm08pcn",
+         "index": true
+        },
+        {
+         "key": "module",
+         "value": "authz",
+         "index": true
+        },
+        {
+         "key": "msg_index",
+         "value": "0",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "coin_spent",
+       "attributes": [
+        {
+         "key": "spender",
+         "value": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "870382436787727033811azig",
+         "index": true
+        },
+        {
+         "key": "authz_msg_index",
+         "value": "0",
+         "index": true
+        },
+        {
+         "key": "msg_index",
+         "value": "0",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "coin_received",
+       "attributes": [
+        {
+         "key": "receiver",
+         "value": "zig1chn7mkkfx57hawxp7yfk642xjh69c8uqjrwet2",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "870382436787727033811azig",
+         "index": true
+        },
+        {
+         "key": "authz_msg_index",
+         "value": "0",
+         "index": true
+        },
+        {
+         "key": "msg_index",
+         "value": "0",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "transfer",
+       "attributes": [
+        {
+         "key": "recipient",
+         "value": "zig1chn7mkkfx57hawxp7yfk642xjh69c8uqjrwet2",
+         "index": true
+        },
+        {
+         "key": "sender",
+         "value": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+         "index": true
+        },
+        {
+         "key": "amount",
+         "value": "870382436787727033811azig",
+         "index": true
+        },
+        {
+         "key": "authz_msg_index",
+         "value": "0",
+         "index": true
+        },
+        {
+         "key": "msg_index",
+         "value": "0",
+         "index": true
+        }
+       ]
+      },
+      {
+       "type": "message",
+       "attributes": [
+        {
+         "key": "sender",
+         "value": "zig1ggp94cjvvfkslwldf05wl58ktlr3xhf3v39nf4",
+         "index": true
+        },
+        {
+         "key": "authz_msg_index",
+         "value": "0",
+         "index": true
+        },
+        {
+         "key": "msg_index",
+         "value": "0",
+         "index": true
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "pagination": null,
+   "total": "4"
+  }
+ },
+ "testnet": {
+  "proposals": {
+   "proposals": [
+    {
+     "id": "121",
+     "messages": [
+      {
+       "@type": "/ibc.core.client.v1.MsgRecoverClient",
+       "subject_client_id": "07-tendermint-83",
+       "substitute_client_id": "07-tendermint-100",
+       "signer": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "75765916232496000000000031",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-08T15:38:27.026644237Z",
+     "deposit_end_time": "2026-09-22T15:38:27.026644237Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "100000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-08T15:38:27.026644237Z",
+     "voting_end_time": "2026-09-08T15:48:27.026644237Z",
+     "metadata": "",
+     "title": "Recover expired IBC client 07-tendermint-83 (Cosmos provider)",
+     "summary": "Client 07-tendermint-83 tracking the Cosmos provider testnet expired 2026-04-23, freezing channel-43 with 581 ZIG escrowed. Recover it against freshly created substitute 07-tendermint-100 to restore the channel without re-handshaking.",
+     "proposer": "zig1xj0nym9p4mugg93cmxa46unzy0lt2hvddm2986",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "120",
+     "messages": [
+      {
+       "@type": "/ibc.core.client.v1.MsgRecoverClient",
+       "subject_client_id": "07-tendermint-0",
+       "substitute_client_id": "07-tendermint-99",
+       "signer": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m"
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "100932245540117000000000031",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-08T15:36:57.383643594Z",
+     "deposit_end_time": "2026-09-22T15:36:57.383643594Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "100000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-08T15:36:57.383643594Z",
+     "voting_end_time": "2026-09-08T15:46:57.383643594Z",
+     "metadata": "",
+     "title": "Recover expired IBC client 07-tendermint-0 (Axelar)",
+     "summary": "Client 07-tendermint-0 tracking axelar-testnet-lisbon-3 expired 2026-09-01 after its relayer endpoint was retired, freezing channel-0. Recover it against freshly created substitute 07-tendermint-99 to restore the channel without re-handshaking.",
+     "proposer": "zig1xj0nym9p4mugg93cmxa46unzy0lt2hvddm2986",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "119",
+     "messages": [],
+     "status": "PROPOSAL_STATUS_REJECTED",
+     "final_tally_result": {
+      "yes_count": "80000000",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-04T14:39:36.646046079Z",
+     "deposit_end_time": "2026-09-18T14:39:36.646046079Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "100000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-04T14:39:36.646046079Z",
+     "voting_end_time": "2026-09-04T14:49:36.646046079Z",
+     "metadata": "Text proposal",
+     "title": "Test Proposal",
+     "summary": "Test proposal for reject - no veto vote please",
+     "proposer": "zig1e73c08v3y9kl8t6c8wqzrym4ww6m6nr79pkxng",
+     "expedited": false,
+     "failed_reason": "proposal did not get enough votes to pass"
+    },
+    {
+     "id": "118",
+     "messages": [
+      {
+       "@type": "/cosmos.upgrade.v1beta1.MsgSoftwareUpgrade",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "plan": {
+        "name": "v5",
+        "time": "0001-01-01T00:00:00Z",
+        "height": "7669200",
+        "info": "{\"binaries\":{\"linux/amd64\":\"https://github.com/ZIGChain/networks/raw/refs/heads/main/binaries/zigchaind-v5.0.0-linux-amd64.tar.gz?checksum=sha256:3cf12ad3d40e861d6d8302317fb42695d2994def3bd57cc64f69407a6c21e80d\",\"darwin/amd64\":\"https://github.com/ZIGChain/networks/raw/refs/heads/main/binaries/zigchaind-v5.0.0-darwin-amd64.tar.gz?checksum=sha256:a7c4e675b70fb2d2023937491fc3cecc2d3e6fc22bc501d55151cf8f1743e51f\",\"darwin/arm64\":\"https://github.com/ZIGChain/networks/raw/refs/heads/main/binaries/zigchaind-v5.0.0-darwin-arm64.tar.gz?checksum=sha256:7cd3e5deeec6be8c959f11e295bb4f3dca0d7493e6dd23006774e9ebe4cb3714\"}}",
+        "upgraded_client_state": null
+       }
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "100931463706026",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-09-03T14:44:38.278339084Z",
+     "deposit_end_time": "2026-09-17T14:44:38.278339084Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "100000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-09-03T14:44:38.278339084Z",
+     "voting_end_time": "2026-09-03T14:54:38.278339084Z",
+     "metadata": "{\"title\":\"Software Upgrade to v5\",\"authors\":[\"ZIGChain Core Team\"],\"summary\":\"Upgrade to v5 at height 7669200 (~Tue 2026-09-08 09:00 UTC): uzig -> azig redenomination, base denomination moves from 6 to 18 decimals.\"}",
+     "title": "Software Upgrade to v5",
+     "summary": "Upgrade to v5 at height 7669200 (~Tue 2026-09-08 09:00 UTC): uzig -> azig redenomination, base denomination moves from 6 to 18 decimals.",
+     "proposer": "zig126kn23lxurns83w2n59a7e0v2wprjdrrfv4xw8",
+     "expedited": false,
+     "failed_reason": ""
+    },
+    {
+     "id": "117",
+     "messages": [
+      {
+       "@type": "/cosmos.staking.v1beta1.MsgUpdateParams",
+       "authority": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m",
+       "params": {
+        "unbonding_time": "1814400s",
+        "max_validators": 14,
+        "max_entries": 7,
+        "historical_entries": 10000,
+        "bond_denom": "uzig",
+        "min_commission_rate": "0.000000000000000000"
+       }
+      }
+     ],
+     "status": "PROPOSAL_STATUS_PASSED",
+     "final_tally_result": {
+      "yes_count": "100930540307901",
+      "abstain_count": "0",
+      "no_count": "0",
+      "no_with_veto_count": "0"
+     },
+     "submit_time": "2026-08-28T13:35:54.033291665Z",
+     "deposit_end_time": "2026-09-11T13:35:54.033291665Z",
+     "total_deposit": [
+      {
+       "denom": "azig",
+       "amount": "100000000000000000000"
+      }
+     ],
+     "voting_start_time": "2026-08-28T13:35:54.033291665Z",
+     "voting_end_time": "2026-08-28T13:45:54.033291665Z",
+     "metadata": "",
+     "title": "Increase Active Validator Set by 1. From 13 to 14 validators",
+     "summary": "Proposal to increase max_validators from 13 to 14 (increase by 1). Expanding the validator set will help improve decentralization by reducing stake concentration, enhancing validator diversity, and further strengthening the network’s security and resilience.",
+     "proposer": "zig126kn23lxurns83w2n59a7e0v2wprjdrrfv4xw8",
+     "expedited": false,
+     "failed_reason": ""
+    }
+   ],
+   "pagination": {
+    "next_key": "AAAAAAAAAHQ=",
+    "total": "0"
+   }
+  },
+  "paramsTallying": {
+   "voting_params": null,
+   "deposit_params": null,
+   "tally_params": {
+    "quorum": "0.334",
+    "threshold": "0.51",
+    "veto_threshold": "0.334"
+   },
+   "params": {
+    "min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "100000000000000000000"
+     }
+    ],
+    "max_deposit_period": "1209600s",
+    "voting_period": "600s",
+    "quorum": "0.334",
+    "threshold": "0.51",
+    "veto_threshold": "0.334",
+    "min_initial_deposit_ratio": "0.04",
+    "proposal_cancel_ratio": "0.5",
+    "proposal_cancel_dest": "",
+    "expedited_voting_period": "300s",
+    "expedited_threshold": "0.667",
+    "expedited_min_deposit": [
+     {
+      "denom": "azig",
+      "amount": "5000000000000000000000"
+     }
+    ],
+    "burn_vote_quorum": false,
+    "burn_proposal_deposit_prevote": false,
+    "burn_vote_veto": true,
+    "min_deposit_ratio": "0.0"
+   }
+  },
+  "proposalsVoting": {
+   "proposals": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "proposal121": {
+   "proposal": {
+    "id": "121",
+    "messages": [
+     {
+      "@type": "/ibc.core.client.v1.MsgRecoverClient",
+      "subject_client_id": "07-tendermint-83",
+      "substitute_client_id": "07-tendermint-100",
+      "signer": "zig10d07y265gmmuvt4z0w9aw880jnsr700jmgkh5m"
+     }
+    ],
+    "status": "PROPOSAL_STATUS_PASSED",
+    "final_tally_result": {
+     "yes_count": "75765916232496000000000031",
+     "abstain_count": "0",
+     "no_count": "0",
+     "no_with_veto_count": "0"
+    },
+    "submit_time": "2026-09-08T15:38:27.026644237Z",
+    "deposit_end_time": "2026-09-22T15:38:27.026644237Z",
+    "total_deposit": [
+     {
+      "denom": "azig",
+      "amount": "100000000000000000000"
+     }
+    ],
+    "voting_start_time": "2026-09-08T15:38:27.026644237Z",
+    "voting_end_time": "2026-09-08T15:48:27.026644237Z",
+    "metadata": "",
+    "title": "Recover expired IBC client 07-tendermint-83 (Cosmos provider)",
+    "summary": "Client 07-tendermint-83 tracking the Cosmos provider testnet expired 2026-04-23, freezing channel-43 with 581 ZIG escrowed. Recover it against freshly created substitute 07-tendermint-100 to restore the channel without re-handshaking.",
+    "proposer": "zig1xj0nym9p4mugg93cmxa46unzy0lt2hvddm2986",
+    "expedited": false,
+    "failed_reason": ""
+   }
+  },
+  "grantsGranterEmpty": {
+   "grants": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "feegrantIssuedEmpty": {
+   "allowances": [],
+   "pagination": {
+    "next_key": null,
+    "total": "0"
+   }
+  },
+  "txSearchPolkachuEmpty": {
+   "txs": [],
+   "tx_responses": [],
+   "pagination": null,
+   "total": "0"
+  },
+  "txSearchOfficialStatus": 403
+ }
+}

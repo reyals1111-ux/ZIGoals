@@ -6,6 +6,8 @@ import {QueryAccountResponse} from 'cosmjs-types/cosmos/auth/v1beta1/query';
 import {QueryBalanceResponse} from 'cosmjs-types/cosmos/bank/v1beta1/query';
 import {MsgWithdrawDelegatorReward} from 'cosmjs-types/cosmos/distribution/v1beta1/tx';
 import {MsgVote} from 'cosmjs-types/cosmos/gov/v1beta1/tx';
+import {MsgRevoke} from 'cosmjs-types/cosmos/authz/v1beta1/tx';
+import {MsgSend} from 'cosmjs-types/cosmos/bank/v1beta1/tx';
 import {MsgBeginRedelegate, MsgDelegate, MsgUndelegate} from 'cosmjs-types/cosmos/staking/v1beta1/tx';
 import {SimulateResponse} from 'cosmjs-types/cosmos/tx/v1beta1/service';
 import {TxBody, TxRaw} from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -77,6 +79,9 @@ function eventsFor(tx: Uint8Array) {
       case '/cosmos.staking.v1beta1.MsgBeginRedelegate': { const v = MsgBeginRedelegate.decode(m.value); return [{type: 'redelegate', attributes: [{key: 'source_validator', value: v.validatorSrcAddress, index: true}, {key: 'destination_validator', value: v.validatorDstAddress, index: true}, at]}]; }
       case '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward': { const v = MsgWithdrawDelegatorReward.decode(m.value); return [{type: 'withdraw_rewards', attributes: [{key: 'validator', value: v.validatorAddress, index: true}, {key: 'amount', value: '12000000000000000000azig', index: true}, at]}]; }
       case '/cosmos.gov.v1beta1.MsgVote': { const v = MsgVote.decode(m.value); return [{type: 'proposal_vote', attributes: [{key: 'proposal_id', value: v.proposalId.toString(), index: true}, at]}]; }
+      // Session AF chunk 3: authz's typed revoke event (JSON-quoted values, as the chain writes them) and a bank send's transfer.
+      case '/cosmos.authz.v1beta1.MsgRevoke': { const v = MsgRevoke.decode(m.value); return [{type: 'cosmos.authz.v1beta1.EventRevoke', attributes: [{key: 'grantee', value: JSON.stringify(v.grantee), index: true}, {key: 'granter', value: JSON.stringify(v.granter), index: true}, {key: 'msg_type_url', value: JSON.stringify(v.msgTypeUrl), index: true}, at]}]; }
+      case '/cosmos.bank.v1beta1.MsgSend': { const v = MsgSend.decode(m.value); return [{type: 'transfer', attributes: [{key: 'recipient', value: v.toAddress, index: true}, {key: 'sender', value: v.fromAddress, index: true}, {key: 'amount', value: `${v.amount[0]?.amount}${v.amount[0]?.denom}`, index: true}, at]}]; }
       default: return [];
     }
   });

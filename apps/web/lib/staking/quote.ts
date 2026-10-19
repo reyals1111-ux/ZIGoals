@@ -1,7 +1,8 @@
 import {formatUnits, safeMaximum} from '@zigoals/chain-config';
 import {STAKING_NETWORKS, UNBONDING_SECONDS, assertNetworkEvidence, type StakingNetwork} from '@zigoals/chain-config/networks';
 import {toBase64} from '@cosmjs/encoding';
-import {assertStakingMessages, liquidSpend, type StakingActionKind, type StakingMessage} from './messages';
+import {assertSigningMessages} from '../app-environment';
+import {STAKING_TYPE_URLS, assertStakingMessages, liquidSpend, type StakingActionKind, type StakingMessage} from './messages';
 import {registerQuote} from './sign-gate';
 
 /**
@@ -37,6 +38,10 @@ export type StakingQuote = Readonly<{
   spend: string;
   unbondingSeconds: number;
   isLedger: boolean;
+  /** The transaction memo: empty for every staking action; a practice badge's code (Session AF chunk 3, D4). */
+  memo: string;
+  /** A practice badge's own record for this device's journal (its note and salt never leave the device). */
+  attestation?: Readonly<{kind: 'commitment' | 'badge'; note: string; salt?: string}>;
   version: string;
   revision: number;
   quotedAt: number;
@@ -48,7 +53,7 @@ export interface QuoteChain {
   evidence(): Promise<{version: unknown; bondDenom: unknown; unbondingSeconds: unknown; metadata: unknown}>;
   getSequence(address: string): Promise<number>;
   getBalance(address: string): Promise<string>;
-  simulate(messages: readonly StakingMessage[], pubKey: Uint8Array, sequence: number): Promise<number>;
+  simulate(messages: readonly StakingMessage[], pubKey: Uint8Array, sequence: number, memo?: string): Promise<number>;
   disconnect(): void;
 }
 /** The one wallet call a quote makes: the connected account's public key. */
@@ -86,34 +91,44 @@ async function cosmjsQuoteChain(rpcUrl: string): Promise<QuoteChain> {
     },
     getSequence: async address => (await client.getSequence(address)).sequence,
     getBalance: async address => (await client.getBalance(address, 'azig')).amount,
-    async simulate(messages, pubKey, sequence) {
-      const response = await inner.forceGetQueryClient().tx.simulate(messages.map(m => registry.encodeAsAny(m)), '', {type: 'tendermint/PubKeySecp256k1', value: toBase64(pubKey)}, sequence);
+    async simulate(messages, pubKey, sequence, memo = '') {
+      const response = await inner.forceGetQueryClient().tx.simulate(messages.map(m => registry.encodeAsAny(m)), memo, {type: 'tendermint/PubKeySecp256k1', value: toBase64(pubKey)}, sequence);
       return Number(response.gasInfo?.gasUsed ?? 0n);
     },
     disconnect: () => client.disconnect(),
   };
 }
-export type QuoteInput = {network: StakingNetwork; address: string; action: StakingActionKind; messages: readonly StakingMessage[]; keplr: KeplrKeyReader; revision: number};
+export type QuoteInput = {network: StakingNetwork; address: string; action: StakingActionKind; messages: readonly StakingMessage[]; keplr: KeplrKeyReader; revision: number; memo?: string; attestation?: StakingQuote['attestation']};
 export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) => Promise<QuoteChain> = cosmjsQuoteChain): Promise<StakingQuote> {
   const config = STAKING_NETWORKS[input.network];
   if (!config) throw new QuoteRefused('Choose the practice or the real network first.');
   assertStakingMessages(input.messages, input.address);
+  // Session AF chunk 3 (H60): a rewards sweep is exactly one delegation, to a validator the rewards wait with.
+  if (input.action === 'sweep' && (input.messages.length !== 1 || input.messages[0]!.typeUrl !== STAKING_TYPE_URLS.delegate)) throw new QuoteRefused('A restake of rewards is one delegation. Nothing was signed.');
+  // Session AF chunk 3: a revoke or a practice badge only as its own action; the build's own gate (the signer runs it
+  // again) refuses a badge off the practice network, to anyone else, of any other amount or with any other memo.
+  if ((input.action === 'revoke') !== input.messages.some(m => m.typeUrl === STAKING_TYPE_URLS.revoke) || (input.action === 'attest') !== input.messages.some(m => m.typeUrl === STAKING_TYPE_URLS.attest)) throw new QuoteRefused('Nothing to sign.');
+  const memo = input.memo ?? '';
+  assertSigningMessages(input.messages, {chainId: config.chainId, memo});
   const key = await input.keplr.getKey(config.chainId);
   if (key?.bech32Address !== input.address) throw new QuoteRefused('Your wallet switched accounts. Connect again before reviewing.');
   if (!(key.pubKey instanceof Uint8Array) || key.pubKey.length !== 33 || (key.algo !== undefined && key.algo !== 'secp256k1')) throw new QuoteRefused('This wallet account cannot sign ZIGChain staking here.');
+  assertSigningMessages(input.messages, {chainId: config.chainId, memo, isLedger: key.isNanoLedger === true});
   const chain = await connect(config.rpcUrl);
   try {
     if ((await chain.getChainId()) !== config.chainId) throw new QuoteRefused('Wrong RPC network. Nothing was signed.');
     const evidence = await chain.evidence();
     const version = assertNetworkEvidence(input.network, {chainId: config.chainId, ...evidence});
     const sequence = await chain.getSequence(input.address);
-    const gasUsed = await chain.simulate(input.messages, key.pubKey, sequence);
+    const gasUsed = await chain.simulate(input.messages, key.pubKey, sequence, memo);
     if (!Number.isSafeInteger(gasUsed) || gasUsed <= 0 || gasUsed > MAX_GAS) throw new QuoteRefused('The simulation did not give a usable gas estimate. Nothing was signed.');
     const gasLimit = Math.ceil(gasUsed * GAS_MULTIPLIER);
     const feeAmount = (BigInt(gasLimit) * BigInt(config.gasPrice)).toString();
     const balance = await chain.getBalance(input.address);
     if (!/^\d{1,78}$/.test(balance)) throw new QuoteRefused('The balance read was not usable. Nothing was signed.');
-    const spend = liquidSpend(input.messages);
+    // A sweep's ZIG comes from the rewards the chain pays out in the same transaction (the delegation claims them first),
+    // so only the fee must be in the balance; the simulation above already ran the whole transaction against the chain.
+    const spend = input.action === 'sweep' ? 0n : liquidSpend(input.messages);
     const decimals = config.nativeAsset.decimals;
     if (BigInt(balance) < BigInt(feeAmount) + spend)
       throw new QuoteRefused(`Keep enough ZIG for this and its network fee. Network fee: about ${formatUnits(feeAmount, decimals)} ZIG. Available after the fee: ${formatUnits(safeMaximum(balance, feeAmount), decimals)} ZIG.`);
@@ -123,7 +138,7 @@ export async function quoteStaking(input: QuoteInput, connect: (rpcUrl: string) 
       messages: Object.freeze([...input.messages]), gasUsed, gasLimit,
       fee: Object.freeze({amount: Object.freeze([Object.freeze({denom: 'azig' as const, amount: feeAmount})]), gas: String(gasLimit)}),
       feeAmount, gasPrice: config.gasPrice, balance, safeMax: safeMaximum(balance, feeAmount), spend: spend.toString(),
-      unbondingSeconds: UNBONDING_SECONDS, isLedger: key.isNanoLedger === true, version, revision: input.revision,
+      unbondingSeconds: UNBONDING_SECONDS, isLedger: key.isNanoLedger === true, memo, ...(input.attestation ? {attestation: Object.freeze({...input.attestation})} : {}), version, revision: input.revision,
       quotedAt, expiresAt: quotedAt + QUOTE_TTL_MS,
     }));
   } finally { chain.disconnect(); }
