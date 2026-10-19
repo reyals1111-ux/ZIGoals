@@ -129,6 +129,9 @@ test('Showcase: the same answers over the fictional records, labelled fictional,
   // The Showcase loads its records first (Session W Part 22), then opens Today: wait for that before leaving the page.
   await page.waitForURL('**/app');
   await expect(page.getByText(/Showcase/).first()).toBeVisible();
+  // Session AF (CI's WebKit on c224bbe1: a blank page after this goto): Today is left only once its prefetches are done,
+  // the Session AE Gate C pattern for WebKit's navigation stall (ed1d90f4). Nothing asserted changes.
+  await page.waitForLoadState('networkidle');
   await page.goto('/app');
   await openChat(page);
   await panel(page).getByLabel('Ask ZIGi about your records').fill('What is my longest reading streak?');

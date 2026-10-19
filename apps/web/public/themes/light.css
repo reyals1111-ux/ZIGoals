@@ -4138,7 +4138,7 @@
         background-color: color-mix(in srgb, currentColor 8%, transparent)
     }
     .star-toggle:focus-visible:not(#\-) {
-        outline-color: #183551
+        outline-color: var(--checklist-star)
     }
     .star-toggle-star:not(#\-) {
         fill: none;
@@ -4149,12 +4149,12 @@
         stroke: currentColor
     }
     .star-toggle[data-on] .star-toggle-star:not(#\-) {
-        fill: #183551;
-        stroke: #183551;
-        filter: drop-shadow(0 0 5px color-mix(in srgb, #82a2c48c 70%, transparent))
+        fill: var(--checklist-star);
+        stroke: var(--checklist-star);
+        filter: drop-shadow(0 0 5px color-mix(in srgb, var(--checklist-star) 70%, transparent))
     }
     .star-toggle[data-on] .star-toggle-orbit:not(#\-) {
-        stroke: #183551
+        stroke: var(--checklist-star)
     }
 }
 /*  components/checklist/today-checklist.css  */

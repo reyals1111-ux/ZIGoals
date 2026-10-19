@@ -12,3 +12,8 @@ label.af-signing-setting-row { cursor: pointer; }
    Linux WebKit) "Forget my staking choices" overflowed the row and the page scrolled sideways (zigi-oneline-z). Here a
    button wraps and never exceeds its row. */
 .af-signing-setting .secondary, .af-signing-setting .primary { white-space: normal; max-width: 100%; text-align: center; }
+/* Session AF (CI's Linux WebKit, zigi-oneline-z at 320 and 768 px, named by the spec's diagnostic): WebKit kept the switch
+   row's words on the checkbox's line at the row's full width, 16–20 px past the page. As a grid the words take only the
+   column left beside the checkbox. */
+label.af-signing-setting-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: start; }
+label.af-signing-setting-row span { min-width: 0; }

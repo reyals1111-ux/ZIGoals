@@ -15,6 +15,10 @@ test.beforeEach(async ({browserName}, info) => {
 test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px targets, the guide as a bottom sheet', async ({page, context, baseURL}) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
+  // Session AF (diagnostic only; WebKit runs only in CI, ADR-028 H114): CI's WebKit reported "This assignment requires a
+  // TrustedHTML" while Earn loads; the browser's own violation reports (the sink, the first characters of the value and the
+  // script position) are kept so a failure names what assigned the HTML. The assertion below is unchanged.
+  await page.addInitScript(() => { document.addEventListener('securitypolicyviolation', e => { const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`${e.violatedDirective} | ${e.sample} | ${e.sourceFile}:${e.lineNumber}:${e.columnNumber}`); }); });
   const origin = new URL(baseURL!).origin;
   await context.route(url => url.origin !== origin, route => route.fulfill({status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title>'}));
   await seedShowcase(page);
@@ -45,5 +49,6 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   for (const button of await sheet.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await sheet.getByRole('button', {name: 'Close the guide'}).click();
   await expect(sheet).toHaveCount(0);
-  expect(errors).toEqual([]);
+  const violations = await page.evaluate(() => (window as unknown as {afViolations?: string[]}).afViolations ?? []).catch(() => [] as string[]);
+  expect(errors, violations.length ? `Trusted Types reports: ${violations.join(' ;; ')}` : undefined).toEqual([]);
 });

@@ -38,6 +38,8 @@
 .timeline-actions .primary, .timeline-actions .secondary, .timeline-actions .quiet, .timeline-open { min-height: 44px; }
 .timeline-open { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; }
 .timeline-handle { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 12px; border: 1px solid #9fb3ff55; background: #ffffff0d; color: inherit; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* crit1: "Complete" is wider than "Done" was; on a phone's one-line action row the handle keeps its 44 px. */
+.timeline-handle { flex: none; min-width: 44px; min-height: 44px; }
 .timeline-handle:active { cursor: grabbing; }
 .timeline-handle:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
 .timeline-lock { display: inline-flex; align-items: center; gap: 6px; max-width: 30ch; font-size: 14px; color: var(--text-secondary); }
@@ -81,6 +83,7 @@
   /* One row of actions under the words (Done or Open, the move handle, Change time), so a phone's day stays short. */
   .timeline-actions { flex-wrap: nowrap; gap: 6px; width: 100%; }
   .timeline-actions .quiet { padding-inline: 10px; }
+  .timeline-actions .timeline-change { flex: 0 1 auto; min-width: 0; white-space: normal; text-align: center; line-height: 1.2; }
   .timeline-lock { flex: 1 1 auto; min-width: 0; }
   .timeline-now span { margin-left: 66px; }
   .timeline-picker { margin-left: 0; }

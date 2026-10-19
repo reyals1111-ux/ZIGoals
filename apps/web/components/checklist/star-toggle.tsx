@@ -34,7 +34,7 @@ export function StarToggle({item, label, colour, section, defaultValue, unit, no
       if (entranceAllowed()) { setPop(true); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => setPop(false), 320); }
     } catch (error) { showToast({message: failure(error)}); }
   }
-  return <button type="button" className="star-toggle" data-on={on || undefined} data-pop={pop || undefined} data-dim={note ? '' : undefined} disabled={!record.loaded} aria-pressed={on} aria-label={on ? `${label} is on your Checklist path. Take it off` : `Star ${label} for your Checklist path`} title={note ?? (on ? 'On your Checklist path' : 'Star for your Checklist path')} onClick={toggle} style={{'--star': tint} as CSSProperties}>
+  return <button type="button" className="star-toggle" data-on={on || undefined} data-pop={pop || undefined} data-dim={note ? '' : undefined} disabled={!record.loaded} aria-pressed={on} aria-label={on ? `${label} is on your Checklist path. Take it off` : `Star ${label} for your Checklist path`} title={note ?? (on ? 'On your Checklist path' : 'Star for your Checklist path')} onClick={toggle} style={{'--checklist-star': tint} as CSSProperties}>
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path className="star-toggle-orbit" d="M3.2 15.6c-1.3-2.9 3.4-7.4 10.5-10 3.4-1.3 6.3-1.6 7.6-.9"/><path className="star-toggle-star" d="m12 4.2 2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.5l5-.7z"/></svg>
   </button>;
 }

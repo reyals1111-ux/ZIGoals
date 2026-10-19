@@ -256,7 +256,7 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
    screens keep the sideways rail with the current chip in view. */
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
   .earn-chips-rail { flex-wrap: wrap; overflow: visible; -webkit-mask-image: none; mask-image: none; padding-inline: 0; }
-  html:has(.earn-chips) { scroll-padding-top: 150px; }
+  html:has(.earn-chips) { scroll-padding-top: 180px; } /* two or three rows of chips, then a breath */
 }
 /* crit1: the two disclosures ("How this is computed", "What you'll see on …") lost the browser's triangle to their flex
    layout; a chevron says they open, and turns when they do. The picture count wraps under the label on a phone. */

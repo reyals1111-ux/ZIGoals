@@ -12,3 +12,6 @@
 .af-checklist-setting, .af-signing-setting, .af-extras-setting { min-width: 0; max-width: 100%; }
 .af-checklist-setting-row span { flex: 1 1 auto; min-width: 0; }
 :is(.af-checklist-setting-row, .af-signing-setting-row, .af-extras-row) :is(strong, small, span) { overflow-wrap: anywhere; }
+/* The same shape for the Checklist's and Earn's switch rows (they share this class): the words take only the column beside the
+   checkbox, in WebKit too. */
+label.af-checklist-setting-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); }

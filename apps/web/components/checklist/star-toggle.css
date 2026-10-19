@@ -4,13 +4,15 @@
    motion or Motion Off. */
 .star-toggle { flex: none; display: inline-grid; place-items: center; box-sizing: border-box; width: 44px; height: 44px; min-width: 44px; min-height: 44px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted, #a4b2cd); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .star-toggle:hover { color: var(--text, #f0f5ff); background: color-mix(in srgb, currentColor 8%, transparent); }
-.star-toggle:focus-visible { outline: 2px solid var(--star); outline-offset: 2px; }
+.star-toggle:focus-visible { outline: 2px solid var(--checklist-star); outline-offset: 2px; }
 .star-toggle:disabled { cursor: default; opacity: .5; }
 .star-toggle svg { overflow: visible; }
+/* Session AF (the lead): the item's colour travels as --checklist-star; a bare --star is the app's own root colour token
+   (product-v2.css), which the Light sheet resolved and inked, so a starred star turned dark by day. */
 .star-toggle-star { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
 .star-toggle-orbit { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; opacity: .45; }
-.star-toggle[data-on] .star-toggle-star { fill: var(--star); stroke: var(--star); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--star) 70%, transparent)); }
-.star-toggle[data-on] .star-toggle-orbit { stroke: var(--star); opacity: .8; }
+.star-toggle[data-on] .star-toggle-star { fill: var(--checklist-star); stroke: var(--checklist-star); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--checklist-star) 70%, transparent)); }
+.star-toggle[data-on] .star-toggle-orbit { stroke: var(--checklist-star); opacity: .8; }
 .star-toggle[data-dim] { opacity: .55; }
 .star-toggle[data-pop] svg { animation: star-toggle-pop 300ms var(--motion-glide, ease) both; }
 @keyframes star-toggle-pop { 0% { transform: scale(.75); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }

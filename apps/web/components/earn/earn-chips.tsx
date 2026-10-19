@@ -17,7 +17,9 @@ export function EarnChips({chips}: {chips: readonly Chip[]}) {
     let frame = 0;
     const read = () => {
       frame = 0;
-      const index = rail.current?.parentElement?.getBoundingClientRect().bottom ?? 0, line = index + 48;
+      // The line sits under the index, and never above where a jump lands a section (the page's scroll padding), so a
+      // section reached from its chip is the one marked, whatever the index's height (one row, or two with a mouse).
+      const index = rail.current?.parentElement?.getBoundingClientRect().bottom ?? 0, padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0, line = Math.max(index + 48, padding + 24);
       const sections = chips.map(c => document.getElementById(c.id)).filter((el): el is HTMLElement => !!el);
       if (!sections.length) return;
       const end = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
