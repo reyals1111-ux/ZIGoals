@@ -1,0 +1,80 @@
+/* Session AF (L5b; P9.1, ADR-028 H55, H77): My Universe — the full view on Journey and Today's compact card. Motion plays
+   once (data-entrance=once) and never under reduced motion or Motion Off; labels are 14 px or more, targets 44 px. */
+.universe-section { display: grid; gap: 16px; scroll-margin-top: 80px; }
+.universe-head { display: grid; gap: 4px; }
+.universe-head .eyebrow { margin: 0; }
+.universe-head h2 { margin: 0; font-size: clamp(22px, 2vw + 12px, 30px); line-height: 1.15; }
+.universe-lede { margin: 0; max-width: 62ch; color: var(--text-secondary); font-size: 16px; line-height: 1.5; }
+.universe-note { margin: 0; font-size: 16px; }
+.universe-skeleton { min-height: 180px; }
+
+.universe-stage { position: relative; width: 100%; max-width: 820px; justify-self: center; border-radius: 24px; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 48%, #2a1d5c 0%, #110f33 42%, #070a1c 78%), #070a1c; box-shadow: inset 0 0 0 1px #9fb3ff22; }
+.universe-scene { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.universe-scene svg { display: block; width: 100%; height: 100%; }
+/* Centred on its planet by margins, not a transform: a transformed button missed taps under touch emulation. */
+.universe-planet-button { position: absolute; z-index: 1; margin: -32px 0 0 -32px; display: grid; place-items: end center; width: 64px; height: 64px; min-width: 44px; min-height: 44px; padding: 0 0 2px;
+  border: 0; border-radius: 50%; background: transparent; color: #eef3ff; cursor: pointer; }
+.universe-planet-button:focus-visible { outline: 2px solid var(--brand-cyan, #6fe6f6); outline-offset: 2px; }
+.universe-planet-button[aria-pressed=true] { box-shadow: 0 0 0 2px #ffffff55; }
+.universe-planet-name { transform: translateY(26px); padding: 1px 8px; border-radius: 999px; background: #070a1ccc; font-size: 14px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
+
+.universe-planets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.universe-planets > li { display: grid; align-content: start; gap: 4px; padding: 14px; border-radius: 18px; border: 1px solid var(--border-subtle, #ffffff1f); background: #ffffff08; }
+.universe-planets > li[data-selected] { border-color: currentColor; box-shadow: 0 0 0 1px currentColor inset; }
+.universe-planets > li[data-pillar=habits] { color: var(--pillar-habits); }
+.universe-planets > li[data-pillar=health] { color: var(--pillar-health); }
+.universe-planets > li[data-pillar=goals] { color: var(--pillar-goals); }
+.universe-planets > li[data-pillar=wealth] { color: var(--pillar-wealth); }
+.universe-planets p, .universe-facts { margin: 0; color: var(--text-primary); }
+.universe-planet-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 17px; }
+.universe-planet-title strong { color: inherit; }
+.universe-lit { padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 14px; font-weight: 650; color: inherit; }
+.universe-planet-counts { font-size: 15px; font-weight: 650; }
+.universe-planet-light { font-size: 15px; color: var(--text-secondary) !important; }
+.universe-facts { padding-left: 18px; font-size: 15px; line-height: 1.45; }
+.universe-discovery { display: grid; gap: 4px; padding: 14px 16px; border-radius: 18px; border: 1px solid #c790f655; background: linear-gradient(135deg, #6fe6f612, #c790f614); }
+.universe-discovery p { margin: 0; font-size: 16px; }
+.universe-discovery .eyebrow { font-size: 14px; }
+.universe-actions { display: grid; gap: 8px; justify-items: start; }
+.universe-actions .secondary { min-height: 44px; }
+.universe-actions .fine { margin: 0; max-width: 70ch; }
+.universe-celebration { width: 100%; max-width: 560px; justify-self: center; overflow: hidden; }
+.universe-celebration h3 { margin: 0; font-size: clamp(22px, 3vw, 28px); letter-spacing: -.02em; }
+.universe-celebration .celebration-symbol { width: 64px; height: 64px; font-size: 32px; }
+.universe-celebration[data-still] .celebration-symbol { box-shadow: none; }
+
+/* The one entrance: the orbits draw and the planets arrive, 650 ms, once. */
+.universe-scene[data-entrance=once] .universe-orbit, .universe-row[data-entrance=once] .universe-orbit { stroke-dasharray: 1; stroke-dashoffset: 1; animation: universe-orbit-draw 650ms cubic-bezier(.2, .7, .3, 1) forwards; }
+.universe-scene[data-entrance=once] .universe-planet, .universe-row[data-entrance=once] .universe-planet { opacity: 0; transform-box: fill-box; transform-origin: center; animation: universe-planet-in 650ms cubic-bezier(.2, .7, .3, 1) 120ms forwards; }
+@keyframes universe-orbit-draw { to { stroke-dashoffset: 0; } }
+@keyframes universe-planet-in { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .universe-scene .universe-orbit, .universe-scene .universe-planet, .universe-row .universe-planet { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; transform: none !important; } }
+:root[data-app-motion=off] .universe-scene .universe-orbit, :root[data-app-motion=off] .universe-scene .universe-planet, :root[data-app-motion=off] .universe-row .universe-planet { animation: none !important; opacity: 1 !important; stroke-dashoffset: 0 !important; transform: none !important; }
+
+/* Today's compact card: one short block. */
+.today-universe-card { display: grid; gap: 8px; }
+.today-universe-head { display: flex; align-items: center; gap: 10px; }
+.today-universe-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.today-universe-lit { margin-left: auto; font-size: 15px; font-weight: 650; }
+.universe-row { height: 72px; border-radius: 16px; background: radial-gradient(ellipse at 50% 50%, #241a52, #0a0c24 80%); }
+.universe-row svg { display: block; width: 100%; height: 100%; }
+.today-universe-names { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; text-align: center; font-size: 14px; font-weight: 650; }
+.today-universe-names li[data-lit]::after { content: ' ·  lit'; font-weight: 500; }
+.today-universe-line { margin: 0; font-size: 16px; }
+.today-universe-line[data-new] { font-weight: 650; }
+.today-universe-skeleton { height: 72px; border-radius: 16px; background: #ffffff0d; }
+.today-universe-open { display: inline-flex; align-items: center; min-height: 44px; justify-self: start; font-size: 16px; font-weight: 650; }
+
+@media (max-width: 1023.98px) { .universe-planets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767.98px) {
+  .universe-section { gap: 12px; }
+  .universe-planet-button { width: 48px; height: 48px; margin: -24px 0 0 -24px; }
+  .universe-planet-name { transform: translateY(20px); font-size: 14px; padding: 0 6px; }
+  .universe-planets { gap: 8px; }
+  .universe-planets > li { padding: 10px; }
+  .universe-facts { padding-left: 16px; font-size: 14px; }
+  .today-universe-card { gap: 4px; padding-block: 12px; }
+  .universe-row { height: 56px; }
+  .today-universe-line { font-size: 15px; }
+}
