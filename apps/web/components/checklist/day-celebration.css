@@ -39,3 +39,12 @@
 /* L3b round 2: a bigger card on a wide screen; the day's planets as small worlds. */
 @media (min-width: 1024px) { .checklist-celebration-card { width: 560px; padding: 34px 32px 30px; } .checklist-celebration h2 { font-size: 46px; } }
 .checklist-celebration-planets { gap: 10px; margin: 6px 0 2px; }
+/* On a phone a day of eight planets keeps them on one row, and the streak and the XP sit side by side. */
+@media (max-width: 480px) {
+  .checklist-celebration-card { padding-inline: 20px; }
+  .checklist-celebration-planets { gap: 6px; }
+  .checklist-celebration-planets li { width: 32px; height: 32px; }
+  .checklist-celebration-stats { gap: 8px; }
+  .checklist-celebration-stats li { gap: 5px; padding: 0 12px 0 8px; font-size: 14px; }
+  .checklist-celebration-stats strong { font-size: 22px; }
+}

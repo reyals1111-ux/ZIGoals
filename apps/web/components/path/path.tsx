@@ -51,6 +51,8 @@ export type PathProps = {
 };
 
 const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
+/** After a tick that completes an orbit, the path glides on to the next planet once the orbit's celebration has played. */
+const ORBIT_LAND_AFTER_MS = 1400;
 /** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */
 function scrollerOf(el: HTMLElement): HTMLElement | null {
   for (let p = el.parentElement; p; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p; }
@@ -116,21 +118,26 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
 
   // The orbit look lands on the next planet: on opening (at once), and after a tick that leaves it outside the comfortable
   // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height.
-  const landed = useRef(false), measured = geo !== null;
+  const landed = useRef(false), measured = geo !== null, orbitsDone = useRef<string[] | null>(null), orbitsKey = completeIds.join('|');
   useEffect(() => {
     if (!orbit || !measured || !next) return;
+    // (Read here, in the same commit as the new next planet: the `just` marks only arrive a render later.)
+    const before = orbitsDone.current, finished = before !== null && completeIds.some(id => !before.includes(id)); orbitsDone.current = completeIds;
     const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
     const scroller = scrollerOf(s);
     const go = (glide: boolean) => {
-      const r = el.getBoundingClientRect(), view = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight};
+      // (The part of the scroller a sticky bar does not cover: its scroll-padding-top, as the browser's own scrolling reads it.)
+      const box = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight}, pad = scroller ? parseFloat(getComputedStyle(scroller).scrollPaddingTop) || 0 : 0;
+      const r = el.getBoundingClientRect(), view = {top: box.top + pad, height: box.height - pad};
       const at = (r.top + r.height / 2 - view.top) / view.height;
       if (glide && at >= .12 && at <= .7) return;
       const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * .4;
       (scroller ?? window).scrollTo({top: Math.max(0, top), behavior: glide && entranceAllowed() ? 'smooth' : 'auto'});
     };
     if (!landed.current) { landed.current = true; go(false); return; }
-    const t = window.setTimeout(() => go(true), 300); return () => window.clearTimeout(t);
-  }, [orbit, measured, next?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    // (A tick that completes an orbit waits for its celebration on the banner before the path moves on.)
+    const t = window.setTimeout(() => go(true), finished ? ORBIT_LAND_AFTER_MS : 300); return () => window.clearTimeout(t);
+  }, [orbit, measured, next?.id, orbitsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);

@@ -16,6 +16,9 @@
 .checklist-overlay::backdrop { background: #02040d; }
 .checklist-overlay:focus { outline: none; }
 :root:has(.checklist-overlay[open]) { overflow: hidden; }
+/* The sticky top bar's height: what the overlay's own scrolling (focus, the landing on the next planet) keeps clear. */
+.checklist-overlay { scroll-padding-top: calc(max(8px, env(safe-area-inset-top, 0px)) + 64px); }
+@media (max-width: 767.98px) { .checklist-overlay { scroll-padding-top: calc(max(8px, env(safe-area-inset-top, 0px)) + 108px); } }
 :root:has(.checklist-overlay[open]) :is(.skip, .phone-topbar, .app-sidebar, .phone-tabbar) { display: none !important; }
 :root:has(.checklist-overlay[open]) .app-content > :not(.workspace, .private-read-delay) { display: none !important; }
 :root:has(.checklist-overlay[open]) .workspace > :not(main, .aa-toast-region) { display: none !important; }
@@ -88,6 +91,7 @@
 @keyframes checklist-pop-b { 0% { transform: scale(1); } 35% { transform: scale(1.4) translateY(-2px); } 100% { transform: none; } }
 /* "+15": today's XP gained by a tick, rising from the XP count. */
 .checklist-xp-gain { position: absolute; left: 50%; top: calc(100% + 2px); translate: -50% 0; padding: 2px 9px; border-radius: 999px; background: #ffd27a; color: #2a1800; font-size: 15px; font-weight: 900; white-space: nowrap; box-shadow: 0 0 16px #ffd27acc; pointer-events: none; animation: checklist-xp-rise 1300ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes checklist-xp-flash { 0% { opacity: 0; transform: scale(.6); } 18% { opacity: 1; transform: scale(1.14); } 60% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-8px) scale(.92); } }
 @keyframes checklist-xp-rise { 0% { opacity: 0; transform: translateY(14px) scale(.7); } 20% { opacity: 1; transform: translateY(0) scale(1.1); } 70% { opacity: 1; transform: translateY(-4px) scale(1); } 100% { opacity: 0; transform: translateY(-14px); } }
 /* The menu: Edit path, Options, How it works. */
 .checklist-menu-wrap { grid-area: menu; position: relative; }
@@ -108,6 +112,8 @@
   .checklist-streak .checklist-flame { width: 24px; height: 24px; }
   .checklist-xp small { display: none; }
   .checklist-xp-mark { width: 20px; height: 20px; }
+  /* On a phone the view switch sits right under the XP pill, so the gain flashes on the pill itself instead of below it. */
+  .checklist-xp-gain { top: 50%; translate: -50% -50%; animation-name: checklist-xp-flash; animation-duration: 1100ms; }
   .checklist-view-switch { justify-self: end; }
   .checklist-progress-bar { height: 14px; }
 }
@@ -246,7 +252,8 @@
 .checklist-options-head button { min-height: 44px; }
 .checklist-options fieldset, .checklist-edit fieldset { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; border: 0; }
 .checklist-options legend, .checklist-edit legend { margin-bottom: 8px; font-size: 15px; font-weight: 700; }
-.checklist-choice label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; }
+.checklist-choice label { display: inline-flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; }
+.checklist-choice input { width: auto; min-height: 0; margin: 0; padding: 0; }
 .checklist-swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .checklist-swatch { position: relative; display: grid; place-items: center; width: 44px; height: 44px; cursor: pointer; }
 .checklist-swatch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
@@ -254,15 +261,18 @@
 .checklist-swatch input:checked + span[aria-hidden] { box-shadow: 0 0 0 3px var(--text, #f0f5ff), 0 0 14px var(--swatch); }
 .checklist-swatch input:focus-visible + span[aria-hidden] { outline: 3px solid var(--swatch); outline-offset: 4px; }
 /* Switches for the options, one line each with a short note. */
-.checklist-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 6px 4px; border-bottom: 1px solid #ffffff14; cursor: pointer; }
+/* (The app's own label rule stacks a label's parts in a column, and a panel's label takes a margin: a switch row is one row.) */
+.checklist-options .checklist-toggle { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; margin: 0; padding: 6px 4px; border-bottom: 1px solid #ffffff14; text-align: start; cursor: pointer; }
 .checklist-toggle > span { display: grid; gap: 1px; min-width: 0; }
 .checklist-toggle strong { font-size: 16px; }
 .checklist-toggle small { font-size: 14px; color: var(--muted, #a4b2cd); }
-.checklist-toggle input { flex: none; position: relative; appearance: none; -webkit-appearance: none; width: 52px; height: 32px; margin: 0; border-radius: 999px; background: #ffffff26; box-shadow: inset 0 0 0 1px #ffffff26; cursor: pointer; transition: background 160ms ease; }
-.checklist-toggle input::before { content: ''; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px #0006; transition: transform 160ms ease; }
+.checklist-toggle input { flex: none; position: relative; appearance: none; -webkit-appearance: none; width: 52px; height: 32px; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 999px; background: #ffffff26; box-shadow: inset 0 0 0 1px #ffffff26; cursor: pointer; transition: background 160ms ease; }
+.checklist-switch { position: relative; flex: none; display: inline-grid; }
+.checklist-switch-knob { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #ffffff; box-shadow: 0 2px 6px #0006; pointer-events: none; transition: transform 160ms ease; }
 .checklist-toggle input:checked { background: linear-gradient(100deg, #23eaff, #9273ff); }
-.checklist-toggle input:checked::before { transform: translateX(20px); }
+.checklist-toggle input:checked + .checklist-switch-knob { transform: translateX(20px); }
 .checklist-toggle input:disabled { opacity: .45; cursor: not-allowed; }
+.checklist-toggle input:disabled + .checklist-switch-knob { opacity: .55; }
 .checklist-toggle input:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .checklist-edit .checkbox { min-height: 44px; font-size: 16px; }
 .checklist-edit-status:empty { display: none; }

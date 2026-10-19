@@ -52,33 +52,47 @@
 /* By day the names are ink on a white sky: no halo. */
 :root[data-theme=light] .path-stage[data-variant=orbit] :is(.path-label, .path-chest-text) { text-shadow: none; }
 /* While ZIGi cheers beside the planet just ticked, its name steps back. */
-.path-stage[data-variant=orbit] .path-step:not([data-next]) .path-node:has(> .path-zigi) .path-label { opacity: 0; }
+.path-stage[data-variant=orbit] .path-step:not([data-next]) .path-node:has(> .path-zigi) .path-label { opacity: 0; transition: none; }
 
 /* The next planet's name: a START / NEXT bubble above it (white with ink words, in every theme), bobbing gently. */
-.path-stage[data-variant=orbit] .path-label.path-label-bubble[data-side] { top: auto; bottom: calc(100% + 16px); left: 50%; right: auto; translate: calc(-50% - var(--offset, 0) * 18%) 0; z-index: 4; display: inline-flex; align-items: center; gap: 8px; max-width: min(300px, 92cqi); padding: 6px 14px 6px 6px; border-radius: 14px; border: 2px solid var(--dot-next, #ffffff); background: #ffffff; color: #08112a; font-size: 15px; text-align: start; text-shadow: none; box-shadow: 0 4px 0 #0a123059, 0 12px 24px -10px #000b; white-space: nowrap; animation: path-bob 1800ms ease-in-out infinite; }
+/* (The bubble keeps clear of the planet before it: it stands 12 px over its own planet (10 on a tablet, 7 on a phone,
+   where it is also slimmer) and bobs 3 px, so it never reaches the planet above at the path's pitch.) */
+.path-stage[data-variant=orbit] .path-label.path-label-bubble[data-side] { --bubble-lift: 12px; top: auto; bottom: calc(100% + var(--bubble-lift)); left: 50%; right: auto; translate: calc(-50% - var(--offset, 0) * 18%) 0; z-index: 4; display: inline-flex; align-items: center; gap: 8px; max-width: min(300px, 92cqi); padding: 6px 14px 6px 6px; border-radius: 14px; border: 2px solid var(--dot-next, #ffffff); background: #ffffff; color: #08112a; font-size: 15px; text-align: start; text-shadow: none; box-shadow: 0 4px 0 #0a123059, 0 12px 24px -10px #000b; white-space: nowrap; animation: path-bob 1800ms ease-in-out infinite; }
 .path-stage[data-variant=orbit] .path-label-bubble::after { content: ''; position: absolute; left: calc(50% + var(--offset, 0) * 18%); top: 100%; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #ffffff; border-right: 2px solid var(--dot-next, #ffffff); border-bottom: 2px solid var(--dot-next, #ffffff); rotate: 45deg; }
 .path-stage[data-variant=orbit] .path-label-bubble .path-label-text { overflow: hidden; text-overflow: ellipsis; }
 .path-label-cue { flex: none; padding: 3px 8px; border-radius: 9px; background: var(--dot-next, #23eaff); color: #04101f; font-size: 14px; line-height: 1.1; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .path-stage[data-variant=orbit] .path-step[data-next] { --dot-next: var(--step-colour, #23eaff); }
-@keyframes path-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-@media (max-width: 640px) { .path-stage[data-variant=orbit] .path-label-bubble { font-size: 14px; max-width: min(260px, 94cqi); } }
+@keyframes path-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(var(--bob, -3px)); } }
+@media (max-width: 1179.98px) { .path-stage[data-variant=orbit] .path-label.path-label-bubble[data-side] { --bubble-lift: 10px; } }
+@media (max-width: 640px) {
+  .path-stage[data-variant=orbit] .path-label.path-label-bubble[data-side] { --bubble-lift: 7px; --bob: -2px; gap: 6px; max-width: min(260px, 94cqi); padding: 3px 11px 3px 3px; border-radius: 11px; font-size: 14px; }
+  .path-stage[data-variant=orbit] .path-label-bubble .path-label-cue { padding: 2px 6px; border-radius: 8px; font-size: 12px; }
+  .path-stage[data-variant=orbit] .path-label-bubble::after { width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; }
+}
 
 /* A planet: a round world in its own colour with a darker rim beneath that the press compresses (3-D). Waiting planets are
    their colour at about 60 % with a soft glow; the next one is lit in full, a size larger, with a pulse and an orbit; a done
    one glows, with a dark check. */
-.path-stage[data-variant=orbit] .path-dot { --rim: color-mix(in srgb, var(--dot) 38%, #050818); overflow: visible; background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 72%, #ffffff) 0, color-mix(in srgb, var(--dot) 62%, #0b1030) 46%, color-mix(in srgb, var(--dot) 42%, #070b22) 100%); box-shadow: inset 0 -7px 0 color-mix(in srgb, var(--dot) 40%, #050818), 0 7px 0 var(--rim), 0 16px 22px -8px #0009, 0 0 26px color-mix(in srgb, var(--dot) 34%, transparent); transition: transform 90ms ease, box-shadow 160ms ease; }
+.path-stage[data-variant=orbit] .path-dot { --orb-hi: color-mix(in srgb, var(--dot) 72%, #ffffff); --orb-mid: color-mix(in srgb, var(--dot) 62%, #0b1030); --orb-low: color-mix(in srgb, var(--dot) 42%, #070b22); --orb-shade: color-mix(in srgb, var(--dot) 40%, #050818); --rim: color-mix(in srgb, var(--dot) 38%, #050818); overflow: visible; background: radial-gradient(circle at 34% 28%, var(--orb-hi) 0, var(--orb-mid) 46%, var(--orb-low) 100%); box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 22px -8px #0009, 0 0 26px color-mix(in srgb, var(--dot) 34%, transparent); transition: transform 90ms ease, box-shadow 160ms ease; }
 .path-stage[data-variant=orbit] .path-dot-core { color: #ffffffeb; filter: drop-shadow(0 1px 2px #0006); }
 .path-stage[data-variant=orbit] .path-dot-core svg { width: calc(var(--dot-size) * .4); height: calc(var(--dot-size) * .4); }
 .path-stage[data-variant=orbit] .path-dot-shine { position: absolute; left: 17%; top: 10%; width: 44%; height: 26%; border-radius: 50%; background: radial-gradient(ellipse at 50% 40%, #ffffff59, #ffffff00 70%); rotate: -24deg; pointer-events: none; }
-.path-stage[data-variant=orbit] :is(button, a).path-dot:hover { box-shadow: inset 0 -7px 0 color-mix(in srgb, var(--dot) 40%, #050818), 0 7px 0 var(--rim), 0 16px 22px -8px #0009, 0 0 40px color-mix(in srgb, var(--dot) 56%, transparent); }
-.path-stage[data-variant=orbit] :is(button, a).path-dot:active { transform: translateY(6px); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--dot) 40%, #050818), 0 1px 0 var(--rim), 0 6px 12px -6px #0009, 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent); }
-.path-stage[data-variant=orbit] .path-dot[data-next] { scale: 1.15; background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--dot) 36%, #ffffff) 0, var(--dot) 46%, color-mix(in srgb, var(--dot) 70%, #0b1030) 100%); box-shadow: inset 0 -7px 0 color-mix(in srgb, var(--dot) 58%, #050818), 0 7px 0 color-mix(in srgb, var(--dot) 50%, #050818), 0 16px 24px -8px #000a, 0 0 44px color-mix(in srgb, var(--dot) 62%, transparent); }
+.path-stage[data-variant=orbit] :is(button, a).path-dot:hover { box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 22px -8px #0009, 0 0 40px color-mix(in srgb, var(--dot) 56%, transparent); }
+.path-stage[data-variant=orbit] :is(button, a).path-dot:active { transform: translateY(6px); box-shadow: inset 0 -4px 0 var(--orb-shade), 0 1px 0 var(--rim), 0 6px 12px -6px #0009, 0 0 30px color-mix(in srgb, var(--dot) 46%, transparent); }
+.path-stage[data-variant=orbit] .path-dot[data-next] { --orb-hi: color-mix(in srgb, var(--dot) 36%, #ffffff); --orb-mid: var(--dot); --orb-low: color-mix(in srgb, var(--dot) 70%, #0b1030); --orb-shade: color-mix(in srgb, var(--dot) 58%, #050818); --rim: color-mix(in srgb, var(--dot) 50%, #050818); scale: 1.15; box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000a, 0 0 44px color-mix(in srgb, var(--dot) 62%, transparent); }
 .path-stage[data-variant=orbit] .path-dot[data-next] .path-dot-core { color: #04101f; filter: none; }
-.path-stage[data-variant=orbit] .path-dot[data-state=done] { --rim: color-mix(in srgb, var(--dot) 52%, #030816); background: radial-gradient(circle at 34% 27%, color-mix(in srgb, var(--dot) 34%, #ffffff) 0, var(--dot) 42%, color-mix(in srgb, var(--dot) 62%, #050a1e) 100%); box-shadow: inset 0 -7px 0 color-mix(in srgb, var(--dot) 58%, #030816), 0 7px 0 var(--rim), 0 16px 24px -8px #000b, 0 0 34px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 90px color-mix(in srgb, var(--dot) 28%, transparent); }
+.path-stage[data-variant=orbit] .path-dot[data-state=done] { --orb-hi: color-mix(in srgb, var(--dot) 34%, #ffffff); --orb-mid: var(--dot); --orb-low: color-mix(in srgb, var(--dot) 62%, #050a1e); --orb-shade: color-mix(in srgb, var(--dot) 58%, #030816); --rim: color-mix(in srgb, var(--dot) 52%, #030816); box-shadow: inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 16px 24px -8px #000b, 0 0 34px color-mix(in srgb, var(--dot) 62%, transparent), 0 0 90px color-mix(in srgb, var(--dot) 28%, transparent); }
 .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-core { color: #04101f; filter: none; }
 .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-core svg { width: calc(var(--dot-size) * .46); height: calc(var(--dot-size) * .46); }
 .path-stage[data-variant=orbit] .path-dot[data-state=done] .path-dot-shine { background: radial-gradient(ellipse at 50% 40%, #ffffff8c, #ffffff00 70%); }
-.path-stage[data-variant=orbit] .path-dot[data-state=running] { box-shadow: inset 0 0 0 5px #ffffffd9, inset 0 -7px 0 color-mix(in srgb, var(--dot) 40%, #050818), 0 7px 0 var(--rim), 0 0 44px color-mix(in srgb, var(--dot) 60%, transparent); }
+.path-stage[data-variant=orbit] .path-dot[data-state=running] { box-shadow: inset 0 0 0 5px #ffffffd9, inset 0 -7px 0 var(--orb-shade), 0 7px 0 var(--rim), 0 0 44px color-mix(in srgb, var(--dot) 60%, transparent); }
+/* Where the browser can shade a colour by its own lightness (OKLCH, hue and chroma kept), the planets do: a waiting gold
+   planet stays gold, never the khaki or brown that mixing it with the night's navy gives. */
+@supports (color: oklch(from red l c h)) {
+  .path-stage[data-variant=orbit] .path-dot { --orb-mid: oklch(from var(--dot) calc(l * .8) c h); --orb-low: oklch(from var(--dot) calc(l * .62) c h); --orb-shade: oklch(from var(--dot) calc(l * .5) c h); --rim: oklch(from var(--dot) calc(l * .42) c h); }
+  .path-stage[data-variant=orbit] .path-dot[data-next] { --orb-mid: var(--dot); --orb-low: oklch(from var(--dot) calc(l * .74) c h); --orb-shade: oklch(from var(--dot) calc(l * .6) c h); --rim: oklch(from var(--dot) calc(l * .52) c h); }
+  .path-stage[data-variant=orbit] .path-dot[data-state=done] { --orb-mid: var(--dot); --orb-low: oklch(from var(--dot) calc(l * .68) c h); --orb-shade: oklch(from var(--dot) calc(l * .58) c h); --rim: oklch(from var(--dot) calc(l * .5) c h); }
+}
 .path-stage[data-variant=orbit] .path-dot:focus-visible { outline: 3px solid #ffffff; outline-offset: 7px; }
 
 /* The next planet: a soft pulse and an orbit with a small moon. */
@@ -143,7 +157,8 @@
 }
 
 /* A chest on the path itself, half way between its two planets, warm gold; the day's end, a trophy planet in the middle. */
-.path-stage[data-variant=orbit] .path-chest[data-on-path] { position: relative; display: grid; justify-items: center; gap: 2px; justify-self: center; width: auto; max-width: none; margin-block: -18px; padding: 0; translate: calc(var(--offset, 0) * var(--swing)) 0; text-align: center; }
+.path-stage[data-variant=orbit] .path-chest[data-on-path] { position: relative; display: grid; justify-items: center; gap: 2px; justify-self: center; width: auto; max-width: none; margin-block: -18px -2px; padding: 0; translate: calc(var(--offset, 0) * var(--swing)) 0; text-align: center; }
+/* (A chest keeps clear of the NEXT bubble over the planet after it: the bubble stands 46 px above its planet.) */
 .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-art { width: 66px; height: 58px; opacity: .94; filter: drop-shadow(0 8px 12px #00000059); }
 .path-stage[data-variant=orbit] .path-chest[data-on-path] .path-chest-art svg { width: 64px; height: 56px; }
 /* A chest's name beside it, on its open side, so it takes no row of its own. */
