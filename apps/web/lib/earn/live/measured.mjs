@@ -58,14 +58,20 @@ export function measuredRate({latest, earlier}) {
   return {status: 'ok', accrued: text(accrued), windowBlocks: blocks.toString(), windowSeconds: text(seconds), rate: text(rate)};
 }
 
-/** The issuance figure at a commission (the formula of lib/earn/apr.ts, repeated here for the script; apr.test.ts pins both equal). */
-export function issuanceRate({annualProvisions, bondedTokens, communityTax, mintBlocksPerYear, latest, earlier, commission}) {
-  const bonded = fixed(bondedTokens), mintBlocks = fixed(mintBlocksPerYear), tax = fixed(communityTax), c = fixed(commission);
-  if (bonded === 0n || mintBlocks === 0n || tax > ONE || c > ONE) throw new Error('Inputs out of range.');
-  const {blocks, ns} = windowOf(latest, earlier);
+/** The issuance arithmetic's parts (gross, after tax, block seconds, block-time factor), for the ranges and the script. */
+export function issuanceParts({annualProvisions, bondedTokens, communityTax, mintBlocksPerYear, latest, earlier}) {
+  const bonded = fixed(bondedTokens), mintBlocks = fixed(mintBlocksPerYear), tax = fixed(communityTax);
+  if (bonded === 0n || mintBlocks === 0n || tax > ONE) throw new Error('Inputs out of range.');
+  const {blocks, ns, seconds} = windowOf(latest, earlier);
   const realBlocks = blocks * ONE * YEAR_SECONDS * NS / ns;
-  const afterTax = mul(div(fixed(annualProvisions), bonded), ONE - tax);
-  return text(mul(mul(afterTax, div(realBlocks, mintBlocks)), ONE - c));
+  const gross = div(fixed(annualProvisions), bonded), afterTax = mul(gross, ONE - tax), factor = div(realBlocks, mintBlocks);
+  return {gross: text(gross), afterTax: text(afterTax), blockSeconds: text(seconds / blocks), factor: text(factor), beforeCommission: text(mul(afterTax, factor))};
+}
+/** The issuance figure at a commission (the formula of lib/earn/apr.ts, repeated here for the script; measured.test.ts pins both equal). */
+export function issuanceRate({commission, ...inputs}) {
+  const c = fixed(commission);
+  if (c > ONE) throw new Error('Inputs out of range.');
+  return text(mul(fixed(issuanceParts(inputs).beforeCommission), ONE - c));
 }
 
 /** How far apart the two figures are, relative to the issuance figure; above `limit` (10 %) they disagree. */

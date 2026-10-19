@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import fixture from '../fixtures/live-2026-10-19.json';
 import {aprAtCommission} from '../apr';
-import {aprAgreement, issuanceRate, measuredRate} from './measured.mjs';
+import {aprAgreement, issuanceParts, issuanceRate, measuredRate} from './measured.mjs';
 
 /**
  * Session AF chunk 2 (ADR-028 H97): the measured native staking figure and the issuance figure, on the recorded answers of
@@ -36,6 +36,11 @@ describe('the two native staking figures', () => {
   it('issuance: the same arithmetic as lib/earn/apr.ts, at the measured validator’s commission', () => {
     const issuance = issuanceRate({annualProvisions: chain.mint.annualProvisions, bondedTokens: chain.staking.bondedTokens, communityTax: chain.distribution.communityTax, mintBlocksPerYear: chain.mint.blocksPerYear, latest: chain.blocks.latest, earlier: chain.blocks.earlier, commission: measured.validator.commission});
     expect(issuance).toBe(aprAtCommission(chain.apr, measured.validator.commission));
+  });
+  it('issuance parts: gross, after tax, block seconds, factor and the rate before commission equal lib/earn/apr.ts’s', () => {
+    const parts = issuanceParts({annualProvisions: chain.mint.annualProvisions, bondedTokens: chain.staking.bondedTokens, communityTax: chain.distribution.communityTax, mintBlocksPerYear: chain.mint.blocksPerYear, latest: chain.blocks.latest, earlier: chain.blocks.earlier});
+    const apr = chain.apr as unknown as Record<string, string>;
+    expect(parts).toEqual({gross: apr.gross, afterTax: apr.afterTax, blockSeconds: apr.blockSeconds, factor: apr.factor, beforeCommission: apr.beforeCommission});
   });
   it('the two figures agree within 10 % on the recorded read; past 10 % they disagree', () => {
     const issuance = aprAtCommission(chain.apr, measured.validator.commission);
