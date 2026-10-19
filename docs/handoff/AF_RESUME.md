@@ -85,6 +85,17 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-20 01:10 Brussels — Checklist iteration 3 under critique; webkit-earn's cause fixed)
+- webkit-earn's cause (CI on `e44575d0`): on Settings, the test's navigation aborts the page's own route files; the root's
+  error boundary then drew Next's built-in screen, whose styles go through innerHTML, which Trusted Types refuses. Fixed by
+  the app's own `app/global-error.tsx` (H135, `80e4e26f`); the assertion unchanged. Read webkit-earn on CI for `ed7c6b10`.
+- The layout audit's AF states and the gradient-word contrast are committed (`ed7c6b10`).
+- L3b's iteration 3 is on `af/checklist2` (`7c163836`); a fresh critic scores it. Any failing line → the findings go to L3b
+  for iteration 4 (as many as it needs, owner); all six pass → merge `af/checklist2` (`--no-ff`), regenerate the theme
+  sheets, wire, ADR rows (H67 superseded for the Checklist, H55 loops inside the overlay, ISLANDS, the
+  `zigoals-checklist-celebrated` session key, the half-way chest, long names on phones, the Fast ring), then Gate C's
+  remaining steps on the final head (list below).
+
 ## Resume here (2026-10-19 19:55 Brussels — security fix round done; ledger closures done; L3b iterating)
 - Security review (G12 1/3) done: no critical/high; S1–S11 fixed (`d6a09eca` `83ca5838` `9807eb91` `0441cd7d` `6563cb19`),
   record `docs/verification/session-af/gate-c-security-review.md`, ADR-028 H133. Staking/governance/badge/ZIGi specs 85 + 8 green.
