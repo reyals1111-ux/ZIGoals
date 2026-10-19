@@ -16,6 +16,9 @@ test('dots, the line from centre to centre, banners, chests, ZIGi by the next do
   const dots = stage.locator('button.path-dot');
   await expect(dots).toHaveCount(4);
   for (const dot of await dots.all()) { const b = (await dot.boundingBox())!; expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(44); expect(Math.min(b.width, b.height)).toBeGreaterThanOrEqual(56); }
+  // Session AF (L3b; CI on 42ec357c read a line end 3.01 px from its dot while the page was still settling), moved at equal
+  // strength: the line is read once the path says its geometry has settled (its own `data-settled`), with the same 2 px.
+  await expect(stage).toHaveAttribute('data-settled', '', {timeout: 10_000});
   // The line: each segment starts at a dot's centre and ends at the next dot's (in the stage's own coordinates).
   const geometry = await stage.evaluate(el => {
     const base = el.getBoundingClientRect(), centre = (d: Element) => { const r = d.getBoundingClientRect(); return [r.left + r.width / 2 - base.left, r.top + r.height / 2 - base.top]; };

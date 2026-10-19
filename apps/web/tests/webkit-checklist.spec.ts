@@ -17,7 +17,7 @@ test('the Checklist on a phone in WebKit: a heading, 44 px dots and chips, no si
   await page.goto('/app/checklist'); await settled(page);
   await expect(page.locator('main h1').first()).toHaveText('Your orbit');
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
-  // Session AF (L3b): on a phone the timers fold into one corner button (itself 58 px); open them to measure each one.
+  // Session AF (L3b): on a phone the timers fold into one corner button (itself 52 px, in the foot bar); open them to measure each one.
   const fab = page.getByRole('button', {name: /^Timers:/});
   expect(Math.round(Math.min(...Object.values((await fab.boundingBox())!).slice(2)))).toBeGreaterThanOrEqual(44);
   await fab.click();

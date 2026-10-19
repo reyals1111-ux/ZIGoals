@@ -90,12 +90,14 @@ test('big planets (88–112 px on a computer, 64–84 px on a phone, the next on
     for (const d of dots) { expect(d, `${size.width}px`).toBeGreaterThanOrEqual(range[0]!); expect(d, `${size.width}px`).toBeLessThanOrEqual(range[1]!); }
   }
   // One name per planet, beside it (no box), one line from a tablet up and two at most on a phone, 14 px or more; the next
-  // planet's name is its START / NEXT bubble above it.
+  // planet's name is its START / NEXT bubble — round 3 (L3b), moved at equal strength: beside it, off the line, no longer
+  // above it on the line's last stretch (where a comet arriving would be hidden).
   const names = await page.locator('.path-step .path-label').evaluateAll(els => els.map(e => { const cs = getComputedStyle(e), text = e.querySelector('.path-label-text')!, shown = [...e.children].filter(c => getComputedStyle(c).display !== 'none' && !c.classList.contains('path-label-cue')); const dot = e.parentElement!.querySelector('.path-dot')!.getBoundingClientRect(), r = e.getBoundingClientRect(); return {bubble: e.classList.contains('path-label-bubble'), parts: shown.length, lines: Math.round(text.getBoundingClientRect().height / parseFloat(getComputedStyle(text).lineHeight)), size: parseFloat(cs.fontSize), boxed: cs.backgroundColor !== 'rgba(0, 0, 0, 0)', beside: r.right <= dot.left + 1 || r.left >= dot.right - 1, above: r.bottom <= dot.top + 1}; }));
   expect(names.filter(n => n.bubble)).toHaveLength(1);
   for (const n of names) { expect(n.parts, 'one name, no second line of notes').toBe(1); expect(n.size).toBeGreaterThanOrEqual(14); }
   for (const n of names.filter(x => !x.bubble)) { expect(n.boxed, 'no box behind a name').toBe(false); expect(n.beside, 'beside its planet').toBe(true); expect(n.lines).toBeLessThanOrEqual(info.project.name === 'mobile' ? 2 : 1); }
-  expect(names.find(n => n.bubble)!.above, 'the next planet’s name above it').toBe(true);
+  expect(names.find(n => n.bubble)!.beside, 'the next planet’s bubble beside it, off the line').toBe(true);
+  expect(names.find(n => n.bubble)!.above, 'not over the line above it').toBe(false);
   // The path view carries no paragraph: its words are captions, banner titles and counts.
   expect(await page.locator('.checklist-stage p').count()).toBe(0);
   // The explanation lives behind the menu.
@@ -111,8 +113,14 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const done = page.getByRole('button', {name: `${TITLE.stretch}: done`, exact: true});
   await expect(done).toHaveAttribute('data-just', '');
   await expect(done.locator('.path-dot-burst[data-rich] i')).toHaveCount(14);
-  await expect(page.locator('.path-segment-comet')).not.toHaveCount(0);
-  await expect(page.locator('.path-zigi[data-zigi-state="success"]')).toHaveCount(1);
+  // Round 3 (L3b), moved at greater strength: the comet is a head with its tail, running on to the next planet; ZIGi's cheer is
+  // its celebrate pose with hops and sparkles, beside the planet just ticked.
+  await expect(page.locator('.path-comet .path-comet-head')).not.toHaveCount(0);
+  await expect(page.locator('.path-comet .path-comet-tail')).not.toHaveCount(0);
+  const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="celebrate"]');
+  await expect(cheer).toHaveCount(1);
+  await expect(cheer.locator('.path-zigi-cheer i')).not.toHaveCount(0);
+  await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
   await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
   expect(moving, 'the tick plays').toBeGreaterThan(5);
@@ -196,7 +204,9 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   else await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
   // The shell's own strips are not drawn inside the Checklist.
   await expect(overlay(page)).not.toContainText('NOTHING MOVES UNLESS YOU SIGN');
-  // A tick: the toast is one line, 52 px at most, and covers neither the new next planet nor ZIGi.
+  // A tick: the toast is 52 px at most and covers neither the new next planet nor ZIGi — round 3 (L3b), at greater strength:
+  // nor any planet, name, banner, chest or ZIGi on the screen; on a phone it sits inside the foot bar, on a computer beside
+  // the path (right of it).
   await page.getByRole('button', {name: 'Fictional star 6: not done yet', exact: true}).click();
   await expect(page.locator('.aa-toast')).toBeVisible();
   await expect(page.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', 'Fictional star 7: not done yet');
@@ -204,4 +214,35 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   const t = await rect(page, '.aa-toast'), a = await rect(page, '[data-next] [data-path-point]'), b = await rect(page, '[data-next] .path-zigi');
   expect(t.bottom - t.top).toBeLessThanOrEqual(52);
   for (const o of [a, b]) expect(o.bottom <= t.top || o.top >= t.bottom || o.right <= t.left || o.left >= t.right, 'the toast covers no planet or ZIGi').toBe(true);
+  // (What shows of each part of the path: between the top bar and the foot bar, where there is one.)
+  const hits = await page.evaluate(([l, r, tp, bt]) => { const dock = document.querySelector('.checklist-dock'), foot = dock && getComputedStyle(dock).display !== 'none' ? dock.getBoundingClientRect().top : innerHeight, head = document.querySelector('.checklist-topbar')!.getBoundingClientRect().bottom;
+    return [...document.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest, .path-zigi')].filter(el => { const o = el.getBoundingClientRect(), top = Math.max(o.top, head), bottom = Math.min(o.bottom, foot); return bottom > top && o.left < r! && o.right > l! && top < bt! && bottom > tp!; }).map(el => el.className.toString().split(' ')[0]); }, [t.left, t.right, t.top, t.bottom] as const);
+  expect(hits, 'the toast covers nothing of the path').toEqual([]);
+  if (info.project.name === 'mobile') { const bar = await rect(page, '.checklist-dock'); expect(t.top).toBeGreaterThanOrEqual(bar.top - 1); }
+  else { const stage = await rect(page, '.path-stage'); expect(t.left).toBeGreaterThanOrEqual(stage.right); }
+});
+
+test('a learning path’s density: five planets or more on the opening screen, between the bars; the foot bar keeps the path clear', async ({page}, info) => {
+  // Round 3 (L3b): the critique's target — at least five planets on the opening screen at 390 and at 1440 (the owner's
+  // reference shows seven or eight). A planet counts when at least half of it shows between the top bar and the foot bar.
+  const mobile = info.project.name === 'mobile';
+  await page.setViewportSize(mobile ? {width: 390, height: 844} : {width: 1440, height: 900});
+  await open(page, {path: longDay()});
+  for (const n of [1, 2, 3]) await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+  await page.reload(); await settled(page);
+  await expect(page.locator('[data-next] [data-path-point]')).toHaveAttribute('aria-label', 'Fictional star 4: not done yet');
+  await page.waitForTimeout(800);
+  const shown = await page.evaluate(() => {
+    const top = document.querySelector('.checklist-topbar')!.getBoundingClientRect().bottom, dock = document.querySelector('.checklist-dock');
+    const foot = dock && getComputedStyle(dock).display !== 'none' ? dock.getBoundingClientRect().top : innerHeight;
+    return [...document.querySelectorAll('.path-step .path-dot')].filter(d => { const r = d.getBoundingClientRect(); return Math.min(r.bottom, foot) - Math.max(r.top, top) >= r.height / 2; }).length;
+  });
+  expect(shown, 'planets on the opening screen').toBeGreaterThanOrEqual(5);
+  if (mobile) {
+    // The foot bar is opaque and holds the timers' button: nothing of the path is drawn over it.
+    const bar = await rect(page, '.checklist-dock'), fab = await rect(page, '.checklist-timers-fab');
+    expect(fab.top).toBeGreaterThanOrEqual(bar.top - 1); expect(fab.bottom).toBeLessThanOrEqual(bar.bottom + 1);
+    const alpha = await page.locator('.checklist-dock').evaluate(el => { const m = getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []; return Math.min(...m.map(c => { const v = c.match(/[\d.]+/g)!.map(Number); return v.length > 3 ? v[3]! : 1; })); });
+    expect(alpha, 'the foot bar is opaque').toBeGreaterThanOrEqual(.95);
+  }
 });
