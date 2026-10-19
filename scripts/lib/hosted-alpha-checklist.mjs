@@ -35,7 +35,7 @@ export async function starHabit(page, expect, title = CHECKLIST_SENTINELS.habit)
 export async function openChecklist(page, expect, base, title = CHECKLIST_SENTINELS.habit) {
   await page.goto(base + CHECKLIST_PATH);
   await expect(page.getByRole('heading', {level: 1, name: 'Your orbit'})).toBeVisible();
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 planet today');
   return page.getByRole('button', {name: `${title}: not done yet`, exact: true});
 }
 /** Today's check-in of the sentinel habit as the Habits record holds it in this browser (null: none). */
@@ -53,7 +53,7 @@ export async function habitEntryToday(page, title = CHECKLIST_SENTINELS.habit) {
 export async function tickAndCheck(page, expect, title = CHECKLIST_SENTINELS.habit) {
   await page.getByRole('button', {name: `${title}: not done yet`, exact: true}).click();
   await expect(page.getByRole('button', {name: doneName(title)})).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('1 of 1 planet today');
   await expect(page.locator('.aa-toast')).toContainText(`${title} logged for today.`);
   await expect.poll(async () => (await habitEntryToday(page, title)).entry?.disposition ?? null).toBe('logged');
   const {entry} = await habitEntryToday(page, title);
@@ -63,7 +63,7 @@ export async function tickAndCheck(page, expect, title = CHECKLIST_SENTINELS.hab
 export async function undoAndCheck(page, expect, base, title = CHECKLIST_SENTINELS.habit) {
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}).click();
   await expect(page.locator('.aa-toast')).toContainText(`${title}: back as it was.`);
-  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 dot today');
+  await expect(page.locator('.checklist-progress-line')).toContainText('0 of 1 planet today');
   await expect(page.getByRole('button', {name: `${title}: not done yet`, exact: true})).toBeVisible();
   await expect.poll(async () => (await habitEntryToday(page, title)).entry).toBeNull();
   await page.goto(base + '/app/habits');
