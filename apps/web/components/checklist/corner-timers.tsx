@@ -36,7 +36,7 @@ export function CornerTimers({state, open, onOpen}: {state: ChecklistState; open
   const timers: Timer[] = [
     {kind: 'sleep', label: 'Sleep', glyph: 'moon', colour: 'magenta', running: !!night, line: night ? `In bed since ${formatTime(night.start, {timeZone: night.timeZone})} · ${formatMinutes(inBedMinutes(night, now))}` : 'Tap at bedtime'},
     {kind: 'meditate', label: 'Meditate', glyph: 'lotus', colour: 'teal', running: !!run, line: run ? `${clockText(remainingMs(run, now))} left` : '10 minutes', ...(run ? {share: 1 - remainingMs(run, now) / (run.plannedSec * 1000)} : {})},
-    {kind: 'fast', label: 'Fast', glyph: 'hourglass', colour: 'gold', running: !!fast, line: fast ? `${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${fast.targetHours} h` : `${fasting.data.sessions.at(-1)?.targetHours ?? 16} h target`, ...(fast ? {share: Math.min(1, fastElapsed(fast, new Date(now)).ms / (fast.targetHours * 3_600_000))} : {})},
+    {kind: 'fast', label: 'Fast', glyph: 'hourglass', colour: 'purple', running: !!fast, line: fast ? `${formatFast(fastElapsed(fast, new Date(now)).ms)} of ${fast.targetHours} h` : `${fasting.data.sessions.at(-1)?.targetHours ?? 16} h target`, ...(fast ? {share: Math.min(1, fastElapsed(fast, new Date(now)).ms / (fast.targetHours * 3_600_000))} : {})},
     ...(focus ? [{kind: 'focus' as const, label: 'Focus', glyph: 'focus', colour: 'cyan' as const, running: !!focusTimer, line: focusTimer && focusPreview ? `${focus.title} · ${clockText(focusPreview.elapsedMs)}` : focus.title}] : []),
   ];
   async function press(kind: TimerKind) {

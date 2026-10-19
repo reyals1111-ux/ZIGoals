@@ -13,6 +13,9 @@ import './day-celebration.css';
  * A modal dialog over the Checklist: the trophy planet rising in a burst of colour, ZIGi celebrating, the streak and today's
  * XP (with the game layer on), a Perfect orbit when the day went in path order. Confetti plays once; reduced motion and
  * Motion Off show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
+ * Round 3: a gold-to-violet glow with soft rays behind it, the confetti a couple of seconds longer, ZIGi large and in front
+ * of the trophy, and the last tick's Undo a quiet text button under Continue (the toast lends itself there) instead of a
+ * toast over the moment.
  */
 const CONFETTI = 56, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
 export default function DayCelebration({streak, xp, xpFrom = null, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; xpFrom?: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
@@ -28,8 +31,9 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
   }, []);
   return <dialog ref={ref} className="checklist-celebration" aria-labelledby="checklist-celebration-title" aria-describedby="checklist-celebration-line" onCancel={e => e.preventDefault()}>
     <div className="checklist-celebration-burst" aria-hidden="true">
+      <span className="checklist-celebration-glow"/>
       <span className="checklist-celebration-rays"/>
-      {Array.from({length: CONFETTI}, (_, i) => <i key={i} style={{'--a': `${(i * 137.5) % 360}deg`, '--d': `${34 + (i * 53) % 30}vmin`, '--c': COLOURS[i % COLOURS.length], '--t': `${1100 + (i * 97) % 700}ms`, '--r': `${(i * 71) % 360}deg`} as CSSProperties} data-shape={i % 3}/>)}
+      {Array.from({length: CONFETTI}, (_, i) => <i key={i} style={{'--a': `${(i * 137.5) % 360}deg`, '--d': `${34 + (i * 53) % 30}vmin`, '--c': COLOURS[i % COLOURS.length], '--t': `${3100 + (i * 97) % 900}ms`, '--r': `${(i * 71) % 360}deg`} as CSSProperties} data-shape={i % 3}/>)}
     </div>
     <section className="checklist-celebration-card">
       <div className="checklist-celebration-stage" aria-hidden="true">
@@ -51,8 +55,8 @@ export default function DayCelebration({streak, xp, xpFrom = null, perfect, tota
         {xp !== null && <li><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M13.2 2.5 5 13.4h6l-1.2 8.1L19 10.4h-6.1z" fill="#ffd27a" stroke="#f0a24b" strokeWidth="1.3" strokeLinejoin="round"/></svg><strong><Rise from={xpFrom ?? 0} to={xp} delay={950}/></strong><span>XP today</span></li>}
       </ul>
       <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Continue</button>
+      <div ref={toastSlot} className="checklist-toast-slot checklist-celebration-undo"/>
     </section>
-    <div ref={toastSlot} className="checklist-toast-slot"/>
   </dialog>;
 }
 

@@ -1,5 +1,5 @@
 'use client';
-import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode} from 'react';
+import {Suspense, lazy, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
@@ -30,6 +30,12 @@ const DayCelebration = lazy(() => import('./day-celebration'));
 const CELEBRATED = 'zigoals-checklist-celebrated';
 const celebratedOn = (date: string) => { try { return sessionStorage.getItem(CELEBRATED) === date; } catch { return true; } };
 const markCelebrated = (date: string) => { try { sessionStorage.setItem(CELEBRATED, date); } catch { /* it may play again in this tab */ } };
+
+/** Round 3: below 1180 px the Checklist keeps a bar of its own at the foot (the timers' button, the toast, "Jump to next"),
+ *  which the path never runs under; the jump button moves into it there. */
+const NARROW = '(max-width: 1179.98px)';
+const subscribeNarrow = (l: () => void) => { const m = window.matchMedia?.(NARROW); m?.addEventListener('change', l); return () => m?.removeEventListener('change', l); };
+const useNarrow = () => useSyncExternalStore(subscribeNarrow, () => !!window.matchMedia?.(NARROW).matches, () => false);
 
 /**
  * Where the close goes: back through the app's own history when the Checklist was opened from a page in the app (the
@@ -64,6 +70,7 @@ export function ChecklistPage() {
   const state = useChecklist({commands: true}), {summary, streak, prefs, loaded} = state;
   const router = useRouter(), dialog = useRef<HTMLDialogElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<'edit' | 'options' | 'about' | null>(null), [history, setHistory] = useState(false), [celebrate, setCelebrate] = useState(false);
+  const narrow = useNarrow(), [jumpSlot, setJumpSlot] = useState<HTMLDivElement | null>(null);
 
   // Into the top layer: the server's page carries the dialog open (so the first paint already shows only the Checklist);
   // once the page runs it becomes modal. Our own close here is not the person's close.
@@ -167,7 +174,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state} onAdd={() => setSheet('edit')}/> : <PathView state={state}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={() => setSheet('edit')}/> : <PathView state={state} jumpDock={narrow ? jumpSlot : null}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -183,6 +190,10 @@ export function ChecklistPage() {
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
     {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} xp={xpToday} xpFrom={xpBefore.current} perfect={!!summary?.perfect} total={total} colours={state.dots.filter(d => d.counted).map(d => PATH_COLOURS[d.colour].hex)} onClose={() => setCelebrate(false)}/></Suspense>}
+    {/* The foot bar (phones and tablets): an opaque band the path never runs under, holding the timers' button (the timers
+        place it), the toast and "Jump to next". On a computer the toast sits under the timers at the side instead. */}
+    <div className="checklist-dock" aria-hidden="true"/>
+    <div ref={setJumpSlot} className="checklist-jump-slot"/>
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
   </dialog>;

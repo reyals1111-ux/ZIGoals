@@ -5,8 +5,11 @@
 .checklist-celebration { position: fixed; inset: 0; z-index: 2147483001; box-sizing: border-box; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 16px; border: 0; display: grid; place-items: center; overflow: hidden auto; color: #f2f6ff; background: radial-gradient(80% 60% at 50% 38%, var(--checklist-ink-celebration-a), var(--checklist-ink-celebration-b) 72%); }
 .checklist-celebration::backdrop { background: #02040dcc; }
 .checklist-celebration-burst { position: fixed; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; }
-.checklist-celebration-rays { position: absolute; left: -60vmax; top: -60vmax; width: 120vmax; height: 120vmax; border-radius: 50%; background: repeating-conic-gradient(from 0deg, #ffd27a59 0 7deg, #ffd27a00 7deg 20deg); -webkit-mask: radial-gradient(closest-side, #000 30%, #0000); mask: radial-gradient(closest-side, #000 30%, #0000); animation: checklist-rays 2600ms ease-out both; }
-@keyframes checklist-rays { from { opacity: 0; transform: rotate(-30deg) scale(.6); } 30% { opacity: 1; } to { opacity: .8; transform: rotate(20deg) scale(1); } }
+/* Round 3: a gold-to-violet glow, with soft white-gold rays over it at a quarter strength at most. */
+.checklist-celebration-glow { position: absolute; left: -48vmax; top: -48vmax; width: 96vmax; height: 96vmax; border-radius: 50%; background: radial-gradient(closest-side, #ffd27a8c 0, #ff9ad266 26%, #9273ff4d 52%, #9273ff00 100%); animation: checklist-glow-in 1400ms ease-out both; }
+@keyframes checklist-glow-in { from { opacity: 0; transform: scale(.5); } }
+.checklist-celebration-rays { position: absolute; left: -60vmax; top: -60vmax; width: 120vmax; height: 120vmax; border-radius: 50%; opacity: .25; background: repeating-conic-gradient(from 0deg, #fff3d600 0deg, #fff3d6b3 4deg, #fff3d600 9deg, #fff3d600 20deg); -webkit-mask: radial-gradient(closest-side, #000 30%, #0000); mask: radial-gradient(closest-side, #000 30%, #0000); animation: checklist-rays 2600ms ease-out both; }
+@keyframes checklist-rays { from { opacity: 0; transform: rotate(-30deg) scale(.6); } 30% { opacity: .25; } to { opacity: .22; transform: rotate(20deg) scale(1); } }
 .checklist-celebration-burst i { position: absolute; left: -6px; top: -8px; width: 12px; height: 16px; border-radius: 3px; background: var(--c); opacity: 0; animation: checklist-confetti var(--t, 1400ms) cubic-bezier(.12, .7, .3, 1) 120ms both; }
 .checklist-celebration-burst i[data-shape='1'] { width: 9px; height: 9px; border-radius: 50%; }
 .checklist-celebration-burst i[data-shape='2'] { width: 6px; height: 16px; }
@@ -16,7 +19,8 @@
 .checklist-celebration-stage { position: relative; display: grid; place-items: center; width: 220px; height: 170px; margin-top: -86px; }
 .checklist-celebration-trophy { width: 170px; height: 170px; overflow: visible; filter: drop-shadow(0 0 30px #ffd27acc) drop-shadow(0 12px 18px #0009); animation: checklist-trophy-rise 900ms cubic-bezier(.2, .9, .25, 1.2) 120ms both; }
 @keyframes checklist-trophy-rise { from { opacity: 0; transform: translateY(40px) scale(.6) rotate(-10deg); } }
-.checklist-celebration-zigi { position: absolute; right: -54px; bottom: -14px; width: 104px; height: 136px; animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
+/* ZIGi large and in front of the trophy (never behind its ring), celebrating. */
+.checklist-celebration-zigi { position: absolute; z-index: 2; right: -96px; bottom: 2px; width: 122px; height: 160px; filter: drop-shadow(0 12px 18px #0009); animation: checklist-zigi-hop 760ms cubic-bezier(.2, .9, .25, 1.3) 380ms both; }
 .checklist-celebration-zigi .zigi { width: 100%; height: 100%; }
 @keyframes checklist-zigi-hop { from { opacity: 0; transform: translateY(26px) scale(.8); } }
 .checklist-celebration-planets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 2px 0 0; padding: 0; list-style: none; }
@@ -32,7 +36,7 @@
 .checklist-celebration-go { min-width: 200px; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: linear-gradient(100deg, #23eaff, #9273ff 55%, #ff74be); color: #050b1f; font: inherit; font-size: 17px; font-weight: 850; letter-spacing: .02em; cursor: pointer; box-shadow: 0 5px 0 #4b3aa8, 0 16px 30px -12px #9273ffaa; }
 .checklist-celebration-go:active { transform: translateY(4px); box-shadow: 0 1px 0 #4b3aa8; }
 .checklist-celebration-go:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
-@media (max-width: 480px) { .checklist-celebration-zigi { right: -30px; width: 88px; height: 115px; } .checklist-celebration-stage { width: 190px; height: 150px; } .checklist-celebration-trophy { width: 150px; height: 150px; } }
+@media (max-width: 480px) { .checklist-celebration-zigi { right: -64px; bottom: 4px; width: 107px; height: 140px; } .checklist-celebration-stage { width: 170px; height: 140px; translate: -34px 0; } .checklist-celebration-trophy { width: 140px; height: 140px; } }
 @media (prefers-reduced-motion: reduce) { .checklist-celebration *, .checklist-celebration *::before, .checklist-celebration *::after { animation: none !important; } .checklist-celebration-burst i { display: none; } }
 :root[data-app-motion=off] :is(.checklist-celebration *) { animation: none !important; }
 :root[data-app-motion=off] .checklist-celebration-burst i { display: none; }
@@ -48,3 +52,12 @@
   .checklist-celebration-stats li { gap: 5px; padding: 0 12px 0 8px; font-size: 14px; }
   .checklist-celebration-stats strong { font-size: 22px; }
 }
+/* The last tick's Undo, under Continue: the toast lent to the celebration, shown as a quiet text button (its words stay for
+   screen readers; it closes with the celebration). */
+:root .checklist-celebration .checklist-celebration-undo { position: static; width: auto; height: auto; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast-region { position: static; left: auto; right: auto; bottom: auto; width: auto; transform: none; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast { display: flex; justify-content: center; min-height: 0; max-height: none; padding: 0; border: 0; background: none; box-shadow: none; animation: none; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast-close { display: none; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast-undo { min-height: 44px; padding: 0 18px; border: 0; border-radius: 999px; background: none; color: #c9d5ee; font-size: 16px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+:root .checklist-celebration .checklist-celebration-undo .aa-toast-undo:focus-visible { outline: 3px solid #ffffff; outline-offset: 2px; }

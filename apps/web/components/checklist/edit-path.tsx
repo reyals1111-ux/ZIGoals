@@ -1,5 +1,5 @@
 'use client';
-import {useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
+import {Fragment, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent} from 'react';
 import {PATH_COLOURS, PATH_COLOUR_IDS, pathColour} from '../../lib/path/colours';
 import {HEALTH_MEALS} from '../../lib/health';
 import {latestHabitRule} from '../../lib/habits';
@@ -15,6 +15,8 @@ import type {ChecklistState} from './use-checklist';
  * the arrow keys on the handle), change its orbit and colour, take it off; custom items ("Play piano 15 minutes") with
  * their own words and colour, and "Make this a habit"; the orbits themselves (rename, recolour, add, remove); and
  * everything that can be added from the app's pages. Every change is a device write with its words said back.
+ * Round 3: the rows stand under their orbits' names (as the List does), each row's planet is its own drag handle (no
+ * separate grip column), and a name may take two lines instead of being cut.
  */
 const message = (e: unknown) => storageMessageOr(e, 'Not saved on this device. Try again.');
 const SECTION_TIME: Record<string, 'morning' | 'afternoon' | 'evening' | 'anytime'> = {morning: 'morning', afternoon: 'afternoon', evening: 'evening'};
@@ -74,12 +76,14 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
     <div className="checklist-options-head"><h2 id="checklist-edit-title">Edit path</h2><button type="button" className="primary" onClick={onClose}>Done</button></div>
     <p className="fine checklist-edit-status" role="status" aria-live="polite">{status}</p>
     <h3>On your path</h3>
-    {pathOrder.length ? <ol ref={list} className="checklist-edit-list">{pathOrder.map(item => {
+    {pathOrder.length ? <ol ref={list} className="checklist-edit-list">{pathOrder.map((item, n) => {
       const dot: DerivedDot | undefined = dotById.get(item.id), label = dot?.label ?? item.label ?? 'Item', section = sectionOfItem(record.data, item), colour = pathColour(item.colour, dot?.colour ?? 'cyan');
       const dragging = drag?.id === item.id, mates = pathOrder.filter(i => sectionOfItem(record.data, i) === section), mate = mates.findIndex(i => i.id === item.id), orbitLabel = sections.find(x => x.id === section)?.label ?? 'its orbit';
-      return <li key={item.id} data-edit-row data-dragging={dragging || undefined} style={{'--dot': PATH_COLOURS[colour].token, ...(dragging ? {transform: `translateY(${drag!.dy}px)`} : {})} as CSSProperties}>
-        <button type="button" className="checklist-edit-handle" data-edit-handle={item.id} aria-label={`Move ${label}: drag, or use the arrow keys`} onPointerDown={e => onPointerDown(e, item.id)} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => setDrag(null)} onKeyDown={e => onHandleKey(e, item.id, label)}><span aria-hidden="true">⋮⋮</span></button>
-        <span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot ? itemGlyph(dot) : 'sparkle'} size={18}/></span>
+      const orbitHead = n === 0 || sectionOfItem(record.data, pathOrder[n - 1]!) !== section;
+      return <Fragment key={item.id}>
+      {orbitHead && <li className="checklist-edit-orbit-head" aria-hidden="true"><span>{orbitLabel}</span><span>{mates.length}</span></li>}
+      <li data-edit-row data-dragging={dragging || undefined} style={{'--dot': PATH_COLOURS[colour].token, ...(dragging ? {transform: `translateY(${drag!.dy}px)`} : {})} as CSSProperties}>
+        <button type="button" className="checklist-edit-handle" data-edit-handle={item.id} aria-label={`Move ${label}: drag, or use the arrow keys`} onPointerDown={e => onPointerDown(e, item.id)} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => setDrag(null)} onKeyDown={e => onHandleKey(e, item.id, label)}><span className="checklist-edit-dot" aria-hidden="true"><PathGlyph name={dot ? itemGlyph(dot) : 'sparkle'} size={18}/></span></button>
         <span className="checklist-edit-label"><strong>{label}</strong>{dot?.missing && <small>{dot.note}</small>}</span>
         <button type="button" className="checklist-edit-more" aria-expanded={openRow === item.id} aria-label={`Change ${label}: orbit, colour, place`} onClick={() => setOpenRow(o => o === item.id ? null : item.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></button>
         {openRow === item.id && <div className="checklist-edit-controls">
@@ -92,12 +96,13 @@ export function EditPath({state, onClose}: {state: ChecklistState; onClose: () =
             <button type="button" className="quiet" aria-label={`Take ${label} off your path`} onClick={() => write(r => removeItem(r, item.id), `${label} is off your path. Its records stay on its page.`)}>Remove</button>
           </div>
         </div>}
-      </li>;
+      </li>
+      </Fragment>;
     })}</ol> : <p>Nothing yet. Add from below, or star something on its page.</p>}
 
     <h3>Your own item</h3>
     <form className="checklist-edit-custom" onSubmit={submitCustom}>
-      <label className="field">What to do<input value={custom.label} maxLength={60} required placeholder="Play piano 15 minutes" onChange={e => setCustom(c => ({...c, label: e.target.value}))}/></label>
+      <label className="field">What to do<input value={custom.label} maxLength={60} required placeholder="Something you do each day" onChange={e => setCustom(c => ({...c, label: e.target.value}))}/></label>
       <fieldset className="checklist-edit-colours"><legend>Colour</legend><div className="checklist-swatches">{PATH_COLOUR_IDS.map(id => <label key={id} className="checklist-swatch" style={{'--swatch': PATH_COLOURS[id].token} as CSSProperties}><input type="radio" name="checklist-custom-colour" checked={custom.colour === id} onChange={() => setCustom(c => ({...c, colour: id}))}/><span aria-hidden="true"/><span className="sr-only">{PATH_COLOURS[id].label}</span></label>)}</div></fieldset>
       <div className="checklist-edit-orbit-choice" role="radiogroup" aria-label="Orbit">{sections.map(s => <button key={s.id} type="button" role="radio" aria-checked={custom.section === s.id} onClick={() => setCustom(c => ({...c, section: s.id}))}>{s.label.replace(/ orbit$/i, '')}</button>)}</div>
       <button type="submit" className="secondary">Add to path</button>
