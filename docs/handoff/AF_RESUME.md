@@ -82,6 +82,20 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-19 13:45 Brussels — CI's WebKit findings fixed; design critique round 1 done; full Chromium suite running)
+- Pushed `5fdad4ac`: `c1a273c3` (staking form re-reads a pre-fill, H120), `eec7c6e3` (CI run 39237963419's WebKit
+  failures: uncaught chunk import H122, parity collected at rest H123, Settings rows; zigi-oneline-z's diagnostic now names
+  the element), `546bbd24` (TIER 3 labels, H124: "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN"), `5fdad4ac` (crit1 fixes,
+  H125). Record: `docs/verification/session-af/design-critique-round-1.md`.
+- Running: the full Chromium suite on `5fdad4ac` (3101; `$SP/logs/full-1.log`, `FULL_EXIT=` at the end; ≈ 2.5 h, holds the
+  lock). Read it, fix, then push. CI on `5fdad4ac`: read its WebKit job (zigi-oneline-z at 320/768 with the sharper
+  diagnostic; webkit-earn; webkit-theme-parity).
+- Owner items found today: Light's gradient words' tails stay pastel by H111 (2.05–2.4:1 by day; "deepen the Light flow" is
+  one hand-layer rule plus a parity class if the owner wants it); Today's market watch breaks words at 1440 and repeats
+  figures (pre-existing, protected baseline).
+- Next: the daily PR comment ~18:00; Gate C round 2 captures in clips ≤ 16,000 px (Earn's lower half was not reviewed);
+  frozen readers and the revert gate when no build or browser runs.
+
 ## Resume here (2026-10-19 13:00 Brussels — every lane merged and wired; no helper running)
 - Done since 12:15: L4 merged `bf60a398` and L5b merged `35afad0e`, wired (`8537487b` TIER 3 storage, `133f8420`);
   Part 12 `be68a4f7` (pushed 12:37); the owner-approved budget lines `33193870` (H96: eight routes measured on `be68a4f7`
