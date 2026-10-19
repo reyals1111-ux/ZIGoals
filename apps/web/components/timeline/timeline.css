@@ -68,10 +68,21 @@
 .today-timeline-head { display: flex; align-items: center; gap: 10px; }
 .today-timeline-head .eyebrow { margin: 0; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
 .today-timeline-now { margin-left: auto; font-size: 15px; font-weight: 700; }
-.today-timeline-next { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.today-timeline-next li { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; font-size: 16px; }
-.today-timeline-next li span { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
-.today-timeline-next li strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+/* Critique round 2 (L5c): the page's look in small — a short rail, a node per block in its pillar's colour, and the "Now"
+   pill on its gradient line where now falls among the rows. */
+.today-timeline-next { position: relative; display: grid; gap: 6px; margin: 0; padding: 0 0 0 20px; list-style: none; }
+.today-timeline-next::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: linear-gradient(#6fe6f6aa, #c790f6aa, #f08bd6aa); }
+.today-timeline-next > li { position: relative; display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 26px; font-size: 16px; }
+.today-timeline-next > li[data-block]::before { content: ''; position: absolute; left: -20px; top: 50%; translate: 0 -50%; box-sizing: border-box; width: 12px; height: 12px; border-radius: 50%; background: #0b1030; border: 2px solid #9fb3ff; }
+.today-timeline-next > li[data-pillar=habits]::before { border-color: var(--pillar-habits); }
+.today-timeline-next > li[data-pillar=health]::before { border-color: var(--pillar-health); }
+.today-timeline-next > li[data-pillar=goals]::before { border-color: var(--pillar-goals); }
+.today-timeline-next > li[data-pillar=wealth]::before { border-color: var(--pillar-wealth); }
+.today-timeline-next > li .today-timeline-time { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.today-timeline-next > li strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.today-timeline-next > li.today-timeline-now-row { display: block; min-height: 24px; }
+.today-timeline-now-row::before { content: ''; position: absolute; left: -20px; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, #f08bd6, #ffd27a); box-shadow: 0 0 10px #f08bd688; }
+.today-timeline-now-row > span { position: relative; display: inline-block; margin-left: 92px; padding: 1px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; line-height: 1.5; color: #0b1020; background: linear-gradient(90deg, #f08bd6, #ffd27a); }
 .today-timeline-line { margin: 0; font-size: 16px; }
 .today-timeline-skeleton { height: 60px; border-radius: 12px; background: #ffffff0d; }
 .today-timeline-open { display: inline-flex; align-items: center; min-height: 44px; justify-self: start; font-size: 16px; font-weight: 650; }
@@ -88,6 +99,7 @@
   .timeline-now span { margin-left: 66px; }
   .timeline-picker { margin-left: 0; }
   .today-timeline-card { gap: 4px; padding-block: 12px; }
-  .today-timeline-next li { grid-template-columns: 72px minmax(0, 1fr); font-size: 15px; }
-  .today-timeline-next li:nth-child(n+3) { display: none; }
+  .today-timeline-next > li { grid-template-columns: 72px minmax(0, 1fr); font-size: 15px; }
+  .today-timeline-next > li[data-rank="2"] { display: none; }
+  .today-timeline-now-row > span { margin-left: 80px; }
 }

@@ -8,6 +8,14 @@
 .today-checklist-title { margin: 0; font-size: 22px; line-height: 1.2; }
 .today-checklist-bar { height: 12px; }
 .today-checklist-line { margin: 0; font-size: 16px; }
+/* Critique round 2 (L5c): today's dots in a small row, in path order, each in its item's own colour (the path engine's
+   palette, the same in every theme); a done dot is filled, a waiting one a ring, the next one a little larger. */
+.today-checklist-dots { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.today-checklist-dots > li { box-sizing: border-box; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--dot); background: transparent; }
+.today-checklist-dots > li[data-state=done] { background: var(--dot); box-shadow: 0 0 8px color-mix(in srgb, var(--dot) 55%, transparent); }
+.today-checklist-dots > li[data-state=running] { background: color-mix(in srgb, var(--dot) 40%, transparent); }
+.today-checklist-dots > li[data-next] { width: 18px; height: 18px; border-width: 3px; }
+.today-checklist-dots > li[data-counted=no] { opacity: .55; }
 .today-checklist-nudge { margin: 0; font-size: 15px; color: var(--muted, #a4b2cd); }
 .today-checklist-open { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; font-weight: 650; }
 /* Session AF (the lead, today-screens ceiling): tighter on a phone — the same parts, closer together, the link beside the
