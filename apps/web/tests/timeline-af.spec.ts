@@ -55,7 +55,7 @@ test('tap Done completes through the habit’s own Done, and Undo puts the day b
   await seedChecklist(page);
   const today = await browserToday(page);
   await open(page);
-  await habitRow(page, 'push').getByRole('button', {name: `Done: ${TITLE.push}`}).click();
+  await habitRow(page, 'push').getByRole('button', {name: `Complete ${TITLE.push}`, exact: true}).click(); // crit1: "Complete", as Today's habits say it; "Done" stays the status
   await expect(habitRow(page, 'push')).toHaveAttribute('data-done', 'true');
   await expect.poll(async () => (await stored<{habits: {id: string; entries: {date: string; count: number}[]}[]}>(page, HABITS_KEY))!.habits.find(h => h.id === ID.push)!.entries.find(e => e.date === today)?.count).toBe(20);
   await page.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true}).click();

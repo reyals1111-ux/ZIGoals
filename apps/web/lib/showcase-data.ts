@@ -28,6 +28,9 @@ import {showcaseGame} from './game/showcase';
 import {GAME_KEY,HABIT_EXTRAS_KEY,HEALTH_COACH_KEY,MACRO_MODE_KEY,MEASUREMENTS_CUSTOM_KEY,MICRO_TARGETS_KEY,REMINDERS_PLAN_KEY} from './aa-device-keys';
 import {withEarlierHabit,withEarlierSeason} from './insights/showcase';
 import {CALCULATOR_KEY} from './compound/store';
+import {CHECKLIST_KEY} from './af-checklist-keys';
+import {emptyChecklist} from './checklist/schema';
+import {addCustom,addFavourite} from './checklist/store';
 import {showcaseCalculator} from './compound/showcase';
 import {LIFE_REVIEW_KEY} from './life-review/store';
 import {showcaseLifeReview} from './life-review/showcase';
@@ -160,6 +163,24 @@ export function buildShowcase(day:string,zone:string=deviceTimeZone(),options:{a
  * they join the Showcase tab when it loads (lib/showcase.ts) and stay out of `records`, which tests also seed as a
  * person's own data: a person with these records who never chose a card sees none.
  */
-export function showcaseChoices():Record<string,string>{
- return {[TODAY_CARDS_KEY]:JSON.stringify(todayCardsSchema.parse({version:1,cards:['balance','forecasts','calculator']}))};
+export function showcaseChoices(records:Record<string,string>={}):Record<string,string>{
+ return {[TODAY_CARDS_KEY]:JSON.stringify(todayCardsSchema.parse({version:1,cards:['balance','forecasts','calculator']})),...showcaseChecklist(records)};
+}
+/**
+ * Session AF (crit1): the Showcase's Checklist path, a choice like the cards above (so a person's own records never get
+ * one): one active build habit per part of the day from the Showcase's own habits, a glass of water and one item of the
+ * person's own, so the demo shows the real path of dots. Dots light from the Showcase's own check-ins; nothing else is written.
+ */
+export function showcaseChecklist(records:Record<string,string>):Record<string,string>{
+ try{
+  type Raw={id:string;title:string;timeOfDay?:string;rules?:{state?:string;type?:string}[]};
+  const habits=((JSON.parse(records[HABITS_KEY]??'{}') as {habits?:Raw[]}).habits??[]).filter(h=>{const rule=h.rules?.at(-1);return (rule?.type??'build')==='build'&&(rule?.state??'active')==='active';});
+  const at=(n:number)=>new Date(Date.UTC(2026,8,1,7,0,n));
+  let path=emptyChecklist(),n=0;
+  for(const section of ['morning','afternoon','evening'] as const){const habit=habits.find(h=>h.timeOfDay===section);if(habit)path=addFavourite(path,{kind:'habit',habitId:habit.id},{id:`ck_showcase-${++n}`,at:at(n),section});}
+  if(!n)return {}; // no Showcase habits to star: no path at all
+  path=addFavourite(path,{kind:'health',input:'water'},{id:`ck_showcase-${++n}`,at:at(n),section:'morning',defaultValue:250,unit:'ml'});
+  path=addCustom(path,{label:'Read ten pages',colour:'gold',section:'evening'},{id:`ck_showcase-${++n}`,at:at(n)});
+  return {[CHECKLIST_KEY]:JSON.stringify(path)};
+ }catch{return {};}
 }

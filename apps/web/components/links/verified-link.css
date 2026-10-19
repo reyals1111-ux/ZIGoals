@@ -3,7 +3,7 @@
 .verified-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; max-width: 100%; }
 .verified-link > a { display: inline-flex; align-items: center; gap: 6px; }
 .verified-link-arrow { font-size: .9em; opacity: .85; }
-.verified-mark { display: inline-flex; align-items: center; gap: 5px; color: var(--text-meta); font-size: 13px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+.verified-mark { display: inline-flex; align-items: center; gap: 5px; color: var(--text-meta); font-size: 14px; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
 .verified-mark > svg { flex: 0 0 auto; color: var(--accent-teal); }
 .verified-link[data-mark=compact] { gap: 4px; }
 @media (forced-colors: active) { .verified-mark > svg { color: CanvasText; } }

@@ -73,6 +73,9 @@ export function phoneRoute(path: string): PhoneRoute {
   if (path === "/app/music/spotify") return { title: "Spotify", back: { href: "/app/settings", label: "Settings" } };
   // Session AF (L3): the Checklist is a nav extra, not a NAV_ITEMS page; on a phone it is reached from Today and More.
   if (path === "/app/checklist") return { title: "Checklist", back: { href: "/app", label: "Today" } };
+  // Session AF (crit1): the Day timeline and Stories are reached from Today's cards, so they lead back there too.
+  if (path === "/app/timeline") return { title: "Day timeline", back: { href: "/app", label: "Today" } };
+  if (path === "/app/stories") return { title: "Stories", back: { href: "/app", label: "Today" } };
   const item = NAV_ITEMS.find(([href]) => isNavActive(path, href));
   return { title: item ? item[1] : "ZIGoals" };
 }

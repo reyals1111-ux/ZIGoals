@@ -2268,6 +2268,17 @@
         background-color: var(--warning-surface, #150d00);
         color: var(--text-strong, #fff7e0)
     }
+    .add-money-hint:not(#\-) {
+        color: var(--text-secondary, #dde7f7)
+    }
+    .add-money-tile button:not(#\-)::after {
+        border-color: var(--border-strong, #9fc8ff80)
+    }
+    .add-money-tile button[aria-pressed="true"]:not(#\-)::after {
+        border-color: var(--brand-cyan, #23eaff);
+        background-image: radial-gradient(circle, var(--brand-cyan, #23eaff) 0 4px, transparent 5px);
+        background-color: transparent
+    }
 }
 /*  components/ai/agent-tools.css  */
 @scope (:root[data-theme=dark]) {
@@ -4153,6 +4164,16 @@
         background-color: #ffffff10;
         box-shadow: inset 0 0 0 2px #ffffff18
     }
+    .checklist-ghost-line:not(#\-) {
+        fill: none
+    }
+    .checklist-ghost-halo:not(#\-) {
+        fill: currentColor
+    }
+    .checklist-ghost-dot:not(#\-) {
+        fill: currentColor;
+        stroke: currentColor
+    }
     .checklist-stepper:not(#\-), .checklist-dot-panel:not(#\-) {
         border-color: color-mix(in srgb, var(--dot, #9273ff) 45%, transparent);
         background-image: none;
@@ -5338,6 +5359,10 @@
             background-image: radial-gradient(120% 120% at 30% 20%, #071229, #01040f 72%);
             background-color: transparent
         }
+    }
+    :is(.earn-formula, .earn-illustration-slot) > summary:not(#\-)::after {
+        border-right-color: currentColor;
+        border-bottom-color: currentColor
     }
 }
 /*  components/earn/today-earn-card.css  */
@@ -12507,10 +12532,10 @@
         box-shadow: inset 0 0 0 1px var(--staking-real)
     }
     .staking-network-option.is-practice .staking-network-badge:not(#\-) {
-        border-color: #1d1400;
+        border-color: var(--staking-practice);
         background-image: none;
-        background-color: var(--staking-practice);
-        color: #1d1400
+        background-color: transparent;
+        color: var(--staking-practice)
     }
     .staking-network-option.is-real .staking-network-badge:not(#\-) {
         background-image: none;
@@ -12520,8 +12545,9 @@
     .staking-network-chain:not(#\-) {
         color: var(--text-secondary,#b7c8de)
     }
-    .staking-network-banner.is-practice:not(#\-) {
-        border-color: var(--staking-practice)
+    :scope .staking-network-banner.is-practice:not(#\-) {
+        border-color: currentcolor;
+        border-left-color: var(--staking-practice)
     }
     .staking-network-banner.is-real:not(#\-) {
         background-image: none;

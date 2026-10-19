@@ -5,20 +5,23 @@
 .staking-actions.is-real{border:2px solid var(--staking-real)}
 .staking-actions h2{margin:4px 0 0}
 .staking-actions-head{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px}
-.staking-network-switch{display:flex;flex-wrap:wrap;gap:10px;min-width:0}
+.staking-network-switch{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px;min-width:0;flex:1 1 520px} /* crit1: the two choices side by side, equal, filling the row */
 .staking-network-option{display:grid;gap:2px;text-align:left;min-height:44px;min-width:min(240px,100%);padding:10px 14px;border-radius:14px;border:2px solid var(--line,#6b91c846);background:var(--surface-1,#101b32);color:var(--text,#eef4ff);font-size:16px;cursor:pointer}
 .staking-network-option.is-practice[aria-pressed="true"]{border-style:dashed;border-color:var(--staking-practice)}
 .staking-network-option.is-real[aria-pressed="true"]{border-color:var(--staking-real);box-shadow:inset 0 0 0 1px var(--staking-real)}
 .staking-network-option:disabled{opacity:.6;cursor:not-allowed}
 .staking-network-badge{font-weight:800;letter-spacing:.08em;font-size:14px}
-.staking-network-option.is-practice .staking-network-badge{display:inline-block;justify-self:start;padding:1px 8px;border-radius:8px;border:1px dashed #1d1400;background:var(--staking-practice);color:#1d1400}
+/* crit1: practice reads as an outline, real as a filled gold chip, so the two never look alike. */
+.staking-network-option.is-practice .staking-network-badge{display:inline-block;justify-self:start;padding:0 8px;border-radius:8px;border:2px dashed var(--staking-practice);background:transparent;color:var(--staking-practice)}
 .staking-network-option.is-real .staking-network-badge{display:inline-block;justify-self:start;padding:1px 8px;border-radius:8px;background:var(--staking-real);color:#1d1400}
 .staking-network-label{font-weight:700;font-size:16px}
 .staking-network-chain{font-size:14px;color:var(--text-secondary,#b7c8de)}
-.staking-network-banner{margin:0;font-size:18px;line-height:1.5;padding:10px 14px;border-radius:12px}
-.staking-network-banner.is-practice{border:2px dashed var(--staking-practice)}
+/* crit1: `:root` lifts these above the app's `.panel p { font-size: 15px }`, so the network words are 18 px (16 px under an
+   amount) as designed; the practice banner is a statement with a dashed rule, not a third box beside the two choices. */
+:root .staking-network-banner{margin:0;font-size:18px;line-height:1.5;padding:10px 14px;border-radius:12px}
+:root .staking-network-banner.is-practice{border:0;border-left:5px dashed var(--staking-practice);border-radius:0;padding:4px 0 4px 14px}
 .staking-network-banner.is-real{background:var(--staking-real);color:#1d1400}
-.staking-network-line{margin:6px 0 0;font-size:16px;font-weight:700;line-height:1.5;letter-spacing:.02em;overflow-wrap:anywhere}
+:root .staking-network-line{margin:6px 0 0;font-size:16px;font-weight:700;line-height:1.5;letter-spacing:.02em;overflow-wrap:anywhere}
 .staking-network-line{padding-left:10px;border-left:4px solid var(--line,#6b91c8)}
 .staking-network-line.is-practice{border-left:4px dashed var(--staking-practice,#e8a33d)}
 .staking-network-line.is-real{border-left:4px solid var(--staking-real,#ffd27a)}

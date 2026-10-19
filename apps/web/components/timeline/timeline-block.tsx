@@ -61,7 +61,7 @@ export function TimelineBlockRow({block, actions, busy}: {block: TimelineBlock; 
         {moving && <p className="timeline-moving" role="status">To {clockLabel(drag.pending!)}: let go (or press Enter) to save.</p>}
       </div>
       <div className="timeline-actions">
-        {block.action === 'habit-done' && <button type="button" className="primary" disabled={busy} onClick={() => actions.done(block)} aria-label={`Done: ${block.title}`}>Done</button>}
+        {block.action === 'habit-done' && <button type="button" className="primary" disabled={busy} onClick={() => actions.done(block)} aria-label={`Complete ${block.title}`}>Complete</button>}
         {block.action === 'meal-log' && <button type="button" className="primary" disabled={busy} onClick={() => actions.log(block)} aria-label={`Log ${block.title}`}>Log it</button>}
         {block.action === 'open' && <Link className="secondary timeline-open" href={block.href} aria-label={`Open ${block.title}`}>Open</Link>}
         {block.movable && timed && <button type="button" className="timeline-handle" aria-label={`Move ${block.title}, now at ${clockLabel(block.start!)}. Up and down arrows move it by 15 minutes, Enter saves.`} {...drag.handle} onClick={e => e.preventDefault()}>

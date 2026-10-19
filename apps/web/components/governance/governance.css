@@ -5,7 +5,7 @@
 .governance-why{display:grid;gap:8px}
 .governance-why h2,.governance-proposals h2,.governance-journal-list h2{margin:0}
 .governance-network{gap:14px}
-.governance-eligibility{margin:0;font-size:16px;line-height:1.5}
+:root .governance-eligibility{margin:0;font-size:16px;line-height:1.5}
 .governance-proposals{display:grid;gap:14px;min-width:0}
 .governance-proposal{display:grid;gap:12px;min-width:0;overflow-wrap:anywhere}
 .governance-proposal.is-voting{border:2px solid var(--pillar-wealth,#ffd27a)}

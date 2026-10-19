@@ -39,7 +39,10 @@ export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '
   '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-timer', '.checklist-history',
   // Session AF (L5a for L1's Part 5, the lead's request): the Earn dock stays ZIGi's and the music button's twin in every
   // theme (components/earn-dock/earn-dock.css): its button, edge tab, app tiles and fold arrow.
-  '.earn-dock-button', '.earn-dock-edge', '.earn-dock-app', '.earn-dock-fold'];
+  '.earn-dock-button', '.earn-dock-edge', '.earn-dock-app', '.earn-dock-fold',
+  // Session AF (the lead, crit1): the ecosystem apps' logo discs on Earn keep Nebula's navy disc in every theme, so a light
+  // logo glyph stays visible by day (the Light sheet had washed them to near-white, 1.4:1).
+  '.earn-medallion', '.earn-dock-app-face'];
 
 export function sourceFiles() {
   const out = [];

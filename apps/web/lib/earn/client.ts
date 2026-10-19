@@ -75,7 +75,8 @@ export async function readValidators(): Promise<LiveState<ValidatorsAnswer>> {
   try { got = await get(EARN_FAMILIES.validators.path); } catch { return plain('UPSTREAM_DOWN'); }
   if (got.status === 404) return plain('NOT_IN_THIS_BUILD');
   const parsed = validatorsSchema.safeParse(got.body);
-  if (!parsed.success) return plain(got.status === 429 ? 'RATE_LIMITED' : 'MALFORMED');
+  // crit1: a route that answers 5xx (or nothing) did not answer; only a readable answer in the wrong shape is MALFORMED (as readEarn).
+  if (!parsed.success) return plain(got.status === 429 ? 'RATE_LIMITED' : got.status >= 500 || got.status === 0 ? 'UPSTREAM_DOWN' : 'MALFORMED');
   // L2a's route names its source by the LCD's origin; the page shows the plain name of that official service.
   const sourceName = typeof parsed.data.source === 'string' ? (LCD_NAMES[parsed.data.source] ?? parsed.data.source) : parsed.data.source.name;
   if (parsed.data.status === 'unavailable') return {phase: 'unavailable', reason: (UNAVAILABLE_REASONS as readonly string[]).includes(parsed.data.reason ?? '') ? parsed.data.reason as UnavailableReason : 'UPSTREAM_DOWN', source: {name: sourceName}};

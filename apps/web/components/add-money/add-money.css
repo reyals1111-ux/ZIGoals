@@ -24,3 +24,8 @@
 .add-money-guides h3 { margin: 0 0 4px; font-size: 1rem; }
 .add-money-guides p { margin: 0 0 6px; }
 .add-money-guide-steps { margin: 0 0 8px; padding-left: 1.2rem; }
+/* crit1: step 1 says what to do and what follows; a tile shows it can be chosen (a ring that fills when chosen). */
+.add-money-hint { margin: -4px 0 12px; color: var(--text-secondary, #dde7f7); font-size: 15px; }
+.add-money-tile button { position: relative; padding-right: 44px; }
+.add-money-tile button::after { content: ""; position: absolute; top: 14px; right: 14px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-strong, #9fc8ff80); box-sizing: border-box; }
+.add-money-tile button[aria-pressed="true"]::after { border-color: var(--brand-cyan, #23eaff); background: radial-gradient(circle, var(--brand-cyan, #23eaff) 0 4px, transparent 5px); }

@@ -46,6 +46,7 @@ export default function AddMoneyView() {
 
     <section className="add-money-step panel" aria-labelledby={`${id}-s1`}>
       <h2 id={`${id}-s1`}><span className="add-money-n">1</span> What do you want to buy?</h2>
+      <p className="add-money-hint">Choose one. Next come the network, where it arrives and the provider, then the provider&rsquo;s own page.</p>
       <div className="add-money-tiles" role="group" aria-label="What to buy">{BUY_ASSETS.map(a => <div key={a.id} className="add-money-tile" data-selected={a.id === assetId || undefined}>
         <button type="button" aria-pressed={a.id === assetId} onClick={() => choose(a)} data-asset={a.id}><strong>{a.name}</strong><span>{a.plain}</span></button>
         <details><summary>What’s this?</summary><p>{a.more}</p></details>

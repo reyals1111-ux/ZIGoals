@@ -12,7 +12,7 @@ export default function TodayTimelineBody() {
   const next = day ? nextBlocks(day, 3) : [];
   return <>
     <div className="today-timeline-head">
-      <p className="eyebrow" id="today-timeline-title">Your day</p>
+      <p className="eyebrow" id="today-timeline-title">Day timeline</p>
       {day && <span className="today-timeline-now">Now · {clockLabel(day.nowMinute)}</span>}
     </div>
     {!loaded || !day ? <div className="today-timeline-skeleton" aria-hidden="true" /> : next.length ? <ol className="today-timeline-next" aria-label="Next on your timeline">{next.map(b => <li key={b.id} data-kind={b.kind} data-pillar={b.pillar ?? undefined}><span>{clockLabel(b.start!)}</span><strong>{b.title}</strong></li>)}</ol>

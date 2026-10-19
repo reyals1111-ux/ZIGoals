@@ -43,6 +43,11 @@ describe('the page reads only its own routes and shows nothing it cannot check',
     expect(await readValidators()).toMatchObject({phase: 'unavailable', reason: 'MALFORMED'});
     respond(404, 'Not found');
     expect(await readValidators()).toEqual({phase: 'unavailable', reason: 'NOT_IN_THIS_BUILD'});
+    // crit1: a route that is down did not answer (as readEarn); it is not "not in the shape ZIGoals checks for".
+    respond(503, {error: 'offline fixture'});
+    expect(await readValidators()).toEqual({phase: 'unavailable', reason: 'UPSTREAM_DOWN'});
+    respond(429, {error: 'slow down'});
+    expect(await readValidators()).toEqual({phase: 'unavailable', reason: 'RATE_LIMITED'});
   });
 });
 

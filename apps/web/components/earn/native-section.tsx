@@ -84,7 +84,7 @@ export function NativeSection({chain, validators, measured, now}: {chain: LiveSt
     </>}
     columns={[
       {title: 'Fees', body: <p>A small network fee for each step you sign, paid in ZIG. Your wallet shows it before you sign. The validator keeps its commission from your rewards ({range ?? 'see the validator list'}).</p>},
-      {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/>} with no rewards meanwhile. Moving to another validator is instant.</p>},
+      {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>} with no rewards meanwhile. Moving to another validator is instant.</p>},
       {title: 'Minimums', body: <p>No minimum set by the network: any amount above the fee. Keep a little ZIG in your wallet for fees.</p>},
       {title: 'Risks', body: <ul className="earn-risks">
         <li>If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it and removes it for good.</li>
