@@ -30,6 +30,21 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
     const adjacent = Element.prototype.insertAdjacentHTML; Element.prototype.insertAdjacentHTML = function (pos: InsertPosition, v: string) { note(`${this.tagName}.insertAdjacentHTML`, v); return adjacent.call(this, pos, v); };
     const fragment = Range.prototype.createContextualFragment; Range.prototype.createContextualFragment = function (v: string) { note('Range.createContextualFragment', v); return fragment.call(this, v); };
     const parse = DOMParser.prototype.parseFromString; DOMParser.prototype.parseFromString = function (v: string, type: DOMParserSupportedType) { note('DOMParser.parseFromString', v); return parse.call(this, v, type); };
+    // CI on 72d9178a: none of the sinks above was reached, and the page error's stack starts in WebKit's own reportError
+    // (web-inspector://bootstrap.js), called by React's uncaught-error path through Next's global reporter. So the original
+    // error React reported is noted here, before WebKit's reportError handles it, and the remaining HTML sinks are wrapped;
+    // a marker proves these probes were installed in the page.
+    type Sinks = Record<string, ((this: unknown, ...a: unknown[]) => unknown) | undefined>;
+    const wrapMethod = (owner: unknown, name: string, label: string) => { const o = owner as Sinks | undefined; const f = o?.[name]; if (typeof f !== 'function') return; o![name] = function (this: unknown, ...a: unknown[]) { note(label, a.find(x => typeof x === 'string')); return f.apply(this, a); }; };
+    wrapMethod(Element.prototype, 'setHTMLUnsafe', 'Element.setHTMLUnsafe');
+    wrapMethod(ShadowRoot.prototype, 'setHTMLUnsafe', 'ShadowRoot.setHTMLUnsafe');
+    wrapMethod(Document, 'parseHTMLUnsafe', 'Document.parseHTMLUnsafe');
+    wrapMethod(Document.prototype, 'write', 'document.write');
+    wrapMethod(Document.prototype, 'writeln', 'document.writeln');
+    const srcdoc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'srcdoc'); if (srcdoc?.set) Object.defineProperty(HTMLIFrameElement.prototype, 'srcdoc', {...srcdoc, set(this: HTMLIFrameElement, v: unknown) { note('IFRAME.srcdoc', v); return srcdoc.set!.call(this, v); }});
+    const report = window.reportError?.bind(window);
+    if (report) window.reportError = (e: unknown) => { const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`reportError ← ${(e instanceof Error ? `${e.name}: ${e.message} @ ${(e.stack ?? '').split('\n').slice(0, 8).join(' | ')}` : String(e)).slice(0, 900)}`); return report(e); };
+    (window as unknown as {afProbes?: string}).afProbes = 'installed';
   });
   const origin = new URL(baseURL!).origin;
   await context.route(url => url.origin !== origin, route => route.fulfill({status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title>'}));
@@ -61,6 +76,6 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   for (const button of await sheet.getByRole('button').all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await sheet.getByRole('button', {name: 'Close the guide'}).click();
   await expect(sheet).toHaveCount(0);
-  const violations = await page.evaluate(() => (window as unknown as {afViolations?: string[]}).afViolations ?? []).catch(() => [] as string[]);
-  expect(errors, violations.length ? `Trusted Types reports and HTML assignments: ${violations.join(' ;; ')}` : undefined).toEqual([]);
+  const {violations, probes} = await page.evaluate(() => { const w = window as unknown as {afViolations?: string[]; afProbes?: string}; return {violations: w.afViolations ?? [], probes: w.afProbes ?? 'missing'}; }).catch(e => ({violations: [] as string[], probes: `unreadable (${String(e).slice(0, 80)})`}));
+  expect(errors, `probes ${probes}; Trusted Types reports, HTML assignments and reported errors: ${violations.length ? violations.join(' ;; ') : 'none'}`).toEqual([]);
 });
