@@ -15,8 +15,11 @@ class Memory {
 const WALLET = toBech32('zig', new Uint8Array(20).fill(3)), VALIDATOR = toBech32('zigvaloper', new Uint8Array(20).fill(5));
 
 describe('the key module', () => {
-  test('names exactly the four keys, imports nothing, and the device keys are versioned', () => {
-    expect({...keys}).toEqual({STAKING_PREFS_KEY: 'zigoals:staking-prefs:v1', STAKING_JOURNAL_KEY: 'zigoals:staking-journal:v1', WALLET_SESSION_KEY: 'zigoals:wallet-session:v1', STAKING_PREFILL_KEY: 'zigoals:ai:staking-prefill:v1'});
+  test('names exactly the five keys (and chunk 3\'s registry rows), imports nothing, and the device keys are versioned', () => {
+    // Session AF chunk 3: the validator-alerts key joins; the rows object names it in the lists the lead wires.
+    expect({...keys}).toEqual({STAKING_PREFS_KEY: 'zigoals:staking-prefs:v1', STAKING_JOURNAL_KEY: 'zigoals:staking-journal:v1', WALLET_SESSION_KEY: 'zigoals:wallet-session:v1', STAKING_PREFILL_KEY: 'zigoals:ai:staking-prefill:v1', VALIDATOR_ALERTS_KEY: 'zigoals:validator-alerts:v1', SIGNING_CHUNK3_ROWS: keys.SIGNING_CHUNK3_ROWS});
+    expect(keys.SIGNING_CHUNK3_ROWS).toEqual({personal: ['zigoals:validator-alerts:v1'], exportNames: {validatorAlerts: 'zigoals:validator-alerts:v1'}, catalogLabels: {validatorAlerts: ['Validator health alerts: what this device last saw', 'Wallet']}});
+    expect(Object.isFrozen(keys.SIGNING_CHUNK3_ROWS)).toBe(true);
     expect(readFileSync(join(__dirname, '..', 'af-signing-keys.ts'), 'utf8')).not.toMatch(/^\s*import\b/m);
   });
   test('no sync module, extras section, restore or Worker names a staking key', () => {
@@ -24,7 +27,7 @@ describe('the key module', () => {
     const sync = [...files(join(__dirname, '..', 'vault')), ...files(join(__dirname, '..', 'sync-offer')), join(__dirname, '..', 'sync-homes-store.ts'), ...files(join(__dirname, '..', '..', '..', '..', 'workers'))];
     expect(sync.length).toBeGreaterThan(20);
     // The frozen-reader proof (vault/frozen-fixtures.test.ts) may name them once the lead registers them; nothing else.
-    const naming = sync.filter(file => /staking-prefs|staking-journal|wallet-session|staking-prefill|STAKING_PREFS|STAKING_JOURNAL|af-signing-keys/.test(readFileSync(file, 'utf8'))).map(file => relative(join(__dirname, '..'), file));
+    const naming = sync.filter(file => /staking-prefs|staking-journal|wallet-session|staking-prefill|validator-alerts|STAKING_PREFS|STAKING_JOURNAL|VALIDATOR_ALERTS|af-signing-keys/.test(readFileSync(file, 'utf8'))).map(file => relative(join(__dirname, '..'), file));
     expect(naming.filter(file => file !== join('vault', 'frozen-fixtures.test.ts'))).toEqual([]);
   });
 });
