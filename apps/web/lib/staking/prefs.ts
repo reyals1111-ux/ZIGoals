@@ -11,6 +11,8 @@ import {isValoper} from './address';
  * - **Loose and versioned:** every field optional, unknown fields kept through every write; a record that cannot be read
  *   is never overwritten (device-record.ts). Older builds never read the key.
  * - **Non-personal, device-only:** no address; in Export everything; never synced, never restored.
+ * - Session AF chunk 3: `attestations?: 'on'` — practice badges (testnet memo attestations, D4, H48) are opt-in and off
+ *   by default; only the exact value 'on' turns them on. "Forget my staking choices" (Settings) removes it with the rest.
  */
 export {STAKING_PREFS_KEY};
 export type StakingNetworkChoice = 'practice' | 'real';
@@ -19,6 +21,7 @@ export const stakingPrefsSchema = z.looseObject({
   network: z.string().max(16).optional(),
   realConfirmedAt: z.string().max(40).optional(),
   lastValidator: z.record(z.string().max(32), z.string().max(100)).optional(),
+  attestations: z.string().max(16).optional(),
 });
 export type StakingPrefs = z.infer<typeof stakingPrefsSchema>;
 export const emptyStakingPrefs = (): StakingPrefs => ({version: 1});
@@ -37,6 +40,9 @@ export const withNetworkChoice = (prefs: StakingPrefs, network: StakingNetworkCh
 export const withRealConfirmed = (prefs: StakingPrefs, now = new Date()): StakingPrefs => ({...prefs, realConfirmedAt: now.toISOString()});
 /** Remove in Settings → Your data: the next real action asks again. */
 export const withoutRealConfirm = (prefs: StakingPrefs): StakingPrefs => { const {realConfirmedAt: _drop, ...rest} = prefs; void _drop; return {...rest, version: 1}; };
+/** Practice badges are on only when the person turned them on (the exact value 'on'); anything else is off. */
+export const attestationsOn = (prefs: StakingPrefs): boolean => prefs.attestations === 'on';
+export const withAttestations = (prefs: StakingPrefs, on: boolean): StakingPrefs => { if (on) return {...prefs, attestations: 'on'}; const {attestations: _drop, ...rest} = prefs; void _drop; return {...rest, version: 1}; };
 export function withLastValidator(prefs: StakingPrefs, chainId: string, validator: string): StakingPrefs {
   if (!/^[a-z0-9-]{1,32}$/.test(chainId) || !isValoper(validator)) throw Error('Only a ZIGChain validator address can be remembered.');
   return {...prefs, lastValidator: {...prefs.lastValidator, [chainId]: validator}};

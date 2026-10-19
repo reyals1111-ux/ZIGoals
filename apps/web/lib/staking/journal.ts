@@ -13,10 +13,14 @@ import {STAKING_JOURNAL_KEY} from '../af-signing-keys';
  *   build cannot read is kept and left out of what it shows; a record that cannot be read is never overwritten.
  * - **Personal, device-only:** an address and amounts; in Export everything, erased with the account, never synced, never
  *   restored. Older builds never read the key.
+ * - **Session AF chunk 3** adds the actions `revoke` (with `grantee` and `msgTypeUrl`) and `attest` (a practice badge, with
+ *   its `memo` and `attestation: {kind, note, salt?}` — the note and salt exist only here, so the person can prove the
+ *   badge later); `sweep` and `vote` entries are now written by the rewards sweep and Governance. An entry an older build
+ *   of this lane cannot read (an unknown action) is kept and left out, as before.
  */
 export {STAKING_JOURNAL_KEY};
 export const MAX_STAKING_JOURNAL = 200;
-export const STAKING_ACTIONS = ['delegate', 'undelegate', 'redelegate', 'claim', 'sweep', 'vote'] as const;
+export const STAKING_ACTIONS = ['delegate', 'undelegate', 'redelegate', 'claim', 'sweep', 'vote', 'revoke', 'attest'] as const;
 export type StakingAction = typeof STAKING_ACTIONS[number];
 export const STAKING_JOURNAL_STATES = ['AWAITING_SIGNATURE', 'BROADCASTING', 'CONFIRMING', 'CONFIRMED', 'FAILED', 'REJECTED', 'UNKNOWN_AFTER_BROADCAST'] as const;
 export type StakingJournalState = typeof STAKING_JOURNAL_STATES[number];
@@ -36,6 +40,8 @@ const entrySchema = z.looseObject({
   proposalId: text(24), option: text(24), amount: text(80), state: text(32),
   hash: text(64), height: text(24), code: z.number().int().min(0).max(0xffffffff).optional(),
   at: text(40), updatedAt: text(40),
+  grantee: text(100), msgTypeUrl: text(200), memo: text(256),
+  attestation: z.looseObject({kind: text(16), note: text(200), salt: text(64)}).optional(),
 });
 export const stakingJournalSchema = z.looseObject({version: z.literal(1), entries: z.array(entrySchema).max(MAX_STAKING_JOURNAL * 2).optional()});
 export type StakingJournal = z.infer<typeof stakingJournalSchema>;
@@ -44,6 +50,7 @@ export type StakingJournalEntry = {
   operationId: string; chainId: string; wallet: string; action: StakingAction; amount: string; state: StakingJournalState; at: string;
   validator?: string; validators?: string[]; destination?: string; proposalId?: string; option?: string;
   hash?: string; height?: string; code?: number; updatedAt?: string;
+  grantee?: string; msgTypeUrl?: string; memo?: string; attestation?: {kind: 'commitment' | 'badge'; note: string; salt?: string};
 };
 export const emptyStakingJournal = (): StakingJournal => ({version: 1});
 export const STAKING_JOURNAL: DeviceRecordSpec<StakingJournal> = {key: STAKING_JOURNAL_KEY, schema: stakingJournalSchema, empty: emptyStakingJournal};
