@@ -48,11 +48,11 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
       // Session AF (L1c, N5): each risk with its source (R2 §3, plan section 5 row 3, RECHECK B): OroSwap's docs, or the chain read in words.
       {title: 'Risks', body: <ul className="earn-risks">
         <Risk link={<VerifiedLink provider="oroswap" kind="docs-liquidity" className="text-link" mark="compact">OroSwap on liquidity</VerifiedLink>}><b>Impermanent loss, in plain words:</b> when one token’s price moves against the other, the pool sells some of the rising token for you as people swap. When you take your share out, you can have less value than if you had simply kept both tokens. The fees you earn can make up for it, or not.</Risk>
-        <Risk chain="each pool’s depth above, read from the chain">Small pools: a large swap moves the price a lot. Check the price impact and the slippage limit before you sign. <WhatsThis term="pool-depth"/> <WhatsThis term="slippage"/></Risk>
+        <Risk chain="each pool’s depth above, read from the chain" tap={<><WhatsThis term="pool-depth"/> <WhatsThis term="slippage"/></>}>Small pools: a large swap moves the price a lot. Check the price impact and the slippage limit before you sign.</Risk>
         <Risk chain="the pool contracts on ZIGChain, each one listed by OroSwap’s factory contract">Contract risk: a fault in a pool contract could lose its tokens.</Risk>
         <Risk chain="OroSwap’s factory contract on ZIGChain, read 18 October 2026">OroSwap’s factory can pause a pool. Its owner is a multi-signature account on which two of three keys must agree.</Risk>
         <Risk chain="the pools’ own prices, read from the chain">Price risk: both tokens’ prices move, and a pool with ZIG in it moves with ZIG.</Risk>
-        <Risk chain="each token’s full name (its denom) in ZIGChain’s own records; see Safety below">Token risk: a copy can carry a real token’s name. Check every token is the real one by its full denom before you swap or add it. <WhatsThis term="decoy"/></Risk>
+        <Risk chain="each token’s full name (its denom) in ZIGChain’s own records; see Safety below" tap={<WhatsThis term="decoy"/>}>Token risk: a copy can carry a real token’s name. Check every token is the real one by its full denom before you swap or add it.</Risk>
       </ul>},
     ]}
     steps={[
@@ -63,7 +63,7 @@ export function OroswapSection({oroswap, llama, now}: {oroswap: LiveState<Oroswa
       {text: 'To leave a pool: Portfolio, Remove liquidity, choose how much.'},
     ]}
     stepsTime="about 3 minutes for a swap; about 5 to add to a pool. A first visit shows OroSwap’s terms, which you accept or not yourself."
-    illustration={<><IllustrationSlot set="oroswap-swap"/><IllustrationSlot set="oroswap-pools"/></>}
+    illustration={<><IllustrationSlot set="oroswap-swap" title="What you’ll see on OroSwap’s page when you swap"/><IllustrationSlot set="oroswap-pools" title="What you’ll see on OroSwap’s page when you add to a pool"/></>}
     actions={<>
       <GuideLink guide={OROSWAP_GUIDE}/>
       <GuideLink guide={OROSWAP_POOL_GUIDE} className="secondary"/>

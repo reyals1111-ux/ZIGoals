@@ -121,6 +121,6 @@ export function academyModel(record: EarnAcademy): PathModel {
     {id: 'academy-beyond', label: 'Beyond staking', eyebrow: 'Lessons 5–8', colour: 'magenta', steps: ACADEMY_LESSONS.slice(4).map(step)},
   ], milestones: [
     {id: 'academy-half', at: 'half', label: 'Half way', reachedLabel: 'Half the Academy passed'},
-    {id: 'academy-done', at: 'end', label: 'Earn Academy', reachedLabel: 'Every lesson passed'},
+    {id: 'academy-done', at: 'end', label: 'Academy, complete', reachedLabel: 'Every lesson passed'},
   ]};
 }

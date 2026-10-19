@@ -94,19 +94,19 @@ export function NativeSection({chain, validators, measured, now, reads = []}: {c
       // Session AF (L1c, N5): each risk with its source: the chain's own rules read live, or a verified link.
       {title: 'Risks', body: <ul className="earn-risks">
         <Risk chain="ZIGChain’s staking rules (the unbonding time), read live">Leaving takes time: after you unstake, your ZIG stays locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>}, earning nothing and unable to move. Stake only what you can leave alone that long.</Risk>
-        <Risk chain="ZIGChain’s slashing rules, read live">If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it (slashing) and removes it for good. <WhatsThis term="slashing"/></Risk>
-        <Risk chain="ZIGChain’s slashing rules, read live">If it is offline too long (signing fewer than {data ? pctShort(data.slashing.minSignedPerWindow) : 'the set share'} of the last {data ? decimal(data.slashing.signedBlocksWindow, 0) : ''} blocks), the network takes {data ? pct(data.slashing.slashFractionDowntime) : 'a part'} and pauses it (jails it) for {data ? duration(data.slashing.downtimeJailSeconds) : 'a while'}; meanwhile your stake with it earns nothing. <WhatsThis term="jailed"/></Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live" tap={<WhatsThis term="slashing"/>}>If your validator double-signs, the network takes {data ? pct(data.slashing.slashFractionDoubleSign) : 'a part'} of the stake delegated to it (slashing) and removes it for good.</Risk>
+        <Risk chain="ZIGChain’s slashing rules, read live" tap={<WhatsThis term="jailed"/>}>If it is offline too long (signing fewer than {data ? pctShort(data.slashing.minSignedPerWindow) : 'the set share'} of the last {data ? decimal(data.slashing.signedBlocksWindow, 0) : ''} blocks), the network takes {data ? pct(data.slashing.slashFractionDowntime) : 'a part'} and pauses it (jails it) for {data ? duration(data.slashing.downtimeJailSeconds) : 'a while'}; meanwhile your stake with it earns nothing.</Risk>
         <Risk chain="each validator’s commission record on ZIGChain (its rate, its maximum and its daily change), read live">Your validator can raise its commission, up to the maximum and the daily change it set on the chain, so the share of rewards you keep can change.</Risk>
-        <Risk chain="the validator list read from ZIGChain (see the list below)">Most stake sits with a few validators, so the network depends on them; spreading yours helps. <WhatsThis term="voting-power"/></Risk>
+        <Risk chain={<>the validator list read from ZIGChain (<a className="text-link" href="#validators">see the list below</a>)</>} tap={<WhatsThis term="voting-power"/>}>Most stake sits with a few validators, so the network depends on them; spreading yours helps.</Risk>
         <Risk chain="ZIG’s price in OroSwap’s ZIG / USDC pools, read from the chain (the OroSwap section)">ZIG’s price moves, and staking does not protect you from that: your stake can be worth less when you leave than when you started.</Risk>
         <Risk chain="ZIGChain’s slashing rules, read live" link={<VerifiedLink provider="zig-finance" kind="docs" className="text-link" mark="compact">ZIGChain docs</VerifiedLink>}>The docs and the chain can disagree: ZIGChain’s docs gave a different double-sign penalty from the one the chain applies (read 2 October 2026). ZIGoals shows the chain’s own rules.</Risk>
       </ul>},
     ]}
     steps={[
       {text: 'Choose where to sign: ZIGoals’ Staking page with your connected wallet, Keplr’s staking page, or the ZIGChain Hub.'},
-      {text: 'Pick a validator from the list on this page. Look at its commission, its uptime and how much stake it already holds.'},
+      {text: <>Pick a validator from <a className="text-link" href="#validators">the list on this page</a>. Look at its commission, its uptime and how much stake it already holds.</>},
       {text: 'Enter an amount, keeping a little ZIG for network fees.'},
-      {text: 'Review in your wallet and sign.', sign: 'one delegation (MsgDelegate) that moves ZIG from your balance into your stake. Nothing else.'},
+      {text: 'Review in your wallet and sign.', sign: 'one delegation that moves ZIG from your balance into your stake. Nothing else.', how: <p>Your wallet names this message <code>MsgDelegate</code> (ZIGChain’s staking module): one message, from your address to the validator you picked.</p>},
       {text: 'Rewards start right away. Claim them whenever you like, or stake them again.'},
       {text: <>To leave, undelegate: your ZIG comes back after {data ? duration(data.staking.unbondingSeconds) : 'the unbonding time'}.</>},
     ]}

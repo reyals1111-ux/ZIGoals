@@ -93,9 +93,12 @@ describe('the "What\'s this?" taps on the pages', () => {
 });
 describe('every risk of an earning option says where it comes from (N5)', () => {
   // The risk's words as createElement's third argument (react/no-children-prop).
-  const SourcedRisk = Risk as unknown as (props: {link?: ReactNode; chain?: ReactNode}) => ReactElement;
+  const SourcedRisk = Risk as unknown as (props: {link?: ReactNode; chain?: ReactNode; tap?: ReactNode}) => ReactElement;
   it('a risk names its source: a verified link, the chain read in words, or both', () => {
-    expect(renderToStaticMarkup(createElement(SourcedRisk, {chain: 'ZIGChain’s slashing rules, read live'}, 'Slashing.'))).toBe('<li data-risk-source="chain">Slashing. <span class="earn-risk-source">Source: ZIGChain’s slashing rules, read live.</span></li>');
+    // Critique round 2 (L5c), equal strength (still the exact markup): "Source:" is glued to what it names by a no-break
+    // space. Added beside it: a tap comes after the source, and a link's closing stop is kept with it (.earn-risk-end).
+    expect(renderToStaticMarkup(createElement(SourcedRisk, {chain: 'ZIGChain’s slashing rules, read live'}, 'Slashing.'))).toBe('<li data-risk-source="chain">Slashing. <span class="earn-risk-source">Source:\u00a0ZIGChain’s slashing rules, read live.</span></li>');
+    expect(renderToStaticMarkup(createElement(SourcedRisk, {link: createElement('a', {href: '#x'}, 'a page'), tap: createElement('button', {type: 'button'}, 'What’s this?')}, 'Linked.'))).toBe('<li data-risk-source="link">Linked. <span class="earn-risk-source">Source:\u00a0<span class="earn-risk-end"><a href="#x">a page</a>.</span></span> <button type="button">What’s this?</button></li>');
     expect(renderToStaticMarkup(createElement(SourcedRisk, {link: createElement('a', {href: '#x'}, 'a page'), chain: 'the chain'}, 'Both.'))).toContain('data-risk-source="chain link"');
   });
   it('the Risks lists of the Earn sections hold only sourced risks, never a bare item', () => {

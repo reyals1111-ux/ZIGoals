@@ -26,7 +26,7 @@ import {ValdoraSection} from './valdora-section';
 import {ValidatorsSection} from './validators-section';
 import {VaultsSection} from './vaults-section';
 import {GoalVaultsSection, GovernanceSection, StablecoinsSection} from './wider-sections';
-import {Unavailable} from './live-figure';
+import {SourceLine, Unavailable} from './live-figure';
 import {SectionBoundary} from './section-boundary';
 import './earn.css';
 
@@ -75,14 +75,19 @@ export function EarnView() {
         <SectionBoundary id="permapod" title="Borrow and lend: Permapod"><PermapodSection llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="zignaly" title="Zignaly is closing: how to withdraw"><ZignalySection now={now}/></SectionBoundary>
         <SectionBoundary id="governance" title="Have a say: governance"><GovernanceSection/></SectionBoundary>
-        <SectionBoundary id="goal-vaults" title="Put your stake to work for a goal"><GoalVaultsSection/></SectionBoundary>
+        <SectionBoundary id="goal-vaults" title="Put your stake to work for a goal"><GoalVaultsSection now={now}/></SectionBoundary>
         <SectionBoundary id="stablecoins" title="Earn with stablecoins"><StablecoinsSection oroswap={oroswap} vaults={vaults} now={now}/></SectionBoundary>
         <SectionBoundary id="validators" title="Choose a validator from facts"><ValidatorsSection validators={validators} now={now}/></SectionBoundary>
         <SectionBoundary id="academy" title="Earn Academy"><AcademySection/></SectionBoundary>
         <section id="calculator" className="earn-calculator panel" aria-labelledby="calculator-title">
           <SectionHeading id="calculator-title" eyebrow="Planning, not a promise" title="See what a rate could do over time"
             lede="Open the compound interest calculator with today’s native staking rate filled in, as an illustration. Rates move; nothing here is guaranteed."/>
-          {calculatorHref && rate ? <p className="earn-calculator-cta"><Link className="primary" href={calculatorHref} data-rate={rounded(fixed(rate) * 100n, 2)}>Open the calculator at {pct(rate)}</Link> <span className="fine">The native staking rate{lowest ? ` at a ${pctShort(lowest)} commission` : ' before the validator’s commission'}, read live; simple yearly rate.</span></p>
+          {/* Critique round 2 (L5c): the rate the calculator opens at carries the same source line as the native figures. */}
+          {calculatorHref && rate && chain.phase === 'ok' ? <div className="earn-calculator-live" data-live-figure="calculator" data-state="ok">
+            <p className="earn-calculator-cta"><Link className="primary" href={calculatorHref} data-rate={rounded(fixed(rate) * 100n, 2)}>Open the calculator at {pct(rate)}</Link> <span className="fine">The native staking rate{lowest ? ` at a ${pctShort(lowest)} commission` : ' before the validator’s commission'}, read live; simple yearly rate.</span></p>
+            <SourceLine answer={chain.answer} now={now}/>
+            {lowest && validators.phase === 'ok' ? <small className="earn-hint">The commission, from the validator list: <SourceLine answer={validators.answer} now={now}/></small> : null}
+          </div>
             : <p className="earn-figure" data-live-figure="calculator" data-state={chain.phase === 'loading' ? 'loading' : 'unavailable'} data-reason={chain.phase === 'unavailable' ? chain.reason : undefined}>{chain.phase === 'loading' ? 'Reading today’s rate…' : <>Today’s rate is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'}/>, so the calculator opens with your own numbers: <Link className="text-link" href="/app/wealth/calculator">Open the calculator</Link></>}</p>}
         </section>
         <SafetyBlock/>

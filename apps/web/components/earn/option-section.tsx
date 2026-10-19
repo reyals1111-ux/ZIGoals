@@ -2,6 +2,7 @@
 import type {ReactNode} from 'react';
 import Image from 'next/image';
 import {NebulaFlow} from '../nebula-flow';
+import {HowRead} from './how-read';
 
 /**
  * Session AF (L1, ADR-028 H84): one earning option, always in the same order of parts, so options can be compared side
@@ -16,7 +17,7 @@ export type Tag = {tone: 'live' | 'beta' | 'paused' | 'keys' | 'contract' | 'thi
 export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figures, figuresNote, mine, columns, steps, stepsTitle = 'What you’ll do there', stepsTime, notice, illustration, actions, children}: {
   id: string; eyebrow: string; title: string; lede: ReactNode; logo: {src?: string; alt: string; glyph?: ReactNode};
   tags: Tag[]; facts: {label: string; value: ReactNode}[]; figures: ReactNode; figuresNote?: ReactNode;
-  columns: {title: string; body: ReactNode}[]; steps: {text: ReactNode; sign?: ReactNode}[]; stepsTitle?: string; actions: ReactNode; children?: ReactNode;
+  columns: {title: string; body: ReactNode}[]; steps: {text: ReactNode; sign?: ReactNode; how?: ReactNode}[]; stepsTitle?: string; actions: ReactNode; children?: ReactNode;
   /** Session AF chunk 2: how long the steps take, in plain words. */
   stepsTime?: ReactNode;
   /** Session AF chunk 2: a fact to read before anything else (a closure, a wind-down, a pause), with its source and date. */
@@ -48,7 +49,7 @@ export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figu
     {children}
     <div className="earn-steps">
       <h3 className="earn-subhead">{stepsTitle}</h3>
-      <ol>{steps.map((s, i) => <li key={i}><span className="earn-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.sign && <p className="earn-step-sign"><b>What you sign:</b> {s.sign}</p>}</div></li>)}</ol>
+      <ol>{steps.map((s, i) => <li key={i}><span className="earn-step-n" aria-hidden="true">{i + 1}</span><div><p>{s.text}</p>{s.sign && <p className="earn-step-sign"><b>What you sign:</b> {s.sign}</p>}{s.how && <HowRead>{s.how}</HowRead>}</div></li>)}</ol>
       {stepsTime && <p className="earn-steps-time fine"><b>How long:</b> {stepsTime}</p>}
     </div>
     {illustration}

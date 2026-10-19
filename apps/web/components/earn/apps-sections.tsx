@@ -5,6 +5,7 @@ import type {DefillamaData, VaultRow, VaultsData} from '../../lib/earn/live/type
 import {DEFA_SITE, NAWA_METHOD, NOBLE_USDC, PERMAPOD_STATUS, ZIGNALY_CLOSURE} from '../../lib/earn/options';
 import {formatDate, formatNumber} from '../../lib/visual-format';
 import {VerifiedLink} from '../links/verified-link';
+import {HowRead} from './how-read';
 import {IllustrationSlot} from './illustrations/slot';
 import {LiveFigure, Unavailable, shown, type Shown} from './live-figure';
 import {OptionSection} from './option-section';
@@ -43,14 +44,17 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
       <LiveFigure id="nawa-usdc" label="Nawa’s USDC vault: what it reports managing" now={now} figure={shown(vaults, d => { const v = d.vaults['nawa-usdc']; return v.status === 'ok' ? tokenAmount(v.aumUnits, v.decimals, v.asset === 'other' ? 'units' : v.asset, {compact: true}) : {unavailable: v.reason}; })}
         hint={usdc?.status === 'ok' ? vaultHint(usdc as Ok) : undefined}/>
       <LiveFigure id="nawa-zig" label="Nawa’s stZIG vault holds" now={now} figure={shown(vaults, d => d.nawaZig.status === 'ok' ? tokenAmount(d.nawaZig.totalAumUnits, 6, 'stZIG', {compact: true}) : {unavailable: d.nawaZig.reason})}
-        hint="Its own figure, read as stZIG with 6 decimals."/>
+        hint="Its own figure, read from the vault’s contract." how={<p>Read as stZIG with 6 decimals.</p>}/>
       <LiveFigure id="nawa-llama-apy" label="DefiLlama’s yearly figure for the USDC vault" third now={now}
         figure={pool ? pool.apy === null ? {kind: 'unavailable', reason: 'NOT_PUBLISHED'} : {kind: 'ok', value: <>{formatNumber(pool.apy, {maximumFractionDigits: 2})} % (APY)</>, answer: (llama as Extract<typeof llama, {phase: 'ok'}>).answer} : shown(llama, d => d.pools.status === 'ok' ? {unavailable: 'NOT_PUBLISHED'} : {unavailable: d.pools.reason})}
         hint="DefiLlama’s own estimate of past results, not ZIGoals’ and not a promise."/>
       <LiveFigure id="nawa-llama-tvl" label="Value locked in Nawa on ZIGChain" third now={now} figure={llamaTvl(llama, 'nawa-protocol')}/>
     </>}
     columns={[
-      {title: 'Fees', body: <p>{vaults.phase === 'ok' && vaults.answer.data.nawaZig.status === 'ok' ? <>The stZIG vault reports a fee number of {formatNumber(vaults.answer.data.nawaZig.feeNumber)}; Nawa does not publish its unit (on Valdora’s contract the same number means 10 % of rewards).</> : <>The fee number is <Unavailable reason={vaults.phase === 'unavailable' ? vaults.reason : 'UPSTREAM_DOWN'} short/> right now.</>} Plus a small network fee in ZIG.</p>},
+      {title: 'Fees', body: <>{vaults.phase === 'ok' && vaults.answer.data.nawaZig.status === 'ok'
+        ? <><p>The stZIG vault reports a fee, but Nawa does not publish what it means, so ZIGoals cannot say what it charges. Plus a small network fee in ZIG.</p>
+          <HowRead><p>The stZIG vault’s contract reports a fee number of {formatNumber(vaults.answer.data.nawaZig.feeNumber)}; Nawa does not publish its unit (on Valdora’s contract the same number means 10 % of rewards).</p></HowRead></>
+        : <p>The stZIG vault’s fee is <Unavailable reason={vaults.phase === 'unavailable' ? vaults.reason : 'UPSTREAM_DOWN'} short/> right now. Plus a small network fee in ZIG.</p>}</>},
       {title: 'Lockups', body: <p>Leaving is a withdrawal request, paid out later; Nawa does not publish how long that takes.</p>},
       {title: 'Minimums', body: <p>Not published where ZIGoals could read them.</p>},
       // Session AF (L1c, N5): each risk with its source (R2 §5.2, plan section 5 row 5, RECHECK A).
@@ -73,7 +77,7 @@ export function NawaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
     illustration={<IllustrationSlot set="nawa-vaults"/>}
     actions={<>
       <VerifiedLink provider="nawa" kind="site" className="secondary">Nawa’s site</VerifiedLink>
-      <VerifiedLink provider="nawa" kind="defillama" className="secondary" mark="compact">On DefiLlama</VerifiedLink>
+      <VerifiedLink provider="nawa" kind="defillama" className="secondary" mark="full">On DefiLlama</VerifiedLink>
     </>}
   />;
 }
@@ -92,7 +96,7 @@ export function DefaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
     figures={<>
       <LiveFigure id="defa-counter" label="DeFa’s own value counter on ZIGChain" now={now}
         figure={shown(vaults, d => d.defa.status === 'ok' ? usd(Number(d.defa.activeTvlUnits) / 1e6) : {unavailable: d.defa.reason})}
-        hint="DeFa’s own figure from its on-chain counter, read as dollars with 6 decimals. Nobody else checks it."/>
+        hint="DeFa’s own figure from its on-chain counter. Nobody else checks it." how={<p>Read as dollars with 6 decimals.</p>}/>
       <LiveFigure id="defa-llama-tvl" label="DefiLlama’s value for DeFa on ZIGChain" third now={now} figure={llamaTvl(llama, 'defa-by-invoicemate')}
         hint="DefiLlama flags DeFa’s figures as tokens it may not price correctly."/>
     </>}
@@ -117,7 +121,7 @@ export function DefaSection({vaults, llama, now}: {vaults: LiveState<VaultsData>
     stepsTime="a few minutes of reading. You sign nothing."
     actions={<>
       <VerifiedLink provider="defa-invoicemate" kind="site" className="secondary">DeFa’s site</VerifiedLink>
-      <VerifiedLink provider="defa-invoicemate" kind="defillama" className="secondary" mark="compact">On DefiLlama</VerifiedLink>
+      <VerifiedLink provider="defa-invoicemate" kind="defillama" className="secondary" mark="full">On DefiLlama</VerifiedLink>
     </>}
   />;
 }
@@ -165,7 +169,9 @@ export function PermapodSection({llama, now}: {llama: LiveState<DefillamaData>; 
     stepsTime="a few minutes of reading. You sign nothing."
     actions={<>
       <VerifiedLink provider="permapod" kind="site" className="secondary">Permapod’s site</VerifiedLink>
-      <VerifiedLink provider="permapod" kind="defillama" className="secondary" mark="compact">On DefiLlama</VerifiedLink>
+      {/* Critique round 2 (L5c): the halted app's own site, with a plain caution beside it. */}
+      <p className="earn-caution" data-caution="permapod" role="note">Read only: do not connect a wallet or sign anything there while it is halted.</p>
+      <VerifiedLink provider="permapod" kind="defillama" className="secondary" mark="full">On DefiLlama</VerifiedLink>
     </>}
   />;
 }
@@ -211,7 +217,7 @@ export function ZignalySection({now}: {now: number}) {
     stepsTime="10 minutes to request; Zignaly’s own processing time after that."
     actions={<>
       <VerifiedLink provider="zignaly" kind="closure-notice" className="primary">Zignaly’s closure notice</VerifiedLink>
-      <VerifiedLink provider="zignaly" kind="closure-collection" className="secondary" mark="compact">All closure articles</VerifiedLink>
+      <VerifiedLink provider="zignaly" kind="closure-collection" className="secondary" mark="full">All closure articles</VerifiedLink>
     </>}
   />;
 }
