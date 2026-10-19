@@ -76,8 +76,20 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
   (Life review's `useLocalToday` starts from the server's UTC date; CI is all-UTC); rerun it after 02:00. Pre-existing on
   `main`; recorded for STATUS, not fixed here.
 - Next slots, in order: L2a chunk 3 (governance UI, validator health, rewards sweep, staking-prefs Remove), L4 (ZIGi),
-  L5b (extras). Before Gate C: `build:alpha` + `check:alpha-artifact` on this branch (amendment 7; L2a proved it on its
-  branch), the social card re-render (Part 12), the owner's landing wording (owner item).
+  L5b (extras). Still before Gate C: the social card re-render (Part 12), the owner's landing wording (owner item).
+- Deploy gates proven on this branch (amendment 7), 2026-10-19 02:05 Brussels, tree `9497a70a`, under the lock:
+  `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED pnpm build:alpha` exit 0 ("OpenNext build complete.");
+  `pnpm check:alpha-artifact` exit 0 ("empty compiled environment, no env file copies, no secret markers, no configured
+  names"); `pnpm check:alpha` (wrangler dry-run) exit 0 (21,864.64 KiB / gzip 4,814.56 KiB). Log `$SP/logs/lead-build-alpha.log`.
+  Repeat at Gate C on the final head.
+- The verifier order spec (stages 2–6 + 10) passed after 00:00 UTC on `9497a70a`'s build: the #418 earlier was the
+  midnight case above.
+- Part 12 list (lead, after the lanes merge): What's new `2026-10-session-af-wealth-unlocked` + links; Help section `af`
+  (Earn hub, Start-here, each option, Academy, dock, native staking practice/real and the review screen, wallets, Add
+  money, Goal Vaults, governance, validator health, the Checklist's six answers from docs/product/CHECKLIST.md, ZIGi,
+  My Universe, Timeline, Stories, the UI changes; update `ae-themes` for the Light redo) mirrored in search; Known
+  limitations (phones before the Reown ID, on-ramp coverage, Checklist not synced, nothing framed, …); the social card;
+  OWNER_ACCOUNTS.md (L2b); the budgets commit (H96).
 
 ## Resume here (2026-10-19 00:45 Brussels — L1 chunk 1 and L3 merged and wired)
 - Done since 22:45: merges `a444c5ae` (af/earn) and `206a26c4` (af/checklist); wiring commits `a3cbc5c3` (TIER 3 storage:
