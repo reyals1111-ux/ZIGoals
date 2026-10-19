@@ -73,6 +73,9 @@ html:has(.earn-chips) { scroll-padding-top: 88px; }
 .earn-column:last-child .earn-risks { columns: 2 320px; column-gap: 32px; display: block; }
 .earn-column:last-child .earn-risks li { break-inside: avoid; margin-bottom: 8px; }
 .earn-risks { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--text-secondary); line-height: 1.5; }
+/* Session AF (L1c, P1.23): the person's own position, under the live numbers. */
+.earn-mine { margin: 0 0 18px; padding: 14px 16px; border-radius: 16px; border: 1px solid #ffd27a33; background: #0b1428; }
+.earn-mine > .fine { margin: 10px 0 0; }
 /* Session AF (L1c, N5): where each risk comes from, after its words. */
 .earn-risk-source { font-size: 14px; color: var(--text-meta); }
 

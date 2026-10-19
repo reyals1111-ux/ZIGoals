@@ -13,7 +13,9 @@ import {GuideLink, type Guide} from './guide-panel';
 import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection} from './option-section';
 import {Risk} from './risk';
+import type {PositionRead} from './use-earn-positions';
 import {WhatsThis} from './whats-this';
+import {YourPosition} from './your-position';
 
 /**
  * Session AF (L1, ADR-028 H9, H51): native validator staking, the chain's own way to earn. The APR is computed from the
@@ -34,7 +36,7 @@ export function aprComparison(chain: LiveState<ChainData>, measured: LiveState<M
   const issuance = aprAtCommission(chain.answer.data.apr, measured.answer.data.validator.commission);
   return {issuance, measured: measured.answer.data.measured.rate, ...aprAgreement(issuance, measured.answer.data.measured.rate)};
 }
-export function NativeSection({chain, validators, measured, now}: {chain: LiveState<ChainData>; validators: LiveState<ValidatorsAnswer>; measured: LiveState<MeasuredData>; now: number}) {
+export function NativeSection({chain, validators, measured, now, reads = []}: {chain: LiveState<ChainData>; validators: LiveState<ValidatorsAnswer>; measured: LiveState<MeasuredData>; now: number; reads?: readonly PositionRead[]}) {
   const choices = useMemo(() => commissionChoices(validators), [validators]);
   const [picked, setPicked] = useState<string | null>(null);
   const commission = picked && choices.includes(picked) ? picked : choices[0] ?? null;
@@ -84,6 +86,7 @@ export function NativeSection({chain, validators, measured, now}: {chain: LiveSt
         </div> : <p>The inputs are <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now, so no rate is shown.</p>}
       </details>
     </>}
+    mine={<YourPosition reads={reads} kind="native"/>}
     columns={[
       {title: 'Fees', body: <p>A small network fee for each step you sign, paid in ZIG. Your wallet shows it before you sign. The validator keeps its commission from your rewards ({range ?? 'see the validator list'}). <WhatsThis term="gas"/></p>},
       {title: 'Lockups', body: <p>Your stake earns while it stays. When you leave, your ZIG is locked for {data ? duration(data.staking.unbondingSeconds) : <>the unbonding period (its length is <Unavailable reason={chain.phase === 'unavailable' ? chain.reason : 'UPSTREAM_DOWN'} short/> right now)</>} with no rewards meanwhile. Moving to another validator is instant. <WhatsThis term="redelegate"/></p>},

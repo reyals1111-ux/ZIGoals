@@ -10,7 +10,9 @@ import {LiveFigure, Unavailable, shown} from './live-figure';
 import {OptionSection, type Tag} from './option-section';
 import {IllustrationSlot} from './illustrations/slot';
 import {Risk} from './risk';
+import type {PositionRead} from './use-earn-positions';
 import {WhatsThis} from './whats-this';
+import {YourPosition} from './your-position';
 
 /**
  * Session AF (L1, ADR-028 H26, H44, H88): Valdora's liquid staking. The contract figures are read live from its pinned
@@ -22,7 +24,7 @@ export const VALDORA_GUIDE: Guide<'valdora'> = {id: 'valdora-stake', app: 'Valdo
   steps: ['On Valdora’s Stake page, press Connect Wallet and choose your wallet (Keplr, for example).', 'Enter the ZIG you want to stake: at least the minimum shown here.', 'Check “You will get … stZIG”, then press Stake.', 'In your wallet, review and sign: ZIG goes to Valdora’s staking contract and stZIG comes back to you.', 'To leave later: the Unstake tab, then Claim once the waiting time has passed. Or sell stZIG on OroSwap.']};
 // crit1: written at render, so it follows the person's date style like every other "read" date on Earn.
 const readDay = () => formatDate(`${READ_ON}T12:00:00Z`, {timeZone: 'UTC'});
-export function ValdoraSection({valdora, llama, now}: {valdora: LiveState<ValdoraData>; llama: LiveState<DefillamaData>; now: number}) {
+export function ValdoraSection({valdora, llama, now, reads = []}: {valdora: LiveState<ValdoraData>; llama: LiveState<DefillamaData>; now: number; reads?: readonly PositionRead[]}) {
   const day = readDay();
   const data = valdora.phase === 'ok' ? valdora.answer.data : null;
   const tags: Tag[] = [data?.paused || data?.emergencyMode ? {tone: 'paused', text: data.emergencyMode ? 'Emergency mode on' : 'Paused right now'} : {tone: 'live', text: 'Live on mainnet'}, {tone: 'contract', text: 'A contract holds the ZIG'}];
@@ -49,6 +51,7 @@ export function ValdoraSection({valdora, llama, now}: {valdora: LiveState<Valdor
         hint={<>DefiLlama’s own estimate, not ZIGoals’ and not a promise. <WhatsThis term="apy"/></>}/>
       <LiveFigure id="valdora-llama-tvl" label="Value locked in Valdora on ZIGChain" third now={now} figure={shown(llama, d => d.protocols['valdora-finance'].status === 'ok' ? d.protocols['valdora-finance'].tvlUsd === null ? {unavailable: 'NOT_PUBLISHED'} : usd(d.protocols['valdora-finance'].tvlUsd) : {unavailable: d.protocols['valdora-finance'].reason})}/>
     </>}
+    mine={<YourPosition reads={reads} kind="valdora"/>}
     columns={[
       {title: 'Fees', body: <><p>{data ? <>Valdora keeps {pctShort(data.feeOfRewards)} of the rewards (read from its contract).</> : <>Valdora’s fee is <Unavailable reason={unavailable} short/> right now.</>} Plus a small network fee for each step you sign. <WhatsThis term="gas"/></p><p className="fine">{PROVIDER_CLAIMS.valdoraUnstakeFee.text} <VerifiedLink provider="valdora" kind="fees" className="text-link" mark="compact">Economics page</VerifiedLink> · <VerifiedLink provider="valdora" kind="faq" className="text-link" mark="compact">FAQ</VerifiedLink></p></>},
       {title: 'Lockups', body: <><p>None while you hold stZIG. To turn stZIG back into ZIG through Valdora: {PROVIDER_CLAIMS.valdoraRedemption.text.charAt(0).toLowerCase() + PROVIDER_CLAIMS.valdoraRedemption.text.slice(1)} <span className="fine">(Valdora’s FAQ, read {day})</span> <WhatsThis term="unbonding"/></p><p><b>The faster way out:</b> sell stZIG for ZIG on OroSwap right away at the pool’s price, usually a little below the contract’s rate.</p></>},
