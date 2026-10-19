@@ -15,6 +15,11 @@ branch; you never merge into the feature branch, never push, never deploy, never
   restore those files before each commit (`git checkout -- <them>`); the lead regenerates after the merge.
 - Node 24.19.0 in every shell: `export PATH=$HOME/.local/share/fnm/node-versions/v24.19.0/installation/bin:$PATH`;
   `pnpm install --frozen-lockfile --ignore-scripts` once in your worktree. No new dependency unless your brief names it.
+- **Never run Playwright WebKit (or any headed browser) on this Mac** (owner's hard rule, 2026-10-19, ADR-028 H114): its
+  window capture crashes WindowServer while the displays sleep and ends the whole login session. Local runs, captures and
+  audits use Chromium headless only (`--project=desktop --project=mobile` with the default config; never
+  `-c playwright.webkit.config.ts`, `webkit.launch` or `--headed`). WebKit specs are still written; CI's required WebKit job
+  runs them, and a WebKit-only failure is read from CI's trace and artifacts.
 - One build / Playwright run / Chromium screenshot at a time on this Mac: wrap each in
   `$HOME/zigoals-af/bin/with-lock.sh` and give it a timeout with `$HOME/zigoals-af/bin/tmo.sh <seconds>`; logs in
   `$HOME/zigoals-af/logs/<lane>-*.log`. Playwright `--workers=2` at most; never the full suite (the lead runs it at Gate C).

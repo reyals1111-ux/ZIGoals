@@ -17,6 +17,11 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
   `NEXT_PUBLIC_APP_ENVIRONMENT=PUBLIC_ALPHA_UNDEPLOYED` under the lock, starts `TZ=UTC next start` on 127.0.0.1:<port>,
   curls `/app` until up). Ports: 3102 (lane builds), 3103 (before captures / main), 3104 (Gate C).
 - Browser tests: `cd apps/web && PLAYWRIGHT_BASE_URL=http://127.0.0.1:<port> $SP/bin/with-lock.sh $SP/bin/tmo.sh 3600 pnpm exec playwright test <spec> --workers=2`.
+- **Never run Playwright WebKit (or any headed browser) on this Mac** (owner, 2026-10-19, ADR-028 H114): it crashes
+  WindowServer while the displays sleep and ends the login session. Local runs, captures and audits: Chromium headless only
+  (`--project=desktop --project=mobile`, default config). The WebKit set runs in CI's required WebKit job; a WebKit-only
+  failure is read from CI's trace/artifacts (`gh run download <run> -n web-webkit-<sha>-shard-<n>`).
+- Push at least every 60 minutes (owner, 2026-10-19), so an interruption never loses more than an hour.
   The full suite runs in the background (`nohup … > $SP/logs/full.log 2>&1 &`) and the log is polled (ADR-028 H86).
 - Unit: `pnpm test` from the repo root (vitest; run `.tsx` tests from the root, memory note).
 - Captures: `node $SP/bin/capture-af.mjs <base> <out>` (`THEMES=nebula,light,dark`, `ONLY=<regex>`), under the lock;
@@ -25,6 +30,21 @@ never re-plan; never enter plan mode again (the plan was approved once, with the
 - caffeinate: `$SP/caffeinate.pid` (started 2026-10-18 22:15 Brussels); stop at the end with `kill $(cat $SP/caffeinate.pid)`.
 - Times: `TZ=Europe/Brussels date`. Gate C starts by Sat 24 Oct 08:00; code freeze Fri 23 Oct 22:00; PR out of Draft with CI
   green by Sun 25 Oct 11:00 Brussels.
+
+## Gate C checklist (Sat 24 Oct from 08:00 Brussels; tick as done, with the evidence file)
+- [ ] G1 full unit suite (`pnpm test`).
+- [ ] G2 full browser suite once, Chromium headless only, 2 workers, nothing else running (`nohup … > $SP/logs/full.log`, polled; H86).
+- [ ] G3 the WebKit set: **runs in CI's required WebKit job, never locally** (ADR-028 H114); read its result and artifacts there.
+- [ ] G4 layout audits in Nebula, Light and Dark at 320/390/768/1024/1440/1920 + touch + stress, Chromium only → `docs/verification/af/`.
+- [ ] G5 theme parity (`theme-parity-af.spec.ts` in Chromium; `webkit-theme-parity` in CI).
+- [ ] G6 weights: existing budgets unchanged; the new lines (H96) and each lazy chunk's gzip size (H54); theme sheets' gzip sizes (H112).
+- [ ] G7 revert gate: every commit newest-first with typecheck green, in a scratch worktree.
+- [ ] G8 frozen readers #37–#44 (`node scripts/frozen-readers.mjs`), never beside a build or Playwright run.
+- [ ] G9 key scans (check-secrets, the key sweep, no e-mail addresses in the diff).
+- [ ] G10 `scripts/earn/live-check.mjs` on the real network (read-only).
+- [ ] G11 hosted verifier against a local production build (`ZIGOALS_VERIFY_BASE`), Chromium.
+- [ ] G12 the three fresh reviews one after another (security of every Tier 3 commit, design critique of the after captures, test audit for weakened assertions), one fix round each.
+- [ ] G13 `build:alpha` + `check:alpha-artifact` + `check:alpha` on the final head; CI green on the final head (Milestone quality incl. the WebKit job).
 
 ## Pacing (owner amendment 4, ADR-028 H81)
 At most three helpers at the same time beside the lead. Start order: L2a, L1, L3; then L2b, L5a, L4, L5b as slots free.
@@ -38,9 +58,9 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | L1 Earn hub + data routes + Academy + dock + Today card | `af/earn`, `af/earn2` | helper | done: both chunks merged (`a444c5ae`, `b205460a`) and wired (stage 9, Today EARN card in For you H104, dock, Settings, game) |
 | L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
 | L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` | helper | done: merged and wired; its links now in the registry (H103) |
-| L5a UI changes + theme parity | `af/ui` (an agent worktree) | helper (port 3102) | running since 01:40 Mon: P10.1–P10.13 |
-| L4 ZIGi | `af/zigi` (an agent worktree) | helper (port 3103) | running since 02:45 Mon: Part 8, six seeds |
-| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper (port 3104) | running since 03:35 Mon: Part 9 |
+| L5a UI changes + theme parity | `af/ui` | helper | done: merged `3d507e9a` (Part 10); wiring: themes, Help Light answers, ADR H109–H113 |
+| L4 ZIGi | `af/zigi` (an agent worktree) | helper (port 3103) | running; stopped by the 06:10 session exit, resumed 12:15 Mon (5 commits + uncommitted work kept) |
+| L5b My Universe, Day Timeline, Stories | `af/extras` (an agent worktree) | helper (port 3104) | running; stopped by the 06:10 session exit, resumed 12:15 Mon (uncommitted work kept) |
 
 Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner per file).
 
@@ -57,10 +77,23 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
 | 8 ZIGi | not started | — |
 | 9 My Universe, Day Timeline, Stories | not started | — |
-| 10 UI changes + theme parity | not started | — |
+| 10 UI changes + theme parity | done (merged, wired); parity Chrome 51/51, WebKit 6/6; Gate C audits in three themes still to run | `3d507e9a` |
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | not started | — |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 12:15 Brussels — after a session restart; L5a merged; L4 and L5b resumed)
+- The Claude Code process exited at about 06:10 Brussels; L4 and L5b were stopped mid-task and resumed at 12:15 from their
+  transcripts (their worktrees kept every change). If this happens again: `git -C .claude/worktrees/<agent> status`, then
+  SendMessage to the agent id in `$SP/lanes.txt` to resume it; never spawn a duplicate.
+- CI run 39188085528 on `8443a1e3` failed on: page-titles (5 new pages without rows), persona-x (a stale fold list),
+  zigi-a11y-pass (a hidden Today card's aria-labelledby), webkit-earn (a lazy CSS chunk cancelled by navigation → unhandled
+  ChunkLoadError + Trusted Types in Linux WebKit; the CI trace shows "Load request cancelled"), zigi-oneline-z in WebKit
+  (Settings at 320 px: "Forget my staking choices" did not wrap with Linux fonts), webkit-smoke (a 45 s timeout in the
+  Chrome shard). Fixed in `e30e49d0` `5fc84a33` and the uncommitted signing-section CSS; webkit-smoke timing to check.
+- Merged L5a (`3d507e9a`); uncommitted until the spec run passes: Help's Light/Dark/sidebar answers, ADR H109–H113,
+  regenerated theme sheets (Light 506,803 B / 64,122 B gzip; Dark 437,912 B / 61,263 B gzip).
+- Next: commit and push once green; merge L4 and L5b as they report; Part 12; budgets; the daily PR comment ~18:00 today.
 
 ## Resume here (2026-10-19 04:00 Brussels — L1 and L2a finished; L5a, L4, L5b running)
 - Done since 02:20: social card + metadata labels; L1 chunk 2 merged `b205460a` and wired (stage 9 `15a5a83b`; registry
