@@ -12,6 +12,7 @@ import {KEPLR_SITE} from '../../lib/wallet-link';
 import {attest, claim, delegate, redelegate, revoke, undelegate, StakingInputError, type StakingMessage} from '../../lib/staking/messages';
 import {lastValidatorOf, networkChoiceOf, readStakingPrefs, realConfirmedAtOf, updateStakingPrefs, withLastValidator, withNetworkChoice, withRealConfirmed} from '../../lib/staking/prefs';
 import {takeStakingPrefill} from '../../lib/staking/prefill';
+import {STAKING_PREFILL_EVENT} from '../../lib/af-signing-keys';
 import {READ_MODE, readPositionsAfter, withStakingObservation} from '../../lib/staking/refresh';
 import {plainWords} from '../../lib/staking/errors';
 import {StakingFailure, type StakingReceipt} from '../../lib/staking/execute';
@@ -62,6 +63,9 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
   // reviews' own errors (shown in their own panels); a re-read of the permissions after a revoke confirms.
   const [fromVault, setFromVault] = useState(false), [otherError, setOtherError] = useState<{action: 'revoke' | 'attest'; message: string} | null>(null), [grantsRead, setGrantsRead] = useState(0);
   const revision = useRef(0);
+  // True while a signature or broadcast is under way: a pre-fill arriving then waits in the tab for the next opening.
+  const signing = useRef(false);
+  signing.current = !!progress && ['AWAITING_SIGNATURE', 'BROADCASTING', 'CONFIRMING'].includes(progress.state);
   const config = STAKING_NETWORKS[network];
 
   // The device's choice of network, the tab's staking session, ZIGi's pre-fill (read once) and whether Keplr is here.
@@ -70,13 +74,23 @@ export function StakingActions({onObserved}: {onObserved?: (chainId: string) => 
     setAndroid(/Android/i.test(navigator.userAgent)); setOrigin(window.location.origin); setFromVault(window.location.hash === '#rewards-sweep');
     if (showcase) return;
     const prefs = storage() ? readStakingPrefs(storage()!).data : {version: 1 as const};
-    const prefill = takeStakingPrefill(session());
-    const chosen = prefill?.network === 'real' && !realConfirmedAtOf(prefs) ? 'practice' : prefill?.network ?? networkChoiceOf(prefs);
-    setNetwork(chosen === 'real' && !realConfirmedAtOf(prefs) ? 'practice' : chosen);
-    if (prefill) {
+    setNetwork(networkChoiceOf(prefs) === 'real' && !realConfirmedAtOf(prefs) ? 'practice' : networkChoiceOf(prefs));
+    // ZIGi's pre-fill, read once on opening and again whenever ZIGi writes one while this form is open (the window event):
+    // it fills the plain fields and drops a review already open, so the person reviews the new values from the start.
+    const take = (opening: boolean) => {
+      if (!opening && signing.current) return;
+      const prefill = takeStakingPrefill(session());
+      if (!prefill) return;
+      const current = storage() ? readStakingPrefs(storage()!).data : prefs;
+      setNetwork(prefill.network === 'real' && !realConfirmedAtOf(current) ? 'practice' : prefill.network);
+      if (!opening) { setQuote(null); setError(''); setValidator(''); setAmount(''); }
       setAction(prefill.action); if (prefill.validator) setValidator(prefill.validator); if (prefill.amount) setAmount(prefill.amount);
-      setNote(prefill.network === 'real' && !realConfirmedAtOf(prefs) ? 'ZIGi filled this in for the real network. Switch to the real network to use it; nothing is signed until you review and sign.' : 'ZIGi filled this in. Check every field; nothing is signed until you review and sign.');
-    }
+      setNote(prefill.network === 'real' && !realConfirmedAtOf(current) ? 'ZIGi filled this in for the real network. Switch to the real network to use it; nothing is signed until you review and sign.' : 'ZIGi filled this in. Check every field; nothing is signed until you review and sign.');
+    };
+    take(true);
+    const onPrefill = () => take(false);
+    window.addEventListener(STAKING_PREFILL_EVENT, onPrefill);
+    return () => window.removeEventListener(STAKING_PREFILL_EVENT, onPrefill);
   }, [showcase]);
   useEffect(() => { setWallet(showcase ? null : readStakingSession(session(), network)); }, [network, showcase]);
   useEffect(() => onKeystoreChange(() => { dropStakingSession(session()); setWallet(null); setQuote(null); setNote('Keplr changed accounts. Connect again to continue.'); }), []);

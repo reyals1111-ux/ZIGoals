@@ -1,4 +1,4 @@
-import {STAKING_PREFILL_KEY} from '../../af-signing-keys';
+import {STAKING_PREFILL_EVENT, STAKING_PREFILL_KEY} from '../../af-signing-keys';
 
 /**
  * ZIGi's staking pre-fill (Session AF, L4; ADR-028 D7, H47; `TIER 3 (wallet/signing)`). A confirmed `prefill-staking` card
@@ -9,8 +9,8 @@ import {STAKING_PREFILL_KEY} from '../../af-signing-keys';
  * ZIGi guard, lib/ai/zigi-guard.test.ts, and L2a's staking guard both check it); it shares only the key's name.
  */
 export const STAKING_PREFILL_ROUTE = '/app/staking#staking-actions-title';
-/** Dispatched on window after a stash, for a staking form already open in this tab (the form may listen; L2a's to wire). */
-export const STAKING_PREFILL_EVENT = 'zigoals:ai-staking-prefill';
+/** Dispatched on window after a stash, for a staking form already open in this tab (the form listens and reads it once). */
+export {STAKING_PREFILL_EVENT};
 export type StakingPrefillValues = {network: 'practice' | 'real'; action: 'delegate' | 'undelegate' | 'redelegate' | 'claim'; validator?: string; amount?: string};
 /** The form's own checks (lib/staking/prefill.ts), so a value it would drop is never written. */
 export const VALOPER = /^zigvaloper1[02-9ac-hj-np-z]{38,58}$/;

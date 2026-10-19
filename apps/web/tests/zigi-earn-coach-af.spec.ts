@@ -68,3 +68,22 @@ test('a staking card fills in the review on Staking, read once; nothing is signe
   expect(calls.filter(c => SIGNER_CALLS.test(c))).toEqual([]);
   expect(calls).toEqual([]);
 });
+test('on Staking already, the card fills in the open form without a reload, read once; the wallet is never asked', async ({page}) => {
+  const calls = await fakeKeplr(page);
+  const bodies = await server(page, () => `Here is the staking review, filled in. You review it there and sign it in your own wallet.\n\n${block({kind: 'prefill-staking', action: 'delegate', network: 'practice', amount: '100'})}`);
+  await seed(page, {time: MORNING});
+  await relay(page);
+  await page.goto('/app/staking');
+  await expect(page.locator('#staking-actions-title')).toBeVisible();
+  await page.evaluate(() => { (window as unknown as {afNoReload?: number}).afNoReload = 1; });
+  await expect(page.getByText('ZIGi filled this in. Check every field; nothing is signed until you review and sign.')).toHaveCount(0);
+  await openChat(page);
+  await say(page, 'Stake 100 ZIG on the practice network');
+  await expect.poll(() => bodies.length).toBe(1);
+  const card = panel(page).locator('.ai-card').filter({hasText: 'Fill in the staking review'});
+  await card.getByRole('button', {name: 'Open the review'}).click();
+  await expect(page.getByText('ZIGi filled this in. Check every field; nothing is signed until you review and sign.')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as {afNoReload?: number}).afNoReload)).toBe(1); // the same page: no reload
+  expect(await stored(page, STAKING_PREFILL_KEY, 'session')).toBeNull();
+  expect(calls).toEqual([]);
+});

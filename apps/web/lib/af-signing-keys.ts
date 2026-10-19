@@ -15,6 +15,9 @@ export const WALLET_SESSION_KEY = 'zigoals:wallet-session:v1';
 /** sessionStorage, tab-only, never exported: ZIGi's staking pre-fill {version, at, network, action, validator?, amount?},
  *  read once and deleted by the staking form (≤ 10 minutes old). ZIGi's lane writes it. */
 export const STAKING_PREFILL_KEY = 'zigoals:ai:staking-prefill:v1';
+/** The window event ZIGi's lane dispatches after writing the pre-fill, so a staking form already open in this tab reads it
+ *  (once, as on opening) without a reload. A name only; it carries nothing. */
+export const STAKING_PREFILL_EVENT = 'zigoals:ai-staking-prefill';
 /** Session AF chunk 3: the validator-health baselines (each delegated validator's commission when this device first saw
  *  it, so a later change is noticed) and the alerts switch. Personal (it shows which validators the person stakes with),
  *  device-only, in Export, erased with the account, never synced, never restored. */

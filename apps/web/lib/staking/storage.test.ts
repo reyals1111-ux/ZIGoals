@@ -15,9 +15,10 @@ class Memory {
 const WALLET = toBech32('zig', new Uint8Array(20).fill(3)), VALIDATOR = toBech32('zigvaloper', new Uint8Array(20).fill(5));
 
 describe('the key module', () => {
-  test('names exactly the five keys (and chunk 3\'s registry rows), imports nothing, and the device keys are versioned', () => {
-    // Session AF chunk 3: the validator-alerts key joins; the rows object names it in the lists the lead wires.
-    expect({...keys}).toEqual({STAKING_PREFS_KEY: 'zigoals:staking-prefs:v1', STAKING_JOURNAL_KEY: 'zigoals:staking-journal:v1', WALLET_SESSION_KEY: 'zigoals:wallet-session:v1', STAKING_PREFILL_KEY: 'zigoals:ai:staking-prefill:v1', VALIDATOR_ALERTS_KEY: 'zigoals:validator-alerts:v1', SIGNING_CHUNK3_ROWS: keys.SIGNING_CHUNK3_ROWS});
+  test('names exactly the five keys, the pre-fill event (and chunk 3\'s registry rows), imports nothing, and the device keys are versioned', () => {
+    // Session AF chunk 3: the validator-alerts key joins; the rows object names it in the lists the lead wires. The lead
+    // (L4's optional wiring): the pre-fill's window event name, shared by ZIGi's hand-off and the staking form.
+    expect({...keys}).toEqual({STAKING_PREFS_KEY: 'zigoals:staking-prefs:v1', STAKING_JOURNAL_KEY: 'zigoals:staking-journal:v1', WALLET_SESSION_KEY: 'zigoals:wallet-session:v1', STAKING_PREFILL_KEY: 'zigoals:ai:staking-prefill:v1', VALIDATOR_ALERTS_KEY: 'zigoals:validator-alerts:v1', STAKING_PREFILL_EVENT: 'zigoals:ai-staking-prefill', SIGNING_CHUNK3_ROWS: keys.SIGNING_CHUNK3_ROWS});
     expect(keys.SIGNING_CHUNK3_ROWS).toEqual({personal: ['zigoals:validator-alerts:v1'], exportNames: {validatorAlerts: 'zigoals:validator-alerts:v1'}, catalogLabels: {validatorAlerts: ['Validator health alerts: what this device last saw', 'Wallet']}});
     expect(Object.isFrozen(keys.SIGNING_CHUNK3_ROWS)).toBe(true);
     expect(readFileSync(join(__dirname, '..', 'af-signing-keys.ts'), 'utf8')).not.toMatch(/^\s*import\b/m);
