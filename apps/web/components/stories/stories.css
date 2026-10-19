@@ -1,0 +1,55 @@
+/* Session AF (L5b; P9.3, ADR-028 H55): Stories — the covers and the full-screen player. A card comes in once (400 ms);
+   nothing advances by itself and nothing loops; under reduced motion and Motion Off the cards are stills. */
+.stories-page { display: grid; gap: 18px; }
+.stories-links { margin: 0; }
+.stories-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.stories-skeleton { min-height: 220px; }
+.stories-covers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.stories-cover { display: grid; align-content: start; gap: 6px; }
+.stories-cover h2 { margin: 0; font-size: 24px; }
+.stories-cover .eyebrow, .stories-cover p { margin: 0; }
+.stories-count { font-size: 16px; font-weight: 650; }
+.stories-style { font-size: 15px; color: var(--text-secondary); }
+.stories-cover button { justify-self: start; min-height: 44px; margin-top: 6px; }
+.stories-fine { margin: 0; max-width: 72ch; }
+
+.story-player { position: fixed; inset: 0; z-index: 65; display: grid; place-items: center; padding: 16px; background: #050816f2; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.story-frame { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto; gap: 12px; width: min(460px, 100%); height: min(820px, 100%); }
+.story-top { display: flex; align-items: center; gap: 10px; }
+.story-progress { display: flex; flex: 1; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.story-progress li { flex: 1; height: 4px; border-radius: 4px; background: #ffffff2e; }
+.story-progress li[data-state=seen], .story-progress li[data-state=current] { background: linear-gradient(90deg, #6fe6f6, #c790f6); }
+.story-close { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #ffffff33; background: #ffffff10; color: #fff; font-size: 26px; line-height: 1; }
+.story-stage { position: relative; display: grid; overflow: hidden; border-radius: 28px; outline: none; background: radial-gradient(ellipse at 70% 10%, #4a2f82aa, #0d1120 70%), #0d1120; box-shadow: inset 0 0 0 1px #c3a8f944; }
+.story-stage:focus-visible { box-shadow: inset 0 0 0 2px var(--brand-cyan, #6fe6f6); }
+.story-zone { position: absolute; top: 0; bottom: 0; z-index: 1; width: 22%; border: 0; background: transparent; cursor: pointer; }
+.story-zone.is-back { left: 0; }
+.story-zone.is-next { right: 0; }
+.story-card { position: relative; z-index: 2; display: grid; align-content: center; gap: 10px; padding: 32px 28px; color: #f4f8ff; pointer-events: none; }
+.story-card > * { pointer-events: auto; }
+.story-card .eyebrow { margin: 0; font-size: 14px; color: #c2d0e5; }
+.story-card h2 { margin: 0; font-size: clamp(26px, 6vw, 34px); line-height: 1.15; letter-spacing: -.02em; }
+.story-big { margin: 0; font-size: clamp(64px, 18vw, 96px); font-weight: 800; line-height: 1; background: linear-gradient(90deg, #f4f8ff, #6fe6f6 55%, #c790f6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.story-card[data-pillar=health] .story-big { background-image: linear-gradient(90deg, #f4f8ff, #ff74be 55%, #c790f6); }
+.story-card[data-pillar=goals] .story-big { background-image: linear-gradient(90deg, #f4f8ff, #9273ff 55%, #f08bd6); }
+.story-card[data-pillar=wealth] .story-big { background-image: linear-gradient(90deg, #f4f8ff, #ffd27a 55%, #f08bd6); }
+.story-lines { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 17px; line-height: 1.45; color: #dde7f7; }
+.story-share { display: inline-flex; align-items: center; gap: 8px; justify-self: start; min-height: 44px; margin-top: 8px; }
+.story-controls { display: flex; justify-content: space-between; gap: 10px; }
+.story-controls button { min-height: 48px; min-width: 120px; }
+.story-fine { margin: 0; text-align: center; color: #c2d0e5; }
+.story-note { min-height: 1.4em; margin: 0; text-align: center; font-size: 15px; font-weight: 650; color: #f4f8ff; }
+
+/* The one entrance per card. */
+.story-card { animation: story-card-in 400ms cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes story-card-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .story-card { animation: none; } }
+:root[data-app-motion=off] .story-card { animation: none; }
+
+@media (max-width: 1023.98px) { .stories-covers { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767.98px) {
+  .story-player { padding: 10px; }
+  .story-card { padding: 24px 20px; }
+  .story-lines { font-size: 16px; }
+  .stories-cover h2 { font-size: 20px; }
+}
