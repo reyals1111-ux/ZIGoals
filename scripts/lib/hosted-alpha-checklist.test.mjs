@@ -14,9 +14,9 @@ describe('the Checklist verifier stage (stage 10, appended)', () => {
     expect(CHECKLIST_STAGE).toMatchObject({number: 10, key: 'checklist', browser: true, liveOnly: false, reportsItself: false});
     expect(CHECKLIST_STAGE.run).toBe(checklistStage);
     expect(Object.isFrozen(CHECKLIST_STAGE)).toBe(true);
-    // Wired by the lead (Session AF): appended last, exactly once, and stages 1–8 keep their numbers and order.
+    // Wired by the lead (Session AF): appended last, exactly once, after the Earn stage 9; stages 1–8 keep their numbers and order.
     const numbers = VERIFIER_STAGES.map(s => s.number);
-    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 10]);
+    expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(VERIFIER_STAGES.filter(s => s.key === 'checklist')).toEqual([CHECKLIST_STAGE]);
     expect(VERIFIER_STAGES.at(-1)).toBe(CHECKLIST_STAGE);
   });

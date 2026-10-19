@@ -47,9 +47,12 @@ export function linkProblems(links) {
 /** Stage 9: the Earn page is honest about every figure and every link, signs nothing and asks only its own base. Ends on /app/earn. */
 export async function earnStage(page, {base, expect, report}) {
   const requests = [], onRequest = r => requests.push({url: r.url(), method: r.method()});
+  // The verifier's rule since #43: a browser stage's first call on the page is a goto to its own page. The request
+  // listener is attached after it, and a reload then puts one whole load of the page under the GET-on-the-base check.
+  await page.goto(base + EARN_PATH);
   page.on('request', onRequest);
   try {
-    await page.goto(base + EARN_PATH);
+    await page.reload();
     await expect(page.getByRole('heading', {level: 1, name: EARN_TITLE})).toBeVisible();
     await expect(page.locator('#start-here')).toBeVisible();
     // Every figure settles: shown or unavailable, never left "reading".

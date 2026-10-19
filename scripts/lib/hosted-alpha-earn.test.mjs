@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, expect, test} from 'vitest';
 import {AS_OF, EARN_PATH, EARN_STAGE, EARN_TITLE, FIGURE, OUTGOING, earnStage, figureProblems, linkProblems} from './hosted-alpha-earn.mjs';
 import {VERIFIED_URLS} from '../../packages/ecosystem-registry/src/verified-links.ts';
+import {VERIFIER_STAGES} from './hosted-alpha-stages.mjs';
 
 // Session AF chunk 2 (L1; ADR-028 H57): the Earn stage module the lead appends as stage 9. These checks keep its words and
 // selectors tied to the app's own source, so a renamed attribute fails here instead of the owner's live check.
@@ -14,6 +15,9 @@ describe('the Earn verifier stage (stage 9, appended)', () => {
     expect(EARN_STAGE).toMatchObject({number: 9, key: 'earn', browser: true, liveOnly: false, reportsItself: false});
     expect(EARN_STAGE.run).toBe(earnStage);
     expect(Object.isFrozen(EARN_STAGE)).toBe(true);
+    // Wired by the lead (Session AF): in the verifier's list exactly once, as 9, right before the Checklist's 10.
+    expect(VERIFIER_STAGES.filter(stage => stage.key === 'earn')).toEqual([EARN_STAGE]);
+    expect(VERIFIER_STAGES.map(stage => stage.number).slice(-2)).toEqual([9, 10]);
     expect(EARN_PATH).toBe('/app/earn');
   });
   test('read-only: no request of its own, no wallet, no typing, no import.meta or top-level await', () => {
