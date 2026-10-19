@@ -23,8 +23,9 @@ export function PathBanner({section, index, done, total, headingId, meter = fals
     <span className="path-banner-count">{total ? `${done} of ${total}` : 'Nothing here yet'}</span>
     {meter && <>
       <span className="path-banner-meter" aria-hidden="true"><i/></span>
+      {justComplete && <span className="path-banner-shine" aria-hidden="true"/>}
       {complete && <span className="path-banner-done" aria-hidden="true"><span className="path-banner-done-long">Orbit complete</span><span className="path-banner-done-short">Complete</span></span>}
-      {justComplete && <span className="path-banner-sparks" aria-hidden="true">{Array.from({length: 10}, (_, n) => <i key={n} style={{'--a': `${n * 36}deg`} as CSSProperties}/>)}</span>}
+      {justComplete && <span className="path-banner-sparks" aria-hidden="true">{Array.from({length: 32}, (_, n) => <i key={n} data-tone={n % 4} style={{'--a': `${Math.round(n * 11.25 + (n % 3) * 4)}deg`, '--d': `${60 + (n * 37) % 70}px`, '--t': `${760 + (n * 53) % 420}ms`} as CSSProperties}/>)}</span>}
     </>}
   </div>;
 }

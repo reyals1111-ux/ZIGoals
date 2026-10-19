@@ -13,12 +13,13 @@ import {PathGlyph} from './path-glyphs';
  * A step that opens a page is a link; every other step is a button (`aria-pressed` = done; a value step says whether its
  * stepper is open). `data-path-point` lets the line find its centre.
  *
- * Session AF (L3b): with `orbit` (the Checklist's full-screen path) the next dot also wears an orbit ring with a small moon,
- * a soft pulse and a START / NEXT bubble, and a tick bursts into fourteen sparks in three colours with a flash and two
- * shock rings. All of it is decoration inside the dot (aria-hidden); the dot's name says its state.
+ * Session AF (L3b): with `orbit` (the Checklist's full-screen path) the next dot also wears an orbit ring with a small moon
+ * and a soft pulse (its START / NEXT bubble is its label, drawn above it by the path), and a tick bursts into fourteen
+ * sparks in three colours with a flash and a shock ring. All of it is decoration inside the dot (aria-hidden); the dot's
+ * name says its state.
  */
 const SPARKS = 14;
-export type OrbitDot = {next: boolean; cue: string};
+export type OrbitDot = {next: boolean};
 export function PathDot({step, intent, just, expanded, onPress, orbit}: {step: PathStep; intent: StepIntent | null; just: boolean; expanded: boolean; onPress: (intent: StepIntent) => void; orbit?: OrbitDot}) {
   const style = {'--dot': PATH_COLOURS[step.colour].token, ...(step.partial !== undefined && step.state !== 'done' ? {'--partial': step.partial} : {})} as CSSProperties;
   const label = stepAriaLabel(step), done = step.state === 'done';
@@ -29,7 +30,6 @@ export function PathDot({step, intent, just, expanded, onPress, orbit}: {step: P
     {orbit?.next && !done && <>
       <span className="path-dot-pulse" aria-hidden="true"/>
       <span className="path-dot-orbit" aria-hidden="true"><i/></span>
-      <span className="path-start" aria-hidden="true">{orbit.cue}</span>
     </>}
     {just && (orbit
       ? <span className="path-dot-burst" data-rich="" aria-hidden="true">{Array.from({length: SPARKS}, (_, n) => <i key={n} style={{'--a': `${Math.round(n * 360 / SPARKS + (n % 3) * 9)}deg`, '--d': (0.8 + (n * 37 % 5) * 0.12).toFixed(2), '--t': `${560 + (n * 53) % 260}ms`} as CSSProperties} data-tone={n % 3}/>)}</span>

@@ -2,6 +2,7 @@
 import {Fragment, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode} from 'react';
 import {milestoneState, nextStep, normalisePath, orbitOffset, pathSegments, pathSteps, sectionProgress, snakeOffset, stepIntent, zigiAnchor, type PathModel, type PathStep, type PlacedMilestone, type StepIntent} from '../../lib/path/model';
 import {entranceAllowed} from '../use-entrance';
+import {PATH_COLOURS} from '../../lib/path/colours';
 import {PathChest} from './path-milestone';
 import {PathDot} from './path-dot';
 import {PathLine} from './path-line';
@@ -49,7 +50,12 @@ export type PathProps = {
   variant?: 'default' | 'orbit';
 };
 
-const JUST_MS = 1100, CHEER_MS = 1600;
+const JUST_MS = 1100, CHEER_MS = 1600, ORBIT_CHEER_MS = 1500;
+/** The element that scrolls the path (the full-screen Checklist's own layer), or null for the page. */
+function scrollerOf(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p; p = p.parentElement) { const o = getComputedStyle(p).overflowY; if ((o === 'auto' || o === 'scroll') && p.scrollHeight > p.clientHeight) return p; }
+  return null;
+}
 const sideOf = (offset: number): 'left' | 'right' => offset > 0 ? 'left' : 'right';
 /** The orbit look's ZIGi stands in the open sky the path bends away from (where a learning path puts its characters): the
  *  side opposite the dot's swing, or, for a dot in the middle, opposite the dot before it (the one after it, for the first). */
@@ -86,11 +92,45 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const geometryKey = `${layout}|${density}|${steps.map(s => s.id).join(',')}|${milestones.map(m => `${m.id}@${m.afterStepId}`).join(',')}|${panelFor ?? ''}`;
   const geo = usePathGeometry(stage, geometryKey);
 
-  // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood.
+  // ZIGi cheers for a moment after a dot is done here, then returns to the path's mood. The orbit look cheers beside the
+  // planet just ticked (celebrating when it completes an orbit), then goes on to stand by the next one.
   const [cheer, setCheer] = useState(false);
-  const ticked = steps.some(s => just.has(s.id));
+  const tickedId = steps.find(s => just.has(s.id))?.id ?? null, ticked = tickedId !== null;
+  const completed = orbit ? model.sections.some(s => just.has(`s:${s.id}`)) : false;
+  const [cheerAt, setCheerAt] = useState<{id: string; state: string} | null>(null);
   useEffect(() => { if (!ticked) return; setCheer(true); const t = window.setTimeout(() => setCheer(false), CHEER_MS); return () => window.clearTimeout(t); }, [ticked]);
+  // (Its own timer: the tick's `just` mark ends sooner than the cheer, and must not cut the cheer short.)
+  const cheerTimer = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!orbit || !tickedId || !next) return;
+    setCheerAt({id: tickedId, state: completed ? ZIGI_PATH_STATES.done : ZIGI_PATH_STATES.tick});
+    window.clearTimeout(cheerTimer.current);
+    cheerTimer.current = window.setTimeout(() => setCheerAt(null), ORBIT_CHEER_MS);
+    // the tick's identity is enough; `next` and `completed` are read at that moment
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orbit, tickedId]);
+  useEffect(() => () => window.clearTimeout(cheerTimer.current), []);
   const zigiState = zigi === false ? null : zigi.state ?? (cheer && anchor.mood !== 'done' ? ZIGI_PATH_STATES.tick : ZIGI_PATH_STATES[anchor.mood]);
+  const zigiAt = orbit ? cheerAt?.id ?? next?.id ?? null : next?.id ?? null;
+  const zigiNow = orbit && cheerAt ? cheerAt.state : orbit && zigiState === ZIGI_PATH_STATES.tick ? ZIGI_PATH_STATES[anchor.mood] : zigiState;
+
+  // The orbit look lands on the next planet: on opening (at once), and after a tick that leaves it outside the comfortable
+  // middle of the screen (a moment later, gliding unless motion is off), it is brought to about 40 % of the screen's height.
+  const landed = useRef(false), measured = geo !== null;
+  useEffect(() => {
+    if (!orbit || !measured || !next) return;
+    const el = stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`), s = stage.current; if (!el || !s) return;
+    const scroller = scrollerOf(s);
+    const go = (glide: boolean) => {
+      const r = el.getBoundingClientRect(), view = scroller ? scroller.getBoundingClientRect() : {top: 0, height: window.innerHeight};
+      const at = (r.top + r.height / 2 - view.top) / view.height;
+      if (glide && at >= .12 && at <= .7) return;
+      const top = (scroller ? scroller.scrollTop : window.scrollY) + (r.top + r.height / 2 - view.top) - view.height * .4;
+      (scroller ?? window).scrollTo({top: Math.max(0, top), behavior: glide && entranceAllowed() ? 'smooth' : 'auto'});
+    };
+    if (!landed.current) { landed.current = true; go(false); return; }
+    const t = window.setTimeout(() => go(true), 300); return () => window.clearTimeout(t);
+  }, [orbit, measured, next?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
@@ -144,31 +184,34 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   const zigiAtEnd = zigiState && !next && steps.length > 0;
   // The orbit look: a comet runs along each line a tick has just lit, and from the dot just done on to the next one.
   const comets = orbit ? new Set(segments.filter(s => (just.has(s.from) && (s.lit || s.to === next?.id)) || (just.has(s.to) && s.lit)).map(s => s.id)) : undefined;
+  // …and the way on from the last planet done to the next one stays faintly lit in the next planet's colour.
+  const doneSet = new Set(doneIds), lead = orbit && next ? segments.find(s => s.to === next.id && doneSet.has(s.from))?.id : undefined;
+  const tones = orbit ? Object.fromEntries(segments.map(s => [s.id, PATH_COLOURS[steps.find(x => x.id === s.to)?.colour ?? 'cyan'].token])) : undefined;
   const endTrophy = orbit && milestones.some(m => m.at === 'end' && m.afterStepId);
   let index = 0;
   return <div ref={stage} className={`path-stage${className ? ` ${className}` : ''}`} data-layout={layout} data-density={density} data-variant={orbit ? 'orbit' : undefined} role="group" aria-label={ariaLabel} onKeyDown={onKeyDown} data-path={model.id} data-measured={geo ? '' : undefined}>
-    {geo && <PathLine geo={geo} segments={segments} comets={comets} rail={orbit}/>}
+    {geo && <PathLine geo={geo} segments={segments} comets={comets} rail={orbit} lead={lead} tones={tones}/>}
     {model.sections.map((section, si) => {
       const p = sectionProgress(section), heading = `path-${uid}-${si}`;
       return <section key={section.id} className="path-section" data-section={section.id} data-colour={section.colour} aria-labelledby={heading}>
         <PathBanner section={section} index={si} done={p.done} total={p.total} headingId={heading} meter={orbit} justComplete={just.has(`s:${section.id}`)}/>
         <ol className="path-steps">
           {section.steps.map(step => {
-            const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
+            const i = index++, offset = layout === 'snake' ? swingOf(i) : 0, side = orbit ? orbitZigiSide(i, swingOf) : sideOf(offset), intent = stepIntent(step), isNext = next?.id === step.id;
             const chests = chestsAfter.get(step.id) ?? [];
             return <Fragment key={step.id}>
-              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset)} : {})} as CSSProperties}>
+              <li className="path-step" data-state={step.state} data-next={isNext ? '' : undefined} data-counted={step.counted === false ? 'no' : undefined} style={{'--offset': offset, ...(orbit ? {'--reach': Math.abs(offset), '--step-colour': PATH_COLOURS[step.colour].token} : {})} as CSSProperties}>
                 <div className="path-node">
-                  <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext, cue: anchor.mood === 'start' ? 'Start' : 'Next'}} : {})}/>
-                  <span className="path-label" data-side={side}><span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
-                  {zigiState && isNext && <PathZigi state={zigiState} side={orbit ? orbitZigiSide(i, swingOf) : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit} centred={orbit && offset === 0}/>}
+                  <PathDot step={step} intent={intent} just={just.has(step.id)} expanded={panelFor === step.id} onPress={intended => onStep?.(step, intended)} {...(orbit ? {orbit: {next: isNext}} : {})}/>
+                  <span className={orbit && isNext ? 'path-label path-label-bubble' : 'path-label'} data-side={side}>{orbit && isNext && <span className="path-label-cue">{anchor.mood === 'start' ? 'Start' : 'Next'}</span>}<span className="path-label-text">{step.label}</span>{step.note && <span className="path-label-note">{step.note}</span>}{step.state === 'locked' && step.lockedReason && <span className="path-label-note">{step.lockedReason}</span>}</span>
+                  {zigiNow && zigiAt === step.id && <PathZigi state={zigiNow} side={orbit ? side : side === 'left' ? 'right' : 'left'} say={zigi === false || orbit ? undefined : zigi.say} alive={orbit}/>}
                 </div>
                 {panelFor === step.id && renderPanel && <div className="path-panel">{renderPanel(step)}</div>}
               </li>
               {chests.map(m => {
                 const after = layout === 'snake' ? swingOf(i + 1) : 0, around = offset + after;
                 // The orbit look sets a chest on the path itself, half way between its two dots; the day's end is a trophy.
-                const onPath = orbit ? {offset: m.at === 'end' ? 0 : Math.round((offset + after) / 2 * 100) / 100, trophy: m.at === 'end', zigi: m.at === 'end' && zigiAtEnd ? zigiState : null} : undefined;
+                const onPath = orbit ? {offset: m.at === 'end' ? 0 : Math.round((offset + after) / 2 * 100) / 100, trophy: m.at === 'end', zigi: m.at === 'end' && zigiAtEnd ? zigiNow : null} : undefined;
                 return <PathChest key={m.id} milestone={m} just={just.has(`m:${m.id}`)} side={around >= 0 ? 'left' : 'right'} uid={uid} onPath={onPath}/>;
               })}
             </Fragment>;

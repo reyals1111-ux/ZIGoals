@@ -127,8 +127,8 @@ describe('ZIGi, layout and words', () => {
   test('the snake is a gentle wave', () => {
     expect([0, 1, 2, 3, 4, 5, 6, 7, 8].map(snakeOffset)).toEqual([0, 0.71, 1, 0.71, 0, -0.71, -1, -0.71, 0]);
   });
-  test('the Checklist\'s orbit path swings to both sides every six dots', () => {
-    expect([0, 1, 2, 3, 4, 5, 6].map(i => orbitOffset(i))).toEqual([0, 0.87, 0.87, 0, -0.87, -0.87, 0]);
+  test('the Checklist\'s orbit path swings half a step per planet, a whole S every eight', () => {
+    expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => orbitOffset(i))).toEqual([0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5, 0, 0.5]);
   });
   test('each dot says its state in words', () => {
     expect(stepAriaLabel(step('Morning walk', 'done'))).toBe('Morning walk: done');
