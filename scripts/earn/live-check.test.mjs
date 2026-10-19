@@ -18,7 +18,7 @@ describe('the Earn live check, on a recorded run', () => {
   test('every check passes on the record, each with its as-of; nothing flagged', async () => {
     const r = await run();
     expect(r.exitCode).toBe(0);
-    expect(r.results).toHaveLength(8);
+    expect(r.results).toHaveLength(12); // Gate C (P11.7): + validators, governance, Ramp's asset list, the balance hosts
     for (const x of r.results) { expect(x.ok, x.name).toBe(true); expect(x.asOf, x.name).toMatch(/^2026-10-19T/); expect(x.flag).toBeUndefined(); }
     expect(r.results.find(x => x.name.startsWith('chain denom')).detail).toContain('bond denom azig, display zig at exponent 18');
     expect(r.results.find(x => x.name.startsWith('measured')).detail).toMatch(/measured 5\.\d\d %, issuance 5\.\d\d %/);
@@ -57,6 +57,22 @@ describe('the Earn live check, on a recorded run', () => {
     // Rewards that fell (a claim in the window): flagged as not measurable.
     const claimed = await run(edit((u, hit) => u.includes('/rewards/') && hit?.height !== earliest, () => ({rewards: [{denom: 'azig', amount: '1.0'}]})));
     expect(claimed.results.find(x => x.name.startsWith('measured')).flag).toBe('rewards were claimed or the stake changed during the window');
+  });
+  test('Gate C (P11.7): the validator list, the tally, Ramp\'s list and the balance hosts each fail on a bad answer', async () => {
+    const jailed = await run(edit(u => u.includes('/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED'), b => ({...b, validators: b.validators.map((v, i) => i ? v : {...v, jailed: true})})));
+    expect(failed(jailed)).toEqual(['validators (the list Earn and Staking show)']);
+    const short = await run(edit(u => u.includes('/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED'), b => ({...b, validators: b.validators.slice(1)})));
+    expect(failed(short)).toEqual(['validators (the list Earn and Staking show)']); // their tokens no longer add up to the pool
+    const tally = await run(edit(u => /\/cosmos\/gov\/v1\/proposals\/\d+\/tally$/.test(u), () => ({tally: {yes_count: 'many'}})));
+    expect(failed(tally)).toEqual(['governance: the newest proposals and the latest tally']);
+    const ramp = await run(edit(u => u.startsWith('https://api.rampnetwork.com/'), b => ({...b, assets: b.assets.filter(a => a.symbol !== 'ATOM')})));
+    expect(failed(ramp)).toEqual(['Ramp Network’s public asset list (Add money)']);
+    const evm = await run(edit(u => u === 'https://base-rpc.publicnode.com', () => ({jsonrpc: '2.0', id: 1, error: {code: -32000, message: 'down'}})));
+    expect(failed(evm)).toEqual(['the browser-direct balance hosts, one public address each']);
+    expect(evm.exitCode).toBe(1);
+    // No person's address is ever asked for: only the four public, non-personal ones.
+    const asked = recorded.requests.map(q => q.url).filter(u => /publicnode|mempool/.test(u)).join(' ');
+    expect(asked).not.toMatch(/cosmos1(?!jv65s3grqf6v6jl3dp4t6c9t9rk99cd88lyufl)[02-9ac-hj-np-z]{38}/);
   });
   test('the script reads nothing it was not recorded reading (no network in tests)', async () => {
     const r = await liveCheck({fetcher: replay({requests: []})});

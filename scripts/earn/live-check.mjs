@@ -10,7 +10,12 @@
 // pool, OroSwap's fee tiers and pools (each vouched for by the factory), the USDC vaults, and DefiLlama's figures. The
 // measured staking figure (one named validator's self-bond over 10,000 blocks) is compared with the issuance figure at
 // that validator's commission: more than 10 % apart is FLAGGED ("reward path unverified", H51/H97), not failed.
-// Plain GETs only, no address of a person, no key, nothing written anywhere but the optional --record file.
+// Gate C (the ledger pass, P11.7 / plan §11.3): also the validator list Earn and Staking show, the newest proposals and the
+// latest tally, Ramp Network's public asset list (Add money), and one public, non-personal address on every browser-direct
+// balance host the app reads (PublicNode's Cosmos Hub REST and its six EVM and Solana RPCs, mempool.space): a module
+// account, the EVM burn address, Solana's vote program, Bitcoin's genesis address.
+// Plain GETs and read-only balance JSON-RPC calls only, no address of a person, no key, nothing written anywhere but the
+// optional --record file.
 // Exit 0: every check passed (flags allowed); 1: a source answered malformed or out-of-range data, or did not answer.
 import {writeFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
@@ -169,8 +174,74 @@ export async function liveCheck({fetcher = (url, init) => fetch(url, init), log 
     need(bad.length === 0, `out of range: ${bad.join(', ')}`);
     return {asOf: at2, detail: `${Object.values(protocols).filter(p => p.tvlUsd !== null).length} apps with a value; ${rows.length} yield pools; incidents: ${Object.entries(protocols).filter(([, p]) => p.incidents.length).map(([s, p]) => `${s} ${p.incidents.join(', ')}`).join('; ') || 'none'}`};
   });
+  await check('validators (the list Earn and Staking show)', async () => {
+    const [list, params, pool] = await Promise.all([at('/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=300'), at('/cosmos/staking/v1beta1/params'), at('/cosmos/staking/v1beta1/pool')]);
+    const vs = list.validators ?? [], max = Number(params.params?.max_validators);
+    need(vs.length >= 1 && vs.length <= max, `${vs.length} bonded validators (at most ${max})`);
+    const rates = vs.map(v => {
+      need(/^zigvaloper1[02-9ac-hj-np-z]{38}$/.test(v.operator_address ?? ''), 'not a validator address');
+      need(!v.jailed, `${v.operator_address} is bonded and jailed`);
+      need(/^\d+$/.test(v.tokens ?? '') && BigInt(v.tokens) > 0n, `${v.operator_address}: no tokens`);
+      const rate = Number(v.commission?.commission_rates?.rate);
+      need(rate >= 0 && rate <= 1, `${v.operator_address}: commission out of range`);
+      return rate;
+    });
+    const tokens = vs.map(v => BigInt(v.tokens)).sort((a, b) => (b > a ? 1 : b < a ? -1 : 0)), sum = tokens.reduce((a, b) => a + b, 0n), bonded = BigInt(pool.pool.bonded_tokens);
+    need(sum === bonded, `the bonded validators hold ${sum}, the pool says ${bonded}`);
+    const top = tokens.slice(0, 10).reduce((a, b) => a + b, 0n);
+    return {asOf, detail: `${vs.length} bonded (at most ${max}), none jailed; commissions ${(Math.min(...rates) * 100).toFixed(1)}–${(Math.max(...rates) * 100).toFixed(1)} %; the ten largest hold ${(Number(top * 10000n / sum) / 100).toFixed(2)} %`};
+  });
+  await check('governance: the newest proposals and the latest tally', async () => {
+    const [props, tallying] = await Promise.all([at('/cosmos/gov/v1/proposals?pagination.reverse=true&pagination.limit=5'), at('/cosmos/gov/v1/params/tallying')]);
+    const list = props.proposals ?? [];
+    need(list.length >= 1, 'no proposal');
+    for (const p of list) need(/^\d+$/.test(p.id ?? '') && Number(p.id) >= 1 && /^PROPOSAL_STATUS_/.test(p.status ?? ''), 'malformed proposal');
+    const latest = list[0], tally = (await at(`/cosmos/gov/v1/proposals/${latest.id}/tally`)).tally;
+    for (const k of ['yes_count', 'no_count', 'abstain_count', 'no_with_veto_count']) need(/^\d+$/.test(tally?.[k] ?? ''), `the tally's ${k} is malformed`);
+    const quorum = Number((tallying.params ?? tallying.tally_params)?.quorum);
+    need(quorum > 0 && quorum < 1, 'quorum out of range');
+    return {asOf, detail: `newest #${latest.id} (${latest.status.replace('PROPOSAL_STATUS_', '').toLowerCase().replaceAll('_', ' ')}), its tally read; quorum ${(quorum * 100).toFixed(1)} %`};
+  });
+  await check('Ramp Network’s public asset list (Add money)', async () => {
+    const at3 = new Date().toISOString(), r = await get('https://api.rampnetwork.com/api/host-api/v3/assets?currencyCode=EUR');
+    need(r.currencyCode === 'EUR' && Array.isArray(r.assets), 'malformed asset list');
+    for (const k of ['minFeePercent', 'maxFeePercent', 'minFeeAmount', 'minPurchaseAmount']) need(typeof r[k] === 'number' && r[k] >= 0 && r[k] <= 1_000_000, `${k} out of range`);
+    need(r.maxFeePercent <= 20, `fees up to ${r.maxFeePercent} %`);
+    const atom = r.assets.find(a => `${a.chain}_${a.symbol}`.toUpperCase() === 'COSMOS_ATOM');
+    need(atom, 'ATOM on Cosmos Hub is not in the list');
+    return {asOf: at3, detail: `${r.assets.length} assets; ATOM on Cosmos Hub ${atom.enabled && !atom.hidden ? 'offered' : 'listed, not offered now'}; fees ${r.minFeePercent}–${r.maxFeePercent} %, at least €${r.minFeeAmount}`};
+  });
+  await check('the browser-direct balance hosts, one public address each', async () => {
+    const at4 = new Date().toISOString(), answered = [];
+    const rpc = async (url, body) => {
+      const response = await fetcher(url, {method: 'POST', headers: {accept: 'application/json', 'content-type': 'application/json', 'user-agent': UA}, body: JSON.stringify(body), redirect: 'manual', signal: AbortSignal.timeout(60_000)});
+      if (!response.ok) throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
+      try { return JSON.parse(await response.text()); } catch { throw new Error(`not JSON from ${new URL(url).host}`); }
+    };
+    const hub = await get(`${BALANCE_HOSTS.cosmosHub}/cosmos/bank/v1beta1/balances/${PUBLIC_ADDRESSES.cosmosHub}`);
+    need(Array.isArray(hub.balances) && hub.balances.every(b => /^\d+$/.test(b.amount ?? '')), 'Cosmos Hub: malformed balances'); answered.push('Cosmos Hub');
+    for (const [name, host] of Object.entries(BALANCE_HOSTS.evm)) {
+      const j = await rpc(host, {jsonrpc: '2.0', id: 1, method: 'eth_getBalance', params: [PUBLIC_ADDRESSES.evm, 'latest']});
+      need(/^0x[0-9a-f]+$/i.test(j.result ?? ''), `${name}: malformed balance`); answered.push(name);
+    }
+    const sol = await rpc(BALANCE_HOSTS.solana, {jsonrpc: '2.0', id: 1, method: 'getBalance', params: [PUBLIC_ADDRESSES.solana]});
+    need(Number.isInteger(sol.result?.value) && sol.result.value >= 0, 'Solana: malformed balance'); answered.push('Solana');
+    const btc = await get(`${BALANCE_HOSTS.bitcoin}/api/address/${PUBLIC_ADDRESSES.bitcoin}`);
+    need(Number.isInteger(btc.chain_stats?.funded_txo_sum) && btc.chain_stats.funded_txo_sum >= 0, 'Bitcoin: malformed address'); answered.push('Bitcoin');
+    return {asOf: at4, detail: `${answered.length} hosts answered well-formed balances (${answered.join(', ')})`};
+  });
   return {results, exitCode: results.every(r => r.ok) ? 0 : 1};
 }
+/** The balance hosts the app reads browser-direct (apps/web/lib/wallets/balances/chains.ts, the CSP's nine), and one public,
+ *  non-personal address for each kind: Cosmos Hub's distribution module account, the EVM burn address, Solana's vote
+ *  program, Bitcoin's genesis address. */
+export const BALANCE_HOSTS = Object.freeze({
+  cosmosHub: 'https://cosmos-rest.publicnode.com',
+  evm: Object.freeze({Ethereum: 'https://ethereum-rpc.publicnode.com', Arbitrum: 'https://arbitrum-one-rpc.publicnode.com', Base: 'https://base-rpc.publicnode.com', 'OP Mainnet': 'https://optimism-rpc.publicnode.com', Polygon: 'https://polygon-bor-rpc.publicnode.com', 'BNB Chain': 'https://bsc-rpc.publicnode.com'}),
+  solana: 'https://solana-rpc.publicnode.com',
+  bitcoin: 'https://mempool.space',
+});
+export const PUBLIC_ADDRESSES = Object.freeze({cosmosHub: 'cosmos1jv65s3grqf6v6jl3dp4t6c9t9rk99cd88lyufl', evm: '0x000000000000000000000000000000000000dEaD', solana: 'Vote111111111111111111111111111111111111111', bitcoin: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'});
 
 /** Wraps the network so every request and answer is kept (large yields bodies cut to their ZIGChain rows), for --record. */
 export function recording(fetcher) {
@@ -180,6 +251,7 @@ export function recording(fetcher) {
     let kept = body;
     if (url === 'https://yields.llama.fi/pools' && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({status: j.status, data: [...j.data.filter(r => r.chain !== 'ZIGChain').slice(0, 3), ...j.data.filter(r => r.chain === 'ZIGChain')]}); }
     if (url.startsWith('https://api.llama.fi/protocol/') && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({name: j.name, currentChainTvls: j.currentChainTvls, hacks: j.hacks}); }
+    if (url.startsWith('https://api.rampnetwork.com/') && response.ok) { const j = JSON.parse(body); kept = JSON.stringify({currencyCode: j.currencyCode, minFeePercent: j.minFeePercent, maxFeePercent: j.maxFeePercent, minFeeAmount: j.minFeeAmount, minPurchaseAmount: j.minPurchaseAmount, maxPurchaseAmount: j.maxPurchaseAmount, assets: j.assets.filter(a => ['COSMOS_ATOM', 'ETH_ETH', 'ETH_USDC'].includes(`${a.chain}_${a.symbol}`.toUpperCase()))}); }
     requests.push({url, height: init.headers?.['x-cosmos-block-height'] ?? null, status: response.status, responseHeight: response.headers.get('x-cosmos-block-height'), body: kept});
     const headers = new Headers({'content-type': 'application/json'}); const h = response.headers.get('x-cosmos-block-height'); if (h) headers.set('x-cosmos-block-height', h);
     return new Response(body, {status: response.status, headers});
@@ -205,7 +277,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const rec = out ? recording((url, init) => fetch(url, init)) : null;
   console.log(`Earn live check, read-only, started ${new Date().toISOString()}`);
   const {results, exitCode} = await liveCheck({fetcher: rec?.fetcher, log: line => console.log(line)});
-  if (rec) writeFileSync(out, JSON.stringify({version: 1, recordedAt: new Date().toISOString(), note: 'One real run of scripts/earn/live-check.mjs (plain GETs); DefiLlama bodies cut to the fields the check reads.', requests: rec.requests}) + '\n');
+  if (rec) writeFileSync(out, JSON.stringify({version: 1, recordedAt: new Date().toISOString(), note: 'One real run of scripts/earn/live-check.mjs (plain GETs and read-only balance JSON-RPC calls); DefiLlama and Ramp bodies cut to the fields the check reads.', requests: rec.requests}) + '\n');
   console.log(`${results.filter(r => r.ok).length} of ${results.length} checks passed; ${results.filter(r => r.flag).length} flagged. Exit ${exitCode}.`);
   process.exit(exitCode);
 }
