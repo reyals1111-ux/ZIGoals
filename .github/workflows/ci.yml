@@ -21,7 +21,9 @@ jobs:
     name: web checks (lint, types, unit, build, audit, secret scan)
     runs-on: ubuntu-24.04
     # Measured 3.7 min on the first split run (36489960661); about 2.5x headroom.
-    timeout-minutes: 10
+    # Session AF (ADR-028 H127): lint + types + about 5,900 unit tests + the build reached the 10-minute cap on a slow
+    # checkout (CI on c224bbe1: cancelled at 10:12 right after a green build); 15 gives the same job its headroom back.
+    timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       NEXT_PUBLIC_APP_ENVIRONMENT: PUBLIC_ALPHA_UNDEPLOYED
