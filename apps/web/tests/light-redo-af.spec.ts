@@ -61,8 +61,9 @@ test('small coloured words take a deeper shade of their own hue by day (≥ 4.5:
   expect(labels.length).toBe(4);
   const nebulaInk = await page.evaluate(() => ['goals', 'habits', 'health', 'wealth'].map(p => { const probe = document.createElement('span'); probe.style.color = `var(--pillar-${p}-ink)`; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; }));
   for (const ink of nebulaInk) expect(ratio(ink, 'rgb(240, 243, 249)'), ink).toBeGreaterThanOrEqual(4.5);
-  // The pillar labels (a colour set at run time): a deeper shade that reads on the day's card.
-  for (const l of labels) expect(ratio(l.color.startsWith('oklch') ? await page.evaluate(c => { const d = document.createElement('div'); d.style.color = c; document.body.append(d); const ctx = document.createElement('canvas').getContext('2d')!; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data; d.remove(); return `rgb(${r}, ${g}, ${b})`; }, l.color) : l.color, 'rgb(240, 243, 249)'), `${l.pillar} ${l.color}`).toBeGreaterThanOrEqual(4.5);
+  // The pillar labels (a colour set at run time): a deeper shade that reads on the day's card (a color-mix() or relative
+  // colour is read back as sRGB through a canvas).
+  for (const l of labels) expect(ratio(!l.color.startsWith('rgb') ? await page.evaluate(c => { const d = document.createElement('div'); d.style.color = c; document.body.append(d); const ctx = document.createElement('canvas').getContext('2d')!; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data; d.remove(); return `rgb(${r}, ${g}, ${b})`; }, l.color) : l.color, 'rgb(240, 243, 249)'), `${l.pillar} ${l.color}`).toBeGreaterThanOrEqual(4.5);
   // The rings' paint is the pillar colour itself (a fill: never deepened).
   const ringPaint = await page.locator('.life-ring svg *').evaluateAll(cs => cs.flatMap(c => [getComputedStyle(c).stroke, getComputedStyle(c).getPropertyValue('stop-color')]));
   expect(ringPaint.some(s => s === 'rgb(146, 115, 255)')).toBe(true);

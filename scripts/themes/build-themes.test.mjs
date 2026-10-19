@@ -131,7 +131,8 @@ describe('Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by 
   it('Light’s hand layers keep no layout rule (a theme switch never moves a box) and no matte patch', () => {
     const hand = ['extra', 'hero', 'headerart', 'sidebar'].map(part => readFileSync(join(WEB, 'themes', `light.${part}.css`), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')).join('\n');
     expect(hand).not.toMatch(/margin(-top|-block)?\s*:/);
-    expect(hand).not.toMatch(/calc-milestone|exercise-medallion|habit-week-bars|goal-choice-tiles|habit-month-grid|--ha-|--nebula-flow-mid|\.staking-card/);
+    expect(hand).not.toMatch(/calc-milestone|exercise-medallion|habit-week-bars|goal-choice-tiles|habit-month-grid|--ha-|--nebula-flow-mid/);
+    expect(hand).not.toMatch(/staking-card[^{}]*\{[^}]*color-scheme:\s*dark/); // the reserve card is no night island by day
   });
   it('Dark: the star-system background is black with a subtle mist; every coloured fill keeps Nebula’s colour', () => {
     expect(sheets.dark).toMatch(/:root\[data-theme=dark\] body:not\(#\\-\) \{ background: #000000; \}/);

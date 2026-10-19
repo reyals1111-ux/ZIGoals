@@ -105,10 +105,12 @@ export const contrastOnWhite = c => 1.05 / (relLum(fromOklch({...c, a: 1})) + 0.
 /** The text contrast every coloured word reaches by day against white: 6:1 there keeps ≥ 4.5:1 on the day's near-white
  *  panels and on the light tints the nebula's glows leave on them (Session AE's day words sat at OKLCH L 0.47, about the
  *  same). */
-export const TEXT_CONTRAST = 6;
-/** The most lightness a word in a run-time colour keeps by day (OKLCH; at least 5:1 on white for any hue, so ≥ 4.5:1 on
- *  the day's near-white panels). */
-export const RUNTIME_INK_L = 0.48;
+export const TEXT_CONTRAST = 6.6;
+/** A word in a run-time colour by day: the colour mixed with black, this share kept (the same hue, deeper; ≥ 5:1 on white
+ *  for every pillar and area colour, so ≥ 4.5:1 on the day's panels). A colour-mix computes to an sRGB colour every tool
+ *  reads (a relative oklch() colour does not parse in the layout audit). */
+export const RUNTIME_INK_SHARE = 42;
+export const runtimeInk = colour => `color-mix(in srgb, ${colour} ${RUNTIME_INK_SHARE}%, #000)`;
 /** A deeper shade of the same hue (Session AF, ADR-028 H13: "a deeper shade of the same hue", text only, never fills): the
  *  lightness is lowered in small steps, hue and chroma kept (sRGB may trim the chroma), until the word reaches
  *  TEXT_CONTRAST on white. A colour that already does is left as it is. Session AE's amber() shift (ADR-027 G22: golds to
@@ -224,7 +226,7 @@ const topLevel = text => { const out = []; let depth = 0, from = 0; for (let i =
 /** Each color-mix() in a value, in order: [start, end] (end exclusive). */
 const mixesOf = value => { const out = []; for (let i = value.indexOf('color-mix('); i >= 0; i = value.indexOf('color-mix(', i + 1)) { let depth = 0, j = i + 9; for (; j < value.length; j++) { if (value[j] === '(') depth++; else if (value[j] === ')') { depth--; if (!depth) break; } } out.push([i, j + 1]); i = j; } return out; };
 /** A colour mixed in at this share or more is the mix's ground: a tint of an accent over the night's panel. */
-const MIX_GROUND = 0.75;
+const MIX_GROUND = 0.65;
 /** Maps every colour in a value by the role's rule. Session AF (L5a): inside a color-mix() of a word-less role (a line, a
  *  fill, a shade) only a dark colour that is the mix's ground flips — it makes up at least MIX_GROUND of the mix, or the
  *  other side brings no hue (a night panel at 70 % over transparent) — so a night panel tinted by an accent becomes a day
@@ -308,8 +310,8 @@ export function buildTheme(theme, files = sourceFiles()) {
   const substitute = (value, role, self = '') => theme === 'light' ? replaceVars(value, (name, fallback, whole) => {
     if (roleOf(name, {}) !== 'accent') return whole;
     // A colour set at run time (a pillar's, an area's, a tone's: the token is redefined per element) cannot be read here:
-    // a word in it takes the same hue at OKLCH lightness 0.54 at most (≥ 4.5:1 on white for every hue).
-    if (role === 'text' && (local.has(name) || !tokens.has(name) || /var\(/.test(resolve(tokens.get(name))))) return `oklch(from ${whole} min(l, ${RUNTIME_INK_L}) c h)`;
+    // a word in it takes the same hue, deeper (runtimeInk).
+    if (role === 'text' && (local.has(name) || !tokens.has(name) || /var\(/.test(resolve(tokens.get(name))))) return runtimeInk(whole);
     if (local.has(name) || !tokens.has(name)) return whole;
     const full = resolve(tokens.get(name)); if (/var\(/.test(full) || !hasColour(full)) return whole;
     const mapped = mapValue(full, role, theme); if (mapped === null) return whole;

@@ -29,15 +29,21 @@
 :root[data-theme=light] .site-footer:not(#\-) { background: linear-gradient(180deg, #f7f7fb00 0, #d9d3f566 36px, #6d63b8b3 110px, #1a1d4af2 190px, #020918 280px); }
 /* Focus rings stay visible on light surfaces. */
 :root[data-theme=light] :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { outline-color: #4b3fd1; }
-/* Words in a colour chosen at run time (a pillar's, an area's, a tone's): by day a deeper shade of the same hue (OKLCH
-   lightness at most 0.48, hue and chroma kept: ≥ 4.5:1 on the day's panels for every hue), never a fill. The islands
-   keep their night colours. */
-:root[data-theme=light] .life-ring-pillar:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: oklch(from var(--pillar) min(l, .48) c h); }
-:root[data-theme=light] .hall-area:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: oklch(from var(--area, #8fa6ff) min(l, .48) c h); }
-:root[data-theme=light] .health-hl-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: oklch(from var(--tone) min(l, .48) c h); }
-:root[data-theme=light] .activity-category-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: oklch(from var(--event-accent) min(l, .48) c h); }
-:root[data-theme=light] .template-area:not(#\-) { color: oklch(from var(--area) min(l, .48) c h); }
+/* Words in a colour chosen at run time (a pillar's, an area's, a tone's): by day a deeper shade of the same hue (the colour
+   mixed with 58 % black, as the generator's runtimeInk: ≥ 4.5:1 on the day's panels for every pillar and area colour),
+   never a fill. The islands keep their night colours. */
+:root[data-theme=light] .life-ring-pillar:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--pillar) 42%, #000); }
+:root[data-theme=light] .hall-area:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--area, #8fa6ff) 42%, #000); }
+:root[data-theme=light] .health-hl-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--tone) 42%, #000); }
+:root[data-theme=light] .activity-category-label:not(#\-):not(:where(.today-hero, .site-footer, .app-sidebar) *) { color: color-mix(in srgb, var(--event-accent) 42%, #000); }
+:root[data-theme=light] .template-area:not(#\-) { color: color-mix(in srgb, var(--area) 42%, #000); }
 /* The line under the theme bar in Settings and More sits on the page itself, not on the bar's night glass. */
 :root[data-theme=light] .theme-switch-note:not(#\-):not(:where(.app-sidebar) *) { color: #3a4566; }
 /* Wealth's world map behind the glass cards: a whisper by day (it read as grey smudges) — a calm heavy background. */
 :root[data-theme=light] .wealth-hero-scene:not(#\-) { opacity: .08; }
+/* Session AF (L5a, parity and audit round 2): the reward-reserve card follows the day (no island); its horizon art is a
+   heavy background, so by day the card's own veil lies thicker over it (the night's veil, flipped, let the dark art through
+   at the card's right, under its link). */
+:root[data-theme=light] .staking-card:not(#\-) { background-image: linear-gradient(110deg, #f3f5faf2, #eef1f8e6), var(--cosmic-horizon); }
+/* A project without a logo shows its initials on the same tile as a logo (by day a light tile): its letters are ink. */
+:root[data-theme=light] .ecosystem-initials:not(#\-) { color: #1c2333; }
