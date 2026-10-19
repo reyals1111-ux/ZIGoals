@@ -34,10 +34,10 @@ No research fan-out. Gate C reviews one after another. "pace down" from the owne
 | Lane | Branch / worktree | Owner | State |
 |---|---|---|---|
 | L6 lead (records, verifier, sync, security, words, merges, Gate C) | `feature/session-af-wealth-unlocked` (this checkout) | lead | Part 0 done; A2/A3/A4/A10 done |
-| L2a chain + signing + staking UI + governance + validator health | `af/signing` (an agent worktree) | helper | Part 2 done: merged `df19ef40` 01:25 Mon, wired; chunk 3 (governance UI, validator health, rewards sweep, Settings "Remove" for staking prefs) waits for a slot |
+| L2a chain + signing + staking UI + governance + validator health | chunk 1–2 `af/signing`; chunk 3 `af/signing3` (agent worktrees) | helper (port 3104) | Part 2 merged `df19ef40`, wired; chunk 3 (governance, validator health, rewards sweep, grants panel, testnet memo attestations, Settings section, Keplr phone path) running since 02:10 Mon |
 | L1 Earn hub + data routes + Academy + dock + Today card | chunk 1 `af/earn`; chunk 2 `af/earn2` (agent worktrees) | helper (port 3103) | chunk 1 merged `a444c5ae`, wired; chunk 2 (Start-here, every option in depth, measured APR H97, Academy, illustrations, Today EARN card, dock, stage 9, live-check) running since 01:42 Mon |
 | L3 Checklist + shared path engine | `af/checklist` (an agent worktree) | helper | done: merged `206a26c4`, wired (stage 10, registries, Today card, Settings, game layer) |
-| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` (an agent worktree) | helper (port 3104) | running since 00:15 Mon |
+| L2b wallets + tracking + multi-asset Add money + Goal Vaults | `af/wallet` (an agent worktree) | helper | done: merged 02:05 Mon, wired (`d19e8188` `c0f424d8` `043946f7`); open: move its link rows into the verified registry after L1 chunk 2 merges (L1 owns the registry now) |
 | L5a UI changes + theme parity | `af/ui` (an agent worktree) | helper (port 3102) | running since 01:40 Mon: P10.1–P10.13 |
 | L4 ZIGi | `af/zigi` → `../ZIGoals-af-zigi` | helper | waits for a slot |
 | L5b My Universe, Day Timeline, Stories | `af/extras` → `../ZIGoals-af-extras` | helper | waits for a slot |
@@ -50,10 +50,10 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 0 Records, setup | done except the reference captures + route/asset checks (the next free helper slot, H93) | `5e4f909d` `59e44be9` `5c015f2c`; captures `c438f25b` on `review/session-af-screens` |
 | 1 Earn hub | core merged and wired; chunk 2 pending | merge `a444c5ae`; wiring `a3cbc5c3` `acd71be2` `8bb65419` `64942576` |
 | 2 Native staking | done (merged, wired); owner's real-wallet checks after deploy | merge `df19ef40`; wiring `f2388078` `602f7bfb` `15f0d9af` `1518b802` |
-| 3 Wallets | not started | — |
-| 4 Add money (multi-asset) | not started | — |
+| 3 Wallets | done (merged, wired) | merge of af/wallet; `68aa69b0` (no e-mail addresses, H101) |
+| 4 Add money (multi-asset) | done (merged, wired); owner IDs pending | merge of af/wallet; `c0f424d8` |
 | 5 Earn dock | not started | — |
-| 6 Goal Vaults + governance | not started | — |
+| 6 Goal Vaults + governance | Goal Vaults done (merged); governance, validator health, sweep, grants, attestations running (L2a chunk 3) | merge of af/wallet |
 | 7 Checklist | done (merged, wired); critique round at Gate C | merge `206a26c4`; wiring as Part 1; stage 10 `8bb65419` |
 | 8 ZIGi | not started | — |
 | 9 My Universe, Day Timeline, Stories | not started | — |
@@ -61,6 +61,18 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 11 Leftovers A2–A4, A10, verifier stages, live-check | A2/A3 `4f92d3ff`, A4 `569f3b63`, A10 `95bca53d` `fec6385c` done; the Earn/Checklist stages and live-check come with their lanes | see left |
 | 12 Words and help | not started | — |
 | Gate C | not started | — |
+
+## Resume here (2026-10-19 02:20 Brussels — L2b merged and wired; L2a chunk 3 started)
+- Done since 01:50: Help's first AF answers `7ed163bc`; the L2b merge, then `68aa69b0` (WalletConnect notices without
+  e-mail addresses, H101), `d19e8188` (TIER 3 storage), `c0f424d8` (TIER 3 egress: Ramp's API server-only; sanitizer;
+  search Add money; About panel notice; PRIVACY; themes), `043946f7` (TIER 3 labels: "Contract execution is disabled",
+  H100; H102 verifier origins unchanged). Unit 5611 + the guard fix; lint 0 errors / 19 warnings (the baseline; `.claude/**`
+  ignored since `9497a70a`).
+- Running helpers (3): L5a (3102), L1 chunk 2 (3103), L2a chunk 3 (3104). Next slots: L4 (ZIGi), then L5b (extras).
+- Open lead items: move L2b's wallet link rows (`lib/wallets/links.ts`) into the verified registry after L1 chunk 2
+  merges; mount L1's Today EARN card and the Earn/Checklist/Signing Settings sections as they arrive; budgets commit
+  (H96: add-money 465,189 B and /back 462,270 B measured by L2b; earn; checklist; governance later); Part 12 list above.
+- When the owner sets `reownProjectId`: one commit with the five WalletConnect hosts (L2b.md "What the lead must wire").
 
 ## Resume here (2026-10-19 01:50 Brussels — L2a and Part 0 merged; L5a and L1 chunk 2 started)
 - Done since 00:45: nav fixes `59c61ea1` (phone tabs never take a navigation extra, H68; specs moved), `4df00252`;
