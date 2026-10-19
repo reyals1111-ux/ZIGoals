@@ -4,6 +4,9 @@ import {useUiPrefs} from '../../lib/ui-prefs/use-ui-prefs';
 import {checklistPrefsOf} from '../../lib/ui-prefs/schema';
 import type {LayoutAttrs} from '../layout-edit';
 import {LoadBoundary} from '../load-boundary';
+// Session AF (the lead): the card's CSS loads with Today, not with the lazy body — a CSS chunk fetched after first paint and
+// cancelled by a quick navigation left an unhandled ChunkLoadError in WebKit (CI's webkit-earn trace).
+import './today-checklist.css';
 
 const TodayChecklistBody = lazy(() => import('./today-checklist-body'));
 /**
@@ -14,7 +17,7 @@ const TodayChecklistBody = lazy(() => import('./today-checklist-body'));
  */
 export function TodayChecklistCard(layout: LayoutAttrs) {
   const prefs = useUiPrefs(), on = prefs.loaded && !prefs.unreadable && checklistPrefsOf(prefs.data).launcher;
-  return <section {...layout} className="panel today-checklist-card" aria-labelledby="today-checklist-title" hidden={!on || undefined}>
+  return <section {...layout} className="panel today-checklist-card" aria-labelledby={on ? 'today-checklist-title' : undefined} hidden={!on || undefined}>
     {on && <LoadBoundary quiet><Suspense fallback={<p className="eyebrow" id="today-checklist-title">Checklist</p>}><TodayChecklistBody/></Suspense></LoadBoundary>}
   </section>;
 }

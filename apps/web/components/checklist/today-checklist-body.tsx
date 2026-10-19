@@ -7,7 +7,6 @@ import {markNudged, todayOf} from '../../lib/checklist/day';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
 import {useChecklist} from './use-checklist';
 import {ChecklistMark, FlameMark} from './checklist-marks';
-import './today-checklist.css';
 
 /**
  * The Today card's body (P7.21, P7.14): "4 of 6 dots today", the bar, the next dot, the streak, and — at most three times

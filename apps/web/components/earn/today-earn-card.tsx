@@ -32,7 +32,7 @@ export function TodayEarnCard(layout: Partial<LayoutAttrs>) {
   const [error, setError] = useState('');
   const shown = state === 'shown';
   const dismiss = () => { try { path.update(setTodayCard('dismissed')); } catch (cause) { setError(deviceSettingFailureMessage(cause)); } };
-  return <section {...layout} className="panel today-earn-card" aria-labelledby="today-earn-title" data-earn-card={state} hidden={!shown || undefined}>
+  return <section {...layout} className="panel today-earn-card" aria-labelledby={shown ? 'today-earn-title' : undefined} data-earn-card={state} hidden={!shown || undefined}>
     {shown && <>
       <span className="today-earn-mark" aria-hidden="true"><EarnGlyphMark/></span>
       <div className="today-earn-body">
