@@ -10,7 +10,18 @@ import {askZigi, launcherShown} from './ask';
 const KINDS = new Set(['goal', 'milestone', 'goals', 'habit', 'habits', 'streak', 'checkins', 'health', 'meal', 'food-entry', 'exercise', 'wealth', 'habit-history', 'sleep', 'meditation', 'chess']);
 /** A goal's or a habit's question names it; without its name there is no item (a habit card keeps T's own "Ask ZIGi"). */
 const NEEDS_NAME = new Set(['goal', 'milestone', 'habit']);
-export function AskZigiItem({kind, metric, name}: {kind: string; metric: string; name?: string}) {
+/**
+ * Session AF (L4, P8.7): any card with an id on its page can offer "Explain this card": ZIGi answers from its plain-words
+ * note for ZIGoals' own cards (no AI), or the person's AI explains it from the page's titles (the "This page" chip; never
+ * a value). A caller passes `card` for a card whose kind has no question of its own.
+ */
+export function ExplainCardItem({card}: {card: {id: string; label: string}}) {
+  if (!launcherShown()) return null;
+  const label = card.label.replace(/\s+/g, ' ').trim().slice(0, 60);
+  return <button type="button" onClick={() => askZigi(`Explain the ${label} card`, {tool: 'page_view', args: {card: card.id.slice(0, 80)}, label: `This page · ${label}`})}>Explain this card</button>;
+}
+export function AskZigiItem({kind, metric, name, card}: {kind: string; metric: string; name?: string; card?: {id: string; label: string}}) {
+  if (card && !KINDS.has(kind)) return <ExplainCardItem card={card}/>;
   if (!KINDS.has(kind) || (NEEDS_NAME.has(kind) && !name?.trim()) || !launcherShown()) return null;
   const ask = () => void import('../../lib/ai/proactive/explain').then(({explainFor}) => { const explain = explainFor(kind, metric, name); if (explain) askZigi(explain.question, explain.about); }).catch(() => undefined);
   return <button type="button" onClick={ask}>Ask ZIGi about this</button>;

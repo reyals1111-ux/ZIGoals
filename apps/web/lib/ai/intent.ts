@@ -22,8 +22,11 @@ const VAGUE = /^(?:log it|note that|track this|skip it|mark it done|remind me|ad
  * No repair round may push a proposal there: a refusal is the right reply, and a second ask with the schema was turning
  * correct refusals into invented cards. Verbs at the start of the ask, or the secret cues anywhere; a noun ("the Emergency
  * fund goal") does not count.
+ * Session AF (ADR-028 H47, the owner's policy change): staking, unstaking and claiming left this list, because their
+ * answer is now a card (the staking review filled in, `prefill-staking`, which the person signs in their own wallet);
+ * signing, sending and broadcasting stay refused (and "broadcast" joined them), as do buying, selling and moving money.
  */
-const REFUSE = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu )*(?:delete|remove|erase|wipe|drop|archive|discard|buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|stake|unstake|claim|sign|verwijder|wis|archiveer|koop|verkoop|stort|verstuur|verplaats|teken)\b|\b(?:remember|save|store|keep|onthoud|bewaar)\b.{0,40}\b(?:key|password|passphrase|secret|seed|sleutel|wachtwoord)\b|\bmy (?:password|api key|seed phrase|private key) is\b|\bmijn wachtwoord is\b|\bsk-[A-Za-z0-9]/i;
+const REFUSE = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |also |now |then |dan |nu )*(?:delete|remove|erase|wipe|drop|archive|discard|buy|sell|trade|swap|fund|transfer|send|move|withdraw|deposit|sign|broadcast|verwijder|wis|archiveer|koop|verkoop|stort|verstuur|verplaats|teken|onderteken)\b|\b(?:remember|save|store|keep|onthoud|bewaar)\b.{0,40}\b(?:key|password|passphrase|secret|seed|sleutel|wachtwoord)\b|\bmy (?:password|api key|seed phrase|private key) is\b|\bmijn wachtwoord is\b|\bsk-[A-Za-z0-9]/i;
 /** A reply that reads as a decline, in the three languages: no repair round after it (the model said no; a card would be invented). */
 /**
  * The reply declined (the repair round never asks again after a decline, and a money ask's decline carries no card: round 9,

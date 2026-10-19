@@ -12,6 +12,7 @@ import type {ToolOk, ToolResult} from '../tools/types';
 import {amount, dayText, groupUnits, grouped, instantText, n, plural, span} from './words';
 import {EXAMPLES_INTRO, examplesFor} from './examples';
 import {normalizeSpoken} from '../spoken/normalize';
+import {afLocalAnswer} from './af';
 
 /**
  * Local answers (Session V Part 3, ADR-014): pure lookups answered on this device from ZIGi's own tools, with no AI and
@@ -159,6 +160,8 @@ export function detectSubjects(question: string, env: ToolEnv): Subjects {
 }
 /** The answer to a question, or `none` when it is not a lookup ZIGi answers on the device. */
 export function localAnswer(question: string, env: ToolEnv, subject?: Subject): LocalReply {
+  // Session AF (L4): the Checklist commands, the Earn coach, the page and the brief, each with its own stop rule, first.
+  if (!subject) { const af = afLocalAnswer(normalizeSpoken(question), env); if (af) return af; }
   const reply = answer(normalizeSpoken(question), env, subject); // Session Z-Local Part 4: the spoken form
   return 'text' in reply ? {...reply, text: groupUnits(reply.text)} : reply;
 }
@@ -190,6 +193,10 @@ const NAV_PAGES: Record<string, {page: string; view?: string; label: string}> = 
   planner: {page: 'health', view: 'planner', label: 'Health → Planner'}, 'meal planner': {page: 'health', view: 'planner', label: 'Health → Planner'}, maaltijdplanner: {page: 'health', view: 'planner', label: 'Health → Planner'}, 'grocery list': {page: 'health', view: 'planner', label: 'Health → Planner'}, boodschappenlijst: {page: 'health', view: 'planner', label: 'Health → Planner'},
   insights: {page: 'health', view: 'insights', label: 'Health → Insights'}, 'food insights': {page: 'health', view: 'insights', label: 'Health → Insights'}, inzichten: {page: 'health', view: 'insights', label: 'Health → Insights'}, 'recipe import': {page: 'health', view: 'import', label: 'Health → Import'}, 'import a recipe': {page: 'health', view: 'import', label: 'Health → Import'},
   reminders: {page: 'settings', view: 'reminders', label: 'Settings → Reminders'}, herinneringen: {page: 'settings', view: 'reminders', label: 'Settings → Reminders'},
+  // Session AF (L4): the Checklist and Earn (L3's and L1's pages), with Earn's Start here and Academy.
+  checklist: {page: 'checklist', label: 'Checklist'}, 'check list': {page: 'checklist', label: 'Checklist'}, checklijst: {page: 'checklist', label: 'Checklist'}, path: {page: 'checklist', label: 'Checklist'},
+  earn: {page: 'earn', label: 'Earn'}, 'earn hub': {page: 'earn', label: 'Earn'}, verdienen: {page: 'earn', label: 'Earn'}, 'start here': {page: 'earn', view: 'start-here', label: 'Earn → Start here'}, 'start hier': {page: 'earn', view: 'start-here', label: 'Earn → Start here'},
+  academy: {page: 'earn', view: 'academy', label: 'Earn → Earn Academy'}, 'earn academy': {page: 'earn', view: 'academy', label: 'Earn → Earn Academy'},
 };
 /**
  * Session Z-Local Part 6: the spoken forms the held-out set carried (24 of its 26 navigation asks got no device answer):

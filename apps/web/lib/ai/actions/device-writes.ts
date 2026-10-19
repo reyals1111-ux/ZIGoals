@@ -30,7 +30,7 @@ export type DeviceWrite =
   | {key: typeof AVERAGE_GOALS.key; patch: {add: {id: string; name: string; metric: keyof typeof AVERAGE_METRICS; unit: string; target: number; direction: 'at-least' | 'at-most'; windowDays: 7 | 14 | 30; createdAt: string}} | {log: {goal: string; day: string; value: number}}}
   | {key: typeof CALCULATOR.key; patch: {input: Partial<{start: string; contribution: string; frequency: 'weekly' | 'monthly' | 'yearly'; ratePercent: number; years: number; compounding: 'yearly' | 'quarterly' | 'monthly' | 'daily'; currency: 'USD' | 'EUR'}>}}
   | {key: typeof LIFE_REVIEW.key; patch: {period: 'week' | 'month'}};
-type Entry<T> = {spec: DeviceRecordSpec<T>; apply: (record: T, patch: unknown) => T};
+export type Entry<T> = {spec: DeviceRecordSpec<T>; apply: (record: T, patch: unknown) => T};
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const id = (v: unknown): v is string => typeof v === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(v);
 const entries: Record<string, Entry<unknown>> = {
@@ -74,7 +74,20 @@ const entries: Record<string, Entry<unknown>> = {
   }},
   [LIFE_REVIEW.key]: {spec: LIFE_REVIEW as DeviceRecordSpec<unknown>, apply: (r, p) => { if (!object(p) || (p.period !== 'week' && p.period !== 'month')) throw new Error('That change is not one a card can make.'); return setPeriod(r as LifeReviewRecord, p.period); }},
 };
-export const DEVICE_WRITE_KEYS: readonly string[] = Object.keys(entries);
+const keys: string[] = Object.keys(entries);
+/** The keys a card may change; a key registered later (`registerDeviceWrite`) joins this same list. */
+export const DEVICE_WRITE_KEYS: readonly string[] = keys;
+/**
+ * Session AF (L4, ADR-028 H73): another lane's device record joins the list through its own entry, the pattern of
+ * `registerSlotCard` and `installAaPlanner`: the Checklist's two records are registered by lib/ai/actions/checklist-writes.ts
+ * with the Checklist lane's own entries (lib/checklist/commands.ts). A key already listed is never replaced, so a
+ * registration can add a record and never change how an existing one is written. Returns whether it was added.
+ */
+export function registerDeviceWrite<T>(key: string, entry: Entry<T>): boolean {
+  if (entries[key] || !/^zigoals:[a-z-]+:v1$/.test(key) || entry.spec.key !== key) return false;
+  entries[key] = entry as unknown as Entry<unknown>; keys.push(key);
+  return true;
+}
 /** The record after the patch, or a thrown error with the reason; the runner validates the key first (`deviceWriteSpec`). */
 export function applyDeviceWrite(key: string, record: unknown, patch: unknown): unknown { const e = entries[key]; if (!e) throw new Error('No card can change that record.'); return e.apply(record, patch); }
 export function deviceWriteSpec(key: string): DeviceRecordSpec<unknown> | null { return entries[key]?.spec ?? null; }

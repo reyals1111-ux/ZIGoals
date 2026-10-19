@@ -1,7 +1,7 @@
 'use client';
 import {useId, useMemo, useState, type FormEvent} from 'react';
-import {addNote, CATEGORY_LABELS, deleteNote, editNote, isHealthNote, newestFirst, restoreNote, type MemoryCategory} from '../../lib/ai/memory';
-import {AI_MEMORY, AI_OPTIONS, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, type AiMemory, type MemoryNoteRecord} from '../../lib/ai/store/records';
+import {addNote, CATEGORY_LABELS, deleteNote, editNote, isHealthNote, newestFirst, restoreNote, withConsent, type MemoryCategory} from '../../lib/ai/memory';
+import {AI_MEMORY, AI_OPTIONS, MAX_NOTE_CHARS, MAX_NOTES, MEMORY_CATEGORIES, memoryConsent, type AiMemory, type MemoryNoteRecord} from '../../lib/ai/store/records';
 import {isShowcase} from '../../lib/showcase-storage';
 import {formatDate} from '../../lib/visual-format';
 import {Switch} from './ai-switch';
@@ -23,6 +23,8 @@ export default function AiNotes() {
   const [editing, setEditing] = useState<string | null>(null), [confirmAll, setConfirmAll] = useState(false);
   const [message, setMessage] = useState<{text: string; failed?: boolean; restore?: MemoryNoteRecord} | null>(null);
   const using = options.data.useNotes !== false, hint = useId();
+  // Session AF (L4): the agreement to notes from ZIGi's cards, and the one note today's brief quotes (only while "Use my notes" is on).
+  const consent = memoryConsent(memory.data), briefNote = using ? notes.find(n => n.category === 'schedule' || n.category === 'preferences') ?? null : null;
   const change = (apply: (current: AiMemory) => AiMemory, text: string, restore?: MemoryNoteRecord): boolean => {
     try { memory.update(apply); setMessage({text, ...(restore ? {restore} : {})}); return true; }
     catch (error) { setMessage({text: error instanceof Error ? error.message : 'The note could not be saved on this device.', failed: true}); return false; }
@@ -42,6 +44,10 @@ export default function AiNotes() {
     {showcase && <p className="ai-note">Showcase (fictional): notes you add here stay in this tab and are gone when it closes. They never reach your own notes.</p>}
     {memory.unreadable && <p role="alert">The notes on this device could not be read, so ZIGi uses none of them. Adding a note starts a new list in their place.</p>}
     <Switch checked={using} onChange={useNotes} label="Use my notes" note={<>On: your notes go to your AI with each message, as a removable &ldquo;About me&rdquo; chip you see first, and its lookups can read them; never from Settings or a private screen. Notes about health or your diet style go only while Health is shared with ZIGi. Off: they stay here and go nowhere.{notes.length ? '' : ' Nothing to send yet.'}</>}/>
+    {/* Session AF (L4, ADR-028 H30): the agreement to notes from ZIGi's own cards, shown and changeable; the person's own notes are always theirs. */}
+    <Switch checked={consent !== 'declined'} onChange={next => change(current => withConsent(current, next, new Date()), next ? 'ZIGi may offer "Remember this?" cards again.' : 'ZIGi offers no "Remember this?" cards now; your notes stay.')} label="Notes from ZIGi's cards"
+      note={<>{consent === 'unasked' ? 'Not used yet: the first “Remember this?” card you confirm counts as your yes.' : consent === 'given' ? `On${memory.data.consent ? ` since ${formatDate(memory.data.consent.at)}` : ''}: a note from ZIGi is kept only when you press Remember on its card.` : 'Off: every “Remember this?” card is refused.'} Notes from ZIGi stay on this device, in Export everything, never synced.</>}/>
+    {briefNote && <p className="ai-note ai-memory-brief" data-testid="notes-used-in-brief">Used in today&rsquo;s brief: &ldquo;{excerpt(briefNote.text)}&rdquo; ({CATEGORY_LABELS[briefNote.category]}).</p>}
     <form className="ai-memory-add" onSubmit={add} aria-label="Add a note">
       <label className="field">Kind of note<select value={category} onChange={e => setCategory(e.target.value as MemoryCategory)}>{MEMORY_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}</select></label>
       <label className="field">Your note<textarea value={draft} maxLength={MAX_NOTE_CHARS} rows={2} onChange={e => setDraft(e.target.value)} placeholder="For example: I'm training for a half marathon in April; I prefer short answers." autoComplete="off" aria-describedby={hint}/></label>

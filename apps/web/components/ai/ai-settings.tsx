@@ -81,6 +81,24 @@ function NotesCard() {
     {open && <ZigiPartBoundary label="The notes"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><NotesPanel/></Suspense></ZigiPartBoundary>}
   </details>;
 }
+/** Session AF (L4, P8.2, P8.4): the brief and recap choices, and ZIGi's plans, each loaded when its card opens (#zigi-your-day, #zigi-plans). */
+const YourDayPanel = lazy(() => import('./ai-your-day')), PlansPanel = lazy(() => import('./ai-plans'));
+function YourDayCard() {
+  const {open, setOpen, card} = useAnchoredCard('zigi-your-day');
+  return <details ref={card} id="zigi-your-day" className="ai-look-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">Your day: the morning brief and the evening recap</summary>
+    <p className="ai-note">ZIGi&rsquo;s brief and recap are made on this device from your records, with no AI. Choose which show on Today, from when, and what goes in them.</p>
+    {open && <ZigiPartBoundary label="Your day"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><YourDayPanel/></Suspense></ZigiPartBoundary>}
+  </details>;
+}
+function PlansCard() {
+  const {open, setOpen, card} = useAnchoredCard('zigi-plans');
+  return <details ref={card} id="zigi-plans" className="ai-notes-card" open={open} onToggle={event => setOpen(event.currentTarget.open)}>
+    <summary className="ai-pack-summary">ZIGi&rsquo;s plans</summary>
+    <p className="ai-note">The plans ZIGi proposed as one set of cards, and what you did with each step. On this device only, never synced, in Export everything.</p>
+    {open && <ZigiPartBoundary label="The plans"><Suspense fallback={<p className="ai-note" role="status">Loading…</p>}><PlansPanel/></Suspense></ZigiPartBoundary>}
+  </details>;
+}
 /** Session V Part 12: ZIGi's look and feel (the panel's Customize, here too), loaded only when its card opens. */
 const CustomizePanel = lazy(() => import('./zigi-customize'));
 function LookCard() {
@@ -273,6 +291,7 @@ export default function AiSettings() {
         <p className="ai-note">Only this page&rsquo;s data, as plain text between data marks, after the instruction that it is records and not commands. Open ZIGi on any page and expand &ldquo;What your AI sees&rdquo; for the exact text that would go with your next message. Chats are kept on this device per account and are part of &ldquo;Export everything&rdquo;; keys never are.</p>
       </>}
       {settings.loaded && <NotesCard/>}
+      {settings.loaded && <PlansCard/>}
       {settings.loaded && <ContextPackCard/>}
       {settings.loaded && <AgentsCard/>}
     </Group>
@@ -286,6 +305,7 @@ export default function AiSettings() {
     </Group>
     <Group id="zigi-reminders-group" title="Reminders">
       {settings.loaded && <RemindersCard/>}
+      {settings.loaded && <YourDayCard/>}
     </Group>
     {data.enabled && options.loaded && <Group id="zigi-auto-accept" title="Auto-accept">
       <p className="ai-note">Off by default. A kind you switch on is added by ZIGi without a tap when it proposes it: each addition shows for ten seconds with Undo, is listed under Activity &rarr; Actions by ZIGi, and counts toward a daily cap. Weight, fasting and anything about money are always confirmed by you.</p>

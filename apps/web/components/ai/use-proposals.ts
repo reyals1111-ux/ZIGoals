@@ -23,6 +23,20 @@ import {AI_ACTIONS_KEY, ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {usePrivateStore} from '../use-private-store';
 import {DASHBOARD_SETTINGS_KEY, dashboardSettingsSchema, emptyDashboardSettings} from '../../lib/dashboard-settings';
+import {STAKING_PREFILL_ROUTE, stashStakingPrefill} from '../../lib/ai/actions/staking-prefill';
+import {earnSnapshot} from '../../lib/earn/snapshot';
+import {readDeviceRecord} from '../../lib/device-record';
+import {CHECKLIST, CHECKLIST_DAYS} from '../../lib/checklist/schema';
+import {checklistDay} from '../../lib/checklist/day';
+import type {ChecklistEnv} from '../../lib/ai/actions/plan';
+
+/** Session AF (L4): the Checklist as this device holds it now, for a Checklist card; null when the storage cannot be read at all. */
+function checklistEnv(now: Date): ChecklistEnv | null {
+  try {
+    const storage = getAppStorage(), record = readDeviceRecord(storage, CHECKLIST), days = readDeviceRecord(storage, CHECKLIST_DAYS);
+    return {record: record.data, days: days.data, date: checklistDay(now), unreadable: record.unreadable || days.unreadable};
+  } catch { return null; }
+}
 
 /**
  * Runs confirmed proposals through the same save paths as the forms (ADR-012, Part 5): usePrivateStore.update for
@@ -45,7 +59,7 @@ export type ProposalRunner = {
   stores: Stores;
   plan: (action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>) => PlanResult;
   /** Applies one plan; resolves with the stores as the write left them (the baseline for its undo). `auto`: added by ZIGi under auto-accept. */
-  apply: (plan: Plan, auto?: boolean) => Promise<Stores>;
+  apply: (plan: Plan, auto?: boolean, prior?: Stores) => Promise<Stores>;
   /** Applies several plans in order on the latest stores; stops at the first failure. */
   applyAll: (plans: readonly Plan[]) => Promise<{after: Stores[]; error: string | null}>;
   /** Undoes plans newest first, each as the inverse through the normal path; refused as a whole when a record moved. */
@@ -73,7 +87,9 @@ export function useProposals(): ProposalRunner {
   }, [habits.data, health.data]);
   const plan = useCallback((action: Action, handles: readonly Handle[], refs?: ReadonlyMap<string, {id: string; title: string}>): PlanResult => {
     const now = new Date(), timeZone = habits.data.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone, {day, habitDay} = days(now);
-    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {})};
+    // Session AF (L4): the Checklist's records as this device holds them, read when a card is planned (its cards only), and
+    // the validators the Earn page read in this visit (a staking card may name one by its name).
+    const env: Env = {stores, handles, now, habitDay, healthDay: day, timeZone, ...(refs ? {refs} : {}), checklist: checklistEnv(now), earn: {validators: earnSnapshot().validators}};
     return planAction(action, env);
   }, [days, stores, habits.data]);
   /** "Actions by ZIGi" (Activity): a confirmed card is noted, an undone one forgotten; the note is a convenience and never blocks. */
@@ -88,7 +104,10 @@ export function useProposals(): ProposalRunner {
     await update(latest => { const base = {...stores, [key]: latest}; after = change(base); return after[key]; });
     return after;
   }, [stores]);
-  const run = useCallback((p: Plan, change: (base: Stores) => Stores): Promise<Stores> => {
+  const run = useCallback((p: Plan, write: (base: Stores) => Stores, prior?: Stores): Promise<Stores> => {
+    // Session AF (L4): within one batch the next write sees what the one before it left (a plan's new habit, then its
+    // reminder), with its own record still read fresh from its store; without `prior`, the render's stores as before.
+    const change = prior && p.target !== 'form' ? (base: Stores) => write({...prior, [p.target]: base[p.target as Written]}) : write;
     switch (p.target) {
       case 'health': return through('health', health.update, change);
       case 'habits': return through('habits', habits.update, change);
@@ -99,14 +118,14 @@ export function useProposals(): ProposalRunner {
       case 'weekly': return through('weekly', weekly.update, change);
       case 'memory': return through('memory', memory.update, change);
       case 'settings': return through('settings', settings.update, change);
-      case 'form': return Promise.resolve(stores);
+      case 'form': return Promise.resolve(prior ?? stores);
     }
   }, [through, health.update, habits.update, platform.update, fasting.update, reminders, zigiReminders.update, weekly.update, memory.update, settings.update, days, stores]);
-  const apply = useCallback(async (p: Plan, auto = false) => { const after = await run(p, base => ({...base, ...p.write(base)})); note(p, true, auto); return after; }, [note, run]);
+  const apply = useCallback(async (p: Plan, auto = false, prior?: Stores) => { const after = await run(p, base => ({...base, ...p.write(base)}), prior); note(p, true, auto); return after; }, [note, run]);
   const applyAll = useCallback(async (plans: readonly Plan[]) => {
     const after: Stores[] = [];
     for (const p of plans) {
-      try { after.push(await apply(p)); }
+      try { after.push(await apply(p, false, after.at(-1))); }
       catch (error) { return {after, error: error instanceof Error ? error.message : 'A proposal could not be written.'}; }
     }
     return {after, error: null};
@@ -138,6 +157,13 @@ export function useProposals(): ProposalRunner {
   }, [router]);
   const look = useDeviceRecord(ZIGI);
   const effect = useCallback((p: Plan) => {
+    // Session AF (ADR-028 D7, H47): the staking review, filled in. Only the plain fields are handed over; the Staking page
+    // reads them once, and nothing is signed until the person reviews them there and signs in their own wallet.
+    if (p.staking) {
+      const stashed = stashStakingPrefill(p.staking), [path, hash] = STAKING_PREFILL_ROUTE.split('#') as [string, string];
+      if (window.location.pathname === path) window.location.hash = hash; else router.push(STAKING_PREFILL_ROUTE);
+      return {text: stashed ? 'The staking review is opening on Staking, filled in. Nothing is signed until you review it and sign in your own wallet.' : 'The values could not be handed over; type them into the staking form.', navigated: true};
+    }
     // Session AA-Local, merged second (ADR-022 B53): a card that changes a device record AND opens a page (the calculator's figures, the Life review's period) applies the record first, then navigates.
     if (p.device && p.navigate) { const pre = runnerEffect({device: p.device}); if (pre?.kind === 'record') { const spec = deviceWriteSpec(pre.key); if (spec) { updateDeviceRecord(getAppStorage(), spec, r => applyDeviceWrite(pre.key, r, pre.patch)); try { window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: pre.key})); } catch { /* no window */ } } } }
     const e = runnerEffect(p);

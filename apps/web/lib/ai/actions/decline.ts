@@ -19,9 +19,18 @@ const MONEY_ASK = /^(?:please |ok |okay |hey |hi |so |um+ |uh+ |euh |eh |and |al
 /** Whether the message is a money ask ZIGi always declines (a verb that moves money, at the start). */
 export const isMoneyAsk = (message: string): boolean => MONEY_ASK.test(message.trim());
 
+/**
+ * Session AF (ADR-028 D7, H47; `TIER 3 (wallet/signing)`): the one card a staking ask may keep beside a decline is the
+ * staking review filled in (`prefill-staking`): "I can't stake for you; here is the review, filled in" is the answer the
+ * owner asked for, and the card only opens the Staking page's review the person signs in their own wallet. Every other
+ * block of a declined money ask still goes, and a non-staking ask keeps the rule exactly as before.
+ */
+const STAKING_ASK = /\b(?:stake|staking|unstake|restake|delegate|undelegate|redelegate|claim|rewards?|validator|staken|inzetten|delegeren)\b/i;
+const STAKING_BLOCK = /"kind"\s*:\s*"(?:prefill[-_ ]?staking|staking[-_]review|start[-_]staking|staking[-_]prefill|prefill[-_]stake)"/i;
 export function stripDeclinedBlocks(reply: string, message: string): string {
   if (!isMoneyAsk(message) || reply.search(FENCE) < 0) return reply;
   const words = reply.replace(FENCE, ' ').trim();
   if (!REFUSAL_REPLY.test(words.slice(0, 400))) return reply;
-  return reply.replace(FENCE, '').replace(/[^\S\n]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  const keepStaking = STAKING_ASK.test(message);
+  return reply.replace(FENCE, block => keepStaking && STAKING_BLOCK.test(block) ? block : '').replace(/[^\S\n]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }

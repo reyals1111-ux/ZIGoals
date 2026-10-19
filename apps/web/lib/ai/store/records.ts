@@ -77,9 +77,22 @@ export const HEALTH_NOTE_CATEGORIES: readonly string[] = ['health', 'diet'];
 export const MAX_NOTES = 100, MAX_NOTE_CHARS = 500;
 export const memoryNoteSchema = z.looseObject({id: z.string().min(1).max(80), text: z.string().trim().min(1).max(MAX_NOTE_CHARS), category: z.enum(MEMORY_CATEGORIES), source: z.enum(['person', 'zigi']), createdAt: stamp, updatedAt: stamp});
 export type MemoryNoteRecord = z.infer<typeof memoryNoteSchema>;
-export const aiMemorySchema = z.looseObject({version: z.literal(1), notes: z.array(memoryNoteSchema).max(MAX_NOTES).optional()});
+/**
+ * Session AF (L4, ADR-028 H30; `TIER 3 (storage)`): `consent` says when the person first agreed that ZIGi keeps notes
+ * (the first "Remember" they pressed, or the switch in What ZIGi knows), or that they turned keeping notes off. Additive
+ * and loose: a record without it reads through `memoryConsent` (notes already kept count as agreed), older builds keep it
+ * on their writes, and a value this build cannot read is dropped rather than making the notes unreadable.
+ */
+export const memoryConsentSchema = z.looseObject({given: z.boolean(), at: stamp});
+export const aiMemorySchema = z.looseObject({version: z.literal(1), notes: z.array(memoryNoteSchema).max(MAX_NOTES).optional(), consent: memoryConsentSchema.optional().catch(undefined)});
 export type AiMemory = z.infer<typeof aiMemorySchema>;
 export const AI_MEMORY: DeviceRecordSpec<AiMemory> = {key: AI_MEMORY_KEY, schema: aiMemorySchema, empty};
+/** Whether ZIGi may keep notes: 'given' (agreed, or notes kept before the field existed), 'declined', or 'unasked'. */
+export type MemoryConsent = 'given' | 'declined' | 'unasked';
+export function memoryConsent(record: AiMemory): MemoryConsent {
+  if (record.consent) return record.consent.given ? 'given' : 'declined';
+  return (record.notes?.length ?? 0) > 0 ? 'given' : 'unasked';
+}
 
 // The actions log lives in its own small module (Activity reads it); defined there once and re-exported here.
 export {ACTION_DAYS, AI_ACTIONS, MAX_ACTIONS, aiActionSchema, aiActionsSchema, forgetAction, recordAction, type AiAction, type AiActions} from './actions';
@@ -110,8 +123,21 @@ export const zigiSchema = z.looseObject({
    * chat, so a chat that uses nothing else new stays version 1 (build #29 shows it); the newest 200 are kept.
    */
   chatAreas: z.record(z.string().min(1).max(80), z.enum(CHAT_AREAS)).refine(atMost(MAX_CHAT_AREAS)).optional(),
+  /**
+   * Session AF (L4; `TIER 3 (storage)`): the morning brief and the evening recap — each on or off, the recap's time,
+   * whether the earning line shows, and whether a brief asked for by voice is read aloud. Additive and loose; a value
+   * this build cannot read is dropped (never the whole record). Read through `briefPrefs`.
+   */
+  brief: z.looseObject({morning: z.boolean().optional(), evening: z.boolean().optional(), eveningTime: clock.optional(), earning: z.boolean().optional(), readAloud: z.boolean().optional()}).optional().catch(undefined),
 });
 export type ZigiRecord = z.infer<typeof zigiSchema>;
+export type BriefPrefs = {morning: boolean; evening: boolean; eveningTime: string; earning: boolean; readAloud: boolean};
+/** The defaults: the morning brief and the evening recap on, the recap from 18:00, the earning line on, read aloud only when asked. */
+export const BRIEF_DEFAULTS: BriefPrefs = {morning: true, evening: true, eveningTime: '18:00', earning: true, readAloud: false};
+export function briefPrefs(record: ZigiRecord): BriefPrefs {
+  const b = record.brief ?? {};
+  return {morning: b.morning ?? BRIEF_DEFAULTS.morning, evening: b.evening ?? BRIEF_DEFAULTS.evening, eveningTime: b.eveningTime ?? BRIEF_DEFAULTS.eveningTime, earning: b.earning ?? BRIEF_DEFAULTS.earning, readAloud: b.readAloud ?? BRIEF_DEFAULTS.readAloud};
+}
 export const ZIGI: DeviceRecordSpec<ZigiRecord> = {key: ZIGI_KEY, schema: zigiSchema, empty};
 export type ZigiPrefs = {
   skin: string; animation: (typeof ZIGI_ANIMATIONS)[number]; side: (typeof ZIGI_SIDES)[number]; size: (typeof ZIGI_SIZES)[number]; greeting: (typeof ZIGI_GREETINGS)[number]; edgeTab: boolean;

@@ -15,7 +15,9 @@ export const AUTO_ACCEPT_NEVER = ['log-weight', 'start-fast', 'stop-fast', 'pref
   // Session AA-Local Part 5: a routine opens a page, a quit cost is money-adjacent, a recipe import makes several foods at once.
   'start-routine', 'set-quit-cost', 'import-recipe',
   // Session AA-Local, merged second (ADR-022 B53): three navigations (a scenario opens the calculator, a query opens search, a period opens the Life review).
-  'calculator-scenario', 'open-search', 'open-review'] as const satisfies readonly ActionKind[];
+  'calculator-scenario', 'open-search', 'open-review',
+  // Session AF (ADR-028 D7, H47): the staking review, filled in, is always opened by the person and signed in their own wallet.
+  'prefill-staking'] as const satisfies readonly ActionKind[];
 // Session Z-Local Part 5: Health's own edits, plans, counters, targets, preferences, the running night and the bell are Health kinds too.
 export const AUTO_ACCEPT_HEALTH = ['log-food', 'create-food', 'create-recipe', 'plan-meal', 'grocery-item', 'log-water', 'counter', 'log-sleep', 'log-meditation', 'log-mood', 'log-steps', 'log-measurement', 'set-micro-target', 'set-macro-mode', 'coach-answer',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells'] as const satisfies readonly ActionKind[];
@@ -76,6 +78,8 @@ export const AUTO_ACCEPT_GROUPS: readonly {title: string; kinds: readonly Action
   {title: 'Habits (sections, timers, areas, freezes)', kinds: ['set-time-of-day', 'start-timer', 'stop-timer', 'set-habit-area', 'use-freeze', 'set-game-layer']},
   // Session AA-Local, merged second (ADR-022 B53): AA-Cloud's goal extras and average goals (device records; no money).
   {title: 'Goals (areas, plans, sub-goals, average goals)', kinds: ['set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average']},
+  // Session AF (L4): the Checklist by voice and text, and the brief's choices (the staking review is never automatic and has no switch).
+  {title: 'Checklist and your day', kinds: ['checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief']},
 ];
 export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   'open-page': 'Opening a page', 'delete-record': 'Deletions', 'set-habit-state': 'Pausing, resuming or archiving a habit', vacation: 'Vacation days', unskip: 'Undoing a planned skip', 'remove-reminder': 'Removing a reminder', 'close-goal': 'Closing a goal', 'reopen-goal': 'Reopening a goal',
@@ -90,4 +94,5 @@ export const AUTO_ACCEPT_LABELS: Record<ActionKind, string> = {
   'log-sleep': 'Nights and naps', 'log-meditation': 'Mindful minutes', 'log-mood': 'How the day felt', 'log-steps': 'Steps', 'log-measurement': 'Body measurements',
   'create-reminder': 'Reminders', 'review-intention': 'The weekly intention', remember: '“Remember this” notes', 'add-link': 'Links on Today', 'add-widget': 'Widgets on Today',
   'log-weight': 'Weight (never automatic)', 'start-fast': 'Start a fast (never automatic)', 'stop-fast': 'Stop a fast (never automatic)', 'prefill-holding': 'Add-asset form (never automatic)', 'update-account-balance': 'Account balance form (never automatic)',
+  'checklist-tick': 'Ticking a Checklist dot', 'checklist-add-favourite': 'Starring a habit onto the Checklist', 'checklist-add-custom': 'Your own Checklist items', 'set-brief': 'The morning brief and evening recap choices', 'prefill-staking': 'The staking review, filled in (never automatic)',
 };

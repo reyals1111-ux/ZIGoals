@@ -271,6 +271,7 @@ test('cards name records by title, never by identifier, and every kind the parse
   kinds.add('stop-fast'); // needs a running fast; covered above
   for (const k of ['unskip', 'remove-reminder', 'reopen-goal', 'edit-diary-entry', 'log-meal-plan', 'set-favorite', 'edit-counter', 'end-night', 'edit-link', 'set-review-weekday', 'prefill-contribution']) kinds.add(k);
   for (const k of ['start-timer', 'stop-timer', 'use-freeze', 'coach-answer', 'set-quit-cost']) kinds.add(k); // Session AA-Local Part 5: a duration habit with a timer, a seven-day streak with a miss and a week of weights live in plan-aa.test.ts // need a planned skip, a reminder, a closed goal, a diary name, a plan, a food, a counter, a running night, a link, a weekday other than the Showcase's, an active goal; covered in plan-z.test.ts
+  for (const k of ['checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief', 'prefill-staking']) kinds.add(k); // Session AF (L4): a Checklist record, the lazy planner and the staking hand-off; covered in plan-af.test.ts
   expect([...kinds].sort()).toEqual([...ACTION_KINDS].sort());
 });
 test('end to end: a reply with an injected instruction yields one whitelisted card and nothing else is touched', () => {
