@@ -57,7 +57,7 @@
 .checklist-close { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border-radius: 50%; border: 1px solid #ffffff2e; background: #ffffff12; color: var(--text, #f0f5ff); cursor: pointer; box-shadow: 0 3px 0 #00000059; }
 .checklist-close:hover { background: #ffffff1f; }
 .checklist-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #00000059; }
-.checklist-close:focus-visible { outline: 3px solid var(--cyan, #6fd3ff); outline-offset: 3px; }
+.checklist-close:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .checklist-progress { display: grid; gap: 4px; min-width: 0; }
 .checklist-progress-bar { height: 18px; }
 .checklist-progress-line { margin: 0; font-size: 14px; line-height: 1.2; color: var(--muted, #a4b2cd); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -87,7 +87,7 @@
 .checklist-tool:hover { background: #ffffff1a; }
 .checklist-tool:active { transform: translateY(2px); box-shadow: 0 1px 0 #0000004d; }
 .checklist-tool[aria-expanded=true] { border-color: #9273ffb3; background: #9273ff33; }
-.checklist-tool:focus-visible { outline: 3px solid var(--cyan, #6fd3ff); outline-offset: 2px; }
+.checklist-tool:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
 .checklist-tool-about { justify-content: center; width: 44px; padding: 0; font-size: 19px; font-weight: 850; }
 .checklist-view-switch { display: inline-flex; padding: 3px; border-radius: 999px; border: 1px solid #ffffff2b; background: #00000026; }
 .checklist-view-switch button { min-width: 64px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--text, #f0f5ff); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
@@ -122,9 +122,11 @@
   :root[data-keyboard=open] .checklist-timers { display: none; }
 }
 /* What floats at the foot of the overlay sits above the dock: the Undo toast and the jump button. */
-.checklist-toast-slot .aa-toast-region { z-index: 30; }
+/* The toast's place in the open layer: no box of its own (the region inside is fixed). */
+.checklist-toast-slot { position: absolute; width: 0; height: 0; }
+/* The Undo toast drops in under the top bar, where it never covers the next planet (just below the one tapped) or the dock. */
+:root .checklist-toast-slot .aa-toast-region { z-index: 30; top: calc(max(10px, env(safe-area-inset-top, 0px)) + 72px); bottom: auto; }
 @media (max-width: 1179.98px) {
-  :root .checklist-toast-slot .aa-toast-region { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   .checklist-overlay .path-jump-dock { bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (min-width: 1180px) {
@@ -157,7 +159,7 @@
 .checklist-sheet-panel { position: relative; box-sizing: border-box; width: min(480px, 100%); height: 100%; overflow: auto; overscroll-behavior: contain; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(24px, env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, #0b1230, #060b1f); border-left: 1px solid #ffffff1f; box-shadow: -30px 0 60px -30px #000; animation: checklist-sheet-in 280ms var(--motion-glide, ease) both; }
 .checklist-sheet[data-wide] .checklist-sheet-panel { width: min(640px, 100%); }
 .checklist-sheet-panel:focus { outline: none; }
-.checklist-sheet-panel > .panel { margin: 0; border: 0; background: none; box-shadow: none; padding: 4px 0; }
+:root .checklist-overlay .checklist-sheet-panel > .panel { margin: 0; border: 0; background: none; box-shadow: none; padding: 4px 4px; }
 @keyframes checklist-sheet-in { from { transform: translateX(40px); opacity: 0; } }
 @media (max-width: 767.98px) {
   .checklist-sheet { align-items: end; justify-items: stretch; }
@@ -183,9 +185,14 @@
 .checklist-dot-panel p { margin: 0; font-size: 15px; }
 .checklist-dot-panel-actions a { display: inline-flex; align-items: center; }
 
-/* The List view: pills. */
-.checklist-list { --accent: var(--pillar-habits, #23eaff); list-style: none; display: grid; gap: 10px; max-width: 640px; margin: 0 auto; padding: 0; }
-.checklist-pill { border-radius: 20px; border: 1px solid var(--line, #ffffff22); background: var(--panel, #0b1530e6); }
+/* The List view: pills themed by the chosen accent (the owner's Todoist Wear OS reference). */
+.checklist-list-view { --accent: var(--pillar-habits, #23eaff); display: grid; gap: 10px; max-width: 640px; margin: 0 auto; }
+.checklist-list-add { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--accent); color: #04101f; font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 color-mix(in srgb, var(--accent) 50%, #040a1e), 0 12px 26px -14px var(--accent); }
+.checklist-list-add span { font-size: 24px; line-height: 1; margin-top: -2px; }
+.checklist-list-add:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 50%, #040a1e); }
+.checklist-list-add:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.checklist-list { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; }
+.checklist-pill { border-radius: 28px; border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent); background: color-mix(in srgb, var(--accent) 12%, #0a1230); }
 .checklist-pill[data-counted=no] { opacity: .78; }
 .checklist-pill-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px 8px 10px; }
 .checklist-pill-check { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 2.5px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; text-decoration: none; }

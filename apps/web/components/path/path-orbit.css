@@ -15,7 +15,7 @@
 .path-stage[data-variant=orbit] .path-section { gap: 18px; }
 @media (max-width: 640px) {
   .path-stage[data-variant=orbit] { --dot-size: 72px; --cap: min(148px, 42cqi); --caption-room: 54px; gap: 30px; }
-  .path-stage[data-variant=orbit] .path-steps { --swing: min(84px, 21cqi); }
+  .path-stage[data-variant=orbit] .path-steps { --swing: min(88px, 23cqi); }
 }
 
 /* The way: a soft star trail under every line, the neon flow when lit, and a comet the moment a tick lights it. */
@@ -35,7 +35,7 @@
 
 /* The caption: one short name under its planet, at most two lines, on a glass pill the line passes behind. */
 .path-stage[data-variant=orbit] .path-label { top: calc(100% + 12px); left: 50%; right: auto; translate: -50% 0; box-sizing: border-box; width: max-content; max-width: var(--cap); justify-items: center; padding: 5px 12px 6px; border-radius: 14px; background: #070d24d1; box-shadow: 0 6px 16px -10px #000c, inset 0 0 0 1px #ffffff14; color: var(--text, #f0f5ff); font-size: 16px; line-height: 1.22; font-weight: 750; letter-spacing: -.005em; text-align: center; overflow-wrap: anywhere; }
-.path-stage[data-variant=orbit] .path-label-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.path-stage[data-variant=orbit] .path-label-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .path-stage[data-variant=orbit] .path-label-note { display: none; }
 .path-stage[data-variant=orbit] .path-step[data-state=done] .path-label { color: var(--muted, #b9c6de); }
 .path-stage[data-variant=orbit] .path-step[data-next] .path-label { box-shadow: 0 6px 18px -10px #000c, inset 0 0 0 1.5px #ffffff3d; }
@@ -71,13 +71,14 @@
 .path-stage[data-variant=orbit] .path-dot[data-just] { animation: path-orbit-fill 520ms cubic-bezier(.2, .9, .25, 1.2) both; }
 @keyframes path-orbit-fill { 0% { transform: translateY(6px) scale(.86); } 45% { transform: translateY(-2px) scale(1.12); } 100% { transform: none; } }
 .path-dot-burst[data-rich] { inset: 0; }
-.path-dot-burst[data-rich]::before { border-width: 4px; animation: path-dot-ring 720ms var(--motion-glide, ease) both; }
-.path-dot-burst[data-rich]::after { content: ''; position: absolute; inset: -40%; border-radius: 50%; background: radial-gradient(circle, #ffffffd9 0, color-mix(in srgb, var(--dot) 60%, transparent) 30%, transparent 62%); opacity: 0; animation: path-flash 560ms ease-out both; }
+.path-dot-burst[data-rich]::before { border-width: 5px; animation: path-orbit-ring 760ms var(--motion-glide, ease) both; }
+@keyframes path-orbit-ring { 0% { opacity: 1; transform: scale(.9); } 100% { opacity: 0; transform: scale(2.3); } }
+.path-dot-burst[data-rich]::after { content: ''; position: absolute; inset: -70%; border-radius: 50%; background: radial-gradient(circle, #ffffffe6 0, color-mix(in srgb, var(--dot) 70%, transparent) 26%, color-mix(in srgb, var(--dot) 0%, transparent) 60%); opacity: 0; animation: path-flash 620ms ease-out both; }
 @keyframes path-flash { 0% { opacity: .95; transform: scale(.5); } 100% { opacity: 0; transform: scale(1.25); } }
-.path-dot-burst[data-rich] i { width: 9px; height: 9px; margin: -4.5px; animation: path-orbit-spark var(--t, 680ms) cubic-bezier(.15, .7, .3, 1) 30ms both; }
-.path-dot-burst[data-rich] i[data-tone='1'] { background: #ffffff; box-shadow: 0 0 10px #ffffff; width: 6px; height: 6px; margin: -3px; }
+.path-dot-burst[data-rich] i { width: 12px; height: 12px; margin: -6px; animation: path-orbit-spark var(--t, 680ms) cubic-bezier(.15, .7, .3, 1) 30ms both; }
+.path-dot-burst[data-rich] i[data-tone='1'] { background: #ffffff; box-shadow: 0 0 12px #ffffff; width: 8px; height: 8px; margin: -4px; }
 .path-dot-burst[data-rich] i[data-tone='2'] { background: #ffd27a; box-shadow: 0 0 10px #ffd27a; }
-@keyframes path-orbit-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -.4)) scale(1.1); } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -1.3 * var(--d, 1))) scale(.25); } }
+@keyframes path-orbit-spark { 0% { opacity: 1; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -.4)) scale(1.2); } 60% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(calc(var(--dot-size) * -1.65 * var(--d, 1))) scale(.3); } }
 
 /* An orbit's banner: a big bar in the orbit's own colour with dark words, its planet, the count and a bar along its foot. */
 .path-stage[data-variant=orbit] .path-banner { min-height: 88px; padding: 14px 18px 24px 18px; border: 0 solid transparent; border-radius: 24px; overflow: hidden; color: #050b1f; background: radial-gradient(90% 140% at 0% 0%, #ffffff59, #ffffff00 55%), linear-gradient(105deg, color-mix(in srgb, var(--banner) 80%, #ffffff) 0%, var(--banner) 46%, color-mix(in srgb, var(--banner) 80%, #11163a) 100%); box-shadow: 0 7px 0 color-mix(in srgb, var(--banner) 46%, #050a1e), 0 22px 40px -18px color-mix(in srgb, var(--banner) 80%, transparent), inset 0 1px 0 #ffffffa6; }

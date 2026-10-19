@@ -30,14 +30,17 @@ const subscribe = (l: () => void) => { listeners.add(l); return () => { listener
 /**
  * Session AF (L3b): a full-screen layer drawn in the browser's top layer (the Checklist, a modal dialog) leaves everything
  * outside it inert, so while one is open it lends the toast a place inside itself: the one toast region moves there (a
- * portal) and returns when the layer closes. Every other page keeps the region where the shell mounts it.
+ * portal) and returns when the layer closes. Layers stack (the Checklist's day celebration over the Checklist): the
+ * topmost open one holds the toast, so its Undo stays in reach. Every other page keeps the region where the shell mounts it.
  */
+const layers: HTMLElement[] = [];
 let layer: HTMLElement | null = null;
 const layerListeners = new Set<() => void>();
-export function setToastLayer(el: HTMLElement | null) {
-  if (layer === el) return;
-  layer = el;
-  for (const l of layerListeners) l();
+const publishLayer = () => { const top = layers.at(-1) ?? null; if (top === layer) return; layer = top; for (const l of layerListeners) l(); };
+/** Lends the toast a place inside `el` until the returned function is called. */
+export function pushToastLayer(el: HTMLElement): () => void {
+  layers.push(el); publishLayer();
+  return () => { const at = layers.lastIndexOf(el); if (at >= 0) layers.splice(at, 1); publishLayer(); };
 }
 const subscribeLayer = (l: () => void) => { layerListeners.add(l); return () => { layerListeners.delete(l); }; };
 

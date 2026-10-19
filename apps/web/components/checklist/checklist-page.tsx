@@ -4,11 +4,12 @@ import {useRouter} from 'next/navigation';
 import {NebulaFlow} from '../nebula-flow';
 import {GlassBar} from '../progress/glass-progress';
 import {zigiSignals} from '../zigi/bus';
-import {setToastLayer} from '../ui/undo-toast';
+import {pushToastLayer} from '../ui/undo-toast';
 import {useAlphaFacts} from '../alpha/alpha-facts';
 import {formatDate} from '../../lib/visual-format';
 import {xpEvents} from '../../lib/game/xp';
 import {CHECKLIST_ROUTE} from '../../lib/af-checklist-keys';
+import {PATH_COLOURS} from '../../lib/path/colours';
 import {pathBefore} from '../../lib/checklist/return-path';
 import {useChecklist} from './use-checklist';
 import {PathView} from './path-view';
@@ -71,8 +72,10 @@ export function ChecklistPage() {
   useLayoutEffect(() => {
     const d = dialog.current; if (!d) return;
     try { if (!d.matches(':modal')) { if (d.open) { ownCloses.current++; d.close(); } d.showModal(); } } catch { /* stays an open dialog in the page */ }
-    setToastLayer(toastSlot.current);
-    return () => { setToastLayer(null); leaving.current = true; try { if (d.open) d.close(); } catch { /* gone */ } };
+    // Focus starts on the Checklist itself (its name is read), not on the close button; Tab then walks its controls.
+    d.focus({preventScroll: true});
+    const releaseToast = toastSlot.current ? pushToastLayer(toastSlot.current) : () => undefined;
+    return () => { releaseToast(); leaving.current = true; try { if (d.open) d.close(); } catch { /* gone */ } };
   }, []);
   const leave = useCallback(() => {
     if (leaving.current) return; leaving.current = true;
@@ -92,6 +95,8 @@ export function ChecklistPage() {
         moments.current.all = true; zigiSignals.emitValidated('checklist_complete');
         if (!celebratedOn(state.date)) { markCelebrated(state.date); setCelebrate(true); }
       }
+      // Undo of the last tick from the celebration's toast: the day is not complete any more, so the celebration closes.
+      if (summary.done < summary.total) setCelebrate(false);
     }
   }, [summary, state.date]);
 
@@ -106,7 +111,7 @@ export function ChecklistPage() {
   const progressText = loaded ? total ? `${done} of ${total} ${total === 1 ? 'dot' : 'dots'} today` : 'No dots counted today' : 'Loading your path…';
   const toggle = (name: 'edit' | 'options' | 'about') => setSheet(s => s === name ? null : name);
 
-  return <dialog ref={dialog} open className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
+  return <dialog ref={dialog} open tabIndex={-1} className="checklist-overlay checklist-page" aria-labelledby="checklist-title" data-view={prefs.view} data-loaded={loaded || undefined} data-sheet={sheet ?? undefined}
     onKeyDown={e => { if (e.key !== 'Escape' || e.defaultPrevented) return; e.preventDefault(); escaped.current = true; window.setTimeout(() => { escaped.current = false; }, 0); onEscape(); }}
     onCancel={e => { e.preventDefault(); if (!escaped.current) onEscape(); }}
     onClose={() => {
@@ -148,7 +153,7 @@ export function ChecklistPage() {
         {!loaded ? <div className="checklist-loading" aria-hidden="true">{Array.from({length: 6}, (_, i) => <span key={i} style={{'--i': i} as CSSProperties}/>)}</div>
           : state.unreadable ? <section className="panel checklist-empty" role="alert"><h2>Your Checklist could not be read.</h2><p>{CHECKLIST_UNREADABLE_MESSAGE} Your habits, Health and Goals are untouched on their pages.</p></section>
           : empty ? <section className="panel checklist-empty"><GhostPath/><p className="eyebrow">A new path</p><h2>Your path is empty.</h2><p>Star what you do every day and it appears here as a glowing planet.</p><button type="button" className="primary" onClick={() => setSheet('edit')}>Edit path</button></section>
-          : prefs.view === 'list' ? <ListView state={state}/> : <PathView state={state}/>}
+          : prefs.view === 'list' ? <ListView state={state} onAdd={() => setSheet('edit')}/> : <PathView state={state}/>}
       </section>
 
       <aside className="checklist-side" aria-label="Timers and history">
@@ -165,7 +170,7 @@ export function ChecklistPage() {
     {sheet === 'options' && <Sheet onClose={() => setSheet(null)}><Suspense fallback={<p role="status">Opening options…</p>}><OptionsSheet state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'edit' && !state.unreadable && <Sheet onClose={() => setSheet(null)} wide><Suspense fallback={<p role="status">Opening Edit path…</p>}><EditPath state={state} onClose={() => setSheet(null)}/></Suspense></Sheet>}
     {sheet === 'about' && <Sheet onClose={() => setSheet(null)}><About onClose={() => setSheet(null)}/></Sheet>}
-    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} xp={xpToday} perfect={!!summary?.perfect} total={total} onClose={() => setCelebrate(false)}/></Suspense>}
+    {celebrate && state.date && <Suspense fallback={null}><DayCelebration streak={streakDays} xp={xpToday} perfect={!!summary?.perfect} total={total} colours={state.dots.filter(d => d.counted).map(d => PATH_COLOURS[d.colour].hex)} onClose={() => setCelebrate(false)}/></Suspense>}
     <div ref={toastSlot} className="checklist-toast-slot"/>
     <p className="sr-only" role="status" aria-live="polite">{state.announce}</p>
   </dialog>;

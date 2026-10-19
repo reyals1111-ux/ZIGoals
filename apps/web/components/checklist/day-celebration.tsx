@@ -3,6 +3,7 @@ import {useEffect, useRef, type CSSProperties} from 'react';
 import {NebulaFlow} from '../nebula-flow';
 import {ZigiFigure} from '../zigi/zigi-figure';
 import {useEscapeLayer} from './escape-layers';
+import {pushToastLayer} from '../ui/undo-toast';
 import {FlameMark} from './checklist-marks';
 import './day-celebration.css';
 
@@ -13,15 +14,17 @@ import './day-celebration.css';
  * XP (with the game layer on), a Perfect orbit when the day went in path order. Confetti plays once; reduced motion and
  * Motion Off show the same card, still. A night island: the same in every theme. Its own chunk, loaded when it plays.
  */
-const CONFETTI = 36, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
-export default function DayCelebration({streak, xp, perfect, total, onClose}: {streak: number; xp: number | null; perfect: boolean; total: number; onClose: () => void}) {
-  const ref = useRef<HTMLDialogElement>(null), button = useRef<HTMLButtonElement>(null);
+const CONFETTI = 56, COLOURS = ['#23eaff', '#9273ff', '#ff74be', '#ffd27a', '#459dff', '#f06dff', '#26e8bd'];
+export default function DayCelebration({streak, xp, perfect, total, colours = [], onClose}: {streak: number; xp: number | null; perfect: boolean; total: number; colours?: string[]; onClose: () => void}) {
+  const ref = useRef<HTMLDialogElement>(null), button = useRef<HTMLButtonElement>(null), toastSlot = useRef<HTMLDivElement>(null);
   useEscapeLayer(true, onClose);
   useEffect(() => {
     const d = ref.current; if (!d) return;
     try { d.showModal(); } catch { /* shown in place */ }
     button.current?.focus({preventScroll: true});
-    return () => { try { if (d.open) d.close(); } catch { /* gone */ } };
+    // The last tick's Undo stays in reach over the celebration (the toast moves into it while it is open).
+    const releaseToast = toastSlot.current ? pushToastLayer(toastSlot.current) : () => undefined;
+    return () => { releaseToast(); try { if (d.open) d.close(); } catch { /* gone */ } };
   }, []);
   return <dialog ref={ref} className="checklist-celebration" aria-labelledby="checklist-celebration-title" aria-describedby="checklist-celebration-line" onCancel={e => e.preventDefault()}>
     <div className="checklist-celebration-burst" aria-hidden="true">
@@ -39,6 +42,7 @@ export default function DayCelebration({streak, xp, perfect, total, onClose}: {s
         </svg>
         <span className="checklist-celebration-zigi"><ZigiFigure state="celebrate"/></span>
       </div>
+      {colours.length > 0 && <ol className="checklist-celebration-planets" aria-hidden="true">{colours.map((c, i) => <li key={i} style={{'--c': c, '--i': i} as CSSProperties}/>)}</ol>}
       <p className="checklist-celebration-eyebrow">Day complete</p>
       <h2 id="checklist-celebration-title"><NebulaFlow identity="checklist-celebration">All {total} {total === 1 ? 'planet' : 'planets'} lit!</NebulaFlow></h2>
       <p id="checklist-celebration-line" className="checklist-celebration-line">{perfect ? 'A Perfect orbit: every planet in path order.' : 'Every planet today, in your own order.'}</p>
@@ -48,5 +52,6 @@ export default function DayCelebration({streak, xp, perfect, total, onClose}: {s
       </ul>
       <button ref={button} type="button" className="checklist-celebration-go" onClick={onClose}>Lovely</button>
     </section>
+    <div ref={toastSlot} className="checklist-toast-slot"/>
   </dialog>;
 }

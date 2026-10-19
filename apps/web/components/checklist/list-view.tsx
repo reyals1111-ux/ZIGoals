@@ -12,11 +12,16 @@ import type {ChecklistState} from './use-checklist';
  * The List view (P7.17): compact pills, Todoist-style, one 44 px row each: a round check in the chosen accent colour, the
  * label with its note, its orbit as a small tag, the value at the end. The same presses as the Path (a value opens the
  * stepper under its row). Watch-sized by design: the base for future wearables (docs/product/CHECKLIST.md).
+ *
+ * Session AF (L3b; the owner's Todoist Wear OS reference): the chosen accent themes the whole list — a filled accent pill
+ * at its head that adds to the path (Edit path), and rows as pills tinted with the accent.
  */
-export function ListView({state}: {state: ChecklistState}) {
+export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: () => void}) {
   const {panel, press, renderPanel, busy} = useDotPress(state), accent = PATH_COLOURS[pathColour(state.prefs.accent)].token;
   const orbit = useMemo(() => new Map(sectionsOf(state.record.data).map(s => [s.id, s.label])), [state.record.data]);
-  return <ul className="checklist-list" aria-label="Today's list" style={{'--accent': accent} as CSSProperties}>
+  return <div className="checklist-list-view" style={{'--accent': accent} as CSSProperties}>
+    {onAdd && <button type="button" className="checklist-list-add" onClick={onAdd}><span aria-hidden="true">+</span>Add to your path</button>}
+    <ul className="checklist-list" aria-label="Today's list">
     {state.dots.map(dot => {
       const done = dot.state === 'done', label = `${dot.label}${dot.note ? `: ${dot.note}` : ''}: ${done ? 'done' : dot.state === 'running' ? 'running' : dot.counted ? 'not done yet' : 'not counted today'}`;
       const check = dot.intent === 'open' && dot.href
@@ -31,5 +36,5 @@ export function ListView({state}: {state: ChecklistState}) {
         {panel?.id === dot.id && <div className="checklist-pill-panel">{renderPanel(dot)}</div>}
       </li>;
     })}
-  </ul>;
+  </ul></div>;
 }

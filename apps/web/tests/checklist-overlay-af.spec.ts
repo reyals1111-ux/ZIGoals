@@ -141,6 +141,8 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   await expect(party).toBeVisible();
   await expect(party.getByRole('button', {name: 'Lovely'})).toBeFocused();
   expect(await party.evaluate(d => d.matches(':modal'))).toBe(true);
+  // The last tick's Undo stays in reach over the celebration.
+  await expect(party.locator('.aa-toast').getByRole('button', {name: 'Undo', exact: true})).toBeVisible();
   await party.getByRole('button', {name: 'Lovely'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
