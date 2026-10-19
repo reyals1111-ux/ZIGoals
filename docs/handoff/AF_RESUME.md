@@ -85,6 +85,18 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-19 18:30 Brussels — L5c merged and wired; no helper running)
+- Merged `af/polish2` (`2c30c9dd`, critique round 2 findings 1–22) and wired it (`199770ff`: theme sheets; the round-2
+  record's outcomes). Unit 5,877 passed / 0 failed; typecheck clean; lint 0 errors.
+- Browser (3101, Chromium, both projects): the lane's Earn and Path/Today/a11y sets + theme-parity-af, light-redo-af,
+  market-watch-af — 293 passed, 30 skipped, 1 failed (earn-plain-words: Governance's first tap read 43.99997 px while the
+  page's entrance transform ran; the spec now measures at rest, same 44 px floor; 8/8 after). Script `$SP/lead/run-l5c-sets.zsh`.
+- Owner decisions of 19 Oct done: H130 (`d4760ce8`, `dee2c2f6`), H131 (`72d9178a`); daily PR comment posted 18:00.
+- CI: GitHub stalled this afternoon (jobs queued for 40+ min, API 502s; the reproducibility run on `72d9178a` compared
+  before its build-b finished). Read the run on `199770ff`; one re-run only for a known intermittent.
+- Next: CI on the head; then Gate C preparation (frozen readers, revert-gate dry run, clip captures of every new page
+  including the market watch, G4b) and the ledger helper on the final head before the Friday 22:00 freeze.
+
 ## Resume here (2026-10-19 17:45 Brussels — the owner's two decisions being built; L5c running)
 - Owner decisions of 19 Oct (no reply needed): (1) deepen Light's gradient words → `d4760ce8` + `dee2c2f6` (the
   token set was too wide: `--nebula-pink` and `--text` slipped in and deepened the phone quick-add's fill; the islands did

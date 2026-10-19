@@ -34,6 +34,10 @@ async function checkTap(tap: Locator, term: PlainTerm) {
   await expect(tap).toHaveText(PLAIN_ASK[term]);
   await expect(tap).toHaveAttribute('type', 'button');
   await expect(tap).toHaveAttribute('aria-expanded', 'false');
+  // The target is measured at rest: while the page's one-time entrance (motion-page-enter, a transform on the whole page)
+  // runs, every box on it measures a fraction of a pixel off (Governance's first tap read 43.99997 px mid-entrance, 44 at
+  // rest). Same 44 px floor; the wait covers only animations on the tap or a box that holds it.
+  await tap.evaluate(el => Promise.all(document.getAnimations().filter(a => { const target = (a.effect as KeyframeEffect | null)?.target; return target instanceof Element && target.contains(el); }).map(a => a.finished.catch(() => undefined))));
   const box = (await tap.boundingBox())!;
   expect(box.height, term).toBeGreaterThanOrEqual(44);
   expect(box.width, term).toBeGreaterThanOrEqual(44);
