@@ -77,5 +77,9 @@ describe('the tab session and the phone link', () => {
     expect(keplrMobileLink('https://alpha.zigoals.app', false)).toBe('keplrwallet://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp%2Fstaking');
     expect(keplrMobileLink('https://alpha.zigoals.app', true)).toBe('intent://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp%2Fstaking#Intent;package=com.chainapsis.keplr;scheme=keplrwallet;end;');
     expect(() => keplrMobileLink('http://evil.example', false)).toThrow();
+    // Session AF chunk 3: Governance (and the app's start page) open the same way; any other path is refused.
+    expect(keplrMobileLink('https://alpha.zigoals.app', false, '/app/governance')).toBe('keplrwallet://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp%2Fgovernance');
+    expect(keplrMobileLink('https://alpha.zigoals.app', false, '/app')).toBe('keplrwallet://web-browser?url=https%3A%2F%2Falpha.zigoals.app%2Fapp');
+    for (const path of ['//evil.example/app', 'https://evil.example/app', '/app/settings', '/'] as const) expect(() => keplrMobileLink('https://alpha.zigoals.app', false, path as '/app'), path).toThrow();
   });
 });
