@@ -28,6 +28,7 @@ import {confirmedVote, eligibilityOf, votesOf, type Eligibility} from '../../lib
 import type {ProposalWire, ProposalsWire, VoteChoiceWire} from '../../lib/governance/wire';
 import {formatDateTime} from '../../lib/visual-format';
 import {ProposalCard, type VoteState} from './proposal-card';
+import {WhatsThis} from '../earn/whats-this';
 import '../staking/staking.css';
 import './governance.css';
 
@@ -162,8 +163,8 @@ export function GovernanceView() {
       actions={<Link className="secondary" href="/app/staking">Staking</Link>}/>
     <section className="panel governance-why" aria-labelledby="governance-why-title">
       <h2 id="governance-why-title">Why voting matters</h2>
-      <p>{WHY_VOTING_MATTERS}</p>
-      <p className="fine">Practice first: the practice network (ZIGChain Testnet, no real value) votes the same way{wire && network === 'practice' ? `, with ${durationWords(wire.params!.votingPeriodSeconds)} of voting and ${zigText(wire.params!.minDeposit)} of deposit to start a proposal (read from the chain)` : ''}. The chain removes votes when it counts them, so this device keeps its own record of the votes you sign here.</p>
+      <p>{WHY_VOTING_MATTERS} <WhatsThis term="proposal"/> <WhatsThis term="validator"/> <WhatsThis term="voting-power"/></p>
+      <p className="fine">Practice first: the practice network (ZIGChain Testnet, no real value) votes the same way{wire && network === 'practice' ? `, with ${durationWords(wire.params!.votingPeriodSeconds)} of voting and ${zigText(wire.params!.minDeposit)} of deposit to start a proposal (read from the chain)` : ''}. The chain removes votes when it counts them, so this device keeps its own record of the votes you sign here. <WhatsThis term="practice-network"/></p>
     </section>
     <section className={`panel staking-actions governance-network is-${network}`} aria-labelledby="governance-network-title">
       <div className="staking-actions-head">
@@ -204,7 +205,7 @@ export function GovernanceView() {
         : <>
           <p className="fine">Read from {wire!.source} at block {wire!.height}, {formatDateTime(wire!.observedAt!)}. {ordered.some(p => p.state === 'voting') ? `${ordered.filter(p => p.state === 'voting').length} open for voting now.` : 'None is open for voting right now.'} <button type="button" className="text-link" onClick={() => void load()}>Read again</button></p>
           {!ordered.length && <p>No proposals on this network yet.</p>}
-          {ordered.map(p => <ProposalCard key={p.id} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
+          {ordered.map(p => <ProposalCard key={p.id} explainQuorum={p === ordered.find(o => o.tallyKind !== 'none')} proposal={p} params={wire!.params!} bondedTotal={wire!.bondedTotal!} now={now} chainId={chainId}
             voting={wallet && !showcase ? {eligible, reviewing: reviewing === p.id, myVote: votes[p.id] ?? {phase: 'idle'}, journal: confirmedVote(myVotes, p.id), onReview: review, error: voteErrors[p.id]} : undefined}/>)}
         </>}
     </section>

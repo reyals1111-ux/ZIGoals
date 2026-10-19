@@ -8,7 +8,13 @@ import type {EarnSnapshot, SnapshotFigure} from '../../earn/snapshot';
  * current figure is. Every answer ends with "Explained by ZIGoals · not advice".
  */
 export type GlossaryLang = 'en' | 'nl';
-export type GlossaryTerm = {id: string; en: RegExp; nl: RegExp; text: Record<GlossaryLang, string>; figures?: readonly string[]; academy?: string; section?: string};
+/**
+ * Session AF (L1c, N1): a term may also be a page term only, for the "What's this?" taps on Earn, Staking and Governance
+ * (components/earn/whats-this.tsx, lib/earn/plain-words.ts): English words and no patterns. The coach matches only the
+ * ids in `glossaryTerm`'s order, so a page term changes nothing ZIGi answers; it joins that order once it has its Dutch
+ * words and its patterns.
+ */
+export type GlossaryTerm = {id: string; en?: RegExp; nl?: RegExp; text: {en: string; nl?: string}; figures?: readonly string[]; academy?: string; section?: string};
 export const NOT_ADVICE: Record<GlossaryLang, string> = {en: 'Explained by ZIGoals · not advice', nl: 'Uitgelegd door ZIGoals · geen advies'};
 export const GLOSSARY: readonly GlossaryTerm[] = [
   {id: 'apr', en: /\bapr\b|\bannual percentage rate\b|\byearly rate\b/i, nl: /\bapr\b|\bjaarrente\b|\bjaarlijks rendement\b/i, figures: ['native-apr-issuance-at-measured', 'native-apr-measured', 'native-apr-before-commission'], academy: 'APR and APY', section: 'native-staking',
@@ -53,6 +59,22 @@ export const GLOSSARY: readonly GlossaryTerm[] = [
   {id: 'custody', en: /\b(?:non-?)?custod(?:ial|y)\b/i, nl: /\b(?:niet-?)?custod(?:ial|iaal)\b|\bbewaring\b/i, academy: 'Copy trading and custody', section: 'zignaly',
     text: {en: 'Custodial means a platform holds the money and you hold an account there; it decides what is possible, and when. Non-custodial means you hold the keys yourself in your own wallet: nobody can close your access, and nobody can recover a lost recovery phrase either. ZIGoals never holds keys.',
       nl: 'Custodial betekent dat een platform het geld bewaart en jij er een account hebt; het platform beslist wat kan, en wanneer. Non-custodial betekent dat je de sleutels zelf in je eigen wallet hebt: niemand kan je de toegang ontnemen, en niemand kan een verloren herstelzin terugvinden. ZIGoals houdt nooit sleutels.'}},
+  // Session AF (L1c, N1; PLAN_APPROVED 11.9): the plan's other plain-words terms, for the pages' "What's this?" taps only
+  // (English, no patterns: the coach does not match them). Facts from docs/earn/af (R2, RECHECK, ONCHAIN, R5); no numbers.
+  {id: 'redelegate', section: 'native-staking', text: {en: 'Redelegating moves your stake from one validator to another in one step. It keeps earning the whole time, with no unbonding wait. The same ZIG can only be moved again once the unbonding time has passed, and the chain allows only a few such moves at a time.'}},
+  {id: 'rewards', section: 'native-staking', text: {en: 'Rewards are the new ZIG the network pays to staked ZIG with every block, after your validator’s commission. They wait for you, counted on the chain, until you claim them: claiming moves them into your wallet as ZIG you can use, for a small network fee. Staking more with a validator, or unstaking from it, pays out the rewards waiting with it by itself. Claimed rewards earn nothing until you stake them again.'}},
+  {id: 'jailed', section: 'validators', text: {en: 'A jailed validator has been paused by the network, for staying offline too long or for signing two different blocks. While it is jailed it adds no blocks and the stake behind it earns nothing. After a waiting time it can ask to come back; one that signed two different blocks is removed for good. Your stake stays yours, and you can move it to another validator at once.'}},
+  {id: 'voting-power', section: 'validators', text: {en: 'Voting power is the share of all staked ZIG that stands behind one validator: its own stake and its delegators’. The more it has, the more often it adds blocks and the more its vote weighs in governance. When a few validators hold most of it, the network depends on them, which is why spreading stake helps.'}},
+  {id: 'exchange-rate', section: 'valdora', text: {en: 'stZIG’s exchange rate is how much ZIG one stZIG is worth when it is redeemed through Valdora’s contract. It grows as staking rewards come in, so the same stZIG is worth more ZIG over time. On an exchange stZIG trades at the pool’s own price instead, usually a little below the contract’s. ZIGoals shows the contract’s rate only while the two agree closely.'}},
+  {id: 'pool-depth', section: 'oroswap', text: {en: 'A pool’s depth is how much of each token it holds. In a deep pool a swap barely moves the price; in a shallow one a large swap moves it a lot, so you get noticeably less than the price you first saw. The Earn page shows each pool’s depth, read from the chain.'}},
+  {id: 'swap', section: 'oroswap', text: {en: 'A swap trades one token for another through a pool, at the pool’s price at that moment, in one transaction. You pay the pool’s swap fee and the network fee, and the bigger your swap is against the pool, the more the price moves against you. Your wallet shows what you give and what you get before you sign.'}},
+  {id: 'copy-trading', section: 'zignaly', text: {en: 'Copy trading lets a trader or a strategy on a platform invest your money for you; with profit sharing, that trader keeps a share of any profit. The platform holds the money, not your own wallet, and its rules decide when you can take it out. Past results promise nothing. Zignaly offered this, and it is closing.'}},
+  {id: 'seed-phrase', section: 'safety', text: {en: 'A seed phrase (or recovery phrase) is the list of words that rebuilds your wallet’s keys. Whoever has it can move everything in the wallet, from anywhere. Write it on paper, keep it offline, and never type it into a website, a chat or an app that asks for it. ZIGoals and real support never ask for it.'}},
+  {id: 'practice-network', section: 'start-here', text: {en: 'The practice network (ZIGChain’s testnet) works like the real one, but its ZIG is free test money with no value: a safe place to try staking, voting and fees. The real network (mainnet) is where ZIG has real value and every signed action is final. ZIGoals always says which one you are on.'}},
+  {id: 'bridge', section: 'stablecoins', text: {en: 'A bridge moves tokens from one network to another. Between ZIGChain and other Cosmos networks this is IBC, the networks’ own way to pass tokens; routes from Ethereum go through bridge services. Each hop is software that can fail or be paused, and a token can arrive as a different version of itself (USDC.inj or USDC.n, for example), so check what lands.'}},
+  {id: 'proposal', section: 'governance', text: {en: 'A governance proposal is a change to ZIGChain put to a vote: a rule, a software upgrade, or who may upload smart contracts, for example. It needs a deposit to start; then staked ZIG votes for a set time, and the chain counts the result against its own quorum and thresholds. Its title and text are written by whoever proposed it, so read what it would actually change.'}},
+  {id: 'quorum', section: 'governance', text: {en: 'Quorum is the smallest share of all staked ZIG that must vote for a proposal’s result to count. If less stake than that votes, the proposal fails, whatever the votes said. ZIGChain sets its quorum in its own rules; the Governance page shows it, read from the chain.'}},
+  {id: 'verified-link', section: 'safety', text: {en: 'A verified link is an address ZIGoals took from the app’s own official sources and checked itself, kept in one fixed list; the mark beside it shows the day it was checked. ZIGoals never builds a link from something typed, pasted or read from a page. Copies of real sites are used to steal wallets, so open apps from verified links or your own bookmarks.'}},
 ];
 const FILLERS = String.raw`(?:(?:hey|hi|ok|okay|so|um+|uh+|hé|hoi|dus|euh|eh|zigi),?\s+)*`;
 const DEFINE_START_EN = new RegExp(`^${FILLERS}(?:what(?:'s| is| are| does)|explain|tell me (?:about|what)|how does|how long does|define|meaning of|is (?:this|my)|can you explain)\\b`, 'i');
@@ -70,7 +92,7 @@ export function glossaryTerm(question: string): {term: GlossaryTerm; lang: Gloss
   if (!nl && !DEFINE_START_EN.test(q) && !DEFINE_END_EN.test(q)) return null;
   // The most specific term first (impermanent loss before pool, liquid staking before staking, unbonding before staking).
   const order = ['impermanent-loss', 'liquid-staking', 'unbonding', 'slippage', 'decoy', 'apy', 'apr', 'commission', 'slashing', 'validator', 'gas', 'custody', 'pool', 'staking'];
-  for (const id of order) { const term = GLOSSARY.find(t => t.id === id)!; if ((nl ? term.nl : term.en).test(q)) return {term, lang: nl ? 'nl' : 'en'}; }
+  for (const id of order) { const term = GLOSSARY.find(t => t.id === id)!; if ((nl ? term.nl : term.en)?.test(q)) return {term, lang: nl ? 'nl' : 'en'}; }
   return null;
 }
 export const asOfWords = (iso: string): string => { const t = Date.parse(iso); return Number.isFinite(t) ? `${new Date(t).toISOString().slice(0, 16).replace('T', ' ')} UTC` : 'an unknown time'; };
@@ -93,5 +115,5 @@ export function glossaryAnswer(term: GlossaryTerm, lang: GlossaryLang, snapshot:
   const live = figures.length ? figures.map(f => figureSentence(f, lang)).join(' ') + (term.id === 'apr' && snapshot?.disagree ? (lang === 'nl' ? ' De twee cijfers verschillen sterk; de Earn-pagina toont ze allebei.' : ' The two figures disagree; the Earn page shows both.') : '')
     : term.figures?.length ? (lang === 'nl' ? 'Het cijfer van nu staat op de Earn-pagina, met zijn bron; ZIGi heeft het in dit bezoek nog niet gelezen.' : 'The current figure is on the Earn page, with its source; ZIGi has not read it in this visit.') : '';
   const learn = term.academy ? (lang === 'nl' ? `Meer in Earn → Academy: “${term.academy}”.` : `More in Earn → Academy: “${term.academy}”.`) : '';
-  return [term.text[lang], live, learn, NOT_ADVICE[lang]].filter(Boolean).join('\n\n');
+  return [term.text[lang] ?? term.text.en, live, learn, NOT_ADVICE[lang]].filter(Boolean).join('\n\n');
 }

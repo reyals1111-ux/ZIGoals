@@ -66,8 +66,8 @@ export function EarnView() {
       <div className="earn-sections">
         <SectionBoundary id="summary" title="Your Earn summary"><LiveSummary wallets={wallets} reads={reads}/></SectionBoundary>
         <SectionBoundary id="start-here" title="Start here"><StartHereSection facts={facts} live={live}/></SectionBoundary>
-        <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now}/></SectionBoundary>
-        <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now}/></SectionBoundary>
+        <SectionBoundary id="native-staking" title="Stake ZIG with a validator"><NativeSection chain={chain} validators={validators} measured={measured} now={now} reads={reads}/></SectionBoundary>
+        <SectionBoundary id="valdora" title="Stake and keep a token: stZIG"><ValdoraSection valdora={valdora} llama={llama} now={now} reads={reads}/></SectionBoundary>
         <SectionBoundary id="valdora-vaults" title="Lend USDC through a vault"><VaultsSection vaults={vaults} valdora={valdora} now={now}/></SectionBoundary>
         <SectionBoundary id="oroswap" title="Swap, or earn swap fees in a pool"><OroswapSection oroswap={oroswap} llama={llama} now={now}/></SectionBoundary>
         <SectionBoundary id="nawa" title="Shariah-compliant vaults: Nawa"><NawaSection vaults={vaults} llama={llama} now={now}/></SectionBoundary>

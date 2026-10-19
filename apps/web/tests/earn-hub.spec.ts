@@ -64,7 +64,10 @@ test('a source that fails says "unavailable" with its reason; the explanations, 
   await expect(page.locator('#native-staking .earn-value').filter({hasText: /^0(\.0+)? %$/})).toHaveCount(0);
   await expect(page.locator('[data-live-figure="calculator"]')).toHaveAttribute('data-state', 'unavailable');
   await expect(page.locator('#native-staking .earn-steps li')).toHaveCount(6);
-  await expect(page.locator('#native-staking .earn-risks li')).toHaveCount(5);
+  // Session AF (L1c, N5): moved at equal strength (still the exact count, now of the longer list, 5 → 7) and Valdora's
+  // added beside it: with their sources down, every risk stays.
+  await expect(page.locator('#native-staking .earn-risks li')).toHaveCount(7);
+  await expect(page.locator('#valdora .earn-risks li')).toHaveCount(8);
   await expect(page.locator('#valdora .earn-steps li')).toHaveCount(5);
 });
 

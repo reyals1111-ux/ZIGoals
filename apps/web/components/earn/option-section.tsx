@@ -13,7 +13,7 @@ import {NebulaFlow} from '../nebula-flow';
  * else; the steps say how long they take; `illustration` is the redrawn "what you'll see" of the app's page (lazy).
  */
 export type Tag = {tone: 'live' | 'beta' | 'paused' | 'keys' | 'contract' | 'third'; text: string};
-export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figures, figuresNote, columns, steps, stepsTitle = 'What you’ll do there', stepsTime, notice, illustration, actions, children}: {
+export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figures, figuresNote, mine, columns, steps, stepsTitle = 'What you’ll do there', stepsTime, notice, illustration, actions, children}: {
   id: string; eyebrow: string; title: string; lede: ReactNode; logo: {src?: string; alt: string; glyph?: ReactNode};
   tags: Tag[]; facts: {label: string; value: ReactNode}[]; figures: ReactNode; figuresNote?: ReactNode;
   columns: {title: string; body: ReactNode}[]; steps: {text: ReactNode; sign?: ReactNode}[]; stepsTitle?: string; actions: ReactNode; children?: ReactNode;
@@ -23,6 +23,8 @@ export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figu
   notice?: ReactNode;
   /** Session AF chunk 2: the redrawn "what you'll see" screens of the app's own page (a lazy chunk per app). */
   illustration?: ReactNode;
+  /** Session AF (L1c, P1.23): the person's own position here, from the page's relay reads (nothing without a wallet). */
+  mine?: ReactNode;
 }) {
   return <section id={id} className="earn-option panel" aria-labelledby={`${id}-title`} data-option={id}>
     <header className="earn-option-head">
@@ -41,6 +43,7 @@ export function OptionSection({id, eyebrow, title, lede, logo, tags, facts, figu
       <dl className="earn-figures">{figures}</dl>
       {figuresNote && <div className="earn-figures-note">{figuresNote}</div>}
     </div>
+    {mine}
     <div className="earn-columns">{columns.map(c => <div key={c.title} className="earn-column"><h3 className="earn-subhead">{c.title}</h3>{c.body}</div>)}</div>
     {children}
     <div className="earn-steps">

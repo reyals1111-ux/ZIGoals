@@ -7,6 +7,7 @@ import {VOTE_CHOICES, type GovParams, type ProposalWire, type VoteChoiceWire, ty
 import type {JournalVote} from '../../lib/governance/votes';
 import {zigText} from '../../lib/staking/view';
 import {formatDateTime} from '../../lib/visual-format';
+import {WhatsThis} from '../earn/whats-this';
 
 /**
  * Session AF chunk 3 (lane L2a; ADR-028 H46; P6.5, P6.6): one proposal in plain words — its number and state, the deadline,
@@ -24,9 +25,11 @@ type Props = {
   chainId: string;
   /** Present when a wallet is connected on this network. */
   voting?: {eligible: boolean; reviewing: boolean; myVote: VoteState; journal?: JournalVote; onReview: (proposal: ProposalWire, choice: VoteChoiceWire) => void; error?: string};
+  /** Session AF (L1c, N1): the first card with a tally explains the quorum, once on the page. */
+  explainQuorum?: boolean;
 };
 const SHARES: readonly [keyof ReturnType<typeof tallyView>['shares'], string][] = [['yes', 'Yes'], ['no', 'No'], ['abstain', 'Abstain'], ['noWithVeto', 'No with veto']];
-export function ProposalCard({proposal, params, bondedTotal, now, chainId, voting}: Props) {
+export function ProposalCard({proposal, params, bondedTotal, now, chainId, voting, explainQuorum = false}: Props) {
   const id = useId(), [choice, setChoice] = useState<VoteChoiceWire | ''>('');
   const live = proposal.tallyKind === 'live';
   const view = tallyView(proposal.tally, params, proposal.expedited, bondedTotal, live);
@@ -53,7 +56,7 @@ export function ProposalCard({proposal, params, bondedTotal, now, chainId, votin
         </div>
         <ul className="governance-shares">{SHARES.map(([k, label]) => <li key={k} className={`is-${k}`}><span>{label}</span> <strong>{view.shares[k]}</strong></li>)}</ul>
       </> : <p>No votes {live ? 'yet' : 'were counted'}.</p>}
-      <p className="fine">To pass, at least {percentOf(scaled(params.quorum))} of all staked ZIG must vote (the quorum), Yes must be more than {percentOf(scaled(threshold))} of the votes that are not Abstain, and No with veto must stay at or below {percentOf(scaled(params.vetoThreshold))} of all votes{params.burnVoteVeto ? ' (above it, the deposit is burned)' : ''}. These are the chain&rsquo;s own numbers.</p>
+      <p className="fine">To pass, at least {percentOf(scaled(params.quorum))} of all staked ZIG must vote (the quorum), Yes must be more than {percentOf(scaled(threshold))} of the votes that are not Abstain, and No with veto must stay at or below {percentOf(scaled(params.vetoThreshold))} of all votes{params.burnVoteVeto ? ' (above it, the deposit is burned)' : ''}. These are the chain&rsquo;s own numbers.{explainQuorum && <> <WhatsThis term="quorum"/></>}</p>
       {live && view.verdict && <p className="governance-verdict">{view.verdict} Turnout so far: {view.turnout} of staked ZIG.</p>}
     </section>}
     <dl className="governance-facts">

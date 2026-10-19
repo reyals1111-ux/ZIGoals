@@ -3,6 +3,7 @@ import type {WireValidator} from '../../lib/chain/validators-wire';
 import {shortAddress} from '../../lib/staking/address';
 import {concentrationOf, groupDigits, percentText} from '../../lib/staking/view';
 import {formatDateTime} from '../../lib/visual-format';
+import {WhatsThis} from '../earn/whats-this';
 
 /**
  * Session AF (L2 design §4): choose a validator by facts only — its name, commission, share of all staked ZIG, missed
@@ -15,6 +16,8 @@ export function ValidatorPicker({validators, value, onChange, exclude, legend, n
   const concentration = concentrationOf(validators);
   return <fieldset className="staking-validators">
     <legend>{legend}</legend>
+    {/* Session AF (L1c, N1): the words a choice of validator rests on, one tap away. */}
+    <p className="whats-this-row"><WhatsThis term="validator"/> <WhatsThis term="commission"/> <WhatsThis term="voting-power"/></p>
     {concentration && <p className="fine staking-concentration">The {concentration.count} largest validators hold {percentText(concentration.share)} of all staked ZIG. Spreading stake keeps the network harder to control.</p>}
     <div className="staking-validator-list">
       {active.map(v => <label key={v.operator} className="staking-validator" title={v.operator}>
@@ -28,6 +31,6 @@ export function ValidatorPicker({validators, value, onChange, exclude, legend, n
       </label>)}
     </div>
     {!active.length && <p className="notice">No active validator to choose on this network right now.</p>}
-    {inactive > 0 && <p className="fine">{inactive} inactive or jailed validator{inactive === 1 ? ' is' : 's are'} not shown: they earn nothing while inactive.</p>}
+    {inactive > 0 && <p className="fine">{inactive} inactive or jailed validator{inactive === 1 ? ' is' : 's are'} not shown: they earn nothing while inactive. <WhatsThis term="jailed"/></p>}
   </fieldset>;
 }
