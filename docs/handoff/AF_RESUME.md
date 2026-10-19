@@ -82,6 +82,18 @@ Each lane records its own state in `docs/handoff/af-lanes/<lane>.md` (one owner 
 | 12 Words and help | done: What's new, Help (26 AF answers, search), Known limitations, PRIVACY, OWNER_ACCOUNTS; budgets `33193870` | `be68a4f7` `33193870` |
 | Gate C | not started | — |
 
+## Resume here (2026-10-19 16:40 Brussels — L1c merged; CI on five shards; critique round 2 running)
+- Merged `af/earn3` (`f84076d7`: N1 glossary taps, N5 sourced risks, P1.19 ZIGi in guide mode, P1.23 your position) and
+  wired it (`da6b42dc`: theme sheets; ZIGi keeps an early "Ask ZIGi" chip; the coach's chip names the option; the Earn
+  index spy line 64 px past the landing spot). `1872098c` TIER 3 CI: five browser shards (H128); `1620f626` checks 15 min.
+- CI on `d7684949`: zigi-oneline-z, webkit-timeline and most parity routes now pass in WebKit; left: webkit-earn's Trusted
+  Types error (the spec now records every string given to an HTML sink — read it on `da6b42dc`'s run), parity on
+  /app/checklist (the collector now waits for path stages too), zigi-accept-correct:260 Brussels (the recorded WebKit
+  navigation-stall intermittent; one re-run if it recurs).
+- Critique round 2 running (three read-only reviewers over `$SP/captures/crit2`, clip captures with folds opened): Earn
+  desktop and phone (incl. the never-reviewed lower half), the day pages with the Checklist's Showcase path.
+- 18:00: the PR comment (draft `pr-comment-mon19.md` in the scratchpad).
+
 ## Resume here (2026-10-19 15:35 Brussels — suite findings fixed; push after the last check)
 - Full Chromium suite on `5fdad4ac`: 2,584 passed / 17 failed / 645 skipped (1.4 h; `$SP/logs/full-1.log`); every failure
   fixed or moved (`05f339c2`, `66609d71`), two were local-time-zone only (local runs now use `TZ=UTC` like CI:
