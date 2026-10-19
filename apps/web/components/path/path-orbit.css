@@ -40,7 +40,7 @@
 @keyframes path-comet { from { stroke-dashoffset: .16; } to { stroke-dashoffset: -1.2; } }
 
 /* A name beside its planet on its open side: one line from a tablet up, two at most on a phone; no box, a soft halo. */
-.path-stage[data-variant=orbit] .path-label { top: 50%; translate: 0 -50%; display: block; width: max-content; max-width: min(250px, calc(50cqi + var(--reach, 0) * var(--swing) - var(--dot-size) / 2 - var(--label-gap) - 6px)); padding: 0; background: none; color: var(--text, #f0f5ff); font-size: var(--label-font); line-height: 1.25; font-weight: 750; letter-spacing: -.005em; text-shadow: 0 1px 2px #02061499, 0 0 14px #020614cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 200ms ease; }
+.path-stage[data-variant=orbit] .path-label { top: 50%; translate: 0 -50%; display: block; width: max-content; max-width: min(272px, calc(50cqi + var(--reach, 0) * var(--swing) - var(--dot-size) / 2 - var(--label-gap) - 6px)); padding: 0; background: none; color: var(--text, #f0f5ff); font-size: var(--label-font); line-height: 1.25; font-weight: 750; letter-spacing: -.005em; text-shadow: 0 1px 2px #02061499, 0 0 14px #020614cc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 200ms ease; }
 .path-stage[data-variant=orbit] .path-label[data-side=right] { left: calc(100% + var(--label-gap)); right: auto; text-align: start; }
 .path-stage[data-variant=orbit] .path-label[data-side=left] { right: calc(100% + var(--label-gap)); left: auto; text-align: end; }
 .path-stage[data-variant=orbit] .path-label-note { display: none; }
