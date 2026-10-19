@@ -10,13 +10,15 @@ import type {ToolDefinition} from './types';
  * chain's own claim, not ZIGoals' and not advice. Public figures only: nothing about the person's wallet.
  */
 export const EARN_OPTIONS = ['native-staking', 'valdora', 'valdora-vaults', 'oroswap', 'nawa', 'defa', 'permapod', 'stablecoins'] as const;
+/** The option's name as Earn's own index says it (the chip a person sees beside a question), never its internal id. */
+export const EARN_OPTION_NAMES: Record<(typeof EARN_OPTIONS)[number], string> = {'native-staking': 'Native staking', valdora: 'Valdora stZIG', 'valdora-vaults': 'USDC vaults', oroswap: 'OroSwap', nawa: 'Nawa', defa: 'DeFa', permapod: 'Permapod', stablecoins: 'Stablecoins'};
 export const EARN_RULE = 'Figures are the chain\'s or the provider\'s own claims as the Earn page read them, each with its source and "as of"; not ZIGoals\' and not advice. Quote them as given; state no figure that is not here, and never rank the options by rate.';
 export const earnRates: ToolDefinition<{option?: (typeof EARN_OPTIONS)[number]}> = {
   name: 'earn_rates', title: 'Earn figures', area: 'wealth',
   description: 'The live figures of the ways to earn on ZIGChain (staking APR as the issuance and measured figures, unbonding time, fees, vault totals), exactly as the Earn page read them, each with its source and "as of"; none when not read yet.',
   parameters: {type: 'object', properties: {option: {type: 'string', enum: EARN_OPTIONS, description: 'Only one way to earn (optional).'}}},
   args: z.object({option: z.enum(EARN_OPTIONS).optional()}),
-  label: args => args.option ? `Earn figures · ${args.option}` : 'Earn figures',
+  label: args => args.option ? `Earn figures · ${EARN_OPTION_NAMES[args.option]}` : 'Earn figures',
   run(args, env, label) {
     const snapshot = env.earn, figures = (snapshot?.figures ?? []).filter(f => !args.option || f.option === args.option || (args.option === 'stablecoins' && /vault|usdc/i.test(f.id)));
     const families = Object.values(snapshot?.families ?? {}).map(f => f!.status === 'ok' ? {family: f!.family, status: 'read', source: text(f!.source, 80), asOf: f!.asOf, ...(f!.stale ? {stale: true} : {})} : {family: f!.family, status: 'unavailable', reason: text(f!.words, 140)});

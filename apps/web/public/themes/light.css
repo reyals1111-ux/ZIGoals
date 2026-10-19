@@ -4721,6 +4721,14 @@
     .earn-risks:not(#\-) {
         color: var(--text-secondary)
     }
+    .earn-mine:not(#\-) {
+        border-color: #ffd27a33;
+        background-image: none;
+        background-color: #f0f3f9
+    }
+    .earn-risk-source:not(#\-) {
+        color: var(--text-meta)
+    }
     .earn-steps li p:not(#\-) {
         color: var(--text-secondary)
     }
@@ -5036,6 +5044,25 @@
         fill: var(--accent-cyan, #63e7ff)
     }
     .today-earn-body p:not(#\-) {
+        color: var(--text-secondary)
+    }
+}
+/*  components/earn/whats-this.css  */
+@scope (:root[data-theme=light]) to (.today-hero, .site-footer, .sidebar-destination, .destination-panel, .account-panel, .stake-hero, .phone-more-signature, .hero-star, .how-it-works-dialog, .logo-intro, .ai-launcher, .ai-edge-tab, .music-launcher-stack, .music-edge-tab, .zigi-figure-stage, .goal-card-art, .path-dot, .path-line, .path-banner, .path-chest-art, .path-zigi, .path-jump, .checklist-sky, .checklist-launcher-stack, .checklist-edge-tab, .checklist-timer, .checklist-history, .earn-dock-button, .earn-dock-edge, .earn-dock-app, .earn-dock-fold, .earn-medallion, .earn-dock-app-face) {
+    .whats-this:not(#\-) {
+        border-color: currentcolor;
+        background-image: none;
+        background-color: transparent;
+        color: #136672
+    }
+    .whats-this:hover:not(#\-) {
+        background-image: none;
+        background-color: #8bddeb14
+    }
+    .whats-this-def:not(#\-) {
+        border-left-color: #8bddeb88;
+        background-image: none;
+        background-color: #f0f3f9;
         color: var(--text-secondary)
     }
 }

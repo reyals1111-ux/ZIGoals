@@ -19,6 +19,18 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   // TrustedHTML" while Earn loads; the browser's own violation reports (the sink, the first characters of the value and the
   // script position) are kept so a failure names what assigned the HTML. The assertion below is unchanged.
   await page.addInitScript(() => { document.addEventListener('securitypolicyviolation', e => { const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`${e.violatedDirective} | ${e.sample} | ${e.sourceFile}:${e.lineNumber}:${e.columnNumber}`); }); });
+  // WebKit sent no violation event (CI on d7684949), so the HTML sinks themselves note each string assigned to them, with
+  // the element and the first frames of the caller, before the browser refuses it (diagnostic only; nothing is changed).
+  await page.addInitScript(() => {
+    const note = (where: string, value: unknown) => { if (typeof value !== 'string') return; const w = window as unknown as {afViolations?: string[]}; (w.afViolations ??= []).push(`${where} ← "${value.slice(0, 60)}" @ ${(new Error().stack ?? '').split('\n').slice(2, 6).map(l => l.trim().slice(0, 90)).join(' < ')}`); };
+    for (const [proto, prop] of [[Element.prototype, 'innerHTML'], [Element.prototype, 'outerHTML'], [ShadowRoot.prototype, 'innerHTML']] as const) {
+      const d = Object.getOwnPropertyDescriptor(proto, prop); if (!d?.set) continue;
+      Object.defineProperty(proto, prop, {...d, set(this: Element, v: unknown) { note(`${(this as Element).tagName ?? 'shadow'}.${prop}`, v); return d.set!.call(this, v); }});
+    }
+    const adjacent = Element.prototype.insertAdjacentHTML; Element.prototype.insertAdjacentHTML = function (pos: InsertPosition, v: string) { note(`${this.tagName}.insertAdjacentHTML`, v); return adjacent.call(this, pos, v); };
+    const fragment = Range.prototype.createContextualFragment; Range.prototype.createContextualFragment = function (v: string) { note('Range.createContextualFragment', v); return fragment.call(this, v); };
+    const parse = DOMParser.prototype.parseFromString; DOMParser.prototype.parseFromString = function (v: string, type: DOMParserSupportedType) { note('DOMParser.parseFromString', v); return parse.call(this, v, type); };
+  });
   const origin = new URL(baseURL!).origin;
   await context.route(url => url.origin !== origin, route => route.fulfill({status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title>'}));
   await seedShowcase(page);
@@ -50,5 +62,5 @@ test('the Earn hub at 390 px in WebKit: chip rail, no sideways scroll, 44 px tar
   await sheet.getByRole('button', {name: 'Close the guide'}).click();
   await expect(sheet).toHaveCount(0);
   const violations = await page.evaluate(() => (window as unknown as {afViolations?: string[]}).afViolations ?? []).catch(() => [] as string[]);
-  expect(errors, violations.length ? `Trusted Types reports: ${violations.join(' ;; ')}` : undefined).toEqual([]);
+  expect(errors, violations.length ? `Trusted Types reports and HTML assignments: ${violations.join(' ;; ')}` : undefined).toEqual([]);
 });

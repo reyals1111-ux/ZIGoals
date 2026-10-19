@@ -53,7 +53,8 @@ export async function openIn(page: Page, route: string, theme: Theme) {
   // scrolled (the phone bar's title follows the next frame), and a path's line is waited for until it matches its stage's
   // size (the path measures again up to 2.5 s after it mounts; a line still being measured is not a theme's difference).
   const rest = () => page.evaluate(() => JSON.stringify([scrollX, scrollY, document.querySelector('.ai-launcher')?.getBoundingClientRect().top ?? null,
-    [...document.querySelectorAll('body *')].filter(e => e.scrollLeft || e.scrollTop).map(e => [e.scrollLeft, e.scrollTop])]));
+    [...document.querySelectorAll('body *')].filter(e => e.scrollLeft || e.scrollTop).map(e => [e.scrollLeft, e.scrollTop]),
+    [...document.querySelectorAll('.path-stage')].map(s => (s as HTMLElement).offsetHeight)]));
   const linesFit = () => page.evaluate(() => [...document.querySelectorAll('svg.path-line')].every(l => { const stage = l.parentElement as HTMLElement | null; return !stage || Math.abs(l.getBoundingClientRect().height - stage.offsetHeight) <= 1; }));
   await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
   for (let i = 0, last = await rest(); i < 30; i++) { await page.waitForTimeout(300); const now = await rest(); if (now === last && await linesFit()) break; last = now; }
