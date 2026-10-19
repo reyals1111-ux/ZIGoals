@@ -5,3 +5,5 @@ export declare function chainFailures(data: unknown): string[];
 export declare function valdoraFailures(data: unknown): string[];
 export declare function oroswapFailures(data: unknown): string[];
 export declare function defillamaFailures(data: unknown): string[];
+export declare function vaultsFailures(data: unknown): string[];
+export declare function measuredFailures(data: unknown): string[];
