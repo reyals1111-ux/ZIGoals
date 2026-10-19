@@ -113,7 +113,7 @@ export function ValueSources({variant,platform,...layout}:LayoutAttrs&{variant:'
  return <Shell layout={layout} id={`bottom-${variant}-sources`} eyebrow="WHERE VALUES COME FROM" title={<>What’s tracked, and how.</>} lede="Every value keeps its source and time. When the price service is unavailable, no new price appears; the last verified value keeps its timestamp.">
   <dl className="bottom-counts">{counts.map(([label,n])=><div key={label}><dt>{label}</dt><dd>{formatNumber(n)}</dd></div>)}</dl>
   <ul className="bottom-sources">{SOURCES.map(([title,body])=><li key={title}><strong>{title}</strong><span>{body}</span></li>)}</ul>
-  <p className="bottom-note">No trading, return forecast or advice is implied. Financial execution is not available in this Alpha.</p>
+  <p className="bottom-note">No trading, return forecast or advice is implied. Nothing is bought or sold here; only native staking and votes sign, in your own wallet.</p>
  </Shell>;
 }
 

@@ -114,12 +114,14 @@ export function Shell({ children, footer }: { children: ReactNode; footer?: Reac
   const plain = s.mode === "local" && s.walletState !== "CONNECTED";
   const [statusOpen, setStatusOpen] = useState(false);
   useEffect(() => { const open = () => setStatusOpen(true); window.addEventListener(PHONE_STATUS_EVENT, open); return () => window.removeEventListener(PHONE_STATUS_EVENT, open); }, []);
-  const networkLabel = plain ? "PRACTICE MONEY (NO REAL VALUE) · PUBLIC ALPHA" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
+  // Session AF (crit1, ADR-028 H124; `TIER 3 (public-safety labels)`): "practice money (no real value)" stopped being true
+  // when native staking began to sign on the real network too; the label says what holds on every network.
+  const networkLabel = plain ? "PUBLIC ALPHA · NOTHING MOVES UNLESS YOU SIGN" : "ZIGCHAIN TESTNET · PUBLIC ALPHA";
   // Session AF (ADR-028 H19, H62; `TIER 3 (public-safety labels)`): native staking signs in the person's own wallet on both networks.
   const networkSentence = FINANCIAL_EXECUTION_ALLOWED ? "Testnet assets have no monetary value." : "Staking and votes sign in your own wallet (practice or real, your choice). Nothing else moves, and ZIGoals never holds keys.";
   const modeText = s.mode === "local"
     ? "LOCAL SIMULATION · Mode: this tab · Stored in this browser · Only staking signs, in your own wallet"
-    : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Financial actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
+    : `KEPLR TESTNET · Mode: this tab · ${FINANCIAL_EXECUTION_ALLOWED ? "Testnet" : "CONNECTION ONLY · Contract actions unavailable"} · ${s.walletState.replaceAll("_", " ").toLowerCase()}`;
   const alphaFacts = {network: {label: networkLabel, sentence: networkSentence}, mode: modeText, financial: banners};
   const walletButtons = <>
           <button
