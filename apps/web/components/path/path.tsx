@@ -22,7 +22,9 @@ import './path.css';
  * Motion is one-time per occurrence: a dot that has just become done fills and bursts, its line lights along its length,
  * a chest that has just been reached opens, ZIGi cheers for a moment. Nothing loops. Reduced motion and Motion Off show
  * every final state at once (CSS). Keyboard: the dots are buttons in path order; Home/End and the arrow keys move
- * between them; the bubble scrolls the next dot into view and focuses it.
+ * between them; the bubble scrolls the next dot into view and focuses it. The bubble takes no layout space and shows
+ * only while the next dot is off screen and the bubble itself sits whole on the screen, inside the path, over no banner,
+ * chest or open panel (critique round 2).
  */
 export type PathProps = {
   model: PathModel;
@@ -73,7 +75,7 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
   useEffect(() => { if (!ticked) return; setCheer(true); const t = window.setTimeout(() => setCheer(false), CHEER_MS); return () => window.clearTimeout(t); }, [ticked]);
   const zigiState = zigi === false ? null : zigi.state ?? (cheer && anchor.mood !== 'done' ? ZIGI_PATH_STATES.tick : ZIGI_PATH_STATES[anchor.mood]);
 
-  // "Jump to next": shown while the next dot is out of view (always, where the browser cannot tell).
+  // "Jump to next": wanted while the next dot is out of view (always, where the browser cannot tell).
   const [nextVisible, setNextVisible] = useState(true), [nextAbove, setNextAbove] = useState(false);
   const nextId = next?.id ?? null;
   useEffect(() => {
@@ -84,6 +86,28 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
     io.observe(el);
     return () => io.disconnect();
   }, [nextId, geometryKey]);
+  // Critique round 2 (L5c): the bubble takes no room (it rides a zero-height sticky dock on a track laid over the stage) and
+  // is shown only where it is whole on the screen, inside its own path, and over no orbit banner, chest, end or open
+  // panel — so it never parks on the first banner's count, never hangs over the page around the path, and never leaves
+  // an empty band at the path's end. Measured on scroll and resize, once a frame at most.
+  const bubble = useRef<HTMLButtonElement>(null), [jumpClear, setJumpClear] = useState(false);
+  const wantJump = !!next && !nextVisible;
+  useEffect(() => {
+    if (!wantJump) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const b = bubble.current, s = stage.current; if (!b || !s) return;
+      const r = b.getBoundingClientRect(), box = s.getBoundingClientRect();
+      const whole = r.height > 0 && r.top >= 0 && r.bottom <= window.innerHeight && r.top >= box.top && r.bottom <= box.bottom;
+      const covers = [...s.querySelectorAll('.path-banner, .path-chest, .path-end, .path-panel')].some(el => { const o = el.getBoundingClientRect(); return o.left < r.right && o.right > r.left && o.top < r.bottom && o.bottom > r.top; });
+      setJumpClear(whole && !covers);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    schedule();
+    document.addEventListener('scroll', schedule, {passive: true, capture: true}); window.addEventListener('resize', schedule);
+    return () => { cancelAnimationFrame(frame); document.removeEventListener('scroll', schedule, {capture: true}); window.removeEventListener('resize', schedule); setJumpClear(false); };
+  }, [wantJump, geometryKey]);
   const jump = useCallback(() => {
     const el = next ? stage.current?.querySelector<HTMLElement>(`[data-path-point="${CSS.escape(next.id)}"]`) : null; if (!el) return;
     el.scrollIntoView({block: 'center', behavior: entranceAllowed() ? 'smooth' : 'auto'});
@@ -128,6 +152,8 @@ export function Path({model: raw, ariaLabel, layout = 'snake', density = 'full',
       </section>;
     })}
     {zigiAtEnd && <div className="path-end"><PathZigi state={zigiState} side="left" say={zigi === false ? undefined : zigi.say}/></div>}
-    {next && !nextVisible && <button type="button" className="path-jump" onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>}
+    {next && wantJump && <div className="path-jump-track"><div className="path-jump-dock">
+      <button ref={bubble} type="button" className="path-jump" data-clear={jumpClear || undefined} data-direction={nextAbove ? 'up' : 'down'} onClick={jump}><span>{jumpLabel}</span><span className="path-jump-arrow" aria-hidden="true">{nextAbove ? '↑' : '↓'}</span><span className="sr-only">: {next.label}</span></button>
+    </div></div>}
   </div>;
 }

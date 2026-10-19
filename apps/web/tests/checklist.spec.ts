@@ -114,11 +114,26 @@ test('an empty path says how to build one; Jump to next focuses the first waitin
   await page.setViewportSize({width: 1280, height: 520});
   await page.goto('/app/checklist');
   await page.getByRole('button', {name: `${TITLE.stretch}: not done yet`, exact: true}).click();
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  // Critique round 2 (L5c), moved at greater strength: the bubble now shows only where it sits whole on the screen,
+  // inside its path and over no banner or chest (at the page's foot, below the path, it stays hidden). So the page is
+  // swept down the path: while the next dot (Water) is on screen there is no bubble; once it is off screen the bubble
+  // shows somewhere along the path, in view, and still jumps to Water and focuses it.
   const jump = page.getByRole('button', {name: /^Jump to next/});
-  await expect(jump).toBeVisible();
+  const stage = page.getByRole('group', {name: "Today's path"});
+  await expect(stage.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeInViewport();
+  await expect(jump).toHaveCount(0);
+  const box = (await stage.boundingBox())!, top = box.y + await page.evaluate(() => scrollY);
+  let shown = false;
+  for (let y = top; y < top + box.height && !shown; y += 60) {
+    await page.evaluate(v => window.scrollTo(0, v), y);
+    await page.waitForTimeout(120);
+    shown = await jump.isVisible();
+  }
+  expect(shown, 'the bubble shows while Water is off screen').toBe(true);
+  await expect(jump).toBeInViewport();
   await jump.click();
   await expect(page.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeFocused();
+  await expect(page.getByRole('button', {name: 'Water: not done yet', exact: true})).toBeInViewport();
 });
 
 test('midnight in the person’s zone: a fresh path, and yesterday sealed into the history (P7.15)', async ({page}) => {

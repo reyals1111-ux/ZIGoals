@@ -76,7 +76,9 @@
 /* A chest beside the path. */
 .path-chest { position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: max-content; max-width: 100%; justify-self: start; padding-inline-start: clamp(0px, 10cqi, 96px); }
 .path-chest[data-side=right] { justify-self: end; flex-direction: row-reverse; text-align: end; padding-inline: 0 clamp(0px, 10cqi, 96px); }
-.path-chest-art { position: relative; display: grid; place-items: center; width: 66px; height: 58px; filter: drop-shadow(0 8px 14px #0009) saturate(.55) brightness(.75); opacity: .78; }
+/* Critique round 2 (L5c): a chest not reached yet is dimmed by opacity alone, so it keeps its gold (a desaturating,
+   darkening filter made it brown clip-art); reached, it is whole and glows. */
+.path-chest-art { position: relative; display: grid; place-items: center; width: 66px; height: 58px; filter: drop-shadow(0 8px 14px #0009); opacity: .55; }
 .path-chest-art svg { width: 64px; height: 56px; overflow: visible; }
 .path-chest-band { stroke: #8a5a1c; stroke-width: 2; }
 .path-chest-clasp { fill: #fff3cf; stroke: #8a5a1c; stroke-width: 1.5; }
@@ -106,7 +108,12 @@
 .path-zigi-figure img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .path-zigi-arrow { width: 14px; height: 14px; border-radius: 3px; background: linear-gradient(135deg, #63e7ff, #826cff 55%, #ff74be); clip-path: polygon(0 0, 100% 50%, 0 100%, 26% 50%); filter: drop-shadow(0 0 6px #826cffaa); }
 .path-zigi[data-side=right] .path-zigi-arrow { rotate: 180deg; }
-.path-zigi-say { position: absolute; top: 100%; left: 50%; translate: -50% 6px; width: max-content; max-width: 180px; padding: 6px 10px; border-radius: 12px; background: var(--path-ink-say); border: 1px solid #826cff66; color: #eef4ff; font-size: 14px; line-height: 1.25; text-align: center; }
+/* Critique round 2 (L5c): ZIGi's line is one line (it wrapped at 180 px and sat on the next dot's label): it starts at
+   ZIGi's outer edge and runs toward the dot, under ZIGi, above the next dot's label; a line longer than the room ends
+   in an ellipsis (the dot's own label says it in full). */
+.path-zigi-say { position: absolute; top: 100%; translate: 0 6px; box-sizing: border-box; width: max-content; max-width: min(260px, 46cqi); padding: 5px 10px; border-radius: 12px; background: var(--path-ink-say); border: 1px solid #826cff66; color: #eef4ff; font-size: 14px; line-height: 1.25; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.path-zigi[data-side=left] .path-zigi-say { left: 0; }
+.path-zigi[data-side=right] .path-zigi-say { right: 0; }
 .path-end { position: relative; z-index: 2; display: grid; justify-items: center; min-height: 76px; }
 .path-end .path-zigi { position: relative; top: auto; translate: none; right: auto; left: auto; }
 @media (max-width: 640px) { .path-zigi-figure { width: 44px; height: 58px; } }
@@ -115,10 +122,17 @@
 .path-panel { position: relative; z-index: 3; width: min(100%, 440px); margin-top: 16px; }
 
 /* "Jump to next": a glass bubble that stays in view while the next dot is not. */
-.path-jump { position: sticky; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px); z-index: 4; justify-self: center; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid #8cc8ff66; background: linear-gradient(100deg, var(--path-ink-jump-a), var(--path-ink-jump-b)); box-shadow: 0 14px 30px -12px #000c, 0 0 24px #4f8dff40; color: #f2f7ff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+/* Critique round 2 (L5c): the bubble takes no layout space (it was a grid row: an empty band at every path's end) — a
+   track laid over the whole stage holds a zero-height dock at its foot, sticky to the bottom of the screen, and the
+   bubble hangs from it at the path's start edge. The renderer shows it (data-clear) only while it sits whole on the
+   screen, inside the path, over no banner, chest or open panel; otherwise it is hidden, not focusable and not read. */
+.path-jump-track { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; }
+.path-jump-dock { position: sticky; bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 16px); height: 0; }
+.path-jump { position: absolute; bottom: 0; left: 0; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid #8cc8ff66; background: linear-gradient(100deg, var(--path-ink-jump-a), var(--path-ink-jump-b)); box-shadow: 0 14px 30px -12px #000c, 0 0 24px #4f8dff40; color: #f2f7ff; font: inherit; font-size: 16px; font-weight: 700; white-space: nowrap; cursor: pointer; pointer-events: auto; }
+.path-jump:not([data-clear]) { visibility: hidden; pointer-events: none; }
 .path-jump:focus-visible { outline: 3px solid #ffffff; outline-offset: 4px; }
 .path-jump-arrow { font-size: 18px; }
-@media (max-width: 640px) { .path-jump { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 84px); } }
+@media (max-width: 640px) { .path-jump-dock { bottom: calc(max(12px, env(safe-area-inset-bottom, 0px)) + 84px); } .path-jump { min-height: 44px; padding: 0 14px; font-size: 15px; } }
 
 /* Stills: reduced motion and Motion Off paint every final state at once. */
 @media (prefers-reduced-motion: reduce) { .path-stage, .path-stage *, .path-stage *::before, .path-stage *::after { animation: none !important; transition: none !important; } }
