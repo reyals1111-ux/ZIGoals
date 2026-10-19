@@ -22,6 +22,8 @@ const paths: Record<string, string> = {
   // Session AF (ADR-028): Earn (a coin with a rising line) and the Checklist (a rounded square with a check).
   earn: "M9.5 20.6A8 8 0 1 1 20 12M12 8v8m-3-5 3-3 3 3M18 15l1.5 1.5L18 18m1.5-1.5H15",
   checklist: "M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1m3.5 8 2.5 2.5 5-5",
+  // Session AF: Governance — a ballot box with a tick.
+  governance: "M4 11h16v9H4zM8 11V5h8v6M9.8 8l1.6 1.6L14.6 6.4",
   chevron: "m6 9 6 6 6-6",
   refresh: "M20 7v5h-5M4 17v-5h5m10-2a7 7 0 0 0-12-5M5 14a7 7 0 0 0 12 5",
   plus: "M12 5v14M5 12h14",

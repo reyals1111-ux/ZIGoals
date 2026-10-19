@@ -29,6 +29,7 @@ export const PAGES: readonly SearchItem[] = [
   // Session AA-Local's pages and views (merged second, ADR-022 B52).
   {id: 'page:journey', kind: 'page', title: 'Journey', href: '/app/journey', keywords: ['game', 'level', 'quests', 'badges', 'xp', 'freeze']},
   {id: 'page:checklist', kind: 'page', title: 'Checklist', href: '/app/checklist', keywords: ['path', 'dots', 'favourites', 'favorites', 'daily', 'orbit', 'star', 'checklist']},
+  {id: 'page:governance', kind: 'page', title: 'Governance', href: '/app/governance', keywords: ['governance', 'vote', 'voting', 'proposal', 'proposals', 'quorum', 'veto', 'gov']},
   {id: 'page:add-money', kind: 'page', title: 'Add money', href: '/app/wealth/add-money', keywords: ['buy', 'card', 'on-ramp', 'onramp', 'ramp', 'banxa', 'usdc', 'atom', 'deposit', 'add money']},
   {id: 'page:reminders', kind: 'page', title: 'Reminders', subtitle: 'Settings', href: '/app/settings/reminders', keywords: ['quiet hours', 'bedtime', 'water', 'weekly review', 'fasting']},
   {id: 'page:habits-routines', kind: 'page', title: 'Routines', subtitle: 'Habits', href: '/app/habits#routines', keywords: ['morning routine', 'stack', 'player']},
@@ -197,6 +198,8 @@ export const HELP_QUESTIONS: readonly [string, string][] = [
   ["ae-music", "Why does the music button look like ZIGi’s?"],
   ["af-earn", "What is the Earn page?"],
   ["af-staking", "Can I stake ZIG from ZIGoals?"],
+  ["af-governance", "Can I vote on ZIGChain proposals from ZIGoals?"],
+  ["af-practice-badges", "What are practice badges?"],
   ["af-checklist", "What is the Checklist?"],
   ["af-checklist-star", "How do I put something on my path?"],
   ["af-checklist-tick", "What happens when I tick a dot?"],

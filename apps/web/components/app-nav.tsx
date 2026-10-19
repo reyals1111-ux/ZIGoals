@@ -26,6 +26,8 @@ export const NAV_GROUPS = [
     ["/app/earn", "Earn", "earn"],
     ["/app/markets", "Markets", "activity"],
     ["/app/staking", "Staking", "future"],
+    // Session AF (L2a): proposals in plain words and your vote, beside Staking; it follows Staking's switch (H98's rule).
+    ["/app/governance", "Governance", "governance"],
     ["/app/portfolio", "Portfolio", "portfolio"],
   ],
   [

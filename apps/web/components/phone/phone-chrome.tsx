@@ -54,6 +54,7 @@ const MORE_NOTES: Record<string, string> = {
   "/app/help": "Answers, feedback and the Alpha's facts",
   "/app/journey": "Your XP, quests and badges",
   "/app/checklist": "Today's path of starred dots",
+  "/app/governance": "Proposals in plain words, and your vote",
 };
 
 export type PhoneRoute = { title: string; back?: { href: string; label: string } };

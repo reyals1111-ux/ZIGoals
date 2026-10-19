@@ -64,7 +64,7 @@ export function pageIdForHref(href: string): PageId | null {
  * Session AF (ADR-028 H72, H98): destinations with no switch of their own that follow a page's switch. Earn sits in the
  * Wealth group, so it shows and hides with Wealth; a new page id would change the strict synced settings format.
  */
-export const FOLLOWS_PAGE: Readonly<Record<string, PageId>> = {'/app/earn': 'wealth'};
+export const FOLLOWS_PAGE: Readonly<Record<string, PageId>> = {'/app/earn': 'wealth', '/app/governance': 'staking'};
 /** Whether a navigation destination shows: Settings (and every address that is no page, like Help) always does. */
 export function hrefShown(view: PagesView, href: string): boolean {
   const id = pageIdForHref(href) ?? FOLLOWS_PAGE[href] ?? null;

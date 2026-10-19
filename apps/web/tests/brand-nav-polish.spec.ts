@@ -56,7 +56,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
   // same order (the Showcase shows Chess since Session W Part 14).
   expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth']);
   await openMore(page);
-  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Journey','Settings','Help']); // Session AB-Design Phase 2 (deliberate, ADR-024): the Journey row while Gamify is on. Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More (H68)
+  expect(await nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Governance','Portfolio','Ecosystem','Chess','Activity','Checklist','Journey','Settings','Help']); // Session AB-Design Phase 2 (deliberate, ADR-024): the Journey row while Gamify is on. Session AF (ADR-028): Earn opens the money group; the Checklist is a row of More (H68)
   await page.keyboard.press('Escape');
   // The active tab's pill glides to the new tab (a running transform transition), then settles.
   const pill=page.locator('.phone-tab-pill'),habits=nav.getByRole('link',{name:'Habits',exact:true});
@@ -80,7 +80,7 @@ test('navigation keeps one order, glides its highlight and moves aria-current an
  }
  // The Showcase's visible set (Chess included, Session W Part 14) applies once the page knows it is the Showcase.
  // Session AF (ADR-028): Earn opens the money group; the Checklist sits before Settings.
- await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
+ await expect.poll(()=>nav.getByRole('link').allTextContents()).toEqual(['Today','Goals','Habits','Health','Wealth','Earn','Markets','Staking','Governance','Portfolio','Ecosystem','Chess','Activity','Checklist','Settings','Help']);
  const glide=page.locator('.nav-glide'),markets=nav.getByRole('link',{name:'Markets',exact:true});
  // Session U Part 4: the glide's moving state and the nav's data-gliding are recorded from before the click (a
  // MutationObserver), so a glide that ends before the first check on a loaded runner is still seen.

@@ -6,9 +6,9 @@ import {isPhone, mainNav, openMore} from './phone-nav';
 // Session W Part 2 (owner decision W4): Settings → "Your pages & buttons". Offline fixture; every network call answers 503.
 const SETTINGS = 'zigoals:settings:v1', MIRROR = 'zigoals:pages-view:v1', AT = '2026-10-07T09:00:00.000Z';
 // Session AF (ADR-028 H98): Earn follows Wealth's switch, so it is listed only where Wealth is.
-const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
+const ALL = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Activity', 'Settings'];
 /** Every page, Chess included (Session W Part 14): what "Show everything again" and the Showcase show. */
-const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
+const EVERY = ['Today', 'Goals', 'Habits', 'Health', 'Wealth', 'Earn', 'Markets', 'Staking', 'Governance', 'Portfolio', 'Ecosystem', 'Chess', 'Activity', 'Settings'];
 /** Session AF (ADR-028 H68): the Checklist is a navigation extra on every device, before Settings, never a phone tab. */
 const withChecklist = (labels: string[]) => { const at = labels.indexOf('Settings'); return at < 0 ? [...labels, 'Checklist'] : [...labels.slice(0, at), 'Checklist', ...labels.slice(at)]; };
 const pages = (hidden: string[], start?: string | null) => ({version: 1, items: Object.fromEntries(hidden.map(id => [id, {v: 'hidden', at: AT}])), ...(start !== undefined ? {start: {id: start, at: AT}} : {})});
