@@ -225,14 +225,21 @@ test.describe('the path engine', () => {
   });
 });
 
+/** Today's For you area once it has mounted (it loads after the page; CI on 49433538 looked before it existed and never
+ *  opened it): its own "Show more" is pressed when the card is folded behind it. The checks that follow are unchanged. */
+async function openForYou(page: Page, card: Locator) {
+  const forYou = page.getByRole('region', {name: 'For you', exact: true});
+  await expect(forYou).toBeVisible({timeout: 15_000});
+  const more = forYou.getByRole('button', {name: /^Show more/});
+  if (!(await card.isVisible().catch(() => false)) && await more.count()) await more.first().click();
+}
 test.describe('Today', () => {
   test('My universe: each name under its planet; a lit planet wears a strong halo', async ({page}) => {
     await page.goto('/app/settings');
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-universe-card');
-    const more = page.getByRole('button', {name: /^Show more/});
-    if (await card.count() === 0 || !(await card.isVisible())) { if (await more.count()) await more.first().click(); }
+    await openForYou(page, card);
     await expect(card.locator('.universe-row svg')).toHaveCount(4);
     await card.scrollIntoViewIfNeeded();
     const xs = await card.evaluate(c => ({planets: [...c.querySelectorAll('.universe-row .universe-planet-core')].map(p => { const r = p.getBoundingClientRect(); return r.left + r.width / 2; }), names: [...c.querySelectorAll('.today-universe-names li')].map(l => { const r = document.createRange(); r.selectNodeContents(l); const b = r.getBoundingClientRect(); return b.left + b.width / 2; })}));
@@ -270,8 +277,7 @@ test.describe('Today', () => {
     await page.getByRole('button', {name: 'Load Showcase Demo', exact: true}).click();
     await page.waitForURL('**/app');
     const card = page.locator('.today-timeline-card');
-    const more = page.getByRole('button', {name: /^Show more/});
-    if (!(await card.isVisible().catch(() => false)) && await more.count()) await more.first().click();
+    await openForYou(page, card);
     await expect(card).toBeVisible();
     const list = card.getByRole('list', {name: 'Next on your timeline'});
     await expect(card.locator('.today-timeline-next, .today-timeline-line').first()).toBeVisible();
