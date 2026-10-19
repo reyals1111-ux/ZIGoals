@@ -45,6 +45,11 @@
 .position-goal-action details[open] > summary { margin-bottom:8px; }
 .staking-card { min-width:0; overflow:hidden; padding:23px 20px; border:1px solid var(--cosmic-edge); border-radius:15px; background:linear-gradient(110deg,#031025ec,#0a153387),var(--cosmic-horizon) center / cover; box-shadow:inset 0 1px 1px #a2d8ff3b; }
 .staking-card h2 { display:flex; align-items:center; gap:.5rem; font-size:1rem; margin:0; }
+/* Session AF (L5a, Part 10.12): in the rail's narrow column (1001–1279 px: the card is 280 px and keeps its 64 px lane
+   clear of the floating buttons) "ZIG reward reserve" broke onto two lines; there the heading takes a size that fits the
+   card's own width, on one line. Wider cards keep their size. */
+.staking-card { container-type: inline-size; }
+@container (max-width: 260px) { :root .staking-card .section-heading h2 { font-size: clamp(15px, 10.2cqi - 3.5px, 24px); white-space: nowrap; } }
 .staking-card .section-heading { gap:.5rem; margin-bottom:1.3rem; flex-wrap:wrap; }
 .stake-card-value { display:block; width:fit-content; max-width:100%; font-size:clamp(1.45rem,2.2vw,2.1rem); letter-spacing:-.04em; line-height:1.3; overflow-wrap:anywhere; }
 .stake-card-value span { font-size:14px; white-space:nowrap; }

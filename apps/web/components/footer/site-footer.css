@@ -139,6 +139,14 @@
 .site-footer[data-intro=play] .site-footer-arc[data-part=return] { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(100%, 100%); }
 .site-footer[data-intro=play] .site-footer-arc[data-part=return] > .site-footer-arc-in { animation: sf-corner-in .8s cubic-bezier(.3, .1, .3, 1) var(--sf-arc-return, 2.7s) both; --sf-from: translate(-100%, -100%); }
 @keyframes sf-corner-in { from { transform: var(--sf-from); } to { transform: none; } }
+/* Session AF (L5a, Part 10.8): the ribbon (footer-path.tsx, lib/footer-ribbon.ts) is revealed by the same two wipes. On
+   phones it is drawn in the moment "= Wealth" already waited for after the last word (FOOTER_TIMING.PHONE_ARC): beneath
+   the steps from the left, then up the right edge and into the word from the bottom-right corner, quicker. */
+.site-footer[data-intro=ready] .site-footer-arc[data-phone][data-part=rise], .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] { transform: translate(-100%, 0); }
+.site-footer[data-intro=ready] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in, .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in { transform: translate(100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] { animation: sf-corner-in .2s linear var(--sf-arc-rise, 2.1s) both; --sf-from: translate(-100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=rise] > .site-footer-arc-in { animation: sf-corner-in .2s linear var(--sf-arc-rise, 2.1s) both; --sf-from: translate(100%, 0); }
+.site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=return], .site-footer[data-intro=play] .site-footer-arc[data-phone][data-part=return] > .site-footer-arc-in { animation-duration: .21s; }
 .site-footer-burst { position: absolute; z-index: 1; width: 0; height: 0; pointer-events: none; }
 .site-footer-burst > i { position: absolute; left: -170px; top: -95px; width: 340px; height: 190px; border-radius: 50%; opacity: 0; filter: blur(20px); background: radial-gradient(closest-side, var(--mist), #0000 72%); }
 .site-footer-burst > i:nth-child(1) { --mist: #23eaff8c; --dx: -70px; --dy: 6px; }

@@ -9,6 +9,12 @@
 // layers (starfield sky, the islands' frames) come from apps/web/themes/<theme>.extra.css and are appended, then any
 // apps/web/themes/<theme>.<part>.css in name order (Session AE).
 //
+// Session AF (L5a, Part 10.2, ADR-028 D9, H13, H75): Light is Nebula by day. Only neutral and night colours flip (words to
+// ink, the night's panels and lines to their day versions); every colour with a hue keeps Nebula's exact value as a fill,
+// line, glow, shade or paint; a coloured word too faint on white takes a deeper shade of its own hue (its `--<name>-ink`
+// twin where it has one). Every rule that sets a colour (or a longhand a colour shorthand resets) is carried into the
+// sheet, mapped or not, so the sheet's cascade is Nebula's own. Dark deepens only its neutral and night panels.
+//
 // Usage: node scripts/themes/build-themes.mjs          writes apps/web/public/themes/{light,dark}.css and the hashes
 //        node scripts/themes/build-themes.mjs --check  exits 1 when the committed files are not what this builds
 // The parser is the postcss that Next already ships (resolved through apps/web's next); nothing is added to the project.
@@ -25,11 +31,15 @@ const postcss = require(require.resolve('postcss', {paths: [require.resolve('nex
 /** The global sheets in the order app/layout.tsx imports them; every other sheet follows in path order. */
 const GLOBAL_ORDER = ['app/globals.css', 'app/visual-theme.css', 'app/product-v2.css', 'app/visual-v21.css', 'app/product-beta.css', 'components/motion.css', 'components/design-system.css', 'components/ui/ui.css', 'components/ui/touch-targets.css', 'components/ui/premium.css'];
 /** Light keeps these dark: cosmic artwork with light text on it. Session AE (Part 3, ADR-027): the sidebar and the theme bar
- *  take Light's own colours (apps/web/themes/light.sidebar.css draws its dawn sky); only its planet foot stays night. */
-export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.staking-card', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art',
+ *  take Light's own colours (apps/web/themes/light.sidebar.css draws its dawn sky); only its planet foot stays night.
+ *  Session AF (L5a, Part 10.12): the reward-reserve card (.staking-card) follows the theme, so it is no longer one. */
+export const ISLANDS = ['.today-hero', '.site-footer', '.sidebar-destination', '.destination-panel', '.account-panel', '.stake-hero', '.phone-more-signature', '.hero-star', '.how-it-works-dialog', '.logo-intro', '.ai-launcher', '.ai-edge-tab', '.music-launcher-stack', '.music-edge-tab', '.zigi-figure-stage', '.goal-card-art',
   // Session AF (L3; P7.18): the Checklist's dots, lines, orbit banners, chests, ZIGi on the path, the jump bubble, the sky,
   // the launcher and its edge tab, the corner timers and the history keep the Nebula colours in every theme.
-  '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-timer', '.checklist-history'];
+  '.path-dot', '.path-line', '.path-banner', '.path-chest-art', '.path-zigi', '.path-jump', '.checklist-sky', '.checklist-launcher-stack', '.checklist-edge-tab', '.checklist-timer', '.checklist-history',
+  // Session AF (L5a for L1's Part 5, the lead's request): the Earn dock stays ZIGi's and the music button's twin in every
+  // theme (components/earn-dock/earn-dock.css): its button, edge tab, app tiles and fold arrow.
+  '.earn-dock-button', '.earn-dock-edge', '.earn-dock-app', '.earn-dock-fold'];
 
 export function sourceFiles() {
   const out = [];
@@ -76,28 +86,65 @@ const formatColor = ([r, g, b, a]) => `#${hex2(r)}${hex2(g)}${hex2(b)}${a >= 0.9
 
 // ---- the themes' mappings, by the colour's role ----
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-// Gate C design review (ADR-027 G22): a gold or yellow (hue 70°–105°) made deeper by day reads olive; it keeps its warmth
-// as amber (hue 62°, chroma at least 0.12). Light golds (L ≥ 0.75) are left as they are.
-const DEG = Math.PI / 180;
-const amber = c => c.C >= 0.07 && c.L < 0.75 && c.h >= 70 * DEG && c.h <= 105 * DEG ? {...c, h: 62 * DEG, C: Math.max(c.C, 0.12)} : c;
-const byDay = map => c => amber(map(c));
+/** Session AF (L5a, Part 10.2, ADR-028 H13, H75): a colour is neutral below this OKLCH chroma (greys, the night's navy
+ *  panels, white glass); at or above it, it is a colour of the nebula (an accent, a fill, a glow, a pillar's hue). */
+export const NEUTRAL_CHROMA = 0.07;
+export const isNeutral = c => c.C < NEUTRAL_CHROMA;
+/** A night colour: dark (OKLCH L < 0.40) with at most a tint (C < 0.14) — the night's panels, glass, selected-state
+ *  backgrounds and lines carry a little indigo or teal (66 such declarations, C 0.07–0.13). As a surface, a line, a shade
+ *  or a paint it is the night itself, so by day it flips like a neutral one (a near-white with a breath of its hue);
+ *  without this a panel whose two stops straddle C 0.07 would turn half white, half night. Proposed to the lead as the
+ *  H75 refinement (docs/handoff/af-lanes/L5a.md); the parity test (tests/parity/collect.ts) uses the same rule. */
+export const NIGHT_L = 0.4, NIGHT_CHROMA = 0.14;
+export const isNight = c => c.L < NIGHT_L && c.C < NIGHT_CHROMA;
+/** What may change by day besides words: neutral and night colours. */
+export const flips = c => isNeutral(c) || isNight(c);
+/** WCAG 2 contrast of an OKLCH colour (taken as opaque) against white. */
+const relLum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+export const contrastOnWhite = c => 1.05 / (relLum(fromOklch({...c, a: 1})) + 0.05);
+/** The text contrast every coloured word reaches by day against white: 6:1 there keeps ≥ 4.5:1 on the day's near-white
+ *  panels and on the light tints the nebula's glows leave on them (Session AE's day words sat at OKLCH L 0.47, about the
+ *  same). */
+export const TEXT_CONTRAST = 6.6;
+/** A word in a run-time colour by day: the colour mixed with black, this share kept (the same hue, deeper; ≥ 5:1 on white
+ *  for every pillar and area colour, so ≥ 4.5:1 on the day's panels). A colour-mix computes to an sRGB colour every tool
+ *  reads (a relative oklch() colour does not parse in the layout audit). */
+export const RUNTIME_INK_SHARE = 42;
+export const runtimeInk = colour => `color-mix(in srgb, ${colour} ${RUNTIME_INK_SHARE}%, #000)`;
+/** A deeper shade of the same hue (Session AF, ADR-028 H13: "a deeper shade of the same hue", text only, never fills): the
+ *  lightness is lowered in small steps, hue and chroma kept (sRGB may trim the chroma), until the word reaches
+ *  TEXT_CONTRAST on white. A colour that already does is left as it is. Session AE's amber() shift (ADR-027 G22: golds to
+ *  hue 62°) is retired: a gold word stays a gold hue by day. */
+export function deepen(c, target = TEXT_CONTRAST) {
+  if (contrastOnWhite(c) >= target) return c;
+  let L = c.L; while (L > 0.05 && contrastOnWhite({...c, L}) < target) L -= 0.005;
+  return {...c, L};
+}
+/** Light by its parts (owner's Light, ADR-028 D9, H13): the page's ground is white with a light mist (hand layers), the
+ *  words are black, the heavy backgrounds calm (hand layers), and everything else keeps Nebula's exact colours and finish.
+ *  So only neutral colours flip: white-family words become ink, the night's neutral panels and lines become their day
+ *  versions, white glass and white icon lines become ink glass and ink lines. A colour with a hue is identity in every role
+ *  (fills, chips, tools, charts, rings, pillar colours, glows, gradients, borders, shadows), except a word: a coloured word
+ *  that fails on white takes a deeper shade of its own hue (deepen). Gradient words keep their nebula stops; only their
+ *  white-family stops become ink ("its white part becomes black, the flow to the right stays"). */
+const flipText = c => ({...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)});
 export const MAPS = {
   light: {
-    text: byDay(c => c.L < 0.58 ? c : c.C < 0.06 ? {...c, L: clamp(1.03 - c.L, 0.17, 0.42), C: Math.min(c.C, 0.03)} : {...c, L: 0.47, C: Math.min(c.C, 0.17)}),
-    // Session AE (Part 3, ADR-027 G7): white-family surfaces (near white, a faint tint of their hue) and accent fills a deeper,
-    // matte version of their hue (L ≤ 0.64: bars, rings, trackers and chips reach 3:1 on white; dark ink on them ≥ 5:1).
-    // A mid-tone or light colour with a hue (C ≥ 0.05, L ≥ 0.4) is a mark or a fill (a bar, a ring, a chip), never a panel:
-    // Nebula's panels are dark (L < 0.4). Translucent (alpha < 0.5: a glow, a wash, a selected chip's tint), such a colour
-    // tints the day in its own hue (L 0.62–0.74); kept dark it would grey the white under it.
-    surface: byDay(c => c.C >= 0.05 && c.L >= 0.4 ? {...c, L: c.a < 0.5 ? clamp(c.L, 0.62, 0.74) : Math.min(c.L, 0.64), C: c.C * 0.92} : c.L >= 0.62 && c.C < 0.05 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.99 - c.L * 0.14, C: c.C * 0.2}),
-    border: byDay(c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.6), a: Math.min(1, c.a * 1.4)} : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5}),
-    shadow: byDay(c => c.L < 0.42 ? {...c, L: 0.36, C: Math.min(c.C, 0.05), a: c.a * 0.4} : {...c, L: Math.min(c.L, 0.7), a: c.a * 0.55}),
-    graphic: byDay(c => c.C >= 0.07 ? {...c, L: Math.min(c.L, 0.62)} : c.L >= 0.6 ? {...c, L: 0.32} : c),
+    text: c => isNeutral(c) ? (c.L < 0.58 ? c : flipText(c)) : deepen(c),
+    gradientText: c => isNeutral(c) && c.L >= 0.58 ? flipText(c) : c,
+    // Neutral and night only: white glass (light, translucent) becomes ink glass; the night's panels become near-white.
+    surface: c => !flips(c) ? c : c.L >= 0.62 ? {...c, L: 0.26, C: Math.min(c.C, 0.04)} : {...c, L: 0.99 - c.L * 0.14, C: c.C * 0.2},
+    border: c => !flips(c) ? c : c.L >= 0.5 ? {...c, L: 0.32, a: Math.min(1, c.a * 1.5)} : {...c, L: 0.84, C: c.C * 0.5},
+    // A night shade (the night's black shadows) softens on white; a coloured glow keeps its colour.
+    shadow: c => !flips(c) ? c : c.L < 0.42 ? {...c, L: 0.36, C: Math.min(c.C, 0.05), a: c.a * 0.4} : {...c, L: Math.min(c.L, 0.7), a: c.a * 0.55},
+    graphic: c => !flips(c) ? c : c.L >= 0.6 ? {...c, L: 0.32} : c,
     accent: c => c,
   },
   dark: {
     text: c => c,
-    surface: c => c.L < 0.5 ? {...c, L: c.L * 0.55, C: c.C * 0.7} : c,
+    gradientText: c => c,
+    // Session AF (L5a, ADR-028 H75): only the night's neutral panels deepen; a coloured fill keeps Nebula's colour.
+    surface: c => flips(c) && c.L < 0.5 ? {...c, L: c.L * 0.55, C: c.C * 0.7} : c,
     border: c => c,
     shadow: c => c,
     graphic: c => c,
@@ -127,19 +174,88 @@ export function roleOf(prop, rule) {
   if (p.startsWith('background') || p === 'mask' || p === '-webkit-mask') {
     // Gradient text: the background is what the letters show (the clip may be set by another rule for the same class).
     const clipText = rule.nodes?.some(n => n.type === 'decl' && /^(-webkit-)?background-clip$/.test(n.prop) && /text/.test(n.value)) || subjectClasses(rule.selector ?? '').some(c => TEXT_CLIP_CLASSES.has(c));
-    return clipText ? 'text' : 'surface';
+    return clipText ? 'gradientText' : 'surface';
   }
   return null;
 }
+/** Session AF (L5a): the properties a theme rule carries — colours only. A colour shorthand is carried as its colour
+ *  longhands (background → background-image + background-color, border[-side] → border[-side]-color, outline →
+ *  outline-color; see colourLonghands), so a carried rule never sets, nor resets, a width, a style, a position, a size or
+ *  a clip that Nebula sets elsewhere (a `background-clip: text` word stays a word). */
+const COLOUR_PROPS = /^(color|-webkit-text-fill-color|caret-color|text-decoration-color|-webkit-text-stroke-color|column-rule-color|fill|stroke|stop-color|flood-color|lighting-color|accent-color|box-shadow|text-shadow|filter|-webkit-filter|background|background-color|background-image|border|border-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end)|border(-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end))?-color|outline|outline-color)$/;
+const ANY_COLOR = new RegExp(COLOR_RE.source);
+export const hasColour = value => ANY_COLOR.test(value);
+export const carriedProp = prop => COLOUR_PROPS.test(prop.toLowerCase());
+export const carriesColour = (prop, value) => prop.startsWith('--') ? /var\(/.test(value) || hasColour(value) : carriedProp(prop);
+const WIDE = /^(inherit|initial|unset|revert|revert-layer)$/i;
+const IMAGE = /^(url|image-set|-webkit-image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient|-webkit-(repeating-)?(linear|radial)-gradient|-webkit-gradient)\(/i;
+const COLOUR_TOKEN = new RegExp(`^(${COLOR_RE.source}|transparent|currentcolor|(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix|light-dark)\\(.*\\))$`, 'i');
+/** Splits a value at its top-level spaces and slashes. */
+const words = text => { const out = []; let depth = 0, cur = ''; for (const ch of text.trim()) { if (ch === '(') depth++; else if (ch === ')') depth--; if (!depth && (/\s/.test(ch) || ch === '/')) { if (cur) out.push(cur); cur = ''; continue; } cur += ch; } if (cur) out.push(cur); return out; };
+/**
+ * A colour shorthand as its colour longhands: [[prop, value], …], or null where the value cannot be read without the page
+ * (a var() that is not a known :root colour, gradient or image is left whole). `kind(word)` names a var() word 'colour',
+ * 'image' or null.
+ */
+export function colourLonghands(prop, value, kind = () => null) {
+  const p = prop.toLowerCase(), v = value.trim();
+  const side = /^border-(top|right|bottom|left|block|inline|block-start|block-end|inline-start|inline-end)$/.exec(p)?.[1];
+  if (p === 'border' || side || p === 'outline') {
+    const target = p === 'outline' ? 'outline-color' : side ? `border-${side}-color` : 'border-color';
+    if (WIDE.test(v)) return [[target, v]];
+    const colour = words(v).find(w => COLOUR_TOKEN.test(w) || (/^var\(/i.test(w) && kind(w) !== 'image'));
+    return [[target, colour ?? 'currentcolor']];
+  }
+  if (p !== 'background') return [[prop, value]];
+  if (WIDE.test(v)) return [['background-image', v], ['background-color', v]];
+  const layers = topLevel(v), images = [];
+  let colour = 'transparent';
+  for (const [i, layer] of layers.entries()) {
+    let image = 'none';
+    for (const w of words(layer)) {
+      if (IMAGE.test(w) || w === 'none') image = w;
+      else if (COLOUR_TOKEN.test(w)) { if (i !== layers.length - 1) return null; colour = w; }
+      else if (/^var\(/i.test(w)) { const k = kind(w); if (k === 'image') image = w; else if (k === 'colour' && i === layers.length - 1) colour = w; else return null; }
+    }
+    images.push(image);
+  }
+  return [['background-image', images.join(', ')], ['background-color', colour]];
+}
+/** The top-level comma-separated parts of a string (commas inside parentheses kept). */
+const topLevel = text => { const out = []; let depth = 0, from = 0; for (let i = 0; i < text.length; i++) { const ch = text[i]; if (ch === '(') depth++; else if (ch === ')') depth--; else if (ch === ',' && !depth) { out.push(text.slice(from, i)); from = i + 1; } } out.push(text.slice(from)); return out; };
+/** Each color-mix() in a value, in order: [start, end] (end exclusive). */
+const mixesOf = value => { const out = []; for (let i = value.indexOf('color-mix('); i >= 0; i = value.indexOf('color-mix(', i + 1)) { let depth = 0, j = i + 9; for (; j < value.length; j++) { if (value[j] === '(') depth++; else if (value[j] === ')') { depth--; if (!depth) break; } } out.push([i, j + 1]); i = j; } return out; };
+/** A colour mixed in at this share or more is the mix's ground: a tint of an accent over the night's panel. */
+const MIX_GROUND = 0.65;
+/** Maps every colour in a value by the role's rule. Session AF (L5a): inside a color-mix() of a word-less role (a line, a
+ *  fill, a shade) only a dark colour that is the mix's ground flips — it makes up at least MIX_GROUND of the mix, or the
+ *  other side brings no hue (a night panel at 70 % over transparent) — so a night panel tinted by an accent becomes a day
+ *  panel with the same tint; anything else in a mix keeps its value, so a coloured line or fill mixed from an accent stays
+ *  Nebula's colour (a violet line mixed with the night's line colour, a pink line with a white sheen). */
 export function mapValue(value, role, theme) {
   let changed = false;
-  const out = value.replace(COLOR_RE, m => {
+  const map = (text, keep) => text.replace(COLOR_RE, m => {
     const rgba = parseColor(m.toLowerCase());
     if (rgba.some(v => Number.isNaN(v))) return m;
-    const next = formatColor(fromOklch(MAPS[theme][role](toOklch(rgba))));
+    const c = toOklch(rgba);
+    if (keep(c)) return m;
+    const next = formatColor(fromOklch(MAPS[theme][role](c)));
     if (next !== formatColor(rgba)) changed = true;
     return next;
   });
+  const words = role === 'text' || role === 'gradientText';
+  const mixed = segment => {
+    const inner = segment.slice('color-mix('.length, -1), parts = topLevel(inner); if (parts.length < 3 || words) return map(segment, () => false);
+    const pct = part => { const m = /\s(\d+(?:\.\d+)?)%\s*$/.exec(part); return m ? Number(m[1]) / 100 : null; };
+    const [p1, p2] = [pct(parts[1]), pct(parts[2])], s1 = p1 ?? (p2 === null ? 0.5 : 1 - p2), s2 = p2 ?? 1 - s1, total = s1 + s2 || 1;
+    // Does a side bring a hue of its own (an accent, a run-time colour, a coloured literal)? Transparent and neutrals do not.
+    const hueful = part => /var\(/.test(part) || [...part.matchAll(COLOR_RE)].some(m => { const rgba = parseColor(m[0].toLowerCase()); return !rgba.some(v => Number.isNaN(v)) && !isNeutral(toOklch(rgba)); });
+    const sides = [parts[1], parts[2]].map((part, i) => map(part, c => !(c.L < NIGHT_L && ((i ? s2 : s1) / total >= MIX_GROUND || !hueful(i ? parts[1] : parts[2])))));
+    return `color-mix(${parts[0]},${sides[0]},${sides[1]})`;
+  };
+  let out = '', i = 0;
+  for (const [a, b] of mixesOf(value)) { out += map(value.slice(i, a), () => false) + mixed(value.slice(a, b)); i = b; }
+  out += map(value.slice(i), () => false);
   return changed ? out : null;
 }
 
@@ -184,45 +300,79 @@ export function buildTheme(theme, files = sourceFiles()) {
   TEXT_CLIP_CLASSES.clear();
   for (const [, ast] of parsed) ast.walkDecls(/^(-webkit-)?background-clip$/, d => { if (/text/.test(d.value) && d.parent?.type === 'rule') for (const c of subjectClasses(d.parent.selector)) TEXT_CLIP_CLASSES.add(c); });
   // The :root colour tokens (last top-level definition wins) and the tokens something redefines outside :root.
-  const tokens = new Map(), local = new Set();
-  for (const [, ast] of parsed) ast.walkDecls(d => { if (!d.prop.startsWith('--')) return; const rule = d.parent; if (rule?.type === 'rule' && rule.selector.trim() === ':root' && rule.parent?.type === 'root') tokens.set(d.prop, d.value.trim()); else local.add(d.prop); });
-  // An accent token (brand, pillar…) used for text, a line or a paint is written out with that role's colour by day.
+  const tokens = new Map(), local = new Set(), localValues = new Map();
+  for (const [, ast] of parsed) ast.walkDecls(d => { if (!d.prop.startsWith('--')) return; const rule = d.parent; if (rule?.type === 'rule' && rule.selector.trim() === ':root' && rule.parent?.type === 'root') tokens.set(d.prop, d.value.trim()); else { local.add(d.prop); localValues.set(d.prop, [...(localValues.get(d.prop) ?? []), d.value.trim()]); } });
+  // Session AF (L5a, ADR-028 H13): an accent token (brand, pillar…) keeps its nebula value in every role; used for a word
+  // it is written as its ink twin (`--<name>-ink`, equal to the token in Nebula and Dark: components/shell/theme-switch.css)
+  // where the token has one, else as the deeper shade itself. A neutral accent value (a white) flips like any neutral.
   // Accent tokens (plain colours or gradients built from them) are resolved to their nebula value, then mapped by the role.
   const resolve = (value, depth = 0) => depth > 4 ? value : replaceVars(value, (name, fallback, whole) => { const v = tokens.get(name) ?? fallback; return v && !local.has(name) ? resolve(v, depth + 1) : whole; });
-  const substitute = (value, role) => theme === 'light' ? replaceVars(value, (name, fallback, whole) => {
-    const v = tokens.get(name) ?? (tokens.has(name) ? undefined : null); if (local.has(name) || roleOf(name, {}) !== 'accent' || !tokens.has(name)) return whole;
-    const full = resolve(v); if (/var\(/.test(full)) return whole;
-    COLOR_RE.lastIndex = 0; const coloured = COLOR_RE.test(full); COLOR_RE.lastIndex = 0; if (!coloured) return whole;
-    return mapValue(full, role, theme) ?? full;
+  const substitute = (value, role, self = '') => theme === 'light' ? replaceVars(value, (name, fallback, whole) => {
+    if (roleOf(name, {}) !== 'accent') return whole;
+    // A colour set at run time (a pillar's, an area's, a tone's: the token is redefined per element) cannot be read here:
+    // a word in it takes the same hue, deeper (runtimeInk).
+    if (role === 'text' && (local.has(name) || !tokens.has(name) || /var\(/.test(resolve(tokens.get(name))))) return runtimeInk(whole);
+    if (local.has(name) || !tokens.has(name)) return whole;
+    const full = resolve(tokens.get(name)); if (/var\(/.test(full) || !hasColour(full)) return whole;
+    const mapped = mapValue(full, role, theme); if (mapped === null) return whole;
+    return role === 'text' && `${name}-ink` !== self && tokens.has(`${name}-ink`) && !local.has(`${name}-ink`) ? `var(${name}-ink)` : mapped;
   }) : value;
+  const pinMixTokens = value => { let out = '', i = 0; for (const [a, b] of mixesOf(value)) { out += value.slice(i, a) + replaceVars(value.slice(a, b), (name, fallback, whole) => { if (local.has(name) || !tokens.has(name) || roleOf(name, {}) === 'accent') return whole; const full = resolve(tokens.get(name)).trim(); return new RegExp(`^(${COLOR_RE.source})$`).test(full) ? full : whole; }); i = b; } return out + value.slice(i); };
+  /** A rule that paints its own opaque coloured fill (a nebula button, a chosen chip, a pillar badge) keeps its words as
+   *  by night: the fill is the same by day, so are the words on it. */
+  // (A colour inside a color-mix() counts only where it is the mix's larger part: a tint is not a fill.)
+  const fillColours = value => { let out = '', i = 0; for (const [a, b] of mixesOf(value)) { const parts = topLevel(value.slice(a + 'color-mix('.length, b - 1)); out += value.slice(i, a); if (parts.length >= 3) { const pct = part => { const m = /\s(\d+(?:\.\d+)?)%\s*$/.exec(part); return m ? Number(m[1]) / 100 : null; }; const [p1, p2] = [pct(parts[1]), pct(parts[2])], s1 = p1 ?? (p2 === null ? 0.5 : 1 - p2); out += ' ' + (s1 >= 0.5 ? parts[1] : parts[2]) + ' '; } i = b; } return out + value.slice(i); };
+  const ownFill = rule => (rule.nodes ?? []).some(d => d.type === 'decl' && /^background(-color|-image)?$/.test(d.prop) && [...fillColours(resolve(d.value)).matchAll(COLOR_RE)].some(m => { const rgba = parseColor(m[0].toLowerCase()); if (rgba.some(v => Number.isNaN(v))) return false; const c = toOklch(rgba); return !flips(c) && c.a >= 0.5; }));
   const scope = theme === 'light' ? `(:root[data-theme=light]) to (${ISLANDS.join(', ')})` : '(:root[data-theme=dark])';
-  const out = postcss.root();
-  for (const [file, ast] of parsed) {
-    const block = postcss.atRule({name: 'scope', params: scope}); let any = false;
-    ast.walkRules(rule => {
-      if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
-      if (theme === 'light' && touchesIsland(rule.selector)) return;
-      const decls = []; let mapped = false;
-      for (const d of rule.nodes ?? []) {
-        if (d.type !== 'decl') continue;
-        const role = roleOf(d.prop, rule); if (!role) continue;
-        if (d.prop.startsWith('--') && !(rule.selector.trim() === ':root')) { const v = mapValue(d.value, role, theme); if (v !== null) { decls.push(postcss.decl({prop: d.prop, value: v, important: d.important})); mapped = true; } continue; }
-        if (d.prop.startsWith('--') && !COLOR_RE.test(d.value) && !/var\(/.test(d.value)) { COLOR_RE.lastIndex = 0; continue; }
-        COLOR_RE.lastIndex = 0;
-        const swapped = substitute(d.value, role), v = mapValue(swapped, role, theme) ?? (swapped !== d.value ? swapped : null);
-        if (v !== null) mapped = true;
-        decls.push(postcss.decl({prop: d.prop, value: v ?? d.value, important: d.important}));
+  // What a var() word in a background or border shorthand stands for, read from the :root tokens.
+  // (A token redefined per element is read from every value it is given: all images, or all colours.)
+  const kindOf = value => { const full = resolve(value).trim(); if (/var\(/.test(full)) return null; return IMAGE.test(full) || topLevel(full).length > 1 || full === 'none' ? 'image' : COLOUR_TOKEN.test(full) ? 'colour' : null; };
+  const kind = word => { const direct = kindOf(word); if (direct) return direct; const m = /^var\(\s*(--[\w-]+)\s*(?:,(.*))?\)$/s.exec(word.trim()); if (!m) return null; const kinds = new Set([tokens.get(m[1]), ...(localValues.get(m[1]) ?? []), m[2]].filter(Boolean).map(v => kindOf(v.trim()))); return kinds.size === 1 ? [...kinds][0] : null; };
+  /** A rule's colour declarations as the theme writes them, and whether any of them changed. */
+  const colourDecls = rule => {
+    const decls = []; let mapped = false;
+    const keepWords = theme === 'light' && ownFill(rule);
+    for (const d of rule.nodes ?? []) {
+      if (d.type !== 'decl') continue;
+      const role0 = roleOf(d.prop, rule); if (!role0 || !carriesColour(d.prop, d.value)) continue;
+      const isToken = d.prop.startsWith('--'), atRoot = rule.selector.trim() === ':root';
+      // A shorthand that cannot be read is kept whole, followed by the rule's own longhands it would reset (its clip, size…).
+      const parts = isToken ? [[d.prop, d.value]] : colourLonghands(d.prop, d.value, kind) ?? [[d.prop, d.value], ...(rule.nodes ?? []).filter(n => n.type === 'decl' && n !== d && new RegExp(`^(-webkit-)?${d.prop}-`).test(n.prop) && !carriedProp(n.prop)).map(n => [n.prop, n.value])];
+      for (const [prop, value] of parts) {
+        const role = roleOf(prop, rule) ?? role0;
+        if (keepWords && role === 'text' && !isToken) { decls.push(postcss.decl({prop, value, important: d.important})); continue; }
+        // The value's own colours are mapped first, then its accent tokens are written out (each mapped once). Inside a
+        // color-mix() of a word-less role a token that has a day value of its own (a line, a panel) is written as its
+        // Nebula colour, so mapValue's mix rule decides for it too.
+        const pinned = theme === 'light' && role !== 'text' && role !== 'gradientText' ? pinMixTokens(value) : value;
+        const literal = mapValue(pinned, role, theme) ?? pinned, swapped = isToken && !atRoot ? literal : substitute(literal, role, prop);
+        if (swapped !== value) mapped = true;
+        decls.push(postcss.decl({prop, value: swapped, important: d.important}));
       }
-      if (!mapped) return;
-      let node = postcss.rule({selector: boostSelector(rule.selector)}); node.append(decls);
-      for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) { const wrap = postcss.atRule({name: p.name, params: p.params}); wrap.append(node); node = wrap; }
-      block.append(node); any = true;
-    });
-    if (any) { out.append(postcss.comment({text: ` ${file} `})); out.append(block); }
+    }
+    return {decls, mapped};
+  };
+  // Every rule with a colour declaration is carried, changed or not, each with the same one id of weight: among the
+  // sheet's rules the cascade is then Nebula's own (a chosen chip's colour still wins over its base rule's day colour; a
+  // var()-only rule still wins over a literal one). Colour longhands only, so nothing else Nebula sets is overruled.
+  const rules = [];
+  for (const [file, ast] of parsed) ast.walkRules(rule => {
+    if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
+    if (theme === 'light' && touchesIsland(rule.selector)) return;
+    const {decls, mapped} = colourDecls(rule); if (decls.length) rules.push({file, rule, decls, mapped});
+  });
+  const out = postcss.root();
+  let block = null, blockFile = null;
+  for (const {file, rule, decls} of rules) {
+    if (blockFile !== file) { block = postcss.atRule({name: 'scope', params: scope}); blockFile = file; out.append(postcss.comment({text: ` ${file} `})); out.append(block); }
+    let node = postcss.rule({selector: boostSelector(rule.selector)}); node.append(decls);
+    for (let p = rule.parent; p && p.type === 'atrule'; p = p.parent) { const wrap = postcss.atRule({name: p.name, params: p.params}); wrap.append(node); node = wrap; }
+    block.append(node);
   }
-  // Light: the islands keep the nebula's own token values (tokens are inherited, so the scope's limit alone would not).
+  // Light: the islands keep the nebula's own token values (tokens are inherited, so the scope's limit alone would not),
+  // the ink twins included (inside an island a word keeps its night colour).
   if (theme === 'light') {
-    const restore = [...tokens].filter(([prop, value]) => roleOf(prop, {}) !== 'accent' && mapValue(value, roleOf(prop, {}), theme) !== null);
+    const restore = [...tokens].filter(([prop, value]) => roleOf(prop, {}) !== 'accent' && (mapValue(value, roleOf(prop, {}), theme) !== null || prop.endsWith('-ink') && substitute(value, 'text') !== value));
     if (restore.length) { const r = postcss.rule({selector: `:root[data-theme=light] :is(${ISLANDS.join(', ')})`}); r.append(restore.map(([prop, value]) => postcss.decl({prop, value}))); r.append(postcss.decl({prop: 'color', value: 'var(--text)'})); out.append(postcss.comment({text: ' the islands keep the nebula tokens '})); out.append(r); }
   }
   const head = `/* Generated by scripts/themes/build-themes.mjs (Session AD, ADR-026 F13) from the app's own CSS. Do not edit: change\n   the mapping there or apps/web/themes/${theme}.extra.css, then run it again. */\n`;

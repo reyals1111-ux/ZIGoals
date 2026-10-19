@@ -1,17 +1,4 @@
-/* Session AE (Part 4, ADR-027 G5): the page-header art by day. On Light's white-family sky the rings, planets and glyphs
-   take deeper, matte versions of the same hues (never pale); every glyph colour is ≥ 3:1 against the sky (the worst, the
-   deep cyan, 3.5:1 on the blue cloud); the glows become a faint wash and the bloom a soft shade. The generated rules carry
-   one id of weight (:not(#\-)); these carry it too, with the theme's root in front. */
-:root[data-theme=light] .orbit-art:not(#\-) {
-  --ha-ring-a: #0e8fb3; --ha-ring-b: #5b45d6; --ha-ring-c: #b23fc4; --ha-nebula: #8d7bff; --ha-twinkle: #6b5fd0;
-  --ha-dot-a: #0a9ec2; --ha-dot-b: #c23bd0; --ha-dot-c: #7a6ad8; --ha-dot-glow-a: #49b8ff; --ha-dot-glow-b: #b78cff;
-  --ha-glyph-a: #0b5f86; --ha-glyph-b: #0a7ea3; --ha-glyph-c: #5b45d6; --ha-glow: #8d7bff;
-  --ha-ring-o1: .42; --ha-ring-o2: .7; --ha-ring-o3: .62; --ha-nebula-o: .16; --ha-halo-o: .22; --ha-bloom-o: .22; --ha-fill-o: .14; --ha-dot-glow-o: .35;
-}
-:root[data-theme=light] .orbit-art[data-tone=goals]:not(#\-) { --ha-glyph-a: #3f2bb8; --ha-glyph-b: #5f45e6; --ha-glyph-c: #0a7ea3; --ha-glow: #7d68ff; }
-:root[data-theme=light] .orbit-art[data-tone=habits]:not(#\-) { --ha-glyph-a: #06657c; --ha-glyph-b: #0a7f9e; --ha-glyph-c: #7a46c9; --ha-glow: #49b8ff; }
-:root[data-theme=light] .orbit-art[data-tone=health]:not(#\-) { --ha-glyph-a: #9c1a5c; --ha-glyph-b: #c42f78; --ha-glyph-c: #7a46c9; --ha-glow: #ff8cc4; }
-:root[data-theme=light] .orbit-art[data-tone=wealth]:not(#\-) { --ha-glyph-a: #7d5200; --ha-glyph-b: #9a6200; --ha-glyph-c: #0b7a6f; --ha-glow: #f2b54b; }
-:root[data-theme=light] .orbit-art[data-tone=journey]:not(#\-) { --ha-glyph-a: #5f2aae; --ha-glyph-b: #8048cf; --ha-glyph-c: #0a7ea3; --ha-glow: #b48cff; }
-/* Phones: the faint copy behind the words stays a whisper on the light sky. */
+/* Session AE (Part 4, ADR-027 G5) → Session AF (L5a, Part 10.2, ADR-028 H13): the page-header art by day keeps Nebula's
+   own rings, planets, glyphs and glows (no deeper, matte versions any more). Phones: the faint copy behind the words stays
+   a whisper on the light sky (a calm heavy background). One id of weight, like the generated rules. */
 :root[data-theme=light] :is(.header-art-slot, .pillar-hero > .pillar-hero-art:has(> .orbit-art)):not(#\-) { @media (max-width: 767.98px) { opacity: .3; } }

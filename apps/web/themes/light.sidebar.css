@@ -4,19 +4,19 @@
    with its words and star (still an island: .sidebar-destination) and the theme bar sit on night as by night. The layers
    scroll with the content and are pinned to its end, like Nebula's, so the dusk always starts above the page mark. The
    words are the generated dark ink (≥ 4.5:1 on every stop above the foot); the chosen page is a white pill with the
-   nebula's border; focus rings are the day's violet. Gate C design review (ADR-027 G22): the top is a soft lavender
+   nebula's border and glow (Session AF, ADR-028 H13: Nebula's exact border, glow and edge colours); focus rings are the
+   day's violet. Gate C design review (ADR-027 G22): the top is a soft lavender
    (#f0ebfd), never plain white. */
 :root[data-theme=light] .app-sidebar:not(#\-) {
   color-scheme: light;
-  background: url('/art/v24/sidebar-stars-dawn.svg') center bottom / 240px 1100px no-repeat local,
+  background: url('/art/v24/sidebar-stars-dawn.svg') center calc(100% + var(--sky-y, 0px)) / 240px 1100px no-repeat local,
     linear-gradient(0deg, #060a1d 0, #0a0d27 230px, #1b1847 300px, #43397f 350px, #8a76c2 398px, #c9b8e8 436px, #e4dcf8 476px, #ebe5fb 600px, #eee9fc 760px, #f0ebfd 930px) local,
     #f0ebfd;
-  border-right-color: #ddd6f2;
   /* At 768–900 px the sidebar is the page's header: one clean dawn colour, like the page's top. */
   @media (max-width: 900px) { background: #f0ebfd; border-bottom: 1px solid #e6e0f6; }
 }
-:root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"]:not(#\-) { color: #10163a; background: linear-gradient(110deg, #ffffff, #f5f1ff) padding-box, linear-gradient(120deg, #1aa7c4, #3b6fe0 43%, #7a5af0 70%, #c04fc0) border-box; border: 1px solid transparent; box-shadow: 0 6px 18px -8px #5b4fc873, inset 0 -2px 3px #c58cf040; }
-:root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"] svg:not(#\-) { color: #4b3fd1; filter: none; }
+:root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"]:not(#\-) { color: #10163a; background: linear-gradient(110deg, #ffffff, #f8f6ff 65%, #f5f1ff) padding-box, linear-gradient(120deg, var(--brand-cyan), #3b84e1 43%, var(--brand-violet) 70%, var(--brand-cyan)) border-box; border: 1px solid transparent; }
+:root[data-theme=light] .app-sidebar .app-nav a[aria-current="page"] svg:not(#\-) { color: #4b3fd1; }
 :root[data-theme=light] .app-sidebar .app-nav a:not([aria-current]):hover:not(#\-) { background: #5b4fc814; color: #10163a; }
 :root[data-theme=light] .app-sidebar :is(button, a, input, select, textarea, summary, [tabindex]):focus-visible:not(#\-) { outline-color: #4b3fd1; }
 /* The logo's one-time fold clip is screen-blended into a night sky (motion.css); on the dawn it would wash out to white, so
@@ -26,7 +26,7 @@
 
 /* The theme bar is no longer an island either (Settings, More and the sidebar): white glass, ink icons and words, the
    chosen theme the same solid nebula pill as by night (white on every stop ≥ 4.5:1), the "Preview" tag as by night. In the
-   sidebar it rests on the dusk foot, so the line under it is light. */
+   sidebar it rests on the dusk foot (Session AF: with no line under it). */
 :root[data-theme=light] .theme-switch:not(#\-) { background: linear-gradient(150deg, #fffffff5, #f6f3fff5) padding-box, linear-gradient(120deg, #7bc6e6, #9db3e8 34%, #b49cf0, #d29ae8) border-box; box-shadow: inset 0 1px 0 #ffffff, 0 10px 28px -18px #2a2f6680; }
 :root[data-theme=light] .theme-option:not(#\-) { color: #3a4566; }
 :root[data-theme=light] .theme-option:hover:not(#\-) { color: #10163a; }
@@ -34,4 +34,3 @@
 :root[data-theme=light] .theme-option:focus-visible:not(#\-) { outline-color: #4b3fd1; }
 :root[data-theme=light] .theme-switch-compact .theme-option:not(#\-) { color: #2a3352; }
 :root[data-theme=light] .theme-switch-compact .theme-option[aria-checked="true"]:not(#\-) { color: #ffffff; }
-:root[data-theme=light] .app-sidebar .theme-switch-note:not(#\-) { color: #dcd6f6; }

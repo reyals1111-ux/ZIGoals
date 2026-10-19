@@ -2,8 +2,11 @@
 import {useSyncExternalStore} from 'react';
 import {THEME_EVENT, chooseTheme, readTheme} from '../../lib/ui-prefs/theme';
 import type {Theme} from '../../lib/ui-prefs/theme';
-/** The line under the bar. */
-const THEME_NOTE = {compact: 'Nebula is the look you know, for everyone. Customize — coming later. Light and Dark are the same app by day and by night.', sidebar: 'Saved on this device'} as const;
+import {SidebarSky} from './sidebar-sky';
+/** The line under the bar on phones and in Settings. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no
+ *  line under it any more; that the choice stays on this device is said in Settings → Appearance, Settings → Your data
+ *  ("How pages look on this device") and Help ("What are Light, Nebula and Dark?"). */
+const THEME_NOTE = 'Nebula is the look you know, for everyone. Customize — coming later. Light and Dark are the same app by day and by night.';
 
 const Sun = () => <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg>;
 /** Session AE (Part 3.1, ADR-027): Nebula's mark is the ZIGoals logo drawn as one plain line in the sun's and moon's style
@@ -32,6 +35,8 @@ export function ThemeSwitch({compact}: {compact?: boolean}) {
     <div className={`theme-switch${compact ? ' theme-switch-compact' : ''}`} role="radiogroup" aria-label="Theme">
       {OPTIONS.map(o => <button key={o.theme} type="button" role="radio" aria-checked={theme === o.theme} className="theme-option" data-theme-option={o.theme} aria-label={o.label} title={o.tip} onClick={() => choose(o.theme)}><o.icon/><span>{o.word}</span></button>)}
     </div>
-    <p className="theme-switch-note">{compact ? THEME_NOTE.compact : THEME_NOTE.sidebar}</p>
+    {compact && <p className="theme-switch-note">{THEME_NOTE}</p>}
+    {/* Session AF (L5a, Part 10.1): the sidebar's bar also drives the sidebar sky's parallax (renders nothing). */}
+    {!compact && <SidebarSky/>}
   </div>;
 }

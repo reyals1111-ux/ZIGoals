@@ -20,14 +20,13 @@
 @media (forced-colors: active) { .theme-switch, .theme-option[aria-checked="true"] { border: 1px solid CanvasText; } }
 /* The artwork ends above the bar (its bleed into the sidebar's bottom padding is gone); the bar keeps the padding and the safe area to the edge. */
 @media (min-width: 901px) { .app-sidebar .sidebar-destination { margin-bottom: 0; } .app-sidebar { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }
-/* Session AD (Part 3): the line under the bar — in the sidebar "Light and Dark: preview", on phones and in Settings what
-   Nebula is and that Customize comes later. Readable size, the sidebar's secondary text colour. */
+/* Session AD (Part 3): the line under the bar — on phones and in Settings what Nebula is and that Customize comes later.
+   Readable size, the secondary text colour. Session AF (L5a, Part 10.7, ADR-028 H31): the sidebar's bar has no line. */
 .theme-switch-note { margin: 8px 2px 0; font-size: 14px; line-height: 1.45; color: #b9c8e2; }
 .app-sidebar .theme-switch-wrap { flex: none; }
-.app-sidebar .theme-switch-note { text-align: center; }
 @media (max-width: 900px) { .app-sidebar .theme-switch-wrap { display: none; } }
 /* The lazy bar's slot keeps the bar's measured height while its chunk loads (Session AD weights). */
-.theme-switch-slot { min-height: 98px; }
+.theme-switch-slot { min-height: 70px; } /* the sidebar's bar: 14 px above it, 56 px of bar (Session AF: no line under it) */
 .app-sidebar .theme-switch-slot { flex: none; }
 .theme-switch-slot-compact { min-height: 94px; }
 @media (max-width: 1023.98px) { .theme-switch-slot-compact { min-height: 119px; } }
@@ -39,3 +38,13 @@
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: cubic-bezier(.4, 0, .2, 1); }
 @media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none; } }
 :root[data-app-motion=off]::view-transition-old(root), :root[data-app-motion=off]::view-transition-new(root) { animation: none; }
+/* Session AF (L5a, Part 10.2, ADR-028 H13): the ink twins of the nebula's accent colours, for small coloured words. Here,
+   in Nebula and so in Dark, each equals its colour; Light's sheet (scripts/themes/build-themes.mjs) gives each a deeper
+   shade of the same hue that reads on white (≥ 4.5:1), and writes a word set in one of these colours as its twin. Words
+   only: a fill, a ring, a bar or a glow always keeps the colour itself. */
+:root {
+  --pillar-goals-ink: var(--pillar-goals); --pillar-habits-ink: var(--pillar-habits); --pillar-health-ink: var(--pillar-health); --pillar-wealth-ink: var(--pillar-wealth);
+  --brand-cyan-ink: var(--brand-cyan); --brand-blue-ink: var(--brand-blue); --brand-violet-ink: var(--brand-violet); --brand-magenta-ink: var(--brand-magenta);
+  --nebula-pink-ink: var(--nebula-pink); --nebula-warm-ink: var(--nebula-warm); --cyan-ink: var(--cyan); --violet-ink: var(--violet); --pink-ink: var(--pink);
+  --accent-teal-ink: var(--accent-teal); --accent-cyan-ink: var(--accent-cyan); --accent-violet-ink: var(--accent-violet); --accent-magenta-ink: var(--accent-magenta); --danger-ink: var(--danger);
+}
