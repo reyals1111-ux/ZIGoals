@@ -15,6 +15,10 @@ import {Handles} from '../handles';
 import {HEALTH_NOTE_CATEGORIES} from '../store/records';
 import type {PageArea} from '../settings';
 import {CHARS_DEFAULT, ROWS_DEFAULT} from './types';
+import type {Checklist, ChecklistDays} from '../../checklist/schema';
+import type {EarnSnapshot} from '../../earn/snapshot';
+import type {PageView} from '../context/page-view';
+import type {ZigiPlans} from '../store/plans';
 
 /**
  * The records a tool may read for one reply, built once from the gates (Session V Part 2). `health` and `fasting` are
@@ -45,6 +49,17 @@ export type ToolSources = {
   chess?: {settings: ChessSettings | null; cache: ChessCache} | null;
   linksCount?: number | null;
   showcase: boolean;
+  /**
+   * Session AF (L4): the Checklist's two records on this device and its day (the brief's dots, the quick commands); the
+   * Earn snapshot the Earn page read in this visit (public figures with their source and "as of"; ZIGi never fetches
+   * one); and the page the person is looking at, as card ids and titles only (never a value; null on Settings and on a
+   * private screen; Health cards only with the gate).
+   */
+  checklist?: {record: Checklist; days: ChecklistDays; date: string; unreadable: boolean} | null;
+  earn?: EarnSnapshot | null;
+  pageView?: PageView | null;
+  /** Session AF (L4): the plans ZIGi proposed as bundles and their steps' outcomes (titles only). */
+  plans?: ZigiPlans | null;
 };
 export type ToolEnv = Omit<ToolSources, 'health' | 'fasting' | 'notes'> & {
   health: HealthData | null; fasting: Fasting | null; notes: readonly MemoryNote[] | null;

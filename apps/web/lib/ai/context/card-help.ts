@@ -1,0 +1,60 @@
+/**
+ * Session AF (L4, P8.7): what each of ZIGoals' own cards is, in plain words, for "explain this card" answered on the
+ * device. It says what a card shows and where its figures come from, never a figure itself; a card this list does not
+ * know is explained by the person's AI from the page's titles (or, without one, named and left at that). English and
+ * Dutch. Ids are the page's own markers: Today's built-in modules (`today:<id>`), For you's cards (`card:<id>`), a
+ * page's movable parts (`wealth:…`, `positions:…`) and the sections with an id (`#<id>`).
+ */
+type Help = {name: string; en: string; nl: string};
+const H = (name: string, en: string, nl: string): Help => ({name, en, nl});
+export const CARD_HELP: Readonly<Record<string, Help>> = {
+  // Today's built-in modules (lib/dashboard-settings.ts DASHBOARD_BUILTINS)
+  'today:whole-life': H('Whole-life overview', 'The Whole-life overview puts your goals, habits, health and wealth side by side, from your own records, so you see the whole week at a glance.', 'Het overzicht van je hele leven zet je doelen, gewoontes, gezondheid en vermogen naast elkaar, uit je eigen gegevens, zodat je de week in één blik ziet.'),
+  'today:habits': H('Daily Habits', 'Daily Habits lists today\'s habits: what is done, what is still open, and your streaks. A tap checks one in.', 'Dagelijkse gewoontes toont de gewoontes van vandaag: wat klaar is, wat nog open staat, en je reeksen. Met een tik vink je er een af.'),
+  'today:health': H('Daily Health', 'Daily Health shows what you logged today in Health: food, water, steps and the rest, against your own targets.', 'Dagelijkse gezondheid toont wat je vandaag in Health hebt gelogd: eten, water, stappen en de rest, tegenover je eigen doelen.'),
+  'today:attention': H('Attention agenda', 'The Attention agenda gathers what asks for a step soon: a goal date, a planned contribution, a habit that slipped.', 'De aandachtsagenda verzamelt wat binnenkort een stap vraagt: een doeldatum, een geplande inleg, een gewoonte die bleef liggen.'),
+  'today:goals': H('Your Goals', 'Your Goals shows each goal\'s progress towards its target, from the amounts you recorded.', 'Je doelen toont per doel hoe ver je bent richting het doelbedrag, uit de bedragen die je vastlegde.'),
+  'today:next-action': H('Next Goal action', 'Next Goal action names the one step that moves a goal forward next, such as its next planned contribution.', 'Volgende doelstap noemt de ene stap die een doel nu vooruit helpt, zoals de volgende geplande inleg.'),
+  'today:funding': H('Funding rhythm', 'Funding rhythm shows how often you have added to your goals in the last weeks, from your own records.', 'Het inlegritme toont hoe vaak je de laatste weken iets aan je doelen toevoegde, uit je eigen gegevens.'),
+  'today:needs-attention': H('Records needing attention', 'Records needing attention lists entries that could not be read or need a look from you; nothing is changed until you do.', 'Gegevens die aandacht vragen toont items die niet gelezen konden worden of die je moet bekijken; er verandert niets tot jij iets doet.'),
+  'today:watchlist': H('Watchlist', 'The Watchlist follows the markets you chose, each price with its source and the time it was read.', 'De volglijst volgt de markten die je koos, elke prijs met zijn bron en het moment van lezen.'),
+  'today:progress': H('Financial progress', 'Financial progress shows your tracked wealth over time, one total per currency, never converted.', 'Financiële voortgang toont je bijgehouden vermogen over de tijd, één totaal per munt, nooit omgerekend.'),
+  'today:summary': H('Widget summary', 'The Widget summary collects the small widgets you pinned to Today.', 'Het widgetoverzicht verzamelt de kleine widgets die je op Vandaag vastzette.'),
+  'today:wallet': H('Wallet', 'Wallet shows the wallet you linked and what it holds, read only; ZIGoals never moves anything from it.', 'Wallet toont de gekoppelde wallet en wat erin zit, alleen lezen; ZIGoals verplaatst er nooit iets uit.'),
+  'today:staking': H('Staking', 'Staking shows what you have staked, the rewards waiting and any unbonding, as your tracked records read them.', 'Staking toont wat je hebt gestaked, de beloningen die klaarstaan en wat er ontbonden wordt, zoals je bijgehouden gegevens het lezen.'),
+  'today:destination': H('Next destination', 'Next destination is the goal closest to its date, with what is still to go.', 'Volgende bestemming is het doel dat het dichtst bij zijn datum is, met wat er nog rest.'),
+  'today:activity': H('Recent activity', 'Recent activity lists your latest entries and changes, newest first.', 'Recente activiteit toont je laatste invoer en wijzigingen, de nieuwste eerst.'),
+  'today:game': H('Your progress', 'Your progress shows levels and badges from your own records, while the game layer is on.', 'Je voortgang toont levels en badges uit je eigen gegevens, zolang de spellaag aan staat.'),
+  'today:links': H('My links', 'My links are the buttons to your own pages that you added to Today.', 'Mijn links zijn de knoppen naar je eigen pagina\'s die je aan Vandaag toevoegde.'),
+  'today:week': H('Your week', 'Your week sums up this week from your records: check-ins, entries and goal steps.', 'Je week vat deze week samen uit je gegevens: check-ins, invoer en doelstappen.'),
+  'today:checklist': H('Checklist', 'The Checklist card counts today\'s dots on your path; open it to tick them in order.', 'De Checklist-kaart telt de stippen van vandaag op je pad; open hem om ze op volgorde af te vinken.'),
+  // For you (components/for-you/today-for-you.tsx)
+  'card:fasting': H('Fasting', 'The fasting line shows the fast that is running and how far it is, from Health\'s fasting timer.', 'De vastenregel toont de lopende vasten en hoe ver die is, uit de vastentimer van Health.'),
+  'card:whats-new': H('What\'s new', 'What\'s new lists what changed in this version of ZIGoals; dismiss it once read.', 'Wat is er nieuw toont wat er veranderde in deze versie van ZIGoals; sluit het als je het gelezen hebt.'),
+  'card:weekly-review': H('Weekly review', 'The weekly review walks through your week in a few questions; your answers stay on this device.', 'De weekreview loopt je week door in een paar vragen; je antwoorden blijven op dit apparaat.'),
+  'card:guide': H('Guide', 'The Guide offers one calm nudge a day from what Today already shows.', 'De gids geeft één rustige duw per dag, uit wat Vandaag al toont.'),
+  'card:health-goals': H('Health goals', 'Health goals shows the health goals you set and where you are against each.', 'Gezondheidsdoelen toont de doelen die je instelde en waar je bij elk staat.'),
+  'card:insights': H('Insights', 'Insights shows patterns in your own records, with the number of days each is based on; it claims no cause.', 'Inzichten toont patronen in je eigen gegevens, met het aantal dagen waarop ze steunen; ze beweren geen oorzaak.'),
+  'card:cross-insights': H('Patterns across habits and health', 'This card pairs your habits with your health entries and says how many days each pairing rests on.', 'Deze kaart koppelt je gewoontes aan je gezondheidsinvoer en zegt op hoeveel dagen elke koppeling steunt.'),
+  'card:zigi-brief': H('ZIGi\'s brief', 'ZIGi\'s brief is your day from your records: what is open, the Checklist, meals planned, timers running, goal steps and earning, made on this device without any AI.', 'ZIGi\'s briefing is je dag uit je gegevens: wat open staat, de Checklist, geplande maaltijden, lopende timers, doelstappen en inkomsten, gemaakt op dit apparaat zonder AI.'),
+  'card:journal-zone': H('Time zone', 'This card asks once which time zone your days are counted in.', 'Deze kaart vraagt één keer in welke tijdzone je dagen geteld worden.'),
+  'card:wrap-up': H('Evening wrap-up', 'The evening wrap-up asks how the day felt and an intention for tomorrow, once its time has come.', 'De avondafsluiting vraagt hoe de dag voelde en een voornemen voor morgen, zodra het tijd is.'),
+  'card:life-review': H('Life review', 'The Life review looks back over a week or a month of your records.', 'De levensreview kijkt terug op een week of een maand van je gegevens.'),
+  // Wealth (components/platform/wealth-view.tsx) and Staking
+  'wealth:pulse': H('Portfolio pulse', 'Portfolio pulse shows your tracked wealth now, one total per currency, with where each price came from.', 'De portefeuillepols toont je bijgehouden vermogen nu, één totaal per munt, met de bron van elke prijs.'),
+  'wealth:holdings': H('What you have', 'What you have lists each holding you track, with its quantity and its value where a price is known.', 'Wat je hebt toont elk bezit dat je bijhoudt, met de hoeveelheid en de waarde waar een prijs bekend is.'),
+  'wealth:composition': H('The shape of your wealth', 'This card shows how your tracked wealth splits across asset classes.', 'Deze kaart toont hoe je bijgehouden vermogen verdeeld is over soorten bezit.'),
+  'wealth:history': H('Your wealth over time', 'This chart follows your tracked wealth over time from the values you recorded.', 'Deze grafiek volgt je bijgehouden vermogen over de tijd, uit de waarden die je vastlegde.'),
+  'wealth:calculator': H('Compound interest calculator', 'The calculator shows what a rate you type could do over time; an illustration, never a promise.', 'De rekenmachine toont wat een rente die jij invult over de tijd zou kunnen doen; een voorbeeld, nooit een belofte.'),
+  'positions:observed': H('Positions and allocations', 'Positions and allocations shows what your tracked wallets hold and what is set aside for goals, read only.', 'Posities en toewijzingen toont wat je bijgehouden wallets bevatten en wat voor doelen opzij staat, alleen lezen.'),
+  // Earn (components/earn/earn-view.tsx) and the Checklist page
+  '#start-here': H('Start here', 'Start here is the path from no wallet to a first stake: get a wallet, practise on the test network, add money, get ZIG, then stake in your own wallet.', 'Start hier is het pad van geen wallet naar een eerste stake: een wallet nemen, oefenen op het testnetwerk, geld toevoegen, ZIG halen en dan staken in je eigen wallet.'),
+  '#native-staking': H('Native staking', 'Native staking explains staking ZIG with a validator, with the network\'s own figures read live: the issuance figure and the measured figure side by side, each with its source and time.', 'Native staking legt uit hoe je ZIG bij een validator staket, met de eigen cijfers van het netwerk live gelezen: het uitgiftecijfer en het gemeten cijfer naast elkaar, elk met bron en tijd.'),
+  '#valdora': H('Valdora stZIG', 'This section explains liquid staking with Valdora: you get stZIG for your ZIG, and a contract holds the stake.', 'Dit deel legt liquid staking met Valdora uit: je krijgt stZIG voor je ZIG, en een contract houdt de stake.'),
+  '#oroswap': H('OroSwap', 'This section explains swapping and pools on OroSwap, with each pool\'s fee read live and impermanent loss in plain words.', 'Dit deel legt wisselen en pools op OroSwap uit, met de kosten van elke pool live gelezen en tijdelijk verlies in gewone woorden.'),
+  '#academy': H('Earn Academy', 'The Earn Academy is eight short lessons with three questions each; your answers stay on this device.', 'De Earn Academy is acht korte lessen met elk drie vragen; je antwoorden blijven op dit apparaat.'),
+  '#validators': H('Validators', 'This list shows each validator\'s facts — commission, uptime, status — read live, sorted by name, never by rate.', 'Deze lijst toont de feiten van elke validator — commissie, uptime, status — live gelezen, op naam gesorteerd, nooit op rendement.'),
+};
+const normal = (id: string) => id.replace(/^widget:/, 'today:');
+export const cardName = (id: string): string | null => CARD_HELP[normal(id)]?.name ?? null;
+export const cardHelp = (id: string, lang: 'en' | 'nl'): string | null => CARD_HELP[normal(id)]?.[lang] ?? null;
