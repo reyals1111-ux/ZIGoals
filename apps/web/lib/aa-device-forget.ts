@@ -12,7 +12,7 @@ import {AB_CLOUD_PERSONAL_KEYS} from './ab-cloud-device-keys';
 import {LINKED_WALLETS_KEY} from './linked-wallets-key';
 import {EARN_ERASE_KEYS} from './af-earn-keys';
 import {AF_CHECKLIST_PERSONAL_KEYS} from './af-checklist-keys';
-import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY} from './af-signing-keys';
+import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY} from './af-signing-keys';
 import {WALLET_ERASE_KEYS} from './af-wallet-keys';
 
 /** AA-Cloud's personal device keys (ADR-021), erased with the account by the second merger (ADR-022 B52); Today's cards are a display choice and stay. */
@@ -26,7 +26,7 @@ export function forgetAaDeviceRecords(storage: Pick<Storage, 'removeItem'> | nul
   try { target ??= getAppStorage(); } catch { return; }
   // Session AB-Cloud (ADR-023 C8): AB-Design's display preferences and AB-Cloud's own records go with the account too.
   // Session AE (Part 6, ADR-027): and the wallets linked read-only (public addresses, personal).
-  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, ...WALLET_ERASE_KEYS];
+  const keys = [...AA_PERSONAL_KEYS, ...CLOUD_PERSONAL_KEYS, ...AB_DESIGN_DISPLAY_KEYS, ...AB_CLOUD_PERSONAL_KEYS, LINKED_WALLETS_KEY, ...EARN_ERASE_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_ERASE_KEYS];
   for (const key of keys) { try { target.removeItem(key); } catch { /* kept */ } }
   try { for (const key of keys) window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: key})); } catch { /* no window */ }
   // Gate B F3: the progress-photo bytes live in IndexedDB beside the index key; the erase removes the database as a whole (every scope on this device).
