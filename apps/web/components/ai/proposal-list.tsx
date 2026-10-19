@@ -15,6 +15,11 @@ import type {AutoAccept} from './use-auto-accept';
 import {readDeviceRecord, updateDeviceRecord} from '../../lib/device-record';
 import {getAppStorage} from '../../lib/showcase-storage';
 import {CARD_OUTCOMES, cardSig, keepCards, keptCards, ZIGI_CARDS, type CardOutcome, type KeptCard} from '../../lib/zigi-cards';
+import type {BundleMeta} from '../../lib/ai/actions/parse';
+import {markPlanItem, PLAN_OUTCOMES, ZIGI_PLANS, type PlanOutcome} from '../../lib/ai/store/plans';
+import {ZIGI_STORE_EVENT} from '../../lib/ai/store/keys';
+import {BundleHeader} from './bundle-header';
+import {memoryConsent} from '../../lib/ai/store/records';
 import './ai.css';
 
 /**
@@ -54,7 +59,12 @@ const replyRefs = (proposals: readonly Action[]) => new Map(proposals.flatMap(a 
  * added, dismissed or undone cards as receipts again and never offers an added card twice. Without it (a browser agent's
  * or a knock's cards) nothing is kept, as before.
  */
-export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean}) {
+/**
+ * `bundle` (Session AF, L4; P8.4): the reply's cards include one plan ZIGi proposed as a bundle; its steps get a head
+ * ("Your 10k plan · 6 steps", Skip the rest), and what becomes of each step is kept in ZIGi's plans on this device
+ * (written only when the person acts on a step).
+ */
+export function ProposalList({proposals, rejected, handles, runner, onNavigate, onChange, fromPhoto = false, replaced = false, autoAccept, claimAuto, earlier = false, replyId, bundle}: {replyId?: string; proposals: readonly Action[]; rejected: readonly Rejected[]; handles: readonly Handle[]; runner: ProposalRunner; onNavigate?: () => void; onChange?: (summary: string) => void; fromPhoto?: boolean; replaced?: boolean; autoAccept?: AutoAccept; claimAuto?: () => boolean; earlier?: boolean; bundle?: BundleMeta}) {
   const [refs] = useState(() => replyRefs(proposals));
   const [kept] = useState<ReadonlyMap<string, KeptCard>>(() => { if (!replyId) return new Map(); try { return keptCards(readDeviceRecord(getAppStorage(), ZIGI_CARDS).data, replyId); } catch { return new Map(); } });
   // A kept outcome applies only to the card it was kept for (its fingerprint, the action as the reply first gave it).
@@ -75,6 +85,20 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     if (!changed.size) return;
     try { updateDeviceRecord(getAppStorage(), ZIGI_CARDS, record => keepCards(record, replyId, changed, Date.now())); } catch { /* kept in this panel only */ }
   }, [items, replyId, sigs]);
+  // Session AF (L4): a plan's steps, as ZIGi's plans keep them (written once a step's outcome is reached; never on view).
+  const bundleIds = useMemo(() => bundle ? new Set(Array.from({length: bundle.count}, (_, i) => `p${bundle.first + i + 1}`)) : new Set<string>(), [bundle]);
+  const planned = useRef(new Map<string, string>());
+  useEffect(() => {
+    if (!bundle || !replyId) return;
+    const input = {id: `b_${cardSig({replyId, title: bundle.title})}`, title: bundle.title, chatId: replyId, items: items.filter(i => bundleIds.has(i.id)).map(i => ({sig: sigs.get(i.id) ?? cardSig(i.action), kind: i.action.kind, label: i.result.ok ? i.result.plan.card.title : `Not proposed: ${i.result.message}`}))};
+    for (const item of items) {
+      if (!bundleIds.has(item.id)) continue;
+      const outcome = item.status === 'auto' ? 'added' : item.status === 'replaced' ? 'dismissed' : item.status;
+      if (!(PLAN_OUTCOMES as readonly string[]).includes(outcome) || outcome === 'proposed' || planned.current.get(item.id) === outcome) continue;
+      planned.current.set(item.id, outcome);
+      try { markPlanItem(getAppStorage(), input, sigs.get(item.id) ?? cardSig(item.action), outcome as PlanOutcome); window.dispatchEvent(new CustomEvent(ZIGI_STORE_EVENT, {detail: ZIGI_PLANS.key})); } catch { /* the step itself stands; only the plan's note is missing */ }
+    }
+  }, [bundle, bundleIds, items, replyId, sigs]);
   const [undoGroup, setUndoGroup] = useState<UndoGroup | null>(null), [note, setNote] = useState(''), [now, setNow] = useState(() => Date.now());
   const [autoTitles, setAutoTitles] = useState<string[] | null>(null), [capNote, setCapNote] = useState(''), autoRan = useRef(false);
   const live = undoGroup !== null && undoGroup.until > now;
@@ -92,7 +116,10 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
     const plan = planOf(item); if (!plan) return;
     if (plan.target === 'form') {
       // Session Z-Cloud Gate B: Z-Local's runner effects (a page, a delete confirmation, ZIGi's look) before the money pre-fills.
-      const opened = runner.effect?.(plan) ?? null;
+      // Session AF (L4): a device record that refuses the change (a Checklist that cannot be read, a limit) says why on the card.
+      let opened: {text: string; navigated: boolean} | null = null;
+      try { opened = runner.effect?.(plan) ?? null; }
+      catch (error) { patch(item.id, {status: 'proposed', error: error instanceof Error ? error.message : 'This could not be changed.'}); return; }
       if (opened !== null) { patch(item.id, {status: 'opened', error: null, opened: opened.text}); announce(opened.text); if (opened.navigated) onNavigate?.(); return; }
       const stashed = runner.openForm(plan); patch(item.id, {status: 'opened', error: stashed ? null : 'The values could not be handed over; type them into the form.'}); announce(plan.balance ? 'The account\'s balance form is opening in Wealth.' : 'The add-asset form is opening in Wealth.'); onNavigate?.(); return; }
     patch(item.id, {status: 'busy', error: null});
@@ -165,9 +192,11 @@ export function ProposalList({proposals, rejected, handles, runner, onNavigate, 
   return <div className="ai-proposals" data-testid="ai-proposals">
     {!runner.ready && items.length > 0 && <p className="ai-card-note" role="status">Your records are still loading; adding becomes available in a moment.</p>}
     {fromPhoto && items.length > 0 && <p className="ai-card-note ai-card-photo">Estimated by your AI from a photo. Check every amount; unknown nutrients stay unknown.</p>}
+    {bundle && bundle.count > 0 && <BundleHeader bundle={bundle} pending={items.filter(i => bundleIds.has(i.id) && i.status === 'proposed').length}
+      onSkipRest={() => { setItems(current => current.map(i => bundleIds.has(i.id) && i.status === 'proposed' ? {...i, status: 'dismissed'} : i)); announce('The rest of this plan was skipped; nothing was written.'); }}/>}
     {(() => {
       const card = (item: ProposalItem) => <ProposalCard key={item.id} action={item.action} plan={planOf(item)} refusal={item.result.ok ? null : item.result.message} status={item.status} error={item.error} opened={item.opened} fromPhoto={fromPhoto} receipt={!(live && undoGroup!.ids.includes(item.id))} receiptDetail={item.edited && !item.after ? 'edited' : undefined}
-        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)}/>;
+        onAdd={() => { if (runner.ready) void add(item); }} onDismiss={() => patch(item.id, {status: 'dismissed'})} onEdit={action => edit(item, action)} firstNote={item.action.kind === 'remember' && memoryConsent(runner.stores.memory) === 'unasked'}/>;
       const waiting = earlier ? items.filter(item => item.status === 'proposed') : [];
       if (!waiting.length) return items.map(card);
       // Folded, the cap note leads: it says why the earlier cards wait, and stays in view above the fold.

@@ -18,7 +18,7 @@ import {DEVICE_WRITE_KEYS} from '../../lib/ai/actions/device-writes';
 export type RunnerEffect =
   | {kind: 'navigate'; href: string; label: string}
   | {kind: 'confirm'; href: string; what: string; id: string; label: string}
-  | {kind: 'device'; patch: Partial<Pick<ZigiRecord, 'skin' | 'animation' | 'side' | 'size' | 'greeting' | 'edgeTab'>> & {knock?: {enabled: boolean}}}
+  | {kind: 'device'; patch: Partial<Pick<ZigiRecord, 'skin' | 'animation' | 'side' | 'size' | 'greeting' | 'edgeTab' | 'brief'>> & {knock?: {enabled: boolean}}}
   // Session AA-Local Part 5 (ADR-022 B37): one of this session's device records, applied through its own store function (lib/ai/actions/device-writes.ts).
   | {kind: 'record'; key: string; patch: Record<string, unknown>; label: string};
 /** The records a card may ask to delete (Z-Local's `DELETE_TARGETS`). */
@@ -41,6 +41,8 @@ export function runnerEffect(plan: unknown): RunnerEffect | null {
     for (const [key, value] of Object.entries(device.patch)) {
       if ((LOOK_KEYS as readonly string[]).includes(key)) patch[key] = value;
       else if (key === 'knock' && object(value) && Object.keys(value).length === 1 && typeof value.enabled === 'boolean') patch.knock = {enabled: value.enabled};
+      // Session AF (L4): the brief's choices, merged like the knock (each field a yes/no or the recap's HH:MM time).
+      else if (key === 'brief' && object(value) && Object.keys(value).length > 0 && Object.entries(value).every(([k, v]) => (['morning', 'evening', 'earning', 'readAloud'].includes(k) && typeof v === 'boolean') || (k === 'eveningTime' && typeof v === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(v)))) patch.brief = value;
       else return null;
     }
     // The patch must keep the record valid (a known animation, side, size, greeting; a skin name of the record's form).
@@ -53,9 +55,9 @@ export function runnerEffect(plan: unknown): RunnerEffect | null {
 export const confirmHref = (effect: Extract<RunnerEffect, {kind: 'confirm'}>) => effect.href + confirmDeleteHash(effect.what, effect.id);
 /** The look record after the patch: top-level keys replaced, `knock` merged. */
 export function lookPatched(record: ZigiRecord, patch: Extract<RunnerEffect, {kind: 'device'}>['patch']): ZigiRecord {
-  const {knock, ...rest} = patch;
-  return {...record, ...rest, ...(knock ? {knock: {...(record.knock ?? {}), ...knock}} : {})};
+  const {knock, brief, ...rest} = patch;
+  return {...record, ...rest, ...(knock ? {knock: {...(record.knock ?? {}), ...knock}} : {}), ...(brief ? {brief: {...(record.brief ?? {}), ...brief}} : {})};
 }
 export function effectStatus(effect: RunnerEffect): string {
-  return effect.kind === 'navigate' ? `Opened: ${effect.label}` : effect.kind === 'confirm' ? `Opened the confirmation on ${effect.label}` : effect.kind === 'record' ? effect.label : 'ZIGi’s look changed';
+  return effect.kind === 'navigate' ? `Opened: ${effect.label}` : effect.kind === 'confirm' ? `Opened the confirmation on ${effect.label}` : effect.kind === 'record' ? effect.label : effect.kind === 'device' && effect.patch.brief && Object.keys(effect.patch).length === 1 ? 'Your brief choices changed' : 'ZIGi’s look changed';
 }

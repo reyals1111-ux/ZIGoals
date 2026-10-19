@@ -59,6 +59,17 @@ export function restoreNote(memory: AiMemory, note: MemoryNoteRecord): AiMemory 
 }
 /** Newest change first: the order the panel lists them and the order they reach the AI (so a cut keeps the newest). */
 export const newestFirst = (notes: readonly MemoryNoteRecord[]) => [...notes].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.createdAt.localeCompare(a.createdAt));
+/**
+ * Session AF (L4, ADR-028 H30): whether ZIGi may offer and keep notes from its own "Remember this?" cards. The first card
+ * the person confirms records their agreement (`consent: {given: true, at}`); turning "Notes from ZIGi's cards" off in
+ * What ZIGi knows records `given: false`, after which every Remember card is refused in plain words (the person's own
+ * notes in the panel are theirs and stay possible). A record from before this field reads through `memoryConsent`.
+ */
+export const MEMORY_DECLINED = 'You chose that ZIGi keeps no notes from its cards. Turn "Notes from ZIGi\'s cards" on in Settings → ZIGi · Your Personal AI Companion → What ZIGi knows about me, or write the note there yourself.';
+export const MEMORY_FIRST = 'Your first note for ZIGi: it is kept only when you press Remember, on this device only, never synced, in Export everything; see, edit or forget each one in Settings → What ZIGi knows about me.';
+export function withConsent(memory: AiMemory, given: boolean, now: Date): AiMemory { return aiMemorySchema.parse({...memory, consent: {given, at: now.toISOString()}}); }
+/** The record after a confirmed Remember card: the first one also records the agreement. */
+export const consentOnRemember = (memory: AiMemory, now: Date): AiMemory => memory.consent ? memory : withConsent(memory, true, now);
 /** "Use my notes": on by default once a note exists; off only when the person turned it off. */
 export const usingNotes = (options: AiOptions, memory: AiMemory) => (memory.notes?.length ?? 0) > 0 && options.useNotes !== false;
 /** The notes ZIGi's paths may read (the gates filter Health-tagged ones per path), or null when none are in use. */

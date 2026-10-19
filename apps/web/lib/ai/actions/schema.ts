@@ -79,8 +79,8 @@ export const WIDGET_KINDS = [...WIDGET_KINDS_V1, ...WIDGET_KINDS_V3_ONLY] as con
  * ask the app to delete (the card opens the app's own confirmation; nothing is deleted by the card), and the targets a
  * person can set in Health. Every kind below writes through the page's own mutator, or hands the runner an effect.
  */
-export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share'] as const; // review, share: AA-Cloud's pages (ADR-022 B53)
-export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
+export const OPEN_PAGES = ['today', 'goals', 'habits', 'health', 'wealth', 'portfolio', 'markets', 'staking', 'ecosystem', 'chess', 'activity', 'settings', 'help', 'music', 'journey', 'review', 'share', 'checklist', 'earn'] as const; // review, share: AA-Cloud's pages (ADR-022 B53); checklist, earn: Session AF's (L3, L1), opened by ZIGi (L4)
+export const PAGE_VIEWS = ['sleep', 'meditation', 'devices', 'imports', 'zigi', 'pages', 'new-goal', 'year', 'routines', 'planner', 'insights', 'import', 'reminders', 'calculator', 'templates', 'data', 'week', 'month', 'start-here', 'academy'] as const; // calculator (wealth), templates (goals), data (settings), week|month (review): AA-Cloud's views (ADR-022 B53)
 export const DELETE_TARGETS = ['habit', 'goal', 'water-entry', 'weight', 'diary-entry', 'food', 'recipe', 'meal-plan', 'counter', 'night', 'session', 'fast', 'link', 'widget', 'note'] as const;
 export const HABIT_STATES = ['active', 'paused', 'archived'] as const;
 // Session AA-Local Part 5: the new actions' vocabularies (habits' time of day and moods, the game layer, the Health coach, macro modes, the seven micronutrients the format holds).
@@ -104,6 +104,14 @@ const weekdayName = (v: unknown): unknown => {
   return index === undefined ? v : WEEKDAY_NAMES[index];
 };
 const weekdaySchema = z.preprocess(weekdayName, z.enum(WEEKDAY_NAMES));
+/** Session AF (D7, H47): what the staking review can be filled in for, on which network (the review's own words), and an amount in ZIG. */
+export const STAKING_ACTIONS = ['delegate', 'undelegate', 'redelegate', 'claim'] as const;
+export const STAKING_NETWORKS = ['practice', 'real'] as const;
+const zigAmount = z.union([z.number().finite().positive().max(1e12), z.string().trim().regex(/^\d{1,12}(\.\d{1,18})?$/, 'An amount of ZIG, such as 100 or 12.5.')]);
+/** A bundle's Earn step: learn (the Earn page), start here (its first path), the Academy, a practice stake or a stake (the review filled in). */
+export const EARN_STEPS = ['learn', 'start-here', 'academy', 'practice-stake', 'stake'] as const;
+/** One part of a plan-bundle, checked later as the card it becomes (a plain object of at most 20 fields). */
+const part = z.record(z.string().max(40), z.unknown()).refine(o => Object.keys(o).length <= 20, 'A plan step has too many fields.');
 export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('log-water'), millilitres: positive.max(10_000).optional(), glasses: positive.max(40).optional(), day: daySchema}).refine(a => a.millilitres !== undefined || a.glasses !== undefined, 'Say how much water: millilitres or glasses.'),
   z.strictObject({kind: z.literal('log-weight'), value: positive.max(1000), unit: z.enum(['kg', 'lb']), day: daySchema}),
@@ -229,6 +237,16 @@ export const actionSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('prefill-contribution'), goal: goalName, amount: z.union([positive.max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]), asset: z.string().trim().min(1).max(30).optional(), day: daySchema, note: text(200).optional()}),
   z.strictObject({kind: z.literal('prefill-account'), name: text(80), accountKind: z.enum(ACCOUNT_KINDS), currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/).optional(), institution: text(80).optional(),
     balance: z.union([z.number().finite().min(0).max(1e15), z.string().trim().regex(/^\d+(\.\d{1,8})?$/)]).optional(), ratePercent: z.union([z.number().finite().min(0).max(100), z.string().trim().regex(/^\d{1,3}(\.\d{1,4})?$/)]).optional(), day: daySchema}),
+  // ---- Session AF (L4, TIER 3 data formats): the Checklist by voice and text, the brief's choices, the staking review ----
+  // A dot on today's Checklist path by its name: a custom item is ticked on the path, a habit dot is that habit's check-in.
+  z.strictObject({kind: z.literal('checklist-tick'), item: text(100), done: z.boolean().default(true), day: daySchema}),
+  // Stars a habit (or a goal) the person already has onto the path; and a custom item in the person's own words.
+  z.strictObject({kind: z.literal('checklist-add-favourite'), item: text(100)}),
+  z.strictObject({kind: z.literal('checklist-add-custom'), text: text(60)}),
+  z.strictObject({kind: z.literal('set-brief'), morning: z.boolean().optional(), evening: z.boolean().optional(), eveningTime: clock.optional(), earning: z.boolean().optional(), readAloud: z.boolean().optional()})
+    .refine(a => Object.keys(a).length > 1, 'Say what to change about the brief: the morning brief, the evening recap, its time, the earning line or reading aloud.'),
+  // ADR-028 D7, H47 (TIER 3 wallet/signing): it only fills in the Staking page's review; the person reviews and signs in their own wallet.
+  z.strictObject({kind: z.literal('prefill-staking'), action: z.enum(STAKING_ACTIONS).default('delegate'), network: z.enum(STAKING_NETWORKS).default('practice'), validator: text(120).optional(), amount: zigAmount.optional()}),
 ]);
 export type Action = z.infer<typeof actionSchema>;
 export type ActionKind = Action['kind'];
@@ -240,7 +258,9 @@ export const ACTION_KINDS = ['log-water', 'log-weight', 'log-steps', 'log-food',
   'edit-diary-entry', 'log-meal-plan', 'grocery-notes', 'set-favorite', 'create-counter', 'edit-counter', 'set-target', 'set-health-preference', 'start-night', 'end-night', 'set-bells',
   'set-today-preset', 'edit-link', 'skip-review', 'set-review-weekday', 'set-wrap-up', 'set-page-visibility', 'set-start-page', 'set-zigi-look', 'prefill-contribution', 'prefill-account',
   'set-time-of-day', 'start-timer', 'stop-timer', 'start-routine', 'set-habit-area', 'set-quit-cost', 'use-freeze', 'set-micro-target', 'set-macro-mode', 'coach-answer', 'import-recipe', 'set-game-layer',
-  'set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average', 'calculator-scenario', 'open-search', 'open-review'] as const satisfies readonly ActionKind[];
+  'set-goal-area', 'set-goal-plan', 'set-sub-goal', 'create-average-goal', 'log-average', 'calculator-scenario', 'open-search', 'open-review',
+  // Session AF (L4)
+  'checklist-tick', 'checklist-add-favourite', 'checklist-add-custom', 'set-brief', 'prefill-staking'] as const satisfies readonly ActionKind[];
 /**
  * Session V Part 7: two requests that become several cards, so each part is confirmed on its own. "plan-goal" is a goal
  * draft with milestone notes plus up to three supporting habits; "build-habit" is a habit plus its daily reminder. The
@@ -251,9 +271,28 @@ export const compositeSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind: z.literal('build-habit'), ...habitFields, reminder: clock.optional()}),
   // Session AA-Local, merged second (ADR-022 B53): a goal from AA-Cloud's template library becomes the goal card its kind asks for.
   z.strictObject({kind: z.literal('goal-from-template'), template: text(80)}),
+  /**
+   * Session AF (L4, P8.4; TIER 3 data formats): a plan as one reviewable bundle ("set me up for a 10k", "plan my week",
+   * "start me on staking"), expanded into existing cards in this order: the goal, the habits (each with its reminder),
+   * milestones for a goal the person has, Checklist items and favourites, at most two Remember cards, then the Earn step
+   * (a page to open, or the staking review filled in; never a write that moves money). At most 10 cards are shown. The
+   * bundle's own shape (its keys, the Earn step, the caps) is checked here; each part is checked alone as the card it
+   * becomes, so a bad step is refused on its own and the rest of the plan stays.
+   */
+  z.strictObject({kind: z.literal('plan-bundle'), title: text(80),
+    goal: part.optional(),
+    habits: z.array(part).max(4).default([]),
+    milestones: z.strictObject({goal: z.string().max(100), items: z.array(z.string().max(100)).min(1).max(6)}).optional(),
+    checklist: z.array(z.string().max(200)).max(6).default([]),
+    favourites: z.array(z.string().max(200)).max(4).default([]),
+    remember: z.array(part).max(2).default([]),
+    earn: z.strictObject({step: z.enum(EARN_STEPS), network: z.enum(STAKING_NETWORKS).optional(), amount: z.union([z.number(), z.string().max(40)]).optional(), validator: z.string().max(120).optional()}).optional(),
+  }),
 ]);
 export type Composite = z.infer<typeof compositeSchema>;
-export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template'] as const;
+export const COMPOSITE_KINDS = ['plan-goal', 'build-habit', 'goal-from-template', 'plan-bundle'] as const;
+/** The most cards one plan-bundle becomes (the reply's own cap, MAX_PROPOSALS, holds for all of them). */
+export const MAX_BUNDLE_STEPS = 10;
 /** The cards a composite request becomes; `next` numbers the new habits of the reply (new1, new2, …). */
 export function expandComposite(composite: Composite, next: () => string): Record<string, unknown>[] {
   if (composite.kind === 'plan-goal') {
@@ -267,13 +306,33 @@ export function expandComposite(composite: Composite, next: () => string): Recor
     if (t.kind === 'health-weight') return [{kind: 'open-page', page: 'health'}]; // a weight goal is set in Health → Health goals; the card opens Health
     return [{kind: 'create-goal', name: t.title, type: t.kind === 'project' ? 'PROJECT' : 'VALUE', ...(t.milestones?.length ? {milestones: [...t.milestones]} : {}), notes: t.summary}];
   }
+  if (composite.kind === 'plan-bundle') {
+    const parts: Record<string, unknown>[] = [];
+    if (composite.goal) { const {kind, ...goal} = composite.goal; void kind; parts.push({...goal, kind: 'create-goal'}); }
+    for (const {reminder, kind, ...habit} of composite.habits) {
+      void kind;
+      if (reminder === undefined || reminder === null || reminder === '') { parts.push({...habit, kind: 'create-habit'}); continue; }
+      const ref = next(); parts.push({...habit, kind: 'create-habit', ref}, {kind: 'create-reminder', for: 'habit', habit: ref, time: reminder});
+    }
+    if (composite.milestones) for (const title of composite.milestones.items) parts.push({kind: 'add-milestone', goal: composite.milestones.goal, title});
+    for (const words of composite.checklist) parts.push({kind: 'checklist-add-custom', text: words});
+    for (const item of composite.favourites) parts.push({kind: 'checklist-add-favourite', item});
+    for (const {kind, ...note} of composite.remember) { void kind; parts.push({...note, kind: 'remember'}); }
+    const earn = composite.earn;
+    if (earn?.step === 'learn') parts.push({kind: 'open-page', page: 'earn'});
+    else if (earn?.step === 'start-here' || earn?.step === 'academy') parts.push({kind: 'open-page', page: 'earn', view: earn.step});
+    else if (earn) parts.push({kind: 'prefill-staking', action: 'delegate', network: earn.step === 'practice-stake' ? 'practice' : earn.network ?? 'practice', ...(earn.amount !== undefined ? {amount: earn.amount} : {}), ...(earn.validator ? {validator: earn.validator} : {})});
+    return parts;
+  }
   const {kind, reminder, ...habit} = composite; void kind;
   if (!reminder) return [{kind: 'create-habit', ...habit}];
   const ref = next();
   return [{kind: 'create-habit', ...habit, ref}, {kind: 'create-reminder', for: 'habit', habit: ref, time: reminder}];
 }
 /** Kinds that write a record on confirmation; the pre-fills only open a form the person submits (a holding, an account's balance). */
-export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-account-balance', 'prefill-contribution', 'prefill-account'];
+export const PREFILL_KINDS: readonly ActionKind[] = ['prefill-holding', 'update-account-balance', 'prefill-contribution', 'prefill-account',
+  // Session AF (ADR-028 D7, H47): the staking review, filled in; the person reviews and signs it in their own wallet.
+  'prefill-staking'];
 export const WRITING_KINDS: readonly ActionKind[] = ACTION_KINDS.filter(k => !PREFILL_KINDS.includes(k));
 /** Aliases the AI may use; mapped before validation (a partial check-in is a check-in with a value). */
 export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {partial: 'check-in', 'check_in': 'check-in', checkin: 'check-in', water: 'log-water', weight: 'log-weight', steps: 'log-steps', food: 'log-food', meal: 'log-food', measurement: 'log-measurement', 'start_fast': 'start-fast', 'stop_fast': 'stop-fast', 'create_habit': 'create-habit', 'create_goal': 'create-goal', 'add_goal_note': 'add-goal-note', 'prefill_holding': 'prefill-holding', 'add-holding': 'prefill-holding',
@@ -311,4 +370,11 @@ export const KIND_ALIASES: Record<string, ActionKind | Composite['kind']> = {par
   'edit_goal': 'edit-goal', 'update-goal': 'edit-goal', 'update_goal': 'edit-goal', 'change-goal': 'edit-goal', 'rename-goal': 'edit-goal',
   mood: 'log-mood', 'log_mood': 'log-mood', 'add-mood': 'log-mood',
   link: 'add-link', 'add_link': 'add-link', 'create-link': 'add-link', 'my-link': 'add-link',
-  widget: 'add-widget', 'add_widget': 'add-widget', 'pin-widget': 'add-widget', 'pin-to-today': 'add-widget', 'create-widget': 'add-widget'};
+  widget: 'add-widget', 'add_widget': 'add-widget', 'pin-widget': 'add-widget', 'pin-to-today': 'add-widget', 'create-widget': 'add-widget',
+  // Session AF (L4): the new kinds' plain names. No alias for a bare stake, unstake, claim, sign, send or broadcast: an unknown kind stays refused.
+  'checklist_tick': 'checklist-tick', tick: 'checklist-tick', 'tick-off': 'checklist-tick', 'check-off': 'checklist-tick', 'mark-done': 'checklist-tick', 'checklist-check': 'checklist-tick',
+  'checklist_add_favourite': 'checklist-add-favourite', 'checklist-add-favorite': 'checklist-add-favourite', 'checklist_add_favorite': 'checklist-add-favourite', 'checklist-favourite': 'checklist-add-favourite', 'checklist-favorite': 'checklist-add-favourite', 'star-habit': 'checklist-add-favourite',
+  'checklist_add_custom': 'checklist-add-custom', 'checklist-add': 'checklist-add-custom', 'add-to-checklist': 'checklist-add-custom', 'checklist-item': 'checklist-add-custom', checklist: 'checklist-add-custom',
+  'set_brief': 'set-brief', 'brief-settings': 'set-brief', brief: 'set-brief', 'evening-recap': 'set-brief',
+  'prefill_staking': 'prefill-staking', 'staking-review': 'prefill-staking', 'start-staking': 'prefill-staking', 'staking-prefill': 'prefill-staking', 'prefill-stake': 'prefill-staking',
+  'plan_bundle': 'plan-bundle', bundle: 'plan-bundle', 'set-up': 'plan-bundle', program: 'plan-bundle', programme: 'plan-bundle', 'plan-week': 'plan-bundle'};
