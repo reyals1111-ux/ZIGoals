@@ -1,7 +1,8 @@
 # Session AF — lane L2b (wallets, read-only tracking, multi-asset Add money, Goal Vaults)
 
 Branch `af/wallet`, from `feature/session-af-wealth-unlocked` at `206a26c4` (Earn hub, verified link registry and Checklist
-merged). Server port 3104 only. Every build, Playwright run and screenshot under `$HOME/zigoals-af/bin/with-lock.sh` +
+merged), with the feature branch merged in once at `b988e4a1` (Part 0 codes and routes, L2a's staking). Server port 3104
+only; scratch scripts in `$HOME/zigoals-af/L2b/`. Every build, Playwright run and screenshot under `$HOME/zigoals-af/bin/with-lock.sh` +
 `tmo.sh`. Nothing pushed. This file is the lane's running record for the lead; it is updated with every step's commit.
 
 ## Status by step (brief order)
@@ -241,11 +242,12 @@ its steps, time and fees once the routes doc lands; Banxa's `returnUrl` vs `redi
 - **Weight**: Wealth and Portfolio gain only a lazy chunk (`components/wallet/wallet-holdings.tsx`); report its gzip size
   beside the page figures (H54).
 - **Theme sheets**: regenerate (new `components/wallet/wallet-holdings.css`).
-- `scripts/sanitize-alpha-tail.mjs` `API_ROUTES`: add `/api/onramps/ramp-assets` (its test walks `app/api`; it already
-  fails on the feature branch for the four `/api/earn/*` routes).
+- `scripts/sanitize-alpha-tail.mjs` `API_ROUTES`: add `/api/onramps/ramp-assets` (its test walks `app/api` and fails on
+  this branch only for that route).
 - `apps/web/lib/egress-policy.json` `serverOnly`: a note `rampAssets` — `https://api.rampnetwork.com`, reached only by
   `/api/onramps/ramp-assets` (`lib/onramps/server/ramp-assets.ts`, `RAMP_EGRESS`). No CSP change (H89).
-- `scripts/weight-budgets.json`: lines for `/app/wealth/add-money` and `/app/wealth/add-money/back` (measured + 10 %).
+- `scripts/weight-budgets.json`: lines for `/app/wealth/add-money` (measured **422,899 B** gzip → budget 465,189 B) and
+  `/app/wealth/add-money/back` (**420,245 B** → 462,270 B), measured on the final production build (below).
 - Navigation / search / Help: `/app/wealth/add-money` ("Add money") under Wealth; the Earn path's step 3 links to it (L1).
 - Theme sheets: regenerate (new `components/add-money/add-money.css`).
 - **About panel** (licence §2a, for the lead): the line "Portions © 2025 Reown, Inc. All Rights Reserved" with a link to
@@ -300,3 +302,44 @@ apps/web/lib/wallet-link.test.ts apps/web/lib/wallet-menu.test.ts apps/web/lib/w
 apps/web/lib/public-integrations.test.ts`: 48 passed. `wallet-guard.test.ts` gains the Solana side (a new describe block;
 AE's three tests untouched): lib/wallets files name no signing/sending/permission method, make no request, and call exactly
 `standard:connect` and `standard:disconnect`; no `solana:sign…` anywhere in the wallet files or components.
+
+## Final verification (after step 6, on the merged branch)
+- `pnpm typecheck` clean; `pnpm lint` 0 errors (the 19 warnings are the feature branch's own); `node scripts/check-secrets.mjs`
+  passed, and the repository's scan run on every new or changed file of the dependency commit: no hit.
+- `pnpm test` (the whole unit suite, once): 638 files passed, 2 failed — both the lead's to wire: `sanitize-alpha-tail`
+  (`/api/onramps/ramp-assets` not yet in `API_ROUTES`) and `build-themes` (the new CSS files; theme sheets regenerate after
+  the merge). 5,607 tests passed, 58 skipped.
+- Production build (PUBLIC_ALPHA_UNDEPLOYED) ok; against it on 3104, Chrome, `--workers=2`, under the lock:
+  `wallet-tracking`, `wallet-menu`, `add-money`, `webkit-add-money`, `goal-vaults`, `wallet-reload` — 33 passed, 3 skipped
+  by design; WebKit (`playwright.webkit.config.ts`): `webkit-add-money` 2 passed. `check-weight-budget.mjs`: every page ok
+  (Wealth 456.7 / 512.0 kB, Portfolio 455.4 / 500.0, shell 400.3 / 447.0). Lazy chunks (gzip): WalletConnect package
+  129.6 kB (+ 11.3 kB menu chunk), wallet holdings ~13 + 17.7 kB, Add money 22.6 kB, its return page 19.9 kB, Goal Vault
+  16.5 kB, WalletConnect panel 1.2 kB; no page's HTML loads any of them.
+
+## Open items
+- **Owner**: the Reown project ID, Ramp's `hostApiKey` (+ logo URL check: the builder sends `<origin>/apple-touch-icon.png`)
+  and Banxa's `partnerRef` go into `apps/web/config/public-integrations.json`; until then Add money links the providers'
+  plain sites (nothing pre-filled) and phones say WalletConnect is "available soon". The WalletConnect licence's
+  "applicable logo and branding" clause (§2a(iii)) is undefined in the text — an owner question if Reown asks.
+- **Lead**: the About-panel notice line; L2a's "Open ZIGoals in Keplr" into `phone-wallet-paths.ts`; Earn's step 3 link to
+  Add money (L1); PRIVACY.md's paragraph (above); the registry rows; the storage registry rows; the hosted verifier's
+  origins; budget lines; theme sheets.
+- Not verifiable without the owner's keys or a real phone: Ramp/Banxa checkouts accepting the codes and the prefilled
+  address; MetaMask's and Trust's in-app browsers announcing EIP-6963 / the Wallet Standard (reported, not documented);
+  Skip Go's ETH route choice (ROUTES_ONTO_ZIGCHAIN.md open problem 4).
+- PublicNode publishes no rate limit; a busy person with many linked EVM wallets makes one batch POST per chain per 15
+  minutes at most.
+
+## Commits (on `af/wallet`, oldest first)
+- `673c1844` TIER 3 (wallet) — real read-only connections (six EVM wallets, Solana Wallet Standard, phones, public-integrations.json)
+- `cc6dd19e` TIER 3 (storage) — linked-wallets `solana`/`chains`/`via` (frozen AE proof), `zigoals:wallet-balances:v1`
+- `bba98249` TIER 3 (CSP) — the nine balance hosts in `csp.app.connect`, exact-list tests
+- `bbf999f1` TIER 3 (wallet) — read-only tracking: readers, pricing, What you have, Portfolio strip
+- `e6dd76de` TIER 3 (egress routes) — `GET /api/onramps/ramp-assets`, the asset table
+- `69826167` Part 4 — multi-asset Add money (five steps, return page, guard, builders)
+- `10f47db6` TIER 3 (dependencies) — `@walletconnect/sign-client` 2.26.0, licence, dormant module
+- `6e5d6255` merge of the feature branch (`b988e4a1`), CSP lists combined
+- `86619895` Part 4 — the Part 0 codes and routes applied (Ramp's current parameter names)
+- `9bbd11aa` TIER 3 (storage) — `zigoals:goal-vaults:v1`, progress, illustration
+- `1af038d6` Part 6 — Goal Vaults in a Goal's detail
+- (this file's final update)
