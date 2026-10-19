@@ -3,6 +3,8 @@ import {PORTFOLIO_KEY} from '../portfolio/schema';
 import {EARN_CATALOG_LABELS} from '../af-earn-keys';
 import {AF_CHECKLIST_CATALOG_LABELS} from '../af-checklist-keys';
 import {WALLET_CATALOG_LABELS} from '../af-wallet-keys';
+import {AF_ZIGI_CATALOG_LABELS} from '../af-zigi-keys';
+import {AF_EXTRAS_CATALOG_LABELS} from '../af-extras-keys';
 
 /**
  * Where each part of a person's data lives (Session AA-Cloud Part 6, the Data health page): the four synced modules
@@ -41,6 +43,9 @@ const DEVICE_LABELS: Record<keyof typeof DEVICE_KEYS, [label: string, area: stri
   stakingJournal: ['Staking and vote transactions', 'Wallet'], stakingPrefs: ['Staking choices: practice or real', 'Wallet'], validatorAlerts: ['Validator health alerts: what this device last saw', 'Wallet'],
   // Session AF (L2b): linked wallets' last balances and Goal Vault links.
   walletBalances: [WALLET_CATALOG_LABELS.walletBalances[0], WALLET_CATALOG_LABELS.walletBalances[1]], goalVaults: [WALLET_CATALOG_LABELS.goalVaults[0], WALLET_CATALOG_LABELS.goalVaults[1]],
+  // Session AF (L4, L5b): ZIGi's plans; My universe, Day timeline and Stories.
+  zigiPlans: [AF_ZIGI_CATALOG_LABELS.zigiPlans[0], AF_ZIGI_CATALOG_LABELS.zigiPlans[1]],
+  universe: [AF_EXTRAS_CATALOG_LABELS.universe[0], AF_EXTRAS_CATALOG_LABELS.universe[1]], dayTimeline: [AF_EXTRAS_CATALOG_LABELS.dayTimeline[0], AF_EXTRAS_CATALOG_LABELS.dayTimeline[1]], stories: [AF_EXTRAS_CATALOG_LABELS.stories[0], AF_EXTRAS_CATALOG_LABELS.stories[1]],
 };
 /**
  * Session AB-Cloud (ADR-023): device records that now also travel in encrypted sync. They stay on this device (every page

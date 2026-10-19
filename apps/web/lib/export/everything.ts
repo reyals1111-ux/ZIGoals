@@ -33,6 +33,8 @@ import {EARN_EXPORT_KEYS} from '../af-earn-keys';
 import {AF_CHECKLIST_EXPORT_KEYS} from '../af-checklist-keys';
 import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY} from '../af-signing-keys';
 import {WALLET_EXPORT_KEYS} from '../af-wallet-keys';
+import {AF_ZIGI_EXPORT_KEYS} from '../af-zigi-keys';
+import {AF_EXTRAS_EXPORT_KEYS} from '../af-extras-keys';
 import {accountsSchema, type Account} from '../accounts/schema';
 import {exportHealthCsv} from '../health-daily';
 import {exerciseData} from '../health-counters';
@@ -78,7 +80,7 @@ export const DEVICE_KEYS = {reminders: REMINDERS_KEY, habitHealthLinks: HABIT_HE
   // Session AE (Part 6, ADR-027): the wallets linked read-only (public addresses, personal): exported, never synced, never restored.
   linkedWallets: LINKED_WALLETS_KEY,
   // Session AF (ADR-028): Earn's progress and choices, the Checklist's two records; exported, never synced, never restored.
-  ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY, validatorAlerts: VALIDATOR_ALERTS_KEY, ...WALLET_EXPORT_KEYS} as const;
+  ...EARN_EXPORT_KEYS, ...AF_CHECKLIST_EXPORT_KEYS, stakingJournal: STAKING_JOURNAL_KEY, stakingPrefs: STAKING_PREFS_KEY, validatorAlerts: VALIDATOR_ALERTS_KEY, ...WALLET_EXPORT_KEYS, ...AF_ZIGI_EXPORT_KEYS, ...AF_EXTRAS_EXPORT_KEYS} as const;
 export const EVERYTHING_KEYS: readonly string[] = [...Object.values(MODULE_KEYS), PORTFOLIO_KEY, ...Object.values(DEVICE_KEYS)];
 export const EVERYTHING_NOTE = 'Readable export of your ZIGoals records. It contains personal information: keep it private. Settings → Your data → Restore from a backup reads it back; Settings → Keep a protected copy makes an encrypted copy.';
 export const CSV_FILES = ['goals.csv', 'contributions.csv', 'habits.csv', 'check-ins.csv', 'health-diary.csv', 'weights.csv', 'water.csv', 'activity.csv', 'wealth-positions.csv',

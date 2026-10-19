@@ -25,6 +25,8 @@ import {EARN_DISPLAY_KEYS, EARN_PERSONAL_KEYS} from './af-earn-keys';
 import {AF_CHECKLIST_PERSONAL_KEYS} from './af-checklist-keys';
 import {STAKING_JOURNAL_KEY, STAKING_PREFS_KEY, VALIDATOR_ALERTS_KEY} from './af-signing-keys';
 import {WALLET_PERSONAL_KEYS} from './af-wallet-keys';
+import {AF_ZIGI_DISPLAY_KEYS, AF_ZIGI_PERSONAL_KEYS} from './af-zigi-keys';
+import {AF_EXTRAS_DISPLAY_KEYS, AF_EXTRAS_PERSONAL_KEYS} from './af-extras-keys';
 // AA-Cloud's six device keys as literals (ADR-022 B53): importing their store modules here would carry every schema into
 // each page that asks "is this device new?"; lib/onboarding.test.ts keeps the literals equal to the stores' constants.
 const GOAL_EXTRAS_KEY = 'zigoals:goal-extras:v1', AVERAGE_GOALS_KEY = 'zigoals:average-goals:v1', CALCULATOR_KEY = 'zigoals:calculator:v1', SEARCH_RECENT_KEY = 'zigoals:search-recent:v1', LIFE_REVIEW_KEY = 'zigoals:life-review:v1', TODAY_CARDS_KEY = 'zigoals:today-cards:v1';
@@ -63,13 +65,13 @@ export const DEVICE_RECORD_KEYS: readonly string[] = [HABIT_HEALTH_LINKS_KEY, HE
   // Session AE (Part 6, ADR-027): the wallets linked read-only; public addresses are personal data.
   LINKED_WALLETS_KEY,
   // Session AF (ADR-028): Earn's Start-here progress and Academy results, the Checklist's favourites and day history.
-  ...EARN_PERSONAL_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_PERSONAL_KEYS];
+  ...EARN_PERSONAL_KEYS, ...AF_CHECKLIST_PERSONAL_KEYS, STAKING_JOURNAL_KEY, VALIDATOR_ALERTS_KEY, ...WALLET_PERSONAL_KEYS, ...AF_ZIGI_PERSONAL_KEYS, ...AF_EXTRAS_PERSONAL_KEYS];
 /**
  * Device keys that hold no personal records: display preferences, public caches and this flag. The sync offer's "Not now"
  * (lib/sync-offer/offer.ts, written as text here so this module stays free of its schema) joined in Session X Part 10, as
  * Session L's follow-up asked: on its own it no longer keeps the welcome away from a device with nothing on it.
  */
-export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY];
+export const NON_PERSONAL_KEYS: readonly string[] = [ONBOARDING_KEY, 'zigoals:whats-new:v1', 'zigoals:motion:v1', 'zigoals:sync-offer:v1', 'zigoals:layout:v1', 'zigoals:settings:v1', 'zigoals:public-market-quotes:v1', 'zigoals:public-market-insights:v1', TODAY_FOLDS_KEY, ...ZIGI_DISPLAY_KEYS, ...W_DISPLAY_KEYS, ...Z_DISPLAY_KEYS, ...AA_DISPLAY_KEYS, TODAY_CARDS_KEY, ...AB_DESIGN_DISPLAY_KEYS, ...EARN_DISPLAY_KEYS, STAKING_PREFS_KEY, ...AF_ZIGI_DISPLAY_KEYS, ...AF_EXTRAS_DISPLAY_KEYS];
 
 /**
  * Whether this device looks brand-new: no ZIGoals key other than the non-personal ones above (Today settings are
