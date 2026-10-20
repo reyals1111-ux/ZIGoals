@@ -124,7 +124,9 @@ test('a tick: the press, a burst of sparks, a comet along the line, ZIGi’s che
   const cheer = page.locator('.path-zigi[data-cheer][data-zigi-state="cheer"]');
   await expect(cheer).toHaveCount(1);
   await expect(cheer.locator('.path-zigi-cheer i')).not.toHaveCount(0);
-  await expect(cheer.locator('img')).toHaveAttribute('src', /greeting/);
+  // Round 5, moved at equal strength: one held frame of the greeting clip (the open hand, a wink), never the celebrate art.
+  await expect(cheer.locator('img')).toHaveAttribute('src', /zigi-cheer-wave/);
+  await expect(cheer.locator('.path-zigi-burst')).toHaveCount(1);
   await expect(done.locator('xpath=ancestor::li[contains(@class, "path-step")]').locator('.path-zigi[data-cheer]')).toHaveCount(1);
   await expect(page.locator('.checklist-progress-shine')).toHaveCount(1);
   const moving = await overlay(page).evaluate(d => d.getAnimations({subtree: true}).filter(a => a.playState === 'running').length);
@@ -148,6 +150,11 @@ for (const mode of ['reduced motion', 'Motion Off'] as const) {
     await expect(page.locator('[data-next] .path-next-tag')).toBeVisible();
     await expect(page.locator('[data-next] .path-zigi')).toHaveCount(1);
     await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0);
+    // Round 5 (L3b): it points at the next planet — the pointing still, never the hands-on-head celebrate art (the half-way
+    // mood's `proud` wears it), and 12 px clear of everything on the path.
+    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /presenting/);
+    await page.waitForTimeout(1500);
+    expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
     expect(await page.locator('.path-dot[data-next] .path-dot-pulse').evaluate(el => getComputedStyle(el).animationName)).toBe('none');
   });
 }
@@ -171,7 +178,7 @@ test('the day’s celebration plays once, on the last tick; never when the finis
   const zigi = await party.locator('.checklist-celebration-zigi').evaluate(el => { const r = el.getBoundingClientRect(), hit = document.elementFromPoint((r.left + r.right) / 2, r.top + r.height * .45); return {h: r.height, front: !!hit && el.contains(hit), src: el.querySelector('img')?.getAttribute('src') ?? ''}; });
   expect(zigi.h).toBeGreaterThanOrEqual(page.viewportSize()!.width < 768 ? 160 : 200);
   expect(zigi.front, 'ZIGi in front of the trophy').toBe(true);
-  expect(zigi.src).toMatch(/greeting/);
+  expect(zigi.src).toMatch(/zigi-cheer-wave/);
   await party.getByRole('button', {name: 'Continue'}).click();
   await expect(party).toHaveCount(0);
   await expect(overlay(page)).toBeVisible();
@@ -195,6 +202,22 @@ function longDay() {
   sections.forEach((section, i) => { r = addCustom(r, {label: `Fictional star ${i + 1}`, colour: ['cyan', 'pink', 'gold', 'purple', 'blue', 'teal', 'magenta', 'gold'][i]!, section}, {id: `ck_fixture-${i + 1}`, at: new Date(Date.now() - (10 - i) * 86_400_000)}); });
   return r;
 }
+/** Round 5 (L3b): the parts of the path ZIGi's drawn figure — its picture's own box, as painted — comes within 12 px of:
+ *  planets (the next one with its ring and moon), names, banners, chests and their names, the NEXT tag, an open panel. */
+const zigiClash = (page: Page) => page.evaluate(() => {
+  const z = document.querySelector<HTMLElement>('.path-zigi'); if (!z) return ['no ZIGi'];
+  const r = z.querySelector('img')!.getBoundingClientRect(), C = 12;
+  const ring = (dot: HTMLElement) => { const b = dot.getBoundingClientRect(), o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit'), own = dot.offsetWidth || b.width, e = o ? ((o.offsetWidth - own) / 2 + 6) * (b.width / own) : 0; return {left: b.left - e, top: b.top - e, right: b.right + e, bottom: b.bottom + e}; };
+  return [...document.querySelectorAll<HTMLElement>('.path-dot, .path-label, .path-banner, .path-chest-art, .path-chest-text, .path-next-tag, .path-panel')].filter(o => !z.contains(o))
+    .map(o => ({o, b: o.classList.contains('path-dot') ? ring(o) : o.getBoundingClientRect()}))
+    .filter(({b}) => b.right - b.left > 2 && b.bottom - b.top > 2 && Math.min(r.right, b.right + C) - Math.max(r.left, b.left - C) > 0 && Math.min(r.bottom, b.bottom + C) - Math.max(r.top, b.top - C) > 0)
+    .map(({o}) => `${o.className.toString().split(' ')[0]}: ${(o.textContent ?? '').slice(0, 24)}`);
+});
+/** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
+async function zigiAtRest(page: Page) {
+  await expect(page.locator('.path-zigi[data-cheer]')).toHaveCount(0, {timeout: 5000});
+  await page.waitForTimeout(1600);
+}
 const rect = (page: Page, selector: string) => page.locator(selector).first().evaluate(el => { const r = el.getBoundingClientRect(); return {top: r.top, bottom: r.bottom, left: r.left, right: r.right, vh: innerHeight, vw: innerWidth}; });
 
 test('it opens on the next planet, ZIGi beside it; the Undo toast never covers either; the timers are on the first screen', async ({page}, info) => {
@@ -208,18 +231,26 @@ test('it opens on the next planet, ZIGi beside it; the Undo toast never covers e
   await expect.poll(async () => { const r = await rect(page, '[data-next] [data-path-point]'); return Math.round(((r.top + r.bottom) / 2) / r.vh * 100); }).toBeGreaterThanOrEqual(28);
   const n = await rect(page, '[data-next] [data-path-point]');
   expect(((n.top + n.bottom) / 2) / n.vh, 'the next planet near 40 % of the screen').toBeLessThanOrEqual(.55);
-  // ZIGi stands beside it, within 24 px, whole on the screen, at least 130 px tall.
-  const z = await rect(page, '[data-next] .path-zigi');
-  expect(Math.min(Math.abs(z.left - n.right), Math.abs(n.left - z.right)), 'ZIGi beside the next planet').toBeLessThanOrEqual(24);
+  // ZIGi stands beside it, whole on the screen, at least 130 px tall. Round 5 (L3b), moved at equal strength: "beside" is
+  // read from the next planet's ring (its outer edge, which ZIGi must now clear by 12 px) instead of its body: ZIGi's drawn
+  // figure stands 12 to 36 px from the ring — the same 24 px of play the old check allowed, past the new clearance.
+  await zigiAtRest(page);
+  const z = await rect(page, '[data-next] .path-zigi img');
+  const ringEdge = await page.locator('[data-next] .path-dot').evaluate(dot => { const b = dot.getBoundingClientRect(), o = dot.querySelector<HTMLElement>(':scope > .path-dot-orbit')!, own = (dot as HTMLElement).offsetWidth, e = ((o.offsetWidth - own) / 2 + 6) * (b.width / own); return {left: b.left - e, right: b.right + e, top: b.top - e, bottom: b.bottom + e}; });
+  const beside = z.left >= ringEdge.right ? z.left - ringEdge.right : ringEdge.left - z.right;
+  expect(beside, 'ZIGi beside the next planet').toBeGreaterThanOrEqual(12);
+  expect(beside, 'ZIGi beside the next planet').toBeLessThanOrEqual(36);
+  expect(Math.min(z.bottom, ringEdge.bottom) - Math.max(z.top, ringEdge.top), 'level with it').toBeGreaterThan(0);
   expect(z.left).toBeGreaterThanOrEqual(0); expect(z.right).toBeLessThanOrEqual(z.vw); expect(z.top).toBeGreaterThanOrEqual(0); expect(z.bottom).toBeLessThanOrEqual(z.vh);
   expect(z.bottom - z.top).toBeGreaterThanOrEqual(130);
   // The corner timers are on the first screen: the side column's Sleep on a computer, the foot bar's Sleep chip on a phone.
   // (Round 4: on a phone the timers are the foot bar's own chips, so Sleep itself is on the first screen everywhere.)
   await expect(page.getByRole('group', {name: 'Quick timers'}).getByRole('button', {name: /^Sleep:/})).toBeInViewport();
-  // Round 4: ZIGi at rest touches no planet, name, banner or chest (its art: the figure's transparent sides and the top of
-  // its picture may).
-  const clash = await page.locator('[data-next] .path-zigi').evaluate(z => { const r = z.getBoundingClientRect(), inset = r.width * .16, l = r.left + inset, rr = r.right - inset, t = r.top + r.height * .08; return [...document.querySelectorAll('.path-dot, .path-label, .path-banner, .path-chest-art')].filter(o => !z.contains(o)).filter(o => { const b = o.getBoundingClientRect(); return b.width > 0 && Math.min(rr, b.right) - Math.max(l, b.left) > 1 && Math.min(r.bottom, b.bottom) - Math.max(t, b.top) > 1; }).map(o => `${o.className}`); });
-  expect(clash, 'ZIGi clear of the path').toEqual([]);
+  // Round 4 → round 5 (L3b), moved at greater strength: the old check read an inset box (the figure's sides and top left
+  // out) and only at the opening, so it passed while the frames showed ZIGi over a name and a chest after a tick. Now ZIGi's
+  // drawn figure is at least 12 px clear of every planet (and the next one's ring), name, banner, chest and tag — here, and
+  // after a tick, an orbit and under reduced motion in the test below.
+  expect(await zigiClash(page), 'ZIGi 12 px clear of the path').toEqual([]);
   // The shell's own strips are not drawn inside the Checklist.
   await expect(overlay(page)).not.toContainText('NOTHING MOVES UNLESS YOU SIGN');
   // A tick: the toast is 52 px at most and covers neither the new next planet nor ZIGi — round 3 (L3b), at greater strength:
@@ -265,5 +296,32 @@ test('a learning path’s density: six planets or more on the opening screen, be
     for (const b of await page.getByRole('group', {name: 'Quick timers'}).getByRole('button').all()) { const box = (await b.boundingBox())!; expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44); }
     const alpha = await page.locator('.checklist-dock').evaluate(el => { const m = getComputedStyle(el).backgroundImage.match(/rgba?\([^)]*\)/g) ?? []; return Math.min(...m.map(c => { const v = c.match(/[\d.]+/g)!.map(Number); return v.length > 3 ? v[3]! : 1; })); });
     expect(alpha, 'the foot bar is opaque').toBeGreaterThanOrEqual(.95);
+  }
+});
+
+test('ZIGi at rest is 12 px clear of the path after a tick, after an orbit and under reduced motion, at 390, 768 and 1440', async ({page}, info) => {
+  // Round 5 (L3b; the iteration-4 frames showed ZIGi over a name, a chest and the NEXT ring once it settled after a tick).
+  test.setTimeout(120_000);
+  const sizes = info.project.name === 'mobile' ? [{width: 390, height: 844}] : [{width: 1440, height: 900}, {width: 768, height: 1024}];
+  for (const size of sizes) {
+    await page.emulateMedia({reducedMotion: 'no-preference'});
+    await page.setViewportSize(size);
+    await open(page, {path: longDay()});
+    await zigiAtRest(page);
+    expect(await zigiClash(page), `${size.width}px: on opening`).toEqual([]);
+    // After a tick, and after the tick that completes the morning orbit.
+    for (const n of [1, 2, 3]) {
+      await page.getByRole('button', {name: `Fictional star ${n}: not done yet`, exact: true}).click();
+      await zigiAtRest(page);
+      expect(await zigiClash(page), `${size.width}px: after ticking star ${n}`).toEqual([]);
+      await expect(page.locator('[data-next] .path-zigi img')).not.toHaveAttribute('src', /celebrate/);
+    }
+    // Under reduced motion: the pointing still, clear.
+    await page.emulateMedia({reducedMotion: 'reduce'});
+    await page.reload(); await settled(page);
+    await page.getByRole('button', {name: 'Fictional star 4: not done yet', exact: true}).click();
+    await zigiAtRest(page);
+    await expect(page.locator('[data-next] .path-zigi img')).toHaveAttribute('src', /presenting/);
+    expect(await zigiClash(page), `${size.width}px: reduced motion, after ticking star 4`).toEqual([]);
   }
 });
