@@ -1,6 +1,6 @@
 import {formatUnits} from '@zigoals/chain-config';
 import {fundingHealth} from './goal-intelligence';
-import {wealthOverview,ASSET_COLORS} from './wealth';
+import {wealthOverview,ASSET_COLORS,WEALTH_CLASSES} from './wealth';
 import type {Platform,Position} from './positions';
 import {verifiedMarketQuote,quoteMatchesPosition,type MarketQuote} from './market-quotes';
 import {marketRefKey,type MarketAssetRef} from './market-assets';
@@ -15,12 +15,29 @@ export function holdingUnitQuote(position:Position,quotes:readonly MarketQuote[]
  if(position.providerId!=='native-zig')return undefined;
  return quotes.flatMap(raw=>{try{const quote=verifiedMarketQuote(raw,now);return quote.currency===(position.quoteCurrency??'USD')&&quoteMatchesPosition({...position,valuationMode:undefined},quote)?[quote]:[];}catch{return [];}}).sort((a,b)=>Date.parse(b.observedAt??b.fetchedAt!)-Date.parse(a.observedAt??a.fetchedAt!))[0];
 }
+/** A part of a total in basis points (hundredths of a percent), to the nearest one. */
+const nearestBasisPoints=(part:bigint,total:bigint)=>total>0n?Number((part*20000n+total)/(2n*total)):0;
+/**
+ * Session AF Gate C (design critique 1): each class's share of a total to the nearest hundredth of a percent, adding up to
+ * exactly 100 % (the largest remainders take the last basis points). Each is the holding's own figure when a class holds
+ * one valued holding, so the composition, the allocation bar and the top holdings never read 4.99 % and 4.98 % for the same
+ * money (the earlier running sum had carried its rounding into the next class).
+ */
+export function shareBasisPoints(values:readonly bigint[],total:bigint):number[]{
+ if(total<=0n)return values.map(()=>0);
+ const floors=values.map(v=>v*10000n/total),rest=values.map((v,i)=>({i,r:v*10000n-floors[i]!*total}));
+ let missing=10000-floors.reduce((n,f)=>n+Number(f),0);const out=floors.map(Number);
+ for(const {i} of [...rest].sort((a,b)=>a.r===b.r?a.i-b.i:a.r>b.r?-1:1)){if(missing<=0)break;out[i]!+=1;missing--;}
+ return out;
+}
 export function portfolioComposition(overview:ReturnType<typeof wealthOverview>){
  return overview.subtotals.map(total=>{
+  // Session AF Gate C (design critique 1): the classes are Wealth's one class map (an ETF is "ETFs" here as everywhere), in
+  // its one order, each in its one colour (lib/wealth.ts).
   const members=overview.rows.filter(r=>r.currency===total.currency&&r.value!==undefined),amounts=new Map<string,{value:bigint;color:string}>();
-  for(const row of members){const label=row.position.marketRef?.kind==='rwa'&&row.position.marketRef.assetType==='etf'?'ETFs':row.assetClass;const old=amounts.get(label);amounts.set(label,{value:(old?.value??0n)+row.value!,color:label==='ETFs'?'#ab89ff':ASSET_COLORS[row.assetClass]});}
-  let cumulative=0n,prior=0;const segments=[...amounts].map(([label,s])=>{cumulative+=s.value;const end=total.value?Number(cumulative*10000n/total.value):0,basisPoints=end-prior;prior=end;return {label,...s,basisPoints};});
-  const topHoldings=[...members].sort((a,b)=>a.value! === b.value!?a.position.id.localeCompare(b.position.id):a.value! > b.value!?-1:1).slice(0,5).map(row=>({id:row.position.id,name:row.position.providerId,symbol:row.position.asset,value:row.value!,basisPoints:total.value?Number(row.value!*10000n/total.value):0}));
+  for(const label of WEALTH_CLASSES){const value=members.filter(row=>row.wealthClass===label).reduce((n,row)=>n+row.value!,0n);if(members.some(row=>row.wealthClass===label))amounts.set(label,{value,color:ASSET_COLORS[label]});}
+  const shares=shareBasisPoints([...amounts.values()].map(s=>s.value),total.value);const segments=[...amounts].map(([label,s],i)=>({label,...s,basisPoints:shares[i]!}));
+  const topHoldings=[...members].sort((a,b)=>a.value! === b.value!?a.position.id.localeCompare(b.position.id):a.value! > b.value!?-1:1).slice(0,5).map(row=>({id:row.position.id,name:row.position.providerId,symbol:row.position.asset,value:row.value!,basisPoints:nearestBasisPoints(row.value!,total.value)}));
   return {currency:total.currency,total:total.value,allocated:total.allocated,available:total.unallocated,allocatedBasisPoints:total.value?Number(total.allocated*10000n/total.value):0,incomplete:overview.rows.some(r=>r.value===undefined),segments,topHoldings};
  });
 }

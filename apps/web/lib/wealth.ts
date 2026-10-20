@@ -2,7 +2,23 @@
 import {ASSET_CLASSES,allocate,allocationBalance,goalProgress,positionSync,snapshotIsStale,type AssetClass,type Platform,type Position,type PrivateGoal} from './positions';
 import {isNativeZig,marketQuoteSchema,quoteIsStale,quoteMatchesPosition,quoteValue,type MarketQuote} from './market-quotes';
 import {marketRequestKey,nativeZigRequest,uniqueMarketRequests,type MarketAssetRef,type MarketQuoteRequest} from './market-assets';
-export const ASSET_COLORS:Record<AssetClass,string>={Crypto:'#38d9f5',Stablecoins:'#70e1c3',Stocks:'#8c9cff','Precious Metals':'#ecc779',Property:'#ce92ff',Cash:'#80baff',Custom:'#ee8fce'};
+/**
+ * Session AF Gate C (design critique, money pages 1): the one class map every Wealth view reads. The saved records keep their
+ * seven classes (an ETF is saved under Stocks, lib/positions.ts); wherever a holding is classed on screen, a market reference
+ * typed `etf` reads as ETFs — the composition, the class cards, the filters, the allocation bar, the chart and the asset's
+ * own line — never as an ETF in one place and a stock in another.
+ */
+export const WEALTH_CLASSES=['Crypto','Stablecoins','Stocks','ETFs','Precious Metals','Property','Cash','Custom'] as const;
+export type WealthClass=typeof WEALTH_CLASSES[number];
+export const isEtf=(p:Pick<Position,'marketRef'>)=>p.marketRef?.kind==='rwa'&&p.marketRef.assetType==='etf';
+/**
+ * Session AF Gate C (design critique, money pages 3): each class a clearly different hue, one value in every theme (inline
+ * paint, never remapped). Lilac Property beside violet ETFs, and periwinkle Stocks beside sky-blue Cash, had read as one
+ * colour each. Crypto (cyan), Stablecoins (mint), Precious Metals (gold) and Custom (pink) keep theirs; Stocks and ETFs take
+ * the brand blue and violet, Property a warm coral and Cash a fresh green, so no two neighbours on the ring share a hue.
+ */
+export const ASSET_COLORS:Record<WealthClass,string>={Crypto:'#38d9f5',Stablecoins:'#70e1c3',Stocks:'#459dff',ETFs:'#826cff','Precious Metals':'#ecc779',Property:'#ff8f66',Cash:'#9bd65f',Custom:'#ee8fce'};
+export function wealthClassOf(p:Position):WealthClass{return isEtf(p)?'ETFs':assetClassOf(p);}
 export function assetClassOf(p:Position):AssetClass{
  if(p.sourceType!=='MANUAL'&&p.asset==='ZIG')return 'Crypto';
  if(p.assetClass)return p.assetClass;
@@ -102,7 +118,7 @@ function computeWealthHistory(s:Platform):WealthHistory[]{
     const snapshot=group[0]!,value=BigInt(snapshot.value)*100n/10n**BigInt(snapshot.decimals);latest.set(id,value);
    }
    const active=required.filter(id=>positionTrackedAt(s,byId.get(id)!,at));
-   if(active.length&&active.every(id=>latest.has(id))){const classes:Record<string,bigint>={};for(const id of active){const c=byId.get(id)!.assetClass??'Other';classes[c]=(classes[c]??0n)+latest.get(id)!;}points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString(),classes:Object.fromEntries(Object.entries(classes).map(([c,v])=>[c,v.toString()]))});}
+   if(active.length&&active.every(id=>latest.has(id))){const classes:Record<string,bigint>={};for(const id of active){const held=byId.get(id)!,c=isEtf(held)?'ETFs':held.assetClass??'Other';classes[c]=(classes[c]??0n)+latest.get(id)!;}points.push({at,value:active.reduce((total,id)=>total+latest.get(id)!,0n).toString(),classes:Object.fromEntries(Object.entries(classes).map(([c,v])=>[c,v.toString()]))});}
   }
   if(!points.length)return [];
   const first=BigInt(points[0]!.value),last=BigInt(points.at(-1)!.value),change=last-first;
@@ -130,12 +146,12 @@ function computeWealthOverview(s:Platform,now:number,quotes:readonly MarketQuote
   const value=p.valuation?BigInt(p.valuation.value)*100n/10n**BigInt(p.valuation.decimals):matching?BigInt(quoteValue(p.quantity,p.decimals,matching,2)):undefined;
   const allocatedValue=value===undefined?undefined:observed?value*allocated/observed:0n;
   const valuationState=p.valuation?.source==='MANUAL'?'manual':p.valuation?snapshotIsStale(p.valuation.observedAt,now)?'stale':'fresh':matching?quoteIsStale(matching,now)?'stale':'fresh':'missing';
-  return {position:p,assetClass:assetClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,source:p.valuation?.source==='MANUAL'?'Manual value':p.valuation?'Verified Position value':matching?.source,valuedAt:p.valuation?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
+  return {position:p,assetClass:assetClassOf(p),wealthClass:wealthClassOf(p),balance,currency,value,allocatedValue,unallocatedValue:value===undefined?undefined:value-allocatedValue!,valuationState,source:p.valuation?.source==='MANUAL'?'Manual value':p.valuation?'Verified Position value':matching?.source,valuedAt:p.valuation?.observedAt??matching?.observedAt??matching?.fetchedAt,stale:['STALE','ERROR'].includes(positionSync(p,now))||valuationState==='stale'};
  });
  const summarize=(items:typeof rows)=>{
   const currencies=[...new Set(items.flatMap(r=>r.currency&&r.value!==undefined?[r.currency]:[]))];
   const subtotals=currencies.map(currency=>{const members=items.filter(r=>r.currency===currency&&r.value!==undefined);return {currency,value:members.reduce((n,r)=>n+r.value!,0n),allocated:members.reduce((n,r)=>n+r.allocatedValue!,0n),unallocated:members.reduce((n,r)=>n+r.unallocatedValue!,0n)};});
   return {subtotals,incomplete:items.some(r=>r.value===undefined)||currencies.length>1};
  };
- return {rows,...summarize(rows),history:wealthHistory(s),categories:ASSET_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.assetClass===assetClass);return {assetClass,items,...summarize(items)};})};
+ return {rows,...summarize(rows),history:wealthHistory(s),categories:WEALTH_CLASSES.map(assetClass=>{const items=rows.filter(r=>r.wealthClass===assetClass);return {assetClass,items,...summarize(items)};})};
 }

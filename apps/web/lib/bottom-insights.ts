@@ -12,6 +12,7 @@ import {splitWealthTotals} from './wealth-total';
 import type {Platform} from './positions';
 import type {GoalSummary} from './goal-summary';
 import type {wealthOverview} from './wealth';
+import {portfolioComposition} from './product-insights';
 
 export const lastDays = (today: string, n = 7) => Array.from({length: n}, (_, i) => addLocalDays(today, i - (n - 1)));
 const weekday = (date: string) => new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -67,9 +68,9 @@ export function goalTimeline(goals: readonly GoalSummary[], today: string) {
 /** Wealth: how the known value of the headline currency is spread across asset classes, and valuation coverage. */
 export function wealthAllocation(overview: ReturnType<typeof wealthOverview>) {
   const {primary} = splitWealthTotals(overview.subtotals), valued = overview.rows.filter(r => r.value !== undefined).length;
-  const classes = primary && primary.value > 0n ? overview.categories.flatMap(c => {
-    const total = c.items.filter(r => r.currency === primary.currency && r.value !== undefined).reduce((n, r) => n + r.value!, 0n);
-    return total > 0n ? [{assetClass: c.assetClass, value: total, share: Number(total * 10000n / primary.value) / 100}] : [];
-  }).sort((a, b) => b.share - a.share) : [];
+  // Session AF Gate C (design critique 1): the same class shares as Wealth's composition (one class map, one rounding), so a
+  // class reads the same figure, to the same two decimals, in both places; largest first.
+  const group = primary && primary.value > 0n ? portfolioComposition(overview).find(g => g.currency === primary.currency) : undefined;
+  const classes = group ? group.segments.filter(s => s.value > 0n).map(s => ({assetClass: s.label, value: s.value, share: s.basisPoints / 100})).sort((a, b) => b.share - a.share) : [];
   return {currency: primary?.currency, classes, otherCurrencies: overview.subtotals.filter(s => s !== primary).map(s => s.currency), coverage: {valued, total: overview.rows.length}};
 }

@@ -1,0 +1,12 @@
+/* Session AF Gate C (design critique, money pages 6): Wealth's header at 768 px and on computers. Its actions (the button
+   and the Ask ZIGi / Back up row) shared a row with the lede and squeezed it into a ~140 px column at 768 px, "+ Add asset"
+   floating mid-column. The lede runs the full width of the words, then the actions follow in one row under it, the button
+   first. The art keeps its column; phones keep the shared one-column header (components/pillar-hero.css). */
+@media (min-width: 768px) {
+  :root .pillar-hero.has-art.wealth-heading { grid-template-areas: "eyebrow eyebrow art" "title title art" "lede lede art" "actions actions art"; }
+  :root .pillar-hero.wealth-heading > .pillar-hero-lede { max-width: 640px; }
+  :root .pillar-hero.wealth-heading > .pillar-hero-actions { flex-direction: row; flex-wrap: wrap; align-items: center; justify-self: start; align-self: start; gap: 8px 22px; margin-top: 18px; }
+  :root .pillar-hero.wealth-heading > .pillar-hero-actions .page-minor-actions { justify-content: flex-start; }
+}
+/* Session AF Gate C (design critique, money pages 2): what the headline total counts and its date, under the asset count. */
+:root .wealth-hero-total > .wealth-total-scope { display: block; max-width: 46ch; }
