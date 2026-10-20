@@ -314,7 +314,11 @@ const restFacts = (page: Page) => page.evaluate(() => {
   const cy = (d.top + d.bottom) / 2, band = Math.max(14, d.height / 4);
   // (Gate C test audit: the figure's distance from the next planet's ring, as drawn, on the side it stands.)
   const gap = left ? (d.left - e) - fig.right : fig.left - (d.right + e);
-  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap};
+  // (Gate C, CI's Linux fonts: where the next planet's name stands between the ring and ZIGi, level with the figure, ZIGi's
+  // nearest clear place is just past the name — how far past it, from the name's far edge.)
+  const between = l.bottom > fig.top && l.top < fig.bottom && (left ? l.right <= d.left + 1 && l.left >= fig.right - 1 : l.left >= d.right - 1 && l.right <= fig.left + 1);
+  const pastName = between ? (left ? l.left - fig.right : fig.left - l.right) : null;
+  return {h: fig.bottom - fig.top, edge: Math.min(fig.left, innerWidth - fig.right), mirrored, left, points: presenting && Math.abs(arm - cy) <= band, nameGap, masked, gap, pastName};
 });
 /** Round 8: the comet's arc, once it has chosen its way, sampled along its whole length — the names it comes within 12 px of,
  *  where they stand once the tick's own steps (a name stepping back in, the next one's stepping out, 360 ms) have settled.
@@ -395,8 +399,14 @@ async function expectRest(page: Page, width: number, when: string) {
   // next planet — 12 px clear of its ring and no further than the measured rests (1440: 91, 768: 60, 390: 27 px from the
   // ring) plus 8 px or so: 100 on a computer, 68 on a tablet, 36 on a phone.
   expect(f.gap, `${width}px, ${when}: ZIGi 12 px or more from the next planet's ring`).toBeGreaterThanOrEqual(12);
-  expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 36);
-  test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: ${Math.round(f.gap)}`});
+  // Where the next planet's name stands between them, ZIGi's nearest clear place (path-zigi.tsx) is just past the name: its
+  // box 13.5 px clear of the name, its figure filling the box (CI on 624e5d9f, 1440 after star 3: 131 px from the ring, the
+  // name between). Then the figure stands 12 to 36 px past the name — the phone's bound, tighter than any ring bound.
+  if (f.pastName !== null) {
+    expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeGreaterThanOrEqual(12);
+    expect(f.pastName, `${width}px, ${when}: ZIGi just past the next planet's name`).toBeLessThanOrEqual(36);
+  } else expect(f.gap, `${width}px, ${when}: ZIGi beside the next planet`).toBeLessThanOrEqual(width >= 1180 ? 100 : width >= 641 ? 68 : 36);
+  test.info().annotations.push({type: 'zigi-gap', description: `${width}px ${when}: ${Math.round(f.gap)}${f.pastName === null ? '' : ` (${Math.round(f.pastName)} past the name)`}`});
 }
 /** ZIGi at rest: its cheer over and its place measured again once the tick's own motion has settled. */
 async function zigiAtRest(page: Page) {
