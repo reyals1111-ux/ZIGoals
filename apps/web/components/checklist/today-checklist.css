@@ -32,7 +32,7 @@
 .today-checklist-continue[data-nudge] { box-shadow: 0 0 0 3px #ff74be59, 0 0 22px #ff74be80; }
 /* A wide card: the count, the bar and the planets on the left; the next planet and Continue on the right. */
 @media (min-width: 768px) {
-  .today-checklist-card:has(.today-checklist-next) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "head head" "title next" "bar next" "dots next"; column-gap: 28px; align-items: center; }
+  .today-checklist-card:has(.today-checklist-next) { grid-template-columns: minmax(220px, 1fr) minmax(0, max-content); grid-template-areas: "head head" "title next" "bar next" "dots next"; column-gap: 28px; align-items: center; }
   .today-checklist-card:has(.today-checklist-next) .today-checklist-head { grid-area: head; }
   .today-checklist-card:has(.today-checklist-next) .today-checklist-title { grid-area: title; }
   .today-checklist-card:has(.today-checklist-next) .today-checklist-bar { grid-area: bar; }
@@ -50,3 +50,5 @@
   .today-checklist-line { font-size: 15px; }
   .today-checklist-open { min-height: 44px; justify-self: start; }
 }
+/* Round 6: on a wide card the next planet's name stays on one line (the panel takes the room it needs). */
+@media (min-width: 768px) { .today-checklist-card:has(.today-checklist-next) .today-checklist-next strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; } }
