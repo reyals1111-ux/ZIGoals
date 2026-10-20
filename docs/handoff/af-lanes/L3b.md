@@ -7,9 +7,11 @@ kept, no storage change. References (never copied into the repository): `~/zigoa
 `frontend-design`: not available in this session (no Skill lists it) — the design language was applied by hand (ADR-028
 H3's precedent): cosmic/nebula, pillar colours, labels ≥ 14 px, body 15–16 px, targets ≥ 44 px.
 
-Three rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
-lines failed); round 3 answers the iteration-2 critique (lines 3–6 failed: too sparse, the toast and corner buttons on the
-path, no tick cheer, no visible onward glow, Light's slate line).
+Four rounds: round 1 (Part 7 commits) built the overlay; round 2 answered the iteration-1 critique (all six acceptance
+lines failed); round 3 the iteration-2 critique (lines 3–6 failed: too sparse, the toast and corner buttons on the path, no
+tick cheer, no visible onward glow, Light's slate line); round 4 the iteration-3 critique (lines 1–3 passed; 4–6 failed:
+ZIGi's cheer, the day's end, ZIGi over the path, a flat Nebula, Light's faint ribbons, the reward moments). The section
+"Round 4" below says what changed last; the rest describes the Checklist as it stands.
 
 ## What the Checklist is now
 - **Overlay** (`components/checklist/checklist-page.tsx`, `checklist.css`): `/app/checklist` renders a `<dialog>` drawn open
@@ -59,6 +61,38 @@ path, no tick cheer, no visible onward glow, Light's slate line).
   screen readers) instead of another line.
 - **Wording**: "planets" everywhere the Checklist speaks of its items.
 
+## Round 4 (the iteration-3 critique's twelve points)
+1. **ZIGi's cheer**: every cheer (a tick, an orbit, the day's end, the celebration) shows ZIGi's waving greeting as a still
+   from its first frame — never the celebrate frame (it reads as hands on the head, and its clip starts on the idle frame) —
+   with two hops and a ring of sparkles, about 1.5 s from the press. Under reduced motion and Motion Off there is no cheer:
+   ZIGi stays beside the next planet, pointing. **ZIGi's eleven figures have no arms-up pose; a true V needs new art** (an
+   owner/asset decision, not something the lane can draw).
+2. **The day's celebration** is a full-screen moment: glow and soft rays, the trophy high with ZIGi large in front (176–230
+   px on a phone, 212–260 on a computer), the day's planets, big streak / XP tiles, Continue near the foot, Undo under it.
+3. **ZIGi never over the path**: `PathZigi` `fit` measures the planets, names, banners, chests and the NEXT tag around its
+   planet and takes the first clear place (preferred side, other side; centred, raised, half a step down), bounded by the
+   screen; the next planet's name takes the side away from the middle so ZIGi gets the roomier one. A phone's ZIGi is 132
+   px (it was 140) so it fits between a banner and the next name.
+4. **Nebula's sky**: violet, magenta and teal clouds at about a fifth, three star layers; Dark's clouds at an eighth.
+5. **Light ribbons**: unlit at half the colour over a darker edge (OKLCH 62 % lightness, the same in every theme); lit with a
+   white core.
+6. **The comet** flies over the planets in its own layer on an arc out to the open side, from the ticked planet's rim to the
+   next one's; its head fades at the rim and the next planet's ring flashes (`data-arrive`).
+7. **Chests** are 52 px on a phone, 64 on a computer, beside their orbit's last planet half a step down (away from its name),
+   gold glow; reached, the lid flies open with a flash and sparks.
+8. **A phone's chrome**: one-row top bar (X, today's bar and count, flame, XP, ⋯; Path / List in the ⋯ menu; the title and
+   date said, not shown); the foot bar is filled with the Sleep / Meditate / Fast / Focus chips (no corner button); a toast
+   gets its own row above the chips while it shows (the chips stay in reach). Six planets on the opening screen at 390 × 844
+   and 1440 × 900 (a spec asserts it).
+9. **The wave and the names**: a phone's wave is ±60 px; names alternate sides planet by planet (the far ends and long names
+   take the middle's side); the next planet wears a one-word NEXT / START tag on its crown and keeps an ordinary name.
+10. **Text**: a long name wraps to two lines on a phone; what scrolls under the top bar fades into it; the background world
+    keeps to the screen's edge below a computer's width.
+11. **A computer's right column**: the timers as glowing ringed tiles, two by two, and the twelve weeks open under them.
+12. **Copy and Today**: one toast pattern ("… logged for today." / "…: back as it was." for goal steps and own items, as
+    habits already said; `lib/checklist/adapters.ts`); Today's card drops the nudge count (a due nudge makes Continue glow; its
+    sentence is still said to screen readers) and shows today's planets as a small winding row of mini planets.
+
 ## Files outside the Checklist touched, and why
 - `components/ui/undo-toast.tsx` (round 1): `pushToastLayer(el)` — while a top-layer layer is open the one toast region is
   portalled into the topmost, so Undo stays clickable. Other pages unchanged.
@@ -68,8 +102,9 @@ path, no tick cheer, no visible onward glow, Light's slate line).
   this branch against a build of `859648d4`: SSIM 0.99997 (phone) and 1.0 (computer) — unchanged; nothing there was fixed.
 - `components/checklist/checklist-launcher.tsx`: one effect notes each route (`notePath`) for the close's return.
 - `scripts/themes/build-themes.mjs` `ISLANDS`: + `.checklist-celebration`, + `.path-label-bubble`, + `.checklist-timer-ring`;
-  − `.checklist-timer` (the timer cards follow the theme). Round 3 changes nothing here; the docked jump button and the foot
-  bar are not islands (they follow the theme), and the computer's on-path jump button gets a hand-written day look.
+  − `.checklist-timer` (the timer cards follow the theme); round 4: + `.path-next-tag` (the NEXT tag stays white with ink
+  words). The docked jump button and the foot bar are not islands (they follow the theme), and the computer's on-path jump
+  button gets a hand-written day look.
 - `scripts/lib/hosted-alpha-checklist.mjs` (+ test), TIER 3 commit `16aae2fc`: stage 10 reads "planet(s)".
 
 ## Half-way chest (round 3)
@@ -88,7 +123,17 @@ the chest.
   name, banner, chest and ZIGi on screen and places it in the foot bar (phone) or right of the path (computer); a new test
   asserts at least five planets on the opening screen at 390 × 844 and 1440 × 900 and an opaque foot bar holding the
   timers' button.
-- `tests/webkit-checklist.spec.ts`: comment only (the corner button is 52 px in the foot bar; the ≥ 44 px check unchanged).
+- `tests/webkit-checklist.spec.ts` (round 4): the phone's timers are the foot bar's chips — the spec no longer opens a corner
+  button first; every chip and planet is still measured at ≥ 44 px and the timers' group is still asserted visible.
+- Round 4, `tests/checklist-overlay-af.spec.ts`: the next planet's name is held to the same rules as every name (no bubble
+  any more) and a new check asserts its one-word tag on the planet's crown, centred; the cheer is asserted as the greeting
+  still (`data-zigi-state="cheer"`, its image the greeting) with sparkles (was: the celebrate state); under reduced motion and
+  Motion Off the tag (was: the bubble) is visible and there is no cheer; the first-screen timers check reads the Sleep chip
+  on a phone (was: the corner button); the density test now asks six planets (was five) and checks the chips in the foot bar
+  (was: the corner button); new: ZIGi at rest touches no planet, name, banner or chest; the celebration's ZIGi is at least 160
+  / 200 px, in front of the trophy, showing the greeting.
+- Round 4, `tests/checklist.spec.ts`: on a phone the List is chosen from the ⋯ menu's View group (the same group, the same
+  button, the same checks after it).
 - Earlier rounds (kept): `checklist.spec.ts` Jump sweep on the overlay's scroller (500 ms wait); Edit path / How it works
   through the menu; `polish2-af.spec.ts` `sweepJump` scroller argument; `checklist-themes.spec.ts` waits for one-time
   animations only; `path-engine.spec.ts` no sideways scroll in the overlay; `checklist-timers.spec.ts` opens the corner
@@ -106,6 +151,16 @@ the chest.
   card's nudge became a count on Continue (the Options line "On Today's card at 10:00, 15:00 and 19:00" still holds).
 - Nothing for registries, CSP, egress, budgets or storage. New sessionStorage key `zigoals-checklist-celebrated` (per tab).
 - WebKit (CI only, never run here): `webkit-checklist` and `webkit-theme-parity` /app/checklist — please read CI.
+
+## Evidence (round 4, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
+- `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings); unit (vitest from the root) `apps/web/lib/checklist`,
+  `apps/web/lib/path`, `scripts/themes/build-themes.test.mjs`, `scripts/lib/hosted-alpha-checklist.test.mjs`: 123 passed.
+- Browser, desktop + mobile: the sixteen Checklist / Today / touch-target specs listed below for round 3 — 87 passed, 13
+  skipped (project-specific); a11y-wcag-x, today-v2, showcase-today-aa, zigi-a11y-pass, aa-a11y: 46 passed.
+- theme-parity-af, the whole spec, both projects: 55 passed, 1 skipped (project-specific).
+- Weight: `/app` 531.8 kB (567.0), `/app/checklist` 457.1 kB (492.0), `/app/earn` 458.4 kB; lazy: the day celebration 1.9 kB
+  JS + 2.6 kB CSS, Today's card body 1.9 kB JS (gzip).
+- Captures: `~/zigoals-af/l3b/iter-4/` (INDEX.txt: the opening planet counts and the frames for each line-4 step).
 
 ## Evidence (round 3, final build; local production build on 127.0.0.1:3104, Chrome headless, ≤ 2 workers, locked)
 - `pnpm typecheck` clean; `pnpm lint` 0 errors (19 baseline warnings); unit (vitest from the root) `apps/web/lib/checklist`,
