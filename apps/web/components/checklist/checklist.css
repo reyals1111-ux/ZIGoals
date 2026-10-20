@@ -209,6 +209,9 @@
 .checklist-dock, .checklist-jump-slot { display: none; }
 @media (max-width: 1179.98px) {
   .checklist-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 14; display: block; height: calc(72px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(180deg, #060b20, #050a1e); border-top: 1px solid #ffffff17; box-shadow: 0 -12px 30px -24px #000; }
+  /* (Round 9: what scrolls down to the foot bar — and to the toast's row, when it grows — fades into it, as under the top
+     bar, instead of being cut: 40 px, more than a name's two lines.) */
+  .checklist-dock::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 40px; background: linear-gradient(0deg, #050a1ef2, #050a1e00); pointer-events: none; }
   .checklist-jump-slot { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 16; display: block; }
   .checklist-overlay:has(.checklist-sheet) :is(.checklist-dock, .checklist-jump-slot) { z-index: 13; }
   /* Round 4: the foot bar is filled with the timers themselves — Sleep, Meditate, Fast (and Focus) as chips, one tap each. */
