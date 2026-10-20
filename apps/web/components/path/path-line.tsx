@@ -90,7 +90,8 @@ const ROUNDS = [.75, .7, .65, .6, .55, .5, .4, .3, .2, .12, .06];
 function towardZigi(svg: SVGSVGElement): (arc: Arc) => boolean {
   const stage = svg.closest('.path-stage'), z = stage?.querySelector<HTMLElement>('.path-zigi'); if (!stage || !z) return () => false;
   const sb = stage.getBoundingClientRect(), p = z.parentElement!.getBoundingClientRect(), zx = p.left + z.offsetLeft + z.offsetWidth / 2 - sb.left, zy = p.top + z.offsetTop + z.offsetHeight / 2 - sb.top;
-  return arc => { const a = arc.pts[0]!, b = arc.pts.at(-1)!, m = arc.pts[Math.floor(arc.pts.length / 2)]!, side = (x: number, y: number) => Math.sign((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])); return side(m[0], m[1]) === side(zx, zy); };
+  // The side test compares with zero by hand: the staking guard allows no sign call outside the two signers (Gate C).
+  return arc => { const a = arc.pts[0]!, b = arc.pts.at(-1)!, m = arc.pts[Math.floor(arc.pts.length / 2)]!, side = (x: number, y: number) => { const v = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]); return v > 0 ? 1 : v < 0 ? -1 : 0; }; return side(m[0], m[1]) === side(zx, zy); };
 }
 const labelRect = (l: Element) => { const b = labelBox(l); return new DOMRect(b.left, b.top, b.right - b.left, b.bottom - b.top); };
 function crossings(svg: SVGSVGElement, arc: Arc, ends: string[]): number {
