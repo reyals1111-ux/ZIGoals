@@ -122,8 +122,9 @@ export const TEXT_CONTRAST = 6.6;
 /** Session AF (the owner's decision of 19 Oct, ADR-028 H130): by day a gradient word keeps its flow in deeper shades of its own
  *  hues, every coloured stop at least this contrast on white, so the whole word reads at least 4.5:1 on the day's
  *  near-white panels and their light mist (the owner's floor; 3:1 would do for large headings, every heading gets 4.5).
- *  Nebula and Dark are unchanged; the night islands keep their own flow. */
-export const GRADIENT_TEXT_CONTRAST = 5.2;
+ *  Nebula and Dark are unchanged; the night islands keep their own flow. Gate C's layout audit (G4) measured 5.2:1 on white
+ *  as 4.2–4.5:1 on the real panels and mist (a page eyebrow's pink stop): 5.8 on white gives about 4.7 there. */
+export const GRADIENT_TEXT_CONTRAST = 5.8;
 /** A brand mark (the ZIGoals wordmark) keeps its own colours in every theme: a logotype is not a gradient word. */
 export const BRAND_MARK_RE = /\.logo-wordmark/;
 /** A word in a run-time colour by day: the colour mixed with black, this share kept (the same hue, deeper; ≥ 5:1 on white

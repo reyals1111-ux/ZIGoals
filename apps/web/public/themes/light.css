@@ -433,7 +433,7 @@
         background-color: var(--surface-0)
     }
     .nebula-text:not(#\-) {
-        background-image: linear-gradient(110deg, #0e7783, #186dc3 36%, #7451da 68%, #b12ac0);
+        background-image: linear-gradient(110deg, #156f79, #0b65ba 36%, #6d49d2 68%, #a91eb8);
         background-color: transparent;
         color: transparent
     }
@@ -957,7 +957,7 @@
         color: var(--muted)
     }
     .nebula-text:not(#\-) {
-        background-image: linear-gradient(105deg, #0e7783 3%, #186dc3 32%, #7451da 54%, #b12ac0 80%, #bc3583)
+        background-image: linear-gradient(105deg, #156f79 3%, #0b65ba 32%, #6d49d2 54%, #a91eb8 80%, #b42c7c)
     }
     .primary:not(#\-) {
         background-image: var(--nebula-emphasis);
@@ -1000,7 +1000,7 @@
         --nebula-pink: #ff74be;
         --nebula-warm: #ffad87;
         --nebula-emphasis: linear-gradient(105deg, var(--brand-cyan) 3%, var(--brand-blue) 32%, var(--brand-violet) 54%, var(--brand-magenta) 80%, var(--nebula-pink));
-        --nebula-headline: linear-gradient(100deg, #0e7783, #186dc3 31%, #7451da 49%, #b12ac0 70%, #bc3583 91%, #a35935);
+        --nebula-headline: linear-gradient(100deg, #156f79, #0b65ba 31%, #6d49d2 49%, #a91eb8 70%, #b42c7c 91%, #99502c);
         --cosmic-dark: #f2f5fa;
         --cosmic-glass: #f0f4f9eb;
         --cosmic-edge: #70cfff47;
@@ -1050,7 +1050,7 @@
     }
     .app-sidebar .brand .brand-wordmark:not(#\-), .brand-wordmark:not(#\-) {
         color: transparent;
-        background-image: linear-gradient(105deg, #0e7783 3%, #186dc3 32%, #7451da 54%, #b12ac0 80%, #bc3583);
+        background-image: linear-gradient(105deg, #156f79 3%, #0b65ba 32%, #6d49d2 54%, #a91eb8 80%, #b42c7c);
         background-color: transparent;
         filter: drop-shadow(0 0 10px #4897ff30)
     }
@@ -1440,7 +1440,7 @@
         color: #051029
     }
     .nebula-text:not(#\-), .nebula-number:not(#\-) {
-        background-image: linear-gradient(105deg,#057882,#166dc5 30%,#874ec9 58%,#af3e9a 82%,#a6544f)
+        background-image: linear-gradient(105deg,#107079,#0865bd 30%,#8046c1 58%,#a73692 82%,#9d4d48)
     }
     .panel small:not(#\-), .card-footer small:not(#\-), .goal-progress-caption span:not(#\-), .goal-progress-caption strong:not(#\-), .health-page .fine:not(#\-), .habit-card .fine:not(#\-) {
         color: #101a27
@@ -1557,7 +1557,7 @@
         background-color: transparent
     }
     main [data-arrive=tint]:not(#\-) {
-        background-image: linear-gradient(100deg,currentColor 38%,#0e7783 45%,#7451da 50%,#b12ac0 55%,currentColor 62%) !important;
+        background-image: linear-gradient(100deg,currentColor 38%,#156f79 45%,#6d49d2 50%,#a91eb8 55%,currentColor 62%) !important;
         -webkit-text-fill-color: transparent !important
     }
     main [data-arrive=shine]:not(#\-) {
@@ -1578,8 +1578,8 @@
         --accent-cyan: #9ee8f8;
         --accent-violet: #cbbfff;
         --accent-magenta: #f3b0e6;
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #147782 72%, #5467ba 84%, #8a54b5 93%, #a84992 100%);
-        --nebula-figure: linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #5f6a9d 78%, #805e9b 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #02707b 72%, #4e5fb2 84%, #814bab 93%, #9f418a 100%);
+        --nebula-figure: linear-gradient(100deg, #0f0e15 0%, #051117 30%, #001218 55%, #576194 78%, #785793 100%)
     }
     :scope .text-secondary:not(#\-) {
         color: var(--text-secondary)
@@ -3526,7 +3526,7 @@
         border-color: #8fe6f455
     }
     :scope .calc-figures .calc-final dd:not(#\-) {
-        background-image: linear-gradient(90deg, #0f0f0f 0 45%, #2a7683 70%, #8956aa);
+        background-image: linear-gradient(90deg, #0f0f0f 0 45%, #1f6d7a 70%, #814fa2);
         background-color: transparent;
         color: transparent
     }
@@ -5796,19 +5796,19 @@
         filter: drop-shadow(0 2px 14px #313e5057)
     }
     .site-footer-word[data-pillar=goals]:not(#\-) {
-        background-image: linear-gradient(100deg, #0e7783, #186dc3)
+        background-image: linear-gradient(100deg, #156f79, #0b65ba)
     }
     .site-footer-word[data-pillar=habits]:not(#\-) {
-        background-image: linear-gradient(100deg, #186dc3, #7451da)
+        background-image: linear-gradient(100deg, #0b65ba, #6d49d2)
     }
     .site-footer-word[data-pillar=health]:not(#\-) {
-        background-image: linear-gradient(100deg, #7451da, #b12ac0 70%, #bc3583)
+        background-image: linear-gradient(100deg, #6d49d2, #a91eb8 70%, #b42c7c)
     }
     .site-footer-dot:not(#\-) {
         color: #4f5a8a
     }
     .site-footer-result:not(#\-) {
-        background-image: var(--nebula-headline, linear-gradient(100deg, #147782, #5467ba 35%, #8a54b5 65%, #a84992))
+        background-image: var(--nebula-headline, linear-gradient(100deg, #02707b, #4e5fb2 35%, #814bab 65%, #9f418a))
     }
     .site-footer-tagline:not(#\-) {
         color: #02111b;
@@ -9167,7 +9167,7 @@
         color: var(--text-secondary)
     }
     :scope .life-cover-kicker:not(#\-) {
-        background-image: linear-gradient(100deg, #0d0f14 0%, #0d0f14 40%, #5467ba 62%, #a84992 100%);
+        background-image: linear-gradient(100deg, #0d0f14 0%, #0d0f14 40%, #4e5fb2 62%, #9f418a 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -10594,19 +10594,19 @@
     }
     :scope main[data-pillar=goals]:not(#\-), :scope .pillar-hero[data-pillar=goals]:not(#\-) {
         --pillar: var(--pillar-goals);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #1a7495 72%, #5467ba 80%, #7451da 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #0c6c8d 72%, #4e5fb2 80%, #6d49d2 100%)
     }
     :scope main[data-pillar=habits]:not(#\-), :scope .pillar-hero[data-pillar=habits]:not(#\-) {
         --pillar: var(--pillar-habits);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #8a54b5 72%, #5467ba 78%, #0e7783 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #814bab 72%, #4e5fb2 78%, #156f79 100%)
     }
     :scope main[data-pillar=health]:not(#\-), :scope .pillar-hero[data-pillar=health]:not(#\-) {
         --pillar: var(--pillar-health);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #147782 72%, #8a54b5 78%, #bc3583 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #02707b 72%, #814bab 78%, #b42c7c 100%)
     }
     :scope main[data-pillar=wealth]:not(#\-), :scope .pillar-hero[data-pillar=wealth]:not(#\-) {
         --pillar: var(--pillar-wealth);
-        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #5467ba 72%, #a84992 78%, #8b6605 100%)
+        --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #4e5fb2 72%, #9f418a 78%, #805e0b 100%)
     }
     :scope .pillar-hero[data-pillar=journey]:not(#\-) {
         --pillar: #c790f6
@@ -10957,7 +10957,7 @@
         background-color: var(--surface-0,#f1f4f9)
     }
     .goal-detail-workspace .goal-detail-current:not(#\-) {
-        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#0e7783 60%,#186dc3 73%,#7451da 85%,#bc3583 100%);
+        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#156f79 60%,#0b65ba 73%,#6d49d2 85%,#b42c7c 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -11118,7 +11118,7 @@
     }
     .nebula-number:not(#\-) {
         color: var(--text);
-        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#0e7783 60%,#186dc3 73%,#7451da 85%,#bc3583 100%);
+        background-image: linear-gradient(105deg,#0f0e15 0%,#0f0e15 42%,#156f79 60%,#0b65ba 73%,#6d49d2 85%,#b42c7c 100%);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -11411,7 +11411,7 @@
         color: #0b1622
     }
     .slogan-gradient:not(#\-) {
-        --slogan-gradient: linear-gradient(100deg,#1a7681 0%,#026ec4 23%,#784fde 48%,#b330b7 72%,#a65450 100%);
+        --slogan-gradient: linear-gradient(100deg,#0c6f7a 0%,#0a66b3 23%,#7147d5 48%,#a924ad 72%,#9d4d49 100%);
         background-image: var(--slogan-gradient);
         background-color: transparent;
         color: transparent
@@ -11921,7 +11921,7 @@
         color: var(--muted)
     }
     .wealth-category-heading h2>span:last-child:not(#\-) {
-        background-image: linear-gradient(110deg,var(--text) 25%,#0e7783 68%,#7451da);
+        background-image: linear-gradient(110deg,var(--text) 25%,#156f79 68%,#6d49d2);
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -12557,7 +12557,7 @@
         border-top-color: #6c9cc526
     }
     :scope .search-row.is-ask .search-row-title:not(#\-) {
-        background-image: var(--nebula-flow-mid, linear-gradient(90deg, #2a7683, #8956aa));
+        background-image: var(--nebula-flow-mid, linear-gradient(90deg, #1f6d7a, #814fa2));
         background-color: transparent;
         -webkit-text-fill-color: transparent
     }
@@ -13037,18 +13037,18 @@
         border-color: #c3a8f944
     }
     :scope .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #147782 55%, #8a54b5);
+        background-image: linear-gradient(90deg, #0d0f14, #02707b 55%, #814bab);
         background-color: transparent;
         color: transparent
     }
     .stories-cover[data-pillar=health] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #bc3583 55%, #8a54b5)
+        background-image: linear-gradient(90deg, #0d0f14, #b42c7c 55%, #814bab)
     }
     .stories-cover[data-pillar=goals] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #7451da 55%, #a84992)
+        background-image: linear-gradient(90deg, #0d0f14, #6d49d2 55%, #9f418a)
     }
     .stories-cover[data-pillar=wealth] .stories-cover-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #8b6605 55%, #a84992)
+        background-image: linear-gradient(90deg, #0d0f14, #805e0b 55%, #9f418a)
     }
     .stories-style:not(#\-) {
         color: var(--text-secondary)
@@ -13092,18 +13092,18 @@
         color: #08111e
     }
     .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #147782 55%, #8a54b5);
+        background-image: linear-gradient(90deg, #0d0f14, #02707b 55%, #814bab);
         background-color: transparent;
         color: transparent
     }
     .story-card[data-pillar=health] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #bc3583 55%, #8a54b5)
+        background-image: linear-gradient(90deg, #0d0f14, #b42c7c 55%, #814bab)
     }
     .story-card[data-pillar=goals] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #7451da 55%, #a84992)
+        background-image: linear-gradient(90deg, #0d0f14, #6d49d2 55%, #9f418a)
     }
     .story-card[data-pillar=wealth] .story-big:not(#\-) {
-        background-image: linear-gradient(90deg, #0d0f14, #8b6605 55%, #a84992)
+        background-image: linear-gradient(90deg, #0d0f14, #805e0b 55%, #9f418a)
     }
     .story-lines:not(#\-) {
         color: #09101a
@@ -13744,6 +13744,15 @@
 :root[data-theme=light] .add-money-tile button:not(#\-)::after { border-color: #6b7a93; }
 :root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-)::after { border-color: #0a8a9c; background: radial-gradient(circle, #0a8a9c 0 4px, transparent 5px); }
 :root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-) { border-color: #0a8a9c; box-shadow: inset 0 0 0 1px #0a8a9c; }
+/* Gate C layout audit (G4): the ecosystem page's header card keeps Nebula's purple and teal glows by day (H13), so the ends
+   of its eyebrow and title sit on a mauve patch (2.9:1 at 320 px with the day's 5.2:1 stops). The stops that paint the
+   words' ends take deeper shades of the same hues there (8.2:1 on white, H130's gradient-word rule), which hold 4.5:1 on
+   the glow; the mid-word cyan keeps the day's 5.8:1 (deeper, it would lose its colour: chroma under 0.07). */
+:root[data-theme=light] .ecosystem-intro:not(#\-) { --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #02707b 72%, #394898 84%, #6b3593 93%, #862872 100%); }
+/* Gate C layout audit (G4): a vision tile's caption by day. The tile's art keeps its night sky (an island), and a two-line
+   title at 1024 px climbed above the shade's fade into the art (2.7:1). The caption sits on a frosted white band with a
+   soft top edge: a neutral surface and shade, nothing moves. */
+:root[data-theme=light] .vision-tile-body:not(#\-) { background-color: #ffffffd9; box-shadow: 0 -16px 16px -4px #ffffffd9; }
 /* apps/web/themes/light.headerart.css */
 /* Session AE (Part 4, ADR-027 G5) → Session AF (L5a, Part 10.2, ADR-028 H13): the page-header art by day keeps Nebula's
    own rings, planets, glyphs and glows (no deeper, matte versions any more). Phones: the faint copy behind the words stays

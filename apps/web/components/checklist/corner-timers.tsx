@@ -47,7 +47,7 @@ export function CornerTimers({state}: {state: ChecklistState}) {
     {timers.map(t => <button key={t.kind} type="button" className="checklist-timer" data-kind={t.kind} data-running={t.running || undefined} aria-pressed={t.running} aria-busy={busy === t.kind || undefined} disabled={busy !== null} onClick={() => void press(t.kind)}
       aria-label={`${t.label}: ${t.running ? `running, ${t.line}. Tap to end` : `${t.line}. Tap to start`}`} style={{'--timer': PATH_COLOURS[t.colour].token, ...(t.share !== undefined ? {'--share': Math.max(0, Math.min(1, t.share))} : {})} as CSSProperties}>
       <span className="checklist-timer-ring" aria-hidden="true"><svg viewBox="0 0 40 40" focusable="false"><circle className="checklist-timer-track" cx="20" cy="20" r="17"/>{t.running && <circle className="checklist-timer-arc" cx="20" cy="20" r="17" pathLength={1}/>}</svg><PathGlyph name={t.glyph} size={20}/></span>
-      <span className="checklist-timer-text"><strong>{t.label}</strong>{t.running && <small>{t.line}</small>}</span>
+      <span className="checklist-timer-text"><strong>{t.label}</strong>{t.running && <small title={t.line}>{t.line}</small>}</span>
     </button>)}
     {message && <p className="checklist-timers-message" role="alert">{message}</p>}
     </div>

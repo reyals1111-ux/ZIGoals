@@ -85,3 +85,9 @@
 :root .watch-card .owned-asset-heading h3 { min-height: calc(2em * 1.3); }
 :root .watch-card .asset-card-source { display: grid; justify-items: start; gap: 6px; }
 :root .watch-card .watch-change-missing { margin: 14px 0; font-size: 15px; font-weight: 600; color: var(--text-secondary, #aac0d9); }
+
+/* Gate C layout audit (stress records, 768 and 1024 px): a 13-digit class total (US$1,234,567,890.12) ran into the next
+   card. Each total fits its card as the other Wealth figures do: never larger than before, smaller only when it would
+   not fit, never wrapped mid-number. */
+:root .wealth-product .class-summary { container-type: inline-size; }
+:root .wealth-product .class-summary b > span { white-space: nowrap; font-size: min(1em, calc(100cqi / (var(--chars, 12) * .55))); }

@@ -179,8 +179,10 @@
 .checklist-timers { display: grid; gap: 10px; }
 /* Round 4, a computer: the timers as glowing ringed tiles, two by two; the twelve weeks open under them. */
 @media (min-width: 1180px) {
-  .checklist-timers { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 8px; min-height: 118px; padding: 14px 10px 12px; text-align: center; border-radius: 24px; border: 1.5px solid color-mix(in srgb, var(--timer) 60%, transparent); background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #0d1838f2, #070e25f2); box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent); }
+  /* (Gate C stress audit: columns that may shrink, so a long timed habit's line ends in its ellipsis in its tile; an auto
+     minimum took the whole line and pushed the Checklist 62 px sideways at 1440.) */
+  .checklist-timers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .checklist-overlay .checklist-timers .checklist-timer { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 8px; min-height: 118px; padding: 14px 10px 12px; text-align: center; border-radius: 24px; border: 1.5px solid color-mix(in srgb, var(--timer) 60%, transparent); background: radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--timer) 22%, transparent), transparent 70%), linear-gradient(160deg, #0d1838f2, #070e25f2); box-shadow: 0 5px 0 #02061499, 0 16px 34px -20px #000c, 0 0 26px color-mix(in srgb, var(--timer) 22%, transparent); }
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-ring { width: 58px; height: 58px; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--timer) 70%, transparent)); }
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text { justify-items: center; }
   .checklist-overlay .checklist-timers .checklist-timer .checklist-timer-text strong { font-size: 17px; }
@@ -201,7 +203,7 @@
 .checklist-timer-arc { fill: none; stroke: var(--timer); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--share, 1)); }
 .checklist-timer-text { display: grid; gap: 1px; min-width: 0; }
 .checklist-timer-text strong { font-size: 16px; }
-.checklist-timer-text small { font-size: 14px; color: #c5d3ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-timer-text small { max-width: 100%; font-size: 14px; color: #c5d3ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-timers-message { grid-column: 1 / -1; margin: 0; padding: 8px 12px; border-radius: 14px; background: #050a1ef2; color: #eef4ff; font-size: 15px; }
 /* Round 3, the foot bar (phones and tablets): an opaque band the path never runs under (the overlay's scroll padding
    counts it); round 4: filled with the timers' chips, "Jump to next" at its right, and while a toast shows, a row above

@@ -22,3 +22,12 @@
 :root[data-theme=light] .add-money-tile button:not(#\-)::after { border-color: #6b7a93; }
 :root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-)::after { border-color: #0a8a9c; background: radial-gradient(circle, #0a8a9c 0 4px, transparent 5px); }
 :root[data-theme=light] .add-money-tile button[aria-pressed="true"]:not(#\-) { border-color: #0a8a9c; box-shadow: inset 0 0 0 1px #0a8a9c; }
+/* Gate C layout audit (G4): the ecosystem page's header card keeps Nebula's purple and teal glows by day (H13), so the ends
+   of its eyebrow and title sit on a mauve patch (2.9:1 at 320 px with the day's 5.2:1 stops). The stops that paint the
+   words' ends take deeper shades of the same hues there (8.2:1 on white, H130's gradient-word rule), which hold 4.5:1 on
+   the glow; the mid-word cyan keeps the day's 5.8:1 (deeper, it would lose its colour: chroma under 0.07). */
+:root[data-theme=light] .ecosystem-intro:not(#\-) { --nebula-flow-mid: linear-gradient(100deg, currentColor 0%, currentColor 42%, #02707b 72%, #394898 84%, #6b3593 93%, #862872 100%); }
+/* Gate C layout audit (G4): a vision tile's caption by day. The tile's art keeps its night sky (an island), and a two-line
+   title at 1024 px climbed above the shade's fade into the art (2.7:1). The caption sits on a frosted white band with a
+   soft top edge: a neutral surface and shade, nothing moves. */
+:root[data-theme=light] .vision-tile-body:not(#\-) { background-color: #ffffffd9; box-shadow: 0 -16px 16px -4px #ffffffd9; }

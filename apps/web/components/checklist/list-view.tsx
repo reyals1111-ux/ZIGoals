@@ -36,7 +36,7 @@ export function ListView({state, onAdd}: {state: ChecklistState; onAdd?: () => v
           return <li key={dot.id} className="checklist-pill" data-state={dot.state} data-counted={dot.counted ? undefined : 'no'}>
             <div className="checklist-pill-row">
               {check}
-              <span className="checklist-pill-text"><span className="checklist-pill-label">{dot.label}</span></span>
+              <span className="checklist-pill-text"><span className="checklist-pill-label" title={dot.label}>{dot.label}</span></span>
             </div>
             {panel?.id === dot.id && <div className="checklist-pill-panel">{renderPanel(dot)}</div>}
           </li>;
